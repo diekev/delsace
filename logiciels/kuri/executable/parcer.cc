@@ -65,6 +65,12 @@ using dls::outils::est_element;
 /** \nom Configuration
  * \{ */
 
+struct RubriqueEmployée {
+    dls::chaine nom{};
+    dls::chaine type{};
+    dls::chaine renomme{};
+};
+
 struct Configuration {
     dls::chaine fichier{};
     dls::chaine fichier_sortie{};
@@ -81,6 +87,8 @@ struct Configuration {
 
     bool fichier_est_composite = false;
     dls::chaine fichier_tmp{};
+
+    kuri::tableau<RubriqueEmployée> rubriques_employées{};
 };
 
 static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -217,6 +225,44 @@ static auto analyse_configuration(const char *chemin)
     config.modules_à_importer = parse_tableau_de_chaines(dico, "modules_à_importer");
     config.fichier_sortie = parse_chaine(dico, "sortie");
     config.nom_bibliothèque = parse_chaine(dico, "bibliothèque");
+
+    auto tableau_rubriques_employées = tori::cherche_tableau(dico, "rubriques_employées");
+    if (tableau_rubriques_employées != nullptr) {
+        kuri::tableau<RubriqueEmployée> rubriques_employées{};
+
+        POUR (tableau_rubriques_employées->valeur) {
+            if (it->type != tori::type_objet::DICTIONNAIRE) {
+                std::cerr
+                    << "La propriété \"rubriques_employées\" doit être un tableau d'objets\n";
+                std::cerr << "    NOTE : or, nous y avons trouvé un élément de type "
+                          << tori::chaine_type(it->type) << "\n";
+                exit(1);
+            }
+
+            auto dictionnaire_rubrique = static_cast<tori::ObjetDictionnaire *>(it.get());
+
+            auto rubrique_employée = RubriqueEmployée{};
+            rubrique_employée.nom = parse_chaine(dictionnaire_rubrique, "nom");
+            rubrique_employée.type = parse_chaine(dictionnaire_rubrique, "type");
+            rubrique_employée.renomme = parse_chaine(dictionnaire_rubrique, "renomme");
+
+            if (rubrique_employée.nom.taille() == 0) {
+                std::cerr
+                    << "Propriété 'nom' manquante pour un élément de \"rubriques_employées\"\n";
+                exit(1);
+            }
+
+            if (rubrique_employée.type.taille() == 0) {
+                std::cerr
+                    << "Propriété 'type' manquante pour un élément de \"rubriques_employées\"\n";
+                exit(1);
+            }
+
+            rubriques_employées.ajoute(rubrique_employée);
+        }
+
+        config.rubriques_employées = rubriques_employées;
+    }
 
     return config;
 }
@@ -513,6 +559,8 @@ struct DéclarationVariable : public Syntaxème {
 
     /* Pour les globales. */
     CX_StorageClass storage_class{};
+
+    bool est_employée = false;
 
     dls::chaine nom{};
     Expression *expression = nullptr;
@@ -1284,6 +1332,7 @@ struct Convertisseuse {
         assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
 
         marque_prodéclarations_inutiles();
+        marque_rubriques_employées();
 
         POUR (config->modules_à_importer) {
             flux_sortie << "importe " << it << "\n";
@@ -2557,6 +2606,11 @@ struct Convertisseuse {
                 auto variable = static_cast<DéclarationVariable *>(syntaxème);
 
                 imprime_tab(os);
+
+                if (variable->est_employée) {
+                    os << "empl ";
+                }
+
                 os << variable->nom << (variable->expression ? " : " : ": ");
                 os << converti_type(variable->type_c.value(), typedefs);
 
@@ -2766,6 +2820,34 @@ struct Convertisseuse {
 
             if (!trouvée) {
                 structures.ajoute(structure1);
+            }
+        }
+    }
+
+    void marque_rubriques_employées()
+    {
+        if (config->rubriques_employées.taille() == 0) {
+            return;
+        }
+
+        for (auto &it : syntaxeuse.toutes_les_structures) {
+            for (auto &rubrique : it->rubriques) {
+                if (rubrique->type_syntaxème != TypeSyntaxème::DÉCLARATION_VARIABLE) {
+                    continue;
+                }
+
+                auto variable = static_cast<DéclarationVariable *>(rubrique);
+
+                POUR (config->rubriques_employées) {
+                    if (it.nom == variable->nom && variable->type_c.has_value() &&
+                        converti_type(variable->type_c.value(), typedefs) == it.type) {
+                        variable->est_employée = true;
+                        if (it.renomme != "") {
+                            variable->nom = it.renomme;
+                        }
+                        break;
+                    }
+                }
             }
         }
     }
