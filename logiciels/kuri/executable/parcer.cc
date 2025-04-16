@@ -566,6 +566,7 @@ struct DéclarationVariable : public Syntaxème {
     /* Pour les globales. */
     CX_StorageClass storage_class{};
 
+    bool est_variadique = false;
     bool est_employée = false;
 
     dls::chaine nom{};
@@ -2488,6 +2489,16 @@ struct Convertisseuse {
             fonction->paramètres.ajoute(variable);
         }
 
+        /* void foo() {} est un fonction variadique...
+         * void foo(void) {} est la bonne définition/déclaration... */
+        if (clang_isFunctionTypeVariadic(clang_getCursorType(cursor)) &&
+            fonction->paramètres.taille() != 0) {
+            auto variable = syntaxeuse.crée<DéclarationVariable>();
+            variable->nom = "anonyme" + dls::vers_chaine(enfants.taille());
+            variable->est_variadique = true;
+            fonction->paramètres.ajoute(variable);
+        }
+
 #if 0
         if (!est_declaration) {
             flux_sortie << '\n';
@@ -2604,8 +2615,13 @@ struct Convertisseuse {
 
                 kuri::chaine_statique virgule = "(";
                 POUR (fonction->paramètres) {
-                    os << virgule << it->nom << ": "
-                       << converti_type(it->type_c.value(), typedefs);
+                    if (it->est_variadique) {
+                        os << virgule << it->nom << ": ...";
+                    }
+                    else {
+                        os << virgule << it->nom << ": "
+                           << converti_type(it->type_c.value(), typedefs);
+                    }
                     virgule = ", ";
                 }
 
@@ -2628,7 +2644,13 @@ struct Convertisseuse {
                 }
 
                 os << variable->nom << (variable->expression ? " : " : ": ");
-                os << converti_type(variable->type_c.value(), typedefs);
+
+                if (variable->est_variadique) {
+                    os << "...";
+                }
+                else {
+                    os << converti_type(variable->type_c.value(), typedefs);
+                }
 
                 if (variable->expression) {
                     os << " = ";
@@ -2671,7 +2693,13 @@ struct Convertisseuse {
 
                     kuri::chaine_statique virgule = "fonc(";
                     POUR (fonction->paramètres) {
-                        os << virgule << converti_type(it->type_c.value(), typedefs);
+                        if (it->est_variadique) {
+                            std::cerr << donne_type_spelling(typedef_->type_défini) << "\n";
+                            os << virgule << "...";
+                        }
+                        else {
+                            os << virgule << converti_type(it->type_c.value(), typedefs);
+                        }
                         virgule = ", ";
                     }
 
