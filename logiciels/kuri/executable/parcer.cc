@@ -2908,7 +2908,7 @@ int main(int argc, char **argv)
 
     if (config.fichier_sortie != "") {
         std::ofstream fichier(config.fichier_sortie.c_str());
-        fichier << "/* stats-code ignore fichier */\n";
+        fichier << "/* stats-code ignore fichier */\n\n";
         convertisseuse.convertis(unit, fichier);
     }
     else {
