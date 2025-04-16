@@ -89,6 +89,7 @@ struct Configuration {
     dls::chaine fichier_tmp{};
 
     kuri::tableau<RubriqueEmployée> rubriques_employées{};
+    kuri::ensemble<dls::chaine> fonctions_à_ignorer{};
 };
 
 static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -262,6 +263,11 @@ static auto analyse_configuration(const char *chemin)
         }
 
         config.rubriques_employées = rubriques_employées;
+    }
+
+    auto fonctions_à_ignorer = parse_tableau_de_chaines(dico, "fonctions_à_ignorer");
+    POUR (fonctions_à_ignorer) {
+        config.fonctions_à_ignorer.insère(it);
     }
 
     return config;
@@ -2434,8 +2440,13 @@ struct Convertisseuse {
             }
         }
 
+        auto nom_fonction = donne_cursor_spelling(cursor);
+        if (config->fonctions_à_ignorer.possède(nom_fonction)) {
+            return;
+        }
+
         auto fonction = syntaxeuse.crée<DéclarationFonction>(cursor);
-        fonction->nom = donne_cursor_spelling(cursor);
+        fonction->nom = nom_fonction;
         fonction->type_sortie = clang_getCursorResultType(cursor);
         fonction->est_inline = clang_Cursor_isFunctionInlined(cursor);
 
