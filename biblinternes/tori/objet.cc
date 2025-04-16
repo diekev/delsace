@@ -28,215 +28,191 @@
 
 namespace tori {
 
-const char *chaine_type(type_objet type)
-{
-	switch (type) {
-		case type_objet::NUL:
-		{
-			return "NUL";
-		}
-		case type_objet::DICTIONNAIRE:
-		{
-			return "DICTIONNAIRE";
-		}
-		case type_objet::TABLEAU:
-		{
-			return "TABLEAU";
-		}
-		case type_objet::CHAINE:
-		{
-			return "CHAINE";
-		}
-		case type_objet::NOMBRE_ENTIER:
-		{
-			return "NOMBRE_ENTIER";
-		}
-		case type_objet::NOMBRE_REEL:
-		{
-			return "NOMBRE_REEL";
-		}
-	}
+const char *chaine_type(type_objet type) {
+  switch (type) {
+  case type_objet::NUL: {
+    return "NUL";
+  }
+  case type_objet::DICTIONNAIRE: {
+    return "DICTIONNAIRE";
+  }
+  case type_objet::TABLEAU: {
+    return "TABLEAU";
+  }
+  case type_objet::CHAINE: {
+    return "CHAINE";
+  }
+  case type_objet::NOMBRE_ENTIER: {
+    return "NOMBRE_ENTIER";
+  }
+  case type_objet::NOMBRE_REEL: {
+    return "NOMBRE_REEL";
+  }
+  }
 
-	return "INVALIDE";
+  return "INVALIDE";
 }
 
 /* ************************************************************************** */
 
-static void detruit_objet(Objet *objet)
-{
-	switch (objet->type) {
-		case type_objet::NUL:
-		{
-			delete objet;
-			break;
-		}
-		case type_objet::DICTIONNAIRE:
-		{
-			delete static_cast<ObjetDictionnaire *>(objet);
-			break;
-		}
-		case type_objet::TABLEAU:
-		{
-			delete static_cast<ObjetTableau *>(objet);
-			break;
-		}
-		case type_objet::CHAINE:
-		{
-			delete static_cast<ObjetChaine *>(objet);
-			break;
-		}
-		case type_objet::NOMBRE_ENTIER:
-		{
-			delete static_cast<ObjetNombreEntier *>(objet);
-			break;
-		}
-		case type_objet::NOMBRE_REEL:
-		{
-			delete static_cast<ObjetNombreReel *>(objet);
-			break;
-		}
-	}
+static void detruit_objet(Objet *objet) {
+  switch (objet->type) {
+  case type_objet::NUL: {
+    delete objet;
+    break;
+  }
+  case type_objet::DICTIONNAIRE: {
+    delete static_cast<ObjetDictionnaire *>(objet);
+    break;
+  }
+  case type_objet::TABLEAU: {
+    delete static_cast<ObjetTableau *>(objet);
+    break;
+  }
+  case type_objet::CHAINE: {
+    delete static_cast<ObjetChaine *>(objet);
+    break;
+  }
+  case type_objet::NOMBRE_ENTIER: {
+    delete static_cast<ObjetNombreEntier *>(objet);
+    break;
+  }
+  case type_objet::NOMBRE_REEL: {
+    delete static_cast<ObjetNombreReel *>(objet);
+    break;
+  }
+  }
 }
 
-std::shared_ptr<Objet> construit_objet(type_objet type)
-{
-	auto objet = static_cast<Objet *>(nullptr);
+std::shared_ptr<Objet> construit_objet(type_objet type) {
+  auto objet = static_cast<Objet *>(nullptr);
 
-	switch (type) {
-		case type_objet::NUL:
-			objet = new Objet{};
-			break;
-		case type_objet::DICTIONNAIRE:
-			objet = new ObjetDictionnaire{};
-			break;
-		case type_objet::TABLEAU:
-			objet = new ObjetTableau{};
-			break;
-		case type_objet::CHAINE:
-			objet = new ObjetChaine{};
-			break;
-		case type_objet::NOMBRE_ENTIER:
-			objet = new ObjetNombreEntier{};
-			break;
-		case type_objet::NOMBRE_REEL:
-			objet = new ObjetNombreReel{};
-			break;
-	}
+  switch (type) {
+  case type_objet::NUL:
+    objet = new Objet{};
+    break;
+  case type_objet::DICTIONNAIRE:
+    objet = new ObjetDictionnaire{};
+    break;
+  case type_objet::TABLEAU:
+    objet = new ObjetTableau{};
+    break;
+  case type_objet::CHAINE:
+    objet = new ObjetChaine{};
+    break;
+  case type_objet::NOMBRE_ENTIER:
+    objet = new ObjetNombreEntier{};
+    break;
+  case type_objet::NOMBRE_REEL:
+    objet = new ObjetNombreReel{};
+    break;
+  }
 
-	objet->type = type;
+  objet->type = type;
 
-	return std::shared_ptr<Objet>(objet, detruit_objet);
+  return std::shared_ptr<Objet>(objet, detruit_objet);
 }
 
-std::shared_ptr<Objet> construit_objet(long v)
-{
-	auto objet = std::make_shared<ObjetNombreEntier>();
-	objet->valeur = v;
-	objet->type = type_objet::NOMBRE_ENTIER;
-	return objet;
+std::shared_ptr<Objet> construit_objet(long v) {
+  auto objet = std::make_shared<ObjetNombreEntier>();
+  objet->valeur = v;
+  objet->type = type_objet::NOMBRE_ENTIER;
+  return objet;
 }
 
-std::shared_ptr<Objet> construit_objet(double v)
-{
-	auto objet = std::make_shared<ObjetNombreReel>();
-	objet->valeur = v;
-	objet->type = type_objet::NOMBRE_REEL;
-	return objet;
+std::shared_ptr<Objet> construit_objet(double v) {
+  auto objet = std::make_shared<ObjetNombreReel>();
+  objet->valeur = v;
+  objet->type = type_objet::NOMBRE_REEL;
+  return objet;
 }
 
-std::shared_ptr<Objet> construit_objet(dls::chaine const &v)
-{
-	auto objet = std::make_shared<ObjetChaine>();
-	objet->valeur = v;
-	objet->type = type_objet::CHAINE;
-	return objet;
+std::shared_ptr<Objet> construit_objet(dls::chaine const &v) {
+  auto objet = std::make_shared<ObjetChaine>();
+  objet->valeur = v;
+  objet->type = type_objet::CHAINE;
+  return objet;
 }
 
-std::shared_ptr<Objet> construit_objet(char const *v)
-{
-	auto objet = std::make_shared<ObjetChaine>();
-	objet->valeur = v;
-	objet->type = type_objet::CHAINE;
-	return objet;
+std::shared_ptr<Objet> construit_objet(char const *v) {
+  auto objet = std::make_shared<ObjetChaine>();
+  objet->valeur = v;
+  objet->type = type_objet::CHAINE;
+  return objet;
 }
 
 /* ************************************************************************** */
 
-static Objet *cherche_propriete(
-		ObjetDictionnaire *dico,
-		dls::chaine const &nom,
-		type_objet type)
-{
-	auto objet = dico->objet(nom);
+static Objet *cherche_propriete(ObjetDictionnaire *dico, dls::chaine const &nom,
+                                type_objet type) {
+  auto objet = dico->objet(nom);
 
-	if (objet == nullptr) {
-		std::cerr << "La propriété « " << nom << " » n'existe pas !\n";
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    std::cerr << "La propriété « " << nom << " » n'existe pas !\n";
+    return nullptr;
+  }
 
-	if (objet->type != type) {
-		std::cerr << "La propriété « " << nom << " » n'est pas de type « "
-				  << chaine_type(type) << " » (mais de type « "
-				  << chaine_type(objet->type) << " ») !\n";
-		return nullptr;
-	}
+  if (objet->type != type) {
+    std::cerr << "La propriété « " << nom << " » n'est pas de type « "
+              << chaine_type(type) << " » (mais de type « "
+              << chaine_type(objet->type) << " ») !\n";
+    return nullptr;
+  }
 
-	return objet;
+  return objet;
 }
 
-ObjetChaine *cherche_chaine(ObjetDictionnaire *dico, const dls::chaine &nom)
-{
-	auto objet = cherche_propriete(dico, nom, type_objet::CHAINE);
+ObjetChaine *cherche_chaine(ObjetDictionnaire *dico, const dls::chaine &nom) {
+  auto objet = cherche_propriete(dico, nom, type_objet::CHAINE);
 
-	if (objet == nullptr) {
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    return nullptr;
+  }
 
-	return extrait_chaine(objet);
+  return extrait_chaine(objet);
 }
 
-ObjetDictionnaire *cherche_dico(ObjetDictionnaire *dico, const dls::chaine &nom)
-{
-	auto objet = cherche_propriete(dico, nom, type_objet::DICTIONNAIRE);
+ObjetDictionnaire *cherche_dico(ObjetDictionnaire *dico,
+                                const dls::chaine &nom) {
+  auto objet = cherche_propriete(dico, nom, type_objet::DICTIONNAIRE);
 
-	if (objet == nullptr) {
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    return nullptr;
+  }
 
-	return extrait_dictionnaire(objet);
+  return extrait_dictionnaire(objet);
 }
 
-ObjetNombreEntier *cherche_nombre_entier(ObjetDictionnaire *dico, const dls::chaine &nom)
-{
-	auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_ENTIER);
+ObjetNombreEntier *cherche_nombre_entier(ObjetDictionnaire *dico,
+                                         const dls::chaine &nom) {
+  auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_ENTIER);
 
-	if (objet == nullptr) {
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    return nullptr;
+  }
 
-	return extrait_nombre_entier(objet);
+  return extrait_nombre_entier(objet);
 }
 
-ObjetNombreReel *cherche_nombre_reel(ObjetDictionnaire *dico, const dls::chaine &nom)
-{
-	auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_REEL);
+ObjetNombreReel *cherche_nombre_reel(ObjetDictionnaire *dico,
+                                     const dls::chaine &nom) {
+  auto objet = cherche_propriete(dico, nom, type_objet::NOMBRE_REEL);
 
-	if (objet == nullptr) {
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    return nullptr;
+  }
 
-	return extrait_nombre_reel(objet);
+  return extrait_nombre_reel(objet);
 }
 
-ObjetTableau *cherche_tableau(ObjetDictionnaire *dico, const dls::chaine &nom)
-{
-	auto objet = cherche_propriete(dico, nom, type_objet::TABLEAU);
+ObjetTableau *cherche_tableau(ObjetDictionnaire *dico, const dls::chaine &nom) {
+  auto objet = cherche_propriete(dico, nom, type_objet::TABLEAU);
 
-	if (objet == nullptr) {
-		return nullptr;
-	}
+  if (objet == nullptr) {
+    return nullptr;
+  }
 
-	return extrait_tableau(objet);
+  return extrait_tableau(objet);
 }
 
-}  /* namespace tori */
+} /* namespace tori */
