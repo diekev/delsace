@@ -935,6 +935,7 @@ struct Convertisseuse {
     dls::chaine nom_bibliothèque_sûr{};
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     kuri::tableau<kuri::chaine> dépendances_qt{};
+    kuri::tableau<dls::chaine> modules_à_importer{};
 
     dls::chaine m_préfixe_énum_courant{};
 
@@ -990,6 +991,13 @@ struct Convertisseuse {
         assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
 
         marque_prodéclarations_inutiles();
+
+        POUR (modules_à_importer) {
+            flux_sortie << "importe " << it << "\n";
+        }
+        if (modules_à_importer.taille()) {
+            flux_sortie << "\n";
+        }
 
         if (nom_bibliothèque != "") {
             flux_sortie << "lib" << nom_bibliothèque_sûr << " :: #bibliothèque \""
@@ -2475,6 +2483,7 @@ struct Configuration {
     dls::chaine fichier_sortie{};
     kuri::tableau<dls::chaine> args{};
     kuri::tableau<dls::chaine> inclusions{};
+    kuri::tableau<dls::chaine> modules_à_importer{};
     dls::chaine nom_bibliothèque{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
@@ -2618,6 +2627,7 @@ static auto analyse_configuration(const char *chemin)
 
     config.args = parse_tableau_de_chaines(dico, "args");
     config.inclusions = parse_tableau_de_chaines(dico, "inclusions");
+    config.modules_à_importer = parse_tableau_de_chaines(dico, "modules_à_importer");
     config.fichier_sortie = parse_chaine(dico, "sortie");
     config.nom_bibliothèque = parse_chaine(dico, "bibliothèque");
 
@@ -2868,6 +2878,7 @@ int main(int argc, char **argv)
     }
     convertisseuse.dépendances_biblinternes = config.dépendances_biblinternes;
     convertisseuse.dépendances_qt = config.dépendances_qt;
+    convertisseuse.modules_à_importer = config.modules_à_importer;
     convertisseuse.ajoute_typedef("size_t", "ulong");
     convertisseuse.ajoute_typedef("ssize_t", "long");
     convertisseuse.ajoute_typedef("std::size_t", "ulong");
