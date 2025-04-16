@@ -148,14 +148,18 @@ static Objet *cherche_propriete(ObjetDictionnaire *dico, dls::chaine const &nom,
   auto objet = dico->objet(nom);
 
   if (objet == nullptr) {
+#if 0
     std::cerr << "La propriété « " << nom << " » n'existe pas !\n";
+#endif
     return nullptr;
   }
 
   if (objet->type != type) {
+#if 0
     std::cerr << "La propriété « " << nom << " » n'est pas de type « "
               << chaine_type(type) << " » (mais de type « "
               << chaine_type(objet->type) << " ») !\n";
+#endif
     return nullptr;
   }
 
