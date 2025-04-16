@@ -94,6 +94,11 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
                 return "char * const *";
             }
         }
+        if (entête->ident->nom == "printf") {
+            if (index == 0) {
+                return "const char *";
+            }
+        }
         return {};
     }
 
