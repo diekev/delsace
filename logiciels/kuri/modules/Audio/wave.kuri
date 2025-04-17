@@ -1,0 +1,219 @@
+importe Fondation
+importe SysFichier
+
+// Spécification https://mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+
+/* Identifiants des chunks en petit (_PB) et grand (_GB) boutisme. */
+ID_CHUNK_WAVE_PB : n32 : 0x45_56_41_57 // "WAVE"
+ID_CHUNK_RIFF_PB : n32 : 0x46_46_49_52 // "RIFF"
+ID_CHUNK_FMT_PB  : n32 : 0x20_74_6d_66 // "fmt "
+ID_CHUNK_DATA_PB : n32 : 0x61_74_61_64 // "data"
+
+ID_CHUNK_WAVE_GB : n32 : 0x57_41_56_45 // "WAVE"
+ID_CHUNK_RIFF_GB : n32 : 0x52_49_46_46 // "RIFF"
+ID_CHUNK_FMT_GB  : n32 : 0x66_6d_74_20 // "fmt "
+ID_CHUNK_DATA_GB : n32 : 0x64_61_74_61 // "data"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Entête Wave
+ * \{ */
+
+EntêteWave :: struct {
+    id_groupe := ID_CHUNK_RIFF_PB
+    taille_fichier := 0
+    type_riff := ID_CHUNK_WAVE_PB
+}
+
+écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
+{
+    autrice.écris(entête.id_groupe)
+    autrice.écris(entête.taille_fichier)
+    autrice.écris(entête.type_riff)
+}
+
+valide_entête_wave :: fonc (entête: EntêteWave) -> bool
+{
+    si entête.id_groupe != ID_CHUNK_RIFF_PB {
+        retourne faux
+    }
+
+    si entête.type_riff != ID_CHUNK_WAVE_PB {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChunkFormatWave
+ * \{ */
+
+ChunkFormatWave :: struct {
+    id_chunk := ID_CHUNK_FMT_PB
+    taille_chunk: n32
+    tag_format: n16
+    nombre_cannaux: n16
+    échantillons_secondes: n32
+    bits_moyens_par_secondes: n32
+    alignement_bloc: n16
+    bits_par_échantillon: n16
+}
+
+valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
+{
+    si fmt.id_chunk != ID_CHUNK_FMT_PB {
+        retourne faux
+    }
+
+    si fmt.taille_chunk != 16 {
+        // peut-être 18 ou 40, mais non-supportés pour le moment
+        retourne faux
+    }
+
+    si fmt.tag_format != 1 {
+        // non-supporté pour le moment
+        retourne faux
+    }
+
+    si fmt.bits_par_échantillon != 16 {
+        // non-supporté pour le moment
+        retourne faux
+    }
+
+    si fmt.alignement_bloc != calcule_alignement_bloc(fmt) {
+        retourne faux
+    }
+
+    si fmt.bits_moyens_par_secondes != calcule_bits_moyens_par_secondes(fmt) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
+{
+    résultat: ChunkFormatWave
+    résultat.id_chunk = ID_CHUNK_FMT_PB
+    résultat.taille_chunk = 16
+    résultat.tag_format = 1
+    résultat.nombre_cannaux = 2
+    résultat.échantillons_secondes = 44100
+    résultat.bits_par_échantillon = 16
+    résultat.alignement_bloc = calcule_alignement_bloc(résultat)
+    résultat.bits_moyens_par_secondes = calcule_bits_moyens_par_secondes(résultat)
+    retourne résultat
+}
+
+calcule_alignement_bloc :: fonc (chunk: ChunkFormatWave) -> n16
+{
+    retourne chunk.nombre_cannaux * (chunk.bits_par_échantillon / 8)
+}
+
+calcule_bits_moyens_par_secondes :: fonc (chunk: ChunkFormatWave) -> n32
+{
+    retourne chunk.échantillons_secondes * chunk.alignement_bloc
+}
+
+/* Donne le nombre d'échantillons pour la durée en secondes. */
+donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée: r64) -> n32
+{
+    résultat := format.échantillons_secondes * format.nombre_cannaux
+    retourne ((résultat comme r64 * durée + 0.5) comme n64) comme n32
+}
+
+écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
+{
+    autrice.écris(chunk.id_chunk)
+    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.tag_format)
+    autrice.écris(chunk.nombre_cannaux)
+    autrice.écris(chunk.échantillons_secondes)
+    autrice.écris(chunk.bits_moyens_par_secondes)
+    autrice.écris(chunk.alignement_bloc)
+    autrice.écris(chunk.bits_par_échantillon)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ChunkDonnéesWave
+ * \{ */
+
+ChunkDonnéesWave :: struct {
+    id_chunk := ID_CHUNK_DATA_PB
+    taille_chunk : n32 = 0
+    données: []z16
+}
+
+écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
+{
+    autrice.écris(chunk.id_chunk)
+    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.données)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Autrice fichier Wave.
+ * \{ */
+
+AutriceFichierWave :: struct {
+    fichier: FichierPaginéMémoire
+    sérialiseuse: SérialiseuseFichier
+}
+
+initialise_autrice :: fonc (autrice: *AutriceFichierWave)
+{
+    autrice.sérialiseuse = crée_sérialiseuse(*autrice.fichier)
+}
+
+détruit_données_autrice :: fonc (autrice: *AutriceFichierWave)
+{
+    déloge_toutes_les_pages(*autrice.fichier)
+}
+
+écris_données :: fonc (fmt: ChunkFormatWave, data: ChunkDonnéesWave, chemin: CheminFichier)
+{
+    autrice: AutriceFichierWave
+    initialise_autrice(*autrice)
+    diffère détruit_données_autrice(*autrice)
+
+    entête: EntêteWave
+    écris(*autrice, entête)
+
+    écris(*autrice, fmt)
+    écris(*autrice, data)
+
+    /* On enlève 8 octets pour les 4 octets de "RIFF", et les 4 octets de la taille du fichier. */
+    taille_fichier := autrice.sérialiseuse.taille_données_totales - 8
+
+    position_courante := position_courante(*autrice.sérialiseuse)
+
+    /* La taille du fichier est écrite 4 octets après le début du fichier. */
+    discr donne_position_au_décalage(*autrice.sérialiseuse, 4) {
+        Quelque(position) {
+            positionne(*autrice.sérialiseuse, position)
+            écris(*autrice, taille_fichier comme n32)
+        }
+        sinon {
+            /* À FAIRE : type erreur. */
+            imprime("Impossible d'obtenir la position de la taille du fichier !\n")
+            retourne
+        }
+    }
+
+    positionne(*autrice.sérialiseuse, position_courante)
+
+    écris_dans_fichier(*autrice.fichier, chemin)
+}
+
+écris :: fonc (autrice: *AutriceFichierWave, valeur: $T)
+{
+    sérialise(*autrice.sérialiseuse, valeur)
+}
+
+/** \} */
