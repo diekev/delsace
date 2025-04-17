@@ -69,6 +69,14 @@ lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
     retourne résultat, reste
 }
 
+lis_données :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+{
+    assert(tampon.taille >= taille_de(T) comme z64)
+    résultat := mémoire(tampon.pointeur comme *T)
+    reste := avance(tampon, taille_de(T) comme z64)
+    retourne résultat, reste
+}
+
 // -----------------------------------------------------------------
 // Sérialisation de données dans un tampon d'octets
 
