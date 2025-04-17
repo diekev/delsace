@@ -67,7 +67,7 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
 ENUMERE_GENRE_INSTRUCTION(PREDECLARE_CLASSE_INSTRUCTION)
 #undef PREDECLARE_CLASSE_INSTRUCTION
 
-enum class DrapeauxAtome : uint8_t {
+enum class DrapeauxAtome : uint16_t {
     ZÉRO = 0,
     EST_À_SUPPRIMER = (1 << 0),
     EST_PARAMÈTRE_FONCTION = (1 << 1),
@@ -79,8 +79,12 @@ enum class DrapeauxAtome : uint8_t {
     RI_FUT_GÉNÉRÉE = (1 << 3),
     EST_UTILISÉ = (1 << 4),
     FUT_RÉINSÉRÉ_APRÈS_FSAU = (1 << 5),
-    EST_CHARGE = (1 << 6),
-    EST_STOCKE = (1 << 7),
+    /* Les chaines constantes sont suffixées avec '\0' pour être directement compatible avec C.
+     * Or, les atomes de données constantes ne copient pas les caractères des chaines, mais ne font
+     * que pointer vers ceux-ci. Nous devrons donc ajouter le caractère '\0' dans les coulisses. */
+    DONNÉES_CONSTANTES_SONT_POUR_CHAINE = (1 << 6),
+    EST_CHARGE = (1 << 7),
+    EST_STOCKE = (1 << 8),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxAtome)
 
@@ -795,6 +799,8 @@ bool est_locale_ou_globale(Atome const *atome);
  */
 bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1);
 
+bool est_accès_membre_ou_index(Instruction const *inst0, Instruction const *inst1);
+
 /**
  * Retourne vrai si \a inst0 est un transtypage de \a inst1.
  */
@@ -884,7 +890,7 @@ struct VisiteuseAtome {
 
     void réinitialise();
 
-    void visite_atome(Atome *racine, std::function<DécisionVisiteAtome (Atome *)> rappel);
+    void visite_atome(Atome *racine, std::function<DécisionVisiteAtome(Atome *)> rappel);
 };
 
 /* Visite récursivement l'atome. */
