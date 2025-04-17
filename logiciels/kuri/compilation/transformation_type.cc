@@ -673,6 +673,34 @@ ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_
     return cherche_transformation<true>(type_de, type_vers);
 }
 
+static double donne_poids_transformation(TypeTransformation transformation)
+{
+    switch (transformation) {
+        case TypeTransformation::INUTILE:
+        {
+            return 1.0;
+        }
+        case TypeTransformation::IMPOSSIBLE:
+        {
+            return 0.0;
+        }
+        case TypeTransformation::CONVERTI_VERS_BASE:
+        case TypeTransformation::CONVERTI_VERS_DÉRIVÉ:
+        {
+            /* Donnons plus d'importance aux transformations entre employées et employeuses par
+             * rapport aux autres conversions (convertir vers une employée doit être plus important
+             * que vers []octet ou eini). */
+            return 0.6;
+        }
+        default:
+        {
+            /* nous savons que nous devons transformer la valeur (par ex. eini), donc
+             * donne un mi-poids à l'argument */
+            return 0.5;
+        }
+    }
+}
+
 ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de)
 {
     auto résultat = cherche_transformation<false>(type_de, type_vers);
@@ -683,23 +711,17 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type 
 
     auto transformation = std::get<TransformationType>(résultat);
 
+    auto poids = donne_poids_transformation(transformation.type);
+
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
         if (type_vers->est_type_pointeur() &&
             type_vers->comme_type_pointeur()->type_pointé == nullptr && type_vers != type_de) {
-            return PoidsTransformation{transformation, 0.0};
+            poids = 0.0;
         }
-
-        return PoidsTransformation{transformation, 1.0};
     }
 
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return PoidsTransformation{transformation, 0.0};
-    }
-
-    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
-     * donne un mi-poids à l'argument */
-    return PoidsTransformation{transformation, 0.5};
+    return PoidsTransformation{transformation, poids};
 }
 
 ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
@@ -714,22 +736,13 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
 
     auto transformation = std::get<TransformationType>(résultat);
 
-    if (transformation.type == TypeTransformation::INUTILE) {
-        return PoidsTransformation{transformation, 1.0};
-    }
-
-    if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return PoidsTransformation{transformation, 0.0};
-    }
+    auto poids = donne_poids_transformation(transformation.type);
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE) {
-        return PoidsTransformation{transformation,
-                                   est_valeur_gauche(noeud->genre_valeur) ? 1.0 : 0.0};
+        poids = est_valeur_gauche(noeud->genre_valeur) ? 1.0 : 0.0;
     }
 
-    /* nous savons que nous devons transformer la valeur (par ex. eini), donc
-     * donne un mi-poids à l'argument */
-    return PoidsTransformation{transformation, 0.5};
+    return PoidsTransformation{transformation, poids};
 }
 
 std::ostream &operator<<(std::ostream &os, TransformationType type)

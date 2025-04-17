@@ -1187,6 +1187,10 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
             return i - (decalage - 1);
         }
 
+        if (est_accès_membre_ou_index(bloc->instructions[i], alloc)) {
+            return {};
+        }
+
         if (est_stockage_vers(bloc->instructions[i], alloc)) {
             return i;
         }
