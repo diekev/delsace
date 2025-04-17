@@ -705,6 +705,16 @@ QT_Thread *QT_application_thread()
     return vers_ipa(QApplication::instance()->thread());
 }
 
+int QT_application_screen_count()
+{
+    return QApplication::screens().size();
+}
+
+void QT_application_screen_geometry(int index, QT_Rect *rect)
+{
+    *rect = vers_ipa(QApplication::screens().at(index)->geometry());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

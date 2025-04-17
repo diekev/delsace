@@ -589,6 +589,12 @@ void QT_application_process_events();
 
 struct QT_Thread *QT_application_thread();
 
+int QT_application_screen_count();
+
+struct QT_Rect;
+
+void QT_application_screen_geometry(int index, struct QT_Rect *rect);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
