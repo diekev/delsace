@@ -4899,6 +4899,7 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
             TypeBase::Z8, static_cast<int>(chaine.taille()));
         auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
             type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
+        tableau->drapeaux |= DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE;
 
         auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
         auto globale_tableau = m_constructrice.crée_globale(
