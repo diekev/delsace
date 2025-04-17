@@ -67,6 +67,21 @@ détruit_données :: fonc (tampon: *TamponAudio)
     init_de(FormatAudio)(*tampon.format)
 }
 
+donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde: z32) -> TamponAudio
+{
+    assert(début_seconde < fin_seconde)
+
+    résultat := tampon
+
+    début := donne_taille_données_pour_une_seconde(résultat.format) * début_seconde
+    fin   := donne_taille_données_pour_une_seconde(résultat.format) * fin_seconde
+
+    résultat.données.pointeur += début
+    résultat.données.taille = fin - début
+    résultat.données.capacité = 0
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
