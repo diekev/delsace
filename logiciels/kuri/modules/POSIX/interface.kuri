@@ -1,6 +1,8 @@
 Chaine :: importe Chaine
 ChaineC :: Chaine.ChaineC
 
+off_t :: z64
+
 // <aio.h>
 
 /* ------------------------------------------------------------------------- */
