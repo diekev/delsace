@@ -34,9 +34,9 @@ ChunkFormatWave :: struct {
     tag_format: n16
     nombre_cannaux: n16
     échantillons_secondes: n32
-    bits_par_échantillon: n16
-    alignement_bloc: n16
     bits_moyens_par_secondes: n32
+    alignement_bloc: n16
+    bits_par_échantillon: n16
 }
 
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
