@@ -5,21 +5,27 @@ importe SysFichier
 // Petite bibliothèque de génération de fichier audio Wave.
 // Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
 
+/* NOTE : ces identifiants sont en PETIT-BOUTISME. Dans les fichiers ils sont en fait de petites chaines de caractères. */
+ID_CHUNK_WAVE : n32 : 0x45564157 // "WAVE"
+ID_CHUNK_RIFF : n32 : 0x46464952 // "RIFF"
+ID_CHUNK_FMT  : n32 : 0x20746d66 // "fmt "
+ID_CHUNK_DATA : n32 : 0x61746164 // "data"
+
 /* ------------------------------------------------------------------------- */
 /** \nom Entête Wave
  * \{ */
 
 EntêteWave :: struct {
-    id_groupe := "RIFF"
+    id_groupe := ID_CHUNK_RIFF
     taille_fichier := 0
-    type_riff := "WAVE"
+    type_riff := ID_CHUNK_WAVE
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
 {
-    autrice.écris_chaine_sans_taille(entête.id_groupe)
+    autrice.écris(entête.id_groupe)
     autrice.écris(entête.taille_fichier)
-    autrice.écris_chaine_sans_taille(entête.type_riff)
+    autrice.écris(entête.type_riff)
 }
 
 /** \} */
@@ -29,7 +35,7 @@ EntêteWave :: struct {
  * \{ */
 
 ChunkFormatWave :: struct {
-    id_chunk := "fmt "
+    id_chunk := ID_CHUNK_FMT
     taille_chunk: n32
     tag_format: n16
     nombre_cannaux: n16
@@ -42,7 +48,7 @@ ChunkFormatWave :: struct {
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
 {
     résultat: ChunkFormatWave
-    résultat.id_chunk = "fmt "
+    résultat.id_chunk = ID_CHUNK_FMT
     résultat.taille_chunk = 16
     résultat.tag_format = 1
     résultat.nombre_cannaux = 2
@@ -62,7 +68,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 
 écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
 {
-    autrice.écris_chaine_sans_taille(chunk.id_chunk)
+    autrice.écris(chunk.id_chunk)
     autrice.écris(chunk.taille_chunk)
     autrice.écris(chunk.tag_format)
     autrice.écris(chunk.nombre_cannaux)
@@ -79,14 +85,14 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
  * \{ */
 
 ChunkDonnéesWave :: struct {
-    id_chunk := "data"
+    id_chunk := ID_CHUNK_DATA
     taille_chunk : n32 = 0
     données: [..]z16
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
 {
-    autrice.écris_chaine_sans_taille(chunk.id_chunk)
+    autrice.écris(chunk.id_chunk)
     autrice.écris(chunk.taille_chunk)
     autrice.écris(chunk.données)
 }
@@ -213,11 +219,6 @@ détruit_données_autrice :: fonc (autrice: *AutriceFichierWave)
 écris :: fonc (autrice: *AutriceFichierWave, valeur: $T)
 {
     sérialise(*autrice.sérialiseuse, valeur)
-}
-
-écris_chaine_sans_taille :: fonc (autrice: *AutriceFichierWave, chn: chaine)
-{
-    sérialise(*autrice.sérialiseuse, chn)
 }
 
 /** \} */
