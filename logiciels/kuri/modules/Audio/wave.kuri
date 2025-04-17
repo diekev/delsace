@@ -84,11 +84,11 @@ valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
         retourne faux
     }
 
-    si fmt.alignement_bloc != fmt.nombre_cannaux * (fmt.bits_par_échantillon / 8) {
+    si fmt.alignement_bloc != calcule_alignement_bloc(fmt) {
         retourne faux
     }
 
-    si fmt.bits_moyens_par_secondes != fmt.échantillons_secondes * fmt.alignement_bloc {
+    si fmt.bits_moyens_par_secondes != calcule_bits_moyens_par_secondes(fmt) {
         retourne faux
     }
 
@@ -104,9 +104,19 @@ initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
     résultat.nombre_cannaux = 2
     résultat.échantillons_secondes = 44100
     résultat.bits_par_échantillon = 16
-    résultat.alignement_bloc = résultat.nombre_cannaux * (résultat.bits_par_échantillon / 8)
-    résultat.bits_moyens_par_secondes = résultat.échantillons_secondes * résultat.alignement_bloc
+    résultat.alignement_bloc = calcule_alignement_bloc(résultat)
+    résultat.bits_moyens_par_secondes = calcule_bits_moyens_par_secondes(résultat)
     retourne résultat
+}
+
+calcule_alignement_bloc :: fonc (chunk: ChunkFormatWave) -> n16
+{
+    retourne chunk.nombre_cannaux * (chunk.bits_par_échantillon / 8)
+}
+
+calcule_bits_moyens_par_secondes :: fonc (chunk: ChunkFormatWave) -> n32
+{
+    retourne chunk.échantillons_secondes * chunk.alignement_bloc
 }
 
 /* Donne le nombre d'échantillons pour la durée en secondes. */
