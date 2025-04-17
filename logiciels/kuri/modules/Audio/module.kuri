@@ -5,20 +5,25 @@ importe SysFichier
 // Petite bibliothèque de génération de fichier audio Wave.
 // Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
 
-/* NOTE : ces identifiants sont en PETIT-BOUTISME. Dans les fichiers ils sont en fait de petites chaines de caractères. */
-ID_CHUNK_WAVE : n32 : 0x45564157 // "WAVE"
-ID_CHUNK_RIFF : n32 : 0x46464952 // "RIFF"
-ID_CHUNK_FMT  : n32 : 0x20746d66 // "fmt "
-ID_CHUNK_DATA : n32 : 0x61746164 // "data"
+/* Identifiants des chunks en petit (_PB) et grand (_GB) boutisme. */
+ID_CHUNK_WAVE_PB : n32 : 0x45_56_41_57 // "WAVE"
+ID_CHUNK_RIFF_PB : n32 : 0x46_46_49_52 // "RIFF"
+ID_CHUNK_FMT_PB  : n32 : 0x20_74_6d_66 // "fmt "
+ID_CHUNK_DATA_PB : n32 : 0x61_74_61_64 // "data"
+
+ID_CHUNK_WAVE_GB : n32 : 0x57_41_56_45 // "WAVE"
+ID_CHUNK_RIFF_GB : n32 : 0x52_49_46_46 // "RIFF"
+ID_CHUNK_FMT_GB  : n32 : 0x66_6d_74_20 // "fmt "
+ID_CHUNK_DATA_GB : n32 : 0x64_61_74_61 // "data"
 
 /* ------------------------------------------------------------------------- */
 /** \nom Entête Wave
  * \{ */
 
 EntêteWave :: struct {
-    id_groupe := ID_CHUNK_RIFF
+    id_groupe := ID_CHUNK_RIFF_PB
     taille_fichier := 0
-    type_riff := ID_CHUNK_WAVE
+    type_riff := ID_CHUNK_WAVE_PB
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
@@ -30,11 +35,11 @@ EntêteWave :: struct {
 
 valide_entête_wave :: fonc (entête: EntêteWave) -> bool
 {
-    si entête.id_groupe != ID_CHUNK_RIFF {
+    si entête.id_groupe != ID_CHUNK_RIFF_PB {
         retourne faux
     }
 
-    si entête.type_riff != ID_CHUNK_WAVE {
+    si entête.type_riff != ID_CHUNK_WAVE_PB {
         retourne faux
     }
 
@@ -48,7 +53,7 @@ valide_entête_wave :: fonc (entête: EntêteWave) -> bool
  * \{ */
 
 ChunkFormatWave :: struct {
-    id_chunk := ID_CHUNK_FMT
+    id_chunk := ID_CHUNK_FMT_PB
     taille_chunk: n32
     tag_format: n16
     nombre_cannaux: n16
@@ -60,7 +65,7 @@ ChunkFormatWave :: struct {
 
 valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
 {
-    si fmt.id_chunk != ID_CHUNK_FMT {
+    si fmt.id_chunk != ID_CHUNK_FMT_PB {
         retourne faux
     }
 
@@ -93,7 +98,7 @@ valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
 {
     résultat: ChunkFormatWave
-    résultat.id_chunk = ID_CHUNK_FMT
+    résultat.id_chunk = ID_CHUNK_FMT_PB
     résultat.taille_chunk = 16
     résultat.tag_format = 1
     résultat.nombre_cannaux = 2
@@ -130,7 +135,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
  * \{ */
 
 ChunkDonnéesWave :: struct {
-    id_chunk := ID_CHUNK_DATA
+    id_chunk := ID_CHUNK_DATA_PB
     taille_chunk : n32 = 0
     données: [..]z16
 }
