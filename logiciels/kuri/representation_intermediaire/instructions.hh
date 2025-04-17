@@ -797,6 +797,8 @@ bool est_locale_ou_globale(Atome const *atome);
  */
 bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1);
 
+bool est_accès_membre_ou_index(Instruction const *inst0, Instruction const *inst1);
+
 /**
  * Retourne vrai si \a inst0 est un transtypage de \a inst1.
  */
