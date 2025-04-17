@@ -1414,6 +1414,7 @@ void QT_window_resize(struct QT_Window *window, int width, int height);
 int QT_window_height(struct QT_Window *window);
 int QT_window_width(struct QT_Window *window);
 bool QT_window_is_exposed(struct QT_Window *window);
+void QT_window_set_position(struct QT_Window *window, int x, int y);
 
 /** \} */
 

@@ -1426,6 +1426,12 @@ bool QT_window_is_exposed(struct QT_Window *window)
     return qwindow->isExposed();
 }
 
+void QT_window_set_position(struct QT_Window *window, int x, int y)
+{
+    VERS_QT(window);
+    qwindow->setPosition(x, y);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
