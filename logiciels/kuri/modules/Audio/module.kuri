@@ -28,6 +28,19 @@ EntêteWave :: struct {
     autrice.écris(entête.type_riff)
 }
 
+valide_entête_wave :: fonc (entête: EntêteWave) -> bool
+{
+    si entête.id_groupe != ID_CHUNK_RIFF {
+        retourne faux
+    }
+
+    si entête.type_riff != ID_CHUNK_WAVE {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -43,6 +56,38 @@ ChunkFormatWave :: struct {
     bits_moyens_par_secondes: n32
     alignement_bloc: n16
     bits_par_échantillon: n16
+}
+
+valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
+{
+    si fmt.id_chunk != ID_CHUNK_FMT {
+        retourne faux
+    }
+
+    si fmt.taille_chunk != 16 {
+        // peut-être 18 ou 40, mais non-supportés pour le moment
+        retourne faux
+    }
+
+    si fmt.tag_format != 1 {
+        // non-supporté pour le moment
+        retourne faux
+    }
+
+    si fmt.bits_par_échantillon != 16 {
+        // non-supporté pour le moment
+        retourne faux
+    }
+
+    si fmt.alignement_bloc != fmt.nombre_cannaux * (fmt.bits_par_échantillon / 8) {
+        retourne faux
+    }
+
+    si fmt.bits_moyens_par_secondes != fmt.échantillons_secondes * fmt.alignement_bloc {
+        retourne faux
+    }
+
+    retourne vrai
 }
 
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
