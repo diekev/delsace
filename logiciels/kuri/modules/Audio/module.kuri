@@ -48,7 +48,7 @@ initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
     résultat.nombre_cannaux = 2
     résultat.échantillons_secondes = 44100
     résultat.bits_par_échantillon = 16
-    résultat.alignement_bloc = résultat.nombre_cannaux * (résultat.bits_par_échantillon / 3)
+    résultat.alignement_bloc = résultat.nombre_cannaux * (résultat.bits_par_échantillon / 8)
     résultat.bits_moyens_par_secondes = résultat.échantillons_secondes * résultat.alignement_bloc
     retourne résultat
 }
