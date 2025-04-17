@@ -68,3 +68,82 @@ détruit_données :: fonc (tampon: *TamponAudio)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Génération de sons.
+ * \{ */
+
+remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudio, fréquence: r64, facteur_amplitude: r32) -> rien
+{
+    format := tampon.format
+
+    nombre_échantillons := tampon.données.taille
+    si nombre_échantillons == 0 {
+        retourne
+    }
+
+    assert((nombre_échantillons % format.nombre_de_canaux) == 0)
+
+    assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
+
+    données: []z16
+    données.pointeur = tampon.données.pointeur comme *z16
+    données.taille = tampon.données.taille / 2
+
+    remplis_avec_son_sinusoïdal(données, format.nombre_de_canaux, fréquence, facteur_amplitude)
+}
+
+#portée_fichier
+
+remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fréquence: r64, facteur_amplitude: r32)
+{
+    nombre_échantillons := données.taille
+    nombre_échantillons_par_canal := nombre_échantillons / nombre_de_canaux
+
+    t := (Constantes(r32).TAU * fréquence comme r32) / (nombre_échantillons_par_canal comme r32)
+
+    facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
+    amplitude := (facteur_amplitude * 32768)
+
+    pour nombre_échantillons_par_canal {
+        valeur := (amplitude * sinus(t * (it comme r32))) comme z16
+
+        pour c dans nombre_de_canaux {
+            données[it * 2 + c] = valeur
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Export.
+ * \{ */
+
+#portée_export
+
+écris_fichier_wave :: fonc (tampon: TamponAudio, chemin: chaine)
+{
+    assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
+
+    format: ChunkFormatWave
+    format.taille_chunk = 16
+    format.tag_format = 1
+    format.nombre_cannaux = tampon.format.nombre_de_canaux comme n16
+    format.échantillons_secondes = tampon.format.échantillons_par_seconde comme n32
+    format.bits_par_échantillon = 16
+    format.alignement_bloc = calcule_alignement_bloc(format)
+    format.bits_moyens_par_secondes = calcule_bits_moyens_par_secondes(format)
+
+    données: []z16
+    données.pointeur = tampon.données.pointeur comme *z16
+    données.taille = tampon.données.taille / 2
+
+    chunk_données: ChunkDonnéesWave
+    chunk_données.taille_chunk = tampon.données.taille comme n32
+    chunk_données.données = données
+
+    écris_données(format, chunk_données, CheminFichier(chemin))
+}
+
+/** \} */

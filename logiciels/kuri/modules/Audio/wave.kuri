@@ -1,5 +1,4 @@
 importe Fondation
-importe Math
 importe SysFichier
 
 // Spécification https://mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
@@ -146,7 +145,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 ChunkDonnéesWave :: struct {
     id_chunk := ID_CHUNK_DATA_PB
     taille_chunk : n32 = 0
-    données: [..]z16
+    données: []z16
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
@@ -154,63 +153,6 @@ ChunkDonnéesWave :: struct {
     autrice.écris(chunk.id_chunk)
     autrice.écris(chunk.taille_chunk)
     autrice.écris(chunk.données)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom GénératriceWave
- * \{ */
-
-GénératriceWave :: struct {
-    entête: EntêteWave
-    format : ChunkFormatWave = initialise_format_chunk_wave()
-    données: ChunkDonnéesWave
-}
-
-/* Génère un son sinusoïdale pour la fréquence, l'amplitude (entre 0 et 1) et la durée données. */
-ajoute_son_sinusoïdal :: fonc (
-    génératrice: &GénératriceWave,
-    fréquence: r64,
-    facteur_amplitude: r32,
-    durée: r64) -> rien
-{
-    format := génératrice.format
-
-    nombre_échantillons := donne_nombre_échantillons_pour_durée(format, durée)
-    si nombre_échantillons == 0 {
-        retourne
-    }
-
-    assert((nombre_échantillons % format.nombre_cannaux) == 0)
-
-    données := génératrice.données.données
-    taille := données.taille
-
-    tableau_redimensionne(données, taille + (nombre_échantillons comme z64))
-    assert(données.taille != 0)
-
-    t := (Constantes(r32).TAU * fréquence comme r32) / (format.échantillons_secondes comme r32)
-
-    décalage := taille
-    nombre_échantillons_par_chaine := nombre_échantillons / format.nombre_cannaux
-
-    facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
-    amplitude := (facteur_amplitude * 32760) comme z32
-
-    /* À FAIRE(langage) : aucune itération si le type est naturel. */
-    pour (nombre_échantillons_par_chaine) comme z32 {
-        i := it comme z64
-        valeur := (amplitude comme r32 * sinus(t * (i comme r32))) comme z16
-
-        pour c dans (génératrice.format.nombre_cannaux comme z32) {
-            données[décalage + i * 2 + (c comme z64)] = valeur
-        }
-    }
-
-    génératrice.données.données = données
-    génératrice.données.taille_chunk = (données.taille * (génératrice.format.bits_par_échantillon / 8) comme z64) comme n32
-    assert(génératrice.données.taille_chunk != 0)
 }
 
 /** \} */
@@ -234,15 +176,17 @@ détruit_données_autrice :: fonc (autrice: *AutriceFichierWave)
     déloge_toutes_les_pages(*autrice.fichier)
 }
 
-écris_données :: fonc (génératrice: *GénératriceWave, chemin: CheminFichier)
+écris_données :: fonc (fmt: ChunkFormatWave, data: ChunkDonnéesWave, chemin: CheminFichier)
 {
     autrice: AutriceFichierWave
     initialise_autrice(*autrice)
     diffère détruit_données_autrice(*autrice)
 
-    écris(*autrice, génératrice.entête)
-    écris(*autrice, génératrice.format)
-    écris(*autrice, génératrice.données)
+    entête: EntêteWave
+    écris(*autrice, entête)
+
+    écris(*autrice, fmt)
+    écris(*autrice, data)
 
     /* On enlève 8 octets pour les 4 octets de "RIFF", et les 4 octets de la taille du fichier. */
     taille_fichier := autrice.sérialiseuse.taille_données_totales - 8
