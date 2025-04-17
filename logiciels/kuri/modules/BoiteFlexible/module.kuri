@@ -636,6 +636,8 @@ Emboiteuse :: struct {
     souris_x: r32
     souris_y: r32
 
+    hauteur_racine: r32
+
     commandes: CommandesDeRendu
 
     id_pressé: n64
@@ -645,6 +647,8 @@ commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z3
 {
     réinitialise(emboiteuse)
 
+    emboiteuse.hauteur_racine = hauteur comme r32
+
     racine := emboiteuse.crée_boite()
     racine.disposition.cotation.largeur = FIXE(largeur)
     racine.disposition.cotation.hauteur = FIXE(hauteur)
@@ -652,6 +656,17 @@ commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z3
     emboiteuse.racine = racine
 
     __boite_courante = emboiteuse.racine
+}
+
+donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) -> Point2D(r32)
+{
+    résultat : Point2D(r32) = ---
+    résultat.x = emboiteuse.souris_x
+    résultat.y = emboiteuse.souris_y
+    si origine_en_bas {
+        résultat.y = emboiteuse.hauteur_racine - résultat.y
+    }
+    retourne résultat
 }
 
 #portée_fichier

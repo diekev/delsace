@@ -968,11 +968,11 @@ génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: [..]M
             "METH_NOARGS"
         }
 
-        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = crée_chaine_c(\"%\"), ml_meth = %, ml_flag = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode)
+        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = crée_chaine_c(\"%\"), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode)
     }
 
     /* Sentinelle */
-    enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(nul), ml_meth = nul, ml_flag = 0, ml_doc = ChaineC(nul))\n")
+    enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(nul), ml_meth = nul, ml_flags = 0, ml_doc = ChaineC(nul))\n")
     enchaineuse.ajoute_au_tampon("]\n")
 }
 

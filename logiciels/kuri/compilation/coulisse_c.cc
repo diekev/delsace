@@ -94,6 +94,11 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
                 return "char * const *";
             }
         }
+        if (entête->ident->nom == "printf") {
+            if (index == 0) {
+                return "const char *";
+            }
+        }
         return {};
     }
 
@@ -2493,6 +2498,16 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
             os << "0x";
             os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
             os << dls::num::char_depuis_hex(octet & 0x0f);
+            virgule = ", ";
+        }
+
+        if (it.tableau->possède_drapeau(DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
+            compteur++;
+            os << virgule;
+            if ((compteur % 20) == 0) {
+                os << "\n";
+            }
+            os << "0x00";
             virgule = ", ";
         }
     }

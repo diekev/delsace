@@ -554,7 +554,7 @@ bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
     info() << "Exécution de la commande '" << commande_sans_caractère_nul << "'...";
 
     auto nouvelle_commande = enchaine(
-        commande_sans_caractère_nul, " 2> ", chemin_fichier_erreur, '\0');
+        commande_sans_caractère_nul, " 2> \"", chemin_fichier_erreur, "\"", '\0');
 
     auto const err = system(nouvelle_commande.pointeur());
     if (err == 0) {
