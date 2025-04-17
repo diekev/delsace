@@ -317,6 +317,8 @@ union QT_AbstractSocket {
     O(QEventLoop, QT_Event_Loop, event_loop)                                                      \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
     O(QIODevice, QT_IODevice, io_device)                                                          \
+    O(QLocalServer, QT_LocalServer, local_server)                                                 \
+    O(QLocalSocket, QT_LocalSocket, local_socket)                                                 \
     O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QObject, QT_Object, object)                                                                 \
     O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
@@ -2680,6 +2682,36 @@ struct QT_IODevice *QT_iodevice_cree_avec_rappels(struct QT_Rappels_IODevice *ra
 void QT_iodevice_ready_read(struct QT_IODevice *iodevice);
 
 void QT_iodevice_open(struct QT_IODevice *iodevice, enum QT_Device_Open_Mode open_mode);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalServer
+ * \{ */
+
+struct QT_Rappels_LocalServer {
+    struct QT_LocalServer *server;
+
+    void (*sur_connexion)(struct QT_Rappels_LocalServer *, struct QT_LocalSocket *);
+    void (*sur_lecture)(struct QT_Rappels_LocalServer *, struct QT_LocalSocket *);
+};
+
+struct QT_LocalServer *QT_local_server_cree(struct QT_Rappels_LocalServer *rappels,
+                                            union QT_Generic_Object parent);
+
+bool QT_local_server_listen(struct QT_LocalServer *server, struct QT_Chaine nom);
+
+void QT_local_server_close(struct QT_LocalServer *server);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalSocket
+ * \{ */
+
+int64_t QT_local_socket_read(struct QT_LocalSocket *socket, char *data, int64_t maxlen);
+
+bool QT_local_socket_is_valid(struct QT_LocalSocket *socket);
 
 /** \} */
 

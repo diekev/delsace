@@ -27,6 +27,8 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -3804,6 +3806,75 @@ void QT_iodevice_open(QT_IODevice *iodevice, QT_Device_Open_Mode open_mode)
 {
     VERS_QT(iodevice);
     qiodevice->open(convertis_open_mode(open_mode));
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalServer
+ * \{ */
+
+class LocalServer : public QLocalServer {
+    QT_Rappels_LocalServer *m_rappels = nullptr;
+
+  public:
+    LocalServer(QT_Rappels_LocalServer *rappels, QObject *parent)
+        : QLocalServer(parent), m_rappels(rappels)
+    {
+        m_rappels->server = vers_ipa(this);
+
+        QObject::connect(this, &QLocalServer::newConnection, [&] {
+            auto connection = nextPendingConnection();
+            if (m_rappels->sur_connexion) {
+                m_rappels->sur_connexion(m_rappels, vers_ipa(connection));
+            }
+
+            QObject::connect(connection, &QLocalSocket::readyRead, [this, connection] {
+                if (m_rappels->sur_lecture) {
+                    m_rappels->sur_lecture(m_rappels, vers_ipa(connection));
+                }
+            });
+        });
+    }
+
+    EMPECHE_COPIE(LocalServer);
+};
+
+struct QT_LocalServer *QT_local_server_cree(struct QT_Rappels_LocalServer *rappels,
+                                            union QT_Generic_Object parent)
+{
+    VERS_QT(parent);
+    auto résultat = new LocalServer(rappels, qparent);
+    return vers_ipa(résultat);
+}
+
+bool QT_local_server_listen(struct QT_LocalServer *server, struct QT_Chaine nom)
+{
+    VERS_QT(server);
+    return qserver->listen(QString(nom.vers_std_string().c_str()));
+}
+
+void QT_local_server_close(struct QT_LocalServer *server)
+{
+    CONVERTIS_ET_APPEL(server, close);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalSocket
+ * \{ */
+
+int64_t QT_local_socket_read(struct QT_LocalSocket *socket, char *data, int64_t maxlen)
+{
+    VERS_QT(socket);
+    return qsocket->read(data, maxlen);
+}
+
+bool QT_local_socket_is_valid(struct QT_LocalSocket *socket)
+{
+    VERS_QT(socket);
+    return qsocket->isValid();
 }
 
 /** \} */
