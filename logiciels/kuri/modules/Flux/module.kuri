@@ -1,77 +1,129 @@
-/* Bibliothèque test pour définir des « Flux » afin d'abstraire la lecture et
- * l'ecriture de données depuis des sources et vers des destinations.
- */
-
 importe Fondation
+importe Ordinatrice
+importe SysFichier
 
-Flux :: struct {
-    écris: fonc(&Flux, octet)(rien)
-    lis: fonc(&Flux)(octet)
-    est_valide_pour_lecture: fonc(&Flux)(bool)
-    est_valide_pour_écriture: fonc(&Flux)(bool)
+/* ------------------------------------------------------------------------- */
+/** \nom FluxOctetsMémoire
+ * \{ */
 
-    données: *rien
-    curseur: z32
+FluxOctets :: struct {
+    sur_lis: fonc(*FluxOctets, []octet)(z64)
+    sur_ferme: fonc(*FluxOctets)(rien)
 }
 
-écris_flux :: fonc (données: *rien, o: octet)
+ferme :: fonc (flux: *FluxOctets)
 {
-    imprime("%", o)
-}
-
-lis_flux :: fonc (données: *rien) -> octet
-{
-    retourne 0
-}
-
-rappel_est_valide_pour_lecture :: fonc (flux: &Flux) -> bool
-{
-    c := flux.données comme *chaine
-    retourne flux.curseur < c.taille
-}
-
-rappel_lis :: fonc (flux: &Flux) -> octet
-{
-    c := flux.données comme *chaine
-    r := c.pointeur[flux.curseur]
-    flux.curseur += 1
-    retourne r comme octet
-}
-
-crée_flux_depuis_chaine :: fonc (chn: *chaine) -> Flux
-{
-    f: Flux
-    f.est_valide_pour_lecture = rappel_est_valide_pour_lecture
-    f.lis = rappel_lis
-    f.données = chn
-    retourne f
-}
-
-rappel_est_valide_pour_écriture :: fonc (flux: &Flux) -> bool
-{
-    retourne vrai
-}
-
-rappel_écris :: fonc (flux: &Flux, o: octet)
-{
-    chn: chaine
-    chn.pointeur = *o comme *z8
-    chn.taille = 1
-    imprime("%", chn)
-}
-
-crée_flux_impression :: fonc () -> Flux
-{
-    f: Flux
-    f.est_valide_pour_écriture = rappel_est_valide_pour_écriture
-    f.écris = rappel_écris
-    retourne f
-}
-
-copie :: fonc (flux_entrée: &Flux, flux_sortie: &Flux)
-{
-    tantque flux_entrée.est_valide_pour_lecture(flux_entrée) {
-        o := flux_entrée.lis(flux_entrée)
-        flux_sortie.écris(flux_sortie, o)
+    si flux.sur_ferme {
+        flux.sur_ferme(flux)
     }
 }
+
+lis :: fonc (flux: *FluxOctets, tampon: []octet) -> z64
+{
+    retourne flux.sur_lis(flux, tampon)
+}
+
+lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
+{
+    résultat: T
+    taille_lue := flux.lis(résultat)
+    commute_boutisme(*résultat)
+    retourne résultat, taille_lue
+}
+
+lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
+{
+    résultat: T
+    taille_lue := flux.lis(résultat)
+    retourne résultat, taille_lue
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FluxOctetsMémoire
+ * \{ */
+
+FluxOctetsMémoire :: struct {
+    empl base: FluxOctets
+
+    octets: []octet
+    curseur: []octet
+}
+
+crée_flux_octets_mémoire :: fonc (octets: []octet) -> FluxOctetsMémoire
+{
+    résultat: FluxOctetsMémoire
+    résultat.sur_lis = flux_octets_mémoire_lis
+    résultat.octets = octets
+    résultat.curseur = octets
+    retourne résultat
+}
+
+flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
+{
+    flux := base comme *FluxOctetsMémoire
+
+    taille_à_lire := tampon.taille
+    si taille_à_lire > flux.curseur.taille {
+        taille_à_lire = flux.curseur.taille
+    }
+
+    copie_mem_nonsur(src = flux.curseur.pointeur, dst = tampon.pointeur, taille = taille_à_lire)
+
+    flux.curseur = avance(flux.curseur, taille_à_lire)
+
+    retourne taille_à_lire
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FluxOctetsFichier
+ * \{ */
+
+FluxOctetsFichier :: struct {
+    empl base: FluxOctets
+
+    fichier: Fichier
+}
+
+crée_flux_octets_fichier :: fonc (chemin: chaine) -> FluxOctetsFichier
+{
+    retourne crée_flux_octets_fichier(CheminFichier(chemin))
+}
+
+crée_flux_octets_fichier :: fonc (chemin: CheminFichier) -> FluxOctetsFichier
+{
+    résultat: FluxOctetsFichier
+    résultat.sur_lis = flux_octets_fichier_lis
+    résultat.sur_ferme = flux_octets_fichier_ferme
+
+    résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
+        imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
+        retourne résultat
+    }
+
+    retourne résultat
+}
+
+flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
+{
+    flux := base comme *FluxOctetsFichier
+
+    octets_lus := tente lis(*flux.fichier, tampon) piège err {
+        imprimeln("Impossible de lire le fichier : %", err)
+        retourne 0
+    }
+
+    retourne octets_lus comme z64
+}
+
+flux_octets_fichier_ferme :: fonc (base: *FluxOctets)
+{
+    flux := base comme *FluxOctetsFichier
+    _ := ferme(*flux.fichier)
+}
+
+/** \} */
+
