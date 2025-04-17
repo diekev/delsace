@@ -1,1 +1,70 @@
+importe Fondation
+importe Math
+importe SysFichier
+
 charge "wave"
+
+/* ------------------------------------------------------------------------- */
+/** \nom FormatAudio
+ * \{ */
+
+FormatÉchantillon :: énum {
+    ENTIER_NATUREL_16_BIT
+    ENTIER_RELATIF_16_BIT
+}
+
+FormatAudio :: struct {
+    nombre_de_canaux: z32
+    échantillons_par_seconde: z32
+    format_échantillon: FormatÉchantillon
+}
+
+donne_taille_données_pour_une_seconde :: fonc (format: FormatAudio) -> z64
+{
+    résultat: z64
+    
+    résultat = format.nombre_de_canaux comme z64 * format.échantillons_par_seconde
+
+    discr format.format_échantillon {
+        ENTIER_NATUREL_16_BIT,
+        ENTIER_RELATIF_16_BIT {
+            résultat *= 2
+        }
+    }
+
+    retourne résultat
+}
+
+donne_nombre_échantillons_pour_durée :: fonc (format: FormatAudio, durée: r64) -> n32
+{
+    résultat := format.échantillons_par_seconde * format.nombre_cannaux
+    retourne ((résultat comme r64 * durée + 0.5) comme n64) comme n32
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponAudio
+ * \{ */
+
+TamponAudio :: struct {
+    format: FormatAudio
+    données: [..]octet
+}
+
+crée_tampon_audio :: fonc (format: FormatAudio, nombre_de_secondes: z32) -> TamponAudio
+{
+    résultat: TamponAudio
+    résultat.format = format
+    taille_tampon := donne_taille_données_pour_une_seconde(format) * nombre_de_secondes
+    tableau_redimensionne(résultat.données, taille_tampon)
+    retourne résultat
+}
+
+détruit_données :: fonc (tampon: *TamponAudio)
+{
+    déloge(tampon.données)
+    init_de(FormatAudio)(*tampon.format)
+}
+
+/** \} */
