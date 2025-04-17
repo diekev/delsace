@@ -204,14 +204,6 @@ ajoute_son_sinusoïdal :: fonc (
     assert(génératrice.données.taille_chunk != 0)
 }
 
-sauvegarde :: fonc (génératrice: &GénératriceWave, chemin: chaine)
-{
-    fichier := fichier.ouvre(chemin)
-    écris(génératrice.entête, fichier)
-    écris(génératrice.format, fichier)
-    écris(génératrice.données, fichier)
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
