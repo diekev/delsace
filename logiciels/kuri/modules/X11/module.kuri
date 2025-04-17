@@ -703,32 +703,8 @@ WhitePixel :: fonc (display: *Display, s: z32) -> n64 #enligne
 
 importe Fondation
 importe POSIX
-importe Ordinatrice
+importe Sérialisation
 importe SysFichier
-
-avance :: fonc (tampon: []octet, n: z64) -> []octet
-{
-    tampon.pointeur += n
-    tampon.taille -= n
-    retourne tampon
-}
-
-lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
-{
-    assert(tampon.taille >= taille_de(T) comme z64)
-    résultat := mémoire(tampon.pointeur comme *T)
-    commute_boutisme(*résultat)
-    reste := avance(tampon, taille_de(T) comme z64)
-    retourne résultat, reste
-}
-
-lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
-{
-    assert(tampon.taille >= taille_de(T) comme z64)
-    résultat := mémoire(tampon.pointeur comme *T)
-    reste := avance(tampon, taille_de(T) comme z64)
-    retourne résultat, reste
-}
 
 AUTH_ENTRY_FAMILY_LOCAL : n16 : 1
 AUTH_ENTRY_MAGIC_COOKIE :: "MIT-MAGIC-COOKIE-1"
