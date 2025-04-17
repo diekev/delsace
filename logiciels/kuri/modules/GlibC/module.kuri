@@ -3,6 +3,20 @@
 importe POSIX
 
 /* ------------------------------------------------------------------------- */
+/** \nom C89
+ * \{ */
+
+// À FAIRE : vérifie la taille sur les différentes plateformes.
+// 24 octets pour GCC (version 12.3.0)
+va_list :: struct {
+    data1: *rien
+    data2: *rien
+    data3: *rien
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom C11
  * \{ */
 

@@ -9,6 +9,7 @@ importe Fondation
 importe SysFichier
 
 charge "compilatrice"
+charge "extensions"
 charge "génération_code"
 charge "interface"
 
