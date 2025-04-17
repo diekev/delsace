@@ -1,134 +1,9 @@
-// Interface pour la bibliothèque du langage Python permettant de définir des modules.
+/* Extensions de l'interface de Python pour nos types.
+ * Définitions des macros de Python. */
 
 importe Chaine
 importe Fondation
 importe Math
-importe PThread
-
-libpython :: #bibliothèque "python3.10"
-
-libdl :: #bibliothèque "dl"
-libutil :: #bibliothèque "util"
-
-// #dépendance_bibliothèque libpython libpthread
-// #dépendance_bibliothèque libpython libdl
-// #dépendance_bibliothèque libpython libutil
-
-Py_ssize_t :: z64
-Py_hash_t :: Py_ssize_t
-
-// #if PYLONG_BITS_IN_DIGIT == 30
-digit :: n32
-
-PyAsyncMethods :: struct #externe
-PyNumberMethods :: struct #externe
-
-/* https://docs.python.org/3/c-api/typeobj.html#mapping-structs */
-PyMappingMethods :: struct #externe {
-    mp_length: fonc(*PyObject)(Py_ssize_t)
-    mp_subscript: fonc(*PyObject, *PyObject)(*PyObject)
-    mp_ass_subscript: fonc(*PyObject, *PyObject, *PyObject)(z32)
-}
-
-PyMemberDef :: struct #externe
-
-PyGetSetDef :: struct #externe {
-    name: ChaineC
-    get: fonc(*PyObject, *rien)(*PyObject)
-    set: fonc(*PyObject, *PyObject, *rien)(z32)
-    doc: ChaineC
-    closure: *rien
-}
-
-_typeobject :: PyTypeObject
-
-PyTypeObject :: struct #externe {
-    empl base_var_object: PyVarObject
-
-    tp_name: ChaineC /* For printing, in format "<module>.<name>" */
-
-    /* For allocation */
-    tp_basicsize: Py_ssize_t
-    tp_itemsize: Py_ssize_t
-
-    /* Methods to implement standard operations */
-
-    tp_dealloc: *rien // À FAIRE: pointeur de fonction
-    tp_vectorcall_offset: Py_ssize_t
-    tp_getattr: *rien // À FAIRE: pointeur de fonction
-    tp_setattr: *rien // À FAIRE: pointeur de fonction
-
-    tp_as_async: *PyAsyncMethods /* formerly known as tp_compare (Python 2)
-                                    or tp_reserved (Python 3) */
-    tp_repr: fonc(*PyObject)(*PyObject)
-
-    /* Method suites for standard classes */
-
-    tp_as_number: *PyNumberMethods
-    tp_as_sequence: *PySequenceMethods
-    tp_as_mapping: *PyMappingMethods
-
-    /* More standard operations (here for binary compatibility) */
-
-    tp_hash: fonc(*PyObject)(Py_hash_t)
-    tp_call: *rien // À FAIRE: pointeur de fonction ternaryfunc
-    tp_str: fonc(*PyObject)(*PyObject)
-    tp_getattro: *rien // À FAIRE: pointeur de fonction getattrofunc
-    tp_setattro: *rien // À FAIRE: pointeur de fonction setattrofunc
-
-    /* Functions to access object as input/output buffer */
-    tp_as_buffer: *PyBufferProcs
-
-    /* Flags to define presence of optional/expanded features */
-    tp_flags: n64
-
-    tp_doc: ChaineC /* Documentation string */
-
-    /* Assigned meaning in release 2.0 */
-    /* call function for all accessible objects */
-    tp_traverse: *rien // À FAIRE: pointeur de fonction traverseproc
-
-    /* delete references to contained objects */
-    tp_clear: *rien // À FAIRE: pointeur de fonction inquiry
-
-    /* Assigned meaning in release 2.1 */
-    /* rich comparisons */
-    tp_richcompare: fonc(*PyObject,*PyObject,z32)(*PyObject)
-
-    /* weak reference enabler */
-    tp_weaklistoffset: Py_ssize_t
-
-    /* Iterators */
-    tp_iter: fonc(*PyObject)(*PyObject)
-    tp_iternext: fonc(*PyObject)(*PyObject)
-
-    /* Attribute descriptor and subclassing stuff */
-    tp_methods: *PyMethodDef
-    tp_members: *PyMemberDef
-    tp_getset: *PyGetSetDef
-    tp_base: *_typeobject
-    tp_dict: *PyObject
-    tp_descr_get: *rien // À FAIRE: pointeur de descrgetfunc
-    tp_descr_set: *rien // À FAIRE: pointeur de descrsetfunc
-    tp_dictoffset: Py_ssize_t
-    tp_init: *rien // À FAIRE: pointeur de fonctioninitproc
-    tp_alloc: fonc (*PyTypeObject, Py_ssize_t)(*PyObject)
-    tp_new: fonc (*PyTypeObject, *PyObject, *PyObject)(*PyObject) // PyObject *tp_new(PyTypeObject *subtype, PyObject *args, PyObject *kwds);
-    tp_free: *rien // À FAIRE: pointeur de fonctionfreefunc /* Low-level free-memory routine */
-    tp_is_gc: *rien // À FAIRE: pointeur de fonctioninquiry /* For PyObject_IS_GC */
-    tp_bases: *PyGetSetDef
-    tp_mro: *PyGetSetDef /* method resolution order */
-    tp_cache: *PyGetSetDef
-    tp_subclasses: *PyGetSetDef
-    tp_weaklist: *PyGetSetDef
-    tp_del: *rien // À FAIRE: pointeur de fonctiondestructor
-
-    /* Type attribute cache version tag. Added in version 2.6 */
-    tp_version_tag: n32
-
-    tp_finalize: *rien // À FAIRE: pointeur de fonctiondestructor
-    tp_vectorcall: *rien // À FAIRE: pointeur de fonctionvectorcallfunc
-}
 
 /*
 Type flags (tp_flags)
@@ -207,49 +82,6 @@ Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERS
 /* Type structure has tp_finalize member (3.4) */
 Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0
 
-/* Déclaration du "object" dont les classes Python hérite par défaut. */
-PyBaseObject_Type: PyTypeObject #externe libpython
-
-PyType_Ready :: fonc (type: *PyTypeObject) -> z32 #externe libpython
-
-PyObject :: struct #externe {
-    ob_refcnt: z64
-    ob_type: *PyTypeObject
-}
-
-PyVarObject :: struct {
-    empl base_object: PyObject
-    ob_size: Py_ssize_t /* Number of items in variable part */
-}
-
-PyMethodDef :: struct {
-    ml_name : ChaineC
-    ml_meth : fonc(*PyObject, *PyObject)(*PyObject)
-    ml_flag: z32
-    ml_doc : ChaineC
-}
-
-PyModuleDef_Base :: struct {
-  ob_base: PyObject
-  m_init: fonc ()(*PyObject)
-  m_index: z64
-  m_copy: *PyObject
-}
-
-PyModuleDef_Slot :: struct #externe
-
-PyModuleDef :: struct {
-    m_base: PyModuleDef_Base
-    m_name: ChaineC
-    m_doc: ChaineC
-    m_size: z64
-    m_methods: *PyMethodDef
-    m_slots: *PyModuleDef_Slot
-    m_traverse: fonc(*PyObject, *rien, *rien)(z32) // le premier *rien est une fonction "visitproc"
-    m_clear: fonc(*PyObject)(z32)
-    m_free: fonc(*rien)(rien)
-}
-
 /* Flag passed to newmethodobject */
 /* METH_OLDARGS  0x0000   -- unsupported now */
 METH_VARARGS  :: 0x0001
@@ -289,7 +121,6 @@ METH_METHOD :: 0x0200
 
 PYTHON_API_VERSION :: 1013
 
-_Py_NoneStruct : PyObject #externe libpython
 Py_None : *PyObject = *_Py_NoneStruct
 
 python_retourne_rien :: fonc () -> *PyObject
@@ -298,14 +129,6 @@ python_retourne_rien :: fonc () -> *PyObject
     retourne Py_None
 }
 
-PyBool_Type : PyTypeObject #externe libpython
-
-_longobject :: struct {
-    ob_base: PyVarObject
-    ob_digit: [1]digit;
-}
-
-_Py_FalseStruct: PyObject #externe libpython // À FAIRE _longobject
 Py_False : *PyObject = *_Py_FalseStruct
 
 python_retourne_faux :: fonc () -> *PyObject
@@ -314,7 +137,6 @@ python_retourne_faux :: fonc () -> *PyObject
     retourne Py_False
 }
 
-_Py_TrueStruct : PyObject #externe libpython // À FAIRE _longobject
 Py_True : *PyObject = *_Py_TrueStruct
 
 python_retourne_true :: fonc () -> *PyObject
@@ -323,15 +145,10 @@ python_retourne_true :: fonc () -> *PyObject
     retourne Py_True
 }
 
-PyArg_ParseTuple :: fonc (args: *PyObject, format: ChaineC,  r_ob: ...) -> z32 #externe libpython
-
-_Py_NotImplementedStruct : PyObject #externe libpython
 Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct
 
 // ---------------------------------------------------
 // Références
-
-_Py_Dealloc :: fonc (ob: *PyObject) #externe libpython
 
 Py_INCREF :: fonc (ob: *PyObject)
 {
@@ -386,8 +203,6 @@ Py_GE :: 5
 // ---------------------------------------------------
 // Objet
 
-PyType_IsSubtype :: fonc (type1: *PyTypeObject, type2: *PyTypeObject) -> z32 #externe libpython
-
 PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #enligne
 {
     flags := type.tp_flags
@@ -408,8 +223,6 @@ PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 {
     retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
 }
-
-PyObject_HashNotImplemented :: fonc (o: *PyObject) -> Py_hash_t #externe libpython
 
 // ---------------------------------------------------
 // Objet Bool
@@ -439,9 +252,6 @@ PyLong_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS)
 }
-
-PyLong_FromLong :: fonc (l: z64) -> *PyObject #externe libpython
-PyLong_AsLong :: fonc (ob: *PyObject) -> z64 #externe libpython
 
 PyLong_AsZ8 :: fonc (ob: *PyObject) -> z8
 {
@@ -501,15 +311,10 @@ PyLong_FromN64 :: fonc (l: n64) -> *PyObject
 // ---------------------------------------------------
 // Objet Réel/Double
 
-PyFloat_Type : PyTypeObject #externe libpython
-
 PyFloat_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyFloat_Type)
 }
-
-PyFloat_FromDouble :: fonc (l: r64) -> *PyObject #externe libpython
-PyFloat_AsDouble :: fonc (ob: *PyObject) -> r64 #externe libpython
 
 PyFloat_AsR32 :: fonc (ob: *PyObject) -> r32
 {
@@ -524,8 +329,6 @@ PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
 // ---------------------------------------------------
 // Objet Unicode
 
-PyUnicode_Type : PyTypeObject #externe libpython
-
 PyUnicode_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS)
@@ -535,9 +338,6 @@ PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyUnicode_Type)
 }
-
-PyUnicode_FromStringAndSize :: fonc (str: *z8, taille: Py_ssize_t) -> *PyObject #externe libpython
-PyUnicode_AsUTF8AndSize :: fonc (unicode: *PyObject, size: *Py_ssize_t) -> *z8 #externe libpython
 
 PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 {
@@ -552,66 +352,7 @@ PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 }
 
 // ---------------------------------------------------
-// Sequence Protocol
-
-lenfunc :: fonc (*PyObject)(Py_ssize_t)
-binaryfunc :: fonc (*PyObject, *PyObject)(*PyObject)
-ssizeargfunc :: fonc (*PyObject, Py_ssize_t)(*PyObject)
-ssizeobjargproc :: fonc (*PyObject, Py_ssize_t)(z32)
-objobjproc :: fonc (*PyObject, *PyObject)(z32)
-
-PySequenceMethods :: struct {
-    sq_length: lenfunc
-    sq_concat: binaryfunc
-    sq_repeat: ssizeargfunc
-    sq_item: ssizeargfunc
-    was_sq_slice: *rien
-    sq_ass_item: ssizeobjargproc
-    was_sq_ass_slice: *rien
-    sq_contains: objobjproc
-
-    sq_inplace_concat: binaryfunc
-    sq_inplace_repeat: ssizeargfunc
-}
-
-PySequence_Check :: fonc (o: *PyObject) -> z32 #externe libpython
-
-PySequence_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
-PySequence_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
-
-PySequence_GetItem :: fonc (o: *PyObject, i: Py_ssize_t) -> *PyObject #externe libpython
-
-PySequence_GetSlice :: fonc (o: *PyObject, i1: Py_ssize_t, i2: Py_ssize_t) -> *PyObject #externe libpython
-
-PySequence_SetItem :: fonc (o: *PyObject, i: Py_ssize_t, v: *PyObject) -> z32 #externe libpython
-
-// ---------------------------------------------------
 // Buffer Interface
-
-Py_buffer :: struct {
-    buf: *rien
-    obj: *PyObject        /* owned reference */
-    len: Py_ssize_t
-    itemsize: Py_ssize_t  /* This is Py_ssize_t so it can be
-                             pointed to by strides in simple case.*/
-    readonly: z32
-    ndim: z32
-    format: *z8
-    shape: *Py_ssize_t
-    strides: *Py_ssize_t
-    suboffsets: *Py_ssize_t
-    internal: *rien
-}
-
-getbufferproc :: fonc (*PyObject, *Py_buffer, z32)(z32)
-releasebufferproc :: fonc (*PyObject, *Py_buffer)(rien)
-
-PyBufferProcs :: struct {
-    bf_getbuffer: getbufferproc
-    bf_releasebuffer: releasebufferproc
-}
-
-vectorcallfunc :: fonc (/* callable */*PyObject, /* args */ **PyObject, /* nargsf */ n64, /* kwnames */ *PyObject)(*PyObject)
 
 /* Maximum number of dimensions */
 PyBUF_MAX_NDIM :: 64
@@ -955,7 +696,7 @@ protocol_tampon_défaut :: fonc () -> *PyBufferProcs
 
 PyType_ChaineNom :: fonc (obj: *PyObject) -> chaine
 {
-    retourne convertis_chaine_c(obj.ob_type.tp_name)
+    retourne convertis_chaine_c(ChaineC(obj.ob_type.tp_name))
 }
 
 PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
@@ -1058,62 +799,6 @@ fonction_PyUnicodeEnum_Value_pour_info :: fonc (info_énum: *InfoTypeÉnum) -> c
 
 // ---------------------------------------------------
 // Exceptions
-
-PyExc_BaseException: *PyObject #externe libpython
-PyExc_Exception: *PyObject #externe libpython
-PyExc_ArithmeticError: *PyObject #externe libpython
-PyExc_AssertionError: *PyObject #externe libpython
-PyExc_AttributeError: *PyObject #externe libpython
-PyExc_BlockingIOError: *PyObject #externe libpython
-PyExc_BrokenPipeError: *PyObject #externe libpython
-PyExc_BufferError: *PyObject #externe libpython
-PyExc_ChildProcessError: *PyObject #externe libpython
-PyExc_ConnectionAbortedError: *PyObject #externe libpython
-PyExc_ConnectionError: *PyObject #externe libpython
-PyExc_ConnectionRefusedError: *PyObject #externe libpython
-PyExc_ConnectionResetError: *PyObject #externe libpython
-PyExc_EOFError: *PyObject #externe libpython
-PyExc_FileExistsError: *PyObject #externe libpython
-PyExc_FileNotFoundError: *PyObject #externe libpython
-PyExc_FloatingPointError: *PyObject #externe libpython
-PyExc_GeneratorExit: *PyObject #externe libpython
-PyExc_ImportError: *PyObject #externe libpython
-PyExc_IndentationError: *PyObject #externe libpython
-PyExc_IndexError: *PyObject #externe libpython
-PyExc_InterruptedError: *PyObject #externe libpython
-PyExc_IsADirectoryError: *PyObject #externe libpython
-PyExc_KeyError: *PyObject #externe libpython
-PyExc_KeyboardInterrupt: *PyObject #externe libpython
-PyExc_LookupError: *PyObject #externe libpython
-PyExc_MemoryError: *PyObject #externe libpython
-PyExc_ModuleNotFoundError: *PyObject #externe libpython
-PyExc_NameError: *PyObject #externe libpython
-PyExc_NotADirectoryError: *PyObject #externe libpython
-PyExc_NotImplementedError: *PyObject #externe libpython
-PyExc_OSError: *PyObject #externe libpython
-PyExc_OverflowError: *PyObject #externe libpython
-PyExc_PermissionError: *PyObject #externe libpython
-PyExc_ProcessLookupError: *PyObject #externe libpython
-PyExc_RecursionError: *PyObject #externe libpython
-PyExc_ReferenceError: *PyObject #externe libpython
-PyExc_RuntimeError: *PyObject #externe libpython
-PyExc_StopAsyncIteration: *PyObject #externe libpython
-PyExc_StopIteration: *PyObject #externe libpython
-PyExc_SyntaxError: *PyObject #externe libpython
-PyExc_SystemError: *PyObject #externe libpython
-PyExc_SystemExit: *PyObject #externe libpython
-PyExc_TabError: *PyObject #externe libpython
-PyExc_TimeoutError: *PyObject #externe libpython
-PyExc_TypeError: *PyObject #externe libpython
-PyExc_UnboundLocalError: *PyObject #externe libpython
-PyExc_UnicodeDecodeError: *PyObject #externe libpython
-PyExc_UnicodeEncodeError: *PyObject #externe libpython
-PyExc_UnicodeError: *PyObject #externe libpython
-PyExc_UnicodeTranslateError: *PyObject #externe libpython
-PyExc_ValueError: *PyObject #externe libpython
-PyExc_ZeroDivisionError: *PyObject #externe libpython
-
-PyErr_SetObject :: fonc (exception: *PyObject, value: *PyObject) #externe libpython
 
 /* Fonctions d'erreur pour le code généré. */
 
@@ -1399,47 +1084,8 @@ donne_type_python_pour :: fonc (info: *InfoType) -> *PyTypeObject
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Initialisation
- * \{ */
-
-Py_Initialize :: fonc () -> rien #externe libpython
-
-Py_InitializeEx :: fonc (initsigs: z32) -> rien #externe libpython
-
-Py_InitializeFromConfig :: fonc (config: *PyConfig) -> PyStatus #externe libpython
-
-Py_FinalizeEx :: fonc () -> z32 #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Exécution de code.
  * \{ */
-
-PyCompilerFlags :: struct {
-    cf_flag: z32
-    cf_feature_version: z32
-}
-
-PyRun_SimpleString :: fonc (command: ChaineC) -> z32 #externe libpython
-
-PyRun_SimpleStringFlags :: fonc (command: ChaineC, flags: *PyCompilerFlags) -> z32 #externe libpython
-
-PyRun_String :: fonc (str: ChaineC, start: z32, globals: *PyObject, locals: *PyObject) -> *PyObject #externe libpython
-
-PyRun_StringFlags :: fonc (str: ChaineC, start: z32, globals: *PyObject, locals: *PyObject, flags: *PyCompilerFlags) -> *PyObject #externe libpython
-
-Py_CompileString :: fonc (str: ChaineC, filename: ChaineC, start: z32) -> *PyObject #externe libpython
-
-Py_CompileStringFlags :: fonc (str: ChaineC, filename: ChaineC, start: z32, flags: *PyCompilerFlags) -> *PyObject #externe libpython
-
-Py_CompileStringObject :: fonc (str: ChaineC, filename: *PyObject, start: z32, flags: *PyCompilerFlags, optimize: z32) -> *PyObject #externe libpython
-
-Py_CompileStringExFlags :: fonc (str: ChaineC, filename: ChaineC, start: z32, flags: *PyCompilerFlags, optimize: z32) -> *PyObject #externe libpython
-
-PyEval_EvalCode :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject) -> *PyObject #externe libpython
-
-PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: **PyObject, argcount: z32, kws: **PyObject, kwcount: z32, defs: **PyObject, defcount: z32, kwdefs: *PyObject, closure: *PyObject) -> *PyObject #externe libpython
 
 /* The start symbol from the Python grammar for isolated expressions;
  * for use with Py_CompileString(). */
@@ -1481,26 +1127,9 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom GIL
- * \{ */
-
-PyGILState_STATE :: énum {
-    PyGILState_LOCKED :: 0
-    PyGILState_UNLOCKED :: 1
-}
-
-PyGILState_Ensure :: fonc () -> PyGILState_STATE #externe libpython
-
-PyGILState_Release :: fonc (state: PyGILState_STATE) -> z32 #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Object
  * https://docs.python.org/3/c-api/object.html
  * \{ */
-
-PyObject_Str :: fonc (o: *PyObject) -> *PyObject #externe libpython
 
 donne_chaine_object :: fonc (o: *PyObject) -> chaine
 {
@@ -1517,10 +1146,6 @@ imprime_object :: fonc (format: chaine, object: *PyObject)
     imprime(format, chn)
 }
 
-PyObject_GetAttr :: fonc (o: *PyObject, attr_name: *PyObject) -> *PyObject #externe libpython
-
-PyObject_GetAttrString :: fonc (o: *PyObject, attr_name: ChaineC) -> *PyObject #externe libpython
-
 donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 {
     nom_attribut_c := crée_chaine_c(nom_attribut)
@@ -1529,12 +1154,6 @@ donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
     retourne PyObject_GetAttrString(o, nom_attribut_c)
 }
 
-/* Ces deux fonctions implémente `len(o)`. Retourne -1 si erreur. */
-PyObject_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
-PyObject_Length :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
-
-PyObject_GenericGetDict :: fonc (o: *PyObject, context: *rien = nul) -> *PyObject #externe libpython
-
 /** } */
 
 /* ------------------------------------------------------------------------- */
@@ -1542,14 +1161,10 @@ PyObject_GenericGetDict :: fonc (o: *PyObject, context: *rien = nul) -> *PyObjec
  * https://docs.python.org/3/c-api/function.html
  * \{ */
 
-PyFunction_Type : PyTypeObject #externe libpython
-
 PyFunction_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyFunction_Type)
 }
-
-PyFunction_GetGlobals :: fonc (op: *PyObject) -> *PyObject #externe libpython
 
 /** \} */
 
@@ -1557,18 +1172,6 @@ PyFunction_GetGlobals :: fonc (op: *PyObject) -> *PyObject #externe libpython
 /** \nom Dictionary Objects
  * https://docs.python.org/3/c-api/dict.html
  * \{ */
-
-PyDict_New :: fonc () -> *PyObject #externe libpython
-PyDict_SetItem :: fonc (p: *PyObject, key: *PyObject, val: *PyObject) -> z32 #externe libpython
-PyDict_SetItemString :: fonc (p: *PyObject, key: ChaineC, val: *PyObject) -> z32 #externe libpython
-PyDict_GetItem :: fonc (p: *PyObject, key: *PyObject) -> *PyObject #externe libpython
-PyDict_DelItem :: fonc (p: *PyObject, key: *PyObject) -> z32 #externe libpython
-
-PyDict_Keys :: fonc (p: *PyObject) -> *PyObject #externe libpython
-PyDict_Values :: fonc (p: *PyObject) -> *PyObject #externe libpython
-
-PyDict_Merge :: fonc (a: *PyObject, b: *PyObject, override: z32) -> z32 #externe libpython
-PyDict_Update :: fonc (a: *PyObject, b: *PyObject) -> z32 #externe libpython
 
 PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
 {
@@ -1583,16 +1186,6 @@ PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
  * https://docs.python.org/3/c-api/module.html
  * \{ */
 
-PyModule_NewObject :: fonc (name: *PyObject) -> *PyObject #externe libpython
-PyModule_New :: fonc (name: ChaineC) -> *PyObject #externe libpython
-PyModule_GetDict :: fonc (module: *PyObject) -> *PyObject #externe libpython
-
-PyModule_Create2 :: fonc (module_def: *PyModuleDef, apiver: z32) -> *PyObject #externe libpython
-
-PyModule_AddObject :: fonc (module: *PyObject, name: ChaineC, value: *PyObject) #externe libpython
-PyModule_AddIntConstant :: fonc (module: *PyObject, name: ChaineC, value: z64) -> z32 #externe libpython
-PyModule_AddStringConstant :: fonc (module: *PyObject, name: ChaineC, value: ChaineC) -> z32 #externe libpython
-
 PyModule_New :: fonc (name: chaine) -> *PyObject
 {
     chn_c_name := crée_chaine_c(name)
@@ -1606,12 +1199,6 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 /** \nom Import Module.
  * \{ */
 
-PyImport_AddModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
-
-PyImport_ImportModule :: fonc (name: ChaineC) -> *PyObject #externe libpython
-
-PyImport_ExecCodeModule :: fonc (name: ChaineC, co: *PyObject) -> *PyObject #externe libpython
-
 importe_module :: fonc (name: chaine) -> *PyObject
 {
     chn_c := crée_chaine_c(name)
@@ -1623,304 +1210,20 @@ importe_module :: fonc (name: chaine) -> *PyObject
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Gestion des exceptions.
- * https://docs.python.org/3/c-api/exceptions.html
- * \{ */
-
-PyErr_PrintEx :: fonc (set_sys_last_vars: z32) -> rien #externe libpython
-
-PyErr_Print :: fonc ()
-{
-    PyErr_PrintEx(1)
-}
-
-PyErr_Fetch :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
-PyErr_Restore :: fonc (ptype: *PyObject, pvalue: *PyObject, ptraceback: *PyObject) -> rien #externe libpython
-PyErr_NormalizeException :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
-
-PyErr_GetExcInfo :: fonc (ptype: **PyObject, pvalue: **PyObject, ptraceback: **PyObject) -> rien #externe libpython
-
-PyException_SetTraceback :: fonc (ex: *PyObject, tb: *PyObject) -> z32 #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Protocol Appel
- * https://docs.python.org/3/c-api/call.html
- * \{ */
-
-PyObject_CallMethod :: fonc (obj: *PyObject, name: ChaineC, format: ChaineC, args: ...) -> *PyObject #externe libpython
-
-PyObject_CallMethodObjArgs :: fonc (obj: *PyObject, name: *PyObject,  args: ...) -> *PyObject #externe libpython
-
-PyObject_CallFunctionObjArgs :: fonc (callable: *PyObject, args: ...) -> *PyObject #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom List Object
- * https://docs.python.org/3/c-api/list.html
- * \{ */
-
-PyList_New :: fonc (len: Py_ssize_t) -> *PyObject #externe libpython
-
-PyList_SetItem :: fonc (list: *PyObject, index: Py_ssize_t, item: *PyObject) -> z32 #externe libpython
-PyList_GetItem :: fonc (list: *PyObject, index: Py_ssize_t) -> *PyObject #externe libpython
-
-PyList_Size :: fonc (list: *PyObject) -> Py_ssize_t #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Set Object
- * \{ */
-
-/* Crée un `set` (`set(o)`) depuis un objet itérable.
- * TypeError si l'objet n'est pas itérable. */
-PySet_New :: fonc (iterable: *PyObject) -> *PyObject #externe libpython
-
-/** } */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Tuple Object.
  * https://docs.python.org/3/c-api/tuple.html
  * \{ */
-
-PyTuple_Type : PyTypeObject #externe libpython
 
 PyTuple_Check :: fonc (ob: *PyObject) -> bool
 {
     retourne PyObject_TypeCheck(ob, *PyTuple_Type)
 }
 
-PyTuple_Size :: fonc (o: *PyObject) -> Py_ssize_t #externe libpython
-
-PyTuple_GetItem :: fonc (p: *PyObject, pos: Py_ssize_t) -> *PyObject #externe libpython
-
 /** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Configuration (initconfig.h)
  * \{ */
-
-wchar_t :: n32
-
-/* --- PyStatus ----------------------------------------------- */
-
-PyStatus :: struct {
-    OK :: 0
-    ERROR :: 1
-    EXIT :: 2
-
-    type: z32
-    func: ChaineC
-    err_msg: ChaineC
-    exitcode: z32
-}
-
-PyStatus_Ok :: fonc () -> PyStatus #externe libpython
-PyStatus_Error :: fonc (err_msg: ChaineC) -> PyStatus #externe libpython
-PyStatus_NoMemory :: fonc () -> PyStatus #externe libpython
-PyStatus_Exit :: fonc (exitcode: z32) -> PyStatus #externe libpython
-PyStatus_IsError :: fonc (err: PyStatus) -> z32 #externe libpython
-PyStatus_IsExit :: fonc (err: PyStatus) -> z32 #externe libpython
-PyStatus_Exception :: fonc (err: PyStatus) -> z32 #externe libpython
-
-Py_ExitStatusException :: fonc (status: PyStatus) -> rien #externe libpython
-
-/* --- PyWideStringList ------------------------------------------------ */
-
-PyWideStringList :: struct {
-    /* If length is greater than zero, items must be non-NULL
-       and all items strings must be non-NULL */
-    length: Py_ssize_t
-    items: **wchar_t
-}
-
-PyWideStringList_Append :: fonc (list: *PyWideStringList, item: *wchar_t) -> PyStatus #externe libpython
-PyWideStringList_Insert :: fonc (list: *PyWideStringList, index: Py_ssize_t, item: *wchar_t) -> PyStatus #externe libpython
-
-/* --- PyPreConfig ----------------------------------------------- */
-
-PyPreConfig :: struct {
-    _config_init: z32     /* _PyConfigInitEnum value */
-
-    /* Parse Py_PreInitializeFromBytesArgs() arguments?
-       See PyConfig.parse_argv */
-    parse_argv: z32
-
-    /* If greater than 0, enable isolated mode: sys.path contains
-       neither the script's directory nor the user's site-packages directory.
-
-       Set to 1 by the -I command line option. If set to -1 (default), inherit
-       Py_IsolatedFlag value. */
-    isolated: z32
-
-    /* If greater than 0: use environment variables.
-       Set to 0 by -E command line option. If set to -1 (default), it is
-       set to !Py_IgnoreEnvironmentFlag. */
-    use_environment: z32
-
-    /* Set the LC_CTYPE locale to the user preferred locale? If equals to 0,
-       set coerce_c_locale and coerce_c_locale_warn to 0. */
-    configure_locale: z32
-
-    /* Coerce the LC_CTYPE locale if it's equal to "C"? (PEP 538)
-
-       Set to 0 by PYTHONCOERCECLOCALE=0. Set to 1 by PYTHONCOERCECLOCALE=1.
-       Set to 2 if the user preferred LC_CTYPE locale is "C".
-
-       If it is equal to 1, LC_CTYPE locale is read to decide if it should be
-       coerced or not (ex: PYTHONCOERCECLOCALE=1). Internally, it is set to 2
-       if the LC_CTYPE locale must be coerced.
-
-       Disable by default (set to 0). Set it to -1 to let Python decide if it
-       should be enabled or not. */
-    coerce_c_locale: z32
-
-    /* Emit a warning if the LC_CTYPE locale is coerced?
-
-       Set to 1 by PYTHONCOERCECLOCALE=warn.
-
-       Disable by default (set to 0). Set it to -1 to let Python decide if it
-       should be enabled or not. */
-    coerce_c_locale_warn: z32
-
-// À FAIRE : windows
-// #ifdef MS_WINDOWS
-//     /* If greater than 1, use the "mbcs" encoding instead of the UTF-8
-//        encoding for the filesystem encoding.
-
-//        Set to 1 if the PYTHONLEGACYWINDOWSFSENCODING environment variable is
-//        set to a non-empty string. If set to -1 (default), inherit
-//        Py_LegacyWindowsFSEncodingFlag value.
-
-//        See PEP 529 for more details. */
-//     legacy_windows_fs_encoding: z32
-// #endif
-
-    /* Enable UTF-8 mode? (PEP 540)
-
-       Disabled by default (equals to 0).
-
-       Set to 1 by "-X utf8" and "-X utf8=1" command line options.
-       Set to 1 by PYTHONUTF8=1 environment variable.
-
-       Set to 0 by "-X utf8=0" and PYTHONUTF8=0.
-
-       If equals to -1, it is set to 1 if the LC_CTYPE locale is "C" or
-       "POSIX", otherwise it is set to 0. Inherit Py_UTF8Mode value value. */
-    utf8_mode: z32
-
-    /* If non-zero, enable the Python Development Mode.
-
-       Set to 1 by the -X dev command line option. Set by the PYTHONDEVMODE
-       environment variable. */
-    dev_mode: z32
-
-    /* Memory allocator: PYTHONMALLOC env var.
-       See PyMemAllocatorName for valid values. */
-    allocator: z32
-}
-
-PyPreConfig_InitPythonConfig :: fonc (config: *PyPreConfig) -> rien #externe libpython
-PyPreConfig_InitIsolatedConfig :: fonc (config: *PyPreConfig) -> rien #externe libpython
-
-Py_PreInitialize :: fonc (config: *PyPreConfig) -> PyStatus #externe libpython
-
-/* --- PyConfig ---------------------------------------------- */
-
-/* This structure is best documented in the Doc/c-api/init_config.rst file. */
-PyConfig :: struct {
-    _config_init: z32     /* _PyConfigInitEnum value */
-
-    isolated: z32
-    use_environment: z32
-    dev_mode: z32
-    install_signal_handlers: z32
-    use_hash_seed: z32
-    hash_seed: n64
-    faulthandler: z32
-    tracemalloc: z32
-    import_time: z32
-    show_ref_count: z32
-    dump_refs: z32
-    malloc_stats: z32
-    filesystem_encoding: *wchar_t
-    filesystem_errors: *wchar_t
-    pycache_prefix: *wchar_t
-    parse_argv: z32
-    orig_argv: PyWideStringList
-    argv: PyWideStringList
-    xoptions: PyWideStringList
-    warnoptions: PyWideStringList
-    site_import: z32
-    bytes_warning: z32
-    warn_default_encoding: z32
-    inspect: z32
-    interactive: z32
-    optimization_level: z32
-    parser_debug: z32
-    write_bytecode: z32
-    verbose: z32
-    quiet: z32
-    user_site_directory: z32
-    configure_c_stdio: z32
-    buffered_stdio: z32
-    stdio_encoding: *wchar_t
-    stdio_errors: *wchar_t
-    // À FAIRE : windows
-// #ifdef MS_WINDOWS
-//     legacy_windows_stdio: z32
-// #endif
-    check_hash_pycs_mode: *wchar_t
-
-    /* --- Path configuration inputs ------------ */
-    pathconfig_warnings: z32
-    program_name: *wchar_t
-    pythonpath_env: *wchar_t
-    home: *wchar_t
-    platlibdir: *wchar_t
-
-    /* --- Path configuration outputs ----------- */
-    module_search_paths_set: z32
-    module_search_paths: PyWideStringList
-    executable: *wchar_t
-    base_executable: *wchar_t
-    prefix: *wchar_t
-    base_prefix: *wchar_t
-    exec_prefix: *wchar_t
-    base_exec_prefix: *wchar_t
-
-    /* --- Parameter only used by Py_Main() ---------- */
-    skip_source_first_line: z32
-    run_command: *wchar_t
-    run_module: *wchar_t
-    run_filename: *wchar_t
-
-    /* --- Private fields ---------------------------- */
-
-    // Install importlib? If equals to 0, importlib is not initialized at all.
-    // Needed by freeze_importlib.
-    _install_importlib: z32
-
-    // If equal to 0, stop Python initialization before the "main" phase.
-    _init_main: z32
-
-    // If non-zero, disallow threads, subprocesses, and fork.
-    // Default: 0.
-    _isolated_interpreter: z32
-}
-
-PyConfig_InitPythonConfig :: fonc (config: *PyConfig) -> rien #externe libpython
-PyConfig_InitIsolatedConfig :: fonc (config: *PyConfig) -> rien #externe libpython
-PyConfig_Clear :: fonc (config: *PyConfig) -> rien #externe libpython
-PyConfig_SetString :: fonc (config: *PyConfig, config_str: **wchar_t, str: *wchar_t) -> PyStatus #externe libpython
-PyConfig_SetBytesString :: fonc (config: *PyConfig, config_str: **wchar_t, str: ChaineC) -> PyStatus #externe libpython
-PyConfig_Read :: fonc (config: *PyConfig) -> PyStatus #externe libpython
-PyConfig_SetBytesArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: *ChaineC) -> PyStatus #externe libpython
-PyConfig_SetArgv :: fonc (config: *PyConfig, argc: Py_ssize_t, argv: **wchar_t) -> PyStatus #externe libpython
-PyConfig_SetWideStringList :: fonc (config: *PyConfig, list: *PyWideStringList, length: Py_ssize_t, items: **wchar_t) -> PyStatus #externe libpython
 
 PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
@@ -1930,7 +1233,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0)
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur)
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur comme *z32)
     config.module_search_paths_set = 1
 }
 
