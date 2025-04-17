@@ -1,0 +1,35 @@
+{
+    "fichier": "/usr/include/python3.10/Python.h",
+    "bibliothèque": "python3.10",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/python3.10/"
+    ],
+    "modules_à_importer": [
+        "GlibC",
+        "POSIX",
+        "PThread"
+    ],
+    "rubriques_employées": [
+        {
+            "nom": "ob_base",
+            "type": "PyObject"
+        },
+        {
+            "nom": "ob_base",
+            "type": "PyVarObject",
+            "renomme": "ob_base_var_object"
+        }
+    ],
+    "fonctions_à_ignorer": [
+        "_Py_NewReference",
+        "_Py_IS_TYPE",
+        "Py_NewRef",
+        "Py_XNewRef",
+        "Py_IsNone",
+        "_Py_INCREF",
+        "_Py_DECREF",
+        "PyType_HasFeature"
+    ]
+}
