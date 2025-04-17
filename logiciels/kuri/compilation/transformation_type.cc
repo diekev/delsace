@@ -684,6 +684,14 @@ static double donne_poids_transformation(TypeTransformation transformation)
         {
             return 0.0;
         }
+        case TypeTransformation::CONVERTI_VERS_BASE:
+        case TypeTransformation::CONVERTI_VERS_DÉRIVÉ:
+        {
+            /* Donnons plus d'importance aux transformations entre employées et employeuses par
+             * rapport aux autres conversions (convertir vers une employée doit être plus important
+             * que vers []octet ou eini). */
+            return 0.6;
+        }
         default:
         {
             /* nous savons que nous devons transformer la valeur (par ex. eini), donc
