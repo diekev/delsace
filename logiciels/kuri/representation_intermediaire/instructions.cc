@@ -385,6 +385,21 @@ bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
     return stockage->destination == inst1;
 }
 
+bool est_accès_membre_ou_index(Instruction const *inst0, Instruction const *inst1)
+{
+    if (inst0->est_acces_membre()) {
+        auto accès = inst0->comme_acces_membre();
+        return accès->accédé == inst1;
+    }
+
+    if (inst0->est_acces_index()) {
+        auto accès = inst0->comme_acces_index();
+        return accès->accédé == inst1;
+    }
+
+    return false;
+}
+
 bool est_transtypage_de(Instruction const *inst0, Instruction const *inst1)
 {
     if (!inst0->est_transtype()) {

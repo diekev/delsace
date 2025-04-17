@@ -2,222 +2,163 @@ importe Fondation
 importe Math
 importe SysFichier
 
-// Petite bibliothèque de génération de fichier audio Wave.
-// Basée sur https://blogs.msdn.microsoft.com/dawate/2009/06/24/intro-to-audio-programming-part-3-synthesizing-simple-wave-audio-using-c/
+charge "wave"
 
 /* ------------------------------------------------------------------------- */
-/** \nom Entête Wave
+/** \nom FormatAudio
  * \{ */
 
-EntêteWave :: struct {
-    id_groupe := "RIFF"
-    taille_fichier := 0
-    type_riff := "WAVE"
+FormatÉchantillon :: énum {
+    ENTIER_NATUREL_16_BIT
+    ENTIER_RELATIF_16_BIT
 }
 
-écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
+FormatAudio :: struct {
+    nombre_de_canaux: z32
+    échantillons_par_seconde: z32
+    format_échantillon: FormatÉchantillon
+}
+
+donne_taille_données_pour_une_seconde :: fonc (format: FormatAudio) -> z64
 {
-    autrice.écris_chaine_sans_taille(entête.id_groupe)
-    autrice.écris(entête.taille_fichier)
-    autrice.écris_chaine_sans_taille(entête.type_riff)
-}
+    résultat: z64
+    
+    résultat = format.nombre_de_canaux comme z64 * format.échantillons_par_seconde
 
-/** \} */
+    discr format.format_échantillon {
+        ENTIER_NATUREL_16_BIT,
+        ENTIER_RELATIF_16_BIT {
+            résultat *= 2
+        }
+    }
 
-/* ------------------------------------------------------------------------- */
-/** \nom ChunkFormatWave
- * \{ */
-
-ChunkFormatWave :: struct {
-    id_chunk := "fmt "
-    taille_chunk: n32
-    tag_format: n16
-    nombre_cannaux: n16
-    échantillons_secondes: n32
-    bits_par_échantillon: n16
-    alignement_bloc: n16
-    bits_moyens_par_secondes: n32
-}
-
-initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
-{
-    résultat: ChunkFormatWave
-    résultat.id_chunk = "fmt "
-    résultat.taille_chunk = 16
-    résultat.tag_format = 1
-    résultat.nombre_cannaux = 2
-    résultat.échantillons_secondes = 44100
-    résultat.bits_par_échantillon = 16
-    résultat.alignement_bloc = résultat.nombre_cannaux * (résultat.bits_par_échantillon / 3)
-    résultat.bits_moyens_par_secondes = résultat.échantillons_secondes * résultat.alignement_bloc
     retourne résultat
 }
 
-/* Donne le nombre d'échantillons pour la durée en secondes. */
-donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée: r64) -> n32
+donne_nombre_échantillons_pour_durée :: fonc (format: FormatAudio, durée: r64) -> n32
 {
-    résultat := format.échantillons_secondes * format.nombre_cannaux
+    résultat := format.échantillons_par_seconde * format.nombre_cannaux
     retourne ((résultat comme r64 * durée + 0.5) comme n64) comme n32
 }
 
-écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponAudio
+ * \{ */
+
+TamponAudio :: struct {
+    format: FormatAudio
+    données: [..]octet
+}
+
+crée_tampon_audio :: fonc (format: FormatAudio, nombre_de_secondes: z32) -> TamponAudio
 {
-    autrice.écris_chaine_sans_taille(chunk.id_chunk)
-    autrice.écris(chunk.taille_chunk)
-    autrice.écris(chunk.tag_format)
-    autrice.écris(chunk.nombre_cannaux)
-    autrice.écris(chunk.échantillons_secondes)
-    autrice.écris(chunk.bits_moyens_par_secondes)
-    autrice.écris(chunk.alignement_bloc)
-    autrice.écris(chunk.bits_par_échantillon)
+    résultat: TamponAudio
+    résultat.format = format
+    taille_tampon := donne_taille_données_pour_une_seconde(format) * nombre_de_secondes
+    tableau_redimensionne(résultat.données, taille_tampon)
+    retourne résultat
+}
+
+détruit_données :: fonc (tampon: *TamponAudio)
+{
+    déloge(tampon.données)
+    init_de(FormatAudio)(*tampon.format)
+}
+
+donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde: z32) -> TamponAudio
+{
+    assert(début_seconde < fin_seconde)
+
+    résultat := tampon
+
+    début := donne_taille_données_pour_une_seconde(résultat.format) * début_seconde
+    fin   := donne_taille_données_pour_une_seconde(résultat.format) * fin_seconde
+
+    résultat.données.pointeur += début
+    résultat.données.taille = fin - début
+    résultat.données.capacité = 0
+    retourne résultat
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ChunkDonnéesWave
+/** \nom Génération de sons.
  * \{ */
 
-ChunkDonnéesWave :: struct {
-    id_chunk := "data"
-    taille_chunk : n32 = 0
-    données: [..]z16
-}
-
-écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
+remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudio, fréquence: r64, facteur_amplitude: r32) -> rien
 {
-    autrice.écris_chaine_sans_taille(chunk.id_chunk)
-    autrice.écris(chunk.taille_chunk)
-    autrice.écris(chunk.données)
-}
+    format := tampon.format
 
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom GénératriceWave
- * \{ */
-
-GénératriceWave :: struct {
-    entête: EntêteWave
-    format : ChunkFormatWave = initialise_format_chunk_wave()
-    données: ChunkDonnéesWave
-}
-
-/* Génère un son sinusoïdale pour la fréquence, l'amplitude (entre 0 et 1) et la durée données. */
-ajoute_son_sinusoïdal :: fonc (
-    génératrice: &GénératriceWave,
-    fréquence: r64,
-    facteur_amplitude: r32,
-    durée: r64) -> rien
-{
-    format := génératrice.format
-
-    nombre_échantillons := donne_nombre_échantillons_pour_durée(format, durée)
+    nombre_échantillons := tampon.données.taille
     si nombre_échantillons == 0 {
         retourne
     }
 
-    assert((nombre_échantillons % format.nombre_cannaux) == 0)
+    assert((nombre_échantillons % format.nombre_de_canaux) == 0)
 
-    données := génératrice.données.données
-    taille := données.taille
+    assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
 
-    tableau_redimensionne(données, taille + (nombre_échantillons comme z64))
-    assert(données.taille != 0)
+    données: []z16
+    données.pointeur = tampon.données.pointeur comme *z16
+    données.taille = tampon.données.taille / 2
 
-    t := (Constantes(r32).TAU * fréquence comme r32) / (format.échantillons_secondes comme r32)
-
-    décalage := taille
-    nombre_échantillons_par_chaine := nombre_échantillons / format.nombre_cannaux
-
-    facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
-    amplitude := (facteur_amplitude * 32760) comme z32
-
-    /* À FAIRE(langage) : aucune itération si le type est naturel. */
-    pour (nombre_échantillons_par_chaine) comme z32 {
-        i := it comme z64
-        valeur := (amplitude comme r32 * sinus(t * (i comme r32))) comme z16
-
-        pour c dans (génératrice.format.nombre_cannaux comme z32) {
-            données[décalage + i * 2 + (c comme z64)] = valeur
-        }
-    }
-
-    génératrice.données.données = données
-    génératrice.données.taille_chunk = (données.taille * (génératrice.format.bits_par_échantillon / 8) comme z64) comme n32
-    assert(génératrice.données.taille_chunk != 0)
+    remplis_avec_son_sinusoïdal(données, format.nombre_de_canaux, fréquence, facteur_amplitude)
 }
 
-sauvegarde :: fonc (génératrice: &GénératriceWave, chemin: chaine)
+#portée_fichier
+
+remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fréquence: r64, facteur_amplitude: r32)
 {
-    fichier := fichier.ouvre(chemin)
-    écris(génératrice.entête, fichier)
-    écris(génératrice.format, fichier)
-    écris(génératrice.données, fichier)
+    nombre_échantillons := données.taille
+    nombre_échantillons_par_canal := nombre_échantillons / nombre_de_canaux
+
+    t := (Constantes(r32).TAU * fréquence comme r32) / (nombre_échantillons_par_canal comme r32)
+
+    facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
+    amplitude := (facteur_amplitude * 32768)
+
+    pour nombre_échantillons_par_canal {
+        valeur := (amplitude * sinus(t * (it comme r32))) comme z16
+
+        pour c dans nombre_de_canaux {
+            données[it * 2 + c] = valeur
+        }
+    }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Autrice fichier Wave.
+/** \nom Export.
  * \{ */
 
-AutriceFichierWave :: struct {
-    fichier: FichierPaginéMémoire
-    sérialiseuse: SérialiseuseFichier
-}
+#portée_export
 
-initialise_autrice :: fonc (autrice: *AutriceFichierWave)
+écris_fichier_wave :: fonc (tampon: TamponAudio, chemin: chaine)
 {
-    autrice.sérialiseuse = crée_sérialiseuse(*autrice.fichier)
-}
+    assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
 
-détruit_données_autrice :: fonc (autrice: *AutriceFichierWave)
-{
-    déloge_toutes_les_pages(*autrice.fichier)
-}
+    format: ChunkFormatWave
+    format.taille_chunk = 16
+    format.tag_format = 1
+    format.nombre_cannaux = tampon.format.nombre_de_canaux comme n16
+    format.échantillons_secondes = tampon.format.échantillons_par_seconde comme n32
+    format.bits_par_échantillon = 16
+    format.alignement_bloc = calcule_alignement_bloc(format)
+    format.bits_moyens_par_secondes = calcule_bits_moyens_par_secondes(format)
 
-écris_données :: fonc (génératrice: *GénératriceWave, chemin: CheminFichier)
-{
-    autrice: AutriceFichierWave
-    initialise_autrice(*autrice)
-    diffère détruit_données_autrice(*autrice)
+    données: []z16
+    données.pointeur = tampon.données.pointeur comme *z16
+    données.taille = tampon.données.taille / 2
 
-    écris(*autrice, génératrice.entête)
-    écris(*autrice, génératrice.format)
-    écris(*autrice, génératrice.données)
+    chunk_données: ChunkDonnéesWave
+    chunk_données.taille_chunk = tampon.données.taille comme n32
+    chunk_données.données = données
 
-    /* On enlève 8 octets pour les 4 octets de "RIFF", et les 4 octets de la taille du fichier. */
-    taille_fichier := autrice.sérialiseuse.taille_données_totales - 8
-
-    position_courante := position_courante(*autrice.sérialiseuse)
-
-    /* La taille du fichier est écrite 4 octets après le début du fichier. */
-    discr donne_position_au_décalage(*autrice.sérialiseuse, 4) {
-        Quelque(position) {
-            positionne(*autrice.sérialiseuse, position)
-            écris(*autrice, taille_fichier comme n32)
-        }
-        sinon {
-            /* À FAIRE : type erreur. */
-            imprime("Impossible d'obtenir la position de la taille du fichier !\n")
-            retourne
-        }
-    }
-
-    positionne(*autrice.sérialiseuse, position_courante)
-
-    écris_dans_fichier(*autrice.fichier, chemin)
-}
-
-écris :: fonc (autrice: *AutriceFichierWave, valeur: $T)
-{
-    sérialise(*autrice.sérialiseuse, valeur)
-}
-
-écris_chaine_sans_taille :: fonc (autrice: *AutriceFichierWave, chn: chaine)
-{
-    sérialise(*autrice.sérialiseuse, chn)
+    écris_données(format, chunk_données, CheminFichier(chemin))
 }
 
 /** \} */

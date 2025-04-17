@@ -856,6 +856,12 @@ imprime_err :: fonc (format: chaine, args: ...eini) -> rien
     _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
 }
 
+imprimeln :: fonc (format: chaine, args: ...eini)
+{
+    imprime(format, ...args)
+    imprime("\n")
+}
+
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
     enchaineuse: Enchaineuse
