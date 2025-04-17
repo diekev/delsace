@@ -8,6 +8,9 @@ pthread_once_t :: #opaque z32
 pthread_spinlock_t :: #opaque z32
 pthread_t :: #opaque n64
 
+/* Keys for thread-specific data */
+pthread_key_t :: n32
+
 libpthread :: #bibliothèque "pthread"
 
 __pthread_rwlock_arch_t :: struct #externe {
