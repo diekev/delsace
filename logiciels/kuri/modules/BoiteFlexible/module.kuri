@@ -296,6 +296,12 @@ ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
     }
 }
 
+ajoute_défilage :: fonc (config: ConfigurationDéfilage)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage = config
+}
+
 définis_arrière_plan :: fonc (couleur := CouleurRVBA())
 {
     assert(__boite_courante != nul)
