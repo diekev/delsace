@@ -1751,6 +1751,8 @@ IDPropriété :: énum n16 {
     FlexGrow
     FlexShrink
 
+    AlignContent
+
     BoxSizing
     Opacity
     ZIndex
@@ -1866,6 +1868,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FlexWrap] = donne_valeur_nowrap()
     style.valeurs[IDPropriété.FlexGrow] = donne_valeur_number_zéro()
     style.valeurs[IDPropriété.FlexShrink] = donne_valeur_number_un()
+
+    style.valeurs[IDPropriété.AlignContent] = donne_valeur_stretch()
 
     style.valeurs[IDPropriété.BoxSizing] = donne_valeur_content_box()
     style.valeurs[IDPropriété.Opacity] = donne_valeur_number_un()
@@ -2863,6 +2867,7 @@ __valeur_flex_start : ValeurMotClé = ---
 __valeur_row : ValeurMotClé = ---
 __valeur_nowrap : ValeurMotClé = ---
 __valeur_content_box : ValeurMotClé = ---
+__valeur_stretch : ValeurMotClé = ---
 __valeur_background_repeat : ValeurMotClé = ---
 __valeur_couleur_noire : ValeurCouleur = ---
 __valeur_couleur_transparente : ValeurCouleur = ---
@@ -2901,6 +2906,7 @@ initialise_valeurs_défaut :: fonc ()
     __valeur_row = ValeurMotClé(utilisations = 1, valeur = PROP_row)
     __valeur_nowrap = ValeurMotClé(utilisations = 1, valeur = PROP_nowrap)
     __valeur_content_box = ValeurMotClé(utilisations = 1, valeur = PROP_content_box)
+    __valeur_stretch = ValeurMotClé(utilisations = 1, valeur = PROP_stretch)
     __valeur_background_repeat = ValeurMotClé(utilisations = 1, valeur = PROP_repeat)
     __valeur_couleur_noire = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 255))
     __valeur_couleur_transparente = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 0))
@@ -3039,6 +3045,11 @@ donne_valeur_nowrap :: fonc () -> *ValeurDeStyle
 donne_valeur_content_box :: fonc () -> *ValeurDeStyle
 {
     retourne donne_valeur_défaut(*__valeur_content_box)
+}
+
+donne_valeur_stretch :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_stretch)
 }
 
 donne_valeur_couleur_noire :: fonc () -> *ValeurDeStyle

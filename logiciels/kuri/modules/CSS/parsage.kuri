@@ -2500,7 +2500,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 98
+NOMBRE_PROPRIÉTÉS :: 99
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2662,7 +2662,8 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_opacity, id = IDPropriété.Opacity, fonction_de_parsage = parse_propriété_number_ou_pourcentage, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
         InfoTypePropriété(PROP_z_index, id = IDPropriété.ZIndex, fonction_de_parsage = parse_propriété_number_ou_auto, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
         InfoTypePropriété(PROP_border_spacing, id = IDPropriété.BorderSpacing, fonction_de_parsage = parse_propriété_border_spacing, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
-        InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée)
+        InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
+        InfoTypePropriété(PROP_align_content, id = IDPropriété.AlignContent, fonction_de_parsage = parse_propriété_align_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
     ]
 
     /* NOTE : par défaut les infos n'ayant pas d'id prennent la valeur défaut de "Display".
@@ -5643,6 +5644,21 @@ parse_propriété_border_spacing :: fonc (value: []ComponentValue) -> Optionnel(
 parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     mots_clés := [PROP_collapse, PROP_separate]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Align Content
+ * https://www.w3.org/TR/css-flexbox-1/#propdef-align-content
+ * \{ */
+
+parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    /* flex-start | flex-end | center | space-between | space-around | stretch */
+    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_between, PROP_space_around, PROP_stretch]
     parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
 }
