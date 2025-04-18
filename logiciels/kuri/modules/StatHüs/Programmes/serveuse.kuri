@@ -13,6 +13,7 @@ importe Périphériques
 importe Typographie
 importe StatHüs
 importe Qt
+importe Triage
 
 importe POSIX
 
@@ -70,6 +71,8 @@ RappelsWindow :: struct {
     connexion_reçue: bool
     données_reçues: [..]octet
     état_mémoire: ÉtatMémoire
+
+    dessine_allocations := vrai
 
     glctx: *QT_OpenGL_Context
     glew_est_initialisé: bool
@@ -191,7 +194,14 @@ dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
 
 InfoTraceAllocation :: struct {
     utilisateurs: z32
+    id: z64
     traces: [..]TraceAllocation
+}
+
+compare_info_trace_allocations :: fonc (a: *InfoTraceAllocation, b: *InfoTraceAllocation) -> z32
+{
+    /* Triage décroissant. */
+    retourne b.utilisateurs - a.utilisateurs
 }
 
 Allocation :: struct {
@@ -209,16 +219,21 @@ Allocation :: struct {
     allocations: [..]Allocation
     messages: [..]MessageInfoAllocations
     traces: [..]*InfoTraceAllocation
+    traces_triées: [..]*InfoTraceAllocation
     condensats_traces: [..]Condensat
 
     mémoire_utilisée: z64
 
     allocation_sélectionnée := -1
+    trace_sélectionnée := -1
+
+    les_traces_sont_triées := faux
 }
 
 ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
 {
     trace := donne_trace_pour_message(état, message)
+    utilisateurs := trace.utilisateurs
 
     tableau_ajoute(*état.messages, message)
 
@@ -236,6 +251,7 @@ ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
         alloc.taille = message.taille
 
         tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        trace.utilisateurs += 1
         tableau_ajoute(*alloc.traces, trace)
         état.mémoire_utilisée += message.taille
     }
@@ -243,7 +259,16 @@ ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
         alloc := ajoute_allocation(état, message.nouvelle_adresse, message.taille)
         état.mémoire_utilisée += message.taille
         tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        trace.utilisateurs += 1
         tableau_ajoute(*alloc.traces, trace)
+    }
+
+    si utilisateurs != trace.utilisateurs || état.traces.taille != état.traces_triées.taille {
+        si état.traces.taille != état.traces_triées.taille {
+            tableau_ajoute(*état.traces_triées, trace)
+        }
+
+        état.les_traces_sont_triées = faux
     }
 }
 
@@ -261,12 +286,19 @@ supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
 {
     pour * état.allocations {
         si it.adresse == adresse {
+            pour trace dans it.traces {
+                trace.utilisateurs -= 1
+            }
+
             déloge(it.id)
             déloge(it.messages)
             déloge(it.traces)
             tableau_supprime_index(*état.allocations, index_it)
             si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
                 état.allocation_sélectionnée = -1
+            }
+            sinon si état.allocation_sélectionnée > index_it {
+                état.allocation_sélectionnée -= 1
             }
             arrête
         }
@@ -309,6 +341,11 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
     }
 
     tableau_insère_index(*état.traces, résultat, index)
+
+    pour état.traces {
+        it.id = index_it
+    }
+
     retourne résultat
 }
 
@@ -479,6 +516,14 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
         texte = imprime_chaine_temp("% condensats", rappels.état_mémoire.condensats_traces.taille)
         dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% traces triées", rappels.état_mémoire.traces_triées.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        dispose_séparateur_horizontal(20)
+
+        dispose_bouton(rappels, "Allocations", sur_sélection_affichage_alloc_ou_traces, 0)
+        dispose_bouton(rappels, "Traces", sur_sélection_affichage_alloc_ou_traces, 1)
     }
     termine_rectangle()
 
@@ -486,42 +531,109 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     {
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
-        pour > * rappels.état_mémoire.allocations {
-            si index_it >= 20 {
-                arrête
+        si rappels.dessine_allocations {
+            pour > * rappels.état_mémoire.allocations {
+                si index_it >= 20 {
+                    arrête
+                }
+
+                dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                {
+                    trace := it.traces[0]
+
+                    sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
+
+                    texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
+                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                }
+                termine_rectangle()
+            }
+        }
+        sinon {
+            saufsi rappels.état_mémoire.les_traces_sont_triées {
+                tri_rapide(rappels.état_mémoire.traces_triées, compare_info_trace_allocations)
+                rappels.état_mémoire.les_traces_sont_triées = vrai
             }
 
-            dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
-            {
-                trace := it.traces[0]
+            pour * rappels.état_mémoire.traces_triées {
+                si index_it >= 20 {
+                    arrête
+                }
+                index_effectif := index_it comme z32
 
-                sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
+                condensat := rappels.état_mémoire.condensats_traces[it.id]
 
-                texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
-                dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                dispose_rectangle(id = condensat.donne_chaine(), arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                {
+                    sur_clic_souris(définis_trace_sélectionnée, rappels, index_effectif)
+
+                    texte := imprime_chaine_temp("% allocations dans '%'", it.utilisateurs, it.traces[0].nom)
+                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                }
+                termine_rectangle()
             }
-            termine_rectangle()
         }
     }
     termine_rectangle()
 
-    allocation_sélectionnée := rappels.état_mémoire.allocation_sélectionnée
-    si allocation_sélectionnée == -1 {
-        retourne
+    si rappels.dessine_allocations {
+        allocation_sélectionnée := rappels.état_mémoire.allocation_sélectionnée
+        si allocation_sélectionnée == -1 {
+            retourne
+        }
+
+        allocation := rappels.état_mémoire.allocations[allocation_sélectionnée]
+        trace := allocation.traces[0]
+        condensat := rappels.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(rappels, trace, condensat)
     }
+    sinon {
+        trace_sélectionnée := rappels.état_mémoire.trace_sélectionnée
+        si trace_sélectionnée == -1 {
+            retourne
+        }
+        trace := rappels.état_mémoire.traces_triées[trace_sélectionnée]
+        condensat := rappels.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(rappels, trace, condensat)
+    }
+}
 
-    allocation := rappels.état_mémoire.allocations[allocation_sélectionnée]
-
-    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, condensat: Condensat)
+{
+    dispose_rectangle(id = "Vue Traces", disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
     {
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
-        pour allocation.traces[0].traces {
+        hex := condensat.donne_chaine_hex()
+        dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        déloge(hex)
+
+        pour trace.traces {
             dispose_texte(it.fichier, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
             dispose_texte(it.texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
         }
     }
+    termine_rectangle()   
+}
+
+dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, n64, z32)(rien), index: z32)
+{
+    dispose_rectangle(id = texte, arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu))
+    {
+        sur_pression_souris(rappel_sur_clic, rappels, index)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+    }
     termine_rectangle()
+}
+
+sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    si index == 0 {
+        rappels.dessine_allocations = vrai
+    }
+    sinon si index == 1 {
+        rappels.dessine_allocations = faux
+    }
 }
 
 définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
@@ -530,4 +642,12 @@ définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @in
     assert(index < rappels.état_mémoire.allocations.taille)
 
     rappels.état_mémoire.allocation_sélectionnée = index
+}
+
+définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    assert(index >= 0)
+    assert(index < rappels.état_mémoire.traces_triées.taille)
+
+    rappels.état_mémoire.trace_sélectionnée = index
 }
