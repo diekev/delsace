@@ -655,6 +655,22 @@ static bool est_retour_valide(InstructionRetour const &retour,
     return false;
 }
 
+static SourceAdresseAtome donne_source_adresse_pour_type_param(Type const *type)
+{
+    if (type->est_type_pointeur() || type->est_type_référence()) {
+        return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
+    }
+
+    if (type->est_type_tableau_fixe() || type->est_type_tableau_dynamique() ||
+        type->est_type_tranche()) {
+        return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
+    }
+
+    /* Le paramètre est copié, c'est donc une locale, et nous pouvons y stocker une adresse locale.
+     */
+    return SourceAdresseAtome::LOCALE;
+}
+
 static SourceAdresseAtome détermine_source_adresse_atome(
     AtomeFonction const &fonction,
     Atome const &atome,
@@ -673,7 +689,8 @@ static SourceAdresseAtome détermine_source_adresse_atome(
 
     POUR (fonction.params_entrée) {
         if (&atome == it) {
-            return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
+            return donne_source_adresse_pour_type_param(it->donne_type_alloué());
+            // return SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
         }
     }
 
@@ -770,13 +787,21 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
     kuri::tableau<SourceAdresseAtome> sources_pour_charge = sources;
 
     for (auto i = 0; i < fonction.params_entrée.taille(); i++) {
-        sources[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
-        sources_pour_charge[i] = SourceAdresseAtome::PARAMÈTRE_ENTRÉE;
+        auto param = fonction.params_entrée[i];
+        param->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
+        auto type_alloué = param->donne_type_alloué();
+        auto source = donne_source_adresse_pour_type_param(type_alloué);
+        sources[i] = source;
+        sources_pour_charge[i] = source;
     }
 
     int index = fonction.params_entrée.taille();
     sources[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
     sources_pour_charge[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
+
+    auto nom_fonction_à_étudier = "_KFCSS_donne_fonte_en_cache_E5_3ctx22KPKsCSS_"
+                                  "GlobalesDessin7famille8Kschaine5style8Kschaine7graisse18KsCSS_"
+                                  "GraisseFonte6taille5Ksr32_S_21KPKsTypographie_Fonte";
 
     POUR (fonction.instructions) {
         if (it->est_alloc()) {
@@ -812,21 +837,53 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_acces_membre()) {
-            auto accede = it->comme_acces_membre()->accédé;
-            sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
+            auto accès = it->comme_acces_membre();
+            auto accede = accès->accédé;
+
+            auto source = détermine_source_adresse_atome(fonction, *accede, sources);
+            auto source_pour_charge = source;
+
+            if (fonction.nom == nom_fonction_à_étudier) {
+                dbg() << "[" << it->numero << "] " << source;
+            }
+            if (accede->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) {
+                auto param = accede->comme_instruction()->comme_alloc();
+                auto type_param = param->donne_type_alloué()->comme_type_composé();
+                auto membre = type_param->membres[accès->index];
+                auto source_pour_membre = donne_source_adresse_pour_type_param(membre.type);
+
+                if (source != source_pour_membre) {
+                    if (fonction.nom == nom_fonction_à_étudier) {
+                        dbg() << "--> " << source << " vs " << source_pour_membre;
+                    }
+                }
+
+                source_pour_charge = source_pour_membre;
+                if (fonction.nom == nom_fonction_à_étudier) {
+                    dbg() << "--> " << source_pour_membre;
+                }
+            }
+
+            sources[it->numero] = source;
             if (accede->est_instruction()) {
-                sources_pour_charge[it->numero] =
-                    sources_pour_charge[accede->comme_instruction()->numero];
+                sources_pour_charge[it->numero] = source_pour_charge;
             }
             continue;
         }
 
         if (it->est_acces_index()) {
-            auto accede = it->comme_acces_index()->accédé;
-            sources[it->numero] = détermine_source_adresse_atome(fonction, *accede, sources);
+            auto accès = it->comme_acces_index();
+            auto accede = accès->accédé;
+            auto source = détermine_source_adresse_atome(fonction, *accede, sources);
+            auto source_pour_charge = source;
+
+            if (fonction.nom == nom_fonction_à_étudier) {
+                dbg() << "[" << it->numero << "] " << source;
+            }
+
+            sources[it->numero] = source;
             if (accede->est_instruction()) {
-                sources_pour_charge[it->numero] =
-                    sources_pour_charge[accede->comme_instruction()->numero];
+                sources_pour_charge[it->numero] = source_pour_charge;
             }
             continue;
         }
