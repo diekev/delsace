@@ -647,6 +647,10 @@ Emboiteuse :: struct {
     commandes: CommandesDeRendu
 
     id_pressé: n64
+
+    /* Mémoire vive. */
+    croissables: [..]*BoiteFlexible
+    décroissables: [..]*BoiteFlexible
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -1188,11 +1192,13 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
         }
     }
 
-    croissables: [..]*BoiteFlexible
-    diffère déloge(croissables)
+    croissables := boite.emboiteuse.croissables
+    diffère boite.emboiteuse.croissables = croissables
+    croissables.taille = 0
 
-    décroissables: [..]*BoiteFlexible
-    diffère déloge(décroissables)
+    décroissables := boite.emboiteuse.décroissables
+    diffère boite.emboiteuse.décroissables = décroissables
+    décroissables.taille = 0
 
     pour boite.enfants {
         si it.est_cotation_croissante(direction) {
