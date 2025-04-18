@@ -109,12 +109,18 @@ allocatrice_stathüs :: fonc (params: &ParamètresAllocation, données: *BaseAll
         ALLOUE_ALIGNÉ,
         RÉALLOUE {
             résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
-            allocatrice.envoie_message(params, résultat)
+            si params.nouvelle_taille != 0 || params.ancienne_taille != 0 {
+                /* Évite de spammer avec les logements de chaines ou de tableaux vides */
+                allocatrice.envoie_message(params, résultat)
+            }
             retourne résultat
         }
         DÉSALLOUE {
             résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
-            allocatrice.envoie_message(params, nul)
+            si params.nouvelle_taille != 0 || params.ancienne_taille != 0 {
+                /* Évite de spammer avec les délogements de chaines ou de tableaux vides */
+                allocatrice.envoie_message(params, nul)
+            }
             retourne résultat
         }
     }
