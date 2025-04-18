@@ -4,6 +4,11 @@ importe Structures
 
 /* Calculs des largeurs, hauteurs, et marges des noeuds. */
 
+PersonnalisationCotation :: struct {
+    outrepas_largeur: *OutrepasCotation
+    outrepas_hauteur: *OutrepasCotation
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom OutrepasCotation
  * L'OutrepasCotation est utilisé pour forcer la valeur d'une cotation (hauteur
@@ -277,27 +282,27 @@ ArgumentsDimensionnement :: struct {
     mode: ModeDeFormattage
 }
 
-crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_largeur: *OutrepasCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
     résultat.noeud = noeud
     résultat.containing_block = containing_block
-    si outrepas_largeur {
-        résultat.outrepas_largeur = mémoire(outrepas_largeur)
+    si personnalisation.outrepas_largeur {
+        résultat.outrepas_largeur = mémoire(personnalisation.outrepas_largeur)
     }
     résultat.mode = mode
     retourne résultat
 }
 
-crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, outrepas_hauteur: *OutrepasCotation) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
     résultat.noeud = noeud
     résultat.containing_block = containing_block
-    si outrepas_hauteur {
-        résultat.outrepas_hauteur = mémoire(outrepas_hauteur)
+    si personnalisation.outrepas_hauteur {
+        résultat.outrepas_hauteur = mémoire(personnalisation.outrepas_hauteur)
     }
     retourne résultat
 }

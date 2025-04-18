@@ -370,13 +370,13 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche)
-            it.mesure(ctx, mode, nul)
+            it.mesure(ctx, mode, PersonnalisationCotation())
             ctx.ajoute_boite_flottante_gauche(it, mode)
             continue
         }
         si float.est_mot_clé(PROP_right) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite)
-            it.mesure(ctx, mode, nul)
+            it.mesure(ctx, mode, PersonnalisationCotation())
             ctx.ajoute_boite_flottante_droite(it, mode)
             continue
         }
@@ -388,7 +388,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         position_basse_floats_droites := ctx.donne_décalage_floats_droite()
 
         it.définis_position(décalage_x, décalage_y + params_position.décalage_hors_float)
-        it.mesure(ctx, mode, nul)
+        it.mesure(ctx, mode, PersonnalisationCotation())
         ajoute_marge(ctx, it, IDPropriété.MarginBottom)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
@@ -777,7 +777,7 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAb
     containing_block := donne_containing_block(noeud, ctx)
     assert(containing_block.noeud == boite.containing_block)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, ModeDeFormattage.Normal)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, PersonnalisationCotation(), ModeDeFormattage.Normal)
     args.pos_x_statique = boite.pos_x_statique
     args.pos_y_statique = boite.pos_y_statique
     calcule_largeur_et_marges(*args)
@@ -1369,7 +1369,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         largeur_désirée: OutrepasCotation
         si flex_basis.est_mot_clé(PROP_content) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode, nul)
+            it.mesure(ctx, mode, PersonnalisationCotation())
             largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
             largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
         }
@@ -1382,7 +1382,9 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
             largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.donne_pixels())
         }
 
-        it.mesure(ctx, mode, *largeur_désirée)
+        personnalisation: PersonnalisationCotation
+        personnalisation.outrepas_largeur = *largeur_désirée
+        it.mesure(ctx, mode, personnalisation)
         item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
     }
 }
@@ -1421,7 +1423,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    sized under a min-content or max-content constraint (e.g. when performing automatic table layout [CSS21]),
         //    size the item under that constraint. The flex base size is the item’s resulting main size.
         si mode != ModeDeFormattage.Normal {
-            it.noeud.mesure(ctx, mode, nul)
+            it.noeud.mesure(ctx, mode, PersonnalisationCotation())
             it.flex_base_size = donne_main_size(ctx, it.noeud)
             continue
         }
@@ -1436,7 +1438,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
         //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
         //    item’s resulting main size.
-        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, nul)
+        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation())
         it.flex_base_size = donne_main_size(ctx, it.noeud)
     }
 
@@ -1793,7 +1795,9 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
     containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+    personnalisation: PersonnalisationCotation
+    personnalisation.outrepas_hauteur = *hauteur_finale
+    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, personnalisation)
     _ := calcule_hauteur_et_marges(*args)
 
     discr mode {
@@ -1848,7 +1852,9 @@ formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 
     hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_des_enfants)
     containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+    personnalisation: PersonnalisationCotation
+    personnalisation.outrepas_hauteur = *hauteur_finale
+    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, personnalisation)
     _ := calcule_hauteur_et_marges(*args)
 
     discr mode {
@@ -1913,7 +1919,9 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
         nouvelle_largeur := ancienne_largeur + delta
 
         largeur_désirée := crée_outrepas_pour_coter_contenu(nouvelle_largeur)
-        it.mesure(ctx, mode, *largeur_désirée)
+        personnalisation: PersonnalisationCotation
+        personnalisation.outrepas_largeur = *largeur_désirée
+        it.mesure(ctx, mode, personnalisation)
     }
 
     ligne.largeur = 0.0
@@ -2089,10 +2097,10 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
             continue
         }
 
-        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, nul)
+        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, PersonnalisationCotation())
         it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur
 
-        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, nul)
+        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation())
         it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
 
         containing_block := donne_containing_block(it.box, ctx)
@@ -2216,7 +2224,9 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 
     outrepas_largeur := crée_outrepas_pour_coter_contenu(largeur)
     containing_block := donne_containing_block(table, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, *outrepas_largeur, ModeDeFormattage.Normal)
+    personnalisation: PersonnalisationCotation
+    personnalisation.outrepas_largeur = *outrepas_largeur
+    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, personnalisation, ModeDeFormattage.Normal)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -2279,7 +2289,8 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
     }
 
     outrepas_hauteur := crée_outrepas_pour_coter_contenu(hauteur_du_contenu)
-    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, *outrepas_hauteur)
+    personnalisation.outrepas_hauteur = *outrepas_hauteur
+    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, personnalisation)
     _ := calcule_hauteur_et_marges(*args)
 }
 
@@ -2536,7 +2547,9 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
     pour * cellule dans cellules {
         définis_position(cellule.box, cellule.position_x_finale, ligne.top)
         outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
-        mesure(cellule.box, ctx, ModeDeFormattage.Normal, *outrepas_largeur)
+        personnalisation: PersonnalisationCotation
+        personnalisation.outrepas_largeur = *outrepas_largeur
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation)
     }
 }
 
