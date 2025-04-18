@@ -1872,6 +1872,17 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.ZIndex] = donne_valeur_auto()
 }
 
+définis_valeur :: fonc (style: *Style, id: IDPropriété, valeur: *ValeurDeStyle)
+{
+    si valeur == style.valeurs[id] {
+        retourne
+    }
+
+    // À FAIRE : ceci corromp la mémoire (le pointeur peut-être réutilisé, et avoir un type différent alors que quelqu'un d'autre l'utilise)
+    // détruit_valeur_de_style(style.valeurs[id])
+    style.valeurs[id] = valeur
+}
+
 donne_bordure :: fonc (style: *Style) -> Border
 {
     résultat: Border
@@ -2481,28 +2492,32 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         résultat := évalue_calc(valeur.donne_calc(), genre_valeur_calculée, ctx)
         discr résultat {
             Ok(v) {
-                style.valeurs[id] = copie_valeur(v)
+                style.définis_valeur(id, copie_valeur(v))
                 retourne
             }
             Erreur(e) {
                 si e == ErreurDeCalcul.PourcentageIncalculable {
-                    style.valeurs[id] = copie_valeur(valeur)
+                    style.définis_valeur(id, copie_valeur(valeur))
                     retourne
                 }
             }
             sinon {}
         }
         valeur = ctx.valeurs_initiales.valeurs[id]
-        style.valeurs[id] = copie_valeur(valeur)
+        style.définis_valeur(id, copie_valeur(valeur))
         retourne
     }
 
     résultat := calcule_valeur_propriété_générique(valeur, genre_valeur_calculée, style, ctx)
     si résultat.possède_valeur() {
-        si info.drapeaux.ValeurNégativeIllégale && résultat.Quelque.est_négative() {
+        valeur_résultat := résultat.Quelque
+        si info.drapeaux.ValeurNégativeIllégale && valeur_résultat.est_négative() {
+            si valeur_résultat != style.valeurs[id] {
+                détruit_valeur_de_style(valeur_résultat)
+            }
             retourne
         }
-        style.valeurs[id] = copie_valeur(résultat.Quelque)
+        style.définis_valeur(id, valeur_résultat)
         retourne
     }
 
@@ -2510,7 +2525,12 @@ calcule_valeur_propriété_générique :: fonc (déclaration: *DéclarationPropr
         si info.drapeaux.ValeurNégativeIllégale && valeur.est_négative() {
             retourne
         }
-        style.valeurs[id] = copie_valeur(valeur)
+
+        si valeur != style.valeurs[id] {
+            valeur = copie_valeur(valeur)
+        }
+
+        style.définis_valeur(id, valeur)
         retourne
     }
 }
