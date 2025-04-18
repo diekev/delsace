@@ -2,9 +2,11 @@ importe Compilatrice
 importe BoiteFlexible
 importe Chaine
 importe Couleur
+importe Ensemble
 importe Fondation
 importe Géométrie
 importe Image
+importe Krypto
 importe OpenGL
 importe PeintureInterface
 importe Périphériques
@@ -187,6 +189,11 @@ dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
 /** \nom Allocation
  * \{ */
 
+InfoTraceAllocation :: struct {
+    utilisateurs: z32
+    traces: [..]TraceAllocation
+}
+
 Allocation :: struct {
     id: chaine
     adresse: z64
@@ -194,11 +201,15 @@ Allocation :: struct {
 
     // index dans ÉtatMémoire.messages
     messages: [..]z64
+
+    traces: [..]*InfoTraceAllocation
 }
 
 ÉtatMémoire :: struct {
     allocations: [..]Allocation
     messages: [..]MessageInfoAllocations
+    traces: [..]*InfoTraceAllocation
+    condensats_traces: [..]Condensat
 
     mémoire_utilisée: z64
 
@@ -207,6 +218,8 @@ Allocation :: struct {
 
 ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
 {
+    trace := donne_trace_pour_message(état, message)
+
     tableau_ajoute(*état.messages, message)
 
     si message.ancienne_adresse != 0 {
@@ -223,12 +236,14 @@ ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
         alloc.taille = message.taille
 
         tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        tableau_ajoute(*alloc.traces, trace)
         état.mémoire_utilisée += message.taille
     }
     sinon {
         alloc := ajoute_allocation(état, message.nouvelle_adresse, message.taille)
         état.mémoire_utilisée += message.taille
         tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        tableau_ajoute(*alloc.traces, trace)
     }
 }
 
@@ -246,12 +261,13 @@ supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
 {
     pour * état.allocations {
         si it.adresse == adresse {
+            déloge(it.id)
+            déloge(it.messages)
+            déloge(it.traces)
             tableau_supprime_index(*état.allocations, index_it)
             si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
                 état.allocation_sélectionnée = -1
             }
-            déloge(it.id)
-            déloge(it.messages)
             arrête
         }
     }
@@ -264,6 +280,50 @@ ajoute_allocation :: fonc (état: *ÉtatMémoire, adresse: z64, taille: z64) -> 
     résultat.taille = taille
     résultat.id = imprime_chaine("%", résultat)
     retourne résultat
+}
+
+donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations) -> *InfoTraceAllocation
+{
+    condensat := donne_condensat(message)
+
+    index := ensemble_possède_retourne_index(*état.condensats_traces, condensat)
+    si index != -1 {
+        détruit_données(*condensat)
+        déloge(message.traces)
+        retourne état.traces[index]
+    }
+
+    index = ensemble_ajoute_retourne_index(*état.condensats_traces, condensat)
+
+    résultat := loge(InfoTraceAllocation)
+
+    résultat.traces = message.traces
+    message.traces.taille = 0
+    message.traces.pointeur = nul
+    message.traces.capacité = 0
+
+    pour * résultat.traces {
+        it.nom = copie_chaine(it.nom)
+        it.texte = copie_chaine(it.texte)
+        it.fichier = copie_chaine(it.fichier)
+    }
+
+    tableau_insère_index(*état.traces, résultat, index)
+    retourne résultat
+}
+
+donne_condensat :: fonc (message: MessageInfoAllocations) -> Condensat
+{
+    sha256 := crée_sha256()
+    diffère détruit(sha256)
+
+    pour * message.traces {
+        ajourne(sha256, it.nom)
+        ajourne(sha256, it.texte)
+        ajourne(sha256, it.fichier)
+    }
+
+    retourne donne_condensat(sha256)
 }
 
 /** \} */
@@ -413,6 +473,12 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
         texte = imprime_chaine_temp("mémoire utilisée % octets", rappels.état_mémoire.mémoire_utilisée)
         dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% traces", rappels.état_mémoire.traces.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% condensats", rappels.état_mémoire.condensats_traces.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
     }
     termine_rectangle()
 
@@ -420,18 +486,18 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     {
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
-        pour * rappels.état_mémoire.allocations {
+        pour > * rappels.état_mémoire.allocations {
             si index_it >= 20 {
                 arrête
             }
 
             dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
             {
-                message := rappels.état_mémoire.messages[it.messages[0]]
+                trace := it.traces[0]
 
-                sur_clic_souris(définis_allocation_sélectionnée, rappels, index_it comme z32)
+                sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
 
-                texte := imprime_chaine_temp("% octets dans '%'", it.taille, message.traces[0].nom)
+                texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
                 dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
             }
             termine_rectangle()
@@ -450,13 +516,10 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     {
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
-        message := rappels.état_mémoire.messages[allocation.messages[0]]
-
-        pour message.traces {
+        pour allocation.traces[0].traces {
             dispose_texte(it.fichier, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
             dispose_texte(it.texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
         }
-
     }
     termine_rectangle()
 }
