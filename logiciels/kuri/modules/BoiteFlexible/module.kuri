@@ -653,6 +653,22 @@ Emboiteuse :: struct {
     décroissables: [..]*BoiteFlexible
 }
 
+détruit_données :: fonc (emboiteuse: *Emboiteuse)
+{
+    pour emboiteuse.toutes_les_boites {
+        déloge(it)
+    }
+    déloge(emboiteuse.toutes_les_boites)
+    déloge(emboiteuse.boites_libres)
+    déloge(emboiteuse.fragments)
+    déloge(emboiteuse.boites_disposées)
+    déloge(emboiteuse.barres_de_défilement)
+    déloge(emboiteuse.éditrices_textes)
+    déloge(emboiteuse.bordures)
+    déloge(emboiteuse.croissables)
+    déloge(emboiteuse.décroissables)
+}
+
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
 {
     réinitialise(emboiteuse)
