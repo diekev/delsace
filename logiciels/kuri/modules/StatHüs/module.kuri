@@ -1,0 +1,618 @@
+importe Chaine
+importe Fondation
+importe POSIX
+importe Introspection
+importe Sérialisation
+
+VERSION : n8 : 0
+
+TraceAllocation :: struct {
+    nom: chaine
+    fichier: chaine
+    texte: chaine
+    ligne: z32
+    colonne: z32
+}
+
+TypeMessage :: énum n8 {
+    DébutProgramme :: 0
+    Logement :: 1
+    Délogement :: 2
+    Relogement :: 3
+    FinProgramme :: 4
+}
+
+EntêteMessage :: struct {
+    version := VERSION
+    type: TypeMessage
+    taille_message: z32
+}
+
+MessageDébutProgramme :: struct {
+    entête: EntêteMessage
+}
+
+MessageFinProgramme :: struct {
+    entête: EntêteMessage
+}
+
+MessageInfoAllocations :: struct {
+    entête: EntêteMessage
+    ancienne_adresse: z64
+    nouvelle_adresse: z64
+    taille: z64
+    traces: [..]TraceAllocation
+}
+
+Extrémité :: struct ($est_cliente: bool) {
+    prise: z32
+    nous_ne_pouvons_pas_parler_au_serveur := vrai
+}
+
+crée_extrémité_cliente :: fonc (doit_bloquer := vrai) -> Extrémité(vrai)
+{
+    résultat: Extrémité(vrai)
+    résultat.prise = crée_prise_unix_pour_clientèle(CHEMIN_SOCKET, doit_bloquer)
+    résultat.nous_ne_pouvons_pas_parler_au_serveur = résultat.prise == -1
+    retourne résultat
+}
+
+crée_extrémité_serveuse :: fonc (doit_bloquer := vrai, backlog := 1024) -> Extrémité(faux)
+{
+    résultat: Extrémité(faux)
+    résultat.prise = crée_prise_unix_pour_service(CHEMIN_SOCKET, doit_bloquer, backlog)
+    retourne résultat
+}
+
+détruit_extrémité :: fonc (extrémité: Extrémité($est_cliente))
+{
+    si extrémité.prise != -1 {
+        _ := close(extrémité.prise)
+    }
+}
+
+envoie_message :: fonc (extrémité: *Extrémité(vrai), message: MessageInfoAllocations)
+{
+    infos_séritalisation: InfosSérialisation
+    ajoute_taille_type(infos_séritalisation, message)
+
+    message.entête.taille_message = infos_séritalisation.taille_courante comme z32
+
+    tampon := sérialise_type(message, infos_séritalisation)
+    diffère déloge(tampon)
+
+    tampon_à_écrire := tampon
+
+    tantque tampon_à_écrire.taille > 0 {
+        num_écris := write(extrémité.prise, tampon_à_écrire.pointeur comme *z8, tampon_à_écrire.taille)
+        si num_écris == -1 {
+            extrémité.nous_ne_pouvons_pas_parler_au_serveur = vrai
+            arrête
+        }
+        tampon_à_écrire.pointeur += num_écris
+        tampon_à_écrire.taille -= num_écris
+    }
+}
+
+CHEMIN_SOCKET :: "/tmp/.StatHus"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction d'allocation.
+ * \{ */
+
+allocatrice_stathüs :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+{
+    allocatrice := données comme *AllocatriceStatHüs
+
+    discr params.mode {
+        ALLOUE,
+        ALLOUE_ALIGNÉ,
+        RÉALLOUE {
+            résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
+            allocatrice.envoie_message(params, résultat)
+            retourne résultat
+        }
+        DÉSALLOUE {
+            résultat := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
+            allocatrice.envoie_message(params, nul)
+            retourne résultat
+        }
+    }
+
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AllocatriceStatHüs
+ * 
+ * Utilisation :
+ *
+ *   ctx := contexte()
+ *
+ *   allocatrice := crée_allocatrice_stathüs()
+ *   installe_allocatrice(*ctx, *allocatrice)
+ *
+ *   pousse_contexte ctx {
+ *       ...
+ *   }
+ *
+ *   détruit_allocatrice(*allocatrice)
+ *
+ * \{ */
+
+AllocatriceStatHüs :: struct {
+    empl base: BaseAllocatrice
+    extrémité: Extrémité(vrai)
+
+    /* L'allocatrice à qui nous demanderons de la mémoire. */
+    allocatrice: TypeFonctionAllocation
+    données_allocatrice : *BaseAllocatrice = nul
+
+    dans_envoie_message: bool
+}
+
+crée_allocatrice_stathüs :: fonc () -> AllocatriceStatHüs
+{
+    allocatrice: AllocatriceStatHüs
+    allocatrice.extrémité = crée_extrémité_cliente(vrai)
+    retourne allocatrice
+}
+
+installe_allocatrice :: fonc (ctx: *ContexteProgramme, allocatrice: *AllocatriceStatHüs)
+{
+    allocatrice.allocatrice = ctx.allocatrice
+    allocatrice.données_allocatrice = ctx.données_allocatrice
+
+    ctx.allocatrice = allocatrice_stathüs
+    ctx.données_allocatrice = allocatrice
+}
+
+détruit_allocatrice :: fonc (allocatrice: *AllocatriceStatHüs)
+{
+    détruit_extrémité(allocatrice.extrémité)
+}
+
+envoie_message :: fonc (allocatrice: *AllocatriceStatHüs, params: &ParamètresAllocation, adresse: *rien)
+{
+    si allocatrice.extrémité.nous_ne_pouvons_pas_parler_au_serveur {
+        retourne
+    }
+
+    si allocatrice.dans_envoie_message {
+        retourne
+    }
+
+    allocatrice.dans_envoie_message = vrai
+    diffère allocatrice.dans_envoie_message = faux
+
+    message: MessageInfoAllocations
+    message.ancienne_adresse = params.ancien_pointeur comme z64
+    message.nouvelle_adresse = adresse comme z64
+    message.taille = params.nouvelle_taille
+
+    discr params.mode {
+        ALLOUE,
+        ALLOUE_ALIGNÉ {
+            message.entête.type = TypeMessage.Logement
+        }
+        RÉALLOUE {
+            message.entête.type = TypeMessage.Relogement
+        }
+        DÉSALLOUE {
+            message.entête.type = TypeMessage.Délogement
+            message.taille = params.ancienne_taille
+        }
+    }
+
+    trace := contexte().trace_appel
+
+    nombre_de_trace_à_ignorer := 2
+    tantque trace != nul {
+        trace = trace.précédente
+        nombre_de_trace_à_ignorer -= 1
+        si nombre_de_trace_à_ignorer == 0 {
+            arrête
+        }
+    }
+
+    si trace == nul {
+        retourne
+    }
+
+    tantque trace != nul {
+        info_fonction := trace.info_fonction
+        info_appel := trace.info_appel
+
+        trace_alloc := tableau_ajoute_élément(*message.traces)
+        trace_alloc.nom = info_fonction.nom
+        trace_alloc.fichier = info_fonction.fichier
+        trace_alloc.texte = info_appel.texte
+        trace_alloc.ligne = info_appel.ligne
+        trace_alloc.colonne = info_appel.colonne
+
+        trace = trace.précédente
+    }
+
+    envoie_message(*allocatrice.extrémité, message)
+}
+
+/** \} */
+
+#portée_fichier
+
+crée_prise_unix_pour_clientèle :: fonc (chemin_socket: chaine, doit_bloquer := vrai) -> z32
+{
+    chaine_c_chemin_socket := crée_chaine_c(chemin_socket)
+    diffère détruit_chaine_c(chaine_c_chemin_socket)
+
+    sfd := socket(AF_UNIX, SOCK_STREAM, 0)
+    si sfd == -1 {
+        imprime("Impossible de créer la prise : %\n", lis_errno());
+        retourne -1
+    }
+
+    addr: sockaddr_un
+    si chemin_socket.taille > addr.sun_path.taille - 1 {
+        imprime("Taille chemin socket trop long : '%'\n", chemin_socket)
+        retourne -1
+    }
+    addr.sun_family = AF_UNIX comme n16
+    copie_mem_nonsur(src = chemin_socket.pointeur, dst = *addr.sun_path[0], taille = chemin_socket.taille)
+
+    si connect(sfd, *addr comme *sockaddr, taille_de(sockaddr_un) comme z64) == -1 {
+        imprime("connect : %\n", lis_errno());
+        retourne -1
+    }
+
+    si doit_bloquer == faux && marque_prise_non_bloquante(sfd) == faux {
+        imprime("fnctl : %\n", lis_errno());
+        retourne -1
+    }
+
+    retourne sfd
+}
+
+crée_prise_unix_pour_service :: fonc (chemin_socket: chaine, doit_bloquer := vrai, backlog := 1024) -> z32
+{
+    chaine_c_chemin_socket := crée_chaine_c(chemin_socket)
+    diffère détruit_chaine_c(chaine_c_chemin_socket)
+
+    sfd := socket(AF_UNIX, SOCK_STREAM, 0)
+    si sfd == -1 {
+        imprime("Impossible de créer la prise : %\n", lis_errno());
+        exit(1)
+    }
+
+    addr: sockaddr_un
+    si chemin_socket.taille > addr.sun_path.taille - 1 {
+        imprime("Taille chemin socket trop long : '%'\n", chemin_socket)
+        exit(1)
+    }
+
+    si remove(chaine_c_chemin_socket) == -1 && lis_errno() != ENOENT {
+        imprime("Impossible de supprimer le fichier : '%'\n", chemin_socket)
+        exit(1)
+    }
+
+    addr.sun_family = AF_UNIX comme n16
+    copie_mem_nonsur(src = chemin_socket.pointeur, dst = *addr.sun_path[0], taille = chemin_socket.taille)
+
+    si bind(sfd, *addr comme *sockaddr, taille_de(sockaddr_un)) == -1 {
+        imprime("bind : %\n", lis_errno());
+        exit(1)
+    }
+
+    si listen(sfd, backlog) == -1 {
+        imprime("listen : %\n", lis_errno());
+        exit(1)
+    }
+
+    si doit_bloquer == faux && marque_prise_non_bloquante(sfd) == faux {
+        imprime("fnctl : %\n", lis_errno());
+        exit(1)
+    }
+
+    retourne sfd
+}
+
+marque_prise_non_bloquante :: fonc (fd: z32) -> bool
+{
+    flags := fcntl(fd, F_GETFL, 0)
+    si (flags & O_NONBLOCK) != 0 {
+        retourne vrai
+    }
+    si fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 {
+        retourne faux
+    }
+    retourne vrai
+}
+
+ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
+{
+    traversée: [..]eini
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, valeur)
+
+    tantque traversée.taille > 0 {
+        valeur_courante := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        info_type := valeur_courante.info
+
+        discr info_type.id {
+            OCTET,
+            ENTIER,
+            RÉEL,
+            ÉNUM,
+            BOOLÉEN {
+                ajoute_taille(infos, info_type.taille_en_octet comme z64)
+            }
+            CHAINE {
+                chn := mémoire(valeur_courante.pointeur comme *chaine)
+                ajoute_taille(infos, taille_de(z64) comme z64)
+                ajoute_taille(infos, chn.taille)
+            }
+            STRUCTURE {
+                info_structure := info_type comme *InfoTypeStructure
+                pour > info_structure.membres {
+                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                        continue
+                    }
+                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                }
+            }
+            TABLEAU,
+            TABLEAU_FIXE {
+                itératrice := crée_itératrice_tableau(valeur_courante)
+                ajoute_taille(infos, taille_de(z64) comme z64)
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            TRANCHE {
+                itératrice := crée_itératrice_tableau_tranche(valeur_courante)
+                ajoute_taille(infos, taille_de(z64) comme z64)
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            POINTEUR,
+            FONCTION,
+            ADRESSE_FONCTION,
+            EINI,
+            RIEN,
+            TYPE_DE_DONNÉES,
+            UNION,
+            OPAQUE {
+                info_opaque := info_type comme *InfoTypeOpaque
+                valeur_courante.info = info_opaque.type_opacifié
+                tableau_ajoute(*traversée, valeur_courante)
+            }
+            VARIADIQUE {}
+        }
+    }
+}
+
+sérialise_type :: fonc (valeur: eini) -> [..]octet
+{
+    infos_séritalisation: InfosSérialisation
+    ajoute_taille_type(infos_séritalisation, valeur)
+
+    retourne sérialise_type(valeur, infos_séritalisation)
+}
+
+sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisation) -> [..]octet
+{
+    résultat: [..]octet
+    tableau_redimensionne(résultat, infos_séritalisation.taille_courante)
+
+    curseur: z64
+
+    traversée: [..]eini
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, valeur)
+
+    tantque traversée.taille > 0 {
+        assert(curseur < résultat.taille)
+
+        valeur_courante := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        info_type := valeur_courante.info
+
+        discr info_type.id {
+            OCTET,
+            ENTIER,
+            RÉEL,
+            ÉNUM,
+            BOOLÉEN {
+                copie_mem_nonsur(src = valeur_courante.pointeur, dst = résultat.pointeur + curseur, taille = info_type.taille_en_octet comme z64)
+                curseur += info_type.taille_en_octet comme z64
+            }
+            CHAINE {
+                chn := mémoire(valeur_courante.pointeur comme *chaine)
+
+                mémoire((résultat.pointeur + curseur) comme *z64) = chn.taille
+                curseur += taille_de(z64) comme z64
+
+                copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur + curseur, taille = chn.taille)
+                curseur += chn.taille
+            }
+            STRUCTURE {
+                info_structure := info_type comme *InfoTypeStructure
+                pour > info_structure.membres {
+                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                        continue
+                    }
+                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                }
+            }
+            TABLEAU,
+            TABLEAU_FIXE {
+                itératrice := crée_itératrice_tableau(valeur_courante)
+
+                mémoire((résultat.pointeur + curseur) comme *z64) = itératrice.taille
+                curseur += taille_de(z64) comme z64
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            TRANCHE {
+                itératrice := crée_itératrice_tableau_tranche(valeur_courante)
+
+                mémoire((résultat.pointeur + curseur) comme *z64) = itératrice.taille
+                curseur += taille_de(z64) comme z64
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            POINTEUR,
+            FONCTION,
+            ADRESSE_FONCTION,
+            EINI,
+            RIEN,
+            TYPE_DE_DONNÉES,
+            UNION,
+            OPAQUE {
+                info_opaque := info_type comme *InfoTypeOpaque
+                valeur_courante.info = info_opaque.type_opacifié
+                tableau_ajoute(*traversée, valeur_courante)
+            }
+            VARIADIQUE {}
+        }
+    }
+
+    retourne résultat
+}
+
+#portée_export
+
+désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
+{
+    curseur: z64
+
+    traversée: [..]eini
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, résultat)
+
+    tantque traversée.taille > 0 {
+        assert(curseur < données.taille)
+
+        valeur_courante := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        info_type := valeur_courante.info
+
+        discr info_type.id {
+            OCTET,
+            ENTIER,
+            RÉEL,
+            ÉNUM,
+            BOOLÉEN {
+                copie_mem_nonsur(src = données.pointeur + curseur, dst = valeur_courante.pointeur, taille = info_type.taille_en_octet comme z64)
+                curseur += info_type.taille_en_octet comme z64
+            }
+            CHAINE {
+                chn := valeur_courante.pointeur comme *chaine
+                chn.taille = mémoire((données.pointeur + curseur) comme *z64)
+                assert(chn.taille >= 0)
+                curseur += taille_de(z64) comme z64
+                chn.pointeur = (données.pointeur + curseur) comme *z8
+                curseur += chn.taille
+            }
+            STRUCTURE {
+                info_structure := info_type comme *InfoTypeStructure
+                pour > info_structure.membres {
+                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                        continue
+                    }
+                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                }
+            }
+            TABLEAU {
+                taille_tableau := mémoire((données.pointeur + curseur) comme *z64)
+                assert(taille_tableau >= 0)
+                curseur += taille_de(z64) comme z64
+
+                si taille_tableau == 0 {
+                    continue
+                }
+
+                type_tableau := info_type comme *InfoTypeTableau
+                type_élément := type_tableau.type_pointé
+
+                taille_données_tableau := taille_tableau * type_élément.taille_en_octet comme z64
+                assert(taille_données_tableau >= 0)
+
+                // crée un tableau de la bonne taille
+                données_tableau: [..]octet
+                tableau_redimensionne(données_tableau, taille_données_tableau)
+                données_tableau.taille = taille_tableau
+                données_tableau.capacité = taille_tableau
+
+                mémoire(valeur_courante.pointeur comme *[..]octet) = données_tableau
+
+                itératrice := crée_itératrice_tableau(valeur_courante)
+                assert(itératrice.taille == taille_tableau)
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            TABLEAU_FIXE {
+                itératrice := crée_itératrice_tableau(valeur_courante)
+
+                taille_tableau := mémoire((données.pointeur + curseur) comme *z64)
+                curseur += taille_de(z64) comme z64
+                assert(taille_tableau == itératrice.taille)
+
+                taille_courante := traversée.taille
+                tableau_redimensionne(traversée, taille_courante + itératrice.taille)
+
+                pour > itératrice.taille {
+                    traversée[taille_courante + it] = itératrice.valeur_suivante()
+                }
+            }
+            TRANCHE,
+            POINTEUR,
+            FONCTION,
+            ADRESSE_FONCTION,
+            EINI,
+            RIEN,
+            TYPE_DE_DONNÉES,
+            UNION,
+            OPAQUE {
+                info_opaque := info_type comme *InfoTypeOpaque
+                valeur_courante.info = info_opaque.type_opacifié
+                tableau_ajoute(*traversée, valeur_courante)
+            }
+            VARIADIQUE {}
+        }
+    }
+
+    retourne curseur
+}

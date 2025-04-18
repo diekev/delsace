@@ -1,0 +1,470 @@
+importe Compilatrice
+importe BoiteFlexible
+importe Chaine
+importe Couleur
+importe Fondation
+importe Géométrie
+importe Image
+importe OpenGL
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+importe StatHüs
+importe Qt
+
+importe POSIX
+
+change_nom_sortie :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.nom_sortie = "serveuse"
+    compilatrice_ajourne_options(options)
+}
+
+#exécute change_nom_sortie()
+
+principale :: fonc ()
+{
+    // extrémité := crée_extrémité_serveuse(faux)
+    // détruit_extrémité(extrémité)
+
+    arguments := arguments_ligne_commande()
+
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappels: RappelsWindow
+    // rappels.extrémité = extrémité
+    rappels.fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 60.0)
+    rappels.petite_fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
+
+    window := QT_window_cree_avec_rappels(*rappels)
+
+    si QT_application_screen_count() > 1 {
+        rect: QT_Rect
+        QT_application_screen_geometry(1, *rect)
+        QT_window_set_position(window, rect.x, rect.y)
+    }
+
+    QT_window_show_maximized(window)
+
+    exécute(app)
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsWindow
+ * \{ */
+
+RappelsWindow :: struct {
+    empl base: QT_Rappels_Window
+
+    // extrémité: Extrémité(faux)
+    fonte: *Fonte
+    petite_fonte: *Fonte
+    emboiteuse: Emboiteuse
+    peintre: *Peintre
+
+    connexion_reçue: bool
+    données_reçues: [..]octet
+    état_mémoire: ÉtatMémoire
+
+    glctx: *QT_OpenGL_Context
+    glew_est_initialisé: bool
+
+    taille_fenêtre: QT_Taille
+
+    files_parallèles: [..]FileParallèle
+
+    sur_creation = rappels_window_sur_creation
+    sur_evenement = rappels_window_sur_evenement
+}
+
+rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    crée_local_server(rappels)
+
+    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
+}
+
+rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
+{
+    rappels := base comme *RappelsWindow
+
+    type := QT_evenement_donne_type(event)
+
+    si type == QT_Event_Type.UpdateRequest {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Expose {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Resize {
+        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseMove {
+        position: QT_Position
+        QT_mouse_event_donne_position(event.mouse_event, *position)
+        définis_position_souris(*rappels.emboiteuse, position.x comme r32, position.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Wheel {
+        position: QT_Position
+        QT_wheel_event_donne_position(event.wheel_event, *position)
+        delta := QT_wheel_event_donne_delta(event.wheel_event)
+        applique_défilage_vertical(*rappels.emboiteuse, position.x comme r32, position.y comme r32, delta)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonPress {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_pression_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonRelease {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_relâchement_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    saufsi QT_window_is_exposed(window) {
+        retourne
+    }
+
+    saufsi rappels.glctx {
+        rappels.glctx = QT_OpenGL_Context_cree_avec_parent(window)
+        _ := QT_OpenGL_Context_create(rappels.glctx)
+    }
+
+    _ := QT_OpenGL_Context_make_current(rappels.glctx, window)
+
+    saufsi rappels.glew_est_initialisé {
+        glewExperimental = 1
+        erreur_ := glewInit()
+
+        si erreur_ != 0 {
+            imprime("Erreur lors de l'initilisation de GLEW !\n")
+            retourne
+        }
+        rappels.glew_est_initialisé = vrai
+    }
+
+    glViewport(0, 0, QT_window_width(window), QT_window_height(window))
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    dessine_interface(rappels, rappels.taille_fenêtre.largeur, rappels.taille_fenêtre.hauteur)
+
+    QT_OpenGL_Context_swap_buffers(rappels.glctx, window)
+    QT_window_request_update(rappels.window)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Allocation
+ * \{ */
+
+Allocation :: struct {
+    id: chaine
+    adresse: z64
+    taille: z64
+
+    // index dans ÉtatMémoire.messages
+    messages: [..]z64
+}
+
+ÉtatMémoire :: struct {
+    allocations: [..]Allocation
+    messages: [..]MessageInfoAllocations
+
+    mémoire_utilisée: z64
+
+    allocation_sélectionnée := -1
+}
+
+ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
+{
+    tableau_ajoute(*état.messages, message)
+
+    si message.ancienne_adresse != 0 {
+        si message.entête.type == TypeMessage.Délogement {
+            supprime_allocation(état, message.ancienne_adresse)
+            état.mémoire_utilisée -= message.taille
+            retourne
+        }
+
+        alloc := trouve_allocation(état, message.ancienne_adresse)
+        assert(alloc != nul)
+        alloc.adresse = message.nouvelle_adresse
+        état.mémoire_utilisée -= alloc.taille
+        alloc.taille = message.taille
+
+        tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        état.mémoire_utilisée += message.taille
+    }
+    sinon {
+        alloc := ajoute_allocation(état, message.nouvelle_adresse, message.taille)
+        état.mémoire_utilisée += message.taille
+        tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+    }
+}
+
+trouve_allocation :: fonc (état: *ÉtatMémoire, adresse: z64) -> *Allocation
+{
+    pour * état.allocations {
+        si it.adresse == adresse {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
+{
+    pour * état.allocations {
+        si it.adresse == adresse {
+            tableau_supprime_index(*état.allocations, index_it)
+            si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
+                état.allocation_sélectionnée = -1
+            }
+            déloge(it.id)
+            déloge(it.messages)
+            arrête
+        }
+    }
+}
+
+ajoute_allocation :: fonc (état: *ÉtatMémoire, adresse: z64, taille: z64) -> *Allocation
+{
+    résultat := tableau_ajoute_élément(*état.allocations)
+    résultat.adresse = adresse
+    résultat.taille = taille
+    résultat.id = imprime_chaine("%", résultat)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LocalServer
+ * \{ */
+
+RappelsLocalServer :: struct {
+    empl base: QT_Rappels_LocalServer
+
+    rappels_window: *RappelsWindow
+}
+
+crée_local_server :: fonc (rappels: *RappelsWindow)
+{
+    résultat := QT_loge_rappel(RappelsLocalServer)
+    résultat.rappels_window = rappels
+    résultat.sur_connexion = local_server_sur_connection
+    résultat.sur_lecture = local_server_sur_lecture
+
+    si remove(ChaineC(CHEMIN_SOCKET.pointeur)) == -1 && lis_errno() != ENOENT {
+        imprime("Impossible de supprimer le fichier : '%'\n", CHEMIN_SOCKET)
+        exit(1)
+    }
+
+    server := QT_local_server_cree(résultat, rappels.window)
+    saufsi QT_local_server_listen(server, vers_qt(CHEMIN_SOCKET)) {
+        imprime("Impossible d'écouter la prise\n")
+    }
+}
+
+local_server_sur_connection :: fonc (rappels: *RappelsLocalServer, connexion: *QT_LocalSocket @inutilisée)
+{
+    rappels_window := rappels.rappels_window
+    rappels_window.connexion_reçue = vrai
+    rappels_window.données_reçues.taille = 0
+}
+
+local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion: *QT_LocalSocket)
+{
+    rappels := rappels_server.rappels_window
+
+    tantque QT_local_socket_is_valid(connexion) {
+        tampon: [1024]z8
+        taille_lue := QT_local_socket_read(connexion, *tampon[0], 1024)
+        si taille_lue == 0 {
+            arrête
+        }
+
+        si taille_lue == -1 {
+            rappels.connexion_reçue = faux
+            arrête
+        }
+
+        ancienne_taille := rappels.données_reçues.taille
+        tableau_redimensionne(rappels.données_reçues, rappels.données_reçues.taille + taille_lue)
+        copie_mem_nonsur(src = *tampon[0], dst = rappels.données_reçues.pointeur + ancienne_taille, taille = taille_lue)
+    }
+
+    si rappels.données_reçues {
+        message: MessageInfoAllocations
+
+        données : []octet = rappels.données_reçues
+
+        tantque données.taille > 0 {
+            init_de(MessageInfoAllocations)(*message)
+
+            taille_lue := désérialise_type(message, données)
+            ajoute_message(*rappels.état_mémoire, message)
+            données.pointeur += taille_lue
+            données.taille -= taille_lue
+        }
+
+        rappels.données_reçues.taille = 0
+    }
+}
+
+/** \} */
+
+dessine_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32)
+{
+    commandes := crée_interface(rappels, largeur, hauteur)
+
+    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi rappels.peintre {
+        rappels.peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    rappels.peintre.définis_taille_cannevas(taille_cannevas)
+
+    dessine_commandes(rappels.peintre, *commandes)
+
+    rappels.peintre.dessine_tampon_sur_écran()
+}
+
+PEAU1 := CouleurRVBA(0.776, 0.580, 0.467, 1.0)
+PEAU2 := CouleurRVBA(0.878, 0.770, 0.675, 1.0)
+PEAU_OMBRE := CouleurRVBA(0.094, 0.024, 0.0, 1.0)
+
+crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    emboiteuse := *rappels.emboiteuse
+
+    commence_disposition(emboiteuse, largeur, hauteur)
+
+    dispose_rectangle(arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+    {
+        dessine_état_mémoire(rappels)
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(emboiteuse)
+}
+
+dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
+{
+    si rappels.connexion_reçue == faux && rappels.données_reçues.taille == 0 {
+        dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0))
+        {
+            dispose_texte("En attente d'une connexion...", ConfigurationTexte(rappels.fonte, PEAU_OMBRE))
+        }
+        termine_rectangle()
+        retourne
+    }
+
+    dispose_rectangle(arrière_plan = PEAU1, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        dispose_texte("Connexion établie !", ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte := si rappels.état_mémoire.messages.taille > 1 {
+            imprime_chaine_temp("% messages reçus", rappels.état_mémoire.messages.taille)
+        }
+        sinon {
+            imprime_chaine_temp("% message reçu", rappels.état_mémoire.messages.taille)
+        }
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        nombre_d_allocations := rappels.état_mémoire.allocations.taille
+        texte = si nombre_d_allocations > 1 {
+            imprime_chaine_temp("% allocations", nombre_d_allocations)
+        }
+        sinon {
+            imprime_chaine_temp("% allocation", nombre_d_allocations)
+        }
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("mémoire utilisée % octets", rappels.état_mémoire.mémoire_utilisée)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+    }
+    termine_rectangle()
+
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
+
+        pour * rappels.état_mémoire.allocations {
+            si index_it >= 20 {
+                arrête
+            }
+
+            dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+            {
+                message := rappels.état_mémoire.messages[it.messages[0]]
+
+                sur_clic_souris(définis_allocation_sélectionnée, rappels, index_it comme z32)
+
+                texte := imprime_chaine_temp("% octets dans '%'", it.taille, message.traces[0].nom)
+                dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+            }
+            termine_rectangle()
+        }
+    }
+    termine_rectangle()
+
+    allocation_sélectionnée := rappels.état_mémoire.allocation_sélectionnée
+    si allocation_sélectionnée == -1 {
+        retourne
+    }
+
+    allocation := rappels.état_mémoire.allocations[allocation_sélectionnée]
+
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
+
+        message := rappels.état_mémoire.messages[allocation.messages[0]]
+
+        pour message.traces {
+            dispose_texte(it.fichier, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+            dispose_texte(it.texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        }
+
+    }
+    termine_rectangle()
+}
+
+définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    assert(index >= 0)
+    assert(index < rappels.état_mémoire.allocations.taille)
+
+    rappels.état_mémoire.allocation_sélectionnée = index
+}
