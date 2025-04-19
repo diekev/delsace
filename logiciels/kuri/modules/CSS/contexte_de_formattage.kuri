@@ -1346,6 +1346,26 @@ donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
     retourne ctx.contenant.modèle_de_boite.contenu.largeur
 }
 
+donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne ctx.contenant.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    }
+
+    retourne ctx.contenant.propriétés.donne_valeur_calculée(IDPropriété.Width)
+}
+
+définis_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, valeur: r64)
+{
+    si ctx.est_direction_row {
+        ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Height, crée_valeur_pixels(valeur))
+        retourne
+    }
+
+    ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(valeur))
+    ctx.contenant.ajourne_boite_pour_calcul_largeur()
+}
+
 donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
 {
     saufsi ctx.est_direction_row {
@@ -1407,6 +1427,24 @@ donne_max_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudD
     }
 
     retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxHeight)
+}
+
+donne_main_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+    }
+
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+}
+
+donne_main_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
+    }
+
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 }
 
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
@@ -1698,12 +1736,43 @@ résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> *ValeurDeStyle
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#algo-main-container */
-determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex @inutilisée)
+determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
 {
     /* Determine the main size of the flex container using the rules of the formatting
      * context in which it participates. For this computation, auto margins on flex
      * items are treated as 0. */
-    // NOTE : fait par le contexte parent
+    si mode == ModeDeFormattage.Normal {
+        // NOTE : fait par le contexte parent
+    }
+    sinon {
+        // XXX - main_size_prop
+        prop_largeur := ctx.contenant.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        saufsi prop_largeur.est_auto() {
+            retourne
+        }
+
+        main_size: r64
+
+        pour ctx.items {
+            margin_start_prop := donne_main_margin_start_prop(ctx, it.noeud)
+            margin_end_prop := donne_main_margin_end_prop(ctx, it.noeud)
+
+            main_size += it.hypothetical_main_size
+
+            // À FAIRE : pourcentages, calc, etc.
+            si margin_start_prop.est_pixels() {
+                main_size += margin_start_prop.donne_pixels()
+            }
+            si margin_end_prop.est_pixels() {
+                main_size += margin_end_prop.donne_pixels()
+            }
+        }
+
+        ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(main_size))
+        ctx.contenant.ajourne_boite_pour_calcul_largeur()
+    }
+
+    imprimeln("[%] %", #nom_de_cette_fonction, ctx.donne_inner_main_size())
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#algo-line-break */
@@ -2073,8 +2142,43 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
 /* https://www.w3.org/TR/css-flexbox-1/#algo-cross-container */
 determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex)
 {
+    cross_size_prop := donne_cross_size_prop(ctx)
+
+    used_cross_size: r64
+
     // If the cross size property is a definite size, use that, clamped by the used min and max cross sizes of the flex container.
+    // À FAIRE : pourcentage, calc...
+    si cross_size_prop.est_pixels() {
+        used_cross_size = cross_size_prop.donne_pixels()
+    }
     // Otherwise, use the sum of the flex lines' cross sizes, clamped by the used min and max cross sizes of the flex container.
+    sinon {
+        pour ctx.lignes {
+            used_cross_size += it.used_cross_size
+        }
+    }
+
+    min_cross_size := donne_min_cross_size_prop(ctx)
+    si min_cross_size.est_pixels() && used_cross_size < min_cross_size.donne_pixels() {
+        used_cross_size = min_cross_size.donne_pixels() comme r32
+    }
+
+    max_cross_size := donne_max_cross_size_prop(ctx)
+    si max_cross_size.est_pixels() && used_cross_size > max_cross_size.donne_pixels() {
+        used_cross_size = max_cross_size.donne_pixels() comme r32
+    }
+
+    définis_used_cross_size(ctx, used_cross_size)
+
+    // À FAIRE : il faudrait éviter ce travail redondant. Pour inline-flex, il faudrait plutôt prendre la fonction de calcul de inline-block ?
+    si ctx.est_direction_row {
+        hauteur_finale := crée_outrepas_pour_coter_contenu(used_cross_size)
+        containing_block := donne_containing_block(ctx.contenant, ctx)
+        personnalisation: PersonnalisationCotation
+        personnalisation.outrepas_hauteur = *hauteur_finale
+        args := crée_arguments_dimensionnement_hauteur(ctx, ctx.contenant, containing_block, personnalisation)
+        _ := calcule_hauteur_et_marges(*args)
+    }
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#algo-line-align. */
@@ -2100,7 +2204,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     hauteur_contenu := 0.0
 
-    pour * ligne dans ctx.lignes {
+    pour * ligne, index_ligne dans ctx.lignes {
         justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
         espace_disponible := largeur_disponible - ligne.largeur
 
@@ -2108,7 +2212,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
         espace_disponible = largeur_disponible - ligne.largeur
 
-        imprime("espace_disponible %\n", espace_disponible)
+        imprime("ligne[%].largeur %, espace_disponible %\n", index_ligne, ligne.largeur, espace_disponible)
 
         décalage_pre := 0.0
         décalage_post := 0.0
