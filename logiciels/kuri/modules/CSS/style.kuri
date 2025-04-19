@@ -957,7 +957,12 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
             ajoute_au_tampon(enchaineuse, "calc")
             virgule := "("
             pour c.valeurs {
-                imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it)
+                si it.est_opérateur {
+                    imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it.opérateur_calc)
+                }
+                sinon {
+                    imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it.valeur)
+                }
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ")")
