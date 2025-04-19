@@ -1752,6 +1752,7 @@ IDPropriété :: énum n16 {
     FlexShrink
 
     AlignContent
+    AlignSelf
 
     BoxSizing
     Opacity
@@ -1870,6 +1871,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FlexShrink] = donne_valeur_number_un()
 
     style.valeurs[IDPropriété.AlignContent] = donne_valeur_stretch()
+    style.valeurs[IDPropriété.AlignSelf] = donne_valeur_auto()
 
     style.valeurs[IDPropriété.BoxSizing] = donne_valeur_content_box()
     style.valeurs[IDPropriété.Opacity] = donne_valeur_number_un()

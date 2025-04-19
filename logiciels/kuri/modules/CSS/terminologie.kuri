@@ -8,6 +8,7 @@ PROP_absolute : CSSOMString = ---
 PROP_after : CSSOMString = ---
 PROP_alias : CSSOMString = ---
 PROP_align_content : CSSOMString = ---
+PROP_align_self : CSSOMString = ---
 PROP_all : CSSOMString = ---
 PROP_all_scroll : CSSOMString = ---
 PROP_and : CSSOMString = ---
