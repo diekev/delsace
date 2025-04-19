@@ -7,6 +7,8 @@ importe Structures
 PersonnalisationCotation :: struct {
     outrepas_largeur: *OutrepasCotation
     outrepas_hauteur: *OutrepasCotation
+    ignore_min_max: bool
+    ignore_plancher_border_box: bool
 }
 
 /* ------------------------------------------------------------------------- */

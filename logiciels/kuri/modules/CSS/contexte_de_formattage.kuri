@@ -1143,6 +1143,104 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
  * https://www.w3.org/TR/css-flexbox-1/
  * \{ */
 
+/* https://www.w3.org/TR/css-sizing-3/#size */
+Size :: union {
+    Definite: r64
+    Indefinite
+}
+
+est_definite :: fonc (size: Size) -> bool
+{
+    discr size {
+        Definite {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+imprime_size :: fonc (enchaineuse: *Enchaineuse, size: *Size)
+{
+    discr mémoire(size) {
+        Definite(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        Indefinite {
+            ajoute_au_tampon(enchaineuse, "indefinite")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "invalide")
+        }
+    }
+} @FormattageImpression
+
+/* https://www.w3.org/TR/css-sizing-3/#available */
+AvailableSpace :: union {
+    Definite: r64
+    Indefinite
+    MinContent
+    MaxContent
+}
+
+est_definite :: fonc (space: AvailableSpace) -> bool
+{
+    discr space {
+        Definite {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_min_content :: fonc (space: AvailableSpace) -> bool
+{
+    discr space {
+        MinContent {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_max_content :: fonc (space: AvailableSpace) -> bool
+{
+    discr space {
+        MaxContent {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+imprime_available_space :: fonc (enchaineuse: *Enchaineuse, space: *AvailableSpace)
+{
+    discr mémoire(space) {
+        Definite(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        Indefinite {
+            ajoute_au_tampon(enchaineuse, "indefinite")
+        }
+        MinContent {
+            ajoute_au_tampon(enchaineuse, "min-content")
+        }
+        MaxContent {
+            ajoute_au_tampon(enchaineuse, "max-content")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "invalide")
+        }
+    }
+} @FormattageImpression
+
 est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 {
     si base.table_virtuelle.type == NoeudDeDispositionTexte {
@@ -1177,9 +1275,14 @@ ItemFlex :: struct {
 
     frozen: bool
     flex_base_size: r32
+
     hypothetical_main_size: r32
     used_main_size: r32
     target_main_size: r32
+
+    hypothetical_cross_size: r32
+    used_cross_size: r32
+
     scaled_flex_shrink_factor: r32
     violation: r32
 }
@@ -1193,6 +1296,7 @@ donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r32
 LigneFlex :: struct {
     items: []ItemFlex
     largeur: r32
+    used_cross_size: r32
 }
 
 toutes_les_items_sont_gelés :: fonc (ligne: *LigneFlex) -> bool
@@ -1216,6 +1320,20 @@ ContexteDeFormattageFlex :: struct {
     lignes: [..]LigneFlex
 
     est_direction_row := vrai
+
+    available_main_space: AvailableSpace
+    available_cross_space: AvailableSpace
+
+    main_size: Size
+    inner_main_size: Size
+    cross_size: Size
+    inner_cross_size: Size
+}
+
+est_single_line :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
+{
+    flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).donne_mot_clé()
+    retourne flex_wrap == PROP_nowrap
 }
 
 donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
@@ -1226,6 +1344,33 @@ donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
     retourne ctx.contenant.modèle_de_boite.contenu.largeur
+}
+
+donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
+{
+    saufsi ctx.est_direction_row {
+        retourne ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
+    }
+
+    retourne ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.MinHeight)
+}
+
+donne_max_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
+{
+    saufsi ctx.est_direction_row {
+        retourne ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
+    }
+
+    retourne ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.MaxHeight)
+}
+
+donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> r32
+{
+    si ctx.est_direction_row {
+        retourne noeud.modèle_de_boite.contenu.largeur
+    }
+
+    retourne noeud.modèle_de_boite.contenu.hauteur
 }
 
 donne_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> r32
@@ -1262,6 +1407,33 @@ donne_max_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudD
     }
 
     retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxHeight)
+}
+
+donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    }
+
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+}
+
+donne_cross_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginTop)
+    }
+
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
+}
+
+donne_cross_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
+    }
+
+    retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 }
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
@@ -1305,12 +1477,14 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
     // 1. Generate anonymous flex items as described in §4 Flex Items.
     construit_liste_items(ctx, noeud, mode)
 
-    // À FAIRE 2. Determine the available main and cross space for the flex items.
+    // 2. Determine the available main and cross space for the flex items.
+    determine_the_available_main_and_cross_space(ctx, mode)
 
     // 3. Determine the flex base size and hypothetical main size of each item
     determine_the_flex_base_size_and_hypothetical_main_size_of_each_item(ctx, mode)
 
-    // À FAIRE 4. Determine the main size of the flex container
+    // 4. Determine the main size of the flex container
+    determine_the_main_size_of_the_flex_container(ctx)
 
     // 5. Collect flex items into flex lines
     collect_flex_items_into_flex_lines(ctx)
@@ -1318,25 +1492,49 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
     // 6. Resolve the flexible lengths
     resolve_flexible_lengths(ctx)
 
-    // 7. Determine the hypothetical cross size of each item
+    // 7. Determine the hypothetical cross size of each item by performing layout
+    // with the used main size À FAIRE : and the available space, À FAIRE : treating auto as fit-content.
+    pour * ctx.items {
+        personnalisation: PersonnalisationCotation
+        outrepas := crée_outrepas_pour_coter_boite(it.used_main_size)
+        si ctx.est_direction_row {
+            personnalisation.outrepas_largeur = *outrepas
+        }
+        sinon {
+            personnalisation.outrepas_hauteur = *outrepas
+        }
+
+        // À FAIRE : doit on utiliser le mode de formattage courant ?
+        it.noeud.mesure(ctx, ModeDeFormattage.Normal, personnalisation)
+        it.hypothetical_cross_size = donne_cross_size(ctx, it.noeud)
+        imprimeln("item[%].hypothetical_cross_size %", index_it, it.hypothetical_cross_size)
+    }
 
     // 8. Calculate the cross size of each flex line.
+    calculate_the_cross_size_of_each_flex_line(ctx)
 
     // 9. Handle 'align-content: stretch'
+    handle_align_content_stretch(ctx)
 
-    // 10. Collapse visibility:collapse items
+    // À FAIRE 10. Collapse visibility:collapse items
 
     // 11. Determine the used cross size of each flex item
+    determine_the_used_cross_size_of_each_flex_item(ctx)
 
     // 12. Distribute any remaining free space.
+    distribute_any_remaining_free_space(ctx)
 
     // 13. Resolve cross-axis auto margins.
+    resolve_cross_axis_auto_margins(ctx)
 
     // 14. Align all flex items along the cross-axis
+    align_all_flex_items_along_the_cross_axis(ctx)
 
     // 15. Determine the flex container’s used cross size:
+    determine_the_flex_container_used_cross_size(ctx)
 
     // 16. Align all flex lines per align-content.
+    align_all_flex_lines_per_align_content(ctx)
 }
 
 construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
@@ -1389,6 +1587,18 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
     }
 }
 
+/* https://www.w3.org/TR/css-flexbox-1/#algo-available */
+determine_the_available_main_and_cross_space :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
+{
+    // For each dimension, if that dimension of the flex container’s content box is a definite size, use that;
+    // if that dimension of the flex container is being sized under a min or max-content constraint,
+    // the available space in that dimension is that constraint;
+    // otherwise, subtract the flex container’s margin, border, and padding from the space available
+    // to the flex container in that dimension and use that value.
+
+    // À FAIRE
+}
+
 /* https://www.w3.org/TR/css-flexbox-1/#algo-main-item */
 determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
 {
@@ -1423,8 +1633,8 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    sized under a min-content or max-content constraint (e.g. when performing automatic table layout [CSS21]),
         //    size the item under that constraint. The flex base size is the item’s resulting main size.
         si mode != ModeDeFormattage.Normal {
-            it.noeud.mesure(ctx, mode, PersonnalisationCotation())
-            it.flex_base_size = donne_main_size(ctx, it.noeud)
+            it.noeud.mesure(ctx, mode, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai))
+            it.flex_base_size = donne_inner_main_size(ctx, it.noeud)
             continue
         }
 
@@ -1438,17 +1648,17 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
         //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
         //    item’s resulting main size.
-        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation())
-        it.flex_base_size = donne_main_size(ctx, it.noeud)
+        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai))
+        it.flex_base_size = donne_inner_main_size(ctx, it.noeud)
     }
 
-    // À FAIRE : When determining the flex base size, the item’s min and max main sizes are ignored (no clamping occurs).
+    // À FAIRE(direction) : When determining the flex base size, the item’s min and max main sizes are ignored (no clamping occurs).
     // Furthermore, the sizing calculations that floor the content box size at zero when applying box-sizing are
     // also ignored. (For example, an item with a specified size of zero, positive padding, and box-sizing:
     // border-box will have an outer flex base size of zero—and hence a negative inner flex base size.)
 
-    // À FAIRE : The hypothetical main size is the item’s flex base size clamped according to its used min and max main
-    // sizes (and flooring the content box size at zero).
+    // The hypothetical main size is the item’s flex base size clamped according to its used min and max main
+    // sizes (À FAIRE : and flooring the content box size at zero).
     pour * ctx.items {
         it.hypothetical_main_size = it.flex_base_size
         min_main_size := donne_min_main_size_prop(ctx, it.noeud)
@@ -1460,6 +1670,11 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         si max_main_size.est_pixels() && it.hypothetical_main_size > max_main_size.donne_pixels() {
             it.hypothetical_main_size = max_main_size.donne_pixels() comme r32
         }
+
+        si it.hypothetical_main_size < 0.0 {
+            it.hypothetical_main_size = 0.0
+        }
+
         imprime("item[%].flex_base_size : %, .hypothetical_main_size : %\n", index_it, it.flex_base_size, it.hypothetical_main_size)
     }
 }
@@ -1482,6 +1697,15 @@ résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> *ValeurDeStyle
     retourne flex_basis
 }
 
+/* https://www.w3.org/TR/css-flexbox-1/#algo-main-container */
+determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex @inutilisée)
+{
+    /* Determine the main size of the flex container using the rules of the formatting
+     * context in which it participates. For this computation, auto margins on flex
+     * items are treated as 0. */
+    // NOTE : fait par le contexte parent
+}
+
 /* https://www.w3.org/TR/css-flexbox-1/#algo-line-break */
 collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 {
@@ -1490,12 +1714,12 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
     ligne_courante := tableau_ajoute_élément(*ctx.lignes)
     ligne_courante.items.pointeur = ctx.items.pointeur
 
-    flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).donne_mot_clé()
+    plusieurs_lignes := !est_single_line(ctx)
 
     pour * ctx.items {
         largeur := it.hypothetical_main_size
 
-        si flex_wrap == PROP_wrap && (ligne_courante.largeur + largeur) > largeur_disponible {
+        si plusieurs_lignes && (ligne_courante.largeur + largeur) > largeur_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
             ligne_courante.items.pointeur = ctx.items.pointeur + index_it
         }
@@ -1715,6 +1939,149 @@ calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne
     retourne ctx.donne_inner_main_size() - outer_sizes
 }
 
+/* https://www.w3.org/TR/css-flexbox-1/#algo-cross-line */
+calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    // If the flex container is single-line and has a definite cross size,
+    si ctx.est_single_line() && ctx.cross_size.est_definite() {
+        // the cross size of the flex line is the flex container’s inner cross size.
+        ctx.lignes[0].used_cross_size = ctx.inner_cross_size.Definite comme r32
+    }
+    // Otherwise, for each flex line:
+    sinon pour * ctx.lignes {
+        // À FAIRE 1. Collect all the flex items whose inline-axis is parallel to the main-axis,
+        // whose align-self is baseline, and whose cross-axis margins are both non-auto.
+        // Find the largest of the distances between each item’s baseline and its hypothetical
+        // outer cross-start edge, and the largest of the distances between each item’s baseline
+        // and its hypothetical outer cross-end edge, and sum these two values.
+
+        // 2. Among all the items not collected by the previous step, find the largest outer hypothetical cross size.
+
+        // 3. The used cross-size of the flex line is the largest of the numbers found in the previous two steps and zero.
+
+        pour item dans it.items {
+            it.used_cross_size = max(it.used_cross_size, item.hypothetical_cross_size)
+        }
+    }
+
+    // If the flex container is single-line, then clamp the line’s cross-size to be within the
+    // container’s computed min and max cross sizes.
+    si ctx.est_single_line() {
+        ligne := *ctx.lignes[0]
+        min_cross_size := donne_min_cross_size_prop(ctx)
+        si min_cross_size.est_pixels() && ligne.used_cross_size < min_cross_size.donne_pixels() {
+            ligne.used_cross_size = min_cross_size.donne_pixels() comme r32
+        }
+
+        max_cross_size := donne_max_cross_size_prop(ctx)
+        si max_cross_size.est_pixels() && ligne.used_cross_size > max_cross_size.donne_pixels() {
+            ligne.used_cross_size = max_cross_size.donne_pixels() comme r32
+        }
+    }
+
+    pour ctx.lignes {
+        imprimeln("ligne[%].use_crossed_size : %", index_it, it.used_cross_size)
+    }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-line-stretch */
+handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    /* If the flex container has a definite cross size, align-content is stretch,
+     * and the sum of the flex lines' cross sizes is less than the flex container’s
+     * inner cross size, increase the cross size of each flex line by equal amounts
+     * such that the sum of their cross sizes exactly equals the flex container’s
+     * inner cross size. */
+    saufsi ctx.cross_size.est_definite() {
+        retourne
+    }
+
+    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé()
+    saufsi align_content == PROP_stretch {
+        retourne
+    }
+
+    somme_cross_sizes: r32
+    pour ctx.lignes {
+        somme_cross_sizes += it.used_cross_size
+    }
+
+    si somme_cross_sizes >= ctx.inner_cross_size.Definite {
+        retourne
+    }
+
+    delta := ctx.inner_cross_size.Definite - somme_cross_sizes
+    delta /= (ctx.lignes.taille comme r32)
+
+    pour * ctx.lignes {
+        it.used_cross_size += delta comme r32
+    }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-stretch */
+determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    pour * ctx.items {
+        // If a flex item has align-self: stretch, its computed cross size property is auto,
+        // and neither of its cross-axis margins are auto, the used outer cross size is the
+        // used cross size of its flex line, clamped according to the item’s used min and max
+        // cross sizes. Otherwise, the used cross size is the item’s hypothetical cross size.
+        align_self := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé()
+        cross_size := donne_cross_size_prop(ctx, it.noeud)
+        cross_margin_start := donne_cross_margin_start_prop(ctx, it.noeud)
+        cross_margin_end := donne_cross_margin_end_prop(ctx, it.noeud)
+
+        si align_self == PROP_stretch && cross_size.est_auto() && !cross_margin_start.est_auto() && !cross_margin_end.est_auto() {
+            // À FAIRE : used outer cross size, clamp
+        }
+        sinon {
+            it.used_cross_size = it.hypothetical_cross_size
+        }
+
+        // If the flex item has align-self: stretch, redo layout for its contents, treating
+        // this used size as its definite cross size so that percentage-sized children can be
+        // resolved.
+        si align_self == PROP_stretch {
+            // À FAIRE : redo layout
+        }
+    }
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-main-align */
+distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    // À FAIRE : calcule remaining free space
+    // For each flex line:
+    // If the remaining free space is positive and at least one main-axis margin on this line is auto, distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
+    // Align the items along the main-axis per justify-content.
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-cross-margins */
+resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    // If a flex item has auto cross-axis margins:
+    // If its outer cross size (treating those auto margins as zero) is less than the cross size of its flex line, distribute the difference in those sizes equally to the auto margins.
+    // Otherwise, if the block-start or inline-start margin (whichever is in the cross axis) is auto, set it to zero. Set the opposite margin so that the outer cross size of the item equals the cross size of its flex line.
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-cross-align */
+align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    /* Align all flex items along the cross-axis per align-self, if neither of the item’s cross-axis margins are auto. */
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-cross-container */
+determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+    // If the cross size property is a definite size, use that, clamped by the used min and max cross sizes of the flex container.
+    // Otherwise, use the sum of the flex lines' cross sizes, clamped by the used min and max cross sizes of the flex container.
+}
+
+/* https://www.w3.org/TR/css-flexbox-1/#algo-line-align. */
+align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
+{
+}
+
 formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
 {
     largeur_disponible := noeud.modèle_de_boite.contenu.largeur
@@ -1722,6 +2089,8 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
     /* Dispose les noeuds. */
     décalage_x := noeud.modèle_de_boite.contenu.x
     décalage_y := noeud.modèle_de_boite.contenu.y
+
+    imprime("décalage_x %\n", décalage_x)
 
     si reverse {
         décalage_x += noeud.modèle_de_boite.contenu.largeur
@@ -1738,6 +2107,8 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
         distribue_espace_disponible(ctx, ligne, espace_disponible, mode)
 
         espace_disponible = largeur_disponible - ligne.largeur
+
+        imprime("espace_disponible %\n", espace_disponible)
 
         décalage_pre := 0.0
         décalage_post := 0.0
@@ -1757,6 +2128,10 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
             décalage_post = décalage_pre
         }
 
+        imprime("décalage_pre %\n", décalage_pre)
+
+        imprime("décalage_post %\n", décalage_post)
+
         hauteur_ligne := 0.0
         pour item dans ligne.items {
             it := item.noeud
@@ -1767,6 +2142,7 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
                 décalage_x += décalage_pre
             }
 
+            imprime("décalage_x item %\n", décalage_x)
             it.décale_vers_position(décalage_x, décalage_y)
 
             si reverse {
