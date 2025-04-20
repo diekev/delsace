@@ -2129,23 +2129,90 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
     décalage_x := ctx.contenant.modèle_de_boite.contenu.x
     décalage_y := ctx.contenant.modèle_de_boite.contenu.y
 
-    // À FAIRE : calcule remaining free space
+    justify_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
+
     // For each flex line:
     pour * ctx.lignes {
-        // If the remaining free space is positive and at least one main-axis margin on this line is auto, distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
+        remaining_free_space := ctx.donne_inner_main_size()
+        auto_margins := 0
+        pour * item dans it.items {
+            remaining_free_space -= item.noeud.modèle_de_boite.marge.largeur
+
+            margin_start_prop := donne_main_margin_start_prop(ctx, item.noeud)
+            margin_end_prop := donne_main_margin_end_prop(ctx, item.noeud)
+            auto_margins += margin_start_prop.est_auto() comme z32
+            auto_margins += margin_end_prop.est_auto() comme z32
+        }
+
+        // If the remaining free space is positive and at least one main-axis margin on this line is auto,
+        // distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
+        si remaining_free_space <= 0.0 {
+            si auto_margins > 0 {
+                définis_main_auto_margins(ctx, it, 0.0)
+            }
+        }
+        sinon {
+            si auto_margins > 0 {
+                delta := remaining_free_space / auto_margins comme r64
+                définis_main_auto_margins(ctx, it, delta)
+                remaining_free_space = 0.0
+            }
+        }
 
         // Align the items along the main-axis per justify-content.
-
         décalage_x_item := décalage_x
 
+        décalage_pre := 0.0
+        décalage_post := 0.0
+
+        si justify_content == PROP_center {
+            décalage_x_item += remaining_free_space * 0.5
+        }
+        sinon si justify_content == PROP_flex_end {
+            décalage_x_item += remaining_free_space
+        }
+        sinon si justify_content == PROP_space_between {
+            décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
+        }
+        sinon si justify_content == PROP_space_around {
+            espace_par_bloc := remaining_free_space / (it.items.taille) comme r32
+            décalage_pre = espace_par_bloc * 0.5
+            décalage_post = décalage_pre
+        }
+
         pour * item dans it.items {
-            item.position_x_finale = décalage_x_item
+            item.position_x_finale = décalage_pre + décalage_x_item
             item.position_y_finale = décalage_y
 
-            décalage_x_item += item.noeud.modèle_de_boite.marge.largeur
+            décalage_x_item += décalage_pre + item.noeud.modèle_de_boite.marge.largeur + décalage_post
         }
 
         décalage_y += it.used_cross_size
+    }
+}
+
+définis_main_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex, valeur: r64)
+{
+    pour * item dans ligne.items {
+        margin_start_prop := donne_main_margin_start_prop(ctx, item.noeud)
+        margin_end_prop := donne_main_margin_end_prop(ctx, item.noeud)
+        changé := faux
+        si margin_start_prop.est_auto() {
+            définis_valeur_utilisée(item.noeud.propriétés, ctx.ids_props[MAIN_INDEX].margin_start, crée_valeur_pixels(valeur))
+            changé = vrai
+        }
+        si margin_end_prop.est_auto() {
+            définis_valeur_utilisée(item.noeud.propriétés, ctx.ids_props[MAIN_INDEX].margin_end, crée_valeur_pixels(valeur))
+            changé = vrai
+        }
+        si changé {
+            si ctx.est_direction_row {
+                ajourne_boite_pour_calcul_largeur(item.noeud)
+            }
+            sinon {
+                ajourne_boite_pour_calcul_hauteur(item.noeud)
+            }
+        }
     }
 }
 
