@@ -1290,6 +1290,12 @@ ItemFlex :: struct {
     violation: r32
 }
 
+freeze :: fonc (item: *ItemFlex)
+{
+    item.frozen = vrai
+    item.target_main_size = item.hypothetical_main_size
+}
+
 donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r32
 {
     // À FAIRE : inner_flex_base_size
@@ -1849,8 +1855,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         }
 
         si doit_geler {
-            it.frozen = vrai
-            it.target_main_size = it.hypothetical_main_size
+            it.freeze()
         }
     }
 
@@ -1970,14 +1975,14 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         si violations == 0.0 {
             // Freeze all items.
             pour * ligne.items {
-                it.frozen = vrai
+                it.freeze()
             }
         }
         sinon si violations > 0.0 {
             // Freeze all the items with min violations. 
             pour * ligne.items {
                 si it.violation > 0.0 {
-                    it.frozen = vrai
+                    it.freeze()
                 }
             }
         }
@@ -1985,7 +1990,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             // Freeze all the items with max violations.
             pour * ligne.items {
                 si it.violation < 0.0 {
-                    it.frozen = vrai
+                    it.freeze()
                 }
             }
         }
