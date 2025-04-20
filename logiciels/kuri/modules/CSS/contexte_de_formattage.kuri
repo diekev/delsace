@@ -1270,11 +1270,15 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
     retourne faux
 }
 
+DirectionFlex :: énum {
+    Horizontale
+    Verticale
+}
+
 ItemFlex :: struct {
     noeud: *NoeudDeDisposition
 
-    position_x_finale: r32
-    position_y_finale: r32 // @redondant avec ligne ?
+    position_finale: [DirectionFlex.nombre_éléments]r32
 
     frozen: bool
     flex_base_size: r32
@@ -1328,6 +1332,8 @@ ContexteDeFormattageFlex :: struct {
     items: [..]ItemFlex
     lignes: [..]LigneFlex
 
+    main_axis: DirectionFlex
+    cross_axis: DirectionFlex
     est_direction_row := vrai
 
     available_main_space: AvailableSpace
@@ -1533,6 +1539,14 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé()
     ctx.est_direction_row = direction == PROP_row || direction == PROP_row_reverse
+    si ctx.est_direction_row {
+        ctx.main_axis = DirectionFlex.Horizontale
+        ctx.cross_axis = DirectionFlex.Verticale
+    }
+    sinon {
+        ctx.main_axis = DirectionFlex.Verticale
+        ctx.cross_axis = DirectionFlex.Horizontale
+    }
 
     #si UTILISE_LAYOUT_STANDARD {
         flex_layout_algorithm(ctx, noeud, mode)
@@ -1614,7 +1628,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 
     // ---------------------------------------------
     pour * ctx.items {
-        décale_vers_position(it.noeud, it.position_x_finale, it.position_y_finale)
+        décale_vers_position(it.noeud, it.position_finale[0], it.position_finale[1])
     }
 }
 
@@ -2139,9 +2153,9 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
 /* https://www.w3.org/TR/css-flexbox-1/#algo-main-align */
 distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    // À FAIRE : direction
-    décalage_x := ctx.contenant.modèle_de_boite.contenu.x
-    décalage_y := ctx.contenant.modèle_de_boite.contenu.y
+    décalages : [DirectionFlex.nombre_éléments]r32 = ---
+    décalages[DirectionFlex.Horizontale] = ctx.contenant.modèle_de_boite.contenu.x
+    décalages[DirectionFlex.Verticale] = ctx.contenant.modèle_de_boite.contenu.y
 
     justify_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
 
@@ -2150,6 +2164,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         remaining_free_space := ctx.donne_inner_main_size()
         auto_margins := 0
         pour * item dans it.items {
+            // À FAIRE(direction flex)
             remaining_free_space -= item.noeud.modèle_de_boite.marge.largeur
 
             margin_start_prop := donne_main_margin_start_prop(ctx, item.noeud)
@@ -2174,16 +2189,16 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         }
 
         // Align the items along the main-axis per justify-content.
-        décalage_x_item := décalage_x
+        décalage_main_item := décalages[ctx.main_axis]
 
         décalage_pre := 0.0
         décalage_post := 0.0
 
         si justify_content == PROP_center {
-            décalage_x_item += remaining_free_space * 0.5
+            décalage_main_item += remaining_free_space * 0.5
         }
         sinon si justify_content == PROP_flex_end {
-            décalage_x_item += remaining_free_space
+            décalage_main_item += remaining_free_space
         }
         sinon si justify_content == PROP_space_between {
             décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
@@ -2195,13 +2210,14 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         }
 
         pour * item dans it.items {
-            item.position_x_finale = décalage_pre + décalage_x_item
-            item.position_y_finale = décalage_y
+            item.position_finale[ctx.main_axis] = décalage_pre + décalage_main_item
+            item.position_finale[ctx.cross_axis] = décalages[ctx.cross_axis]
 
-            décalage_x_item += décalage_pre + item.noeud.modèle_de_boite.marge.largeur + décalage_post
+            // À FAIRE(direction flex) modèle_de_boite
+            décalage_main_item += décalage_pre + item.noeud.modèle_de_boite.marge.largeur + décalage_post
         }
 
-        décalage_y += it.used_cross_size
+        décalages[ctx.cross_axis] += it.used_cross_size
     }
 }
 
@@ -2266,10 +2282,10 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
                 /* Rien à faire. */
             }
             sinon si align_self == PROP_flex_end {
-                item.position_y_finale += espace_disponible
+                item.position_finale[ctx.cross_axis] += espace_disponible
             }
             sinon si align_self == PROP_center {
-                item.position_y_finale += espace_disponible * 0.5
+                item.position_finale[ctx.cross_axis] += espace_disponible * 0.5
             }
             sinon si align_self == PROP_baseline {
                 /* À FAIRE */
@@ -2347,13 +2363,13 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
     }
     sinon si align_content == PROP_flex_end {
         pour * ctx.items {
-            it.position_y_finale += espace_disponible
+            it.position_finale[ctx.cross_axis] += espace_disponible
         }
     }
     sinon si align_content == PROP_center {
         espace_disponible /= 2.0
         pour * ctx.items {
-            it.position_y_finale += espace_disponible
+            it.position_finale[ctx.cross_axis] += espace_disponible
         }
     }
     sinon si align_content == PROP_space_around {
@@ -2366,7 +2382,7 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
             décalage += décalage_pre
 
             pour * item dans it.items {
-                item.position_y_finale += décalage
+                item.position_finale[ctx.cross_axis] += décalage
             }
 
             décalage += décalage_post
@@ -2378,7 +2394,7 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
         décalage := 0.0
         pour * ctx.lignes {
             pour * item dans it.items {
-                item.position_y_finale += décalage
+                item.position_finale[ctx.cross_axis] += décalage
             }
 
             décalage += espace_entre
