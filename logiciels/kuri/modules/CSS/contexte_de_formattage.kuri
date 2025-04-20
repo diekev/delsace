@@ -1273,6 +1273,9 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 ItemFlex :: struct {
     noeud: *NoeudDeDisposition
 
+    position_x_finale: r32
+    position_y_finale: r32 // @redondant avec ligne ?
+
     frozen: bool
     flex_base_size: r32
 
@@ -1447,6 +1450,42 @@ donne_main_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *Noeu
     retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginBottom)
 }
 
+donne_used_main_padding_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft)
+    }
+
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop)
+}
+
+donne_used_main_padding_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight)
+    }
+
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom)
+}
+
+donne_used_main_border_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft)
+    }
+
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop)
+}
+
+donne_used_main_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    si ctx.est_direction_row {
+        retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight)
+    }
+
+    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom)
+}
+
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
 {
     si ctx.est_direction_row {
@@ -1474,6 +1513,8 @@ donne_cross_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *Noe
     retourne noeud.propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
 }
 
+UTILISE_LAYOUT_STANDARD :: faux
+
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     ctx := base comme *ContexteDeFormattageFlex
@@ -1487,23 +1528,12 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé()
     ctx.est_direction_row = direction == PROP_row || direction == PROP_row_reverse
 
-    flex_layout_algorithm_non_standard(ctx, noeud, mode)
-    // flex_layout_algorithm(ctx, noeud, mode)
-
-    si ctx.est_direction_row {
-        formatte_flex_row(ctx, noeud, mode, direction == PROP_row_reverse)
+    #si UTILISE_LAYOUT_STANDARD {
+        flex_layout_algorithm(ctx, noeud, mode)
     }
     sinon {
-        assert(direction == PROP_column || direction == PROP_column_reverse)
-        formatte_flex_column(ctx, noeud, mode, direction == PROP_column_reverse)
+        flex_layout_algorithm_non_standard(ctx, noeud, mode)
     }
-}
-
-flex_layout_algorithm_non_standard :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
-{
-    construit_liste_items(ctx, noeud, mode)
-    calcule_taille_items(ctx, noeud, mode)
-    collect_flex_items_into_flex_lines(ctx)
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#layout-algorithm */
@@ -1522,7 +1552,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
     determine_the_flex_base_size_and_hypothetical_main_size_of_each_item(ctx, mode)
 
     // 4. Determine the main size of the flex container
-    determine_the_main_size_of_the_flex_container(ctx)
+    determine_the_main_size_of_the_flex_container(ctx, mode)
 
     // 5. Collect flex items into flex lines
     collect_flex_items_into_flex_lines(ctx)
@@ -1573,6 +1603,11 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 
     // 16. Align all flex lines per align-content.
     align_all_flex_lines_per_align_content(ctx)
+
+    // ---------------------------------------------
+    pour * ctx.items {
+        décale_vers_position(it.noeud, it.position_x_finale, it.position_y_finale)
+    }
 }
 
 construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
@@ -1591,37 +1626,6 @@ construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
         }
 
         tableau_ajoute(*ctx.items, ItemFlex(it))
-    }
-}
-
-calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
-{
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
-
-    pour * item dans ctx.items {
-        it := item.noeud
-        flex_basis := résoud_flex_basis(it)
-
-        largeur_désirée: OutrepasCotation
-        si flex_basis.est_mot_clé(PROP_content) {
-            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode, PersonnalisationCotation())
-            largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
-            largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
-        }
-        sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
-            définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
-            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
-            largeur_désirée = crée_outrepas_pour_coter_boite(largeur)
-        }
-        sinon {
-            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.donne_pixels())
-        }
-
-        personnalisation: PersonnalisationCotation
-        personnalisation.outrepas_largeur = *largeur_désirée
-        it.mesure(ctx, mode, personnalisation)
-        item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
     }
 }
 
@@ -1756,6 +1760,10 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
         pour ctx.items {
             margin_start_prop := donne_main_margin_start_prop(ctx, it.noeud)
             margin_end_prop := donne_main_margin_end_prop(ctx, it.noeud)
+            padding_start_prop := donne_used_main_padding_start_prop(ctx, it.noeud)
+            padding_end_prop := donne_used_main_padding_end_prop(ctx, it.noeud)
+            border_start_prop := donne_used_main_border_start_prop(ctx, it.noeud)
+            border_end_prop := donne_used_main_border_end_prop(ctx, it.noeud)
 
             main_size += it.hypothetical_main_size
 
@@ -1766,6 +1774,11 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
             si margin_end_prop.est_pixels() {
                 main_size += margin_end_prop.donne_pixels()
             }
+
+            main_size += padding_start_prop.donne_pixels()
+            main_size += padding_end_prop.donne_pixels()
+            main_size += border_start_prop.donne_pixels()
+            main_size += border_end_prop.donne_pixels()
         }
 
         ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(main_size))
@@ -2119,10 +2132,28 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
 /* https://www.w3.org/TR/css-flexbox-1/#algo-main-align */
 distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
 {
+    // À FAIRE : direction
+    décalage_x := ctx.contenant.modèle_de_boite.contenu.x
+    décalage_y := ctx.contenant.modèle_de_boite.contenu.y
+
     // À FAIRE : calcule remaining free space
     // For each flex line:
-    // If the remaining free space is positive and at least one main-axis margin on this line is auto, distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
-    // Align the items along the main-axis per justify-content.
+    pour * ctx.lignes {
+        // If the remaining free space is positive and at least one main-axis margin on this line is auto, distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
+
+        // Align the items along the main-axis per justify-content.
+
+        décalage_x_item := décalage_x
+
+        pour * item dans it.items {
+            item.position_x_finale = décalage_x_item
+            item.position_y_finale = décalage_y
+
+            décalage_x_item += item.noeud.modèle_de_boite.marge.largeur
+        }
+
+        décalage_y += it.used_cross_size
+    }
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#algo-cross-margins */
@@ -2184,6 +2215,56 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
 /* https://www.w3.org/TR/css-flexbox-1/#algo-line-align. */
 align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
 {
+}
+
+// -----------------------------------
+// Non-standard
+
+flex_layout_algorithm_non_standard :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+{
+    construit_liste_items(ctx, noeud, mode)
+    calcule_taille_items(ctx, noeud, mode)
+    collect_flex_items_into_flex_lines(ctx)
+
+    direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé()
+    si ctx.est_direction_row {
+        formatte_flex_row(ctx, noeud, mode, direction == PROP_row_reverse)
+    }
+    sinon {
+        assert(direction == PROP_column || direction == PROP_column_reverse)
+        formatte_flex_column(ctx, noeud, mode, direction == PROP_column_reverse)
+    }
+}
+
+calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+{
+    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
+
+    pour * item dans ctx.items {
+        it := item.noeud
+        flex_basis := résoud_flex_basis(it)
+
+        largeur_désirée: OutrepasCotation
+        si flex_basis.est_mot_clé(PROP_content) {
+            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
+            it.mesure(ctx, mode, PersonnalisationCotation())
+            largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
+            largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
+        }
+        sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
+            définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
+            largeur_désirée = crée_outrepas_pour_coter_boite(largeur)
+        }
+        sinon {
+            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.donne_pixels())
+        }
+
+        personnalisation: PersonnalisationCotation
+        personnalisation.outrepas_largeur = *largeur_désirée
+        it.mesure(ctx, mode, personnalisation)
+        item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
+    }
 }
 
 formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
