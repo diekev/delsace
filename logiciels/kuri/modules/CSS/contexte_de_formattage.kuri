@@ -1470,6 +1470,11 @@ donne_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposi
     retourne noeud.modèle_de_boite.marge.largeur
 }
 
+donne_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    retourne noeud.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].size)
+}
+
 donne_min_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
 {
     retourne noeud.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].min_size)
@@ -1669,7 +1674,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
     largeur_disponible := ctx.donne_inner_main_size()
 
     pour * ctx.items {
-        flex_basis := résoud_flex_basis(it.noeud)
+        flex_basis := résoud_flex_basis(ctx, it.noeud)
         imprime("item[%].flex_basis : %\n", index_it, flex_basis)
 
         // A. If the item has a definite used flex basis, that’s the flex base size. 
@@ -1744,18 +1749,18 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#valdef-flex-flex-basis */
-résoud_flex_basis :: fonc (noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+résoud_flex_basis :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
 {
     flex_basis := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
 
     si flex_basis.est_mot_clé(PROP_auto) {
-        width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        size := donne_main_size_prop(ctx, noeud)
 
-        si width.est_auto() {
+        si size.est_auto() {
             retourne donne_valeur_content()
         }
 
-        retourne width
+        retourne size
     }
 
     retourne flex_basis
@@ -1771,9 +1776,8 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
         // NOTE : fait par le contexte parent
     }
     sinon {
-        // XXX - main_size_prop
-        prop_largeur := ctx.contenant.propriétés.donne_valeur_calculée(IDPropriété.Width)
-        saufsi prop_largeur.est_auto() {
+        prop_size := donne_main_size_prop(ctx, ctx.contenant)
+        saufsi prop_size.est_auto() {
             retourne
         }
 
@@ -1803,8 +1807,10 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
             main_size += border_end_prop.donne_pixels()
         }
 
-        ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(main_size))
-        ctx.contenant.ajourne_boite_pour_calcul_largeur()
+        ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size))
+        si ctx.main_axis == DirectionFlex.Horizontale {
+            ctx.contenant.ajourne_boite_pour_calcul_largeur()
+        }
     }
 
     imprimeln("[%] %", #nom_de_cette_fonction, ctx.donne_inner_main_size())
@@ -1978,14 +1984,14 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
 
             target_main_size := it.target_main_size
 
-            min_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MinWidth)
-            si min_width.est_pixels() && target_main_size < min_width.donne_pixels() {
-                target_main_size = min_width.donne_pixels() comme r32
+            min_size := donne_min_main_size_prop(ctx, it.noeud)
+            si min_size.est_pixels() && target_main_size < min_size.donne_pixels() {
+                target_main_size = min_size.donne_pixels() comme r32
             }
 
-            max_width := it.noeud.propriétés.donne_valeur_utilisée(IDPropriété.MaxWidth)
-            si max_width.est_pixels() && target_main_size > max_width.donne_pixels() {
-                target_main_size = max_width.donne_pixels() comme r32
+            max_size := donne_max_main_size_prop(ctx, it.noeud)
+            si max_size.est_pixels() && target_main_size > max_size.donne_pixels() {
+                target_main_size = max_size.donne_pixels() comme r32
             }
 
             it.violation = target_main_size - it.target_main_size
@@ -2408,6 +2414,24 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
 // -----------------------------------
 // Non-standard
 
+/* https://drafts.csswg.org/css-flexbox-1/#valdef-flex-flex-basis */
+résoud_flex_basis_non_standard :: fonc (noeud: *NoeudDeDisposition) -> *ValeurDeStyle
+{
+    flex_basis := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+
+    si flex_basis.est_mot_clé(PROP_auto) {
+        size := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+
+        si size.est_auto() {
+            retourne donne_valeur_content()
+        }
+
+        retourne size
+    }
+
+    retourne flex_basis
+}
+
 flex_layout_algorithm_non_standard :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     construit_liste_items(ctx, noeud, mode)
@@ -2430,7 +2454,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 
     pour * item dans ctx.items {
         it := item.noeud
-        flex_basis := résoud_flex_basis(it)
+        flex_basis := résoud_flex_basis_non_standard(it)
 
         largeur_désirée: OutrepasCotation
         si flex_basis.est_mot_clé(PROP_content) {
