@@ -2241,7 +2241,44 @@ resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
 /* https://www.w3.org/TR/css-flexbox-1/#algo-cross-align */
 align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFlex)
 {
+    align_items := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignItems).donne_mot_clé()
+
     /* Align all flex items along the cross-axis per align-self, if neither of the item’s cross-axis margins are auto. */
+    pour * ctx.lignes {
+        pour * item dans it.items {
+            margin_start_prop := donne_cross_margin_start_prop(ctx, item.noeud)
+            margin_end_prop := donne_cross_margin_end_prop(ctx, item.noeud)
+            si margin_start_prop.est_auto() || margin_end_prop.est_auto() {
+                continue
+            }
+
+            espace_disponible := it.used_cross_size - item.used_cross_size
+            si espace_disponible == 0.0 {
+                continue
+            }
+
+            align_self := item.noeud.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé()
+            si align_self == PROP_auto {
+                align_self = align_items
+            }
+
+            si align_self == PROP_flex_start {
+                /* Rien à faire. */
+            }
+            sinon si align_self == PROP_flex_end {
+                item.position_y_finale += espace_disponible
+            }
+            sinon si align_self == PROP_center {
+                item.position_y_finale += espace_disponible * 0.5
+            }
+            sinon si align_self == PROP_baseline {
+                /* À FAIRE */
+            }
+            sinon si align_self == PROP_stretch {
+                /* À FAIRE */
+            }
+        }
+    }
 }
 
 /* https://www.w3.org/TR/css-flexbox-1/#algo-cross-container */
