@@ -1897,7 +1897,13 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         IDPropriété.FlexShrink
     }
 
-    // 2. Size inflexible items. Freeze, setting its target main size to its hypothetical main size…
+    // 2. Each item in the flex line has a target main size, initially set to its flex base size.
+    //    Each item is initially unfrozen and may become frozen.
+    pour * ligne.items {
+        it.target_main_size = it.flex_base_size
+    }
+
+    // 3. Size inflexible items. Freeze, setting its target main size to its hypothetical main size…
     pour * ligne.items {
         doit_geler := faux
 
@@ -1920,13 +1926,13 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         }
     }
 
-    // 3. Calculate initial free space. Sum the outer sizes of all items on the line, and subtract this
+    // 4. Calculate initial free space. Sum the outer sizes of all items on the line, and subtract this
     //    from the flex container’s inner main size. For frozen items, use their outer target main size;
     //    for other items, use their outer flex base size.
     initial_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
-    imprime("initial free space : %\n", initial_free_space)
+    imprime("initial free space : % (flex factor %)\n", initial_free_space, used_flex_factor)
 
-    // 4. Loop:
+    // 5. Loop:
     boucle {
         // a. Check for flexible items. If all the flex items on the line are frozen, free space has been
         //    distributed; exit this loop. 
@@ -1956,53 +1962,48 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
 
         imprime("somme_flex_factors : %, remaining_free_space : %\n", somme_flex_factors, remaining_free_space)
 
-        // c: Distribute free space proportional to the flex factors.
-        // If the remaining free space is zero
-        si remaining_free_space == 0.0 {
-            // Do nothing. 
-        }
-        // If using the flex grow factor
-        sinon si used_flex_factor == IDPropriété.FlexGrow {
-            // Find the ratio of the item’s flex grow factor to the sum of the flex grow factors of all unfrozen
-            // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
-            // remaining free space proportional to the ratio.
-            pour * ligne.items {
-                flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
-                ratio := flex_factor / somme_flex_factors
-                it.target_main_size = it.flex_base_size + remaining_free_space * ratio
+        // c: If the remaining free space is non-zero, distribute it proportional to the flex factors:
+        si remaining_free_space != 0.0 {
+            // If using the flex grow factor
+            si used_flex_factor == IDPropriété.FlexGrow {
+                // Find the ratio of the item’s flex grow factor to the sum of the flex grow factors of all unfrozen
+                // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
+                // remaining free space proportional to the ratio.
+                pour * ligne.items {
+                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
+                    ratio := flex_factor / somme_flex_factors
+                    it.target_main_size = it.flex_base_size + remaining_free_space * ratio
+                }
             }
-        }
-        // If using the flex shrink factor
-        sinon si used_flex_factor == IDPropriété.FlexShrink {
-            // For every unfrozen item on the line, multiply its flex shrink factor by its inner flex base size,
-            // and note this as its scaled flex shrink factor. Find the ratio of the item’s scaled flex shrink
-            // factor to the sum of the scaled flex shrink factors of all unfrozen items on the line.
-            // Set the item’s target main size to its flex base size minus a fraction of the absolute value of
-            // the remaining free space proportional to the ratio. Note this may result in a negative inner main
-            // size; it will be corrected in the next step.
-            somme_scaled_flex_shrink_factors := 0.0
-            pour * ligne.items {
-                si it.frozen {
-                    continue
+            // If using the flex shrink factor
+            sinon {
+                assert(used_flex_factor == IDPropriété.FlexShrink)
+                // For every unfrozen item on the line, multiply its flex shrink factor by its inner flex base size,
+                // and note this as its scaled flex shrink factor. Find the ratio of the item’s scaled flex shrink
+                // factor to the sum of the scaled flex shrink factors of all unfrozen items on the line.
+                // Set the item’s target main size to its flex base size minus a fraction of the absolute value of
+                // the remaining free space proportional to the ratio. Note this may result in a negative inner main
+                // size; it will be corrected in the next step.
+                somme_scaled_flex_shrink_factors := 0.0
+                pour * ligne.items {
+                    si it.frozen {
+                        continue
+                    }
+
+                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
+                    it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor
+                    somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor
                 }
 
-                flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
-                it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor
-                somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor
-            }
+                pour * ligne.items {
+                    si it.frozen {
+                        continue
+                    }
 
-            pour * ligne.items {
-                si it.frozen {
-                    continue
+                    ratio := it.scaled_flex_shrink_factor / somme_scaled_flex_shrink_factors
+                    it.target_main_size = it.flex_base_size - abs(remaining_free_space * ratio)
                 }
-
-                ratio := it.scaled_flex_shrink_factor / somme_scaled_flex_shrink_factors
-                it.target_main_size = it.flex_base_size - abs(remaining_free_space * ratio)
             }
-        }
-        // Otherwise
-        sinon {
-            // Do nothing.
         }
 
         // d. Fix min/max violations. Clamp each non-frozen item’s target main size by its used min and max main
@@ -2027,8 +2028,8 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             }
 
             it.violation = target_main_size - it.target_main_size
+            imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
             it.target_main_size = target_main_size
-            imprime("violation : %\n", it.violation)
         }
 
         // e.  Freeze over-flexed items. The total violation is the sum of the adjustments from the previous step
@@ -2036,14 +2037,14 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         si violations == 0.0 {
             // Freeze all items.
             pour * ligne.items {
-                it.freeze()
+                it.frozen = vrai
             }
         }
         sinon si violations > 0.0 {
             // Freeze all the items with min violations. 
             pour * ligne.items {
                 si it.violation > 0.0 {
-                    it.freeze()
+                    it.frozen = vrai
                 }
             }
         }
@@ -2051,7 +2052,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             // Freeze all the items with max violations.
             pour * ligne.items {
                 si it.violation < 0.0 {
-                    it.freeze()
+                    it.frozen = vrai
                 }
             }
         }
@@ -2059,6 +2060,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         // f. Return to the start of this loop. 
     }
 
+    // 6. Set each item’s used main size to its target main size.
     pour * ligne.items {
         it.used_main_size = it.target_main_size
         imprime("item[%].used_main_size = %; .target_main_size = %, .flex_base_size = %, .hypothetical_main_size = %\n", index_it, it.used_main_size, it.target_main_size, it.flex_base_size, it.hypothetical_main_size)
