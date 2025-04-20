@@ -1,3 +1,4 @@
+importe Algorithmes
 importe Chaine
 importe Fondation
 importe Géométrie
@@ -1424,6 +1425,7 @@ ContexteDeFormattageFlex :: struct {
     main_axis: DirectionFlex
     cross_axis: DirectionFlex
     est_direction_row := vrai
+    est_reverse := faux
 
     available_main_space: AvailableSpace
     available_cross_space: AvailableSpace
@@ -1678,6 +1680,8 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         ctx.main_axis = DirectionFlex.Verticale
         ctx.cross_axis = DirectionFlex.Horizontale
     }
+
+    ctx.est_reverse = direction == PROP_row_reverse || direction == PROP_column_reverse
 
     #si UTILISE_LAYOUT_STANDARD {
         flex_layout_algorithm(ctx, noeud, mode)
@@ -1964,6 +1968,14 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 
         ligne_courante.largeur += largeur
         ligne_courante.items.taille += 1
+    }
+
+    saufsi ctx.est_reverse {
+        retourne
+    }
+
+    pour * ctx.lignes {
+        tableau_inverse(it.items)
     }
 }
 
@@ -2342,11 +2354,18 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         décalage_pre := 0.0
         décalage_post := 0.0
 
-        si justify_content == PROP_center {
+        si justify_content == PROP_flex_start {
+            si ctx.est_reverse {
+                décalage_main_item += remaining_free_space
+            }
+        }
+        sinon si justify_content == PROP_center {
             décalage_main_item += remaining_free_space * 0.5
         }
         sinon si justify_content == PROP_flex_end {
-            décalage_main_item += remaining_free_space
+            saufsi ctx.est_reverse {
+                décalage_main_item += remaining_free_space
+            }
         }
         sinon si justify_content == PROP_space_between {
             décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
