@@ -1756,6 +1756,7 @@ IDPropriété :: énum n16 {
     FlexGrow
     FlexShrink
 
+    AlignItems
     AlignContent
     AlignSelf
 
@@ -1875,6 +1876,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.FlexGrow] = donne_valeur_number_zéro()
     style.valeurs[IDPropriété.FlexShrink] = donne_valeur_number_un()
 
+    style.valeurs[IDPropriété.AlignItems] = donne_valeur_stretch()
     style.valeurs[IDPropriété.AlignContent] = donne_valeur_stretch()
     style.valeurs[IDPropriété.AlignSelf] = donne_valeur_auto()
 

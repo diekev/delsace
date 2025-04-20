@@ -2500,7 +2500,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 100
+NOMBRE_PROPRIÉTÉS :: 101
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2664,6 +2664,7 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_border_spacing, id = IDPropriété.BorderSpacing, fonction_de_parsage = parse_propriété_border_spacing, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
         InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
         InfoTypePropriété(PROP_align_content, id = IDPropriété.AlignContent, fonction_de_parsage = parse_propriété_align_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+        InfoTypePropriété(PROP_align_items, id = IDPropriété.AlignItems, fonction_de_parsage = parse_propriété_align_items, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_align_self, id = IDPropriété.AlignSelf, fonction_de_parsage = parse_propriété_align_self, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
     ]
 
@@ -5660,6 +5661,21 @@ parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*
 {
     /* flex-start | flex-end | center | space-between | space-around | stretch */
     mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_between, PROP_space_around, PROP_stretch]
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Align Items
+ * https://www.w3.org/TR/css-flexbox-1/#align-items-property
+ * \{ */
+
+parse_propriété_align_items :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    /* flex-start | flex-end | center | baseline | stretch */
+    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_baseline, PROP_stretch]
     parseuse := initialise_une_parseuse(value)
     retourne parse_mot_clé(parseuse, mots_clés)
 }
