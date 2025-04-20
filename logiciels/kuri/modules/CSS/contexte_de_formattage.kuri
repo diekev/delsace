@@ -1418,6 +1418,15 @@ définis_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, valeur: r64)
     ctx.contenant.ajourne_boite_pour_calcul_largeur()
 }
 
+donne_inner_cross_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
+{
+    si ctx.est_direction_row {
+        retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+    }
+
+    retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+}
+
 donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
 {
     retourne ctx.contenant.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].min_size)
@@ -2280,6 +2289,67 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
 /* https://www.w3.org/TR/css-flexbox-1/#algo-line-align. */
 align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
 {
+    si ctx.est_single_line() {
+        retourne
+    }
+
+    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé()
+
+    espace_disponible := ctx.donne_inner_cross_size()
+
+    pour *ctx.lignes {
+        espace_disponible -= it.used_cross_size
+    }
+
+    si espace_disponible == 0.0 {
+        retourne
+    }
+
+    si align_content == PROP_flex_start {
+        /* Rien à faire. */
+    }
+    sinon si align_content == PROP_flex_end {
+        pour * ctx.items {
+            it.position_y_finale += espace_disponible
+        }
+    }
+    sinon si align_content == PROP_center {
+        espace_disponible /= 2.0
+        pour * ctx.items {
+            it.position_y_finale += espace_disponible
+        }
+    }
+    sinon si align_content == PROP_space_around {
+        espace_par_ligne := espace_disponible / (ctx.lignes.taille) comme r32
+        décalage_pre := espace_par_ligne * 0.5
+        décalage_post := décalage_pre
+
+        décalage := 0.0
+        pour * ctx.lignes {
+            décalage += décalage_pre
+
+            pour * item dans it.items {
+                item.position_y_finale += décalage
+            }
+
+            décalage += décalage_post
+        }
+    }
+    sinon si align_content == PROP_space_between {
+        espace_entre := espace_disponible / (ctx.lignes.taille - 1) comme r32
+
+        décalage := 0.0
+        pour * ctx.lignes {
+            pour * item dans it.items {
+                item.position_y_finale += décalage
+            }
+
+            décalage += espace_entre
+        }
+    }
+    sinon si align_content == PROP_stretch {
+        /* À FAIRE : étire les items */
+    }
 }
 
 // -----------------------------------
