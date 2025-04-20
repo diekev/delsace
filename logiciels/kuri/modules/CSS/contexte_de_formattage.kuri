@@ -1302,8 +1302,40 @@ freeze :: fonc (item: *ItemFlex)
 
 donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r32
 {
-    // À FAIRE : inner_flex_base_size
     retourne item.flex_base_size
+}
+
+donne_outer_flex_base_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r32
+{
+    retourne donne_outer_size(item, ctx, item.flex_base_size)
+}
+
+donne_outer_target_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r32
+{
+    retourne donne_outer_size(item, ctx, item.target_main_size)
+}
+
+donne_outer_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, inner_size: r64) -> r32
+{
+    margin_start := donne_main_margin_start_prop(ctx, item.noeud)
+    margin_end := donne_main_margin_end_prop(ctx, item.noeud)
+    padding_start := donne_used_main_padding_start_prop(ctx, item.noeud)
+    padding_end := donne_used_main_padding_end_prop(ctx, item.noeud)
+    border_width_start := donne_used_main_border_start_prop(ctx, item.noeud)
+    border_width_end := donne_used_main_border_end_prop(ctx, item.noeud)
+
+    résultat := inner_size
+    résultat += padding_start.donne_pixels()
+    résultat += padding_end.donne_pixels()
+    résultat += border_width_start.donne_pixels()
+    résultat += border_width_end.donne_pixels()
+    si margin_start.est_pixels() {
+        résultat += margin_start.donne_pixels()
+    }
+    si margin_end.est_pixels() {
+        résultat += margin_end.donne_pixels()
+    }
+    retourne résultat comme r32
 }
 
 LigneFlex :: struct {
@@ -1591,7 +1623,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
     // with the used main size À FAIRE : and the available space, À FAIRE : treating auto as fit-content.
     pour * ctx.items {
         personnalisation: PersonnalisationCotation
-        outrepas := crée_outrepas_pour_coter_boite(it.used_main_size)
+        outrepas := crée_outrepas_pour_coter_contenu(it.used_main_size)
         si ctx.est_direction_row {
             personnalisation.outrepas_largeur = *outrepas
         }
@@ -2038,10 +2070,10 @@ calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne
     outer_sizes := 0.0
     pour * ligne.items {
         si it.frozen {
-            outer_sizes += it.target_main_size
+            outer_sizes += it.donne_outer_target_main_size(ctx)
         }
         sinon {
-            outer_sizes += it.flex_base_size
+            outer_sizes += it.donne_outer_flex_base_size(ctx)
         }
     }
 
