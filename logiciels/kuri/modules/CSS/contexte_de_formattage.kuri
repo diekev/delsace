@@ -1476,10 +1476,15 @@ ContexteDeFormattageFlex :: struct {
 MAIN_INDEX :: 0
 CROSS_INDEX :: 1
 
-est_single_line :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
+est_nowrap :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
 {
     flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).donne_mot_clé()
     retourne flex_wrap == PROP_nowrap
+}
+
+est_single_line :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
+{
+    retourne ctx.lignes.taille == 1 || est_nowrap(ctx)
 }
 
 donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
@@ -1994,7 +1999,7 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
     ligne_courante := tableau_ajoute_élément(*ctx.lignes)
     ligne_courante.items.pointeur = ctx.items.pointeur
 
-    plusieurs_lignes := !est_single_line(ctx)
+    plusieurs_lignes := !est_nowrap(ctx)
 
     pour * ctx.items {
         largeur := it.hypothetical_main_size
