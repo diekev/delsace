@@ -1650,7 +1650,6 @@ donne_cross_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *Noe
     retourne noeud.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].margin_end)
 }
 
-
 donne_used_cross_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> *ValeurDeStyle
 {
     retourne noeud.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start)
