@@ -1722,6 +1722,17 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 
     initialise_id_propriétés(ctx)
 
+    saufsi noeud.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size).est_auto() {
+        si ctx.cross_axis == DirectionFlex.Verticale {
+            ctx.cross_size.Definite = noeud.modèle_de_boite.marge.hauteur
+            ctx.inner_cross_size.Definite = noeud.modèle_de_boite.contenu.hauteur
+        }
+        sinon {
+            ctx.cross_size.Definite = noeud.modèle_de_boite.marge.largeur
+            ctx.inner_cross_size.Definite = noeud.modèle_de_boite.contenu.largeur
+        }
+    }
+
     // 1. Generate anonymous flex items as described in §4 Flex Items.
     construit_liste_items(ctx, noeud, mode)
 
