@@ -85,7 +85,7 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
     retourne résultat
 }
 
-applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeStyle) -> *ValeurDeStyle
+applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeStyle, ignore_plancher: bool) -> *ValeurDeStyle
 {
     saufsi valeur.est_pixels() {
         retourne copie_valeur(valeur)
@@ -96,7 +96,7 @@ applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeSty
     }
 
     pixels := valeur.donne_pixels() - params.delta
-    si pixels < 0.0 {
+    si ignore_plancher == faux && pixels < 0.0 {
         valeur = donne_valeur_pixels_zéro()
     }
 
@@ -280,6 +280,9 @@ ArgumentsDimensionnement :: struct {
     pos_x_statique: r64
     pos_y_statique: r64
 
+    ignore_plancher_border_box: bool
+    ignore_min_max: bool
+
     calcul_hauteur_après_contenu: bool
     mode: ModeDeFormattage
 }
@@ -294,6 +297,8 @@ crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noe
         résultat.outrepas_largeur = mémoire(personnalisation.outrepas_largeur)
     }
     résultat.mode = mode
+    résultat.ignore_plancher_border_box = personnalisation.ignore_plancher_border_box
+    résultat.ignore_min_max = personnalisation.ignore_min_max
     retourne résultat
 }
 
@@ -306,6 +311,8 @@ crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noe
     si personnalisation.outrepas_hauteur {
         résultat.outrepas_hauteur = mémoire(personnalisation.outrepas_hauteur)
     }
+    résultat.ignore_plancher_border_box = personnalisation.ignore_plancher_border_box
+    résultat.ignore_min_max = personnalisation.ignore_min_max
     retourne résultat
 }
 
@@ -323,34 +330,36 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     si outrepas_largeur.possède_valeur() {
         outrepas := outrepas_largeur.Quelque
         si outrepas.est_affecté_par_box_sizing {
-            width = applique_box_sizing(*params_box_sizing, outrepas.valeur)
+            width = applique_box_sizing(*params_box_sizing, outrepas.valeur, ignore_plancher_border_box)
             tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
         }
     }
     sinon saufsi width.est_auto() {
-        width = applique_box_sizing(*params_box_sizing, width)
+        width = applique_box_sizing(*params_box_sizing, width, ignore_plancher_border_box)
         tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
     }
 
     fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
     calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
 
-    width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-    max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
-    max_width = applique_box_sizing(*params_box_sizing, max_width)
-    si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
-        tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.donne_pixels())
-        calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
-    }
+    saufsi ignore_min_max {
+        width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
+        max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
+        max_width = applique_box_sizing(*params_box_sizing, max_width, ignore_plancher_border_box)
+        si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
+            tmp_args = mémoire(args)
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(max_width.donne_pixels())
+            calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
+        }
 
-    width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-    min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
-    min_width = applique_box_sizing(*params_box_sizing, min_width)
-    si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
-        tmp_args = mémoire(args)
-        tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.donne_pixels())
-        calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
+        width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
+        min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        min_width = applique_box_sizing(*params_box_sizing, min_width, ignore_plancher_border_box)
+        si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
+            tmp_args = mémoire(args)
+            tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(min_width.donne_pixels())
+            calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
+        }
     }
 
     ajourne_boite_pour_calcul_largeur(noeud)
@@ -394,7 +403,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 
     fonction_de_calcul(args, *pl)
 
-    si pl.width.donne_pixels() < 0.0 {
+    si ignore_plancher_border_box == faux && pl.width.donne_pixels() < 0.0 {
         pl.width = donne_valeur_pixels_zéro()
     }
 
@@ -587,7 +596,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
         /* N'applique pas box-sizing à l'outrepas : ce peut être la taille du contenu. */
     }
     sinon saufsi height.est_auto() {
-        height = applique_box_sizing(*params_box_sizing, height)
+        height = applique_box_sizing(*params_box_sizing, height, ignore_plancher_border_box)
         tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(height.donne_pixels())
     }
 
@@ -597,22 +606,24 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
         retourne résultat
     }
 
-    height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
-    max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
-    max_height = applique_box_sizing(*params_box_sizing, max_height)
-    si max_height.est_pixels() && (height.donne_pixels() > max_height.donne_pixels()) {
-        tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.donne_pixels())
-        _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
-    }
+    saufsi ignore_min_max {
+        height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+        max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
+        max_height = applique_box_sizing(*params_box_sizing, max_height, ignore_plancher_border_box)
+        si max_height.est_pixels() && (height.donne_pixels() > max_height.donne_pixels()) {
+            tmp_args = mémoire(args)
+            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(max_height.donne_pixels())
+            _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
+        }
 
-    height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
-    min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
-    min_height = applique_box_sizing(*params_box_sizing, min_height)
-    si min_height.est_pixels() && (height.donne_pixels() < min_height.donne_pixels()) {
-        tmp_args = mémoire(args)
-        tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.donne_pixels())
-        _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
+        height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+        min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
+        min_height = applique_box_sizing(*params_box_sizing, min_height, ignore_plancher_border_box)
+        si min_height.est_pixels() && (height.donne_pixels() < min_height.donne_pixels()) {
+            tmp_args = mémoire(args)
+            tmp_args.outrepas_hauteur = crée_outrepas_pour_coter_contenu(min_height.donne_pixels())
+            _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
+        }
     }
 
     ajourne_boite_pour_calcul_hauteur(noeud)
@@ -654,7 +665,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 
     résultat := fonction_de_calcul(args, *ph)
 
-    si ph.height.est_pixels() && ph.height.donne_pixels() < 0.0 {
+    si ignore_plancher_border_box == faux && ph.height.est_pixels() && ph.height.donne_pixels() < 0.0 {
         ph.height = donne_valeur_pixels_zéro()
     }
 
