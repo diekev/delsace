@@ -1377,6 +1377,29 @@ définis_outer_cross_size :: fonc (item: *ItemFlex, outer_size: r64, ctx: *Conte
     définis_inner_cross_size(item, outer_size, ctx)
 }
 
+donne_outer_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
+{
+    margin_start := donne_cross_margin_start_prop(ctx, item.noeud)
+    margin_end := donne_cross_margin_end_prop(ctx, item.noeud)
+    padding_start := donne_used_cross_padding_start_prop(ctx, item.noeud)
+    padding_end := donne_used_cross_padding_end_prop(ctx, item.noeud)
+    border_width_start := donne_used_cross_border_start_prop(ctx, item.noeud)
+    border_width_end := donne_used_cross_border_end_prop(ctx, item.noeud)
+
+    résultat := item.used_cross_size
+    si margin_start.est_pixels() {
+        résultat += margin_start.donne_pixels()
+    }
+    si margin_end.est_pixels() {
+        résultat += margin_end.donne_pixels()
+    }
+    résultat += padding_start.donne_pixels()
+    résultat += padding_end.donne_pixels()
+    résultat += border_width_start.donne_pixels()
+    résultat += border_width_end.donne_pixels()
+    retourne résultat
+}
+
 donne_outer_hypothetical_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
     margin_start := donne_used_cross_margin_start_prop(ctx, item.noeud)
@@ -2425,9 +2448,42 @@ définis_main_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lign
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-margins */
 resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    // If a flex item has auto cross-axis margins:
-    // If its outer cross size (treating those auto margins as zero) is less than the cross size of its flex line, distribute the difference in those sizes equally to the auto margins.
-    // Otherwise, if the block-start or inline-start margin (whichever is in the cross axis) is auto, set it to zero. Set the opposite margin so that the outer cross size of the item equals the cross size of its flex line.
+    pour * ligne dans ctx.lignes {
+        pour * ligne.items {
+            // If a flex item has auto cross-axis margins:
+            margin_start := donne_cross_margin_start_prop(ctx, it.noeud)
+            margin_end := donne_cross_margin_end_prop(ctx, it.noeud)
+
+            si !margin_start.est_auto() && !margin_end.est_auto() {
+                continue
+            }
+
+            // If its outer cross size (treating those auto margins as zero) is less than the cross size of its flex line, distribute the difference in those sizes equally to the auto margins.
+            outer_cross_size := donne_outer_cross_size(it, ctx)
+            si outer_cross_size < ligne.used_cross_size {
+                delta := ligne.used_cross_size - outer_cross_size
+
+                si margin_start.est_auto() && margin_end.est_auto() {
+                    it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta * 0.5))
+                    it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta * 0.5))
+                }
+                sinon si margin_start.est_auto() {
+                    it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta))
+                }
+                sinon {
+                    assert(margin_end.est_auto())
+                    it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta))
+                }
+            }
+            // Otherwise, if the block-start or inline-start margin (whichever is in the cross axis) is auto, set it to zero. Set the opposite margin so that the outer cross size of the item equals the cross size of its flex line.
+            // À FAIRE(writing mode)
+            sinon si margin_start.est_auto() {
+                it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, donne_valeur_pixels_zéro())
+                delta := outer_cross_size - ligne.used_cross_size
+                it.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta))
+            }
+        }
+    }
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-align */
