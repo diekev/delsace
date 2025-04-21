@@ -2533,7 +2533,12 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
                 /* À FAIRE */
             }
             sinon si align_self == PROP_stretch || align_self == PROP_normal {
-                /* À FAIRE */
+                /* À FAIRE : prend les marges utilisées, donne_outer_cross_size utilise les marges calculées */
+                outer_cross_size := item.donne_outer_cross_size(ctx)
+                si outer_cross_size < it.used_cross_size {
+                    delta := it.used_cross_size - outer_cross_size
+                    item.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(item.used_cross_size + delta))
+                }
             }
         }
     }
