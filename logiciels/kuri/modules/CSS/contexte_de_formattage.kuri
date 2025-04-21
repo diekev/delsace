@@ -1904,17 +1904,10 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
     // The hypothetical main size is the item’s flex base size clamped according to its used min and max main
     // sizes (À FAIRE : and flooring the content box size at zero).
     pour * ctx.items {
-        it.hypothetical_main_size = it.flex_base_size
         min_main_size := donne_min_main_size_prop(ctx, it.noeud)
-        si min_main_size.est_pixels() && it.hypothetical_main_size < min_main_size.donne_pixels() {
-            it.hypothetical_main_size = min_main_size.donne_pixels() comme r32
-        }
-
         max_main_size := donne_max_main_size_prop(ctx, it.noeud)
-        si max_main_size.est_pixels() && it.hypothetical_main_size > max_main_size.donne_pixels() {
-            it.hypothetical_main_size = max_main_size.donne_pixels() comme r32
-        }
 
+        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size) comme r32
         si it.hypothetical_main_size < 0.0 {
             it.hypothetical_main_size = 0.0
         }
@@ -2166,17 +2159,10 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 continue
             }
 
-            target_main_size := it.target_main_size
-
             min_size := donne_min_main_size_prop(ctx, it.noeud)
-            si min_size.est_pixels() && target_main_size < min_size.donne_pixels() {
-                target_main_size = min_size.donne_pixels() comme r32
-            }
-
             max_size := donne_max_main_size_prop(ctx, it.noeud)
-            si max_size.est_pixels() && target_main_size > max_size.donne_pixels() {
-                target_main_size = max_size.donne_pixels() comme r32
-            }
+
+            target_main_size := restreint_taille(it.target_main_size, min_size, max_size) comme r32
 
             it.violation = target_main_size - it.target_main_size
             imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
@@ -2263,14 +2249,8 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
     si ctx.est_single_line() {
         ligne := *ctx.lignes[0]
         min_cross_size := donne_min_cross_size_prop(ctx)
-        si min_cross_size.est_pixels() && ligne.used_cross_size < min_cross_size.donne_pixels() {
-            ligne.used_cross_size = min_cross_size.donne_pixels()
-        }
-
         max_cross_size := donne_max_cross_size_prop(ctx)
-        si max_cross_size.est_pixels() && ligne.used_cross_size > max_cross_size.donne_pixels() {
-            ligne.used_cross_size = max_cross_size.donne_pixels()
-        }
+        ligne.used_cross_size = restreint_taille(ligne.used_cross_size, min_cross_size, max_cross_size)
     }
 
     pour ctx.lignes {
@@ -2569,15 +2549,8 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
     }
 
     min_cross_size := donne_min_cross_size_prop(ctx)
-    si min_cross_size.est_pixels() && used_cross_size < min_cross_size.donne_pixels() {
-        used_cross_size = min_cross_size.donne_pixels() comme r32
-    }
-
     max_cross_size := donne_max_cross_size_prop(ctx)
-    si max_cross_size.est_pixels() && used_cross_size > max_cross_size.donne_pixels() {
-        used_cross_size = max_cross_size.donne_pixels() comme r32
-    }
-
+    used_cross_size = restreint_taille(used_cross_size, min_cross_size, max_cross_size)
     définis_used_cross_size(ctx, used_cross_size)
 
     // À FAIRE : il faudrait éviter ce travail redondant. Pour inline-flex, il faudrait plutôt prendre la fonction de calcul de inline-block ?
