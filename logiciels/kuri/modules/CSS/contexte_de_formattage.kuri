@@ -1763,9 +1763,14 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 
     // ---------------------------------------------
     pour * ctx.items {
-        décale_vers_position(it.noeud, it.position_finale[0], it.position_finale[1])
         it.noeud.ajourne_boite_pour_calcul_largeur()
         it.noeud.ajourne_boite_pour_calcul_hauteur()
+
+        /* Nous disposons les boites absolues du noeud avant de le décaler car les positions statiques
+         * enregistrées ne sont pas décalées... */
+        ctx.dispose_les_boites_absolues(it.noeud)
+
+        décale_vers_position(it.noeud, it.position_finale[0], it.position_finale[1])
     }
 }
 
@@ -2610,6 +2615,10 @@ flex_layout_algorithm_non_standard :: fonc (ctx: *ContexteDeFormattageFlex, noeu
     sinon {
         assert(direction == PROP_column || direction == PROP_column_reverse)
         formatte_flex_column(ctx, noeud, mode, direction == PROP_column_reverse)
+    }
+
+    pour ctx.items {
+        ctx.dispose_les_boites_absolues(it.noeud)
     }
 }
 

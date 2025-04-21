@@ -2923,7 +2923,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 
-    si mode == ModeDeFormattage.Normal {
+    si mode == ModeDeFormattage.Normal && ctx.type != ContexteDeFormattageFlex {
         ctx.dispose_les_boites_absolues(noeud)
     }
 }
