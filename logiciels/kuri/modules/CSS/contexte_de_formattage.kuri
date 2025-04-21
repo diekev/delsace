@@ -1295,17 +1295,17 @@ ItemFlex :: struct {
     position_finale: [DirectionFlex.nombre_éléments]r32
 
     frozen: bool
-    flex_base_size: r32
+    flex_base_size: r64
 
-    hypothetical_main_size: r32
-    used_main_size: r32
-    target_main_size: r32
+    hypothetical_main_size: r64
+    used_main_size: r64
+    target_main_size: r64
 
     hypothetical_cross_size: r64
     used_cross_size: r64
 
-    scaled_flex_shrink_factor: r32
-    violation: r32
+    scaled_flex_shrink_factor: r64
+    violation: r64
 }
 
 freeze :: fonc (item: *ItemFlex)
@@ -1314,22 +1314,22 @@ freeze :: fonc (item: *ItemFlex)
     item.target_main_size = item.hypothetical_main_size
 }
 
-donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r32
+donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r64
 {
     retourne item.flex_base_size
 }
 
-donne_outer_flex_base_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r32
+donne_outer_flex_base_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
     retourne donne_outer_main_size(item, ctx, item.flex_base_size)
 }
 
-donne_outer_target_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r32
+donne_outer_target_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
     retourne donne_outer_main_size(item, ctx, item.target_main_size)
 }
 
-donne_outer_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, inner_size: r64) -> r32
+donne_outer_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, inner_size: r64) -> r64
 {
     margin_start := donne_main_margin_start_prop(ctx, item.noeud)
     margin_end := donne_main_margin_end_prop(ctx, item.noeud)
@@ -1349,7 +1349,7 @@ donne_outer_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, 
     si margin_end.est_pixels() {
         résultat += margin_end.donne_pixels()
     }
-    retourne résultat comme r32
+    retourne résultat
 }
 
 définis_inner_cross_size :: fonc (item: *ItemFlex, inner_size: r64, ctx: *ContexteDeFormattageFlex)
@@ -1421,7 +1421,7 @@ donne_outer_hypothetical_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFo
 
 LigneFlex :: struct {
     items: []ItemFlex
-    largeur: r32
+    largeur: r64
     used_cross_size: r64
 }
 
@@ -1855,13 +1855,12 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         // A. If the item has a definite used flex basis, that’s the flex base size. 
         si flex_basis.est_percentage() || flex_basis.est_calc() {
             définis_propriétés(ctx.ctx_calcul_style, it.noeud.propriétés)
-            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
-            it.flex_base_size = largeur comme r32
+            it.flex_base_size = calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
             continue
         }
 
         si flex_basis.est_pixels() {
-            it.flex_base_size = flex_basis.donne_pixels() comme r32
+            it.flex_base_size = flex_basis.donne_pixels()
             continue
         }
 
@@ -1907,7 +1906,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         min_main_size := donne_min_main_size_prop(ctx, it.noeud)
         max_main_size := donne_max_main_size_prop(ctx, it.noeud)
 
-        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size) comme r32
+        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size)
         si it.hypothetical_main_size < 0.0 {
             it.hypothetical_main_size = 0.0
         }
@@ -2029,7 +2028,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     //    items on the line. If the sum is less than the flex container’s inner main size,
     //    use the flex grow factor for the rest of this algorithm; otherwise, use the
     //    flex shrink factor.
-    somme_items_sizes := 0.0
+    somme_items_sizes : r64 = 0.0
     pour ligne.items {
         somme_items_sizes += it.hypothetical_main_size
     }
@@ -2089,12 +2088,12 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         //    free space by this sum. If the magnitude of this value is less than the magnitude of the
         //    remaining free space, use this as the remaining free space.
         remaining_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
-        somme_flex_factors := 0.0
+        somme_flex_factors : r64 = 0.0
         pour * ligne.items {
             si it.frozen {
                 continue
             }
-            somme_flex_factors += it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
+            somme_flex_factors += it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
         }
 
         si somme_flex_factors < 1.0 {
@@ -2114,7 +2113,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
                 // remaining free space proportional to the ratio.
                 pour * ligne.items {
-                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
+                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
                     ratio := flex_factor / somme_flex_factors
                     it.target_main_size = it.flex_base_size + remaining_free_space * ratio
                 }
@@ -2128,13 +2127,13 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 // Set the item’s target main size to its flex base size minus a fraction of the absolute value of
                 // the remaining free space proportional to the ratio. Note this may result in a negative inner main
                 // size; it will be corrected in the next step.
-                somme_scaled_flex_shrink_factors := 0.0
+                somme_scaled_flex_shrink_factors : r64 = 0.0
                 pour * ligne.items {
                     si it.frozen {
                         continue
                     }
 
-                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number() comme r32
+                    flex_factor := it.noeud.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
                     it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor
                     somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor
                 }
@@ -2162,7 +2161,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             min_size := donne_min_main_size_prop(ctx, it.noeud)
             max_size := donne_max_main_size_prop(ctx, it.noeud)
 
-            target_main_size := restreint_taille(it.target_main_size, min_size, max_size) comme r32
+            target_main_size := restreint_taille(it.target_main_size, min_size, max_size)
 
             it.violation = target_main_size - it.target_main_size
             imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
@@ -2204,9 +2203,9 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     }
 }
 
-calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex) -> r32
+calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex) -> r64
 {
-    outer_sizes := 0.0
+    outer_sizes : r64 = 0.0
     pour * ligne.items {
         si it.frozen {
             outer_sizes += it.donne_outer_target_main_size(ctx)
@@ -2275,9 +2274,9 @@ handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
         retourne
     }
 
-    somme_cross_sizes: r32
+    somme_cross_sizes: r64
     pour ctx.lignes {
-        somme_cross_sizes += it.used_cross_size comme r32
+        somme_cross_sizes += it.used_cross_size
     }
 
     si somme_cross_sizes >= ctx.inner_cross_size.Definite {
@@ -2285,10 +2284,10 @@ handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
     }
 
     delta := ctx.inner_cross_size.Definite - somme_cross_sizes
-    delta /= (ctx.lignes.taille comme r32)
+    delta /= (ctx.lignes.taille comme r64)
 
     pour * ctx.lignes {
-        it.used_cross_size += delta comme r32
+        it.used_cross_size += delta
     }
 }
 
@@ -2368,7 +2367,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         }
         sinon {
             si auto_margins > 0 {
-                delta := remaining_free_space / auto_margins comme r64
+                delta := remaining_free_space / auto_margins comme r32
                 définis_main_auto_margins(ctx, it, delta)
                 remaining_free_space = 0.0
             }
