@@ -5395,13 +5395,25 @@ parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
 /* ------------------------------------------------------------------------- */
 /** \nom Justify Content
  * https://drafts.csswg.org/css-flexbox/#justify-content-property
+ * https://www.w3.org/TR/css-align/#align-justify-content
  * \{ */
 
 parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
-    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
+    /* normal | <content-distribution> | <overflow-position>? [ <content-position> | left | right ] */
     parseuse := initialise_une_parseuse(value)
-    retourne parse_mot_clé(parseuse, mots_clés)
+
+    valeur_normal := parse_mot_clé(parseuse, [PROP_normal])
+    si valeur_normal.possède_valeur() {
+        retourne valeur_normal.Quelque
+    }
+
+    content_distribution := parse_valeur_type_content_distribution(parseuse)
+    si content_distribution.possède_valeur() {
+        retourne content_distribution.Quelque
+    }
+
+    retourne parse_valeur_type_content_position(parseuse)
 }
 
 /** \} */
@@ -5655,13 +5667,39 @@ parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel
 /* ------------------------------------------------------------------------- */
 /** \nom Align Content
  * https://www.w3.org/TR/css-flexbox-1/#propdef-align-content
+ * https://www.w3.org/TR/css-align/#align-justify-content
  * \{ */
 
 parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
-    /* flex-start | flex-end | center | space-between | space-around | stretch */
-    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_between, PROP_space_around, PROP_stretch]
+    /* normal | <baseline-position> | <content-distribution> | <overflow-position>? <content-position> */
     parseuse := initialise_une_parseuse(value)
+    valeur_normal := parse_mot_clé(parseuse, [PROP_normal])
+    si valeur_normal.possède_valeur() {
+        retourne valeur_normal.Quelque
+    }
+
+    content_distribution := parse_valeur_type_content_distribution(parseuse)
+    si content_distribution.possède_valeur() {
+        retourne content_distribution.Quelque
+    }
+
+    retourne parse_valeur_type_content_position(parseuse)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-content-distribution */
+parse_valeur_type_content_distribution :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* space-between | space-around | space-evenly | stretch */
+    mots_clés := [PROP_space_between, PROP_space_around, PROP_space_evenly, PROP_stretch]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-content-position */
+parse_valeur_type_content_position :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* center | start | end | flex-start | flex-end */
+    mots_clés := [PROP_center, PROP_start, PROP_end, PROP_flex_start, PROP_flex_end]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
@@ -5674,10 +5712,16 @@ parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*
 
 parse_propriété_align_items :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
-    /* flex-start | flex-end | center | baseline | stretch */
-    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_baseline, PROP_stretch]
+    /* normal | stretch | <baseline-position> | [ <overflow-position>? <self-position> ] */
     parseuse := initialise_une_parseuse(value)
-    retourne parse_mot_clé(parseuse, mots_clés)
+
+    mots_clés := [PROP_normal, PROP_stretch]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur.Quelque
+    }
+
+    retourne parse_valeur_type_self_position(parseuse)
 }
 
 /** \} */
@@ -5685,13 +5729,28 @@ parse_propriété_align_items :: fonc (value: []ComponentValue) -> Optionnel(*Va
 /* ------------------------------------------------------------------------- */
 /** \nom Align Self
  * https://www.w3.org/TR/css-flexbox-1/#propdef-align-self
+ * https://www.w3.org/TR/css-align/#align-self-property
  * \{ */
 
 parse_propriété_align_self :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
-    /* auto | flex-start | flex-end | center | baseline | stretch */
-    mots_clés := [PROP_auto, PROP_flex_start, PROP_flex_end, PROP_center, PROP_baseline, PROP_stretch]
+    /* auto | normal | stretch | <baseline-position> | <overflow-position>? <self-position> */
     parseuse := initialise_une_parseuse(value)
+
+    mots_clés := [PROP_auto, PROP_normal, PROP_stretch]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur.Quelque
+    }
+
+    retourne parse_valeur_type_self_position(parseuse)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-self-position */
+parse_valeur_type_self_position :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* center | start | end | self-start | self-end | flex-start | flex-end */
+    mots_clés := [PROP_center, PROP_start, PROP_end, PROP_self_start, PROP_self_end, PROP_flex_start, PROP_flex_end]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 

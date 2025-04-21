@@ -2284,6 +2284,9 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             si align_self == PROP_auto {
                 align_self = align_items
             }
+            sinon si align_self == PROP_normal {
+                align_self = PROP_stretch
+            }
 
             cross_size := donne_cross_size_prop(ctx, it.noeud)
             cross_margin_start := donne_cross_margin_start_prop(ctx, it.noeud)
@@ -2354,7 +2357,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         décalage_pre := 0.0
         décalage_post := 0.0
 
-        si justify_content == PROP_flex_start {
+        si justify_content == PROP_flex_start || justify_content == PROP_start {
             si ctx.est_reverse {
                 décalage_main_item += remaining_free_space
             }
@@ -2362,12 +2365,13 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         sinon si justify_content == PROP_center {
             décalage_main_item += remaining_free_space * 0.5
         }
-        sinon si justify_content == PROP_flex_end {
+        sinon si justify_content == PROP_flex_end || justify_content == PROP_end {
             saufsi ctx.est_reverse {
                 décalage_main_item += remaining_free_space
             }
         }
-        sinon si justify_content == PROP_space_between {
+        sinon si justify_content == PROP_space_between || justify_content == PROP_space_evenly {
+            /* À FAIRE : space-evely doit prendre en compte les marges entre éléments ? */
             décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
         }
         sinon si justify_content == PROP_space_around {
@@ -2445,10 +2449,10 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
                 align_self = align_items
             }
 
-            si align_self == PROP_flex_start {
+            si align_self == PROP_flex_start || align_self == PROP_self_start || align_self == PROP_start {
                 /* Rien à faire. */
             }
-            sinon si align_self == PROP_flex_end {
+            sinon si align_self == PROP_flex_end || align_self == PROP_self_end || align_self == PROP_end {
                 item.position_finale[ctx.cross_axis] += espace_disponible comme r32
             }
             sinon si align_self == PROP_center {
@@ -2457,7 +2461,7 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
             sinon si align_self == PROP_baseline {
                 /* À FAIRE */
             }
-            sinon si align_self == PROP_stretch {
+            sinon si align_self == PROP_stretch || align_self == PROP_normal {
                 /* À FAIRE */
             }
         }
@@ -2674,13 +2678,13 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
         si justify_content == PROP_center {
             décalage_x += espace_disponible * 0.5
         }
-        sinon si justify_content == PROP_flex_end {
+        sinon si justify_content == PROP_flex_end || justify_content == PROP_end {
             décalage_x += espace_disponible
         }
         sinon si justify_content == PROP_space_between {
             décalage_post = espace_disponible / (ligne.items.taille - 1) comme r32
         }
-        sinon si justify_content == PROP_space_around {
+        sinon si justify_content == PROP_space_around || justify_content == PROP_space_evenly {
             espace_par_bloc := espace_disponible / (ligne.items.taille) comme r32
             décalage_pre = espace_par_bloc * 0.5
             décalage_post = décalage_pre
