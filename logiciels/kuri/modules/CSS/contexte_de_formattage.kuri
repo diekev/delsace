@@ -2408,11 +2408,11 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
                 décalage_main_item += remaining_free_space
             }
         }
-        sinon si justify_content == PROP_space_between || justify_content == PROP_space_evenly {
-            /* À FAIRE : space-evely doit prendre en compte les marges entre éléments ? */
+        sinon si justify_content == PROP_space_between {
             décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
         }
-        sinon si justify_content == PROP_space_around {
+        sinon si justify_content == PROP_space_around || justify_content == PROP_space_evenly {
+            /* À FAIRE : space-evely doit prendre en compte les marges entre éléments ? */
             espace_par_bloc := remaining_free_space / (it.items.taille) comme r32
             décalage_pre = espace_par_bloc * 0.5
             décalage_post = décalage_pre
