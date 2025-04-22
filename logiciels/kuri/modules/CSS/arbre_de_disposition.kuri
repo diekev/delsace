@@ -1410,7 +1410,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
 
     ctx.ctx_calcul_style = *ctx_calcul_style
 
-    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
+    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, PersonnalisationCotation())
 
     largeur_descendants, hauteur_descendants := donne_taille_descendants(arbre.racine)
     // imprime("taille arbre : %x%, descedants %x%\n", arbre.racine.modèle_de_boite.marge.largeur, arbre.racine.modèle_de_boite.marge.hauteur, largeur_descendants, hauteur_descendants)
@@ -1879,7 +1879,7 @@ imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleD
 TableVirtuelleNoeudDeDispo :: struct {
     type: type_de_données
 
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *OutrepasCotation)(rien)
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -2292,10 +2292,10 @@ donne_nom_classe_sans_préfixe :: fonc (noeud: *NoeudDeDisposition) -> chaine
     retourne résultat
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
 {
     si noeud.table_virtuelle.sur_mesure {
-        noeud.table_virtuelle.sur_mesure(noeud, ctx, mode, outrepas_largeur)
+        noeud.table_virtuelle.sur_mesure(noeud, ctx, mode, personnalisation)
     }
 }
 
@@ -2333,7 +2333,7 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, m
         retourne
     }
 
-    noeud.mesure(enligneuse.ctx, mode, nul)
+    noeud.mesure(enligneuse.ctx, mode, PersonnalisationCotation())
     _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
 }
 
@@ -2896,7 +2896,7 @@ donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionn
     }
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
@@ -2904,7 +2904,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
@@ -2923,7 +2923,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 
-    si mode == ModeDeFormattage.Normal {
+    si mode == ModeDeFormattage.Normal && ctx.type != ContexteDeFormattageFlex {
         ctx.dispose_les_boites_absolues(noeud)
     }
 }
@@ -3030,11 +3030,11 @@ NoeudDeDispositionInline :: struct {
     table_virtuelle = *__table_noeud_de_disposition_inline
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
@@ -3051,7 +3051,7 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     ctx := enligneuse.ctx
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, PersonnalisationCotation(), mode)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -3561,7 +3561,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne noeud.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation @inutilisée)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -3569,14 +3569,14 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     containing_block := donne_containing_block(noeud, ctx)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, PersonnalisationCotation(), mode)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 }
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, nul)
+    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, PersonnalisationCotation())
 
     noeud := base comme *NoeudDeDispositionRemplacement
     largeur := noeud.modèle_de_boite.marge.largeur
@@ -4083,13 +4083,13 @@ TableWrapperBox :: struct {
     table: *TableBox
 }
 
-table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
 {
     noeud := base comme *TableWrapperBox
 
     containing_block := donne_containing_block(base, ctx)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -4104,7 +4104,9 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
     width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
     si width.est_auto() {
         largeur_final := crée_outrepas_pour_coter_contenu(noeud.table.modèle_de_boite.contenu.largeur)
-        args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final, mode)
+        personnalisation_ := personnalisation
+        personnalisation_.outrepas_largeur = *largeur_final
+        args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, personnalisation_, mode)
         calcule_largeur_et_marges(*args)
 
         /* Si les marges ont changés la position, nous devons décaler les descendants. */
@@ -4116,7 +4118,9 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
     height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
     si height.est_auto() {
         hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels())
-        args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+        personnalisation_ := personnalisation
+        personnalisation_.outrepas_hauteur = *hauteur_finale
+        args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, personnalisation_)
         _ := calcule_hauteur_et_marges(*args)
     }
 }
@@ -4413,7 +4417,7 @@ TableBox :: struct {
     table_virtuelle = *__table_noeud_de_disposition_table
 }
 
-table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *OutrepasCotation @inutilisée)
+table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, personnalisation: PersonnalisationCotation @inutilisée)
 {
     noeud := base comme *TableBox
 

@@ -12,9 +12,15 @@ ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
 
 ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
+    index_d_insertion := ensemble_ajoute_retourne_index(ensemble, donnée)
+    retourne *ensemble.pointeur[index_d_insertion]
+}
+
+ensemble_ajoute_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
+{
     si ensemble.taille == 0 {
         tableau_ajoute(ensemble, donnée)
-        retourne *ensemble.pointeur[0]
+        retourne 0
     }
 
     début := ensemble.pointeur
@@ -24,7 +30,7 @@ ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 
     si limite < fin {
         si mémoire(limite) == donnée {
-            retourne limite
+            retourne distance(début, limite)
         }
     }
 
@@ -47,7 +53,7 @@ ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 
     mémoire(ensemble) = tmp
 
-    retourne *ensemble.pointeur[index_d_insertion]
+    retourne index_d_insertion
 }
 
 ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool

@@ -25,13 +25,17 @@ principale :: fonc ()
 
     rappels: RappelsWindow
 
-    tableau_ajoute(*rappels.documents, Document("Édition Texte", dessine_interface_édition_texte))
-    tableau_ajoute(*rappels.documents, Document("Défilage Vertical", dessine_interface_défilable_verticale))
-    tableau_ajoute(*rappels.documents, Document("Basique", dessine_interface_basique))
-    // tableau_ajoute(*rappels.documents, Document("Flexible", dessine_interface_flexible))
-    tableau_ajoute(*rappels.documents, Document("Flexible Verticale", dessine_interface_flexible_verticale))
-    tableau_ajoute(*rappels.documents, Document("Texte", dessine_interface_texte))
-    tableau_ajoute(*rappels.documents, Document("Fonte", dessine_atlas_fonte))
+    documents := [
+        Document("Édition Texte", dessine_interface_édition_texte),
+        Document("Défilage Vertical", dessine_interface_défilable_verticale),
+        Document("Basique", dessine_interface_basique),
+        /* Document("Flexible", dessine_interface_flexible) */
+        Document("Flexible Verticale", dessine_interface_flexible_verticale),
+        Document("Texte", dessine_interface_texte),
+        Document("Fonte", dessine_atlas_fonte)
+    ]
+
+    tableau_ajoute(*rappels.documents, ...documents)
 
     rappels.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
     rappels.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)

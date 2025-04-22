@@ -1014,7 +1014,7 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
         }
 
         Py_INCREF(it.type)
-        PyModule_AddObject(module, it.nom, it.type)
+        _ := PyModule_AddObject(module, it.nom, it.type)
     }
 
     retourne module

@@ -33,6 +33,8 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
+#include <QLocalServer>
+#include <QLocalSocket>
 #include <QMediaDevices>
 #include <QMenuBar>
 #include <QMessageBox>
