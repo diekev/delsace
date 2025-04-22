@@ -2031,12 +2031,14 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
         ligne_courante.items.taille += 1
     }
 
-    saufsi ctx.est_reverse {
-        retourne
-    }
+    #si UTILISE_LAYOUT_STANDARD {
+        saufsi ctx.est_reverse {
+            retourne
+        }
 
-    pour * ctx.lignes {
-        tableau_inverse(it.items)
+        pour * ctx.lignes {
+            tableau_inverse(it.items)
+        }
     }
 }
 
