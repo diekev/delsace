@@ -1,5 +1,9 @@
 importe Chaine // pour ChaineC
 
+charge "confname"
+charge "errno"
+charge "interface"
+
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
     chn_c_nom := crée_chaine_c(nom)
