@@ -3303,6 +3303,12 @@ void QT_treewidgetitem_set_expanded(QT_TreeWidgetItem *widget, bool ouinon)
     qwidget->setExpanded(ouinon);
 }
 
+QT_TreeWidgetItem *QT_treewidgetitem_parent(QT_TreeWidgetItem *widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->parent());
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
