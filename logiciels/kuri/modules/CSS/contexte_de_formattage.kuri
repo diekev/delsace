@@ -1271,14 +1271,32 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
     retourne faux
 }
 
-restreint_taille :: fonc (size: r64, min_size: *ValeurDeStyle, max_size: *ValeurDeStyle) -> r64
+restreint_taille :: fonc (size: r64, min_size: *ValeurDeStyle, max_size: *ValeurDeStyle, params_box_sizing: *ParamètresBoxSizing) -> r64
 {
-    si min_size.est_pixels() && size < min_size.donne_pixels() {
-        size = min_size.donne_pixels()
+    si params_box_sizing && params_box_sizing.applique_delta_à_taille_de_base {
+        size = applique_box_sizing(params_box_sizing, size)
     }
 
-    si max_size.est_pixels() && size > max_size.donne_pixels() {
-        size = max_size.donne_pixels()
+    si min_size.est_pixels() {
+        min_size_pixels := min_size.donne_pixels()
+        si params_box_sizing {
+            min_size_pixels = applique_box_sizing(params_box_sizing, min_size_pixels)
+        }
+
+        si size < min_size_pixels {
+            size = min_size_pixels
+        }
+    }
+
+    si max_size.est_pixels() {
+        max_size_pixels := max_size.donne_pixels()
+        si params_box_sizing {
+            max_size_pixels = applique_box_sizing(params_box_sizing, max_size_pixels)
+        }
+
+        si size > max_size_pixels {
+            size = max_size_pixels
+        }
     }
 
     retourne size
@@ -1525,6 +1543,14 @@ initialise_id_propriétés :: fonc (empl ctx: *ContexteDeFormattageFlex)
     ids_props[vertical].padding_end = IDPropriété.PaddingBottom
     ids_props[vertical].border_width_start = IDPropriété.BorderWidthTop
     ids_props[vertical].border_width_end = IDPropriété.BorderWidthBottom
+}
+
+donne_paramètres_box_sizing_cross_size :: fonc (ctx: *ContexteDeFormattageFlex) -> ParamètresBoxSizing
+{
+    si ctx.main_axis == DirectionFlex.Horizontale {
+        retourne donne_paramètres_box_sizing_pour_hauteur(ctx.contenant.propriétés)
+    }
+    retourne donne_paramètres_box_sizing_pour_largeur(ctx.contenant.propriétés)
 }
 
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
@@ -1906,7 +1932,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         min_main_size := donne_min_main_size_prop(ctx, it.noeud)
         max_main_size := donne_max_main_size_prop(ctx, it.noeud)
 
-        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size)
+        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size, nul)
         si it.hypothetical_main_size < 0.0 {
             it.hypothetical_main_size = 0.0
         }
@@ -2161,7 +2187,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             min_size := donne_min_main_size_prop(ctx, it.noeud)
             max_size := donne_max_main_size_prop(ctx, it.noeud)
 
-            target_main_size := restreint_taille(it.target_main_size, min_size, max_size)
+            target_main_size := restreint_taille(it.target_main_size, min_size, max_size, nul)
 
             it.violation = target_main_size - it.target_main_size
             imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
@@ -2247,9 +2273,12 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
     // container’s computed min and max cross sizes.
     si ctx.est_single_line() {
         ligne := *ctx.lignes[0]
+        imprimeln("[%] %", #nom_de_cette_fonction, ligne.used_cross_size)
         min_cross_size := donne_min_cross_size_prop(ctx)
         max_cross_size := donne_max_cross_size_prop(ctx)
-        ligne.used_cross_size = restreint_taille(ligne.used_cross_size, min_cross_size, max_cross_size)
+        params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx)
+        params_box_sizing.applique_delta_à_taille_de_base = faux
+        ligne.used_cross_size = restreint_taille(ligne.used_cross_size, min_cross_size, max_cross_size, *params_box_sizing)
     }
 
     pour ctx.lignes {
@@ -2318,7 +2347,7 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
                 min_size := donne_min_cross_size_prop(ctx, it.noeud)
                 max_size := donne_max_cross_size_prop(ctx, it.noeud)
 
-                outer_cross_size := restreint_taille(ligne.used_cross_size, min_size, max_size)
+                outer_cross_size := restreint_taille(ligne.used_cross_size, min_size, max_size, nul)
                 it.définis_outer_cross_size(outer_cross_size, ctx)
             }
             sinon {
@@ -2549,7 +2578,12 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
 
     min_cross_size := donne_min_cross_size_prop(ctx)
     max_cross_size := donne_max_cross_size_prop(ctx)
-    used_cross_size = restreint_taille(used_cross_size, min_cross_size, max_cross_size)
+
+    params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx)
+    used_cross_size = restreint_taille(used_cross_size, min_cross_size, max_cross_size, *params_box_sizing)
+
+    // imprimeln("[%] %", #nom_de_cette_fonction, used_cross_size)
+
     définis_used_cross_size(ctx, used_cross_size)
 
     // À FAIRE : il faudrait éviter ce travail redondant. Pour inline-flex, il faudrait plutôt prendre la fonction de calcul de inline-block ?

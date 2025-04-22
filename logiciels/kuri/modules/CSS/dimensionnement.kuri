@@ -45,6 +45,9 @@ crée_outrepas_pour_coter_boite :: fonc (valeur: r64) -> OutrepasCotation
 ParamètresBoxSizing :: struct {
     delta: r64
     applique_delta: bool
+    /* À FAIRE : nous devrions appliquer le box-sizing aux valeurs utilisées de min-width/height et max-width/height.
+     * Ce drapeau n'existe que pour sélectivement appliquer le box-sizing à ces propriétés. */
+    applique_delta_à_taille_de_base := vrai
 }
 
 donne_paramètres_box_sizing_pour_hauteur :: fonc (propriétés: *PropriétésDeStyle) -> ParamètresBoxSizing
@@ -101,6 +104,18 @@ applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: *ValeurDeSty
     }
 
     retourne crée_valeur_pixels(pixels)
+}
+
+applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: r64) -> r64
+{
+    si params.applique_delta {
+        valeur -= params.delta
+        si valeur < 0.0 {
+            valeur = 0.0
+        }
+    }
+
+    retourne valeur
 }
 
 /** \} */
