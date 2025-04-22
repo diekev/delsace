@@ -247,7 +247,14 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
     position_event := donne_position_décalée_par_défilement(page, position)
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
-        élément.est_en_train_d_être_activé(vrai)
+        si clic.bouton == BoutonSouris.PRIMAIRE {
+            élément.est_en_train_d_être_activé(vrai)
+        }
+        sinon si clic.bouton == BoutonSouris.CONTEXTUEL {
+            user_agent := document.donne_user_agent()
+            assert(user_agent != nul)
+            user_agent.affiche_menu_contextuel_pour(élément, clic)
+        }
         envoie_mousedown(élément, position_event.x, position_event.y)
     }
     document.élément_en_cours_d_activation = élément
@@ -284,7 +291,7 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
             document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
         }
         sinon {
-            envoie_un_clic(élément, position_event.x, position_event.y)
+            envoie_un_clic(élément, clic.bouton, position_event.x, position_event.y)
         }
     }
     document.élément_en_cours_d_activation = nul
@@ -359,12 +366,19 @@ défile_vers_fragment :: fonc (page: *PageWeb)
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
-envoie_un_clic :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+envoie_un_clic :: fonc (élément: *Élément, bouton: BoutonSouris, position_x: z32, position_y: z32)
 {
     /* À FAIRE : standardise. */
     évènement := crée_platform_object(élément, MouseEvent)
     évènement.bubbles = vrai
-    évènement.type = EventType.click
+
+    si bouton == BoutonSouris.PRIMAIRE {
+        évènement.type = EventType.click
+    }
+    sinon {
+        évènement.type = EventType.auxclick
+    }
+
     évènement.screen_x = position_x comme r64
     évènement.screen_y = position_y comme r64
 
