@@ -38,22 +38,17 @@ importe POSIX
 
 /* ------------------------------------------------------------------------- */
 
-SAFE_OPEN_DEFAULT_MODE := 0600;
+SAFE_OPEN_DEFAULT_MODE := 0o600;
 SAFE_OPEN_RETRY_MAX := 50;
 
-// À FAIRE : typedefs/alias
-//typedef int (*safe_open_path_warning_callback_type)(const char#fn);
+safe_open_path_warning_callback_type :: fonc(*z8)(z32)
 
 safe_open_path_warning_callback : fonc(*z8)z32 = nul;
 
-safe_open_register_path_warning_callback :: fonc(f : fonc(*z8)z32) -> fonc(*z8)z32
+safe_open_register_path_warning_callback :: fonc(f : safe_open_path_warning_callback_type) -> safe_open_path_warning_callback_type
 {
-    old_value = safe_open_path_warning_callback;
-
-    nonsûr {
-    	safe_open_path_warning_callback = f;
-    }
-
+    old_value := safe_open_path_warning_callback;
+    safe_open_path_warning_callback = f;
     retourne old_value;
 }
 

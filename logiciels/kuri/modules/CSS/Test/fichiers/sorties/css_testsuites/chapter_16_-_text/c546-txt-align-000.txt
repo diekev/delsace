@@ -141,7 +141,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 12 Normal de Texte début 11 fin 12 rect (233.56,118 24x18)
                 "(the"
-            frag 13 Normal de Texte début 12 fin 13 rect (258.3,118 4x18)
+            frag 13 Normal de Texte début 12 fin 13 rect (258.03,118 4x18)
                 " "
             frag 14 Normal de Texte début 13 fin 14 rect (262.49,118 30x18)
                 "right"
@@ -167,7 +167,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "line"
             frag 25 Normal de Texte début 24 fin 25 rect (478.59,118 4x18)
                 " "
-            frag 26 Normal de Texte début 25 fin 26 rect (483.5,118 25x18)
+            frag 26 Normal de Texte début 25 fin 26 rect (483.05,118 25x18)
                 "up)."
             frag 27 Normal de Texte début 26 fin 27 rect (508.52,118 4x18)
                 " "
@@ -187,11 +187,11 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "is"
             frag 38 Normal de Texte début 4 fin 5 rect (563.62,118 4x18)
                 " "
-            frag 39 Normal de Texte début 5 fin 6 rect (568.8,118 23x18)
+            frag 39 Normal de Texte début 5 fin 6 rect (568.08,118 23x18)
                 "just"
             frag 40 Normal de Texte début 6 fin 7 rect (591.55,118 4x18)
                 " "
-            frag 41 Normal de Texte début 7 fin 8 rect (596.1,118 40x18)
+            frag 41 Normal de Texte début 7 fin 8 rect (596.01,118 40x18)
                 "lovely"
             frag 42 Normal de Texte début 8 fin 9 rect (636.47,118 4x18)
                 " "
@@ -217,7 +217,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 53 Normal de Texte début 19 fin 20 rect (873.57,118 28x18)
                 "text."
-            frag 54 Normal de Texte début 20 fin 21 rect (902.4,118 4x18)
+            frag 54 Normal de Texte début 20 fin 21 rect (902.04,118 4x18)
                 " "
             frag 55 Normal de Texte début 21 fin 22 rect (906.5,118 28x18)
                 "This"
@@ -243,7 +243,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 66 Normal de Texte début 32 fin 33 rect (1108.60,118 4x18)
                 " "
-            frag 67 Normal de Texte début 33 fin 34 rect (1113.6,118 28x18)
+            frag 67 Normal de Texte début 33 fin 34 rect (1113.06,118 28x18)
                 "This"
             frag 68 Normal de Texte début 34 fin 35 rect (1141.53,118 4x18)
                 " "
@@ -269,11 +269,11 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 79 Normal de Texte début 45 fin 46 rect (1319.63,118 52x18)
                 "Dummy"
-            frag 80 Normal de Texte début 46 fin 47 rect (1372.9,118 4x18)
+            frag 80 Normal de Texte début 46 fin 47 rect (1372.09,118 4x18)
                 " "
             frag 81 Normal de Texte début 47 fin 48 rect (1376.55,118 28x18)
                 "text."
-            frag 82 Normal de Texte début 48 fin 49 rect (1405.2,118 4x18)
+            frag 82 Normal de Texte début 48 fin 49 rect (1405.02,118 4x18)
                 " "
             frag 83 Normal de Texte début 49 fin 50 rect (1409.48,118 28x18)
                 "This"
@@ -299,7 +299,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 94 Normal de Texte début 60 fin 61 rect (1611.58,118 4x18)
                 " "
-            frag 95 Normal de Texte début 61 fin 62 rect (1616.5,118 28x18)
+            frag 95 Normal de Texte début 61 fin 62 rect (1616.05,118 28x18)
                 "This"
             frag 96 Normal de Texte début 62 fin 63 rect (1644.51,118 4x18)
                 " "
@@ -325,7 +325,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 107 Normal de Texte début 73 fin 74 rect (1822.61,118 52x18)
                 "Dummy"
-            frag 108 Normal de Texte début 74 fin 75 rect (1875.7,118 4x18)
+            frag 108 Normal de Texte début 74 fin 75 rect (1875.07,118 4x18)
                 " "
             frag 109 Normal de Texte début 75 fin 76 rect (1879.54,118 28x18)
                 "text."
@@ -351,7 +351,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 120 Normal de Texte début 86 fin 87 rect (165.93,136 4x18)
                 " "
-            frag 121 Normal de Texte début 87 fin 88 rect (170.3,136 40x18)
+            frag 121 Normal de Texte début 87 fin 88 rect (170.03,136 40x18)
                 "lovely"
             frag 122 Normal de Texte début 88 fin 89 rect (210.13,136 4x18)
                 " "
@@ -371,7 +371,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "is"
             frag 130 Normal de Texte début 96 fin 97 rect (340.95,136 4x18)
                 " "
-            frag 131 Normal de Texte début 97 fin 98 rect (345.6,136 23x18)
+            frag 131 Normal de Texte début 97 fin 98 rect (345.06,136 23x18)
                 "just"
             frag 132 Normal de Texte début 98 fin 99 rect (368.16,136 4x18)
                 " "
@@ -391,7 +391,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "Dummy"
             frag 140 Normal de Texte début 106 fin 107 rect (552.98,136 4x18)
                 " "
-            frag 141 Normal de Texte début 107 fin 108 rect (557.8,136 28x18)
+            frag 141 Normal de Texte début 107 fin 108 rect (557.08,136 28x18)
                 "text."
             frag 142 Normal de Texte début 108 fin 109 rect (585.19,136 4x18)
                 " "
@@ -409,7 +409,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 149 Normal de Texte début 115 fin 116 rect (662.91,136 40x18)
                 "lovely"
-            frag 150 Normal de Texte début 116 fin 117 rect (703.1,136 4x18)
+            frag 150 Normal de Texte début 116 fin 117 rect (703.01,136 4x18)
                 " "
             frag 151 Normal de Texte début 117 fin 118 rect (707.11,136 48x18)
                 "dummy"
@@ -429,7 +429,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 159 Normal de Texte début 125 fin 126 rect (837.93,136 23x18)
                 "just"
-            frag 160 Normal de Texte début 126 fin 127 rect (861.4,136 4x18)
+            frag 160 Normal de Texte début 126 fin 127 rect (861.04,136 4x18)
                 " "
             frag 161 Normal de Texte début 127 fin 128 rect (865.14,136 40x18)
                 "lovely"
@@ -449,7 +449,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 169 Normal de Texte début 135 fin 136 rect (1049.96,136 28x18)
                 "text."
-            frag 170 Normal de Texte début 136 fin 137 rect (1078.7,136 4x18)
+            frag 170 Normal de Texte début 136 fin 137 rect (1078.07,136 4x18)
                 " "
             frag 171 Normal de Texte début 137 fin 138 rect (1082.17,136 52x18)
                 "Dummy"
@@ -469,7 +469,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 179 Normal de Texte début 145 fin 146 rect (1216.99,136 23x18)
                 "just"
-            frag 180 Normal de Texte début 146 fin 147 rect (1240.9,136 4x18)
+            frag 180 Normal de Texte début 146 fin 147 rect (1240.09,136 4x18)
                 " "
             frag 181 Normal de Texte début 147 fin 148 rect (1244.20,136 40x18)
                 "lovely"
@@ -487,7 +487,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "This"
             frag 188 Normal de Texte début 154 fin 155 rect (1400.92,136 4x18)
                 " "
-            frag 189 Normal de Texte début 155 fin 156 rect (1405.2,136 10x18)
+            frag 189 Normal de Texte début 155 fin 156 rect (1405.02,136 10x18)
                 "is"
             frag 190 Normal de Texte début 156 fin 157 rect (1415.12,136 4x18)
                 " "
@@ -507,7 +507,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 198 Normal de Texte début 164 fin 165 rect (1570.94,136 4x18)
                 " "
-            frag 199 Normal de Texte début 165 fin 166 rect (1575.5,136 52x18)
+            frag 199 Normal de Texte début 165 fin 166 rect (1575.05,136 52x18)
                 "Dummy"
             frag 200 Normal de Texte début 166 fin 167 rect (1627.15,136 4x18)
                 " "
@@ -527,7 +527,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 208 Normal de Texte début 174 fin 175 rect (1732.97,136 4x18)
                 " "
-            frag 209 Normal de Texte début 175 fin 176 rect (1737.7,136 40x18)
+            frag 209 Normal de Texte début 175 fin 176 rect (1737.07,136 40x18)
                 "lovely"
             frag 210 Normal de Texte début 176 fin 177 rect (1777.18,136 4x18)
                 " "
@@ -561,7 +561,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 225 Normal de Texte début 191 fin 192 rect (131.87,154 28x18)
                 "text."
-            frag 226 Normal de Texte début 192 fin 193 rect (160.2,154 4x18)
+            frag 226 Normal de Texte début 192 fin 193 rect (160.02,154 4x18)
                 " "
             frag 227 Normal de Texte début 193 fin 194 rect (164.17,154 52x18)
                 "Dummy"
@@ -575,7 +575,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "Dummy"
             frag 232 Normal de Texte début 198 fin 199 rect (304.89,154 4x18)
                 " "
-            frag 233 Normal de Texte début 199 fin 200 rect (309.4,154 28x18)
+            frag 233 Normal de Texte début 199 fin 200 rect (309.04,154 28x18)
                 "text."
             frag 234 Normal de Texte début 200 fin 201 rect (337.18,154 4x18)
                 " "
@@ -589,7 +589,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 239 Normal de Texte début 205 fin 206 rect (387.91,154 23x18)
                 "just"
-            frag 240 Normal de Texte début 206 fin 207 rect (411.6,154 4x18)
+            frag 240 Normal de Texte début 206 fin 207 rect (411.06,154 4x18)
                 " "
             frag 241 Normal de Texte début 207 fin 208 rect (415.20,154 40x18)
                 "lovely"
@@ -603,7 +603,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 246 Normal de Texte début 212 fin 213 rect (539.93,154 4x18)
                 " "
-            frag 247 Normal de Texte début 213 fin 214 rect (544.8,154 28x18)
+            frag 247 Normal de Texte début 213 fin 214 rect (544.08,154 28x18)
                 "This"
             frag 248 Normal de Texte début 214 fin 215 rect (572.22,154 4x18)
                 " "
@@ -657,7 +657,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 273 Normal de Texte début 239 fin 240 rect (1005.86,154 28x18)
                 "text."
-            frag 274 Normal de Texte début 240 fin 241 rect (1034.1,154 4x18)
+            frag 274 Normal de Texte début 240 fin 241 rect (1034.01,154 4x18)
                 " "
             frag 275 Normal de Texte début 241 fin 242 rect (1038.16,154 28x18)
                 "This"
@@ -671,7 +671,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 280 Normal de Texte début 246 fin 247 rect (1107.88,154 4x18)
                 " "
-            frag 281 Normal de Texte début 247 fin 248 rect (1112.3,154 40x18)
+            frag 281 Normal de Texte début 247 fin 248 rect (1112.03,154 40x18)
                 "lovely"
             frag 282 Normal de Texte début 248 fin 249 rect (1152.17,154 4x18)
                 " "
@@ -685,7 +685,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 287 Normal de Texte début 253 fin 254 rect (1240.90,154 52x18)
                 "Dummy"
-            frag 288 Normal de Texte début 254 fin 255 rect (1293.5,154 4x18)
+            frag 288 Normal de Texte début 254 fin 255 rect (1293.05,154 4x18)
                 " "
             frag 289 Normal de Texte début 255 fin 256 rect (1297.19,154 28x18)
                 "text."
@@ -699,7 +699,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 294 Normal de Texte début 260 fin 261 rect (1413.92,154 4x18)
                 " "
-            frag 295 Normal de Texte début 261 fin 262 rect (1418.7,154 28x18)
+            frag 295 Normal de Texte début 261 fin 262 rect (1418.07,154 28x18)
                 "This"
             frag 296 Normal de Texte début 262 fin 263 rect (1446.21,154 4x18)
                 " "
@@ -713,7 +713,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 301 Normal de Texte début 267 fin 268 rect (1491.94,154 40x18)
                 "lovely"
-            frag 302 Normal de Texte début 268 fin 269 rect (1532.9,154 4x18)
+            frag 302 Normal de Texte début 268 fin 269 rect (1532.09,154 4x18)
                 " "
             frag 303 Normal de Texte début 269 fin 270 rect (1536.23,154 48x18)
                 "dummy"
@@ -775,7 +775,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "dummy"
             frag 332 Normal de Texte début 298 fin 299 rect (173.93,172 4x18)
                 " "
-            frag 333 Normal de Texte début 299 fin 300 rect (178.3,172 28x18)
+            frag 333 Normal de Texte début 299 fin 300 rect (178.03,172 28x18)
                 "text."
             frag 334 Normal de Texte début 300 fin 301 rect (206.13,172 4x18)
                 " "
@@ -795,7 +795,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "lovely"
             frag 342 Normal de Texte début 308 fin 309 rect (323.95,172 4x18)
                 " "
-            frag 343 Normal de Texte début 309 fin 310 rect (328.6,172 48x18)
+            frag 343 Normal de Texte début 309 fin 310 rect (328.06,172 48x18)
                 "dummy"
             frag 344 Normal de Texte début 310 fin 311 rect (376.16,172 4x18)
                 " "
@@ -815,7 +815,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "Dummy"
             frag 352 Normal de Texte début 318 fin 319 rect (552.98,172 4x18)
                 " "
-            frag 353 Normal de Texte début 319 fin 320 rect (557.8,172 28x18)
+            frag 353 Normal de Texte début 319 fin 320 rect (557.08,172 28x18)
                 "text."
             frag 354 Normal de Texte début 320 fin 321 rect (585.19,172 4x18)
                 " "
@@ -833,7 +833,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 361 Normal de Texte début 327 fin 328 rect (662.91,172 40x18)
                 "lovely"
-            frag 362 Normal de Texte début 328 fin 329 rect (703.1,172 4x18)
+            frag 362 Normal de Texte début 328 fin 329 rect (703.01,172 4x18)
                 " "
             frag 363 Normal de Texte début 329 fin 330 rect (707.11,172 48x18)
                 "dummy"
@@ -853,7 +853,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 371 Normal de Texte début 337 fin 338 rect (837.93,172 23x18)
                 "just"
-            frag 372 Normal de Texte début 338 fin 339 rect (861.4,172 4x18)
+            frag 372 Normal de Texte début 338 fin 339 rect (861.04,172 4x18)
                 " "
             frag 373 Normal de Texte début 339 fin 340 rect (865.14,172 40x18)
                 "lovely"
@@ -873,7 +873,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 381 Normal de Texte début 347 fin 348 rect (1049.96,172 28x18)
                 "text."
-            frag 382 Normal de Texte début 348 fin 349 rect (1078.7,172 4x18)
+            frag 382 Normal de Texte début 348 fin 349 rect (1078.07,172 4x18)
                 " "
             frag 383 Normal de Texte début 349 fin 350 rect (1082.17,172 28x18)
                 "This"
@@ -893,7 +893,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 391 Normal de Texte début 357 fin 358 rect (1199.99,172 48x18)
                 "dummy"
-            frag 392 Normal de Texte début 358 fin 359 rect (1248.9,172 4x18)
+            frag 392 Normal de Texte début 358 fin 359 rect (1248.09,172 4x18)
                 " "
             frag 393 Normal de Texte début 359 fin 360 rect (1252.20,172 28x18)
                 "text."
@@ -911,7 +911,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 400 Normal de Texte début 366 fin 367 rect (1353.92,172 4x18)
                 " "
-            frag 401 Normal de Texte début 367 fin 368 rect (1358.2,172 40x18)
+            frag 401 Normal de Texte début 367 fin 368 rect (1358.02,172 40x18)
                 "lovely"
             frag 402 Normal de Texte début 368 fin 369 rect (1398.12,172 4x18)
                 " "
@@ -931,7 +931,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "text."
             frag 410 Normal de Texte début 376 fin 377 rect (1570.94,172 4x18)
                 " "
-            frag 411 Normal de Texte début 377 fin 378 rect (1575.5,172 52x18)
+            frag 411 Normal de Texte début 377 fin 378 rect (1575.05,172 52x18)
                 "Dummy"
             frag 412 Normal de Texte début 378 fin 379 rect (1627.15,172 4x18)
                 " "
@@ -951,7 +951,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 420 Normal de Texte début 386 fin 387 rect (1732.97,172 4x18)
                 " "
-            frag 421 Normal de Texte début 387 fin 388 rect (1737.7,172 40x18)
+            frag 421 Normal de Texte début 387 fin 388 rect (1737.07,172 40x18)
                 "lovely"
             frag 422 Normal de Texte début 388 fin 389 rect (1777.18,172 4x18)
                 " "
@@ -985,7 +985,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 437 Normal de Texte début 403 fin 404 rect (131.87,190 28x18)
                 "text."
-            frag 438 Normal de Texte début 404 fin 405 rect (160.2,190 4x18)
+            frag 438 Normal de Texte début 404 fin 405 rect (160.02,190 4x18)
                 " "
             frag 439 Normal de Texte début 405 fin 406 rect (164.17,190 52x18)
                 "Dummy"
@@ -999,7 +999,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "This"
             frag 444 Normal de Texte début 410 fin 411 rect (280.89,190 4x18)
                 " "
-            frag 445 Normal de Texte début 411 fin 412 rect (285.4,190 10x18)
+            frag 445 Normal de Texte début 411 fin 412 rect (285.04,190 10x18)
                 "is"
             frag 446 Normal de Texte début 412 fin 413 rect (295.18,190 4x18)
                 " "
@@ -1013,7 +1013,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 451 Normal de Texte début 417 fin 418 rect (370.91,190 48x18)
                 "dummy"
-            frag 452 Normal de Texte début 418 fin 419 rect (419.6,190 4x18)
+            frag 452 Normal de Texte début 418 fin 419 rect (419.06,190 4x18)
                 " "
             frag 453 Normal de Texte début 419 fin 420 rect (423.20,190 28x18)
                 "text."
@@ -1027,7 +1027,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "is"
             frag 458 Normal de Texte début 424 fin 425 rect (497.93,190 4x18)
                 " "
-            frag 459 Normal de Texte début 425 fin 426 rect (502.8,190 23x18)
+            frag 459 Normal de Texte début 425 fin 426 rect (502.08,190 23x18)
                 "just"
             frag 460 Normal de Texte début 426 fin 427 rect (525.22,190 4x18)
                 " "
@@ -1081,7 +1081,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 485 Normal de Texte début 451 fin 452 rect (1005.86,190 28x18)
                 "text."
-            frag 486 Normal de Texte début 452 fin 453 rect (1034.1,190 4x18)
+            frag 486 Normal de Texte début 452 fin 453 rect (1034.01,190 4x18)
                 " "
             frag 487 Normal de Texte début 453 fin 454 rect (1038.16,190 28x18)
                 "This"
@@ -1095,7 +1095,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "just"
             frag 492 Normal de Texte début 458 fin 459 rect (1107.88,190 4x18)
                 " "
-            frag 493 Normal de Texte début 459 fin 460 rect (1112.3,190 40x18)
+            frag 493 Normal de Texte début 459 fin 460 rect (1112.03,190 40x18)
                 "lovely"
             frag 494 Normal de Texte début 460 fin 461 rect (1152.17,190 4x18)
                 " "
@@ -1109,7 +1109,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 499 Normal de Texte début 465 fin 466 rect (1240.90,190 52x18)
                 "Dummy"
-            frag 500 Normal de Texte début 466 fin 467 rect (1293.5,190 4x18)
+            frag 500 Normal de Texte début 466 fin 467 rect (1293.05,190 4x18)
                 " "
             frag 501 Normal de Texte début 467 fin 468 rect (1297.19,190 28x18)
                 "text."
@@ -1123,7 +1123,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 "is"
             frag 506 Normal de Texte début 472 fin 473 rect (1371.92,190 4x18)
                 " "
-            frag 507 Normal de Texte début 473 fin 474 rect (1376.7,190 23x18)
+            frag 507 Normal de Texte début 473 fin 474 rect (1376.07,190 23x18)
                 "just"
             frag 508 Normal de Texte début 474 fin 475 rect (1399.21,190 4x18)
                 " "
@@ -1137,7 +1137,7 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 250 [0 0 0]
                 " "
             frag 513 Normal de Texte début 479 fin 480 rect (1499.94,190 28x18)
                 "text."
-            frag 514 Normal de Texte début 480 fin 481 rect (1528.9,190 4x18)
+            frag 514 Normal de Texte début 480 fin 481 rect (1528.09,190 4x18)
                 " "
             frag 515 Normal de Texte début 481 fin 482 rect (1532.23,190 28x18)
                 "This"

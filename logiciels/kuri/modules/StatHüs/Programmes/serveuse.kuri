@@ -1,0 +1,653 @@
+importe Compilatrice
+importe BoiteFlexible
+importe Chaine
+importe Couleur
+importe Ensemble
+importe Fondation
+importe Géométrie
+importe Image
+importe Krypto
+importe OpenGL
+importe PeintureInterface
+importe Périphériques
+importe Typographie
+importe StatHüs
+importe Qt
+importe Triage
+
+importe POSIX
+
+change_nom_sortie :: fonc ()
+{
+    options := compilatrice_obtiens_options()
+    options.nom_sortie = "serveuse"
+    compilatrice_ajourne_options(options)
+}
+
+#exécute change_nom_sortie()
+
+principale :: fonc ()
+{
+    // extrémité := crée_extrémité_serveuse(faux)
+    // détruit_extrémité(extrémité)
+
+    arguments := arguments_ligne_commande()
+
+    taille_arguments := arguments.taille comme z32
+    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
+    diffère QT_detruit_application(app)
+
+    rappels: RappelsWindow
+    // rappels.extrémité = extrémité
+    rappels.fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 60.0)
+    rappels.petite_fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
+
+    window := QT_window_cree_avec_rappels(*rappels)
+
+    si QT_application_screen_count() > 1 {
+        rect: QT_Rect
+        QT_application_screen_geometry(1, *rect)
+        QT_window_set_position(window, rect.x, rect.y)
+    }
+
+    QT_window_show_maximized(window)
+
+    exécute(app)
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsWindow
+ * \{ */
+
+RappelsWindow :: struct {
+    empl base: QT_Rappels_Window
+
+    // extrémité: Extrémité(faux)
+    fonte: *Fonte
+    petite_fonte: *Fonte
+    emboiteuse: Emboiteuse
+    peintre: *Peintre
+
+    connexion_reçue: bool
+    données_reçues: [..]octet
+    état_mémoire: ÉtatMémoire
+
+    dessine_allocations := vrai
+
+    glctx: *QT_OpenGL_Context
+    glew_est_initialisé: bool
+
+    taille_fenêtre: QT_Taille
+
+    files_parallèles: [..]FileParallèle
+
+    sur_creation = rappels_window_sur_creation
+    sur_evenement = rappels_window_sur_evenement
+}
+
+rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    crée_local_server(rappels)
+
+    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
+}
+
+rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
+{
+    rappels := base comme *RappelsWindow
+
+    type := QT_evenement_donne_type(event)
+
+    si type == QT_Event_Type.UpdateRequest {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Expose {
+        dessine_fenêtre(rappels)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Resize {
+        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseMove {
+        position: QT_Position
+        QT_mouse_event_donne_position(event.mouse_event, *position)
+        définis_position_souris(*rappels.emboiteuse, position.x comme r32, position.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Wheel {
+        position: QT_Position
+        QT_wheel_event_donne_position(event.wheel_event, *position)
+        delta := QT_wheel_event_donne_delta(event.wheel_event)
+        applique_défilage_vertical(*rappels.emboiteuse, position.x comme r32, position.y comme r32, delta)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonPress {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_pression_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonRelease {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        sur_relâchement_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+
+    saufsi QT_window_is_exposed(window) {
+        retourne
+    }
+
+    saufsi rappels.glctx {
+        rappels.glctx = QT_OpenGL_Context_cree_avec_parent(window)
+        _ := QT_OpenGL_Context_create(rappels.glctx)
+    }
+
+    _ := QT_OpenGL_Context_make_current(rappels.glctx, window)
+
+    saufsi rappels.glew_est_initialisé {
+        glewExperimental = 1
+        erreur_ := glewInit()
+
+        si erreur_ != 0 {
+            imprime("Erreur lors de l'initilisation de GLEW !\n")
+            retourne
+        }
+        rappels.glew_est_initialisé = vrai
+    }
+
+    glViewport(0, 0, QT_window_width(window), QT_window_height(window))
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(1.0, 1.0, 1.0, 1.0)
+
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    dessine_interface(rappels, rappels.taille_fenêtre.largeur, rappels.taille_fenêtre.hauteur)
+
+    QT_OpenGL_Context_swap_buffers(rappels.glctx, window)
+    QT_window_request_update(rappels.window)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Allocation
+ * \{ */
+
+InfoTraceAllocation :: struct {
+    utilisateurs: z32
+    id: z64
+    traces: [..]TraceAllocation
+}
+
+compare_info_trace_allocations :: fonc (a: *InfoTraceAllocation, b: *InfoTraceAllocation) -> z32
+{
+    /* Triage décroissant. */
+    retourne b.utilisateurs - a.utilisateurs
+}
+
+Allocation :: struct {
+    id: chaine
+    adresse: z64
+    taille: z64
+
+    // index dans ÉtatMémoire.messages
+    messages: [..]z64
+
+    traces: [..]*InfoTraceAllocation
+}
+
+ÉtatMémoire :: struct {
+    allocations: [..]Allocation
+    messages: [..]MessageInfoAllocations
+    traces: [..]*InfoTraceAllocation
+    traces_triées: [..]*InfoTraceAllocation
+    condensats_traces: [..]Condensat
+
+    mémoire_utilisée: z64
+
+    allocation_sélectionnée := -1
+    trace_sélectionnée := -1
+
+    les_traces_sont_triées := faux
+}
+
+ajoute_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations)
+{
+    trace := donne_trace_pour_message(état, message)
+    utilisateurs := trace.utilisateurs
+
+    tableau_ajoute(*état.messages, message)
+
+    si message.ancienne_adresse != 0 {
+        si message.entête.type == TypeMessage.Délogement {
+            supprime_allocation(état, message.ancienne_adresse)
+            état.mémoire_utilisée -= message.taille
+            retourne
+        }
+
+        alloc := trouve_allocation(état, message.ancienne_adresse)
+        assert(alloc != nul)
+        alloc.adresse = message.nouvelle_adresse
+        état.mémoire_utilisée -= alloc.taille
+        alloc.taille = message.taille
+
+        tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        trace.utilisateurs += 1
+        tableau_ajoute(*alloc.traces, trace)
+        état.mémoire_utilisée += message.taille
+    }
+    sinon {
+        alloc := ajoute_allocation(état, message.nouvelle_adresse, message.taille)
+        état.mémoire_utilisée += message.taille
+        tableau_ajoute(*alloc.messages, état.messages.taille - 1)
+        trace.utilisateurs += 1
+        tableau_ajoute(*alloc.traces, trace)
+    }
+
+    si utilisateurs != trace.utilisateurs || état.traces.taille != état.traces_triées.taille {
+        si état.traces.taille != état.traces_triées.taille {
+            tableau_ajoute(*état.traces_triées, trace)
+        }
+
+        état.les_traces_sont_triées = faux
+    }
+}
+
+trouve_allocation :: fonc (état: *ÉtatMémoire, adresse: z64) -> *Allocation
+{
+    pour * état.allocations {
+        si it.adresse == adresse {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
+{
+    pour * état.allocations {
+        si it.adresse == adresse {
+            pour trace dans it.traces {
+                trace.utilisateurs -= 1
+            }
+
+            déloge(it.id)
+            déloge(it.messages)
+            déloge(it.traces)
+            tableau_supprime_index(*état.allocations, index_it)
+            si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
+                état.allocation_sélectionnée = -1
+            }
+            sinon si état.allocation_sélectionnée > index_it {
+                état.allocation_sélectionnée -= 1
+            }
+            arrête
+        }
+    }
+}
+
+ajoute_allocation :: fonc (état: *ÉtatMémoire, adresse: z64, taille: z64) -> *Allocation
+{
+    résultat := tableau_ajoute_élément(*état.allocations)
+    résultat.adresse = adresse
+    résultat.taille = taille
+    résultat.id = imprime_chaine("%", résultat)
+    retourne résultat
+}
+
+donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAllocations) -> *InfoTraceAllocation
+{
+    condensat := donne_condensat(message)
+
+    index := ensemble_possède_retourne_index(*état.condensats_traces, condensat)
+    si index != -1 {
+        détruit_données(*condensat)
+        déloge(message.traces)
+        retourne état.traces[index]
+    }
+
+    index = ensemble_ajoute_retourne_index(*état.condensats_traces, condensat)
+
+    résultat := loge(InfoTraceAllocation)
+
+    résultat.traces = message.traces
+    message.traces.taille = 0
+    message.traces.pointeur = nul
+    message.traces.capacité = 0
+
+    pour * résultat.traces {
+        it.nom = copie_chaine(it.nom)
+        it.texte = copie_chaine(it.texte)
+        it.fichier = copie_chaine(it.fichier)
+    }
+
+    tableau_insère_index(*état.traces, résultat, index)
+
+    pour état.traces {
+        it.id = index_it
+    }
+
+    retourne résultat
+}
+
+donne_condensat :: fonc (message: MessageInfoAllocations) -> Condensat
+{
+    sha256 := crée_sha256()
+    diffère détruit(sha256)
+
+    pour * message.traces {
+        ajourne(sha256, it.nom)
+        ajourne(sha256, it.texte)
+        ajourne(sha256, it.fichier)
+    }
+
+    retourne donne_condensat(sha256)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom LocalServer
+ * \{ */
+
+RappelsLocalServer :: struct {
+    empl base: QT_Rappels_LocalServer
+
+    rappels_window: *RappelsWindow
+}
+
+crée_local_server :: fonc (rappels: *RappelsWindow)
+{
+    résultat := QT_loge_rappel(RappelsLocalServer)
+    résultat.rappels_window = rappels
+    résultat.sur_connexion = local_server_sur_connection
+    résultat.sur_lecture = local_server_sur_lecture
+
+    si remove(ChaineC(CHEMIN_SOCKET.pointeur)) == -1 && lis_errno() != ENOENT {
+        imprime("Impossible de supprimer le fichier : '%'\n", CHEMIN_SOCKET)
+        exit(1)
+    }
+
+    server := QT_local_server_cree(résultat, rappels.window)
+    saufsi QT_local_server_listen(server, vers_qt(CHEMIN_SOCKET)) {
+        imprime("Impossible d'écouter la prise\n")
+    }
+}
+
+local_server_sur_connection :: fonc (rappels: *RappelsLocalServer, connexion: *QT_LocalSocket @inutilisée)
+{
+    rappels_window := rappels.rappels_window
+    rappels_window.connexion_reçue = vrai
+    rappels_window.données_reçues.taille = 0
+}
+
+local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion: *QT_LocalSocket)
+{
+    rappels := rappels_server.rappels_window
+
+    tantque QT_local_socket_is_valid(connexion) {
+        tampon: [1024]z8
+        taille_lue := QT_local_socket_read(connexion, *tampon[0], 1024)
+        si taille_lue == 0 {
+            arrête
+        }
+
+        si taille_lue == -1 {
+            rappels.connexion_reçue = faux
+            arrête
+        }
+
+        ancienne_taille := rappels.données_reçues.taille
+        tableau_redimensionne(rappels.données_reçues, rappels.données_reçues.taille + taille_lue)
+        copie_mem_nonsur(src = *tampon[0], dst = rappels.données_reçues.pointeur + ancienne_taille, taille = taille_lue)
+    }
+
+    si rappels.données_reçues {
+        message: MessageInfoAllocations
+
+        données : []octet = rappels.données_reçues
+
+        tantque données.taille > 0 {
+            init_de(MessageInfoAllocations)(*message)
+
+            taille_lue := désérialise_type(message, données)
+            ajoute_message(*rappels.état_mémoire, message)
+            données.pointeur += taille_lue
+            données.taille -= taille_lue
+        }
+
+        rappels.données_reçues.taille = 0
+    }
+}
+
+/** \} */
+
+dessine_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32)
+{
+    commandes := crée_interface(rappels, largeur, hauteur)
+
+    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi rappels.peintre {
+        rappels.peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    rappels.peintre.définis_taille_cannevas(taille_cannevas)
+
+    dessine_commandes(rappels.peintre, *commandes)
+
+    rappels.peintre.dessine_tampon_sur_écran()
+}
+
+PEAU1 := CouleurRVBA(0.776, 0.580, 0.467, 1.0)
+PEAU2 := CouleurRVBA(0.878, 0.770, 0.675, 1.0)
+PEAU_OMBRE := CouleurRVBA(0.094, 0.024, 0.0, 1.0)
+
+crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    emboiteuse := *rappels.emboiteuse
+
+    commence_disposition(emboiteuse, largeur, hauteur)
+
+    dispose_rectangle(arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+    {
+        dessine_état_mémoire(rappels)
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(emboiteuse)
+}
+
+dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
+{
+    si rappels.connexion_reçue == faux && rappels.données_reçues.taille == 0 {
+        dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0))
+        {
+            dispose_texte("En attente d'une connexion...", ConfigurationTexte(rappels.fonte, PEAU_OMBRE))
+        }
+        termine_rectangle()
+        retourne
+    }
+
+    dispose_rectangle(arrière_plan = PEAU1, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        dispose_texte("Connexion établie !", ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte := si rappels.état_mémoire.messages.taille > 1 {
+            imprime_chaine_temp("% messages reçus", rappels.état_mémoire.messages.taille)
+        }
+        sinon {
+            imprime_chaine_temp("% message reçu", rappels.état_mémoire.messages.taille)
+        }
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        nombre_d_allocations := rappels.état_mémoire.allocations.taille
+        texte = si nombre_d_allocations > 1 {
+            imprime_chaine_temp("% allocations", nombre_d_allocations)
+        }
+        sinon {
+            imprime_chaine_temp("% allocation", nombre_d_allocations)
+        }
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("mémoire utilisée % octets", rappels.état_mémoire.mémoire_utilisée)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% traces", rappels.état_mémoire.traces.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% condensats", rappels.état_mémoire.condensats_traces.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        texte = imprime_chaine_temp("% traces triées", rappels.état_mémoire.traces_triées.taille)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+
+        dispose_séparateur_horizontal(20)
+
+        dispose_bouton(rappels, "Allocations", sur_sélection_affichage_alloc_ou_traces, 0)
+        dispose_bouton(rappels, "Traces", sur_sélection_affichage_alloc_ou_traces, 1)
+    }
+    termine_rectangle()
+
+    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
+
+        si rappels.dessine_allocations {
+            pour > * rappels.état_mémoire.allocations {
+                si index_it >= 20 {
+                    arrête
+                }
+
+                dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                {
+                    trace := it.traces[0]
+
+                    sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
+
+                    texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
+                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                }
+                termine_rectangle()
+            }
+        }
+        sinon {
+            saufsi rappels.état_mémoire.les_traces_sont_triées {
+                tri_rapide(rappels.état_mémoire.traces_triées, compare_info_trace_allocations)
+                rappels.état_mémoire.les_traces_sont_triées = vrai
+            }
+
+            pour * rappels.état_mémoire.traces_triées {
+                si index_it >= 20 {
+                    arrête
+                }
+                index_effectif := index_it comme z32
+
+                condensat := rappels.état_mémoire.condensats_traces[it.id]
+
+                dispose_rectangle(id = condensat.donne_chaine(), arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                {
+                    sur_clic_souris(définis_trace_sélectionnée, rappels, index_effectif)
+
+                    texte := imprime_chaine_temp("% allocations dans '%'", it.utilisateurs, it.traces[0].nom)
+                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                }
+                termine_rectangle()
+            }
+        }
+    }
+    termine_rectangle()
+
+    si rappels.dessine_allocations {
+        allocation_sélectionnée := rappels.état_mémoire.allocation_sélectionnée
+        si allocation_sélectionnée == -1 {
+            retourne
+        }
+
+        allocation := rappels.état_mémoire.allocations[allocation_sélectionnée]
+        trace := allocation.traces[0]
+        condensat := rappels.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(rappels, trace, condensat)
+    }
+    sinon {
+        trace_sélectionnée := rappels.état_mémoire.trace_sélectionnée
+        si trace_sélectionnée == -1 {
+            retourne
+        }
+        trace := rappels.état_mémoire.traces_triées[trace_sélectionnée]
+        condensat := rappels.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(rappels, trace, condensat)
+    }
+}
+
+dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, condensat: Condensat)
+{
+    dispose_rectangle(id = "Vue Traces", disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    {
+        ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
+
+        hex := condensat.donne_chaine_hex()
+        dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        déloge(hex)
+
+        pour trace.traces {
+            dispose_texte(it.fichier, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+            dispose_texte(it.texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        }
+    }
+    termine_rectangle()   
+}
+
+dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, n64, z32)(rien), index: z32)
+{
+    dispose_rectangle(id = texte, arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu))
+    {
+        sur_pression_souris(rappel_sur_clic, rappels, index)
+        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+    }
+    termine_rectangle()
+}
+
+sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    si index == 0 {
+        rappels.dessine_allocations = vrai
+    }
+    sinon si index == 1 {
+        rappels.dessine_allocations = faux
+    }
+}
+
+définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    assert(index >= 0)
+    assert(index < rappels.état_mémoire.allocations.taille)
+
+    rappels.état_mémoire.allocation_sélectionnée = index
+}
+
+définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+{
+    assert(index >= 0)
+    assert(index < rappels.état_mémoire.traces_triées.taille)
+
+    rappels.état_mémoire.trace_sélectionnée = index
+}

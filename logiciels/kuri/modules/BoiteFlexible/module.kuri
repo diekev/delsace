@@ -296,6 +296,12 @@ ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
     }
 }
 
+ajoute_défilage :: fonc (config: ConfigurationDéfilage)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage = config
+}
+
 définis_arrière_plan :: fonc (couleur := CouleurRVBA())
 {
     assert(__boite_courante != nul)
@@ -641,6 +647,26 @@ Emboiteuse :: struct {
     commandes: CommandesDeRendu
 
     id_pressé: n64
+
+    /* Mémoire vive. */
+    croissables: [..]*BoiteFlexible
+    décroissables: [..]*BoiteFlexible
+}
+
+détruit_données :: fonc (emboiteuse: *Emboiteuse)
+{
+    pour emboiteuse.toutes_les_boites {
+        déloge(it)
+    }
+    déloge(emboiteuse.toutes_les_boites)
+    déloge(emboiteuse.boites_libres)
+    déloge(emboiteuse.fragments)
+    déloge(emboiteuse.boites_disposées)
+    déloge(emboiteuse.barres_de_défilement)
+    déloge(emboiteuse.éditrices_textes)
+    déloge(emboiteuse.bordures)
+    déloge(emboiteuse.croissables)
+    déloge(emboiteuse.décroissables)
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -1182,11 +1208,13 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
         }
     }
 
-    croissables: [..]*BoiteFlexible
-    diffère déloge(croissables)
+    croissables := boite.emboiteuse.croissables
+    diffère boite.emboiteuse.croissables = croissables
+    croissables.taille = 0
 
-    décroissables: [..]*BoiteFlexible
-    diffère déloge(décroissables)
+    décroissables := boite.emboiteuse.décroissables
+    diffère boite.emboiteuse.décroissables = décroissables
+    décroissables.taille = 0
 
     pour boite.enfants {
         si it.est_cotation_croissante(direction) {

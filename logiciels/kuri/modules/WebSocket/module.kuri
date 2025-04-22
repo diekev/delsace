@@ -421,7 +421,7 @@ réinitialise :: fonc (parseuse: *ParseuseFrame)
 
 ajoute_données :: fonc (parseuse: *ParseuseFrame, données: []octet, doit_être_masquée: bool) -> ÉtatDonnéesFrame
 {
-    tableau_ajoute(*parseuse.données, données)
+    tableau_ajoute(*parseuse.données, ...données)
 
     tantque parseuse.curseur < parseuse.données.taille {
         frame := donne_frame_courante(parseuse)
@@ -518,7 +518,7 @@ Message :: struct {
 ajoute_frame :: fonc (message: *Message, frame: *Frame, données: []octet) -> bool
 {
     tableau_ajoute(*message.frames, mémoire(frame))
-    tableau_ajoute(*message.données, données)
+    tableau_ajoute(*message.données, ...données)
 
     si donne_opcode_pour_réponse(message) != OpCode.FRAME_DE_TEXTE {
         retourne vrai

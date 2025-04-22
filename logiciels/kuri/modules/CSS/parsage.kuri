@@ -2500,7 +2500,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 98
+NOMBRE_PROPRIÉTÉS :: 101
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2662,7 +2662,10 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_opacity, id = IDPropriété.Opacity, fonction_de_parsage = parse_propriété_number_ou_pourcentage, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
         InfoTypePropriété(PROP_z_index, id = IDPropriété.ZIndex, fonction_de_parsage = parse_propriété_number_ou_auto, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteStackingContext),
         InfoTypePropriété(PROP_border_spacing, id = IDPropriété.BorderSpacing, fonction_de_parsage = parse_propriété_border_spacing, genre_valeur_calculée = GenreValeurCalculée.LongueurAbsolue, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
-        InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée)
+        InfoTypePropriété(PROP_border_collapse, id = IDPropriété.BorderCollapse, fonction_de_parsage = parse_propriété_border_collapse, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition | DrapeauxPropriété.Héritée),
+        InfoTypePropriété(PROP_align_content, id = IDPropriété.AlignContent, fonction_de_parsage = parse_propriété_align_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+        InfoTypePropriété(PROP_align_items, id = IDPropriété.AlignItems, fonction_de_parsage = parse_propriété_align_items, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+        InfoTypePropriété(PROP_align_self, id = IDPropriété.AlignSelf, fonction_de_parsage = parse_propriété_align_self, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
     ]
 
     /* NOTE : par défaut les infos n'ayant pas d'id prennent la valeur défaut de "Display".
@@ -5392,13 +5395,25 @@ parse_valeur_overflow :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel
 /* ------------------------------------------------------------------------- */
 /** \nom Justify Content
  * https://drafts.csswg.org/css-flexbox/#justify-content-property
+ * https://www.w3.org/TR/css-align/#align-justify-content
  * \{ */
 
 parse_propriété_justify_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
-    mots_clés := [PROP_flex_start, PROP_flex_end, PROP_center, PROP_space_around, PROP_space_between]
+    /* normal | <content-distribution> | <overflow-position>? [ <content-position> | left | right ] */
     parseuse := initialise_une_parseuse(value)
-    retourne parse_mot_clé(parseuse, mots_clés)
+
+    valeur_normal := parse_mot_clé(parseuse, [PROP_normal])
+    si valeur_normal.possède_valeur() {
+        retourne valeur_normal.Quelque
+    }
+
+    content_distribution := parse_valeur_type_content_distribution(parseuse)
+    si content_distribution.possède_valeur() {
+        retourne content_distribution.Quelque
+    }
+
+    retourne parse_valeur_type_content_position(parseuse)
 }
 
 /** \} */
@@ -5644,6 +5659,98 @@ parse_propriété_border_collapse :: fonc (value: []ComponentValue) -> Optionnel
 {
     mots_clés := [PROP_collapse, PROP_separate]
     parseuse := initialise_une_parseuse(value)
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Align Content
+ * https://www.w3.org/TR/css-flexbox-1/#propdef-align-content
+ * https://www.w3.org/TR/css-align/#align-justify-content
+ * \{ */
+
+parse_propriété_align_content :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    /* normal | <baseline-position> | <content-distribution> | <overflow-position>? <content-position> */
+    parseuse := initialise_une_parseuse(value)
+    valeur_normal := parse_mot_clé(parseuse, [PROP_normal])
+    si valeur_normal.possède_valeur() {
+        retourne valeur_normal.Quelque
+    }
+
+    content_distribution := parse_valeur_type_content_distribution(parseuse)
+    si content_distribution.possède_valeur() {
+        retourne content_distribution.Quelque
+    }
+
+    retourne parse_valeur_type_content_position(parseuse)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-content-distribution */
+parse_valeur_type_content_distribution :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* space-between | space-around | space-evenly | stretch */
+    mots_clés := [PROP_space_between, PROP_space_around, PROP_space_evenly, PROP_stretch]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-content-position */
+parse_valeur_type_content_position :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* center | start | end | flex-start | flex-end */
+    mots_clés := [PROP_center, PROP_start, PROP_end, PROP_flex_start, PROP_flex_end]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Align Items
+ * https://www.w3.org/TR/css-flexbox-1/#align-items-property
+ * \{ */
+
+parse_propriété_align_items :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    /* normal | stretch | <baseline-position> | [ <overflow-position>? <self-position> ] */
+    parseuse := initialise_une_parseuse(value)
+
+    mots_clés := [PROP_normal, PROP_stretch]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur.Quelque
+    }
+
+    retourne parse_valeur_type_self_position(parseuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Align Self
+ * https://www.w3.org/TR/css-flexbox-1/#propdef-align-self
+ * https://www.w3.org/TR/css-align/#align-self-property
+ * \{ */
+
+parse_propriété_align_self :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    /* auto | normal | stretch | <baseline-position> | <overflow-position>? <self-position> */
+    parseuse := initialise_une_parseuse(value)
+
+    mots_clés := [PROP_auto, PROP_normal, PROP_stretch]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur.Quelque
+    }
+
+    retourne parse_valeur_type_self_position(parseuse)
+}
+
+/* https://www.w3.org/TR/css-align/#typedef-self-position */
+parse_valeur_type_self_position :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    /* center | start | end | self-start | self-end | flex-start | flex-end */
+    mots_clés := [PROP_center, PROP_start, PROP_end, PROP_self_start, PROP_self_end, PROP_flex_start, PROP_flex_end]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 
