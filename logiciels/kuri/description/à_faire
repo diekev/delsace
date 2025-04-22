@@ -457,8 +457,6 @@ que les types de bases et dérivés
 // ----------------------------------------------------------------------------
 // Modules / Espaces de Noms
 
-utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
-
 // Garde trace des espaces de noms, mais permet l'utilisation des membres via empl
 
 importe Fondation
