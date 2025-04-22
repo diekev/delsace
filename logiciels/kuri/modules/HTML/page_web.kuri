@@ -247,7 +247,14 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
     position_event := donne_position_décalée_par_défilement(page, position)
     élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
     si élément {
-        élément.est_en_train_d_être_activé(vrai)
+        si clic.bouton == BoutonSouris.PRIMAIRE {
+            élément.est_en_train_d_être_activé(vrai)
+        }
+        sinon si clic.bouton == BoutonSouris.CONTEXTUEL {
+            user_agent := document.donne_user_agent()
+            assert(user_agent != nul)
+            user_agent.affiche_menu_contextuel_pour(élément, clic)
+        }
         envoie_mousedown(élément, position_event.x, position_event.y)
     }
     document.élément_en_cours_d_activation = élément
