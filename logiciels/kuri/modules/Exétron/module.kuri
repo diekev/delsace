@@ -213,3 +213,62 @@ attend_sur_complétion_tâches :: fonc (file: *FileDeTravail)
 }
 
 /** \} */
+
+/*
+
+contexte_boucle_série :: fonc (plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+{
+    fonction(plage, données)
+}
+
+contexte_boucle_parallèle :: fonc (plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+{
+    boucle_parallèle(*__file_globale, plage, fonction, données)
+}
+
+contexte_boucle_parallèle :: fonc (file: *FileDeTravail, plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+{
+    groupe: GroupeDeTâche
+    diffère déloge(groupe.tâches)
+
+    // divise la plage en tâches
+
+    // dispatche les tâches
+    pour * groupe.tâches {
+        contexte_ajoute_tâche(exécute_tâche_du_groupe, *tâche)
+    }
+
+    // attends la complétion des tâches
+    entrée: EntréeFileTravail
+    boucle {
+        nombre_de_tâches_finies := atomique_charge(*groupe.tâches_finies)
+        si nombre_de_tâches_finies comme z64 == groupe.tâches.taille {
+            arrête
+        }
+
+        entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée)
+        si entrée.est_valide {
+            travail_sur_la_tâche(entrée, info_fil.index_logique)
+        }
+    }
+}
+
+GroupeDeTâche :: struct {
+    Tâche :: struct {
+        groupe: *GroupeDeTâche
+        plage: Plage
+        données: *rien
+        fonction: fonc(Plage, *rien)(rien)
+    }
+
+    tâches: [..]Tâche
+    tâches_finies: n32
+}
+
+exécute_tâche_du_groupe :: fonc (tâche: *Tâche)
+{
+    tâche.fonction(tâche.plage, tâche.données)
+    _ := atomique_donne_puis_ajt(*tâche.groupe.tâches_finies, 1, OrdreMémoire.ACQUIÈRE)
+}
+
+*/
