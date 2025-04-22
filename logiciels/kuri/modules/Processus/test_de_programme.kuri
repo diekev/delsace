@@ -87,9 +87,7 @@ ajoute_série_de_tests :: fonc (données_test: &DonnéesPourTest, fichier: Chemi
 
 ajoute_arguments :: fonc (données_test: &DonnéesPourTest, args: ...chaine)
 {
-    pour args {
-        tableau_ajoute(*série.arguments, it)
-    }
+    tableau_ajoute(*série.arguments, ...args)
 }
 
 /* Retourne la liste d'arguments pour le programme afin de lancer cette série de test. */
@@ -105,13 +103,8 @@ arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &Série
 
     tableau_réserve(*résultat, nombre_d_arguments)
 
-    pour données_test.arguments {
-        tableau_ajoute(*résultat, it)
-    }
-
-    pour série.arguments {
-        tableau_ajoute(*résultat, it)
-    }
+    tableau_ajoute(*résultat, ...données_test.arguments)
+    tableau_ajoute(*résultat, ...série.arguments)
 
     retourne résultat
 }
@@ -133,9 +126,7 @@ détruit :: fonc (empl série: &SérieDeTest)
 
 ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
 {
-    pour args {
-        tableau_ajoute(*série.arguments, it)
-    }
+    tableau_ajoute(*série.arguments, ...args)
 }
 
 lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
