@@ -63,7 +63,13 @@ tableau_ajoute :: fonc (tabl: *[..]$T, valeur: T) -> rien #enligne
     mémoire(tabl) = tmp
 }
 
-tableau_ajoute :: fonc (tableau: *[..]$T, valeurs: []T)
+/* À FAIRE(langage) : récursion infinie (rapportée par C). */
+// tableau_ajoute :: fonc (tableau: *[..]$T, valeurs: []T)
+// {
+//     tableau_ajoute(tableau, ...valeurs)
+// }
+
+tableau_ajoute :: fonc (tableau: *[..]$T, valeurs: ...T)
 {
     tmp := mémoire(tableau)
     diffère mémoire(tableau) = tmp
