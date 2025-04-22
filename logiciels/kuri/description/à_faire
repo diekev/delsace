@@ -331,19 +331,6 @@ investigue l'utilisation des types entiers, des représentations binaires et des
 
 meilleure gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
 
-amélioration du typage des expressions de tableaux constants
-    plusieurs problèmes de l'approche courrante
-    - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
-    - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
-        -- voir cas dans HTML/Autres/parse_entite.kuri
-
-normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
-    -- mention dans Internet/module.kuri
-    -- // u : anonyme4 dans MySQL/mysql.kuri
-    - passe en revue les initialisations des unions
-    - déplace la normalisation dans une passe secondaire après la génération de RI, le code courant est bien trop complexe
-        -- une analyse de la RI pourra mieux se faire avant la normalisation
-
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
         X
@@ -456,18 +443,6 @@ que les types de bases et dérivés
 
 // ----------------------------------------------------------------------------
 // Modules / Espaces de Noms
-
-// Garde trace des espaces de noms, mais permet l'utilisation des membres via empl
-
-importe Fondation
-empl Fondation
-
-ou
-
-empl importe Fondation
-
-renomme un import
-F :: importe Fondation
 
 - pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
 
@@ -618,8 +593,6 @@ Idées
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
-- passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
-- transformer les messages d'erreur en tutoriaux
 - ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
