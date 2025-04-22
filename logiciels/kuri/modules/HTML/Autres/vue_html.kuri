@@ -668,20 +668,6 @@ RappelsArborescence :: struct {
     fenêtre_principale: *QT_Fenetre_Principale
 }
 
-initialise_rappels_arborescence :: fonc (fenêtre_principale: *QT_Fenetre_Principale) -> RappelsArborescence
-{
-    // sur_changement_item_courant :: fonc (rappels: *QT_Rappels_TreeWidget, courant: *QT_TreeWidgetItem, précédent: *QT_TreeWidgetItem @inutilisée)
-    // {
-    //     rappels_arborescence := rappels comme *RappelsArborescence
-    //     données := QT_treewidgetitem_donne_donnees(courant)
-    // }
-
-    résultat: RappelsArborescence
-    résultat.fenêtre_principale = fenêtre_principale
-    résultat.sur_changement_item_courant = sur_changement_item_courant
-    retourne résultat
-}
-
 crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
 {
     rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
