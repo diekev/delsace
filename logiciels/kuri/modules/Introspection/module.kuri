@@ -982,7 +982,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 // Fonction pour parser les arguments de la ligne de commandes depuis une
 // structure.
 //
-// Les arguments doivent avoir la forme "--nom valeur" où nom est le nom d'un
+// Les arguments doivent avoir la forme "--nom valeur" ou "-nom valeur" où nom est le nom d'un
 // membre de la structure.
 //
 // Par exemple pour une structure :
@@ -1120,7 +1120,7 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
     tantque args.taille != 0 {
         arg := consomme(*args)
 
-        saufsi arg.commence_par("--") {
+        saufsi arg.commence_par("-") {
             membre_anonyme: *InfoTypeMembreStructure
             pour infos.membres {
                 saufsi it.possède_annotation("anonyme") {
@@ -1154,28 +1154,33 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
             continue
         }
 
-        arg = avance(arg, 2)
+        si arg.commence_par("--") {
+            arg = avance(arg, 2)
+        }
+        sinon {
+            arg = avance(arg, 1)
+        }
 
         membre := trouve_info_membre(infos, arg)
         saufsi membre {
-            retourne imprime_chaine("Argument '--%' inconnu", arg)
+            retourne imprime_chaine("Argument '%' inconnu", arg)
         }
 
         valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, arg))
 
         si valeur_renseignée.comme_bool() {
-            retourne imprime_chaine("Argument dupliqué pour '--%'", arg)
+            retourne imprime_chaine("Argument dupliqué pour '%'", arg)
         }
 
         saufsi args {
-            retourne imprime_chaine("Argument manquant après '--%'", arg)
+            retourne imprime_chaine("Argument manquant après '%'", arg)
         }
 
         valeur_arg := consomme(*args)
         valeur_membre := eini_depuis_info_membre(résultat, membre)
 
         saufsi parse_valeur(valeur_arg, valeur_membre) {
-            retourne imprime_chaine("Impossible de parser la valeur de '--%'", arg)
+            retourne imprime_chaine("Impossible de parser la valeur de '%'", arg)
         }
 
         valeur_renseignée.assigne_bool(vrai)
