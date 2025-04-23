@@ -98,7 +98,23 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
     /* Charge le module Kuri. */
     if (arguments.importe_kuri) {
-        module_kuri = importe_module(espace_de_travail_defaut, "Kuri", nullptr);
+        module_kuri = sys_module->initialise_module_kuri(racine_modules_kuri,
+                                                         arguments.importe_kuri);
+
+        if (!module_kuri) {
+            exit(1);
+        }
+
+        POUR (module_kuri->fichiers) {
+            if (it->fut_chargé) {
+                gestionnaire_code->requiers_lexage(espace_de_travail_defaut, it);
+            }
+            else {
+                gestionnaire_code->requiers_chargement(espace_de_travail_defaut, it);
+            }
+        }
+
+        module_kuri->importé = true;
     }
 
     broyeuse = memoire::loge<Broyeuse>("Broyeuse");
@@ -129,144 +145,11 @@ Compilatrice::~Compilatrice()
     memoire::deloge("GestionnaireCode", gestionnaire_code);
 }
 
-Module *Compilatrice::importe_module(EspaceDeTravail *espace,
-                                     kuri::chaine_statique nom,
-                                     NoeudExpression const *site)
-{
-    auto opt_chemin = détermine_chemin_dossier_module(espace, nom, site);
-    if (!opt_chemin.has_value()) {
-        /* Une erreur dût être rapportée. */
-        return nullptr;
-    }
-
-    auto chemin = opt_chemin.value();
-
-    if (!kuri::chemin_systeme::est_dossier(chemin)) {
-        espace->rapporte_erreur(
-            site, "Le nom du module ne pointe pas vers un dossier", erreur::Genre::MODULE_INCONNU);
-        return nullptr;
-    }
-
-    /* trouve le chemin absolu du module (cannonique pour supprimer les "../../" */
-    auto chemin_absolu = kuri::chemin_systeme::canonique_absolu(chemin);
-    auto nom_dossier = chemin_absolu.nom_fichier();
-
-    /* N'importe le module que s'il possède un fichier "module.kuri". */
-    auto chemin_fichier_module = chemin_absolu / "module.kuri";
-    if (!kuri::chemin_systeme::existe(chemin_fichier_module)) {
-        espace->rapporte_erreur(site,
-                                enchaine("Aucun fichier « module.kuri » trouvé pour le module « ",
-                                         nom_dossier,
-                                         " »."));
-        return nullptr;
-    }
-
-    // @concurrence critique
-    auto module = this->trouve_ou_crée_module(
-        table_identifiants->identifiant_pour_nouvelle_chaine(nom_dossier), chemin_absolu);
-
-    if (module->importé) {
-        return module;
-    }
-
-    module->importé = true;
-
-    messagère->ajoute_message_module_ouvert(espace, module);
-
-#if 1
-    auto fichiers = kuri::chemin_systeme::fichiers_du_dossier(chemin_absolu);
-
-    POUR (fichiers) {
-        auto résultat = this->trouve_ou_crée_fichier(
-            module, it.nom_fichier_sans_extension(), it, importe_kuri);
-
-        if (std::holds_alternative<FichierNeuf>(résultat)) {
-            auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-            gestionnaire_code->requiers_chargement(espace, fichier);
-        }
-    }
-#else
-    auto résultat = this->trouve_ou_crée_fichier(
-        module, "module", chemin_fichier_module, importe_kuri);
-    if (std::holds_alternative<FichierNeuf>(résultat)) {
-        auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-        gestionnaire_code->requiers_chargement(espace, fichier);
-    }
-#endif
-
-    if (module->nom() == ID::Kuri) {
-        auto résultat = this->trouve_ou_crée_fichier(
-            module, "constantes", "constantes.kuri", false);
-
-        if (std::holds_alternative<FichierNeuf>(résultat)) {
-            auto donnees_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-            if (!donnees_fichier->fut_chargé) {
-                const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
-                donnees_fichier->charge_tampon(lng::tampon_source(source));
-            }
-
-            gestionnaire_code->requiers_lexage(espace, donnees_fichier);
-        }
-    }
-
-    messagère->ajoute_message_module_fermé(espace, module);
-
-    return module;
-}
-
-std::optional<kuri::chemin_systeme> Compilatrice::détermine_chemin_dossier_module(
-    EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site)
-{
-    auto const chemin_est_relatif_au_fichier = nom.taille() > 2 && nom.sous_chaine(0, 2) == "..";
-
-    auto chemin = kuri::chemin_systeme(nom);
-
-    kuri::tablet<kuri::chemin_systeme, 3> chemins_testés;
-
-    if (!chemin_est_relatif_au_fichier) {
-        /* Vérifions si le chemin est dans le dossier courant. */
-        if (kuri::chemin_systeme::existe(chemin)) {
-            return chemin;
-        }
-
-        /* Essayons dans la racine des modules. */
-        auto chemin_dans_racine = racine_modules_kuri / chemin;
-        if (kuri::chemin_systeme::existe(chemin_dans_racine)) {
-            return chemin_dans_racine;
-        }
-
-        chemins_testés.ajoute(chemin);
-        chemins_testés.ajoute(chemin_dans_racine);
-    }
-
-    /* Essayons dans le dossier du fichier du site. */
-    auto fichier_du_site = fichier(site->lexème->fichier);
-    auto chemin_du_module = fichier_du_site->module->chemin();
-    auto chemin_possible = kuri::chemin_systeme(chemin_du_module) / chemin;
-    if (kuri::chemin_systeme::existe(chemin_possible)) {
-        return chemin_possible;
-    }
-
-    chemins_testés.ajoute(chemin_possible);
-
-    auto &e = espace
-                  ->rapporte_erreur(site,
-                                    "Impossible de trouver le dossier correspondant au module")
-                  .ajoute_message((chemins_testés.taille() > 1) ? "Les chemins testés furent :\n" :
-                                                                  "Le chemin testé fut :\n");
-
-    POUR (chemins_testés) {
-        e.ajoute_message(it, '\n');
-    }
-
-    return {};
-}
-
 /* ************************************************************************** */
 
-static std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
-                                                                   kuri::chaine_statique chemin,
-                                                                   NoeudExpression const *site)
+std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
+                                                            kuri::chaine_statique chemin,
+                                                            NoeudExpression const *site)
 {
     if (!kuri::chemin_systeme::existe(chemin)) {
         espace->rapporte_erreur(site, "Impossible de trouver le fichier")
@@ -299,7 +182,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         return;
     }
 
-    auto résultat = this->trouve_ou_crée_fichier(module, nom, opt_chemin.value(), importe_kuri);
+    auto résultat = this->sys_module->trouve_ou_crée_fichier(module, nom, opt_chemin.value());
 
     if (std::holds_alternative<FichierNeuf>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
@@ -502,8 +385,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto nom_fichier = enchaine("chaine_ajoutée",
                                 chaines_ajoutées_à_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
-    auto résultat = this->trouve_ou_crée_fichier(
-        module, nom_fichier, chemin_fichier, importe_kuri);
+    auto résultat = this->sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin_fichier);
 
     assert(std::holds_alternative<FichierNeuf>(résultat));
 
@@ -560,8 +442,8 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     auto module = this->module(ID::chaine_vide);
 
-    auto résultat = this->trouve_ou_crée_fichier(
-        module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu, importe_kuri);
+    auto résultat = this->sys_module->trouve_ou_crée_fichier(
+        module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu);
 
     if (std::holds_alternative<FichierExistant>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
@@ -603,45 +485,9 @@ kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parse
     return m_tableaux_code_fonctions.dernier_élément();
 }
 
-Module *Compilatrice::trouve_ou_crée_module(IdentifiantCode *nom_module,
-                                            kuri::chaine_statique chemin)
-{
-    auto module = sys_module->trouve_ou_crée_module(nom_module, chemin);
-
-    /* Initialise les chemins des bibliothèques internes au module. */
-    if (module->chemin_bibliothèque_32bits.taille() == 0) {
-        module->chemin_bibliothèque_32bits = module->chemin() /
-                                             suffixe_chemin_module_pour_bibliothèque(
-                                                 ArchitectureCible::X86);
-        module->chemin_bibliothèque_64bits = module->chemin() /
-                                             suffixe_chemin_module_pour_bibliothèque(
-                                                 ArchitectureCible::X64);
-    }
-
-    return module;
-}
-
 Module *Compilatrice::module(const IdentifiantCode *nom_module) const
 {
     return sys_module->module(nom_module);
-}
-
-RésultatFichier Compilatrice::trouve_ou_crée_fichier(Module *module,
-                                                     kuri::chaine_statique nom_fichier,
-                                                     kuri::chaine_statique chemin,
-                                                     bool importe_kuri_)
-{
-    auto résultat_fichier = sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin);
-
-    if (std::holds_alternative<FichierNeuf>(résultat_fichier)) {
-        auto fichier_neuf = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
-        if (importe_kuri_ && module->nom() != ID::Kuri) {
-            assert(module_kuri);
-            fichier_neuf->modules_importés.insère({module_kuri, true});
-        }
-    }
-
-    return résultat_fichier;
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
@@ -662,7 +508,8 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     auto fichier_racine = this->fichier(id_source_corps_texte);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
-    auto résultat_fichier = this->trouve_ou_crée_fichier(module, nom_fichier, nom_fichier, false);
+    auto résultat_fichier = this->sys_module->trouve_ou_crée_fichier(
+        module, nom_fichier, nom_fichier);
     assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
     auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
     résultat->métaprogramme_corps_texte = metaprogramme_;

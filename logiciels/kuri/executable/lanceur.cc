@@ -603,8 +603,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
 
-    auto nom_fichier = chemin.nom_fichier_sans_extension();
-
     /* Charge d'abord le module basique. */
     auto espace_defaut = compilatrice.espace_de_travail_defaut;
 
@@ -613,9 +611,9 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
-    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, dossier);
+    auto module = compilatrice.sys_module->crée_module_fichier_racine_compilation(dossier, chemin);
     compilatrice.module_racine_compilation = module;
-    compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
+    compilatrice.gestionnaire_code->requiers_chargement(espace_defaut, module->fichiers[0]);
 
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 

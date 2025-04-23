@@ -211,6 +211,10 @@ RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
         return valide_sémantique_noeud(racine_validation());
     }
 
+    if (racine_validation()->est_déclaration_module()) {
+        return valide_sémantique_noeud(racine_validation());
+    }
+
     m_unité->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -394,12 +398,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:
         case GenreNoeud::INSTRUCTION_BOUCLE:
         case GenreNoeud::EXPRESSION_VIRGULE:
-        case GenreNoeud::DÉCLARATION_MODULE:
         case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
         case GenreNoeud::DIRECTIVE_FONCTION:
         case GenreNoeud::EXPRESSION_SÉLECTION:
         {
+            break;
+        }
+        case GenreNoeud::DÉCLARATION_MODULE:
+        {
+            /* À FAIRE : attend que tous les fichiers du module furent parsés. */
+            noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
         case GenreNoeud::DIRECTIVE_DÉPENDANCE_BIBLIOTHÈQUE:
@@ -496,19 +505,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
-            const auto inst = noeud->comme_charge();
-            const auto lexeme = inst->expression->lexème;
-            const auto fichier = m_compilatrice.fichier(inst->lexème->fichier);
-            const auto temps = dls::chrono::compte_seconde();
-            m_compilatrice.ajoute_fichier_a_la_compilation(
-                m_espace, lexeme->chaine, fichier->module, inst->expression);
-            noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            m_temps_chargement += temps.temps();
-            break;
+            m_espace->rapporte_erreur(noeud,
+                                      "[ERREUR INTERNE] Une instruction 'charge' se trouve dans "
+                                      "la validation sémantique.");
+            return CodeRetourValidation::Erreur;
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
-            return valide_instruction_importe(noeud->comme_importe());
+            m_espace->rapporte_erreur(noeud,
+                                      "[ERREUR INTERNE] Une instruction 'importe' se trouve dans "
+                                      "la validation sémantique.");
+            return CodeRetourValidation::Erreur;
         }
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         {
@@ -6425,90 +6432,6 @@ RésultatValidation Sémanticienne::valide_dépendance_bibliothèque(
     bib_dependante->ajoute_dépendance(bib_dependue);
     /* Ce n'est pas une déclaration mais #GestionnaireCode.typage_termine le requiers. */
     noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    return CodeRetourValidation::OK;
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name Instruction importe.
- * \{ */
-
-static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
-                                                  Fichier *fichier,
-                                                  Module *module_du_fichier)
-{
-    auto const expression = inst->expression;
-    if (expression->lexème->genre != GenreLexème::CHAINE_CARACTERE) {
-        /* L'expression est un chemin relatif. */
-        return nullptr;
-    }
-
-    /* À FAIRE : meilleure mise en cache. */
-    auto module = static_cast<Module *>(nullptr);
-    POUR (module_du_fichier->fichiers) {
-        if (it == fichier) {
-            continue;
-        }
-        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
-            if (module_.module->nom() == expression->ident) {
-                module = module_.module;
-                return kuri::DécisionItération::Arrête;
-            }
-
-            return kuri::DécisionItération::Continue;
-        });
-    }
-
-    return module;
-}
-
-RésultatValidation Sémanticienne::valide_instruction_importe(NoeudInstructionImporte *inst)
-{
-    const auto fichier = m_compilatrice.fichier(inst->lexème->fichier);
-    auto const module_du_fichier = fichier->module;
-
-    auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
-    if (!module) {
-        const auto lexeme = inst->expression->lexème;
-        const auto temps = dls::chrono::compte_seconde();
-        module = m_compilatrice.importe_module(m_espace, lexeme->chaine, inst->expression);
-        m_temps_chargement += temps.temps();
-        if (!module) {
-            return CodeRetourValidation::Erreur;
-        }
-    }
-
-    if (module_du_fichier == module) {
-        m_espace->rapporte_erreur(inst, "Importation d'un module dans lui-même !\n");
-        return CodeRetourValidation::Erreur;
-    }
-
-    // @concurrence critique
-    if (fichier->importe_module(module->nom())) {
-        if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
-            /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes de
-             * générer ces instructions redondantes. */
-            m_espace->rapporte_avertissement(inst, "Importation superflux du module");
-        }
-    }
-    else {
-        fichier->modules_importés.insère({module, inst->est_employé});
-        auto noeud_module = m_assembleuse->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(inst->lexème)
-                                ->comme_déclaration_module();
-        noeud_module->module = module;
-        if (inst->ident) {
-            noeud_module->ident = inst->ident;
-        }
-        else {
-            noeud_module->ident = module->nom();
-        }
-        noeud_module->bloc_parent = inst->bloc_parent;
-        noeud_module->bloc_parent->ajoute_membre(noeud_module);
-        noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-    }
-
-    inst->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;
 }
 
