@@ -3668,6 +3668,16 @@ NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
         noeud->ident = lexème_référence->ident;
     }
 
+    auto noeud_déclaration = m_tacheronne.assembleuse
+                                 ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(lexème)
+                                 ->comme_déclaration_module();
+    noeud_déclaration->ident = noeud->ident;
+    noeud_déclaration->bloc_parent->ajoute_expression(noeud_déclaration);
+    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+    requiers_typage(noeud_déclaration);
+
+    noeud->noeud_déclaration = noeud_déclaration;
+
     consomme();
 
     return noeud;
