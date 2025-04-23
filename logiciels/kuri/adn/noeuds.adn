@@ -223,6 +223,7 @@ struct NoeudInstructionImporte : NoeudExpression {
 
     UniteCompilation * unité
     NoeudExpression * expression [code enfant construction]
+    NoeudModule * noeud_déclaration [code enfant]
     bool est_employé
 }
 
@@ -298,6 +299,7 @@ struct NoeudModule : NoeudDéclaration {
     @genre_valeur INVALIDE
 
     Module *module [code copie]
+    UniteCompilation *unité
 }
 
 struct NoeudDéclarationSymbole : NoeudDéclaration {
@@ -1119,10 +1121,6 @@ struct NoeudBloc : NoeudExpression {
     NoeudDéclaration * [synchrone] membres [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     bool est_nonsur
-    /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier les
-     * membres du bloc pour savoir s'il en reste à valider. */
-    bool membres_sont_sales
-    bool expressions_sont_sales
     TypeBloc type_bloc [copie]
     /* Pour le formattage. */
     Lexème const * lexème_accolade_finale [copie]
