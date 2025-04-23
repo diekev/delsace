@@ -277,6 +277,12 @@ donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
     parsat := HTML.parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
     diffère HTML.détruit(parsat)
 
+    chaine_url := enchaine("file://", chemin.chn)
+    diffère déloge(chaine_url)
+
+    parsat.document.url = HTML.basic_url_parser(chaine_url)
+    assert(parsat.document.url != nul)
+
     largeur := 1920
     hauteur := 1080
     arbre := donne_arbre_de_disposition_ajourné(parsat.document, largeur, hauteur)
