@@ -1730,7 +1730,7 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
     // 3. Otherwise:
     sinon {
         // 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), invalid-URL-unit validation error.
-        si c != 0x25 && !est_point_de_code_url(c) {
+        si c != FIN_DE_FICHIER && c != 0x25 && !est_point_de_code_url(c) {
             rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
         }
 
