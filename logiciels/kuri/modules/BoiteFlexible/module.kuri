@@ -552,6 +552,12 @@ sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, index: z32)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, index)
 }
 
+sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, index: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, index)
+}
+
 définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, index: z32)
 {
     boite.rappels[type].rappel = rappel
@@ -591,6 +597,7 @@ TypeRappelUtilisateur :: énum {
     SurPressionSouris
     SurRelâchementSouris
     SurClicSouris
+    SurMoletteSouris
 }
 
 TypeRappelSouris :: fonc(*rien, CliqueSouris, n64, z32)(rien)
@@ -943,6 +950,19 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
     }
 
     emboiteuse.id_pressé = 0
+}
+
+sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+{
+    définis_position_souris(emboiteuse, souris)
+    applique_défilage_vertical(emboiteuse, emboiteuse.souris_x, emboiteuse.souris_y, souris.delta)
+
+    boite := donne_boite_sous_souris(emboiteuse)
+    saufsi boite {
+        retourne
+    }
+
+    appel_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, souris)
 }
 
 applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
