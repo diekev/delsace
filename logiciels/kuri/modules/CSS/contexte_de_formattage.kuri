@@ -2031,12 +2031,14 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
         ligne_courante.items.taille += 1
     }
 
-    saufsi ctx.est_reverse {
-        retourne
-    }
+    #si UTILISE_LAYOUT_STANDARD {
+        saufsi ctx.est_reverse {
+            retourne
+        }
 
-    pour * ctx.lignes {
-        tableau_inverse(it.items)
+        pour * ctx.lignes {
+            tableau_inverse(it.items)
+        }
     }
 }
 
@@ -2755,11 +2757,11 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     pour * ligne, index_ligne dans ctx.lignes {
         justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
-        espace_disponible := largeur_disponible - ligne.largeur
+        espace_disponible := (largeur_disponible - ligne.largeur) comme r32
 
         distribue_espace_disponible(ctx, ligne, espace_disponible, mode)
 
-        espace_disponible = largeur_disponible - ligne.largeur
+        espace_disponible = (largeur_disponible - ligne.largeur) comme r32
 
         imprime("ligne[%].largeur %, espace_disponible %\n", index_ligne, ligne.largeur, espace_disponible)
 

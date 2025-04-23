@@ -110,13 +110,9 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
     auto espace = compilatrice.espace_defaut_compilation();
 
-    /* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme.
-     */
-    compilatrice.importe_module(espace, "Kuri", {});
-
     /* Ne nomme pas le module, car c'est le module racine. */
-    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
-    auto résultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
+    auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
+    auto résultat = compilatrice.sys_module->trouve_ou_crée_fichier(module, "", "");
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->charge_tampon(std::move(tampon));
 

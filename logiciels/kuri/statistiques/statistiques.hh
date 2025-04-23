@@ -361,7 +361,6 @@ struct StatistiquesTypage {
     OP(GESTION__AJOUTE_RACINES, "ajoute racine")                                                  \
     OP(GESTION__TYPAGE_TERMINÉ, "typage terminé")                                                 \
     OP(GESTION__DOIT_DÉTERMINER_DÉPENDANCES, "doit déterminer dépendances")                       \
-    OP(GESTION__VÉRIFIE_ENTÊTE_VALIDÉES, "vérifie entête validées")                               \
     OP(GESTION__CRÉATION_TÂCHES, "création tâches")
 
 DEFINIS_ENUM(GESTIONNAIRE_CODE)
