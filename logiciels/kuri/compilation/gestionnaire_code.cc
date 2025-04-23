@@ -40,9 +40,7 @@ compilation
 #endif
 
 #define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTâche::genre, m_compilatrice->messagère)
-#define TACHE_TERMINEE(genre, envoyer_changement_de_phase)                                        \
-    espace->tache_terminee(                                                                       \
-        GenreTâche::genre, m_compilatrice->messagère, envoyer_changement_de_phase)
+#define TACHE_TERMINEE(genre) espace->tache_terminee(GenreTâche::genre, m_compilatrice->messagère)
 
 /* ------------------------------------------------------------------------- */
 /** \name État chargement fichiers
@@ -1533,7 +1531,7 @@ void GestionnaireCode::chargement_fichier_terminé(UniteCompilation *unité)
     assert(unité->fichier->fut_chargé);
 
     auto espace = unité->espace;
-    TACHE_TERMINEE(CHARGEMENT, true);
+    TACHE_TERMINEE(CHARGEMENT);
     m_compilatrice->messagère->ajoute_message_fichier_fermé(espace, unité->fichier->chemin());
 
     /* Une fois que nous avons fini de charger un fichier, il faut le lexer. */
@@ -1549,7 +1547,7 @@ void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
     assert(unité->fichier->fut_lexé);
 
     auto espace = unité->espace;
-    TACHE_TERMINEE(LEXAGE, true);
+    TACHE_TERMINEE(LEXAGE);
 
     /* Une fois que nous avons lexer un fichier, il faut le parser. */
     unité->mute_raison_d_être(RaisonDÊtre::PARSAGE_FICHIER);
@@ -1558,25 +1556,174 @@ void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
     TACHE_AJOUTEE(PARSAGE);
 }
 
+static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
+                                                  Fichier *fichier,
+                                                  Module *module_du_fichier)
+{
+    auto const expression = inst->expression;
+    if (expression->lexème->genre != GenreLexème::CHAINE_CARACTERE) {
+        /* L'expression est un chemin relatif. */
+        return nullptr;
+    }
+
+    /* À FAIRE : meilleure mise en cache. */
+    auto module = static_cast<Module *>(nullptr);
+    POUR (module_du_fichier->fichiers) {
+        if (it == fichier) {
+            continue;
+        }
+        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
+            if (module_.module->nom() == expression->ident) {
+                module = module_.module;
+                return kuri::DécisionItération::Arrête;
+            }
+
+            return kuri::DécisionItération::Continue;
+        });
+    }
+
+    return module;
+}
+
 void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 {
     assert(unité->fichier);
     assert(unité->fichier->fut_parsé);
     auto espace = unité->espace;
-    TACHE_TERMINEE(PARSAGE, true);
+    TACHE_TERMINEE(PARSAGE);
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
     m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unité);
 
-    POUR (unité->fichier->noeuds_à_valider) {
+    auto fichier = unité->fichier;
+
+    POUR (fichier->noeuds_à_valider) {
         /* Nous avons sans doute déjà requis le typage de ce noeud. */
         auto adresse_unité = donne_adresse_unité(it);
         if (*adresse_unité) {
             continue;
         }
 
-        if (it->est_charge() || it->est_importe()) {
-            requiers_typage(espace, it);
-            m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
+        if (it->est_charge()) {
+            auto inst = it->comme_charge();
+            auto const lexème = inst->expression->lexème;
+            auto const nom = lexème->chaine;
+            auto module = fichier->module;
+            auto chemin = dls::chaine(kuri::chaine(module->chemin())) +
+                          dls::chaine(kuri::chaine(nom));
+
+            if (chemin.trouve(".kuri") == dls::chaine::npos) {
+                chemin += ".kuri";
+            }
+
+            auto opt_chemin = determine_chemin_absolu(espace, chemin.c_str(), it);
+            if (!opt_chemin.has_value()) {
+                return;
+            }
+            auto résultat = m_compilatrice->sys_module->trouve_ou_crée_fichier(
+                module, nom, opt_chemin.value());
+
+            if (std::holds_alternative<FichierNeuf>(résultat)) {
+                auto nouveau_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+                requiers_chargement(espace, nouveau_fichier);
+            }
+            else {
+                auto fichier_existant = static_cast<Fichier *>(
+                    std::get<FichierExistant>(résultat));
+                if (fichier_existant == fichier) {
+                    espace->rapporte_erreur(it, "chargement du fichier dans lui-même");
+                    return;
+                }
+            }
+        }
+        else if (it->est_importe()) {
+            auto inst = it->comme_importe();
+            auto const module_du_fichier = fichier->module;
+
+            auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
+            if (!module) {
+                const auto lexème = inst->expression->lexème;
+
+                auto info_module = m_compilatrice->sys_module->trouve_ou_crée_module(
+                    m_compilatrice->table_identifiants, fichier, lexème->chaine);
+
+                switch (info_module.état) {
+                    case InfoRequêteModule::État::TROUVÉ:
+                    {
+                        module = info_module.module;
+                        if (module->importé) {
+                            break;
+                        }
+                        module->importé = true;
+                        m_compilatrice->messagère->ajoute_message_module_ouvert(espace, module);
+                        POUR_NOMME (f, module->fichiers) {
+                            requiers_chargement(espace, f);
+                        }
+                        m_compilatrice->messagère->ajoute_message_module_fermé(espace, module);
+                        break;
+                    }
+                    case InfoRequêteModule::État::CHEMIN_INEXISTANT:
+                    {
+                        espace->rapporte_erreur(inst,
+                                                "Le nom du module ne pointe pas vers un dossier.");
+                        return;
+                    }
+                    case InfoRequêteModule::État::PAS_UN_DOSSIER:
+                    {
+                        kuri::chaine_statique message_chemins_testés;
+                        if (info_module.chemins_testés.taille() > 1) {
+                            message_chemins_testés = "Le chemin testé fut :\n";
+                        }
+                        else {
+                            message_chemins_testés = "Les chemins testés furent :\n";
+                        }
+
+                        auto &e =
+                            espace
+                                ->rapporte_erreur(
+                                    inst,
+                                    "Impossible de trouver un dossier correspondant au module "
+                                    "importé.")
+                                .ajoute_message(message_chemins_testés);
+
+                        POUR_NOMME (chemin, info_module.chemins_testés) {
+                            e.ajoute_message("    ", chemin, "\n");
+                        }
+                        return;
+                    }
+                    case InfoRequêteModule::État::PAS_DE_FICHIER_MODULE_KURI:
+                    {
+                        espace->rapporte_erreur(inst,
+                                                "Impossible d'importer le module, car le dossier "
+                                                "ne contient de fichier 'module.kuri'.");
+                        return;
+                    }
+                }
+            }
+
+            if (module_du_fichier == module) {
+                espace->rapporte_erreur(inst, "Importation d'un module dans lui-même.\n");
+                return;
+            }
+
+            if (fichier->importe_module(module->nom())) {
+                if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
+                    /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
+                     * de générer ces instructions redondantes. */
+                    espace->rapporte_avertissement(inst, "Importation superflux du module");
+                }
+            }
+            else {
+                fichier->modules_importés.insère({module, inst->est_employé});
+
+                auto noeud_déclaration = inst->noeud_déclaration;
+                if (noeud_déclaration->ident == nullptr) {
+                    noeud_déclaration->ident = module->nom();
+                    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+                }
+                noeud_déclaration->module = module;
+            }
+
+            // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
         else {
             m_noeuds_à_valider.ajoute({espace, it});
@@ -1635,7 +1782,8 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
     if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
         !noeud->est_type_énum() && !noeud->est_type_union() &&
-        !noeud->est_déclaration_bibliothèque() && !noeud->est_déclaration_constante()) {
+        !noeud->est_déclaration_bibliothèque() && !noeud->est_déclaration_constante() &&
+        !noeud->est_déclaration_module()) {
         if (noeud->est_exécute()) {
             /* Les #exécutes globales sont gérées via les métaprogrammes. */
             return false;
@@ -1654,7 +1802,8 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
         }
 
         return !(noeud->est_charge() || noeud->est_importe() ||
-                 noeud->est_déclaration_bibliothèque() || noeud->est_déclaration_constante());
+                 noeud->est_déclaration_bibliothèque() || noeud->est_déclaration_constante() ||
+                 noeud->est_déclaration_module());
     }
 
     if (noeud->est_exécute()) {
@@ -1676,78 +1825,6 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
     return false;
 }
 
-static bool declaration_est_invalide(NoeudExpression *decl)
-{
-    if (decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-        return false;
-    }
-
-    auto adresse_unité = donne_adresse_unité(decl);
-    if (!adresse_unité) {
-        return true;
-    }
-    auto unité = *adresse_unité;
-    if (!unité) {
-        /* Pas encore d'unité, nous ne pouvons savoir si la déclaration est valide. */
-        return true;
-    }
-
-    if (unité->espace->possède_erreur) {
-        /* Si l'espace responsable de l'unité de l'entête possède une erreur, nous devons
-         * ignorer les entêtes invalides, car sinon la compilation serait infinie. */
-        return false;
-    }
-
-    return true;
-}
-
-static bool verifie_que_toutes_les_entetes_sont_validees(SystèmeModule &sys_module)
-{
-    POUR_TABLEAU_PAGE (sys_module.modules) {
-        /* Il est possible d'avoir un module vide. */
-        if (it.fichiers.est_vide()) {
-            continue;
-        }
-
-        if (it.bloc == nullptr) {
-            return false;
-        }
-
-        if (it.fichiers_sont_sales) {
-            for (auto fichier : it.fichiers) {
-                if (!fichier->fut_chargé) {
-                    return false;
-                }
-
-                if (!fichier->fut_parsé) {
-                    return false;
-                }
-            }
-            it.fichiers_sont_sales = false;
-        }
-
-        if (it.bloc->membres_sont_sales) {
-            for (auto decl : (*it.bloc->membres.verrou_lecture())) {
-                if (decl->est_entête_fonction() && declaration_est_invalide(decl)) {
-                    return false;
-                }
-            }
-            it.bloc->membres_sont_sales = false;
-        }
-
-        if (it.bloc->expressions_sont_sales) {
-            for (auto decl : (*it.bloc->expressions.verrou_lecture())) {
-                if (decl->est_importe() && declaration_est_invalide(decl)) {
-                    return false;
-                }
-            }
-            it.bloc->expressions_sont_sales = false;
-        }
-    }
-
-    return true;
-}
-
 void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
@@ -1758,15 +1835,6 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     });
 
     auto espace = unité->espace;
-
-    if (unité->noeud->est_charge() || unité->noeud->est_importe()) {
-        m_état_chargement_fichiers.supprime_unité_pour_charge_ou_importe(unité);
-
-        if (tous_les_fichiers_à_parser_le_sont()) {
-            flush_noeuds_à_typer();
-        }
-    }
-
     auto noeud = unité->noeud;
 
     UniteCompilation *unité_pour_ri = nullptr;
@@ -1797,14 +1865,9 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
         détermine_dépendances(unité->noeud, unité->espace, unité_pour_ri, unité_pour_noeud_code);
     }
 
-    DÉBUTE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
-    auto peut_envoyer_changement_de_phase = verifie_que_toutes_les_entetes_sont_validees(
-        *m_compilatrice->sys_module.verrou_ecriture());
-    TERMINE_STAT(VÉRIFIE_ENTÊTE_VALIDÉES);
-
     /* Décrémente ceci après avoir ajouté le message de typage de code
      * pour éviter de prévenir trop tôt un métaprogramme. */
-    TACHE_TERMINEE(TYPAGE, peut_envoyer_changement_de_phase);
+    TACHE_TERMINEE(TYPAGE);
 
     if (noeud->est_entête_fonction()) {
         m_fonctions_parsées.ajoute(noeud->comme_entête_fonction());
@@ -1830,7 +1893,7 @@ void GestionnaireCode::generation_ri_terminée(UniteCompilation *unité)
     });
 
     auto espace = unité->espace;
-    TACHE_TERMINEE(GENERATION_RI, true);
+    TACHE_TERMINEE(GENERATION_RI);
     if (espace->optimisations) {
         // À FAIRE(gestion) : tâches d'optimisations
     }
@@ -1849,7 +1912,7 @@ void GestionnaireCode::optimisation_terminée(UniteCompilation *unité)
 {
     assert(unité->noeud);
     auto espace = unité->espace;
-    TACHE_TERMINEE(OPTIMISATION, true);
+    TACHE_TERMINEE(OPTIMISATION);
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
 
@@ -1868,7 +1931,7 @@ void GestionnaireCode::execution_terminée(UniteCompilation *unité)
     assert(unité->metaprogramme);
     assert(unité->metaprogramme->fut_exécuté());
     auto espace = unité->espace;
-    TACHE_TERMINEE(EXECUTION, true);
+    TACHE_TERMINEE(EXECUTION);
     enleve_programme(unité->metaprogramme->programme);
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
 }
@@ -1904,7 +1967,7 @@ void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unit�
         requiers_liaison_executable(espace, unité->programme);
     }
     else {
-        TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
+        TACHE_TERMINEE(GENERATION_CODE_MACHINE);
 
         if (programme_requiers_liaison_exécutable(espace->options)) {
             espace->change_de_phase(m_compilatrice->messagère,
@@ -1934,7 +1997,7 @@ void GestionnaireCode::liaison_programme_terminée(UniteCompilation *unité)
         requiers_exécution(unité->espace, metaprogramme);
     }
     else {
-        TACHE_TERMINEE(LIAISON_PROGRAMME, true);
+        TACHE_TERMINEE(LIAISON_PROGRAMME);
         espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE);
     }
 
@@ -2099,6 +2162,7 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
     }
 
     if (m_validation_doit_attendre_sur_lexage) {
+        // dbg() << m_validation_doit_attendre_sur_lexage;
         return false;
     }
 
@@ -2139,6 +2203,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             }
         }
         else {
+            // it->imprime_diagnostique(std::cerr, true);
+
             if (espace->phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE &&
                 it->ri_générées()) {
                 finalise_programme_avant_génération_code_machine(espace, it);
@@ -2156,6 +2222,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
     }
 
     if (!unités_en_attente.est_vide() || !métaprogrammes_en_attente_de_crée_contexte.est_vide()) {
+        // dbg() << "(!unités_en_attente.est_vide() || "
+        //          "!métaprogrammes_en_attente_de_crée_contexte.est_vide())";
         return false;
     }
 
@@ -2164,12 +2232,16 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
              * avons un, la compilation ne peut se terminée. */
             if (it->pour_métaprogramme()) {
+                // dbg() << "métaprogramme en cours";
                 return false;
             }
 
             /* Attend que tous les espaces eurent leur compilation terminée. */
             auto espace = it->espace();
             if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINÉE) {
+                // dbg() << "espace en phase " << espace->nom << " : " << espace->phase_courante();
+                // dbg() << espace->nom;
+                // espace->imprime_compte_tâches(std::cerr);
                 return false;
             }
             return true;
@@ -2291,7 +2363,7 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     if (espace->unité_pour_code_machine) {
         espace->unité_pour_code_machine->définis_état(
             UniteCompilation::État::ANNULÉE_CAR_REMPLACÉE);
-        TACHE_TERMINEE(GENERATION_CODE_MACHINE, true);
+        TACHE_TERMINEE(GENERATION_CODE_MACHINE);
     }
 
     auto unité_code_machine = requiers_génération_code_machine(espace, espace->programme);
