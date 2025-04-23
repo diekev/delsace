@@ -533,25 +533,25 @@ ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *B
     retourne enfant
 }
 
-sur_pression_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
+sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, index)
 }
 
-sur_relâchement_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
+sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, index)
 }
 
-sur_clic_souris :: fonc (rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
+sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, index: z32)
 {
     assert(__boite_courante != nul)
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, index)
 }
 
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: fonc(*rien, n64, z32)(rien), données: *rien, index: z32)
+définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, index: z32)
 {
     boite.rappels[type].rappel = rappel
     boite.rappels[type].données_utilisateur = données
@@ -592,8 +592,10 @@ TypeRappelUtilisateur :: énum {
     SurClicSouris
 }
 
+TypeRappelSouris :: fonc(*rien, n64, z32)(rien)
+
 RappelUtilisateur :: struct {
-    rappel: fonc(*rien, n64, z32)(rien)
+    rappel: TypeRappelSouris
     données_utilisateur: *rien
     index_utilisateur: z32
 }
