@@ -4,6 +4,7 @@ importe Fondation
 importe Géométrie
 importe Image
 importe Math
+importe Périphériques
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
@@ -592,7 +593,7 @@ TypeRappelUtilisateur :: énum {
     SurClicSouris
 }
 
-TypeRappelSouris :: fonc(*rien, n64, z32)(rien)
+TypeRappelSouris :: fonc(*rien, CliqueSouris, n64, z32)(rien)
 
 RappelUtilisateur :: struct {
     rappel: TypeRappelSouris
@@ -613,11 +614,11 @@ BoiteDisposée :: struct {
     rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
 }
 
-appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur)
+appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: CliqueSouris)
 {
     rappel := boite.rappels[type]
     si rappel.rappel {
-        rappel.rappel(rappel.données_utilisateur, boite.id, rappel.index_utilisateur)
+        rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.index_utilisateur)
     }
 }
 
@@ -907,34 +908,38 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
     emboiteuse.souris_y = y
 }
 
-sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
 {
-    emboiteuse.souris_x = x
-    emboiteuse.souris_y = y
+    emboiteuse.souris_x = souris.état.où.x comme r32
+    emboiteuse.souris_y = souris.état.où.y comme r32
+}
+
+sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+{
+    définis_position_souris(emboiteuse, souris)
 
     boite := donne_boite_sous_souris(emboiteuse)
     saufsi boite {
         retourne
     }
 
-    appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris)
+    appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, souris)
     emboiteuse.id_pressé = boite.id
 }
 
-sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
 {
-    emboiteuse.souris_x = x
-    emboiteuse.souris_y = y
+    définis_position_souris(emboiteuse, souris)
 
     boite := donne_boite_sous_souris(emboiteuse)
     saufsi boite {
         retourne
     }
 
-    appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris)
+    appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris, souris)
 
     si emboiteuse.id_pressé == boite.id {
-        appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris)
+        appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris, souris)
     }
 
     emboiteuse.id_pressé = 0

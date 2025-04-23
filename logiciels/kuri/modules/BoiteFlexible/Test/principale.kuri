@@ -86,7 +86,7 @@ RappelsWindow :: struct {
     sur_evenement = rappels_window_sur_evenement
 }
 
-définis_document_courant :: fonc (rappels: *RappelsWindow, id: n64, index: z32)
+définis_document_courant :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64, index: z32)
 {
     si index < 0 && index >= rappels.documents.taille {
         retourne
@@ -145,13 +145,13 @@ rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generi
 
     si type == QT_Event_Type.MouseButtonPress {
         clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_pression_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        sur_pression_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
         clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_relâchement_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        sur_relâchement_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
 
@@ -479,7 +479,7 @@ sur_fin_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine
     rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
 }
 
-démarre_édition_texte :: fonc (rappels: *RappelsWindow, id: n64, index: z32 @inutilisée)
+démarre_édition_texte :: fonc (rappels: *RappelsWindow, clic: CliqueSouris @inutilisée, id: n64, index: z32 @inutilisée)
 {
     rappels_édition_texte := loge(RappelsÉditionTexteQt)
     diffère déloge(rappels_édition_texte)
