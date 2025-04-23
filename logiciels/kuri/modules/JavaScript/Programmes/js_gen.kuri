@@ -1,6 +1,7 @@
 /* Ce programme génère du code Kuri depuis la spécification d'une fonction
  * du standard ECMAScript. */
 
+importe Chaine
 importe Compilatrice
 importe Fondation
 importe SysFichier
@@ -17,7 +18,7 @@ change_nom_sortie :: fonc ()
 principale :: fonc ()
 {
     contenu := contenu_fichier_texte(CheminFichier("js_gen.txt"))
-    lignes := divise(contenu, "\n")
+    lignes := divise(contenu, '\n')
 
     parseuse: Parseuse
     parseuse.bloc = crée_bloc(*parseuse)
