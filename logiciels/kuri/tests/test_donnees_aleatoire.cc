@@ -442,8 +442,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto tacheronne = Tacheronne(compilatrice);
         auto espace = compilatrice.espace_defaut_compilation();
 
-        auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
-        auto résultat = compilatrice.trouve_ou_crée_fichier(module, "", "", true);
+        auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
+        auto résultat = compilatrice.sys_module->trouve_ou_crée_fichier(module, "", "");
         auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
         fichier->charge_tampon(lng::tampon_source("texte_test"));
         fichier->lexèmes = lexemes;

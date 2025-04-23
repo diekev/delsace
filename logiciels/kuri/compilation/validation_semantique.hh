@@ -287,8 +287,6 @@ struct Sémanticienne {
 
     RésultatValidation valide_dépendance_bibliothèque(NoeudDirectiveDépendanceBibliothèque *noeud);
 
-    RésultatValidation valide_instruction_importe(NoeudInstructionImporte *inst);
-
     ArbreAplatis *donne_un_arbre_aplatis();
 
     RésultatValidation valide_expression_comme(NoeudComme *expr);

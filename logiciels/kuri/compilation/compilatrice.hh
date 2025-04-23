@@ -198,48 +198,10 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     /**
-     * Charge le module dont le nom est spécifié.
-     *
-     * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
-     * dans le dossier du module racine.
-     *
-     * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
-     * du module, sauf pour le module racine.
-     *
-     * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
-     * pour tenir compte de la progression de la compilation. Si un nom de module ne
-     * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
-     * exception est lancée.
-     *
-     * Les Lexème doivent être celles du nom du module et sont utilisées
-     * pour les erreurs lancées.
-     *
-     * Le paramètre est_racine ne doit être vrai que pour le module racine.
-     */
-    Module *importe_module(EspaceDeTravail *espace,
-                           kuri::chaine_statique nom,
-                           NoeudExpression const *site);
-
-    /**
-     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
-     * Si un tel module n'existe pas, un nouveau module est créé.
-     */
-    Module *trouve_ou_crée_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
-
-    /**
      * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
      * module n'a ce nom, retourne nullptr.
      */
     Module *module(const IdentifiantCode *nom_module) const;
-
-    /**
-     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-     * fichier ainsi créé ou un pointeur vers un fichier existant.
-     */
-    RésultatFichier trouve_ou_crée_fichier(Module *module,
-                                           kuri::chaine_statique nom_fichier,
-                                           kuri::chaine_statique chemin,
-                                           bool importe_kuri);
 
     Fichier *crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
 
@@ -337,10 +299,10 @@ struct Compilatrice {
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
     ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
     void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);
-
-  private:
-    std::optional<kuri::chemin_systeme> détermine_chemin_dossier_module(
-        EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
+
+std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
+                                                            kuri::chaine_statique chemin,
+                                                            NoeudExpression const *site);
