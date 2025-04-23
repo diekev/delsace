@@ -1641,7 +1641,6 @@ void NoeudBloc::ajoute_membre(NoeudDéclaration *decl)
     }
 
     membres_->ajoute(decl);
-    membres_sont_sales = true;
 }
 
 void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
@@ -1653,7 +1652,6 @@ void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
     }
 
     membres_->ajoute_au_début(decl);
-    membres_sont_sales = true;
 }
 
 void NoeudBloc::fusionne_membres(NoeudBloc *de)
@@ -1714,7 +1712,6 @@ NoeudDéclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression co
 void NoeudBloc::ajoute_expression(NoeudExpression *expr)
 {
     expressions->ajoute(expr);
-    expressions_sont_sales = true;
 }
 
 kuri::tableau_statique<const MembreTypeComposé> NoeudDéclarationTypeComposé::
@@ -2753,6 +2750,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_déclaration_constante()) {
         return &noeud->comme_déclaration_constante()->unité;
+    }
+    if (noeud->est_déclaration_module()) {
+        return &noeud->comme_déclaration_module()->unité;
     }
 
     assert_rappel(false, [&]() {
