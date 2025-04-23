@@ -2143,7 +2143,6 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
     }
 
     if (m_validation_doit_attendre_sur_lexage) {
-        // dbg() << m_validation_doit_attendre_sur_lexage;
         return false;
     }
 
@@ -2219,16 +2218,12 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             /* Les programmes des métaprogrammes sont enlevés après leurs exécutions. Si nous en
              * avons un, la compilation ne peut se terminée. */
             if (it->pour_métaprogramme()) {
-                // dbg() << "métaprogramme en cours";
                 return false;
             }
 
             /* Attend que tous les espaces eurent leur compilation terminée. */
             auto espace = it->espace();
             if (espace->phase_courante() != PhaseCompilation::COMPILATION_TERMINÉE) {
-                // dbg() << "espace en phase " << espace->nom << " : " << espace->phase_courante();
-                // dbg() << espace->nom;
-                // espace->imprime_compte_tâches(std::cerr);
                 return false;
             }
             return true;
