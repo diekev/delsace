@@ -185,3 +185,50 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
 
     retourne résultat
 }
+
+consomme_espaces_blanches :: fonc (chn: chaine) -> chaine
+{
+    tantque chn.taille != 0 {
+        saufsi est_espace_blanc(chn[0]) {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+    }
+
+    retourne chn
+}
+
+consomme_jusque :: fonc (chn: chaine, c: z8) -> (part: chaine, reste: chaine)
+{
+    résultat := chn
+    résultat.taille = 0
+
+    tantque chn.taille != 0 {
+        si chn[0] == c {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+        résultat.taille += 1
+    }
+
+    retourne résultat, chn
+}
+
+consomme_jusque_espace_blanche :: fonc (chn: chaine) -> (part: chaine, reste: chaine)
+{
+    résultat := chn
+    résultat.taille = 0
+
+    tantque chn.taille != 0 {
+        si est_espace_blanc(chn[0]) {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+        résultat.taille += 1
+    }
+
+    retourne résultat, chn
+}
