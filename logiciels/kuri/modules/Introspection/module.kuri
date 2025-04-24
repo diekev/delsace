@@ -1374,10 +1374,12 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
 
             tableau := mémoire(membre.pointeur comme *[..]*T)
 
-            pour > noeud dans tableau {
-                info_traversée := tableau_ajoute_élément(traversée)
-                info_traversée.noeud = noeud
-                info_traversée.profondeur = visiteuse.profondeur + 1
+            saufsi possède_annotation(it, "NeVisitePas") {
+                pour > noeud dans tableau {
+                    info_traversée := tableau_ajoute_élément(traversée)
+                    info_traversée.noeud = noeud
+                    info_traversée.profondeur = visiteuse.profondeur + 1
+                }
             }
 
             si visiteuse.rappel_pour_tableau {
