@@ -1230,3 +1230,172 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fon
 
     retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Visiteuse arbre.
+ * Structure pour visiter des structures représentants des arbres (par exemple
+ * des arbres syntaxiques).
+ * La visite se fait en visitant récurisevemnt les rubriques des structures qui
+ * possèdent le même type de base. Par exemple :
+ *
+ * Expression :: struct {
+ *   type: type_de_données   <-- ne sera pas visité
+ * }
+ *
+ * ExpressionBinaire :: struct {
+ *   empl base: Expression
+ *   type = #type_de_cette_structure
+ *
+ *   gauche: *Expression   <-- sera visité
+ *   droite: *Expression   <-- sera visité
+ *   op: Opération   <-- ne sera pas visité
+ * }
+ *
+ * Pour que cela fonctionne le type des noeuds doit se trouver dans une rubrique
+ * appelée "type" de type "type_de_données".
+ *
+ * On peut définir les membres à ne pas visiter avec l'annotation @NeVisitePas
+ * \{ */
+
+VisiteEnfants :: énum {
+    Oui
+    Non
+}
+
+VisiteuseArbre :: struct ($T: type_de_données) {
+    InfoTraversée :: struct {
+        noeud: *T
+        profondeur: z32
+    }
+
+    rappel_pour_noeud: fonc(*VisiteuseArbre(T), *T, *InfoTypeStructure)(VisiteEnfants)
+    rappel_pour_tableau: fonc(*VisiteuseArbre(T), [..]*T)(rien)
+    profondeur: z32
+}
+
+visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
+{
+    saufsi racine {
+        retourne
+    }
+
+    traversée: [..]VisiteuseArbre(T).InfoTraversée
+    diffère déloge(traversée)
+
+    début_traversée := tableau_ajoute_élément(*traversée)
+    début_traversée.noeud = racine
+    début_traversée.profondeur = 0
+
+    tantque traversée.taille != 0 {
+        info_traversée := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        racine = info_traversée.noeud
+        saufsi racine {
+            continue
+        }
+        infos := donne_info_pour_type_noeud(racine)
+
+        visiteuse.profondeur = info_traversée.profondeur
+
+        si visiteuse.rappel_pour_noeud {
+            si visiteuse.rappel_pour_noeud(visiteuse, racine, infos) == VisiteEnfants.Non {
+                continue
+            }
+        }
+
+        valeur_eini : eini = ---
+        valeur_eini.pointeur = racine
+        valeur_eini.info = infos
+
+        traverse_structure(visiteuse, valeur_eini, *traversée)
+    }
+}
+
+#portée_fichier
+
+donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
+{
+    // À FAIRE : paramétrise l'accès du type
+    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, info_de(T)))
+    retourne résultat
+}
+
+traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, traversée: *$IT)
+{
+    info := valeur_eini.info comme *InfoTypeStructure
+
+    pour > info.membres {
+        si est_type_adresse_noeud_syntaxique(it.id, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            noeud := mémoire(membre.pointeur comme **T)
+            si noeud == nul {
+                continue
+            }
+
+            si possède_annotation(it, "NeVisitePas") {
+                continue
+            }
+
+            info_traversée := tableau_ajoute_élément(traversée)
+            info_traversée.noeud = noeud
+            info_traversée.profondeur = visiteuse.profondeur + 1
+            continue
+        }
+
+        si est_type_adresse_tableau_noeud_syntaxique(it.id, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+
+            tableau := mémoire(membre.pointeur comme *[..]*T)
+
+            pour > noeud dans tableau {
+                info_traversée := tableau_ajoute_élément(traversée)
+                info_traversée.noeud = noeud
+                info_traversée.profondeur = visiteuse.profondeur + 1
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+            }
+
+            continue
+        }
+
+        si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            traverse_structure(visiteuse, membre, traversée)
+            continue
+        }
+    }
+}
+
+est_type_adresse_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
+{
+    saufsi infos.id == GenreInfoType.POINTEUR {
+        retourne faux
+    }
+
+    type_pointeur := infos comme *InfoTypePointeur
+    saufsi type_pointeur.type_pointé {
+        retourne faux
+    }
+    saufsi type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+        retourne faux
+    }
+
+    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+    retourne est_struct_ou_employeuse_de(type_structure, info_noeud_base)
+}
+
+est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
+{
+    saufsi infos.id == GenreInfoType.TABLEAU {
+        retourne faux
+    }
+
+    type_tableau := infos comme *InfoTypeTableau
+    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé, info_noeud_base)
+}
+
+/** \} */
