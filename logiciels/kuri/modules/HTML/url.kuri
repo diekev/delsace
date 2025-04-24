@@ -429,9 +429,14 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
     // 1. If input starts with U+005B ([), then:
     si input.taille() > 0 && input.unités[0] == 0x5B {
         // 1. If input does not end with U+005D (]), IPv6-unclosed validation error, return failure.
+        si input.unités[input.unités.taille - 1] != 0x5D {
+            rapporte_erreur_url(ErreurDeParsage.IPv6Unclosed)
+            retourne
+        }
 
-        // 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
-        panique("non-implémenté")
+        // À FAIRE : 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
+        chaine_ipv6 := input.sous_chaine(1, input.taille() - 2)
+        retourne converti_vers_chaine(chaine_ipv6)
     }
 
     // 2. If isOpaque is true, then return the result of opaque-host parsing input.
@@ -796,6 +801,7 @@ ErreurDeParsage :: énum {
     FileInvalidWindowsDriveLetterHost
     InvalidURLUnit
     InvalidCredentials
+    IPv6Unclosed
 }
 
 rapporte_erreur_url :: fonc (code: ErreurDeParsage, fonction := #nom_de_cette_fonction)
