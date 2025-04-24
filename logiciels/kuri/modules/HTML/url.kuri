@@ -11,6 +11,22 @@ importe Unicode
 /* À FAIRE : structure correcte. */
 Host :: chaine
 
+crée_hôte_opaque :: fonc (chn: chaine) -> Host
+{
+    retourne chn
+}
+
+/* https://url.spec.whatwg.org/#forbidden-host-code-point */
+est_point_code_interdit_pour_hôte :: fonc (point_de_code: n32) -> bool
+{
+    pour "\0\t\n\r #/:<>?@[\\]^|" {
+        si point_de_code == it comme n32 {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -420,7 +436,7 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
 
     // 2. If isOpaque is true, then return the result of opaque-host parsing input.
     si is_opaque {
-        panique("non-implémenté")
+        retourne parse_opaque_host(input)
     }
 
     // 3. Assert: input is not the empty string.
@@ -437,6 +453,38 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
 
     // 8. Return asciiDomain.
     retourne ascii_domain
+}
+
+/* https://url.spec.whatwg.org/#concept-opaque-host-parser */
+parse_opaque_host :: fonc (input: ChaineUTF16) -> Optionnel(Host)
+{
+    // 1. If input contains a forbidden host code point, host-invalid-code-point validation error, return failure.
+    si possède(input, est_point_code_interdit_pour_hôte) {
+        rapporte_erreur_url(ErreurDeParsage.HostInvalidCodePoint)
+        retourne
+    }
+
+    // 2. If input contains a code point that is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+    pour c dans input.unités {
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
+    }
+
+    // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits, invalid-URL-unit validation error.
+    pour input.unités {
+        si it != 0x25 {
+            continue
+        }
+        
+        restant := sous_chaine(input, index_it + 1, input.taille() - 1)
+        si !commence_par(restant, est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
+    }
+
+    // À FAIRE 4. Return the result of running UTF-8 percent-encode on input using the C0 control percent-encode set.
+    retourne crée_hôte_opaque(converti_vers_chaine(input))
 }
 
 /** \} */
@@ -741,6 +789,7 @@ ErreurDeParsage :: énum {
     MissingSchemeNonRelativeURL
     InvalidReverseSolidus
     HostMissing
+    HostInvalidCodePoint
     PortOutOfRange
     PortInvalid
     FileInvalidWindowsDriveLetter
