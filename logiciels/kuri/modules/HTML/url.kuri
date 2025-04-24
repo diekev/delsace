@@ -795,6 +795,7 @@ ErreurDeParsage :: énum {
     FileInvalidWindowsDriveLetter
     FileInvalidWindowsDriveLetterHost
     InvalidURLUnit
+    InvalidCredentials
 }
 
 rapporte_erreur_url :: fonc (code: ErreurDeParsage, fonction := #nom_de_cette_fonction)
@@ -1244,14 +1245,20 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
     // 1. If c is U+0040 (@), then:
     c := parser.donne_caractère()
     si c == 0x40 {
-        panique("non-implementé")
         // 1. Invalid-credentials validation error.
+        rapporte_erreur_url(ErreurDeParsage.InvalidCredentials)
 
         // 2. If atSignSeen is true, then prepend "%40" to buffer.
+        si parser.at_sign_seen {
+            tableau_insère_index(*parser.buffer.unités, 0x00, 0)
+            tableau_insère_index(*parser.buffer.unités, 0x04, 0)
+            tableau_insère_index(*parser.buffer.unités, 0x25, 0)
+        }
 
         // 3. Set atSignSeen to true.
+        parser.at_sign_seen = vrai
 
-        // 4. For each codePoint in buffer:
+        // À FAIRE : 4. For each codePoint in buffer:
 
             // 1. If codePoint is U+003A (:) and passwordTokenSeen is false, then set passwordTokenSeen to true and continue.
 
@@ -1262,6 +1269,7 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
             // 4. Otherwise, append encodedCodePoints to url’s username.
 
         // 5. Set buffer to the empty string.
+        parser.buffer.unités.taille = 0
     }
     // 2. Otherwise, if one of the following is true:
         // c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
