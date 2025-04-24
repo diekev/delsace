@@ -868,7 +868,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 {
     // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
     c := parser.donne_caractère()
-    si est_lettre_ascii(c) || c == 0x2B || c == 0x2D || c == 0x2E {
+    si est_ascii_alphanumérique(c) || c == 0x2B || c == 0x2D || c == 0x2E {
         chaine_ajoute(*parser.buffer, en_minuscule(c comme n16))
         retourne RésultatParsageURL.Ok
     }
