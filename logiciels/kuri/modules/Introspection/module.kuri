@@ -996,6 +996,10 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 //
 // ./programme --option une_chaine --nombre 2
 //
+// Il est possible de renseigner une fonction permet de décrire les options via le paramètre "rapporte_aide".
+// Si un argument nommé "aide" est rencontré, cette fonction est appelée et le programme se terminera.
+// Si cette fonction n'est pas renseignée (nul est passé), nous tenterons de parser un argument nommé "aide".
+//
 // Optionnellement, un et un seul membre de la structure peut être « anonyme » :
 // il n'y a pas besoin d'avoir le nom du membre comme argument.
 // L'anonymat se fait via une annotation "@anonyme" sur le membre.
@@ -1110,7 +1114,20 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
     retourne faux
 }
 
+RapporteuseAide :: struct {
+}
+
+explique_argument :: fonc (rapporteuse: *RapporteuseAide @inutilisée, nom: chaine, texte: chaine)
+{
+    imprimeln("  -% : %", nom, texte)
+}
+
 parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) -> Résultat(T, chaine)
+{
+    retourne parse_arguments_ligne_commande(T, args, nul)
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
 {
     infos := info_de(T)
     résultat: T
@@ -1161,6 +1178,14 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
             arg = avance(arg, 1)
         }
 
+        si arg == "aide" {
+            si rapporte_aide {
+                rapporteuse: RapporteuseAide
+                rapporte_aide(*rapporteuse)
+                exit(0)
+            }
+        }
+
         membre := trouve_info_membre(infos, arg)
         saufsi membre {
             retourne imprime_chaine("Argument '%' inconnu", arg)
@@ -1191,6 +1216,11 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
 
 parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
 {
+    retourne parse_arguments_ligne_commande(T, nul)
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
+{
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     args := arguments_ligne_commande()
@@ -1198,5 +1228,5 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, ch
     /* Saute le nom du programme. */
     _ := consomme(*args)
 
-    retourne parse_arguments_ligne_commande(T, args)
+    retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
 }
