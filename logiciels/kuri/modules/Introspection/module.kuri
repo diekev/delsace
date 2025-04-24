@@ -992,11 +992,18 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 //  nombre: z32
 // }
 //
-// la ligne de commande devra avoir la forme :
+// la ligne de commande devra avoir l'une des formes suivantes :
 //
 // ./programme --option une_chaine --nombre 2
+// ./programme -option une_chaine -nombre 2
 //
-// Il est possible de renseigner une fonction permet de décrire les options via le paramètre "rapporte_aide".
+// Il est possible de référer une rubrique via le premier caractère de son nom :
+// 
+// ./programme -o une_chaine -n 2
+//
+// Toutefois ceci ne fonctionnera que si une seule rubrique commence par cette lettre.
+// 
+// Il est possible de renseigner une fonction pour décrire les options via le paramètre "rapporte_aide".
 // Si un argument nommé "aide" est rencontré, cette fonction est appelée et le programme se terminera.
 // Si cette fonction n'est pas renseignée (nul est passé), nous tenterons de parser un argument nommé "aide".
 //
@@ -1188,10 +1195,28 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, 
 
         membre := trouve_info_membre(infos, arg)
         saufsi membre {
-            retourne imprime_chaine("Argument '%' inconnu", arg)
+            si arg.taille == 1 {
+                pour infos.membres {
+                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                        continue
+                    }
+
+                    si it.nom[0] == arg[0] {
+                        si membre {
+                            membre = nul
+                            arrête
+                        }
+                        membre = it
+                    }
+                }
+            }
+
+            saufsi membre {
+                retourne imprime_chaine("Argument '%' inconnu", arg)
+            }
         }
 
-        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, arg))
+        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, membre.nom))
 
         si valeur_renseignée.comme_bool() {
             retourne imprime_chaine("Argument dupliqué pour '%'", arg)
