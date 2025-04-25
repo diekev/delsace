@@ -1439,7 +1439,7 @@ donne_outer_hypothetical_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFo
 
 LigneFlex :: struct {
     items: []ItemFlex
-    largeur: r64
+    main_size: r64
     used_cross_size: r64
 }
 
@@ -2012,7 +2012,7 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
 /* https://drafts.csswg.org/css-flexbox-1/#algo-line-break */
 collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    largeur_disponible := ctx.donne_inner_main_size()
+    espace_disponible := ctx.donne_inner_main_size()
 
     ligne_courante := tableau_ajoute_élément(*ctx.lignes)
     ligne_courante.items.pointeur = ctx.items.pointeur
@@ -2020,14 +2020,14 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
     plusieurs_lignes := !est_nowrap(ctx)
 
     pour * ctx.items {
-        largeur := it.hypothetical_main_size
+        main_size := it.hypothetical_main_size
 
-        si plusieurs_lignes && (ligne_courante.largeur + largeur) > largeur_disponible {
+        si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
             ligne_courante.items.pointeur = ctx.items.pointeur + index_it
         }
 
-        ligne_courante.largeur += largeur
+        ligne_courante.main_size += main_size
         ligne_courante.items.taille += 1
     }
 
