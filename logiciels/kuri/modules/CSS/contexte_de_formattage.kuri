@@ -2563,11 +2563,18 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
                 /* À FAIRE */
             }
             sinon si align_self == PROP_stretch || align_self == PROP_normal {
-                /* À FAIRE : prend les marges utilisées, donne_outer_cross_size utilise les marges calculées */
-                outer_cross_size := item.donne_outer_cross_size(ctx)
-                si outer_cross_size < it.used_cross_size {
-                    delta := it.used_cross_size - outer_cross_size
-                    item.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(item.used_cross_size + delta))
+                cross_size_prop := donne_cross_size_prop(ctx, item.noeud)
+                cross_margin_start := donne_cross_margin_start_prop(ctx, item.noeud)
+                cross_margin_end := donne_cross_margin_end_prop(ctx, item.noeud)
+
+                si cross_size_prop.est_auto() && !cross_margin_start.est_auto() && !cross_margin_end.est_auto() {
+                    outer_cross_size := item.donne_outer_cross_size(ctx)
+                    si outer_cross_size < it.used_cross_size {
+                        delta := it.used_cross_size - outer_cross_size
+                        // À FAIRE : min/max
+
+                        item.noeud.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(item.used_cross_size + delta))
+                    }
                 }
             }
         }
