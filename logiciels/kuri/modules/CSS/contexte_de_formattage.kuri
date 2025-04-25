@@ -1979,51 +1979,53 @@ résoud_flex_basis :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispo
 /* https://drafts.csswg.org/css-flexbox-1/#algo-main-container */
 determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
 {
-    /* Determine the main size of the flex container using the rules of the formatting
-     * context in which it participates. For this computation, auto margins on flex
-     * items are treated as 0. */
-    si mode == ModeDeFormattage.Normal {
-        // NOTE : fait par le contexte parent
+    /* Determine the main size of the flex container using the rules of the formatting context in which it participates.
+     * NOTE : The automatic block size of a block-level flex container is its max-content size. */
+    prop_size := donne_main_size_prop(ctx, ctx.contenant)
+    saufsi prop_size.est_auto() {
+        retourne
+    }
+
+    main_size: r64
+
+    pour ctx.items {
+        margin_start_prop := donne_main_margin_start_prop(ctx, it.noeud)
+        margin_end_prop := donne_main_margin_end_prop(ctx, it.noeud)
+        padding_start_prop := donne_used_main_padding_start_prop(ctx, it.noeud)
+        padding_end_prop := donne_used_main_padding_end_prop(ctx, it.noeud)
+        border_start_prop := donne_used_main_border_start_prop(ctx, it.noeud)
+        border_end_prop := donne_used_main_border_end_prop(ctx, it.noeud)
+
+        main_size += it.hypothetical_main_size
+
+        // À FAIRE : pourcentages, calc, etc.
+        si margin_start_prop.est_pixels() {
+            main_size += margin_start_prop.donne_pixels()
+        }
+        si margin_end_prop.est_pixels() {
+            main_size += margin_end_prop.donne_pixels()
+        }
+
+        main_size += padding_start_prop.donne_pixels()
+        main_size += padding_end_prop.donne_pixels()
+        main_size += border_start_prop.donne_pixels()
+        main_size += border_end_prop.donne_pixels()
+    }
+
+    min_size := donne_min_main_size_prop(ctx, ctx.contenant)
+    max_size := donne_max_main_size_prop(ctx, ctx.contenant)
+
+    main_size = restreint_taille(main_size, min_size, max_size, nul)
+
+    ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size))
+    si ctx.main_axis == DirectionFlex.Horizontale {
+        ctx.contenant.ajourne_boite_pour_calcul_largeur()
     }
     sinon {
-        prop_size := donne_main_size_prop(ctx, ctx.contenant)
-        saufsi prop_size.est_auto() {
-            retourne
-        }
-
-        main_size: r64
-
-        pour ctx.items {
-            margin_start_prop := donne_main_margin_start_prop(ctx, it.noeud)
-            margin_end_prop := donne_main_margin_end_prop(ctx, it.noeud)
-            padding_start_prop := donne_used_main_padding_start_prop(ctx, it.noeud)
-            padding_end_prop := donne_used_main_padding_end_prop(ctx, it.noeud)
-            border_start_prop := donne_used_main_border_start_prop(ctx, it.noeud)
-            border_end_prop := donne_used_main_border_end_prop(ctx, it.noeud)
-
-            main_size += it.hypothetical_main_size
-
-            // À FAIRE : pourcentages, calc, etc.
-            si margin_start_prop.est_pixels() {
-                main_size += margin_start_prop.donne_pixels()
-            }
-            si margin_end_prop.est_pixels() {
-                main_size += margin_end_prop.donne_pixels()
-            }
-
-            main_size += padding_start_prop.donne_pixels()
-            main_size += padding_end_prop.donne_pixels()
-            main_size += border_start_prop.donne_pixels()
-            main_size += border_end_prop.donne_pixels()
-        }
-
-        ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size))
-        si ctx.main_axis == DirectionFlex.Horizontale {
-            ctx.contenant.ajourne_boite_pour_calcul_largeur()
-        }
+        ctx.contenant.ajourne_boite_pour_calcul_hauteur()
     }
 
-    imprimeln("[%] %", #nom_de_cette_fonction, ctx.donne_inner_main_size())
+    imprimeln("[%] % (%) (%)", #nom_de_cette_fonction, ctx.donne_inner_main_size(), ctx.ids_props[MAIN_INDEX].size, ctx.main_axis)
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-line-break */
@@ -2604,9 +2606,10 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
     max_cross_size := donne_max_cross_size_prop(ctx)
 
     params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx)
+    params_box_sizing.applique_delta_à_taille_de_base = faux
     used_cross_size = restreint_taille(used_cross_size, min_cross_size, max_cross_size, *params_box_sizing)
 
-    // imprimeln("[%] %", #nom_de_cette_fonction, used_cross_size)
+    imprimeln("[%] %", #nom_de_cette_fonction, used_cross_size)
 
     définis_used_cross_size(ctx, used_cross_size)
 
