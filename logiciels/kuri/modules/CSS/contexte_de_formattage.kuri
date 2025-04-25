@@ -1507,11 +1507,19 @@ est_single_line :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
 
 donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
+    si ctx.main_axis == DirectionFlex.Verticale {
+        retourne ctx.contenant.modèle_de_boite.marge.hauteur
+    }
+
     retourne ctx.contenant.modèle_de_boite.marge.largeur
 }
 
 donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
+    si ctx.main_axis == DirectionFlex.Verticale {
+        retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+    }
+
     retourne ctx.contenant.modèle_de_boite.contenu.largeur
 }
 
@@ -1575,7 +1583,7 @@ donne_inner_cross_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
         retourne ctx.contenant.modèle_de_boite.contenu.hauteur
     }
 
-    retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+    retourne ctx.contenant.modèle_de_boite.contenu.largeur
 }
 
 donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
@@ -1600,6 +1608,15 @@ donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 donne_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> r32
 {
     si ctx.est_direction_row {
+        retourne noeud.modèle_de_boite.marge.largeur
+    }
+
+    retourne noeud.modèle_de_boite.marge.hauteur
+}
+
+donne_used_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> r32
+{
+    si ctx.main_axis == DirectionFlex.Horizontale {
         retourne noeud.modèle_de_boite.marge.largeur
     }
 
@@ -2380,8 +2397,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
         remaining_free_space := ctx.donne_inner_main_size()
         auto_margins := 0
         pour * item dans it.items {
-            // À FAIRE(direction flex)
-            remaining_free_space -= item.noeud.modèle_de_boite.marge.largeur
+            remaining_free_space -= donne_used_outer_main_size(ctx, item.noeud)
 
             margin_start_prop := donne_main_margin_start_prop(ctx, item.noeud)
             margin_end_prop := donne_main_margin_end_prop(ctx, item.noeud)
@@ -2437,8 +2453,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
             item.position_finale[ctx.main_axis] = décalage_pre + décalage_main_item
             item.position_finale[ctx.cross_axis] = décalages[ctx.cross_axis]
 
-            // À FAIRE(direction flex) modèle_de_boite
-            décalage_main_item += décalage_pre + item.noeud.modèle_de_boite.marge.largeur + décalage_post
+            décalage_main_item += décalage_pre + donne_used_outer_main_size(ctx, item.noeud) + décalage_post
         }
 
         décalages[ctx.cross_axis] += it.used_cross_size comme r32
