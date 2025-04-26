@@ -6,15 +6,6 @@ importe Compilatrice
 importe Fondation
 importe SysFichier
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "js_gen"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 principale :: fonc ()
 {
     contenu := contenu_fichier_texte(CheminFichier("js_gen.txt"))

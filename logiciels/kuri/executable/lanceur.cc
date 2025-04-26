@@ -604,6 +604,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     /* Charge d'abord le module basique. */
     auto espace_defaut = compilatrice.espace_de_travail_defaut;
+    espace_defaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
 
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);

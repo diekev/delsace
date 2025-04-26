@@ -17,15 +17,6 @@ importe Triage
 
 importe POSIX
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "serveuse"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 principale :: fonc ()
 {
     // extrémité := crée_extrémité_serveuse(faux)
