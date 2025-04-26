@@ -309,6 +309,36 @@ définis_arrière_plan :: fonc (couleur := CouleurRVBA())
     __boite_courante.arrière_plan = couleur
 }
 
+IndexFlottance :: #opaque n16
+
+FLOTTANCE_INVALIDE :: IndexFlottance(-1 comme n16)
+
+est_valide :: fonc (index: IndexFlottance) -> bool #enligne
+{
+    retourne index comme n16 != FLOTTANCE_INVALIDE comme n16
+}
+
+Flottance :: struct {
+    /* Décalages par rapport au parent. */
+    décalage_x := 0.0
+    décalage_y := 0.0
+}
+
+définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0)
+{
+    assert(__boite_courante != nul)
+    emboiteuse := __boite_courante.emboiteuse
+
+    si __boite_courante.flottance.est_valide() {
+        config := *emboiteuse.flottances[__boite_courante.flottance]
+        config.décalage_x = décalage_x
+        config.décalage_y = décalage_y
+    }
+    sinon {
+        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(décalage_x, décalage_y))
+    }
+}
+
 termine_rectangle :: fonc ()
 {
     assert(__boite_courante != nul)
@@ -394,6 +424,8 @@ BoiteFlexible :: struct {
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
     données_procédure: *rien
+
+    flottance := FLOTTANCE_INVALIDE
 
     /* Rappels */
     rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
@@ -651,6 +683,7 @@ Emboiteuse :: struct {
     éditrices_textes: [..]ÉditriceTextePourId
 
     bordures: [..]ConfigurationBordure
+    flottances: [..]Flottance
 
     souris_x: r32
     souris_y: r32
@@ -726,12 +759,20 @@ réinitialise :: fonc (emboiteuse: *Emboiteuse)
     emboiteuse.toutes_les_boites.taille = 0
     emboiteuse.fragments.taille = 0
     emboiteuse.bordures.taille = 0
+    emboiteuse.flottances.taille = 0
 }
 
 ajoute_configuration_bordure :: fonc (emboiteuse: *Emboiteuse, config: ConfigurationBordure) -> IndexConfigBordure
 {
     résultat := IndexConfigBordure(emboiteuse.bordures.taille comme n16)
     tableau_ajoute(*emboiteuse.bordures, config)
+    retourne résultat
+}
+
+ajoute_flottance :: fonc (emboiteuse: *Emboiteuse, flottance: Flottance) -> IndexFlottance
+{
+    résultat := IndexFlottance(emboiteuse.flottances.taille comme n16)
+    tableau_ajoute(*emboiteuse.flottances, flottance)
     retourne résultat
 }
 
@@ -1161,8 +1202,16 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
 
     cotation := 0.0
 
+    nombre_enfants_non_flottants := 0
+
     pour boite.enfants {
         calcule_cotation_sur_direction(it, direction)
+
+        si it.flottance.est_valide() {
+            continue
+        }
+
+        nombre_enfants_non_flottants += 1
 
         taille_enfant := it.donne_taille(direction)
 
@@ -1188,7 +1237,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         cotation += boite.donne_rembourrage(direction)
 
         si boite.disposition.direction == direction {
-            cotation += (boite.enfants.taille - 1) comme r32 * boite.disposition.séparation_enfant
+            cotation += (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant
         }
 
         cotation = max(cotation, boite.donne_cotation(direction) comme r32)
@@ -1216,6 +1265,9 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
         espace_libre := boite.donne_taille(direction) - boite.donne_rembourrage(direction)
 
         pour boite.enfants {
+            si it.flottance.est_valide() {
+                continue
+            }
             si it.est_cotation_croissante(direction) {
                 it.agrandis_par(direction, espace_libre - it.donne_taille(direction))
             }
@@ -1249,6 +1301,9 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
     décroissables.taille = 0
 
     pour boite.enfants {
+        si it.flottance.est_valide() {
+            continue
+        }
         si it.est_cotation_croissante(direction) {
             tableau_ajoute(*croissables, it)
         }
@@ -1412,6 +1467,15 @@ calcule_positions :: fonc (boite: *BoiteFlexible)
     }
 
     pour boite.enfants {
+        si it.flottance.est_valide() {
+            flottance := boite.emboiteuse.flottances[it.flottance]
+            it.position.x = boite.position.x + flottance.décalage_x
+            it.position.y = boite.position.y + flottance.décalage_y + boite.hauteur
+
+            calcule_positions(it)
+            continue
+        }
+
         décalage_pour_enfant := décalage_enfants
 
         si alignement_orthogonal != AlignementEnfant.Début {
@@ -1438,7 +1502,13 @@ donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
 {
     espace_occupé := 0.0
 
+    nombre_enfants_non_flottants := 0
+
     pour boite.enfants {
+        si it.flottance.est_valide() {
+            continue
+        }
+        nombre_enfants_non_flottants += 1
         si axe_y {
             espace_occupé += it.hauteur
         }
@@ -1447,7 +1517,7 @@ donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
         }
     }
 
-    espace_occupé += boite.disposition.séparation_enfant * (boite.enfants.taille - 1) comme r32
+    espace_occupé += boite.disposition.séparation_enfant * (nombre_enfants_non_flottants - 1) comme r32
 
     si axe_y {
         espace_occupé += boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]
@@ -1464,8 +1534,23 @@ donne_hauteur_enfants :: fonc (boite: *BoiteFlexible) -> r32
         retourne 0.0
     }
 
-    premier_enfant := boite.enfants[0]
-    dernier_enfant := boite.enfants[boite.enfants.taille - 1]
+    premier_enfant: *BoiteFlexible
+    dernier_enfant: *BoiteFlexible
+
+    pour boite.enfants {
+        si it.flottance.est_valide() {
+            continue
+        }
+        si premier_enfant == nul {
+            premier_enfant = it
+        }
+        dernier_enfant = it
+    }
+
+    si premier_enfant == nul {
+        assert(dernier_enfant == nul)
+        retourne 0.0
+    }
 
     retourne dernier_enfant.position.y + dernier_enfant.hauteur - premier_enfant.position.y
 }
@@ -1538,6 +1623,9 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
 
             pour > boite.enfants {
+                si it.flottance.est_valide() {
+                    continue
+                }
                 tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
                 tableau_ajoute(*emboiteuse.traversée_boites, it)
             }
@@ -1589,6 +1677,13 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             
             couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
             commandes.remplis_rectangle(rect, couleur_barre)
+        }
+
+        pour > boite.enfants {
+            si it.flottance.est_valide() {
+                tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
+                tableau_ajoute(*emboiteuse.traversée_boites, it)
+            }
         }
     }
 }

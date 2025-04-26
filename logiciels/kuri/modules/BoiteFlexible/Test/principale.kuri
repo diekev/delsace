@@ -248,7 +248,7 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
                         disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = [16.0, 0.0, 16.0, 0.0], séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu),
                         config = ConfigurationRectangle(rayon_coin = 8.0))
         {
-            ajoute_bouton_barre_menu(fonte, "Ficher")
+            ajoute_bouton_barre_menu(fonte, "Fichier")
             ajoute_bouton_barre_menu(fonte, "Édition")
 
             dispose_séparateur_horizontal()
@@ -299,12 +299,31 @@ ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
     {
         si est_survolée() {
             définis_arrière_plan(CouleurRVBA(0.649, 0.649, 0.649, 1.0))
+
+            si texte == "Fichier" {
+                dessine_menu_fichier(fonte)
+            }
         }
         sinon {
             définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
         }
 
         dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+    }
+    termine_rectangle()
+}
+
+dessine_menu_fichier :: fonc (fonte: *Fonte)
+{
+    dispose_rectangle(disposition = ConfigurationDiposition(rembourrage = [16.0, 8.0, 16.0, 8.0], séparation_enfant = 16.0, direction = Direction.Verticale), config = ConfigurationRectangle(rayon_coin = 5.0))
+    {
+        définis_flottance(décalage_y = 16.0)
+        définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
+
+        dispose_texte("Ouvrir", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        dispose_texte("Sauvegarder", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        dispose_texte("Sauvegarder Sous...", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        dispose_texte("Quitter", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
     }
     termine_rectangle()
 }
