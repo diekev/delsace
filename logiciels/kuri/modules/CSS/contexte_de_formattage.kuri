@@ -2782,13 +2782,13 @@ formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispos
 
     pour * ligne, index_ligne dans ctx.lignes {
         justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
-        espace_disponible := (largeur_disponible - ligne.largeur) comme r32
+        espace_disponible := (largeur_disponible - ligne.main_size) comme r32
 
         distribue_espace_disponible(ctx, ligne, espace_disponible, mode)
 
-        espace_disponible = (largeur_disponible - ligne.largeur) comme r32
+        espace_disponible = (largeur_disponible - ligne.main_size) comme r32
 
-        imprime("ligne[%].largeur %, espace_disponible %\n", index_ligne, ligne.largeur, espace_disponible)
+        imprime("ligne[%].main_size %, espace_disponible %\n", index_ligne, ligne.main_size, espace_disponible)
 
         décalage_pre := 0.0
         décalage_post := 0.0
@@ -2980,10 +2980,10 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
         it.mesure(ctx, mode, personnalisation)
     }
 
-    ligne.largeur = 0.0
+    ligne.main_size = 0.0
     pour item dans ligne.items {
         it := item.noeud
-        ligne.largeur += it.modèle_de_boite.marge.largeur
+        ligne.main_size += it.modèle_de_boite.marge.largeur
     }
 }
 
