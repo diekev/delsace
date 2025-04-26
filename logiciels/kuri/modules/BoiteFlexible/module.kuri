@@ -640,6 +640,9 @@ Emboiteuse :: struct {
     toutes_les_boites: [..]*BoiteFlexible
     boites_libres: [..]*BoiteFlexible
 
+    traversée_boites: [..]*BoiteFlexible
+    boites_à_visiter: [..]z64
+
     fragments: [..]FragmentTexte
 
     boites_disposées: [..]BoiteDisposée
@@ -677,6 +680,8 @@ détruit_données :: fonc (emboiteuse: *Emboiteuse)
     déloge(emboiteuse.bordures)
     déloge(emboiteuse.croissables)
     déloge(emboiteuse.décroissables)
+    déloge(emboiteuse.traversée_boites)
+    déloge(emboiteuse.boites_à_visiter)
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -790,7 +795,7 @@ termine_disposition :: fonc (emboiteuse: *Emboiteuse) -> CommandesDeRendu
         calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale)
         résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale)
         calcule_positions(emboiteuse.racine)
-        génère_commandes(emboiteuse.racine, *emboiteuse.commandes)
+        génère_commandes(emboiteuse)
 
         enregistre_disposition(emboiteuse)
     }
@@ -1465,98 +1470,126 @@ donne_hauteur_enfants :: fonc (boite: *BoiteFlexible) -> r32
     retourne dernier_enfant.position.y + dernier_enfant.hauteur - premier_enfant.position.y
 }
 
-génère_commandes :: fonc (boite: *BoiteFlexible, commandes: *CommandesDeRendu)
+génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 {
-    rect: RectanglePosDim(r32)
-    rect.x = boite.position.x
-    rect.y = boite.position.y
-    rect.largeur = boite.largeur
-    rect.hauteur = boite.hauteur
+    commandes := *emboiteuse.commandes
 
-    discr boite.type {
-        Normale {
-            si boite.rectangle.rayon_coin != 0.0 {
-                commandes.remplis_rectangle_arrondi(rect, boite.arrière_plan, boite.rectangle.rayon_coin)
-            }
-            sinon {
-                commandes.remplis_rectangle(rect, boite.arrière_plan)
+    tableau_réserve(*emboiteuse.traversée_boites, emboiteuse.toutes_les_boites.taille)
+    tableau_réserve(*emboiteuse.boites_à_visiter, emboiteuse.toutes_les_boites.taille)
+
+    tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
+    tableau_ajoute(*emboiteuse.traversée_boites, emboiteuse.racine)
+
+    tantque emboiteuse.traversée_boites.taille != 0 {
+        /* Traverse d'abord les boites et leurs enfants, pour générer les commandes. */
+        si emboiteuse.boites_à_visiter.taille != 0 {
+            boite := emboiteuse.traversée_boites[enlève_dernier_élément(*emboiteuse.boites_à_visiter)]
+
+            rect: RectanglePosDim(r32)
+            rect.x = boite.position.x
+            rect.y = boite.position.y
+            rect.largeur = boite.largeur
+            rect.hauteur = boite.hauteur
+
+            discr boite.type {
+                Normale {
+                    si boite.rectangle.rayon_coin != 0.0 {
+                        commandes.remplis_rectangle_arrondi(rect, boite.arrière_plan, boite.rectangle.rayon_coin)
+                    }
+                    sinon {
+                        commandes.remplis_rectangle(rect, boite.arrière_plan)
+                    }
+
+                    si boite.index_bordure.est_valide() {
+                        config := boite.emboiteuse.bordures[boite.index_bordure]
+                        commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+                    }
+                }
+                Texte {
+                    /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
+                    si boite.texte.taille == 0 {
+                        continue
+                    }
+
+                    premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
+                    dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
+                    métriques := boite.config_texte.fonte.donne_métriques_fonte()
+
+                    rect.hauteur = métriques.donne_hauteur_ligne()
+
+                    tantque premier_fragment < dernier_fragment {
+                        commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
+                        premier_fragment += 1
+
+                        rect.y += métriques.donne_hauteur_ligne()
+                    }
+                }
+                Image {
+                    commandes.dessine_image(rect, boite.image)
+                }
+                Procédure {
+                    commandes.dessine_procédural(rect, boite.procédure, boite.données_procédure)
+                }
             }
 
-            si boite.index_bordure.est_valide() {
-                config := boite.emboiteuse.bordures[boite.index_bordure]
-                commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+            si boite.défilage.vertical || boite.défilage.horizontal {
+                // À FAIRE : ne restreint que dans la bonne direction
+                commandes.débute_ciselage(rect)
+            }
+
+            pour > boite.enfants {
+                tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
+                tableau_ajoute(*emboiteuse.traversée_boites, it)
+            }
+
+            continue
+        }
+
+        /* Maintenant que nous avons généré les commandes de base, nous remontons dans l'arbre pour
+         * dessiner les éléments devant êtres devant les enfants (barre de défilement, etc). */
+        boite := enlève_dernier_élément(*emboiteuse.traversée_boites)
+
+        rect: RectanglePosDim(r32)
+        rect.x = boite.position.x
+        rect.y = boite.position.y
+        rect.largeur = boite.largeur
+        rect.hauteur = boite.hauteur
+
+        si boite.défilage.vertical || boite.défilage.horizontal {
+            commandes.termine_ciselage()
+
+            si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
+                barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+
+                hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+
+                rect.x = rect.x + boite.largeur - 16.0
+                rect.y = rect.y + boite.disposition.rembourrage[1] + barre.défilage * barre.ratio
+                rect.largeur = 12.0
+                rect.hauteur = hauteur_disponible * barre.ratio
+
+                couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+
+                commandes.remplis_rectangle(rect, couleur_barre)
             }
         }
-        Texte {
-            /* À FAIRE : décalage de 1 dans le calcul des index des fragments. */
-            si boite.texte.taille == 0 {
-                retourne
-            }
 
-            premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
-            dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
-            métriques := boite.config_texte.fonte.donne_métriques_fonte()
+        éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
+        si éditrice && éditrice.curseur_est_affiché {
+            texte_avant_curseur := éditrice.texte_à_éditer
+            texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
 
-            rect.hauteur = métriques.donne_hauteur_ligne()
-
-            tantque premier_fragment < dernier_fragment {
-                commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
-                premier_fragment += 1
-
-                rect.y += métriques.donne_hauteur_ligne()
-            }
-        }
-        Image {
-            commandes.dessine_image(rect, boite.image)
-        }
-        Procédure {
-            commandes.dessine_procédural(rect, boite.procédure, boite.données_procédure)
-        }
-    }
-
-    si boite.défilage.vertical || boite.défilage.horizontal {
-        // À FAIRE : ne restreint que dans la bonne direction
-        commandes.débute_ciselage(rect)
-    }
-
-    pour boite.enfants {
-        génère_commandes(it, commandes)
-    }
-
-    si boite.défilage.vertical || boite.défilage.horizontal {
-        commandes.termine_ciselage()
-
-        si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
-            barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
-
+            curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
             hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
 
-            rect.x = rect.x + boite.largeur - 16.0
-            rect.y = rect.y + boite.disposition.rembourrage[1] + barre.défilage * barre.ratio
-            rect.largeur = 12.0
-            rect.hauteur = hauteur_disponible * barre.ratio
-
-            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
-
+            rect.x = rect.x + boite.disposition.rembourrage[0] + curseur_x comme r32
+            rect.y = rect.y + boite.disposition.rembourrage[1]
+            rect.largeur = 1.0
+            rect.hauteur = hauteur_disponible
+            
+            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
             commandes.remplis_rectangle(rect, couleur_barre)
         }
-    }
-
-    éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
-    si éditrice && éditrice.curseur_est_affiché {
-        texte_avant_curseur := éditrice.texte_à_éditer
-        texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
-
-        curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
-        hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
-
-        rect.x = rect.x + boite.disposition.rembourrage[0] + curseur_x comme r32
-        rect.y = rect.y + boite.disposition.rembourrage[1]
-        rect.largeur = 1.0
-        rect.hauteur = hauteur_disponible
-        
-        couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
-        commandes.remplis_rectangle(rect, couleur_barre)
     }
 }
 
