@@ -685,8 +685,10 @@ Emboiteuse :: struct {
     bordures: [..]ConfigurationBordure
     flottances: [..]Flottance
 
-    souris_x: r32
-    souris_y: r32
+    /* Hors des bordures pour éviter les problèmes lors du démarrage des applications
+     * (p.e. un élément est détecté comme survolé alors que la souris est ailleurs). */
+    souris_x : r32 = -1.0
+    souris_y : r32 = -1.0
 
     hauteur_racine: r32
 
