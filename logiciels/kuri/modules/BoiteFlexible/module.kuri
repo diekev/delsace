@@ -678,6 +678,7 @@ Emboiteuse :: struct {
     fragments: [..]FragmentTexte
 
     boites_disposées: [..]BoiteDisposée
+    boites_disposées_flottantes: [..]z32
 
     barres_de_défilement: [..]BarreDeDéfilement
     éditrices_textes: [..]ÉditriceTextePourId
@@ -710,6 +711,7 @@ détruit_données :: fonc (emboiteuse: *Emboiteuse)
     déloge(emboiteuse.boites_libres)
     déloge(emboiteuse.fragments)
     déloge(emboiteuse.boites_disposées)
+    déloge(emboiteuse.boites_disposées_flottantes)
     déloge(emboiteuse.barres_de_défilement)
     déloge(emboiteuse.éditrices_textes)
     déloge(emboiteuse.bordures)
@@ -851,6 +853,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse)
     assert(emboiteuse.racine != nul)
 
     emboiteuse.boites_disposées.taille = 0
+    emboiteuse.boites_disposées_flottantes.taille = 0
     tableau_réserve(*emboiteuse.boites_disposées, emboiteuse.toutes_les_boites.taille)
 
     enregistre_disposition(emboiteuse, emboiteuse.racine, -1)
@@ -887,6 +890,10 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
         }
         sinon {
             emboiteuse.boites_disposées[dernier_enfant].puiné = index_enfant
+        }
+
+        si it.flottance.est_valide() {
+            tableau_ajoute(*emboiteuse.boites_disposées_flottantes, index_enfant)
         }
         
         enregistre_disposition(emboiteuse, it, index_boite_disposée)
@@ -1073,7 +1080,16 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
     }
 
     racine_boites_disposées := *emboiteuse.boites_disposées[0]
+
     boite_courante := racine_boites_disposées
+
+    pour emboiteuse.boites_disposées_flottantes {
+        boite := racine_boites_disposées + it
+        si boite.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
+            boite_courante = boite
+            arrête
+        }
+    }
 
     boucle {
         si boite_courante.premier_enfant == -1 {
