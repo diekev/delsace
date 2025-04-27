@@ -1905,6 +1905,13 @@ NoeudDeDisposition :: struct {
     traite_comme_display_none: bool
     est_pseudo_element: bool
     fut_dessiné: bool
+
+    MémoireVive :: struct {
+        min_content_width: Optionnel(r64)
+        max_content_width: Optionnel(r64)
+    }
+
+    mémoire_vive: MémoireVive
 }
 
 donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle

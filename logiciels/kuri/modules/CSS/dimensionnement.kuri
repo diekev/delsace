@@ -1696,16 +1696,28 @@ calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDi
 /* NOTE : This is called the “preferred minimum width” in CSS2.1§10.3.5 and the “minimum content width” in CSS2.1§17.5.2.2. */
 calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
 {
+    si noeud.mémoire_vive.min_content_width.possède_valeur() {
+        retourne noeud.mémoire_vive.min_content_width.Quelque
+    }
+
     formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne)
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    noeud.mémoire_vive.min_content_width = résultat
+    retourne résultat
 }
 
 /* This is called the “preferred width” in CSS2.1§10.3.5 and the “maximum cell width” in CSS2.1§17.5.2.2. */
 calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
 {
+    si noeud.mémoire_vive.max_content_width.possède_valeur() {
+        retourne noeud.mémoire_vive.max_content_width.Quelque
+    }
+
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
     formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite)
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    noeud.mémoire_vive.max_content_width = résultat
+    retourne résultat
 }
 
 calcule_fit_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available: AvailableSize) -> r64
