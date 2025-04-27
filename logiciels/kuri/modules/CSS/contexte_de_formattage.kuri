@@ -1144,104 +1144,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
  * https://drafts.csswg.org/css-flexbox-1/
  * \{ */
 
-/* https://www.w3.org/TR/css-sizing-3/#size */
-Size :: union {
-    Definite: r64
-    Indefinite
-}
-
-est_definite :: fonc (size: Size) -> bool
-{
-    discr size {
-        Definite {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-imprime_size :: fonc (enchaineuse: *Enchaineuse, size: *Size)
-{
-    discr mémoire(size) {
-        Definite(v) {
-            ajoute_au_tampon(enchaineuse, v)
-        }
-        Indefinite {
-            ajoute_au_tampon(enchaineuse, "indefinite")
-        }
-        sinon {
-            ajoute_au_tampon(enchaineuse, "invalide")
-        }
-    }
-} @FormattageImpression
-
-/* https://www.w3.org/TR/css-sizing-3/#available */
-AvailableSpace :: union {
-    Definite: r64
-    Indefinite
-    MinContent
-    MaxContent
-}
-
-est_definite :: fonc (space: AvailableSpace) -> bool
-{
-    discr space {
-        Definite {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_min_content :: fonc (space: AvailableSpace) -> bool
-{
-    discr space {
-        MinContent {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-est_max_content :: fonc (space: AvailableSpace) -> bool
-{
-    discr space {
-        MaxContent {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
-imprime_available_space :: fonc (enchaineuse: *Enchaineuse, space: *AvailableSpace)
-{
-    discr mémoire(space) {
-        Definite(v) {
-            ajoute_au_tampon(enchaineuse, v)
-        }
-        Indefinite {
-            ajoute_au_tampon(enchaineuse, "indefinite")
-        }
-        MinContent {
-            ajoute_au_tampon(enchaineuse, "min-content")
-        }
-        MaxContent {
-            ajoute_au_tampon(enchaineuse, "max-content")
-        }
-        sinon {
-            ajoute_au_tampon(enchaineuse, "invalide")
-        }
-    }
-} @FormattageImpression
-
 est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 {
     si base.table_virtuelle.type == NoeudDeDispositionTexte {
@@ -1467,9 +1369,6 @@ ContexteDeFormattageFlex :: struct {
     cross_axis: DirectionFlex
     est_direction_row := vrai
     est_reverse := faux
-
-    available_main_space: AvailableSpace
-    available_cross_space: AvailableSpace
 
     main_size: Size
     inner_main_size: Size
