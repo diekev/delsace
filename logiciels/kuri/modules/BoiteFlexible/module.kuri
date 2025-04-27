@@ -241,9 +241,13 @@ Cotation :: struct {
     hauteur: z32
 }
 
+Rembourrage :: struct {
+    v: [4]r32
+}
+
 ConfigurationDiposition :: struct {
     cotation: Cotation
-    rembourrage: [4]r32
+    rembourrage: Rembourrage
     séparation_enfant: r32
     alignement_horizontal: AlignementEnfant
     alignement_vertical: AlignementEnfant
@@ -268,18 +272,22 @@ ConfigurationBordure :: struct {
     couleur: CouleurRVBA
 }
 
-dispose_rectangle :: fonc (id := "", arrière_plan := CouleurRVBA(), disposition := ConfigurationDiposition(), défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
+dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
 {
     assert(__boite_courante != nul)
 
     boite := __boite_courante.ajoute_enfant()
     boite.id = calcule_empreinte_djb2(id)
-    boite.arrière_plan = arrière_plan
-    boite.disposition = disposition
     boite.défilage = défilage
     boite.rectangle = config
 
     __boite_courante = boite
+}
+
+définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.disposition = ConfigurationDiposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
 }
 
 ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
@@ -301,6 +309,11 @@ ajoute_défilage :: fonc (config: ConfigurationDéfilage)
 {
     assert(__boite_courante != nul)
     __boite_courante.défilage = config
+}
+
+définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
+{
+    définis_arrière_plan(CouleurRVBA(r, v, b, a))
 }
 
 définis_arrière_plan :: fonc (couleur := CouleurRVBA())
@@ -499,9 +512,9 @@ définis_taille_au_max :: fonc (boite: *BoiteFlexible, direction: Direction, val
 donne_rembourrage :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
 {
     si direction == Direction.Horizontale {
-        retourne boite.disposition.rembourrage[0] + boite.disposition.rembourrage[2]
+        retourne boite.disposition.rembourrage.v[0] + boite.disposition.rembourrage.v[2]
     }
-    retourne boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]
+    retourne boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]
 }
 
 agrandis_par :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
@@ -951,7 +964,7 @@ enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
     }
 
     hauteur_enfants := donne_hauteur_enfants(boite)
-    hauteur_disponible := (boite.hauteur - (boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]))
+    hauteur_disponible := (boite.hauteur - (boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]))
 
     si hauteur_enfants <= hauteur_disponible {
         // À FAIRE : libère la mémoire
@@ -1456,7 +1469,7 @@ fragmente_texte :: fonc (boite: *BoiteFlexible)
 
 calcule_positions :: fonc (boite: *BoiteFlexible)
 {
-    décalage_enfants := [boite.disposition.rembourrage[0], boite.disposition.rembourrage[1]]
+    décalage_enfants := [boite.disposition.rembourrage.v[0], boite.disposition.rembourrage.v[1]]
 
     orthogonale := Direction.Horizontale
     si boite.disposition.direction == orthogonale {
@@ -1538,11 +1551,11 @@ donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
     espace_occupé += boite.disposition.séparation_enfant * (nombre_enfants_non_flottants - 1) comme r32
 
     si axe_y {
-        espace_occupé += boite.disposition.rembourrage[1] + boite.disposition.rembourrage[3]
+        espace_occupé += boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]
         retourne boite.hauteur - espace_occupé
     }
 
-    espace_occupé += boite.disposition.rembourrage[0] + boite.disposition.rembourrage[2]
+    espace_occupé += boite.disposition.rembourrage.v[0] + boite.disposition.rembourrage.v[2]
     retourne boite.largeur - espace_occupé
 }
 
@@ -1667,10 +1680,10 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
                 barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
 
-                hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+                hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
                 rect.x = rect.x + boite.largeur - 16.0
-                rect.y = rect.y + boite.disposition.rembourrage[1] + barre.défilage * barre.ratio
+                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio
                 rect.largeur = 12.0
                 rect.hauteur = hauteur_disponible * barre.ratio
 
@@ -1686,10 +1699,10 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
 
             curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
-            hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage[1] - boite.disposition.rembourrage[3])
+            hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-            rect.x = rect.x + boite.disposition.rembourrage[0] + curseur_x comme r32
-            rect.y = rect.y + boite.disposition.rembourrage[1]
+            rect.x = rect.x + boite.disposition.rembourrage.v[0] + curseur_x comme r32
+            rect.y = rect.y + boite.disposition.rembourrage.v[1]
             rect.largeur = 1.0
             rect.hauteur = hauteur_disponible
             
