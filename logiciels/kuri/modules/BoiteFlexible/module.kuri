@@ -643,7 +643,6 @@ FragmentTexte :: struct {
 }
 
 BarreDeDéfilement :: struct {
-    id: chaine
     défilage: r32
     défilage_max: r32
     /* hauteur disponible / hauteur contenu */
