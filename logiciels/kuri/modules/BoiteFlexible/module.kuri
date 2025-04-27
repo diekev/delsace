@@ -1,5 +1,6 @@
 importe Chaine
 importe Couleur
+importe Empreinte
 importe Fondation
 importe Géométrie
 importe Image
@@ -292,12 +293,19 @@ ConfigurationBordure :: struct {
     couleur: CouleurRVBA
 }
 
-dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle())
+dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := PositionCodeSource())
 {
     assert(__boite_courante != nul)
 
     boite := __boite_courante.ajoute_enfant()
-    boite.id = calcule_empreinte_djb2(id)
+
+    si id {
+        boite.id = calcule_empreinte_djb2(id)
+    }
+    sinon {
+        boite.id = donne_empreinte(pos, __boite_courante.enfants.taille comme n64)
+    }
+
     boite.défilage = défilage
     boite.rectangle = config
 
