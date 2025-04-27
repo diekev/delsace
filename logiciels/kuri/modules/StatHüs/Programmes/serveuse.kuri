@@ -474,7 +474,7 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     si rappels.connexion_reçue == faux && rappels.données_reçues.taille == 0 {
         dispose_rectangle()
         {
-            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0)
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0)
             dispose_texte("En attente d'une connexion...", ConfigurationTexte(rappels.fonte, PEAU_OMBRE))
         }
         termine_rectangle()
@@ -484,7 +484,7 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     dispose_rectangle()
     {
         définis_arrière_plan(PEAU1)
-        définis_disposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), séparation_enfant = 8.0)
+        définis_disposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
         dispose_texte("Connexion établie !", ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
 
@@ -526,7 +526,7 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
     dispose_rectangle()
     {
-        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), séparation_enfant = 8.0)
+        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
         si rappels.dessine_allocations {
@@ -538,7 +538,7 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
                 dispose_rectangle(id = it.id)
                 {
                     définis_arrière_plan(PEAU1)
-                    définis_disposition(rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), séparation_enfant = 8.0)
+                    définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
                     trace := it.traces[0]
 
@@ -567,7 +567,7 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
                 dispose_rectangle(id = condensat.donne_chaine())
                 {
                     définis_arrière_plan(PEAU1)
-                    définis_disposition(rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), séparation_enfant = 8.0)
+                    définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
                     sur_clic_souris(définis_trace_sélectionnée, rappels, index_effectif)
 
@@ -606,7 +606,7 @@ dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, con
 {
     dispose_rectangle(id = "Vue Traces")
     {
-        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), séparation_enfant = 8.0)
+        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
         hex := condensat.donne_chaine_hex()
@@ -626,7 +626,7 @@ dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic:
     dispose_rectangle(id = texte)
     {
         définis_arrière_plan(PEAU2)
-        définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = Rembourrage([8.0, 8.0, 8.0, 8.0]), alignement_horizontal = AlignementEnfant.Milieu)
+        définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu)
         sur_pression_souris(rappel_sur_clic, rappels, index)
         dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
     }

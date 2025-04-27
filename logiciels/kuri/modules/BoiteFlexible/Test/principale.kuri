@@ -242,12 +242,12 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
     dispose_rectangle(id = "Contenant Externe")
     {
         définis_arrière_plan(0.1686, 0.1608, 0.2, 1.0)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = Rembourrage([16.0, 16.0, 16.0, 16.0]), séparation_enfant = 16.0)
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0)
 
         dispose_rectangle(id = "Barre Entête", config = ConfigurationRectangle(rayon_coin = 8.0))
         {
             définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = Rembourrage([16.0, 0.0, 16.0, 0.0]), séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu)
+            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = RembourrageHoriz(16.0), séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu)
 
             ajoute_bouton_barre_menu(fonte, "Fichier")
             ajoute_bouton_barre_menu(fonte, "Édition")
@@ -268,7 +268,7 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
             dispose_rectangle(id = "Barre Latérale", config = ConfigurationRectangle(rayon_coin = 8.0))
             {
                 définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-                définis_disposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = Rembourrage([16.0, 16.0, 16.0, 16.0]), séparation_enfant = 16.0, direction = Direction.Verticale)
+                définis_disposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
                 dessine_barre_latérale(rappels)
             }
             termine_rectangle()
@@ -276,7 +276,7 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
             dispose_rectangle(id = "Contenu Principal", config = ConfigurationRectangle(rayon_coin = 8.0), défilage = ConfigurationDéfilage(vertical = vrai))
             {
                 définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = Rembourrage([16.0, 16.0, 16.0, 16.0]), séparation_enfant = 16.0, direction = Direction.Verticale)
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
                 document := *rappels.documents[rappels.document_courant]
                 document.dessine_document(rappels)
             }
@@ -293,7 +293,7 @@ ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
 {
     dispose_rectangle(id = texte, config = ConfigurationRectangle(rayon_coin = 5.0))
     {
-        définis_disposition(rembourrage = Rembourrage([16.0, 8.0, 16.0, 8.0]))
+        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0))
 
         si est_survolée() {
             définis_arrière_plan(CouleurRVBA(0.649, 0.649, 0.649, 1.0))
@@ -315,7 +315,7 @@ dessine_menu_fichier :: fonc (fonte: *Fonte)
 {
     dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 5.0))
     {
-        définis_disposition(rembourrage = Rembourrage([16.0, 8.0, 16.0, 8.0]), séparation_enfant = 16.0, direction = Direction.Verticale)
+        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0), séparation_enfant = 16.0, direction = Direction.Verticale)
         définis_flottance(décalage_y = 16.0)
         définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
 
@@ -333,7 +333,7 @@ dessine_barre_latérale :: fonc (rappels: *RappelsWindow)
 
         dispose_rectangle(id = it.nom, config = ConfigurationRectangle(rayon_coin = 5.0))
         {
-            définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = Rembourrage([16.0, 8.0, 16.0, 8.0]))
+            définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageDifforme(16.0, 8.0))
             arrière_plan := si index_it == rappels.document_courant {
                 CouleurRVBA(0.649, 0.649, 0.649, 0.5)
             }
@@ -376,7 +376,7 @@ dessine_interface_flexible_verticale :: fonc (rappels: *RappelsWindow @inutilis�
         dispose_rectangle()
         {
             définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(364), FIXE(800)), rembourrage = Rembourrage([32.0, 32.0, 32.0, 32.0]), séparation_enfant = 32.0, direction = Direction.Verticale)
+            définis_disposition(cotation = Cotation(FIXE(364), FIXE(800)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0, direction = Direction.Verticale)
 
             dispose_rectangle()
             {
@@ -412,7 +412,7 @@ dessine_interface_basique :: fonc (rappels: *RappelsWindow @inutilisée)
         dispose_rectangle()
         {
             définis_arrière_plan(BLEU)
-            définis_disposition(rembourrage = Rembourrage([32.0, 32.0, 32.0, 32.0]), séparation_enfant = 32.0)
+            définis_disposition(rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
 
             dispose_rectangle()
             {
@@ -442,7 +442,7 @@ dessine_interface_flexible :: fonc (rappels: *RappelsWindow @inutilisée, largeu
         dispose_rectangle()
         {
             définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(largeur_courante), FIXE(hauteur_courante)), rembourrage = Rembourrage([32.0, 32.0, 32.0, 32.0]), séparation_enfant = 32.0)
+            définis_disposition(cotation = Cotation(FIXE(largeur_courante), FIXE(hauteur_courante)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
 
             dispose_rectangle()
             {
@@ -477,7 +477,7 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
         dispose_rectangle()
         {
             définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(1200)), rembourrage = Rembourrage([32.0, 32.0, 32.0, 32.0]), séparation_enfant = 32.0)
+            définis_disposition(cotation = Cotation(FIXE(1200)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
 
             dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
             dispose_rectangle()
@@ -489,7 +489,7 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
             dispose_rectangle()
             {
                 définis_arrière_plan(BLEU_CLAIR)
-                définis_disposition(rembourrage = Rembourrage([32.0, 32.0, 32.0, 32.0]))
+                définis_disposition(rembourrage = RembourrageUniforme(32.0))
                 dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
             }
             termine_rectangle()
@@ -525,7 +525,7 @@ dessine_interface_édition_texte :: fonc (rappels: *RappelsWindow)
         dispose_rectangle(id = "Cliquez-moi pour m'éditer")
         {
             définis_arrière_plan(1.0, 1.0, 1.0, 1.0)
-            définis_disposition(cotation = Cotation(FIXE(240)), rembourrage = Rembourrage([5.0, 5.0, 5.0, 5.0]))
+            définis_disposition(cotation = Cotation(FIXE(240)), rembourrage = RembourrageUniforme(5.0))
             sur_pression_souris(démarre_édition_texte, rappels, 0)
 
             dispose_texte(rappels.texte_à_dessiner, ConfigurationTexte(rappels.fonte, CouleurRVBA(a = 1.0)))

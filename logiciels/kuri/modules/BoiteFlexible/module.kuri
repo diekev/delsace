@@ -245,6 +245,26 @@ Rembourrage :: struct {
     v: [4]r32
 }
 
+RembourrageUniforme :: fonc (v: r32) -> Rembourrage
+{
+    retourne Rembourrage([v, v, v, v])
+}
+
+RembourrageDifforme :: fonc (horizontal: r32, vertical: r32) -> Rembourrage
+{
+    retourne Rembourrage([horizontal, vertical, horizontal, vertical])
+}
+
+RembourrageHoriz :: fonc (valeur: r32) -> Rembourrage
+{
+    retourne RembourrageDifforme(valeur, 0.0)
+}
+
+RembourrageVert :: fonc (valeur: r32) -> Rembourrage
+{
+    retourne RembourrageDifforme(0.0, valeur)
+}
+
 ConfigurationDiposition :: struct {
     cotation: Cotation
     rembourrage: Rembourrage
