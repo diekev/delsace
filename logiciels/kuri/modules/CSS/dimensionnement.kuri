@@ -1645,9 +1645,9 @@ est_max_content :: fonc (space: AvailableSize) -> bool
     }
 }
 
-imprime_available_space :: fonc (enchaineuse: *Enchaineuse, space: *AvailableSize)
+imprime_available_size :: fonc (enchaineuse: *Enchaineuse, size: *AvailableSize)
 {
-    discr mémoire(space) {
+    discr mémoire(size) {
         Definite(v) {
             ajoute_au_tampon(enchaineuse, v)
         }
