@@ -3243,7 +3243,7 @@ valeur_hex_depuis_unité :: fonc (unité: n16) -> n8
         retourne unité comme n8 - ('A' comme n8) + 10
     }
 
-    si 'a' <= unité <= 'z' {
+    si 'a' <= unité <= 'f' {
         retourne unité comme n8 - ('a' comme n8) + 10
     }
 

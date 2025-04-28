@@ -22,6 +22,7 @@
  https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 */
 
+importe Chaine
 importe Fondation
 importe Introspection
 importe Numérique
