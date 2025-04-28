@@ -538,7 +538,7 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
 
 commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_max: z64) -> bool
 {
-    si chn.taille() > occurences_max {
+    si chn.taille() < occurences_max {
         retourne faux
     }
 
