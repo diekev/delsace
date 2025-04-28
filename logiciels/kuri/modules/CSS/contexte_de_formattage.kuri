@@ -32,7 +32,7 @@ ContexteDeFormattage :: struct {
     type: type_de_données
     parent: *ContexteDeFormattage
 
-    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage)(rien)
+    sur_formatte: fonc(*ContexteDeFormattage, *NoeudDeDispositionBloc, ModeDeFormattage, AvailableSpace)(rien)
 
     globales: *GlobalesDessin
     arbre: *ArbreDeDisposition
@@ -63,9 +63,9 @@ donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> Containin
     retourne mémoire(ctx.initial_containing_block)
 }
 
-formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+formatte :: fonc (contexte: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace)
 {
-    contexte.sur_formatte(contexte, noeud, mode)
+    contexte.sur_formatte(contexte, noeud, mode, available)
 }
 
 /* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
@@ -338,7 +338,7 @@ ParamètresPositionnementBoite :: struct {
     décalage_pour_floats_droite := 0.0
 }
 
-contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace)
 {
     ctx := base comme *ContexteDeFormattageBloc
 
@@ -371,13 +371,13 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_mot_clé(PROP_left) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche)
-            it.mesure(ctx, mode, PersonnalisationCotation())
+            it.mesure(ctx, mode, PersonnalisationCotation(), available)
             ctx.ajoute_boite_flottante_gauche(it, mode)
             continue
         }
         si float.est_mot_clé(PROP_right) {
             it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite)
-            it.mesure(ctx, mode, PersonnalisationCotation())
+            it.mesure(ctx, mode, PersonnalisationCotation(), available)
             ctx.ajoute_boite_flottante_droite(it, mode)
             continue
         }
@@ -389,7 +389,7 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
         position_basse_floats_droites := ctx.donne_décalage_floats_droite()
 
         it.définis_position(décalage_x, décalage_y + params_position.décalage_hors_float)
-        it.mesure(ctx, mode, PersonnalisationCotation())
+        it.mesure(ctx, mode, PersonnalisationCotation(), available)
         ajoute_marge(ctx, it, IDPropriété.MarginBottom)
 
         hauteur_enfant := it.modèle_de_boite.marge.hauteur
@@ -788,7 +788,11 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAb
         position_boite_absolue(noeud, containing_block, faux)
     }
 
-    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal)
+    available : AvailableSpace = ---
+    available.width = crée_definite_size(containing_block.noeud.modèle_de_boite.contenu.largeur)
+    available.height = crée_definite_size(containing_block.noeud.modèle_de_boite.contenu.hauteur)
+
+    formatte_intérieur(noeud, ctx, ModeDeFormattage.Normal, available)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
@@ -1051,7 +1055,7 @@ donne_alignement_texte :: fonc (noeud: *NoeudDeDispositionBloc) -> AlignementTex
     retourne AlignementTexte.Gauche
 }
 
-contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace @inutilisée)
 {
     ctx := base comme *ContexteDeFormattageInline
 
@@ -1375,6 +1379,8 @@ ContexteDeFormattageFlex :: struct {
     cross_size: Size
     inner_cross_size: Size
 
+    available_space: AvailableSpace
+
     IDSPropriétés :: struct {
         size: IDPropriété
         min_size: IDPropriété
@@ -1629,7 +1635,7 @@ donne_used_cross_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud:
 
 UTILISE_LAYOUT_STANDARD :: faux
 
-contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace)
 {
     ctx := base comme *ContexteDeFormattageFlex
     ctx.contenant = noeud
@@ -1644,10 +1650,16 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
     si ctx.est_direction_row {
         ctx.main_axis = DirectionFlex.Horizontale
         ctx.cross_axis = DirectionFlex.Verticale
+
+        ctx.available_space.width = available.width
+        ctx.available_space.height = available.height
     }
     sinon {
         ctx.main_axis = DirectionFlex.Verticale
         ctx.cross_axis = DirectionFlex.Horizontale
+
+        ctx.available_space.width = available.height
+        ctx.available_space.height = available.width
     }
 
     ctx.est_reverse = direction == PROP_row_reverse || direction == PROP_column_reverse
@@ -1665,6 +1677,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 {
     imprimeln("-----------------------------------------------------")
     imprimeln("          %", mode)
+    imprimeln("%", ctx.available_space)
 
     initialise_id_propriétés(ctx)
 
@@ -1710,7 +1723,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
         }
 
         // À FAIRE : doit on utiliser le mode de formattage courant ?
-        it.noeud.mesure(ctx, ModeDeFormattage.Normal, personnalisation)
+        it.noeud.mesure(ctx, ModeDeFormattage.Normal, personnalisation, ctx.available_space)
         it.hypothetical_cross_size = donne_used_cross_size(ctx, it.noeud)
         imprimeln("item[%].hypothetical_cross_size %", index_it, it.hypothetical_cross_size)
     }
@@ -1774,7 +1787,7 @@ construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-available */
-determine_the_available_main_and_cross_space :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
+determine_the_available_main_and_cross_space :: fonc (ctx: *ContexteDeFormattageFlex @inutilisée, mode: ModeDeFormattage @inutilisée)
 {
     // For each dimension, if that dimension of the flex container’s content box is a definite size, use that;
     // if that dimension of the flex container is being sized under a min or max-content constraint,
@@ -1818,7 +1831,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    sized under a min-content or max-content constraint (e.g. when performing automatic table layout [CSS21]),
         //    size the item under that constraint. The flex base size is the item’s resulting main size.
         si mode != ModeDeFormattage.Normal {
-            it.noeud.mesure(ctx, mode, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai))
+            it.noeud.mesure(ctx, mode, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), ctx.available_space)
             it.flex_base_size = donne_inner_main_size(ctx, it.noeud)
             continue
         }
@@ -1833,7 +1846,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
         //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
         //    item’s resulting main size.
-        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai))
+        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), ctx.available_space)
         it.flex_base_size = donne_inner_main_size(ctx, it.noeud)
     }
 
@@ -2278,7 +2291,7 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             // this used size as its definite cross size so that percentage-sized children can be
             // resolved.
             si align_self == PROP_stretch {
-                formatte_intérieur(it.noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.Normal)
+                formatte_intérieur(it.noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.Normal, AvailableSpace())
             }
         }
     }
@@ -2641,7 +2654,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
         largeur_désirée: OutrepasCotation
         si flex_basis.est_mot_clé(PROP_content) {
             /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode, PersonnalisationCotation())
+            it.mesure(ctx, mode, PersonnalisationCotation(), AvailableSpace())
             largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
             largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
         }
@@ -2656,7 +2669,7 @@ calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDis
 
         personnalisation: PersonnalisationCotation
         personnalisation.outrepas_largeur = *largeur_désirée
-        it.mesure(ctx, mode, personnalisation)
+        it.mesure(ctx, mode, personnalisation, AvailableSpace())
         item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
     }
 }
@@ -2867,7 +2880,7 @@ distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *Lig
         largeur_désirée := crée_outrepas_pour_coter_contenu(nouvelle_largeur)
         personnalisation: PersonnalisationCotation
         personnalisation.outrepas_largeur = *largeur_désirée
-        it.mesure(ctx, mode, personnalisation)
+        it.mesure(ctx, mode, personnalisation, AvailableSpace())
     }
 
     ligne.main_size = 0.0
@@ -3028,7 +3041,7 @@ ContexteDeFormattageTable :: struct {
     nombre_de_colonnes: z64
 }
 
-formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
+formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, available: AvailableSpace)
 {
     initialise_données_cellules(ctx, table)
 
@@ -3043,10 +3056,10 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
             continue
         }
 
-        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, PersonnalisationCotation())
+        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, PersonnalisationCotation(), available)
         it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur
 
-        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation())
+        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(), available)
         it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
 
         containing_block := donne_containing_block(it.box, ctx)
@@ -3495,7 +3508,7 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
         outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
         personnalisation: PersonnalisationCotation
         personnalisation.outrepas_largeur = *outrepas_largeur
-        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation)
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation, AvailableSpace())
     }
 }
 

@@ -1,4 +1,5 @@
 importe Fondation
+importe Introspection // pour définis_membre_actif
 importe Math
 importe Structures
 
@@ -1597,6 +1598,32 @@ AvailableSize :: union {
     MaxContent
 }
 
+crée_definite_size :: fonc (pixels: r64) -> AvailableSize
+{
+    retourne AvailableSize(pixels)
+}
+
+crée_indefinite_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 1)
+    retourne résultat
+}
+
+crée_min_content_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 2)
+    retourne résultat
+}
+
+crée_max_content_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 3)
+    retourne résultat
+}
+
 est_definite :: fonc (space: AvailableSize) -> bool
 {
     discr space {
@@ -1700,7 +1727,11 @@ calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDi
         retourne noeud.mémoire_vive.min_content_width.Quelque
     }
 
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne)
+    available: AvailableSpace = ---
+    available.width = crée_min_content_size()
+    available.height = crée_indefinite_size()
+
+    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available)
     résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
     noeud.mémoire_vive.min_content_width = résultat
     retourne résultat
@@ -1713,8 +1744,12 @@ calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDi
         retourne noeud.mémoire_vive.max_content_width.Quelque
     }
 
+    available: AvailableSpace = ---
+    available.width = crée_max_content_size()
+    available.height = crée_indefinite_size()
+
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite)
+    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available)
     résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
     noeud.mémoire_vive.max_content_width = résultat
     retourne résultat
