@@ -1,0 +1,55 @@
+Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 118 [0 0 0]
+    Bloc <(anonyme)> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 0 [0 0 0]
+        frag 0 MargeDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 2 RembourrageFin de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 3 MargeFin de Inline début 0 fin 0 rect (0,0 0x0)
+        Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+    Bloc <body> <8, 8> CH [8 0 0] 1904 [0 0 8] CV [8 0 0] 102 [0 0 8]
+        Bloc <(anonyme)> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,8 0x0)
+            Inline <(anonyme)> <8, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <8, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+        Bloc <div.contenant> <8, 8> CH [0 1 0] 100 [0 1 0] CV [0 1 0] 100 [0 1 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <9, 9> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <42, 9> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <75, 9> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <9, 42.33> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <42, 42.33> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <75, 42.33> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <9, 75.67> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <42, 75.67> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <div.contenu> <75, 75.67> CH [0 0 5] 23 [5 0 0] CV [0 0 5] 23 [5 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+        Bloc <(anonyme)> <8, 110> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,110 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,110 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,110 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,110 0x0)
+            Inline <(anonyme)> <8, 110> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <8, 110> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+
+StackingContext : html

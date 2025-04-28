@@ -66,6 +66,7 @@ test_mises_en_pages :: fonc () -> bool
     diffère déloge(échecs)
 
     nombre_de_tests_passants: z32
+    nombre_de_tests_ignorés: z32
 
     pour chemins_sources {
         imprime(".")
@@ -100,7 +101,7 @@ test_mises_en_pages :: fonc () -> bool
     }
 
     imprime("\n")
-    imprime("Tests    : % réussis, % en tout\n", nombre_de_tests_passants, chemins_sources.taille)
+    imprime("Tests    : % réussis, % ignorés, % en tout\n", nombre_de_tests_passants, nombre_de_tests_ignorés, chemins_sources.taille)
     imprime("Temps    : %ms\n", fin)
     imprime("\n")
 

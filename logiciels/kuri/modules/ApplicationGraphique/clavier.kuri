@@ -69,6 +69,11 @@ initialise_mappage_clé_clavier_sdl2 :: fonc ()
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_W] = CléClavier.Z
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_M] = CléClavier.VIRGULE
 
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RIGHT] = CléClavier.FLÈCHE_DROITE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_LEFT] = CléClavier.FLÈCHE_GAUCHE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_DOWN] = CléClavier.FLÈCHE_BAS
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_UP] = CléClavier.FLÈCHE_HAUT
+
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SPACE] = CléClavier.ESPACE
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_COMMA] = CléClavier.POINT_VIRGULE
     __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_PERIOD] = CléClavier.DOUBLE_POINT

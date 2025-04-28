@@ -3,6 +3,7 @@
  * Catégorie : [génération code, pousse_contexte]
  */
 
+importe Chaine
 importe Fondation
 
 principale :: fonc ()
