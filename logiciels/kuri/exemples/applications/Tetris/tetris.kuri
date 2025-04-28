@@ -1,0 +1,285 @@
+importe Aléa
+importe ApplicationGraphique
+importe Couleur
+importe Fondation
+importe Géométrie
+importe IGUMI
+importe Math
+importe OpenGL
+importe Périphériques
+importe Temps
+
+// couleur brune 190 158 124
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction principale.
+ * \{ */
+
+temps_début_frame: Instantané
+MAX_DT :: 0.15
+TEMPS_ENTRE_MOUVEMENT :: 0.5
+temps_avant_mouvement := TEMPS_ENTRE_MOUVEMENT
+
+principale :: fonc ()
+{
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+
+    largeur : z32 = TAILLE_TUILE * TUILES_X
+    hauteur : z32 = TAILLE_TUILE * TUILES_Y
+
+    app := crée_application_sdl()
+
+    tetris := crée_tetris()
+    saufsi crée_fenêtre_principale(app, *tetris, "Tetris", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux) {
+        exit(1)
+    }
+
+    tetris.largeur = largeur
+    tetris.hauteur = hauteur
+
+    initialise_igumi()
+    diffère issitialise_igumi()
+
+    temps_début_frame = maintenant_précis()
+
+    app.exécute(*tetris)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tetris
+ * \{ */
+
+TAILLE_TUILE :: 32
+TUILES_X :: 20
+TUILES_Y :: 15
+
+Tétrimino :: struct {
+    /* Position de la case du bas gauche. */
+    x: z32
+    y: z32
+
+    cases: [4][2]z32
+    taille_x: z32
+    taille_y: z32
+
+    index_couleur: z32
+}
+
+déplace_vers_la_gauche :: fonc (tétrimino: *Tétrimino)
+{
+    tétrimino.x -= 1
+    si tétrimino.x < 0 {
+        tétrimino.x = 0
+    }
+}
+
+déplace_vers_la_droite :: fonc (tétrimino: *Tétrimino)
+{
+    tétrimino.x += 1
+    si tétrimino.x > TUILES_X - tétrimino.taille_x {
+        tétrimino.x = TUILES_X - tétrimino.taille_x
+    }
+}
+
+déplace_vers_le_bas :: fonc (tétrimino: *Tétrimino)
+{
+    tétrimino.y -= 1
+    si tétrimino.y < 0 {
+        tétrimino.y = 0
+    }
+}
+
+couleurs := [
+    CouleurRVBA(0.933, 0.153, 0.200, 1.0),
+    CouleurRVBA(0.973, 0.588, 0.133, 1.0),
+    CouleurRVBA(0.922, 0.882, 0.000, 1.0),
+    CouleurRVBA(0.306, 0.718, 0.282, 1.0),
+    CouleurRVBA(0.169, 0.672, 0.886, 1.0),
+    CouleurRVBA(0.000, 0.353, 0.616, 1.0),
+    CouleurRVBA(0.573, 0.169, 0.549, 1.0)
+]
+
+couleurs_sombres := [
+    CouleurRVBA(0.600, 0.000, 0.000, 1.0),
+    CouleurRVBA(0.706, 0.341, 0.000, 1.0),
+    CouleurRVBA(0.937, 0.667, 0.000, 1.0),
+    CouleurRVBA(0.000, 0.600, 0.000, 1.0),
+    CouleurRVBA(0.000, 0.478, 0.808, 1.0),
+    CouleurRVBA(0.000, 0.000, 0.451, 1.0),
+    CouleurRVBA(0.400, 0.000, 0.400, 1.0)
+]
+
+formes := [
+    /*   X X
+     *     X X   */
+    [[0, 1], [1, 0], [1, 1], [2, 0]],
+    /*       X
+     *   X X X   */
+    [[0, 0], [1, 0], [2, 0], [2, 1]],
+    /*   X X
+     *   X X    */
+    [[0, 0], [0, 1], [1, 0], [1, 1]],
+    /*      X X
+     *    X X   */
+    [[0, 0], [0, 1], [1, 1], [2, 1]],
+    /*
+     *  X X X X */
+    [[0, 0], [1, 0], [2, 0], [3, 0]],
+    /*   X
+     *   X X X   */
+    [[0, 0], [1, 0], [2, 0], [0, 1]],
+    /*   X X X
+     *     X     */
+    [[1, 0], [1, 1], [2, 1], [0, 1]]
+]
+
+initialise_tétrimino :: fonc (tétrimino: *Tétrimino, entropie: &SérieAléatoire)
+{
+    index_formes := aléatoire_entre(entropie, 0, formes.taille comme z32)
+    tétrimino.cases = formes[index_formes]
+
+    pour tétrimino.cases {
+        tétrimino.taille_x = max(tétrimino.taille_x, it[0] + 1)
+        tétrimino.taille_y = max(tétrimino.taille_y, it[1] + 1)
+    }
+
+    tétrimino.x = TUILES_X / 2 - tétrimino.taille_x / 2
+    tétrimino.y = TUILES_Y - tétrimino.taille_y
+
+    tétrimino.index_couleur = index_formes
+}
+
+Tetris :: struct {
+    tétrimino: Tétrimino
+
+    grille: [TUILES_X][TUILES_Y]z32
+
+    hauteur: z32
+    largeur: z32
+
+    entropie: SérieAléatoire
+
+    sur_rendu_fenêtre: fonc(*Tetris)(rien)
+    sur_touche_clavier: fonc(*Tetris, CléClavier)(rien)
+}
+
+crée_tetris :: fonc () -> Tetris
+{
+    résultat: Tetris
+    résultat.sur_rendu_fenêtre = ajourne_dessin_fenêtre
+    résultat.sur_touche_clavier = traite_touche_clavier
+
+    résultat.entropie = graine_aléatoire(maintenant_précis().nanoseconde comme n32)
+
+    initialise_tétrimino(*résultat.tétrimino, résultat.entropie)
+
+    retourne résultat
+}
+
+traite_touche_clavier :: fonc (tetris: *Tetris, clé_clavier: CléClavier)
+{
+    discr clé_clavier {
+        FLÈCHE_GAUCHE {
+            déplace_vers_la_gauche(*tetris.tétrimino)
+        }
+        FLÈCHE_DROITE {
+            déplace_vers_la_droite(*tetris.tétrimino)
+        }
+        FLÈCHE_BAS {
+            déplace_vers_le_bas(*tetris.tétrimino)
+        }
+        sinon {}
+    }
+}
+
+ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
+{
+    dt := temps_début_frame.temps_écoulé_millisecondes() comme r32 / 1000.0
+    temps_début_frame = maintenant_précis()
+
+    si dt > MAX_DT {
+        dt = MAX_DT
+    }
+
+    temps_avant_mouvement -= dt
+    si temps_avant_mouvement <= 0.0 {
+        si tetris.tétrimino.y == 0 {
+            verrouille_tétrimino(tetris)
+            initialise_tétrimino(*tetris.tétrimino, tetris.entropie)
+        }
+        sinon {
+            déplace_vers_le_bas(*tetris.tétrimino)
+        }
+
+        temps_avant_mouvement = TEMPS_ENTRE_MOUVEMENT
+    }
+
+    IGUMI.définis_fenêtre(tetris.largeur, tetris.hauteur)
+    glViewport(0, 0, tetris.largeur, tetris.hauteur)
+    // glClearColor(0.961, 0.929, 0.890, 1.0)
+
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+    diffère termine_immédiat()
+
+    pour x dans TUILES_X {
+        pour y dans TUILES_Y {
+            index_couleur := tetris.grille[x][y]
+            si index_couleur == 0 {
+                dessine_carré(x, y, CouleurRVBA(0.961, 0.929, 0.890, 1.0))
+            }
+            sinon {
+                dessine_carré(x, y, couleurs_sombres[index_couleur - 1])
+                dessine_carré_intérieur(x, y, couleurs[index_couleur - 1])
+            }
+        }
+    }
+
+    dessine_tétrimino(*tetris.tétrimino)
+}
+
+verrouille_tétrimino :: fonc (empl tetris: *Tetris)
+{
+    pour tétrimino.cases {
+        grille[tétrimino.x + it[0]][tétrimino.y + it[1]] = tétrimino.index_couleur + 1
+    }
+}
+
+dessine_tétrimino :: fonc (tétrimino: *Tétrimino)
+{
+    x := tétrimino.x
+    y := tétrimino.y
+
+    couleur := couleurs_sombres[tétrimino.index_couleur]
+
+    pour tétrimino.cases {
+        dessine_carré(x + it[0], y + it[1], couleur)
+    }
+
+    couleur = couleurs[tétrimino.index_couleur]
+
+    pour tétrimino.cases {
+        dessine_carré_intérieur(x + it[0], y + it[1], couleur)
+    }
+}
+
+dessine_carré :: fonc (x: z32, y: z32, couleur: CouleurRVBA)
+{
+    quad_immédiat((x * TAILLE_TUILE) comme r32, (y * TAILLE_TUILE) comme r32, TAILLE_TUILE comme r32, TAILLE_TUILE comme r32, couleur)
+}
+
+dessine_carré_intérieur :: fonc (colonne: z32, ligne: z32, couleur: CouleurRVBA)
+{
+    LARGEUR_BORDURE :: 2.0
+
+    x := (colonne * TAILLE_TUILE) comme r32 + LARGEUR_BORDURE
+    y := (ligne * TAILLE_TUILE) comme r32 + LARGEUR_BORDURE
+
+    largeur := TAILLE_TUILE comme r32 - LARGEUR_BORDURE * 2.0
+    hauteur := TAILLE_TUILE comme r32 - LARGEUR_BORDURE * 2.0
+
+    quad_immédiat(x, y, largeur, hauteur, couleur)
+}
+
+/** \} */

@@ -5,15 +5,6 @@ importe JavaScript
 importe SysFichier
 importe Temps
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "js_test"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 Arguments :: struct {
     utilise_code_binaire: bool
     fichier: Optionnel(chaine)
