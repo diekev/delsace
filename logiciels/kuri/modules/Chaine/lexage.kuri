@@ -1,0 +1,234 @@
+importe Fondation
+
+est_alphabétique :: fonc (c: z8) -> bool
+{
+    retourne ('a' <= c <= 'z') || ('A' <= c <= 'Z')
+}
+
+est_ponctuation_ascii :: fonc (c: z8) -> bool
+{
+    retourne c == '(' || c == ')' || c == ',' || c == '\'' || c == '.' || c == '?' || c == '[' || c == ']'
+}
+
+est_espace_blanche_ou_ponctuation_ascii :: fonc (c: z8)
+{
+    retourne est_espace_blanc(c) || est_ponctuation_ascii(c)
+}
+
+divise_sur_espace_blanche_ou_ponctuation_ascii :: fonc (texte: chaine) -> [..]chaine
+{
+    retourne divise(texte, est_espace_blanche_ou_ponctuation_ascii)
+}
+
+divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
+{
+    taille_mot : z64 = 0
+    début_mot : z64 = 0
+    mots: [..]chaine
+
+    pour texte {
+        si rappel(c) {
+            si taille_mot != 0 {
+                mot := chaine(*texte[début_mot], taille_mot)
+                tableau_ajoute(*mots, mot)
+            }
+
+            début_mot = index_it + 1
+            taille_mot = 0
+            continue
+        }
+
+        taille_mot += 1
+    }
+
+    si taille_mot != 0 {
+        mot := chaine(*texte[début_mot], taille_mot)
+        tableau_ajoute(*mots, mot)
+    }
+
+    retourne mots
+}
+
+divise :: fonc (ligne: chaine, séparation: z8) -> [..]chaine
+{
+    mots: [..]chaine
+    divise(ligne, séparation, *mots)
+    retourne mots
+}
+
+divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réinitialise_résultat := vrai)
+{
+    si réinitialise_résultat {
+        résultat.taille = 0
+    }
+
+    taille_mot : z64 = 0
+    début_mot : z64 = 0
+
+    pour c, i dans ligne {
+        si c == séparation {
+            si i != 0 {
+                mot := chaine(*ligne[début_mot], taille_mot)
+                tableau_ajoute(résultat, mot)
+            }
+
+            début_mot = i + 1 comme z64
+            taille_mot = 0
+            continue
+        }
+
+        taille_mot += 1
+    }
+
+    si taille_mot != 0 {
+        mot := chaine(*ligne[début_mot], taille_mot)
+        tableau_ajoute(résultat, mot)
+    }
+}
+
+divise :: fonc (chn: chaine, séparation: chaine, résultat: *[..]chaine, réinitialise_résultat := vrai)
+{
+    si réinitialise_résultat {
+        résultat.taille = 0
+    }
+
+    index_début : z64 = 0
+    index_fin : z64 = 0
+
+    boucle {
+        index_fin = trouve_motif_dans_chaine(chn, séparation, index_début)
+
+        si index_fin == -1 {
+            arrête
+        }
+
+        c := sous_chaine(chn, index_début, index_fin)
+        tableau_ajoute(résultat, c)
+
+        index_début = index_fin + séparation.taille
+    }
+
+    si index_début < chn.taille {
+        c := sous_chaine(chn, index_début, chn.taille)
+        tableau_ajoute(résultat, c)
+    }
+}
+
+divise :: fonc (ligne: chaine, séparation: chaine) -> [..]chaine
+{
+    mots: [..]chaine
+    divise(ligne, séparation, *mots)
+    retourne mots
+}
+
+divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_max := -1) -> [..]chaine
+{
+    résultat_temp := divise(entrée, séparateur)
+
+    si résultat_temp.taille <= nombre_max || nombre_max <= 0 {
+        retourne résultat_temp
+    }
+
+    résultat: [..]chaine
+
+    taille_chaine : z64 = 0
+
+    pour i dans 0 ... nombre_max - 1 {
+        taille_chaine += résultat_temp[i].taille
+        taille_chaine += séparateur.taille
+
+        tableau_ajoute(*résultat, résultat_temp[i])
+    }
+
+    dernière_chaine := avance(entrée, taille_chaine)
+    tableau_ajoute(*résultat, dernière_chaine)
+
+    déloge(résultat_temp)
+
+    retourne résultat
+}
+
+divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_maximums := -1) -> [..]chaine
+{
+    résultat_temp := divise(entrée, séparateur)
+
+    si résultat_temp.taille <= divisions_maximums || divisions_maximums <= 0 {
+        retourne résultat_temp
+    }
+
+    résultat: [..]chaine
+
+    nombre_de_divions := résultat_temp.taille - 1
+    delta := nombre_de_divions - divisions_maximums
+
+    // copie les deltas chaines
+
+    taille_chaine : z64 = 0
+
+    pour i dans 0 ... delta {
+        taille_chaine += résultat_temp[i].taille
+        taille_chaine += séparateur.taille
+    }
+
+    // exclus le dernier séparateur
+    taille_chaine -= séparateur.taille
+
+    // copie la première chaine
+    première_chaine := sous_chaine(entrée, 0, taille_chaine)
+    tableau_ajoute(*résultat, première_chaine)
+
+    pour i dans delta + 1 ... résultat_temp.taille - 1 {
+        tableau_ajoute(*résultat, résultat_temp[i])
+    }
+
+    déloge(résultat_temp)
+
+    retourne résultat
+}
+
+consomme_espaces_blanches :: fonc (chn: chaine) -> chaine
+{
+    tantque chn.taille != 0 {
+        saufsi est_espace_blanc(chn[0]) {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+    }
+
+    retourne chn
+}
+
+consomme_jusque :: fonc (chn: chaine, c: z8) -> (part: chaine, reste: chaine)
+{
+    résultat := chn
+    résultat.taille = 0
+
+    tantque chn.taille != 0 {
+        si chn[0] == c {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+        résultat.taille += 1
+    }
+
+    retourne résultat, chn
+}
+
+consomme_jusque_espace_blanche :: fonc (chn: chaine) -> (part: chaine, reste: chaine)
+{
+    résultat := chn
+    résultat.taille = 0
+
+    tantque chn.taille != 0 {
+        si est_espace_blanc(chn[0]) {
+            arrête
+        }
+        chn.taille -= 1
+        chn.pointeur += 1
+        résultat.taille += 1
+    }
+
+    retourne résultat, chn
+}
