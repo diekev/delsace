@@ -1,4 +1,5 @@
 importe Fondation
+importe SimpleLexage
 
 /* ------------------------------------------------------------------------- */
 /** \nom Parseuse
@@ -6,9 +7,8 @@ importe Fondation
 
 Parseuse :: struct {
     fichier: *FichierSource
-    lexèmes: [..]Lexème
-    index_courant: z64
-    index_sauvegardé: z64
+    lexeuse: SimpleLexeuse
+    lexeuse_sauvegardée: SimpleLexeuse
 
     créatrice_noeuds: CréatriceNoeuds
 
@@ -25,136 +25,85 @@ Parseuse :: struct {
 initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
 {
     parseuse.fichier = fichier
+    initialise_lexeuse_cpp(*parseuse.lexeuse)
+    initialise_lexeuse_pour_texte(*parseuse.lexeuse, parseuse.fichier.contenu)
 }
 
 sauvegarde_position :: fonc (parseuse: &Parseuse)
 {
-    parseuse.index_sauvegardé = parseuse.index_courant
+    parseuse.lexeuse_sauvegardée = parseuse.lexeuse
 }
 
 restaure_position :: fonc (parseuse: &Parseuse)
 {
-    parseuse.index_courant = parseuse.index_sauvegardé
+    parseuse.lexeuse = parseuse.lexeuse_sauvegardée
 }
 
-rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine)
+rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème @inutilisée)
 {
     si parseuse.possède_erreur {
         retourne
     }
 
-    si parseuse.index_courant >= parseuse.lexèmes.taille {
-        parseuse.index_courant = parseuse.lexèmes.taille - 1
-    }
-
-    lexème := parseuse.lexème_courant()
-
-    imprime("%:%:\n", parseuse.fichier.chemin, lexème.ligne)
+    // À FAIRE : ligne
+    imprime("%:%:\n", parseuse.fichier.chemin, 0)
     imprime("\tErreur : %\n", message)
 
     parseuse.possède_erreur = vrai
 }
 
-lexème_courant :: fonc (parseuse: &Parseuse) -> *Lexème
-{
-    retourne *parseuse.lexèmes[parseuse.index_courant]
-}
-
-avance :: fonc (parseuse: &Parseuse)
-{
-    parseuse.index_courant += 1
-}
-
 fini :: fonc (parseuse: &Parseuse) -> bool
 {
-    retourne parseuse.index_courant >= parseuse.lexèmes.taille
+    retourne parseuse.possède_erreur || fini(*parseuse.lexeuse)
 }
 
-consomme :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
+apparie :: fonc (parseuse: &Parseuse, c: z8) -> bool
 {
-    si parseuse.fini() {
+    lexème := donne_lexème_suivant(*parseuse.lexème)
+    diffère parseuse.lexeuse.début = lexème.début
+
+    si lexème.type != TypeLexème.Symbole {
         retourne faux
     }
-
-    lexème := parseuse.lexème_courant()
-    saufsi lexème.genre == genre_lexème {
+    texte := lexème.donne_texte()
+    si texte.taille != 1 {
         retourne faux
     }
-
-    parseuse.avance()
+    si texte[0] != 0 {
+        retourne faux
+    }
     retourne vrai
 }
 
 consomme_ou_rapporte_erreur :: fonc (parseuse: &Parseuse, c: z8)
 {
-    saufsi apparie(parseuse, c) {
-        rapporte_erreur(parseuse, imprime_chaine("attendu '%'", chaine(*c, 1)))
+    lexème := donne_lexème_suivant(*parseuse.lexème)
+    si lexème.type != TypeLexème.Symbole {
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
         retourne
     }
-    parseuse.avance()
-}
-
-apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
+    texte := lexème.donne_texte()
+    si texte.taille != 1 {
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+        retourne
     }
-    lexème := parseuse.lexème_courant()
-    retourne lexème.genre == genre_lexème
-}
-
-apparie :: fonc (parseuse: &Parseuse, caractère: z8) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
+    si texte[0] != 0 {
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+        retourne
     }
-    lexème := parseuse.lexème_courant()
-    retourne lexème.genre == (caractère comme z32 comme GenreLexème)
-}
-
-apparie_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    lexème := parseuse.lexème_courant()
-    retourne lexème.genre == GenreLexème.MOT_CLÉ && lexème.ident == ident
-}
-
-apparie_identifiant :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    lexème := parseuse.lexème_courant()
-    retourne lexème.genre == GenreLexème.IDENTIFIANT && lexème.ident == ident
 }
 
 consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
 {
-    si parseuse.fini() {
-        rapporte_erreur(parseuse, "fin de fichier inattendu")
+    lexème := donne_lexème_suivant(*parseuse.lexeuse)
+    si lexème == TypeLexème.FinDeFichier {
+        rapporte_erreur(parseuse, "fin de fichier inattendu", lexème)
         retourne ""
     }
-    saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-        rapporte_erreur(parseuse, "attendu un identifiant")
+    si lexème != TypeLexème.Symbole {
+        rapporte_erreur(parseuse, "attendu un identifiant", lexème)
     }
-    ident := parseuse.lexème_courant().ident
-    parseuse.avance()
-    retourne ident
-}
-
-consomme_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    saufsi est_mot_clé(parseuse.lexème_courant(), ident) {
-        retourne faux
-    }
-
-    parseuse.avance()
-    retourne vrai
+    retourne lexème.donne_texte()
 }
 
 CléClasse :: énum {
@@ -165,60 +114,50 @@ CléClasse :: énum {
 
 parse :: fonc (parseuse: &Parseuse)
 {
-    lexeuse: Lexeuse
-    lèxe_fichier_source(*lexeuse, parseuse.fichier)
-
-    parseuse.lexèmes = parseuse.fichier.lexèmes
-
     tantque !fini(parseuse) {
-        si apparie_mot_clé(parseuse, "struct") {
-            parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
-            continue
-        }
+        lexème := donne_lexème_suivant(*parseuse.lexeuse)
 
-        si apparie_mot_clé(parseuse, "class") {
-            parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
-            continue
-        }
+        // si est_mot_clé(lexème, "struct") {
+        //     parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
+        //     continue
+        // }
 
-        si apparie_mot_clé(parseuse, "union") {
-            parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
-            continue
-        }
+        // si est_mot_clé(lexème, "class") {
+        //     parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
+        //     continue
+        // }
 
-        si apparie_mot_clé(parseuse, "enum") {
-            parseuse.parse_enum()
-            continue
-        }
+        // si est_mot_clé(lexème, "union") {
+        //     parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
+        //     continue
+        // }
 
-        si apparie_mot_clé(parseuse, "typedef") {
-            parseuse.parse_typedef()
-            continue
-        }
+        // si est_mot_clé(lexème, "enum") {
+        //     parseuse.parse_enum()
+        //     continue
+        // }
 
-        si apparie_mot_clé(parseuse, "template") {
-            parseuse.parse_template()
-            continue
-        }
+        // si est_mot_clé(lexème, "typedef") {
+        //     parseuse.parse_typedef()
+        //     continue
+        // }
 
-        si apparie_mot_clé(parseuse, "using") {
-            parseuse.parse_using()
-            continue
-        }
+        // si est_mot_clé(lexème, "template") {
+        //     parseuse.parse_template()
+        //     continue
+        // }
 
-        si apparie(parseuse, GenreLexème.HASHTAG) {
-            parseuse.parse_directive_préprocesseur()
-            continue
-        }
+        // si est_mot_clé(lexème, "using") {
+        //     parseuse.parse_using()
+        //     continue
+        // }
 
-        lexème := parseuse.lexème_courant()
-        si lexème.genre == GenreLexème.IDENTIFIANT {
-            si parseuse.sur_identifiant {
-                parseuse.sur_identifiant(parseuse, lexème.ident)
-            }
-        }
+        // si est_ponctuation(lexème, "#") {
+        //     parseuse.parse_directive_préprocesseur()
+        //     continue
+        // }
 
-        parseuse.avance()
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
     }
 }
 
@@ -651,18 +590,13 @@ parse_bloc :: fonc (parseuse: &Parseuse)
         parseuse.avance()
     }
 
-    /* Nous devons être sur l'accolade fermante. */
-    parseuse.avance()
+    consomme_ou_rapporte_erreur(parseuse, '}')
 }
 
 /** \} */
 
 parse_enum :: fonc (parseuse: &Parseuse)
 {
-    /* Nous sommes sur le mot-clé. */
-    lexème := parseuse.lexème_courant()
-    parseuse.avance()
-
     est_énum_class := faux
 
     si apparie_mot_clé(parseuse, "class") {
@@ -715,23 +649,18 @@ parse_enum :: fonc (parseuse: &Parseuse)
 
 parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
 {
-    /* Nous sommes sur le hashtag. */
-    parseuse.avance()
-
-    si apparie_identifiant(parseuse, "include") {
-        parseuse.avance()
-
-        lexème := parseuse.lexème_courant()
-        si lexème.genre == GenreLexème.CHAINE_LITTÉRALE {
-            parseuse.avance()
-
+    symbole := parseuse.consomme_ident()
+    si symbole == "include" {
+        lexème := donne_lexème_suivant(*parseuse.lexeuse)
+        si lexème.type == TypeLexème.ChaineLittérale {
             si parseuse.sur_inclusion {
                 parseuse.sur_inclusion(parseuse, lexème.ident, faux)
             }
-
             retourne
         }
     }
+
+    rapporte_erreur(parseuse, "lexème inattendu", lexème)
 }
 
 /* ------------------------------------------------------------------------- */
