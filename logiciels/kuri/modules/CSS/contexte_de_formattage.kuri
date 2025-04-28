@@ -1253,6 +1253,11 @@ donne_outer_target_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattag
     retourne donne_outer_main_size(item, ctx, item.target_main_size)
 }
 
+donne_outer_hypothetical_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
+{
+    retourne donne_outer_main_size(item, ctx, item.hypothetical_main_size)
+}
+
 donne_outer_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, inner_size: r64) -> r64
 {
     margin_start := donne_main_margin_start_prop(ctx, item.noeud)
@@ -1969,8 +1974,20 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 
     plusieurs_lignes := !est_nowrap(ctx)
 
+    #si UTILISE_LAYOUT_STANDARD {
+        imprimeln("[%] espace disponible %", #nom_de_cette_fonction, espace_disponible)
+        imprimeln("[%] plusieurs_lignes  %", #nom_de_cette_fonction, plusieurs_lignes)
+    }
+
     pour * ctx.items {
-        main_size := it.hypothetical_main_size
+        main_size: r64 
+        #si UTILISE_LAYOUT_STANDARD {
+            main_size = it.donne_outer_hypothetical_main_size(ctx)
+            imprimeln("[%] item[%] main_size %", #nom_de_cette_fonction, index_it, main_size)
+        }
+        sinon {
+            main_size = it.hypothetical_main_size
+        }
 
         si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
