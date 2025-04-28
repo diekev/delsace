@@ -44,6 +44,10 @@ rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine)
         retourne
     }
 
+    si parseuse.index_courant >= parseuse.lexèmes.taille {
+        parseuse.index_courant = parseuse.lexèmes.taille - 1
+    }
+
     lexème := parseuse.lexème_courant()
 
     imprime("%:%:\n", parseuse.fichier.chemin, lexème.ligne)
@@ -69,6 +73,10 @@ fini :: fonc (parseuse: &Parseuse) -> bool
 
 consomme :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
+
     lexème := parseuse.lexème_courant()
     saufsi lexème.genre == genre_lexème {
         retourne faux
@@ -80,30 +88,45 @@ consomme :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
 
 apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
     lexème := parseuse.lexème_courant()
     retourne lexème.genre == genre_lexème
 }
 
 apparie :: fonc (parseuse: &Parseuse, caractère: z8) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
     lexème := parseuse.lexème_courant()
     retourne lexème.genre == (caractère comme z32 comme GenreLexème)
 }
 
 apparie_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
     lexème := parseuse.lexème_courant()
     retourne lexème.genre == GenreLexème.MOT_CLÉ && lexème.ident == ident
 }
 
 apparie_identifiant :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
     lexème := parseuse.lexème_courant()
     retourne lexème.genre == GenreLexème.IDENTIFIANT && lexème.ident == ident
 }
 
 consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
 {
+    si parseuse.fini() {
+        retourne ""
+    }
     ident := parseuse.lexème_courant().ident
     parseuse.avance()
     retourne ident
@@ -111,6 +134,9 @@ consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
 
 consomme_mot_clé :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 {
+    si parseuse.fini() {
+        retourne faux
+    }
     saufsi est_mot_clé(parseuse.lexème_courant(), ident) {
         retourne faux
     }
