@@ -430,13 +430,13 @@ dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragm
 
 dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
 {
-    // overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
-    // overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
-    //     ctx.commandes.débute_ciselage(rect)
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
+    }
 
     pour noeud.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
@@ -470,9 +470,9 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
         dessine(it, ctx)
     }
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     ctx.commandes.termine_ciselage()
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
+    }
 }
 
 dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
@@ -488,21 +488,21 @@ dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDe
         retourne
     }
 
-    // overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
-    // overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
-    //     ctx.commandes.débute_ciselage(rect)
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
+    }
 
     pour * noeud.lignes_tenante.fragments {
         dessine_fragment(it.noeud, it, noeud.lignes_tenante, ctx)
     }
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     ctx.commandes.termine_ciselage()
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
+    }
 }
 
 dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
