@@ -2354,6 +2354,9 @@ NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lex
                 annule_sauvegarde_position();
 
                 auto noeud_fonction = analyse_déclaration_fonction(lexème_référence);
+                if (!noeud_fonction) {
+                    return nullptr;
+                }
 
                 if (noeud_fonction->est_expression_type_fonction()) {
                     auto noeud = m_tacheronne.assembleuse->crée_déclaration_constante(
@@ -2589,6 +2592,10 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
     while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexème::VIRGULE);
+        if (!param) {
+            return nullptr;
+        }
+
         params.ajoute(param);
 
         if (param->est_déclaration_variable()) {

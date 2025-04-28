@@ -1410,7 +1410,11 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
 
     ctx.ctx_calcul_style = *ctx_calcul_style
 
-    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, PersonnalisationCotation())
+    available: AvailableSpace
+    available.width = AvailableSize(largeur comme r64)
+    available.height = AvailableSize(hauteur comme r64)
+
+    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, PersonnalisationCotation(), available)
 
     largeur_descendants, hauteur_descendants := donne_taille_descendants(arbre.racine)
     // imprime("taille arbre : %x%, descedants %x%\n", arbre.racine.modèle_de_boite.marge.largeur, arbre.racine.modèle_de_boite.marge.hauteur, largeur_descendants, hauteur_descendants)
@@ -1879,7 +1883,7 @@ imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleD
 TableVirtuelleNoeudDeDispo :: struct {
     type: type_de_données
 
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation)(rien)
+    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation, AvailableSpace)(rien)
     sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
     sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
     sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
@@ -1905,6 +1909,13 @@ NoeudDeDisposition :: struct {
     traite_comme_display_none: bool
     est_pseudo_element: bool
     fut_dessiné: bool
+
+    MémoireVive :: struct {
+        min_content_width: Optionnel(r64)
+        max_content_width: Optionnel(r64)
+    }
+
+    mémoire_vive: MémoireVive
 }
 
 donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
@@ -2189,7 +2200,7 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
     retourne nul
 }
 
-imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+imprime_élément :: fonc (noeud: *NoeudDeDisposition, message := "", récursif := faux)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -2208,7 +2219,9 @@ imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition
         noeud.donne_élément()
     }
 
-    ajoute_au_tampon(enchaineuse, message, " : ")
+    si message {
+        ajoute_au_tampon(enchaineuse, message, " : ")
+    }
 
     saufsi élément {
         ajoute_au_tampon(enchaineuse, "<anonyme>\n")
@@ -2292,10 +2305,10 @@ donne_nom_classe_sans_préfixe :: fonc (noeud: *NoeudDeDisposition) -> chaine
     retourne résultat
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
+mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
     si noeud.table_virtuelle.sur_mesure {
-        noeud.table_virtuelle.sur_mesure(noeud, ctx, mode, personnalisation)
+        noeud.table_virtuelle.sur_mesure(noeud, ctx, mode, personnalisation, available)
     }
 }
 
@@ -2333,7 +2346,11 @@ divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, m
         retourne
     }
 
-    noeud.mesure(enligneuse.ctx, mode, PersonnalisationCotation())
+    // À FAIRE : available space
+    available : AvailableSpace = ---
+    available.width = crée_min_content_size()
+    available.height = crée_indefinite_size()
+    noeud.mesure(enligneuse.ctx, mode, PersonnalisationCotation(), available)
     _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
 }
 
@@ -2806,7 +2823,7 @@ donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDisposition) -> 
     retourne MéthodeDeFormattage.DansContexteCourant
 }
 
-formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, available: AvailableSpace)
 {
     discr donne_méthode_de_formattage_intérieur(noeud) {
         Inline {
@@ -2824,12 +2841,12 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
             ctx_local.racine = noeud
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
 
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, noeud, mode, available)
         }
         Flex {
             ctx_local: ContexteDeFormattageFlex
             initialise_depuis_parent(*ctx_local, ctx)
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, noeud, mode, available)
         }
         Bloc {
             ctx_local: ContexteDeFormattageBloc
@@ -2838,10 +2855,10 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
             ctx_local.racine = noeud
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
 
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, noeud, mode, available)
         }
         DansContexteCourant {
-            formatte(ctx, noeud, mode)
+            formatte(ctx, noeud, mode, available)
         }
     }
 }
@@ -2896,7 +2913,7 @@ donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionn
     }
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
+noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
     noeud := base comme *NoeudDeDispositionBloc
 
@@ -2914,7 +2931,7 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
         ctx.doit_aligner_les_descendants = alignement
     }
 
-    formatte_intérieur(noeud, ctx, mode)
+    formatte_intérieur(noeud, ctx, mode, available)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
@@ -3030,7 +3047,7 @@ NoeudDeDispositionInline :: struct {
     table_virtuelle = *__table_noeud_de_disposition_inline
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
+noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
     noeud := base comme *NoeudDeDispositionInline
     containing_block := donne_containing_block(base, ctx)
@@ -3038,7 +3055,7 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
-    formatte_intérieur(noeud, ctx, mode)
+    formatte_intérieur(noeud, ctx, mode, available)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
@@ -3561,7 +3578,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne noeud.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace @inutilisée)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -3576,7 +3593,7 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
 noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, PersonnalisationCotation())
+    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, PersonnalisationCotation(), AvailableSpace())
 
     noeud := base comme *NoeudDeDispositionRemplacement
     largeur := noeud.modèle_de_boite.marge.largeur
@@ -4083,7 +4100,7 @@ TableWrapperBox :: struct {
     table: *TableBox
 }
 
-table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation)
+table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
     noeud := base comme *TableWrapperBox
 
@@ -4099,7 +4116,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
 
     ctx_local.racine = noeud
 
-    formatte(*ctx_local, noeud, mode)
+    formatte(*ctx_local, noeud, mode, available)
 
     width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
     si width.est_auto() {
@@ -4417,14 +4434,14 @@ TableBox :: struct {
     table_virtuelle = *__table_noeud_de_disposition_table
 }
 
-table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, personnalisation: PersonnalisationCotation @inutilisée)
+table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace)
 {
     noeud := base comme *TableBox
 
     ctx_local: ContexteDeFormattageTable
     initialise_depuis_parent(*ctx_local, ctx)
 
-    formatte_table(*ctx_local, noeud)
+    formatte_table(*ctx_local, noeud, available)
 }
 
 /** \} */

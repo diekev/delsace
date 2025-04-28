@@ -5,15 +5,6 @@ importe Fondation
 importe POSIX
 importe StatHüs
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "cliente"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 principale :: fonc ()
 {
     ctx := contexte()

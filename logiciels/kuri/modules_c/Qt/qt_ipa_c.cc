@@ -707,7 +707,7 @@ QT_Thread *QT_application_thread()
 
 int QT_application_screen_count()
 {
-    return QApplication::screens().size();
+    return static_cast<int>(QApplication::screens().size());
 }
 
 void QT_application_screen_geometry(int index, QT_Rect *rect)

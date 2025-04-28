@@ -604,6 +604,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     /* Charge d'abord le module basique. */
     auto espace_defaut = compilatrice.espace_de_travail_defaut;
+    espace_defaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
 
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
@@ -792,7 +793,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto const chemin_fichier = argv[argc - 1];
+    auto chemin_fichier = kuri::chemin_systeme(argv[argc - 1]);
+    auto extension = chemin_fichier.extension();
+    if (extension != ".kuri") {
+        if (extension == "") {
+            /* Puisque le nom de fichier de sortie par défaut est le nom du fichier qui est
+             * compilé, ajoute une extension si nous compilons le compilat.
+             * Ceci permet de compiler en ligne de commande quand l'autocomplétion s'arrête avant
+             * l'extension, mais que le développeur lança l'exécution de la commande avec de
+             * compléter plus. */
+            chemin_fichier = chemin_fichier.remplace_extension(".kuri");
+        }
+        else {
+            dbg() << "Le fichier spécifié doit avoir l'extension '.kuri'";
+            dbg() << "    L'extension du fichier est '" << extension << "'";
+            return 1;
+        }
+    }
+
     if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         dbg() << "Impossible d'ouvrir le fichier : " << chemin_fichier;
         return 1;

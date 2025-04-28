@@ -1,0 +1,36 @@
+importe Chaine
+
+/* Nombre entier le plus proche de 2^32 (-1 + sqrt(5)) / 2 */
+RATIO_OR_KNUTH_32 : n32 : 2_654_435_769
+
+/* Nombre entier le plus proche de 2^64 (-1 + sqrt(5)) / 2 */
+RATIO_OR_KNUTH_64 : n64 : 11_400_714_819_323_198_485
+
+/* The Art Of Computer Programming volume 3 (2nd edition), section 6.4, page 516.
+ * Nous ne faisons pas la réduction de l'empreinte (résultat >> (32 - p))
+ * car ceci est le devoir de l'utilisateur (p.e. la table de hachage). */
+empreinte_knuth :: fonc (x: n32) -> n32
+{
+    retourne RATIO_OR_KNUTH_32 * x
+}
+
+empreinte_knuth :: fonc (x: n64) -> n64
+{
+    retourne RATIO_OR_KNUTH_64 * x
+}
+
+combine_empreintes :: fonc (a: n64, b: n64) -> n64
+{
+    retourne a * RATIO_OR_KNUTH_64 + b
+}
+
+donne_empreinte :: fonc (pos: PositionCodeSource, identifiant: n64) -> n64
+{
+    // Pour réduire les colésions, nous pourrions tenter de condenser l'adresse du nom de fichier.
+    empreinte_nom := calcule_empreinte_djb2(pos.fichier)
+    empreinte_ligne := empreinte_knuth(pos.ligne comme n64)
+    empreinte_identifiant := empreinte_knuth(identifiant)
+
+    résultat := combine_empreintes(empreinte_nom, combine_empreintes(empreinte_ligne, empreinte_identifiant))
+    retourne résultat
+}

@@ -5,7 +5,7 @@ importe SysFichier
 principale :: fonc ()
 {
     test: DonnéesPourTest
-    test.programme = CheminFichier("../a.out")
+    test.programme = CheminFichier("../principale")
 
     test.ajoute_série_de_tests(CheminFichier("specs_bdd"))
 

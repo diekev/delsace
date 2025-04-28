@@ -1,4 +1,5 @@
 importe Fondation
+importe Introspection // pour définis_membre_actif, donne_index_membre_actif
 importe Math
 importe Structures
 
@@ -1282,19 +1283,6 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
     }
 }
 
-calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
-{
-    /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite)
-    preferred_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
-
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne)
-    minimum_width := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
-
-    résultat := min(max(minimum_width, preferred_width), available_width)
-    retourne résultat
-}
-
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
 calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
@@ -1567,4 +1555,241 @@ calcule_hauteur_et_marges_complicated_cases :: fonc (empl args: *ArgumentsDimens
     // À FAIRE : For 'inline-block' elements, the margin box is used when calculating the height of the line box.
 
     retourne ÉtatCalculHauteur.HauteurRésolue
+}
+
+/* https://www.w3.org/TR/css-sizing-3/#size */
+Size :: union {
+    Definite: r64
+    Indefinite
+}
+
+est_definite :: fonc (size: Size) -> bool
+{
+    discr size {
+        Definite {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+imprime_size :: fonc (enchaineuse: *Enchaineuse, size: *Size)
+{
+    discr mémoire(size) {
+        Definite(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        Indefinite {
+            ajoute_au_tampon(enchaineuse, "indefinite")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "invalide")
+        }
+    }
+} @FormattageImpression
+
+/* https://www.w3.org/TR/css-sizing-3/#available */
+AvailableSize :: union {
+    Definite: r64
+    Indefinite
+    MinContent
+    MaxContent
+}
+
+est_valide :: fonc (size: AvailableSize) -> bool
+{
+    retourne donne_index_membre_actif(size) != 0
+}
+
+crée_definite_size :: fonc (pixels: r64) -> AvailableSize
+{
+    retourne AvailableSize(pixels)
+}
+
+crée_indefinite_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 1)
+    retourne résultat
+}
+
+crée_min_content_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 2)
+    retourne résultat
+}
+
+crée_max_content_size :: fonc () -> AvailableSize
+{
+    résultat: AvailableSize = ---
+    définis_membre_actif(*résultat, 3)
+    retourne résultat
+}
+
+est_definite :: fonc (space: AvailableSize) -> bool
+{
+    discr space {
+        Definite {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_indefinite :: fonc (space: AvailableSize) -> bool
+{
+    discr space {
+        Indefinite {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_min_content :: fonc (space: AvailableSize) -> bool
+{
+    discr space {
+        MinContent {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_max_content :: fonc (space: AvailableSize) -> bool
+{
+    discr space {
+        MaxContent {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+imprime_available_size :: fonc (enchaineuse: *Enchaineuse, size: *AvailableSize)
+{
+    discr mémoire(size) {
+        Definite(v) {
+            ajoute_au_tampon(enchaineuse, v)
+        }
+        Indefinite {
+            ajoute_au_tampon(enchaineuse, "indefinite")
+        }
+        MinContent {
+            ajoute_au_tampon(enchaineuse, "min-content")
+        }
+        MaxContent {
+            ajoute_au_tampon(enchaineuse, "max-content")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "invalide")
+        }
+    }
+} @FormattageImpression
+
+AvailableSpace :: struct {
+    width: AvailableSize
+    height: AvailableSize
+}
+
+est_valide :: fonc (space: AvailableSpace) -> bool
+{
+    retourne est_valide(space.width) && est_valide(space.height)
+}
+
+calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
+{
+    retourne calcule_fit_content_width(ctx, noeud, AvailableSize(available_width))
+}
+
+/* NOTE: This is called the “shrink-to-fit” width in CSS2.1§10.3.5 and CSS Multi-column Layout § 3.4. */
+calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available: AvailableSize) -> r64
+{
+    si available.est_min_content() {
+        retourne calcule_min_content_width(ctx, noeud)
+    }
+
+    saufsi available.est_definite() {
+        assert(available.est_max_content() || available.est_indefinite())
+        retourne calcule_max_content_width(ctx, noeud)
+    }
+
+    max_content := calcule_max_content_width(ctx, noeud)
+    min_content := calcule_min_content_width(ctx, noeud)
+    retourne min(max(min_content, max_content), available.Definite)
+}
+
+/* NOTE : This is called the “preferred minimum width” in CSS2.1§10.3.5 and the “minimum content width” in CSS2.1§17.5.2.2. */
+calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+{
+    si noeud.mémoire_vive.min_content_width.possède_valeur() {
+        retourne noeud.mémoire_vive.min_content_width.Quelque
+    }
+
+    available: AvailableSpace = ---
+    available.width = crée_min_content_size()
+    available.height = crée_indefinite_size()
+
+    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available)
+    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    noeud.mémoire_vive.min_content_width = résultat
+    retourne résultat
+}
+
+/* This is called the “preferred width” in CSS2.1§10.3.5 and the “maximum cell width” in CSS2.1§17.5.2.2. */
+calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+{
+    si noeud.mémoire_vive.max_content_width.possède_valeur() {
+        retourne noeud.mémoire_vive.max_content_width.Quelque
+    }
+
+    available: AvailableSpace = ---
+    available.width = crée_max_content_size()
+    available.height = crée_indefinite_size()
+
+    /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
+    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available)
+    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    noeud.mémoire_vive.max_content_width = résultat
+    retourne résultat
+}
+
+calcule_fit_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available: AvailableSize) -> r64
+{
+    si available.est_min_content() {
+        retourne calcule_min_content_height(ctx, noeud)
+    }
+
+    saufsi available.est_definite() {
+        assert(available.est_max_content() || available.est_indefinite())
+        retourne calcule_max_content_height(ctx, noeud)
+    }
+
+    max_content := calcule_max_content_height(ctx, noeud)
+    min_content := calcule_min_content_height(ctx, noeud)
+    retourne min(max(min_content, max_content), available.Definite)
+}
+
+calcule_min_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+{
+    /* The min-content size in the block axis.
+     * For block containers, tables, and inline boxes, this is equivalent to the max-content block size. */
+    retourne 0.0
+}
+
+calcule_max_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+{
+    /* The box’s “ideal” size in the block axis. Usually the block size of the content after layout. */
+    retourne 0.0
 }
