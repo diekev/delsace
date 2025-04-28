@@ -86,6 +86,15 @@ consomme :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
     retourne vrai
 }
 
+consomme_ou_rapporte_erreur :: fonc (parseuse: &Parseuse, c: z8)
+{
+    saufsi apparie(parseuse, c) {
+        rapporte_erreur(parseuse, imprime_chaine("attendu '%'", chaine(*c, 1)))
+        retourne
+    }
+    parseuse.avance()
+}
+
 apparie :: fonc (parseuse: &Parseuse, genre_lexème: GenreLexème) -> bool
 {
     si parseuse.fini() {
@@ -125,7 +134,11 @@ apparie_identifiant :: fonc (parseuse: &Parseuse, ident: chaine) -> bool
 consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
 {
     si parseuse.fini() {
+        rapporte_erreur(parseuse, "fin de fichier inattendu")
         retourne ""
+    }
+    saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
+        rapporte_erreur(parseuse, "attendu un identifiant")
     }
     ident := parseuse.lexème_courant().ident
     parseuse.avance()
@@ -176,6 +189,16 @@ parse :: fonc (parseuse: &Parseuse)
 
         si apparie_mot_clé(parseuse, "typedef") {
             parseuse.parse_typedef()
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "template") {
+            parseuse.parse_template()
+            continue
+        }
+
+        si apparie_mot_clé(parseuse, "using") {
+            parseuse.parse_using()
             continue
         }
 
@@ -541,6 +564,23 @@ parse_constructeur :: fonc (parseuse: &Parseuse)
         retourne
     }
 
+    si parseuse.apparie('=') {
+        parseuse.avance();
+
+        si parseuse.apparie_mot_clé("delete") {
+            parseuse.avance()
+        }
+        sinon si parseuse.apparie_mot_clé("default") {
+            parseuse.avance()
+        }
+        sinon {
+            parseuse.rapporte_erreur("Lexème inattendu")
+        }
+
+        consomme_ou_rapporte_erreur(parseuse, ';')
+        retourne
+    }
+
     /* Nous sommes sur la définition. */
 
     si parseuse.apparie(':') {
@@ -745,3 +785,44 @@ parse_typedef :: fonc (parseuse: &Parseuse)
 /** \} */
 
 /** \} */
+
+parse_template :: fonc (parseuse: &Parseuse)
+{
+    /* Nous sommes sur le mot-clé. */
+    _ := parseuse.lexème_courant()
+    parseuse.avance()
+
+    consomme_ou_rapporte_erreur(parseuse, '<')
+
+    tantque !fini(parseuse) {
+        si parseuse.apparie('>') {
+            arrête
+        }
+
+        parseuse.avance()
+    }
+
+    consomme_ou_rapporte_erreur(parseuse, '>')
+}
+
+parse_using :: fonc (parseuse: &Parseuse)
+{
+    parseuse.avance()
+
+    si apparie_mot_clé(parseuse, "namespace") {
+        parseuse.avance()
+        _ := parseuse.consomme_ident()
+    }
+    sinon {
+        _ := parseuse.consomme_ident()
+        consomme_ou_rapporte_erreur(parseuse, '=')
+        parseuse.parse_référence_type()
+    }
+
+    consomme_ou_rapporte_erreur(parseuse, ';')
+}
+
+parse_référence_type :: fonc (parseuse: &Parseuse)
+{
+    _ := parseuse.consomme_ident()
+}

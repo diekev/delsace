@@ -253,6 +253,11 @@ est_mot_clé :: fonc (identifiant: chaine) -> bool
         "size_t",
         "float2",
         "virtual",
+        "template",
+        "default",
+        "delete",
+        "using",
+        "namespace",
         "typedef" ]
 
     pour mots_clés {
