@@ -2200,7 +2200,7 @@ donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élémen
     retourne nul
 }
 
-imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+imprime_élément :: fonc (noeud: *NoeudDeDisposition, message := "", récursif := faux)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -2219,7 +2219,9 @@ imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition
         noeud.donne_élément()
     }
 
-    ajoute_au_tampon(enchaineuse, message, " : ")
+    si message {
+        ajoute_au_tampon(enchaineuse, message, " : ")
+    }
 
     saufsi élément {
         ajoute_au_tampon(enchaineuse, "<anonyme>\n")
