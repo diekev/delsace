@@ -3508,7 +3508,11 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
         outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
         personnalisation: PersonnalisationCotation
         personnalisation.outrepas_largeur = *outrepas_largeur
-        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation, AvailableSpace())
+
+        available : AvailableSpace = ---
+        available.width = crée_definite_size(cellule.largeur_finale)
+        available.height = crée_indefinite_size()
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation, available)
     }
 }
 
