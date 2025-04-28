@@ -17,15 +17,6 @@ importe Triage
 
 importe POSIX
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "serveuse"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 principale :: fonc ()
 {
     // extrémité := crée_extrémité_serveuse(faux)
@@ -133,13 +124,13 @@ rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generi
 
     si type == QT_Event_Type.MouseButtonPress {
         clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_pression_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        sur_pression_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
         clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_relâchement_souris(*rappels.emboiteuse, clic.état.où.x comme r32, clic.état.où.y comme r32)
+        sur_relâchement_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
 
@@ -467,8 +458,10 @@ crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) ->
 
     commence_disposition(emboiteuse, largeur, hauteur)
 
-    dispose_rectangle(arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE())))
+    dispose_rectangle()
     {
+        définis_arrière_plan(PEAU2)
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
         dessine_état_mémoire(rappels)
     }
     termine_rectangle()
@@ -479,16 +472,20 @@ crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) ->
 dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 {
     si rappels.connexion_reçue == faux && rappels.données_reçues.taille == 0 {
-        dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0))
+        dispose_rectangle()
         {
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0)
             dispose_texte("En attente d'une connexion...", ConfigurationTexte(rappels.fonte, PEAU_OMBRE))
         }
         termine_rectangle()
         retourne
     }
 
-    dispose_rectangle(arrière_plan = PEAU1, disposition = ConfigurationDiposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    dispose_rectangle()
     {
+        définis_arrière_plan(PEAU1)
+        définis_disposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
+
         dispose_texte("Connexion établie !", ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
 
         texte := si rappels.état_mémoire.messages.taille > 1 {
@@ -527,8 +524,9 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     }
     termine_rectangle()
 
-    dispose_rectangle(disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    dispose_rectangle()
     {
+        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
         si rappels.dessine_allocations {
@@ -537,8 +535,11 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
                     arrête
                 }
 
-                dispose_rectangle(id = it.id, arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                dispose_rectangle(id = it.id)
                 {
+                    définis_arrière_plan(PEAU1)
+                    définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
+
                     trace := it.traces[0]
 
                     sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
@@ -563,8 +564,11 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
                 condensat := rappels.état_mémoire.condensats_traces[it.id]
 
-                dispose_rectangle(id = condensat.donne_chaine(), arrière_plan = PEAU1, disposition = ConfigurationDiposition(rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+                dispose_rectangle(id = condensat.donne_chaine())
                 {
+                    définis_arrière_plan(PEAU1)
+                    définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
+
                     sur_clic_souris(définis_trace_sélectionnée, rappels, index_effectif)
 
                     texte := imprime_chaine_temp("% allocations dans '%'", it.utilisateurs, it.traces[0].nom)
@@ -600,8 +604,9 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
 dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, condensat: Condensat)
 {
-    dispose_rectangle(id = "Vue Traces", disposition = ConfigurationDiposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = [8.0, 8.0, 8.0, 8.0], séparation_enfant = 8.0))
+    dispose_rectangle(id = "Vue Traces")
     {
+        définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
         hex := condensat.donne_chaine_hex()
@@ -616,17 +621,19 @@ dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, con
     termine_rectangle()   
 }
 
-dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, n64, z32)(rien), index: z32)
+dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, CliqueSouris, n64, z32)(rien), index: z32)
 {
-    dispose_rectangle(id = texte, arrière_plan = PEAU2, disposition = ConfigurationDiposition(cotation = Cotation(CROISSANTE()), rembourrage = [8.0, 8.0, 8.0, 8.0], alignement_horizontal = AlignementEnfant.Milieu))
+    dispose_rectangle(id = texte)
     {
+        définis_arrière_plan(PEAU2)
+        définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu)
         sur_pression_souris(rappel_sur_clic, rappels, index)
         dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
     }
     termine_rectangle()
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     si index == 0 {
         rappels.dessine_allocations = vrai
@@ -636,7 +643,7 @@ sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, id: n
     }
 }
 
-définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
     assert(index < rappels.état_mémoire.allocations.taille)
@@ -644,7 +651,7 @@ définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @in
     rappels.état_mémoire.allocation_sélectionnée = index
 }
 
-définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, id: n64 @inutilisée, index: z32)
+définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
     assert(index < rappels.état_mémoire.traces_triées.taille)

@@ -1,0 +1,241 @@
+Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 66 [0 0 0]
+    Bloc <(anonyme)> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 0 [0 0 0]
+        frag 0 MargeDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 2 RembourrageFin de Inline début 0 fin 0 rect (0,0 0x0)
+        frag 3 MargeFin de Inline début 0 fin 0 rect (0,0 0x0)
+        Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+    Bloc <body> <8, 8> CH [8 0 0] 1904 [0 0 8] CV [8 0 0] 50 [0 0 8]
+        Bloc <(anonyme)> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,8 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,8 0x0)
+            Inline <(anonyme)> <8, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <8, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+        Bloc <div> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 50 [0 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <p> <1277.33, 24> CH [0 0 0] 634.67 [0 0 0] CV [16 0 0] 18 [0 0 16]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (1277.33,24 0x18)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (1277.33,24 0x18)
+                frag 2 Normal de Texte début 0 fin 1 rect (1277.33,24 35x18)
+                    "Texte"
+                frag 3 Normal de Texte début 1 fin 2 rect (1312.33,24 4x18)
+                    " "
+                frag 4 Normal de Texte début 2 fin 3 rect (1316.33,24 22x18)
+                    "test"
+                frag 5 Normal de Texte début 3 fin 4 rect (1338.33,24 4x18)
+                    " "
+                frag 6 Normal de Texte début 4 fin 5 rect (1342.33,24 35x18)
+                    "Texte"
+                frag 7 Normal de Texte début 5 fin 6 rect (1377.33,24 4x18)
+                    " "
+                frag 8 Normal de Texte début 6 fin 7 rect (1381.33,24 22x18)
+                    "test"
+                frag 9 Normal de Texte début 7 fin 8 rect (1403.33,24 4x18)
+                    " "
+                frag 10 Normal de Texte début 8 fin 9 rect (1407.33,24 35x18)
+                    "Texte"
+                frag 11 Normal de Texte début 9 fin 10 rect (1442.33,24 4x18)
+                    " "
+                frag 12 Normal de Texte début 10 fin 11 rect (1446.33,24 22x18)
+                    "test"
+                frag 13 Normal de Texte début 11 fin 12 rect (1468.33,24 4x18)
+                    " "
+                frag 14 Normal de Texte début 12 fin 13 rect (1472.33,24 35x18)
+                    "Texte"
+                frag 15 Normal de Texte début 13 fin 14 rect (1507.33,24 4x18)
+                    " "
+                frag 16 Normal de Texte début 14 fin 15 rect (1511.33,24 22x18)
+                    "test"
+                frag 17 Normal de Texte début 15 fin 16 rect (1533.33,24 4x18)
+                    " "
+                frag 18 Normal de Texte début 16 fin 17 rect (1537.33,24 35x18)
+                    "Texte"
+                frag 19 Normal de Texte début 17 fin 18 rect (1572.33,24 4x18)
+                    " "
+                frag 20 Normal de Texte début 18 fin 19 rect (1576.33,24 22x18)
+                    "test"
+                frag 21 Normal de Texte début 19 fin 20 rect (1598.33,24 4x18)
+                    " "
+                frag 22 Normal de Texte début 20 fin 21 rect (1602.33,24 35x18)
+                    "Texte"
+                frag 23 Normal de Texte début 21 fin 22 rect (1637.33,24 4x18)
+                    " "
+                frag 24 Normal de Texte début 22 fin 23 rect (1641.33,24 22x18)
+                    "test"
+                frag 25 Normal de Texte début 23 fin 24 rect (1663.33,24 4x18)
+                    " "
+                frag 26 Normal de Texte début 24 fin 25 rect (1667.33,24 35x18)
+                    "Texte"
+                frag 27 Normal de Texte début 25 fin 26 rect (1702.33,24 4x18)
+                    " "
+                frag 28 Normal de Texte début 26 fin 27 rect (1706.33,24 22x18)
+                    "test"
+                frag 29 Normal de Texte début 27 fin 28 rect (1728.33,24 4x18)
+                    " "
+                frag 30 Normal de Texte début 28 fin 29 rect (1732.33,24 35x18)
+                    "Texte"
+                frag 31 Normal de Texte début 29 fin 30 rect (1767.33,24 4x18)
+                    " "
+                frag 32 Normal de Texte début 30 fin 31 rect (1771.33,24 22x18)
+                    "test"
+                frag 33 RembourrageFin de Inline début 0 fin 0 rect (1793.33,24 0x18)
+                frag 34 MargeFin de Inline début 0 fin 0 rect (1793.33,24 0x18)
+                Inline <(anonyme)> <1277.33, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <1277.33, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <p> <642.67, 24> CH [0 0 0] 634.67 [0 0 0] CV [16 0 0] 18 [0 0 16]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (642.67,24 0x18)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (642.67,24 0x18)
+                frag 2 Normal de Texte début 0 fin 1 rect (642.67,24 35x18)
+                    "Texte"
+                frag 3 Normal de Texte début 1 fin 2 rect (677.67,24 4x18)
+                    " "
+                frag 4 Normal de Texte début 2 fin 3 rect (681.67,24 22x18)
+                    "test"
+                frag 5 Normal de Texte début 3 fin 4 rect (703.67,24 4x18)
+                    " "
+                frag 6 Normal de Texte début 4 fin 5 rect (707.67,24 35x18)
+                    "Texte"
+                frag 7 Normal de Texte début 5 fin 6 rect (742.67,24 4x18)
+                    " "
+                frag 8 Normal de Texte début 6 fin 7 rect (746.67,24 22x18)
+                    "test"
+                frag 9 Normal de Texte début 7 fin 8 rect (768.67,24 4x18)
+                    " "
+                frag 10 Normal de Texte début 8 fin 9 rect (772.67,24 35x18)
+                    "Texte"
+                frag 11 Normal de Texte début 9 fin 10 rect (807.67,24 4x18)
+                    " "
+                frag 12 Normal de Texte début 10 fin 11 rect (811.67,24 22x18)
+                    "test"
+                frag 13 Normal de Texte début 11 fin 12 rect (833.67,24 4x18)
+                    " "
+                frag 14 Normal de Texte début 12 fin 13 rect (837.67,24 35x18)
+                    "Texte"
+                frag 15 Normal de Texte début 13 fin 14 rect (872.67,24 4x18)
+                    " "
+                frag 16 Normal de Texte début 14 fin 15 rect (876.67,24 22x18)
+                    "test"
+                frag 17 Normal de Texte début 15 fin 16 rect (898.67,24 4x18)
+                    " "
+                frag 18 Normal de Texte début 16 fin 17 rect (902.67,24 35x18)
+                    "Texte"
+                frag 19 Normal de Texte début 17 fin 18 rect (937.67,24 4x18)
+                    " "
+                frag 20 Normal de Texte début 18 fin 19 rect (941.67,24 22x18)
+                    "test"
+                frag 21 Normal de Texte début 19 fin 20 rect (963.67,24 4x18)
+                    " "
+                frag 22 Normal de Texte début 20 fin 21 rect (967.67,24 35x18)
+                    "Texte"
+                frag 23 Normal de Texte début 21 fin 22 rect (1002.67,24 4x18)
+                    " "
+                frag 24 Normal de Texte début 22 fin 23 rect (1006.67,24 22x18)
+                    "test"
+                frag 25 Normal de Texte début 23 fin 24 rect (1028.67,24 4x18)
+                    " "
+                frag 26 Normal de Texte début 24 fin 25 rect (1032.67,24 35x18)
+                    "Texte"
+                frag 27 Normal de Texte début 25 fin 26 rect (1067.67,24 4x18)
+                    " "
+                frag 28 Normal de Texte début 26 fin 27 rect (1071.67,24 22x18)
+                    "test"
+                frag 29 Normal de Texte début 27 fin 28 rect (1093.67,24 4x18)
+                    " "
+                frag 30 Normal de Texte début 28 fin 29 rect (1097.67,24 35x18)
+                    "Texte"
+                frag 31 Normal de Texte début 29 fin 30 rect (1132.67,24 4x18)
+                    " "
+                frag 32 Normal de Texte début 30 fin 31 rect (1136.67,24 22x18)
+                    "test"
+                frag 33 RembourrageFin de Inline début 0 fin 0 rect (1158.67,24 0x18)
+                frag 34 MargeFin de Inline début 0 fin 0 rect (1158.67,24 0x18)
+                Inline <(anonyme)> <642.67, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <642.67, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Bloc <p> <8, 24> CH [0 0 0] 634.67 [0 0 0] CV [16 0 0] 18 [0 0 16]
+                frag 0 MargeDébut de Inline début 0 fin 0 rect (8,24 0x18)
+                frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,24 0x18)
+                frag 2 Normal de Texte début 0 fin 1 rect (8,24 35x18)
+                    "Texte"
+                frag 3 Normal de Texte début 1 fin 2 rect (43,24 4x18)
+                    " "
+                frag 4 Normal de Texte début 2 fin 3 rect (47,24 22x18)
+                    "test"
+                frag 5 Normal de Texte début 3 fin 4 rect (69,24 4x18)
+                    " "
+                frag 6 Normal de Texte début 4 fin 5 rect (73,24 35x18)
+                    "Texte"
+                frag 7 Normal de Texte début 5 fin 6 rect (108,24 4x18)
+                    " "
+                frag 8 Normal de Texte début 6 fin 7 rect (112,24 22x18)
+                    "test"
+                frag 9 Normal de Texte début 7 fin 8 rect (134,24 4x18)
+                    " "
+                frag 10 Normal de Texte début 8 fin 9 rect (138,24 35x18)
+                    "Texte"
+                frag 11 Normal de Texte début 9 fin 10 rect (173,24 4x18)
+                    " "
+                frag 12 Normal de Texte début 10 fin 11 rect (177,24 22x18)
+                    "test"
+                frag 13 Normal de Texte début 11 fin 12 rect (199,24 4x18)
+                    " "
+                frag 14 Normal de Texte début 12 fin 13 rect (203,24 35x18)
+                    "Texte"
+                frag 15 Normal de Texte début 13 fin 14 rect (238,24 4x18)
+                    " "
+                frag 16 Normal de Texte début 14 fin 15 rect (242,24 22x18)
+                    "test"
+                frag 17 Normal de Texte début 15 fin 16 rect (264,24 4x18)
+                    " "
+                frag 18 Normal de Texte début 16 fin 17 rect (268,24 35x18)
+                    "Texte"
+                frag 19 Normal de Texte début 17 fin 18 rect (303,24 4x18)
+                    " "
+                frag 20 Normal de Texte début 18 fin 19 rect (307,24 22x18)
+                    "test"
+                frag 21 Normal de Texte début 19 fin 20 rect (329,24 4x18)
+                    " "
+                frag 22 Normal de Texte début 20 fin 21 rect (333,24 35x18)
+                    "Texte"
+                frag 23 Normal de Texte début 21 fin 22 rect (368,24 4x18)
+                    " "
+                frag 24 Normal de Texte début 22 fin 23 rect (372,24 22x18)
+                    "test"
+                frag 25 Normal de Texte début 23 fin 24 rect (394,24 4x18)
+                    " "
+                frag 26 Normal de Texte début 24 fin 25 rect (398,24 35x18)
+                    "Texte"
+                frag 27 Normal de Texte début 25 fin 26 rect (433,24 4x18)
+                    " "
+                frag 28 Normal de Texte début 26 fin 27 rect (437,24 22x18)
+                    "test"
+                frag 29 Normal de Texte début 27 fin 28 rect (459,24 4x18)
+                    " "
+                frag 30 Normal de Texte début 28 fin 29 rect (463,24 35x18)
+                    "Texte"
+                frag 31 Normal de Texte début 29 fin 30 rect (498,24 4x18)
+                    " "
+                frag 32 Normal de Texte début 30 fin 31 rect (502,24 22x18)
+                    "test"
+                frag 33 RembourrageFin de Inline début 0 fin 0 rect (524,24 0x18)
+                frag 34 MargeFin de Inline début 0 fin 0 rect (524,24 0x18)
+                Inline <(anonyme)> <8, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                    Texte <(anonyme)> <8, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+            Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+        Bloc <(anonyme)> <8, 58> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            frag 0 MargeDébut de Inline début 0 fin 0 rect (8,58 0x0)
+            frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,58 0x0)
+            frag 2 RembourrageFin de Inline début 0 fin 0 rect (8,58 0x0)
+            frag 3 MargeFin de Inline début 0 fin 0 rect (8,58 0x0)
+            Inline <(anonyme)> <8, 58> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Texte <(anonyme)> <8, 58> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+
+StackingContext : html
