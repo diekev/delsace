@@ -1208,6 +1208,30 @@ restreint_taille :: fonc (size: r64, min_size: *ValeurDeStyle, max_size: *Valeur
     retourne size
 }
 
+restreint_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition, size: r64, applique_box_sizing: bool) -> r64
+{
+    min_main_size := donne_min_main_size_prop(ctx, noeud)
+    max_main_size := donne_max_main_size_prop(ctx, noeud)
+    si applique_box_sizing {
+        params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, noeud)
+        params_box_sizing.applique_delta_à_taille_de_base = faux
+        retourne restreint_taille(size, min_main_size, max_main_size, *params_box_sizing)
+    }
+    retourne restreint_taille(size, min_main_size, max_main_size, nul)
+}
+
+restreint_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition, size: r64, applique_box_sizing: bool) -> r64
+{
+    min_cross_size := donne_min_cross_size_prop(ctx, noeud)
+    max_cross_size := donne_max_cross_size_prop(ctx, noeud)
+    si applique_box_sizing {
+        params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx, noeud)
+        params_box_sizing.applique_delta_à_taille_de_base = faux
+        retourne restreint_taille(size, min_cross_size, max_cross_size, *params_box_sizing)
+    }
+    retourne restreint_taille(size, min_cross_size, max_cross_size, nul)
+}
+
 DirectionFlex :: énum {
     Horizontale
     Verticale
@@ -1463,12 +1487,20 @@ initialise_id_propriétés :: fonc (empl ctx: *ContexteDeFormattageFlex)
     ids_props[vertical].border_width_end = IDPropriété.BorderWidthBottom
 }
 
-donne_paramètres_box_sizing_cross_size :: fonc (ctx: *ContexteDeFormattageFlex) -> ParamètresBoxSizing
+donne_paramètres_box_sizing_main_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> ParamètresBoxSizing
 {
     si ctx.main_axis == DirectionFlex.Horizontale {
-        retourne donne_paramètres_box_sizing_pour_hauteur(ctx.contenant.propriétés)
+        retourne donne_paramètres_box_sizing_pour_largeur(noeud.propriétés)
     }
-    retourne donne_paramètres_box_sizing_pour_largeur(ctx.contenant.propriétés)
+    retourne donne_paramètres_box_sizing_pour_hauteur(noeud.propriétés)
+}
+
+donne_paramètres_box_sizing_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDisposition) -> ParamètresBoxSizing
+{
+    si ctx.main_axis == DirectionFlex.Horizontale {
+        retourne donne_paramètres_box_sizing_pour_hauteur(noeud.propriétés)
+    }
+    retourne donne_paramètres_box_sizing_pour_largeur(noeud.propriétés)
 }
 
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
@@ -1873,10 +1905,7 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
     // The hypothetical main size is the item’s flex base size clamped according to its used min and max main
     // sizes (À FAIRE : and flooring the content box size at zero).
     pour * ctx.items {
-        min_main_size := donne_min_main_size_prop(ctx, it.noeud)
-        max_main_size := donne_max_main_size_prop(ctx, it.noeud)
-
-        it.hypothetical_main_size = restreint_taille(it.flex_base_size, min_main_size, max_main_size, nul)
+        it.hypothetical_main_size = restreint_main_size(ctx, it.noeud, it.flex_base_size, faux)
         si it.hypothetical_main_size < 0.0 {
             it.hypothetical_main_size = 0.0
         }
@@ -1948,10 +1977,7 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
         main_size += border_end_prop.donne_pixels()
     }
 
-    min_size := donne_min_main_size_prop(ctx, ctx.contenant)
-    max_size := donne_max_main_size_prop(ctx, ctx.contenant)
-
-    main_size = restreint_taille(main_size, min_size, max_size, nul)
+    main_size = restreint_main_size(ctx, ctx.contenant, main_size, faux)
 
     ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size))
     si ctx.main_axis == DirectionFlex.Horizontale {
@@ -2153,10 +2179,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 continue
             }
 
-            min_size := donne_min_main_size_prop(ctx, it.noeud)
-            max_size := donne_max_main_size_prop(ctx, it.noeud)
-
-            target_main_size := restreint_taille(it.target_main_size, min_size, max_size, nul)
+            target_main_size := restreint_main_size(ctx, it.noeud, it.target_main_size, faux)
 
             it.violation = target_main_size - it.target_main_size
             imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
@@ -2243,11 +2266,7 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
     si ctx.est_single_line() {
         ligne := *ctx.lignes[0]
         imprimeln("[%] %", #nom_de_cette_fonction, ligne.used_cross_size)
-        min_cross_size := donne_min_cross_size_prop(ctx)
-        max_cross_size := donne_max_cross_size_prop(ctx)
-        params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx)
-        params_box_sizing.applique_delta_à_taille_de_base = faux
-        ligne.used_cross_size = restreint_taille(ligne.used_cross_size, min_cross_size, max_cross_size, *params_box_sizing)
+        ligne.used_cross_size = restreint_cross_size(ctx, ctx.contenant, ligne.used_cross_size, vrai)
     }
 
     pour ctx.lignes {
@@ -2313,10 +2332,7 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             cross_margin_end := donne_cross_margin_end_prop(ctx, it.noeud)
 
             si align_self == PROP_stretch && cross_size.est_auto() && !cross_margin_start.est_auto() && !cross_margin_end.est_auto() {
-                min_size := donne_min_cross_size_prop(ctx, it.noeud)
-                max_size := donne_max_cross_size_prop(ctx, it.noeud)
-
-                outer_cross_size := restreint_taille(ligne.used_cross_size, min_size, max_size, nul)
+                outer_cross_size := restreint_cross_size(ctx, it.noeud, ligne.used_cross_size, faux)
                 it.définis_outer_cross_size(outer_cross_size, ctx)
             }
             sinon {
@@ -2560,12 +2576,7 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
         }
     }
 
-    min_cross_size := donne_min_cross_size_prop(ctx)
-    max_cross_size := donne_max_cross_size_prop(ctx)
-
-    params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx)
-    params_box_sizing.applique_delta_à_taille_de_base = faux
-    used_cross_size = restreint_taille(used_cross_size, min_cross_size, max_cross_size, *params_box_sizing)
+    used_cross_size = restreint_cross_size(ctx, ctx.contenant, used_cross_size, vrai)
 
     imprimeln("[%] %", #nom_de_cette_fonction, used_cross_size)
 
