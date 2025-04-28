@@ -58,6 +58,7 @@ tests_flex_ne_fonctionnant_que_pour_standard := [
     "flex-align-content-space-around-001.html",
     "flex-align-content-stretch-001.html",
     "flex-align-content-flex-end-001.html",
+    "flex-avec-bloc-absolu.html",
     "flex-avec-bloc-absolu-002.html",
     "flex-avec-bloc-absolu-003.html",
     "flex-align-content-center-001.html"
