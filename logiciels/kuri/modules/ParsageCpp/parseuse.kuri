@@ -25,7 +25,6 @@ Parseuse :: struct {
 initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
 {
     parseuse.fichier = fichier
-    parseuse.lexèmes = fichier.lexèmes
 }
 
 sauvegarde_position :: fonc (parseuse: &Parseuse)
@@ -166,6 +165,11 @@ CléClasse :: énum {
 
 parse :: fonc (parseuse: &Parseuse)
 {
+    lexeuse: Lexeuse
+    lèxe_fichier_source(*lexeuse, parseuse.fichier)
+
+    parseuse.lexèmes = parseuse.fichier.lexèmes
+
     tantque !fini(parseuse) {
         si apparie_mot_clé(parseuse, "struct") {
             parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
