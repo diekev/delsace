@@ -1677,7 +1677,10 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 {
     imprimeln("-----------------------------------------------------")
     imprimeln("          %", mode)
+    imprime_élément(noeud)
     imprimeln("%", ctx.available_space)
+
+    assert(est_valide(ctx.available_space))
 
     initialise_id_propriétés(ctx)
 
@@ -1846,7 +1849,14 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
         //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
         //    item’s resulting main size.
-        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), ctx.available_space)
+        available := ctx.available_space
+        si ctx.est_direction_row {
+            available.width = crée_max_content_size()
+        }
+        sinon {
+            available.height = crée_max_content_size()
+        }
+        it.noeud.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), available)
         it.flex_base_size = donne_inner_main_size(ctx, it.noeud)
     }
 
@@ -1889,12 +1899,21 @@ résoud_flex_basis :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispo
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-main-container */
-determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
+determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage @inutilisée)
 {
+    // À FAIRE : simplifie/généralise cette logique. Idéalement le contexte parent devrait nous définir la taille.
+    // Mais notre système de cotation, où la largeur et la hauteur sont définies via les fonctions "*_sur_mesure",
+    // nous empêche de déterminer ceci via le contexte parent. Nous devrions déplacer la détermination des cotation
+    // dans les contexte, et les fonctions "*_sur_mesure" pourraient alors être supprimées ?
+
     /* Determine the main size of the flex container using the rules of the formatting context in which it participates.
      * NOTE : The automatic block size of a block-level flex container is its max-content size. */
     prop_size := donne_main_size_prop(ctx, ctx.contenant)
     saufsi prop_size.est_auto() {
+        retourne
+    }
+
+    si ctx.est_direction_row && ctx.available_space.width.est_definite() {
         retourne
     }
 
@@ -2287,11 +2306,21 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
                 it.définis_inner_cross_size(it.hypothetical_cross_size, ctx)
             }
 
-            // If the flex item has align-self: stretch, redo layout for its contents, treating
+            // If the flex item has align-self: stretch, redo layout for its contents, À FAIRE treating
             // this used size as its definite cross size so that percentage-sized children can be
             // resolved.
             si align_self == PROP_stretch {
-                formatte_intérieur(it.noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.Normal, AvailableSpace())
+                // À FAIRE : calcule proprement ces valeurs
+                available: AvailableSpace = ---
+                si ctx.est_direction_row {
+                    available.width = it.used_main_size
+                    available.height = it.used_cross_size
+                }
+                sinon {
+                    available.width = it.used_cross_size
+                    available.height = it.used_main_size
+                }
+                formatte_intérieur(it.noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.Normal, available)
             }
         }
     }

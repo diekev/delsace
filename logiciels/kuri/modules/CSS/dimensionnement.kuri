@@ -1,5 +1,5 @@
 importe Fondation
-importe Introspection // pour définis_membre_actif
+importe Introspection // pour définis_membre_actif, donne_index_membre_actif
 importe Math
 importe Structures
 
@@ -1598,6 +1598,11 @@ AvailableSize :: union {
     MaxContent
 }
 
+est_valide :: fonc (size: AvailableSize) -> bool
+{
+    retourne donne_index_membre_actif(size) != 0
+}
+
 crée_definite_size :: fonc (pixels: r64) -> AvailableSize
 {
     retourne AvailableSize(pixels)
@@ -1696,6 +1701,11 @@ imprime_available_size :: fonc (enchaineuse: *Enchaineuse, size: *AvailableSize)
 AvailableSpace :: struct {
     width: AvailableSize
     height: AvailableSize
+}
+
+est_valide :: fonc (space: AvailableSpace) -> bool
+{
+    retourne est_valide(space.width) && est_valide(space.height)
 }
 
 calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
