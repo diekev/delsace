@@ -92,6 +92,17 @@ chaine_statique chemin_systeme::extension() const
     auto debut = donnees.begin();
     auto fin = donnees.end();
     auto pos = trouve_depuis_la_fin(debut, fin, '.');
+
+    if (pos == fin) {
+        return "";
+    }
+
+    if (pos == debut) {
+        if (*debut != '.') {
+            return "";
+        }
+    }
+
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, donnees.end());
     return {donnees.pointeur() + distance, taille};
