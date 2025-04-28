@@ -1670,7 +1670,7 @@ donne_used_cross_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud:
     retourne noeud.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_end)
 }
 
-UTILISE_LAYOUT_STANDARD :: faux
+UTILISE_LAYOUT_STANDARD :: vrai
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace)
 {
@@ -1850,12 +1850,15 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         // A. If the item has a definite used flex basis, that’s the flex base size. 
         si flex_basis.est_percentage() || flex_basis.est_calc() {
             définis_propriétés(ctx.ctx_calcul_style, it.noeud.propriétés)
-            it.flex_base_size = calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
+            base := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
+            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.noeud)
+            it.flex_base_size = applique_box_sizing(*params_box_sizing, base)
             continue
         }
 
         si flex_basis.est_pixels() {
-            it.flex_base_size = flex_basis.donne_pixels()
+            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.noeud)
+            it.flex_base_size = applique_box_sizing(*params_box_sizing, flex_basis.donne_pixels())
             continue
         }
 
