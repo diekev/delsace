@@ -1670,8 +1670,6 @@ donne_used_cross_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, noeud:
     retourne noeud.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_end)
 }
 
-UTILISE_LAYOUT_STANDARD :: vrai
-
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, available: AvailableSpace)
 {
     ctx := base comme *ContexteDeFormattageFlex
@@ -1701,22 +1699,12 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, noeu
 
     ctx.est_reverse = direction == PROP_row_reverse || direction == PROP_column_reverse
 
-    #si UTILISE_LAYOUT_STANDARD {
-        flex_layout_algorithm(ctx, noeud, mode)
-    }
-    sinon {
-        flex_layout_algorithm_non_standard(ctx, noeud, mode)
-    }
+    flex_layout_algorithm(ctx, noeud, mode)
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#layout-algorithm */
 flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
-    imprimeln("-----------------------------------------------------")
-    imprimeln("          %", mode)
-    imprime_élément(noeud)
-    imprimeln("%", ctx.available_space)
-
     assert(est_valide(ctx.available_space))
 
     initialise_id_propriétés(ctx)
@@ -1765,7 +1753,6 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
         // À FAIRE : doit on utiliser le mode de formattage courant ?
         it.noeud.mesure(ctx, ModeDeFormattage.Normal, personnalisation, ctx.available_space)
         it.hypothetical_cross_size = donne_used_cross_size(ctx, it.noeud)
-        imprimeln("item[%].hypothetical_cross_size %", index_it, it.hypothetical_cross_size)
     }
 
     // 8. Calculate the cross size of each flex line.
@@ -1845,7 +1832,6 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
 
     pour * ctx.items {
         flex_basis := résoud_flex_basis(ctx, it.noeud)
-        imprime("item[%].flex_basis : %\n", index_it, flex_basis)
 
         // A. If the item has a definite used flex basis, that’s the flex base size. 
         si flex_basis.est_percentage() || flex_basis.est_calc() {
@@ -1912,8 +1898,6 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         si it.hypothetical_main_size < 0.0 {
             it.hypothetical_main_size = 0.0
         }
-
-        imprime("item[%].flex_base_size : %, .hypothetical_main_size : %\n", index_it, it.flex_base_size, it.hypothetical_main_size)
     }
 }
 
@@ -1989,8 +1973,6 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
     sinon {
         ctx.contenant.ajourne_boite_pour_calcul_hauteur()
     }
-
-    imprimeln("[%] % (%) (%)", #nom_de_cette_fonction, ctx.donne_inner_main_size(), ctx.ids_props[MAIN_INDEX].size, ctx.main_axis)
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-line-break */
@@ -2003,20 +1985,8 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 
     plusieurs_lignes := !est_nowrap(ctx)
 
-    #si UTILISE_LAYOUT_STANDARD {
-        imprimeln("[%] espace disponible %", #nom_de_cette_fonction, espace_disponible)
-        imprimeln("[%] plusieurs_lignes  %", #nom_de_cette_fonction, plusieurs_lignes)
-    }
-
     pour * ctx.items {
-        main_size: r64 
-        #si UTILISE_LAYOUT_STANDARD {
-            main_size = it.donne_outer_hypothetical_main_size(ctx)
-            imprimeln("[%] item[%] main_size %", #nom_de_cette_fonction, index_it, main_size)
-        }
-        sinon {
-            main_size = it.hypothetical_main_size
-        }
+        main_size := it.donne_outer_hypothetical_main_size(ctx)
 
         si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
@@ -2027,14 +1997,12 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
         ligne_courante.items.taille += 1
     }
 
-    #si UTILISE_LAYOUT_STANDARD {
-        saufsi ctx.est_reverse {
-            retourne
-        }
+    saufsi ctx.est_reverse {
+        retourne
+    }
 
-        pour * ctx.lignes {
-            tableau_inverse(it.items)
-        }
+    pour * ctx.lignes {
+        tableau_inverse(it.items)
     }
 }
 
@@ -2097,7 +2065,6 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     //    from the flex container’s inner main size. For frozen items, use their outer target main size;
     //    for other items, use their outer flex base size.
     initial_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
-    imprime("initial free space : % (flex factor %)\n", initial_free_space, used_flex_factor)
 
     // 5. Loop:
     boucle {
@@ -2126,8 +2093,6 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 remaining_free_space = initial_free_space_pondéré
             }
         }
-
-        imprime("somme_flex_factors : %, remaining_free_space : %\n", somme_flex_factors, remaining_free_space)
 
         // c: If the remaining free space is non-zero, distribute it proportional to the flex factors:
         si remaining_free_space != 0.0 {
@@ -2185,7 +2150,6 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             target_main_size := restreint_main_size(ctx, it.noeud, it.target_main_size, faux)
 
             it.violation = target_main_size - it.target_main_size
-            imprime("target : %, it.target_main_size %, violation : %\n", target_main_size, it.target_main_size, it.violation)
             it.target_main_size = target_main_size
         }
 
@@ -2220,7 +2184,6 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     // 6. Set each item’s used main size to its target main size.
     pour * ligne.items {
         it.used_main_size = it.target_main_size
-        imprime("item[%].used_main_size = %; .target_main_size = %, .flex_base_size = %, .hypothetical_main_size = %\n", index_it, it.used_main_size, it.target_main_size, it.flex_base_size, it.hypothetical_main_size)
     }
 }
 
@@ -2268,12 +2231,7 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
     // container’s computed min and max cross sizes.
     si ctx.est_single_line() {
         ligne := *ctx.lignes[0]
-        imprimeln("[%] %", #nom_de_cette_fonction, ligne.used_cross_size)
         ligne.used_cross_size = restreint_cross_size(ctx, ctx.contenant, ligne.used_cross_size, vrai)
-    }
-
-    pour ctx.lignes {
-        imprimeln("ligne[%].use_crossed_size : %", index_it, it.used_cross_size)
     }
 }
 
@@ -2581,8 +2539,6 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
 
     used_cross_size = restreint_cross_size(ctx, ctx.contenant, used_cross_size, vrai)
 
-    imprimeln("[%] %", #nom_de_cette_fonction, used_cross_size)
-
     définis_used_cross_size(ctx, used_cross_size)
 
     // À FAIRE : il faudrait éviter ce travail redondant. Pour inline-flex, il faudrait plutôt prendre la fonction de calcul de inline-block ?
@@ -2659,294 +2615,6 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
     }
     sinon si align_content == PROP_stretch {
         /* À FAIRE : étire les items */
-    }
-}
-
-// -----------------------------------
-// Non-standard
-
-/* https://drafts.csswg.org/css-flexbox-1/#valdef-flex-flex-basis */
-résoud_flex_basis_non_standard :: fonc (noeud: *NoeudDeDisposition) -> *ValeurDeStyle
-{
-    flex_basis := noeud.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
-
-    si flex_basis.est_mot_clé(PROP_auto) {
-        size := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
-
-        si size.est_auto() {
-            retourne donne_valeur_content()
-        }
-
-        retourne size
-    }
-
-    retourne flex_basis
-}
-
-flex_layout_algorithm_non_standard :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
-{
-    construit_liste_items(ctx, noeud, mode)
-    calcule_taille_items(ctx, noeud, mode)
-    collect_flex_items_into_flex_lines(ctx)
-
-    direction := noeud.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé()
-    si ctx.est_direction_row {
-        formatte_flex_row(ctx, noeud, mode, direction == PROP_row_reverse)
-    }
-    sinon {
-        assert(direction == PROP_column || direction == PROP_column_reverse)
-        formatte_flex_column(ctx, noeud, mode, direction == PROP_column_reverse)
-    }
-
-    pour ctx.items {
-        ctx.dispose_les_boites_absolues(it.noeud)
-    }
-}
-
-calcule_taille_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
-{
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
-
-    pour * item dans ctx.items {
-        it := item.noeud
-        flex_basis := résoud_flex_basis_non_standard(it)
-
-        largeur_désirée: OutrepasCotation
-        si flex_basis.est_mot_clé(PROP_content) {
-            /* calcule_shrink_to_fit_width ne résoud pas les pourcentages... */
-            it.mesure(ctx, mode, PersonnalisationCotation(), AvailableSpace())
-            largeur := calcule_shrink_to_fit_width(ctx, it, largeur_disponible)
-            largeur_désirée = crée_outrepas_pour_coter_contenu(largeur)
-        }
-        sinon si flex_basis.est_percentage() || flex_basis.est_calc() {
-            définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
-            largeur := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
-            largeur_désirée = crée_outrepas_pour_coter_boite(largeur)
-        }
-        sinon {
-            largeur_désirée = crée_outrepas_pour_coter_boite(flex_basis.donne_pixels())
-        }
-
-        personnalisation: PersonnalisationCotation
-        personnalisation.outrepas_largeur = *largeur_désirée
-        it.mesure(ctx, mode, personnalisation, AvailableSpace())
-        item.hypothetical_main_size = it.modèle_de_boite.marge.largeur
-    }
-}
-
-formatte_flex_row :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
-{
-    largeur_disponible := noeud.modèle_de_boite.contenu.largeur
-
-    /* Dispose les noeuds. */
-    décalage_x := noeud.modèle_de_boite.contenu.x
-    décalage_y := noeud.modèle_de_boite.contenu.y
-
-    si reverse {
-        décalage_x += noeud.modèle_de_boite.contenu.largeur
-    }
-
-    décalage_x_original := décalage_x
-
-    hauteur_contenu := 0.0
-
-    pour * ligne dans ctx.lignes {
-        justify_content := noeud.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
-        espace_disponible := (largeur_disponible - ligne.main_size) comme r32
-
-        distribue_espace_disponible(ctx, ligne, espace_disponible, mode)
-
-        espace_disponible = (largeur_disponible - ligne.main_size) comme r32
-
-        décalage_pre := 0.0
-        décalage_post := 0.0
-
-        si justify_content == PROP_center {
-            décalage_x += espace_disponible * 0.5
-        }
-        sinon si justify_content == PROP_flex_end || justify_content == PROP_end {
-            décalage_x += espace_disponible
-        }
-        sinon si justify_content == PROP_space_between {
-            décalage_post = espace_disponible / (ligne.items.taille - 1) comme r32
-        }
-        sinon si justify_content == PROP_space_around || justify_content == PROP_space_evenly {
-            espace_par_bloc := espace_disponible / (ligne.items.taille) comme r32
-            décalage_pre = espace_par_bloc * 0.5
-            décalage_post = décalage_pre
-        }
-
-        hauteur_ligne := 0.0
-        pour item dans ligne.items {
-            it := item.noeud
-            si reverse {
-                décalage_x -= décalage_pre + it.modèle_de_boite.marge.largeur
-            }
-            sinon {
-                décalage_x += décalage_pre
-            }
-
-            it.décale_vers_position(décalage_x, décalage_y)
-
-            si reverse {
-                décalage_x -= décalage_post
-            }
-            sinon {
-                décalage_x += it.modèle_de_boite.marge.largeur + décalage_post
-            }
-            hauteur_ligne = max(hauteur_ligne, it.modèle_de_boite.marge.hauteur)
-        }
-
-        décalage_y += hauteur_ligne
-        hauteur_contenu += hauteur_ligne
-        décalage_x = décalage_x_original
-    }
-
-    /* Ajourne les propriétés du noeud. */
-    prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si prop_largeur.est_auto() {
-        largeur_des_enfants := 0.0
-        pour item dans ctx.items {
-            largeur_des_enfants += item.noeud.modèle_de_boite.marge.largeur
-        }
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(largeur_des_enfants))
-    }
-
-    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_contenu)
-    containing_block := donne_containing_block(noeud, ctx)
-    personnalisation: PersonnalisationCotation
-    personnalisation.outrepas_hauteur = *hauteur_finale
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, personnalisation)
-    _ := calcule_hauteur_et_marges(*args)
-
-    discr mode {
-        BrisureDeLigneExplicite,
-        ToutesLesBrisuresDeLigne {
-            noeud.ajourne_boite_pour_calcul_largeur()
-        }
-        sinon {}
-    }
-}
-
-formatte_flex_column :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage, reverse: bool)
-{
-    largeur_des_enfants := 0.0
-    hauteur_des_enfants := 0.0
-
-    /* Calcule la taille des noeuds. */
-    pour item dans ctx.items {
-        it := item.noeud
-        largeur_des_enfants += it.modèle_de_boite.marge.largeur
-        hauteur_des_enfants += it.modèle_de_boite.marge.hauteur
-    }
-
-    /* Dispose les noeuds. */
-    décalage_x := noeud.modèle_de_boite.contenu.x
-    décalage_y := noeud.modèle_de_boite.contenu.y
-
-    si reverse {
-        décalage_y += noeud.modèle_de_boite.contenu.hauteur
-    }
-
-    pour item dans ctx.items {
-        it := item.noeud
-        si reverse {
-            décalage_y -= it.modèle_de_boite.marge.hauteur
-        }
-
-        it.décale_vers_position(décalage_x, décalage_y)
-
-        largeur_des_enfants += it.modèle_de_boite.marge.largeur
-
-        saufsi reverse {
-            décalage_y += it.modèle_de_boite.marge.hauteur
-        }
-    }
-
-    /* Ajourne les propriétés du noeud. */
-    prop_largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
-    si prop_largeur.est_auto() {
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(largeur_des_enfants))
-    }
-
-    hauteur_finale := crée_outrepas_pour_coter_contenu(hauteur_des_enfants)
-    containing_block := donne_containing_block(noeud, ctx)
-    personnalisation: PersonnalisationCotation
-    personnalisation.outrepas_hauteur = *hauteur_finale
-    args := crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, personnalisation)
-    _ := calcule_hauteur_et_marges(*args)
-
-    discr mode {
-        BrisureDeLigneExplicite,
-        ToutesLesBrisuresDeLigne {
-            noeud.ajourne_boite_pour_calcul_largeur()
-        }
-        sinon {}
-    }
-}
-
-/* Modifie la taille des items selon leurs facteurs de croissance. */
-distribue_espace_disponible :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex, espace_disponible: r64, mode: ModeDeFormattage)
-{
-    si espace_disponible == 0.0 {
-        retourne
-    }
-
-    utilise_flex_shrink := espace_disponible < 0.0
-
-    somme_flex_grow: r64
-    somme_flex_shrink: r64
-    pour item dans ligne.items {
-        it := item.noeud
-        flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
-        flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
-        somme_flex_grow += flex_grow.donne_number()
-        somme_flex_shrink += flex_shrink.donne_number()
-    }
-
-    si utilise_flex_shrink && somme_flex_shrink == 0.0 {
-        retourne
-    }
-
-    si !utilise_flex_shrink && somme_flex_grow == 0.0 {
-        retourne
-    }
-
-    pour item dans ligne.items {
-        it := item.noeud
-        flex_grow := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexGrow)
-        flex_shrink := it.propriétés.donne_valeur_utilisée(IDPropriété.FlexShrink)
-
-        si utilise_flex_shrink && flex_shrink.donne_number() == 0.0 {
-            continue
-        }
-
-        si !utilise_flex_shrink && flex_grow.donne_number() == 0.0 {
-            continue
-        }
-
-        /* Nous utilisons la largeur du contenu ici car c'est le contenu qui doit
-         * changer sa taille. */
-        ancienne_largeur := it.modèle_de_boite.contenu.largeur
-        delta := si utilise_flex_shrink {
-            espace_disponible * flex_shrink.donne_number() / somme_flex_shrink
-        }
-        sinon {
-            espace_disponible * flex_grow.donne_number() / somme_flex_grow
-        }
-
-        nouvelle_largeur := ancienne_largeur + delta
-
-        largeur_désirée := crée_outrepas_pour_coter_contenu(nouvelle_largeur)
-        personnalisation: PersonnalisationCotation
-        personnalisation.outrepas_largeur = *largeur_désirée
-        it.mesure(ctx, mode, personnalisation, AvailableSpace())
-    }
-
-    ligne.main_size = 0.0
-    pour item dans ligne.items {
-        it := item.noeud
-        ligne.main_size += it.modèle_de_boite.marge.largeur
     }
 }
 
