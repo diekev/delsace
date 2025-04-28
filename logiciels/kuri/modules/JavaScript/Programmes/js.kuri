@@ -4,15 +4,6 @@ importe Fondation
 importe JavaScript
 importe SysFichier
 
-change_nom_sortie :: fonc ()
-{
-    options := compilatrice_obtiens_options()
-    options.nom_sortie = "js"
-    compilatrice_ajourne_options(options)
-}
-
-#exécute change_nom_sortie()
-
 principale :: fonc ()
 {
     args := arguments_ligne_commande()
