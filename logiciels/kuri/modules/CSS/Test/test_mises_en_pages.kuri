@@ -52,6 +52,17 @@ principale :: fonc ()
     exit(test_mises_en_pages() comme z32)
 }
 
+tests_flex_ne_fonctionnant_que_pour_standard := [
+    "flex-align-content-stretch-002.html",
+    "flex-align-content-space-between-001.html",
+    "flex-align-content-space-around-001.html",
+    "flex-align-content-stretch-001.html",
+    "flex-align-content-flex-end-001.html",
+    "flex-avec-bloc-absolu-002.html",
+    "flex-avec-bloc-absolu-003.html",
+    "flex-align-content-center-001.html"
+]
+
 test_mises_en_pages :: fonc () -> bool
 {
     début := maintenant_précis()
@@ -66,9 +77,19 @@ test_mises_en_pages :: fonc () -> bool
     diffère déloge(échecs)
 
     nombre_de_tests_passants: z32
+    nombre_de_tests_ignorés: z32
 
     pour chemins_sources {
         imprime(".")
+
+        #saufsi UTILISE_LAYOUT_STANDARD {
+            pour ignoré dans tests_flex_ne_fonctionnant_que_pour_standard {
+                si it.nom_fichier_avec_extension() == ignoré {
+                    nombre_de_tests_ignorés += 1
+                    continue it
+                }
+            }
+        }
 
         impression := donne_texte_pour_sortie(it)
         diffère déloge(impression)
@@ -100,7 +121,7 @@ test_mises_en_pages :: fonc () -> bool
     }
 
     imprime("\n")
-    imprime("Tests    : % réussis, % en tout\n", nombre_de_tests_passants, chemins_sources.taille)
+    imprime("Tests    : % réussis, % ignorés, % en tout\n", nombre_de_tests_passants, nombre_de_tests_ignorés, chemins_sources.taille)
     imprime("Temps    : %ms\n", fin)
     imprime("\n")
 
@@ -116,6 +137,14 @@ ajourne_fichiers :: fonc ()
     diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
 
     pour chemins_sources {
+        #saufsi UTILISE_LAYOUT_STANDARD {
+            pour ignoré dans tests_flex_ne_fonctionnant_que_pour_standard {
+                si it.nom_fichier_avec_extension() == ignoré {
+                    continue it
+                }
+            }
+        }
+
         impression := donne_texte_pour_sortie(it)
         diffère déloge(impression)
 
