@@ -2470,10 +2470,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         }
         case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
         {
-            assert_rappel(false, [&]() {
-                dbg() << "Prise de référence dans la RI :\n"
-                      << erreur::imprime_site(*m_espace, noeud);
-            });
+            auto prise_référence = noeud->comme_prise_référence();
+            génère_ri_pour_noeud(prise_référence->opérande);
+            auto valeur = depile_valeur();
+            valeur = m_constructrice.crée_transtype(
+                noeud, noeud->type, valeur, TypeTranstypage::BITS);
+            valeur = crée_temporaire(noeud, valeur);
+            empile_valeur(valeur, noeud);
             return;
         }
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
