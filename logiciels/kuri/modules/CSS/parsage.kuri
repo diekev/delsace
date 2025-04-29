@@ -284,6 +284,12 @@ est_mot_clé :: fonc (value: ComponentValue, mot_clé: CSSOMString) -> bool
     retourne value.donne_texte() == mot_clé
 }
 
+ÉtatParsage :: énum {
+    Ok
+    EssaieEncore
+    Erreur
+}
+
 Parseuse :: struct ($T: type_de_données) {
     lexèmes: []T
     curseur: z64
@@ -1018,30 +1024,44 @@ ParseuseSelector :: Parseuse(ComponentValue)
 parse_selector_list :: fonc (prelude: []ComponentValue) -> Optionnel(SelectorList)
 {
     parseuse := initialise_une_parseuse(prelude)
-    retourne parse_selector_list(parseuse)
+    résultat := parse_selector_list(parseuse)
+    saufsi résultat.possède_valeur() {
+        imprime("Impossible de parser : ")
+        pour prelude {
+            imprime("%", it)
+        }
+        imprime("\n")
+    }
+    retourne résultat
 }
 
 parse_selector_list :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SelectorList)
 {
     // imprime("---------------------------\n[%]\n", #nom_de_cette_fonction)
     résultat: SelectorList
-    parse_complex_selector_list(parseuse, *résultat)
+    état := parse_complex_selector_list(parseuse, *résultat)
+    saufsi état == ÉtatParsage.Ok {
+        détruit_données_selector_list(*résultat)
+        retourne
+    }
     retourne résultat
 }
 
 /* <complex-selector-list> = <complex-selector># */
-parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *SelectorList)
+parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *SelectorList) -> ÉtatParsage
 {
     consomme_espaces_blanches(parseuse)
 
     // imprime("[%]\n", #nom_de_cette_fonction)
     tantque !fini(parseuse) {
-        complex := parse_complex_selector(parseuse)
-        saufsi complex.possède_valeur() {
-            arrête
+        complex: ComplexSelector
+        état := parse_complex_selector(parseuse, *complex)
+        si état != ÉtatParsage.Ok {
+            détruit_données_complex_selector(*complex)
+            retourne ÉtatParsage.Erreur
         }
 
-        tableau_ajoute(*list.complex_selectors, complex.Quelque)
+        tableau_ajoute(*list.complex_selectors, complex)
 
         saufsi parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Comma) {
             arrête
@@ -1052,25 +1072,31 @@ parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *Selecto
     }
 
     consomme_espaces_blanches(parseuse)
+    saufsi parseuse.fini() {
+        détruit_données_selector_list(list)
+        retourne ÉtatParsage.Erreur
+    }
+    retourne ÉtatParsage.Ok
 }
 
 /* <complex-selector> = <compound-selector> [ <combinator>? <compound-selector> ]* */
-parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(ComplexSelector)
+parse_complex_selector :: fonc (parseuse: &ParseuseSelector, résultat: *ComplexSelector) -> ÉtatParsage
 {
     consomme_espaces_blanches(parseuse)
-
-    résultat: ComplexSelector
 
     // imprime("[%]\n", #nom_de_cette_fonction)
     combinateur_courant: Optionnel(Combinator)
 
     tantque !fini(parseuse) {
-        opt_compound := parse_compound_selector(parseuse)
-        saufsi opt_compound.possède_valeur() {
+        compound: CompoundSelector
+        état := parse_compound_selector(parseuse, *compound)
+        si état == ÉtatParsage.Erreur {
+            détruit_données_compound_selector(*compound)
+            retourne état
+        }
+        saufsi état == ÉtatParsage.Ok {
             arrête
         }
-
-        compound := opt_compound.Quelque
 
         si combinateur_courant.possède_valeur() {
             compound.combinateur = combinateur_courant.Quelque
@@ -1078,28 +1104,33 @@ parse_complex_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Comple
 
         tableau_ajoute(*résultat.compound_selectors, compound)
 
-        combinateur_courant = parseuse.parse_combinateur()
-        saufsi combinateur_courant.possède_valeur() {
+        combinateur: Combinator
+        état = parseuse.parse_combinateur(*combinateur)
+        si état == ÉtatParsage.Erreur {
+            détruit_données_compound_selector(*compound)
+            retourne état
+        }
+        saufsi état == ÉtatParsage.Ok {
             arrête
         }
+
+        combinateur_courant = combinateur
     }
 
     consomme_espaces_blanches(parseuse)
 
     si résultat.compound_selectors.taille == 0 {
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
-    retourne résultat
+    retourne ÉtatParsage.Ok
 }
 
 /* <compound-selector>  = [ <type-selector>? <subclass-selector>*
  *                        [ <pseudo-element-selector> <pseudo-class-selector>* ]* ]! */
-parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(CompoundSelector)
+parse_compound_selector :: fonc (parseuse: &ParseuseSelector, résultat: *CompoundSelector) -> ÉtatParsage
 {
     // imprime("[%]\n", #nom_de_cette_fonction)
-
-    résultat: CompoundSelector
 
     // imprime("-- position : %\n", parseuse.curseur)
 
@@ -1112,42 +1143,56 @@ parse_compound_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Compo
 
     /* <subclass-selector>* */
     tantque !fini(parseuse) {
-        subclass_selector := parseuse.parse_subclass_selector()
-        saufsi subclass_selector.possède_valeur() {
+        subclass_selector : SimpleSelector = ---
+        état := parseuse.parse_subclass_selector(*subclass_selector)
+        si état == ÉtatParsage.Erreur {
+            retourne état
+        }
+        saufsi état == ÉtatParsage.Ok {
             arrête
         }
 
         // imprime("-- %\n", subclass_selector.Quelque)
-        tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
+        tableau_ajoute(*résultat.simple_selectors, subclass_selector)
     }
 
     /* [ <pseudo-element-selector> <pseudo-class-selector>* ]* */
     tantque !fini(parseuse) {
-        pseudo_element_selector := parseuse.parse_pseudo_element_selector()
-        saufsi pseudo_element_selector.possède_valeur() {
+        pseudo_element_selector: SimpleSelector
+        état := parseuse.parse_pseudo_element_selector(*pseudo_element_selector)
+        si état == ÉtatParsage.Erreur {
+            retourne état
+        }
+        saufsi état == ÉtatParsage.Ok {
+            // À FAIRE(erreur)
             arrête
         }
         // imprime("-- %\n", pseudo_element_selector.Quelque)
-        tableau_ajoute(*résultat.simple_selectors, pseudo_element_selector.Quelque)
+        tableau_ajoute(*résultat.simple_selectors, pseudo_element_selector)
 
         tantque !fini(parseuse) {
-            subclass_selector := parseuse.parse_subclass_selector()
-            saufsi subclass_selector.possède_valeur() {
+            subclass_selector : SimpleSelector = ---
+            état = parseuse.parse_subclass_selector(*subclass_selector)
+            si état == ÉtatParsage.Erreur {
+                retourne état
+            }
+            saufsi état == ÉtatParsage.Ok {
+                // À FAIRE(erreur)
                 arrête
             }
 
             // imprime("-- %\n", subclass_selector.Quelque)
-            tableau_ajoute(*résultat.simple_selectors, subclass_selector.Quelque)
+            tableau_ajoute(*résultat.simple_selectors, subclass_selector)
         }
     }
 
     // imprime("-- position : %\n", parseuse.curseur)
 
     si résultat.simple_selectors.taille == 0 {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
 
-    retourne résultat
+    retourne ÉtatParsage.Ok
 }
 
 /* <type-selector> = <wq-name> | <ns-prefix>? '*' */
@@ -1241,74 +1286,78 @@ parse_ns_prefix :: fonc (parseuse: &ParseuseSelector) -> Optionnel(NSPrefix)
 
 /* <subclass-selector> = <id-selector> | <class-selector> |
                       <attribute-selector> | <pseudo-class-selector> */
-parse_subclass_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_subclass_selector :: fonc (parseuse: &ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
-    opt_id_selector := parseuse.parse_id_selector()
-    si opt_id_selector.possède_valeur() {
-        retourne opt_id_selector
+    état := parseuse.parse_id_selector(résultat)
+    si état != ÉtatParsage.EssaieEncore {
+        retourne état
     }
 
-    opt_class_selector := parseuse.parse_class_selector()
-    si opt_class_selector.possède_valeur() {
-        retourne opt_class_selector
+    état = parseuse.parse_class_selector(résultat)
+    si état != ÉtatParsage.EssaieEncore {
+        retourne état
     }
 
-    opt_attribute_selector := parseuse.parse_attribute_selector()
-    si opt_attribute_selector.possède_valeur() {
-        retourne opt_attribute_selector
+    état = parseuse.parse_attribute_selector(résultat)
+    si état != ÉtatParsage.EssaieEncore {
+        retourne état
     }
 
-    opt_pseudo_class_selector := parseuse.parse_pseudo_class_selector(faux)
-    si opt_pseudo_class_selector.possède_valeur() {
-        retourne opt_pseudo_class_selector
+    état = parseuse.parse_pseudo_class_selector(faux, résultat)
+    si état != ÉtatParsage.EssaieEncore {
+        retourne état
     }
+
+    retourne ÉtatParsage.EssaieEncore
 }
 
 /* <id-selector> = <hash-token> */
-parse_id_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_id_selector :: fonc (parseuse: &ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
     lexème := parseuse.lexème_courant()
     saufsi lexème.est_lexème_de_genre(GenreLexème.Hash) {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
 
     si lexème.lexème.valeur.donne_chaine_utf16().taille() == 0 {
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
     parseuse.avance()
-    retourne crée_id_selector(lexème.lexème.valeur)
+    mémoire(résultat) = crée_id_selector(lexème.lexème.valeur)
+    retourne ÉtatParsage.Ok
 }
 
 /* <class-selector> = '.' <ident-token> */
-parse_class_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_class_selector :: fonc (parseuse: &ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
     parseuse_locale : ParseuseSelector = parseuse
 
     lexème := parseuse_locale.lexème_courant()
     saufsi lexème.est_lexème_point() {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
     parseuse_locale.avance()
 
     saufsi parseuse_locale.apparie_lexème_ident() {
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
     ident := parseuse_locale.lexème_courant().lexème.valeur
     parseuse_locale.avance()
 
     parseuse.curseur = parseuse_locale.curseur
-    retourne crée_class_selector(ident)
+    mémoire(résultat) = crée_class_selector(ident)
+    retourne ÉtatParsage.Ok
 }
 
 /* <attribute-selector> = '[' <wq-name> ']' |
  *                        '[' <wq-name> <attr-matcher> [ <string-token> | <ident-token> ] <attr-modifier>? ']'
  * <attr-modifier> = i | s */
-parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_attribute_selector :: fonc (parseuse: &ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
     saufsi parseuse.lexème_courant().est_simple_bloc_de_genre(GenreLexème.Open_Square_Bracket) {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
 
     bloc := parseuse.lexème_courant().bloc
@@ -1318,7 +1367,7 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     opt_wq_name := parseuse_locale.parse_wq_name()
     saufsi opt_wq_name.possède_valeur() {
         parseuse_locale.rapporte_erreur("wq_name invalide pour le selécteur d'attribut")
-        retourne
+        retourne ÉtatParsage.Erreur
     }
     wq_name := opt_wq_name.Quelque
 
@@ -1329,13 +1378,14 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     
     si parseuse_locale.fini() {
         parseuse.avance()
-        retourne crée_attribute_selector(espace_de_nom, wq_name.ident)
+        mémoire(résultat) = crée_attribute_selector(espace_de_nom, wq_name.ident)
+        retourne ÉtatParsage.Ok
     }
 
     matcher := parseuse_locale.parse_attribute_matcher()
     saufsi matcher.possède_valeur() {
         parseuse_locale.rapporte_erreur("matcher invalide")
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
     lexème_courant := parseuse_locale.lexème_courant()
@@ -1347,7 +1397,7 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
     }
     sinon {
         parseuse_locale.rapporte_erreur("Attendu une chaine ou un identifiant pour la valeur de l'attribut")
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
     parseuse_locale.consomme_espaces_blanches()
@@ -1365,17 +1415,17 @@ parse_attribute_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simp
             modifier = SimpleSelector.AttributeModifier.S
         }
         sinon {
-            // erreur
-            retourne
+            retourne ÉtatParsage.Erreur
         }
     }
     sinon si !parseuse_locale.fini() {
         parseuse_locale.rapporte_erreur("Attendu un i ou s")
-        retourne
+        retourne ÉtatParsage.Erreur
     }
 
     parseuse.avance()
-    retourne crée_attribute_selector(espace_de_nom, wq_name.ident, matcher.Quelque, attribute_value, modifier)
+    mémoire(résultat) = crée_attribute_selector(espace_de_nom, wq_name.ident, matcher.Quelque, attribute_value, modifier)
+    retourne ÉtatParsage.Ok
 }
 
 /* <attr-matcher> = [ '~' | '|' | '^' | '$' | '*' ]? '=' */
@@ -1410,6 +1460,7 @@ parse_attribute_matcher :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
 
     saufsi lexème_courant.est_lexème_égal() {
         parseuse.rapporte_erreur("Attendu '=' pour le matcher")
+        parseuse.possède_erreur = vrai
         retourne
     }
     parseuse.avance()
@@ -1423,12 +1474,12 @@ parse_attribute_matcher :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Simpl
 
 /* <pseudo-class-selector> = ':' <ident-token> |
                              ':' <function-token> <any-value> ')' */
-parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_element: bool) -> Optionnel(SimpleSelector)
+parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_element: bool, résultat: *SimpleSelector) -> ÉtatParsage
 {
     parseuse_locale : ParseuseSelector = parseuse
 
     saufsi parseuse_locale.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
 
     parseuse_locale.avance()
@@ -1443,15 +1494,17 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
          * parse_pseudo_element car il est possible de n'avoir qu'un seul
          * double point pour ceux-ci pour des raisons historiques. */
         si pour_pseudo_element || ident == PROP_before || ident == PROP_after || ident == PROP_first_line || ident == PROP_first_letter {
-            retourne crée_pseudo_element_selector(ident)
+            mémoire(résultat) = crée_pseudo_element_selector(ident)
+            retourne ÉtatParsage.Ok
         }
 
         pseudo_classe := donne_pseudo_classe_pour_nom(ident)
         saufsi pseudo_classe.possède_valeur() {
-            retourne
+            retourne ÉtatParsage.Erreur
         }
 
-        retourne crée_pseudo_class_selector(pseudo_classe.Quelque)
+        mémoire(résultat) = crée_pseudo_class_selector(pseudo_classe.Quelque)
+        retourne ÉtatParsage.Ok
     }
 
     si parseuse_locale.lexème_courant().est_fonction() {
@@ -1465,7 +1518,8 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             opt_selectors := parse_selector_list(fonction.value)
             si opt_selectors.possède_valeur() {
                 parseuse.curseur = parseuse_locale.curseur
-                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                retourne ÉtatParsage.Ok
             }
         }
         /* https://www.w3.org/TR/selectors-4/#matches */
@@ -1476,7 +1530,8 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             opt_selectors := parse_selector_list(fonction.value)
             si opt_selectors.possède_valeur() {
                 parseuse.curseur = parseuse_locale.curseur
-                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                retourne ÉtatParsage.Ok
             }
         }
         /* https://www.w3.org/TR/selectors-4/#zero-matches */
@@ -1487,7 +1542,8 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             opt_selectors := parse_selector_list(fonction.value)
             si opt_selectors.possède_valeur() {
                 parseuse.curseur = parseuse_locale.curseur
-                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                retourne ÉtatParsage.Ok
             }
         }
         /* https://www.w3.org/TR/css-scoping-1/#selectordef-host0 */
@@ -1498,7 +1554,8 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             opt_selectors := parse_selector_list(fonction.value)
             si opt_selectors.possède_valeur() {
                 parseuse.curseur = parseuse_locale.curseur
-                retourne crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                mémoire(résultat) = crée_function_selector(nom_fonction, opt_selectors.Quelque)
+                retourne ÉtatParsage.Ok
             }
         }
         /* https://www.w3.org/TR/selectors-4/#the-dir-pseudo */
@@ -1509,7 +1566,8 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
                 nom := fonction.value[0].lexème.valeur
                 si nom == PROP_ltr || nom == PROP_rtl {
                     parseuse.curseur = parseuse_locale.curseur
-                    retourne crée_function_selector(nom_fonction, nom)
+                    mémoire(résultat) = crée_function_selector(nom_fonction, nom)
+                    retourne ÉtatParsage.Ok
                 }
             }
         }
@@ -1518,18 +1576,24 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
 
             opt_nth_child := parse_nth_child(fonction.value)
             saufsi opt_nth_child.possède_valeur() {
-                retourne
+                retourne ÉtatParsage.Erreur
             }
             
             parseuse.curseur = parseuse_locale.curseur
-            retourne crée_nth_child_selector(nom_fonction, opt_nth_child.Quelque)
+            mémoire(résultat) = crée_nth_child_selector(nom_fonction, opt_nth_child.Quelque)
+            retourne ÉtatParsage.Ok
         }
         sinon {
             imprime("fonction non supporté : %, lexème : %\n", nom_fonction, parseuse_locale.lexème_courant())
         }
-
-        retourne
+        retourne ÉtatParsage.Erreur
     }
+
+    saufsi pour_pseudo_element {
+        retourne ÉtatParsage.EssaieEncore
+    }
+
+    retourne ÉtatParsage.Erreur
 }
 
 parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.NthChild)
@@ -1629,70 +1693,74 @@ parse_nth_child :: fonc (value: []ComponentValue) -> Optionnel(SimpleSelector.Nt
 }
 
 /* <pseudo-element-selector> = ':' <pseudo-class-selector> */
-parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SimpleSelector)
+parse_pseudo_element_selector :: fonc (parseuse: &ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
     parseuse_locale : ParseuseSelector = parseuse
 
     saufsi parseuse_locale.lexème_courant().est_lexème_de_genre(GenreLexème.Colon) {
-        retourne
+        retourne ÉtatParsage.EssaieEncore
     }
 
     parseuse_locale.avance()
 
-    pseudo_class := parseuse_locale.parse_pseudo_class_selector(vrai)
-    si pseudo_class.possède_valeur() {
+    état := parseuse_locale.parse_pseudo_class_selector(vrai, résultat)
+    si état == ÉtatParsage.Ok {
         parseuse.curseur = parseuse_locale.curseur
-        retourne pseudo_class
     }
+
+    retourne état
 }
 
 /* <combinator> = '>' | '+' | '~' | [ '|' '|' ] */
-parse_combinateur :: fonc (parseuse: &ParseuseSelector) -> Optionnel(Combinator)
+parse_combinateur :: fonc (parseuse: &ParseuseSelector, résultat: *Combinator) -> ÉtatParsage
 {
     // imprime("[%]\n", #nom_de_cette_fonction)
 
-    résultat: Optionnel(Combinator)
+    combinateur: Optionnel(Combinator)
 
     si parseuse.lexème_courant().est_lexème_de_genre(GenreLexème.Whitespace) {
         /* À FAIRE : nouvelle ligne ? */
-        résultat = Combinator.DESCENDANT
+        combinateur = Combinator.DESCENDANT
     }
 
     consomme_espaces_blanches(parseuse)
 
-    si parseuse.fini() {
-        retourne
-    }
+    saufsi parseuse.fini() {
+        lexème := parseuse.lexème_courant()
 
-    lexème := parseuse.lexème_courant()
-
-    si lexème.est_lexème_greater() {
-        parseuse.avance()
-        résultat = Combinator.CHILD
-    }
-    sinon si lexème.est_lexème_plus() {
-        parseuse.avance()
-        résultat = Combinator.NEXT_SIBLING
-    }
-    sinon si lexème.est_lexème_tilde() {
-        parseuse.avance()
-        résultat = Combinator.SUBSEQUENT_SIBLING
-    }
-    sinon si lexème.est_lexème_pipe() {
-        parseuse.avance()
-        lexème = parseuse.lexème_courant()
-        si lexème.est_lexème_pipe() {
+        si lexème.est_lexème_greater() {
             parseuse.avance()
-            résultat = Combinator.COLUMN
+            combinateur = Combinator.CHILD
         }
-        sinon {
-            // erreur de parsage
-            retourne
+        sinon si lexème.est_lexème_plus() {
+            parseuse.avance()
+            combinateur = Combinator.NEXT_SIBLING
         }
+        sinon si lexème.est_lexème_tilde() {
+            parseuse.avance()
+            combinateur = Combinator.SUBSEQUENT_SIBLING
+        }
+        sinon si lexème.est_lexème_pipe() {
+            parseuse.avance()
+            lexème = parseuse.lexème_courant()
+            si lexème.est_lexème_pipe() {
+                parseuse.avance()
+                combinateur = Combinator.COLUMN
+            }
+            sinon {
+                retourne ÉtatParsage.Erreur
+            }
+        }
+
+        consomme_espaces_blanches(parseuse)
     }
 
-    consomme_espaces_blanches(parseuse)
-    retourne résultat
+    si combinateur.possède_valeur() {
+        mémoire(résultat) = combinateur.Quelque
+        retourne ÉtatParsage.Ok
+    }
+
+    retourne ÉtatParsage.EssaieEncore
 }
 
 /** \} */
