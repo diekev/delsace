@@ -1692,7 +1692,13 @@ crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pa
         retourne
     }
 
-    // À FAIRE : content
+    content := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Content)
+    si ident_pseudo_element == PROP_before || ident_pseudo_element == PROP_after {
+        si content.est_mot_clé(PROP_none) || content.est_mot_clé(PROP_normal) {
+            détruit_propriétés(propriétés_pseudo)
+            retourne
+        }
+    }
 
     noeud := crée_noeud_pour_display(arbre, display, nul)
     noeud.propriétés = propriétés_pseudo
@@ -1704,6 +1710,10 @@ crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pa
     }
 
     ajoute_enfant(parent, noeud)
+
+    si content.est_string() {
+        crée_noeud_pour_texte(créatrice, noeud comme *NoeudDeDispositionBloc, content.donne_string().donne_chaine_utf16())
+    }
 }
 
 /** \} */
