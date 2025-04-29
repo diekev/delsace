@@ -363,7 +363,12 @@ parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc([]Co
     chn_input := input.donne_chaine_utf16().converti_vers_chaine()
     diffère déloge(chn_input)
 
-    lexèmes := lèxe_style(chn_input)
+    retourne parse_according_to_a_css_grammar(chn_input, grammar)
+}
+
+parse_according_to_a_css_grammar :: fonc (input: chaine, grammar: fonc([]ComponentValue)($T)) -> T
+{
+    lexèmes := lèxe_style(input)
     diffère détruit_lexèmes(*lexèmes)
 
     // 2. Parse a list of component values from input, and let result be the return value.
