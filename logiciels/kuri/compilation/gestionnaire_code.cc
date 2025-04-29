@@ -1754,6 +1754,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          */
         return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
                !entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
                entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
                !entete->est_opérateur_pour();
     }
@@ -1776,6 +1777,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          */
         return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
                !entete->est_opérateur_pour() &&
+               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
                (!entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
                 entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
     }

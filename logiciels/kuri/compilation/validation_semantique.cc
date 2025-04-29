@@ -552,7 +552,21 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            return valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            auto résultat = valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            if (!est_ok(résultat)) {
+                return résultat;
+            }
+            if (expr->noeud_fonction_appelée &&
+                expr->noeud_fonction_appelée->est_entête_fonction()) {
+                auto entête = expr->noeud_fonction_appelée->comme_entête_fonction();
+                if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
+                    if (!entête->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                        m_unité->arbre_aplatis->index_courant += 1;
+                        return Attente::sur_déclaration(entête->corps);
+                    }
+                }
+            }
+            return CodeRetourValidation::OK;
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
@@ -2775,6 +2789,15 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
                     "Utilisation d'une fonction intrinsèque en dehors d'une expression d'appel.")
                 .ajoute_message(
                     "NOTE : Les fonctions intrinsèques ne peuvent être prises par adresse.");
+            return false;
+        }
+
+        if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
+            !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            espace
+                ->rapporte_erreur(expr,
+                                  "Utilisation d'un macro en dehors d'une expression d'appel.")
+                .ajoute_message("NOTE : Les macros ne peuvent être pris par adresse.");
             return false;
         }
     }
