@@ -1047,6 +1047,35 @@ parse_selector_list :: fonc (parseuse: &ParseuseSelector) -> Optionnel(SelectorL
     retourne résultat
 }
 
+/* https://drafts.csswg.org/selectors/#typedef-relative-selector-list
+ * <relative-selector-list> = <relative-selector>#
+ * <relative-selector> = <combinator>? <complex-selector> */
+parse_relative_selector_list :: fonc (value: []ComponentValue) -> Optionnel(SelectorList)
+{
+    parseuse := initialise_une_parseuse(value)
+
+    combinateur: Combinator
+    état := parse_combinateur(parseuse, *combinateur)
+    si état == ÉtatParsage.Erreur {
+        retourne
+    }
+    si état == ÉtatParsage.EssaieEncore {
+        combinateur = Combinator.DESCENDANT
+    }
+
+    résultat: SelectorList
+    résultat.combinateur = combinateur
+
+    état = parse_complex_selector_list(parseuse, *résultat)
+    si état == ÉtatParsage.Erreur {
+        détruit_données_selector_list(*résultat)
+        retourne
+    }
+
+    assert(état != ÉtatParsage.EssaieEncore)
+    retourne résultat
+}
+
 /* <complex-selector-list> = <complex-selector># */
 parse_complex_selector_list :: fonc (parseuse: &ParseuseSelector, list: *SelectorList) -> ÉtatParsage
 {
@@ -1581,6 +1610,20 @@ parse_pseudo_class_selector :: fonc (parseuse: &ParseuseSelector, pour_pseudo_el
             
             parseuse.curseur = parseuse_locale.curseur
             mémoire(résultat) = crée_nth_child_selector(nom_fonction, opt_nth_child.Quelque)
+            retourne ÉtatParsage.Ok
+        }
+        sinon si nom_fonction == PROP_has {
+            // À FAIRE : exclus :has() -> erreur
+            // À FAIRE : exclus les pseudos éléments -> erreur
+            parseuse_locale.avance()
+
+            relative_selectors := parse_relative_selector_list(fonction.value)
+            saufsi relative_selectors.possède_valeur() {
+                retourne ÉtatParsage.Erreur
+            }
+            
+            parseuse.curseur = parseuse_locale.curseur
+            mémoire(résultat) = crée_function_selector(nom_fonction, relative_selectors.Quelque)
             retourne ÉtatParsage.Ok
         }
         sinon {
