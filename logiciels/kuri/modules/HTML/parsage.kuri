@@ -2984,7 +2984,7 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
 
 /** \} */
 
-#portée_module
+#portée_export
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-serialisation-algorithm */
 HTML_fragment_serialization :: fonc (node: *Noeud, serializable_shadow_roots: bool) -> ChaineUTF16
