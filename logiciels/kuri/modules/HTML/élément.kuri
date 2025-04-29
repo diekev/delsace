@@ -199,6 +199,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 /* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-content-attributes */
 gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
+    user_agent := donne_user_agent(élément.document)
+    saufsi user_agent {
+        retourne faux
+    }
+
     // 1. If namespace is not null, or localName is not the name of an event handler content attribute on element, then return.
     si espace_de_nom.possède_valeur() || !is_event_handler_content_attribute_name(local_name) {
         retourne faux
