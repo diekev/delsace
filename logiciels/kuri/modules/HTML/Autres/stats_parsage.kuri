@@ -34,11 +34,6 @@ imprime_stats :: fonc (statistiques: StatistiquesParsage)
     imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation = 3))
 }
 
-est_fichier_html :: fonc (chm: CheminFichier) -> bool
-{
-    retourne chm.extension() == ".html"
-}
-
 parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &StatistiquesParsage)
 {
     contenu := contenu_fichier_texte(chemin.chn)
