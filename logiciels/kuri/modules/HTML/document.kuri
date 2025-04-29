@@ -326,6 +326,20 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
+donne_head :: fonc (document: *Document) -> *Élément
+{
+    élément_html := document.donne_élément_html()
+    si élément_html {
+        pour élément_html.enfants {
+            si it.est_élément_type(TAG_head) {
+                retourne it comme *Élément
+            }
+        }
+    }
+    retourne nul
+}
+
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
 donne_élément_body :: fonc (document: *Document) -> *Élément
 {
