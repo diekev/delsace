@@ -809,6 +809,11 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     retourne doctype
 }
 
+est_document_type :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.TypeDocument
+}
+
 #portée_fichier
 
 table_virtuelle_type_document := TableVirtuelleNoeud(
