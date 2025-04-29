@@ -637,7 +637,7 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
 {
     noeud := base comme *NoeudDeDispositionTexte
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(noeud)
 
     effets: EffetsTexte
 

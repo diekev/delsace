@@ -1474,7 +1474,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         parent.ajoute_enfant(résultat)
 
         texte := arbre.crée_noeud(NoeudDeDispositionTexte)
-        texte.noeud_texte = noeud comme *HTML.NoeudTexte
+        texte.texte_original = (noeud comme *HTML.NoeudTexte).données
         résultat.ajoute_enfant(texte)
         retourne
     }
@@ -1502,7 +1502,28 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     résultat: *NoeudDeDisposition
     si élément.local_name == HTML.TAG_img {
-        résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
+        img := élément comme *HTML.HTMLImageElement
+        représentation_image := HTML.donne_représentation_image(img)
+
+        si représentation_image == HTML.ReprésentationImage.RIEN {
+            détruit_propriétés(propriétés)
+            retourne
+        }
+
+        si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
+            résultat = crée_noeud_pour_display(arbre, display, élément)
+
+            envellope := arbre.crée_noeud(NoeudDeDispositionInline)
+            crée_style_pour_bloc_anonyme(résolveuse, envellope, résultat comme *NoeudDeDispositionBloc, Display.Type.Inline)
+            résultat.ajoute_enfant(envellope)
+
+            texte := arbre.crée_noeud(NoeudDeDispositionTexte)
+            texte.texte_original = HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16()
+            envellope.ajoute_enfant(texte)
+        }
+        sinon {
+            résultat = crée_noeud_de_remplacement_image(arbre, img)
+        }
     }
     sinon si élément.local_name == HTML.TAG_input {
         input_element := élément comme *HTML.HTMLInputElement
@@ -1921,7 +1942,7 @@ NoeudDeDisposition :: struct {
 donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
 {
     si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
-        retourne donne_propriété_parent(noeud comme *NoeudDeDispositionTexte)
+        retourne donne_propriétés(noeud comme *NoeudDeDispositionTexte)
     }
     retourne noeud.propriétés
 }
@@ -1990,15 +2011,6 @@ donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(
 donne_rectangle_contenu :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
 {
     retourne noeud.modèle_de_boite.contenu
-}
-
-donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
-{
-    parent := noeud_texte.parent
-    tantque est_noeud_anonyme(parent) {
-        parent = parent.parent
-    }
-    retourne parent.propriétés
 }
 
 est_noeud_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
@@ -3225,11 +3237,23 @@ NoeudDeDispositionTexte :: struct {
     empl base: NoeudDeDisposition
     table_virtuelle = *__table_noeud_de_disposition_texte
 
-    noeud_texte: *HTML.NoeudTexte
+    /* Soit un noeud texte, ou un élément. */
+    noeud: *HTML.Noeud
+    texte_original: ChaineUTF16
+
     texte: ChaineUTF16
     fonte: *Fonte
 
     fragments: [..]FragmentTexte
+}
+
+donne_propriétés :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
+{
+    parent := noeud_texte.parent
+    tantque est_noeud_anonyme(parent) {
+        parent = parent.parent
+    }
+    retourne parent.propriétés
 }
 
 noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
@@ -3237,17 +3261,17 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
     ctx := enligneuse.ctx
     noeud := base comme *NoeudDeDispositionTexte
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(noeud)
 
     text_transform := propriétés.donne_valeur_utilisée(IDPropriété.TextTransform)
     si text_transform.est_mot_clé(PROP_uppercase) {
-        noeud.texte = transforme_texte_en_majuscule(noeud.noeud_texte.données)
+        noeud.texte = transforme_texte_en_majuscule(noeud.texte_original)
     }
     sinon si text_transform.est_mot_clé(PROP_lowercase) {
-        noeud.texte = transforme_texte_en_minuscule(noeud.noeud_texte.données)
+        noeud.texte = transforme_texte_en_minuscule(noeud.texte_original)
     }
     sinon {
-        noeud.texte = copie_chaine(noeud.noeud_texte.données)
+        noeud.texte = copie_chaine(noeud.texte_original)
     }
 
     traite_espaces_blanches(noeud)
@@ -3314,7 +3338,7 @@ traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
     noeud.fragments.taille = 0
     fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(noeud)
     white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).donne_mot_clé()
 
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
