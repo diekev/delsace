@@ -1468,14 +1468,7 @@ CréatriceArbre :: struct {
 crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
-        /* Les textes doivent une boite inline anonyme autour d'eux. */
-        résultat := arbre.crée_noeud(NoeudDeDispositionInline)
-        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc, Display.Type.Inline)
-        parent.ajoute_enfant(résultat)
-
-        texte := arbre.crée_noeud(NoeudDeDispositionTexte)
-        texte.texte_original = (noeud comme *HTML.NoeudTexte).données
-        résultat.ajoute_enfant(texte)
+        crée_noeud_pour_texte(créatrice, parent comme *NoeudDeDispositionBloc, (noeud comme *HTML.NoeudTexte).données)
         retourne
     }
 
@@ -1512,14 +1505,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
         si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
             résultat = crée_noeud_pour_display(arbre, display, élément)
-
-            envellope := arbre.crée_noeud(NoeudDeDispositionInline)
-            crée_style_pour_bloc_anonyme(résolveuse, envellope, résultat comme *NoeudDeDispositionBloc, Display.Type.Inline)
-            résultat.ajoute_enfant(envellope)
-
-            texte := arbre.crée_noeud(NoeudDeDispositionTexte)
-            texte.texte_original = HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16()
-            envellope.ajoute_enfant(texte)
+            crée_noeud_pour_texte(créatrice, résultat comme *NoeudDeDispositionBloc, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16())
         }
         sinon {
             résultat = crée_noeud_de_remplacement_image(arbre, img)
@@ -1610,6 +1596,18 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
     crée_noeud_pour_pseudo_élément(créatrice, résultat, élément, PROP_after)
     
     corrige_hiérarchie(résultat, créatrice)
+}
+
+crée_noeud_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDispositionBloc, texte_original: ChaineUTF16)
+{
+    /* Les textes doivent une boite inline anonyme autour d'eux. */
+    résultat := arbre.crée_noeud(NoeudDeDispositionInline)
+    crée_style_pour_bloc_anonyme(résolveuse, résultat, parent, Display.Type.Inline)
+    parent.ajoute_enfant(résultat)
+
+    texte := arbre.crée_noeud(NoeudDeDispositionTexte)
+    texte.texte_original = texte_original
+    résultat.ajoute_enfant(texte)
 }
 
 crée_noeud_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *NoeudDeDisposition
