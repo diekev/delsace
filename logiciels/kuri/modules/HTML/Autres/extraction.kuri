@@ -1,0 +1,246 @@
+/* Programme pour extraire un élément et ses parent d'un document HTML et d'imprimer
+ * le nouveau document dans un fichier ou la sortie standarde.
+ * L'idée est de pouvoir isoler certains éléments pour déboguer ou implémenter les
+ * cas manquants pour le rendu via CSS.
+ * Nous gardons également les éléments "link" s'ils pointent vers des feuilles de style,
+ * les éléments "style", et l'élément "title".
+ */
+
+importe Chaine
+importe Ensemble
+importe Fondation
+CSS :: importe CSS
+importe HTML
+importe Introspection
+importe SysFichier
+
+Arguments :: struct {
+    fichier: chaine @anonyme
+    sortie: chaine
+    query: chaine
+}
+
+__mv: JS.MachineVirtuelle = ---
+__mv_initialisée := faux
+
+parse_document_depuis_chemin :: fonc (chemin: chaine) -> ParsatHTML
+{
+    saufsi __mv_initialisée {
+        init_de(JS.MachineVirtuelle)(*__mv)
+        JS.initialise_mv(nul, *__mv)
+        __mv_initialisée = vrai
+    }
+
+    contenu := contenu_fichier_texte(chemin)
+    diffère déloge(contenu)
+
+    parsat := parse_document(JS.donne_tas_de_mémoire(*__mv), contenu)
+
+    si parsat.document {
+        url := enchaine("file://", chemin)
+        diffère déloge(url)
+        parsat.document.url = basic_url_parser(url)
+    }
+
+    retourne parsat
+}
+
+/* https://drafts.csswg.org/selectors-4/#parse-a-selector */
+parse_a_selector :: fonc (chn: chaine) -> Optionnel(CSS.SelectorList)
+{
+    // 1. Let selector be the result of parsing source as a <selector-list>. If this returns failure, it’s an invalid selector; return failure.
+    // 2. If selector is an invalid selector for any other reason (such as, for example, containing an undeclared namespace prefix), return failure.
+    // 3. Otherwise, return selector.
+    retourne CSS.parse_according_to_a_css_grammar(chn, CSS.parse_selector_list)
+}
+
+apparie_sélecteur :: fonc (selector_list: CSS.SelectorList, élément: *Élément) -> bool
+{
+    pour complex dans selector_list.complex_selectors {
+        saufsi CSS.apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
+            continue
+        }
+
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+principale :: fonc ()
+{
+    args_ok, args := parse_arguments_ligne_commande2(Arguments)
+    saufsi args_ok {
+        exit(1)
+    }
+
+    saufsi est_fichier_html(args.fichier) {
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args.fichier)
+        exit(1)
+    }
+
+    saufsi args.query {
+        imprimeln("UTILISATION : extraction [-f] FICHIER -q REQUÊTE [OPTIONS...]")
+        imprimeln("La requête n'est pas spécifiée")
+        exit(1)
+    }
+
+    sélecteur_opt := parse_a_selector(args.query)
+    saufsi sélecteur_opt.possède_valeur() {
+        imprimeln("Impossible de parser le sélecteur")
+        exit(1)
+    }
+    sélecteur := sélecteur_opt.Quelque
+
+    parsat := parse_document_depuis_chemin(args.fichier)
+    diffère détruit(parsat)
+
+    traversée: [..]*Noeud
+    diffère déloge(traversée)
+
+    éléments: [..]*Élément
+    diffère déloge(éléments)
+
+    tableau_ajoute(*traversée, parsat.document)
+
+    tantque traversée.taille != 0 {
+        noeud := enlève_dernier_élément(*traversée)
+
+        si noeud.est_élément() {
+            élément := noeud comme *Élément
+            si apparie_sélecteur(sélecteur, élément) {
+                tableau_ajoute(*éléments, élément)
+            }
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    si éléments.taille == 0 {
+        imprimeln("Aucun élément trouvé", éléments.taille)
+        exit(0)
+    }
+
+    imprimeln("Trouvé % élément(s)", éléments.taille)
+
+    /* Rassemble les noeuds à garder. */
+    noeuds_à_garder: [..]z64
+    diffère déloge(noeuds_à_garder)
+
+    pour parsat.document.enfants {
+        si it.est_document_type() {
+            ensemble_ajoute(*noeuds_à_garder, it comme z64)
+        }
+    }
+
+    head := donne_head(parsat.document)
+    si head {
+        ensemble_ajoute(*noeuds_à_garder, head comme z64)
+    }
+    body := donne_élément_body(parsat.document)
+    si body {
+        ensemble_ajoute(*noeuds_à_garder, body comme z64)
+    }
+
+    pour éléments {
+        parent := it comme *Noeud
+
+        tantque parent != nul {
+            ensemble_ajoute(*noeuds_à_garder, parent comme z64)
+            parent = parent.parent
+        }
+
+        traversée.taille = 0
+        tableau_ajoute(*traversée, it)
+
+        tantque traversée {
+            noeud := enlève_dernier_élément(*traversée)
+            ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+            pour > enfant dans noeud.enfants {
+                tableau_ajoute(*traversée, enfant)
+            }
+        }
+    }
+
+    /* Dans head nous ne gardons que les liens, styles, et le titre. */
+    si head {
+        tableau_ajoute(*traversée, head)
+        tantque traversée {
+            noeud := enlève_dernier_élément(*traversée)
+
+            si noeud.est_élément() {
+                élément := noeud comme *Élément
+                saufsi élément.local_name == TAG_link || élément.local_name == TAG_style || élément.local_name == TAG_title || élément.local_name == TAG_head {
+                    continue
+                }
+
+                si élément.local_name == TAG_link {
+                    link := élément comme *HTMLLinkElement
+                    saufsi link.est_stylesheet {
+                        continue
+                    }
+                }
+
+                ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+
+                pour > noeud.enfants {
+                    tableau_ajoute(*traversée, it)
+                }
+            }
+            sinon si noeud.est_texte() {
+                ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+            }
+        }
+    }
+
+    imprimeln("Garde % noeuds", noeuds_à_garder.taille)
+
+    /* Supprime du document les autres noeuds. */
+    tableau_ajoute(*traversée, parsat.document)
+
+    tantque traversée {
+        noeud := enlève_dernier_élément(*traversée)
+        assert(ensemble_possède(*noeuds_à_garder, noeud comme z64))
+
+        nouveaux_enfants := noeud.enfants.pointeur
+        nombre_nouveaux_enfants: z64
+
+        pour noeud.enfants {
+            si ensemble_possède(*noeuds_à_garder, it comme z64) {
+                mémoire(nouveaux_enfants) = it
+                nouveaux_enfants = (nouveaux_enfants comme z64 + 8) comme **Noeud
+                nombre_nouveaux_enfants += 1
+                continue
+            }
+        }
+
+        noeud.enfants.taille = nombre_nouveaux_enfants
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    /* Imprime le document. */
+    texte := HTML_fragment_serialization(parsat.document, faux)
+    diffère détruit_chaine(texte)
+
+    saufsi args.sortie {
+        imprimeln("%", texte)
+        exit(0)
+    }
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(args.sortie), pour_écriture_tronquée) piège err {
+        imprimeln("Impossible d'écrire dans le fichier : %", err)
+        imprimeln("%", texte)
+        exit(0)
+    }
+
+    chaine_texte := texte.converti_vers_chaine()
+    diffère déloge(chaine_texte)
+
+    _ := écris(*fichier, chaine_texte)
+    _ := ferme(*fichier)
+}
