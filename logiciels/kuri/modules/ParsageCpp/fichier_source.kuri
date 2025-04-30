@@ -114,7 +114,6 @@ donne_données_extraction_sous_chaine :: fonc (flux: &FluxSource) -> DonnéesSou
 FichierSource :: struct {
     chemin: CheminFichier
     contenu: chaine
-    lexèmes: [..]Lexème
 }
 
 construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)

@@ -1,4 +1,5 @@
 importe Fondation
+importe Géométrie
 importe Structures
 importe Triage
 
@@ -226,6 +227,24 @@ compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingCon
 
 #portée_module
 
+donne_rectangle_ciselage_pour_overflow :: fonc (noeud: *NoeudDeDisposition) -> bool, RectanglePosDim(r32)
+{
+    résultat: RectanglePosDim(r32)
+
+    tantque noeud != nul {
+        overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+        overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+
+        saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+            retourne vrai, noeud.donne_rectangle_rembourrage()
+        }
+
+        noeud = noeud.parent
+    }
+
+    retourne faux, résultat
+}
+
 dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
     ctx.id_stacking_context = stacking_context.id
@@ -237,6 +256,12 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {
         retourne
+    }
+
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    si doit_ciseler {
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
+        ctx.commandes.débute_ciselage(rect)
     }
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
@@ -251,6 +276,10 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
 
     pour stacking_context.enfants {
         dessine_stacking_context(it, ctx)
+    }
+
+    si doit_ciseler {
+        ctx.commandes.termine_ciselage()
     }
 }
 
@@ -267,10 +296,20 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
         retourne
     }
 
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    si doit_ciseler {
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
+        ctx.commandes.débute_ciselage(rect)
+    }
+
     dessine_tampon_id(stacking_context.racine, ctx)
 
     pour stacking_context.enfants {
         dessine_stacking_context_tampon_id(it, ctx)
+    }
+
+    si doit_ciseler {
+        ctx.commandes.termine_ciselage()
     }
 }
 
