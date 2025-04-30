@@ -1797,7 +1797,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDi
 construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, noeud: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
 {
     pour noeud.enfants {
-        si est_espace_blanche_document(it) {
+        si !it.est_pseudo_element && est_espace_blanche_document(it) {
             it.traite_comme_display_none = vrai
             continue
         }
