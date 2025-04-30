@@ -79,7 +79,7 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     : ordonnanceuse(this), messagère(this),
       gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
       gestionnaire_bibliothèques(GestionnaireBibliothèques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(this->opérateurs),
+      racine_kuri(chemin_racine_kuri), typeuse(),
       registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
     racine_modules_kuri = racine_kuri / "modules";

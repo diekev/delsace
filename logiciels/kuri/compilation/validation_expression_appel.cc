@@ -2317,6 +2317,16 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
             decl_fonction_appelée = noeud_decl;
         }
+        else if (decl_fonction_appelée->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
+            auto copie_macro = copie_noeud(contexte.donne_assembleuse(),
+                                           decl_fonction_appelée,
+                                           decl_fonction_appelée->bloc_parent,
+                                           OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
+                                               OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES);
+
+            auto entête_copie_macro = copie_macro->comme_entête_fonction();
+            decl_fonction_appelée = entête_copie_macro;
+        }
 
         // nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça
         auto type_fonc = decl_fonction_appelée->type->comme_type_fonction();

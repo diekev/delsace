@@ -326,6 +326,20 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
+donne_head :: fonc (document: *Document) -> *Élément
+{
+    élément_html := document.donne_élément_html()
+    si élément_html {
+        pour élément_html.enfants {
+            si it.est_élément_type(TAG_head) {
+                retourne it comme *Élément
+            }
+        }
+    }
+    retourne nul
+}
+
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
 donne_élément_body :: fonc (document: *Document) -> *Élément
 {
@@ -477,27 +491,6 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
     }
 
     retourne nul
-}
-
-// À FAIRE(langage)
-opérateur + :: fonc (a: **Élément, b: z64) -> **Élément
-{
-    retourne ((a comme *octet) + 8 * b) comme **Élément
-}
-
-opérateur - :: fonc (a: **Élément, b: **Élément) -> z64
-{
-    retourne ((a comme *octet) - (b comme *octet)) / 8
-}
-
-opérateur < :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) < (b comme *octet)
-}
-
-opérateur == :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) == (b comme *octet)
 }
 
 donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
@@ -793,6 +786,11 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     doctype.document = document
 
     retourne doctype
+}
+
+est_document_type :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.TypeDocument
 }
 
 #portée_fichier

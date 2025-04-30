@@ -80,6 +80,16 @@ donne_texte :: fonc (lexème: Lexème) -> chaine
     retourne chaine(lexème.début, lexème.fin - lexème.début)
 }
 
+est_mot_clé :: fonc (lexème: Lexème, texte: chaine) -> bool
+{
+    retourne lexème.type == TypeLexème.MotClé && lexème.donne_texte() == texte
+}
+
+est_ponctuation :: fonc (lexème: Lexème, texte: chaine) -> bool
+{
+    retourne lexème.type == TypeLexème.Ponctuation && lexème.donne_texte() == texte
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -173,6 +183,11 @@ donne_tous_les_lexèmes :: fonc (lexeuse: *SimpleLexeuse) -> [..]Lexème
     }
 
     retourne résultat
+}
+
+fini :: fonc (lexeuse: *SimpleLexeuse) -> bool
+{
+    retourne lexeuse.début >= lexeuse.fin
 }
 
 #portée_fichier
@@ -362,11 +377,6 @@ imprime_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
     imprime_table(lexeuse.table_drapeaux_caractère)
     imprimeln("------------------------------------------")
     imprime_table(lexeuse.table_peut_suivre)
-}
-
-fini :: fonc (lexeuse: *SimpleLexeuse) -> bool
-{
-    retourne lexeuse.début >= lexeuse.fin
 }
 
 donne_caractère_courant :: fonc (lexeuse: *SimpleLexeuse) -> z8
@@ -727,23 +737,33 @@ __mots_clés_cpp := [
     "const",
     "false",
     "short",
+    "using",
     "while",
+    "delete",
     "double",
     "extern",
     "public",
     "return",
     "static",
     "struct",
+    "default",
     "private",
     "typedef",
+    "template",
     "unsigned",
     "constexpr",
+    "namespace",
     "protected",
     "thread_local",
     "static_assert"
 ]
 
 __ponctuation_c := [
+    "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
+    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "->", "<<", ">>", "<<=", ">>="
+]
+
+__ponctuation_cpp := [
     "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
     "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>="
 ]
@@ -766,7 +786,7 @@ initialise_lexeuse_c :: fonc (lexeuse: *SimpleLexeuse)
 
 initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse)
 {
-    lexeuse.ponctuations = __ponctuation_c
+    lexeuse.ponctuations = __ponctuation_cpp
     lexeuse.mots_clés = __mots_clés_cpp
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c
