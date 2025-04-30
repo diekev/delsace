@@ -27,7 +27,7 @@ divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
     mots: [..]chaine
 
     pour texte {
-        si rappel(c) {
+        si rappel(it) {
             si taille_mot != 0 {
                 mot := chaine(*texte[début_mot], taille_mot)
                 tableau_ajoute(*mots, mot)
