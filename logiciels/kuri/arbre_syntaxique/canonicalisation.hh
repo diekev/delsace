@@ -151,6 +151,8 @@ struct Simplificatrice {
     NoeudExpression *simplifie_expression_pour_expression_logique(NoeudExpression *expression);
 
     NoeudExpression *simplifie_tente(NoeudInstructionTente *inst);
+
+    NoeudExpression *développe_macro(NoeudDéclarationEntêteFonction *macro);
 };
 
 /** \} */
