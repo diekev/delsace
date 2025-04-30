@@ -22,7 +22,23 @@ Bloc <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 148 [0 0 0]
                 frag 3 MargeFin de Inline début 0 fin 0 rect (8,16 0x0)
                 Inline <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Texte <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
-            Remplacement <img> <8, 16> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 50 [0 0 0]
+            Bloc <img> <8, 16> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 50 [0 0 0]
+                Inline <(anonyme)> <8, 16> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 90 [0 0 0]
+                    frag 0 Normal de Texte début 0 fin 1 rect (8,16 44x18)
+                        "[FAIL:"
+                    frag 1 Normal de Texte début 1 fin 2 rect (52,16 4x18)
+                        " "
+                    frag 2 Normal de Texte début 2 fin 3 rect (8,34 40x18)
+                        "Image"
+                    frag 3 Normal de Texte début 3 fin 4 rect (48,34 4x18)
+                        " "
+                    frag 4 Normal de Texte début 4 fin 5 rect (8,52 48x18)
+                        "support"
+                    frag 5 Normal de Texte début 5 fin 6 rect (8,70 4x18)
+                        " "
+                    frag 6 Normal de Texte début 6 fin 7 rect (8,88 58x18)
+                        "required]"
+                    Texte <(anonyme)> <0, -8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Bloc <(anonyme)> <8, 16> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 108 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (58,16 0x18)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (58,16 0x18)
