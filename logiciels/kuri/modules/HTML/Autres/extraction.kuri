@@ -126,29 +126,29 @@ principale :: fonc ()
     imprimeln("Trouvé % élément(s)", éléments.taille)
 
     /* Rassemble les noeuds à garder. */
-    noeuds_à_garder: [..]z64
+    noeuds_à_garder: [..]*Noeud
     diffère déloge(noeuds_à_garder)
 
     pour parsat.document.enfants {
         si it.est_document_type() {
-            ensemble_ajoute(*noeuds_à_garder, it comme z64)
+            ensemble_ajoute(*noeuds_à_garder, it)
         }
     }
 
     head := donne_head(parsat.document)
     si head {
-        ensemble_ajoute(*noeuds_à_garder, head comme z64)
+        ensemble_ajoute(*noeuds_à_garder, head)
     }
     body := donne_élément_body(parsat.document)
     si body {
-        ensemble_ajoute(*noeuds_à_garder, body comme z64)
+        ensemble_ajoute(*noeuds_à_garder, body)
     }
 
     pour éléments {
         parent := it comme *Noeud
 
         tantque parent != nul {
-            ensemble_ajoute(*noeuds_à_garder, parent comme z64)
+            ensemble_ajoute(*noeuds_à_garder, parent)
             parent = parent.parent
         }
 
@@ -157,7 +157,7 @@ principale :: fonc ()
 
         tantque traversée {
             noeud := enlève_dernier_élément(*traversée)
-            ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+            ensemble_ajoute(*noeuds_à_garder, noeud)
             pour > enfant dans noeud.enfants {
                 tableau_ajoute(*traversée, enfant)
             }
@@ -183,14 +183,14 @@ principale :: fonc ()
                     }
                 }
 
-                ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+                ensemble_ajoute(*noeuds_à_garder, noeud)
 
                 pour > noeud.enfants {
                     tableau_ajoute(*traversée, it)
                 }
             }
             sinon si noeud.est_texte() {
-                ensemble_ajoute(*noeuds_à_garder, noeud comme z64)
+                ensemble_ajoute(*noeuds_à_garder, noeud)
             }
         }
     }
@@ -202,15 +202,15 @@ principale :: fonc ()
 
     tantque traversée {
         noeud := enlève_dernier_élément(*traversée)
-        assert(ensemble_possède(*noeuds_à_garder, noeud comme z64))
+        assert(ensemble_possède(*noeuds_à_garder, noeud))
 
         nouveaux_enfants := noeud.enfants.pointeur
         nombre_nouveaux_enfants: z64
 
         pour noeud.enfants {
-            si ensemble_possède(*noeuds_à_garder, it comme z64) {
+            si ensemble_possède(*noeuds_à_garder, it) {
                 mémoire(nouveaux_enfants) = it
-                nouveaux_enfants = (nouveaux_enfants comme z64 + 8) comme **Noeud
+                nouveaux_enfants += 1
                 nombre_nouveaux_enfants += 1
                 continue
             }

@@ -1761,6 +1761,10 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             /* x -> x != nul */
             auto zéro = assem->crée_littérale_nul(expression->lexème);
             zéro->type = type_condition;
+
+            auto &registre = espace->compilatrice().opérateurs;
+            registre->ajoute_opérateurs_basiques_au_besoin(type_condition);
+
             auto op = type_condition->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }

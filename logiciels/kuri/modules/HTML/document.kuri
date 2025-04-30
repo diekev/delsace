@@ -493,27 +493,6 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
     retourne nul
 }
 
-// À FAIRE(langage)
-opérateur + :: fonc (a: **Élément, b: z64) -> **Élément
-{
-    retourne ((a comme *octet) + 8 * b) comme **Élément
-}
-
-opérateur - :: fonc (a: **Élément, b: **Élément) -> z64
-{
-    retourne ((a comme *octet) - (b comme *octet)) / 8
-}
-
-opérateur < :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) < (b comme *octet)
-}
-
-opérateur == :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) == (b comme *octet)
-}
-
 donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
 {
     si a == nul {

@@ -367,7 +367,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
          * RI. À FAIRE: généralise pour toutes les variables. */
         if (transformation.type_cible) {
             auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
-                const_cast<Type *>(transformation.type_cible), false, false);
+                const_cast<Type *>(transformation.type_cible), false);
             ajoute_type(type_pointeur);
             ajoute_type(const_cast<Type *>(transformation.type_cible));
         }
