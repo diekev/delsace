@@ -10,7 +10,7 @@ est_ponctuation_ascii :: fonc (c: z8) -> bool
     retourne c == '(' || c == ')' || c == ',' || c == '\'' || c == '.' || c == '?' || c == '[' || c == ']'
 }
 
-est_espace_blanche_ou_ponctuation_ascii :: fonc (c: z8)
+est_espace_blanche_ou_ponctuation_ascii :: fonc (c: z8) -> bool
 {
     retourne est_espace_blanc(c) || est_ponctuation_ascii(c)
 }
