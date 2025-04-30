@@ -129,6 +129,7 @@ PROP_grab : CSSOMString = ---
 PROP_grabbing : CSSOMString = ---
 PROP_grad : CSSOMString = ---
 PROP_groove : CSSOMString = ---
+PROP_has : CSSOMString = ---
 PROP_height : CSSOMString = ---
 PROP_help : CSSOMString = ---
 PROP_hidden : CSSOMString = ---

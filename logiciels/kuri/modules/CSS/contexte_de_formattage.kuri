@@ -1152,7 +1152,7 @@ est_espace_blanche_document :: fonc (base: *NoeudDeDisposition) -> bool
 {
     si base.table_virtuelle.type == NoeudDeDispositionTexte {
         noeud := base comme *NoeudDeDispositionTexte
-        retourne est_vide_ou_uniquement_espaces_blanches(noeud.noeud_texte.données)
+        retourne est_vide_ou_uniquement_espaces_blanches(noeud.texte_original)
     }
 
     si base.table_virtuelle.type == NoeudDeDispositionBloc || base.table_virtuelle.type == NoeudDeDispositionInline {

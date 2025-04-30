@@ -12,6 +12,7 @@
 
 #include "statistiques/statistiques.hh"
 
+#include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
@@ -594,6 +595,28 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers_unaires(Type *pour_type)
     }
 }
 
+void RegistreDesOpérateurs::ajoute_opérateurs_basiques_au_besoin(Type *type)
+{
+    if (!(type->est_type_pointeur() || type->est_type_fonction())) {
+        return;
+    }
+
+    if (type->possède_drapeau(DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE)) {
+        return;
+    }
+
+    if (type->est_type_pointeur()) {
+        auto type_pointeur = type->comme_type_pointeur();
+        ajoute_opérateurs_basiques_pointeur(type_pointeur);
+    }
+    else {
+        auto type_fonction = type->comme_type_fonction();
+        ajoute_opérateurs_basiques_fonction(type_fonction);
+    }
+
+    type->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
+}
+
 static void rassemble_opérateurs_pour_type(Type const &type,
                                            GenreLexème const type_op,
                                            kuri::tablet<OpérateurBinaire const *, 10> &résultat)
@@ -730,6 +753,10 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
                                                             Type *type2,
                                                             GenreLexème type_op)
 {
+    auto &registre = espace.compilatrice().opérateurs;
+    registre->ajoute_opérateurs_basiques_au_besoin(type1);
+    registre->ajoute_opérateurs_basiques_au_besoin(type2);
+
     auto candidats = kuri::tablet<OpérateurCandidat, 10>();
     auto attente_potentielle = cherche_candidats_opérateurs(
         espace, type1, type2, type_op, candidats);

@@ -69,7 +69,7 @@ principale :: fonc ()
     //r2 := tente appel_fonction_avec_erreur_union() piège nonatteignable
 
     // cas où nous retournons une erreur et rien d'autre
-    tente appel_fonction_avec_erreur_seule() piège err {
+    tente appel_fonction_avec_erreur_seule() piège _ {
         exit(1)
     }
 

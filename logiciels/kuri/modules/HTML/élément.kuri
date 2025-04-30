@@ -199,6 +199,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 /* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-content-attributes */
 gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
+    user_agent := donne_user_agent(élément.document)
+    saufsi user_agent {
+        retourne faux
+    }
+
     // 1. If namespace is not null, or localName is not the name of an event handler content attribute on element, then return.
     si espace_de_nom.possède_valeur() || !is_event_handler_content_attribute_name(local_name) {
         retourne faux
@@ -2276,6 +2281,33 @@ donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
     }
 
     retourne image.image_data.largeur comme r32 / image.image_data.hauteur comme r32
+}
+
+ReprésentationImage :: énum {
+    // L'élement représente l'image.
+    IMAGE
+    // L'élément représente le texte de l'attribut alt.
+    TEXTE_ALT
+    // L'élément ne représente rien.
+    RIEN
+}
+
+donne_représentation_image :: fonc (img: *HTMLImageElement) -> ReprésentationImage
+{
+    attr_src := cherche_attribut(img, ATTR_src)
+    attr_alt := cherche_attribut(img, ATTR_alt)
+
+    si attr_src && !attr_src.valeur.est_vide() {
+        si img.image_data.donnees {
+            retourne ReprésentationImage.IMAGE
+        }
+    }
+    
+    si attr_alt && !attr_alt.valeur.est_vide() {
+        retourne ReprésentationImage.TEXTE_ALT
+    }
+
+    retourne ReprésentationImage.RIEN
 }
 
 #portée_fichier

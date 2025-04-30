@@ -1280,6 +1280,35 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fon
     retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
 }
 
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données) -> bool, T
+{
+    retourne parse_arguments_ligne_commande2(T, nul)
+}
+
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> bool, T
+{
+    args := arguments_ligne_commande()
+
+    /* Saute le nom du programme. */
+    _ := consomme(*args)
+
+    résultat := parse_arguments_ligne_commande(T, args, rapporte_aide)
+
+    discr résultat {
+        Ok(t) {
+            retourne vrai, t
+        }
+        Erreur(e) {
+            imprimeln("%", e)
+            retourne faux, T()
+        }
+        sinon {
+            imprimeln("Impossible de parser les arguments, erreur inconnue")
+            retourne faux, T()
+        }
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * Structure pour visiter des structures représentants des arbres (par exemple

@@ -3,7 +3,6 @@
  * \{ */
 
 NoeudSyntaxique :: struct {
-    lexème: *Lexème
 }
 
 /** \} */
@@ -72,10 +71,9 @@ CréatriceNoeuds :: struct {
     noeuds: [..]*NoeudSyntaxique
 }
 
-crée_noeud :: fonc (créatrice: &CréatriceNoeuds, lexème: *Lexème, $TypeNoeud: type_de_données) -> *TypeNoeud
+crée_noeud :: fonc (créatrice: &CréatriceNoeuds, $TypeNoeud: type_de_données) -> *TypeNoeud
 {
     noeud := loge(TypeNoeud)
-    noeud.lexème = lexème
     tableau_ajoute(*créatrice.noeuds, noeud)
     retourne noeud
 }

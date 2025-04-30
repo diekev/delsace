@@ -195,7 +195,6 @@ struct Trie {
 // types
 struct Typeuse {
     dls::outils::Synchrone<GrapheDépendance> &graphe_;
-    dls::outils::Synchrone<RegistreDesOpérateurs> &operateurs_;
 
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
@@ -266,8 +265,7 @@ struct Typeuse {
   public:
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
-            dls::outils::Synchrone<RegistreDesOpérateurs> &o);
+    Typeuse(dls::outils::Synchrone<GrapheDépendance> &g);
 
     Typeuse(Typeuse const &) = delete;
     Typeuse &operator=(Typeuse const &) = delete;
@@ -280,9 +278,7 @@ struct Typeuse {
 
     Type *type_pour_lexeme(GenreLexème lexeme);
 
-    TypePointeur *type_pointeur_pour(Type *type,
-                                     bool ajoute_operateurs = true,
-                                     bool insere_dans_graphe = true);
+    TypePointeur *type_pointeur_pour(Type *type, bool insere_dans_graphe = true);
 
     TypeReference *type_reference_pour(Type *type);
 
@@ -303,9 +299,7 @@ struct Typeuse {
 
     TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
 
-    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees,
-                                Type *type_sortie,
-                                bool ajoute_operateurs = true);
+    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie);
 
     TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
 
