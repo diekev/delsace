@@ -56,7 +56,6 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
 {
     exploratrice := crée_exploratrice_fichier(dossier)
     diffère détruit(exploratrice)
-    exploratrice.filtre_chemin = est_fichier_html
 
     nombre_de_fichiers := 0
 
