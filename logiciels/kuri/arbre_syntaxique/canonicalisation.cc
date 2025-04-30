@@ -95,6 +95,10 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto corps = noeud->comme_corps_fonction();
 
+            if (corps->entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
+                return corps;
+            }
+
             auto fut_dans_fonction = m_dans_fonction;
             m_dans_fonction = true;
             simplifie(corps->bloc);
@@ -124,6 +128,12 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
                 auto expression = simplifie(it);
                 if (expression) {
+                    if (it->est_appel() && expression->est_entête_fonction() &&
+                        expression->comme_entête_fonction()->possède_drapeau(
+                            DrapeauxNoeudFonction::EST_MACRO)) {
+                        /* Nous substituons un appel par son macro, n'ajoutons pas le macro. */
+                        continue;
+                    }
                     ajoute_expression(expression);
                 }
                 /* Certaines expressions n'ont pas de substitution (par exemple les expressions
@@ -651,11 +661,18 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             if (appel->noeud_fonction_appelée) {
+                auto noeud_fonction_appelée = appel->noeud_fonction_appelée;
+                if (noeud_fonction_appelée->est_entête_fonction() &&
+                    noeud_fonction_appelée->comme_entête_fonction()->possède_drapeau(
+                        DrapeauxNoeudFonction::EST_MACRO)) {
+                    return développe_macro(noeud_fonction_appelée->comme_entête_fonction());
+                }
+
                 if (!appel->expression->est_référence_déclaration() ||
                     appel->expression->comme_référence_déclaration()->déclaration_référée !=
-                        appel->noeud_fonction_appelée) {
+                        noeud_fonction_appelée) {
                     appel->expression->substitution = assem->crée_référence_déclaration(
-                        appel->lexème, appel->noeud_fonction_appelée->comme_déclaration_symbole());
+                        appel->lexème, noeud_fonction_appelée->comme_déclaration_symbole());
                 }
             }
             else {
@@ -1760,6 +1777,10 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             /* x -> x != nul */
             auto zéro = assem->crée_littérale_nul(expression->lexème);
             zéro->type = type_condition;
+
+            auto &registre = espace->compilatrice().opérateurs;
+            registre->ajoute_opérateurs_basiques_au_besoin(type_condition);
+
             auto op = type_condition->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }
@@ -3006,6 +3027,15 @@ NoeudSi *Simplificatrice::crée_condition_boucle(NoeudExpression *inst, GenreNoe
     condition->bloc_si_vrai = bloc_si_vrai;
 
     return condition;
+}
+
+NoeudExpression *Simplificatrice::développe_macro(NoeudDéclarationEntêteFonction *macro)
+{
+    simplifie(macro->corps->bloc);
+    POUR (*macro->corps->bloc->expressions.verrou_lecture()) {
+        ajoute_expression(it);
+    }
+    return macro;
 }
 
 /** \} */

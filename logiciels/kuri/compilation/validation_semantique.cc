@@ -552,7 +552,21 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            return valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            auto résultat = valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            if (!est_ok(résultat)) {
+                return résultat;
+            }
+            if (expr->noeud_fonction_appelée &&
+                expr->noeud_fonction_appelée->est_entête_fonction()) {
+                auto entête = expr->noeud_fonction_appelée->comme_entête_fonction();
+                if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
+                    if (!entête->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                        m_unité->arbre_aplatis->index_courant += 1;
+                        return Attente::sur_déclaration(entête->corps);
+                    }
+                }
+            }
+            return CodeRetourValidation::OK;
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
@@ -2770,6 +2784,15 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
                     "Utilisation d'une fonction intrinsèque en dehors d'une expression d'appel.")
                 .ajoute_message(
                     "NOTE : Les fonctions intrinsèques ne peuvent être prises par adresse.");
+            return false;
+        }
+
+        if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
+            !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
+            espace
+                ->rapporte_erreur(expr,
+                                  "Utilisation d'un macro en dehors d'une expression d'appel.")
+                .ajoute_message("NOTE : Les macros ne peuvent être pris par adresse.");
             return false;
         }
     }
@@ -5894,8 +5917,8 @@ static bool est_appel_coroutine(const NoeudExpression *itérand)
  * - une attente si nous itérons un type utilisant un opérateur pour
  * - une instance de #TypageItérandeBouclePour remplis convenablement.
  */
-static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression *itéré,
-                                                      Typeuse &typeuse)
+static RésultatTypeItérande détermine_typage_itérande(
+    const NoeudExpression *itéré, dls::outils::Synchrone<RegistreDesOpérateurs> &registre)
 {
     auto type_variable_itérée = itéré->type;
     while (type_variable_itérée->est_type_opaque()) {
@@ -5943,7 +5966,7 @@ static RésultatTypeItérande détermine_typage_itérande(const NoeudExpression 
 
     /* Utilisons le registre pour obtenir la table afin de ne pas avoir à revérifier si le type
      * possède une table d'opérateurs. */
-    table_opérateurs = typeuse.operateurs_->donne_ou_crée_table_opérateurs(type_variable_itérée);
+    table_opérateurs = registre->donne_ou_crée_table_opérateurs(type_variable_itérée);
     auto const opérateur_pour = table_opérateurs->opérateur_pour;
     auto type_itérateur = opérateur_pour->param_sortie->type;
     /* À FAIRE : typage correct de l'index. */
@@ -6033,7 +6056,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     auto expression = inst->expression;
     auto const résultat_typage_itérande = détermine_typage_itérande(expression,
-                                                                    m_compilatrice.typeuse);
+                                                                    m_compilatrice.opérateurs);
     if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
         return std::get<Attente>(résultat_typage_itérande);
     }

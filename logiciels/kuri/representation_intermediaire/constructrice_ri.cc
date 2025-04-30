@@ -1664,7 +1664,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     auto type_sortie = TypeBase::RIEN;
 
     auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
-    fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
@@ -3466,7 +3466,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             Atome *info_type = crée_info_type(noeud->type, noeud);
 
             auto pointeur_type_info_type = m_compilatrice.typeuse.type_pointeur_pour(
-                m_compilatrice.typeuse.type_info_type_, false, false);
+                m_compilatrice.typeuse.type_info_type_, false);
             if (info_type->type != pointeur_type_info_type) {
                 info_type = m_constructrice.crée_transtype(
                     noeud, pointeur_type_info_type, info_type, TypeTranstypage::BITS);

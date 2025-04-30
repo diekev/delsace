@@ -231,6 +231,8 @@ struct RegistreDesOpérateurs {
     void ajoute_opérateurs_entiers_réel(Type *pour_type, IndiceTypeOp indice);
     void ajoute_opérateurs_entiers(Type *pour_type, IndiceTypeOp indice);
     void ajoute_opérateurs_entiers_unaires(Type *pour_type);
+
+    void ajoute_opérateurs_basiques_au_besoin(Type *type);
 };
 
 /** \} */
