@@ -393,7 +393,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
          * RI. À FAIRE: généralise pour toutes les variables. */
         if (transformation.type_cible) {
             auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
-                const_cast<Type *>(transformation.type_cible), false, false);
+                const_cast<Type *>(transformation.type_cible), false);
             ajoute_type(type_pointeur);
             ajoute_type(const_cast<Type *>(transformation.type_cible));
         }
@@ -1814,6 +1814,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          */
         return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
                !entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
                entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
                !entete->est_opérateur_pour();
     }
@@ -1836,6 +1837,7 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          */
         return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
                !entete->est_opérateur_pour() &&
+               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
                (!entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
                 entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
     }
