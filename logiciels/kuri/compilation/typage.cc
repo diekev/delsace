@@ -18,7 +18,6 @@
 
 #include "compilatrice.hh"
 #include "graphe_dependance.hh"
-#include "operateurs.hh"
 #include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
@@ -425,9 +424,7 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
 
 #define VERROUILLE(x) std::unique_lock<std::mutex> verrou(mutex_##x)
 
-Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g,
-                 dls::outils::Synchrone<RegistreDesOpérateurs> &o)
-    : graphe_(g), operateurs_(o)
+Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g) : graphe_(g)
 {
     alloc = memoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
 
@@ -630,9 +627,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
     }
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type,
-                                          bool ajoute_operateurs,
-                                          bool insere_dans_graphe)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
 {
     if (!type) {
         return TypeBase::PTR_NUL->comme_type_pointeur();
@@ -641,18 +636,6 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     VERROUILLE(types_pointeurs);
 
     if (type->type_pointeur) {
-        auto résultat = type->type_pointeur;
-        /* À FAIRE : meilleure structure pour stocker les opérateurs de bases.
-         * L'optimisation de l'ajout d'opérateur peut nous faire échouer la compilation si le type
-         * fut d'abord créé dans la RI, mais que nous avons besoin des opérateurs pour la
-         * validation sémantique plus tard. */
-        if (!résultat->possède_drapeau(DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE)) {
-            if (ajoute_operateurs) {
-                operateurs_->ajoute_opérateurs_basiques_pointeur(résultat);
-            }
-            résultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
-        }
-
         return type->type_pointeur;
     }
 
@@ -662,11 +645,6 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type,
     if (insere_dans_graphe) {
         auto graphe = graphe_.verrou_ecriture();
         graphe->connecte_type_type(résultat, type);
-    }
-
-    if (ajoute_operateurs) {
-        operateurs_->ajoute_opérateurs_basiques_pointeur(résultat);
-        résultat->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
     }
 
     type->type_pointeur = résultat;
@@ -873,9 +851,7 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
     return it;
 }
 
-TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
-                                     Type *type_sortie,
-                                     bool ajoute_operateurs)
+TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie)
 {
     VERROUILLE(types_fonctions);
 
@@ -893,10 +869,6 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees,
     /* Insère le type dans le Trie. */
     auto noeud = std::get<Trie::Noeud *>(candidat);
     noeud->type = type;
-
-    if (ajoute_operateurs) {
-        operateurs_->ajoute_opérateurs_basiques_fonction(type);
-    }
 
     auto graphe = graphe_.verrou_ecriture();
 

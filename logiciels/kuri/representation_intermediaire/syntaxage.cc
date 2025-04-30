@@ -632,7 +632,7 @@ ConstructriceRI &SyntaxeuseRI::donne_constructrice()
 
 Type *SyntaxeuseRI::crée_type_pointeur(const Lexème *lexème, Type *type_pointé)
 {
-    return m_typeuse.type_pointeur_pour(type_pointé, false, false);
+    return m_typeuse.type_pointeur_pour(type_pointé, false);
 }
 
 Type *SyntaxeuseRI::crée_type_référence(const Lexème *lexème, Type *type_pointé)
@@ -702,7 +702,7 @@ Type *SyntaxeuseRI::crée_type_fonction(const Lexème *lexème,
         sortie = crée_type_tuple(lexème, types_sortie);
     }
 
-    return m_typeuse.type_fonction(entrées, sortie, false);
+    return m_typeuse.type_fonction(entrées, sortie);
 }
 
 Type *SyntaxeuseRI::crée_type_tuple(const Lexème *lexème, kuri::tableau_statique<Type *> types)
@@ -995,7 +995,7 @@ void SyntaxeuseRI::débute_fonction(const Fonction &données_fonction)
     fonction->param_sortie = m_constructrice.crée_allocation(
         nullptr, données_fonction.type_retour, données_fonction.nom_retour->ident, true);
 
-    fonction->type = m_typeuse.type_fonction(types_entrées, données_fonction.type_retour, false);
+    fonction->type = m_typeuse.type_fonction(types_entrées, données_fonction.type_retour);
 
     m_décalage_instructions = fonction->numérote_instructions();
     m_fonction_courante = fonction;
