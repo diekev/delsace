@@ -324,11 +324,6 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
     }
 }
 
-est_fichier_html :: fonc (chm: CheminFichier) -> bool
-{
-    retourne chm.extension() == ".html"
-}
-
 principale :: fonc ()
 {
     args := arguments_ligne_commande()
