@@ -258,6 +258,10 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
         }
     }
 
+    saufsi enfants_aplatis {
+        retourne 0.0
+    }
+    
     min_y := 1000000.0
     max_y := -min_y
 
