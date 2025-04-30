@@ -219,6 +219,8 @@ enum class DrapeauxNoeudFonction : uint32_t {
 
     FORCE_SANS_ASAN = (1 << 23),
 
+    EST_MACRO = (1 << 24),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
                        EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),

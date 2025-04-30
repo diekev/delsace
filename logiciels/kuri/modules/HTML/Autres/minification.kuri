@@ -10,11 +10,6 @@ importe Temps
 // #exécute compile_pour_profilage()
 // #exécute compile_pour_débogage()
 
-est_fichier_html :: fonc (chm: CheminFichier) -> bool
-{
-    retourne chm.extension() == ".html"
-}
-
 principale :: fonc ()
 {
     args := arguments_ligne_commande()

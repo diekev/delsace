@@ -621,6 +621,13 @@ quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r
      *  0,0 --- 1,0 --- 2,4 --- 3,4
      */
 
+    rayon_sûr := min(largeur * 0.5, hauteur * 0.5)
+    pour & rayons {
+        si it > rayon_sûr {
+            it = rayon_sûr
+        }
+    }
+
     points_x: [8]r32 = ---
     points_y: [8]r32 = ---
 
