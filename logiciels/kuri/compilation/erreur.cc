@@ -4,6 +4,7 @@
 #include "erreur.h"
 
 #include <iostream>
+#include <unistd.h>
 
 #include "biblinternes/langage/erreur.hh"
 #include "biblinternes/outils/chaine.hh"
@@ -601,12 +602,20 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(erreur::Genre::NORMAL);
 
-    flux << COULEUR_CYAN_GRAS << "-- ";
+    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+        flux << COULEUR_CYAN_GRAS;
+    }
+
+    flux << "-- ";
     flux << chaine_erreur << ' ';
     for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
         flux << '-';
     }
-    flux << "\n\n" << COULEUR_NORMALE;
+    flux << "\n\n";
+
+    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+        flux << COULEUR_NORMALE;
+    }
 
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
     flux << "\nErreur : ";
@@ -640,12 +649,20 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(genre);
 
-    flux << COULEUR_CYAN_GRAS << "-- ";
+    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+        flux << COULEUR_CYAN_GRAS;
+    }
+
+    flux << "-- ";
     flux << chaine_erreur << ' ';
     for (auto i = 0; i < 76 - chaine_erreur.taille(); ++i) {
         flux << '-';
     }
-    flux << "\n\n" << COULEUR_NORMALE;
+    flux << "\n\n";
+
+    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+        flux << COULEUR_NORMALE;
+    }
 
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
 

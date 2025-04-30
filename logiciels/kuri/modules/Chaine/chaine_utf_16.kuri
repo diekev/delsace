@@ -331,6 +331,11 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne a.unités[n] < b.unités[n]
 }
 
+opérateur > :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+{
+    retourne !(a < b || a == b)
+}
+
 avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
 {
     résultat := chn

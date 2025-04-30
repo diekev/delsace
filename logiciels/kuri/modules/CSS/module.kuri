@@ -301,6 +301,10 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
+                si simple.ident == PROP_has {
+                    retourne apparie_selector_has(simple.selector_list, élément)
+                }
+
                 retourne faux
             }
 
@@ -353,6 +357,36 @@ apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *H
     pour complex dans selector_list.complex_selectors {
         si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
             retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
+{
+    // À FAIRE : combinateur
+
+    traversée: [..]*HTML.Élément
+    diffère déloge(traversée)
+
+    pour > élément.enfants {
+        si HTML.est_élément(it) {
+            tableau_ajoute(*traversée, it comme *HTML.Élément)
+        }
+    }
+
+    tantque traversée {
+        élément = enlève_dernier_élément(*traversée)
+
+        si apparie_sélecteur_fonction(selector_list, élément) {
+            retourne vrai
+        }
+
+        pour > élément.enfants {
+            si HTML.est_élément(it) {
+                tableau_ajoute(*traversée, it comme *HTML.Élément)
+            }
         }
     }
 
@@ -873,6 +907,8 @@ opérateur > :: fonc (s1: Spécificité, s2: Spécificité) -> bool
 
 SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
+    /* Pour :has(). */
+    combinateur: Combinator
 }
 
 détruit_données_selector_list :: fonc (selector: *SelectorList)

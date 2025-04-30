@@ -819,6 +819,8 @@ consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
 
             résultat *= 16
             résultat += donne_valeur_hex_pour_point_de_code(point_de_code)
+
+            lexeuse.consomme()
         }
 
         si est_espace_blanche(lexeuse.point_de_code_suivant()) {

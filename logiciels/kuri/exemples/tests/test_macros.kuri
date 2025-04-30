@@ -1,0 +1,18 @@
+importe Fondation
+
+/* Un macro se définit comme une fonctoin mais doit être suivie par une directive #développe. */
+macro_simple :: fonc () #développe
+{
+    /* Puisque le macro est développé au lieu de son appel,
+     * ceci devrait imprimer le nom de la fonction au se trouve l'appel */
+    imprimeln("Nous sommes dans un macro dans la fonction '%'", #nom_de_cette_fonction)
+
+    /* Pareillement, ceci devrait être imprimé à la fin du bloc parent. */
+    diffère imprimeln("Nous sommes à la fin du macro")
+}
+
+principale :: fonc ()
+{
+    macro_simple()
+    imprimeln("Nous sommes dans '%' après le macro.", #nom_de_cette_fonction)
+}

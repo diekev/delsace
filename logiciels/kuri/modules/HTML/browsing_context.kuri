@@ -262,7 +262,6 @@ donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navig
     }
 
     // 4. Let docStates be an empty ordered set of document states.
-    // À FAIRE(langage) : les pointeurs créées par les types tableaux n'ont pas d'opérateurs
     // doc_states_à_vérifier: [..]*DocumentState
     // diffère déloge(doc_states_à_vérifier)
 
