@@ -356,13 +356,13 @@ défile_vers_fragment :: fonc (page: *PageWeb)
         retourne
     }
 
-    noeud_de_disposition := élément.noeud_de_disposition
-    saufsi noeud_de_disposition {
+    box := élément.box
+    saufsi box {
         arbre.défilement_vertical.rect.y = 0.0
         retourne
     }
 
-    arbre.défilement_vertical.rect.y = noeud_de_disposition.modèle_de_boite.rembourrage.y * arbre.défilement_vertical.ratio
+    arbre.défilement_vertical.rect.y = box.modèle_de_boite.rembourrage.y * arbre.défilement_vertical.ratio
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
@@ -382,7 +382,7 @@ envoie_un_clic :: fonc (élément: *Élément, bouton: BoutonSouris, position_x:
     évènement.screen_x = position_x comme r64
     évènement.screen_y = position_y comme r64
 
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    rect := CSS.donne_rectangle_rembourrage(élément.box)
     évènement.offset_x = évènement.screen_x - rect.x
     évènement.offset_y = évènement.screen_y - rect.y
 
@@ -447,7 +447,7 @@ envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z3
     évènement.screen_x = position_x comme r64
     évènement.screen_y = position_y comme r64
 
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    rect := CSS.donne_rectangle_rembourrage(élément.box)
     évènement.offset_x = évènement.screen_x - rect.x
     évènement.offset_y = évènement.screen_y - rect.y
 
@@ -483,7 +483,7 @@ envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z3
     évènement.screen_x = position_x comme r64
     évènement.screen_y = position_y comme r64
 
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    rect := CSS.donne_rectangle_rembourrage(élément.box)
     évènement.offset_x = évènement.screen_x - rect.x
     évènement.offset_y = évènement.screen_y - rect.y
 
@@ -498,7 +498,7 @@ envoie_mouseup :: fonc (élément: *Élément, position_x: z32, position_y: z32)
     évènement.screen_x = position_x comme r64
     évènement.screen_y = position_y comme r64
 
-    rect := CSS.donne_rectangle_rembourrage(élément.noeud_de_disposition)
+    rect := CSS.donne_rectangle_rembourrage(élément.box)
     évènement.offset_x = évènement.screen_x - rect.x
     évènement.offset_y = évènement.screen_y - rect.y
 
@@ -526,7 +526,7 @@ imprime_styles :: fonc (page_web: *PageWeb)
     styles: [..]*CSS.CSSStyleDeclaration
     diffère déloge(styles)
 
-    traversée: [..]*CSS.NoeudDeDisposition
+    traversée: [..]*CSS.Box
     diffère déloge(traversée)
 
     tableau_ajoute(*traversée, arbre.racine)
