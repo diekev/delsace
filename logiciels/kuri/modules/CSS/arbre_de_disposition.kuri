@@ -3610,7 +3610,7 @@ donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r
     retourne noeud.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace @inutilisée)
+noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace)
 {
     noeud := base comme *NoeudDeDispositionRemplacement
 
@@ -3618,7 +3618,25 @@ noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ct
 
     containing_block := donne_containing_block(noeud, ctx)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, PersonnalisationCotation(), mode)
+    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+
+    personnalisation_boite: PersonnalisationCotation
+    outrepas_largeur: OutrepasCotation
+    outrepas_hauteur: OutrepasCotation
+
+    si (available.width.est_max_content() || available.width.est_min_content()) && noeud.possède_largeur_intrinsèque() && !width.est_pixels() {
+        outrepas_largeur = crée_outrepas_pour_coter_contenu(noeud.donne_largeur_intrinsèque())
+        personnalisation_boite.outrepas_largeur = *outrepas_largeur
+    }
+
+    si (available.height.est_max_content() || available.height.est_min_content()) && noeud.possède_hauteur_intrinsèque() && !height.est_pixels() {
+        outrepas_hauteur = crée_outrepas_pour_coter_contenu(noeud.donne_hauteur_intrinsèque())
+        personnalisation_boite.outrepas_hauteur = *outrepas_hauteur
+    }
+
+    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, personnalisation_boite, mode)
+
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 }
