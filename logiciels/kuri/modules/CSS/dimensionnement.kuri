@@ -338,8 +338,7 @@ crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noe
 
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 {
-    résoud_pourcentage_largeurs(ctx, noeud, args.containing_block)
-
+    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
     args.width_of_containing_block = args.containing_block.donne_largeur()
 
     width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
@@ -355,6 +354,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
         }
     }
     sinon saufsi width.est_auto() {
+        width = width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         width = applique_box_sizing(*params_box_sizing, width, ignore_plancher_border_box)
         tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
     }
@@ -365,6 +365,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
     saufsi ignore_min_max {
         width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
         max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
+        max_width = max_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         max_width = applique_box_sizing(*params_box_sizing, max_width, ignore_plancher_border_box)
         si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -374,6 +375,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 
         width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
         min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        min_width = min_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         min_width = applique_box_sizing(*params_box_sizing, min_width, ignore_plancher_border_box)
         si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -404,18 +406,20 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 {
     propriétés := noeud.propriétés
 
+    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+
     résoud_pourcentage_insets(noeud, ctx)
 
     pl : PropriétésLargeur = ---
-    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left)
-    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width)
-    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
+    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
 
     si outrepas_largeur.possède_valeur() {
         pl.width = outrepas_largeur.Quelque.valeur
