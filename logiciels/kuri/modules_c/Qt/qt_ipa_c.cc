@@ -1527,6 +1527,58 @@ void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Surface_Format
+ * \{ */
+
+static void copie_vers_ipa(QSurfaceFormat const &qformat, struct QT_Surface_Format *format)
+{
+    format->alpha_buffer_size = qformat.alphaBufferSize();
+    format->blue_buffer_size = qformat.blueBufferSize();
+    format->depth_buffer_size = qformat.depthBufferSize();
+    format->green_buffer_size = qformat.greenBufferSize();
+    format->red_buffer_size = qformat.redBufferSize();
+    format->stencil_buffer_size = qformat.stencilBufferSize();
+
+    format->samples = qformat.samples();
+    format->swap_interval = qformat.swapInterval();
+    format->major_version = qformat.majorVersion();
+    format->minor_version = qformat.minorVersion();
+
+    format->options = int(qformat.options());
+    format->profile = int(qformat.profile());
+    format->renderable_type = int(qformat.renderableType());
+    format->swap_behavior = int(qformat.swapBehavior());
+}
+
+static void copie_vers_qt(struct QT_Surface_Format *format, QSurfaceFormat &qformat)
+{
+    qformat.setAlphaBufferSize(format->alpha_buffer_size);
+    qformat.setBlueBufferSize(format->blue_buffer_size);
+    qformat.setDepthBufferSize(format->depth_buffer_size);
+    qformat.setGreenBufferSize(format->green_buffer_size);
+    qformat.setRedBufferSize(format->red_buffer_size);
+    qformat.setStencilBufferSize(format->stencil_buffer_size);
+
+    qformat.setSamples(format->samples);
+    qformat.setSwapInterval(format->swap_interval);
+    qformat.setMajorVersion(format->major_version);
+    qformat.setMinorVersion(format->minor_version);
+
+    qformat.setOptions(QSurfaceFormat::FormatOptions(format->options));
+    qformat.setProfile(QSurfaceFormat::OpenGLContextProfile(format->profile));
+    qformat.setRenderableType(QSurfaceFormat::RenderableType(format->renderable_type));
+    qformat.setSwapBehavior(QSurfaceFormat::SwapBehavior(format->swap_behavior));
+}
+
+void QT_initialize_surface_format(struct QT_Surface_Format *format)
+{
+    QSurfaceFormat qformat;
+    copie_vers_ipa(qformat, format);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 
@@ -1541,6 +1593,20 @@ void QT_OpenGL_detruit(QT_OpenGL_Context *context)
 {
     VERS_QT(context);
     delete qcontext;
+}
+
+void QT_OpenGL_Context_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    copie_vers_ipa(qcontext->format(), format);
+}
+
+void QT_OpenGL_Context_set_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    QSurfaceFormat surface_format;
+    copie_vers_qt(format, surface_format);
+    qcontext->setFormat(surface_format);
 }
 
 bool QT_OpenGL_Context_create(QT_OpenGL_Context *context)

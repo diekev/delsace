@@ -1440,11 +1440,47 @@ void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Surface_Format
+ * \{ */
+
+struct QT_Surface_Format {
+    int alpha_buffer_size;
+    int blue_buffer_size;
+    int depth_buffer_size;
+    int green_buffer_size;
+    int red_buffer_size;
+    int stencil_buffer_size;
+
+    int samples;
+    int swap_interval;
+    int major_version;
+    int minor_version;
+
+    /* À FAIRE : énumérations */
+    /* QSurfaceFormat::FormatOptions */
+    int options;
+    /* QSurfaceFormat::OpenGLContextProfile */
+    int profile;
+    /* QSurfaceFormat::RenderableType */
+    int renderable_type;
+    /* QSurfaceFormat::SwapBehavior */
+    int swap_behavior;
+};
+
+void QT_initialize_surface_format(struct QT_Surface_Format *format);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 
 struct QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(union QT_Generic_Object parent);
 void QT_OpenGL_detruit(struct QT_OpenGL_Context *context);
+
+void QT_OpenGL_Context_format(struct QT_OpenGL_Context *context, struct QT_Surface_Format *format);
+void QT_OpenGL_Context_set_format(struct QT_OpenGL_Context *context,
+                                  struct QT_Surface_Format *format);
 
 bool QT_OpenGL_Context_create(struct QT_OpenGL_Context *context);
 bool QT_OpenGL_Context_make_current(struct QT_OpenGL_Context *context, struct QT_Window *window);
