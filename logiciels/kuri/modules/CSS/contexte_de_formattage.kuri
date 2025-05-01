@@ -1132,7 +1132,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, no
             largeur := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
             si largeur.est_auto() {
                 valeur_largeur_enfant := crée_outrepas_pour_coter_contenu(largeur_max_enfant)
-                /* Utilise cette fontcion pour résoudre les valeurs 'auto' pour les autres propriétés. */
+                /* Utilise cette fonction pour résoudre les valeurs 'auto' pour les autres propriétés. */
                 args := ArgumentsDimensionnement(ctx, noeud, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant)
                 calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element)
             }
