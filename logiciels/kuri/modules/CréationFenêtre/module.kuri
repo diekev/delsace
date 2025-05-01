@@ -1,0 +1,286 @@
+importe Fondation
+importe OpenGL
+importe Périphériques
+
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux) -> TypeFenêtre
+{
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran)
+}
+
+ajourne_évènements_fenêtre :: fonc () -> []Évènement
+{
+    __évènements.taille = 0
+    qt_ajourne_évènements_fenêtre()
+    retourne __évènements
+}
+
+requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_requiers_ajournement_fenêtre(fenêtre)
+}
+
+permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_permute_tampons_fenêtre(fenêtre)
+}
+
+donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+{
+    retourne qt_donne_taille_fenêtre(fenêtre)
+}
+
+définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+{
+    qt_définis_titre_fenêtre(fenêtre, titre)
+}
+
+TypeFenêtre :: struct {
+    /* Pour Qt. */
+    rappels_window: *RappelsWindow
+}
+
+TypeÉvènement :: énum {
+    NonInitialisé
+    Fermeture
+    Souris
+    Clavier
+    // DragAndDrop
+    // Tablette
+    // Window
+    // Molette séparée de souris ?
+    // Entrée texte séparée de clavier hors IME ?
+}
+
+Évènement :: struct {
+    type: TypeÉvènement
+
+    /* Pour les évènements souris. */
+    état_souris: ÉtatSouris
+    action_souris: ActionSouris
+    bouton_souris: BoutonSouris
+    /* Delta pour la molette. */
+    delta_souris: z32
+
+    /* Pour les évènements clavier. */
+    touche: CléClavier
+    modificateurs: ModificateurClavier
+    touche_pressée: bool
+    est_répétée: bool
+    texte: chaine
+    compte: z32
+    code_scan_natif: n32
+    modificateurs_natifs: n32
+    clé_virtuelle_native: n32
+}
+
+donne_clic_souris :: fonc (empl évènement: &Évènement) -> CliqueSouris
+{
+    clic: CliqueSouris = ---
+    clic.état = état_souris
+    clic.action = action_souris
+    clic.bouton = bouton_souris
+    clic.delta = delta_souris
+    retourne clic
+}
+
+#portée_fichier
+
+__évènements: [..]Évènement
+
+initialise_depuis_clic :: fonc (évènement: *Évènement, clic: CliqueSouris)
+{
+    évènement.type = TypeÉvènement.Souris
+    évènement.état_souris = clic.état
+    évènement.bouton_souris = clic.bouton
+    évènement.delta_souris = clic.delta
+    évènement.action_souris = clic.action
+}
+
+importe Qt
+
+__application_qt: *QT_Application
+__taille_arguments_qt: z32 = ---
+__rappels_window: RappelsWindow = ---
+
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool) -> TypeFenêtre
+{
+    assert(__application_qt == nul)
+
+    arguments := arguments_ligne_commande()
+    __taille_arguments_qt = arguments.taille comme z32
+    /* Jamais détruite. */
+    __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur)
+
+    init_de(RappelsWindow)(*__rappels_window)
+
+    window := QT_window_cree_avec_rappels(*__rappels_window)
+
+    si titre {
+        QT_window_set_title(window, vers_qt(titre))
+    }
+
+    QT_window_resize(window, largeur, hauteur)
+
+    si plein_écran {
+        QT_window_show_maximized(window)
+    }
+    sinon {
+        QT_window_show(window)
+    }
+
+    /* Garantis la création du contexte OpenGL. */
+    tantque !__rappels_window.glctx {
+        QT_application_process_events()
+    }
+
+    résultat := TypeFenêtre(*__rappels_window)
+    retourne résultat
+}
+
+qt_ajourne_évènements_fenêtre :: fonc ()
+{
+    QT_application_process_events()
+}
+
+qt_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_request_update(fenêtre.rappels_window.window)
+}
+
+qt_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+
+    si fenêtre.rappels_window.glctx {
+        QT_OpenGL_Context_swap_buffers(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window)
+    }
+}
+
+qt_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne QT_window_width(fenêtre.rappels_window.window), QT_window_height(fenêtre.rappels_window.window)
+}
+
+qt_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre))
+}
+
+RappelsWindow :: struct {
+    empl base: QT_Rappels_Window
+
+    glctx: *QT_OpenGL_Context
+    glew_est_initialisé: bool
+    taille_fenêtre: QT_Taille
+
+    sur_creation = rappels_window_sur_création
+    sur_evenement = rappels_window_sur_évènement
+}
+
+rappels_window_sur_création :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow
+    window := rappels.window
+    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
+}
+
+rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
+{
+    rappels := base comme *RappelsWindow
+
+    type := QT_evenement_donne_type(event)
+
+    si type == QT_Event_Type.Expose {
+        saufsi rappels.glctx {
+            rappels.glctx = QT_OpenGL_Context_cree_avec_parent(rappels.window)
+            format: QT_Surface_Format
+            QT_initialize_surface_format(*format)
+
+            /* Active depth buffer. */
+            format.depth_buffer_size = 24
+
+            QT_OpenGL_Context_set_format(rappels.glctx, *format)
+            _ := QT_OpenGL_Context_create(rappels.glctx)
+            QT_OpenGL_Context_format(rappels.glctx, *format)
+        }
+
+        si rappels.glctx {
+            _ := QT_OpenGL_Context_make_current(rappels.glctx, rappels.window)
+
+            saufsi rappels.glew_est_initialisé {
+                glewExperimental = 1
+                erreur_ := glewInit()
+
+                si erreur_ != 0 {
+                    imprime("Erreur lors de l'initilisation de GLEW !\n")
+                    retourne vrai
+                }
+                rappels.glew_est_initialisé = vrai
+            }
+        }
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Resize {
+        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseMove {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
+        évènement := tableau_ajoute_élément(*__évènements)
+        initialise_depuis_clic(évènement, clic)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Wheel {
+        clic := donne_clique_souris_depuis_évènement(event.wheel_event)
+        évènement := tableau_ajoute_élément(*__évènements)
+        initialise_depuis_clic(évènement, clic)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonPress {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        évènement := tableau_ajoute_élément(*__évènements)
+        initialise_depuis_clic(évènement, clic)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.MouseButtonRelease {
+        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
+        évènement := tableau_ajoute_élément(*__évènements)
+        initialise_depuis_clic(évènement, clic)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Close {
+        évènement := tableau_ajoute_élément(*__évènements)
+        évènement.type = TypeÉvènement.Fermeture
+        retourne faux
+    }
+
+    si type == QT_Event_Type.KeyPress || type == QT_Event_Type.KeyRelease {
+        évènement := tableau_ajoute_élément(*__évènements)
+        évènement.type = TypeÉvènement.Clavier
+        évènement.touche = table_conversion_clé[QT_key_event_donne_cle(event.key_event)]
+        évènement.touche_pressée = type == QT_Event_Type.KeyPress
+        évènement.modificateurs = donne_modificateur_clavier_depuis_qt()
+        évènement.texte = QT_key_event_donne_texte(event.key_event).vers_kuri()
+        évènement.compte = QT_key_event_donne_compte(event.key_event)
+        évènement.est_répétée = QT_key_event_est_auto_repete(event.key_event)
+        évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(event.key_event)
+        évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(event.key_event)
+        évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(event.key_event)
+        retourne vrai
+    }
+
+    retourne faux
+}

@@ -1,0 +1,23 @@
+importe CréationFenêtre
+importe Fondation
+
+LARGEUR_FENÊTRE :: 800
+HAUTEUR_FENÊTRE :: 600
+
+principale :: fonc ()
+{
+    _ := crée_fenêtre(LARGEUR_FENÊTRE, HAUTEUR_FENÊTRE, "Ma Fenêtre")
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+        }
+    }
+}
