@@ -1768,7 +1768,7 @@ void QT_mouse_event_donne_position(QT_MouseEvent *event, QT_Position *r_position
 QT_MouseButton QT_mouse_event_donne_bouton(QT_MouseEvent *event)
 {
     auto qevent = vers_qt(event);
-    switch (qevent->button()) {
+    switch (qevent->buttons()) {
         ENUMERE_BOUTON_SOURIS(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
         default:
         {
