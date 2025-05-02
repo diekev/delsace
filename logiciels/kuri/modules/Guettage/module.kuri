@@ -28,6 +28,7 @@ Guetteuse :: struct {
     sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
     sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
+    sur_destruction: fonc(*Guetteuse)(rien)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, plateforme: *PlateformeGuettage)
@@ -42,11 +43,13 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
         guetteuse.sur_termine_guettage(guetteuse)
     }
 
-    saufsi guetteuse.plateforme {
-        retourne
+    si guetteuse.plateforme && guetteuse.plateforme.sur_termine_guettage {
+        guetteuse.plateforme.sur_termine_guettage(guetteuse.plateforme)
     }
 
-    guetteuse.plateforme.sur_termine_guettage(guetteuse.plateforme)
+    si guetteuse.sur_destruction {
+        guetteuse.sur_destruction(guetteuse)
+    }    
 }
 
 /** \} */
