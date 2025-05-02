@@ -41,7 +41,7 @@ crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chain
     }
     résultat.sur_dessin = sur_dessin_panneau_édition_texte
     résultat.sur_redimension = sur_redimension_panneau_édition_texte
-    résultat.sur_clique_souris = sur_clic_panneau_édition_texte
+    résultat.sur_clic_souris = sur_clic_panneau_édition_texte
     résultat.texte = crée_chaine_utf32(texte)
     résultat.lieutenant = crée_chaine_utf32(lieutenant)
     résultat.curseur.texte = *résultat.texte
@@ -151,7 +151,7 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
     rect_texte.réduis(5)
 }
 
-sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, clic: CliqueSouris) -> bool
+sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, clic: ClicSouris) -> bool
 {
     saufsi rect.contient(clic.état.où) {
         retourne faux
@@ -440,7 +440,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: T
     }
 }
 
-guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 

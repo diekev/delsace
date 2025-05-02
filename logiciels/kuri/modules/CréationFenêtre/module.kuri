@@ -73,9 +73,9 @@ TypeÉvènement :: énum {
     clé_virtuelle_native: n32
 }
 
-donne_clic_souris :: fonc (empl évènement: &Évènement) -> CliqueSouris
+donne_clic_souris :: fonc (empl évènement: &Évènement) -> ClicSouris
 {
-    clic: CliqueSouris = ---
+    clic: ClicSouris = ---
     clic.état = état_souris
     clic.action = action_souris
     clic.bouton = bouton_souris
@@ -87,7 +87,7 @@ donne_clic_souris :: fonc (empl évènement: &Évènement) -> CliqueSouris
 
 __évènements: [..]Évènement
 
-initialise_depuis_clic :: fonc (évènement: *Évènement, clic: CliqueSouris)
+initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
 {
     évènement.type = TypeÉvènement.Souris
     évènement.état_souris = clic.état
@@ -234,28 +234,28 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
     }
 
     si type == QT_Event_Type.MouseMove {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.Wheel {
-        clic := donne_clique_souris_depuis_évènement(event.wheel_event)
+        clic := donne_clic_souris_depuis_évènement(event.wheel_event)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
         retourne vrai

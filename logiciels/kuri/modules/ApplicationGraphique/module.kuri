@@ -90,8 +90,8 @@ TypesFonctionRappel :: struct {
     sur_rendu_fenêtre_perso: *InfoTypeFonction
     sur_rendu_fenêtre: *InfoTypeFonction
     /* Évènements */
-    sur_clique_souris: *InfoTypeFonction
-    sur_double_clique_souris: *InfoTypeFonction
+    sur_clic_souris: *InfoTypeFonction
+    sur_double_clic_souris: *InfoTypeFonction
     sur_mouvement_souris: *InfoTypeFonction
     sur_fin_application: *InfoTypeFonction
     sur_touche_clavier: *InfoTypeFonction
@@ -104,8 +104,8 @@ détermine_types_rappels_pour_cliente :: fonc ($TypeCliente: type_de_données) -
     résultat.sur_redimension_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
     résultat.sur_rendu_fenêtre_perso = info_de(fonc(*TypeCliente)(rien))
     résultat.sur_rendu_fenêtre = info_de(fonc(*TypeCliente, *Fenêtre)(rien))
-    résultat.sur_clique_souris = info_de(fonc(*TypeCliente, CliqueSouris)(rien))
-    résultat.sur_double_clique_souris = info_de(fonc(*TypeCliente, CliqueSouris)(rien))
+    résultat.sur_clic_souris = info_de(fonc(*TypeCliente, ClicSouris)(rien))
+    résultat.sur_double_clic_souris = info_de(fonc(*TypeCliente, ClicSouris)(rien))
     résultat.sur_mouvement_souris = info_de(fonc(*TypeCliente, ÉtatSouris)(rien))
     résultat.sur_fin_application = info_de(fonc(*TypeCliente)(rien))
     résultat.sur_touche_clavier = info_de(fonc(*TypeCliente, CléClavier)(rien))
@@ -122,8 +122,8 @@ MembresRappelsCliente :: struct {
     sur_création_fenêtre: *InfoTypeMembreStructure
     sur_redimension_fenêtre: *InfoTypeMembreStructure
     sur_rendu_fenêtre: *InfoTypeMembreStructure
-    sur_clique_souris: *InfoTypeMembreStructure
-    sur_double_clique_souris: *InfoTypeMembreStructure
+    sur_clic_souris: *InfoTypeMembreStructure
+    sur_double_clic_souris: *InfoTypeMembreStructure
     sur_mouvement_souris: *InfoTypeMembreStructure
     sur_fin_application: *InfoTypeMembreStructure
     sur_touche_clavier: *InfoTypeMembreStructure
@@ -289,17 +289,17 @@ détermine_évènements_requis :: fonc ($TypeCliente: type_de_données) -> Évè
     membres_rappels := donne_membres_rappels_cliente(TypeCliente)
     types_rappels := détermine_types_rappels_pour_cliente(TypeCliente)
 
-    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_clique_souris, types_rappels.sur_clique_souris)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_clic_souris, types_rappels.sur_clic_souris)
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_mouvement_souris, types_rappels.sur_mouvement_souris)
-    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_double_clique_souris, types_rappels.sur_double_clique_souris)
+    raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_double_clic_souris, types_rappels.sur_double_clic_souris)
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_fin_application, types_rappels.sur_fin_application)
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_touche_clavier, types_rappels.sur_touche_clavier)
     raporte_erreur_si_membre_invalide(info_cliente, membres_rappels.sur_redimension_fenêtre, types_rappels.sur_redimension_fenêtre)
 
     résultat: ÉvènementRequis
-    résultat.CLIQUE_SOURIS = membres_rappels.sur_clique_souris != nul
+    résultat.CLIQUE_SOURIS = membres_rappels.sur_clic_souris != nul
     résultat.MOUVEMENT_SOURIS = membres_rappels.sur_mouvement_souris != nul
-    résultat.DOUBLE_CLIQUE = membres_rappels.sur_double_clique_souris != nul
+    résultat.DOUBLE_CLIQUE = membres_rappels.sur_double_clic_souris != nul
     résultat.FIN_APPLICATION = membres_rappels.sur_fin_application != nul
     résultat.TOUCHE_CLAVIER = membres_rappels.sur_touche_clavier != nul
     résultat.REDIMENSION_FENÊTRE = membres_rappels.sur_redimension_fenêtre != nul

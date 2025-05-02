@@ -219,12 +219,12 @@ gère_évènement :: fonc (app: *ApplicationGLFW, cliente: *$TypeCliente)
 
     si évènements_requis.CLIQUE_SOURIS {
         ajoute_au_tampon(*enchaineuse, "        SOURIS_PRESSEE {\n")
-        ajoute_au_tampon(*enchaineuse, "            souris := donne_clique_souris_depuis_évènement_glfw(app, évènement, ActionSouris.PRESSÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "            cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "            souris := donne_clic_souris_depuis_évènement_glfw(app, évènement, ActionSouris.PRESSÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "            cliente.sur_clic_souris(cliente, souris)\n")
         ajoute_au_tampon(*enchaineuse, "        }\n")
         ajoute_au_tampon(*enchaineuse, "        SOURIS_RELACHEE {\n")
-        ajoute_au_tampon(*enchaineuse, "            souris := donne_clique_souris_depuis_évènement_glfw(app, évènement, ActionSouris.RELACHÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "            cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "            souris := donne_clic_souris_depuis_évènement_glfw(app, évènement, ActionSouris.RELACHÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "            cliente.sur_clic_souris(cliente, souris)\n")
         ajoute_au_tampon(*enchaineuse, "        }\n")
     }
 
@@ -281,13 +281,13 @@ sauvegarde_état_souris :: fonc (app: *ApplicationGLFW, évènement: Évènement
     app.état_souris.où.y = évènement.pos_y comme z32
 }
 
-donne_clique_souris_depuis_évènement_glfw :: fonc (app: *ApplicationSDL, évènement: Évènement, action: ActionSouris) -> CliqueSouris
+donne_clic_souris_depuis_évènement_glfw :: fonc (app: *ApplicationSDL, évènement: Évènement, action: ActionSouris) -> ClicSouris
 {
     état_souris: ÉtatSouris
     état_souris.où.x = évènement.button.x
     état_souris.où.y = app.fenêtre.hauteur - évènement.button.y
 
-    résultat: CliqueSouris
+    résultat: ClicSouris
     résultat.état = état_souris
     discr évènement.bouton_souris {
         GAUCHE {

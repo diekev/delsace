@@ -123,13 +123,13 @@ rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generi
     }
 
     si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
         sur_pression_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
         sur_relâchement_souris(*rappels.emboiteuse, clic)
         retourne vrai
     }
@@ -621,7 +621,7 @@ dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, con
     termine_rectangle()   
 }
 
-dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, CliqueSouris, n64, z32)(rien), index: z32)
+dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, ClicSouris, n64, z32)(rien), index: z32)
 {
     dispose_rectangle(id = texte)
     {
@@ -633,7 +633,7 @@ dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic:
     termine_rectangle()
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     si index == 0 {
         rappels.dessine_allocations = vrai
@@ -643,7 +643,7 @@ sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, souri
     }
 }
 
-définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
     assert(index < rappels.état_mémoire.allocations.taille)
@@ -651,7 +651,7 @@ définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, souris: Cli
     rappels.état_mémoire.allocation_sélectionnée = index
 }
 
-définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
     assert(index < rappels.état_mémoire.traces_triées.taille)

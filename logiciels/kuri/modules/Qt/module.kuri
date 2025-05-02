@@ -306,12 +306,12 @@ donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
     retourne BoutonSouris.GAUCHE
 }
 
-donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> CliqueSouris
+donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> ClicSouris
 {
     position: QT_Position
     QT_mouse_event_donne_position(évènement, *position)
 
-    résultat: CliqueSouris
+    résultat: ClicSouris
     résultat.état.où.x = position.x
     résultat.état.où.y = position.y
     résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
@@ -320,12 +320,12 @@ donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, act
     retourne résultat
 }
 
-donne_clique_souris_depuis_évènement :: fonc (évènement: *QT_WheelEvent) -> CliqueSouris
+donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_WheelEvent) -> ClicSouris
 {
     position: QT_Position
     QT_wheel_event_donne_position(évènement, *position)
 
-    résultat: CliqueSouris
+    résultat: ClicSouris
     résultat.état.où.x = position.x
     résultat.état.où.y = position.y
     résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
@@ -654,19 +654,19 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
         type := QT_evenement_donne_type(event)
 
         si type == QT_Event_Type.MouseMove && rappels.guetteuse.sur_déplacement_souris {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
             rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état)
             retourne vrai
         }
 
         si type == QT_Event_Type.MouseButtonPress && rappels.guetteuse.sur_clic {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
             rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
             retourne vrai
         }
 
         si type == QT_Event_Type.MouseButtonRelease && rappels.guetteuse.sur_clic {
-            clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
             rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
             retourne vrai
         }

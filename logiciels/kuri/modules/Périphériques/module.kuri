@@ -39,7 +39,7 @@ TypeCurseurSystème :: énum {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CliqueSouris
+/** \nom ClicSouris
  * \{ */
 
 ModificateurClavier :: énum_drapeau {
@@ -76,7 +76,7 @@ BoutonSouris :: énum {
     MOLETTE :: TERTIAIRE
 }
 
-CliqueSouris :: struct {
+ClicSouris :: struct {
     état: ÉtatSouris
     action: ActionSouris
     bouton: BoutonSouris

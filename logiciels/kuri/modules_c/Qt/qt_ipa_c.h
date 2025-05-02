@@ -521,7 +521,7 @@ struct QT_Rappels_Fenetre_Principale {
     int (*sur_filtre_evenement)(struct QT_Rappels_Fenetre_Principale *, struct QT_Evenement *);
     void (*sur_creation_barre_menu)(struct QT_Rappels_Fenetre_Principale *,
                                     struct QT_Creatrice_Barre_Menu *);
-    void (*sur_clique_action_menu)(struct QT_Rappels_Fenetre_Principale *, struct QT_Chaine *);
+    void (*sur_clic_action_menu)(struct QT_Rappels_Fenetre_Principale *, struct QT_Chaine *);
     /** Appelé quand la fenêtre principale est fermée, et permet de controler si la fermeture est
      * avortée. Si faux est retourné, la fenêtre n'est pas fermée. */
     bool (*sur_fermeture)(struct QT_Rappels_Fenetre_Principale *);
@@ -1918,7 +1918,7 @@ struct QT_Painter {
     void (*sur_pression_souris)(struct type_rappels *, struct QT_MouseEvent *);                   \
     void (*sur_deplacement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
     void (*sur_relachement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
-    void (*sur_double_clique_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
+    void (*sur_double_clic_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
     void (*sur_molette_souris)(struct type_rappels *, struct QT_WheelEvent *);                    \
     void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
     void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
@@ -3559,27 +3559,27 @@ struct DNJ_Constructrice_Liste {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Pilote_Clique
+/** \name DNJ_Rappels_Pilote_Clic
  * \{ */
 
-struct DNJ_Rappels_Pilote_Clique {
-    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
-    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
+struct DNJ_Rappels_Pilote_Clic {
+    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clic *);
+    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clic *,
                                     struct QT_Chaine,
                                     struct QT_Chaine);
-    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
+    void (*sur_clic)(struct DNJ_Rappels_Pilote_Clic *, struct QT_Chaine, struct QT_Chaine);
 };
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Pilote_Clique
+/** \name DNJ_Pilote_Clic
  * \{ */
 
-struct DNJ_Pilote_Clique;
+struct DNJ_Pilote_Clic;
 
-struct DNJ_Pilote_Clique *DNJ_cree_pilote_clique(struct DNJ_Rappels_Pilote_Clique *rappels);
-void DNJ_detruit_pilote_clique(struct DNJ_Pilote_Clique *pilote);
+struct DNJ_Pilote_Clic *DNJ_cree_pilote_clic(struct DNJ_Rappels_Pilote_Clic *rappels);
+void DNJ_detruit_pilote_clic(struct DNJ_Pilote_Clic *pilote);
 
 /** \} */
 
@@ -3597,7 +3597,7 @@ struct DNJ_Rappels_Widget {
     void (*sur_requete_liste)(struct DNJ_Rappels_Widget *,
                               struct QT_Chaine,
                               struct DNJ_Constructrice_Liste *);
-    struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
+    struct DNJ_Pilote_Clic *(*donne_pilote_clic)(struct DNJ_Rappels_Widget *);
     struct DNJ_Gestionnaire_Interface *(*donne_gestionnaire)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
@@ -3624,7 +3624,7 @@ void DNJ_conteneur_ajourne_controles(struct DNJ_Conteneur_Controles *conteneur);
  * \{ */
 
 struct DNJ_Contexte_Interface {
-    struct DNJ_Pilote_Clique *pilote_clique;
+    struct DNJ_Pilote_Clic *pilote_clic;
     struct DNJ_Conteneur_Controles *conteneur;
     union QT_Generic_Widget parent_barre_outils;
     union QT_Generic_Widget parent_menu;
@@ -3637,7 +3637,7 @@ struct DNJ_Contexte_Interface {
  * \{ */
 
 struct DNJ_Donnees_Action {
-    struct DNJ_Pilote_Clique *pilote_clique;
+    struct DNJ_Pilote_Clic *pilote_clic;
     struct QT_Chaine attache;
     struct QT_Chaine nom;
     struct QT_Chaine metadonnee;

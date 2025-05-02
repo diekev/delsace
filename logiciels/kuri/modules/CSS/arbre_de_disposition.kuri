@@ -21,7 +21,7 @@ BarreDeDéfilement :: struct {
     est_cliqué: bool
     est_survolé: bool
     est_visible: bool
-    pos_clique_y: r32
+    pos_clic_y: r32
     hauteur: r32
     ratio : r32 = 1.0
 }

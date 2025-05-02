@@ -213,7 +213,7 @@ dessine_application :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 /** \nom Évènements
  * \{ */
 
-donne_clique_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement: SDL_Event, action: ActionSouris) -> CliqueSouris
+donne_clic_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement: SDL_Event, action: ActionSouris) -> ClicSouris
 {
     mappage_bouton := [ BoutonSouris.PRIMAIRE, BoutonSouris.TERTIAIRE, BoutonSouris.CONTEXTUEL, BoutonSouris.AVANT, BoutonSouris.ARRIÈRE ]
 
@@ -221,7 +221,7 @@ donne_clique_souris_depuis_sdl_event :: fonc (app: *ApplicationSDL, évènement:
     état_souris.où.x = évènement.button.x
     état_souris.où.y = app.fenêtre.hauteur - évènement.button.y
 
-    résultat: CliqueSouris
+    résultat: ClicSouris
     résultat.état = état_souris
     résultat.bouton = mappage_bouton[évènement.button.button - 1]
     résultat.action = action
@@ -258,12 +258,12 @@ gère_évènement :: fonc (app: *ApplicationSDL, cliente: *$TypeCliente)
 
     si évènements_requis.CLIQUE_SOURIS {
         ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONDOWN {\n")
-        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.PRESSÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "                souris := donne_clic_souris_depuis_sdl_event(app, évènement, ActionSouris.PRESSÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clic_souris(cliente, souris)\n")
         ajoute_au_tampon(*enchaineuse, "            }\n")
         ajoute_au_tampon(*enchaineuse, "            SDL_MOUSEBUTTONUP {\n")
-        ajoute_au_tampon(*enchaineuse, "                souris := donne_clique_souris_depuis_sdl_event(app, évènement, ActionSouris.RELACHÉE)\n")
-        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clique_souris(cliente, souris)\n")
+        ajoute_au_tampon(*enchaineuse, "                souris := donne_clic_souris_depuis_sdl_event(app, évènement, ActionSouris.RELACHÉE)\n")
+        ajoute_au_tampon(*enchaineuse, "                cliente.sur_clic_souris(cliente, souris)\n")
         ajoute_au_tampon(*enchaineuse, "            }\n")
     }
 

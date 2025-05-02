@@ -4924,18 +4924,18 @@ int64_t QT_abstract_socket_write(QT_AbstractSocket socket, int8_t *donnees, int6
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Pilote_Clique
+/** \name DNJ_Pilote_Clic
  * \{ */
 
-DNJ_Pilote_Clique *DNJ_cree_pilote_clique(DNJ_Rappels_Pilote_Clique *rappels)
+DNJ_Pilote_Clic *DNJ_cree_pilote_clic(DNJ_Rappels_Pilote_Clic *rappels)
 {
-    auto résultat = new PiloteClique(rappels);
-    return reinterpret_cast<DNJ_Pilote_Clique *>(résultat);
+    auto résultat = new PiloteClic(rappels);
+    return reinterpret_cast<DNJ_Pilote_Clic *>(résultat);
 }
 
-void DNJ_detruit_pilote_clique(DNJ_Pilote_Clique *pilote)
+void DNJ_detruit_pilote_clic(DNJ_Pilote_Clic *pilote)
 {
-    auto qpilote = reinterpret_cast<PiloteClique *>(pilote);
+    auto qpilote = reinterpret_cast<PiloteClic *>(pilote);
     delete qpilote;
 }
 
@@ -4977,7 +4977,7 @@ void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)
 static danjo::DonneesInterface convertis_contexte(DNJ_Contexte_Interface *context)
 {
     auto résultat = danjo::DonneesInterface();
-    résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
+    résultat.repondant_bouton = reinterpret_cast<PiloteClic *>(context->pilote_clic);
     résultat.conteneur = vers_qt(context->conteneur);
     résultat.parent_menu = vers_qt(context->parent_menu);
     résultat.parent_barre_outils = vers_qt(context->parent_barre_outils);
@@ -5049,7 +5049,7 @@ void DNJ_gestionnaire_recree_menu(DNJ_Gestionnaire_Interface *gestionnaire,
         donnée.attache = action.attache.vers_std_string();
         donnée.metadonnee = action.metadonnee.vers_std_string();
         donnée.nom = action.nom.vers_std_string();
-        donnée.repondant_bouton = reinterpret_cast<PiloteClique *>(action.pilote_clique);
+        donnée.repondant_bouton = reinterpret_cast<PiloteClic *>(action.pilote_clic);
 
         données_actions.ajoute(donnée);
     }

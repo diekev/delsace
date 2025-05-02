@@ -2,9 +2,9 @@
  *
  * Comportement pour les évènements.
  *
- * Panneau.sur_clique_souris doit retourner vrai si le panneau a gérer le
- * clique. Les évènements de mouvement et de clique souris suivant seront
- * envoyés à ce panneau jusqu'au prochain évènement de clique ayant comme
+ * Panneau.sur_clic_souris doit retourner vrai si le panneau a gérer le
+ * clic. Les évènements de mouvement et de clic souris suivant seront
+ * envoyés à ce panneau jusqu'au prochain évènement de clic ayant comme
  * action ActionSouris.RELACHÉE
  *
  * Panneau.sur_début_survol est émis quand la souris entre dans le rect du
@@ -60,7 +60,7 @@ Guetteuse :: struct {
     contexte: *ContexteInterface
 
     sur_termine_guettage: fonc(*Guetteuse)(rien)
-    sur_clic: fonc(*Guetteuse, CliqueSouris)(rien)
+    sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
     sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
 }
@@ -167,17 +167,17 @@ crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_donn�
     retourne résultat
 }
 
-gère_clique_souris :: fonc (empl contexte: *ContexteInterface, clique: CliqueSouris)
+gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: ClicSouris)
 {
-    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clique.état)
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clic.état)
     si nouveau_panneau_survolé != panneau_survolé {
-        fini_survol_panneau(panneau_survolé, clique.état)
+        fini_survol_panneau(panneau_survolé, clic.état)
         débute_survol_panneau(nouveau_panneau_survolé)
     }
 
     panneau_cliqué: *Panneau
 
-    si panneau_survolé && gère_clique_souris(panneau_survolé, clique) {
+    si panneau_survolé && gère_clic_souris(panneau_survolé, clic) {
         panneau_cliqué = panneau_survolé
     }
 
@@ -317,7 +317,7 @@ Panneau :: struct {
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
     sur_destruction: fonc(*Panneau)(rien)
     sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
-    sur_clique_souris: fonc(*Panneau, CliqueSouris)(bool)
+    sur_clic_souris: fonc(*Panneau, ClicSouris)(bool)
     sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
     sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
     sur_début_survol: fonc(*Panneau)(rien)
@@ -367,18 +367,18 @@ sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
     }
 }
 
-gère_clique_souris :: fonc (panneau: *Panneau, clique: CliqueSouris) -> bool
+gère_clic_souris :: fonc (panneau: *Panneau, clic: ClicSouris) -> bool
 {
     /* Permet de passer nul. */
     saufsi panneau {
         retourne faux
     }
 
-    saufsi panneau.sur_clique_souris {
+    saufsi panneau.sur_clic_souris {
         retourne faux
     }
 
-    retourne panneau.sur_clique_souris(panneau, clique)
+    retourne panneau.sur_clic_souris(panneau, clic)
 }
 
 redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
@@ -445,9 +445,9 @@ PanneauInterface :: struct {
 
 crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_clique_souris :: fonc (panneau_interface: *PanneauInterface, clique: CliqueSouris) -> bool
+    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool
     {
-        retourne reçoie_clique_souris(panneau_interface, clique)
+        retourne reçoie_clic_souris(panneau_interface, clic)
     }
 
     sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage)
@@ -467,7 +467,7 @@ crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(
     ajoute_enfant(résultat, élément_central)
 
     /* Rappels. */
-    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_clic_souris = sur_clic_souris
     résultat.sur_dessin = sur_dessin
     résultat.sur_redimension = sur_redimension
 
@@ -518,9 +518,9 @@ dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *Contex
     }
 }
 
-reçoie_clique_souris :: fonc (empl panneau: *PanneauInterface, clique: CliqueSouris) -> bool
+reçoie_clic_souris :: fonc (empl panneau: *PanneauInterface, clic: ClicSouris) -> bool
 {
-    si gère_clique_souris(barre_de_menu, clique) {
+    si gère_clic_souris(barre_de_menu, clic) {
         retourne vrai
     }
 

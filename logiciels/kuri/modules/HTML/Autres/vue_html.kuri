@@ -1034,7 +1034,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
     si gère_mouvement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
@@ -1043,14 +1043,14 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
     gère_pression_souris(vue_rendu_page.page, *clic)
 }
 
 vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
     si gère_relâchement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
@@ -1059,7 +1059,7 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
 vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event)
+    clic := donne_clic_souris_depuis_évènement(event)
     si gère_molette_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }

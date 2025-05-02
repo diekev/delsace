@@ -176,7 +176,7 @@ redimensionne :: fonc (page: *PageWeb, largeur: z32, hauteur: z32)
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
     document := donne_document(page)
     saufsi document {
@@ -204,8 +204,8 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
 
     si défilement && défilement.est_visible {
         si défilement.est_cliqué {
-            décalage := position.y comme r32 - défilement.pos_clique_y
-            défilement.pos_clique_y = position.y comme r32
+            décalage := position.y comme r32 - défilement.pos_clic_y
+            défilement.pos_clic_y = position.y comme r32
             ajourne_rendu |= CSS.décale_par(défilement, décalage)
         }
 
@@ -224,7 +224,7 @@ gère_mouvement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
     retourne ajourne_rendu
 }
 
-gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
+gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
 {
     document := donne_document(page)
     saufsi document {
@@ -240,7 +240,7 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
 
     si arbre.défilement_vertical && arbre.défilement_vertical.est_survolé && arbre.défilement_vertical.est_visible {
         arbre.défilement_vertical.est_cliqué = vrai
-        arbre.défilement_vertical.pos_clique_y = position.y comme r32
+        arbre.défilement_vertical.pos_clic_y = position.y comme r32
         retourne
     }
 
@@ -261,7 +261,7 @@ gère_pression_souris :: fonc (page: *PageWeb, clic: *CliqueSouris)
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+gère_relâchement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
     document := donne_document(page)
     saufsi document {
@@ -299,7 +299,7 @@ gère_relâchement_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
 }
 
 /* À FAIRE : supprime la valeur de retour. */
-gère_molette_souris :: fonc (page: *PageWeb, clic: *CliqueSouris) -> bool
+gère_molette_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
     document := donne_document(page)
     saufsi document {
