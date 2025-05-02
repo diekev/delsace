@@ -4,9 +4,9 @@ importe SDL2
 // --------------------------------------------------
 // Compatibilité avec SDL2
 
-__type_clé_depuis_sdl2: [SDL_Scancode.nombre_éléments]CléClavier
+__type_clé_depuis_sdl2: [SDL_Scancode.nombre_éléments]ToucheClavier
 
-clé_clavier_depuis_sdl :: fonc (sdl_scancode: SDL_Scancode) -> CléClavier
+clé_clavier_depuis_sdl :: fonc (sdl_scancode: SDL_Scancode) -> ToucheClavier
 {
     retourne __type_clé_depuis_sdl2[sdl_scancode]
 }
@@ -14,75 +14,75 @@ clé_clavier_depuis_sdl :: fonc (sdl_scancode: SDL_Scancode) -> CléClavier
 initialise_mappage_clé_clavier_sdl2 :: fonc ()
 {
     pour & __type_clé_depuis_sdl2 {
-        it = CléClavier.INCONNUE
+        it = ToucheClavier.INCONNUE
     }
 
     /* Mappe les nombres. */
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_1] = CléClavier._1
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_2] = CléClavier._2
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_3] = CléClavier._3
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_4] = CléClavier._4
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_5] = CléClavier._5
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_6] = CléClavier._6
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_7] = CléClavier._7
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_8] = CléClavier._8
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_9] = CléClavier._9
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_0] = CléClavier._0
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_1] = ToucheClavier._1
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_2] = ToucheClavier._2
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_3] = ToucheClavier._3
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_4] = ToucheClavier._4
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_5] = ToucheClavier._5
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_6] = ToucheClavier._6
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_7] = ToucheClavier._7
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_8] = ToucheClavier._8
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_9] = ToucheClavier._9
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_0] = ToucheClavier._0
 
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_1] = CléClavier._1
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_2] = CléClavier._2
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_3] = CléClavier._3
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_4] = CléClavier._4
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_5] = CléClavier._5
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_6] = CléClavier._6
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_7] = CléClavier._7
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_8] = CléClavier._8
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_9] = CléClavier._9
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_0] = CléClavier._0
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_1] = ToucheClavier._1
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_2] = ToucheClavier._2
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_3] = ToucheClavier._3
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_4] = ToucheClavier._4
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_5] = ToucheClavier._5
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_6] = ToucheClavier._6
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_7] = ToucheClavier._7
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_8] = ToucheClavier._8
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_9] = ToucheClavier._9
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_0] = ToucheClavier._0
 
     /* Mappe QWERTY -> AZERTY */
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Q] = CléClavier.A
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_B] = CléClavier.B
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_C] = CléClavier.C
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_D] = CléClavier.D
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_E] = CléClavier.E
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_F] = CléClavier.F
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_G] = CléClavier.G
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_H] = CléClavier.H
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_I] = CléClavier.I
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_J] = CléClavier.J
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_K] = CléClavier.K
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_L] = CléClavier.L
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SEMICOLON] = CléClavier.M
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_N] = CléClavier.N
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_O] = CléClavier.O
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_P] = CléClavier.P
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_A] = CléClavier.Q
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_R] = CléClavier.R
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_S] = CléClavier.S
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_T] = CléClavier.T
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_U] = CléClavier.U
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_V] = CléClavier.V
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Z] = CléClavier.W
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_X] = CléClavier.X
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Y] = CléClavier.Y
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_W] = CléClavier.Z
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_M] = CléClavier.VIRGULE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Q] = ToucheClavier.A
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_B] = ToucheClavier.B
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_C] = ToucheClavier.C
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_D] = ToucheClavier.D
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_E] = ToucheClavier.E
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_F] = ToucheClavier.F
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_G] = ToucheClavier.G
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_H] = ToucheClavier.H
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_I] = ToucheClavier.I
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_J] = ToucheClavier.J
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_K] = ToucheClavier.K
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_L] = ToucheClavier.L
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SEMICOLON] = ToucheClavier.M
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_N] = ToucheClavier.N
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_O] = ToucheClavier.O
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_P] = ToucheClavier.P
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_A] = ToucheClavier.Q
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_R] = ToucheClavier.R
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_S] = ToucheClavier.S
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_T] = ToucheClavier.T
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_U] = ToucheClavier.U
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_V] = ToucheClavier.V
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Z] = ToucheClavier.W
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_X] = ToucheClavier.X
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_Y] = ToucheClavier.Y
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_W] = ToucheClavier.Z
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_M] = ToucheClavier.VIRGULE
 
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RIGHT] = CléClavier.FLÈCHE_DROITE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_LEFT] = CléClavier.FLÈCHE_GAUCHE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_DOWN] = CléClavier.FLÈCHE_BAS
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_UP] = CléClavier.FLÈCHE_HAUT
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RIGHT] = ToucheClavier.FLÈCHE_DROITE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_LEFT] = ToucheClavier.FLÈCHE_GAUCHE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_DOWN] = ToucheClavier.FLÈCHE_BAS
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_UP] = ToucheClavier.FLÈCHE_HAUT
 
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SPACE] = CléClavier.ESPACE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_COMMA] = CléClavier.POINT_VIRGULE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_PERIOD] = CléClavier.DOUBLE_POINT
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SLASH] = CléClavier.POINT_EXCLAMATION
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SPACE] = ToucheClavier.ESPACE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_COMMA] = ToucheClavier.POINT_VIRGULE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_PERIOD] = ToucheClavier.DOUBLE_POINT
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_SLASH] = ToucheClavier.POINT_EXCLAMATION
 
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RETURN] = CléClavier.ENTRÉE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_ENTER] = CléClavier.ENTRÉE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_BACKSPACE] = CléClavier.EFFACE
-    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_ESCAPE] = CléClavier.ÉCHAPPE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_RETURN] = ToucheClavier.ENTRÉE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_KP_ENTER] = ToucheClavier.ENTRÉE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_BACKSPACE] = ToucheClavier.EFFACE
+    __type_clé_depuis_sdl2[SDL_Scancode.SDL_SCANCODE_ESCAPE] = ToucheClavier.ÉCHAPPE
 } @FonctionLongue
 
 #ajoute_init initialise_mappage_clé_clavier_sdl2()

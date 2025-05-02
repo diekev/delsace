@@ -27,7 +27,7 @@ Guetteuse :: struct {
     sur_termine_guettage: fonc(*Guetteuse)(rien)
     sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
-    sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
+    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, plateforme: *PlateformeGuettage)
@@ -104,7 +104,7 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
     déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, index)
 }
 
-guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: ToucheClavier)
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
@@ -112,37 +112,37 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: T
         retourne
     }
 
-    si touche.type == CléClavier.DÉBUT {
+    si touche.type == ToucheClavier.DÉBUT {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
         retourne
     }
 
-    si touche.type == CléClavier.FIN {
+    si touche.type == ToucheClavier.FIN {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_GAUCHE {
+    si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_DROITE {
+    si touche.type == ToucheClavier.FLÈCHE_DROITE {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
         retourne
     }
 
-    si touche.type == CléClavier.EFFACE {
+    si touche.type == ToucheClavier.EFFACE {
         efface(*éditrice.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.SUPPRIMER {
+    si touche.type == ToucheClavier.SUPPRIMER {
         supprime(*éditrice.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.ENTRÉE {
+    si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
         retourne
     }

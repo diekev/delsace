@@ -62,7 +62,7 @@ TypeÉvènement :: énum {
     delta_souris: z32
 
     /* Pour les évènements clavier. */
-    touche: CléClavier
+    touche: ToucheClavier
     modificateurs: ModificateurClavier
     touche_pressée: bool
     est_répétée: bool

@@ -162,7 +162,7 @@ Tetris :: struct {
     entropie: SérieAléatoire
 
     sur_rendu_fenêtre: fonc(*Tetris)(rien)
-    sur_touche_clavier: fonc(*Tetris, CléClavier)(rien)
+    sur_touche_clavier: fonc(*Tetris, ToucheClavier)(rien)
 }
 
 crée_tetris :: fonc () -> Tetris
@@ -178,7 +178,7 @@ crée_tetris :: fonc () -> Tetris
     retourne résultat
 }
 
-traite_touche_clavier :: fonc (tetris: *Tetris, clé_clavier: CléClavier)
+traite_touche_clavier :: fonc (tetris: *Tetris, clé_clavier: ToucheClavier)
 {
     discr clé_clavier {
         FLÈCHE_GAUCHE {

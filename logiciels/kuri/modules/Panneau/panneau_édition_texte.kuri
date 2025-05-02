@@ -390,41 +390,41 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
     déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, index)
 }
 
-guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: ToucheClavier)
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
-    si touche.type == CléClavier.DÉBUT {
+    si touche.type == ToucheClavier.DÉBUT {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
         retourne
     }
 
-    si touche.type == CléClavier.FIN {
+    si touche.type == ToucheClavier.FIN {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.texte.taille())
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_GAUCHE {
+    si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.début - 1)
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_DROITE {
+    si touche.type == ToucheClavier.FLÈCHE_DROITE {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.fin + 1)
         retourne
     }
 
-    si touche.type == CléClavier.EFFACE {
+    si touche.type == ToucheClavier.EFFACE {
         efface(*panneau.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.SUPPRIMER {
+    si touche.type == ToucheClavier.SUPPRIMER {
         supprime(*panneau.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.ENTRÉE {
+    si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
         retourne
     }

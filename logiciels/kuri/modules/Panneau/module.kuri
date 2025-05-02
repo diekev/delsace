@@ -62,7 +62,7 @@ Guetteuse :: struct {
     sur_termine_guettage: fonc(*Guetteuse)(rien)
     sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
-    sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
+    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, ctx: *ContexteInterface)

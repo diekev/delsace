@@ -108,7 +108,7 @@ détermine_types_rappels_pour_cliente :: fonc ($TypeCliente: type_de_données) -
     résultat.sur_double_clic_souris = info_de(fonc(*TypeCliente, ClicSouris)(rien))
     résultat.sur_mouvement_souris = info_de(fonc(*TypeCliente, ÉtatSouris)(rien))
     résultat.sur_fin_application = info_de(fonc(*TypeCliente)(rien))
-    résultat.sur_touche_clavier = info_de(fonc(*TypeCliente, CléClavier)(rien))
+    résultat.sur_touche_clavier = info_de(fonc(*TypeCliente, ToucheClavier)(rien))
     retourne résultat
 }
 

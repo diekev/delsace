@@ -308,26 +308,26 @@ donne_clic_souris_depuis_évènement_glfw :: fonc (app: *ApplicationSDL, évène
     retourne résultat
 }
 
-clé_clavier_depuis_glfw :: fonc (clé: type_cle) -> CléClavier
+clé_clavier_depuis_glfw :: fonc (clé: type_cle) -> ToucheClavier
 {
     // À FAIRE : complète
     discr clé {
         RIGHT {
-            retourne CléClavier.FLÈCHE_DROITE
+            retourne ToucheClavier.FLÈCHE_DROITE
         }
         LEFT {
-            retourne CléClavier.FLÈCHE_GAUCHE
+            retourne ToucheClavier.FLÈCHE_GAUCHE
         }
         UP {
-            retourne CléClavier.FLÈCHE_HAUT
+            retourne ToucheClavier.FLÈCHE_HAUT
         }
         DOWN {
-            retourne CléClavier.FLÈCHE_BAS
+            retourne ToucheClavier.FLÈCHE_BAS
         }
         sinon {}
     }
 
-    retourne CléClavier.INCONNUE
+    retourne ToucheClavier.INCONNUE
 }
 
 VG_file_évènements: File(T = Évènement)
