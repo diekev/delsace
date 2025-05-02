@@ -1,5 +1,5 @@
 importe Aléa
-importe ApplicationGraphique
+importe CréationFenêtre
 importe Couleur
 importe Fondation
 importe Géométrie
@@ -27,22 +27,35 @@ principale :: fonc ()
     largeur : z32 = TAILLE_TUILE * TUILES_X
     hauteur : z32 = TAILLE_TUILE * TUILES_Y
 
-    app := crée_application_sdl()
+    fenêtre := crée_fenêtre(largeur, hauteur, "Tetris")
 
     tetris := crée_tetris()
-    saufsi crée_fenêtre_principale(app, *tetris, "Tetris", RectanglePosDim(z32)(0, 0, hauteur, largeur), faux) {
-        exit(1)
-    }
-
     tetris.largeur = largeur
     tetris.hauteur = hauteur
 
     initialise_igumi()
     diffère issitialise_igumi()
 
-    temps_début_frame = maintenant_précis()
+    doit_fermer := faux
 
-    app.exécute(*tetris)
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si it.type == TypeÉvènement.Clavier {
+                traite_touche_clavier(*tetris, it.touche)
+            }
+        }
+
+        ajourne_dessin_fenêtre(*tetris)
+
+        permute_tampons_fenêtre(fenêtre)
+    }
 }
 
 /** \} */
@@ -160,17 +173,11 @@ Tetris :: struct {
     largeur: z32
 
     entropie: SérieAléatoire
-
-    sur_rendu_fenêtre: fonc(*Tetris)(rien)
-    sur_touche_clavier: fonc(*Tetris, ToucheClavier)(rien)
 }
 
 crée_tetris :: fonc () -> Tetris
 {
     résultat: Tetris
-    résultat.sur_rendu_fenêtre = ajourne_dessin_fenêtre
-    résultat.sur_touche_clavier = traite_touche_clavier
-
     résultat.entropie = graine_aléatoire(maintenant_précis().nanoseconde comme n32)
 
     initialise_tétrimino(*résultat.tétrimino, résultat.entropie)
@@ -178,9 +185,9 @@ crée_tetris :: fonc () -> Tetris
     retourne résultat
 }
 
-traite_touche_clavier :: fonc (tetris: *Tetris, clé_clavier: ToucheClavier)
+traite_touche_clavier :: fonc (tetris: *Tetris, touche_clavier: ToucheClavier)
 {
-    discr clé_clavier {
+    discr touche_clavier {
         FLÈCHE_GAUCHE {
             déplace_vers_la_gauche(*tetris.tétrimino)
         }
