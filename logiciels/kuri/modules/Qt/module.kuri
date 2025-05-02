@@ -303,7 +303,7 @@ donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
         sinon {}
     }
 
-    retourne BoutonSouris.GAUCHE
+    retourne BoutonSouris.AUCUN
 }
 
 donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> ClicSouris

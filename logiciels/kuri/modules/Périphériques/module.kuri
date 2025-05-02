@@ -65,6 +65,7 @@ ActionSouris :: énum {
 }
 
 BoutonSouris :: énum {
+    AUCUN
     PRIMAIRE
     CONTEXTUEL
     TERTIAIRE
