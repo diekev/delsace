@@ -2,9 +2,9 @@ importe Fondation
 importe OpenGL
 importe Périphériques
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux) -> TypeFenêtre
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0) -> TypeFenêtre
 {
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran)
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran)
 }
 
 ajourne_évènements_fenêtre :: fonc () -> []Évènement
@@ -54,7 +54,7 @@ __application_qt: *QT_Application
 __taille_arguments_qt: z32 = ---
 __rappels_window: RappelsWindow = ---
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool, index_écran: z32) -> TypeFenêtre
 {
     assert(__application_qt == nul)
 
@@ -69,6 +69,12 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
 
     si titre {
         QT_window_set_title(window, vers_qt(titre))
+    }
+
+    si index_écran > 0 && index_écran < QT_application_screen_count() {
+        rect: QT_Rect
+        QT_application_screen_geometry(index_écran, *rect)
+        QT_window_set_position(window, rect.x, rect.y)
     }
 
     QT_window_resize(window, largeur, hauteur)
