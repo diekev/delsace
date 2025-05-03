@@ -28,6 +28,7 @@ issitialise_igumi :: fonc ()
 
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
 {
+    glViewport(0, 0, largeur, hauteur)
     __ctx_courant.largeur_cannevas = largeur
     __ctx_courant.hauteur_cannevas = hauteur
     __ctx_courant.projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)

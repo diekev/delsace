@@ -862,7 +862,6 @@ donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
 définis_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée, taille: Taille)
 {
     IGUMI.définis_fenêtre(taille.largeur comme z32, taille.hauteur comme z32)
-    glViewport(0, 0, taille.largeur comme z32, taille.hauteur comme z32)
 }
 
 donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
