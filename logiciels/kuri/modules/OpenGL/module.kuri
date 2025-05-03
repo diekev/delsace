@@ -23,6 +23,13 @@ initialise_opengl :: fonc () -> bool
     retourne erreur_ == 0
 }
 
+sauvegarde_glviewport_temporaire :: fonc () #développe
+{
+    ancien_viewport: [4]GLint
+    glGetIntegerv(GL_VIEWPORT, *ancien_viewport[0])
+    diffère glViewport(ancien_viewport[0], ancien_viewport[1], ancien_viewport[2], ancien_viewport[3])
+}
+
 vérifie_erreur :: fonc (raison : chaine = "") -> rien
 {
     erreur_ := glGetError()
