@@ -52,6 +52,33 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
     }    
 }
 
+gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> bool
+{
+    si évènement.type == TypeÉvènement.Souris {
+        si guetteuse.sur_clic && (évènement.action_souris == ActionSouris.PRESSÉE || évènement.action_souris == ActionSouris.RELACHÉE) {
+            guetteuse.sur_clic(guetteuse, donne_clic_souris(évènement))
+            retourne vrai
+        }
+
+        si guetteuse.sur_déplacement_souris && (évènement.action_souris == ActionSouris.DÉPLACÉE) {
+            guetteuse.sur_déplacement_souris(guetteuse, évènement.état_souris)
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si évènement.type == TypeÉvènement.Clavier {
+        si guetteuse.sur_touche_clavier {
+            guetteuse.sur_touche_clavier(guetteuse, InfoToucheClavier(évènement.touche, évènement.texte))
+            retourne vrai
+        }
+        retourne faux
+    }
+
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
