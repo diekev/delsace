@@ -8,6 +8,8 @@ importe Géométrie
  * \{ */
 
 TypeCurseurSystème :: énum {
+    /* Curseur invisible, nul. */
+    VIERGE
     /* Curseur en forme de flèche (défaut sur la plupart des systèmes). */
     FLÈCHE
     /* Curseur en forme de I pour indiquer une insertion de texte. */
