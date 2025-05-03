@@ -1372,6 +1372,16 @@ struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
     return nullptr;
 }
 
+void QT_window_create(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, create);
+}
+
+void QT_window_destroy(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, destroy);
+}
+
 void QT_window_request_update(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, requestUpdate);
