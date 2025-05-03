@@ -787,6 +787,33 @@ donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) ->
     retourne résultat
 }
 
+gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
+{
+    si évènement.type == TypeÉvènement.Souris {
+        position := évènement.état_souris.où
+
+        si évènement.action_souris == ActionSouris.DÉPLACÉE {
+            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
+            retourne
+        }
+
+        si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
+            applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.PRESSÉE {
+            sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.RELACHÉE {
+            sur_relâchement_souris(emboiteuse, évènement.donne_clic_souris())
+            retourne
+        }
+    }
+}
+
 #portée_fichier
 
 __boite_courante : *BoiteFlexible = nul
