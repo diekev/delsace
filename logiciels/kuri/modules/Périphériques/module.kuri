@@ -311,3 +311,62 @@ initialise_tables_clavier :: fonc ()
 #ajoute_init initialise_tables_clavier()
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènement
+ * \{ */
+
+TypeÉvènement :: énum {
+    NonInitialisé
+    Fermeture
+    Souris
+    Clavier
+    // DragAndDrop
+    // Tablette
+    // Window
+    // Molette séparée de souris ?
+    // Entrée texte séparée de clavier hors IME ?
+}
+
+Évènement :: struct {
+    type: TypeÉvènement
+
+    /* Pour les évènements souris. */
+    état_souris: ÉtatSouris
+    action_souris: ActionSouris
+    bouton_souris: BoutonSouris
+    /* Delta pour la molette. */
+    delta_souris: z32
+
+    /* Pour les évènements clavier. */
+    touche: ToucheClavier
+    modificateurs: ModificateurClavier
+    touche_pressée: bool
+    est_répétée: bool
+    texte: chaine
+    compte: z32
+    code_scan_natif: n32
+    modificateurs_natifs: n32
+    clé_virtuelle_native: n32
+}
+
+donne_clic_souris :: fonc (empl évènement: &Évènement) -> ClicSouris
+{
+    clic: ClicSouris = ---
+    clic.état = état_souris
+    clic.action = action_souris
+    clic.bouton = bouton_souris
+    clic.delta = delta_souris
+    retourne clic
+}
+
+initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
+{
+    évènement.type = TypeÉvènement.Souris
+    évènement.état_souris = clic.état
+    évènement.bouton_souris = clic.bouton
+    évènement.delta_souris = clic.delta
+    évènement.action_souris = clic.action
+}
+
+/** \} */
