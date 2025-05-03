@@ -34,6 +34,11 @@ définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
     qt_définis_titre_fenêtre(fenêtre, titre)
 }
 
+définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
+{
+    qt_définis_curseur(fenêtre, curseur)
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -118,6 +123,13 @@ qt_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
     assert(fenêtre.rappels_window != nul)
     assert(fenêtre.rappels_window.window != nul)
     QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre))
+}
+
+qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
 }
 
 RappelsWindow :: struct {
