@@ -69,7 +69,7 @@ gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> 
     }
 
     si évènement.type == TypeÉvènement.Clavier {
-        si guetteuse.sur_touche_clavier {
+        si guetteuse.sur_touche_clavier && évènement.touche_pressée {
             guetteuse.sur_touche_clavier(guetteuse, InfoToucheClavier(évènement.touche, évènement.texte))
             retourne vrai
         }
