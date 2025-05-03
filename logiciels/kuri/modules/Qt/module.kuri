@@ -446,6 +446,11 @@ poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
     }
 }
 
+poste_tâche :: fonc (file: *FileParallèle, sur_exécution: fonc(*rien)(rien), données: *rien)
+{
+    poste_tâche(file, QT_DonnéesTâche(sur_exécution, données = données))
+}
+
 #portée_fichier
 
 RappelsThread :: struct {
