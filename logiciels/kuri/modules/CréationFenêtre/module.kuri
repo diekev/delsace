@@ -39,6 +39,13 @@ définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
     qt_définis_curseur(fenêtre, curseur)
 }
 
+donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne fenêtre.rappels_window.window
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
