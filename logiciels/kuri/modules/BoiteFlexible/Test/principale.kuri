@@ -1,30 +1,18 @@
 importe BoiteFlexible
+importe CréationFenêtre
 importe Chaine
 importe Couleur
 importe Fondation
 importe Géométrie
 importe Guettage
-importe IGUMI
 importe Image
-importe Math
-importe OpenGL
 importe PeintureInterface
 importe Périphériques
-importe Qt
-importe Structures
 importe SysFichier
 importe Typographie
 
 principale :: fonc ()
 {
-    arguments := arguments_ligne_commande()
-
-    taille_arguments := arguments.taille comme z32
-    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
-    diffère QT_detruit_application(app)
-
-    rappels: RappelsWindow
-
     documents := [
         Document("Édition Texte", dessine_interface_édition_texte),
         Document("Défilage Vertical", dessine_interface_défilable_verticale),
@@ -35,32 +23,54 @@ principale :: fonc ()
         Document("Fonte", dessine_atlas_fonte)
     ]
 
-    tableau_ajoute(*rappels.documents, ...documents)
+    app: App
 
-    rappels.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
-    rappels.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
+    tableau_ajoute(*app.documents, ...documents)
 
-    window := QT_window_cree_avec_rappels(*rappels)
-    QT_window_show_maximized(window)
+    app.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
+    app.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
 
-    exécute(app)
+    fenêtre := crée_fenêtre(800, 600, "BoiteFlexible", vrai)
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si app.guetteuse && gère_évènement(app.guetteuse, it) {
+                continue
+            }
+
+            gère_évènement(*app.emboiteuse, it)
+        }
+
+        dessine_fenêtre(*app, largeur, hauteur)
+
+        permute_tampons_fenêtre(fenêtre)
+    }
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom RappelsWindow
+/** \nom App
  * \{ */
 
 Document :: struct {
     nom: chaine
-    dessine_document: fonc(*RappelsWindow)(rien)
+    dessine_document: fonc(*App)(rien)
 }
 
-RappelsWindow :: struct {
-    empl base: QT_Rappels_Window
-
-    taille_fenêtre: QT_Taille
+App :: struct {
     emboiteuse: Emboiteuse
     peintre: *Peintre
+    guetteuse: *Guetteuse
 
     fonte: *Fonte
     grosse_fonte: *Fonte
@@ -78,143 +88,44 @@ RappelsWindow :: struct {
 
     documents: [..]Document
     document_courant: z32
-
-    glctx: *QT_OpenGL_Context
-    glew_est_initialisé: bool
-
-    sur_creation = rappels_window_sur_creation
-    sur_evenement = rappels_window_sur_evenement
 }
 
-définis_document_courant :: fonc (rappels: *RappelsWindow, souris: ClicSouris @inutilisée, id: n64, index: z32)
+définis_document_courant :: fonc (app: *App, souris: ClicSouris @inutilisée, id: n64, index: z32)
 {
-    si index < 0 && index >= rappels.documents.taille {
+    si index < 0 && index >= app.documents.taille {
         retourne
     }
 
-    si index == rappels.document_courant {
+    si index == app.document_courant {
         retourne
     }
 
-    rappels.document_courant = index
+    app.document_courant = index
 }
 
-rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
+dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
 {
-    rappels := base comme *RappelsWindow
-    window := rappels.window
-
-    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
-}
-
-rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
-{
-    rappels := base comme *RappelsWindow
-
-    type := QT_evenement_donne_type(event)
-
-    si type == QT_Event_Type.UpdateRequest {
-        dessine_fenêtre(rappels)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Expose {
-        dessine_fenêtre(rappels)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Resize {
-        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseMove {
-        position: QT_Position
-        QT_mouse_event_donne_position(event.mouse_event, *position)
-        définis_position_souris(*rappels.emboiteuse, position.x comme r32, position.y comme r32)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Wheel {
-        position: QT_Position
-        QT_wheel_event_donne_position(event.wheel_event, *position)
-        delta := QT_wheel_event_donne_delta(event.wheel_event)
-        applique_défilage_vertical(*rappels.emboiteuse, position.x comme r32, position.y comme r32, delta)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_pression_souris(*rappels.emboiteuse, clic)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_relâchement_souris(*rappels.emboiteuse, clic)
-        retourne vrai
-    }
-
-    retourne faux
-}
-
-dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
-{
-    rappels := base comme *RappelsWindow
-    window := rappels.window
-
-    saufsi QT_window_is_exposed(window) {
-        retourne
-    }
-
-    saufsi rappels.glctx {
-        rappels.glctx = QT_OpenGL_Context_cree_avec_parent(window)
-        _ := QT_OpenGL_Context_create(rappels.glctx)
-    }
-
-    _ := QT_OpenGL_Context_make_current(rappels.glctx, window)
-
-    saufsi rappels.glew_est_initialisé {
-        glewExperimental = 1
-        erreur_ := glewInit()
-
-        si erreur_ != 0 {
-            imprime("Erreur lors de l'initilisation de GLEW !\n")
-            retourne
-        }
-        rappels.glew_est_initialisé = vrai
-    }
-
     marque := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marque)
 
-    glViewport(0, 0, QT_window_width(window), QT_window_height(window))
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glClearColor(1.0, 1.0, 1.0, 1.0)
-
-    commandes := crée_interface(rappels)
-
-    si rappels.largeur_courante > rappels.largeur_cible {
-        rappels.largeur_courante -= 5
+    si largeur_courante > largeur_cible {
+        largeur_courante -= 5
     }
-    si rappels.hauteur_courante > rappels.hauteur_cible {
-        rappels.hauteur_courante -= 5
+    si hauteur_courante > hauteur_cible {
+        hauteur_courante -= 5
     }
 
-    taille_cannevas := Taille(largeur = Largeur(rappels.taille_fenêtre.largeur), hauteur = Hauteur(rappels.taille_fenêtre.hauteur))
+    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
 
-    saufsi rappels.peintre {
-        rappels.peintre = crée_peintre_igumi(taille_cannevas)
+    saufsi peintre {
+        peintre = crée_peintre_igumi(taille_cannevas)
     }
 
-    rappels.peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 
-    dessine_commandes(rappels.peintre, *commandes)
-
-    rappels.peintre.dessine_tampon_sur_écran()
-
-    QT_OpenGL_Context_swap_buffers(rappels.glctx, window)
-    QT_window_request_update(rappels.window)
+    commandes := crée_interface(app, largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
 }
 
 /** \} */
@@ -229,15 +140,13 @@ ROSE := CouleurRVBA(0.984, 0.576, 0.568, 1.0)
 JAUNE := CouleurRVBA(0.996, 0.741, 0.094, 1.0)
 BLEU_CLAIR := CouleurRVBA(0.266, 0.752, 0.905, 1.0)
 
-crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
+crée_interface :: fonc (app: *App, largeur: z32, hauteur: z32) -> CommandesDeRendu
 {
-    emboiteuse := *rappels.emboiteuse
-    largeur := rappels.taille_fenêtre.largeur
-    hauteur := rappels.taille_fenêtre.hauteur
+    emboiteuse := *app.emboiteuse
 
     commence_disposition(emboiteuse, largeur, hauteur)
 
-    fonte := rappels.fonte
+    fonte := app.fonte
 
     dispose_rectangle(id = "Contenant Externe")
     {
@@ -269,7 +178,7 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
             {
                 définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
                 définis_disposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
-                dessine_barre_latérale(rappels)
+                dessine_barre_latérale(app)
             }
             termine_rectangle()
 
@@ -277,8 +186,8 @@ crée_interface :: fonc (rappels: *RappelsWindow) -> CommandesDeRendu
             {
                 définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
                 définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
-                document := *rappels.documents[rappels.document_courant]
-                document.dessine_document(rappels)
+                document := *app.documents[app.document_courant]
+                document.dessine_document(app)
             }
             termine_rectangle()
         }
@@ -327,14 +236,14 @@ dessine_menu_fichier :: fonc (fonte: *Fonte)
     termine_rectangle()
 }
 
-dessine_barre_latérale :: fonc (rappels: *RappelsWindow)
+dessine_barre_latérale :: fonc (app: *App)
 {
-    pour rappels.documents {
+    pour app.documents {
 
         dispose_rectangle(id = it.nom, config = ConfigurationRectangle(rayon_coin = 5.0))
         {
             définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageDifforme(16.0, 8.0))
-            arrière_plan := si index_it == rappels.document_courant {
+            arrière_plan := si index_it == app.document_courant {
                 CouleurRVBA(0.649, 0.649, 0.649, 0.5)
             }
             sinon si est_survolée() {
@@ -345,28 +254,28 @@ dessine_barre_latérale :: fonc (rappels: *RappelsWindow)
             }
             définis_arrière_plan(arrière_plan)
 
-            sur_clic_souris(définis_document_courant, rappels, index_it comme z32)
+            sur_clic_souris(définis_document_courant, app, index_it comme z32)
 
-            dispose_texte(it.nom, ConfigurationTexte(rappels.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte(it.nom, ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
         }
         termine_rectangle()
     }
 }
 
-dessine_interface_défilable_verticale :: fonc (rappels: *RappelsWindow)
+dessine_interface_défilable_verticale :: fonc (app: *App)
 {
     pour 10 {
         dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 8.0))
         {
             définis_arrière_plan(BLEU_CLAIR)
             définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(100)))
-            dispose_texte(imprime_chaine_temp("%", index_it), ConfigurationTexte(rappels.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte(imprime_chaine_temp("%", index_it), ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
         }
         termine_rectangle()
     }
 }
 
-dessine_interface_flexible_verticale :: fonc (rappels: *RappelsWindow @inutilisée)
+dessine_interface_flexible_verticale :: fonc (app: *App @inutilisée)
 {
     dispose_rectangle()
     {
@@ -402,7 +311,7 @@ dessine_interface_flexible_verticale :: fonc (rappels: *RappelsWindow @inutilis�
     termine_rectangle()
 }
 
-dessine_interface_basique :: fonc (rappels: *RappelsWindow @inutilisée)
+dessine_interface_basique :: fonc (app: *App @inutilisée)
 {
     dispose_rectangle()
     {
@@ -432,7 +341,7 @@ dessine_interface_basique :: fonc (rappels: *RappelsWindow @inutilisée)
     termine_rectangle()
 }
 
-dessine_interface_flexible :: fonc (rappels: *RappelsWindow @inutilisée, largeur_courante: z32, hauteur_courante: z32)
+dessine_interface_flexible :: fonc (app: *App @inutilisée, largeur_courante: z32, hauteur_courante: z32)
 {
     dispose_rectangle()
     {
@@ -467,7 +376,7 @@ dessine_interface_flexible :: fonc (rappels: *RappelsWindow @inutilisée, largeu
     termine_rectangle()
 }
 
-dessine_interface_texte :: fonc (rappels: *RappelsWindow)
+dessine_interface_texte :: fonc (app: *App)
 {
     dispose_rectangle()
     {
@@ -479,7 +388,7 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
             définis_arrière_plan(BLEU)
             définis_disposition(cotation = Cotation(FIXE(1200)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
 
-            dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
             dispose_rectangle()
             {
                 définis_arrière_plan(JAUNE)
@@ -490,7 +399,7 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
             {
                 définis_arrière_plan(BLEU_CLAIR)
                 définis_disposition(rembourrage = RembourrageUniforme(32.0))
-                dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(rappels.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+                dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
             }
             termine_rectangle()
         }
@@ -499,13 +408,13 @@ dessine_interface_texte :: fonc (rappels: *RappelsWindow)
     termine_rectangle()
 }
 
-dessine_atlas_fonte :: fonc (rappels: *RappelsWindow)
+dessine_atlas_fonte :: fonc (app: *App)
 {
     dispose_rectangle()
     {
         définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
 
-        atlas := rappels.fonte.atlas
+        atlas := app.fonte.atlas
         si atlas {
             hauteur := atlas.height comme z32
             largeur := atlas.width comme z32
@@ -516,7 +425,7 @@ dessine_atlas_fonte :: fonc (rappels: *RappelsWindow)
     termine_rectangle()
 }
 
-dessine_interface_édition_texte :: fonc (rappels: *RappelsWindow)
+dessine_interface_édition_texte :: fonc (app: *App)
 {
     dispose_rectangle()
     {
@@ -526,42 +435,49 @@ dessine_interface_édition_texte :: fonc (rappels: *RappelsWindow)
         {
             définis_arrière_plan(1.0, 1.0, 1.0, 1.0)
             définis_disposition(cotation = Cotation(FIXE(240)), rembourrage = RembourrageUniforme(5.0))
-            sur_pression_souris(démarre_édition_texte, rappels, 0)
+            sur_pression_souris(démarre_édition_texte, app, 0)
 
-            dispose_texte(rappels.texte_à_dessiner, ConfigurationTexte(rappels.fonte, CouleurRVBA(a = 1.0)))
+            dispose_texte(app.texte_à_dessiner, ConfigurationTexte(app.fonte, CouleurRVBA(a = 1.0)))
         }
         termine_rectangle()
     }
     termine_rectangle()
 }
 
-RappelsÉditionTexteQt :: struct {
+RappelsÉditionTexteApp :: struct {
     empl base: RappelsÉditionTexte
 
-    rappels_window: *RappelsWindow
+    éditrice: ÉditriceTexte
+    id_boite: n64
+    app: *App
 }
 
-sur_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine)
+sur_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine)
 {
-    déloge_si_logée(rappels.rappels_window.texte_à_dessiner)
-    rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
+    déloge_si_logée(app.texte_à_dessiner)
+    app.texte_à_dessiner = copie_chaine(chn)
 }
 
-sur_fin_édition_texte_qt :: fonc (rappels: *RappelsÉditionTexteQt, chn: chaine)
+sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine)
 {
-    déloge_si_logée(rappels.rappels_window.texte_à_dessiner)
-    rappels.rappels_window.texte_à_dessiner = copie_chaine(chn)
+    déloge_si_logée(app.texte_à_dessiner)
+    app.texte_à_dessiner = copie_chaine(chn)
+
+    app.guetteuse = nul
+
+    définis_éditrice_texte(*app.emboiteuse, id_boite, nul)
+    détruit_données(*rappels.éditrice)
+    déloge(rappels)
 }
 
-démarre_édition_texte :: fonc (rappels: *RappelsWindow, clic: ClicSouris @inutilisée, id: n64, index: z32 @inutilisée)
+démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n64, index: z32 @inutilisée)
 {
-    rappels_édition_texte := loge(RappelsÉditionTexteQt)
-    diffère déloge(rappels_édition_texte)
+    rappels_édition_texte := loge(RappelsÉditionTexteApp)
     rappels_édition_texte.sur_édition = sur_édition_texte_qt
     rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_qt
-    rappels_édition_texte.rappels_window = rappels
+    rappels_édition_texte.app = app
 
-    emboiteuse := *rappels.emboiteuse
+    emboiteuse := *app.emboiteuse
     rect := donne_rect(emboiteuse, id)
 
     rectz: RectanglePosDim(z32)
@@ -570,19 +486,21 @@ démarre_édition_texte :: fonc (rappels: *RappelsWindow, clic: ClicSouris @inut
     rectz.largeur = rect.largeur comme z32
     rectz.hauteur = rect.hauteur comme z32
 
-    éditrice: ÉditriceTexte
-    diffère détruit_données(*éditrice)
-    initialise_éditrice(*éditrice, rappels.fonte, rappels.texte_à_dessiner, rappels_édition_texte)
+    initialise_éditrice(*rappels_édition_texte.éditrice, app.fonte, app.texte_à_dessiner, rappels_édition_texte)
 
-    définis_éditrice_texte(emboiteuse, id, *éditrice)
-    diffère définis_éditrice_texte(emboiteuse, id, nul)
+    rappels_édition_texte.id_boite = id
+    définis_éditrice_texte(emboiteuse, id, *rappels_édition_texte.éditrice)
 
-    plateforme_guettage: PlateformeGuettageQt
-    plateforme_guettage.objet_à_filtrer = rappels.window comme *QT_Object
+    guetteuse := loge(GuetteuseÉditionTexte)
+    initialise_guetteuse_édition_texte(guetteuse, *rappels_édition_texte.éditrice, rectz, rectz)
+    guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction
+    app.guetteuse = guetteuse
+}
 
-    guetteuse: GuetteuseÉditionTexte
-    initialise_guetteuse_édition_texte(*guetteuse, *éditrice, rectz, rectz)
-    commence_guettage(*guetteuse, *plateforme_guettage)
+// :GuetteuseÉditionTexte
+guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexte)
+{
+    déloge(guetteuse)
 }
 
 /** \} */
