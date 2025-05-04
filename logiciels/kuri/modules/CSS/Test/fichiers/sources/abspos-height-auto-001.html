@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test CSS : hauteur auto sur boite position absolue sans enfants.</title>
+  <meta name="assert"
+    content="Une boite dont la position est 'absolute' et la hauteur calculée est 'auto' sans enfants 'in-flow' a une hauteur utilisée de 0">
+  <style>
+    .contenant {
+      display: flex;
+      height: 100%;
+    }
+
+    .triangle {
+      position: absolute;
+      bottom: 100%;
+      width: 100%;
+      left: 0;
+    }
+
+    .triangle::before {
+      background: blue;
+      content: "";
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <p>Le test passe si une ligne bleu apparait au dessus de cette phrase.</p>
+  <div class="contenant">
+    <div class="triangle"></div>

@@ -9,6 +9,8 @@ importe Structures
 importe SysFichier
 importe Temps
 
+// À FAIRE : les images ne sont pas chargées
+
 principale :: fonc ()
 {
     logue_propriétés_non_supportées = faux

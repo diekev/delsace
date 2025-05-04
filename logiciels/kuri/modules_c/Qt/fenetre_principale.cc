@@ -52,7 +52,7 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
         menu->addAction(action);
 
         auto fenêtre = impl->m_fenêtre_principale;
-        fenêtre->connect(action, SIGNAL(triggered(bool)), fenêtre, SLOT(repond_clique_menu()));
+        fenêtre->connect(action, SIGNAL(triggered(bool)), fenêtre, SLOT(repond_clic_menu()));
     }
 
     static void ajoute_action_chaine_impl(::QT_Creatrice_Barre_Menu *créatrice,
@@ -69,7 +69,7 @@ class QT_Creatrice_Barre_Menu : public ::QT_Creatrice_Barre_Menu {
         action->setData(données->vers_std_string().c_str());
 
         auto fenêtre = impl->m_fenêtre_principale;
-        fenêtre->connect(action, SIGNAL(triggered(bool)), fenêtre, SLOT(repond_clique_menu()));
+        fenêtre->connect(action, SIGNAL(triggered(bool)), fenêtre, SLOT(repond_clic_menu()));
     }
 
     static void ajoute_separateur_impl(::QT_Creatrice_Barre_Menu *créatrice)
@@ -164,14 +164,14 @@ void FenetrePrincipale::construit_barre_de_menu()
     m_rappels->sur_creation_barre_menu(m_rappels, &créatrice_menu);
 }
 
-void FenetrePrincipale::repond_clique_menu()
+void FenetrePrincipale::repond_clic_menu()
 {
     auto action = qobject_cast<QAction *>(sender());
     if (!action) {
         return;
     }
 
-    if (!m_rappels->sur_clique_action_menu) {
+    if (!m_rappels->sur_clic_action_menu) {
         return;
     }
 
@@ -180,5 +180,5 @@ void FenetrePrincipale::repond_clique_menu()
     données.caractères = std_string.data();
     données.taille = int64_t(std_string.size());
 
-    m_rappels->sur_clique_action_menu(m_rappels, &données);
+    m_rappels->sur_clic_action_menu(m_rappels, &données);
 }

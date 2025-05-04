@@ -672,7 +672,7 @@ TypeRappelUtilisateur :: énum {
     SurMoletteSouris
 }
 
-TypeRappelSouris :: fonc(*rien, CliqueSouris, n64, z32)(rien)
+TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(rien)
 
 RappelUtilisateur :: struct {
     rappel: TypeRappelSouris
@@ -693,7 +693,7 @@ BoiteDisposée :: struct {
     rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
 }
 
-appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: CliqueSouris)
+appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris)
 {
     rappel := boite.rappels[type]
     si rappel.rappel {
@@ -785,6 +785,33 @@ donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) ->
         résultat.y = emboiteuse.hauteur_racine - résultat.y
     }
     retourne résultat
+}
+
+gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
+{
+    si évènement.type == TypeÉvènement.Souris {
+        position := évènement.état_souris.où
+
+        si évènement.action_souris == ActionSouris.DÉPLACÉE {
+            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
+            retourne
+        }
+
+        si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
+            applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.PRESSÉE {
+            sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.RELACHÉE {
+            sur_relâchement_souris(emboiteuse, évènement.donne_clic_souris())
+            retourne
+        }
+    }
 }
 
 #portée_fichier
@@ -1010,13 +1037,13 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
     emboiteuse.souris_y = y
 }
 
-définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 {
     emboiteuse.souris_x = souris.état.où.x comme r32
     emboiteuse.souris_y = souris.état.où.y comme r32
 }
 
-sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 {
     définis_position_souris(emboiteuse, souris)
 
@@ -1029,7 +1056,7 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
     emboiteuse.id_pressé = boite.id
 }
 
-sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 {
     définis_position_souris(emboiteuse, souris)
 
@@ -1047,7 +1074,7 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
     emboiteuse.id_pressé = 0
 }
 
-sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: CliqueSouris)
+sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 {
     définis_position_souris(emboiteuse, souris)
     applique_défilage_vertical(emboiteuse, emboiteuse.souris_x, emboiteuse.souris_y, souris.delta)

@@ -79,7 +79,7 @@ TableVirtuelleÉlément :: struct {
     pseudo_classes: CSS.PseudoClasses
 
     /* CSS */
-    noeud_de_disposition: *CSS.NoeudDeDisposition
+    box: *CSS.Box
     /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
     style: *CSS.CSSStyleDeclaration
 
@@ -99,12 +99,12 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 {
     noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
-    si élément.noeud_de_disposition {
-        si élément.noeud_de_disposition.table_virtuelle.type != CSS.NoeudDeDispositionNouvelleLigne {
-            (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionBloc).élément = nul
+    si élément.box {
+        si élément.box.table_virtuelle.type != CSS.BreakBox {
+            (élément.box comme *CSS.BlockBox).élément = nul
         }
         sinon {
-            (élément.noeud_de_disposition comme *CSS.NoeudDeDispositionNouvelleLigne).élément = nul
+            (élément.box comme *CSS.BreakBox).élément = nul
         }
     }
     déloge(élément.liste_classes)

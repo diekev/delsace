@@ -274,8 +274,8 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
         QT_gui_application_restaure_curseur()
 
         élément := document.noeud_survolé
-        si élément && élément.noeud_de_disposition {
-            curseur_qt := CSS.donne_qt_cursor_shape(CSS.donne_curseur(élément.noeud_de_disposition))
+        si élément && élément.box {
+            curseur_qt := CSS.donne_qt_cursor_shape(CSS.donne_curseur(élément.box))
             QT_gui_application_definis_curseur(curseur_qt)
         }
 
@@ -832,7 +832,7 @@ ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
     }
 }
 
-ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeDisposition)
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.Box)
 {
     item_noeud := QT_cree_treewidgetitem(nul, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
@@ -848,17 +848,17 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.NoeudDeD
     }
 }
 
-donne_texte_item_pour_noeud :: fonc (noeud: *CSS.NoeudDeDisposition) -> chaine
+donne_texte_item_pour_noeud :: fonc (noeud: *CSS.Box) -> chaine
 {
-    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionTexte {
+    si noeud.table_virtuelle.type == CSS.TextBox {
         retourne "texte"
     }
 
-    si noeud.table_virtuelle.type == CSS.NoeudDeDispositionNouvelleLigne {
+    si noeud.table_virtuelle.type == CSS.BreakBox {
         retourne "<br/>"
     }
 
-    noeud_bloc := noeud comme *CSS.NoeudDeDispositionBloc
+    noeud_bloc := noeud comme *CSS.BlockBox
 
     local_name := crée_chaine_utf16_unique("#anonyme")
     si noeud_bloc.élément {
@@ -1034,7 +1034,7 @@ vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, tai
 vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
     si gère_mouvement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
@@ -1043,14 +1043,14 @@ vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, even
 vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
     gère_pression_souris(vue_rendu_page.page, *clic)
 }
 
 vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
+    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
     si gère_relâchement_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }
@@ -1059,7 +1059,7 @@ vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event
 vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
 {
     vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clique_souris_depuis_évènement(event)
+    clic := donne_clic_souris_depuis_évènement(event)
     si gère_molette_souris(vue_rendu_page.page, *clic) {
         QT_widget_ajourne(vue_rendu_page.widget)
     }

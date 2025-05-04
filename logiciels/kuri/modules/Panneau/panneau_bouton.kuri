@@ -13,14 +13,14 @@ Bouton :: struct {
     // À FAIRE : icone
     // À FAIRE : métadonnées
     texte: chaine
-    sur_clique: fonc(*Bouton)(rien)
+    sur_clic: fonc(*Bouton)(rien)
 }
 
-crée_bouton :: fonc (texte: chaine, sur_clique: fonc(*Bouton)(rien)) -> *Bouton
+crée_bouton :: fonc (texte: chaine, sur_clic: fonc(*Bouton)(rien)) -> *Bouton
 {
     résultat := loge(Bouton)
     résultat.texte = texte
-    résultat.sur_clique = sur_clique
+    résultat.sur_clic = sur_clic
     retourne résultat
 }
 
@@ -45,13 +45,13 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où)
     }
 
-    sur_clique_souris :: fonc (panneau_bouton: *PanneauBouton, clique: CliqueSouris) -> bool
+    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool
     {
-        saufsi panneau_bouton.rect.contient(clique.état.où) {
+        saufsi panneau_bouton.rect.contient(clic.état.où) {
             retourne faux
         }
 
-        si clique.action == ActionSouris.PRESSÉE {
+        si clic.action == ActionSouris.PRESSÉE {
             panneau_bouton.souris_pressée = vrai
             guetteuse: GuetteusePanneauBouton
             guetteuse.panneau_bouton = panneau_bouton
@@ -112,7 +112,7 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
     }
 
     résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_clic_souris = sur_clic_souris
     résultat.sur_dessin = sur_dessin
     retourne résultat
 }
@@ -133,7 +133,7 @@ GuetteusePanneauBouton :: struct {
     sur_clic = guetteuse_bouton_sur_clic
 }
 
-guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
 {
     empl guetteuse := base comme *GuetteusePanneauBouton
 
@@ -144,8 +144,8 @@ guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
 
         si panneau_bouton.souris_dans_rect {
             bouton := panneau_bouton.bouton
-            si bouton.sur_clique {
-                bouton.sur_clique(bouton)
+            si bouton.sur_clic {
+                bouton.sur_clic(bouton)
             }
         }
 
