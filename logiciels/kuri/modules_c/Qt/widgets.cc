@@ -37,7 +37,7 @@
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QMouseEvent, mouseReleaseEvent, QT_MouseEvent, sur_relachement_souris)            \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
-        classe, QMouseEvent, mouseDoubleClickEvent, QT_MouseEvent, sur_double_clique_souris)      \
+        classe, QMouseEvent, mouseDoubleClickEvent, QT_MouseEvent, sur_double_clic_souris)      \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
         classe, QWheelEvent, wheelEvent, QT_WheelEvent, sur_molette_souris)                       \
     IMPLEMENTE_METHODE_EVENEMENT(                                                                 \
