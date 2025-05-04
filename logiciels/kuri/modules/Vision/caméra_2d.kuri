@@ -128,6 +128,47 @@ centre_sur_image :: fonc (empl caméra: *Caméra2D, largeur_image: z32, hauteur_
     besoin_ajournement = vrai
 }
 
+donne_position_écran_vers_monde :: fonc (caméra: *Caméra2D, x: r32, y: r32) -> Point2D(r32)
+{
+    xr := (x / (caméra.largeur comme r32)) * 2.0 - 1.0
+    yr := (y / (caméra.hauteur comme r32)) * 2.0 - 1.0
+
+    // À FAIRE : supprime l'inversion
+    mvp := caméra.modèle_vue_projection()
+    mvp_inv := inverse(mvp)
+
+    résultat := transforme(mvp_inv, Vec3(xr, yr))
+    retourne Point2D(r32)(résultat.x, résultat.y)
+}
+
+donne_position_sur_écran :: fonc (caméra: *Caméra2D, x: r32, y: r32) -> Point2D(r32)
+{
+    mvp := caméra.modèle_vue_projection()
+    v := transforme(mvp, Vec3(x, y, 0.0))
+
+    v *= 0.5
+    v.x += 0.5
+    v.y += 0.5
+
+    v.x *= (caméra.largeur comme r32)
+    v.y *= (caméra.hauteur comme r32)
+
+    retourne Point2D(r32)(v.x, v.y)
+}
+
+donne_rect_sur_écran :: fonc (caméra: *Caméra2D, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
+{
+    p0 := donne_position_sur_écran(caméra, rect.x, rect.y)
+    p1 := donne_position_sur_écran(caméra, rect.x + rect.largeur, rect.y + rect.hauteur)
+
+    résultat : RectanglePosDim(r32) = ---
+    résultat.x = p0.x
+    résultat.y = p0.y
+    résultat.largeur = p1.x - p0.x
+    résultat.hauteur = p1.y - p0.y
+    retourne résultat
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Enveloppe autour de Vision.Caméra2D pour l'observation.
  * \{ */
