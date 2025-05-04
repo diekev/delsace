@@ -2,6 +2,7 @@ importe Chaine
 importe Couleur
 importe Fondation
 importe Math
+importe SimpleLexage
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -311,8 +312,45 @@ crée_sources_glsl_depuis_fichier :: fonc (vertex: CheminFichier, fragment: Chem
 /** \nom Programme Nuançage
  * \{ */
 
+TypeValeur :: énum {
+    bool_
+    int
+    uint
+    float
+    double
+
+    vec2
+    vec3
+    vec4
+
+    mat3
+    mat4
+
+    sampler1D
+    sampler2D
+    sampler3D
+
+    sampler2DArray
+}
+
+donne_type_pour_chaine :: fonc (type: chaine) -> TypeValeur
+{
+    si type == "bool" {
+        retourne TypeValeur.bool_
+    }
+
+    valeur_type, trouvée := donne_valeur_énum_pour_nom(info_de(TypeValeur), type)
+    si trouvée {
+        retourne valeur_type comme TypeValeur
+    }    
+
+    imprimeln("Type inconnu : %", type)
+    exit(1)
+}
+
 InformationAttribut :: struct {
     nom: chaine
+    type: TypeValeur
     adresse: z32
 }
 
@@ -358,35 +396,45 @@ désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
     glUseProgram(0)
 }
 
-ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
+ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur)
 {
     pour programme.attributs {
         si it.nom == nom {
+            assert(it.type == type)
             retourne
         }
     }
 
     attribut := tableau_ajoute_élément(*programme.attributs)
-    attribut.nom = nom
+    attribut.nom = copie_chaine(nom)
+    attribut.type = type
     attribut.adresse = -1
 }
 
-ajoute_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine)
+ajoute_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur)
 {
     pour programme.uniformes {
         si it.nom == nom {
+            assert(it.type == type)
             retourne
         }
     }
 
     uniforme := tableau_ajoute_élément(*programme.uniformes)
-    uniforme.nom = nom
+    uniforme.nom = copie_chaine(nom)
+    uniforme.type = type
     uniforme.adresse = -1
 }
 
 détruit_programme :: fonc (programme: *ProgrammeDeNuançage)
 {
+    pour programme.attributs {
+        déloge(it.nom)
+    }
     déloge(programme.attributs)
+    pour programme.uniformes {
+        déloge(it.nom)
+    }
     déloge(programme.uniformes)
     détruit_programme(programme.programme)
     déloge(programme)
@@ -452,29 +500,92 @@ extrait_nom_attribut_ou_uniforme :: fonc (ligne: chaine) -> chaine
     retourne ligne.sous_chaine(dernière_espace + 1, point_virgule)
 }
 
-parse_attributs_et_uniformes_depuis :: fonc (source: chaine, programme: *ProgrammeDeNuançage)
+parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: chaine, programme: *ProgrammeDeNuançage)
 {
-    lignes := divise(source, '\n')
-    diffère déloge(lignes)
+    initialise_lexeuse_pour_texte(lexeuse, source)
 
-    // À FAIRE : in/out
-    // À FAIRE : location
-    pour lignes {
-        si it.sous_chaine(0, 6) == "layout" {
-            attribut := extrait_nom_attribut_ou_uniforme(it)
-            programme.ajoute_attribut(attribut)
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
         }
-        sinon si it.sous_chaine(0, 7) == "uniform" {
-            uniform := extrait_nom_attribut_ou_uniforme(it)
-            programme.ajoute_uniforme(uniform)
+
+        si lexème.est_mot_clé("layout") {
+            consomme_ponctuation(lexeuse, "(")
+            consomme_symbole(lexeuse, "location")
+            consomme_ponctuation(lexeuse, "=")
+
+            lexème_location := donne_nombre(lexeuse)
+
+            consomme_ponctuation(lexeuse, ")")
+
+            lexème = donne_lexème_suivant(lexeuse)
+            si lexème.est_mot_clé("in") {
+                lexème_type := donne_mot_clé(lexeuse)
+                lexème_nom := donne_symbole(lexeuse)
+
+                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()))
+            }
+            sinon si lexème.est_mot_clé("out") {
+                continue
+            }
+
+            consomme_ponctuation(lexeuse, ";")
+        }
+        sinon si lexème.est_mot_clé("uniform") {
+            lexème_type := donne_mot_clé(lexeuse)
+            lexème_nom := donne_symbole(lexeuse)
+
+            programme.ajoute_uniforme(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()))
+
+            consomme_ponctuation(lexeuse, ";")
         }
     }
 }
 
 parse_sources_glsl :: fonc (sources: SourcesGLSL, programme: *ProgrammeDeNuançage)
 {
-    parse_attributs_et_uniformes_depuis(sources.vertex, programme)
-    parse_attributs_et_uniformes_depuis(sources.fragment, programme)
+    lexeuse: SimpleLexeuse
+    lexeuse.ponctuations = ["{", "}", "(", ")", "=", ";", "#", "*", "-", "+", "/", ","]
+    lexeuse.mots_clés = __mots_clés_glsl
+
+    parse_attributs_et_uniformes_depuis(*lexeuse, sources.vertex, programme)
+    parse_attributs_et_uniformes_depuis(*lexeuse, sources.fragment, programme)
 }
+
+__mots_clés_glsl := [
+    "writeonly", "while", "volatile", "void", "vec4", "vec3", "vec2", "varying", "uvec4",
+    "uvec3", "uvec2", "using", "usamplerCubeArray", "usamplerCube", "usamplerBuffer",
+    "usampler3D", "usampler2DRect", "usampler2DMSArray", "usampler2DMS",
+    "usampler2DArray", "usampler2D", "usampler1DArray", "usampler1D", "unsigned",
+    "union", "uniform", "uint", "uimageCubeArray", "uimageCube", "uimageBuffer",
+    "uimage3D", "uimage2DRect", "uimage2DMSArray", "uimage2DMS", "uimage2DArray",
+    "uimage2D", "uimage1DArray", "uimage1D", "typedef", "true", "this", "template",
+    "switch", "superp", "subroutine", "struct", "static", "smooth",
+    "smapler2DRectShadow", "sizeof", "short", "shared", "samplerCubeShadow",
+    "samplerCubeArrayShadow", "samplerCubeArray", "samplerCube", "samplerBuffer",
+    "sampler3DRect", "sampler3D", "sampler2DShadow", "sampler2DRect",
+    "sampler2DMSArray", "sampler2DMS", "sampler2DArrayShadow", "sampler2DArray",
+    "sampler2D", "sampler1DShadow", "sampler1DArrayShadow", "sampler1DArray",
+    "sampler1D", "sample", "return", "restrict", "resource", "readonly", "public",
+    "precision", "precise", "patch", "partition", "out", "output", "notinline",
+    "noperspective", "namespace", "mediump", "mat4x4", "mat4x3", "mat4x2", "mat4",
+    "mat3x4", "mat3x3", "mat3x2", "mat3", "mat2x4", "mat2x3", "mat2x2", "mat2", "lowp",
+    "long", "layout", "ivec4", "ivec3", "ivec2", "isamplerCubeArray", "isamplerCube",
+    "isamplerBuffer", "isampler3D", "isampler2DRect", "isampler2DMSArray",
+    "isampler2DMS", "isampler2DArray", "isampler2D", "isampler1DArray", "isampler1D",
+    "invariant", "interface", "int", "input", "inout", "inline", "in", "imageCubeArray",
+    "imageCube", "imageBuffer", "image3D", "image2DRect", "image2DMSArray", "image2DMS",
+    "image2DArray", "image2D", "image1DArray", "image1D", "iimageCubeArray",
+    "iimageCube", "iimageBuffer", "iimage3D", "iimage2DRect", "iimage2DMSArray",
+    "iimage2DMS", "iimage2DArray", "iimage2D", "iimage1DArray", "iimage1D", "if",
+    "hvec4", "hvec3", "hvec2", "highp", "half", "goto", "fvec4", "fvec3", "fvec2", "for",
+    "float", "flat", "fixed", "filter", "false", "external", "extern", "enum", "else",
+    "dvec4", "dvec3", "dvec2", "double", "do", "dmat4x4", "dmat4x3", "dmat4x2", "dmat4",
+    "dmat3x4", "dmat3x3", "dmat3x2", "dmat3", "dmat2x4", "dmat2x3", "dmat2x2", "dmat2",
+    "discard", "default", "continue", "cont", "common", "coherent", "class", "centroid",
+    "cast", "case", "bvec4", "bvec3", "bvec2", "buffer", "break", "bool", "attribute",
+    "atomic_uint", "asm", "active", "const", "packed", "std140", "std430"
+]
 
 /** \} */
