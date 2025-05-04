@@ -25,9 +25,10 @@ PlateformeGuettage :: struct {
 Guetteuse :: struct {
     plateforme: *PlateformeGuettage
     sur_termine_guettage: fonc(*Guetteuse)(rien)
-    sur_clic: fonc(*Guetteuse, CliqueSouris)(rien)
+    sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
     sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
-    sur_touche_clavier: fonc(*Guetteuse, ToucheClavier)(rien)
+    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
+    sur_destruction: fonc(*Guetteuse)(rien)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, plateforme: *PlateformeGuettage)
@@ -42,11 +43,40 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
         guetteuse.sur_termine_guettage(guetteuse)
     }
 
-    saufsi guetteuse.plateforme {
-        retourne
+    si guetteuse.plateforme && guetteuse.plateforme.sur_termine_guettage {
+        guetteuse.plateforme.sur_termine_guettage(guetteuse.plateforme)
     }
 
-    guetteuse.plateforme.sur_termine_guettage(guetteuse.plateforme)
+    si guetteuse.sur_destruction {
+        guetteuse.sur_destruction(guetteuse)
+    }    
+}
+
+gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> bool
+{
+    si évènement.type == TypeÉvènement.Souris {
+        si guetteuse.sur_clic && (évènement.action_souris == ActionSouris.PRESSÉE || évènement.action_souris == ActionSouris.RELACHÉE) {
+            guetteuse.sur_clic(guetteuse, donne_clic_souris(évènement))
+            retourne vrai
+        }
+
+        si guetteuse.sur_déplacement_souris && (évènement.action_souris == ActionSouris.DÉPLACÉE) {
+            guetteuse.sur_déplacement_souris(guetteuse, évènement.état_souris)
+            retourne vrai
+        }
+
+        retourne faux
+    }
+
+    si évènement.type == TypeÉvènement.Clavier {
+        si guetteuse.sur_touche_clavier && évènement.touche_pressée {
+            guetteuse.sur_touche_clavier(guetteuse, InfoToucheClavier(évènement.touche, évènement.texte))
+            retourne vrai
+        }
+        retourne faux
+    }
+
+    retourne faux
 }
 
 /** \} */
@@ -104,7 +134,7 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
     déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, index)
 }
 
-guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: ToucheClavier)
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
@@ -112,37 +142,37 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: T
         retourne
     }
 
-    si touche.type == CléClavier.DÉBUT {
+    si touche.type == ToucheClavier.DÉBUT {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
         retourne
     }
 
-    si touche.type == CléClavier.FIN {
+    si touche.type == ToucheClavier.FIN {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_GAUCHE {
+    si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
         retourne
     }
 
-    si touche.type == CléClavier.FLÈCHE_DROITE {
+    si touche.type == ToucheClavier.FLÈCHE_DROITE {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
         retourne
     }
 
-    si touche.type == CléClavier.EFFACE {
+    si touche.type == ToucheClavier.EFFACE {
         efface(*éditrice.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.SUPPRIMER {
+    si touche.type == ToucheClavier.SUPPRIMER {
         supprime(*éditrice.curseur)
         retourne
     }
 
-    si touche.type == CléClavier.ENTRÉE {
+    si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
         retourne
     }
@@ -158,7 +188,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: T
     }
 }
 
-guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: CliqueSouris)
+guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
