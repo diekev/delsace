@@ -3,7 +3,7 @@ importe Introspection // pour définis_membre_actif, donne_index_membre_actif
 importe Math
 importe Structures
 
-/* Calculs des largeurs, hauteurs, et marges des noeuds. */
+/* Calculs des largeurs, hauteurs, et marges des boxes. */
 
 PersonnalisationCotation :: struct {
     outrepas_largeur: *OutrepasCotation
@@ -121,9 +121,9 @@ applique_box_sizing :: fonc (params: *ParamètresBoxSizing, valeur: r64) -> r64
 
 /** \} */
 
-ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
+ajourne_boite_pour_calcul_largeur :: fonc (box: *Box)
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
     border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).donne_pixels() comme r32
@@ -133,24 +133,24 @@ ajourne_boite_pour_calcul_largeur :: fonc (noeud: *NoeudDeDisposition)
     border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).donne_pixels() comme r32
     margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
 
-    x := noeud.modèle_de_boite.marge.x
+    x := box.modèle_de_boite.marge.x
 
-    noeud.modèle_de_boite.marge.x = x
-    noeud.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
+    box.modèle_de_boite.marge.x = x
+    box.modèle_de_boite.marge.largeur = margin_left + border_left_width + padding_left + width + padding_right + border_right_width + margin_right
 
-    noeud.modèle_de_boite.bordure.x = x + margin_left
-    noeud.modèle_de_boite.bordure.largeur = border_left_width + padding_left + width + padding_right + border_right_width
+    box.modèle_de_boite.bordure.x = x + margin_left
+    box.modèle_de_boite.bordure.largeur = border_left_width + padding_left + width + padding_right + border_right_width
 
-    noeud.modèle_de_boite.rembourrage.x = x + margin_left + border_left_width
-    noeud.modèle_de_boite.rembourrage.largeur =  padding_left + width + padding_right
+    box.modèle_de_boite.rembourrage.x = x + margin_left + border_left_width
+    box.modèle_de_boite.rembourrage.largeur =  padding_left + width + padding_right
 
-    noeud.modèle_de_boite.contenu.x = x + margin_left + border_left_width + padding_left
-    noeud.modèle_de_boite.contenu.largeur = width
+    box.modèle_de_boite.contenu.x = x + margin_left + border_left_width + padding_left
+    box.modèle_de_boite.contenu.largeur = width
 }
 
-ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
+ajourne_boite_pour_calcul_hauteur :: fonc (box: *Box)
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32
     border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32
@@ -160,54 +160,54 @@ ajourne_boite_pour_calcul_hauteur :: fonc (noeud: *NoeudDeDisposition)
     border_bottom_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthBottom).donne_pixels() comme r32
     margin_bottom := propriétés.donne_valeur_utilisée(IDPropriété.MarginBottom).donne_pixels() comme r32
 
-    y := noeud.modèle_de_boite.marge.y
+    y := box.modèle_de_boite.marge.y
 
-    noeud.modèle_de_boite.marge.y = y
-    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top + height + padding_bottom + border_bottom_width + margin_bottom
+    box.modèle_de_boite.marge.y = y
+    box.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top + height + padding_bottom + border_bottom_width + margin_bottom
 
-    noeud.modèle_de_boite.bordure.y = y + margin_top
-    noeud.modèle_de_boite.bordure.hauteur = border_top_width + padding_top + height + padding_bottom + border_bottom_width
+    box.modèle_de_boite.bordure.y = y + margin_top
+    box.modèle_de_boite.bordure.hauteur = border_top_width + padding_top + height + padding_bottom + border_bottom_width
 
-    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
-    noeud.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
+    box.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
+    box.modèle_de_boite.rembourrage.hauteur =  padding_top + height + padding_bottom
 
-    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
-    noeud.modèle_de_boite.contenu.hauteur = height
+    box.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
+    box.modèle_de_boite.contenu.hauteur = height
 }
 
 /* Ajourne le modèle de boite pour les cas où la hauteur dépends sur le contenu.
  * Ceci est nécessaire pour que le contenu de la boite se trouve au bon endroit. */
-ajourne_boite_pour_calcul_hauteur_auto :: fonc (noeud: *NoeudDeDisposition)
+ajourne_boite_pour_calcul_hauteur_auto :: fonc (box: *Box)
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     margin_top := propriétés.donne_valeur_utilisée(IDPropriété.MarginTop).donne_pixels() comme r32
     border_top_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthTop).donne_pixels() comme r32
     padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32
 
-    y := noeud.modèle_de_boite.marge.y
+    y := box.modèle_de_boite.marge.y
 
-    noeud.modèle_de_boite.marge.y = y
-    noeud.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top
+    box.modèle_de_boite.marge.y = y
+    box.modèle_de_boite.marge.hauteur = margin_top + border_top_width + padding_top
 
-    noeud.modèle_de_boite.bordure.y = y + margin_top
-    noeud.modèle_de_boite.bordure.hauteur = border_top_width + padding_top
+    box.modèle_de_boite.bordure.y = y + margin_top
+    box.modèle_de_boite.bordure.hauteur = border_top_width + padding_top
 
-    noeud.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
-    noeud.modèle_de_boite.rembourrage.hauteur =  padding_top
+    box.modèle_de_boite.rembourrage.y = y + margin_top + border_top_width
+    box.modèle_de_boite.rembourrage.hauteur =  padding_top
 
-    noeud.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
+    box.modèle_de_boite.contenu.y = y + margin_top + border_top_width + padding_top
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#root-height */
-calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispositionBloc) -> r64
+calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r64
 {
     // If it only has inline-level children, the height is the distance between
     // the top of the topmost line box and the bottom of the bottommost line box.
-    si noeud.est_disposition_inline {
+    si box.est_disposition_inline {
         résultat: r64
 
-        pour noeud.lignes_tenante.lignes {
+        pour box.lignes_tenante.lignes {
             résultat += it.hauteur_contenu
         }
 
@@ -227,13 +227,13 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
     // is increased to include those edges. Only floats that participate in
     // this block formatting context are taken into account, e.g., floats inside
     // absolutely positioned descendants or other floats are not.
-    enfants_aplatis: [..]*NoeudDeDisposition
+    enfants_aplatis: [..]*Box
     diffère déloge(enfants_aplatis)
 
-    pile: Pile(*NoeudDeDisposition)
+    pile: Pile(*Box)
     diffère détruit(pile)
 
-    pour > noeud.enfants {
+    pour > box.enfants {
         pile.empile(it)
     }
 
@@ -258,6 +258,10 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
         }
     }
 
+    saufsi enfants_aplatis {
+        retourne 0.0
+    }
+    
     min_y := 1000000.0
     max_y := -min_y
 
@@ -287,7 +291,7 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (noeud: *NoeudDeDispos
 
 ArgumentsDimensionnement :: struct {
     ctx: *ContexteDeFormattage
-    noeud: *NoeudDeDisposition
+    box: *Box
     containing_block: ContainingBlock
     outrepas_largeur: Optionnel(OutrepasCotation)
     outrepas_hauteur: Optionnel(OutrepasCotation)
@@ -303,11 +307,11 @@ ArgumentsDimensionnement :: struct {
     mode: ModeDeFormattage
 }
 
-crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
-    résultat.noeud = noeud
+    résultat.box = box
     résultat.containing_block = containing_block
     si personnalisation.outrepas_largeur {
         résultat.outrepas_largeur = mémoire(personnalisation.outrepas_largeur)
@@ -318,11 +322,11 @@ crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, noe
     retourne résultat
 }
 
-crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement
     résultat.ctx = ctx
-    résultat.noeud = noeud
+    résultat.box = box
     résultat.containing_block = containing_block
     si personnalisation.outrepas_hauteur {
         résultat.outrepas_hauteur = mémoire(personnalisation.outrepas_hauteur)
@@ -334,13 +338,12 @@ crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, noe
 
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 {
-    résoud_pourcentage_largeurs(ctx, noeud, args.containing_block)
-
+    définis_propriétés(ctx.ctx_calcul_style, box.propriétés)
     args.width_of_containing_block = args.containing_block.donne_largeur()
 
-    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width)
 
-    params_box_sizing := donne_paramètres_box_sizing_pour_largeur(noeud.propriétés)
+    params_box_sizing := donne_paramètres_box_sizing_pour_largeur(box.propriétés)
 
     tmp_args := mémoire(args)
     si outrepas_largeur.possède_valeur() {
@@ -351,16 +354,18 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
         }
     }
     sinon saufsi width.est_auto() {
+        width = width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         width = applique_box_sizing(*params_box_sizing, width, ignore_plancher_border_box)
         tmp_args.outrepas_largeur = crée_outrepas_pour_coter_contenu(width.donne_pixels())
     }
 
-    fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(noeud)
+    fonction_de_calcul := donne_fonction_calcul_largeur_et_marges(box)
     calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
 
     saufsi ignore_min_max {
-        width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        max_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
+        width = box.propriétés.donne_valeur_utilisée(IDPropriété.Width)
+        max_width := box.propriétés.donne_valeur_calculée(IDPropriété.MaxWidth)
+        max_width = max_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         max_width = applique_box_sizing(*params_box_sizing, max_width, ignore_plancher_border_box)
         si max_width.est_pixels() && (width.donne_pixels() > max_width.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -368,8 +373,9 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
             calcule_largeur_et_marges(*tmp_args, fonction_de_calcul)
         }
 
-        width = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        min_width := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        width = box.propriétés.donne_valeur_utilisée(IDPropriété.Width)
+        min_width := box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        min_width = min_width.calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
         min_width = applique_box_sizing(*params_box_sizing, min_width, ignore_plancher_border_box)
         si min_width.est_pixels() && min_width.donne_pixels() > 0.0 && (width.donne_pixels() < min_width.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -378,8 +384,8 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
         }
     }
 
-    ajourne_boite_pour_calcul_largeur(noeud)
-    résoud_pourcentage_largeur_border_radius(noeud)
+    ajourne_boite_pour_calcul_largeur(box)
+    résoud_pourcentage_largeur_border_radius(box)
 }
 
 PropriétésLargeur :: struct {
@@ -398,20 +404,22 @@ TypeFonctionCalculLargeur :: fonc(*ArgumentsDimensionnement,*PropriétésLargeur
 
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonction_de_calcul: TypeFonctionCalculLargeur)
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
-    résoud_pourcentage_insets(noeud, ctx)
+    définis_propriétés(ctx.ctx_calcul_style, box.propriétés)
+
+    résoud_pourcentage_insets(box, ctx)
 
     pl : PropriétésLargeur = ---
-    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left)
-    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft)
-    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft)
-    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft)
-    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width)
-    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
-    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
-    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight)
-    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right)
+    pl.left = propriétés.donne_valeur_calculée(IDPropriété.Left).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.margin_left = propriétés.donne_valeur_calculée(IDPropriété.MarginLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.border_left_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.padding_left = propriétés.donne_valeur_calculée(IDPropriété.PaddingLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.width = propriétés.donne_valeur_calculée(IDPropriété.Width).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.padding_right = propriétés.donne_valeur_calculée(IDPropriété.PaddingRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.border_right_width = propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.margin_right = propriétés.donne_valeur_calculée(IDPropriété.MarginRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
+    pl.right = propriétés.donne_valeur_calculée(IDPropriété.Right).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block)
 
     si outrepas_largeur.possède_valeur() {
         pl.width = outrepas_largeur.Quelque.valeur
@@ -433,17 +441,17 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, pl.margin_right)
     propriétés.définis_valeur_utilisée(IDPropriété.Right, pl.right)
 
-    ajourne_boite_pour_calcul_largeur(noeud)
+    ajourne_boite_pour_calcul_largeur(box)
 }
 
-donne_fonction_calcul_largeur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> TypeFonctionCalculLargeur
+donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculLargeur
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     float := propriétés.donne_valeur_utilisée(IDPropriété.Float)
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
-    si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
+    si box.table_virtuelle.type == ReplacedBox {
         // 10.3.2 Inline, replaced elements
         // 10.3.10 'Inline-block', replaced elements in normal flow
         si display.outer_type == Display.Type.Inline {
@@ -496,11 +504,11 @@ calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, référence: r64) -> *Valeu
     retourne crée_valeur_pixels(valeur.donne_percentage() * référence / 100.0)
 }
 
-résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur()
 
-    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+    définis_propriétés(ctx.ctx_calcul_style, box.propriétés)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MinWidth, width_of_containing_block)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MaxWidth, width_of_containing_block)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginLeft, width_of_containing_block)
@@ -510,10 +518,10 @@ résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudD
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginRight, width_of_containing_block)
 }
 
-résoud_pourcentage_largeur_border_radius :: fonc (noeud: *NoeudDeDisposition)
+résoud_pourcentage_largeur_border_radius :: fonc (box: *Box)
 {
-    largeur := noeud.modèle_de_boite.bordure.largeur
-    propriétés := noeud.propriétés
+    largeur := box.modèle_de_boite.bordure.largeur
+    propriétés := box.propriétés
 
     empl IDPropriété
 
@@ -523,12 +531,12 @@ résoud_pourcentage_largeur_border_radius :: fonc (noeud: *NoeudDeDisposition)
     }
 }
 
-résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, containing_block: &ContainingBlock)
+résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur()
     height_of_containing_block := containing_block.donne_hauteur()
 
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
     définis_propriétés(ctx.ctx_calcul_style, propriétés)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.MarginTop, width_of_containing_block)
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.PaddingTop, width_of_containing_block)
@@ -538,7 +546,7 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
     /* Selon CSS2.1 10.5, les pourcentages sur la hauteur deviennent « auto » si le contenant
      * a une hauteur auto et que la boite n'est pas positionné absolument.
      * https://www.w3.org/TR/CSS2/visudet.html#the-height-property */
-    prop_height_contenant := containing_block.noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    prop_height_contenant := containing_block.box.propriétés.donne_valeur_calculée(IDPropriété.Height)
     contenant_dépend_sur_contenu := prop_height_contenant.est_auto()
 
     position := propriétés.donne_valeur_calculée(IDPropriété.Position)
@@ -572,11 +580,11 @@ résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDe
     }
 }
 
-résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage)
+résoud_pourcentage_insets :: fonc (box: *Box, ctx: *ContexteDeFormattage)
 {
-    containing_block := donne_containing_block(noeud, ctx)
+    containing_block := donne_containing_block(box, ctx)
 
-    définis_propriétés(ctx.ctx_calcul_style, noeud.propriétés)
+    définis_propriétés(ctx.ctx_calcul_style, box.propriétés)
 
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Top, containing_block.donne_hauteur())
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Bottom, containing_block.donne_hauteur())
@@ -585,7 +593,7 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
     résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Right, containing_block.donne_largeur())
 
     pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
-        noeud.propriétés.définis_valeur_utilisée(it, noeud.propriétés.donne_valeur_calculée(it))
+        box.propriétés.définis_valeur_utilisée(it, box.propriétés.donne_valeur_calculée(it))
     }
 }
 
@@ -596,16 +604,16 @@ résoud_pourcentage_insets :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDe
 
 calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
-    résoud_pourcentage_hauteur(ctx, noeud, containing_block)
+    résoud_pourcentage_hauteur(ctx, box, containing_block)
 
-    fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(noeud)
+    fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(box)
 
-    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height)
     saufsi height.est_auto() {
         init_de(Optionnel(OutrepasCotation))(*outrepas_hauteur)
     }
 
-    params_box_sizing := donne_paramètres_box_sizing_pour_hauteur(noeud.propriétés)
+    params_box_sizing := donne_paramètres_box_sizing_pour_hauteur(box.propriétés)
 
     tmp_args := mémoire(args)
     si outrepas_hauteur.possède_valeur() {
@@ -623,8 +631,8 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
     }
 
     saufsi ignore_min_max {
-        height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
-        max_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
+        height = box.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+        max_height := box.propriétés.donne_valeur_calculée(IDPropriété.MaxHeight)
         max_height = applique_box_sizing(*params_box_sizing, max_height, ignore_plancher_border_box)
         si max_height.est_pixels() && (height.donne_pixels() > max_height.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -632,8 +640,8 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
             _ := calcule_hauteur_et_marges(*tmp_args, fonction_de_calcul)
         }
 
-        height = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Height)
-        min_height := noeud.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
+        height = box.propriétés.donne_valeur_utilisée(IDPropriété.Height)
+        min_height := box.propriétés.donne_valeur_calculée(IDPropriété.MinHeight)
         min_height = applique_box_sizing(*params_box_sizing, min_height, ignore_plancher_border_box)
         si min_height.est_pixels() && (height.donne_pixels() < min_height.donne_pixels()) {
             tmp_args = mémoire(args)
@@ -642,7 +650,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> Éta
         }
     }
 
-    ajourne_boite_pour_calcul_hauteur(noeud)
+    ajourne_boite_pour_calcul_hauteur(box)
 
     retourne résultat
 }
@@ -663,7 +671,7 @@ TypeFonctionCalculHauteur :: fonc(*ArgumentsDimensionnement,*PropriétésHauteur
 
 calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonction_de_calcul: TypeFonctionCalculHauteur) -> ÉtatCalculHauteur
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     ph : PropriétésHauteur = ---
     ph.top = propriétés.donne_valeur_calculée(IDPropriété.Top)
@@ -696,19 +704,19 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     propriétés.définis_valeur_utilisée(IDPropriété.Bottom, ph.bottom)
 
     si résultat == ÉtatCalculHauteur.HauteurDépendSurContenu {
-        ajourne_boite_pour_calcul_hauteur_auto(noeud)
+        ajourne_boite_pour_calcul_hauteur_auto(box)
     }
 
     retourne résultat
 }
 
-donne_fonction_calcul_hauteur_et_marges :: fonc (noeud: *NoeudDeDisposition) -> TypeFonctionCalculHauteur
+donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculHauteur
 {
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
     display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     position := propriétés.donne_valeur_utilisée(IDPropriété.Position)
 
-    si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
+    si box.table_virtuelle.type == ReplacedBox {
         // 10.6.5 Absolutely positioned, replaced elements
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
             retourne calcule_hauteur_et_marges_absolutely_positionned_replaced_element
@@ -757,20 +765,20 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
-        position_bord_haut_contenu := noeud.modèle_de_boite.contenu.y
+        position_bord_haut_contenu := box.modèle_de_boite.contenu.y
 
         // 1. the bottom edge of the last line box, if the box establishes a inline formatting context with one or more lines
-        méthode_de_formattage := donne_méthode_de_formattage_intérieur(noeud)
+        méthode_de_formattage := donne_méthode_de_formattage_intérieur(box)
         si méthode_de_formattage == MéthodeDeFormattage.Inline {
-            noeud_bloc := noeud comme *NoeudDeDispositionBloc
+            block_box := box comme *BlockBox
 
-            nombre_de_lignes := noeud_bloc.lignes_tenante.lignes.taille
+            nombre_de_lignes := block_box.lignes_tenante.lignes.taille
 
             si nombre_de_lignes == 0 {
                 height = donne_valeur_pixels_zéro()
             }
             sinon {
-                dernier_fragment := noeud_bloc.lignes_tenante.lignes[nombre_de_lignes - 1]
+                dernier_fragment := block_box.lignes_tenante.lignes[nombre_de_lignes - 1]
                 position_bord_bas_fragment := dernier_fragment.position_y + dernier_fragment.hauteur_contenu
 
                 height = crée_valeur_pixels(position_bord_bas_fragment - position_bord_haut_contenu)
@@ -779,12 +787,12 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
         sinon si méthode_de_formattage == MéthodeDeFormattage.Flex {
             /* Non-spécifié. Au lieu d'utiliser le dernier enfant "in-flow", utilise la valeur la plus haute. */
             position_bord_bas := position_bord_haut_contenu
-            pour noeud.enfants {
+            pour box.enfants {
                 si it.traite_comme_display_none {
                     continue
                 }
 
-                saufsi est_in_flow(noeud) {
+                saufsi est_in_flow(box) {
                     continue
                 }
 
@@ -797,7 +805,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
             height = crée_valeur_pixels(position_bord_bas - position_bord_haut_contenu)
         }
         sinon {
-            enfant := donne_dernier_enfant_in_flow(noeud)
+            enfant := donne_dernier_enfant_in_flow(box)
             si enfant {
                 // À FAIRE
                 // 2. the bottom edge of the bottom (possibly collapsed) margin of its last in-flow child, if the child's bottom margin does not collapse with the element's bottom margin
@@ -819,11 +827,11 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
     retourne ÉtatCalculHauteur.HauteurRésolue
 }
 
-donne_dernier_enfant_in_flow :: fonc (noeud: *NoeudDeDisposition) -> *NoeudDeDisposition
+donne_dernier_enfant_in_flow :: fonc (box: *Box) -> *Box
 {
-    résultat: *NoeudDeDisposition
+    résultat: *Box
 
-    pour noeud.enfants {
+    pour box.enfants {
         si it.traite_comme_display_none {
             continue
         }
@@ -995,7 +1003,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 
         right = donne_valeur_pixels_zéro()
         available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels()
-        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width))
         right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
     }
     sinon si !left.est_auto() && !right.est_auto() && !width.est_auto() {
@@ -1045,7 +1053,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         //     Then solve for 'left'
         si left.est_auto() && width.est_auto() && !right.est_auto() {
             available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels()
-            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width))
             left = crée_valeur_pixels(width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels() - right.donne_pixels())
         }
 
@@ -1061,7 +1069,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
         //    Then solve for 'right'
         sinon si width.est_auto() && right.est_auto() && !left.est_auto() {
             available_width := width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
-            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+            width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width))
             right = crée_valeur_pixels(width_of_containing_block - left.donne_pixels() - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - width.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels())
         }
 
@@ -1105,7 +1113,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
-        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox))
         bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
     }
     // If none of the three are 'auto': If both 'margin-top' and 'margin-bottom' are 'auto',
@@ -1145,7 +1153,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
-            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox))
             top = crée_valeur_pixels(height_of_containing_block - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels() - bottom.donne_pixels())
         }
         // 2. 'top' and 'bottom' are 'auto' and 'height' is not 'auto',
@@ -1174,7 +1182,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
                 retourne ÉtatCalculHauteur.HauteurDépendSurContenu
             }
 
-            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+            height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox))
             bottom = crée_valeur_pixels(height_of_containing_block - top.donne_pixels() - margin_top.donne_pixels() - border_top_width.donne_pixels() - padding_top.donne_pixels() - height.donne_pixels() - padding_bottom.donne_pixels() - border_bottom_width.donne_pixels() - margin_bottom.donne_pixels())
         }
         // 4. 'top' is 'auto', 'height' and 'bottom' are not 'auto',
@@ -1279,16 +1287,16 @@ calcule_largeur_et_marges_floated_non_replaced_element :: fonc (empl args: *Argu
         // 'padding-right', 'border-right-width', 'margin-right', and the widths of any relevant
         // scroll bars.
         available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
-        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width))
     }
 }
 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-width */
 calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl pl: *PropriétésLargeur)
 {
-    noeud_remplacement := noeud comme *NoeudDeDispositionRemplacement
+    replaced_box := box comme *ReplacedBox
 
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     height := propriétés.donne_valeur_calculée(IDPropriété.Height)
 
@@ -1302,25 +1310,25 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic width, then that intrinsic width is the used value of 'width'.
-    si width.est_auto() && height.est_auto() && noeud_remplacement.possède_largeur_intrinsèque() {
-        width = crée_valeur_pixels(noeud_remplacement.donne_largeur_intrinsèque())
+    si width.est_auto() && height.est_auto() && replaced_box.possède_largeur_intrinsèque() {
+        width = crée_valeur_pixels(replaced_box.donne_largeur_intrinsèque())
     }
     // If 'height' and 'width' both have computed values of 'auto' and the element has no
     // intrinsic width, but does have an intrinsic height and intrinsic ratio;
     // or if 'width' has a computed value of 'auto', 'height' has some other computed value,
     // and the element does have an intrinsic ratio; then the used value of 'width' is:
     //     (used height) * (intrinsic ratio)
-    sinon si (width.est_auto() && height.est_auto() && !noeud_remplacement.possède_largeur_intrinsèque() && noeud_remplacement.possède_ratio_intrinsèque()) ||
-             (width.est_auto() && !height.est_auto() && noeud_remplacement.possède_ratio_intrinsèque()) {
+    sinon si (width.est_auto() && height.est_auto() && !replaced_box.possède_largeur_intrinsèque() && replaced_box.possède_ratio_intrinsèque()) ||
+             (width.est_auto() && !height.est_auto() && replaced_box.possède_ratio_intrinsèque()) {
         si height.est_auto() {
-            width = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque() * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque() * replaced_box.donne_ratio_intrinsèque())
         }
         sinon si height.est_percentage() {
             /* À FAIRE : résoud les pourcentages pour la hauteur plus tôt. */
-            width = crée_valeur_pixels(height.donne_percentage() * containing_block.donne_hauteur() * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(height.donne_percentage() * containing_block.donne_hauteur() * replaced_box.donne_ratio_intrinsèque())
         }
         sinon {
-            width = crée_valeur_pixels(height.donne_pixels() * noeud_remplacement.donne_ratio_intrinsèque())
+            width = crée_valeur_pixels(height.donne_pixels() * replaced_box.donne_ratio_intrinsèque())
         }
     }
 
@@ -1333,8 +1341,8 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // Otherwise, if 'width' has a computed value of 'auto', and the element has an intrinsic width,
     // then that intrinsic width is the used value of 'width'.
-    sinon si width.est_auto() && noeud_remplacement.possède_largeur_intrinsèque() {
-        width = crée_valeur_pixels(noeud_remplacement.donne_largeur_intrinsèque())
+    sinon si width.est_auto() && replaced_box.possède_largeur_intrinsèque() {
+        width = crée_valeur_pixels(replaced_box.donne_largeur_intrinsèque())
     }
     // Otherwise, if 'width' has a computed value of 'auto', but none of the conditions above are met,
     // then the used value of 'width' becomes 300px.
@@ -1348,8 +1356,8 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#inline-replaced-height */
 calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    noeud_remplacement := noeud comme *NoeudDeDispositionRemplacement
-    propriétés := noeud.propriétés
+    replaced_box := box comme *ReplacedBox
+    propriétés := box.propriétés
 
     width := propriétés.donne_valeur_calculée(IDPropriété.Width)
 
@@ -1363,22 +1371,22 @@ calcule_hauteur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
 
     // If 'height' and 'width' both have computed values of 'auto' and the element also has
     // an intrinsic height, then that intrinsic height is the used value of 'height'.
-    si width.est_auto() && height.est_auto() && noeud_remplacement.possède_hauteur_intrinsèque() {
-        height = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque())
+    si width.est_auto() && height.est_auto() && replaced_box.possède_hauteur_intrinsèque() {
+        height = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic
     // ratio then the used value of 'height' is:
     //      (used width) / (intrinsic ratio)
-    sinon si height.est_auto() && noeud_remplacement.possède_ratio_intrinsèque() {
+    sinon si height.est_auto() && replaced_box.possède_ratio_intrinsèque() {
         largeur_utilisée := propriétés.donne_valeur_utilisée(IDPropriété.Width)
-        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() / noeud_remplacement.donne_ratio_intrinsèque())
+        height = crée_valeur_pixels(largeur_utilisée.donne_pixels() / replaced_box.donne_ratio_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', and the element has an intrinsic height,
     // then that intrinsic height is the used value of 'height'.
-    sinon si height.est_auto() && noeud_remplacement.possède_hauteur_intrinsèque() {
-        height = crée_valeur_pixels(noeud_remplacement.donne_hauteur_intrinsèque())
+    sinon si height.est_auto() && replaced_box.possède_hauteur_intrinsèque() {
+        height = crée_valeur_pixels(replaced_box.donne_hauteur_intrinsèque())
     }
 
     // Otherwise, if 'height' has a computed value of 'auto', but none of the conditions above are met,
@@ -1524,11 +1532,11 @@ calcule_largeur_et_marges_inline_block_non_replaced_element :: fonc (empl args: 
 
     /* If 'width' is 'auto', the used value is the shrink-to-fit width as for floating elements. */
     si width.est_auto() {
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
+        box.propriétés.définis_valeur_utilisée(IDPropriété.MarginLeft, margin_left)
+        box.propriétés.définis_valeur_utilisée(IDPropriété.MarginRight, margin_right)
 
         available_width := width_of_containing_block - margin_left.donne_pixels() - border_left_width.donne_pixels() - padding_left.donne_pixels() - padding_right.donne_pixels() - border_right_width.donne_pixels() - margin_right.donne_pixels()
-        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, noeud, available_width))
+        width = crée_valeur_pixels(calcule_shrink_to_fit_width(ctx, box, available_width))
     }
 }
 
@@ -1549,7 +1557,7 @@ calcule_hauteur_et_marges_complicated_cases :: fonc (empl args: *ArgumentsDimens
             retourne ÉtatCalculHauteur.HauteurDépendSurContenu
         }
 
-        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(noeud comme *NoeudDeDispositionBloc))
+        height = crée_valeur_pixels(calcule_auto_height_racine_contexte_de_formattage(box comme *BlockBox))
     }
 
     // À FAIRE : For 'inline-block' elements, the margin box is used when calculating the height of the line box.
@@ -1708,50 +1716,50 @@ est_valide :: fonc (space: AvailableSpace) -> bool
     retourne est_valide(space.width) && est_valide(space.height)
 }
 
-calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available_width: r64) -> r64
+calcule_shrink_to_fit_width :: fonc (ctx: *ContexteDeFormattage, box: *Box, available_width: r64) -> r64
 {
-    retourne calcule_fit_content_width(ctx, noeud, AvailableSize(available_width))
+    retourne calcule_fit_content_width(ctx, box, AvailableSize(available_width))
 }
 
 /* NOTE: This is called the “shrink-to-fit” width in CSS2.1§10.3.5 and CSS Multi-column Layout § 3.4. */
-calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available: AvailableSize) -> r64
+calcule_fit_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box, available: AvailableSize) -> r64
 {
     si available.est_min_content() {
-        retourne calcule_min_content_width(ctx, noeud)
+        retourne calcule_min_content_width(ctx, box)
     }
 
     saufsi available.est_definite() {
         assert(available.est_max_content() || available.est_indefinite())
-        retourne calcule_max_content_width(ctx, noeud)
+        retourne calcule_max_content_width(ctx, box)
     }
 
-    max_content := calcule_max_content_width(ctx, noeud)
-    min_content := calcule_min_content_width(ctx, noeud)
+    max_content := calcule_max_content_width(ctx, box)
+    min_content := calcule_min_content_width(ctx, box)
     retourne min(max(min_content, max_content), available.Definite)
 }
 
 /* NOTE : This is called the “preferred minimum width” in CSS2.1§10.3.5 and the “minimum content width” in CSS2.1§17.5.2.2. */
-calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
-    si noeud.mémoire_vive.min_content_width.possède_valeur() {
-        retourne noeud.mémoire_vive.min_content_width.Quelque
+    si box.mémoire_vive.min_content_width.possède_valeur() {
+        retourne box.mémoire_vive.min_content_width.Quelque
     }
 
     available: AvailableSpace = ---
     available.width = crée_min_content_size()
     available.height = crée_indefinite_size()
 
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available)
-    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
-    noeud.mémoire_vive.min_content_width = résultat
+    formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available)
+    résultat := box.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    box.mémoire_vive.min_content_width = résultat
     retourne résultat
 }
 
 /* This is called the “preferred width” in CSS2.1§10.3.5 and the “maximum cell width” in CSS2.1§17.5.2.2. */
-calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
-    si noeud.mémoire_vive.max_content_width.possède_valeur() {
-        retourne noeud.mémoire_vive.max_content_width.Quelque
+    si box.mémoire_vive.max_content_width.possède_valeur() {
+        retourne box.mémoire_vive.max_content_width.Quelque
     }
 
     available: AvailableSpace = ---
@@ -1759,36 +1767,36 @@ calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDi
     available.height = crée_indefinite_size()
 
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
-    formatte_intérieur(noeud comme *NoeudDeDispositionBloc, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available)
-    résultat := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
-    noeud.mémoire_vive.max_content_width = résultat
+    formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available)
+    résultat := box.propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels()
+    box.mémoire_vive.max_content_width = résultat
     retourne résultat
 }
 
-calcule_fit_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition, available: AvailableSize) -> r64
+calcule_fit_content_height :: fonc (ctx: *ContexteDeFormattage, box: *Box, available: AvailableSize) -> r64
 {
     si available.est_min_content() {
-        retourne calcule_min_content_height(ctx, noeud)
+        retourne calcule_min_content_height(ctx, box)
     }
 
     saufsi available.est_definite() {
         assert(available.est_max_content() || available.est_indefinite())
-        retourne calcule_max_content_height(ctx, noeud)
+        retourne calcule_max_content_height(ctx, box)
     }
 
-    max_content := calcule_max_content_height(ctx, noeud)
-    min_content := calcule_min_content_height(ctx, noeud)
+    max_content := calcule_max_content_height(ctx, box)
+    min_content := calcule_min_content_height(ctx, box)
     retourne min(max(min_content, max_content), available.Definite)
 }
 
-calcule_min_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+calcule_min_content_height :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
     /* The min-content size in the block axis.
      * For block containers, tables, and inline boxes, this is equivalent to the max-content block size. */
     retourne 0.0
 }
 
-calcule_max_content_height :: fonc (ctx: *ContexteDeFormattage, noeud: *NoeudDeDisposition) -> r64
+calcule_max_content_height :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 {
     /* The box’s “ideal” size in the block axis. Usually the block size of the content after layout. */
     retourne 0.0

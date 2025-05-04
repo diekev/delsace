@@ -13,6 +13,8 @@ importe Math
 importe OpenGL
 importe Typographie
 
+// À FAIRE : remplis_arrière_plan est redondant avec efface_cible_rendu
+
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre.
  * \{ */
@@ -34,6 +36,9 @@ Peintre :: struct {
     rappel_définis_taille_cannevas: fonc(*Peintre, Taille)(rien)
     /* Donne la taille du cannevas. */
     rappel_donne_taille_cannevas: fonc(*Peintre)(Taille)
+
+    /* Efface la cible du rendu. */
+    rappel_efface_cible_rendu: fonc(*Peintre, CouleurPeintre)(rien)
 
     /* Commence un nouveau dessin. */
     rappel_commence_dessin: fonc(*Peintre)(rien)
@@ -110,6 +115,16 @@ définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #en
 donne_taille_cannevas :: fonc (peintre: *Peintre) -> Taille #enligne
 {
     retourne peintre.rappel_donne_taille_cannevas(peintre)
+}
+
+efface_cible_rendu :: fonc (peintre: *Peintre)
+{
+    efface_cible_rendu(peintre, CouleurRVBA(0.0, 0.0, 0.0, 1.0))
+}
+
+efface_cible_rendu :: fonc (peintre: *Peintre, couleur: CouleurPeintre)
+{
+    peintre.rappel_efface_cible_rendu(peintre, couleur)
 }
 
 commence_dessin :: fonc (peintre: *Peintre) #enligne
@@ -302,6 +317,7 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_dessin
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_dessin
+    peintre.rappel_efface_cible_rendu = remplis_arrière_plan_dessin
     peintre.rappel_commence_dessin = commence_dessin_dessin
     peintre.rappel_termine_dessin = termine_dessin_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
@@ -759,6 +775,7 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_cannevas: Taill
 
     peintre.rappel_définis_taille_cannevas = définis_taille_cannevas_igumi
     peintre.rappel_donne_taille_cannevas = donne_taille_cannevas_igumi
+    peintre.rappel_efface_cible_rendu = igumi_efface_cible_rendu
     peintre.rappel_commence_dessin = commence_dessin_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
@@ -862,12 +879,16 @@ donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
 définis_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée, taille: Taille)
 {
     IGUMI.définis_fenêtre(taille.largeur comme z32, taille.hauteur comme z32)
-    glViewport(0, 0, taille.largeur comme z32, taille.hauteur comme z32)
 }
 
 donne_taille_cannevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
 {
     retourne Taille(Largeur(IGUMI.donne_largeur_cannevas()), Hauteur(IGUMI.donne_hauteur_cannevas()))
+}
+
+igumi_efface_cible_rendu :: fonc (peintre: *PeintreIGUMI @inutilisée, couleur: CouleurPeintre)
+{
+    IGUMI.efface_cible_rendu(donne_couleur_igumi(couleur))
 }
 
 commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
