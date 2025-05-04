@@ -55,7 +55,7 @@ crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(
     résultat.données = données
     résultat.sur_donne_coche = sur_donne_coche
     résultat.sur_définis_coche = sur_définis_coche
-    résultat.sur_clique = bouton_coche_sur_clic
+    résultat.sur_clic = bouton_coche_sur_clic
     retourne résultat
 }
 
@@ -111,16 +111,16 @@ ajoute_menu :: fonc (menu: *Menu, sous_menu: *Menu)
     tableau_ajoute(*menu.éléments, Menu.Élément(sous_menu.texte, sous_menu))
 }
 
-gère_clique_souris :: fonc (élément: Menu.Élément)
+gère_clic_souris :: fonc (élément: Menu.Élément)
 {
     discr élément.données {
         Action(bouton) {
-            si bouton.sur_clique {
-                bouton.sur_clique(bouton)
+            si bouton.sur_clic {
+                bouton.sur_clic(bouton)
             }
         }
         Cochage(bouton) {
-            bouton.sur_clique(bouton)
+            bouton.sur_clic(bouton)
         }
         sinon {}
     }

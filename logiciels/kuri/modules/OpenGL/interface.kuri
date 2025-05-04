@@ -5,7 +5,7 @@ libGL :: #bibliothèque "GL"
 libGLEW :: #bibliothèque "GLEW"
 
 #dépendance_bibliothèque libGLEW libGL
-
+GLchar :: z8
 GLenum :: n32
 GLboolean :: n8
 GLbitfield :: n32
@@ -394,5 +394,41 @@ GL_NUM_SPARSE_LEVELS_EXT : GLuint : 0x91AA
 // #define glTexturePageCommitmentEXT GLEW_GET_FUN(__glewTexturePageCommitmentEXT)
 
 // #define GLEW_EXT_sparse_texture GLEW_GET_VAR(__GLEW_EXT_sparse_texture)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Débogage
+ * \{ */
+
+GL_DEBUG_OUTPUT : GLenum : 0x92E0
+GL_DEBUG_OUTPUT_SYNCHRONOUS : GLenum : 0x8242
+
+GL_DEBUG_SOURCE_API : GLenum : 0x8246
+GL_DEBUG_SOURCE_WINDOW_SYSTEM : GLenum : 0x8247
+GL_DEBUG_SOURCE_SHADER_COMPILER : GLenum : 0x8248
+GL_DEBUG_SOURCE_THIRD_PARTY : GLenum : 0x8249
+GL_DEBUG_SOURCE_APPLICATION : GLenum : 0x824A
+GL_DEBUG_SOURCE_OTHER : GLenum : 0x824B
+GL_DEBUG_TYPE_ERROR : GLenum : 0x824C
+GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR : GLenum : 0x824D
+GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR  : GLenum : 0x824E
+GL_DEBUG_TYPE_PORTABILITY         : GLenum : 0x824F
+GL_DEBUG_TYPE_PERFORMANCE         : GLenum : 0x8250
+GL_DEBUG_TYPE_OTHER               : GLenum : 0x8251
+GL_MAX_DEBUG_MESSAGE_LENGTH       : GLenum : 0x9143
+GL_MAX_DEBUG_LOGGED_MESSAGES      : GLenum : 0x9144
+GL_DEBUG_LOGGED_MESSAGES          : GLenum : 0x9145
+GL_DEBUG_SEVERITY_HIGH            : GLenum : 0x9146
+GL_DEBUG_SEVERITY_MEDIUM          : GLenum : 0x9147
+GL_DEBUG_SEVERITY_LOW             : GLenum : 0x9148
+GL_DEBUG_TYPE_MARKER              : GLenum : 0x8268
+GL_DEBUG_TYPE_PUSH_GROUP          : GLenum : 0x8269
+GL_DEBUG_TYPE_POP_GROUP           : GLenum : 0x826A
+GL_DEBUG_SEVERITY_NOTIFICATION    : GLenum : 0x826B
+
+DEBUGPROC :: fonc (/*source: */GLenum, /*type: */GLenum, /*id: */GLuint, /*severity: */GLenum, /*length: */GLsizei, /*message: */*GLchar, /*userParam: */*rien)(rien)
+
+glDebugMessageCallback :: fonc (callback: DEBUGPROC, userParam: *rien) #externe libGL
 
 /** \} */
