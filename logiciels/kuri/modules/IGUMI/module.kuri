@@ -1061,23 +1061,26 @@ commence_frame_buffer :: fonc ()
     termine_immédiat()
     réinitialise_données()
 
+    hauteur_cannevas := donne_hauteur_cannevas()
+    largeur_cannevas := donne_largeur_cannevas()
+
     fb: FrameBuffer
 
     glGenFramebuffers(1, *fb.fbo)
-    // glGenTextures(1, *fb.texture)
+    glGenTextures(1, *fb.texture)
     glGenRenderbuffers(1, *fb.buffer)
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb.fbo)
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo)
 
-    // glBindTexture(GL_TEXTURE_2D, fb.texture)
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_cannevas, hauteur_cannevas, 0, GL_RGBA, GL_FLOAT, nul)
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
+    glBindTexture(GL_TEXTURE_2D, fb.texture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_cannevas, hauteur_cannevas, 0, GL_RGBA, GL_FLOAT, nul)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
 
     glBindRenderbuffer(GL_RENDERBUFFER, fb.buffer)
     glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, largeur_cannevas, hauteur_cannevas)
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fb.buffer)
+    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fb.buffer)
     vérifie_erreur(#nom_de_cette_fonction)
 
     gl_check_framebuffer_status()
@@ -1098,6 +1101,8 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
         prev_render_buffer = __frame_buffers.tête().buffer
     }
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_buffer)
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fb.fbo)
 
@@ -1105,48 +1110,50 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     // glEnable(GL_BLEND)
 
-    image := alloc_image(hauteur_cannevas, largeur_cannevas, 4)
-    diffère détruit_image(image)
+    // image := alloc_image(hauteur_cannevas, largeur_cannevas, 4)
+    // diffère détruit_image(image)
 
-    glReadBuffer(GL_COLOR_ATTACHMENT0)
-    glReadPixels(0, 0, largeur_cannevas, hauteur_cannevas, GL_RGBA, GL_FLOAT, image.donnees)
+    // glReadBuffer(GL_COLOR_ATTACHMENT0)
+    // glReadPixels(0, 0, largeur_cannevas, hauteur_cannevas, GL_RGBA, GL_FLOAT, image.donnees)
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+    // glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
 
-    glBindRenderbuffer(GL_RENDERBUFFER, prev_render_buffer)
+    // glBindRenderbuffer(GL_RENDERBUFFER, prev_render_buffer)
 
-    rect: RectanglePosDim(r32)
-    rect.largeur = largeur_cannevas comme r32
-    rect.hauteur = hauteur_cannevas comme r32
+    // rect: RectanglePosDim(r32)
+    // rect.largeur = largeur_cannevas comme r32
+    // rect.hauteur = hauteur_cannevas comme r32
 
-    image_immédiat(image, rect, rect, RépétitionImage())
+    // image_immédiat(image, rect, rect, RépétitionImage())
 
-    // commence_immédiat(ModeImmédiat.TRIANGLES, nuanceur_image)
+    empl __ctx_courant;
+    nuanceur_image := nuanceurs[IDNuanceur.Image]
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Image)
 
-    // glUseProgram(nuanceur_image.programme)
-    // diffère glUseProgram(0)
+    glUseProgram(nuanceur_image.programme)
+    diffère glUseProgram(0)
 
-    // glBindTexture(GL_TEXTURE_2D, fb.texture)
-    // définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
+    glBindTexture(GL_TEXTURE_2D, fb.texture)
+    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
 
-    // x := 0.0
-    // y := 0.0
-    // largeur := largeur_cannevas comme r32
-    // hauteur := hauteur_cannevas comme r32
+    x := 0.0
+    y := 0.0
+    largeur := largeur_cannevas comme r32
+    hauteur := hauteur_cannevas comme r32
 
-    // p0 := Vec3(x = x, y = y)
-    // p1 := Vec3(x = largeur, y = y)
-    // p2 := Vec3(x = x + largeur, y = y + hauteur)
-    // p3 := Vec3(x = x, y = y + hauteur)
+    p0 := Vec3(x = x, y = y)
+    p1 := Vec3(x = largeur, y = y)
+    p2 := Vec3(x = x + largeur, y = y + hauteur)
+    p3 := Vec3(x = x, y = y + hauteur)
 
-    // u0 := Vec2(0.0, 0.0)
-    // u1 := Vec2(1.0, 0.0)
-    // u2 := Vec2(1.0, 1.0)
-    // u3 := Vec2(0.0, 1.0)
+    u0 := Vec2(0.0, 0.0)
+    u1 := Vec2(1.0, 0.0)
+    u2 := Vec2(1.0, 1.0)
+    u3 := Vec2(0.0, 1.0)
 
-    // quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
+    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
 
-    // termine_immédiat()
+    termine_immédiat()
 
     /* Nettoyage. */
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
