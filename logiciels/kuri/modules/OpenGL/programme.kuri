@@ -323,11 +323,14 @@ TypeValeur :: énum {
     vec3
     vec4
 
+    mat3
     mat4
 
     sampler1D
     sampler2D
     sampler3D
+
+    sampler2DArray
 }
 
 donne_type_pour_chaine :: fonc (type: chaine) -> TypeValeur
