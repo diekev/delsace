@@ -1098,9 +1098,9 @@ void ConteneurControles::obtiens_liste(const dls::chaine &attache,
 
 RepondantCommande *ConteneurControles::donne_repondant_commande()
 {
-    if (m_rappels && m_rappels->donne_pilote_clique) {
-        auto pilote = m_rappels->donne_pilote_clique(m_rappels);
-        return reinterpret_cast<PiloteClique *>(pilote);
+    if (m_rappels && m_rappels->donne_pilote_clic) {
+        auto pilote = m_rappels->donne_pilote_clic(m_rappels);
+        return reinterpret_cast<PiloteClic *>(pilote);
     }
 
     return nullptr;
@@ -1160,21 +1160,21 @@ void ConteneurControles::crée_interface()
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name PiloteClique
+/** \name PiloteClic
  * \{ */
 
-PiloteClique::PiloteClique(DNJ_Rappels_Pilote_Clique *rappels) : m_rappels(rappels)
+PiloteClic::PiloteClic(DNJ_Rappels_Pilote_Clic *rappels) : m_rappels(rappels)
 {
 }
 
-PiloteClique::~PiloteClique()
+PiloteClic::~PiloteClic()
 {
     if (m_rappels && m_rappels->sur_destruction) {
         m_rappels->sur_destruction(m_rappels);
     }
 }
 
-bool PiloteClique::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
+bool PiloteClic::evalue_predicat(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
     if (m_rappels && m_rappels->sur_évaluation_prédicat) {
         return m_rappels->sur_évaluation_prédicat(
@@ -1183,10 +1183,10 @@ bool PiloteClique::evalue_predicat(dls::chaine const &identifiant, dls::chaine c
     return false;
 }
 
-void PiloteClique::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
+void PiloteClic::repond_clique(dls::chaine const &identifiant, dls::chaine const &metadonnee)
 {
-    if (m_rappels && m_rappels->sur_clique) {
-        m_rappels->sur_clique(m_rappels, vers_ipa(identifiant), vers_ipa(metadonnee));
+    if (m_rappels && m_rappels->sur_clic) {
+        m_rappels->sur_clic(m_rappels, vers_ipa(identifiant), vers_ipa(metadonnee));
     }
 }
 

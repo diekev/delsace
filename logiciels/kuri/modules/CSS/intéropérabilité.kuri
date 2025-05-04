@@ -125,6 +125,7 @@ donne_qt_cursor_shape :: fonc (type: CursorType) -> QT_CursorShape
  * \{ */
 
 importe Géométrie
+importe IGUMI
 importe Math
 importe OpenGL
 importe PeintureInterface
@@ -132,6 +133,8 @@ importe PeintureInterface
 dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
 {
     peintre.commence_dessin()
+
+    // active_gl_debug()
 
     début := commandes.commandes.pointeur
     fin := début + commandes.commandes.taille
@@ -199,8 +202,13 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 peintre.remplis_cercle(cercle, commande.couleur)
             }
             DÉBUTE_STACKING_CONTEXT {
+                // Fondation.imprimeln("%", base.type)
+                // IGUMI.commence_frame_buffer()
             }
             TERMINE_STACKING_CONTEXT {
+                // commande := base comme *CommandeTermineStackingContexte
+                // Fondation.imprimeln("%", base.type)
+                // IGUMI.termine_frame_buffer(commande.opacité)
             }
             DÉBUTE_CISELAGE {
                 commande := base comme *CommandeDébuteCiselage

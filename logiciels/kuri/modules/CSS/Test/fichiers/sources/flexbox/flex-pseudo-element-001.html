@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test CSS : position absolue, pseudo-element, dans flex</title>
+  <style>
+    div {
+      position: relative;
+      display: flex;
+    }
+
+    div::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      background-color: blue;
+      height: 4px;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="villes active">
+    Le test passe si une ligne bleue est en dessous de cette phrase.
+  </div>
+</body>
+
+</html>

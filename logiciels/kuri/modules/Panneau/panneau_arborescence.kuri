@@ -135,18 +135,18 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     {
     }
 
-    sur_clique_souris :: fonc (panneau_arborescence: *PanneauArborescence, clique: CliqueSouris) -> bool
+    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool
     {
-        saufsi panneau_arborescence.rect.contient(clique.état.où) {
+        saufsi panneau_arborescence.rect.contient(clic.état.où) {
             retourne faux
         }
 
         pour panneau_arborescence.éléments_visibles {
-            saufsi it.rect_bouton.contient(clique.état.où) {
+            saufsi it.rect_bouton.contient(clic.état.où) {
                 continue
             }
 
-            si clique.action == ActionSouris.RELACHÉE {
+            si clic.action == ActionSouris.RELACHÉE {
                 it.est_développé = !it.est_développé
                 panneau_arborescence.besoin_ajournement_disposition = vrai
             }
@@ -192,7 +192,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
     ajoute_enfant(parent, résultat)
 
     résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_clic_souris = sur_clic_souris
     résultat.sur_dessin = sur_dessin
     retourne résultat
 }

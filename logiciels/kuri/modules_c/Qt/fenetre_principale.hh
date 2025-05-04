@@ -41,5 +41,5 @@ class FenetrePrincipale final : public QMainWindow {
     void construit_barre_de_menu();
 
   public Q_SLOTS:
-    void repond_clique_menu();
+    void repond_clic_menu();
 };

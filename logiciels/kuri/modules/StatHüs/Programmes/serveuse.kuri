@@ -1,4 +1,5 @@
 importe Compilatrice
+importe CréationFenêtre
 importe BoiteFlexible
 importe Chaine
 importe Couleur
@@ -22,37 +23,42 @@ principale :: fonc ()
     // extrémité := crée_extrémité_serveuse(faux)
     // détruit_extrémité(extrémité)
 
-    arguments := arguments_ligne_commande()
+    serveuse: Serveuse
+    // serveuse.extrémité = extrémité
+    serveuse.fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 60.0)
+    serveuse.petite_fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
 
-    taille_arguments := arguments.taille comme z32
-    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
-    diffère QT_detruit_application(app)
+    fenêtre := crée_fenêtre(800, 600, "Serveuse", vrai, 1)
 
-    rappels: RappelsWindow
-    // rappels.extrémité = extrémité
-    rappels.fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 60.0)
-    rappels.petite_fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
+    crée_local_server(*serveuse, donne_qt_window(fenêtre))
 
-    window := QT_window_cree_avec_rappels(*rappels)
+    doit_fermer := faux
 
-    si QT_application_screen_count() > 1 {
-        rect: QT_Rect
-        QT_application_screen_geometry(1, *rect)
-        QT_window_set_position(window, rect.x, rect.y)
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            gère_évènement(*serveuse.emboiteuse, it)
+        }
+
+        dessine_fenêtre(*serveuse, largeur, hauteur)
+
+        permute_tampons_fenêtre(fenêtre)
     }
-
-    QT_window_show_maximized(window)
-
-    exécute(app)
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom RappelsWindow
+/** \nom Serveuse
  * \{ */
 
-RappelsWindow :: struct {
-    empl base: QT_Rappels_Window
-
+Serveuse :: struct {
     // extrémité: Extrémité(faux)
     fonte: *Fonte
     petite_fonte: *Fonte
@@ -64,117 +70,23 @@ RappelsWindow :: struct {
     état_mémoire: ÉtatMémoire
 
     dessine_allocations := vrai
-
-    glctx: *QT_OpenGL_Context
-    glew_est_initialisé: bool
-
-    taille_fenêtre: QT_Taille
-
-    files_parallèles: [..]FileParallèle
-
-    sur_creation = rappels_window_sur_creation
-    sur_evenement = rappels_window_sur_evenement
 }
 
-rappels_window_sur_creation :: fonc (base: *QT_Rappels_Window)
+dessine_fenêtre :: fonc (empl serveuse: *Serveuse, largeur: z32, hauteur: z32)
 {
-    rappels := base comme *RappelsWindow
-    window := rappels.window
-
-    crée_local_server(rappels)
-
-    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
-}
-
-rappels_window_sur_evenement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
-{
-    rappels := base comme *RappelsWindow
-
-    type := QT_evenement_donne_type(event)
-
-    si type == QT_Event_Type.UpdateRequest {
-        dessine_fenêtre(rappels)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Expose {
-        dessine_fenêtre(rappels)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Resize {
-        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseMove {
-        position: QT_Position
-        QT_mouse_event_donne_position(event.mouse_event, *position)
-        définis_position_souris(*rappels.emboiteuse, position.x comme r32, position.y comme r32)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.Wheel {
-        position: QT_Position
-        QT_wheel_event_donne_position(event.wheel_event, *position)
-        delta := QT_wheel_event_donne_delta(event.wheel_event)
-        applique_défilage_vertical(*rappels.emboiteuse, position.x comme r32, position.y comme r32, delta)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_pression_souris(*rappels.emboiteuse, clic)
-        retourne vrai
-    }
-
-    si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clique_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        sur_relâchement_souris(*rappels.emboiteuse, clic)
-        retourne vrai
-    }
-
-    retourne faux
-}
-
-dessine_fenêtre :: fonc (base: *QT_Rappels_Window)
-{
-    rappels := base comme *RappelsWindow
-    window := rappels.window
-
-    saufsi QT_window_is_exposed(window) {
-        retourne
-    }
-
-    saufsi rappels.glctx {
-        rappels.glctx = QT_OpenGL_Context_cree_avec_parent(window)
-        _ := QT_OpenGL_Context_create(rappels.glctx)
-    }
-
-    _ := QT_OpenGL_Context_make_current(rappels.glctx, window)
-
-    saufsi rappels.glew_est_initialisé {
-        glewExperimental = 1
-        erreur_ := glewInit()
-
-        si erreur_ != 0 {
-            imprime("Erreur lors de l'initilisation de GLEW !\n")
-            retourne
-        }
-        rappels.glew_est_initialisé = vrai
-    }
-
-    glViewport(0, 0, QT_window_width(window), QT_window_height(window))
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glClearColor(1.0, 1.0, 1.0, 1.0)
-
     marque := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marque)
 
-    dessine_interface(rappels, rappels.taille_fenêtre.largeur, rappels.taille_fenêtre.hauteur)
+    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi peintre {
+        peintre = crée_peintre_igumi(taille_cannevas)
+    }
 
-    QT_OpenGL_Context_swap_buffers(rappels.glctx, window)
-    QT_window_request_update(rappels.window)
+    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+    commandes := crée_interface(serveuse, largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
 }
 
 /** \} */
@@ -363,13 +275,13 @@ donne_condensat :: fonc (message: MessageInfoAllocations) -> Condensat
 RappelsLocalServer :: struct {
     empl base: QT_Rappels_LocalServer
 
-    rappels_window: *RappelsWindow
+    serveuse: *Serveuse
 }
 
-crée_local_server :: fonc (rappels: *RappelsWindow)
+crée_local_server :: fonc (serveuse: *Serveuse, window: *QT_Window)
 {
     résultat := QT_loge_rappel(RappelsLocalServer)
-    résultat.rappels_window = rappels
+    résultat.serveuse = serveuse
     résultat.sur_connexion = local_server_sur_connection
     résultat.sur_lecture = local_server_sur_lecture
 
@@ -378,7 +290,7 @@ crée_local_server :: fonc (rappels: *RappelsWindow)
         exit(1)
     }
 
-    server := QT_local_server_cree(résultat, rappels.window)
+    server := QT_local_server_cree(résultat, window)
     saufsi QT_local_server_listen(server, vers_qt(CHEMIN_SOCKET)) {
         imprime("Impossible d'écouter la prise\n")
     }
@@ -386,14 +298,14 @@ crée_local_server :: fonc (rappels: *RappelsWindow)
 
 local_server_sur_connection :: fonc (rappels: *RappelsLocalServer, connexion: *QT_LocalSocket @inutilisée)
 {
-    rappels_window := rappels.rappels_window
-    rappels_window.connexion_reçue = vrai
-    rappels_window.données_reçues.taille = 0
+    serveuse := rappels.serveuse
+    serveuse.connexion_reçue = vrai
+    serveuse.données_reçues.taille = 0
 }
 
 local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion: *QT_LocalSocket)
 {
-    rappels := rappels_server.rappels_window
+    serveuse := rappels_server.serveuse
 
     tantque QT_local_socket_is_valid(connexion) {
         tampon: [1024]z8
@@ -403,58 +315,42 @@ local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion
         }
 
         si taille_lue == -1 {
-            rappels.connexion_reçue = faux
+            serveuse.connexion_reçue = faux
             arrête
         }
 
-        ancienne_taille := rappels.données_reçues.taille
-        tableau_redimensionne(rappels.données_reçues, rappels.données_reçues.taille + taille_lue)
-        copie_mem_nonsur(src = *tampon[0], dst = rappels.données_reçues.pointeur + ancienne_taille, taille = taille_lue)
+        ancienne_taille := serveuse.données_reçues.taille
+        tableau_redimensionne(serveuse.données_reçues, serveuse.données_reçues.taille + taille_lue)
+        copie_mem_nonsur(src = *tampon[0], dst = serveuse.données_reçues.pointeur + ancienne_taille, taille = taille_lue)
     }
 
-    si rappels.données_reçues {
+    si serveuse.données_reçues {
         message: MessageInfoAllocations
 
-        données : []octet = rappels.données_reçues
+        données : []octet = serveuse.données_reçues
 
         tantque données.taille > 0 {
             init_de(MessageInfoAllocations)(*message)
 
             taille_lue := désérialise_type(message, données)
-            ajoute_message(*rappels.état_mémoire, message)
+            ajoute_message(*serveuse.état_mémoire, message)
             données.pointeur += taille_lue
             données.taille -= taille_lue
         }
 
-        rappels.données_reçues.taille = 0
+        serveuse.données_reçues.taille = 0
     }
 }
 
 /** \} */
 
-dessine_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32)
-{
-    commandes := crée_interface(rappels, largeur, hauteur)
-
-    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
-    saufsi rappels.peintre {
-        rappels.peintre = crée_peintre_igumi(taille_cannevas)
-    }
-
-    rappels.peintre.définis_taille_cannevas(taille_cannevas)
-
-    dessine_commandes(rappels.peintre, *commandes)
-
-    rappels.peintre.dessine_tampon_sur_écran()
-}
-
 PEAU1 := CouleurRVBA(0.776, 0.580, 0.467, 1.0)
 PEAU2 := CouleurRVBA(0.878, 0.770, 0.675, 1.0)
 PEAU_OMBRE := CouleurRVBA(0.094, 0.024, 0.0, 1.0)
 
-crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) -> CommandesDeRendu
+crée_interface :: fonc (serveuse: *Serveuse, largeur: z32, hauteur: z32) -> CommandesDeRendu
 {
-    emboiteuse := *rappels.emboiteuse
+    emboiteuse := *serveuse.emboiteuse
 
     commence_disposition(emboiteuse, largeur, hauteur)
 
@@ -462,20 +358,20 @@ crée_interface :: fonc (rappels: *RappelsWindow, largeur: z32, hauteur: z32) ->
     {
         définis_arrière_plan(PEAU2)
         définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
-        dessine_état_mémoire(rappels)
+        dessine_état_mémoire(serveuse)
     }
     termine_rectangle()
 
     retourne termine_disposition(emboiteuse)
 }
 
-dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
+dessine_état_mémoire :: fonc (serveuse: *Serveuse)
 {
-    si rappels.connexion_reçue == faux && rappels.données_reçues.taille == 0 {
+    si serveuse.connexion_reçue == faux && serveuse.données_reçues.taille == 0 {
         dispose_rectangle()
         {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu, séparation_enfant = 8.0)
-            dispose_texte("En attente d'une connexion...", ConfigurationTexte(rappels.fonte, PEAU_OMBRE))
+            dispose_texte("En attente d'une connexion...", ConfigurationTexte(serveuse.fonte, PEAU_OMBRE))
         }
         termine_rectangle()
         retourne
@@ -486,41 +382,41 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
         définis_arrière_plan(PEAU1)
         définis_disposition(cotation = Cotation(FIXE(300), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
-        dispose_texte("Connexion établie !", ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        dispose_texte("Connexion établie !", ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        texte := si rappels.état_mémoire.messages.taille > 1 {
-            imprime_chaine_temp("% messages reçus", rappels.état_mémoire.messages.taille)
+        texte := si serveuse.état_mémoire.messages.taille > 1 {
+            imprime_chaine_temp("% messages reçus", serveuse.état_mémoire.messages.taille)
         }
         sinon {
-            imprime_chaine_temp("% message reçu", rappels.état_mémoire.messages.taille)
+            imprime_chaine_temp("% message reçu", serveuse.état_mémoire.messages.taille)
         }
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        nombre_d_allocations := rappels.état_mémoire.allocations.taille
+        nombre_d_allocations := serveuse.état_mémoire.allocations.taille
         texte = si nombre_d_allocations > 1 {
             imprime_chaine_temp("% allocations", nombre_d_allocations)
         }
         sinon {
             imprime_chaine_temp("% allocation", nombre_d_allocations)
         }
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        texte = imprime_chaine_temp("mémoire utilisée % octets", rappels.état_mémoire.mémoire_utilisée)
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        texte = imprime_chaine_temp("mémoire utilisée % octets", serveuse.état_mémoire.mémoire_utilisée)
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        texte = imprime_chaine_temp("% traces", rappels.état_mémoire.traces.taille)
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        texte = imprime_chaine_temp("% traces", serveuse.état_mémoire.traces.taille)
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        texte = imprime_chaine_temp("% condensats", rappels.état_mémoire.condensats_traces.taille)
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        texte = imprime_chaine_temp("% condensats", serveuse.état_mémoire.condensats_traces.taille)
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
-        texte = imprime_chaine_temp("% traces triées", rappels.état_mémoire.traces_triées.taille)
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        texte = imprime_chaine_temp("% traces triées", serveuse.état_mémoire.traces_triées.taille)
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
 
         dispose_séparateur_horizontal(20)
 
-        dispose_bouton(rappels, "Allocations", sur_sélection_affichage_alloc_ou_traces, 0)
-        dispose_bouton(rappels, "Traces", sur_sélection_affichage_alloc_ou_traces, 1)
+        dispose_bouton(serveuse, "Allocations", sur_sélection_affichage_alloc_ou_traces, 0)
+        dispose_bouton(serveuse, "Traces", sur_sélection_affichage_alloc_ou_traces, 1)
     }
     termine_rectangle()
 
@@ -529,8 +425,8 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
         définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
-        si rappels.dessine_allocations {
-            pour > * rappels.état_mémoire.allocations {
+        si serveuse.dessine_allocations {
+            pour > * serveuse.état_mémoire.allocations {
                 si index_it >= 20 {
                     arrête
                 }
@@ -542,37 +438,37 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
 
                     trace := it.traces[0]
 
-                    sur_clic_souris(définis_allocation_sélectionnée, rappels, (rappels.état_mémoire.allocations.taille - index_it) comme z32 - 1)
+                    sur_clic_souris(définis_allocation_sélectionnée, serveuse, (serveuse.état_mémoire.allocations.taille - index_it) comme z32 - 1)
 
                     texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
-                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                    dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
                 }
                 termine_rectangle()
             }
         }
         sinon {
-            saufsi rappels.état_mémoire.les_traces_sont_triées {
-                tri_rapide(rappels.état_mémoire.traces_triées, compare_info_trace_allocations)
-                rappels.état_mémoire.les_traces_sont_triées = vrai
+            saufsi serveuse.état_mémoire.les_traces_sont_triées {
+                tri_rapide(serveuse.état_mémoire.traces_triées, compare_info_trace_allocations)
+                serveuse.état_mémoire.les_traces_sont_triées = vrai
             }
 
-            pour * rappels.état_mémoire.traces_triées {
+            pour * serveuse.état_mémoire.traces_triées {
                 si index_it >= 20 {
                     arrête
                 }
                 index_effectif := index_it comme z32
 
-                condensat := rappels.état_mémoire.condensats_traces[it.id]
+                condensat := serveuse.état_mémoire.condensats_traces[it.id]
 
                 dispose_rectangle(id = condensat.donne_chaine())
                 {
                     définis_arrière_plan(PEAU1)
                     définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
-                    sur_clic_souris(définis_trace_sélectionnée, rappels, index_effectif)
+                    sur_clic_souris(définis_trace_sélectionnée, serveuse, index_effectif)
 
                     texte := imprime_chaine_temp("% allocations dans '%'", it.utilisateurs, it.traces[0].nom)
-                    dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+                    dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
                 }
                 termine_rectangle()
             }
@@ -580,29 +476,29 @@ dessine_état_mémoire :: fonc (rappels: *RappelsWindow)
     }
     termine_rectangle()
 
-    si rappels.dessine_allocations {
-        allocation_sélectionnée := rappels.état_mémoire.allocation_sélectionnée
+    si serveuse.dessine_allocations {
+        allocation_sélectionnée := serveuse.état_mémoire.allocation_sélectionnée
         si allocation_sélectionnée == -1 {
             retourne
         }
 
-        allocation := rappels.état_mémoire.allocations[allocation_sélectionnée]
+        allocation := serveuse.état_mémoire.allocations[allocation_sélectionnée]
         trace := allocation.traces[0]
-        condensat := rappels.état_mémoire.condensats_traces[trace.id]
-        dessine_trace(rappels, trace, condensat)
+        condensat := serveuse.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(serveuse, trace, condensat)
     }
     sinon {
-        trace_sélectionnée := rappels.état_mémoire.trace_sélectionnée
+        trace_sélectionnée := serveuse.état_mémoire.trace_sélectionnée
         si trace_sélectionnée == -1 {
             retourne
         }
-        trace := rappels.état_mémoire.traces_triées[trace_sélectionnée]
-        condensat := rappels.état_mémoire.condensats_traces[trace.id]
-        dessine_trace(rappels, trace, condensat)
+        trace := serveuse.état_mémoire.traces_triées[trace_sélectionnée]
+        condensat := serveuse.état_mémoire.condensats_traces[trace.id]
+        dessine_trace(serveuse, trace, condensat)
     }
 }
 
-dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, condensat: Condensat)
+dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condensat: Condensat)
 {
     dispose_rectangle(id = "Vue Traces")
     {
@@ -610,51 +506,51 @@ dessine_trace :: fonc (rappels: *RappelsWindow, trace: *InfoTraceAllocation, con
         ajoute_défilage(ConfigurationDéfilage(vertical = vrai))
 
         hex := condensat.donne_chaine_hex()
-        dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
         déloge(hex)
 
         pour trace.traces {
-            dispose_texte(it.fichier, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
-            dispose_texte(it.texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+            dispose_texte(it.fichier, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
+            dispose_texte(it.texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
         }
     }
     termine_rectangle()   
 }
 
-dispose_bouton :: fonc (rappels: *RappelsWindow, texte: chaine, rappel_sur_clic: fonc(*rien, CliqueSouris, n64, z32)(rien), index: z32)
+dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: fonc(*rien, ClicSouris, n64, z32)(rien), index: z32)
 {
     dispose_rectangle(id = texte)
     {
         définis_arrière_plan(PEAU2)
         définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu)
-        sur_pression_souris(rappel_sur_clic, rappels, index)
-        dispose_texte(texte, ConfigurationTexte(rappels.petite_fonte, PEAU_OMBRE))
+        sur_pression_souris(rappel_sur_clic, serveuse, index)
+        dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
     }
     termine_rectangle()
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     si index == 0 {
-        rappels.dessine_allocations = vrai
+        serveuse.dessine_allocations = vrai
     }
     sinon si index == 1 {
-        rappels.dessine_allocations = faux
+        serveuse.dessine_allocations = faux
     }
 }
 
-définis_allocation_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
-    assert(index < rappels.état_mémoire.allocations.taille)
+    assert(index < serveuse.état_mémoire.allocations.taille)
 
-    rappels.état_mémoire.allocation_sélectionnée = index
+    serveuse.état_mémoire.allocation_sélectionnée = index
 }
 
-définis_trace_sélectionnée :: fonc (rappels: *RappelsWindow, souris: CliqueSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
 {
     assert(index >= 0)
-    assert(index < rappels.état_mémoire.traces_triées.taille)
+    assert(index < serveuse.état_mémoire.traces_triées.taille)
 
-    rappels.état_mémoire.trace_sélectionnée = index
+    serveuse.état_mémoire.trace_sélectionnée = index
 }
