@@ -286,7 +286,17 @@ donne_modificateur_clavier_qt :: fonc (mod: ModificateurClavier) -> QT_Keyboard_
 
 donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
 {
-    bouton := QT_mouse_event_donne_bouton(évènement)
+    retourne donne_bouton_souris(QT_mouse_event_donne_bouton(évènement))
+}
+
+/* À FAIRE : énum_drapeau */
+donne_boutons_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
+{
+    retourne donne_bouton_souris(QT_mouse_event_donne_boutons(évènement))
+}
+
+donne_bouton_souris :: fonc (bouton: QT_MouseButton) -> BoutonSouris
+{
     discr bouton {
         GAUCHE {
             retourne BoutonSouris.GAUCHE
@@ -315,7 +325,12 @@ donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, actio
     résultat.état.où.x = position.x
     résultat.état.où.y = position.y
     résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
-    résultat.bouton = donne_bouton_souris(évènement)
+    si action == ActionSouris.PRESSÉE || action == ActionSouris.RELACHÉE {
+        résultat.bouton = donne_bouton_souris(évènement)
+    }
+    sinon si action == ActionSouris.DÉPLACÉE {
+        résultat.bouton = donne_boutons_souris(évènement)
+    }
     résultat.action = action
     retourne résultat
 }

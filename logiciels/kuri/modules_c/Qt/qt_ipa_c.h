@@ -1806,6 +1806,7 @@ enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 
 void QT_mouse_event_donne_position(struct QT_MouseEvent *event, struct QT_Position *r_position);
 enum QT_MouseButton QT_mouse_event_donne_bouton(struct QT_MouseEvent *event);
+enum QT_MouseButton QT_mouse_event_donne_boutons(struct QT_MouseEvent *event);
 
 /** \} */
 
