@@ -1563,6 +1563,11 @@ résoud_pourcentage :: fonc (ctx: *ContexteCalculStyle, id: IDPropriété, réf�
     ctx.propriétés.définis_valeur_calculée(id, calcule_pourcentage(ctx, valeur, référence))
 }
 
+calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, ctx: *ContexteCalculStyle, référence: r64) -> *ValeurDeStyle
+{
+    retourne calcule_pourcentage(ctx, valeur, référence)
+}
+
 calcule_pourcentage :: fonc (ctx: *ContexteCalculStyle, valeur: *ValeurDeStyle, référence: r64) -> *ValeurDeStyle
 {
     ctx.pour_résolution_pourcentage = vrai

@@ -1372,6 +1372,16 @@ struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
     return nullptr;
 }
 
+void QT_window_create(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, create);
+}
+
+void QT_window_destroy(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, destroy);
+}
+
 void QT_window_request_update(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, requestUpdate);
@@ -1527,6 +1537,58 @@ void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Surface_Format
+ * \{ */
+
+static void copie_vers_ipa(QSurfaceFormat const &qformat, struct QT_Surface_Format *format)
+{
+    format->alpha_buffer_size = qformat.alphaBufferSize();
+    format->blue_buffer_size = qformat.blueBufferSize();
+    format->depth_buffer_size = qformat.depthBufferSize();
+    format->green_buffer_size = qformat.greenBufferSize();
+    format->red_buffer_size = qformat.redBufferSize();
+    format->stencil_buffer_size = qformat.stencilBufferSize();
+
+    format->samples = qformat.samples();
+    format->swap_interval = qformat.swapInterval();
+    format->major_version = qformat.majorVersion();
+    format->minor_version = qformat.minorVersion();
+
+    format->options = int(qformat.options());
+    format->profile = int(qformat.profile());
+    format->renderable_type = int(qformat.renderableType());
+    format->swap_behavior = int(qformat.swapBehavior());
+}
+
+static void copie_vers_qt(struct QT_Surface_Format *format, QSurfaceFormat &qformat)
+{
+    qformat.setAlphaBufferSize(format->alpha_buffer_size);
+    qformat.setBlueBufferSize(format->blue_buffer_size);
+    qformat.setDepthBufferSize(format->depth_buffer_size);
+    qformat.setGreenBufferSize(format->green_buffer_size);
+    qformat.setRedBufferSize(format->red_buffer_size);
+    qformat.setStencilBufferSize(format->stencil_buffer_size);
+
+    qformat.setSamples(format->samples);
+    qformat.setSwapInterval(format->swap_interval);
+    qformat.setMajorVersion(format->major_version);
+    qformat.setMinorVersion(format->minor_version);
+
+    qformat.setOptions(QSurfaceFormat::FormatOptions(format->options));
+    qformat.setProfile(QSurfaceFormat::OpenGLContextProfile(format->profile));
+    qformat.setRenderableType(QSurfaceFormat::RenderableType(format->renderable_type));
+    qformat.setSwapBehavior(QSurfaceFormat::SwapBehavior(format->swap_behavior));
+}
+
+void QT_initialize_surface_format(struct QT_Surface_Format *format)
+{
+    QSurfaceFormat qformat;
+    copie_vers_ipa(qformat, format);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 
@@ -1541,6 +1603,20 @@ void QT_OpenGL_detruit(QT_OpenGL_Context *context)
 {
     VERS_QT(context);
     delete qcontext;
+}
+
+void QT_OpenGL_Context_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    copie_vers_ipa(qcontext->format(), format);
+}
+
+void QT_OpenGL_Context_set_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    QSurfaceFormat surface_format;
+    copie_vers_qt(format, surface_format);
+    qcontext->setFormat(surface_format);
 }
 
 bool QT_OpenGL_Context_create(QT_OpenGL_Context *context)
@@ -1703,6 +1779,18 @@ QT_MouseButton QT_mouse_event_donne_bouton(QT_MouseEvent *event)
 {
     auto qevent = vers_qt(event);
     switch (qevent->button()) {
+        ENUMERE_BOUTON_SOURIS(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+        default:
+        {
+            return QT_MOUSEBUTTON_AUCUN;
+        }
+    }
+}
+
+QT_MouseButton QT_mouse_event_donne_boutons(QT_MouseEvent *event)
+{
+    auto qevent = vers_qt(event);
+    switch (qevent->buttons()) {
         ENUMERE_BOUTON_SOURIS(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
         default:
         {
@@ -4858,18 +4946,18 @@ int64_t QT_abstract_socket_write(QT_AbstractSocket socket, int8_t *donnees, int6
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Pilote_Clique
+/** \name DNJ_Pilote_Clic
  * \{ */
 
-DNJ_Pilote_Clique *DNJ_cree_pilote_clique(DNJ_Rappels_Pilote_Clique *rappels)
+DNJ_Pilote_Clic *DNJ_cree_pilote_clic(DNJ_Rappels_Pilote_Clic *rappels)
 {
-    auto résultat = new PiloteClique(rappels);
-    return reinterpret_cast<DNJ_Pilote_Clique *>(résultat);
+    auto résultat = new PiloteClic(rappels);
+    return reinterpret_cast<DNJ_Pilote_Clic *>(résultat);
 }
 
-void DNJ_detruit_pilote_clique(DNJ_Pilote_Clique *pilote)
+void DNJ_detruit_pilote_clic(DNJ_Pilote_Clic *pilote)
 {
-    auto qpilote = reinterpret_cast<PiloteClique *>(pilote);
+    auto qpilote = reinterpret_cast<PiloteClic *>(pilote);
     delete qpilote;
 }
 
@@ -4911,7 +4999,7 @@ void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)
 static danjo::DonneesInterface convertis_contexte(DNJ_Contexte_Interface *context)
 {
     auto résultat = danjo::DonneesInterface();
-    résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
+    résultat.repondant_bouton = reinterpret_cast<PiloteClic *>(context->pilote_clic);
     résultat.conteneur = vers_qt(context->conteneur);
     résultat.parent_menu = vers_qt(context->parent_menu);
     résultat.parent_barre_outils = vers_qt(context->parent_barre_outils);
@@ -4983,7 +5071,7 @@ void DNJ_gestionnaire_recree_menu(DNJ_Gestionnaire_Interface *gestionnaire,
         donnée.attache = action.attache.vers_std_string();
         donnée.metadonnee = action.metadonnee.vers_std_string();
         donnée.nom = action.nom.vers_std_string();
-        donnée.repondant_bouton = reinterpret_cast<PiloteClique *>(action.pilote_clique);
+        donnée.repondant_bouton = reinterpret_cast<PiloteClic *>(action.pilote_clic);
 
         données_actions.ajoute(donnée);
     }

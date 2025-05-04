@@ -80,6 +80,11 @@ donne_texte :: fonc (lexème: Lexème) -> chaine
     retourne chaine(lexème.début, lexème.fin - lexème.début)
 }
 
+est_symbole :: fonc (lexème: Lexème, texte: chaine) -> bool
+{
+    retourne lexème.type == TypeLexème.Symbole && lexème.donne_texte() == texte
+}
+
 est_mot_clé :: fonc (lexème: Lexème, texte: chaine) -> bool
 {
     retourne lexème.type == TypeLexème.MotClé && lexème.donne_texte() == texte
@@ -190,7 +195,109 @@ fini :: fonc (lexeuse: *SimpleLexeuse) -> bool
     retourne lexeuse.début >= lexeuse.fin
 }
 
+consomme_ponctuation :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
+{
+    _ := donne_lexème(lexeuse, TypeLexème.Ponctuation, texte)
+}
+
+consomme_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
+{
+    _ := donne_symbole(lexeuse, texte)
+}
+
+consomme_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
+{
+    _ := donne_mot_clé(lexeuse, texte)
+}
+
+donne_nombre :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.Nombre)
+}
+
+donne_symbole :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.Symbole)
+}
+
+donne_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.Symbole, texte)
+}
+
+donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.MotClé)
+}
+
+donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.MotClé, texte)
+}
+
 #portée_fichier
+
+donne_lexème :: fonc (lexeuse: *SimpleLexeuse, type: TypeLexème) -> Lexème
+{
+    lexème := donne_lexème_suivant(lexeuse)
+    saufsi lexème.type == type {
+        rapporte_erreur(lexeuse, lexème, type)
+    }
+    retourne lexème
+}
+
+donne_lexème :: fonc (lexeuse: *SimpleLexeuse, type: TypeLexème, texte: chaine) -> Lexème
+{
+    lexème := donne_lexème_suivant(lexeuse)
+    si lexème.type == type && lexème.donne_texte() == texte {
+        retourne lexème
+    }
+    rapporte_erreur(lexeuse, lexème, texte)
+}
+
+rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: TypeLexème) #sansretour
+{
+    voulu := "non-spécifié"
+    discr type_voulu {
+        Symbole {
+            voulu = "un symbole"
+        }
+        MotClé {
+            voulu = "un mot-clé"
+        }
+        Ponctuation {
+            voulu = "une ponctuation"
+        }
+        Nombre {
+            voulu = "un nombre"
+        }
+        Commentaire {
+            voulu = "un commentaire"
+        }
+        EspaceBlanche {
+            voulu = "une espace blanche"
+        }
+        FinDeFichier {
+            voulu = "la fin de fichier"
+        }
+        ChaineLittérale {
+            voulu = "une chaine littérale"
+        }
+    }
+
+    ligne := donne_ligne_pour_erreur(lexeuse)
+    imprimeln("%", ligne.texte)
+    imprimeln("Attendu %, obtenu '%'", voulu, lexème.donne_texte())
+    exit(1)
+}
+
+rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chaine) #sansretour
+{
+    ligne := donne_ligne_pour_erreur(lexeuse)
+    imprimeln("%", ligne.texte)
+    imprimeln("Attendu '%', obtenu '%'", voulu, lexème.donne_texte())
+    exit(1)
+}
 
 DrapeauxCaractère :: énum_drapeau n16 {
     Numérique
