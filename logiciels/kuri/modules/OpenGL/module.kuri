@@ -117,6 +117,72 @@ gl_check_framebuffer_status :: fonc ()
         }
 	}
 }
+/* ------------------------------------------------------------------------- */
+/** \nom Débogage
+ * \{ */
+
+donne_chaine_debug_source :: fonc (source: GLenum) -> chaine
+{
+    si source == GL_DEBUG_SOURCE_API { retourne "API" }
+    si source == GL_DEBUG_SOURCE_WINDOW_SYSTEM { retourne "WINDOW" }
+    si source == GL_DEBUG_SOURCE_SHADER_COMPILER { retourne "COMPILER" }
+    si source == GL_DEBUG_SOURCE_THIRD_PARTY { retourne "THIRD PARTY" }
+    si source == GL_DEBUG_SOURCE_APPLICATION { retourne "APPLICATION" }
+    si source == GL_DEBUG_SOURCE_OTHER { retourne "OTHER" }
+    retourne "INCONNUE"
+}
+
+donne_chaine_debug_type :: fonc (type: GLenum) -> chaine
+{
+    si type == GL_DEBUG_TYPE_ERROR { retourne "ERROR" }
+    si type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR { retourne "DEPRECATED BEHAVIOR" }
+    si type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR { retourne "UNDEFINED BEHAVIOR" }
+    si type == GL_DEBUG_TYPE_PORTABILITY { retourne "PORTABILITY" }
+    si type == GL_DEBUG_TYPE_PERFORMANCE { retourne "PERFORMANCE" }
+    si type == GL_DEBUG_TYPE_PUSH_GROUP { retourne "PUSH GROUP" }
+    si type == GL_DEBUG_TYPE_POP_GROUP { retourne "POP GROUP" }
+    si type == GL_DEBUG_TYPE_OTHER { retourne "OTHER" }
+    si type == GL_DEBUG_TYPE_MARKER { retourne "MARKER" }
+    retourne "INCONNU"
+}
+
+donne_chaine_debug_severity :: fonc (severity: GLenum) -> chaine
+{
+    si severity == GL_DEBUG_SEVERITY_HIGH { retourne "HIGH" }
+    si severity == GL_DEBUG_SEVERITY_MEDIUM { retourne "MEDIUM" }
+    si severity == GL_DEBUG_SEVERITY_LOW { retourne "LOW" }
+    si severity == GL_DEBUG_SEVERITY_NOTIFICATION { retourne "NOTE" }
+    retourne "INCONNUE"
+}
+
+active_gl_debug :: fonc (synchrone := faux)
+{
+    si synchrone {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+    }
+    sinon {
+        glEnable(GL_DEBUG_OUTPUT)
+    }
+
+    sur_gl_debug_message :: fonc (source: GLenum, type: GLenum, id: GLuint, severity: GLenum, length: GLsizei, message: *GLchar, userParam: *rien)
+    pousse_contexte __contexte_fil_principal {
+        imprimeln("[GL][%][%][%] %", donne_chaine_debug_severity(severity), donne_chaine_debug_source(source), donne_chaine_debug_type(type), chaine(message, length))
+    }
+
+    glDebugMessageCallback(sur_gl_debug_message, nul)
+}
+
+désactive_gl_debug :: fonc ()
+{
+    si glIsEnabled(GL_DEBUG_OUTPUT) {
+        glDisable(GL_DEBUG_OUTPUT)
+    }
+    sinon si glIsEnabled(GL_DEBUG_OUTPUT_SYNCHRONOUS) {
+        glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+    }
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Texture 2D.
