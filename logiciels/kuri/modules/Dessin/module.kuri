@@ -724,12 +724,13 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
             dessine_image_rvb_8(tampon_de_rendu, image, rect)
         }
         RVB_32 {
-            image_io: ImageIO
-            image_io.donnees = image.données comme *r32
-            image_io.largeur = image.desc.largeur comme z32
-            image_io.hauteur = image.desc.hauteur comme z32
-            image_io.nombre_composants = 3
-            dessine_image(tampon_de_rendu, image_io, rect)
+            // À FAIRE
+            // image_io: ImageIO
+            // image_io.donnees = image.données comme *r32
+            // image_io.largeur = image.desc.largeur comme z32
+            // image_io.hauteur = image.desc.hauteur comme z32
+            // image_io.nombre_composants = 3
+            // dessine_image(tampon_de_rendu, image_io, rect)
         }
         RVBA_8 {
             tampon: TamponImageRVBA8Bit
@@ -739,12 +740,13 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
             dessine_image(tampon_de_rendu, tampon, rect)
         }
         RVBA_32 {
-            image_io: ImageIO
-            image_io.donnees = image.données comme *r32
-            image_io.largeur = image.desc.largeur comme z32
-            image_io.hauteur = image.desc.hauteur comme z32
-            image_io.nombre_composants = 4
-            dessine_image(tampon_de_rendu, image_io, rect)
+            // À FAIRE
+            // image_io: ImageIO
+            // image_io.donnees = image.données comme *r32
+            // image_io.largeur = image.desc.largeur comme z32
+            // image_io.hauteur = image.desc.hauteur comme z32
+            // image_io.nombre_composants = 4
+            // dessine_image(tampon_de_rendu, image_io, rect)
         }
     }
 }

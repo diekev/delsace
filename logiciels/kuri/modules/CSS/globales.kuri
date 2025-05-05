@@ -40,7 +40,7 @@ GlobalesDessin :: struct {
 
     fontes_en_cache: [..]FonteEnCache
 
-    image_checkbox: ImageIO
+    image_checkbox: NouvelleImage
 }
 
 données_image_checkbox := n8.[
@@ -60,13 +60,12 @@ données_image_checkbox := n8.[
 crée_globales_dessin :: fonc () -> *GlobalesDessin
 {
     résultat := loge(GlobalesDessin)
-    résultat.image_checkbox = alloc_image(10, 10, 4)
 
-    pixel := résultat.image_checkbox.donnees
-    pour résultat.image_checkbox.nombre_de_pixels() * 4 {
-        mémoire(pixel) = données_image_checkbox[index_it] comme r32 / 255.0
-        pixel += 1
-    }
+    résultat.image_checkbox.desc.hauteur = 10
+    résultat.image_checkbox.desc.largeur = 10
+    résultat.image_checkbox.desc.format = FormatPixel.RVBA_8
+    résultat.image_checkbox.source_données = SourceDonnéesImage.Externe
+    résultat.image_checkbox.données = *données_image_checkbox[0]
 
     retourne résultat
 }
@@ -81,7 +80,6 @@ détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
         détruit_fonte(it.fonte)
     }
 
-    détruit_image(globales.image_checkbox)
     déloge(globales.fontes_en_cache)
     déloge(globales)
 }

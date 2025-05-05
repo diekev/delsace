@@ -105,6 +105,8 @@ GL_R32I : GLenum : 0x8235
 GL_R32UI : GLenum : 0x8236
 GL_RG : GLenum : 0x8227
 
+GL_UNPACK_ALIGNMENT : GLenum : 0x0CF5
+
 GL_ONE : n32 : 1
 GL_LESS : GLenum : 0x0201
 GL_DEPTH_TEST : GLenum : 0x0B71
@@ -253,6 +255,8 @@ glTexImage3D :: fonc (
     format: GLenum,
     type: GLenum,
     données: *rien) -> rien #externe libGL
+
+glPixelStorei :: fonc (pname: GLenum, param: GLint) #externe libGL
 
 // foncs de nuanceurs/programmes
 glShaderSource :: fonc (shader: n32, count: z64, string: **z8, length: *z32) -> rien #externe libGL

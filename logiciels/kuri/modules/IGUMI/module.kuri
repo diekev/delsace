@@ -949,12 +949,6 @@ image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32)
     image_immédiat(*params, rect_image, rect)
 }
 
-image_immédiat :: fonc (image: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
-{
-    params := donne_paramètres_texture_pour_image(image, répétition)
-    image_immédiat(*params, rect_image, rect)
-}
-
 image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
     /* À FAIRE : dessine en noir et blanc. */

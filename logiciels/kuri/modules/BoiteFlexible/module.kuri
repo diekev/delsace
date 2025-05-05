@@ -242,6 +242,11 @@ Cotation :: struct {
     hauteur: z32
 }
 
+crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
+{
+    retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32))
+}
+
 Rembourrage :: struct {
     v: [4]r32
 }
@@ -408,12 +413,6 @@ dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
 
     boite := __boite_courante.ajoute_texte(nul, texte)
     boite.config_texte = config
-}
-
-dispose_image :: fonc (image: ImageIO, cotation: Cotation)
-{
-    nouvelle_image := nouvelle_image_enveloppe_image_io(*image)
-    dispose_image(nouvelle_image, cotation)
 }
 
 dispose_image :: fonc (image: NouvelleImage, cotation: Cotation)
