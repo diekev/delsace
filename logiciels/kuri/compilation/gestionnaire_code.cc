@@ -640,35 +640,34 @@ static bool type_requiers_typage(NoeudDéclarationType const *type)
 }
 
 /* Requiers le typage de toutes les dépendances. */
-static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
-                                            DonnéesDépendance const &dépendances,
-                                            EspaceDeTravail *espace)
+void GestionnaireCode::garantie_typage_des_dépendances(
+    DonnéesDépendance const &données_dépendances, EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    kuri::pour_chaque_élément(dépendances.fonctions_utilisées, [&](auto &fonction) {
+    kuri::pour_chaque_élément(données_dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
-            gestionnaire.requiers_typage(espace, fonction->corps);
+            requiers_typage(espace, fonction->corps);
         }
         return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_élément(dépendances.globales_utilisées, [&](auto &globale) {
+    kuri::pour_chaque_élément(données_dépendances.globales_utilisées, [&](auto &globale) {
         if (!globale->unité) {
-            gestionnaire.requiers_typage(espace, const_cast<NoeudDéclarationVariable *>(globale));
+            requiers_typage(espace, const_cast<NoeudDéclarationVariable *>(globale));
         }
         return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_élément(dépendances.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(données_dépendances.types_utilisés, [&](auto &type) {
         if (type_requiers_typage(type)) {
-            gestionnaire.requiers_typage(espace, type);
+            requiers_typage(espace, type);
         }
 
-        gestionnaire.requiers_initialisation_type(espace, type);
+        requiers_initialisation_type(espace, type);
 
         if (type->est_type_fonction()) {
             auto type_fonction = type->comme_type_fonction();
@@ -692,7 +691,18 @@ static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
              */
             if (type_retour->est_type_tuple() && type_retour->taille_octet == 0 &&
                 !type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                calcule_taille_type_composé(type_retour->comme_type_tuple(), false, 0);
+                auto type_tuple = type_retour->comme_type_tuple();
+
+                auto unité = crée_unité(espace, RaisonDÊtre::CALCULE_TAILLE_TYPE, true);
+                unité->type = type_tuple;
+
+                POUR (type_tuple->membres) {
+                    if (!it.type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                        auto attente = Attente::sur_type(it.type);
+                        ajoute_requêtes_pour_attente(espace, attente);
+                        unité->ajoute_attente(attente);
+                    }
+                }
             }
         }
 
@@ -820,7 +830,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     if (dépendances_ajoutees) {
         DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
         dépendances.dépendances.fusionne(dépendances.dépendances_épendues);
-        garantie_typage_des_dépendances(*this, dépendances.dépendances, espace);
+        garantie_typage_des_dépendances(dépendances.dépendances, espace);
         TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
     TERMINE_STAT(DÉTERMINE_DÉPENDANCES);
@@ -1520,6 +1530,11 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
         case RaisonDÊtre::GENERATION_CODE_MACHINE:
         {
             generation_code_machine_terminée(unité);
+            break;
+        }
+        case RaisonDÊtre::CALCULE_TAILLE_TYPE:
+        {
+            /* Rien à faire pour le moment. */
             break;
         }
     }
