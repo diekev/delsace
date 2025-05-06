@@ -364,24 +364,39 @@ est_valide :: fonc (index: IndexFlottance) -> bool #enligne
     retourne index comme n16 != FLOTTANCE_INVALIDE comme n16
 }
 
+AncrageFlottante :: énum {
+    HAUT_GAUCHE
+    HAUT_CENTRE
+    HAUT_DROIT
+    CENTRE_GAUCHE
+    CENTRE
+    CENTRE_DROIT
+    BAS_GAUCHE
+    BAS_CENTRE
+    BAS_DROIT
+}
+
 Flottance :: struct {
-    /* Décalages par rapport au parent. */
+    /* Ancrage par rapport au parent. */
+    ancrage: AncrageFlottante
+    /* Décalages par rapport à l'ancrage. */
     décalage_x := 0.0
     décalage_y := 0.0
 }
 
-définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0)
+définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := AncrageFlottante.HAUT_GAUCHE)
 {
     assert(__boite_courante != nul)
     emboiteuse := __boite_courante.emboiteuse
 
     si __boite_courante.flottance.est_valide() {
         config := *emboiteuse.flottances[__boite_courante.flottance]
+        config.ancrage = ancrage
         config.décalage_x = décalage_x
         config.décalage_y = décalage_y
     }
     sinon {
-        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(décalage_x, décalage_y))
+        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y))
     }
 }
 
@@ -1553,8 +1568,46 @@ calcule_positions :: fonc (boite: *BoiteFlexible)
     pour boite.enfants {
         si it.flottance.est_valide() {
             flottance := boite.emboiteuse.flottances[it.flottance]
-            it.position.x = boite.position.x + flottance.décalage_x
-            it.position.y = boite.position.y + flottance.décalage_y + boite.hauteur
+
+            it.position.x = boite.position.x
+            it.position.y = boite.position.y
+
+            discr flottance.ancrage {
+                HAUT_GAUCHE {
+                    /* Rien à faire. */
+                }
+                HAUT_CENTRE {
+                    it.position.x += boite.largeur * 0.5
+                }
+                HAUT_DROIT {
+                    it.position.x += boite.largeur
+                }
+                CENTRE_GAUCHE {
+                    it.position.y += boite.hauteur * 0.5
+                }
+                CENTRE {
+                    it.position.x += boite.largeur * 0.5
+                    it.position.y += boite.hauteur * 0.5
+                }
+                CENTRE_DROIT {
+                    it.position.x += boite.largeur
+                    it.position.y += boite.hauteur * 0.5
+                }
+                BAS_GAUCHE {
+                    it.position.y += boite.hauteur
+                }
+                BAS_CENTRE {
+                    it.position.x += boite.largeur * 0.5
+                    it.position.y += boite.hauteur
+                }
+                BAS_DROIT {
+                    it.position.x += boite.largeur
+                    it.position.y += boite.hauteur
+                }
+            }
+
+            it.position.x += flottance.décalage_x
+            it.position.y += flottance.décalage_y
 
             calcule_positions(it)
             continue
