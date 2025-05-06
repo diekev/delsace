@@ -408,7 +408,7 @@ Mouvement :: énum {
             si éditeur.cx < taille_ligne {
                 éditeur.cx += 1
             }
-            sinon si taille_ligne != 0 && éditeur.cx == taille_ligne {
+            sinon si éditeur.lignes_texte.taille != 0 && éditeur.cx == taille_ligne {
                 éditeur.cy += 1
                 éditeur.cx = 0
             }
