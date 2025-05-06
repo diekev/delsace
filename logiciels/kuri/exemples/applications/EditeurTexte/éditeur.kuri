@@ -394,6 +394,8 @@ Mouvement :: énum {
     FinLigne
     LignePrécédente
     LigneSuivante
+    PagePrécédente
+    PageSuivante
 }
 
 éditeur_déplace_curseur :: fonc (éditeur: *Éditeur, mouvement: Mouvement)
@@ -438,6 +440,22 @@ Mouvement :: énum {
         FinLigne {
             si éditeur.cy < éditeur.lignes_texte.taille {
                 éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille_unicode() comme z32
+            }
+        }
+        PagePrécédente {
+            pour éditeur.lignes - 1 {
+                // LignePrécédente
+                si éditeur.cy != 0 {
+                    éditeur.cy -= 1
+                }
+            }
+        }
+        PageSuivante {
+            pour éditeur.lignes - 1 {
+                // LigneSuivante
+                si éditeur.cy < éditeur.lignes_texte.taille {
+                    éditeur.cy += 1
+                }
             }
         }
     }
