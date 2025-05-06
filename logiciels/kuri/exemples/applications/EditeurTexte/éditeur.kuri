@@ -28,6 +28,7 @@ importe Unicode
 
     modifié: z32
     tampon_rendu_est_surannée: bool
+    recalcule_défilage: bool
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
@@ -314,6 +315,11 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
 
 éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
 {
+    saufsi éditeur.recalcule_défilage {
+        retourne
+    }
+    diffère éditeur.recalcule_défilage = faux
+
     éditeur.rx = 0
 
     si éditeur.cy < éditeur.lignes_texte.taille {
@@ -403,6 +409,8 @@ Mouvement :: énum {
 // À FAIRE : ponctuation pour MotPrécédent et MotSuivant
 éditeur_déplace_curseur :: fonc (éditeur: *Éditeur, mouvement: Mouvement)
 {
+    éditeur.recalcule_défilage = vrai
+
     taille_ligne : z64 = 0
     ligne := ""
     si éditeur.cy < éditeur.lignes_texte.taille {
