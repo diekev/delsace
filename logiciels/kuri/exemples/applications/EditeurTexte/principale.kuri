@@ -290,7 +290,9 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
         FlècheHaut,
         FlècheBas,
         FlècheDroite,
-        FlècheGauche {
+        FlècheGauche,
+        Début,
+        Fin {
            console_déplace_curseur(c)
         }
         PageHaut {
@@ -309,14 +311,6 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
 
             pour E.colonnes {
                 console_déplace_curseur(CléConsole.FlècheBas)
-            }
-        }
-        Début {
-            E.cx = 0
-        }
-        Fin {
-            si E.cy < E.lignes_texte.taille {
-                E.cx = E.lignes_texte[E.cy].taille_unicode() comme z32
             }
         }
         AncienRetour,
@@ -352,50 +346,26 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
 
 console_déplace_curseur :: fonc (c: CléConsole) -> rien
 {
-    taille_ligne : z64 = 0
-
-    si E.cy < E.lignes_texte.taille {
-        taille_ligne = E.lignes_texte[E.cy].taille
-    }
-
     discr c {
         FlècheGauche {
-            si E.cx != 0 {
-                E.cx -= 1
-            }
-            sinon si E.cy > 0 {
-                E.cy -= 1
-                E.cx = E.lignes_texte[E.cy].taille comme z32
-            }
+            éditeur_déplace_curseur(*E, Mouvement.Recule)
         }
         FlècheDroite {
-            si E.cx < taille_ligne {
-                E.cx += 1
-            }
-            sinon si taille_ligne != 0 && E.cx == taille_ligne {
-                E.cy += 1
-                E.cx = 0
-            }
+            éditeur_déplace_curseur(*E, Mouvement.Avance)
         }
         FlècheHaut {
-            si E.cy != 0 {
-                E.cy -= 1
-            }
+            éditeur_déplace_curseur(*E, Mouvement.LignePrécédente)
         }
         FlècheBas {
-            si E.cy < E.lignes_texte.taille {
-                E.cy += 1
-            }
+            éditeur_déplace_curseur(*E, Mouvement.LigneSuivante)
+        }
+        Début {
+            éditeur_déplace_curseur(*E, Mouvement.DébutLigne)
+        }
+        Fin {
+            éditeur_déplace_curseur(*E, Mouvement.FinLigne)
         }
         sinon {}
-    }
-
-    si E.cy < E.lignes_texte.taille {
-        taille_ligne = E.lignes_texte[E.cy].taille
-    }
-
-    si E.cx > taille_ligne {
-        E.cx = taille_ligne comme z32
     }
 }
 
