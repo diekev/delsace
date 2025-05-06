@@ -276,8 +276,6 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
         QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille)
 
-        chn := chaine(données.pointeur comme *z8, données.taille)
-
         mimes: [..]DonnéesMime
         tableau_réserve(*mimes, nombre_de_formats)
 
