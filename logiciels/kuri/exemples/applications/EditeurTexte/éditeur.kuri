@@ -390,6 +390,8 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
 Mouvement :: énum {
     Avance
     Recule
+    MotPrécédent
+    MotSuivant
     DébutLigne
     FinLigne
     LignePrécédente
@@ -398,11 +400,14 @@ Mouvement :: énum {
     PageSuivante
 }
 
+// À FAIRE : ponctuation pour MotPrécédent et MotSuivant
 éditeur_déplace_curseur :: fonc (éditeur: *Éditeur, mouvement: Mouvement)
 {
     taille_ligne : z64 = 0
+    ligne := ""
     si éditeur.cy < éditeur.lignes_texte.taille {
-        taille_ligne = éditeur.lignes_texte[éditeur.cy].taille
+        ligne = éditeur.lignes_texte[éditeur.cy]
+        taille_ligne = ligne.taille
     }
 
     discr mouvement {
@@ -422,6 +427,49 @@ Mouvement :: énum {
             sinon si éditeur.cy > 0 {
                 éditeur.cy -= 1
                 éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille comme z32
+            }
+        }
+        MotPrécédent {
+            si éditeur.cx == ligne.taille && taille_ligne != 0 {
+                éditeur.cx -= 1
+            }
+
+            si éditeur.cx > 0 && est_espace_blanc(ligne[éditeur.cx - 1]) {
+                éditeur.cx -= 1
+            }
+
+            tantque éditeur.cx > 0 {
+                c := ligne[éditeur.cx]
+                si !est_espace_blanc(c) {
+                    arrête
+                }
+
+                éditeur.cx -= 1
+            }
+
+            tantque éditeur.cx > 0 {
+                c := ligne[éditeur.cx]
+                si est_espace_blanc(c) {
+                    éditeur.cx += 1
+                    arrête
+                }
+
+                éditeur.cx -= 1
+            }
+        }
+        MotSuivant {
+            eu_espace := faux
+            tantque éditeur.cx < taille_ligne {
+                c := ligne[éditeur.cx]
+                si eu_espace && !est_espace_blanc(c) {
+                    arrête
+                }
+
+                si est_espace_blanc(c) {
+                    eu_espace = vrai
+                }
+
+                éditeur.cx += 1
             }
         }
         LignePrécédente {
