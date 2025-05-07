@@ -108,8 +108,6 @@ détruit_lexème :: fonc (lexème: *Lexème)
 
 // --------------------------------------------
 
-FIN_DE_FICHIER :: 0xffffffff comme n32
-
 ÉtatLexage :: énum {
     Data
     RCDATA

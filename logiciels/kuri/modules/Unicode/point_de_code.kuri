@@ -3,35 +3,52 @@ importe Fondation
 // --------------------------------------------
 // Différents caractères spéciaux sous forme de point de code
 
-NUL :: 0x0 comme n32
-TABULATION :: '\t' comme n32
-ESPACE :: ' ' comme n32
-NOUVELLE_LIGNE :: '\n' comme n32
-RETOUR_CHARIOT :: '\r' comme n32
-ESPERLUETTE :: '&' comme n32
-A_MINUSCULE :: 'a' comme n32
-F_MINUSCULE :: 'f' comme n32
-X_MINUSCULE :: 'x' comme n32
-Z_MINUSCULE :: 'z' comme n32
-A_MAJUSCULE :: 'A' comme n32
-F_MAJUSCULE :: 'F' comme n32
-X_MAJUSCULE :: 'X' comme n32
-Z_MAJUSCULE :: 'Z' comme n32
-SIGNE_NOMBRE :: '#' comme n32
-CROCHET_OUVRANT :: '[' comme n32
-CROCHET_FERMANT :: ']' comme n32
-EGAL :: '=' comme n32
-GUILLEMET :: '"' comme n32
-APOSTROPHE :: '\'' comme n32
-ACCENT_GRAVE :: '`' comme n32
-POINT_INTERROGATION :: '?' comme n32
-POINT_EXCLAMATION :: '!' comme n32
-POINT_VIRGULE :: ';' comme n32
-CHEVRON_OUVRANT :: '<' comme n32
-CHEVRON_FERMANT :: '>' comme n32
-SLASH :: '/' comme n32
-MOINS :: '-' comme n32
+NUL                    : n32 : 0x00
+BACKSPACE              : n32 : 0x08
+TABULATION             : n32 : 0x09 /* '\t' */
+TABULATION_HORIZONTALE : n32 : 0x09 /* '\t' */
+NOUVELLE_LIGNE         : n32 : 0x0A /* '\n' */
+SAUT_DE_LIGNE          : n32 : 0x0A /* '\n' */
+SAUT_DE_PAGE           : n32 : 0x0C /* '\f' */
+RETOUR_CHARIOT         : n32 : 0x0D /* '\r' */
+MOUVEMENT_SORTANT      : n32 : 0x0E
+SÉPARATEUR_D_UNITÉS    : n32 : 0x1F
+ESPACE                 : n32 : 0x20 /* ' ' */
+POINT_EXCLAMATION      : n32 : 0x21 /* '!' */
+GUILLEMET              : n32 : 0x22 /* '"' */
+GUILLEMET_ANGLAIS      : n32 : 0x22 /* '"' */
+SIGNE_NOMBRE           : n32 : 0x23 /* '#' */
+ESPERLUETTE            : n32 : 0x26 /* '&' */
+APOSTROPHE             : n32 : 0x27 /* '\'' */
+MOINS                  : n32 : 0x2D /* '-' */
+TRAIT_D_UNION          : n32 : 0x2D /* '-' */
+SIGNE_MOINS            : n32 : 0x2D /* '-' */
+SLASH                  : n32 : 0x2F /* '/' */
+DOUBLE_POINT           : n32 : 0x3A /* ':' */
+POINT_VIRGULE          : n32 : 0x3B /* ';' */
+CHEVRON_OUVRANT        : n32 : 0x3C /* '<' */
+EGAL                   : n32 : 0x3D /* '=' */
+CHEVRON_FERMANT        : n32 : 0x3E /* '>' */
+POINT_INTERROGATION    : n32 : 0x3F /* '?' */
+A_MAJUSCULE            : n32 : 0x41 /* 'A' */
+F_MAJUSCULE            : n32 : 0x46 /* 'F' */
+X_MAJUSCULE            : n32 : 0x58 /* 'X' */
+Z_MAJUSCULE            : n32 : 0x5A /* 'Z' */
+CROCHET_OUVRANT        : n32 : 0x5B /* '[' */
+CROCHET_FERMANT        : n32 : 0x5D /* ']' */
+ACCENT_GRAVE           : n32 : 0x60 /* '`' */
+A_MINUSCULE            : n32 : 0x61 /* 'a' */
+F_MINUSCULE            : n32 : 0x66 /* 'f' */
+X_MINUSCULE            : n32 : 0x78 /* 'x' */
+Z_MINUSCULE            : n32 : 0x7A /* 'z' */
+BARRE_VERTICALE        : n32 : 0x7C /* '|' */
+DELETE                 : n32 : 0x7F
+
 CARACTÈRE_REMPLACEMENT :: 0xFFFD comme n32
+
+/* Caractère pouvant être utilisé pour définir la fin du fichier/flux de points de code.
+ * Ce n'est pas un caractère standard. */
+FIN_DE_FICHIER :: 0xffffffff comme n32
 
 est_surrogate :: fonc (point_de_code: n32) -> bool
 {

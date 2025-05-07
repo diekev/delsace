@@ -499,8 +499,6 @@ parse_opaque_host :: fonc (input: ChaineUTF16) -> Optionnel(Host)
  * https://url.spec.whatwg.org/#url-miscellaneous
  * \{ */
 
-DOUBLE_POINT : n32 : 0x3A
-
 /* https://url.spec.whatwg.org/#windows-drive-letter */
 est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -> bool #enligne
 {
@@ -508,8 +506,7 @@ est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -
         retourne faux
     }
 
-    PIPE : n32 : 0x7C
-    retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == PIPE
+    retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == BARRE_VERTICALE
 }
 
 est_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool

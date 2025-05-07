@@ -10,8 +10,6 @@ avance :: fonc (chn: &ChaineUTF32, n: z32)
     chn.points_de_code.pointeur += n
 }
 
-FIN_DE_FICHIER : n32 : 0xffffffff
-
 opérateur - :: fonc (a: n32, b: z8) -> n32
 {
     retourne a - b comme n32
@@ -54,26 +52,17 @@ est_point_de_code_ident :: fonc (point_de_code: n32) -> bool #enligne
 
 est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
 {
-    BACKSPACE : n32 : 0x8
-    LINE_TABULATION : n32 : 0xB
-    SHIFT_OUT : n32 : 0xE
-    INFORMATION_SEPARATOR_ONE : n32 : 0x1F
-    DELETE : n32 : 0x7F
-
-    retourne (point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
+    retourne (point_de_code <= BACKSPACE) || (point_de_code == TABULATION) || (MOUVEMENT_SORTANT <= point_de_code <= SÉPARATEUR_D_UNITÉS) || point_de_code == DELETE
 }
 
 est_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
 {
-    LINE_FEED : n32 : 0xA
-    retourne point_de_code == LINE_FEED
+    retourne point_de_code == SAUT_DE_LIGNE
 }
 
 est_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
 {
-    CHARACTER_TABULATION : n32 : 0x9
-    SPACE : n32 : 0x20
-    retourne est_nouvelle_ligne(point_de_code) || point_de_code == CHARACTER_TABULATION || point_de_code == SPACE
+    retourne est_nouvelle_ligne(point_de_code) || point_de_code == TABULATION_HORIZONTALE || point_de_code == ESPACE
 }
 
 est_guillemet_ascii_ou_apostrophe :: fonc (point_de_code: n32) -> bool #enligne
