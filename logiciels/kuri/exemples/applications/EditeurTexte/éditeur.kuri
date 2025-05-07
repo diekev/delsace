@@ -29,6 +29,8 @@ importe Unicode
     modifié: z32
     tampon_rendu_est_surannée: bool
     recalcule_défilage: bool
+
+    griffonier: ChaineUTF32
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
@@ -269,6 +271,18 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
 
     éditeur_insère_caractère_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy, éditeur.cx, caractère)
     éditeur.cx += 1
+}
+
+éditeur_insère_texte :: fonc (éditeur: *Éditeur, texte: chaine)
+{
+    crée_chaine_utf32(texte, *éditeur.griffonier)
+
+    pour éditeur.griffonier {
+        éditeur_insère_caractère_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy, éditeur.cx, it)
+        éditeur.cx += 1
+    }
+
+    éditeur.griffonier.points_de_code.taille = 0
 }
 
 éditeur_supprime_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64) -> rien
