@@ -10,31 +10,6 @@ avance :: fonc (chn: &ChaineUTF32, n: z32)
     chn.points_de_code.pointeur += n
 }
 
-opérateur - :: fonc (a: n32, b: z8) -> n32
-{
-    retourne a - b comme n32
-}
-
-opérateur == :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a == b comme n32
-}
-
-opérateur != :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a != b comme n32
-}
-
-opérateur <= :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a <= b comme n32
-}
-
-opérateur <= :: fonc (a: z8, b: n32) -> bool
-{
-    retourne a comme n32 <= b
-}
-
 est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code >= 0x80 && point_de_code != FIN_DE_FICHIER
