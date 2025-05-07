@@ -82,7 +82,7 @@ recule :: fonc (ligne: chaine, compte: z64) -> chaine
     retourne chaine(ligne.pointeur, ligne.taille - compte)
 }
 
-est_espace_blanc :: fonc (c: z8) -> bool
+est_espace_blanche :: fonc (c: z8) -> bool
 {
     retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r' || c == '\f'
 }

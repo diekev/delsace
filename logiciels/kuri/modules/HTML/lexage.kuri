@@ -1556,7 +1556,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si est_noncaractère(c) {
                     panique("état partiellement implémenté")
                 }
-                sinon si c == 0x0D || (est_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanc(lexeuse.code_référence_caractère)) {
+                sinon si c == 0x0D || (est_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanche(lexeuse.code_référence_caractère)) {
                     panique("état partiellement implémenté")
                 }
 

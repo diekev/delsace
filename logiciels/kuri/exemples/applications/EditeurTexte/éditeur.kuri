@@ -442,13 +442,13 @@ Mouvement :: énum {
                 éditeur.cx -= 1
             }
 
-            si éditeur.cx > 0 && est_espace_blanc(ligne[éditeur.cx - 1]) {
+            si éditeur.cx > 0 && est_espace_blanche(ligne[éditeur.cx - 1]) {
                 éditeur.cx -= 1
             }
 
             tantque éditeur.cx > 0 {
                 c := ligne[éditeur.cx]
-                si !est_espace_blanc(c) {
+                si !est_espace_blanche(c) {
                     arrête
                 }
 
@@ -457,7 +457,7 @@ Mouvement :: énum {
 
             tantque éditeur.cx > 0 {
                 c := ligne[éditeur.cx]
-                si est_espace_blanc(c) {
+                si est_espace_blanche(c) {
                     éditeur.cx += 1
                     arrête
                 }
@@ -469,11 +469,11 @@ Mouvement :: énum {
             eu_espace := faux
             tantque éditeur.cx < taille_ligne {
                 c := ligne[éditeur.cx]
-                si eu_espace && !est_espace_blanc(c) {
+                si eu_espace && !est_espace_blanche(c) {
                     arrête
                 }
 
-                si est_espace_blanc(c) {
+                si est_espace_blanche(c) {
                     eu_espace = vrai
                 }
 

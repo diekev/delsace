@@ -12,7 +12,7 @@ est_ponctuation_ascii :: fonc (c: z8) -> bool
 
 est_espace_blanche_ou_ponctuation_ascii :: fonc (c: z8) -> bool
 {
-    retourne est_espace_blanc(c) || est_ponctuation_ascii(c)
+    retourne est_espace_blanche(c) || est_ponctuation_ascii(c)
 }
 
 divise_sur_espace_blanche_ou_ponctuation_ascii :: fonc (texte: chaine) -> [..]chaine
@@ -189,7 +189,7 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
 consomme_espaces_blanches :: fonc (chn: chaine) -> chaine
 {
     tantque chn.taille != 0 {
-        saufsi est_espace_blanc(chn[0]) {
+        saufsi est_espace_blanche(chn[0]) {
             arrête
         }
         chn.taille -= 1
@@ -222,7 +222,7 @@ consomme_jusque_espace_blanche :: fonc (chn: chaine) -> (part: chaine, reste: ch
     résultat.taille = 0
 
     tantque chn.taille != 0 {
-        si est_espace_blanc(chn[0]) {
+        si est_espace_blanche(chn[0]) {
             arrête
         }
         chn.taille -= 1
