@@ -17,6 +17,7 @@ TypeCommandeDeRendu :: énum {
     REMPLIS_RECTANGLE_ARRONDI
     DESSINE_BORDURE
     DESSINE_TEXTE
+    DESSINE_TEXTE_UTF32
     DESSINE_IMAGE
     DÉBUTE_CISELAGE
     TERMINE_CISELAGE
@@ -127,6 +128,28 @@ CommandeDessineTexte :: struct {
 dessine_texte :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), fonte: *Fonte, texte: chaine, couleur: CouleurRVBA, effets: *EffetsTexte = nul)
 {
     résultat := crée_commande(commandes, CommandeDessineTexte)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+CommandeDessineTexteUTF32 :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE_UTF32
+
+    fonte: *Fonte
+    texte: ChaineUTF32
+    couleur: CouleurRVBA
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), fonte: *Fonte, texte: ChaineUTF32, couleur: CouleurRVBA, effets: *EffetsTexte = nul)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexteUTF32)
     résultat.fonte = fonte
     résultat.texte = texte
     résultat.rect = rect
@@ -430,6 +453,14 @@ dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
     boite.config_texte = config
 }
 
+dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_texte(nul, texte)
+    boite.config_texte = config
+}
+
 dispose_image :: fonc (image: NouvelleImage, cotation: Cotation)
 {
     assert(__boite_courante != nul)
@@ -456,6 +487,7 @@ BoiteFlexible :: struct {
         Normale
         Image
         Texte
+        TexteUTF32
         Procédure
     }
 
@@ -475,6 +507,7 @@ BoiteFlexible :: struct {
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA
     texte: chaine
+    texte_utf32: ChaineUTF32
     image: NouvelleImage
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
@@ -618,6 +651,15 @@ ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *B
     enfant.type = BoiteFlexible.Type.Texte
     enfant.config_texte.fonte = fonte
     enfant.texte = texte
+    retourne enfant
+}
+
+ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: ChaineUTF32) -> *BoiteFlexible
+{
+    enfant := ajoute_enfant(boite)
+    enfant.type = BoiteFlexible.Type.TexteUTF32
+    enfant.config_texte.fonte = fonte
+    enfant.texte_utf32 = texte
     retourne enfant
 }
 
@@ -961,7 +1003,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
 
     pour boite.enfants {
         /* À FAIRE : inclus les textes. */
-        si it.type == BoiteFlexible.Type.Texte {
+        si it.type == BoiteFlexible.Type.Texte || it.type == BoiteFlexible.Type.TexteUTF32 {
             continue
         }
 
@@ -1295,6 +1337,20 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
 
         métriques := donne_métriques_fonte(boite.config_texte.fonte)
         boite.hauteur = métriques.donne_hauteur_ligne() * (boite.dernier_fragment - boite.premier_fragment + 1) comme r32
+        boite.taille_min[direction] = boite.hauteur
+        retourne
+    }
+
+    si boite.type == BoiteFlexible.Type.TexteUTF32 {
+        si direction == Direction.Horizontale {
+            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte_utf32) comme r32
+            boite.largeur_texte = boite.largeur
+            boite.taille_min[direction] = boite.largeur_texte
+            retourne
+        }
+
+        métriques := donne_métriques_fonte(boite.config_texte.fonte)
+        boite.hauteur = métriques.donne_hauteur_ligne()
         boite.taille_min[direction] = boite.hauteur
         retourne
     }
@@ -1746,6 +1802,9 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                         rect.y += métriques.donne_hauteur_ligne()
                     }
                 }
+                TexteUTF32 {
+                    commandes.dessine_texte(rect, boite.config_texte.fonte, boite.texte_utf32, boite.config_texte.couleur)
+                }
                 Image {
                     commandes.dessine_image(rect, boite.image)
                 }
@@ -1870,6 +1929,12 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
             }
             DESSINE_TEXTE {
                 commande := base comme *CommandeDessineTexte
+                rect := commande.rect
+                rect.y = hauteur_vue - rect.y - rect.hauteur
+                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur)
+            }
+            DESSINE_TEXTE_UTF32 {
+                commande := base comme *CommandeDessineTexteUTF32
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
                 peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur)
