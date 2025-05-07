@@ -1572,7 +1572,6 @@ void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
 }
 
 static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
-                                                  Fichier *fichier,
                                                   Module *module_du_fichier)
 {
     auto const expression = inst->expression;
@@ -1583,19 +1582,14 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
 
     /* À FAIRE : meilleure mise en cache. */
     auto module = static_cast<Module *>(nullptr);
-    POUR (module_du_fichier->fichiers) {
-        if (it == fichier) {
-            continue;
+    pour_chaque_élément(module_du_fichier->modules_importés, [&](ModuleImporté const &module_) {
+        if (module_.module->nom() == expression->ident) {
+            module = module_.module;
+            return kuri::DécisionItération::Arrête;
         }
-        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
-            if (module_.module->nom() == expression->ident) {
-                module = module_.module;
-                return kuri::DécisionItération::Arrête;
-            }
 
-            return kuri::DécisionItération::Continue;
-        });
-    }
+        return kuri::DécisionItération::Continue;
+    });
 
     return module;
 }
@@ -1654,7 +1648,7 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             auto inst = it->comme_importe();
             auto const module_du_fichier = fichier->module;
 
-            auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
+            auto module = donne_module_existant_pour_importe(inst, module_du_fichier);
             if (!module) {
                 const auto lexème = inst->expression->lexème;
 
@@ -1716,19 +1710,19 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             }
 
             if (module_du_fichier == module) {
-                espace->rapporte_erreur(inst, "Importation d'un module dans lui-même.\n");
+                espace->rapporte_erreur(inst, "Import d'un module dans lui-même.\n");
                 return;
             }
 
-            if (fichier->importe_module(module->nom())) {
+            if (module_du_fichier->importe_module(module->nom())) {
                 if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
                     /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
                      * de générer ces instructions redondantes. */
-                    espace->rapporte_avertissement(inst, "Importation superflux du module");
+                    espace->rapporte_avertissement(inst, "Import superflux du module");
                 }
             }
             else {
-                fichier->modules_importés.insère({module, inst->est_employé});
+                module_du_fichier->modules_importés.insère({module, inst->est_employé});
 
                 auto noeud_déclaration = inst->noeud_déclaration;
                 if (noeud_déclaration->ident == nullptr) {
