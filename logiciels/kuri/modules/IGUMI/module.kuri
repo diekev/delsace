@@ -10,6 +10,7 @@ importe OpenGL
 importe Structures
 importe SysFichier
 importe Typographie
+importe Vision
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation et issitialisation.
@@ -48,6 +49,26 @@ efface_cible_rendu :: fonc (couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0))
 {
     glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+}
+
+commence_2d :: fonc (caméra: *Caméra2D)
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_2d == nul)
+    __ctx_courant.caméra_2d = caméra
+
+    glViewport(0, 0, caméra.largeur, caméra.hauteur)
+}
+
+termine_2d :: fonc ()
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_2d != nul)
+    __ctx_courant.caméra_2d = nul
+
+    glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
 }
 
 /** \} */
@@ -221,6 +242,8 @@ DonnéesContexteGL :: struct {
     projection: Mat4r
     largeur_cannevas: z32
     hauteur_cannevas: z32
+
+    caméra_2d: *Caméra2D
 
     nuanceurs: [..]*NuanceurGL
 
@@ -401,7 +424,13 @@ termine_immédiat :: fonc ()
     glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
 
-    définis_uniforme(nuanceur.loc_projection, projection)
+    si __ctx_courant.caméra_2d {
+        __ctx_courant.caméra_2d.ajourne_matrice()
+        définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection())
+    }
+    sinon {
+        définis_uniforme(nuanceur.loc_projection, projection)
+    }
 
     installe_format_xcnu(nuanceur)
 
