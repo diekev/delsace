@@ -216,7 +216,7 @@ skip_ascii_whitespace :: fonc (input: ChaineUTF16, position: *PositionVariable)
     // To skip ASCII whitespace within a string input given a position variable position,
     // collect a sequence of code points that are ASCII whitespace from input given position.
     // The collected code points are not used, but position is still updated. 
-    _ := collect_a_sequence_of_code_points(input, position, est_espace_blanche_ascii)
+    _ := collect_a_sequence_of_code_points(input, position, est_ascii_espace_blanche_n16)
 }
 
 /* https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points */

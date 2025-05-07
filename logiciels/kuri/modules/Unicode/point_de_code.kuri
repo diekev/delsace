@@ -82,6 +82,11 @@ est_ascii_tab_ou_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
     retourne point_de_code == 0x09 || point_de_code == 0x0A || point_de_code == 0x0D
 }
 
+est_ascii_espace_blanche_n16 :: fonc (point_de_code: n16) -> bool
+{
+    retourne est_ascii_espace_blanche(point_de_code)
+}
+
 est_ascii_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne est_ascii_tab_ou_nouvelle_ligne(point_de_code) || point_de_code == 0x0C || point_de_code == 0x20

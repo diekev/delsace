@@ -11,6 +11,7 @@ importe MIME
 importe Structures
 importe Triage
 importe Typographie
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom BarreDeDéfilement
@@ -3385,7 +3386,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
     texte: ChaineUTF16
 
-    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 1
         tableau_ajoute(fragments, FragmentTexte(texte, vrai))
@@ -3397,7 +3398,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.taille += 1
             position += 1
         }
@@ -3409,7 +3410,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.pointeur = chn.unités.pointeur + position
             texte.unités.taille = 1
             tableau_ajoute(fragments, FragmentTexte(texte, vrai))

@@ -609,16 +609,6 @@ transforme_texte_en_minuscule :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
     retourne résultat
 }
 
-est_espace_blanche_ascii :: fonc (rune: rune16) -> bool
-{
-    TAB : n32 : 0x09
-    LF : n32 : 0x0A
-    FF : n32 : 0x0C
-    CR : n32 : 0x0D
-    SPACE : n32 : 0x20
-    retourne rune == SPACE || rune == LF || rune == TAB || rune == FF || rune == CR
-}
-
 /* https://infra.spec.whatwg.org/#split-on-ascii-whitespace */
 divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
 {
@@ -629,7 +619,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
     tokens: [..]ChaineUTF16
 
     // 3. Skip ASCII whitespace within input given position.
-    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
         position += 1
     }
 
@@ -640,7 +630,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
         token.unités.pointeur = chn.unités.pointeur + position
         token.unités.taille = 0
 
-        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             token.unités.taille += 1
             position += 1
         }
@@ -649,7 +639,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
         tableau_ajoute(*tokens, token)
 
         // 3. Skip ASCII whitespace within input given position.
-        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             position += 1
         }
     }
