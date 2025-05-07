@@ -1,0 +1,325 @@
+importe BoiteFlexible
+importe Chaine
+importe CréationFenêtre
+importe Couleur
+importe Fondation
+importe Math
+importe Numérique
+importe PeintureInterface
+importe Périphériques
+importe SimpleLexage
+importe Temps
+importe Typographie
+
+charge "éditeur"
+
+// À FAIRE : colorisation
+// À FAIRE : exécution de commandes
+// À FAIRE : cherche/remplace
+// À FAIRE : sélection
+// À FAIRE : ouverture, navigation dossier
+// À FAIRE : souris
+// À FAIRE : transformation de texte (majuscule, minuscule, etc.)
+// À FAIRE : sauvegarde automatique
+// À FAIRE : refait/défait
+
+E: Éditeur
+peintre: *Peintre
+emboiteuse: Emboiteuse
+fonte: *Fonte
+lexeuse: SimpleLexeuse
+
+// importe SysFichier
+
+// __ponctuation_kuri := [
+//     "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
+//     "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>="
+// ]
+
+// __commentaires_ligne_singulière_kuri := [ "//" ]
+// __commentaires_multi_lignes_kuri := [ ["/*", "*/"] ]
+
+// __mots_clés_kuri := [
+//     "retourne", "retiens", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable", "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "corout", "dyn", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme"
+// ]
+
+principale :: fonc ()
+{
+    // lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
+    // lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_kuri
+    // lexeuse.ponctuations = __ponctuation_kuri
+    // lexeuse.mots_clés = __mots_clés_kuri
+
+    // contenu := contenu_fichier_texte("éditeur.kuri")
+
+    // initialise_lexeuse_pour_texte(*lexeuse, contenu)
+
+    // _ := donne_tous_les_lexèmes(*lexeuse)
+    // pour lexèmes {
+    //     imprimeln("%", it)
+    // }
+
+    fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
+    fonte = crée_fonte(fonte_défaut_mono, 16)
+    fonte.font.kerning = 0
+
+    fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
+
+    éditeur_ouvre(*E, copie_chaine("éditeur.kuri"))
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si it.type == TypeÉvènement.Clavier {
+                si it.touche_pressée {
+                    si it.touche == ToucheClavier.FLÈCHE_GAUCHE {
+                        mouvement := Mouvement.Recule
+                        si it.modificateurs.CONTROL {
+                            mouvement = Mouvement.MotPrécédent
+                        }
+                        éditeur_déplace_curseur(*E, mouvement)
+                    }
+                    sinon si it.touche == ToucheClavier.FLÈCHE_DROITE {
+                        mouvement := Mouvement.Avance
+                        si it.modificateurs.CONTROL {
+                            mouvement = Mouvement.MotSuivant
+                        }
+                        éditeur_déplace_curseur(*E, mouvement)
+                    }
+                    sinon si it.touche == ToucheClavier.FLÈCHE_HAUT {
+                        si it.modificateurs.CONTROL {
+                            E.décalage_ligne -= 1
+                            si E.décalage_ligne < 0 {
+                                E.décalage_ligne = 0
+                            }
+                        }
+                        sinon {
+                            éditeur_déplace_curseur(*E, Mouvement.LignePrécédente)
+                        }
+                    }
+                    sinon si it.touche == ToucheClavier.FLÈCHE_BAS {
+                        si it.modificateurs.CONTROL {
+                            E.décalage_ligne += 1
+                            si E.décalage_ligne >= E.lignes_texte.taille {
+                                E.décalage_ligne = E.lignes_texte.taille comme z32 - 1
+                            }
+                        }
+                        sinon {
+                            éditeur_déplace_curseur(*E, Mouvement.LigneSuivante)
+                        }
+                    }
+                    sinon si it.touche == ToucheClavier.DÉBUT {
+                        éditeur_déplace_curseur(*E, Mouvement.DébutLigne)
+                    }
+                    sinon si it.touche == ToucheClavier.FIN {
+                        éditeur_déplace_curseur(*E, Mouvement.FinLigne)
+                    }
+                    sinon si it.touche == ToucheClavier.PAGE_HAUT {
+                        éditeur_déplace_curseur(*E, Mouvement.PagePrécédente)
+                    }
+                    sinon si it.touche == ToucheClavier.PAGE_BAS {
+                        éditeur_déplace_curseur(*E, Mouvement.PageSuivante)
+                    }
+                    sinon si it.touche == ToucheClavier.ENTRÉE {
+                        éditeur_ajoute_nouvelle_ligne(*E)
+                    }
+                    sinon si it.touche == ToucheClavier.EFFACE {
+                        éditeur_supprime_caractère(*E)
+                    }
+                    sinon si it.touche == ToucheClavier.SUPPRIMER {
+                        éditeur_déplace_curseur(*E, Mouvement.Avance)
+                        éditeur_supprime_caractère(*E)
+                    }
+                    sinon si it.texte != "" {
+                        éditeur_insère_texte(*E, it.texte)
+                    }
+                }
+            }
+        }
+
+        métriques := donne_métriques_fonte(fonte)
+        E.lignes = ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2
+
+        ajourne_tampon_rendu(*E)
+        éditeur_défile(*E)
+
+        dessine_fenêtre(largeur, hauteur)
+
+        permute_tampons_fenêtre(fenêtre)
+    }
+}
+
+dessine_fenêtre :: fonc (largeur: z32, hauteur: z32)
+{
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi peintre {
+        peintre = crée_peintre_igumi(taille_cannevas)
+    }
+
+    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.efface_cible_rendu()
+
+    commandes := crée_interface(largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
+}
+
+crée_interface :: fonc (largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    commence_disposition(*emboiteuse, largeur, hauteur)
+
+    dispose_rectangle()
+    {
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
+
+        dispose_rectangle()
+        {
+            définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+
+            dessine_indicateurs_lignes(hauteur)
+            dessine_texte()
+        }
+        termine_rectangle()
+
+        dessine_barre_status()
+        dessine_barre_message()
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(*emboiteuse)
+}
+
+dessine_indicateurs_lignes :: fonc (hauteur: z32)
+{
+    métriques := donne_métriques_fonte(fonte)
+    nombre_de_lignes := ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2
+    nombre_de_colonnes := max(4, magnitude_décimale(E.lignes_texte.taille comme z32) + 2)
+    largeur_colonnes := (métriques.largeur_moyenne * nombre_de_colonnes comme r32) comme z32
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_disposition(cotation = Cotation(FIXE(largeur_colonnes), CROISSANTE()), alignement_horizontal = AlignementEnfant.Fin, direction = Direction.Verticale)
+
+        pour nombre_de_lignes {
+            txt := imprime_chaine_temp(" % ", it + E.décalage_ligne + 1)
+
+            couleur := si index_it == (E.cy - E.décalage_ligne) {
+                CouleurRVBA(0.8, 0.8, 0.8, 1.0)
+            }
+            sinon {
+                CouleurRVBA(0.8, 0.8, 0.8, 0.5)
+            }
+            dispose_texte(txt, ConfigurationTexte(fonte, couleur))
+        }
+    }
+    termine_rectangle()
+}
+
+dessine_texte :: fonc ()
+{
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
+    largeur_caractère := métriques.largeur_moyenne
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
+
+        config_texte := ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+        pour E.lignes {
+            index_ligne := it + E.décalage_ligne
+
+            si index_ligne >= E.lignes_texte.taille {
+                dispose_texte("", config_texte)
+            }
+            sinon {
+                dispose_texte(E.lignes_rendu[index_ligne], config_texte)
+            }
+
+            /* Curseur. */
+            si E.cy == index_ligne {
+                dispose_rectangle()
+                {
+                    définis_arrière_plan(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+                    définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
+
+                    texte_ligne := E.lignes_rendu[index_ligne]
+                    texte_avant_curseur := texte_ligne
+                    texte_avant_curseur.points_de_code.taille = E.cx
+
+                    position_curseur := fonte.donne_largeur_texte(texte_avant_curseur)
+
+                    définis_flottance(position_curseur comme r32, (it * hauteur_ligne) comme r32)
+
+                    texte_sous_curseur := avance(texte_ligne, E.cx)
+                    si texte_sous_curseur.taille() {
+                        texte_sous_curseur.points_de_code.taille = 1
+                        dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, CouleurRVBA(a = 1.0)))
+                    }
+                }
+                termine_rectangle()
+            }
+        }
+    }
+    termine_rectangle()
+}
+
+dessine_barre_status :: fonc ()
+{
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
+
+    chemin := E.chemin_fichier
+    saufsi chemin {
+        chemin = "Document sans nom"
+    }
+
+    modifié := ""
+    si E.modifié {
+        modifié = " (modifié)"
+    }
+
+    texte := imprime_chaine_temp("%% - % lignes", chemin, modifié, E.lignes_texte.taille)
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
+
+        dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(0.0, 0.0, 0.0, 1.0)))
+    }
+    termine_rectangle()
+}
+
+dessine_barre_message :: fonc ()
+{
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
+
+        si temps_écoulé_secondes(E.temps_message) < 5 {
+            dispose_texte(E.message, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        }
+    }
+    termine_rectangle()
+}
