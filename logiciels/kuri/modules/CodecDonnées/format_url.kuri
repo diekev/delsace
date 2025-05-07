@@ -1,4 +1,3 @@
-importe Fondation
 importe Introspection
 
 est_caractère_réservé_url :: fonc (c: z8) -> bool

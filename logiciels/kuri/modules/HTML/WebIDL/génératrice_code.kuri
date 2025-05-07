@@ -1,9 +1,4 @@
-importe Compilatrice
-importe Ensemble
-importe Fondation
-importe Math
 importe Sérialisation
-importe SysFichier
 
 /* https://webidl.spec.whatwg.org/#abstract-opdef-integerpart */
 integer_part :: fonc (n: r64) -> r64

@@ -1,9 +1,6 @@
 /* Extensions de Dessin. */
 
 importe Chaine
-importe Couleur
-importe FTGL
-importe Géométrie
 importe Typographie
 
 /* ------------------------------------------------------------------------- */

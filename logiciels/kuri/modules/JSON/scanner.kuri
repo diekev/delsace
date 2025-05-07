@@ -11,8 +11,6 @@
 // À FAIRE : rapport des membres remplis
 // À FAIRE : le scanner ne gère pas les espaces blancs Unicode
 
-importe Fondation
-importe Introspection
 importe Math
 importe Numérique
 importe Structures

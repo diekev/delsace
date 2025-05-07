@@ -1,10 +1,4 @@
-importe Couleur
-importe Fondation
-importe Géométrie
 importe Math
-importe Périphériques
-importe PeintureInterface
-importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Arborescence

@@ -1,6 +1,3 @@
-importe Aléa
-importe Alphabet
-importe Fondation
 
 /* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
 AdresseCourriel :: struct {

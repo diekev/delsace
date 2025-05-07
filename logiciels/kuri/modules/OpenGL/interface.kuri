@@ -1,5 +1,3 @@
-importe Chaine
-
 // À FAIRE : trouve quels symboles sont dans quelle bibliothèque
 libGL :: #bibliothèque "GL"
 libGLEW :: #bibliothèque "GLEW"

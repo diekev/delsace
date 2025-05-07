@@ -1,6 +1,5 @@
 /* stats-code ignore fichier */
 
-importe Chaine
 
 libavformat :: #bibliothèque "avformat"
 libavcodec :: #bibliothèque "avcodec"

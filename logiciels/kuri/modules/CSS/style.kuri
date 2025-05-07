@@ -1,11 +1,3 @@
-importe Chaine
-importe Couleur
-importe EnsembleDeBits
-importe Fondation
-HTML :: importe HTML
-importe Internet
-importe Structures
-importe Typographie
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE

@@ -1,8 +1,4 @@
 importe Algorithmes
-importe Chaine
-importe Fondation
-importe Géométrie
-importe Math
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteDeFormattage

@@ -1,17 +1,12 @@
-importe Chaine
 importe Ensemble
 importe EnsembleDeBits
-importe Fondation
 importe Géométrie
-HTML :: importe HTML
 importe Image
-importe Internet
 importe Math
 importe MIME
 importe Structures
 importe Triage
 importe Typographie
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom BarreDeDéfilement

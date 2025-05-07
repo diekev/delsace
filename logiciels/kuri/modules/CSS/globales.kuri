@@ -1,6 +1,4 @@
-importe Image
 importe SysFichier
-importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom GlobalesDessin

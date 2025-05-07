@@ -1,4 +1,3 @@
-importe Fondation
 importe Unicode
 
 TypeLexème :: énum z32 {

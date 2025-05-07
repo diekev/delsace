@@ -124,9 +124,7 @@ donne_qt_cursor_shape :: fonc (type: CursorType) -> QT_CursorShape
 /** \nom PeintureInterface
  * \{ */
 
-importe Géométrie
 importe IGUMI
-importe Math
 importe OpenGL
 importe PeintureInterface
 

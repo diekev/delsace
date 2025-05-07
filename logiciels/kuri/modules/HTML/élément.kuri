@@ -1,11 +1,8 @@
-importe Chaine
 importe Couleur
 CSS :: importe CSS
 importe Dessin
-importe Fondation
 importe Géométrie
 importe Image
-JS :: importe JavaScript
 importe MIME
 importe Unicode
 

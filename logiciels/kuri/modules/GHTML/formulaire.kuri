@@ -1,7 +1,5 @@
 importe Chaine
 importe Courriel
-importe Fondation
-importe Introspection
 
 MotDePasse :: struct {
     chn: chaine

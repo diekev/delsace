@@ -1,6 +1,5 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
-importe Algorithmes
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
@@ -1243,8 +1242,6 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 
 // ------------------------------------
 // Fonctions de formattages
-
-importe Compilatrice
 
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
 __fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)

@@ -1,9 +1,3 @@
-importe Compilatrice
-importe ConnexionTCP
-importe Fondation
-importe Internet
-importe Introspection
-importe SysFichier
 
 TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 

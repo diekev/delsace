@@ -1,7 +1,4 @@
-importe Chaine
-importe Fondation
 importe Internet
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Host

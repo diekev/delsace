@@ -1,8 +1,4 @@
-importe Chaine
-importe Ensemble
-importe Fondation
 importe Structures
-importe Unicode
 
 est_espace_blanc_html :: fonc (c: z8) -> bool #enligne
 {

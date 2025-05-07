@@ -1,7 +1,3 @@
-importe Chaine
-importe Couleur
-importe Fondation
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom 2.3.4.1 Signed integers

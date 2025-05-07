@@ -1,10 +1,4 @@
 importe Aléa
-importe Chaine
-importe Couleur
-importe Fondation
-importe Géométrie
-importe Image
-importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom CommandesDeRendu

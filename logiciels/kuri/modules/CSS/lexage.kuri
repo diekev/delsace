@@ -1,7 +1,3 @@
-importe Chaine
-importe Fondation
-importe Math
-importe Unicode
 
 avance :: fonc (chn: &ChaineUTF32, n: z32)
 {

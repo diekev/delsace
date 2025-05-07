@@ -1,6 +1,3 @@
-importe Fondation
-importe Unicode
-
 ChaineUTF32 :: struct {
     points_de_code: [..]n32
 }

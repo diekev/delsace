@@ -1,5 +1,3 @@
-importe Fondation
-
 est_alphabétique :: fonc (c: z8) -> bool
 {
     retourne ('a' <= c <= 'z') || ('A' <= c <= 'Z')

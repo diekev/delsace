@@ -1,7 +1,5 @@
 importe Ensemble
-importe Fondation
 importe Numérique
-importe Unicode
 
 rune8 :: z8
 rune16 :: n16
