@@ -23,7 +23,7 @@ crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
     résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
     résultat.prototype = object_prototype
 
-    constantes: Constantes(r64)
+    constantes: Math.Constantes(r64)
 
     résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro)
     résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro)
