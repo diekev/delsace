@@ -27,6 +27,19 @@ est_vide :: fonc (chn: ChaineUTF32) -> bool #enligne
     retourne chn.taille() == 0
 }
 
+avance :: fonc (chn: ChaineUTF32, n: z32) -> ChaineUTF32
+{
+    assert(chn.taille() >= n)
+    résultat := chn
+    résultat.points_de_code.pointeur += n
+    résultat.points_de_code.taille -= n
+    si résultat.points_de_code.taille <= 0 {
+        résultat.points_de_code.pointeur = nul
+        résultat.points_de_code.taille = 0
+    }
+    retourne résultat
+}
+
 chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32) #enligne
 {
     tableau_ajoute(*chn.points_de_code, point_de_code)
@@ -74,6 +87,15 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
     }
 
     résultat.points_de_code.taille = taille
+}
+
+opérateur pour :: fonc (chn: ChaineUTF32) -> n32
+{
+    pour chn.points_de_code {
+        `it = it
+        `index_it = index_it
+        #corps_boucle
+    }
 }
 
 opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
