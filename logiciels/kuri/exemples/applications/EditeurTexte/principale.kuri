@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe GlibC
 importe Numérique
@@ -131,16 +132,17 @@ rappel_recherche :: fonc (requête: chaine, clé: CléConsole) -> rien
             courant = 0
         }
 
-        lgn := E.lignes_rendu[courant]
-        pos := trouve_motif_dans_chaine(lgn, requête)
+        // À FAIRE
+        // lgn := E.lignes_rendu[courant]
+        // pos := trouve_motif_dans_chaine(lgn, requête)
 
-        si pos != -1 {
-            dernière_pos_recherche = courant
-            E.cy = courant comme z32
-            E.cx = éditeur_rx_vers_cx(E.lignes_texte[courant], pos comme z32)
-            E.décalage_ligne = E.lignes_rendu.taille comme z32
-            arrête
-        }
+        // si pos != -1 {
+        //     dernière_pos_recherche = courant
+        //     E.cy = courant comme z32
+        //     E.cx = éditeur_rx_vers_cx(E.lignes_texte[courant], pos comme z32)
+        //     E.décalage_ligne = E.lignes_rendu.taille comme z32
+        //     arrête
+        // }
     }
 }
 
@@ -336,7 +338,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
             éditeur_sauvegarde_fichier(*E, rappel_prompt_sauvegarde_fichier)
         }
         sinon {
-            éditeur_insère_caractère(*E, c comme z32 comme z8)
+            éditeur_insère_caractère(*E, c comme z32 comme n32)
         }
     }
 
@@ -399,9 +401,8 @@ console_dessine_lignes :: fonc (enchaineuse: *Enchaineuse) -> rien
             ligne := E.lignes_rendu[idx_ligne]
             ligne = avance(ligne, E.décalage_colonne)
 
-            // À FAIRE : unicode
-            si ligne.taille > E.colonnes - 1 {
-                ligne.taille = E.colonnes - 1
+            si ligne.taille() > E.colonnes - 1 {
+                ligne.points_de_code.taille = E.colonnes - 1
             }
 
             ajoute_au_tampon(enchaineuse, ligne)
