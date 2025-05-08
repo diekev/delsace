@@ -1723,14 +1723,14 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             }
             else {
                 module_du_fichier->modules_importés.insère({module, inst->est_employé});
-
-                auto noeud_déclaration = inst->noeud_déclaration;
-                if (noeud_déclaration->ident == nullptr) {
-                    noeud_déclaration->ident = module->nom();
-                    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
-                }
-                noeud_déclaration->module = module;
             }
+
+            auto noeud_déclaration = inst->noeud_déclaration;
+            if (noeud_déclaration->ident == nullptr) {
+                noeud_déclaration->ident = module->nom();
+                noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+            }
+            noeud_déclaration->module = module;
 
             // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }
