@@ -1029,14 +1029,14 @@ void QT_mimedata_donne_infos(QT_MimeData *mimedata, int *nombre_de_formats, int 
     VERS_QT(mimedata);
 
     if (nombre_de_formats) {
-        *nombre_de_formats = qmimedata->formats().size();
+        *nombre_de_formats = int(qmimedata->formats().size());
     }
 
     if (taille_donnees) {
         for (auto const &format : qmimedata->formats()) {
-            *taille_donnees += format.size();
+            *taille_donnees += int(format.size());
             auto array = qmimedata->data(format);
-            *taille_donnees += array.size();
+            *taille_donnees += int(array.size());
         }
     }
 }
@@ -1069,9 +1069,9 @@ void QT_mimedata_exporte_donnees(QT_MimeData *mimedata,
 
     auto taille = 0;
     for (auto const &format : qmimedata->formats()) {
-        taille += format.size();
+        taille += int(format.size());
         auto array = qmimedata->data(format);
-        taille += array.size();
+        taille += int(array.size());
     }
 
     FERME_PROGRAMME_SI_NUL(
@@ -1081,12 +1081,12 @@ void QT_mimedata_exporte_donnees(QT_MimeData *mimedata,
     int32_t *taille_courante = tailles;
     uint8_t *sortie_donnees = donnees;
     for (auto const &format : qmimedata->formats()) {
-        *taille_courante++ = format.size();
+        *taille_courante++ = int(format.size());
         memcpy(sortie_donnees, format.toStdString().c_str(), uint64_t(format.size()));
         sortie_donnees += format.size();
 
         auto array = qmimedata->data(format);
-        *taille_courante++ = array.size();
+        *taille_courante++ = int(array.size());
         memcpy(sortie_donnees, array.data(), uint64_t(array.size()));
         sortie_donnees += array.size();
     }
