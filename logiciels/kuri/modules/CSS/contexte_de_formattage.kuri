@@ -384,7 +384,19 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, box:
         position_basse_floats_gauches := ctx.donne_décalage_floats_gauche()
         position_basse_floats_droites := ctx.donne_décalage_floats_droite()
 
-        it.définis_position(décalage_x, décalage_y + params_position.décalage_hors_float)
+        // AD-HOC : si la boite doit avoir un contexte de formattage indépendant,
+        // nous la décalons afin qu'elle ne soit pas derrière les floats de ce contexte.
+        // À FAIRE : largeur disponible = largeur contenaining block - floats
+        position_x := décalage_x
+        position_y := décalage_y + params_position.décalage_hors_float
+        si it.requiers_contexte_de_formattage_indépendant() && ctx.lignes_boites_flottantes_gauche.lignes {
+            position_max_float_gauche := donne_décalage_horizontal_floats_gauche(ctx, position_y)
+            si position_x < position_max_float_gauche {
+                position_x += position_max_float_gauche - position_x
+            }
+        }
+
+        it.définis_position(position_x, position_y)
         it.mesure(ctx, mode, PersonnalisationCotation(), available)
         ajoute_marge(ctx, it, IDPropriété.MarginBottom)
 
@@ -965,6 +977,16 @@ donne_décalage_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r
 donne_décalage_floats_droite :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
 {
     retourne (ctx.rect_boites_flottantes_droites.y + ctx.rect_boites_flottantes_droites.hauteur) comme r32
+}
+
+donne_décalage_horizontal_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, position_y: r32) -> r32
+{
+    pour ctx.lignes_boites_flottantes_gauche.lignes {
+        si it.rect.y <= position_y <= it.rect.y + it.rect.hauteur {
+            retourne (it.rect.x + it.rect.largeur) comme r32
+        }
+    }
+    retourne 0.0
 }
 
 /** \} */
