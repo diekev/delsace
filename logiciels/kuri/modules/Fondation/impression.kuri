@@ -1280,7 +1280,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Enchaineuse, e: eini)\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Fondation.Enchaineuse, e: eini)\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *")
 
@@ -1288,7 +1288,11 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     nom_module := compilatrice_nom_module(module)
     imprime_type(enchaineuse, données.info_type, nom_module)
     ajoute_au_tampon(enchaineuse, "\n")
-    ajoute_au_tampon(enchaineuse, "\t", données.fonction.nom, "(enchaineuse, valeur)\n")
+    ajoute_au_tampon(enchaineuse, "\t")
+    si nom_module {
+        ajoute_au_tampon(enchaineuse, nom_module, ".")
+    }
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 
     retourne nom_enveloppe
@@ -1297,6 +1301,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 exécute_pré_exécutable :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     créatrice_table_fonctions.annotation_désirée = "FormattageImpression"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

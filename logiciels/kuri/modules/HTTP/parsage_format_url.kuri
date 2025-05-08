@@ -348,22 +348,13 @@ fonction_parsage_url_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) ->
 
 génère_fonction_enveloppe_parsage_url :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    nom_enveloppe := enchaine("parsage_url_", données.fonction.nom)
-
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
-    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
-    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
-    ajoute_au_tampon(enchaineuse, "}\n")
-
-    retourne nom_enveloppe
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_url_")
 }
 
 génère_initialisation_parsage_url :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     créatrice_table_fonctions.annotation_désirée = "ParsageURL"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url"
     créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide
