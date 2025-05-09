@@ -2902,12 +2902,12 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     auto atome_droite = donne_source_charge_ou_atome(inst_bin->valeur_droite);
     auto atome_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
 
+    assert(!atome_gauche->est_constante());
+    génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
+
     if (!atome_droite->est_constante()) {
         génère_code_pour_atome(atome_droite, assembleuse, UtilisationAtome::AUCUNE);
     }
-
-    assert(!atome_gauche->est_constante());
-    génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
 
     auto opérande_droite = registres.donne_registre_entier_inoccupé();
     if (atome_droite->est_constante()) {
