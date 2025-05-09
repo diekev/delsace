@@ -1129,6 +1129,11 @@ struct AssembleuseASM {
     {
     }
 
+    void commente(kuri::chaine_statique message)
+    {
+        m_sortie << "  ;" << message << "\n";
+    }
+
     void mov(Opérande dst, Opérande src, uint32_t taille)
     {
         assert(!est_immédiate(dst.type));
