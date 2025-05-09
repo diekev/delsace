@@ -1841,7 +1841,7 @@ struct GestionnaireRegistres {
 
     void marque_registre_inoccupé(Registre registre)
     {
-        assert(registre != Registre::RSP);
+        assert(registre != Registre::RSP && registre != Registre::RBP);
         registres[static_cast<int>(registre)] = false;
     }
 
@@ -1868,6 +1868,7 @@ struct GestionnaireRegistres {
         }
 
         marque_registre_occupé(Registre::RSP);
+        marque_registre_occupé(Registre::RBP);
     }
 };
 
@@ -2737,14 +2738,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     //     copie(tmp, arg.opérande, arg.type->taille_octet, assembleuse);
     // }
 
-    /* Préserve note pile. */
-    // À FAIRE : nombre d'allocation lors de l'appel
-    assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
-
     assembleuse.call(appelée);
-
-    /* Restaure note pile. */
-    assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
 
     if (!type_retour->est_type_rien() && !classement.sortie.est_en_mémoire) {
         auto taille_en_octet = type_retour->taille_octet;
@@ -3436,6 +3430,7 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
         }
     }
 
+    assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
     restaure_registres_appel(assembleuse);
     assembleuse.ret();
 }
@@ -4151,6 +4146,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 
     sauvegarde_registres_appel(assembleuse);
 
+    assembleuse.mov(Registre::RBP, Registre::RSP, 8);
+
     auto classement = m_classifieuse.donne_classement_arguments(
         fonction->type->comme_type_fonction());
     m_classement_fonction_courante = classement;
@@ -4232,6 +4229,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         }
     }
 
+    assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_allouée}, 8);
+
     POUR (fonction->instructions) {
         if (!instruction_est_racine(it)) {
             continue;
@@ -4304,7 +4303,7 @@ AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(Type const *type_
 
 AssembleuseASM::Mémoire GénératriceCodeASM::donne_adresse_stack()
 {
-    return AssembleuseASM::Mémoire(Registre::RSP, -int32_t(taille_allouée));
+    return AssembleuseASM::Mémoire(Registre::RBP, -int32_t(taille_allouée));
 }
 
 void GénératriceCodeASM::imprime_inst_en_commentaire(Enchaineuse &os, Instruction const *inst)
