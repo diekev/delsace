@@ -3725,24 +3725,17 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
                                                          AssembleuseASM &assembleuse,
                                                          UtilisationAtome utilisation)
 {
-    VERIFIE_NON_ATTEINT;
-    /* À FAIRE: charge vers où? */
-    /* À FAIRE: movss/movsd pour les réels. */
-    /* À FAIRE: vérifie la taille de la structure. */
-    // auto src = génère_code_pour_atome(inst_charge->chargée, assembleuse,
-    // UtilisationAtome::AUCUNE);
+    assert((utilisation & UtilisationAtome::POUR_DESTINATION_ÉCRITURE) !=
+           UtilisationAtome::AUCUNE);
+    assert(inst_charge->type->est_type_pointeur());
 
-    // auto registre = registres.donne_registre_entier_inoccupé();
+    génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
 
-    // assembleuse.mov(registre, src, inst_charge->type->taille_octet);
-
-    // /* Déréférencement de pointeur. */
-    // AssembleuseASM::Opérande résultat = registre;
-    // if (inst_charge->type->est_type_pointeur()) {
-    //     résultat = AssembleuseASM::Mémoire(registre);
-    // }
-
-    // table_valeurs[inst_charge->numero] = résultat;
+    /* Déréférence l'adresse. */
+    auto registre = registres.donne_registre_entier_inoccupé();
+    assembleuse.pop(registre);
+    assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
+    assembleuse.push(registre);
 }
 
 void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
@@ -3823,7 +3816,8 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     //     src = AssembleuseASM::Mémoire(registre);
     // }
 
-    génère_code_pour_atome(inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
+    génère_code_pour_atome(
+        inst_stocke->destination, assembleuse, UtilisationAtome::POUR_DESTINATION_ÉCRITURE);
 
     auto registre = registres.donne_registre_entier_inoccupé();
     assembleuse.pop(registre, 8);
