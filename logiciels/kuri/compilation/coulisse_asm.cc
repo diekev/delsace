@@ -1757,6 +1757,22 @@ struct AssembleuseASM {
     }
 };
 
+static std::ostream &operator<<(std::ostream &os, AssembleuseASM::Mémoire mémoire)
+{
+    auto const adresse = mémoire.adresse;
+    assert(adresse.taille() != 0);
+    auto const décalage = mémoire.décalage;
+    os << "[" << adresse;
+    if (décalage < 0) {
+        os << " - ";
+    }
+    else {
+        os << " + ";
+    }
+    os << abs(décalage) << "]";
+    return os;
+}
+
 /* Tient trace des registres pour éviter de surécrire dans un registre. */
 struct GestionnaireRegistres {
   private:
@@ -1873,7 +1889,7 @@ class SauveRegistres {
 
 struct GénératriceCodeASM {
   private:
-    kuri::tableau<AssembleuseASM::Opérande> m_adresses_locales{};
+    kuri::tableau<AssembleuseASM::Mémoire> m_adresses_locales{};
     kuri::table_hachage<Atome const *, kuri::chaine> table_globales{"Valeurs globales ASM"};
     AtomeFonction const *m_fonction_courante = nullptr;
     ClassementArgument m_classement_fonction_courante{};
@@ -2564,10 +2580,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         appel->appelé->type->comme_type_fonction());
 
     auto type_retour = appel->type;
-    auto adresse_retour = AssembleuseASM::Mémoire{};
-    if (!type_retour->est_type_rien()) {
-        adresse_retour = alloue_variable(type_retour);
-    }
+    auto adresse_retour = m_adresses_locales[appel->numero];
 
     POUR_INDEX (appel->args) {
         auto classement_arg = classement.arguments[index_it];
@@ -2766,6 +2779,16 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
     }
 
+    if (!type_retour->est_type_rien()) {
+        auto registre = registres.donne_registre_entier_inoccupé();
+
+        auto adresse = m_adresses_locales[appel->numero];
+        assembleuse.lea(registre, adresse);
+        assembleuse.push(registre, 8);
+
+        registres.marque_registre_inoccupé(registre);
+    }
+
     taille_allouée = sauvegarde_taille_allouée;
 }
 
@@ -2896,14 +2919,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         assert(atome_droite->est_instruction());
         auto inst_droite = atome_droite->comme_instruction();
 
-        if (inst_droite->est_alloc()) {
+        if (inst_droite->est_alloc() || inst_droite->est_appel()) {
             assembleuse.pop(opérande_droite);
             assembleuse.mov(opérande_droite,
                             AssembleuseASM::Mémoire{opérande_droite},
                             inst_bin->valeur_droite->type->taille_octet);
         }
-        else if (inst_droite->est_op_binaire() || inst_droite->est_op_unaire() ||
-                 inst_droite->est_appel()) {
+        else if (inst_droite->est_op_binaire() || inst_droite->est_op_unaire()) {
             assembleuse.dépile(opérande_droite, inst_bin->valeur_droite->type->taille_octet);
         }
         else {
@@ -2916,14 +2938,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     assert(atome_gauche->est_instruction());
     auto inst_gauche = atome_gauche->comme_instruction();
 
-    if (inst_gauche->est_alloc()) {
+    if (inst_gauche->est_alloc() || inst_gauche->est_appel()) {
         assembleuse.pop(opérande_gauche);
         assembleuse.mov(opérande_gauche,
                         AssembleuseASM::Mémoire{opérande_gauche},
                         inst_bin->valeur_gauche->type->taille_octet);
     }
-    else if (inst_gauche->est_op_binaire() || inst_gauche->est_op_unaire() ||
-             inst_gauche->est_appel()) {
+    else if (inst_gauche->est_op_binaire() || inst_gauche->est_op_unaire()) {
         assembleuse.dépile(opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);
     }
     else {
@@ -4193,6 +4214,9 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         if (it->est_alloc()) {
             m_adresses_locales[it->numero] = alloue_variable(it->comme_alloc());
         }
+        else if (it->est_appel() && !it->type->est_type_rien()) {
+            m_adresses_locales[it->numero] = alloue_variable(it->type);
+        }
     }
 
     POUR (fonction->instructions) {
@@ -4238,7 +4262,7 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     taille_allouée = 0;
     m_adresses_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
 
-    auto valeur_défaut = AssembleuseASM::Opérande(AssembleuseASM::Mémoire{});
+    auto valeur_défaut = AssembleuseASM::Mémoire{};
     POUR (m_adresses_locales) {
         it = valeur_défaut;
     }
