@@ -1577,8 +1577,9 @@ struct AssembleuseASM {
             push(reg, 8);
         }
         else {
-            mov(Mémoire{Registre::RSP}, reg, taille_octet);
-            sub(Registre::RSP, Immédiate64{taille_octet}, 8);
+            // mov(Mémoire{Registre::RSP}, reg, taille_octet);
+            // sub(Registre::RSP, Immédiate64{taille_octet}, 8);
+            push(reg, 8);
         }
     }
 
@@ -1628,8 +1629,9 @@ struct AssembleuseASM {
             pop(reg, 8);
         }
         else {
-            mov(reg, Mémoire{Registre::RSP}, taille_octet);
-            add(Registre::RSP, Immédiate64{taille_octet}, 8);
+            // mov(reg, Mémoire{Registre::RSP}, taille_octet);
+            // add(Registre::RSP, Immédiate64{taille_octet}, 8);
+            pop(reg, 8);
         }
     }
 
