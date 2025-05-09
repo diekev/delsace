@@ -4174,7 +4174,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         }
 
         auto adresse = alloue_variable(type_alloué);
-        // table_valeurs[it->numero] = adresse;
+        m_adresses_locales[it->numero] = adresse;
 
         auto taille_en_octet = type_alloué->taille_octet;
 
