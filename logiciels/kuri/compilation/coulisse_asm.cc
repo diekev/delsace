@@ -3756,20 +3756,13 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 {
     SAUVEGARDE_REGISTRES(registres);
 
-    génère_code_pour_atome(inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
-
-    auto registre = registres.donne_registre_entier_inoccupé();
-    assembleuse.pop(registre, 8);
-
-    auto dest = AssembleuseASM::Mémoire{registre};
-
     auto source = donne_source_charge_ou_atome(inst_stocke->source);
 
     AssembleuseASM::Opérande src;
 
     if (source->est_constante_entière()) {
         assert(source->type->taille_octet == 4);
-        registre = registres.donne_registre_entier_inoccupé();
+        auto registre = registres.donne_registre_entier_inoccupé();
         assembleuse.mov(registre,
                         AssembleuseASM::Immédiate32{
                             uint32_t(inst_stocke->source->comme_constante_entière()->valeur)},
@@ -3787,12 +3780,12 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         auto inst = source->comme_instruction();
 
         if (inst->est_alloc()) {
-            registre = registres.donne_registre_entier_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.pop(registre, 8);
             src = AssembleuseASM::Mémoire{registre};
         }
         else if (inst->est_op_binaire() || inst->est_op_unaire()) {
-            registre = registres.donne_registre_entier_inoccupé();
+            auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.dépile(registre, inst->type->taille_octet);
             src = registre;
         }
@@ -3835,7 +3828,25 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     //     src = AssembleuseASM::Mémoire(registre);
     // }
 
-    copie(dest, src, type_stocké->taille_octet, assembleuse);
+    génère_code_pour_atome(inst_stocke->destination, assembleuse, UtilisationAtome::AUCUNE);
+
+    auto registre = registres.donne_registre_entier_inoccupé();
+    assembleuse.pop(registre, 8);
+
+    auto dest = AssembleuseASM::Mémoire{registre};
+
+    assert(type_stocké->taille_octet <= 8);
+
+    if (src.type == TypeOpérande::MÉMOIRE) {
+        auto registre_tmp = registres.donne_registre_entier_inoccupé();
+        // À FAIRE : réutilise le registre si possible.
+        assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
+        src = registre_tmp;
+    }
+
+    assembleuse.mov(dest, src, type_stocké->taille_octet);
+
+    // copie(dest, src, type_stocké->taille_octet, assembleuse);
 }
 
 void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
