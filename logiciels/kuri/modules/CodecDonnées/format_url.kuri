@@ -76,20 +76,6 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
     }
 }
 
-donne_valeur_hex :: fonc (c: z8) -> z8 #enligne
-{
-    si 'a' <= c <= 'f' {
-        retourne (c - 'a') + 10
-    }
-    si 'A' <= c <= 'F' {
-        retourne (c - 'A') + 10
-    }
-    si '0' <= c <= '9' {
-        retourne (c - '0')
-    }
-    retourne c
-}
-
 résoud_échappement_url :: fonc (chn: chaine) -> chaine
 {
     enchaineuse: Enchaineuse

@@ -456,16 +456,7 @@ parse_nombre_hexadécimal :: fonc (texte: chaine) -> r64
         }
 
         résultat *= 16
-
-        si '0' <= it <= '9' {
-            résultat += ((it - '0') comme r64)
-        }
-        sinon si 'a' <= it <= 'f' {
-            résultat += ((it - 'a' + 10) comme r64)
-        }
-        sinon si 'A' <= it <= 'F' {
-            résultat += ((it - 'A' + 10) comme r64)
-        }
+        résultat += donne_valeur_hex(it) comme r64
     }
 
     retourne résultat

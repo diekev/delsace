@@ -104,7 +104,16 @@ est_nombre_octal :: fonc (c: z8) -> bool
 
 est_nombre_hexadécimal :: fonc (c: z8) -> bool
 {
-    retourne ('0' <= c <= '9') || ('a' <= c <= 'f') || ('A' <= c <= 'F')
+    retourne ('0' <= c <= '9') || ('A' <= (c & ~0x20) <= 'F')
+}
+
+donne_valeur_hex :: fonc (c: z8) -> z8 #enligne
+{
+    assert(est_nombre_hexadécimal(c))
+    si 'A' <= (c & ~0x20) <= 'F' {
+        retourne (((c & ~0x20) - 'A') + 10) comme z8
+    }
+    retourne (c - '0')
 }
 
 en_majuscule :: fonc (c: z8) -> z8
