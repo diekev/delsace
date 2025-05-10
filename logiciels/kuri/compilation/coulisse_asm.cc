@@ -1543,6 +1543,33 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void cvtss2si(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvtss2si ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void cvttsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvttsd2si ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void cvtsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvtsd2si ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void cvtsd2ss(Opérande dst, Opérande src)
     {
         m_sortie << TABULATION << "cvtsd2ss ";
@@ -3003,7 +3030,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
                 assembleuse.and_(opérande_droite, AssembleuseASM::Immédiate64{0xffff}, 8);
             }
         }
-        else if (inst_droite->est_op_binaire() || inst_droite->est_op_unaire()) {
+        else if (inst_droite->est_op_binaire() || inst_droite->est_op_unaire() ||
+                 inst_droite->est_transtype()) {
             assembleuse.dépile(opérande_droite, inst_bin->valeur_droite->type->taille_octet);
         }
         else {
@@ -3028,7 +3056,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
             assembleuse.and_(opérande_gauche, AssembleuseASM::Immédiate64{0xffff}, 8);
         }
     }
-    else if (inst_gauche->est_op_binaire() || inst_gauche->est_op_unaire()) {
+    else if (inst_gauche->est_op_binaire() || inst_gauche->est_op_unaire() ||
+             inst_gauche->est_transtype()) {
         assembleuse.dépile(opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);
     }
     else {
@@ -3521,141 +3550,194 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype const *transtype,
                                                     AssembleuseASM &assembleuse)
 {
-    VERIFIE_NON_ATTEINT;
-    // SAUVEGARDE_REGISTRES(registres);
+    SAUVEGARDE_REGISTRES(registres);
 
-    // auto const type_de = transtype->valeur->type;
-    // auto const type_vers = transtype->type;
-    // génère_code_pour_atome(transtype->valeur, assembleuse, UtilisationAtome::AUCUNE);
+    auto const type_de = transtype->valeur->type;
+    auto const type_vers = transtype->type;
 
-    // switch (transtype->op) {
-    //     case TypeTranstypage::BITS:
-    //     {
-    //         break;
-    //     }
-    //     case TypeTranstypage::AUGMENTE_NATUREL:
-    //     {
-    //         auto registre = registres.donne_registre_entier_inoccupé();
-    //         auto dst = alloue_variable(type_vers);
-    //         assembleuse.movzx(registre, type_vers->taille_octet, valeur,
-    //         type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-    //         valeur = dst;
-    //         break;
-    //     }
-    //     case TypeTranstypage::AUGMENTE_RELATIF:
-    //     {
-    //         auto registre = registres.donne_registre_entier_inoccupé();
-    //         auto dst = alloue_variable(type_vers);
-    //         assembleuse.movsx(registre, type_vers->taille_octet, valeur,
-    //         type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-    //         valeur = dst;
-    //         break;
-    //     }
-    //     case TypeTranstypage::AUGMENTE_REEL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::DIMINUE_NATUREL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::DIMINUE_RELATIF:
-    //     {
-    //         auto registre = registres.donne_registre_entier_inoccupé();
-    //         auto dst = alloue_variable(type_vers);
-    //         assembleuse.mov(registre, valeur, type_de->taille_octet);
-    //         assembleuse.mov(dst, registre, type_vers->taille_octet);
-    //         valeur = dst;
-    //         break;
-    //     }
-    //     case TypeTranstypage::DIMINUE_REEL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::POINTEUR_VERS_ENTIER:
-    //     {
-    //         if (type_vers->taille_octet != 8) {
-    //             VERIFIE_NON_ATTEINT;
-    //         }
-    //         break;
-    //     }
-    //     case TypeTranstypage::ENTIER_VERS_POINTEUR:
-    //     {
-    //         if (type_de->taille_octet != 8) {
-    //             auto registre = registres.donne_registre_entier_inoccupé();
-    //             auto dst = alloue_variable(type_vers);
-    //             assembleuse.movzx(
-    //                 registre, type_vers->taille_octet, valeur, type_de->taille_octet);
-    //             assembleuse.mov(dst, registre, type_vers->taille_octet);
-    //             valeur = dst;
-    //         }
-    //         break;
-    //     }
-    //     case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
-    //     {
-    //         if (type_de->taille_octet != 4 || type_vers->taille_octet != 4) {
-    //             VERIFIE_NON_ATTEINT;
-    //         }
+    auto valeur = donne_source_charge_ou_atome(transtype->valeur);
 
-    //         auto registre = registres.donne_registre_entier_inoccupé();
-    //         auto dst = alloue_variable(type_vers);
+    if (!valeur->est_constante()) {
+        génère_code_pour_atome(valeur, assembleuse, UtilisationAtome::AUCUNE);
+    }
 
-    //         /* À FAIRE : convertis directement les constantes réelles vers des entiers
-    //         constants.
-    //          */
-    //         if (assembleuse.est_immédiate(valeur.type)) {
-    //             auto tmp = alloue_variable(type_de);
-    //             assembleuse.mov(tmp, valeur, type_de->taille_octet);
-    //             valeur = tmp;
-    //         }
+    switch (transtype->op) {
+        case TypeTranstypage::BITS:
+        {
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            // auto registre = registres.donne_registre_entier_inoccupé();
+            // auto dst = alloue_variable(type_vers);
+            // assembleuse.movzx(registre, type_vers->taille_octet, valeur,
+            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
+            // valeur = dst;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            // auto registre = registres.donne_registre_entier_inoccupé();
+            // auto dst = alloue_variable(type_vers);
+            // assembleuse.movsx(registre, type_vers->taille_octet, valeur,
+            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
+            // valeur = dst;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            // auto registre = registres.donne_registre_entier_inoccupé();
+            // auto dst = alloue_variable(type_vers);
+            // assembleuse.mov(registre, valeur, type_de->taille_octet);
+            // assembleuse.mov(dst, registre, type_vers->taille_octet);
+            // valeur = dst;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            // auto registre = registres.donne_registre_entier_inoccupé();
+            // auto dst = alloue_variable(type_vers);
+            // assembleuse.mov(registre, valeur, type_de->taille_octet);
+            // assembleuse.mov(dst, registre, type_vers->taille_octet);
+            // valeur = dst;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::POINTEUR_VERS_ENTIER:
+        {
+            if (type_vers->taille_octet != 8) {
+                VERIFIE_NON_ATTEINT;
+            }
+            break;
+        }
+        case TypeTranstypage::ENTIER_VERS_POINTEUR:
+        {
+            if (type_de->taille_octet != 8) {
+                VERIFIE_NON_ATTEINT;
+                // auto registre = registres.donne_registre_entier_inoccupé();
+                // auto dst = alloue_variable(type_vers);
+                // assembleuse.movzx(
+                //     registre, type_vers->taille_octet, valeur, type_de->taille_octet);
+                // assembleuse.mov(dst, registre, type_vers->taille_octet);
+                // valeur = dst;
+            }
+            break;
+        }
+        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        {
+            if (type_de->taille_octet == 2) {
+                VERIFIE_NON_ATTEINT;
+            }
+            else if (type_de->taille_octet == 4) {
+                auto registre_réelle = registres.donne_registre_réel_inoccupé();
 
-    //         assembleuse.cvttss2si(registre, valeur, type_vers->taille_octet);
-    //         assembleuse.mov(dst, registre, type_vers->taille_octet);
+                /* À FAIRE : convertis directement les constantes réelles vers des entiers
+                 * constants */
+                if (valeur->est_constante_réelle()) {
+                    auto constante_réelle = valeur->comme_constante_réelle();
+                    auto valeur_float = float(constante_réelle->valeur);
+                    auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
 
-    //         valeur = dst;
-    //         break;
-    //     }
-    //     case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    //     case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
-    //     {
-    //         VERIFIE_NON_ATTEINT;
-    //         break;
-    //     }
-    // }
+                    auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -4};
+                    assembleuse.mov(adresse, AssembleuseASM::Immédiate32{bits}, 4);
+                    assembleuse.movss(registre_réelle, adresse);
+                }
+                else {
+                    dbg() << "Valeur non supportée " << valeur->genre_atome;
+                    VERIFIE_NON_ATTEINT;
+                }
 
-    // table_valeurs[transtype->numero] = valeur;
+                auto registre = registres.donne_registre_entier_inoccupé();
+                if (type_vers->taille_octet <= 4) {
+                    assembleuse.cvttss2si(registre, registre_réelle, 4);
+                }
+                else {
+                    assert(type_vers->taille_octet == 8);
+                    assembleuse.cvtss2si(registre, registre_réelle, 8);
+                }
+                assembleuse.push(registre);
+            }
+            else {
+                assert(type_de->taille_octet == 8);
+                auto registre_réelle = registres.donne_registre_réel_inoccupé();
+
+                auto registre = registres.donne_registre_entier_inoccupé();
+
+                /* À FAIRE : convertis directement les constantes réelles vers des entiers
+                 * constants */
+                if (valeur->est_constante_réelle()) {
+                    auto constante_réelle = valeur->comme_constante_réelle();
+                    auto valeur_float = constante_réelle->valeur;
+                    auto bits = *reinterpret_cast<uint64_t *>(&valeur_float);
+
+                    auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
+                    assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
+                    assembleuse.mov(adresse, registre, 8);
+                    assembleuse.movsd(registre_réelle, adresse);
+                }
+                else {
+                    dbg() << "Valeur non supportée " << valeur->genre_atome;
+                    VERIFIE_NON_ATTEINT;
+                }
+
+                if (type_vers->taille_octet <= 4) {
+                    assembleuse.cvttsd2si(registre, registre_réelle, 4);
+                }
+                else {
+                    assert(type_vers->taille_octet == 8);
+                    assembleuse.cvtsd2si(registre, registre_réelle, 8);
+                }
+
+                assembleuse.push(registre);
+            }
+
+            break;
+        }
+        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+    }
 }
 
 void GénératriceCodeASM::génère_code_pour_branche_condition(
