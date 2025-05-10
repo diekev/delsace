@@ -2990,7 +2990,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         assert(atome_droite->est_instruction());
         auto inst_droite = atome_droite->comme_instruction();
 
-        if (inst_droite->est_alloc() || inst_droite->est_appel()) {
+        if (est_adresse_locale(inst_droite) || inst_droite->est_appel()) {
             assembleuse.pop(opérande_droite);
             assembleuse.mov(opérande_droite,
                             AssembleuseASM::Mémoire{opérande_droite},
@@ -3015,7 +3015,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     assert(atome_gauche->est_instruction());
     auto inst_gauche = atome_gauche->comme_instruction();
 
-    if (inst_gauche->est_alloc() || inst_gauche->est_appel()) {
+    if (est_adresse_locale(inst_gauche) || inst_gauche->est_appel()) {
         assembleuse.pop(opérande_gauche);
         assembleuse.mov(opérande_gauche,
                         AssembleuseASM::Mémoire{opérande_gauche},
@@ -3471,36 +3471,40 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeIndex const *accès,
                                                       AssembleuseASM &assembleuse)
 {
-    VERIFIE_NON_ATTEINT;
-    // SAUVEGARDE_REGISTRES(registres);
+    auto const atome_index = donne_source_charge_ou_atome(accès->index);
 
-    // auto const accédé = accès->accédé;
-    // auto type_pointeur = accès->type->comme_type_pointeur();
+    génère_code_pour_atome(accès->accédé, assembleuse, UtilisationAtome::AUCUNE);
 
-    // auto const valeur_accédé = génère_code_pour_atome(
-    //     accédé, assembleuse, UtilisationAtome::AUCUNE);
-    // assert(valeur_accédé.type == TypeOpérande::MÉMOIRE);
+    SAUVEGARDE_REGISTRES(registres);
 
-    // auto registre1 = registres.donne_registre_entier_inoccupé();
-    // auto registre2 = registres.donne_registre_entier_inoccupé();
+    assert(atome_index->est_constante_entière());
+    assert(accès->accédé->est_instruction());
+    assert(accès->accédé->comme_instruction()->est_alloc());
 
-    // /* Charge l'adresse. */
-    // assembleuse.lea(registre1, valeur_accédé);
+    auto accédé = registres.donne_registre_entier_inoccupé();
+    auto index = registres.donne_registre_entier_inoccupé();
 
-    // /* Corrige l'index pour prendre en compte la taille du type. */
-    // auto const atome_index = donne_source_charge_ou_atome(accès->index);
-    // auto const type_accédé = type_pointeur->type_pointé;
+    /* Corrige l'index pour prendre en compte la taille du type. */
+    auto const type_pointeur = accès->accédé->type->comme_type_pointeur();
+    auto type_accédé = type_pointeur->type_pointé;
 
-    // if (atome_index->est_constante_entière()) {
-    //     auto const constante = atome_index->comme_constante_entière();
-    //     auto décalage = constante->valeur * type_accédé->taille_octet;
-    //     if (décalage != 0) {
-    //         assembleuse.add(registre1, AssembleuseASM::Immédiate64{décalage}, 8);
-    //     }
-    // }
+    if (atome_index->est_constante_entière()) {
+        auto const constante = atome_index->comme_constante_entière();
+        // À FAIRE : si la constante == 0, nous pouvons retourner ici,
+        //           car la bonne adresse est déjà sur la pile.
+
+        if (type_accédé->est_type_tableau_fixe()) {
+            type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
+        }
+        else {
+            dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
+        }
+
+        auto décalage = constante->valeur * type_accédé->taille_octet;
+        assembleuse.mov(index, AssembleuseASM::Immédiate64{décalage}, 8);
+    }
     // else {
-    //     auto const valeur_index = génère_code_pour_atome(
-    //         atome_index, assembleuse, UtilisationAtome::AUCUNE);
+    //     génère_code_pour_atome(atome_index, assembleuse, UtilisationAtome::AUCUNE);
     //     assembleuse.mov(registre2, valeur_index, accès->index->type->taille_octet);
     //     assembleuse.imul(registre2, AssembleuseASM::Immédiate32{type_accédé->taille_octet},
     //     4);
@@ -3509,10 +3513,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
     //     assembleuse.add(registre1, registre2, 8);
     // }
 
-    // auto résultat = alloue_variable(TypeBase::PTR_RIEN);
-    // assembleuse.mov(résultat, registre1, 8);
-
-    // table_valeurs[accès->numero] = résultat;
+    assembleuse.pop(accédé);
+    assembleuse.add(accédé, index, 8);
+    assembleuse.push(accédé);
 }
 
 void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype const *transtype,
