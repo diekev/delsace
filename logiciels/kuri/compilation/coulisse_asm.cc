@@ -1968,6 +1968,11 @@ struct GénératriceCodeASM {
                                    Registre droite,
                                    Type const *type);
 
+    void charge_atome_dans_registre(Atome const *atome,
+                                    Atome const *source,
+                                    Registre registre,
+                                    AssembleuseASM &assembleuse);
+
     void génère_code_pour_opération_binaire(const InstructionOpBinaire *inst_bin,
                                             AssembleuseASM &assembleuse,
                                             const UtilisationAtome utilisation);
@@ -2892,27 +2897,12 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
             droite = registres.donne_registre_entier_inoccupé();
             break;
         }
-        case OpérateurBinaire::Genre::Addition_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case OpérateurBinaire::Genre::Soustraction_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Multiplication:
         {
             assert(!registres.registre_est_occupé(Registre::RAX));
             registres.marque_registre_occupé(Registre::RAX);
             gauche = Registre::RAX;
             droite = registres.donne_registre_entier_inoccupé();
-            break;
-        }
-        case OpérateurBinaire::Genre::Multiplication_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
             break;
         }
         case OpérateurBinaire::Genre::Division_Naturel:
@@ -2928,39 +2918,21 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
             droite = registres.donne_registre_entier_inoccupé();
             break;
         }
+        case OpérateurBinaire::Genre::Addition_Reel:
+        case OpérateurBinaire::Genre::Soustraction_Reel:
+        case OpérateurBinaire::Genre::Multiplication_Reel:
         case OpérateurBinaire::Genre::Division_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Egal_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Inegal_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Inf_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Sup_Reel:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
         case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
         {
-            VERIFIE_NON_ATTEINT;
+            registres.marque_registre_occupé(Registre::XMM0);
+            registres.marque_registre_occupé(Registre::XMM1);
+            gauche = Registre::XMM0;
+            droite = Registre::XMM1;
             break;
         }
         case OpérateurBinaire::Genre::Dec_Gauche:
@@ -2983,22 +2955,78 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
     }
 }
 
+/* Atome *atome est l'atome que nous chargeons, Atome *source est soit l'atome, soit son
+ * instruction de charge. */
+void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
+                                                    Atome const *source,
+                                                    Registre registre,
+                                                    AssembleuseASM &assembleuse)
+{
+    assert(atome == source || source->est_instruction());
+    assert(atome->est_instruction());
+    auto inst = atome->comme_instruction();
+
+    if (est_adresse_locale(inst) || inst->est_appel()) {
+        if (source->type == TypeBase::R32) {
+            auto tmp = registres.donne_registre_entier_inoccupé();
+            assembleuse.pop(tmp, 8);
+            assembleuse.movss(registre, AssembleuseASM::Mémoire{tmp});
+            registres.marque_registre_inoccupé(tmp);
+        }
+        else if (source->type == TypeBase::R64) {
+            auto tmp = registres.donne_registre_entier_inoccupé();
+            assembleuse.pop(tmp, 8);
+            assembleuse.movsd(registre, AssembleuseASM::Mémoire{tmp});
+            registres.marque_registre_inoccupé(tmp);
+        }
+        else {
+            assert(est_type_entier(source->type));
+            assembleuse.pop(registre);
+            assembleuse.mov(
+                registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
+
+            if (source->type->taille_octet == 1) {
+                assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xff}, 8);
+            }
+            else if (source->type->taille_octet == 2) {
+                assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xffff}, 8);
+            }
+        }
+    }
+    else if (inst->est_op_binaire() || inst->est_op_unaire() || inst->est_transtype()) {
+        if (source->type == TypeBase::R32) {
+            assembleuse.movss(registre, AssembleuseASM::Mémoire{Registre::RSP});
+            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
+        }
+        else if (source->type == TypeBase::R64) {
+            assembleuse.movsd(registre, AssembleuseASM::Mémoire{Registre::RSP});
+            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
+        }
+        else {
+            assert(est_type_entier(source->type));
+            assembleuse.dépile(registre, source->type->taille_octet);
+        }
+    }
+    else {
+        dbg() << "Instruction non-supportée " << inst->genre;
+        VERIFIE_NON_ATTEINT;
+    }
+}
+
 void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBinaire const *inst_bin,
                                                             AssembleuseASM &assembleuse,
                                                             UtilisationAtome const utilisation)
 {
     auto sauvegarde = registres.sauvegarde_état();
 
-    if (inst_bin->type->est_type_réel()) {
-        VERIFIE_NON_ATTEINT;
-    }
-
     auto atome_droite = donne_source_charge_ou_atome(inst_bin->valeur_droite);
     auto atome_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
 
+    assembleuse.commente("génère_code_pour_atome(atome_gauche)");
     assert(!atome_gauche->est_constante());
     génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
 
+    assembleuse.commente("génère_code_pour_atome(atome_droite)");
     if (!atome_droite->est_constante()) {
         génère_code_pour_atome(atome_droite, assembleuse, UtilisationAtome::AUCUNE);
     }
@@ -3007,6 +3035,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     donne_registres_pour_opération_binaire(
         registres, inst_bin->op, opérande_gauche, opérande_droite);
 
+    assembleuse.commente("charge (atome_droite)");
     if (atome_droite->est_constante()) {
         assembleuse.mov(
             opérande_droite,
@@ -3014,72 +3043,29 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
             8);
     }
     else {
-        assert(atome_droite->est_instruction());
-        auto inst_droite = atome_droite->comme_instruction();
-
-        if (est_adresse_locale(inst_droite) || inst_droite->est_appel()) {
-            assembleuse.pop(opérande_droite);
-            assembleuse.mov(opérande_droite,
-                            AssembleuseASM::Mémoire{opérande_droite},
-                            inst_bin->valeur_droite->type->taille_octet);
-
-            if (inst_bin->valeur_droite->type->taille_octet == 1) {
-                assembleuse.and_(opérande_droite, AssembleuseASM::Immédiate64{0xff}, 8);
-            }
-            else if (inst_bin->valeur_droite->type->taille_octet == 2) {
-                assembleuse.and_(opérande_droite, AssembleuseASM::Immédiate64{0xffff}, 8);
-            }
-        }
-        else if (inst_droite->est_op_binaire() || inst_droite->est_op_unaire() ||
-                 inst_droite->est_transtype()) {
-            assembleuse.dépile(opérande_droite, inst_bin->valeur_droite->type->taille_octet);
-        }
-        else {
-            dbg() << "Instruction non-supportée " << inst_droite->genre;
-            VERIFIE_NON_ATTEINT;
-        }
+        charge_atome_dans_registre(
+            atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
     }
 
-    assert(atome_gauche->est_instruction());
-    auto inst_gauche = atome_gauche->comme_instruction();
+    assembleuse.commente("charge (atome_gauche)");
+    charge_atome_dans_registre(
+        atome_gauche, inst_bin->valeur_gauche, opérande_gauche, assembleuse);
 
-    if (est_adresse_locale(inst_gauche) || inst_gauche->est_appel()) {
-        assembleuse.pop(opérande_gauche);
-        assembleuse.mov(opérande_gauche,
-                        AssembleuseASM::Mémoire{opérande_gauche},
-                        inst_bin->valeur_droite->type->taille_octet);
-
-        if (inst_bin->valeur_droite->type->taille_octet == 1) {
-            assembleuse.and_(opérande_gauche, AssembleuseASM::Immédiate64{0xff}, 8);
-        }
-        else if (inst_bin->valeur_droite->type->taille_octet == 2) {
-            assembleuse.and_(opérande_gauche, AssembleuseASM::Immédiate64{0xffff}, 8);
-        }
-    }
-    else if (inst_gauche->est_op_binaire() || inst_gauche->est_op_unaire() ||
-             inst_gauche->est_transtype()) {
-        assembleuse.dépile(opérande_gauche, inst_bin->valeur_gauche->type->taille_octet);
-    }
-    else {
-        dbg() << "Instruction non-supportée " << inst_gauche->genre;
-        VERIFIE_NON_ATTEINT;
-    }
+    assembleuse.commente("performe opération");
 
 #define GENERE_CODE_INST_ENTIER(nom_inst)                                                         \
     assembleuse.nom_inst(opérande_gauche, opérande_droite, inst_bin->type->taille_octet);         \
     assembleuse.empile(opérande_gauche, inst_bin->type->taille_octet);
 
 #define GENERE_CODE_INST_R32(nom_inst)                                                            \
-    assembleuse.movss(Registre::XMM0, opérande_gauche);                                           \
-    assembleuse.movss(Registre::XMM1, opérande_droite);                                           \
-    assembleuse.nom_inst(Registre::XMM0, Registre::XMM1);                                         \
-    assembleuse.movss(dest, Registre::XMM0);
+    assembleuse.nom_inst(opérande_gauche, opérande_droite);                                       \
+    assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, opérande_gauche);               \
+    assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
 
 #define GENERE_CODE_INST_R64(nom_inst)                                                            \
-    assembleuse.movsd(Registre::XMM0, opérande_gauche);                                           \
-    assembleuse.movsd(Registre::XMM1, opérande_droite);                                           \
-    assembleuse.nom_inst(Registre::XMM0, Registre::XMM1);                                         \
-    assembleuse.movsd(dest, Registre::XMM0);
+    assembleuse.nom_inst(opérande_gauche, opérande_droite);                                       \
+    assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8}, opérande_gauche);               \
+    assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
 
 #define GENERE_CODE_INST_DECALAGE_BIT(nom_inst) GENERE_CODE_INST_ENTIER(nom_inst)
 
@@ -3170,14 +3156,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Addition_Reel:
         {
-            VERIFIE_NON_ATTEINT;
-            // if (inst_bin->type == TypeBase::R32) {
-            //     GENERE_CODE_INST_R32(addss);
-            // }
-            // else {
-            //     assert(inst_bin->type == TypeBase::R64);
-            //     GENERE_CODE_INST_R64(addsd);
-            // }
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(addss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(addsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Soustraction:
@@ -3187,14 +3172,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Soustraction_Reel:
         {
-            VERIFIE_NON_ATTEINT;
-            // if (inst_bin->type == TypeBase::R32) {
-            //     GENERE_CODE_INST_R32(subss);
-            // }
-            // else {
-            //     assert(inst_bin->type == TypeBase::R64);
-            //     GENERE_CODE_INST_R64(subsd);
-            // }
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(subss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(subsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Multiplication:
@@ -3218,14 +3202,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Multiplication_Reel:
         {
-            VERIFIE_NON_ATTEINT;
-            // if (inst_bin->type == TypeBase::R32) {
-            //     GENERE_CODE_INST_R32(mulss);
-            // }
-            // else {
-            //     assert(inst_bin->type == TypeBase::R64);
-            //     GENERE_CODE_INST_R64(mulsd);
-            // }
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(mulss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(mulsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Division_Naturel:
@@ -3242,14 +3225,13 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         }
         case OpérateurBinaire::Genre::Division_Reel:
         {
-            VERIFIE_NON_ATTEINT;
-            // if (inst_bin->type == TypeBase::R32) {
-            //     GENERE_CODE_INST_R32(divss);
-            // }
-            // else {
-            //     assert(inst_bin->type == TypeBase::R64);
-            //     GENERE_CODE_INST_R64(divsd);
-            // }
+            if (inst_bin->type == TypeBase::R32) {
+                GENERE_CODE_INST_R32(divss);
+            }
+            else {
+                assert(inst_bin->type == TypeBase::R64);
+                GENERE_CODE_INST_R64(divsd);
+            }
             break;
         }
         case OpérateurBinaire::Genre::Reste_Naturel:
@@ -3676,6 +3658,10 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
                     assembleuse.mov(adresse, AssembleuseASM::Immédiate32{bits}, 4);
                     assembleuse.movss(registre_réelle, adresse);
                 }
+                else if (valeur->est_instruction()) {
+                    charge_atome_dans_registre(
+                        valeur, transtype->valeur, registre_réelle, assembleuse);
+                }
                 else {
                     dbg() << "Valeur non supportée " << valeur->genre_atome;
                     VERIFIE_NON_ATTEINT;
@@ -3708,6 +3694,10 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
                     assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
                     assembleuse.mov(adresse, registre, 8);
                     assembleuse.movsd(registre_réelle, adresse);
+                }
+                else if (valeur->est_instruction()) {
+                    charge_atome_dans_registre(
+                        valeur, transtype->valeur, registre_réelle, assembleuse);
                 }
                 else {
                     dbg() << "Valeur non supportée " << valeur->genre_atome;
@@ -3873,6 +3863,27 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             AssembleuseASM::Immédiate64{inst_stocke->source->comme_constante_entière()->valeur},
             8);
 
+        src = registre;
+    }
+    else if (source->est_constante_réelle()) {
+        /* Nous stockons vers une adresse, inutile de passer par un registre réel. */
+        auto constante_réelle = source->comme_constante_réelle();
+        auto registre = registres.donne_registre_entier_inoccupé();
+        uint64_t bits;
+
+        if (source->type == TypeBase::R32) {
+            auto valeur_float = float(constante_réelle->valeur);
+            bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+        }
+        else if (source->type == TypeBase::R64) {
+            auto valeur_float = constante_réelle->valeur;
+            bits = *reinterpret_cast<uint64_t *>(&valeur_float);
+        }
+        else {
+            VERIFIE_NON_ATTEINT;
+        }
+
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
         src = registre;
     }
     else {
