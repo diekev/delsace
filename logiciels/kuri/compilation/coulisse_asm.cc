@@ -2730,52 +2730,48 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     //     Type const *type = 0;
     // };
 
-    // kuri::tablet<OpérandeTaillée, 6> arguments_mémoire;
-    auto sauvegarde_taille_allouée = taille_allouée;
+    kuri::tablet<Atome *, 6> arguments_mémoire;
 
-    // POUR_INDEX (appel->args) {
-    //     auto classement_arg = classement.arguments[index_it];
-    //     if (!classement_arg.est_en_mémoire) {
-    //         continue;
-    //     }
+    auto taille_requise = 0u;
 
-    //     if (est_adresse_locale(it)) {
-    //         assert(classement_arg.premier_huitoctet_inclusif ==
-    //                classement_arg.dernier_huitoctet_exclusif - 1);
-    //         // Nous prenons l'adresse d'une variable.
-    //         auto adresse_source = génère_code_pour_atome(
-    //             it, assembleuse, UtilisationAtome::AUCUNE);
-    //         auto tmp = alloue_variable(TypeBase::PTR_RIEN);
-    //         auto registre = registres.donne_registre_entier_inoccupé();
-    //         assembleuse.lea(registre, adresse_source);
-    //         assembleuse.mov(tmp, registre, 8);
-    //         arguments_mémoire.ajoute({tmp, TypeBase::PTR_RIEN});
-    //         registres.marque_registre_inoccupé(registre);
-    //         continue;
-    //     }
+    POUR_INDEX (appel->args) {
+        auto classement_arg = classement.arguments[index_it];
+        if (!classement_arg.est_en_mémoire) {
+            continue;
+        }
+        taille_requise += it->type->taille_octet;
+        arguments_mémoire.ajoute(it);
+    }
 
-    //     if (est_adresse_globale(it)) {
-    //         assert(classement_arg.premier_huitoctet_inclusif ==
-    //                classement_arg.dernier_huitoctet_exclusif - 1);
-    //         auto adresse_source = génère_code_pour_atome(
-    //             it, assembleuse, UtilisationAtome::AUCUNE);
-    //         arguments_mémoire.ajoute({adresse_source, TypeBase::PTR_RIEN});
-    //         continue;
-    //     }
+    if (taille_requise) {
+        assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{taille_requise}, 8);
 
-    //     auto atome_argument = donne_source_charge_ou_atome(it);
-    //     auto adresse_source = génère_code_pour_atome(
-    //         atome_argument, assembleuse, UtilisationAtome::AUCUNE);
-    //     arguments_mémoire.ajoute({adresse_source, it->type});
-    // }
+        auto registre_tmp = registres.donne_registre_entier_inoccupé();
+        registres.marque_registre_occupé(registre_tmp);
 
-    // for (auto i = arguments_mémoire.taille() - 1; i >= 0; i--) {
-    //     auto arg = arguments_mémoire[i];
-    //     auto tmp = alloue_variable(arg.type);
-    //     copie(tmp, arg.opérande, arg.type->taille_octet, assembleuse);
-    // }
+        auto décalage_rsp = 0u;
+        for (auto i = arguments_mémoire.taille() - 1; i >= 0; i--) {
+            auto atome = arguments_mémoire[i];
+            auto atome_argument = donne_source_charge_ou_atome(atome);
+            génère_code_pour_atome(atome_argument, assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.pop(registre_tmp);
+
+            décalage_rsp += atome->type->taille_octet;
+
+            auto src = AssembleuseASM::Mémoire{registre_tmp};
+            auto dst = AssembleuseASM::Mémoire{Registre::RSP,
+                                               int32_t(taille_requise - décalage_rsp)};
+
+            copie(dst, src, atome->type->taille_octet, assembleuse);
+        }
+        registres.marque_registre_inoccupé(registre_tmp);
+    }
 
     assembleuse.call(appelée);
+
+    if (taille_requise) {
+        assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{taille_requise}, 8);
+    }
 
     if (!type_retour->est_type_rien() && !classement.sortie.est_en_mémoire) {
         auto taille_en_octet = type_retour->taille_octet;
@@ -2821,8 +2817,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
         registres.marque_registre_inoccupé(registre);
     }
-
-    taille_allouée = sauvegarde_taille_allouée;
 }
 
 template <bool est_relatif, bool retourne_reste>
@@ -4293,7 +4287,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         auto type_alloué = it->donne_type_alloué();
 
         if (classement_arg.est_en_mémoire) {
-            m_adresses_locales[it->numero] = AssembleuseASM::Mémoire(Registre::RSP,
+            m_adresses_locales[it->numero] = AssembleuseASM::Mémoire(Registre::RBP,
                                                                      décalage_argument_mémoire);
             décalage_argument_mémoire += int32_t(type_alloué->taille_octet);
             continue;
