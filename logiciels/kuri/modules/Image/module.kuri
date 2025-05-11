@@ -490,7 +490,7 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util"
     chn_c_sortie := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(chn_c_sortie)
 
-    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
+    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io)
 }
 
 calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, composants_y: z32) -> chaine
