@@ -3870,65 +3870,72 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     AssembleuseASM::Opérande src;
 
-    if (source->est_constante_entière()) {
-        auto registre = registres.donne_registre_entier_inoccupé();
-        assembleuse.mov(
-            registre,
-            AssembleuseASM::Immédiate64{inst_stocke->source->comme_constante_entière()->valeur},
-            8);
-
-        src = registre;
-    }
-    else if (source->est_constante_réelle()) {
-        /* Nous stockons vers une adresse, inutile de passer par un registre réel. */
-        auto constante_réelle = source->comme_constante_réelle();
-        auto registre = registres.donne_registre_entier_inoccupé();
-        uint64_t bits;
-
-        if (source->type == TypeBase::R32) {
-            auto valeur_float = float(constante_réelle->valeur);
-            bits = *reinterpret_cast<uint32_t *>(&valeur_float);
-        }
-        else if (source->type == TypeBase::R64) {
-            auto valeur_float = constante_réelle->valeur;
-            bits = *reinterpret_cast<uint64_t *>(&valeur_float);
-        }
-        else {
-            VERIFIE_NON_ATTEINT;
-        }
-
-        assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
-        src = registre;
-    }
-    else {
-        if (!source->est_instruction()) {
-            VERIFIE_NON_ATTEINT;
-        }
-
-        génère_code_pour_atome(source, assembleuse, UtilisationAtome::AUCUNE);
-
-        auto inst = source->comme_instruction();
-
-        if (inst->est_alloc() || inst->est_appel()) {
+    auto type_stocké = inst_stocke->source->type;
+    if (type_stocké->taille_octet <= 8) {
+        if (source->est_constante_entière()) {
             auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.pop(registre, 8);
-            /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
-            if (!est_adresse_locale(inst_stocke->source)) {
-                src = AssembleuseASM::Mémoire{registre};
+            assembleuse.mov(registre,
+                            AssembleuseASM::Immédiate64{
+                                inst_stocke->source->comme_constante_entière()->valeur},
+                            8);
+
+            src = registre;
+        }
+        else if (source->est_constante_réelle()) {
+            /* Nous stockons vers une adresse, inutile de passer par un registre réel. */
+            auto constante_réelle = source->comme_constante_réelle();
+            auto registre = registres.donne_registre_entier_inoccupé();
+            uint64_t bits;
+
+            if (source->type == TypeBase::R32) {
+                auto valeur_float = float(constante_réelle->valeur);
+                bits = *reinterpret_cast<uint32_t *>(&valeur_float);
             }
-        }
-        else if (inst->est_op_binaire() || inst->est_op_unaire()) {
-            auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.dépile(registre, inst->type->taille_octet);
+            else if (source->type == TypeBase::R64) {
+                auto valeur_float = constante_réelle->valeur;
+                bits = *reinterpret_cast<uint64_t *>(&valeur_float);
+            }
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
             src = registre;
         }
         else {
-            dbg() << "Instruction non-supportée " << inst->genre;
-            VERIFIE_NON_ATTEINT;
+            if (!source->est_instruction()) {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            génère_code_pour_atome(source, assembleuse, UtilisationAtome::AUCUNE);
+
+            auto inst = source->comme_instruction();
+
+            if (inst->est_alloc() || inst->est_appel()) {
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(registre, 8);
+                /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
+                if (!est_adresse_locale(inst_stocke->source)) {
+                    src = AssembleuseASM::Mémoire{registre};
+                }
+            }
+            else if (inst->est_op_binaire() || inst->est_op_unaire()) {
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.dépile(registre, inst->type->taille_octet);
+                src = registre;
+            }
+            else {
+                dbg() << "Instruction non-supportée " << inst->genre;
+                VERIFIE_NON_ATTEINT;
+            }
         }
     }
-
-    auto type_stocké = inst_stocke->source->type;
+    else {
+        génère_code_pour_atome(source, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
+        auto registre = registres.donne_registre_entier_inoccupé();
+        assembleuse.pop(registre);
+        src = AssembleuseASM::Mémoire{registre};
+    }
 
     // if (est_accès_index(inst_stocke->destination)) {
     //     auto registre = registres.donne_registre_entier_inoccupé();
@@ -3969,18 +3976,18 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
     auto dest = AssembleuseASM::Mémoire{registre};
 
-    assert(type_stocké->taille_octet <= 8);
-
-    if (src.type == TypeOpérande::MÉMOIRE) {
-        auto registre_tmp = registres.donne_registre_entier_inoccupé();
-        // À FAIRE : réutilise le registre si possible.
-        assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
-        src = registre_tmp;
+    if (type_stocké->taille_octet <= 8) {
+        if (src.type == TypeOpérande::MÉMOIRE) {
+            auto registre_tmp = registres.donne_registre_entier_inoccupé();
+            // À FAIRE : réutilise le registre si possible.
+            assembleuse.mov(registre_tmp, src, type_stocké->taille_octet);
+            src = registre_tmp;
+        }
+        assembleuse.mov(dest, src, type_stocké->taille_octet);
     }
-
-    assembleuse.mov(dest, src, type_stocké->taille_octet);
-
-    // copie(dest, src, type_stocké->taille_octet, assembleuse);
+    else {
+        copie(dest, src, type_stocké->taille_octet, assembleuse);
+    }
 }
 
 void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
@@ -3988,34 +3995,24 @@ void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
                                uint32_t taille_octet,
                                AssembleuseASM &assembleuse)
 {
+    assert(taille_octet > 8);
+    assert(src.type == TypeOpérande::MÉMOIRE);
+
     /* À FAIRE: movss/movsd pour les réels. */
     auto registre_tmp = registres.donne_registre_entier_inoccupé();
 
-    if (taille_octet <= 8) {
-        if (assembleuse.est_immédiate(src.type)) {
-            assembleuse.mov(dest, src, taille_octet);
+    auto taille_à_copier = int32_t(taille_octet);
+    while (taille_à_copier > 0) {
+        auto taille = taille_à_copier;
+        if (taille > 8) {
+            taille = 8;
         }
-        else {
-            assembleuse.mov(registre_tmp, src, taille_octet);
-            assembleuse.mov(dest, registre_tmp, taille_octet);
-        }
-    }
-    else {
-        assert(src.type == TypeOpérande::MÉMOIRE);
 
-        auto taille_à_copier = int32_t(taille_octet);
-        while (taille_à_copier > 0) {
-            auto taille = taille_à_copier;
-            if (taille > 8) {
-                taille = 8;
-            }
-
-            assembleuse.mov(registre_tmp, src, uint32_t(taille));
-            assembleuse.mov(dest, registre_tmp, uint32_t(taille));
-            taille_à_copier -= taille;
-            dest.mémoire.décalage += taille;
-            src.mémoire.décalage += taille;
-        }
+        assembleuse.mov(registre_tmp, src, uint32_t(taille));
+        assembleuse.mov(dest, registre_tmp, uint32_t(taille));
+        taille_à_copier -= taille;
+        dest.mémoire.décalage += taille;
+        src.mémoire.décalage += taille;
     }
 }
 
