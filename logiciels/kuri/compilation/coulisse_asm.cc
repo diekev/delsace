@@ -3036,15 +3036,29 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         registres, inst_bin->op, opérande_gauche, opérande_droite);
 
     assembleuse.commente("charge (atome_droite)");
-    if (atome_droite->est_constante()) {
+    if (atome_droite->est_constante_entière()) {
         assembleuse.mov(
             opérande_droite,
             AssembleuseASM::Immédiate64{atome_droite->comme_constante_entière()->valeur},
             8);
     }
-    else {
+    else if (atome_droite->est_constante_réelle()) {
+        assert(atome_droite->type == TypeBase::R32);
+
+        auto constante_réelle = atome_droite->comme_constante_réelle();
+        auto valeur_float = float(constante_réelle->valeur);
+        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+
+        auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
+        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
+        assembleuse.movsd(opérande_droite, adresse);
+    }
+    else if (atome_droite->est_instruction()) {
         charge_atome_dans_registre(
             atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
+    }
+    else {
+        dbg() << __func__ << " : genre atome non supporté " << atome_droite->genre_atome;
     }
 
     assembleuse.commente("charge (atome_gauche)");
