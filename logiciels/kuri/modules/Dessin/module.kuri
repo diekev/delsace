@@ -3,7 +3,6 @@
 importe Algorithmes // pour permute
 importe Couleur
 importe Fondation
-importe FTGL
 importe Géométrie
 importe Image
 importe Math

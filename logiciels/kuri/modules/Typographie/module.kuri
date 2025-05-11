@@ -1,7 +1,14 @@
+/* Une partie de ce code dérive de FTGL de Nicolas Rougier distribuée sous la
+ * license suivante :
+ *       SPDX License Identifier : BSD-2-Clause
+ */
+
 importe Chaine
 importe Couleur
-importe FTGL
 importe Fondation
+importe FreeType
+importe Introspection
+importe Math
 importe SysFichier
 importe Unicode
 
@@ -21,11 +28,12 @@ crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
-    chemin_c := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chemin_c)
+    si taille_police == 0.0 {
+        retourne nul
+    }
 
     atlas := texture_atlas_new(512, 512, 1)
-    font := texture_font_new_from_file(atlas, taille_police, chemin_c comme *z8)
+    font := texture_font_new_from_file(atlas, taille_police, chemin.chn)
 
     saufsi font {
         texture_atlas_delete(atlas)
@@ -52,37 +60,27 @@ donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
 
 donne_glyphe_nul :: fonc (fonte: *Fonte) -> *texture_glyph_t
 {
-    retourne texture_font_get_glyph(fonte.font, nul)
+    retourne texture_font_get_glyph(fonte.font, -1 comme n32)
 }
 
 donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
 {
-    retourne texture_font_get_glyph_codepoint(fonte.font, point_de_code)
+    retourne texture_font_get_glyph(fonte.font, point_de_code)
 }
 
 ContrainteChaine :: chaine | ChaineUTF16 | ChaineUTF32
 
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> z32
 {
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
-
-    contexte_temp := contexte()
-    contexte_temp.allocatrice = __stockage_temporaire
-
     glyphes: [..]*texture_glyph_t
-
-    pousse_contexte contexte_temp {
-        donne_glyphes(fonte, texte, *glyphes)
-    }
-
+    donne_glyphes(fonte, texte, *glyphes)
     retourne donne_largeur_glyphes(fonte, glyphes)
 }
 
 donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z32
 {
     résultat := 0.0
-    utilise_crénage := fonte.font.kerning != 0
+    utilise_crénage := fonte.font.kerning
     dernier_glyphe: *texture_glyph_t
     pour glyphes {
         si utilise_crénage {
@@ -97,7 +95,7 @@ donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z3
 
 donne_index_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
 {
-    utilise_crénage := fonte.font.kerning != 0
+    utilise_crénage := fonte.font.kerning
     dernier_glyphe: *texture_glyph_t
     pour texte.points_de_code {
         glyph := donne_glyphe(fonte, it)
@@ -145,6 +143,12 @@ donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64
 
 donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyph_t)
 {
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    contexte_temp := contexte()
+    contexte_temp.allocatrice = __stockage_temporaire
+
     début := texte.pointeur
     fin := texte.pointeur + texte.taille
 
@@ -163,31 +167,49 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyp
             continue
         }
 
-        tableau_ajoute(glyphes, glyph)
+        pousse_contexte contexte_temp {
+            tableau_ajoute(glyphes, glyph)
+        }
     }
 }
 
 donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16, glyphes: *[..]*texture_glyph_t)
 {
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    contexte_temp := contexte()
+    contexte_temp.allocatrice = __stockage_temporaire
+
     pour texte.unités {
         glyph := fonte.donne_glyphe(it)
         si glyph == nul {
             continue
         }
 
-        tableau_ajoute(glyphes, glyph)
+        pousse_contexte contexte_temp {
+            tableau_ajoute(glyphes, glyph)
+        }
     }
 }
 
 donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32, glyphes: *[..]*texture_glyph_t)
 {
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    contexte_temp := contexte()
+    contexte_temp.allocatrice = __stockage_temporaire
+
     pour texte.points_de_code {
         glyph := fonte.donne_glyphe(it)
         si glyph == nul {
             continue
         }
 
-        tableau_ajoute(glyphes, glyph)
+        pousse_contexte contexte_temp {
+            tableau_ajoute(glyphes, glyph)
+        }
     }
 }
 
@@ -285,6 +307,1087 @@ EffetsTexte :: struct {
     /* Le texte sera barré. */
     barrage: bool
     couleur_barrage: CouleurRVBA
+}
+
+/** \} */
+
+#portée_fichier
+
+HRES :: 64
+HRESF :: 64.0
+DPI :: 72
+
+/* ------------------------------------------------------------------------- */
+/** \nom texture_glyph_t
+ * \{ */
+
+rendermode_t :: énum n32 {
+    RENDER_NORMAL
+    RENDER_OUTLINE_EDGE
+    RENDER_OUTLINE_POSITIVE
+    RENDER_OUTLINE_NEGATIVE
+    RENDER_SIGNED_DISTANCE_FIELD
+}
+
+kerning_t :: struct {
+    /**
+     * Left Unicode codepoint in the kern pair in UTF-32 LE encoding.
+     */
+    codepoint: n32
+    /**
+     * Kerning value (in fractional pixels).
+     */
+    kerning: r32
+}
+
+#portée_export
+
+texture_glyph_t :: struct {
+    /**
+     * Unicode codepoint this glyph represents in UTF-32 LE encoding.
+     */
+    codepoint: n32 = 0xffffffff
+    /**
+     * Glyph's width in pixels.
+     */
+    width: n64
+    /**
+     * Glyph's height in pixels.
+     */
+    height: n64
+    /**
+     * Glyph's left bearing expressed in integer pixels.
+     */
+    offset_x: z32
+    /**
+     * Glyphs's top bearing expressed in integer pixels.
+     *
+     * Remember that this is the distance from the baseline to the top-most
+     * glyph scanline, upwards y coordinates being positive.
+     */
+    offset_y: z32
+    /**
+     * For horizontal text layouts, this is the horizontal distance (in
+     * fractional pixels) used to increment the pen position when the glyph is
+     * drawn as part of a string of text.
+     */
+    advance_x: r32
+    /**
+     * For vertical text layouts, this is the vertical distance (in fractional
+     * pixels) used to increment the pen position when the glyph is drawn as
+     * part of a string of text.
+     */
+    advance_y: r32
+    /**
+     * First normalized texture coordinate (x) of top-left corner
+     */
+    s0: r32
+    /**
+     * Second normalized texture coordinate (y) of top-left corner
+     */
+    t0: r32
+    /**
+     * First normalized texture coordinate (x) of bottom-right corner
+     */
+    s1: r32
+    /**
+     * Second normalized texture coordinate (y) of bottom-right corner
+     */
+    t1: r32
+    /**
+     * A vector of kerning pairs relative to this glyph.
+     */
+    kerning: [..]kerning_t
+    /**
+     * Mode this glyph was rendered
+     */
+    rendermode: rendermode_t
+    /**
+     * Glyph outline thickness
+     */
+    outline_thickness: r32
+}
+
+#portée_fichier
+
+texture_glyph_new :: fonc () -> *texture_glyph_t
+{
+    self := loge(texture_glyph_t)
+    si (self == nul) {
+        panique("Impossible de loger une instance de texture_glyph_t")
+    }
+    retourne self;
+}
+
+texture_glyph_delete :: fonc (self: *texture_glyph_t)
+{
+    assert(self != nul)
+    déloge(self.kerning)
+    déloge(self)
+}
+
+texture_glyph_get_kerning_impl :: fonc (self: *texture_glyph_t, ucodepoint: n32) -> r32
+{
+    pour self.kerning {
+        si it.codepoint == ucodepoint {
+            retourne it.kerning
+        }
+    }
+    retourne 0.0
+}
+
+texture_glyph_get_kerning :: fonc (self: *texture_glyph_t, codepoint: chaine) -> r32
+{
+    ucodepoint := utf8_to_utf32(codepoint);
+    retourne texture_glyph_get_kerning_impl(self, ucodepoint);
+}
+
+texture_glyph_get_kerning_codepoint :: fonc (self: *texture_glyph_t, codepoint: n32) -> r32
+{
+    retourne texture_glyph_get_kerning_impl(self, codepoint);
+}
+
+texture_glyph_get_kerning_glyph :: fonc (self: *texture_glyph_t, other: *texture_glyph_t) -> r32
+{
+    retourne texture_glyph_get_kerning_impl(self, other.codepoint);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom texture_font_t
+ * \{ */
+
+InfoFichier :: union {
+    Fichier: chaine
+    Mémoire: [..]octet
+}
+
+/**
+ *  Texture font structure.
+ */
+texture_font_t :: struct {
+    /**
+     * Vector of glyphs contained in this font.
+     */
+    glyphs: [..]*texture_glyph_t
+    /**
+     * Atlas structure to store glyphs data.
+     */
+    atlas: *texture_atlas_t
+
+    fileinfo: InfoFichier
+    /**
+     * Font size
+     */
+    taille: r32
+    /**
+     * Whether to use autohint when rendering font
+     */
+    hinting := vrai
+    /**
+     * Mode the font is rendering its next glyph
+     */
+    rendermode: rendermode_t
+    /**
+     * Outline thickness
+     */
+    outline_thickness: r32
+    /**
+     * Whether to use our own lcd filter.
+     */
+    filtering := vrai
+    /**
+     * LCD filter weights
+     */
+    lcd_weights: [5]n8
+    /**
+     * Whether to use kerning if available
+     */
+    kerning := vrai
+    /**
+     * This field is simply used to compute a default line spacing (i.e., the
+     * baseline-to-baseline distance) when writing text with this font. Note
+     * that it usually is larger than the sum of the ascender and descender
+     * taken as absolute values. There is also no guarantee that no glyphs
+     * extend above or below subsequent baselines when using this distance.
+     */
+    height: r32
+    /**
+     * This field is the distance that must be placed between two lines of
+     * text. The baseline-to-baseline distance should be computed as:
+     * ascender - descender + linegap
+     */
+    linegap: r32
+    /**
+     * The ascender is the vertical distance from the horizontal baseline to
+     * the highest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the ascender differently. For some, it represents the
+     * ascent of all capital latin characters (without accents), for others it
+     * is the ascent of the highest accented character, and finally, other
+     * formats define it as being equal to bbox.yMax.
+     */
+    ascender: r32
+    /**
+     * The descender is the vertical distance from the horizontal baseline to
+     * the lowest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the descender differently. For some, it represents the
+     * descent of all capital latin characters (without accents), for others it
+     * is the ascent of the lowest accented character, and finally, other
+     * formats define it as being equal to bbox.yMin. This field is negative
+     * for values below the baseline.
+     */
+    descender: r32
+    max_char_width: r32
+    avg_char_width: r32
+    typo_ascender: r32
+    typo_descender: r32
+    /**
+     * The position of the underline line for this face. It is the center of
+     * the underlining stem. Only relevant for scalable formats.
+     */
+    underline_position: r32
+    /**
+     * The thickness of the underline for this face. Only relevant for scalable
+     * formats.
+     */
+    underline_thickness: r32
+    /**
+     * The padding to be add to the glyph's texture that are loaded by this font.
+     * Usefull when adding effects with shaders.
+     */
+    padding: z32
+}
+
+texture_font_init :: fonc (self: *texture_font_t) -> bool
+{
+    assert(self.atlas != nul)
+    assert(self.taille > 0)
+    assert(donne_index_membre_actif(self.fileinfo) != 0)
+
+    // FT_LCD_FILTER_LIGHT   is (0x00, 0x55, 0x56, 0x55, 0x00)
+    // FT_LCD_FILTER_DEFAULT is (0x10, 0x40, 0x70, 0x40, 0x10)
+    self.lcd_weights[0] = 0x10;
+    self.lcd_weights[1] = 0x40;
+    self.lcd_weights[2] = 0x70;
+    self.lcd_weights[3] = 0x40;
+    self.lcd_weights[4] = 0x10;
+
+    library: FT_Library
+    face: FT_Face
+    saufsi texture_font_load_face(self, self.taille, *library, *face) {
+        retourne faux
+    }
+
+    self.underline_position = face.underline_position comme r32 / (HRESF * HRESF) * self.taille;
+    self.underline_position = arrondis(self.underline_position);
+    si self.underline_position > -2.0 {
+        self.underline_position = -2.0;
+    }
+
+    self.underline_thickness = face.underline_thickness comme r32 / (HRESF * HRESF) * self.taille;
+    self.underline_thickness = arrondis(self.underline_thickness);
+    si self.underline_thickness < 1.0 {
+        self.underline_thickness = 1.0;
+    }
+
+    metrics := face.size.metrics;
+    self.ascender = (metrics.ascender >> 6) comme r32
+    self.descender = (metrics.descender >> 6) comme r32
+    self.height = (metrics.height >> 6) comme r32
+    self.linegap = self.height - self.ascender + self.descender;
+    em_scale := FT_MulDiv(self.taille comme z64, 1 << 16, face.units_per_EM comme z64)
+    self.max_char_width = FT_MulFix(face.bbox.xMax - face.bbox.xMin, em_scale) comme r32
+
+    pOS2 := FT_Get_Sfnt_Table(face, ft_sfnt_os2) comme *TT_OS2
+    si pOS2 {
+        self.avg_char_width = FT_MulFix(pOS2.xAvgCharWidth, em_scale) comme r32
+        self.typo_ascender = FT_MulFix(pOS2.sTypoAscender, em_scale) comme r32
+        self.typo_descender = FT_MulFix(pOS2.sTypoDescender, em_scale) comme r32
+    }
+
+    _ := FT_Done_Face(face)
+    _ := FT_Done_FreeType(library)
+
+    /* nul is a special glyph */
+    _ := texture_font_get_glyph(self, -1 comme n32);
+
+    retourne vrai
+}
+
+texture_font_new_from_file :: fonc (atlas: *texture_atlas_t, pt_taille: r32, filename: chaine) -> *texture_font_t
+{
+    assert(filename.taille > 0)
+
+    self := loge(texture_font_t)
+    saufsi self {
+        panique("Impossible de loger une instance de texture_font_t")
+    }
+
+    self.atlas = atlas
+    self.taille = pt_taille
+    self.fileinfo = copie_chaine(filename)
+
+    saufsi texture_font_init(self) {
+        texture_font_delete(self)
+        retourne nul;
+    }
+
+    retourne self
+}
+
+texture_font_new_from_memory :: fonc (atlas: *texture_atlas_t, pt_taille: r32, données_mémoire: [..]octet)
+{
+    assert(données_mémoire.taille > 0)
+
+    self := loge(texture_font_t)
+    saufsi self {
+        panique("Impossible de loger une instance de texture_font_t")
+    }
+
+    self.atlas = atlas
+    self.taille = pt_taille
+    self.fileinfo = données_mémoire
+
+    saufsi texture_font_init(self) {
+        texture_font_delete(self)
+        retourne nul
+    }
+
+    retourne self
+}
+
+texture_font_delete :: fonc (self: *texture_font_t)
+{
+    assert(self != nul)
+
+    discr self.fileinfo {
+        Fichier(chn) {
+            déloge_si_logée(chn)
+        }
+        Mémoire(mem) {
+            déloge(mem)
+        }
+        sinon {}
+    }
+
+    déloge_tableau_et_ses_éléments(self.glyphs, texture_glyph_delete)
+    déloge(self)
+}
+
+texture_font_load_face :: fonc (self: *texture_font_t, taille: r32, library: *FT_Library, face: *FT_Face) -> (succès: bool)
+{
+    assert(library != nul)
+    assert(taille != 0.0)
+
+    /* Initialize library */
+    error := FT_Init_FreeType(library)
+    si error {
+        imprime_erreur_freetype(error)
+        retourne faux
+    }
+    diffère si succès == faux { _ := FT_Done_FreeType(mémoire(library)) }
+
+    /* Load face */
+    discr self.fileinfo {
+        Fichier(chn) {
+            chaine_c := crée_chaine_c(chn)
+            diffère détruit_chaine_c(chaine_c)
+            error = FT_New_Face(mémoire(library), chaine_c, 0, face)
+        }
+        Mémoire(mem) {
+            error = FT_New_Memory_Face(mémoire(library), mem.pointeur comme *n8, mem.taille, 0, face)
+        }
+        sinon {
+            retourne faux
+        }
+    }
+
+    si error {
+        imprime_erreur_freetype(error)
+        retourne faux
+    }
+    diffère si succès == faux { _ := FT_Done_Face(mémoire(face)) }
+
+    /* Select charmap */
+    error = FT_Select_Charmap(mémoire(face), FT_Encoding.UNICODE)
+    si error {
+        imprime_erreur_freetype(error)
+        retourne faux
+    }
+
+    /* See page 24 of “Higher Quality 2D Text Rendering”:
+     * http://jcgt.org/published/0002/01/04/
+     * “To render high-quality text, Shemarev [2007] recommends using only
+     *  vertical hinting and completely discarding the horizontal hints.
+     *  Hinting is the responsibility of the rasterization engine (FreeType in
+     *  our case) which provides no option to specifically discard horizontal
+     *  hinting. In the case of the FreeType library, we can nonetheless trick
+     *  the engine by specifying an overtailled horizontal DPI (100 times the
+     *  vertical) while specifying a transformation matrix that scale down the
+     *  glyph as shown in Listing 1.”
+     * That horizontal DPI factor is HRES here. */
+    error = FT_Set_Char_Size(mémoire(face), r32_vers_F26Dot6(taille), 0, (DPI * HRES) comme n32, DPI comme n32)
+
+    si error {
+        imprime_erreur_freetype(error)
+        retourne faux
+    }
+
+    matrix := FT_Matrix(((1.0 / HRESF) * 0x10000 comme r32) comme z32,
+                        0,
+                        0,
+                        0x10000);
+
+    /* Set transform matrix */
+    FT_Set_Transform(mémoire(face), *matrix, nul);
+
+    retourne vrai
+}
+
+texture_font_generate_kerning :: fonc (self: *texture_font_t, face: *FT_Face)
+{
+    assert(self != nul)
+
+    kerning: FT_Vector
+
+    /* For each glyph couple combination, check if kerning is necessary */
+    /* Starts at index 1 since 0 is for the special backgroudn glyph */
+    pour i dans 1 ... self.glyphs.taille - 1 {
+        glyph := *self.glyphs[i];
+        glyph_index := FT_Get_Char_Index(mémoire(face), glyph.codepoint)
+        glyph.kerning.taille = 0
+
+        pour j dans 1 ... self.glyphs.taille - 1 {
+            prev_glyph := self.glyphs[j]
+            prev_index := FT_Get_Char_Index(mémoire(face), prev_glyph.codepoint)
+
+            // FT_KERNING_UNFITTED returns FT_F26Dot6 values.
+            _ := FT_Get_Kerning(mémoire(face), prev_index, glyph_index, FT_Kerning_Mode.FT_KERNING_UNFITTED comme n32, *kerning)
+            // printf("%c(%d)-%c(%d): %ld\n",
+            //       prev_glyph.codepoint, prev_glyph.codepoint,
+            //       glyph_index, glyph_index, kerning.x);
+
+            si (kerning.x) {
+                k := kerning_t(prev_glyph.codepoint, F26Dot6_vers_r32(kerning.x) / HRESF);
+                tableau_ajoute(*glyph.kerning, k)
+            }
+        }
+    }
+}
+
+texture_font_find_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
+{
+    pour self.glyphs {
+        si it.codepoint == codepoint && (codepoint == (-1 comme n32) || (it.rendermode == self.rendermode && it.outline_thickness == self.outline_thickness)) {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+données_glyphe_nul : [4 * 4 * 3]octet = octet.[0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+                                         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+
+texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
+{
+    library: FT_Library
+    face: FT_Face
+    saufsi texture_font_load_face(self, self.taille, *library, *face) {
+        retourne faux
+    }
+    diffère _ := FT_Done_FreeType(library)
+    diffère _ := FT_Done_Face(face)
+
+    /* Check if codepoint has been already loaded */
+    si texture_font_find_glyph(self, codepoint) {
+        retourne vrai
+    }
+
+    /* codepoint nul is special : it is used for line drawing (overline,
+     * underline, strikethrough) and background.
+     */
+    si (codepoint == -1 comme n32) {
+        region := texture_atlas_get_region(self.atlas, 5, 5)
+        si (region.x < 0) {
+            imprimeln("L'atlas est plein : impossible d'y ajouter le glyphe nul")
+            retourne faux
+        }
+
+        glyph := texture_glyph_new()
+        
+        texture_atlas_set_region(self.atlas, region.x comme n64, region.y comme n64, 4, 4, données_glyphe_nul, 0)
+        glyph.codepoint = -1 comme n32
+        glyph.s0 = (region.x + 2) comme r32 / self.atlas.width comme r32
+        glyph.t0 = (region.y + 2) comme r32 / self.atlas.height comme r32
+        glyph.s1 = (region.x + 3) comme r32 / self.atlas.width comme r32
+        glyph.t1 = (region.y + 3) comme r32 / self.atlas.height comme r32
+        tableau_ajoute(*self.glyphs, glyph)
+        retourne vrai
+    }
+
+
+    flags : FT_Int32 = 0
+    ft_glyph_top := 0;
+    ft_glyph_left := 0;
+    glyph_index := FT_Get_Char_Index(face, codepoint comme FT_ULong)
+    // WARNING: We use texture-atlas depth to guess if user wants
+    //          LCD subpixel rendering
+
+    si self.rendermode != rendermode_t.RENDER_NORMAL && self.rendermode != rendermode_t.RENDER_SIGNED_DISTANCE_FIELD {
+        flags |= FT_LOAD_NO_BITMAP;
+    }
+    sinon {
+        flags |= FT_LOAD_RENDER;
+    }
+
+    saufsi self.hinting {
+        flags |= FT_LOAD_NO_HINTING | FT_LOAD_NO_AUTOHINT;
+    }
+    sinon {
+        flags |= FT_LOAD_FORCE_AUTOHINT;
+    }
+
+    si self.atlas.depth == 3 {
+        _ := FT_Library_SetLcdFilter(library, FT_LcdFilter.FT_LCD_FILTER_LIGHT)
+        flags |= FT_LOAD_TARGET_LCD()
+
+        si self.filtering {
+            _ := FT_Library_SetLcdFilterWeights(library, *self.lcd_weights[0])
+        }
+    }
+    sinon si HRES == 1 {
+        /* “FT_LOAD_TARGET_LIGHT
+         *  A lighter hinting algorithm for gray-level modes. Many generated
+         *  glyphs are fuzzier but better resemble their original shape.
+         *  This is achieved by snapping glyphs to the pixel grid
+         *  only vertically (Y-axis), as is done by FreeType's new CFF engine
+         *  or Microsoft's ClearType font renderer.”
+         * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_target_xxx
+         */
+        flags |= FT_LOAD_TARGET_LIGHT()
+    }
+
+    error := FT_Load_Glyph(face, glyph_index, flags)
+    si error {
+        imprime_erreur_freetype(error)
+        retourne faux
+    }
+
+    ft_glyph: FT_Glyph
+    ft_bitmap: FT_Bitmap
+
+    si self.rendermode == rendermode_t.RENDER_NORMAL || self.rendermode == rendermode_t.RENDER_SIGNED_DISTANCE_FIELD {
+        slot := face.glyph;
+        ft_bitmap = slot.bitmap;
+        ft_glyph_top = slot.bitmap_top;
+        ft_glyph_left = slot.bitmap_left;
+    }
+    sinon {
+        stroker: FT_Stroker
+        error = FT_Stroker_New(library, *stroker)
+        si error {
+            imprime_erreur_freetype(error)
+            retourne faux
+        }
+        diffère FT_Stroker_Done(stroker)
+
+        FT_Stroker_Set(stroker,
+                       (self.outline_thickness * HRESF) comme z32,
+                       FT_Stroker_LineCap.ROUND,
+                       FT_Stroker_LineJoin.ROUND,
+                       0);
+
+        error = FT_Get_Glyph(face.glyph, *ft_glyph)
+        si error {
+            imprime_erreur_freetype(error)
+            retourne faux
+        }
+
+        si self.rendermode == rendermode_t.RENDER_OUTLINE_EDGE {
+            error = FT_Glyph_Stroke(*ft_glyph, stroker, 1)
+        }
+        sinon si self.rendermode == rendermode_t.RENDER_OUTLINE_POSITIVE {
+            error = FT_Glyph_StrokeBorder(*ft_glyph, stroker, 0, 1)
+        }
+        sinon si self.rendermode == rendermode_t.RENDER_OUTLINE_NEGATIVE {
+            error = FT_Glyph_StrokeBorder(*ft_glyph, stroker, 1, 1)
+        }
+
+        si error {
+            imprime_erreur_freetype(error)
+            retourne faux
+        }
+
+        si self.atlas.depth == 1 {
+            error = FT_Glyph_To_Bitmap(*ft_glyph, FT_Render_Mode.NORMAL, nul, 1)
+        }
+        sinon {
+            error = FT_Glyph_To_Bitmap(*ft_glyph, FT_Render_Mode.LCD, nul, 1)
+        }
+
+        si (error) {
+            imprime_erreur_freetype(error)
+            retourne faux
+        }
+
+        ft_bitmap_glyph := ft_glyph comme FT_BitmapGlyph
+        ft_bitmap = ft_bitmap_glyph.bitmap;
+        ft_glyph_top = ft_bitmap_glyph.top;
+        ft_glyph_left = ft_bitmap_glyph.left;
+    }
+
+    Rembourrage :: struct {
+        left: z32
+        top: z32
+        right: z32
+        bottom: z32
+    }
+    padding: Rembourrage
+
+    si self.rendermode == rendermode_t.RENDER_SIGNED_DISTANCE_FIELD {
+        padding.top = 1;
+        padding.left = 1;
+    }
+
+    si self.padding != 0 {
+        padding.top += self.padding;
+        padding.left += self.padding;
+        padding.right += self.padding;
+        padding.bottom += self.padding;
+    }
+
+    src_w := ft_bitmap.width / self.atlas.depth
+    src_h := ft_bitmap.rows
+
+    tgt_w := src_w + (padding.left + padding.right) comme n64
+    tgt_h := src_h + (padding.top + padding.bottom) comme n64
+
+    region := texture_atlas_get_region(self.atlas, tgt_w, tgt_h);
+    si region.x < 0 {
+        imprimeln("L'atlas est plein : impossible d'y ajouter un glyphe")
+        retourne faux
+    }
+
+    x := region.x
+    y := region.y
+
+    tampon := texture_atlas_get_glyph_buffer(self.atlas, tgt_w, tgt_h)
+
+    dst_ptr := tampon.pointeur + (padding.top comme n64 * tgt_w + padding.left comme n64) * self.atlas.depth
+    src_ptr := ft_bitmap.buffer
+
+    pour src_h {
+        // difference between width and pitch:
+        // https://www.freetype.org/freetype2/docs/reference/ft2-basic_types.html#FT_Bitmap
+        copie_mem_nonsur(dst = dst_ptr, src = src_ptr, taille = ft_bitmap.width comme z64)
+        dst_ptr += tgt_w * self.atlas.depth
+        src_ptr += ft_bitmap.pitch
+    }
+
+    // si self.rendermode == RENDER_SIGNED_DISTANCE_FIELD {
+    //     unsigned char *bdbuffer = texture_atlas_get_distance_byte_buffer(self.atlas, tgt_w, tgt_h);
+    //     double *ddbuffer = texture_atlas_get_distance_double_buffer(self.atlas, tgt_w, tgt_h);
+    //     unsigned char *sdf = make_distance_mapb(tampon, bdbuffer, ddbuffer, tgt_w, tgt_h);
+    //     tampon = sdf;
+    // }
+
+    texture_atlas_set_region(self.atlas, x comme n64, y comme n64, tgt_w, tgt_h, tampon, tgt_w * self.atlas.depth);
+
+    glyph := texture_glyph_new();
+    glyph.codepoint = codepoint;
+    glyph.width = tgt_w;
+    glyph.height = tgt_h;
+    glyph.rendermode = self.rendermode;
+    glyph.outline_thickness = self.outline_thickness;
+    glyph.offset_x = ft_glyph_left;
+    glyph.offset_y = ft_glyph_top;
+    glyph.s0 = x comme r32 / self.atlas.width comme r32
+    glyph.t0 = y comme r32 / self.atlas.height comme r32
+    glyph.s1 = (x + glyph.width comme z32) comme r32 / self.atlas.width comme r32
+    glyph.t1 = (y + glyph.height comme z32) comme r32 / self.atlas.height comme r32
+
+    // Discard hinting to get advance
+    _ := FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
+    slot := face.glyph;
+    glyph.advance_x = F26Dot6_vers_r32(slot.advance.x);
+    glyph.advance_y = F26Dot6_vers_r32(slot.advance.y);
+
+    tableau_ajoute(*self.glyphs, glyph)
+
+    si (self.rendermode != rendermode_t.RENDER_NORMAL && self.rendermode != rendermode_t.RENDER_SIGNED_DISTANCE_FIELD) {
+        FT_Done_Glyph(ft_glyph)
+    }
+
+    texture_font_generate_kerning(self, *face)
+
+    retourne vrai
+}
+
+// À FAIRE : texture_font_load_glyphs :: fonc (self: *texture_font_t, codepoints: chaine)
+
+texture_font_get_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
+{
+    assert(self != nul)
+    assert(donne_index_membre_actif(self.fileinfo) != 0)
+    assert(self.atlas != nul)
+
+    /* Check if codepoint has been already loaded */
+    glyph := texture_font_find_glyph(self, codepoint)
+    si glyph {
+        retourne glyph
+    }
+
+    /* Glyph has not been already loaded */
+    si texture_font_load_glyph(self, codepoint) {
+        retourne texture_font_find_glyph(self, codepoint)
+    }
+
+    retourne nul
+}
+
+texture_font_enlarge_atlas :: fonc (self: *texture_font_t, width_new: n64, height_new: n64)
+{
+    assert(self);
+    assert(self.atlas);
+    // ensure taille increased
+    assert(width_new >= self.atlas.width);
+    assert(height_new >= self.atlas.height);
+    assert(width_new + height_new > self.atlas.width + self.atlas.height);
+
+    ta := self.atlas
+    width_old := ta.width
+    height_old := ta.height
+
+    // allocate new tampon
+    data_old := ta.data;
+    tableau_redimensionne(ta.data, (width_new * height_new * ta.depth) comme z64)
+    tableau_remplis_avec(ta.data, 0)
+    // update atlas taille
+    ta.width = width_new;
+    ta.height = height_new;
+
+    // add node reflecting the gained space on the right
+    si (width_new > width_old) {
+        node: ivec3 = ---
+        node.x = width_old - 1;
+        node.y = 1;
+        node.z = width_new - width_old;
+        tableau_ajoute(*ta.nodes, node)
+    }
+
+    // copy over data from the old tampon, skipping first row and column because of the margin
+    pixel_taille := ta.depth;
+    old_row_taille := width_old * pixel_taille;
+    texture_atlas_set_region(ta,
+                             1,
+                             1,
+                             width_old - 2,
+                             height_old - 2,
+                             data_old + old_row_taille + pixel_taille,
+                             old_row_taille);
+
+    déloge(data_old);
+    // change uv coordinates of existing glyphs to reflect taille change
+    mulw := width_old comme r32 / width_new comme r32
+    mulh := height_old comme r32 / height_new comme r32
+
+    pour self.glyphs {
+        it.s0 *= mulw;
+        it.s1 *= mulw;
+        it.t0 *= mulh;
+        it.t1 *= mulh;
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Atlas
+ * \{ */
+
+ivec3 :: struct {
+    x: z32
+    y: z32
+    z: z32
+}
+
+#portée_export
+
+/**
+ * A texture atlas is used to pack several small regions into a single texture.
+ */
+texture_atlas_t :: struct {
+    /**
+     * Allocated nodes
+     */
+    nodes: [..]ivec3
+    /**
+     *  Width (in pixels) of the underlying texture
+     */
+    width: n64
+    /**
+     * Height (in pixels) of the underlying texture
+     */
+    height: n64
+    /**
+     * Depth (in bytes) of the underlying texture
+     */
+    depth: n64
+    /**
+     * Allocated surface size
+     */
+    used: n64
+    /**
+     * Texture identity (OpenGL)
+     */
+    id: n32
+    /**
+     * Set to 1 if new glyphs were loaded. Can be set to 0 by
+     * clients to dynamically update the OpenGL texture.
+     */
+    dirty: n32
+    /**
+     * Atlas data
+     */
+    data: [..]octet
+    /**
+     * Scratch buffers
+     */
+    glyph_scratch_buffer: [..]octet
+    distance_byte_scratch_buffer: [..]octet
+    distance_double_scratch_buffer: [..]r64
+}
+
+#portée_fichier
+
+byte_scratch_buffer_alloc_and_reset :: fonc (tampon: *[..]octet, num_pixels: n64) -> []octet
+{
+    tableau_réserve(tampon, num_pixels comme z64)
+    tampon.taille = tampon.capacité
+    tableau_remplis_avec(mémoire(tampon), 0)
+    retourne mémoire(tampon)
+}
+
+double_scratch_buffer_alloc_and_reset :: fonc (tampon: *[..]r64, num_pixels: n64) -> []r64
+{
+    tableau_réserve(tampon, num_pixels comme z64)
+    tampon.taille = tampon.capacité
+    tableau_remplis_avec(mémoire(tampon), 0.0 comme r64)
+    retourne mémoire(tampon)
+}
+
+texture_atlas_new :: fonc (width: n64, height: n64, depth: n64) -> *texture_atlas_t
+{
+    assert((depth == 1) || (depth == 3) || (depth == 4))
+
+    self := loge(texture_atlas_t)
+    saufsi self {
+        panique("impossible de loger une instance de texture_atlas_t")
+    }
+
+    tableau_redimensionne(self.data, (width * height * depth) comme z64)
+    si self.data.pointeur == nul {
+        panique("impossible de loger une instance de texture_atlas_t")
+    }
+ 
+    self.width = width;
+    self.height = height;
+    self.depth = depth;
+
+    // We want a one pixel border around the whole atlas to avoid any artefact when
+    // sampling texture
+    node := ivec3(1, 1, width comme z32 - 2)
+    tableau_ajoute(*self.nodes, node)
+
+    retourne self
+}
+
+texture_atlas_delete :: fonc (self: *texture_atlas_t)
+{
+    assert(self != nul)
+    déloge(self.data)
+    déloge(self.glyph_scratch_buffer)
+    déloge(self.distance_byte_scratch_buffer)
+    déloge(self.distance_double_scratch_buffer)
+    déloge(self)
+}
+
+texture_atlas_set_region :: fonc (self: *texture_atlas_t,
+                                  x: n64,
+                                  y: n64,
+                                  width: n64,
+                                  height: n64,
+                                  data: []octet,
+                                  stride: n64)
+{
+    assert(self != nul)
+    assert(x > 0)
+    assert(y > 0)
+    assert(x < (self.width - 1))
+    assert((x + width) <= (self.width - 1))
+    assert(y < (self.height - 1))
+    assert((y + height) <= (self.height - 1))
+
+    // prevent copying data from undefined position
+    // and prevent memcpy's undefined behavior when count is zero
+    assert(height == 0 || (data.taille != 0 && width > 0))
+
+    depth := self.depth;
+    pour height {
+        copie_mem_nonsur(dst = self.data.pointeur + ((y + it) * self.width + x) * depth,
+                         src = data.pointeur + (it * stride),
+                         taille = (width * depth) comme z64);
+    }
+
+    self.dirty = 1
+}
+
+texture_atlas_get_glyph_buffer :: fonc (self: *texture_atlas_t, width: n64, height: n64) -> []octet
+{
+    retourne byte_scratch_buffer_alloc_and_reset(*self.glyph_scratch_buffer, width * height * self.depth);
+}
+
+texture_atlas_get_distance_byte_buffer :: fonc (self: *texture_atlas_t, width: n64, height: n64) -> []octet
+{
+    retourne byte_scratch_buffer_alloc_and_reset(*self.distance_byte_scratch_buffer, width * height * self.depth);
+}
+
+texture_atlas_get_distance_double_buffer :: fonc (self: *texture_atlas_t, width: n64, height: n64) -> []r64
+{
+    retourne double_scratch_buffer_alloc_and_reset(*self.distance_double_scratch_buffer, width * height * self.depth);
+}
+
+texture_atlas_fit :: fonc (self: *texture_atlas_t,
+                           index: n64,
+                           width: n64,
+                           height: n64) -> z32
+{
+    assert(self != nul);
+
+    node := self.nodes[index]
+    x := node.x;
+    y := node.y;
+    width_left := width comme z64
+
+    si (x comme n64 + width) > (self.width - 1) {
+        retourne -1;
+    }
+
+    y = node.y;
+    i := index;
+    tantque width_left > 0 {
+        node = self.nodes[i]
+        si node.y > y {
+            y = node.y
+        }
+        si (y comme n64 + height) > (self.height - 1) {
+            retourne -1;
+        }
+        width_left -= node.z
+        i += 1;
+    }
+    retourne y;
+}
+
+texture_atlas_merge :: fonc (self: *texture_atlas_t)
+{
+    assert(self != nul);
+
+    pour self.nodes.taille - 1 {
+        node := *self.nodes[it]
+        next := *self.nodes[it + 1]
+        si node.y == next.y {
+            node.z += next.z;
+            tableau_supprime_index(*self.nodes, it + 1)
+            reprends it
+        }
+    }
+}
+
+ivec4 :: struct {
+    x: z32
+    y: z32
+    z: z32
+    w: z32
+}
+
+texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n64) -> ivec4
+{
+    assert(self != nul)
+
+    region := ivec4(0, 0, width comme z32, height comme z32)
+
+    best_height : n64 = 0xffffffff
+    best_index : z64 = -1
+    best_width : n64 = 0xffffffff
+    pour self.nodes {
+        y := texture_atlas_fit(self, index_it comme n64, width, height);
+        si y >= 0 {
+            si ((y comme n64 + height) < best_height ||
+                (((y comme n64 + height) == best_height) && (it.z > 0 && it.z comme n64 < best_width))) {
+                best_height = y comme n64 + height
+                best_index = index_it
+                best_width = it.z comme n64
+                region.x = it.x
+                region.y = y
+            }
+        }
+    }
+
+    si best_index == -1 {
+        region.x = -1
+        region.y = -1
+        region.z = 0
+        region.w = 0
+        retourne region
+    }
+
+    tmp_node := ivec3(x = region.x, y = region.y + height comme z32, z = width comme z32)
+    tableau_insère_index(*self.nodes, tmp_node, best_index)
+
+    pour i dans best_index + 1 ... self.nodes.taille - 1 {
+        node := *self.nodes[i]
+        prev := *self.nodes[i - 1]
+
+        si node.x < (prev.x + prev.z) {
+            shrink := prev.x + prev.z - node.x;
+            node.x += shrink;
+            node.z -= shrink;
+            si node.z <= 0 {
+                tableau_supprime_index(*self.nodes, i)
+                reprends i
+            }
+
+            arrête
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    texture_atlas_merge(self)
+    self.used += width * height
+    retourne region
+}
+
+texture_atlas_clear :: fonc (self: *texture_atlas_t)
+{
+    assert(self != nul)
+    assert(self.data.taille > 0)
+
+    self.nodes.taille = 0
+    self.used = 0;
+
+    node := ivec3(1, 1, 1)
+    // We want a one pixel border around the whole atlas to avoid any artefact when
+    // sampling texture
+    node.z = self.width - 2;
+    tableau_ajoute(*self.nodes, node)
+
+    memset(self.data.pointeur, 0, self.width * self.height * self.depth)
 }
 
 /** \} */

@@ -1,7 +1,6 @@
 importe Compilatrice
 importe Chaine
 importe Couleur
-importe FTGL
 importe Fondation
 importe Image
 importe Géométrie
@@ -794,7 +793,7 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
     résultat: ParamètresTexture2D
     résultat.largeur = atlas.width comme z32
     résultat.hauteur = atlas.height comme z32
-    résultat.données = atlas.data
+    résultat.données = atlas.data.pointeur
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RED

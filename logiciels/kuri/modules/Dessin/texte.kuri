@@ -38,7 +38,7 @@ dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_gl
         retourne
     }
 
-    source_atlas := fonte.atlas.data
+    source_atlas := fonte.atlas.data.pointeur comme *n8
 
     décalage_x := rect.x comme r32
     début_effets := décalage_x
