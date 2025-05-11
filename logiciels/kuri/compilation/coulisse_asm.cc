@@ -2713,11 +2713,11 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     // auto appelée = génère_code_pour_atome(atome_appelée, assembleuse,
     // UtilisationAtome::AUCUNE);
 
-    // if (classement.sortie.est_en_mémoire) {
-    //     /* Charge l'adresse dans %rdi. */
-    //     assembleuse.lea(Registre::RDI, adresse_retour);
-    //     registres.marque_registre_occupé(Registre::RDI);
-    // }
+    if (classement.sortie.est_en_mémoire) {
+        /* Charge l'adresse dans %rdi. */
+        assembleuse.lea(Registre::RDI, adresse_retour);
+        registres.marque_registre_occupé(Registre::RDI);
+    }
 
     // if (appelée.type == TypeOpérande::MÉMOIRE) {
     //     auto registre = registres.donne_registre_entier_inoccupé();
@@ -3421,28 +3421,18 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
         auto const type_retour = inst_retour->valeur->type;
         auto taille_en_octet = type_retour->taille_octet;
         if (sortie.est_en_mémoire) {
-            VERIFIE_NON_ATTEINT;
-            // assembleuse.mov(Registre::RAX, m_adresse_retour, 8);
+            registres.marque_registre_occupé(Registre::RAX);
+            assembleuse.mov(Registre::RAX, m_adresse_retour, 8);
 
-            // auto adresse_retour = AssembleuseASM::Mémoire(Registre::RAX);
+            auto adresse_retour = AssembleuseASM::Mémoire(Registre::RAX);
 
-            // registres.marque_registre_occupé(Registre::RAX);
-            // auto registre_tmp = registres.donne_registre_entier_inoccupé();
+            auto registre_tmp = registres.donne_registre_entier_inoccupé();
+            assembleuse.pop(registre_tmp);
 
-            // auto taille_à_copier = int32_t(taille_en_octet);
-            // while (taille_à_copier > 0) {
-            //     auto taille = taille_à_copier;
-            //     if (taille > 8) {
-            //         taille = 8;
-            //     }
-            //     taille_à_copier -= taille;
-
-            //     assembleuse.mov(registre_tmp, valeur, uint32_t(taille));
-            //     assembleuse.mov(adresse_retour, registre_tmp, uint32_t(taille));
-
-            //     adresse_retour.décalage += taille;
-            //     valeur.mémoire.décalage += taille;
-            // }
+            copie(adresse_retour,
+                  AssembleuseASM::Mémoire{registre_tmp},
+                  taille_en_octet,
+                  assembleuse);
         }
         else {
 
