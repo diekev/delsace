@@ -1,6 +1,4 @@
-importe Chaine
 importe Compilatrice
-importe Fondation
 
 CSSOMString :: ChaineUTF16Unique
 

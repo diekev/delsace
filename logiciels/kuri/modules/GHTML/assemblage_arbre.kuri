@@ -1,4 +1,3 @@
-importe Fondation
 importe Structures
 
 TypeNoeud :: énum z32 {

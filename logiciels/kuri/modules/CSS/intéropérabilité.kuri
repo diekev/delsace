@@ -124,9 +124,7 @@ donne_qt_cursor_shape :: fonc (type: CursorType) -> QT_CursorShape
 /** \nom PeintureInterface
  * \{ */
 
-importe Géométrie
 importe IGUMI
-importe Math
 importe OpenGL
 importe PeintureInterface
 
@@ -171,7 +169,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
             }
             DESSINE_IMAGE {
                 commande := base comme *CommandeDessineImage
-                peintre.dessine_image(commande.image_data, commande.rect_image, commande.rect, commande.répétition)
+                peintre.dessine_image(*commande.image_data, commande.rect_image, commande.rect, commande.répétition)
             }
             DESSINE_TAMPON_IMAGE {
                 commande := base comme *CommandeDessineImageTampon

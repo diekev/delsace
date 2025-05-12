@@ -1,5 +1,3 @@
-importe Fondation
-importe SysFichier
 importe Unicode
 
 /* ------------------------------------------------------------------------- */

@@ -21,7 +21,7 @@
 
 /* ************************************************************************** */
 
-bool Fichier::importe_module(IdentifiantCode *nom_module) const
+bool Module::importe_module(IdentifiantCode *nom_module) const
 {
     bool importe = false;
     pour_chaque_élément(modules_importés, [nom_module, &importe](ModuleImporté const &module_) {
@@ -210,6 +210,9 @@ Module *SystèmeModule::crée_module(IdentifiantCode *nom, kuri::chaine_statique
 {
     auto dm = modules.ajoute_élément(chemin);
     dm->nom_ = nom;
+    if (importe_kuri) {
+        dm->modules_importés.insère({module_kuri, true});
+    }
     return dm;
 }
 
@@ -246,10 +249,6 @@ FichierNeuf SystèmeModule::crée_fichier(Module *module,
     df->chemin_ = chemin;
     df->id_ = fichiers.taille() - 1;
     df->module = module;
-
-    if (importe_kuri) {
-        df->modules_importés.insère({module_kuri, true});
-    }
 
     module->ajoute_fichier(df);
 
@@ -297,15 +296,15 @@ int64_t SystèmeModule::mémoire_utilisée() const
         résultat += it.nom().taille();
         résultat += it.chemin().taille();
         résultat += it.tampon().chaine().taille();
-        // les autres membres sont gérés dans rassemble_statistiques()
-        if (!it.modules_importés.est_stocké_dans_classe()) {
-            résultat += it.modules_importés.mémoire_utilisée();
-        }
     }
 
     POUR_TABLEAU_PAGE (modules) {
         résultat += it.chemin().taille();
         résultat += it.fichiers.taille_mémoire();
+        // les autres membres sont gérés dans rassemble_statistiques()
+        if (!it.modules_importés.est_stocké_dans_classe()) {
+            résultat += it.modules_importés.mémoire_utilisée();
+        }
     }
 
     return résultat;

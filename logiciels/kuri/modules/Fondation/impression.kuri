@@ -1,6 +1,5 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
-importe Algorithmes
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
@@ -921,7 +920,7 @@ imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 
 // --------------------------
 
-imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
+imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") -> rien
 {
     discr info.id {
         ENTIER {
@@ -975,6 +974,9 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
         }
         STRUCTURE {
             info_arg := info comme *InfoTypeStructure
+            si module {
+                ajoute_au_tampon(enchaineuse, module, ".")
+            }
             ajoute_au_tampon(enchaineuse, info_arg.nom)
         }
         POINTEUR {
@@ -988,7 +990,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
             }
 
             si info_arg.type_pointé {
-                imprime_type(enchaineuse, info_arg.type_pointé)
+                imprime_type(enchaineuse, info_arg.type_pointé, module)
             }
             sinon {
                 ajoute_au_tampon(enchaineuse, "nul")
@@ -1010,7 +1012,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
             }
             sinon pour info_fonction.types_entrée {
                 ajoute_au_tampon(enchaineuse, virgule)
-                imprime_type(enchaineuse, it)
+                imprime_type(enchaineuse, it, module)
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ")")
@@ -1021,7 +1023,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
             }
             sinon pour info_fonction.types_sortie {
                 ajoute_au_tampon(enchaineuse, virgule)
-                imprime_type(enchaineuse, it)
+                imprime_type(enchaineuse, it, module)
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ")")
@@ -1037,6 +1039,9 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
         }
         UNION {
             info_arg := info comme *InfoTypeUnion
+            si module {
+                ajoute_au_tampon(enchaineuse, module, ".")
+            }
             ajoute_au_tampon(enchaineuse, info_arg.nom)
         }
         TYPE_DE_DONNÉES {
@@ -1046,24 +1051,30 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
         TABLEAU {
             info_arg := info comme *InfoTypeTableau
             ajoute_au_tampon(enchaineuse, "[..]")
-            imprime_type(enchaineuse, info_arg.type_pointé)
+            imprime_type(enchaineuse, info_arg.type_pointé, module)
         }
         TABLEAU_FIXE {
             info_arg := info comme *InfoTypeTableauFixe
             imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.nombre_éléments)
-            imprime_type(enchaineuse, info_arg.type_pointé)
+            imprime_type(enchaineuse, info_arg.type_pointé, module)
         }
         TRANCHE {
             info_arg := info comme *InfoTypeTranche
             ajoute_au_tampon(enchaineuse, "[]")
-            imprime_type(enchaineuse, info_arg.type_élément)
+            imprime_type(enchaineuse, info_arg.type_élément, module)
         }
         ÉNUM {
             info_arg := info comme *InfoTypeÉnum
+            si module {
+                ajoute_au_tampon(enchaineuse, module, ".")
+            }
             ajoute_au_tampon(enchaineuse, info_arg.nom)
         }
         OPAQUE {
             info_arg := info comme *InfoTypeOpaque
+            si module {
+                ajoute_au_tampon(enchaineuse, module, ".")
+            }
             ajoute_au_tampon(enchaineuse, info_arg.nom)
         }
         VARIADIQUE {
@@ -1072,7 +1083,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType) -> rien
 
             si info_arg.type_élément {
                 /* Les types variadiques externes n'ont pas de type élément. */
-                imprime_type(enchaineuse, info_arg.type_élément)
+                imprime_type(enchaineuse, info_arg.type_élément, module)
             }
         }
         ADRESSE_FONCTION {
@@ -1232,8 +1243,6 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 // ------------------------------------
 // Fonctions de formattages
 
-importe Compilatrice
-
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
 __fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
 
@@ -1271,12 +1280,19 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom)
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Enchaineuse, e: eini)\n")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Fondation.Enchaineuse, e: eini)\n")
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *")
-    imprime_type(enchaineuse, données.info_type)
+
+    module := compilatrice_module_pour_code(données.fonction)
+    nom_module := compilatrice_nom_module(module)
+    imprime_type(enchaineuse, données.info_type, nom_module)
     ajoute_au_tampon(enchaineuse, "\n")
-    ajoute_au_tampon(enchaineuse, "\t", données.fonction.nom, "(enchaineuse, valeur)\n")
+    ajoute_au_tampon(enchaineuse, "\t")
+    si nom_module {
+        ajoute_au_tampon(enchaineuse, nom_module, ".")
+    }
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur)\n")
     ajoute_au_tampon(enchaineuse, "}\n")
 
     retourne nom_enveloppe
@@ -1285,6 +1301,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 exécute_pré_exécutable :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     créatrice_table_fonctions.annotation_désirée = "FormattageImpression"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

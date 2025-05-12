@@ -11,7 +11,7 @@ enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
         commentaire = avance(commentaire, 2)
     }
 
-    tantque commentaire.taille > 1 && est_espace_blanc(commentaire[0]) {
+    tantque commentaire.taille > 1 && est_espace_blanche(commentaire[0]) {
         commentaire = avance(commentaire, 1)
     }
 
@@ -19,7 +19,7 @@ enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
         commentaire = recule(commentaire, 2)
     }
 
-    tantque commentaire.taille > 1 && est_espace_blanc(commentaire[commentaire.taille - 1]) {
+    tantque commentaire.taille > 1 && est_espace_blanche(commentaire[commentaire.taille - 1]) {
         commentaire = recule(commentaire, 1)
     }
 

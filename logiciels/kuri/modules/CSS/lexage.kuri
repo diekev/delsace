@@ -1,42 +1,3 @@
-importe Chaine
-importe Fondation
-importe Math
-importe Unicode
-
-avance :: fonc (chn: &ChaineUTF32, n: z32)
-{
-    chn.points_de_code.taille -= n
-    assert(chn.points_de_code.taille >= 0)
-    chn.points_de_code.pointeur += n
-}
-
-FIN_DE_FICHIER : n32 : 0xffffffff
-
-opérateur - :: fonc (a: n32, b: z8) -> n32
-{
-    retourne a - b comme n32
-}
-
-opérateur == :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a == b comme n32
-}
-
-opérateur != :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a != b comme n32
-}
-
-opérateur <= :: fonc (a: n32, b: z8) -> bool
-{
-    retourne a <= b comme n32
-}
-
-opérateur <= :: fonc (a: z8, b: n32) -> bool
-{
-    retourne a comme n32 <= b
-}
-
 est_non_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
     retourne point_de_code >= 0x80 && point_de_code != FIN_DE_FICHIER
@@ -54,26 +15,17 @@ est_point_de_code_ident :: fonc (point_de_code: n32) -> bool #enligne
 
 est_non_imprimable :: fonc (point_de_code: n32) -> bool #enligne
 {
-    BACKSPACE : n32 : 0x8
-    LINE_TABULATION : n32 : 0xB
-    SHIFT_OUT : n32 : 0xE
-    INFORMATION_SEPARATOR_ONE : n32 : 0x1F
-    DELETE : n32 : 0x7F
-
-    retourne (point_de_code <= BACKSPACE) || (point_de_code == LINE_TABULATION) || (SHIFT_OUT <= point_de_code <= INFORMATION_SEPARATOR_ONE) || point_de_code == DELETE
+    retourne (point_de_code <= BACKSPACE) || (point_de_code == TABULATION) || (MOUVEMENT_SORTANT <= point_de_code <= SÉPARATEUR_D_UNITÉS) || point_de_code == DELETE
 }
 
 est_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
 {
-    LINE_FEED : n32 : 0xA
-    retourne point_de_code == LINE_FEED
+    retourne point_de_code == SAUT_DE_LIGNE
 }
 
 est_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
 {
-    CHARACTER_TABULATION : n32 : 0x9
-    SPACE : n32 : 0x20
-    retourne est_nouvelle_ligne(point_de_code) || point_de_code == CHARACTER_TABULATION || point_de_code == SPACE
+    retourne est_nouvelle_ligne(point_de_code) || point_de_code == TABULATION_HORIZONTALE || point_de_code == ESPACE
 }
 
 est_guillemet_ascii_ou_apostrophe :: fonc (point_de_code: n32) -> bool #enligne
@@ -1052,11 +1004,11 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
     s : r64 = 1.0
     si repr.points_de_code[0] == '+' {
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
     sinon si repr.points_de_code[0] == '-' {
         s = -1.0
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     i : r64 = 0.0
@@ -1067,11 +1019,11 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
         i *= 10.0
         i += (repr.points_de_code[0] - '0') comme r64
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     si repr.taille() != 0 && repr.points_de_code[0] == '.' {
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     f : r64 = 0.0
@@ -1084,20 +1036,20 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
         f *= 10.0
         f += (repr.points_de_code[0] - '0') comme r64
         d += 1.0
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     si repr.taille() != 0 && (repr.points_de_code[0] == 'E' || repr.points_de_code[0] == 'e') {
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     t : r64 = 1.0
     si repr.taille() != 0 && repr.points_de_code[0] == '+' {
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
     sinon si repr.taille() != 0 && repr.points_de_code[0] == '-' {
         t = -1.0
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     e : r64 = 0.0
@@ -1108,7 +1060,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
         e *= 10.0
         e += (repr.points_de_code[0] - '0') comme r64
-        repr.avance(1)
+        repr = avance(repr, 1)
     }
 
     retourne s * (i + f * puissance(10.0, -d)) * puissance(10.0, t * e)

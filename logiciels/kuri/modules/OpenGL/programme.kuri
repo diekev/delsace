@@ -1,6 +1,4 @@
-importe Chaine
 importe Couleur
-importe Fondation
 importe Math
 importe SimpleLexage
 importe SysFichier

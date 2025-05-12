@@ -1,7 +1,5 @@
 importe Compilatrice
 importe Ensemble
-importe Fondation
-importe SysFichier
 
 /* Fonctions utilitaires pour les métaprogrammes souhaitant générer une interface pour
  * faire le pont entre les fonctions de routages et la logique du service.

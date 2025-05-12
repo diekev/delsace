@@ -1,10 +1,4 @@
 importe Aléa
-importe Chaine
-importe Couleur
-importe Fondation
-importe Géométrie
-importe Image
-importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom CommandesDeRendu
@@ -156,17 +150,17 @@ CommandeDessineImage :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_IMAGE
 
-    image_data: ImageIO
+    image_data: NouvelleImage
     rect_image: RectanglePosDim(r32)
     répétition: RépétitionImage
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32))
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32))
 {
     dessine_image(commandes, image_data, rect_image, rect_image, RépétitionImage())
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
     résultat := crée_commande(commandes, CommandeDessineImage)
     résultat.image_data = image_data
@@ -1022,12 +1016,12 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box, rect: RectanglePo
     commandes.remplis_rectangle_id(rect, box.id)
 }
 
-dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosDim(r32))
+dessine_image :: fonc (ctx: *ContexteDessin, image: NouvelleImage, rect: RectanglePosDim(r32))
 {
     rect = ctx.donne_rectangle_corrigé(rect)
     commandes := ctx.commandes
 
-    si image.donnees {
+    si image.données {
         commandes.dessine_image(image, rect)
     }
     sinon {
@@ -1091,8 +1085,8 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
     rect := box.donne_rectangle_bordure()
 
     rect_image := rect
-    rect_image.largeur = image_data.largeur comme r32
-    rect_image.hauteur = image_data.hauteur comme r32
+    rect_image.largeur = image_data.desc.largeur comme r32
+    rect_image.hauteur = image_data.desc.hauteur comme r32
 
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)

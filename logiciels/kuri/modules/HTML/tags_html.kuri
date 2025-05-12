@@ -1,6 +1,4 @@
-importe Chaine
 importe Compilatrice
-importe Fondation
 
 /* Les tags communs comme ChaineInternées */
 

@@ -113,8 +113,6 @@ struct Fichier {
     bool en_lexage = false;
     bool fut_parsé = false;
 
-    kuri::ensemblon<ModuleImporté, 16> modules_importés{};
-
     Module *module = nullptr;
     MetaProgramme *métaprogramme_corps_texte = nullptr;
 
@@ -137,11 +135,6 @@ struct Fichier {
     Fichier() = default;
 
     EMPECHE_COPIE(Fichier);
-
-    /**
-     * Retourne vrai si le fichier importe un module du nom spécifié.
-     */
-    bool importe_module(IdentifiantCode *nom_module) const;
 
     kuri::chaine_statique chemin() const
     {
@@ -186,6 +179,8 @@ struct Module {
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
+    kuri::ensemblon<ModuleImporté, 16> modules_importés{};
+
     kuri::tablet<Fichier *, 16> fichiers{};
     bool importé = false;
 
@@ -201,6 +196,11 @@ struct Module {
     }
 
     EMPECHE_COPIE(Module);
+
+    /**
+     * Retourne vrai si l'un des fichiers du module importe un module du nom spécifié.
+     */
+    bool importe_module(IdentifiantCode *nom_module) const;
 
     void ajoute_fichier(Fichier *fichier);
 

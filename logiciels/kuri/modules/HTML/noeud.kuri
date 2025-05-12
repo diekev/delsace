@@ -1,8 +1,3 @@
-importe Chaine
-importe CSS
-importe Fondation
-JS :: importe JavaScript
-
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud
  * https://dom.spec.whatwg.org/#node

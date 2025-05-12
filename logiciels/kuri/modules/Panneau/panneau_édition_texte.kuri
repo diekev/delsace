@@ -1,8 +1,4 @@
 importe Chaine
-importe Géométrie
-importe PeintureInterface
-importe Périphériques
-importe Typographie
 importe Unicode
 
 /* ------------------------------------------------------------------------- */

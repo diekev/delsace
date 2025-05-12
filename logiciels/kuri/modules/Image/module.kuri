@@ -2,6 +2,7 @@ importe Chaine
 importe Couleur
 importe Fondation
 importe Math
+importe MIME
 importe SysFichier
 importe PThread
 
@@ -37,29 +38,39 @@ DescriptriceImage :: struct {
 donne_taille_données :: fonc (desc: *DescriptriceImage) -> z64
 {
     résultat := (desc.largeur comme n64) * (desc.hauteur comme n64)
+    résultat *= donne_taille_octet_pixel(mémoire(desc))
+    retourne résultat comme z64
+}
 
+donne_taille_octet_pixel :: fonc (desc: DescriptriceImage) -> n32
+{
     discr desc.format {
         Gris_8 {
-            résultat *= taille_de(n8)
+            retourne taille_de(n8)
         }
         Gris_32 {
-            résultat *= taille_de(r32)
+            retourne taille_de(r32)
         }
         RVB_8 {
-            résultat *= taille_de(n8) * 3
+            retourne taille_de(n8) * 3
         }
         RVB_32 {
-            résultat *= taille_de(r32) * 3
+            retourne taille_de(r32) * 3
         }
         RVBA_8 {
-            résultat *= taille_de(n8) * 4
+            retourne taille_de(n8) * 4
         }
         RVBA_32 {
-            résultat *= taille_de(r32) * 4
+            retourne taille_de(r32) * 4
         }
     }
 
-    retourne résultat comme z64
+    panique("format invalide")
+}
+
+donne_nombre_de_pixels :: fonc (desc: DescriptriceImage) -> n64
+{
+    retourne desc.largeur * desc.hauteur
 }
 
 SourceDonnéesImage :: énum n8 {
@@ -69,6 +80,10 @@ SourceDonnéesImage :: énum n8 {
      * être détruites avec l'image. */
     Externe
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom NouvelleImage
+ * \{ */
 
 NouvelleImage :: struct {
     données: *octet
@@ -103,24 +118,8 @@ crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, haute
 crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
 {
     desc := donne_descriptice_depuis_image_io(image)
-
     résultat := crée_image(*desc)
-
-    sortie := résultat.données comme *r32
-
-    pour image.taille_donnees {
-        sortie[it] = image.donnees[it]
-    }
-
-    retourne résultat
-}
-
-nouvelle_image_enveloppe_image_io :: fonc (image: *ImageIO) -> NouvelleImage
-{
-    résultat: NouvelleImage
-    résultat.desc = donne_descriptice_depuis_image_io(image)
-    résultat.source_données = SourceDonnéesImage.Externe
-    résultat.données = image.donnees comme *octet
+    copie_mem_nonsur(src = image.donnees, dst = résultat.données, taille = donne_taille_données(*desc))
     retourne résultat
 }
 
@@ -131,13 +130,37 @@ donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
     desc.hauteur = image.hauteur comme n32
 
     si image.nombre_composants == 1 {
-        desc.format = FormatPixel.Gris_32
+        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
+            desc.format = FormatPixel.Gris_8
+        }
+        sinon si image.format == ImageIO_DataType.FLOAT {
+            desc.format = FormatPixel.Gris_32
+        }
+        sinon {
+            panique("type image non supporté : %", image.format)
+        }
     }
     sinon si image.nombre_composants == 3 {
-        desc.format = FormatPixel.RVB_32
+        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
+            desc.format = FormatPixel.RVB_8
+        }
+        sinon si image.format == ImageIO_DataType.FLOAT {
+            desc.format = FormatPixel.RVB_32
+        }
+        sinon {
+            panique("type image non supporté : %", image.format)
+        }
     }
     sinon si image.nombre_composants == 4 {
-        desc.format = FormatPixel.RVBA_32
+        si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
+            desc.format = FormatPixel.RVBA_8
+        }
+        sinon si image.format == ImageIO_DataType.FLOAT {
+            desc.format = FormatPixel.RVBA_32
+        }
+        sinon {
+            panique("type image non supporté : %", image.format)
+        }
     }
     sinon {
         panique("nombre de composant non-géré : %", image.nombre_composants)
@@ -161,50 +184,237 @@ détruit_données_image :: fonc (image: *NouvelleImage)
     image.données = nul
 }
 
-Image :: struct {
-    tampon: [..]CouleurRVBA
-    largeur: z32
-    hauteur: z32
+charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
+{
+    contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    diffère déloge(contenu)
+    retourne décode_image(contenu, "", chemin)
 }
 
-crée_image :: fonc (largeur: z32, hauteur: z32) -> Image
+décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (bool, NouvelleImage)
 {
-    image: Image
-    image.tampon = loge_tableau(CouleurRVBA, largeur * hauteur)
-    image.tampon.taille = largeur * hauteur
-    image.largeur = largeur
-    image.hauteur = hauteur
+    si type_mime == "" {
+        si chemin == "" {
+            panique("Aucun type mime ou chemin pour décoder l'image.")
+        }
 
-    retourne image
-}
-
-détruit_image :: fonc (image: *Image) -> rien
-{
-    déloge(image.tampon)
-}
-
-remplis_image :: fonc (image: *Image, couleur: CouleurRVBA) -> rien
-{
-    pour & pixel dans image.tampon {
-        pixel = couleur
+        chm := CheminFichier(chemin)
+        type_mime = type_mime_pour_extension(chm.extension())
     }
+
+    si type_mime == "image/webp" {
+        data := données.pointeur comme *n8
+        data_size := données.taille comme n64
+
+        hauteur: z32
+        largeur: z32
+        résultat_info := WebPGetInfo(data, data_size, *largeur, *hauteur)
+        si résultat_info == 0 {
+            imprime("Impossible de lire l'image WebP.")
+            retourne faux, NouvelleImage()
+        }
+
+        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4)
+
+        output_buffer := tampon.pointeur comme *n8
+        output_buffer_size := tampon.capacité comme n64
+
+        résultat_décodage := WebPDecodeRGBAInto(data, data_size, output_buffer, output_buffer_size, largeur * 4)
+        saufsi résultat_décodage {
+            imprime("Impossible de décoder l'image WebP.")
+            retourne faux, NouvelleImage()
+        }
+        assert(résultat_décodage == output_buffer)
+
+        résultat: NouvelleImage
+        résultat.desc.hauteur = hauteur comme n32
+        résultat.desc.largeur = largeur comme n32
+        résultat.desc.format = FormatPixel.RVBA_8
+        résultat.données = tampon.pointeur
+        retourne vrai, résultat
+    }
+
+    si type_mime == "image/gif" {
+        data := données.pointeur comme *n8
+        data_size := données.taille comme n64
+
+        image: ImageIO
+        résultat_img := IMG_ouvre_gif_depuis_memoire(data, data_size, *image)
+
+        si résultat_img != ResultatOperation.OK {
+            retourne faux, NouvelleImage()
+        }
+
+        résultat := crée_image_depuis_image_io(*image)
+        IMG_detruit_image(*image)
+        retourne vrai, résultat
+    }
+
+    si type_mime == MIME_image_svg {
+        chaine_c := crée_chaine_c(chaine(données.pointeur comme *z8, données.taille))
+        diffère détruit_chaine_c(chaine_c)
+
+        image_svg: SVGImage
+        saufsi SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
+            retourne faux, NouvelleImage()
+        }
+        diffère SVG_image_detruit(*image_svg)
+
+        desc: DescriptriceImage
+        desc.largeur = image_svg.width comme n32
+        desc.hauteur = image_svg.height comme n32
+        desc.format = FormatPixel.RVBA_8
+
+        résultat := crée_image(*desc)
+        SVG_image_ratisse(*image_svg, résultat.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
+        retourne vrai, résultat
+    }
+
+    si chemin == "" {
+        si type_mime == "image/png" {
+            chemin = "image.png"
+        }
+        sinon si type_mime == "image/jpeg" {
+            chemin = "image.jpeg"
+        }
+        sinon {
+            panique("chemin image non résolvable")
+        }
+    }
+
+    proxy_image := IMG_cree_proxy_memoire(données.pointeur, données.taille comme n64)
+    diffère IMG_detruit_proxy(proxy_image)
+
+    chn_c_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(chn_c_chemin)
+
+    image: ImageIO
+    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image, proxy_image, ImageIO_DataType.UNKNOWN)
+    si résultat_lecture_image != ResultatOperation.OK {
+        imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
+        retourne faux, NouvelleImage()
+    }
+
+    résultat := crée_image_depuis_image_io(*image)
+    IMG_detruit_image(*image)
+    retourne vrai, résultat
 }
 
-échantillonne_prochain :: fonc (image: *Image, pos: *Vec2) -> CouleurRVBA
+échantillonne_prochain :: fonc (image: *NouvelleImage, pos: *Vec2) -> CouleurRVBA
 {
-    x := pos.x * image.largeur comme r32
-    y := pos.y * image.hauteur comme r32
+    assert(image.desc.format == FormatPixel.RVBA_32)
+    largeur := image.desc.largeur comme z32
+    hauteur := image.desc.hauteur comme z32
+
+    x := pos.x * largeur comme r32
+    y := pos.y * hauteur comme r32
 
     xi := x comme z32
     yi := y comme z32
 
-    restreint(*xi, 0 comme z32, image.largeur - 1)
-    restreint(*yi, 0 comme z32, image.hauteur - 1)
+    restreint(*xi, 0 comme z32, largeur - 1)
+    restreint(*yi, 0 comme z32, hauteur - 1)
 
-    index := xi + yi * image.largeur
+    index := xi + yi * largeur
 
-    retourne image.tampon[index]
+    couleurs := image.données comme *CouleurRVBA
+    retourne couleurs[index]
 }
+
+pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
+{
+    tableau : []T = ---
+    tableau.pointeur = image.données comme *T
+    tableau.taille = image.hauteur * image.largeur
+    retourne tableau
+}
+
+pixel_à_la_position :: fonc (image: NouvelleImage, x: z32, y: z32, $T: type_de_données) -> *T
+{
+    largeur := image.desc.largeur comme z32
+    index := y * largeur + x
+    retourne (*image.données[0] comme *T) + index
+}
+
+crée_icone :: fonc (image: NouvelleImage, hauteur: z32) -> NouvelleImage
+{
+    largeur := 0
+
+    si image.desc.largeur > image.desc.hauteur {
+        largeur = hauteur
+        hauteur = image.desc.hauteur comme z32 * largeur / image.desc.largeur comme z32
+    }
+    sinon si image.desc.hauteur > image.desc.largeur {
+        largeur = image.desc.largeur comme z32 * hauteur / image.desc.hauteur comme z32
+    }
+    sinon {
+        largeur = hauteur
+    }
+
+    desc := DescriptriceImage(largeur comme n32, hauteur comme n32, image.desc.format)
+    résultat := crée_image(*desc)
+
+    discr image.desc.format {
+        Gris_8 {
+            tampon := donne_tampon_gris_8bit(image)
+            tampon_icone := donne_tampon_gris_8bit(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        RVB_8 {
+            tampon := donne_tampon_rvb_8bit(image)
+            tampon_icone := donne_tampon_rvb_8bit(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        RVBA_8 {
+            tampon := donne_tampon_rvba_8bit(image)
+            tampon_icone := donne_tampon_rvba_8bit(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        Gris_32 {
+            tampon := donne_tampon_gris(image)
+            tampon_icone := donne_tampon_gris(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        RVB_32 {
+            tampon := donne_tampon_spectre(image)
+            tampon_icone := donne_tampon_spectre(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        RVBA_32 {
+            tampon := donne_tampon_rvba(image)
+            tampon_icone := donne_tampon_rvba(résultat)
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+        }
+        sinon {
+            panique("image non supportée : %", image.desc.format)
+        }
+    }
+
+    retourne résultat
+}
+
+crée_icone_pour_image_invalide :: fonc (taille_icone: z32) -> NouvelleImage
+{
+    desc := DescriptriceImage(taille_icone comme n32, taille_icone comme n32, FormatPixel.RVB_32)
+    résultat := crée_image(*desc)
+    remplis_tampon(résultat.donne_tampon_spectre(), Spectre(1.0, 0.0, 1.0))
+    retourne résultat
+}
+
+crée_icone_depuis_chemin :: fonc (chemin: CheminFichier, taille_icone: z32) -> NouvelleImage
+{
+    icone: NouvelleImage
+
+    succès, image := charge_image(chemin.chn)
+    si succès {
+        icone = crée_icone(image, taille_icone)
+        détruit_données_image(*image)
+    }
+
+    retourne icone
+}
+
+/** \} */
 
 charge "interface_image"
 
@@ -238,93 +448,79 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util"
 // #dépendance_bibliothèque libmodule_c_image libboost_filesystem
 #dépendance_bibliothèque libmodule_c_image liboiio
 
-nombre_éléments_données :: fonc (image: ImageIO) -> z64
+écris_image :: fonc (chemin: chaine, image: NouvelleImage)
 {
-    retourne image.hauteur * image.largeur * image.nombre_composants
+    écris_image(CheminFichier(chemin), image)
 }
 
-alloc_image :: fonc (hauteur: z32, largeur: z32, composants: z32) -> ImageIO
+écris_image :: fonc (chemin: CheminFichier, image: NouvelleImage)
 {
-    image: ImageIO
-    image.hauteur = hauteur
-    image.largeur = largeur
-    image.nombre_composants = composants
+    image_io: ImageIO = ---
+    image_io.largeur = image.desc.largeur comme z32
+    image_io.hauteur = image.desc.hauteur comme z32
+    image_io.donnees = image.données comme *n8
 
-    données := loge_tableau(r32, image.nombre_éléments_données())
-    image.donnees = données.pointeur
-    image.taille_donnees = données.capacité comme z32
-
-    retourne image
-}
-
-détruit_image :: fonc (image: &ImageIO)
-{
-    tableau : [..]r32 = ---
-    tableau.pointeur = image.donnees
-    tableau.taille = image.nombre_éléments_données()
-    tableau.capacité = tableau.taille
-    déloge(tableau)
-
-    image.donnees = nul
-    image.hauteur = 0
-    image.largeur = 0
-    image.nombre_composants = 0
-}
-
-nombre_de_pixels :: fonc (image: ImageIO) -> z64
-{
-    retourne image.hauteur * image.largeur
-}
-
-pixels_comme :: fonc (image: ImageIO, $T: type_de_données) -> [..]T
-{
-    tableau : [..]T = ---
-    tableau.pointeur = image.donnees comme *T
-    tableau.taille = image.hauteur * image.largeur
-    retourne tableau
-}
-
-pixel_à_la_position :: fonc (image: ImageIO, x: z32, y: z32, $T: type_de_données) -> *T
-{
-    index := y * image.nombre_composants * image.largeur + x * image.nombre_composants
-    retourne *image.donnees[index] comme *T
-}
-
-premier_pixel_ligne :: fonc (image: ImageIO, y: z32, $T: type_de_données) -> *T
-{
-    décalage := y * image.nombre_composants * image.largeur
-    retourne *image.donnees[décalage] comme *T
-}
-
-ouvre_image :: fonc (chemin: CheminFichier) -> Résultat(ImageIO, ResultatOperation)
-{
-    chn_c := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chn_c)
-
-    image: ImageIO
-    résultat := IMG_ouvre_image(chn_c comme *z8, *image)
-
-    si résultat != ResultatOperation.OK {
-        retourne résultat
+    discr image.desc.format {
+        Gris_8 {
+            image_io.format = ImageIO_DataType.UINT8
+            image_io.nombre_composants = 1
+        }
+        RVB_8 {
+            image_io.format = ImageIO_DataType.UINT8
+            image_io.nombre_composants = 3
+        }
+        RVBA_8 {
+            image_io.format = ImageIO_DataType.UINT8
+            image_io.nombre_composants = 4
+        }
+        Gris_32 {
+            image_io.format = ImageIO_DataType.FLOAT
+            image_io.nombre_composants = 1
+        }
+        RVB_32 {
+            image_io.format = ImageIO_DataType.FLOAT
+            image_io.nombre_composants = 3
+        }
+        RVBA_32 {
+            image_io.format = ImageIO_DataType.FLOAT
+            image_io.nombre_composants = 4
+        }
     }
 
-    retourne image
-}
-
-écris_image :: fonc (chemin: CheminFichier, image: ImageIO)
-{
     chn_c_sortie := crée_chaine_c(chemin.chn)
     diffère détruit_chaine_c(chn_c_sortie)
 
-    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image)
+    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io)
 }
 
-calcule_empreinte_floue :: fonc (image: ImageIO, composants_x: z32, composants_y: z32) -> chaine
+calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, composants_y: z32) -> chaine
 {
     tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
     taille_résultat: z64
 
-    IMG_calcule_empreinte_floue_reel(image.donnees, image.largeur, image.hauteur, image.nombre_composants, composants_x, composants_y, *tampon[0], *taille_résultat)
+    discr image.desc.format {
+        Gris_8 {
+            panique("non-implémenté")
+        }
+        RVB_8 {
+            panique("non-implémenté")
+        }
+        RVBA_8 {
+            panique("non-implémenté")
+        }
+        Gris_32 {
+            tampon_img := image.donne_tampon_gris()
+            IMG_calcule_empreinte_floue_reel(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y, *tampon[0], *taille_résultat)
+        }
+        RVB_32 {
+            tampon_img := image.donne_tampon_spectre()
+            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y, *tampon[0], *taille_résultat)
+        }
+        RVBA_32 {
+            tampon_img := image.donne_tampon_rvba()
+            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y, *tampon[0], *taille_résultat)
+        }
+    }
 
     résultat := loge_chaine(taille_résultat)
 
@@ -351,10 +547,10 @@ calcule_empreinte_floue :: fonc (image: ImageIO, composants_x: z32, composants_y
  * https://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html
  * \{ */
 
-calcule_empreinte_différentielle :: fonc (image: &ImageIO) -> n64
+calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
 {
     gris := convertis_en_nuances_de_gris(image)
-    diffère détruit_image(gris)
+    diffère détruit_données_image(*gris)
 
     tampon_gris := gris.donne_tampon_gris()
 
@@ -402,10 +598,10 @@ calcule_empreinte_différentielle :: fonc (image: &ImageIO) -> n64
  * https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
  * \{ */
 
-calcule_empreinte_moyenne :: fonc (image: &ImageIO) -> n64
+calcule_empreinte_moyenne :: fonc (image: NouvelleImage) -> n64
 {
     gris := convertis_en_nuances_de_gris(image)
-    diffère détruit_image(gris)
+    diffère détruit_données_image(*gris)
 
     tampon_gris := gris.donne_tampon_gris()
 
@@ -441,44 +637,93 @@ calcule_empreinte_moyenne :: fonc (image: &ImageIO) -> n64
 
 /** \} */
 
-
-convertis_en_nuances_de_gris :: fonc (image: &ImageIO) -> ImageIO
+convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
 {
-    résultat := alloc_image(image.hauteur, image.largeur, 1)
-    pixels_entrée := image.donnees
-    pixels_sortie := résultat.donnees
+    résultat: NouvelleImage
+    desc := image.desc
+    nombre_de_pixels := desc.largeur * desc.hauteur
 
-    si image.nombre_composants == 1 {
-        copie_mem_nonsur(src = pixels_entrée, dst = pixels_sortie, taille = image.nombre_de_pixels() * taille_de(r32) comme z32)
-        retourne résultat
-    }
-
-    si image.nombre_composants == 2 {
-        pour image.nombre_de_pixels() {
-            r := mémoire(pixels_entrée)
-            v := mémoire(pixels_entrée + 1)
-           
-            mémoire(pixels_sortie) = (r + v) * 0.5
-
-            pixels_entrée += 2
-            pixels_sortie += 1
+    discr image.desc.format {
+        Gris_8, Gris_32 {
+            résultat = image
+            résultat.source_données = SourceDonnéesImage.Externe
         }
+        RVB_8 {
+            desc.format = FormatPixel.Gris_8
+            résultat = crée_image(*desc)
 
-        retourne résultat
-    }
+            pixels_entrée := image.données comme *n8
+            pixels_sortie := résultat.données comme *n8
 
-    assert(image.nombre_composants >= 3)
+            pour nombre_de_pixels {
+                r := mémoire(pixels_entrée) comme r32 / 255.0
+                v := mémoire(pixels_entrée + 1) comme r32 / 255.0
+                b := mémoire(pixels_entrée + 2) comme r32 / 255.0
 
-    pour image.nombre_de_pixels() {
-        r := mémoire(pixels_entrée)
-        v := mémoire(pixels_entrée + 1)
-        b := mémoire(pixels_entrée + 2)
+                l := luminance(CouleurRVBA(r, v, b))
+                mémoire(pixels_sortie) = (l * 255.0) comme n8
 
-        l := luminance(CouleurRVBA(r, v, b))
-        mémoire(pixels_sortie) = l
+                pixels_entrée += 3
+                pixels_sortie += 1
+            }
+        }
+        RVB_32 {
+            desc.format = FormatPixel.Gris_32
+            résultat = crée_image(*desc)
 
-        pixels_entrée += 3
-        pixels_sortie += 1
+            pixels_entrée := image.données comme *r32
+            pixels_sortie := résultat.données comme *r32
+
+            pour nombre_de_pixels {
+                r := mémoire(pixels_entrée)
+                v := mémoire(pixels_entrée + 1)
+                b := mémoire(pixels_entrée + 2)
+
+                l := luminance(CouleurRVBA(r, v, b))
+                mémoire(pixels_sortie) = l
+
+                pixels_entrée += 3
+                pixels_sortie += 1
+            }
+        }
+        RVBA_8 {
+            desc.format = FormatPixel.Gris_8
+            résultat = crée_image(*desc)
+
+            pixels_entrée := image.données comme *n8
+            pixels_sortie := résultat.données comme *n8
+
+            pour nombre_de_pixels {
+                r := mémoire(pixels_entrée) comme r32 / 255.0
+                v := mémoire(pixels_entrée + 1) comme r32 / 255.0
+                b := mémoire(pixels_entrée + 2) comme r32 / 255.0
+
+                l := luminance(CouleurRVBA(r, v, b))
+                mémoire(pixels_sortie) = (l * 255.0) comme n8
+
+                pixels_entrée += 4
+                pixels_sortie += 1
+            }
+        }
+        RVBA_32 {
+            desc.format = FormatPixel.Gris_32
+            résultat = crée_image(*desc)
+
+            pixels_entrée := image.données comme *r32
+            pixels_sortie := résultat.données comme *r32
+
+            pour nombre_de_pixels {
+                r := mémoire(pixels_entrée)
+                v := mémoire(pixels_entrée + 1)
+                b := mémoire(pixels_entrée + 2)
+
+                l := luminance(CouleurRVBA(r, v, b))
+                mémoire(pixels_sortie) = l
+
+                pixels_entrée += 4
+                pixels_sortie += 1
+            }
+        }
     }
 
     retourne résultat
@@ -490,64 +735,75 @@ TamponImage :: struct ($T: type_de_données) {
     hauteur: z32
 }
 
+remplis_tampon :: fonc (image: TamponImage($T), valeur: T)
+{
+    nombre_de_pixels := image.largeur * image.hauteur
+    pour nombre_de_pixels {
+        image.données[it] = valeur
+    }
+}
+
 TamponImageGrise8Bit :: TamponImage(n8)
 TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
 TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
 
-donne_tampon_gris :: fonc (image: &ImageIO) -> TamponImage(r32)
+donne_tampon_gris :: fonc (image: NouvelleImage) -> TamponImage(r32)
 {
+    assert(image.desc.format == FormatPixel.Gris_32)
     résultat: TamponImage(r32) = ---
-    résultat.données = image.donnees
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
+    résultat.données = image.données comme *r32
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
     retourne résultat
 }
 
-donne_tampon_spectre :: fonc (image: &ImageIO) -> TamponImage(Spectre)
+donne_tampon_gris_8bit :: fonc (image: NouvelleImage) -> TamponImage(n8)
 {
+    assert(image.desc.format == FormatPixel.Gris_8)
+    résultat: TamponImage(n8) = ---
+    résultat.données = image.données comme *n8
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
+    retourne résultat
+}
+
+donne_tampon_spectre :: fonc (image: NouvelleImage) -> TamponImage(Spectre)
+{
+    assert(image.desc.format == FormatPixel.RVB_32)
     résultat: TamponImage(Spectre) = ---
-    résultat.données = image.donnees comme *Spectre
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
+    résultat.données = image.données comme *Spectre
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
     retourne résultat
 }
 
-donne_tampon_rvba :: fonc (image: &ImageIO) -> TamponImage(CouleurRVBA)
+donne_tampon_rvb_8bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBN8)
 {
+    assert(image.desc.format == FormatPixel.RVB_8)
+    résultat: TamponImage(CouleurRVBN8) = ---
+    résultat.données = image.données comme *CouleurRVBN8
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
+    retourne résultat
+}
+
+donne_tampon_rvba :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBA)
+{
+    assert(image.desc.format == FormatPixel.RVBA_32)
     résultat: TamponImage(CouleurRVBA) = ---
-    résultat.données = image.donnees comme *CouleurRVBA
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
+    résultat.données = image.données comme *CouleurRVBA
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
     retourne résultat
 }
 
-imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(r32)) -> ImageIO
+donne_tampon_rvba_8bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBAN8)
 {
-    résultat: ImageIO
-    résultat.donnees = tampon.données
-    résultat.largeur = tampon.largeur
-    résultat.hauteur = tampon.hauteur
-    résultat.nombre_composants = 1
-    retourne résultat
-}
-
-imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(Spectre)) -> ImageIO
-{
-    résultat: ImageIO
-    résultat.donnees = tampon.données comme *r32
-    résultat.largeur = tampon.largeur
-    résultat.hauteur = tampon.hauteur
-    résultat.nombre_composants = 3
-    retourne résultat
-}
-
-imageio_enveloppe_tampon_image :: fonc (tampon: TamponImage(CouleurRVBA)) -> ImageIO
-{
-    résultat: ImageIO
-    résultat.donnees = tampon.données comme *r32
-    résultat.largeur = tampon.largeur
-    résultat.hauteur = tampon.hauteur
-    résultat.nombre_composants = 4
+    assert(image.desc.format == FormatPixel.RVBA_8)
+    résultat: TamponImage(CouleurRVBAN8) = ---
+    résultat.données = image.données comme *CouleurRVBAN8
+    résultat.largeur = image.desc.largeur comme z32
+    résultat.hauteur = image.desc.hauteur comme z32
     retourne résultat
 }
 

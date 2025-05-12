@@ -1,7 +1,4 @@
-importe Chaine
-importe Fondation
 
-JS :: importe JavaScript
 WS :: importe WebSocket
 
 /* ------------------------------------------------------------------------- */

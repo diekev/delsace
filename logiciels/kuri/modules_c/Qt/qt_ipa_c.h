@@ -802,6 +802,14 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
                                 struct QT_Chaine mimetype,
                                 uint8_t *donnees,
                                 uint64_t taille_donnees);
+void QT_mimedata_donne_infos(struct QT_MimeData *mimedata,
+                             int *nombre_de_formats,
+                             int *taille_donnees);
+void QT_mimedata_exporte_donnees(struct QT_MimeData *mimedata,
+                                 uint8_t *donnees,
+                                 int64_t taille_donnees,
+                                 int32_t *tailles,
+                                 int64_t nombre_de_tailles);
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
 struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
                                              struct QT_Chaine mimetype);
@@ -1921,7 +1929,7 @@ struct QT_Painter {
     void (*sur_pression_souris)(struct type_rappels *, struct QT_MouseEvent *);                   \
     void (*sur_deplacement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
     void (*sur_relachement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
-    void (*sur_double_clic_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
+    void (*sur_double_clic_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
     void (*sur_molette_souris)(struct type_rappels *, struct QT_WheelEvent *);                    \
     void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
     void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \

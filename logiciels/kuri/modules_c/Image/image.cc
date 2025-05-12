@@ -630,6 +630,21 @@ static bool rappel_progression(void *opaque_data, float portion_done)
     return rappels->rappel_progression(rappels, portion_done);
 }
 
+static OIIO::TypeDesc donne_typedesc_depuis_data_type(ImageIO_DataType format)
+{
+#define CAS_RUBRIQUE_ENUM(nom_ipa, nom_oiio)                                                      \
+    case nom_ipa:                                                                                 \
+    {                                                                                             \
+        return nom_oiio;                                                                          \
+        break;                                                                                    \
+    }
+    switch (format) {
+        ENUM_IMAGEIO_DATATYPE(CAS_RUBRIQUE_ENUM)
+    }
+    return OIIO::TypeDesc::FLOAT;
+#undef CAS_RUBRIQUE_ENUM
+}
+
 static ImageIO_DataType convertis_data_type(OIIO::TypeDesc::BASETYPE type)
 {
     switch (type) {
@@ -883,14 +898,15 @@ void IMG_detruit_proxy(ImageIOProxy *proxy)
     delete ioproxy;
 }
 
-ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image)
+ResultatOperation IMG_ouvre_image(const char *chemin, ImageIO *image, ImageIO_DataType format)
 {
-    return IMG_ouvre_image_avec_proxy(chemin, image, nullptr);
+    return IMG_ouvre_image_avec_proxy(chemin, image, nullptr, format);
 }
 
 ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
                                              ImageIO *image,
-                                             ImageIOProxy *proxy)
+                                             ImageIOProxy *proxy,
+                                             ImageIO_DataType format)
 {
     auto ioproxy = reinterpret_cast<OIIO::Filesystem::IOProxy *>(proxy);
     auto input = OIIO::ImageInput::open(chemin, nullptr, ioproxy);
@@ -908,13 +924,26 @@ ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
     int yres = spec.height;
     int channels = spec.nchannels;
 
-    image->donnees = new float[xres * yres * channels];
-    image->taille_donnees = xres * yres * channels;
+    if (format == IMAGEIO_DATATYPE_UNKNOWN || format == IMAGEIO_DATATYPE_NONE) {
+        if (spec.format.basetype == OIIO::TypeDesc::UNKNOWN ||
+            spec.format.basetype == OIIO::TypeDesc::NONE) {
+            format = IMAGEIO_DATATYPE_FLOAT;
+        }
+        else {
+            format = convertis_data_type(OIIO::TypeDesc::BASETYPE(spec.format.basetype));
+        }
+    }
+
+    auto typedesc_désiré = donne_typedesc_depuis_data_type(format);
+
+    image->donnees = new uint8_t[xres * yres * channels * typedesc_désiré.basesize()];
+    image->taille_donnees = xres * yres * channels * typedesc_désiré.basesize();
     image->largeur = xres;
     image->hauteur = yres;
     image->nombre_composants = channels;
+    image->format = format;
 
-    if (!input->read_image(image->donnees)) {
+    if (!input->read_image(typedesc_désiré, image->donnees)) {
         input->close();
         return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
     }
@@ -939,29 +968,15 @@ static enum ResultatOperation img_ouvre_gif_impl(gd_GIF *gif, ImageIO *resultat)
     int yres = gif->height;
     int channels = 3;
 
-    resultat->donnees = new float[xres * yres * channels];
+    uint8_t *buffer = new uint8_t[xres * yres * channels];
+    resultat->donnees = buffer;
     resultat->taille_donnees = xres * yres * channels;
     resultat->largeur = xres;
     resultat->hauteur = yres;
     resultat->nombre_composants = channels;
+    resultat->format = IMAGEIO_DATATYPE_UINT8;
 
-    uint8_t *buffer = new uint8_t[xres * yres * channels];
     gd_render_frame(gif, buffer);
-
-    uint8_t *color = buffer;
-    float *pixel = resultat->donnees;
-
-    for (int i = 0; i < gif->height; i++) {
-        for (int j = 0; j < gif->width; j++) {
-            pixel[0] = float(color[0]) / 255.0;
-            pixel[1] = float(color[1]) / 255.0;
-            pixel[2] = float(color[2]) / 255.0;
-            color += 3;
-            pixel += 3;
-        }
-    }
-
-    delete[] buffer;
     gd_close_gif(gif);
 
     return ResultatOperation::OK;
@@ -989,11 +1004,13 @@ ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
         return ResultatOperation::IMAGE_INEXISTANTE;
     }
 
+    auto type_desc = donne_typedesc_depuis_data_type(image->format);
+
     auto spec = OIIO::ImageSpec(
-        image->largeur, image->hauteur, image->nombre_composants, OIIO::TypeDesc::FLOAT);
+        image->largeur, image->hauteur, image->nombre_composants, type_desc);
     out->open(chemin, spec);
 
-    if (!out->write_image(OIIO::TypeDesc::FLOAT, image->donnees)) {
+    if (!out->write_image(type_desc, image->donnees)) {
         out->close();
         return ResultatOperation::IMAGE_INEXISTANTE;
     }

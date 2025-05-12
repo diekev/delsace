@@ -1,5 +1,4 @@
 importe Ensemble
-importe Fondation
 
 /* ------------------------------------------------------------------------- */
 /* ListeEntréesDossier : liste des entrées d'un dossier.

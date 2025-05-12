@@ -1,7 +1,3 @@
-importe Chaine
-importe Fondation
-JS :: importe JavaScript
-importe Unicode
 
 TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
 

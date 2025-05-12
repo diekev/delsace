@@ -1,5 +1,3 @@
-importe Fondation
-
 /* Fonctions basiques pour les tableaux */
 
 loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := PositionCodeSource()) -> [..]T

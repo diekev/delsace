@@ -1,6 +1,4 @@
-importe Chaine
-importe Compilatrice
-importe Fondation
+Compilatrice :: importe Compilatrice
 
 /* Fichier déclarant des chaines connues lors de la compilation. */
 
@@ -95,7 +93,7 @@ génère_fonction_pour_tags :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
     ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
 
-    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+    lexèmes := Compilatrice.compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
 
     pour lexèmes {
         si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
