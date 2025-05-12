@@ -1308,6 +1308,7 @@ struct AssembleuseASM {
 
     void mul(Opérande src, uint32_t taille_octet)
     {
+        assert(!est_immédiate(src.type));
         m_sortie << TABULATION << "mul ";
         m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
         imprime_opérande(src, taille_octet);
@@ -3518,11 +3519,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     SAUVEGARDE_REGISTRES(registres);
 
-    assert(atome_index->est_constante_entière());
     assert(accès->accédé->est_instruction());
     assert(accès->accédé->comme_instruction()->est_alloc());
 
-    auto accédé = registres.donne_registre_entier_inoccupé();
     auto index = registres.donne_registre_entier_inoccupé();
 
     /* Corrige l'index pour prendre en compte la taille du type. */
@@ -3539,21 +3538,49 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
         }
         else {
             dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
+            VERIFIE_NON_ATTEINT;
         }
 
         auto décalage = constante->valeur * type_accédé->taille_octet;
         assembleuse.mov(index, AssembleuseASM::Immédiate64{décalage}, 8);
     }
-    // else {
-    //     génère_code_pour_atome(atome_index, assembleuse, UtilisationAtome::AUCUNE);
-    //     assembleuse.mov(registre2, valeur_index, accès->index->type->taille_octet);
-    //     assembleuse.imul(registre2, AssembleuseASM::Immédiate32{type_accédé->taille_octet},
-    //     4);
+    else {
+        registres.marque_registre_occupé(index);
+        auto ancien_registre = index;
+        auto doit_restaurer_rax = false;
+        if (index != Registre::RAX) {
+            if (registres.registre_est_occupé(Registre::RAX)) {
+                doit_restaurer_rax = true;
+                assembleuse.mov(index, Registre::RAX, 8);
+            }
+            index = Registre::RAX;
+        }
 
-    //     /* Corrige l'adresse. */
-    //     assembleuse.add(registre1, registre2, 8);
-    // }
+        génère_code_pour_atome(atome_index, assembleuse, UtilisationAtome::AUCUNE);
+        charge_atome_dans_registre(atome_index, accès->index, index, assembleuse);
 
+        if (type_accédé->est_type_tableau_fixe()) {
+            type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
+        }
+        else {
+            dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
+            VERIFIE_NON_ATTEINT;
+        }
+
+        auto registre_imm = registres.donne_registre_entier_inoccupé();
+        assembleuse.mov(registre_imm, AssembleuseASM::Immédiate64{type_accédé->taille_octet}, 8);
+        assembleuse.mul(registre_imm, 4);
+
+        if (doit_restaurer_rax) {
+            auto tmp = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(tmp, Registre::RAX, 8);
+            assembleuse.mov(Registre::RAX, ancien_registre, 8);
+            assembleuse.mov(ancien_registre, tmp, 8);
+            index = ancien_registre;
+        }
+    }
+
+    auto accédé = registres.donne_registre_entier_inoccupé();
     assembleuse.pop(accédé);
     assembleuse.add(accédé, index, 8);
     assembleuse.push(accédé);
