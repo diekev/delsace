@@ -43,6 +43,100 @@ lexeuse: SimpleLexeuse
 //     "retourne", "retiens", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable", "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "corout", "dyn", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme"
 // ]
 
+__ponctuation_config := ["[", "]"]
+__mots_clés_config := ["thème"]
+__commentaires_ligne_singulière_config := ["#"]
+
+Thème :: struct {
+    texte: CouleurRVBA
+    arrière_plan: CouleurRVBA
+    indicateur_ligne: CouleurRVBA
+    indicateur_ligne_courante: CouleurRVBA
+}
+
+thème: Thème
+
+InfoFichier :: struct {
+    taille: n64
+    modification: z64
+}
+
+importe POSIX
+
+donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
+{
+    résultat: InfoFichier
+    résultat.taille = détermine_taille_fichier(CheminFichier(chemin))
+
+    ptr_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    st: struct_stat
+    ok := stat(ptr_chemin, *st)
+    assert(ok == 0)
+
+    résultat.modification = st.st_mtime
+
+    retourne résultat
+}
+
+info_fichier_config: InfoFichier
+
+parse_config_globale :: fonc ()
+{
+    lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
+    lexeuse.ponctuations = __ponctuation_config
+    lexeuse.mots_clés = __mots_clés_config
+    lexeuse.caractères_symboliques = "-"
+
+    contenu := contenu_fichier_texte("globale.config-éditeur")
+    diffère déloge(contenu)
+
+    initialise_lexeuse_pour_texte(*lexeuse, contenu)
+
+    consomme_ponctuation(*lexeuse, "[")
+    consomme_mot_clé(*lexeuse, "thème")
+    consomme_ponctuation(*lexeuse, "]")
+
+    tantque !fini(*lexeuse) {
+        symbole := donne_symbole(*lexeuse).donne_texte()
+        nombre_couleur := donne_nombre(*lexeuse).nombre
+
+        r := (nombre_couleur >> 24 & 0xff) comme r32 / 255.0
+        v := (nombre_couleur >> 16 & 0xff) comme r32 / 255.0
+        b := (nombre_couleur >> 8 & 0xff) comme r32 / 255.0
+        a := (nombre_couleur & 0xff) comme r32 / 255.0
+
+        couleur := CouleurRVBA(r, v, b, a)
+
+        si symbole == "texte" {
+            thème.texte = couleur
+        }
+        sinon si symbole == "arrière-plan" {
+            thème.arrière_plan = couleur
+        }
+        sinon si symbole == "indicateur-ligne" {
+            thème.indicateur_ligne = couleur
+        }
+        sinon si symbole == "indicateur-ligne-courante" {
+            thème.indicateur_ligne_courante = couleur
+        }
+        sinon {
+            imprimeln("Symbole inconnu pour les couleurs : %", symbole)
+            exit(1)
+        }
+    }
+}
+
+ajourne_configuration :: fonc ()
+{
+    info := donne_info_fichier("globale.config-éditeur")
+    si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
+        parse_config_globale()
+        info_fichier_config = info
+    }
+}
+
 principale :: fonc ()
 {
     // lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
@@ -69,7 +163,14 @@ principale :: fonc ()
 
     doit_fermer := faux
 
+    tics_fichier: n64 = 0
+
     tantque !doit_fermer {
+        si tics_fichier % 60 == 0 {
+            ajourne_configuration()
+            tics_fichier += 1
+        }
+
         évènements := ajourne_évènements_fenêtre()
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre)
@@ -186,7 +287,7 @@ crée_interface :: fonc (largeur: z32, hauteur: z32) -> CommandesDeRendu
 
         dispose_rectangle()
         {
-            définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+            définis_arrière_plan(thème.arrière_plan)
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
 
             dessine_indicateurs_lignes(hauteur)
@@ -211,17 +312,17 @@ dessine_indicateurs_lignes :: fonc (hauteur: z32)
 
     dispose_rectangle()
     {
-        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_arrière_plan(thème.arrière_plan)
         définis_disposition(cotation = Cotation(FIXE(largeur_colonnes), CROISSANTE()), alignement_horizontal = AlignementEnfant.Fin, direction = Direction.Verticale)
 
         pour nombre_de_lignes {
             txt := imprime_chaine_temp(" % ", it + E.décalage_ligne + 1)
 
             couleur := si index_it == (E.cy - E.décalage_ligne) {
-                CouleurRVBA(0.8, 0.8, 0.8, 1.0)
+                thème.indicateur_ligne_courante
             }
             sinon {
-                CouleurRVBA(0.8, 0.8, 0.8, 0.5)
+                thème.indicateur_ligne
             }
             dispose_texte(txt, ConfigurationTexte(fonte, couleur))
         }
@@ -237,10 +338,10 @@ dessine_texte :: fonc ()
 
     dispose_rectangle()
     {
-        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_arrière_plan(thème.arrière_plan)
         définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
 
-        config_texte := ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+        config_texte := ConfigurationTexte(fonte, thème.texte)
 
         pour E.lignes {
             index_ligne := it + E.décalage_ligne
@@ -256,7 +357,7 @@ dessine_texte :: fonc ()
             si E.cy == index_ligne {
                 dispose_rectangle()
                 {
-                    définis_arrière_plan(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+                    définis_arrière_plan(thème.texte)
                     définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
 
                     texte_ligne := E.lignes_rendu[index_ligne]
@@ -270,7 +371,7 @@ dessine_texte :: fonc ()
                     texte_sous_curseur := avance(texte_ligne, E.cx)
                     si texte_sous_curseur.taille() {
                         texte_sous_curseur.points_de_code.taille = 1
-                        dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, CouleurRVBA(a = 1.0)))
+                        dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, thème.arrière_plan))
                     }
                 }
                 termine_rectangle()
@@ -299,10 +400,10 @@ dessine_barre_status :: fonc ()
 
     dispose_rectangle()
     {
-        définis_arrière_plan(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+        définis_arrière_plan(thème.texte)
         définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
 
-        dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(0.0, 0.0, 0.0, 1.0)))
+        dispose_texte(texte, ConfigurationTexte(fonte, thème.arrière_plan))
     }
     termine_rectangle()
 }
@@ -314,11 +415,11 @@ dessine_barre_message :: fonc ()
 
     dispose_rectangle()
     {
-        définis_arrière_plan(CouleurRVBA(0.094, 0.094, 0.094, 1.0))
+        définis_arrière_plan(thème.arrière_plan)
         définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
 
         si temps_écoulé_secondes(E.temps_message) < 5 {
-            dispose_texte(E.message, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte(E.message, ConfigurationTexte(fonte, thème.texte))
         }
     }
     termine_rectangle()
