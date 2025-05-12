@@ -3886,6 +3886,19 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
             src = registre;
         }
+        else if (source->est_constante_nulle()) {
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.xor_(registre, registre, 8);
+            src = registre;
+        }
+        else if (source->est_constante_booléenne()) {
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre,
+                            AssembleuseASM::Immédiate64{
+                                inst_stocke->source->comme_constante_booléenne()->valeur},
+                            8);
+            src = registre;
+        }
         else if (source->est_constante_réelle()) {
             /* Nous stockons vers une adresse, inutile de passer par un registre réel. */
             auto constante_réelle = source->comme_constante_réelle();
@@ -3912,7 +3925,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
             auto inst = source->comme_instruction();
 
-            if (inst->est_alloc() || inst->est_appel()) {
+            if (est_adresse_locale(inst) || inst->est_appel()) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
@@ -3930,7 +3943,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
                 VERIFIE_NON_ATTEINT;
             }
         }
-        else if (source->est_fonction()) {
+        else if (source->est_fonction() || source->est_globale()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
             auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.pop(registre, 8);
