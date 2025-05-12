@@ -2980,7 +2980,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 registres.marque_registre_inoccupé(tmp);
             }
             else {
-                assert(est_type_entier(source->type));
+                assert(est_type_entier(source->type) || source->type->est_type_pointeur());
                 assembleuse.pop(registre);
                 assembleuse.mov(
                     registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
@@ -3057,6 +3057,9 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
             AssembleuseASM::Immédiate64{atome_droite->comme_constante_entière()->valeur},
             8);
     }
+    else if (atome_droite->est_constante_nulle()) {
+        assembleuse.mov(opérande_droite, AssembleuseASM::Immédiate64{0}, 8);
+    }
     else if (atome_droite->est_constante_réelle()) {
         assert(atome_droite->type == TypeBase::R32);
 
@@ -3074,6 +3077,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     }
     else {
         dbg() << __func__ << " : genre atome non supporté " << atome_droite->genre_atome;
+        VERIFIE_NON_ATTEINT;
     }
 
     assembleuse.commente("charge (atome_gauche)");
