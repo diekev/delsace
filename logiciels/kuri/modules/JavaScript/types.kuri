@@ -1,8 +1,4 @@
 importe Algorithmes
-importe Chaine
-importe Fondation
-importe Math
-importe Numérique
 
 /* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
 UndefinedType :: #opaque z32
