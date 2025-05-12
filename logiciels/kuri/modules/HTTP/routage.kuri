@@ -1,9 +1,3 @@
-importe Compilatrice
-importe ConnexionTCP
-importe Fondation
-importe Internet
-importe Introspection
-importe SysFichier
 
 TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
 
@@ -390,22 +384,13 @@ fonction_routage_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> Don
 
 génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    nom_enveloppe := enchaine("parsage_routes_", données.fonction.nom)
-
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
-    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
-    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
-    ajoute_au_tampon(enchaineuse, "}\n")
-
-    retourne nom_enveloppe
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_routes_")
 }
 
 génère_initialisation_routes :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
     créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"

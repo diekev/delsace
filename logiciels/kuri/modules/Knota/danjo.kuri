@@ -1,6 +1,5 @@
 importe Couleur
 importe Math
-importe Fondation
 importe Qt
 
 /* ------------------------------------------------------------------------- */

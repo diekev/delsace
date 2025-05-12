@@ -1,0 +1,14 @@
+{
+    "fichier": [
+        "/usr/include/freetype2/freetype/freetype.h",
+        "/usr/include/freetype2/freetype/ftstroke.h",
+        "/usr/include/freetype2/freetype/ftlcdfil.h",
+        "/usr/include/freetype2/freetype/tttables.h"
+    ],
+    "bibliothèque": "freetype",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/freetype2/"
+    ]
+}
