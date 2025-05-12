@@ -1,9 +1,4 @@
-importe Chaine
-CSS :: importe CSS
 importe Ensemble
-importe Fondation
-importe Image
-JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -67,7 +62,7 @@ DocumentUnloadTimingInfo :: struct {
 }
 
 ImageDisponible :: struct {
-    données: ImageIO
+    données: NouvelleImage
     url: chaine
     état: ÉtatRequêteImage
 }
@@ -157,7 +152,7 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
 
     pour document.images_disponibles {
         déloge(it.url)
-        IMG_detruit_image(*it.données)
+        détruit_données_image(*it.données)
     }
 
     détruit_policy_container(document.policy_container)
@@ -752,7 +747,7 @@ définis_état_requête_image :: fonc (document: *Document, url: chaine, état: 
     }
 }
 
-définis_données_image :: fonc (document: *Document, url: chaine, données: ImageIO)
+définis_données_image :: fonc (document: *Document, url: chaine, données: NouvelleImage)
 {
     pour & document.images_disponibles {
         si it.url == url {

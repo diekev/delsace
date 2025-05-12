@@ -3,7 +3,6 @@
 importe Algorithmes // pour permute
 importe Couleur
 importe Fondation
-importe FTGL
 importe Géométrie
 importe Image
 importe Math
@@ -19,8 +18,6 @@ TamponDeRendu :: struct {
     rect: RectanglePosDim(z32)
     rect_ciseau: RectanglePosDim(z32)
     données: [..]CouleurRVBAN8
-    /* Cache pour les glyphes en dessin. Remis à zéro par les fonctions de dessin de glyphes. */
-    glyphes: [..]*texture_glyph_t
 }
 
 crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu
@@ -80,7 +77,6 @@ remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
 détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 {
     déloge(tampon.données)
-    déloge(tampon.glyphes)
 }
 
 donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> RectanglePosDim(z32)
@@ -724,12 +720,13 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
             dessine_image_rvb_8(tampon_de_rendu, image, rect)
         }
         RVB_32 {
-            image_io: ImageIO
-            image_io.donnees = image.données comme *r32
-            image_io.largeur = image.desc.largeur comme z32
-            image_io.hauteur = image.desc.hauteur comme z32
-            image_io.nombre_composants = 3
-            dessine_image(tampon_de_rendu, image_io, rect)
+            // À FAIRE
+            // image_io: ImageIO
+            // image_io.donnees = image.données comme *r32
+            // image_io.largeur = image.desc.largeur comme z32
+            // image_io.hauteur = image.desc.hauteur comme z32
+            // image_io.nombre_composants = 3
+            // dessine_image(tampon_de_rendu, image_io, rect)
         }
         RVBA_8 {
             tampon: TamponImageRVBA8Bit
@@ -739,12 +736,13 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
             dessine_image(tampon_de_rendu, tampon, rect)
         }
         RVBA_32 {
-            image_io: ImageIO
-            image_io.donnees = image.données comme *r32
-            image_io.largeur = image.desc.largeur comme z32
-            image_io.hauteur = image.desc.hauteur comme z32
-            image_io.nombre_composants = 4
-            dessine_image(tampon_de_rendu, image_io, rect)
+            // À FAIRE
+            // image_io: ImageIO
+            // image_io.donnees = image.données comme *r32
+            // image_io.largeur = image.desc.largeur comme z32
+            // image_io.hauteur = image.desc.hauteur comme z32
+            // image_io.nombre_composants = 4
+            // dessine_image(tampon_de_rendu, image_io, rect)
         }
     }
 }

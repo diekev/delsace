@@ -1,9 +1,3 @@
-importe Ensemble
-importe Fondation
-importe Fràtzala
-importe Géométrie
-importe Math
-importe Observation
 importe Périphériques
 
 /* ------------------------------------------------------------------------- */

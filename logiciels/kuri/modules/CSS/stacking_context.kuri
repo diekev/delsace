@@ -1,7 +1,3 @@
-importe Fondation
-importe Géométrie
-importe Structures
-importe Triage
 
 /* ------------------------------------------------------------------------- */
 /** \nom StackingContext

@@ -1,10 +1,6 @@
 /* Routines de formattage, d'impression, de documents HTML. */
 
-importe Chaine
-importe Fondation
-importe SysFichier
 importe Triage
-importe Unicode
 
 /* À FAIRE : options
  * - taille tabulation

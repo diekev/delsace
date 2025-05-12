@@ -1,5 +1,3 @@
-importe Fondation
-
 TypeFichier :: énum {
     Dossier
     Régulier

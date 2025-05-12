@@ -427,7 +427,7 @@ consomme_point_virgule :: fonc (parseuse: *Parseuse)
 consomme_espaces_blanches :: fonc (parseuse: *Parseuse)
 {
     tantque parseuse.début < parseuse.fin {
-        si est_espace_blanc(mémoire(parseuse.début)) {
+        si est_espace_blanche(mémoire(parseuse.début)) {
             parseuse.début += 1
             continue
         }
@@ -441,7 +441,7 @@ compte_indentation :: fonc (parseuse: *Parseuse) -> z64
     début := parseuse.début
 
     tantque début < parseuse.fin {
-        si est_espace_blanc(mémoire(début)) {
+        si est_espace_blanche(mémoire(début)) {
             début += 1
             continue
         }

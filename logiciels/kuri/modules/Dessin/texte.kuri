@@ -1,9 +1,6 @@
 /* Extensions de Dessin. */
 
 importe Chaine
-importe Couleur
-importe FTGL
-importe Géométrie
 importe Typographie
 
 /* ------------------------------------------------------------------------- */
@@ -12,23 +9,20 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_glyph_t, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
@@ -41,7 +35,7 @@ dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_gl
         retourne
     }
 
-    source_atlas := fonte.atlas.data
+    source_atlas := fonte.atlas.data.pointeur comme *n8
 
     décalage_x := rect.x comme r32
     début_effets := décalage_x

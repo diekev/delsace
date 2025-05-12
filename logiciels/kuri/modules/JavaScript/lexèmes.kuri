@@ -1,5 +1,3 @@
-importe Fondation
-
 GenreLexème :: énum {
     NonInitialisé
 

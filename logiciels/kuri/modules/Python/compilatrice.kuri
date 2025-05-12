@@ -1,6 +1,3 @@
-importe Compilatrice
-importe Fondation
-
 /* Compilatrice pour un module Python. */
 
 /* Les diffèrentes erreurs de compilation possibles. */

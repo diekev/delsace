@@ -1,7 +1,6 @@
 importe Compilatrice
 importe Chaine
 importe Couleur
-importe FTGL
 importe Fondation
 importe Image
 importe Géométrie
@@ -10,6 +9,7 @@ importe OpenGL
 importe Structures
 importe SysFichier
 importe Typographie
+importe Vision
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation et issitialisation.
@@ -48,6 +48,26 @@ efface_cible_rendu :: fonc (couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0))
 {
     glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+}
+
+commence_2d :: fonc (caméra: *Caméra2D)
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_2d == nul)
+    __ctx_courant.caméra_2d = caméra
+
+    glViewport(0, 0, caméra.largeur, caméra.hauteur)
+}
+
+termine_2d :: fonc ()
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_2d != nul)
+    __ctx_courant.caméra_2d = nul
+
+    glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
 }
 
 /** \} */
@@ -222,6 +242,8 @@ DonnéesContexteGL :: struct {
     largeur_cannevas: z32
     hauteur_cannevas: z32
 
+    caméra_2d: *Caméra2D
+
     nuanceurs: [..]*NuanceurGL
 
     fonte_globale: *Fonte
@@ -336,8 +358,6 @@ enregistre_nuanceur_personnalisé :: fonc (source_vertex: chaine, source_fragmen
 /** \nom Dessin.
  * \{ */
 
-__glyphes: [..]*texture_glyph_t
-
 réinitialise_données :: fonc ()
 {
     empl __ctx_courant;
@@ -350,7 +370,6 @@ réinitialise_données :: fonc ()
         }
     }
     fontes_utilisées.taille = 0
-    __glyphes.taille = 0
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte : *Fonte = nul)
@@ -401,7 +420,13 @@ termine_immédiat :: fonc ()
     glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat)
     vérifie_erreur("termine_immédiat.glBindBuffer")
 
-    définis_uniforme(nuanceur.loc_projection, projection)
+    si __ctx_courant.caméra_2d {
+        __ctx_courant.caméra_2d.ajourne_matrice()
+        définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection())
+    }
+    sinon {
+        définis_uniforme(nuanceur.loc_projection, projection)
+    }
 
     installe_format_xcnu(nuanceur)
 
@@ -765,7 +790,7 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
     résultat: ParamètresTexture2D
     résultat.largeur = atlas.width comme z32
     résultat.hauteur = atlas.height comme z32
-    résultat.données = atlas.data
+    résultat.données = atlas.data.pointeur
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RED
@@ -783,23 +808,20 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, nul)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, nul)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
 }
 
 dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
@@ -944,12 +966,6 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
  * \{ */
 
 image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
-{
-    params := donne_paramètres_texture_pour_image(image, répétition)
-    image_immédiat(*params, rect_image, rect)
-}
-
-image_immédiat :: fonc (image: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
     params := donne_paramètres_texture_pour_image(image, répétition)
     image_immédiat(*params, rect_image, rect)

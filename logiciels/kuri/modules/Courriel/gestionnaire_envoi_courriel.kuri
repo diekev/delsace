@@ -7,8 +7,6 @@ La serveuse peut être créée pour le Gestionnaire seul, ou peut être une serv
  */
 
 importe ConnexionTCP
-importe Fondation
-importe Internet
 importe ServeuseTCP
 
 // -----------------------------------------------------

@@ -1,6 +1,3 @@
-importe Fondation
-importe Structures
-importe SysFichier
 
 charge "catalogue_fichier"
 

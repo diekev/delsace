@@ -2,6 +2,7 @@ importe Chaine
 HTML :: importe HTML
 importe Fondation
 importe Internet
+importe Unicode
 
 charge "arbre_de_disposition"
 charge "contexte_de_formattage"
@@ -45,14 +46,10 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
  * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
 prétraite :: fonc (chn: &ChaineUTF32)
 {
-    CARRIAGE_RETURN : n32 : 0x0D
-    FORM_FEED : n32 : 0x0C
-    LINE_FEED : n32 : 0x0A
-
     pour & chn.points_de_code {
         /* À FAIRE : \r\n => \n */
-        si it == CARRIAGE_RETURN || it == FORM_FEED {
-            it = LINE_FEED
+        si it == RETOUR_CHARIOT || it == SAUT_DE_PAGE {
+            it = NOUVELLE_LIGNE
         }
     }
 }

@@ -1684,6 +1684,10 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
             }
 
             expression_membre->genre_valeur = déclaration_référée->genre_valeur;
+            if (déclaration_référée->est_déclaration_variable()) {
+                expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
+            }
+
             expression_membre->déclaration_référée = déclaration_référée;
             expression_membre->type = déclaration_référée->type;
             return CodeRetourValidation::OK;

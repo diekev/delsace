@@ -1,5 +1,3 @@
-importe CodecDonnées
-importe Fondation
 
 Formulaire :: struct {
     action: chaine

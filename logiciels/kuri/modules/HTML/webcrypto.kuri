@@ -1,7 +1,4 @@
-importe CodecDonnées
-importe Fondation
 importe Krypto
-importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom UUID

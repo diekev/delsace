@@ -2,8 +2,6 @@
  * le programme, ceci nous permet de ne faire qu'une comparaison de pointeur au
  * lieu d'une comparaison de chaine complète. */
 
-importe Fondation
-
 /* Le type de chaine qui sera interné. Ceci utilise la sémantique de valeur, ainsi deux chaines de types
  * différents (p.e. chaine et ChaineUTF32) qui possède les mêmes points de code dans un codec commun ne
  * seront internées qu'une seule fois. */

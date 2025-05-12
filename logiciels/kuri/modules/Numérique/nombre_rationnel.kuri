@@ -3,7 +3,6 @@
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
 importe Bits
-importe Fondation
 
 NombreRationnel :: struct {
     N: n32

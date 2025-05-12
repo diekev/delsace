@@ -549,23 +549,6 @@ encode_hexadécimal_minuscule :: fonc (enchaineuse: *Enchaineuse, entrée: octet
     ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[b])
 }
 
-nombre_depuis_hex :: fonc (hex: z8) -> z8
-{
-    si 'a' <= hex <= 'f' {
-        retourne 10 + hex - 'a'
-    }
-
-    si 'A' <= hex <= 'F' {
-        retourne 10 + hex - 'A'
-    }
-
-    si '0' <= hex <= '9' {
-        retourne hex - '0'
-    }
-
-    retourne 255
-}
-
 décode_hexadécimal :: fonc (entrée: []octet) -> chaine
 {
     enchaineuse: Enchaineuse
@@ -578,8 +561,8 @@ décode_hexadécimal :: fonc (entrée: []octet) -> chaine
         a := entrée[index]
         b := entrée[index + 1]
 
-        na := nombre_depuis_hex(a comme z8) comme n8
-        nb := nombre_depuis_hex(b comme z8) comme n8
+        na := donne_valeur_hex(a comme z8) comme n8
+        nb := donne_valeur_hex(b comme z8) comme n8
 
         c := na << 4 | nb
 

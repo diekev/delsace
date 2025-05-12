@@ -1,11 +1,8 @@
-importe Chaine
 importe Couleur
 CSS :: importe CSS
 importe Dessin
-importe Fondation
 importe Géométrie
 importe Image
-JS :: importe JavaScript
 importe MIME
 importe Unicode
 
@@ -2256,7 +2253,7 @@ HTMLImageElement :: struct {
     empl html_element: HTMLElement
     table = *table_virtuelle_image_element
 
-    image_data: ImageIO
+    image_data: NouvelleImage
 }
 
 donne_src :: fonc (image: *HTMLImageElement) -> DOMString
@@ -2266,21 +2263,21 @@ donne_src :: fonc (image: *HTMLImageElement) -> DOMString
 
 donne_hauteur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
 {
-    retourne image.image_data.hauteur
+    retourne image.image_data.desc.hauteur comme z32
 }
 
 donne_largeur_intrinsèque :: fonc (image: *HTMLImageElement) -> z32 #enligne
 {
-    retourne image.image_data.largeur
+    retourne image.image_data.desc.largeur comme z32
 }
 
 donne_ratio_intrinsèque :: fonc (image: *HTMLImageElement) -> r32 #enligne
 {
-    si image.image_data.hauteur == 0 {
+    si image.image_data.desc.hauteur == 0 {
         retourne 1.0
     }
 
-    retourne image.image_data.largeur comme r32 / image.image_data.hauteur comme r32
+    retourne image.image_data.desc.largeur comme r32 / image.image_data.desc.hauteur comme r32
 }
 
 ReprésentationImage :: énum {
@@ -2298,7 +2295,7 @@ donne_représentation_image :: fonc (img: *HTMLImageElement) -> ReprésentationI
     attr_alt := cherche_attribut(img, ATTR_alt)
 
     si attr_src && !attr_src.valeur.est_vide() {
-        si img.image_data.donnees {
+        si img.image_data.données {
             retourne ReprésentationImage.IMAGE
         }
     }
@@ -2345,7 +2342,7 @@ image_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLImageElement
     élément_détruit_données(élément)
-    IMG_detruit_image(*élément.image_data)
+    détruit_données_image(*élément.image_data)
 }
 
 /* https://html.spec.whatwg.org/multipage/images.html#update-the-image-data */
@@ -2358,8 +2355,8 @@ update_image_data :: fonc (image: *HTMLImageElement)
         retourne
     }
 
-    IMG_detruit_image(*image.image_data)
-    image.image_data = ImageIO()
+    détruit_données_image(*image.image_data)
+    image.image_data = NouvelleImage()
 
     src := image.donne_src()
     si src.est_vide() {
@@ -2433,118 +2430,13 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
 #portée_export
 
-décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *ImageIO) -> bool
+décode_image :: fonc (contenu: chaine, content_type: chaine, résultat: *NouvelleImage) -> bool
 {
-    si content_type == "image/webp" {
-        data := contenu.pointeur comme *n8
-        date_size := contenu.taille comme n64
-
-        hauteur: z32
-        largeur: z32
-        résultat_info := WebPGetInfo(data, date_size, *largeur, *hauteur)
-        si résultat_info == 0 {
-            imprime("Impossible de lire l'image WebP.")
-            retourne faux
-        }
-
-        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4)
-        diffère déloge(tampon)
-
-        output_buffer := tampon.pointeur comme *n8
-        output_buffer_size := tampon.capacité comme n64
-
-        résultat_décodage := WebPDecodeRGBAInto(data, date_size, output_buffer, output_buffer_size, largeur * 4)
-        saufsi résultat_décodage {
-            imprime("Impossible de décoder l'image WebP.")
-            retourne faux
-        }
-        assert(résultat_décodage == output_buffer)
-
-        mémoire(résultat) = alloc_image(hauteur, largeur, 4)
-
-        entrée := output_buffer
-        sortie := résultat.donnees
-        pour tampon.capacité {
-            mémoire(sortie) = mémoire(entrée) comme r32 / 255.0
-            entrée += 1
-            sortie += 1
-        }
-
-        retourne vrai
+    succès, image := décode_image(contenu, content_type)
+    si succès {
+        mémoire(résultat) = image
     }
-
-    si content_type == "image/gif" {
-        data := contenu.pointeur comme *n8
-        data_size := contenu.taille comme n64
-
-        résultat_img := IMG_ouvre_gif_depuis_memoire(data, data_size, résultat)
-        si résultat_img != ResultatOperation.OK {
-            retourne faux
-        }
-
-        retourne vrai
-    }
-
-    si content_type == MIME_image_svg {
-        chaine_c := crée_chaine_c(contenu)
-        diffère détruit_chaine_c(chaine_c)
-
-        image_svg: SVGImage
-        saufsi SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
-            retourne faux
-        }
-        diffère SVG_image_detruit(*image_svg)
-
-        hauteur := image_svg.height comme z32
-        largeur := image_svg.width comme z32
-
-        desc: DescriptriceImage
-        desc.largeur = image_svg.width comme n32
-        desc.hauteur = image_svg.height comme n32
-        desc.format = FormatPixel.RVBA_8
-
-        image := crée_image(*desc)
-        diffère détruit_données_image(*image)
-        SVG_image_ratisse(*image_svg, image.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
-
-        mémoire(résultat) = alloc_image(hauteur, largeur, 4)
-
-        entrée := image.données
-        sortie := résultat.donnees
-        pour résultat.taille_donnees {
-            mémoire(sortie) = mémoire(entrée) comme n8 comme r32 / 255.0
-            entrée += 1
-            sortie += 1
-        }
-
-        retourne vrai
-    }
-
-    // À FAIRE : prend le chemin de l'url si le schéma n'est pas "data"
-    chemin_image := ""
-    si content_type == "image/png" {
-        chemin_image = "image.png"
-    }
-    sinon si content_type == "image/jpeg" {
-        chemin_image = "image.jpeg"
-    }
-    sinon {
-        panique("chemin image non résolvable")
-    }
-
-    proxy_image := IMG_cree_proxy_memoire(contenu.pointeur, contenu.taille comme n64)
-    diffère IMG_detruit_proxy(proxy_image)
-
-    chn_c_chemin := crée_chaine_c(chemin_image)
-    diffère détruit_chaine_c(chn_c_chemin)
-
-    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, résultat, proxy_image)
-    si résultat_lecture_image != ResultatOperation.OK {
-        imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
-        retourne faux
-    }
-
-    retourne vrai
+    retourne succès
 }
 
 /** \} */
@@ -3712,26 +3604,26 @@ HTMLObjectElement :: struct {
     table = *table_virtuelle_object_element
 
     chose_représentée: ChoseReprésentée
-    image_data: ImageIO
+    image_data: NouvelleImage
 }
 
 donne_hauteur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
 {
-    retourne object.image_data.hauteur
+    retourne object.image_data.desc.hauteur comme z32
 }
 
 donne_largeur_intrinsèque :: fonc (object: *HTMLObjectElement) -> z32 #enligne
 {
-    retourne object.image_data.largeur
+    retourne object.image_data.desc.largeur comme z32
 }
 
 donne_ratio_intrinsèque :: fonc (object: *HTMLObjectElement) -> r32 #enligne
 {
-    si object.image_data.hauteur == 0 {
+    si object.image_data.desc.hauteur == 0 {
         retourne 1.0
     }
 
-    retourne object.image_data.largeur comme r32 / object.image_data.hauteur comme r32
+    retourne object.image_data.desc.largeur comme r32 / object.image_data.desc.hauteur comme r32
 }
 
 #portée_fichier
@@ -3748,7 +3640,7 @@ object_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLObjectElement
     élément_détruit_données(élément)
-    IMG_detruit_image(*élément.image_data)
+    détruit_données_image(*élément.image_data)
 }
 
 object_element_sur_document_fully_active :: fonc (base: *Noeud)
@@ -3876,8 +3768,8 @@ définis_chose_représentée :: fonc (object: *HTMLObjectElement, chose: ChoseRe
 
 object_représente_fallback :: fonc (object: *HTMLObjectElement)
 {
-    IMG_detruit_image(*object.image_data)
-    object.image_data = ImageIO()
+    détruit_données_image(*object.image_data)
+    object.image_data = NouvelleImage()
 
     // The object element represents the element's children. This is the element's fallback content. Destroy a child navigable given the element.
     object.document.things_that_delay_the_load_event -= 1

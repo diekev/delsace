@@ -1,6 +1,4 @@
 importe Fondation
-importe Math
-importe Observation
 
 mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
 {

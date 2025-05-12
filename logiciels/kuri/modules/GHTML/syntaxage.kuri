@@ -1,4 +1,3 @@
-importe Fondation
 
 Syntaxeuse :: struct {
     lexèmes: [..]Lexème

@@ -1,5 +1,3 @@
-importe Fondation
-
 // Type opaque pour indiquer que l'IPA espère et reçoie une chaine de caractère
 // et non un pointeur vers un nombre ou un tampon d'octet
 ChaineC :: #opaque *z8

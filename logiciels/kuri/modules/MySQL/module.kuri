@@ -736,22 +736,13 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
 
 génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    nom_enveloppe := enchaine("parsage_mysql_", données.fonction.nom)
-
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
-    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ", données.fonction.nom, "(chn)\n")
-    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
-    ajoute_au_tampon(enchaineuse, "}\n")
-
-    retourne nom_enveloppe
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_mysql_")
 }
 
 génère_initialisation_mysql :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     créatrice_table_fonctions.annotation_désirée = "ParsageMySQL"
     créatrice_table_fonctions.nom_table_fonctions = "fonctions_parsages_mysql"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

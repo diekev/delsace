@@ -1,7 +1,4 @@
 importe HTTP
-importe Fondation
-JS :: importe JavaScript
-importe Périphériques
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent

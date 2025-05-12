@@ -135,7 +135,7 @@ consomme_espaces_blanches :: fonc (parseuse: *ParseuseDocument)
     tantque !fini(parseuse) {
         c := parseuse.chn[parseuse.curseur]
 
-        si !est_espace_blanc(c) {
+        si !est_espace_blanche(c) {
             arrête
         }
 

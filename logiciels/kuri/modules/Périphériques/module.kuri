@@ -2,6 +2,7 @@
  * de l'ordinateur (souris, clavier, etc.). */
 
 importe Géométrie
+importe MIME
 
 /* ------------------------------------------------------------------------- */
 /** \nom TypeCurseurSystème.
@@ -323,7 +324,7 @@ TypeÉvènement :: énum {
     Fermeture
     Souris
     Clavier
-    // DragAndDrop
+    DragAndDrop
     // Tablette
     // Window
     // Molette séparée de souris ?
@@ -350,6 +351,9 @@ TypeÉvènement :: énum {
     code_scan_natif: n32
     modificateurs_natifs: n32
     clé_virtuelle_native: n32
+
+    /* Mimes pour un Drop */
+    mimes: [..]DonnéesMime
 }
 
 donne_clic_souris :: fonc (empl évènement: &Évènement) -> ClicSouris

@@ -1,8 +1,4 @@
-importe Chaine
 importe CodecDonnées
-importe Fondation
-importe MIME
-importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom 2.1 URL

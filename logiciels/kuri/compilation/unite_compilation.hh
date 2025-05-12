@@ -32,7 +32,8 @@ struct Programme;
     O(GENERATION_RI_PRINCIPALE_MP, generation_ri_principale_mp, "génération RI principale mp")    \
     O(EXECUTION, execution, "exécution")                                                          \
     O(LIAISON_PROGRAMME, liaison_programme, "liaison programme")                                  \
-    O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")
+    O(GENERATION_CODE_MACHINE, generation_code_machine, "génération code machine")                \
+    O(CALCULE_TAILLE_TYPE, calcule_taille_type, "calcule taille type")
 
 enum class RaisonDÊtre : unsigned char {
 #define ENUMERE_RAISON_D_ETRE_EX(Genre, nom, chaine) Genre,

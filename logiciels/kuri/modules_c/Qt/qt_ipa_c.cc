@@ -1024,6 +1024,74 @@ void QT_mimedata_definis_donnee(QT_MimeData *mimedata,
                        QByteArray(reinterpret_cast<const char *>(donnees), int(taille_donnees)));
 }
 
+void QT_mimedata_donne_infos(QT_MimeData *mimedata, int *nombre_de_formats, int *taille_donnees)
+{
+    VERS_QT(mimedata);
+
+    if (nombre_de_formats) {
+        *nombre_de_formats = int(qmimedata->formats().size());
+    }
+
+    if (taille_donnees) {
+        for (auto const &format : qmimedata->formats()) {
+            *taille_donnees += int(format.size());
+            auto array = qmimedata->data(format);
+            *taille_donnees += int(array.size());
+        }
+    }
+}
+
+#define FERME_PROGRAMME_SI_NUL(X, MESSAGE)                                                        \
+    do {                                                                                          \
+        if (!(X)) {                                                                               \
+            std::cerr << __func__ << " : " MESSAGE << "\n";                                       \
+            exit(1);                                                                              \
+        }                                                                                         \
+    } while (0)
+
+void QT_mimedata_exporte_donnees(QT_MimeData *mimedata,
+                                 uint8_t *donnees,
+                                 int64_t taille_donnees,
+                                 int32_t *tailles,
+                                 int64_t nombre_de_tailles)
+{
+    FERME_PROGRAMME_SI_NUL(mimedata, "mimedata est nul");
+    FERME_PROGRAMME_SI_NUL(donnees, "les données de destination sont nulles");
+    FERME_PROGRAMME_SI_NUL(taille_donnees, "la taille de données de destination est égale à zéro");
+    FERME_PROGRAMME_SI_NUL(tailles, "les tailles de destination sont nulles");
+    FERME_PROGRAMME_SI_NUL(nombre_de_tailles,
+                           "le nombre de tailles de destination est égale à zéro");
+
+    VERS_QT(mimedata);
+
+    FERME_PROGRAMME_SI_NUL(nombre_de_tailles / 2 == qmimedata->formats().size(),
+                           "le nombre de tailles ne correspond pas au nombre de formats");
+
+    auto taille = 0;
+    for (auto const &format : qmimedata->formats()) {
+        taille += int(format.size());
+        auto array = qmimedata->data(format);
+        taille += int(array.size());
+    }
+
+    FERME_PROGRAMME_SI_NUL(
+        taille == taille_donnees,
+        "la taille des données ne correspond pas à la taille des données du mimedata");
+
+    int32_t *taille_courante = tailles;
+    uint8_t *sortie_donnees = donnees;
+    for (auto const &format : qmimedata->formats()) {
+        *taille_courante++ = int(format.size());
+        memcpy(sortie_donnees, format.toStdString().c_str(), uint64_t(format.size()));
+        sortie_donnees += format.size();
+
+        auto array = qmimedata->data(format);
+        *taille_courante++ = int(array.size());
+        memcpy(sortie_donnees, array.data(), uint64_t(array.size()));
+        sortie_donnees += array.size();
+    }
+}
+
 QT_ByteArray QT_mimedata_donne_donnee(QT_MimeData *mimedata, QT_Chaine mimetype)
 {
     VERS_QT(mimedata);

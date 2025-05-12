@@ -1,9 +1,4 @@
-importe Fràtzala
-importe Fondation
-importe Géométrie
-importe Périphériques
 importe Sérialisation
-importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom Nombres magiques.

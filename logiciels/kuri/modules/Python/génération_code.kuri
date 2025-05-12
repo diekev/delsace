@@ -1,6 +1,3 @@
-importe Compilatrice
-importe Fondation
-
 /* Génération du code Kuri à partir des données du module. */
 
 /* Retourne vrai si le type peut avoir des accesseurs ou mutateurs. */

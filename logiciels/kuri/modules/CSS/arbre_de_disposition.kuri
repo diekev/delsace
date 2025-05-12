@@ -1,11 +1,7 @@
-importe Chaine
 importe Ensemble
 importe EnsembleDeBits
-importe Fondation
 importe Géométrie
-HTML :: importe HTML
 importe Image
-importe Internet
 importe Math
 importe MIME
 importe Structures
@@ -1722,7 +1718,7 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
 /** \nom Requête image.
  * \{ */
 
-donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optionnel(ImageIO)
+donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optionnel(NouvelleImage)
 {
     données_image := HTML.donne_image_pour_url(ctx.document, url_string)
 
@@ -1769,7 +1765,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 
         contenu := réponse.body.Quelque
 
-        image_data: ImageIO
+        image_data: NouvelleImage
         saufsi HTML.décode_image(contenu, content_type, *image_data) {
             HTML.définis_état_requête_image(rappel.document, rappel.url_string, HTML.ÉtatRequêteImage.Échec)
             retourne
@@ -3385,7 +3381,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
     texte: ChaineUTF16
 
-    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 1
         tableau_ajoute(fragments, FragmentTexte(texte, vrai))
@@ -3397,7 +3393,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.taille += 1
             position += 1
         }
@@ -3409,7 +3405,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.pointeur = chn.unités.pointeur + position
             texte.unités.taille = 1
             tableau_ajoute(fragments, FragmentTexte(texte, vrai))
@@ -3681,7 +3677,7 @@ image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
     élément := box.élément comme *HTML.HTMLImageElement
     assert(élément.local_name == HTML.TAG_img)
 
-    si élément.image_data.donnees {
+    si élément.image_data.données {
         box.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
         box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
         box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
@@ -3718,7 +3714,7 @@ object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Con
     élément := box.élément comme *HTML.HTMLObjectElement
     assert(élément.local_name == HTML.TAG_object)
 
-    si élément.image_data.donnees {
+    si élément.image_data.données {
         box.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
         box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
         box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32

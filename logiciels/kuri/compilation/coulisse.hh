@@ -89,6 +89,8 @@ struct Coulisse {
 
     static void détruit(Coulisse *coulisse);
 
+    bool est_asm() const;
+
     /* Génère le code machine. */
     bool crée_fichier_objet(ArgsGénérationCode const &args);
 

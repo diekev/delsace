@@ -1,4 +1,5 @@
 importe Fondation
+importe MIME
 importe OpenGL
 importe Périphériques
 
@@ -251,6 +252,52 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(event.key_event)
         évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(event.key_event)
         évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(event.key_event)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.DragEnter {
+        QT_drop_event_accepte_action_propose(event.drop_event)
+        retourne vrai
+    }
+
+    si type == QT_Event_Type.Drop {
+        mimedata := QT_drop_event_donne_mimedata(event.drop_event)
+
+        taille_données: z32
+        nombre_de_formats: z32
+        QT_mimedata_donne_infos(mimedata, *nombre_de_formats, *taille_données)
+
+        // À FAIRE : gestion de la mémoire
+        tailles: [..]z32
+        tableau_redimensionne(tailles, 2 * nombre_de_formats)
+
+        données: [..]octet
+        tableau_redimensionne(données, taille_données)
+
+        QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille)
+
+        mimes: [..]DonnéesMime
+        tableau_réserve(*mimes, nombre_de_formats)
+
+        pointeur_données := données.pointeur
+        pour tailles.taille / 2 {
+            taille_type_mime := tailles[index_it * 2 + 0]
+            taille_données_mime := tailles[index_it * 2 + 1]
+
+            mime := tableau_ajoute_élément(*mimes)
+
+            mime.type = chaine(pointeur_données comme *z8, taille_type_mime)
+            pointeur_données += taille_type_mime
+
+            mime.données = chaine(pointeur_données comme *z8, taille_données_mime)
+            pointeur_données += taille_données_mime
+        }
+
+        évènement := tableau_ajoute_élément(*__évènements)
+        évènement.type = TypeÉvènement.Clavier
+        évènement.mimes = mimes
+
+        QT_drop_event_accepte_action_propose(event.drop_event)
         retourne vrai
     }
 

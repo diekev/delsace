@@ -1,7 +1,5 @@
-importe Chaine
-importe Fondation
 importe SysFichier
-importe Temps
+importe Unicode
 
 Éditeur :: struct {
     lignes: z32
@@ -17,8 +15,8 @@ importe Temps
     cx: z32
     cy: z32
 
-    lignes_texte: [..]chaine
-    lignes_rendu: [..]chaine
+    lignes_texte: [..]ChaineUTF32
+    lignes_rendu: [..]ChaineUTF32
 
     chemin_fichier: chaine
 
@@ -27,12 +25,22 @@ importe Temps
 
     modifié: z32
     tampon_rendu_est_surannée: bool
+    recalcule_défilage: bool
+
+    griffonier: ChaineUTF32
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
 {
-    déloge_tableau_et_ses_éléments(éditeur.lignes_texte)
-    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
+    pour éditeur.lignes_texte {
+        détruit_chaine(it)
+    }
+    pour éditeur.lignes_rendu {
+        détruit_chaine(it)
+    }
+
+    déloge(éditeur.lignes_texte)
+    déloge(éditeur.lignes_rendu)
     déloge(éditeur.message)
     déloge(éditeur.chemin_fichier)
 }
@@ -53,7 +61,7 @@ importe Temps
     diffère déloge(lignes)
 
     pour lignes {
-        éditeur_ajoute_ligne(éditeur, it, index_it)
+        éditeur_ajoute_ligne(éditeur, crée_chaine_utf32(it), index_it)
     }
 
     éditeur.chemin_fichier = chemin
@@ -69,7 +77,7 @@ marque_modifié :: fonc (éditeur: *Éditeur)
     éditeur.tampon_rendu_est_surannée = vrai
 }
 
-éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, où: z64) -> rien
+éditeur_ajoute_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, où: z64) -> rien
 {
     si où < 0 || où > éditeur.lignes_texte.taille {
         retourne
@@ -90,13 +98,13 @@ marque_modifié :: fonc (éditeur: *Éditeur)
 éditeur_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur) -> rien
 {
     si éditeur.cx == 0 {
-        éditeur_ajoute_ligne(éditeur, "", éditeur.cy)
+        éditeur_ajoute_ligne(éditeur, ChaineUTF32(), éditeur.cy)
     }
     sinon {
         ligne := éditeur.lignes_texte[éditeur.cy]
         ligne = avance(ligne, éditeur.cx)
         éditeur_ajoute_ligne(éditeur, ligne, éditeur.cy + 1)
-        reloge_chaine(éditeur.lignes_texte[éditeur.cy], éditeur.cx)
+        éditeur.lignes_texte[éditeur.cy].points_de_code.taille = éditeur.cx
         éditeur.cx = 0
     }
 
@@ -161,7 +169,11 @@ ajourne_tampon_rendu :: fonc (éditeur: *Éditeur)
 
     éditeur.tampon_rendu_est_surannée = faux
 
-    déloge_tableau_et_ses_éléments(éditeur.lignes_rendu)
+    /* À FAIRE : réutilise la mémoire */
+    pour éditeur.lignes_rendu {
+        détruit_chaine(it)
+    }
+    déloge(éditeur.lignes_rendu)
 
     pour éditeur.lignes_texte {
         ligne_rendu := donne_ligne_rendu(it)
@@ -169,7 +181,7 @@ ajourne_tampon_rendu :: fonc (éditeur: *Éditeur)
     }
 }
 
-donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
+donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
 {
     tabs := 0
     pour c dans ligne {
@@ -178,21 +190,26 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
         }
     }
 
-    nligne := loge_chaine(ligne.taille + tabs * (TAILLE_TABULATION - 1))
+    si tabs == 0 {
+        retourne copie_chaine(ligne)
+    }
+
+    nligne: ChaineUTF32
+    tableau_redimensionne(nligne.points_de_code, ligne.taille() + tabs * (TAILLE_TABULATION - 1))
 
     idx := 0
     pour c dans ligne {
         si c == '\t' {
-            nligne[idx] = ' '
+            nligne.points_de_code[idx] = ESPACE
             idx += 1
 
             tantque idx % TAILLE_TABULATION != 0 {
-                nligne[idx] = ' '
+                nligne.points_de_code[idx] = ESPACE
                 idx += 1
             }
         }
         sinon {
-            nligne[idx] = c
+            nligne.points_de_code[idx] = c
             idx += 1
         }
     }
@@ -200,47 +217,22 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
     retourne nligne
 }
 
-éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64, caractère: z8) -> rien
+éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, index_ligne: z64, index_caractère: z64, caractère: n32)
 {
-    tmp := loge_chaine(ligne.taille + 1)
-
-    pour i dans 0 ... index_caractère - 1 {
-        tmp[i] = ligne.pointeur[i]
-    }
-
-    //copie_mem_nonsur(src = ligne.pointeur + index_caractère, dst = ligne.pointeur + index_caractère + 1, taille = ligne.taille - index_caractère)
-    tmp[index_caractère] = caractère
-
-    pour i dans index_caractère + 1 ... ligne.taille {
-        tmp[i] = ligne.pointeur[i - 1]
-    }
-
-    déloge(ligne)
-    éditeur.lignes_texte[index_ligne] = tmp
+    tableau_insère_index(*ligne.points_de_code, caractère, index_caractère)
+    éditeur.lignes_texte[index_ligne] = ligne
 
     éditeur.marque_modifié()
 }
 
-éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: chaine, index_ligne: z64, index_caractère: z64) -> rien
+éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, index_ligne: z64, index_caractère: z64) -> rien
 {
-    si index_caractère < 0 || index_caractère >= ligne.taille {
+    si index_caractère < 0 || index_caractère >= ligne.taille() {
         retourne
     }
 
-    // À FAIRE : caractères unicode -> supprime le nombre d'octet adéquate
-    tmp := loge_chaine(ligne.taille - 1)
-
-    pour i dans 0 ... index_caractère - 1 {
-        tmp[i] = ligne[i]
-    }
-
-    pour i dans index_caractère + 1 ... ligne.taille - 1 {
-        tmp[i - 1] = ligne[i]
-    }
-
-    déloge(ligne)
-    éditeur.lignes_texte[index_ligne] = tmp
-
+    tableau_supprime_index(*ligne.points_de_code, index_caractère)
+    éditeur.lignes_texte[index_ligne] = ligne
     éditeur.marque_modifié()
 }
 
@@ -261,21 +253,33 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
         éditeur.cx -= 1
     }
     sinon {
-        éditeur.cx = (éditeur.lignes_texte[éditeur.cy - 1].taille) comme z32
+        éditeur.cx = (éditeur.lignes_texte[éditeur.cy - 1].taille()) comme z32
         éditeur_adjoint_ligne(éditeur, éditeur.cy - 1, ligne)
         éditeur_supprime_ligne(éditeur, éditeur.cy)
         éditeur.cy -= 1
     }
 }
 
-éditeur_insère_caractère :: fonc (éditeur: *Éditeur, caractère: z8) -> rien
+éditeur_insère_caractère :: fonc (éditeur: *Éditeur, caractère: n32)
 {
     si éditeur.cy == éditeur.lignes_texte.taille {
-        éditeur_ajoute_ligne(éditeur, "", 0)
+        éditeur_ajoute_ligne(éditeur, ChaineUTF32(), 0)
     }
 
     éditeur_insère_caractère_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy, éditeur.cx, caractère)
     éditeur.cx += 1
+}
+
+éditeur_insère_texte :: fonc (éditeur: *Éditeur, texte: chaine)
+{
+    crée_chaine_utf32(texte, *éditeur.griffonier)
+
+    pour éditeur.griffonier {
+        éditeur_insère_caractère_ligne(éditeur, éditeur.lignes_texte[éditeur.cy], éditeur.cy, éditeur.cx, it)
+        éditeur.cx += 1
+    }
+
+    éditeur.griffonier.points_de_code.taille = 0
 }
 
 éditeur_supprime_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64) -> rien
@@ -284,27 +288,22 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
         retourne
     }
 
-    déloge(éditeur.lignes_texte[index_ligne])
+    détruit_chaine(éditeur.lignes_texte[index_ligne])
     tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
     éditeur.marque_modifié()
 }
 
-éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: chaine) -> rien
+éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: ChaineUTF32) -> rien
 {
     ligne := éditeur.lignes_texte[index_ligne]
-    ancienne_taille := ligne.taille
-    nouvelle_taille := ancienne_taille + texte.taille
+    ancienne_taille := ligne.taille()
+    nouvelle_taille := ancienne_taille + texte.taille()
 
     si nouvelle_taille == 0 {
         retourne
     }
 
-    reloge_chaine(ligne, nouvelle_taille)
-
-    pour c, idx dans texte {
-        ligne[ancienne_taille + idx] = c
-    }
-
+    tableau_ajoute(*ligne.points_de_code, ...texte.points_de_code)
     éditeur.lignes_texte[index_ligne] = ligne
 
     éditeur_ajourne_message_status(éditeur, ligne)
@@ -313,6 +312,11 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
 
 éditeur_défile :: fonc (éditeur: *Éditeur) -> rien
 {
+    saufsi éditeur.recalcule_défilage {
+        retourne
+    }
+    diffère éditeur.recalcule_défilage = faux
+
     éditeur.rx = 0
 
     si éditeur.cy < éditeur.lignes_texte.taille {
@@ -348,16 +352,16 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
     éditeur.temps_message = maintenant()
 }
 
-éditeur_cx_vers_rx :: fonc (ligne: chaine, cx: z32) -> z32
+éditeur_cx_vers_rx :: fonc (ligne: ChaineUTF32, cx: z32) -> z32
 {
     rx := 0
 
-    pour c, idx dans ligne {
-        si idx == cx {
+    pour ligne {
+        si index_it == cx {
             arrête
         }
 
-        si c == '\t' {
+        si it == '\t' {
             rx += (TAILLE_TABULATION - 1) - (rx % TAILLE_TABULATION)
         }
 
@@ -367,21 +371,153 @@ donne_ligne_rendu :: fonc (ligne: chaine) -> chaine
     retourne rx
 }
 
-éditeur_rx_vers_cx :: fonc (ligne: chaine, rx: z32) -> z32
+éditeur_rx_vers_cx :: fonc (ligne: ChaineUTF32, rx: z32) -> z32
 {
     rx_courant := 0
 
-    pour c, idx dans ligne {
-        si c == '\t' {
+    pour ligne {
+        si it == '\t' {
             rx_courant += (TAILLE_TABULATION - 1) - (rx % TAILLE_TABULATION)
         }
 
         rx_courant += 1
 
         si rx_courant > rx {
-            retourne idx comme z32
+            retourne index_it comme z32
         }
     }
 
-    retourne ligne.taille comme z32
+    retourne ligne.taille() comme z32
+}
+
+Mouvement :: énum {
+    Avance
+    Recule
+    MotPrécédent
+    MotSuivant
+    DébutLigne
+    FinLigne
+    LignePrécédente
+    LigneSuivante
+    PagePrécédente
+    PageSuivante
+}
+
+// À FAIRE : ponctuation pour MotPrécédent et MotSuivant
+éditeur_déplace_curseur :: fonc (éditeur: *Éditeur, mouvement: Mouvement)
+{
+    éditeur.recalcule_défilage = vrai
+
+    taille_ligne : z64 = 0
+    ligne := ChaineUTF32()
+    si éditeur.cy < éditeur.lignes_texte.taille {
+        ligne = éditeur.lignes_texte[éditeur.cy]
+        taille_ligne = ligne.taille()
+    }
+
+    discr mouvement {
+        Avance {
+            si éditeur.cx < taille_ligne {
+                éditeur.cx += 1
+            }
+            sinon si éditeur.lignes_texte.taille != 0 && éditeur.cx == taille_ligne {
+                éditeur.cy += 1
+                éditeur.cx = 0
+            }
+        }
+        Recule {
+            si éditeur.cx != 0 {
+                éditeur.cx -= 1
+            }
+            sinon si éditeur.cy > 0 {
+                éditeur.cy -= 1
+                éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille() comme z32
+            }
+        }
+        MotPrécédent {
+            si éditeur.cx == ligne.taille() && taille_ligne != 0 {
+                éditeur.cx -= 1
+            }
+
+            si éditeur.cx > 0 && est_ascii_espace_blanche(ligne[éditeur.cx - 1]) {
+                éditeur.cx -= 1
+            }
+
+            tantque éditeur.cx > 0 {
+                c := ligne[éditeur.cx]
+                si !est_ascii_espace_blanche(c) {
+                    arrête
+                }
+
+                éditeur.cx -= 1
+            }
+
+            tantque éditeur.cx > 0 {
+                c := ligne[éditeur.cx]
+                si est_ascii_espace_blanche(c) {
+                    éditeur.cx += 1
+                    arrête
+                }
+
+                éditeur.cx -= 1
+            }
+        }
+        MotSuivant {
+            eu_espace := faux
+            tantque éditeur.cx < taille_ligne {
+                c := ligne[éditeur.cx]
+                si eu_espace && !est_ascii_espace_blanche(c) {
+                    arrête
+                }
+
+                si est_ascii_espace_blanche(c) {
+                    eu_espace = vrai
+                }
+
+                éditeur.cx += 1
+            }
+        }
+        LignePrécédente {
+            si éditeur.cy != 0 {
+                éditeur.cy -= 1
+            }
+        }
+        LigneSuivante {
+            si éditeur.cy < éditeur.lignes_texte.taille {
+                éditeur.cy += 1
+            }
+        }
+        DébutLigne {
+            éditeur.cx = 0
+        }
+        FinLigne {
+            si éditeur.cy < éditeur.lignes_texte.taille {
+                éditeur.cx = éditeur.lignes_texte[éditeur.cy].taille() comme z32
+            }
+        }
+        PagePrécédente {
+            pour éditeur.lignes - 1 {
+                // LignePrécédente
+                si éditeur.cy != 0 {
+                    éditeur.cy -= 1
+                }
+            }
+        }
+        PageSuivante {
+            pour éditeur.lignes - 1 {
+                // LigneSuivante
+                si éditeur.cy < éditeur.lignes_texte.taille {
+                    éditeur.cy += 1
+                }
+            }
+        }
+    }
+
+    si éditeur.cy < éditeur.lignes_texte.taille {
+        taille_ligne = éditeur.lignes_texte[éditeur.cy].taille()
+    }
+
+    si éditeur.cx > taille_ligne {
+        éditeur.cx = taille_ligne comme z32
+    }
 }
