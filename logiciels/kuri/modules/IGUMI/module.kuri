@@ -358,8 +358,6 @@ enregistre_nuanceur_personnalisé :: fonc (source_vertex: chaine, source_fragmen
 /** \nom Dessin.
  * \{ */
 
-__glyphes: [..]*texture_glyph_t
-
 réinitialise_données :: fonc ()
 {
     empl __ctx_courant;
@@ -372,7 +370,6 @@ réinitialise_données :: fonc ()
         }
     }
     fontes_utilisées.taille = 0
-    __glyphes.taille = 0
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte : *Fonte = nul)
@@ -811,23 +808,20 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, nul)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, nul)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    __glyphes.taille = 0
-    donne_glyphes(fonte, texte, *__glyphes)
-    dessine_glyphes(__glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
 }
 
 dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)

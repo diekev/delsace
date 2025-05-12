@@ -9,23 +9,20 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    tampon_de_rendu.glyphes.taille = 0
-    donne_glyphes(fonte, texte, *tampon_de_rendu.glyphes)
-    dessine_glyphes(tampon_de_rendu, tampon_de_rendu.glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte)
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
 }
 
 dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_glyph_t, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)

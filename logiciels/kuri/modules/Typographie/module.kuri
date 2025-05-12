@@ -19,6 +19,8 @@ importe Unicode
 Fonte :: struct {
     atlas: *texture_atlas_t
     font: *texture_font_t
+    /* Mise en cache des glyphes pour les mesures de texte, etc. */
+    glyphes: [..]*texture_glyph_t
 }
 
 crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
@@ -50,6 +52,7 @@ détruit_fonte :: fonc (fonte: *Fonte)
 {
     texture_atlas_delete(fonte.atlas)
     texture_font_delete(fonte.font)
+    déloge(fonte.glyphes)
     déloge(fonte)
 }
 
@@ -72,8 +75,7 @@ ContrainteChaine :: chaine | ChaineUTF16 | ChaineUTF32
 
 donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> z32
 {
-    glyphes: [..]*texture_glyph_t
-    donne_glyphes(fonte, texte, *glyphes)
+    glyphes := donne_glyphes(fonte, texte)
     retourne donne_largeur_glyphes(fonte, glyphes)
 }
 
@@ -141,13 +143,9 @@ donne_hauteur_glyph :: fonc (fonte: *Fonte, point_de_code: n32) -> Optionnel(n64
     retourne glyph.height
 }
 
-donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyph_t)
+donne_glyphes :: fonc (fonte: *Fonte, texte: chaine) -> []*texture_glyph_t
 {
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
-
-    contexte_temp := contexte()
-    contexte_temp.allocatrice = __stockage_temporaire
+    fonte.glyphes.taille = 0
 
     début := texte.pointeur
     fin := texte.pointeur + texte.taille
@@ -167,19 +165,15 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: chaine, glyphes: *[..]*texture_glyp
             continue
         }
 
-        pousse_contexte contexte_temp {
-            tableau_ajoute(glyphes, glyph)
-        }
+        tableau_ajoute(*fonte.glyphes, glyph)
     }
+
+    retourne fonte.glyphes
 }
 
-donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16, glyphes: *[..]*texture_glyph_t)
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16) -> []*texture_glyph_t
 {
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
-
-    contexte_temp := contexte()
-    contexte_temp.allocatrice = __stockage_temporaire
+    fonte.glyphes.taille = 0
 
     pour texte.unités {
         glyph := fonte.donne_glyphe(it)
@@ -187,19 +181,15 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF16, glyphes: *[..]*texture
             continue
         }
 
-        pousse_contexte contexte_temp {
-            tableau_ajoute(glyphes, glyph)
-        }
+        tableau_ajoute(*fonte.glyphes, glyph)
     }
+
+    retourne fonte.glyphes
 }
 
-donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32, glyphes: *[..]*texture_glyph_t)
+donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32) -> []*texture_glyph_t
 {
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
-
-    contexte_temp := contexte()
-    contexte_temp.allocatrice = __stockage_temporaire
+    fonte.glyphes.taille = 0
 
     pour texte.points_de_code {
         glyph := fonte.donne_glyphe(it)
@@ -207,10 +197,10 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: ChaineUTF32, glyphes: *[..]*texture
             continue
         }
 
-        pousse_contexte contexte_temp {
-            tableau_ajoute(glyphes, glyph)
-        }
+        tableau_ajoute(*fonte.glyphes, glyph)
     }
+
+    retourne fonte.glyphes
 }
 
 /** \} */
