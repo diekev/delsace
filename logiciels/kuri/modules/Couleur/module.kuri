@@ -76,6 +76,23 @@ luminance :: fonc (c: CouleurRVBA) -> r32
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom CouleurRVB sur 8-bit
+ * \{ */
+
+CouleurRVBN8 :: struct {
+    r: n8
+    v: n8
+    b: n8
+}
+
+opérateur == :: fonc (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
+{
+    retourne a.r == b.r && a.v == b.v && a.b == b.b
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom CouleurRVBA sur 8-bit
  * \{ */
 

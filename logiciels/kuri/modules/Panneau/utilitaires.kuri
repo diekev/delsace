@@ -1,6 +1,3 @@
-importe Géométrie
-importe Périphériques
-
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction pour envelopper les rappels afin de ne pas avoir à transtyper manuellement.
  * \{ */
