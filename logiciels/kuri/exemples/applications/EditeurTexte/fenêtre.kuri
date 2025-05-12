@@ -61,7 +61,7 @@ principale :: fonc ()
 
     fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
     fonte = crée_fonte(fonte_défaut_mono, 16)
-    fonte.font.kerning = 0
+    fonte.font.kerning = faux
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
