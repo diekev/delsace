@@ -207,24 +207,6 @@ dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rec
     peintre.rappel_dessine_texte_utf32(peintre, fonte, texte, rectangle, couleur, effets)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle: RectanglePeintre) -> rien #enligne
-{
-    enveloppe := nouvelle_image_enveloppe_image_io(*image)
-    peintre.rappel_dessine_image(peintre, *enveloppe, rectangle)
-}
-
-dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre) -> rien #enligne
-{
-    répétition: RépétitionImage
-    dessine_image(peintre, image, rectangle_image, rectangle_sous_image, répétition)
-}
-
-dessine_image :: fonc (peintre: *Peintre, image: ImageIO, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, répétition: RépétitionImage) -> rien #enligne
-{
-    enveloppe := nouvelle_image_enveloppe_image_io(*image)
-    peintre.rappel_dessine_sous_image(peintre, *enveloppe, rectangle_image, rectangle_sous_image, répétition)
-}
-
 dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle: RectanglePeintre) -> rien #enligne
 {
     peintre.rappel_dessine_image(peintre, image, rectangle)

@@ -1,4 +1,3 @@
-importe Fondation
 
 CommandeSMTP :: struct {
     type: type_de_données

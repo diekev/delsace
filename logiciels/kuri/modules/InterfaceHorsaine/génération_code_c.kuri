@@ -2,11 +2,7 @@
  * appeler les fonctions depuis C. */
 
 importe Bits
-importe Compilatrice
-importe Fondation
-importe SysFichier
 importe Triage
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Génération code C.

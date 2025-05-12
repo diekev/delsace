@@ -1,4 +1,3 @@
-importe Fondation
 
 /* https://w3c.github.io/webappsec-permissions-policy/#policies */
 DeclaredPolicy :: struct {

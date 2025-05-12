@@ -1,9 +1,5 @@
-importe Couleur
-importe Fondation
 importe Image
 importe Introspection
-importe Math
-importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom TypeFichier
@@ -244,7 +240,6 @@ détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Op
 /* ------------------------------------------------------------------------- */
 
 importe Compilatrice // Pour AnnotationCode
-importe Numérique
 
 TypeChaineRecherchée :: énum {
     NOM_CANAL_CHAMPS_DE_HAUTEUR

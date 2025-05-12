@@ -1,6 +1,4 @@
 importe Chaine
-importe Fondation
-importe OpenSSL
 
 // -------------------------------------------------------
 // BIO personnalisé pour tenir les données des prises.
