@@ -1,6 +1,4 @@
 importe Aléa
-importe Chaine
-importe SysFichier
 
 ContexteEntropisation :: struct {
     document: *Document

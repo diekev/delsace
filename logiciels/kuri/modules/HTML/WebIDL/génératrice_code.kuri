@@ -1,9 +1,4 @@
-importe Compilatrice
-importe Ensemble
-importe Fondation
-importe Math
 importe Sérialisation
-importe SysFichier
 
 /* https://webidl.spec.whatwg.org/#abstract-opdef-integerpart */
 integer_part :: fonc (n: r64) -> r64
@@ -1396,7 +1391,7 @@ consomme_point_virgule :: fonc (parseuse: *ParseuseInterface)
 consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
 {
     tantque parseuse.début < parseuse.fin {
-        si est_espace_blanc(mémoire(parseuse.début)) {
+        si est_espace_blanche(mémoire(parseuse.début)) {
             parseuse.début += 1
             continue
         }

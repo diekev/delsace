@@ -516,9 +516,6 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     résultat->id_source_corps_texte = id_source_corps_texte;
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
     metaprogramme_->fichier = résultat;
-    /* Hérite des modules importés par le fichier où se trouve le métaprogramme afin de pouvoir
-     * également accéder aux symboles de ces modules. */
-    résultat->modules_importés = fichier_racine->modules_importés;
     return résultat;
 }
 

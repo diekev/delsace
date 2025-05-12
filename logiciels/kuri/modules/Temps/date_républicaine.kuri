@@ -1,5 +1,3 @@
-importe Fondation
-
 temps_millis_depuis_époque :: fonc (date: Date) -> z64
 {
     millis_jours := days_from_civil(date) * Constantes(z64).MILLISECONDES_PAR_JOUR

@@ -88,6 +88,10 @@ static int file_pour_raison_d_être(RaisonDÊtre raison_d_être)
         {
             return OrdonnanceuseTache::FILE_CREATION_FONCTION_INIT_TYPE;
         }
+        case RaisonDÊtre::CALCULE_TAILLE_TYPE:
+        {
+            return OrdonnanceuseTache::FILE_CALCULE_TAILLE_TYPE;
+        }
         case RaisonDÊtre::AUCUNE:
         {
             return -1;
@@ -479,6 +483,14 @@ bool Tacheronne::gère_tâche()
 
                 crée_noeud_initialisation_type(espace, type, this->assembleuse);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+                break;
+            }
+            case GenreTâche::CALCULE_TAILLE_TYPE:
+            {
+                auto unite = tâche.unité;
+                auto type = unite->type;
+                assert(type);
+                calcule_taille_type_composé(type->comme_type_composé(), false, 0);
                 break;
             }
             case GenreTâche::NOMBRE_ELEMENTS:

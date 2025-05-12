@@ -120,6 +120,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         case GenreTâche::LIAISON_PROGRAMME:
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
+        case GenreTâche::CALCULE_TAILLE_TYPE:
         {
             break;
         }
@@ -178,6 +179,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
         case GenreTâche::ENVOIE_MESSAGE:
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
+        case GenreTâche::CALCULE_TAILLE_TYPE:
         {
             break;
         }
