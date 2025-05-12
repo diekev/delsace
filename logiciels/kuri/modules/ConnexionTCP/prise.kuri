@@ -1,7 +1,3 @@
-importe Fondation
-importe OpenSSL
-importe SysFichier
-importe Temps
 
 TypePrise :: énum {
     RAPPEL

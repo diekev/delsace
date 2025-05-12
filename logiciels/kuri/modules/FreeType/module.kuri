@@ -1,0 +1,397 @@
+importe Fondation
+
+charge "interface"
+
+/*
+
+#undef FTERRORS_H_
+#define FT_ERROR_START_LIST switch (error_code) {
+#define FT_ERRORDEF(e, v, s)                                                                      \
+    case v:                                                                                       \
+        retourne s;
+#define FT_ERROR_END_LIST }
+// Same signature as the function defined in fterrors.h:
+// https://www.freetype.org/freetype2/docs/reference/ft2-error_enumerations.html#ft_error_string
+char *FT_Error_String(FT_Error error_code)
+{
+#include FT_ERRORS_H
+    retourne "INVALID ERROR CODE";
+}
+
+*/
+
+imprime_erreur_freetype :: fonc (error: FT_Error @inutilisée, position := PositionCodeSource() @inutilisée)
+{
+    imprimeln("ERREUR ::::::::::::: !!!")
+    // fprintf(stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Constantes et macros définis par freetype.
+ * \{ */
+
+ft_sfnt_head :: FT_Sfnt_Tag.FT_SFNT_HEAD
+ft_sfnt_maxp :: FT_Sfnt_Tag.FT_SFNT_MAXP
+ft_sfnt_os2  :: FT_Sfnt_Tag.FT_SFNT_OS2
+ft_sfnt_hhea :: FT_Sfnt_Tag.FT_SFNT_HHEA
+ft_sfnt_vhea :: FT_Sfnt_Tag.FT_SFNT_VHEA
+ft_sfnt_post :: FT_Sfnt_Tag.FT_SFNT_POST
+ft_sfnt_pclt :: FT_Sfnt_Tag.FT_SFNT_PCLT
+
+  /**************************************************************************
+   *
+   * @enum:
+   *   FT_LOAD_XXX
+   *
+   * @description:
+   *   A list of bit field constants for @FT_Load_Glyph to indicate what kind
+   *   of operations to perform during glyph loading.
+   *
+   * @values:
+   *   FT_LOAD_DEFAULT ::
+   *     Corresponding to~0, this value is used as the default glyph load
+   *     operation.  In this case, the following happens:
+   *
+   *     1. FreeType looks for a bitmap for the glyph corresponding to the
+   *     face's current size.  If one is found, the function returns.  The
+   *     bitmap data can be accessed from the glyph slot (see note below).
+   *
+   *     2. If no embedded bitmap is searched for or found, FreeType looks
+   *     for a scalable outline.  If one is found, it is loaded from the font
+   *     file, scaled to device pixels, then 'hinted' to the pixel grid in
+   *     order to optimize it.  The outline data can be accessed from the
+   *     glyph slot (see note below).
+   *
+   *     Note that by default the glyph loader doesn't render outlines into
+   *     bitmaps.  The following flags are used to modify this default
+   *     behaviour to more specific and useful cases.
+   *
+   *   FT_LOAD_NO_SCALE ::
+   *     Don't scale the loaded outline glyph but keep it in font units.
+   *
+   *     This flag implies @FT_LOAD_NO_HINTING and @FT_LOAD_NO_BITMAP, and
+   *     unsets @FT_LOAD_RENDER.
+   *
+   *     If the font is 'tricky' (see @FT_FACE_FLAG_TRICKY for more), using
+   *     `FT_LOAD_NO_SCALE` usually yields meaningless outlines because the
+   *     subglyphs must be scaled and positioned with hinting instructions.
+   *     This can be solved by loading the font without `FT_LOAD_NO_SCALE`
+   *     and setting the character size to `font->units_per_EM`.
+   *
+   *   FT_LOAD_NO_HINTING ::
+   *     Disable hinting.  This generally generates 'blurrier' bitmap glyphs
+   *     when the glyph are rendered in any of the anti-aliased modes.  See
+   *     also the note below.
+   *
+   *     This flag is implied by @FT_LOAD_NO_SCALE.
+   *
+   *   FT_LOAD_RENDER ::
+   *     Call @FT_Render_Glyph after the glyph is loaded.  By default, the
+   *     glyph is rendered in @NORMAL mode.  This can be
+   *     overridden by @FT_LOAD_TARGET_XXX or @FT_LOAD_MONOCHROME.
+   *
+   *     This flag is unset by @FT_LOAD_NO_SCALE.
+   *
+   *   FT_LOAD_NO_BITMAP ::
+   *     Ignore bitmap strikes when loading.  Bitmap-only fonts ignore this
+   *     flag.
+   *
+   *     @FT_LOAD_NO_SCALE always sets this flag.
+   *
+   *   FT_LOAD_VERTICAL_LAYOUT ::
+   *     Load the glyph for vertical text layout.  In particular, the
+   *     `advance` value in the @FT_GlyphSlotRec structure is set to the
+   *     `vertAdvance` value of the `metrics` field.
+   *
+   *     In case @FT_HAS_VERTICAL doesn't return true, you shouldn't use this
+   *     flag currently.  Reason is that in this case vertical metrics get
+   *     synthesized, and those values are not always consistent across
+   *     various font formats.
+   *
+   *   FT_LOAD_FORCE_AUTOHINT ::
+   *     Prefer the auto-hinter over the font's native hinter.  See also the
+   *     note below.
+   *
+   *   FT_LOAD_PEDANTIC ::
+   *     Make the font driver perform pedantic verifications during glyph
+   *     loading and hinting.  This is mostly used to detect broken glyphs in
+   *     fonts.  By default, FreeType tries to handle broken fonts also.
+   *
+   *     In particular, errors from the TrueType bytecode engine are not
+   *     passed to the application if this flag is not set; this might result
+   *     in partially hinted or distorted glyphs in case a glyph's bytecode
+   *     is buggy.
+   *
+   *   FT_LOAD_NO_RECURSE ::
+   *     Don't load composite glyphs recursively.  Instead, the font driver
+   *     fills the `num_subglyph` and `subglyphs` values of the glyph slot;
+   *     it also sets `glyph->format` to @FT_GLYPH_FORMAT_COMPOSITE.  The
+   *     description of subglyphs can then be accessed with
+   *     @FT_Get_SubGlyph_Info.
+   *
+   *     Don't use this flag for retrieving metrics information since some
+   *     font drivers only return rudimentary data.
+   *
+   *     This flag implies @FT_LOAD_NO_SCALE and @FT_LOAD_IGNORE_TRANSFORM.
+   *
+   *   FT_LOAD_IGNORE_TRANSFORM ::
+   *     Ignore the transform matrix set by @FT_Set_Transform.
+   *
+   *   FT_LOAD_MONOCHROME ::
+   *     This flag is used with @FT_LOAD_RENDER to indicate that you want to
+   *     render an outline glyph to a 1-bit monochrome bitmap glyph, with
+   *     8~pixels packed into each byte of the bitmap data.
+   *
+   *     Note that this has no effect on the hinting algorithm used.  You
+   *     should rather use @FT_LOAD_TARGET_MONO so that the
+   *     monochrome-optimized hinting algorithm is used.
+   *
+   *   FT_LOAD_LINEAR_DESIGN ::
+   *     Keep `linearHoriAdvance` and `linearVertAdvance` fields of
+   *     @FT_GlyphSlotRec in font units.  See @FT_GlyphSlotRec for details.
+   *
+   *   FT_LOAD_NO_AUTOHINT ::
+   *     Disable the auto-hinter.  See also the note below.
+   *
+   *   FT_LOAD_COLOR ::
+   *     Load colored glyphs.  There are slight differences depending on the
+   *     font format.
+   *
+   *     [Since 2.5] Load embedded color bitmap images.  The resulting color
+   *     bitmaps, if available, will have the @FT_PIXEL_MODE_BGRA format,
+   *     with pre-multiplied color channels.  If the flag is not set and
+   *     color bitmaps are found, they are converted to 256-level gray
+   *     bitmaps, using the @FT_PIXEL_MODE_GRAY format.
+   *
+   *     [Since 2.10, experimental] If the glyph index contains an entry in
+   *     the face's 'COLR' table with a 'CPAL' palette table (as defined in
+   *     the OpenType specification), make @FT_Render_Glyph provide a default
+   *     blending of the color glyph layers associated with the glyph index,
+   *     using the same bitmap format as embedded color bitmap images.  This
+   *     is mainly for convenience; for full control of color layers use
+   *     @FT_Get_Color_Glyph_Layer and FreeType's color functions like
+   *     @FT_Palette_Select instead of setting @FT_LOAD_COLOR for rendering
+   *     so that the client application can handle blending by itself.
+   *
+   *   FT_LOAD_COMPUTE_METRICS ::
+   *     [Since 2.6.1] Compute glyph metrics from the glyph data, without the
+   *     use of bundled metrics tables (for example, the 'hdmx' table in
+   *     TrueType fonts).  This flag is mainly used by font validating or
+   *     font editing applications, which need to ignore, verify, or edit
+   *     those tables.
+   *
+   *     Currently, this flag is only implemented for TrueType fonts.
+   *
+   *   FT_LOAD_BITMAP_METRICS_ONLY ::
+   *     [Since 2.7.1] Request loading of the metrics and bitmap image
+   *     information of a (possibly embedded) bitmap glyph without allocating
+   *     or copying the bitmap image data itself.  No effect if the target
+   *     glyph is not a bitmap image.
+   *
+   *     This flag unsets @FT_LOAD_RENDER.
+   *
+   *   FT_LOAD_CROP_BITMAP ::
+   *     Ignored.  Deprecated.
+   *
+   *   FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH ::
+   *     Ignored.  Deprecated.
+   *
+   * @note:
+   *   By default, hinting is enabled and the font's native hinter (see
+   *   @FT_FACE_FLAG_HINTER) is preferred over the auto-hinter.  You can
+   *   disable hinting by setting @FT_LOAD_NO_HINTING or change the
+   *   precedence by setting @FT_LOAD_FORCE_AUTOHINT.  You can also set
+   *   @FT_LOAD_NO_AUTOHINT in case you don't want the auto-hinter to be used
+   *   at all.
+   *
+   *   See the description of @FT_FACE_FLAG_TRICKY for a special exception
+   *   (affecting only a handful of Asian fonts).
+   *
+   *   Besides deciding which hinter to use, you can also decide which
+   *   hinting algorithm to use.  See @FT_LOAD_TARGET_XXX for details.
+   *
+   *   Note that the auto-hinter needs a valid Unicode cmap (either a native
+   *   one or synthesized by FreeType) for producing correct results.  If a
+   *   font provides an incorrect mapping (for example, assigning the
+   *   character code U+005A, LATIN CAPITAL LETTER~Z, to a glyph depicting a
+   *   mathematical integral sign), the auto-hinter might produce useless
+   *   results.
+   *
+   */
+FT_LOAD_DEFAULT                      : FT_Int32 : 0x0
+FT_LOAD_NO_SCALE                     : FT_Int32 : ( 1 << 0 )
+FT_LOAD_NO_HINTING                   : FT_Int32 : ( 1 << 1 )
+FT_LOAD_RENDER                       : FT_Int32 : ( 1 << 2 )
+FT_LOAD_NO_BITMAP                    : FT_Int32 : ( 1 << 3 )
+FT_LOAD_VERTICAL_LAYOUT              : FT_Int32 : ( 1 << 4 )
+FT_LOAD_FORCE_AUTOHINT               : FT_Int32 : ( 1 << 5 )
+FT_LOAD_CROP_BITMAP                  : FT_Int32 : ( 1 << 6 )
+FT_LOAD_PEDANTIC                     : FT_Int32 : ( 1 << 7 )
+FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH  : FT_Int32 : ( 1 << 9 )
+FT_LOAD_NO_RECURSE                   : FT_Int32 : ( 1 << 10 )
+FT_LOAD_IGNORE_TRANSFORM             : FT_Int32 : ( 1 << 11 )
+FT_LOAD_MONOCHROME                   : FT_Int32 : ( 1 << 12 )
+FT_LOAD_LINEAR_DESIGN                : FT_Int32 : ( 1 << 13 )
+FT_LOAD_NO_AUTOHINT                  : FT_Int32 : ( 1 << 15 )
+  /* Bits 16-19 are used by `FT_LOAD_TARGET_` */
+FT_LOAD_COLOR                        : FT_Int32 : ( 1 << 20 )
+FT_LOAD_COMPUTE_METRICS              : FT_Int32 : ( 1 << 21 )
+FT_LOAD_BITMAP_METRICS_ONLY          : FT_Int32 : ( 1 << 22 )
+
+  /* */
+
+  /* used internally only by certain font drivers */
+FT_LOAD_ADVANCE_ONLY                 : FT_Int32 : ( 1 << 8 )
+FT_LOAD_SBITS_ONLY                   : FT_Int32 : ( 1 << 14 )
+
+  /**************************************************************************
+   *
+   * @enum:
+   *   FT_LOAD_TARGET_XXX
+   *
+   * @description:
+   *   A list of values to select a specific hinting algorithm for the
+   *   hinter.  You should OR one of these values to your `load_flags` when
+   *   calling @FT_Load_Glyph.
+   *
+   *   Note that a font's native hinters may ignore the hinting algorithm you
+   *   have specified (e.g., the TrueType bytecode interpreter).  You can set
+   *   @FT_LOAD_FORCE_AUTOHINT to ensure that the auto-hinter is used.
+   *
+   * @values:
+   *   FT_LOAD_TARGET_NORMAL ::
+   *     The default hinting algorithm, optimized for standard gray-level
+   *     rendering.  For monochrome output, use @FT_LOAD_TARGET_MONO instead.
+   *
+   *   FT_LOAD_TARGET_LIGHT ::
+   *     A lighter hinting algorithm for gray-level modes.  Many generated
+   *     glyphs are fuzzier but better resemble their original shape.  This
+   *     is achieved by snapping glyphs to the pixel grid only vertically
+   *     (Y-axis), as is done by FreeType's new CFF engine or Microsoft's
+   *     ClearType font renderer.  This preserves inter-glyph spacing in
+   *     horizontal text.  The snapping is done either by the native font
+   *     driver, if the driver itself and the font support it, or by the
+   *     auto-hinter.
+   *
+   *     Advance widths are rounded to integer values; however, using the
+   *     `lsb_delta` and `rsb_delta` fields of @FT_GlyphSlotRec, it is
+   *     possible to get fractional advance widths for subpixel positioning
+   *     (which is recommended to use).
+   *
+   *     If configuration option `AF_CONFIG_OPTION_TT_SIZE_METRICS` is
+   *     active, TrueType-like metrics are used to make this mode behave
+   *     similarly as in unpatched FreeType versions between 2.4.6 and 2.7.1
+   *     (inclusive).
+   *
+   *   FT_LOAD_TARGET_MONO ::
+   *     Strong hinting algorithm that should only be used for monochrome
+   *     output.  The result is probably unpleasant if the glyph is rendered
+   *     in non-monochrome modes.
+   *
+   *     Note that for outline fonts only the TrueType font driver has proper
+   *     monochrome hinting support, provided the TTFs contain hints for B/W
+   *     rendering (which most fonts no longer provide).  If these conditions
+   *     are not met it is very likely that you get ugly results at smaller
+   *     sizes.
+   *
+   *   FT_LOAD_TARGET_LCD ::
+   *     A variant of @FT_LOAD_TARGET_LIGHT optimized for horizontally
+   *     decimated LCD displays.
+   *
+   *   FT_LOAD_TARGET_LCD_V ::
+   *     A variant of @FT_LOAD_TARGET_NORMAL optimized for vertically
+   *     decimated LCD displays.
+   *
+   * @note:
+   *   You should use only _one_ of the `FT_LOAD_TARGET_XXX` values in your
+   *   `load_flags`.  They can't be ORed.
+   *
+   *   If @FT_LOAD_RENDER is also set, the glyph is rendered in the
+   *   corresponding mode (i.e., the mode that matches the used algorithm
+   *   best).  An exception is `FT_LOAD_TARGET_MONO` since it implies
+   *   @FT_LOAD_MONOCHROME.
+   *
+   *   You can use a hinting algorithm that doesn't correspond to the same
+   *   rendering mode.  As an example, it is possible to use the 'light'
+   *   hinting algorithm and have the results rendered in horizontal LCD
+   *   pixel mode, with code like
+   *
+   *   ```
+   *     FT_Load_Glyph( face, glyph_index,
+   *                    load_flags | FT_LOAD_TARGET_LIGHT );
+   *
+   *     FT_Render_Glyph( face->glyph, LCD );
+   *   ```
+   *
+   *   In general, you should stick with one rendering mode.  For example,
+   *   switching between @FT_LOAD_TARGET_NORMAL and @FT_LOAD_TARGET_MONO
+   *   enforces a lot of recomputation for TrueType fonts, which is slow.
+   *   Another reason is caching: Selecting a different mode usually causes
+   *   changes in both the outlines and the rasterized bitmaps; it is thus
+   *   necessary to empty the cache after a mode switch to avoid false hits.
+   *
+   */
+FT_LOAD_TARGET_ :: fonc (x: FT_Int32) -> FT_Int32 #enligne
+{
+    retourne (x & 15) << 16
+}
+
+FT_LOAD_TARGET_NORMAL :: fonc () -> FT_Int32 #enligne
+{
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.NORMAL comme n32 comme FT_Int32)
+}
+
+FT_LOAD_TARGET_LIGHT :: fonc () -> FT_Int32 #enligne
+{
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LIGHT comme n32 comme FT_Int32)
+}
+
+FT_LOAD_TARGET_MONO :: fonc () -> FT_Int32 #enligne
+{
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.MONO comme n32 comme FT_Int32)
+}
+
+FT_LOAD_TARGET_LCD :: fonc () -> FT_Int32 #enligne
+{
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD comme n32 comme FT_Int32)
+}
+
+FT_LOAD_TARGET_LCD_V :: fonc () -> FT_Int32 #enligne
+{
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD_V comme n32 comme FT_Int32)
+}
+
+  /**************************************************************************
+   *
+   * @macro:
+   *   FT_LOAD_TARGET_MODE
+   *
+   * @description:
+   *   Return the @FT_Render_Mode corresponding to a given
+   *   @FT_LOAD_TARGET_XXX value.
+   *
+   */
+FT_LOAD_TARGET_MODE :: fonc (x: FT_Int32) -> FT_Render_Mode #enligne
+{
+    retourne ((x >> 16) & 15) comme FT_Render_Mode
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+F26Dot6_vers_r32 :: fonc (valeur: FT_F26Dot6) -> r32
+{
+    /* 64 = 2^6, pour les 6 derniers bits de FT_F26Dot6 */
+    retourne (valeur comme r32) / 64.0
+}
+
+r32_vers_F26Dot6 :: fonc (valeur: r32) -> FT_F26Dot6
+{
+    /* 64 = 2^6, pour les 6 derniers bits de FT_F26Dot6 */
+    retourne (valeur * 64.0)  comme FT_F26Dot6
+}
+
+/** \} */

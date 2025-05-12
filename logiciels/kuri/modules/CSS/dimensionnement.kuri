@@ -1,7 +1,4 @@
-importe Fondation
 importe Introspection // pour définis_membre_actif, donne_index_membre_actif
-importe Math
-importe Structures
 
 /* Calculs des largeurs, hauteurs, et marges des boxes. */
 
