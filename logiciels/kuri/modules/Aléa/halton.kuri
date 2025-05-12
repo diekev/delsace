@@ -1,5 +1,3 @@
-importe Fondation
-importe Math
 
 /* Générateur incrémentel d'une séquence de Halton, tiré de :
  * "Instant Radiosity", Keller A.
