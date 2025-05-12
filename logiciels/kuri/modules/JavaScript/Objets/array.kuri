@@ -1,8 +1,3 @@
-importe Chaine
-importe Fondation
-importe Math
-importe Numérique
-
 /* ------------------------------------------------------------------------- */
 /** \nom ArrayObject
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects

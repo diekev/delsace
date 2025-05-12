@@ -1,9 +1,4 @@
-importe Couleur
-CSS :: importe CSS
-importe Fondation
-importe Géométrie
 importe Math
-importe PeintureInterface
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte de rendu pour HTMLCanvasElement

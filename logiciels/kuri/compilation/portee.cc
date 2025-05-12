@@ -155,7 +155,7 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(
     }
 
     /* cherche dans les modules importés */
-    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->module->modules_importés, [&](auto &module) {
         if (!module.est_employé) {
             return kuri::DécisionItération::Continue;
         }
@@ -235,7 +235,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
     trouve_declarations_dans_bloc(declarations, module_du_bloc, bloc, ident, fichier);
 
     /* cherche dans les modules importés */
-    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->module->modules_importés, [&](auto &module) {
         if (!module.est_employé) {
             return kuri::DécisionItération::Continue;
         }
@@ -258,7 +258,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
     modules_visites.insère(fichier->module);
 
     /* cherche dans les modules importés */
-    pour_chaque_élément(fichier->modules_importés, [&](auto &module) {
+    pour_chaque_élément(fichier->module->modules_importés, [&](auto &module) {
         if (!module.est_employé) {
             return kuri::DécisionItération::Continue;
         }
