@@ -2704,26 +2704,25 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
     }
 
-    auto atome_appelée = donne_source_charge_ou_atome(appel->appelé);
-    assert(atome_appelée->est_fonction());
-
-    auto atome_fonc = atome_appelée->comme_fonction();
-
-    auto appelée = AssembleuseASM::Fonction{atome_fonc->nom};
-    // auto appelée = génère_code_pour_atome(atome_appelée, assembleuse,
-    // UtilisationAtome::AUCUNE);
-
     if (classement.sortie.est_en_mémoire) {
         /* Charge l'adresse dans %rdi. */
         assembleuse.lea(Registre::RDI, adresse_retour);
         registres.marque_registre_occupé(Registre::RDI);
     }
 
-    // if (appelée.type == TypeOpérande::MÉMOIRE) {
-    //     auto registre = registres.donne_registre_entier_inoccupé();
-    //     assembleuse.mov(registre, appelée, 8);
-    //     appelée = registre;
-    // }
+    auto atome_appelée = donne_source_charge_ou_atome(appel->appelé);
+    auto appelée = AssembleuseASM::Opérande{};
+    if (atome_appelée->est_fonction()) {
+        auto atome_fonc = atome_appelée->comme_fonction();
+        appelée = AssembleuseASM::Fonction{atome_fonc->nom};
+    }
+    else {
+        génère_code_pour_atome(atome_appelée, assembleuse, UtilisationAtome::AUCUNE);
+        auto registre = registres.donne_registre_entier_inoccupé();
+        assembleuse.pop(registre, 8);
+        assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
+        appelée = registre;
+    }
 
     // struct OpérandeTaillée {
     //     AssembleuseASM::Opérande opérande{};
@@ -3886,11 +3885,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
             src = registre;
         }
-        else {
-            if (!source->est_instruction()) {
-                VERIFIE_NON_ATTEINT;
-            }
-
+        else if (source->est_instruction()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::AUCUNE);
 
             auto inst = source->comme_instruction();
@@ -3912,6 +3907,15 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
                 dbg() << "Instruction non-supportée " << inst->genre;
                 VERIFIE_NON_ATTEINT;
             }
+        }
+        else if (source->est_fonction()) {
+            génère_code_pour_atome(source, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.pop(registre, 8);
+        }
+        else {
+            dbg() << "Atome non supporté : " << source->genre_atome;
+            VERIFIE_NON_ATTEINT;
         }
     }
     else {
