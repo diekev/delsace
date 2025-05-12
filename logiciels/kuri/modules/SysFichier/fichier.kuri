@@ -1,6 +1,3 @@
-importe Fondation
-importe Structures
-
 Fichier :: struct {
     desc: TypePoignéeFichier
 }

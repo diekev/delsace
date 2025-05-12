@@ -332,6 +332,9 @@ class GestionnaireCode {
 
     void flush_métaprogrammes_en_attente_de_crée_contexte();
 
+    void garantie_typage_des_dépendances(DonnéesDépendance const &dépendances,
+                                         EspaceDeTravail *espace);
+
     void ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente);
 
     void imprime_état_parsage() const;

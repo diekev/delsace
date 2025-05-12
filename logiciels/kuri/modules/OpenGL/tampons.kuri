@@ -1,7 +1,3 @@
-importe Couleur
-importe Fondation
-importe Math
-
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetTamponTableau
  * \{ */

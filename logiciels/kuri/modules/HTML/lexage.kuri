@@ -1,8 +1,4 @@
-importe Chaine
-importe Ensemble
-importe Fondation
 importe Structures
-importe Unicode
 
 est_espace_blanc_html :: fonc (c: z8) -> bool #enligne
 {
@@ -107,8 +103,6 @@ détruit_lexème :: fonc (lexème: *Lexème)
 }
 
 // --------------------------------------------
-
-FIN_DE_FICHIER :: 0xffffffff comme n32
 
 ÉtatLexage :: énum {
     Data
@@ -1556,7 +1550,7 @@ lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
                 sinon si est_noncaractère(c) {
                     panique("état partiellement implémenté")
                 }
-                sinon si c == 0x0D || (est_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanc(lexeuse.code_référence_caractère)) {
+                sinon si c == 0x0D || (est_controle(lexeuse.code_référence_caractère) && !est_ascii_espace_blanche(lexeuse.code_référence_caractère)) {
                     panique("état partiellement implémenté")
                 }
 
