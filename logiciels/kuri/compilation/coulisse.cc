@@ -118,6 +118,11 @@ void Coulisse::détruit(Coulisse *coulisse)
     }
 }
 
+bool Coulisse::est_asm() const
+{
+    return dynamic_cast<const CoulisseASM *>(this) != nullptr;
+}
+
 bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
 {
     if (!est_coulisse_métaprogramme()) {

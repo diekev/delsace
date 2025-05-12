@@ -1,5 +1,4 @@
 importe Bits
-importe Fondation
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction d'allocation.

@@ -1,4 +1,3 @@
-importe Fondation
 importe Introspection
 
 imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien

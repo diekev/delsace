@@ -877,6 +877,8 @@ CréatriceTableFonction :: struct {
      * Seuls les modules n'étant pas découvrable via les fonctions candidates
      * devrait être manuellement ajoutées. */
     modules_importés: [..]chaine
+
+    module: *Module
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -965,7 +967,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     }
 
     pour créatrice.modules_importés {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, it, " :: importe ", it, "\n")
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
@@ -973,17 +975,28 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
         it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, it)
     }
 
+    nom_module := compilatrice_nom_module(créatrice.module)
+
     /* Création de la fonction d'initialisation. */
     ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
     si créatrice.initialise_types_de_bases {
-        ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*", créatrice.nom_table_fonctions, ")\n")
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*")
+        si nom_module {
+            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        }
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n")
     }
 
     pour données_fonctions {
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction(*", créatrice.nom_table_fonctions, ", info_de(")
-        imprime_type(*enchaineuse, it.info_type)
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*")
+        si nom_module {
+            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        }
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
+        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(it.fonction))
+        imprime_type(*enchaineuse, it.info_type, nom_module_fonction)
         ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n")
         déloge(it.nom_fonction_enveloppe)
     }
@@ -1000,6 +1013,27 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+}
+
+génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction, préfixe: chaine) -> chaine
+{
+    nom_enveloppe := enchaine(préfixe, données.fonction.nom)
+
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, "{\n")
+    module := compilatrice_module_pour_code(données.fonction)
+    nom_module := compilatrice_nom_module(module)
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ")
+    si nom_module {
+        ajoute_au_tampon(enchaineuse, nom_module, ".")
+    }
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn)\n")
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+    ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
 }
 
 // ----------------------------------------------------------------------------

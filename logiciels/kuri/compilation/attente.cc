@@ -107,6 +107,7 @@ RAPPEL_POUR_ERREUR(type)
         case RaisonDÊtre::EXECUTION:
         case RaisonDÊtre::LIAISON_PROGRAMME:
         case RaisonDÊtre::GENERATION_CODE_MACHINE:
+        case RaisonDÊtre::CALCULE_TAILLE_TYPE:
         {
             break;
         }

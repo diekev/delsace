@@ -1,10 +1,4 @@
-importe Chaine
 importe Couleur
-importe Ensemble
-importe Fondation
-importe Internet
-importe Math
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom 5. Parsing

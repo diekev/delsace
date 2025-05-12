@@ -1,6 +1,4 @@
 importe Chaine
-importe Fondation
-importe Structures
 importe POSIX
 
 CheminFichier :: struct {
