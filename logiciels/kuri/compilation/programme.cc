@@ -832,7 +832,7 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
 
     supprime_fonctions_inutilisées();
 
-    if (m_espace.options.utilise_trace_appel) {
+    if (m_espace.options.utilise_trace_appel && !m_programme.coulisse()->est_asm()) {
         génère_traces_d_appel();
     }
 

@@ -1,6 +1,3 @@
-importe Fondation
-importe Structures
-
 ouvre_dossier :: fonc (chemin: &CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
     retourne système_ouvre_dossier(chemin)

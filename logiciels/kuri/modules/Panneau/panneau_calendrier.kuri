@@ -1,0 +1,88 @@
+
+/* ------------------------------------------------------------------------- */
+/** \nom PanneauCalendrier.
+ * \{ */
+
+PanneauCalendrier :: struct {
+    empl base: Panneau.Panneau
+}
+
+crée_panneau_calendrier :: fonc (contexte: *ContexteInterface) -> *PanneauCalendrier
+{
+    résultat := contexte.crée_panneau(PanneauCalendrier)
+    résultat.sur_dessin = sur_dessin_panneau_calendrier
+    retourne résultat
+}
+
+sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *ContexteAffichage)
+{
+    peintre := ctx.peintre
+
+    couleur_arrière_plan := CouleurRVBA(1.0, 1.0, 1.0, 1.0)
+    peintre.remplis_rectangle(rect, couleur_arrière_plan)
+
+    hauteur_par_ligne := rect.hauteur comme r32 / 32.0
+
+    pour 33 {
+        y := rect.y + (hauteur_par_ligne * index_it comme r32) comme z32
+
+        ligne: Ligne(z32)
+        ligne.p0.x = rect.x
+        ligne.p0.y = y
+
+        ligne.p1.x = rect.x + rect.largeur
+        ligne.p1.y = y
+
+        peintre.dessine_segment(ligne, couleur_noire)
+    }
+
+    largeur_par_colonne := rect.largeur comme r32 / 12.0
+
+    pour 13 {
+        x := rect.x + (index_it comme r32 * largeur_par_colonne) comme z32
+
+        ligne: Ligne(z32)
+        ligne.p0.x = x
+        ligne.p0.y = rect.y
+
+        ligne.p1.x = x
+        ligne.p1.y = rect.y + rect.hauteur
+
+        peintre.dessine_segment(ligne, couleur_noire)
+    }
+
+    mois := ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+
+    fonte := ctx.fonte
+
+    pour mois {
+        rect_texte: RectanglePosDim(z32)
+        rect_texte.x = (index_it comme r32 * largeur_par_colonne) comme z32 + 5
+        rect_texte.hauteur = hauteur_par_ligne comme z32
+        rect_texte.y = rect.y + rect.hauteur - rect_texte.hauteur + 5
+        rect_texte.largeur = largeur_par_colonne comme z32
+
+        peintre.dessine_texte(fonte, it, rect_texte, couleur_noire)
+    }
+
+    pour 31 {
+        chn_texte := imprime_chaine("%", it + 1)
+        diffère déloge(chn_texte)
+
+        rect_texte: RectanglePosDim(z32)
+        rect_texte.hauteur = hauteur_par_ligne comme z32
+        rect_texte.largeur = largeur_par_colonne comme z32
+        rect_texte.y = rect.y + rect.hauteur - (hauteur_par_ligne * (index_it + 2) comme r32) comme z32 + 5
+
+        pour index_mois dans 12 {
+            si it >= nombre_de_jours_dans_mois(index_mois + 1, 2013) {
+                continue
+            }
+
+            rect_texte.x = (index_mois comme r32 * largeur_par_colonne) comme z32 + 5
+            peintre.dessine_texte(fonte, chn_texte, rect_texte, couleur_noire)
+        }
+    }
+}
+
+/** \} */

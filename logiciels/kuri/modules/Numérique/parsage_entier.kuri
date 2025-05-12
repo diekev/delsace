@@ -6,7 +6,6 @@
 //           -- nombres négatifs ?
 //           -- validation dans l'algorithme de parsage via SIMD
 
-importe Fondation
 importe Math
 importe Ordinatrice
 
@@ -295,23 +294,12 @@ parse_hexadécimal_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
     résultat: n64
 
     pour chn {
-        v: n64
-
-        si '0' <= it <= '9' {
-            v = (it - '0') comme n64
-        }
-        sinon si 'a' <= it <= 'f' {
-            v = 10 + (it - 'a') comme n64
-        }
-        sinon si 'A' <= it <= 'F' {
-            v = 10 + (it - 'A') comme n64
-        }
-        sinon {
+        saufsi est_nombre_hexadécimal(it) {
             retourne ErreurParsageEntier.EntréeMalformée
         }
 
         résultat *= 16
-        résultat += v
+        résultat += donne_valeur_hex(it) comme n64
     }
 
     retourne résultat

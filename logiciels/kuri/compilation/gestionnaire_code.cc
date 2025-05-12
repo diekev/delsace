@@ -644,32 +644,31 @@ static bool type_requiers_typage(NoeudDéclarationType const *type)
 }
 
 /* Requiers le typage de toutes les dépendances. */
-static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
-                                            DonnéesDépendance const &dépendances,
-                                            EspaceDeTravail *espace)
+void GestionnaireCode::garantie_typage_des_dépendances(
+    DonnéesDépendance const &données_dépendances, EspaceDeTravail *espace)
 {
     /* Requiers le typage du corps de toutes les fonctions utilisées. */
-    kuri::pour_chaque_élément(dépendances.fonctions_utilisées, [&](auto &fonction) {
+    kuri::pour_chaque_élément(données_dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
                                        DrapeauxNoeudFonction::EST_EXTERNE)) {
-            gestionnaire.requiers_typage(espace, fonction->corps);
+            requiers_typage(espace, fonction->corps);
         }
         return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de toutes les déclarations utilisées. */
-    kuri::pour_chaque_élément(dépendances.globales_utilisées, [&](auto &globale) {
+    kuri::pour_chaque_élément(données_dépendances.globales_utilisées, [&](auto &globale) {
         if (!globale->unité) {
-            gestionnaire.requiers_typage(espace, const_cast<NoeudDéclarationVariable *>(globale));
+            requiers_typage(espace, const_cast<NoeudDéclarationVariable *>(globale));
         }
         return kuri::DécisionItération::Continue;
     });
 
     /* Requiers le typage de tous les types utilisés. */
-    kuri::pour_chaque_élément(dépendances.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(données_dépendances.types_utilisés, [&](auto &type) {
         if (type_requiers_typage(type)) {
-            gestionnaire.requiers_typage(espace, type);
+            requiers_typage(espace, type);
         }
 
         if (type->est_type_fonction()) {
@@ -694,7 +693,18 @@ static void garantie_typage_des_dépendances(GestionnaireCode &gestionnaire,
              */
             if (type_retour->est_type_tuple() && type_retour->taille_octet == 0 &&
                 !type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                calcule_taille_type_composé(type_retour->comme_type_tuple(), false, 0);
+                auto type_tuple = type_retour->comme_type_tuple();
+
+                auto unité = crée_unité(espace, RaisonDÊtre::CALCULE_TAILLE_TYPE, true);
+                unité->type = type_tuple;
+
+                POUR (type_tuple->membres) {
+                    if (!it.type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                        auto attente = Attente::sur_type(it.type);
+                        ajoute_requêtes_pour_attente(espace, attente);
+                        unité->ajoute_attente(attente);
+                    }
+                }
             }
         }
 
@@ -827,7 +837,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     if (dépendances_ajoutees) {
         DÉBUTE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
         dépendances.dépendances.fusionne(dépendances.dépendances_épendues);
-        garantie_typage_des_dépendances(*this, dépendances.dépendances, espace);
+        garantie_typage_des_dépendances(dépendances.dépendances, espace);
         TERMINE_STAT(GARANTIE_TYPAGE_DÉPENDANCES);
     }
     TERMINE_STAT(DÉTERMINE_DÉPENDANCES);
@@ -1529,6 +1539,11 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
             generation_code_machine_terminée(unité);
             break;
         }
+        case RaisonDÊtre::CALCULE_TAILLE_TYPE:
+        {
+            /* Rien à faire pour le moment. */
+            break;
+        }
     }
 }
 
@@ -1564,7 +1579,6 @@ void GestionnaireCode::lexage_fichier_terminé(UniteCompilation *unité)
 }
 
 static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
-                                                  Fichier *fichier,
                                                   Module *module_du_fichier)
 {
     auto const expression = inst->expression;
@@ -1575,19 +1589,14 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
 
     /* À FAIRE : meilleure mise en cache. */
     auto module = static_cast<Module *>(nullptr);
-    POUR (module_du_fichier->fichiers) {
-        if (it == fichier) {
-            continue;
+    pour_chaque_élément(module_du_fichier->modules_importés, [&](ModuleImporté const &module_) {
+        if (module_.module->nom() == expression->ident) {
+            module = module_.module;
+            return kuri::DécisionItération::Arrête;
         }
-        pour_chaque_élément(it->modules_importés, [&](ModuleImporté const &module_) {
-            if (module_.module->nom() == expression->ident) {
-                module = module_.module;
-                return kuri::DécisionItération::Arrête;
-            }
 
-            return kuri::DécisionItération::Continue;
-        });
-    }
+        return kuri::DécisionItération::Continue;
+    });
 
     return module;
 }
@@ -1646,7 +1655,7 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             auto inst = it->comme_importe();
             auto const module_du_fichier = fichier->module;
 
-            auto module = donne_module_existant_pour_importe(inst, fichier, module_du_fichier);
+            auto module = donne_module_existant_pour_importe(inst, module_du_fichier);
             if (!module) {
                 const auto lexème = inst->expression->lexème;
 
@@ -1708,27 +1717,27 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             }
 
             if (module_du_fichier == module) {
-                espace->rapporte_erreur(inst, "Importation d'un module dans lui-même.\n");
+                espace->rapporte_erreur(inst, "Import d'un module dans lui-même.\n");
                 return;
             }
 
-            if (fichier->importe_module(module->nom())) {
+            if (module_du_fichier->importe_module(module->nom())) {
                 if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
                     /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
                      * de générer ces instructions redondantes. */
-                    espace->rapporte_avertissement(inst, "Importation superflux du module");
+                    espace->rapporte_avertissement(inst, "Import superflux du module");
                 }
             }
             else {
-                fichier->modules_importés.insère({module, inst->est_employé});
-
-                auto noeud_déclaration = inst->noeud_déclaration;
-                if (noeud_déclaration->ident == nullptr) {
-                    noeud_déclaration->ident = module->nom();
-                    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
-                }
-                noeud_déclaration->module = module;
+                module_du_fichier->modules_importés.insère({module, inst->est_employé});
             }
+
+            auto noeud_déclaration = inst->noeud_déclaration;
+            if (noeud_déclaration->ident == nullptr) {
+                noeud_déclaration->ident = module->nom();
+                noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+            }
+            noeud_déclaration->module = module;
 
             // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
         }

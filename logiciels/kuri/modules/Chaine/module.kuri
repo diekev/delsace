@@ -24,7 +24,7 @@ supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
 supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
-        saufsi est_espace_blanc(ligne[0]) {
+        saufsi est_espace_blanche(ligne[0]) {
             arrête
         }
         ligne = avance(ligne, 1)
@@ -35,7 +35,7 @@ supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
 supprime_espaces_blancs_à_la_fin :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
-        saufsi est_espace_blanc(ligne[ligne.taille - 1]) {
+        saufsi est_espace_blanche(ligne[ligne.taille - 1]) {
             arrête
         }
         ligne = recule(ligne, 1)
