@@ -219,35 +219,15 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t)
 
+    si params.type == GL_UNSIGNED_BYTE {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    }
+
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
     vérifie_erreur("définis_texture_2d : glTexImage2D")
 
     glBindTexture(GL_TEXTURE_2D, 0)
     vérifie_erreur("définis_texture_2d : glBindTexture 0")
-}
-
-donne_paramètres_texture_pour_image :: fonc (image: ImageIO, répétition: RépétitionImage) -> ParamètresTexture2D
-{
-    résultat: ParamètresTexture2D
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
-    résultat.données = image.donnees
-    résultat.bordure = 0
-    résultat.type = GL_FLOAT
-    si image.nombre_composants == 1 {
-        résultat.format = GL_RED
-    }
-    sinon si image.nombre_composants == 2 {
-        résultat.format = GL_RG
-    }
-    sinon si image.nombre_composants == 3 {
-        résultat.format = GL_RGB
-    }
-    sinon {
-        résultat.format = GL_RGBA
-    }
-    définis_répétition(*résultat, répétition)
-    retourne résultat
 }
 
 donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, répétition: RépétitionImage) -> ParamètresTexture2D

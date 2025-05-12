@@ -43,12 +43,12 @@
  *
  * À FAIRE : retourne les index des mots-clés
  * À FAIRE : permet de spécifier les limites des chaines littérales
- * À FAIRE : calcule les valeurs des lexèmes numériques
  * À FAIRE : séparateur dans les valeurs numériques
  * À FAIRE : échappements (caractères unicode etc.)
  */
 
 importe Fondation
+importe Numérique
 
 /* ------------------------------------------------------------------------- */
 /** \nom Lexème
@@ -73,6 +73,7 @@ Lexème :: struct {
 
     // Pour les nombres littéraux.
     suffixe: chaine
+    nombre: n64
 }
 
 donne_texte :: fonc (lexème: Lexème) -> chaine
@@ -306,6 +307,8 @@ DrapeauxCaractère :: énum_drapeau n16 {
     EspaceBlanche
     NouvelleLigne
     Ponctuation
+    ChiffreHexadécimal
+    HorsChiffreHexadécimal
 
     DébuteChaineLittérale
 
@@ -344,6 +347,17 @@ construit_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
 
     pour lexeuse.caractères_symboliques {
         lexeuse.table_drapeaux_caractère[it] |= DrapeauxCaractère.Alphabétique
+    }
+
+    pour "0123456789abcdefABCDEF" {
+        lexeuse.table_drapeaux_caractère[it] |= DrapeauxCaractère.ChiffreHexadécimal
+    }
+
+    pour & lexeuse.table_drapeaux_caractère {
+        si (it & DrapeauxCaractère.ChiffreHexadécimal) != DrapeauxCaractère.zéro {
+            continue
+        }
+        it |= DrapeauxCaractère.HorsChiffreHexadécimal
     }
 
     /* 2 passes pour définir si un caractère n'apparait pas dans un mot-clé. */
@@ -423,6 +437,10 @@ construit_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
 
     pour lexeuse.caractères_symboliques {
         lexeuse.table_peut_suivre[it] |= PeutSuivre.Symbole
+    }
+
+    pour "0123456789abcdefABCDEF" {
+        lexeuse.table_peut_suivre[it] |= PeutSuivre.Nombre
     }
 
     caractères_numérique :: "0123456789"
@@ -563,11 +581,19 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
 
     résultat := Lexème(type = TypeLexème.Symbole, début = début_lexème, fin = fin_lexème)
     résultat.type = donne_type_lexème_symbole(lexeuse, résultat.donne_texte(), drapeaux_résultat)
+    si résultat.type == TypeLexème.Nombre {
+        assert(drapeaux_résultat.ChiffreHexadécimal != faux)
+        résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
+    }
     retourne résultat
 }
 
 donne_type_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine, drapeaux: DrapeauxCaractère) -> TypeLexème
 {
+    si drapeaux.ChiffreHexadécimal && drapeaux.HorsChiffreHexadécimal == faux {
+        retourne TypeLexème.Nombre
+    }
+
     si drapeaux.HorsMotClé {
         retourne TypeLexème.Symbole
     }
@@ -614,6 +640,7 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     peut_suivre := PeutSuivre.Nombre
     drapeaux: DrapeauxCaractère
+    drapeaux_accumulés: DrapeauxCaractère
 
     tantque peut_suivre.Nombre {
         fin_lexème += 1
@@ -625,10 +652,17 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
         c := donne_caractère_courant(lexeuse)
         drapeaux = donne_drapeaux_caractère(lexeuse, c)
+        drapeaux_accumulés |= drapeaux
         peut_suivre = donne_drapeaux_peut_suivre(lexeuse, c)
     }
 
     résultat := Lexème(type = TypeLexème.Nombre, début = début_lexème, fin = fin_lexème)
+    si drapeaux_accumulés.ChiffreHexadécimal {
+        résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
+    }
+    sinon {
+        résultat.nombre = tente extrait_n64(résultat.donne_texte()) piège nonatteignable
+    }
 
     début_lexème = lexeuse.début
     fin_lexème = début_lexème
