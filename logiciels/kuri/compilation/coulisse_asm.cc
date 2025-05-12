@@ -4212,6 +4212,17 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
                 os << dls::num::char_depuis_hex(octet & 0x0f);
                 virgule = ", ";
             }
+
+            if (it.tableau->possède_drapeau(DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
+                compteur++;
+                if ((compteur % 20) == 0) {
+                    os << NOUVELLE_LIGNE << TABULATION << TABULATION << "db ";
+                }
+                else {
+                    os << virgule;
+                }
+                os << "0x00";
+            }
         }
 
         os << NOUVELLE_LIGNE << NOUVELLE_LIGNE;
