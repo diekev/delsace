@@ -1730,15 +1730,21 @@ struct AssembleuseASM {
             {
                 auto const adresse = opérande.mémoire.adresse;
                 assert(adresse.taille() != 0);
-                auto const décalage = opérande.mémoire.décalage;
-                m_sortie << "[" << adresse;
-                if (décalage < 0) {
-                    m_sortie << " - ";
+
+                if (!opérande.mémoire.est_globale) {
+                    auto const décalage = opérande.mémoire.décalage;
+                    m_sortie << "[" << adresse;
+                    if (décalage < 0) {
+                        m_sortie << " - ";
+                    }
+                    else {
+                        m_sortie << " + ";
+                    }
+                    m_sortie << abs(décalage) << "]";
                 }
                 else {
-                    m_sortie << " + ";
+                    m_sortie << adresse;
                 }
-                m_sortie << abs(décalage) << "]";
                 return;
             }
             case TypeOpérande::REGISTRE:
@@ -2956,52 +2962,68 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                                                     AssembleuseASM &assembleuse)
 {
     assert(atome == source || source->est_instruction());
-    assert(atome->est_instruction());
-    auto inst = atome->comme_instruction();
 
-    if (est_adresse_locale(inst) || inst->est_appel()) {
-        if (source->type == TypeBase::R32) {
-            auto tmp = registres.donne_registre_entier_inoccupé();
-            assembleuse.pop(tmp, 8);
-            assembleuse.movss(registre, AssembleuseASM::Mémoire{tmp});
-            registres.marque_registre_inoccupé(tmp);
+    if (atome->est_instruction()) {
+        auto inst = atome->comme_instruction();
+
+        if (est_adresse_locale(inst) || inst->est_appel()) {
+            if (source->type == TypeBase::R32) {
+                auto tmp = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(tmp, 8);
+                assembleuse.movss(registre, AssembleuseASM::Mémoire{tmp});
+                registres.marque_registre_inoccupé(tmp);
+            }
+            else if (source->type == TypeBase::R64) {
+                auto tmp = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(tmp, 8);
+                assembleuse.movsd(registre, AssembleuseASM::Mémoire{tmp});
+                registres.marque_registre_inoccupé(tmp);
+            }
+            else {
+                assert(est_type_entier(source->type));
+                assembleuse.pop(registre);
+                assembleuse.mov(
+                    registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
+
+                if (source->type->taille_octet == 1) {
+                    assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xff}, 8);
+                }
+                else if (source->type->taille_octet == 2) {
+                    assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xffff}, 8);
+                }
+            }
         }
-        else if (source->type == TypeBase::R64) {
-            auto tmp = registres.donne_registre_entier_inoccupé();
-            assembleuse.pop(tmp, 8);
-            assembleuse.movsd(registre, AssembleuseASM::Mémoire{tmp});
-            registres.marque_registre_inoccupé(tmp);
+        else if (inst->est_op_binaire() || inst->est_op_unaire() || inst->est_transtype()) {
+            if (source->type == TypeBase::R32) {
+                assembleuse.movss(registre, AssembleuseASM::Mémoire{Registre::RSP});
+                assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
+            }
+            else if (source->type == TypeBase::R64) {
+                assembleuse.movsd(registre, AssembleuseASM::Mémoire{Registre::RSP});
+                assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
+            }
+            else {
+                assert(est_type_entier(source->type));
+                assembleuse.dépile(registre, source->type->taille_octet);
+            }
         }
         else {
-            assert(est_type_entier(source->type));
-            assembleuse.pop(registre);
-            assembleuse.mov(
-                registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
-
-            if (source->type->taille_octet == 1) {
-                assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xff}, 8);
-            }
-            else if (source->type->taille_octet == 2) {
-                assembleuse.and_(registre, AssembleuseASM::Immédiate64{0xffff}, 8);
-            }
+            dbg() << "Instruction non-supportée " << inst->genre;
+            VERIFIE_NON_ATTEINT;
         }
     }
-    else if (inst->est_op_binaire() || inst->est_op_unaire() || inst->est_transtype()) {
-        if (source->type == TypeBase::R32) {
-            assembleuse.movss(registre, AssembleuseASM::Mémoire{Registre::RSP});
-            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
-        }
-        else if (source->type == TypeBase::R64) {
-            assembleuse.movsd(registre, AssembleuseASM::Mémoire{Registre::RSP});
-            assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
+    else if (atome->est_globale()) {
+        if (est_type_entier(source->type)) {
+            assembleuse.pop(registre);
+            assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         }
         else {
-            assert(est_type_entier(source->type));
-            assembleuse.dépile(registre, source->type->taille_octet);
+            dbg() << "Type non supporté : " << chaine_type(atome->type);
+            VERIFIE_NON_ATTEINT;
         }
     }
     else {
-        dbg() << "Instruction non-supportée " << inst->genre;
+        dbg() << "Atome non-supporté " << atome->genre_atome;
         VERIFIE_NON_ATTEINT;
     }
 }
