@@ -1,4 +1,3 @@
-importe Fondation
 importe Unicode
 
 TypeLexème :: énum z32 {
@@ -215,7 +214,7 @@ mot_courant :: fonc (lexeuse: &Lexeuse) -> chaine
 
 analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien
 {
-    si est_espace_blanc(lexeuse.caractère_courant()) {
+    si est_espace_blanche(lexeuse.caractère_courant()) {
         si lexeuse.taille_mot_courant != 0 {
             lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()))
         }

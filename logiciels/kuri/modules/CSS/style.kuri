@@ -1,11 +1,3 @@
-importe Chaine
-importe Couleur
-importe EnsembleDeBits
-importe Fondation
-HTML :: importe HTML
-importe Internet
-importe Structures
-importe Typographie
 
 TextDecorationLine :: énum_drapeau n8 {
     UNDERLINE
@@ -1496,7 +1488,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, propri
 
 initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte: *Fonte)
 {
-    longueurs.em = fonte.font.size
+    longueurs.em = fonte.font.taille
 
     ex := donne_hauteur_glyph(fonte, 'o' comme n32)
     si ex.possède_valeur() {

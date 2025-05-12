@@ -341,13 +341,20 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 {
     nom_enveloppe := enchaine("enveloppe_pour_gna_", données.fonction.nom)
 
-    enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: &GénératriceDonnéesAléatoire, valeur: eini)\n")
+    module := compilatrice_module_pour_code(données.fonction)
+    nom_module := compilatrice_nom_module(module)
+
+    enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: &Aléa.GénératriceDonnéesAléatoire, valeur: eini)\n")
     enchaineuse.ajoute_au_tampon("{\n")
     /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
     enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **")
-    imprime_type(enchaineuse, données.info_type)
+    imprime_type(enchaineuse, données.info_type, nom_module)
     enchaineuse.ajoute_au_tampon(")\n")
-    enchaineuse.ajoute_au_tampon("\t", données.fonction.nom, "(génératrice, ptr)\n")
+    ajoute_au_tampon(enchaineuse, "\t")
+    si nom_module {
+        ajoute_au_tampon(enchaineuse, nom_module, ".")
+    }
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(génératrice, ptr)\n")
     enchaineuse.ajoute_au_tampon("}\n")
 
     retourne nom_enveloppe
@@ -356,6 +363,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 génère_initialisation_gna :: fonc ()
 {
     créatrice_table_fonctions: CréatriceTableFonction
+    créatrice_table_fonctions.module = compilatrice_module_courant()
     créatrice_table_fonctions.annotation_désirée = "FonctionGNA"
     créatrice_table_fonctions.nom_table_fonctions = "__fonctions_génération_données_aléatoires"
     créatrice_table_fonctions.données_pour_fonction = fonction_est_valide

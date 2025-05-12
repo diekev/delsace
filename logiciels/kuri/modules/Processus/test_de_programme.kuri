@@ -1,7 +1,3 @@
-importe Chaine
-importe Fondation
-importe SysFichier
-
 /* Bibliothèque de test d'un programme.
  *
  * Les tests sont performés en ouvrant un canal bidirectionnel avec le programme.

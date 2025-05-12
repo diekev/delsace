@@ -41,7 +41,7 @@ c := Chaine()
 // Codec
 
 Codec :: struct ($T: type_de_données) {
-    est_espace_blanc : fonc(T)(bool)
+    est_espace_blanche : fonc(T)(bool)
     est_nombre : fonc(T)(bool)
     est_lettre : fonc(T)(bool)
     en_minuscule : fonc(T)(T)
@@ -63,7 +63,7 @@ Codec :: struct ($T: type_de_données) {
     est_valide :: fonc ([]octet, z64)(bool)
 }
 
-// génère les fonctions par un métaprogramme, est_espace_blanc, ...
+// génère les fonctions par un métaprogramme, est_espace_blanche, ...
 
 // min := Chaine.codec.en_minuscule(l)
 
