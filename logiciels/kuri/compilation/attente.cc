@@ -821,6 +821,12 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
  * AttenteSurInfoType
  * \{ */
 
+RAPPEL_POUR_UNITÉ(info_type)
+{
+    auto type = attente.info_type();
+    return type->unité;
+}
+
 RAPPEL_POUR_COMMENTAIRE(info_type)
 {
     auto type = attente.info_type();
@@ -859,7 +865,7 @@ RAPPEL_POUR_ERREUR(info_type)
         .ajoute_message("\n");
 }
 
-InfoTypeAttente info_type_attente_sur_info_type = {nullptr,
+InfoTypeAttente info_type_attente_sur_info_type = {NOM_RAPPEL_POUR_UNITÉ(info_type),
                                                    condition_blocage_défaut,
                                                    NOM_RAPPEL_POUR_COMMENTAIRE(info_type),
                                                    NOM_RAPPEL_POUR_EST_RÉSOLUE(info_type),
