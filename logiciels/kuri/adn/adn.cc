@@ -333,9 +333,6 @@ void ProtéineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
 void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
-    if (m_nom_code.nom() == "AnnotationCode") {
-        os << "#interface ";
-    }
     os << "{";
     if (m_mere) {
         if (m_mere->accede_nom_comme().est_nul()) {
