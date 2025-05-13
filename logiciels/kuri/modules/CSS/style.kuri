@@ -804,6 +804,13 @@ donne_display :: fonc (valeur: *ValeurDeStyle) -> Display
 
 donne_background_repeat :: fonc (valeur: *ValeurDeStyle) -> BackgroundRepeat
 {
+    /* À FAIRE : desfois ce n'est pas calculé */
+    si valeur.type == TypeValeurDeStyle.MotClé {
+        b: BackgroundRepeat
+        b.horizontal = PROP_repeat
+        b.vertical = PROP_repeat
+        retourne b
+    }
     assert(valeur.type == TypeValeurDeStyle.BackgroundRepeat)
     retourne (valeur comme *ValeurBackgroundRepeat).valeur
 }
