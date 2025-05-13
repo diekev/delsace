@@ -3448,7 +3448,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
     si lexème.est_fonction() {
         fonction := lexème.function
 
-        si fonction.name == PROP_rgb || fonction.name == PROP_rgba {
+        si compare_ascii_insensible_à_la_casse(fonction.name, PROP_rgb, PROP_rgba) {
             résultat := parse_couleur_rgb(fonction)
             si résultat.possède_valeur() {
                 parseuse.avance()
@@ -3456,7 +3456,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne résultat
         }
 
-        si fonction.name == PROP_hsl || fonction.name == PROP_hsla {
+        si compare_ascii_insensible_à_la_casse(fonction.name, PROP_hsl, PROP_hsla) {
             résultat := parse_couleur_hsl(fonction)
             si résultat.possède_valeur() {
                 parseuse.avance()
