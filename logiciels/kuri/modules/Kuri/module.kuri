@@ -21,6 +21,7 @@ charge "tableaux"
 
 // --------------------------
 
+// À FAIRE(langage) : valeur défaut pour les tableaux (p.e. t := [..]z32())
 valeur_nulle :: fonc ($T: type_de_données) -> T
 {
     v: T
