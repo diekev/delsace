@@ -802,7 +802,10 @@ RAPPEL_POUR_ERREUR(initialisation_type)
         chaine_type(type),
         " ».");
 
-    espace->rapporte_erreur(noeud, message);
+    espace->rapporte_erreur(noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
 }
 
 InfoTypeAttente info_type_attente_sur_initialisation_type = {
@@ -850,7 +853,10 @@ RAPPEL_POUR_ERREUR(info_type)
                             " ».");
 
     auto espace = unité->espace;
-    espace->rapporte_erreur(unité->noeud, message);
+    espace->rapporte_erreur(unité->noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
 }
 
 InfoTypeAttente info_type_attente_sur_info_type = {nullptr,
