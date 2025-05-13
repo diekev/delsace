@@ -132,7 +132,7 @@ RAPPEL_POUR_ERREUR(type)
         .ajoute_message("Note : le type attendu est ")
         .ajoute_message(chaine_type(attente.type()))
         .ajoute_message("\n")
-        .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        .ajoute_message("Note : l'unité de compilation est dans cet état :\n")
         .ajoute_message(unité->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
@@ -191,7 +191,7 @@ RAPPEL_POUR_ERREUR(déclaration)
 
     // À FAIRE : ne devrait pas arriver
     if (unité_decl && *unité_decl) {
-        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        erreur.ajoute_message("Note : l'unité de compilation est dans cet état :\n")
             .ajoute_message(unité->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
@@ -239,7 +239,7 @@ RAPPEL_POUR_ERREUR(type_déclaration)
 
     // À FAIRE : ne devrait pas arriver
     if (unité_decl && *unité_decl) {
-        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        erreur.ajoute_message("Note : l'unité de compilation est dans cet état :\n")
             .ajoute_message(unité->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
