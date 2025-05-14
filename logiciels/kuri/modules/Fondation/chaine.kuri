@@ -315,6 +315,10 @@ sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enli
         retourne ""
     }
 
+    si pos_début >= chn.taille {
+        retourne ""
+    }
+
     retourne chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
