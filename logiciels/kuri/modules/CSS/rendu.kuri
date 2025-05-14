@@ -1088,6 +1088,16 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
     rect_image.largeur = image_data.desc.largeur comme r32
     rect_image.hauteur = image_data.desc.hauteur comme r32
 
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundPosition).donne_background_position()
+
+    // À FAIRE : pourcentages, mots-clés
+    si position.décalage_horizontal.est_pixels() {
+        rect_image.x += position.décalage_horizontal.donne_pixels() comme r32
+    }
+    si position.décalage_vertical.est_pixels() {
+        rect_image.y += position.décalage_vertical.donne_pixels() comme r32
+    }
+
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)
     commandes.dessine_image(image_data, rect_image, rect, répétition)

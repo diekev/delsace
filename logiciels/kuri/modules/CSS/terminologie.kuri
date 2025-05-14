@@ -16,6 +16,7 @@ PROP_background : CSSOMString = ---
 PROP_background_attachment : CSSOMString = ---
 PROP_background_color : CSSOMString = ---
 PROP_background_image : CSSOMString = ---
+PROP_background_position : CSSOMString = ---
 PROP_background_repeat : CSSOMString = ---
 PROP_baseline : CSSOMString = ---
 PROP_before : CSSOMString = ---

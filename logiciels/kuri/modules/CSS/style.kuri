@@ -31,6 +31,18 @@ opérateur == :: fonc (a: BackgroundRepeat, b: BackgroundRepeat) -> bool
     retourne a.horizontal == b.horizontal && a.vertical == b.vertical
 }
 
+BackgroundPosition :: struct {
+    horizontal: CSSOMString
+    décalage_horizontal: *ValeurDeStyle
+    vertical: CSSOMString
+    décalage_vertical: *ValeurDeStyle
+}
+
+opérateur == :: fonc (a: BackgroundPosition, b: BackgroundPosition) -> bool
+{
+    retourne a.horizontal == b.horizontal && a.vertical == b.vertical && sont_mêmes_valeurs(a.décalage_vertical, b.décalage_vertical) && sont_mêmes_valeurs(a.décalage_horizontal, b.décalage_horizontal)
+}
+
 Variable :: struct {
     nom: CSSOMString
     fallback: [..]ComponentValue
@@ -336,6 +348,7 @@ TypeValeurDeStyle :: énum n16 {
     Calc
     Display
     BackgroundRepeat
+    BackgroundPosition
 }
 
 ValeurDeStyle :: struct {
@@ -451,6 +464,13 @@ ValeurBackgroundRepeat :: struct {
     valeur: BackgroundRepeat
 }
 
+ValeurBackgroundPosition :: struct {
+    empl base: ValeurDeStyle
+    type = TypeValeurDeStyle.BackgroundPosition
+
+    valeur: BackgroundPosition
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -531,6 +551,11 @@ crée_valeur_background_repeat :: fonc (valeur: BackgroundRepeat) -> *ValeurBack
     retourne crée_valeur_de_style(valeur, ValeurBackgroundRepeat)
 }
 
+crée_valeur_background_position :: fonc (valeur: BackgroundPosition) -> *ValeurBackgroundPosition
+{
+    retourne crée_valeur_de_style(valeur, ValeurBackgroundPosition)
+}
+
 crée_valeur_display :: fonc (valeur: Display) -> *ValeurDisplay
 {
     retourne crée_valeur_de_style(valeur, ValeurDisplay)
@@ -575,6 +600,11 @@ détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
             détruit_valeur_de_style(it)
         }
         déloge(liste)
+    }
+    sinon si valeur.est_background_position() {
+        position := (valeur comme *ValeurBackgroundPosition).valeur
+        détruit_valeur_de_style(position.décalage_horizontal)
+        détruit_valeur_de_style(position.décalage_vertical)
     }
 
     déloge_mémoire(valeur.taille_allouée comme z64, valeur, nul, PositionCodeSource())
@@ -629,6 +659,9 @@ sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool
         }
         BackgroundRepeat {
             retourne a.donne_background_repeat() == b.donne_background_repeat()
+        }
+        BackgroundPosition {
+            retourne a.donne_background_position() == b.donne_background_position()
         }
         String {
             retourne a.donne_string() == b.donne_string()
@@ -815,6 +848,12 @@ donne_background_repeat :: fonc (valeur: *ValeurDeStyle) -> BackgroundRepeat
     retourne (valeur comme *ValeurBackgroundRepeat).valeur
 }
 
+donne_background_position :: fonc (valeur: *ValeurDeStyle) -> BackgroundPosition
+{
+    assert(valeur.type == TypeValeurDeStyle.BackgroundPosition)
+    retourne (valeur comme *ValeurBackgroundPosition).valeur
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -849,6 +888,11 @@ est_liste :: fonc (valeur: *ValeurDeStyle) -> bool
 est_percentage :: fonc (valeur: *ValeurDeStyle) -> bool
 {
     retourne valeur.type == TypeValeurDeStyle.Percentage
+}
+
+est_pixels_ou_percentage :: fonc (valeur: *ValeurDeStyle) -> bool
+{
+    retourne valeur.est_pixels() || valeur.est_percentage()
 }
 
 est_number :: fonc (valeur: *ValeurDeStyle) -> bool
@@ -909,6 +953,11 @@ est_display :: fonc (valeur: *ValeurDeStyle) -> bool
 est_background_repeat :: fonc (valeur: *ValeurDeStyle) -> bool
 {
     retourne valeur.type == TypeValeurDeStyle.BackgroundRepeat
+}
+
+est_background_position :: fonc (valeur: *ValeurDeStyle) -> bool
+{
+    retourne valeur.type == TypeValeurDeStyle.BackgroundPosition
 }
 
 est_négative :: fonc (valeur: *ValeurDeStyle) -> bool
@@ -1006,6 +1055,10 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
             saufsi b.vertical.est_vide() {
                 ajoute_au_tampon(enchaineuse, b.vertical)
             }
+        }
+        BackgroundPosition {
+            b := valeur.donne_background_position()
+            imprime_dans_enchaineuse(enchaineuse, "% % % %", b.horizontal, b.décalage_horizontal, b.vertical, b.décalage_vertical)
         }
     }
 } @FormattageImpression
@@ -1720,6 +1773,7 @@ IDPropriété :: énum n16 {
     BackgroundImage
     BackgroundRepeat
     BackgroundAttachment
+    BackgroundPosition
 
     BorderWidthBottom
     BorderWidthLeft
@@ -1846,6 +1900,7 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BackgroundColor] = donne_valeur_couleur_transparente()
     style.valeurs[IDPropriété.BackgroundImage] = donne_valeur_none()
     style.valeurs[IDPropriété.BackgroundRepeat] = donne_valeur_background_repeat_défaut()
+    style.valeurs[IDPropriété.BackgroundPosition] = donne_valeur_background_position_défaut()
     style.valeurs[IDPropriété.BackgroundAttachment] = donne_valeur_scroll()
 
     /* Bordure */
@@ -2247,6 +2302,7 @@ GenreValeurCalculée :: énum_drapeau {
     FontWeight
     BackgroundImage
     BackgroundRepeat
+    BackgroundPosition
     LineHeight
 }
 
@@ -2497,6 +2553,32 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
     }
     sinon si valeur.est_string() {
         retourne valeur
+    }
+    sinon si valeur.est_background_position() {
+        position := valeur.donne_background_position()
+        si est_pixels_ou_percentage(position.décalage_vertical) && est_pixels_ou_percentage(position.décalage_horizontal) {
+            retourne valeur
+        }
+
+        résultat: BackgroundPosition
+        résultat.horizontal = position.horizontal
+        résultat.vertical = position.vertical
+
+        si est_pixels_ou_percentage(position.décalage_vertical) {
+            résultat.décalage_vertical = copie_valeur(position.décalage_vertical)
+        }
+        sinon {
+            résultat.décalage_vertical = calcule_valeur_propriété_générique(position.décalage_vertical, GenreValeurCalculée.LongueurPourcentage, style, ctx).Quelque
+        }
+
+        si est_pixels_ou_percentage(position.décalage_horizontal) {
+            résultat.décalage_horizontal = copie_valeur(position.décalage_horizontal)
+        }
+        sinon {
+            résultat.décalage_horizontal = calcule_valeur_propriété_générique(position.décalage_horizontal, GenreValeurCalculée.LongueurPourcentage, style, ctx).Quelque
+        }
+
+        retourne crée_valeur_background_position(résultat)
     }
 }
 
@@ -2921,6 +3003,7 @@ __valeur_stretch : ValeurMotClé = ---
 __valeur_background_repeat : ValeurMotClé = ---
 __valeur_couleur_noire : ValeurCouleur = ---
 __valeur_couleur_transparente : ValeurCouleur = ---
+__valeur_background_position : ValeurBackgroundPosition = ---
 
 __valeurs_défauts_initialisées := faux
 
@@ -2960,6 +3043,7 @@ initialise_valeurs_défaut :: fonc ()
     __valeur_background_repeat = ValeurMotClé(utilisations = 1, valeur = PROP_repeat)
     __valeur_couleur_noire = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 255))
     __valeur_couleur_transparente = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 0))
+    __valeur_background_position = ValeurBackgroundPosition(utilisations = 1, valeur = BackgroundPosition(PROP_top, donne_valeur_percentage_zéro(), PROP_left, donne_valeur_percentage_zéro()))
 }
 
 donne_valeur_défaut :: fonc (valeur: *ValeurDeStyle) -> *ValeurDeStyle
@@ -3110,6 +3194,11 @@ donne_valeur_couleur_noire :: fonc () -> *ValeurDeStyle
 donne_valeur_couleur_transparente :: fonc () -> *ValeurDeStyle
 {
     retourne donne_valeur_défaut(*__valeur_couleur_transparente)
+}
+
+donne_valeur_background_position_défaut :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_background_position)
 }
 
 /** \} */
