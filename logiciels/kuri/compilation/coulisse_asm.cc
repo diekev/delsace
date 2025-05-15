@@ -3613,22 +3613,21 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.movzx(registre, type_vers->taille_octet, valeur,
-            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            if (type_de->taille_octet < 4) {
+                assembleuse.movzx(
+                    registre, type_vers->taille_octet, registre, type_de->taille_octet);
+            }
+            assembleuse.push(registre);
             break;
         }
         case TypeTranstypage::AUGMENTE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.movsx(registre, type_vers->taille_octet, valeur,
-            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            assembleuse.movsx(registre, type_vers->taille_octet, registre, type_de->taille_octet);
+            assembleuse.push(registre);
             break;
         }
         case TypeTranstypage::AUGMENTE_REEL:
@@ -3638,17 +3637,20 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_NATUREL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            auto registre2 = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre2, registre, type_vers->taille_octet);
+            assembleuse.push(registre2);
             break;
         }
         case TypeTranstypage::DIMINUE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.mov(registre, valeur, type_de->taille_octet);
-            // assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            auto registre2 = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre2, registre, type_vers->taille_octet);
+            assembleuse.push(registre2);
             break;
         }
         case TypeTranstypage::DIMINUE_REEL:
