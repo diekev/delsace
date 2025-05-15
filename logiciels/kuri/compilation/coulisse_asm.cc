@@ -3519,8 +3519,12 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     SAUVEGARDE_REGISTRES(registres);
 
-    assert(accès->accédé->est_instruction());
-    assert(accès->accédé->comme_instruction()->est_alloc());
+    assert_rappel(accès->accédé->est_instruction(),
+                  [&]() { dbg() << "L'atome est de genre " << accès->accédé->genre_atome; });
+
+    assert_rappel(est_adresse_locale(accès->accédé->comme_instruction()), [&]() {
+        dbg() << "L'instruction est de genre " << accès->accédé->comme_instruction()->genre;
+    });
 
     auto index = registres.donne_registre_entier_inoccupé();
 
