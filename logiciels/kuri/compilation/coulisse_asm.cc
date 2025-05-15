@@ -3536,6 +3536,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
         if (type_accédé->est_type_tableau_fixe()) {
             type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
         }
+        else if (type_accédé->est_type_pointeur()) {
+            type_accédé = type_accédé->comme_type_pointeur()->type_pointé;
+        }
         else {
             dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
             VERIFIE_NON_ATTEINT;
@@ -3561,6 +3564,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
         if (type_accédé->est_type_tableau_fixe()) {
             type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
+        }
+        else if (type_accédé->est_type_pointeur()) {
+            type_accédé = type_accédé->comme_type_pointeur()->type_pointé;
         }
         else {
             dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
