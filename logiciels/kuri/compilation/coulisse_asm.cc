@@ -2526,19 +2526,25 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     if (est_type_entier(inst_un->type)) {
                         auto registre = registres.donne_registre_entier_inoccupé();
 
-                        assembleuse.pop(registre, inst_un->type->taille_octet);
+                        assembleuse.pop(registre);
                         assembleuse.neg(registre, inst_un->type->taille_octet);
                         assembleuse.empile(registre, inst_un->type->taille_octet);
 
                         registres.marque_registre_inoccupé(registre);
                     }
                     else if (inst_un->type == TypeBase::R32) {
-                        VERIFIE_NON_ATTEINT;
-                        // assembleuse.movss(Registre::XMM0, valeur);
-                        // assembleuse.movss(Registre::XMM1,
-                        //                   AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
-                        // assembleuse.xorps(Registre::XMM0, Registre::XMM1);
-                        // assembleuse.movss(dest, Registre::XMM0);
+                        auto registre = registres.donne_registre_entier_inoccupé();
+
+                        assembleuse.pop(registre);
+                        assembleuse.movss(Registre::XMM0, AssembleuseASM::Mémoire{registre});
+                        registres.marque_registre_inoccupé(registre);
+
+                        assembleuse.movss(Registre::XMM1,
+                                          AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
+                        assembleuse.xorps(Registre::XMM0, Registre::XMM1);
+                        assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8},
+                                          Registre::XMM0);
+                        assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
                     }
                     else {
                         VERIFIE_NON_ATTEINT;
