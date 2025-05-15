@@ -2970,7 +2970,29 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
 {
     assert(atome == source || source->est_instruction());
 
-    if (atome->est_instruction()) {
+    if (atome->est_constante_entière()) {
+        assembleuse.mov(
+            registre, AssembleuseASM::Immédiate64{atome->comme_constante_entière()->valeur}, 8);
+    }
+    else if (atome->est_constante_nulle()) {
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{0}, 8);
+    }
+    else if (atome->est_constante_booléenne()) {
+        assembleuse.mov(
+            registre, AssembleuseASM::Immédiate64{atome->comme_constante_booléenne()->valeur}, 8);
+    }
+    else if (atome->est_constante_réelle()) {
+        assert(atome->type == TypeBase::R32);
+
+        auto constante_réelle = atome->comme_constante_réelle();
+        auto valeur_float = float(constante_réelle->valeur);
+        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+
+        auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
+        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
+        assembleuse.movsd(registre, adresse);
+    }
+    else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
         if (est_adresse_locale(inst) || inst->est_appel()) {
@@ -3059,40 +3081,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         registres, inst_bin->op, opérande_gauche, opérande_droite);
 
     assembleuse.commente("charge (atome_droite)");
-    if (atome_droite->est_constante_entière()) {
-        assembleuse.mov(
-            opérande_droite,
-            AssembleuseASM::Immédiate64{atome_droite->comme_constante_entière()->valeur},
-            8);
-    }
-    else if (atome_droite->est_constante_nulle()) {
-        assembleuse.mov(opérande_droite, AssembleuseASM::Immédiate64{0}, 8);
-    }
-    else if (atome_droite->est_constante_booléenne()) {
-        assembleuse.mov(
-            opérande_droite,
-            AssembleuseASM::Immédiate64{atome_droite->comme_constante_booléenne()->valeur},
-            8);
-    }
-    else if (atome_droite->est_constante_réelle()) {
-        assert(atome_droite->type == TypeBase::R32);
-
-        auto constante_réelle = atome_droite->comme_constante_réelle();
-        auto valeur_float = float(constante_réelle->valeur);
-        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
-
-        auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
-        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
-        assembleuse.movsd(opérande_droite, adresse);
-    }
-    else if (atome_droite->est_instruction()) {
-        charge_atome_dans_registre(
-            atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
-    }
-    else {
-        dbg() << __func__ << " : genre atome non supporté " << atome_droite->genre_atome;
-        VERIFIE_NON_ATTEINT;
-    }
+    charge_atome_dans_registre(
+        atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
 
     assembleuse.commente("charge (atome_gauche)");
     charge_atome_dans_registre(
