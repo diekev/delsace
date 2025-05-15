@@ -3006,8 +3006,11 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 registres.marque_registre_inoccupé(tmp);
             }
             else {
-                assert(est_type_entier(source->type) || source->type->est_type_pointeur() ||
-                       source->type->est_type_bool());
+                assert_rappel(est_type_entier(source->type) || source->type->est_type_pointeur() ||
+                                  source->type->est_type_bool() ||
+                                  source->type->est_type_référence() ||
+                                  source->type->est_type_énum(),
+                              [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.pop(registre);
                 assembleuse.mov(
                     registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
@@ -3512,12 +3515,14 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     SAUVEGARDE_REGISTRES(registres);
 
-    assert_rappel(accès->accédé->est_instruction(),
+    assert_rappel(accès->accédé->est_globale() || accès->accédé->est_instruction(),
                   [&]() { dbg() << "L'atome est de genre " << accès->accédé->genre_atome; });
 
-    assert_rappel(est_adresse_locale(accès->accédé->comme_instruction()), [&]() {
-        dbg() << "L'instruction est de genre " << accès->accédé->comme_instruction()->genre;
-    });
+    assert_rappel(
+        accès->accédé->est_globale() || est_adresse_locale(accès->accédé->comme_instruction()),
+        [&]() {
+            dbg() << "L'instruction est de genre " << accès->accédé->comme_instruction()->genre;
+        });
 
     auto index = registres.donne_registre_entier_inoccupé();
 
@@ -3897,7 +3902,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
 {
     assert((utilisation & UtilisationAtome::POUR_DESTINATION_ÉCRITURE) !=
            UtilisationAtome::AUCUNE);
-    assert(inst_charge->type->est_type_pointeur());
+    assert(inst_charge->type->est_type_pointeur() || inst_charge->type->est_type_référence());
 
     génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
 
@@ -3968,7 +3973,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
             auto inst = source->comme_instruction();
 
-            if (est_adresse_locale(inst) || inst->est_appel()) {
+            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype()) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
