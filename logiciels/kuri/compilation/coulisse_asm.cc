@@ -2642,18 +2642,15 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
 
         if (est_adresse_locale(it)) {
-            VERIFIE_NON_ATTEINT;
-            //         assert(classement_arg.premier_huitoctet_inclusif ==
-            //                classement_arg.dernier_huitoctet_exclusif - 1);
-            //         auto registre = classement
-            //                             .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
-            //                             .registre;
-            //         // Nous prenons l'adresse d'une variable.
-            //         auto adresse_source = génère_code_pour_atome(
-            //             it, assembleuse, UtilisationAtome::AUCUNE);
-            //         assembleuse.lea(registre, adresse_source);
-            //         registres.marque_registre_occupé(registre);
-            //         continue;
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto registre = classement
+                                .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                                .registre;
+            génère_code_pour_atome(it, assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.pop(registre);
+            registres.marque_registre_occupé(registre);
+            continue;
         }
 
         if (est_adresse_globale(it)) {
