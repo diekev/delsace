@@ -201,6 +201,11 @@ consomme_ponctuation :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
     _ := donne_lexème(lexeuse, TypeLexème.Ponctuation, texte)
 }
 
+consomme_symbole :: fonc (lexeuse: *SimpleLexeuse)
+{
+    _ := donne_lexème(lexeuse, TypeLexème.Symbole)
+}
+
 consomme_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     _ := donne_symbole(lexeuse, texte)
