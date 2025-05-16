@@ -799,6 +799,8 @@ donne_drapeaux_peut_suivre :: fonc (lexeuse: *SimpleLexeuse, c: z8) -> PeutSuivr
     retourne PeutSuivre.Symbole
 }
 
+#portée_export
+
 LignePourErreur :: struct {
     texte: chaine
 }
@@ -836,6 +838,8 @@ donne_ligne_pour_erreur :: fonc (lexeuse: *SimpleLexeuse) -> LignePourErreur
 /* ------------------------------------------------------------------------- */
 /** \nom Lexeuses pour C et C++.
  * \{ */
+
+#portée_fichier
 
 __mots_clés_c := [
     "if",
