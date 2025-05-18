@@ -122,13 +122,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (box: *Box)
 {
     propriétés := box.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels_ou_zéro_si_auto() comme r32
     border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).donne_pixels() comme r32
     padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
     width := propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels() comme r32
     padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
     border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).donne_pixels() comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels_ou_zéro_si_auto() comme r32
 
     x := box.modèle_de_boite.marge.x
 

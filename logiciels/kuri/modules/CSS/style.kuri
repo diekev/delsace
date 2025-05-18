@@ -817,6 +817,14 @@ donne_pixels :: fonc (valeur: *ValeurDeStyle) -> r64
     retourne (valeur comme *ValeurPixels).valeur
 }
 
+donne_pixels_ou_zéro_si_auto :: fonc (valeur: *ValeurDeStyle) -> r64
+{
+    si valeur.est_auto() {
+        retourne 0.0
+    }
+    retourne donne_pixels(valeur)
+}
+
 donne_variable :: fonc (valeur: *ValeurDeStyle) -> Variable
 {
     assert(valeur.type == TypeValeurDeStyle.Variable)
