@@ -19,6 +19,8 @@ Parseuse :: struct {
     sur_prodéclaration_énum: fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
     sur_identifiant: fonc(&Parseuse, chaine)(rien)
     sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
+
+    contextes: [..]*DeclContext
 }
 
 initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
@@ -38,7 +40,24 @@ restaure_position :: fonc (parseuse: &Parseuse)
     parseuse.lexeuse = parseuse.lexeuse_sauvegardée
 }
 
-rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème @inutilisée)
+empile_contexte :: fonc (parseuse: &Parseuse, ctx: *DeclContext)
+{
+    tableau_ajoute(*parseuse.contextes, ctx)
+}
+
+dépile_contexte :: fonc (parseuse: &Parseuse)
+{
+    parseuse.contextes.taille -= 1
+}
+
+ajoute_au_contexte :: fonc (parseuse: &Parseuse, decl: *NoeudSyntaxique)
+{
+    assert(parseuse.contextes.taille != 0)
+    ctx := parseuse.contextes[parseuse.contextes.taille - 1]
+    tableau_ajoute(*ctx.déclarations, decl)
+}
+
+rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème)
 {
     si parseuse.possède_erreur {
         retourne
@@ -48,7 +67,7 @@ rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème 
     ligne := donne_ligne_pour_erreur(*parseuse.lexeuse)
     imprime("%:%:\n", parseuse.fichier.chemin, 0)
     imprimeln("%", ligne.texte)
-    imprime("\tErreur : %\n", message)
+    imprime("\tErreur : % (lexème : '%')\n", message, lexème.donne_texte())
 
     parseuse.possède_erreur = vrai
 }
@@ -113,11 +132,113 @@ CléClasse :: énum {
     UNION
 }
 
-parse :: fonc (parseuse: &Parseuse)
+/* A.13 Grammar */
+parse_translation_unit :: fonc (parseuse: &Parseuse)
 {
+    assert(parseuse.contextes.taille == 0)
+    translation_unit := crée_noeud(parseuse.créatrice_noeuds, TranslationUnit)
+    tableau_ajoute(*parseuse.contextes, translation_unit)
+
     tantque !fini(parseuse) {
-        parse_décalaration_haut_niveau(parseuse)
+        parse_external_declaration(parseuse)
     }
+}
+
+parse_external_declaration :: fonc (parseuse: &Parseuse)
+{
+    lexème := donne_lexème_suivant(*parseuse.lexeuse)
+
+    si est_mot_clé(lexème, "namespace") {
+        parseuse.parse_décalaration_namespace()
+        retourne
+    }
+
+    si est_ponctuation(lexème, "#") {
+        parseuse.parse_directive_préprocesseur()
+        retourne
+    }
+
+    // function-definition
+
+    // declaration
+    tantque est_declaration_specifier(lexème.donne_texte()) {
+        lexème = donne_lexème_suivant(*parseuse.lexeuse)
+    }
+
+    // init-declarator
+
+    // declarator
+
+    // direct-declarator
+    saufsi lexème.type == TypeLexème.Symbole {
+        rapporte_erreur(parseuse, "attendu un symbole", lexème)
+    }
+
+    // = 
+    consomme_ponctuation(*parseuse.lexeuse, "=")
+
+    // initializer
+    _ := donne_nombre(*parseuse.lexeuse)
+
+    consomme_ponctuation(*parseuse.lexeuse, ";")
+}
+
+/*
+
+function-definition:
+ declaration-specifiersopt declarator declaration-listopt compound-statement
+
+declaration:
+ declaration-specifiers init-declarator-listopt;
+
+declaration-specifiers:
+ storage-class-specifier declaration-specifiersopt
+ type-specifier declaration-specifiersopt
+ type-qualifier declaration-specifiersopt
+
+
+init-declarator-list:
+ init-declarator
+ init-declarator-list , init-declarator
+
+init-declarator:
+ declarator
+ declarator = initializer
+
+declarator:
+ pointeropt direct-declarator
+
+pointer:
+ * type-qualifier-listopt
+ * type-qualifier-listopt pointer 
+
+direct-declarator:
+ identifier
+ (declarator)
+ direct-declarator [ constant-expressionopt ]
+ direct-declarator ( parameter-type-list )
+ direct-declarator ( identifier-listopt ) 
+*/
+
+est_declaration_specifier :: fonc (texte: chaine) -> bool
+{
+    retourne est_storage_class_specifier(texte) || est_type_specifier(texte) || est_type_qualifier(texte)
+}
+
+est_storage_class_specifier :: fonc (texte: chaine) -> bool
+{
+    retourne fait_partie_de(texte, "auto", "register", "static", "extern", "typedef")
+}
+
+est_type_specifier :: fonc (texte: chaine) -> bool
+{
+    // À FAIRE : C++ (class), typedef-name
+    retourne fait_partie_de(texte, "void", "char", "short", "int", "long", "float", "double", "signed", "union", "struct", "enum")
+}
+
+est_type_qualifier :: fonc (texte: chaine) -> bool
+{
+    retourne fait_partie_de(texte, "const", "volatile")
 }
 
 parse_décalaration_haut_niveau :: fonc (parseuse: &Parseuse)
@@ -790,6 +911,11 @@ parse_référence_type :: fonc (parseuse: &Parseuse)
 
 parse_décalaration_namespace :: fonc (parseuse: &Parseuse)
 {
+    namespace := crée_noeud(parseuse.créatrice_noeuds, NamespaceDecl)
+    ajoute_au_contexte(parseuse, namespace)
+    empile_contexte(parseuse, namespace)
+    diffère dépile_contexte(parseuse)
+
     consomme_symbole(*parseuse.lexeuse)
     consomme_ponctuation(*parseuse.lexeuse, "{")
 
@@ -800,7 +926,7 @@ parse_décalaration_namespace :: fonc (parseuse: &Parseuse)
             arrête
         } 
 
-        parse_décalaration_haut_niveau(parseuse)
+        parse_external_declaration(parseuse)
     }
 
     consomme_ponctuation(*parseuse.lexeuse, "}")
