@@ -3005,7 +3005,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
     // https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-vertical-align
     si est_inline_block(bloc) {
         overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
-        saufsi overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
+        si !overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
             retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
         }
 
