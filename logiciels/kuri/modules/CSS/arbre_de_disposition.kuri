@@ -3248,8 +3248,6 @@ TextBox :: struct {
     empl base: Box
     table_virtuelle = *__table_text_box
 
-    /* Soit un box texte, ou un élément. */
-    box: *HTML.Noeud
     texte_original: ChaineUTF16
 
     texte: ChaineUTF16
