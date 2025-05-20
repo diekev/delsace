@@ -1598,6 +1598,7 @@ crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockB
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
     résultat := arbre.crée_box(InlineBox)
+    résultat.est_boite_anonyme_pour_texte = vrai
     crée_style_pour_bloc_anonyme(résolveuse, résultat, parent, Display.Type.Inline)
     parent.ajoute_enfant(résultat)
 
@@ -1934,6 +1935,7 @@ Box :: struct {
     traite_comme_display_none: bool
     est_pseudo_element: bool
     fut_dessiné: bool
+    est_boite_anonyme_pour_texte: bool
 
     MémoireVive :: struct {
         min_content_width: Optionnel(r64)
@@ -1947,6 +1949,12 @@ donne_propriétés :: fonc (box: *Box) -> *PropriétésDeStyle
 {
     si box.table_virtuelle.type == TextBox {
         retourne donne_propriétés(box comme *TextBox)
+    }
+    si box.est_boite_anonyme_pour_texte {
+        box = box.parent
+        tantque est_box_anonyme(box) {
+            box = box.parent
+        }
     }
     retourne box.propriétés
 }
