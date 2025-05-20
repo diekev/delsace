@@ -80,6 +80,14 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
         padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
         border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
 
+        // À FAIRE : détermine quand résoudre ceci (joelonsoftware)
+        si padding_left.est_percentage() {
+            padding_left = donne_valeur_pixels_zéro()
+        }
+        si padding_right.est_percentage() {
+            padding_right = donne_valeur_pixels_zéro()
+        }
+
         résultat.delta = border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels()
     }
 
