@@ -139,6 +139,11 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         si élément {
             élément.box = nul
         }
+        sinon si it.noeud {
+            assert(HTML.est_texte(it.noeud))
+            noeud_texte := it.noeud comme *HTML.NoeudTexte
+            noeud_texte.box = nul
+        }
 
         si it.table_virtuelle.type == BlockBox {
             bloc := it comme *BlockBox
@@ -1464,7 +1469,7 @@ CréatriceArbre :: struct {
 crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, box: *HTML.Noeud)
 {
     si HTML.est_texte(box) {
-        crée_box_pour_texte(créatrice, parent comme *BlockBox, (box comme *HTML.NoeudTexte).données)
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (box comme *HTML.NoeudTexte).données, box comme *HTML.NoeudTexte)
         retourne
     }
 
@@ -1501,7 +1506,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
         si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
             résultat = crée_box_pour_display(arbre, display, élément)
-            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16())
+            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16(), nul)
         }
         sinon {
             résultat = crée_image_box(arbre, img)
@@ -1594,7 +1599,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
     corrige_hiérarchie(résultat, créatrice)
 }
 
-crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16)
+crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.NoeudTexte)
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
     résultat := arbre.crée_box(InlineBox)
@@ -1604,6 +1609,10 @@ crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockB
 
     texte := arbre.crée_box(TextBox)
     texte.texte_original = texte_original
+    texte.noeud = noeud
+    si noeud {
+        noeud.box = texte
+    }
     résultat.ajoute_enfant(texte)
 }
 
@@ -1709,7 +1718,7 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
     ajoute_enfant(parent, box)
 
     si content.est_string() {
-        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16())
+        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16(), nul)
     }
 }
 
