@@ -1611,7 +1611,7 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
 {
     si display.inner_type == Display.Type.Table {
         wrapper_box := arbre.crée_box(TableWrapperBox)
-        wrapper_box.élément = élément
+        wrapper_box.noeud = élément
 
         box := arbre.crée_box(TableBox)
         wrapper_box.table = box
@@ -1621,57 +1621,57 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
     }
     si display.inner_type == Display.Type.TableCaption {
         box := arbre.crée_box(CaptionBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumn {
         box := arbre.crée_box(TableColumnBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumnGroup {
         box := arbre.crée_box(TableColumnGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableCell {
         box := arbre.crée_box(TableCellBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRow {
         box := arbre.crée_box(TableRowBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableFooterGroup {
         box := arbre.crée_box(TableFooterGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableHeaderGroup {
         box := arbre.crée_box(TableHeaderGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRowGroup {
         box := arbre.crée_box(TableRowGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_box(BlockBox)
-        bloc.élément = élément
+        bloc.noeud = élément
         retourne bloc
     }
     si élément && élément.local_name == HTML.TAG_br {
         bris := arbre.crée_box(BreakBox)
-        bris.élément = élément
+        bris.noeud = élément
         retourne bris
     }
 
     inline := arbre.crée_box(InlineBox)
-    inline.élément = élément
+    inline.noeud = élément
     retourne inline
 }
 
@@ -1931,6 +1931,8 @@ Box :: struct {
     parent: *Box
     enfants: [..]*Box
 
+    noeud: *HTML.Noeud
+
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
     est_pseudo_element: bool
@@ -2032,7 +2034,7 @@ est_box_anonyme :: fonc (box: *Box) -> bool
     }
 
     block_box := box comme *BlockBox
-    retourne block_box.élément == nul
+    retourne block_box.noeud == nul
 }
 
 est_box_non_anonyme :: fonc (box: *Box) -> bool
@@ -2163,49 +2165,16 @@ donne_baseline :: fonc (box: *Box) -> Optionnel(r32)
 
 donne_élément :: fonc (box: *Box) -> *HTML.Élément
 {
-    si box.table_virtuelle.type == InlineBox {
-        retourne (box comme *BlockBox).élément
+    si box.noeud == nul {
+        retourne nul
     }
-    si box.table_virtuelle.type == ReplacedBox {
-        retourne (box comme *BlockBox).élément
+
+    noeud := box.noeud
+    saufsi HTML.est_élément(noeud) {
+        retourne nul
     }
-    si box.table_virtuelle.type == BlockBox {
-        retourne (box comme *BlockBox).élément
-    }
-    si box.table_virtuelle.type == BreakBox {
-        retourne (box comme *BreakBox).élément
-    }
-    si box.table_virtuelle.type == TableWrapperBox {
-        retourne (box comme *TableWrapperBox).élément
-    }
-    si box.table_virtuelle.type == TableBox {
-        retourne (box comme *TableBox).élément
-    }
-    si box.table_virtuelle.type == TableColumnGroupBox {
-        retourne (box comme *TableColumnGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableColumnBox {
-        retourne (box comme *TableColumnBox).élément
-    }
-    si box.table_virtuelle.type == TableFooterGroupBox {
-        retourne (box comme *TableFooterGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableHeaderGroupBox {
-        retourne (box comme *TableHeaderGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableRowGroupBox {
-        retourne (box comme *TableRowGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableRowBox {
-        retourne (box comme *TableRowBox).élément
-    }
-    si box.table_virtuelle.type == TableCellBox {
-        retourne (box comme *TableCellBox).élément
-    }
-    si box.table_virtuelle.type == CaptionBox {
-        retourne (box comme *CaptionBox).élément
-    }
-    retourne nul
+
+    retourne noeud comme *HTML.Élément
 }
 
 donne_élément_récursif :: fonc (box: *Box) -> *HTML.Élément
@@ -2775,8 +2744,6 @@ BlockBox :: struct {
     empl base: Box
     table_virtuelle = *__table_block_box
 
-    élément: *HTML.Élément
-
     lignes_tenante: *LignesTenante
 
     est_disposition_inline: bool
@@ -2902,16 +2869,17 @@ est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élém
 
 donne_alignement_descendants :: fonc (box: *BlockBox) -> Optionnel(AlignementTexte)
 {
-    saufsi box.élément {
+    élément := box.donne_élément()
+    saufsi élément {
         retourne
     }
 
-    si box.élément.local_name == HTML.TAG_center {
+    si élément.local_name == HTML.TAG_center {
         retourne AlignementTexte.Centre
     }
 
-    si est_élément_avec_attribut_alignement_spécial(box.élément) {
-        attribut_align := HTML.donne_attribut(box.élément, HTML.ATTR_align)
+    si est_élément_avec_attribut_alignement_spécial(élément) {
+        attribut_align := HTML.donne_attribut(élément, HTML.ATTR_align)
         saufsi attribut_align.possède_valeur() {
             retourne
         }
@@ -3202,7 +3170,6 @@ __table_break_box := TableVirtuelleNoeudDeDispo(
 BreakBox :: struct {
     empl base_bloc: Box
     table_virtuelle = *__table_break_box
-    élément: *HTML.Élément
 }
 
 break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
@@ -3673,14 +3640,14 @@ crée_image_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageE
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_image_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = image_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLImageElement
+    élément := box.donne_élément() comme *HTML.HTMLImageElement
     assert(élément.local_name == HTML.TAG_img)
 
     si élément.image_data.données {
@@ -3710,14 +3677,14 @@ crée_object_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjec
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_object_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = object_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLObjectElement
+    élément := box.donne_élément() comme *HTML.HTMLObjectElement
     assert(élément.local_name == HTML.TAG_object)
 
     si élément.image_data.données {
@@ -3747,14 +3714,14 @@ crée_text_input_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLI
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_text_input_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = text_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
 text_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
     box.fonte = détermine_fonte(box, ctx)
     métriques := box.fonte.donne_métriques_fonte()
@@ -3787,7 +3754,7 @@ donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
     // rules for parsing non-negative integers doesn't generate an error, return the value
     // obtained from applying the converting a character width to pixels algorithm to the value
     // of the attribute.
-    size := HTML.donne_attribut_ou_chaine_vide(box.élément, HTML.ATTR_size)
+    size := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_size)
     saufsi size.est_vide() {
         opt_value := HTML.parse_a_non_negative_integer(size)
         si opt_value.possède_valeur() {
@@ -3826,17 +3793,17 @@ crée_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInput
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_button_input_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = button_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
 button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.fonte = détermine_fonte(box, ctx)
     line_height := donne_line_height(box, ctx)
-    value := HTML.donne_attribut_ou_chaine_vide(box.élément, HTML.ATTR_value)
+    value := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_value)
     box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value) comme r32
     box.hauteur_intrinsèque = line_height
 }
@@ -3861,14 +3828,14 @@ crée_radio_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTM
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_radio_button_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = radio_button_box_dimensions_intrinsèques
     retourne résultat
 }
 
 radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.largeur_intrinsèque = 14.0
     box.hauteur_intrinsèque = 14.0
 }
@@ -3892,14 +3859,14 @@ crée_checkbox_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInp
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_checkbox_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = checkbox_box_dimensions_intrinsèques
     retourne résultat
 }
 
 checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.largeur_intrinsèque = 14.0
     box.hauteur_intrinsèque = 14.0
 }
@@ -3924,14 +3891,14 @@ crée_textarea_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTex
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_textarea_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = textarea_box_dimensions_intrinsèques
     retourne résultat
 }
 
 textarea_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_textarea)
+    assert(box.donne_élément().local_name == HTML.TAG_textarea)
     box.fonte = détermine_fonte(box, ctx)
     box.largeur_intrinsèque = donne_textarea_effective_width(box)
     box.hauteur_intrinsèque = donne_textarea_effective_height(box, ctx)
@@ -3942,7 +3909,7 @@ LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
 donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 {
-    élément := box.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     métriques := box.fonte.donne_métriques_fonte()
     character_width := HTML.donne_character_width(élément)
     retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT
@@ -3951,7 +3918,7 @@ donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
 donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage) -> r32
 {
-    élément := box.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     character_height := HTML.donne_character_height(élément)
     line_height := donne_line_height(box, ctx)
     retourne character_height comme r32 * line_height
@@ -3977,14 +3944,14 @@ crée_canvas_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanva
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_canvas_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = canvas_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLCanvasElement
+    élément := box.donne_élément() comme *HTML.HTMLCanvasElement
     assert(élément.local_name == HTML.TAG_canvas)
     box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
     box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
@@ -4027,7 +3994,7 @@ réinitialise :: fonc (box: *SelectBox)
 crée_select_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *ReplacedBox
 {
     résultat := arbre.crée_box(SelectBox)
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = select_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
@@ -4037,7 +4004,7 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
 {
     réinitialise(box)
 
-    select := box.élément comme *HTML.HTMLSelectElement
+    select := box.donne_élément() comme *HTML.HTMLSelectElement
 
     option := donne_première_option(select)
     saufsi option {
@@ -4086,7 +4053,7 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
 
 select_box_calcul_dimensions_intrinsèques :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage)
 {
-    élément := box.élément comme *HTML.HTMLSelectElement
+    élément := box.donne_élément() comme *HTML.HTMLSelectElement
     assert(élément.local_name == HTML.TAG_select)
     box.largeur_intrinsèque = donne_select_labels_width(box, ctx)
     box.hauteur_intrinsèque = donne_line_height(box, ctx)
@@ -4510,8 +4477,6 @@ __table_table_column_group_box := TableVirtuelleNoeudDeDispo(type = TableColumnG
 TableColumnGroupBox :: struct {
     empl base: Box
     table_virtuelle = *__table_table_column_group_box
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4529,8 +4494,6 @@ __table_table_column_box := TableVirtuelleNoeudDeDispo(type = TableColumnBox)
 TableColumnBox :: struct {
     empl base: Box
     table_virtuelle = *__table_table_column_box
-
-    élément: *HTML.Élément
 }
 
 /** \} */

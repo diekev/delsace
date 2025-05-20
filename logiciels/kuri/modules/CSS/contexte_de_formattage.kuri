@@ -1176,7 +1176,7 @@ est_espace_blanche_document :: fonc (base: *Box) -> bool
     si base.table_virtuelle.type == BlockBox || base.table_virtuelle.type == InlineBox {
         box := base comme *BlockBox
 
-        si box.élément != nul {
+        si box.noeud != nul {
             /* Nous voulons un box anonyme. */
             retourne faux
         }
@@ -3060,8 +3060,8 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
         cellule.colonne = index_colonne
         cellule.ligne = index_ligne
 
-        si cell.élément {
-            cellule.colspan = HTML.donne_colspan(cell.élément)
+        si cell.donne_élément() {
+            cellule.colspan = HTML.donne_colspan(cell.donne_élément())
         }
         sinon {
             cellule.colspan = 1
