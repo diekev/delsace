@@ -1466,18 +1466,18 @@ CréatriceArbre :: struct {
     arbre: *ArbreDeDisposition
 }
 
-crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, box: *HTML.Noeud)
+crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Noeud)
 {
-    si HTML.est_texte(box) {
-        crée_box_pour_texte(créatrice, parent comme *BlockBox, (box comme *HTML.NoeudTexte).données, box comme *HTML.NoeudTexte)
+    si HTML.est_texte(noeud) {
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
         retourne
     }
 
-    saufsi HTML.est_élément(box) {
+    saufsi HTML.est_élément(noeud) {
         retourne
     }
 
-    élément := box comme *HTML.Élément
+    élément := noeud comme *HTML.Élément
 
     propriétés_parent: *PropriétésDeStyle
     si parent {
@@ -1590,7 +1590,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
     crée_box_pour_pseudo_élément(créatrice, résultat, élément, PROP_before)
 
-    pour box.enfants {
+    pour noeud.enfants {
         crée_box_pour_élément(créatrice, nouveau_parent, it)
     }
 
