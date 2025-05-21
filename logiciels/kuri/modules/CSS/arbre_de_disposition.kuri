@@ -2614,9 +2614,14 @@ ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: &Fragment) ->
 
 donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLigne) -> []Fragment
 {
-    résultat: []Fragment
-    résultat.pointeur = lignes_tenante.fragments.pointeur + ligne.premier_fragment
-    résultat.taille = ligne.dernier_fragment - ligne.premier_fragment + 1
+    retourne donne_fragments(lignes_tenante, ligne.premier_fragment, ligne.dernier_fragment + 1)
+}
+
+donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, dernier_fragment: z64) -> []Fragment
+{
+    résultat : []Fragment = ---
+    résultat.pointeur = lignes_tenante.fragments.pointeur + premier_fragment
+    résultat.taille = dernier_fragment - premier_fragment
     retourne résultat
 }
 

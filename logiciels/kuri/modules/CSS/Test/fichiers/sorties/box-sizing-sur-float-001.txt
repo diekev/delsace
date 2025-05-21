@@ -112,7 +112,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 138 [0 0 0]
             frag 48 RembourrageFin de Inline début 0 fin 0 rect (695,16 0x18)
             frag 49 MargeFin de Inline début 0 fin 0 rect (695,16 0x18)
             Inline <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <8, 16> CH [0 0 0] 687 [0 0 0] CV [0 0 0] 18 [0 0 0]
         Block <(anonyme)> <8, 50> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,50 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,50 0x0)
@@ -156,7 +156,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 138 [0 0 0]
                 frag 13 RembourrageFin de Inline début 0 fin 0 rect (259,82 0x18)
                 frag 14 MargeFin de Inline début 0 fin 0 rect (259,82 0x18)
                 Inline <(anonyme)> <40, 82> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <40, 82> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <40, 82> CH [0 0 0] 219 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Block <(anonyme)> <24, 66> CH [0 0 0] 640 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (344,66 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (344,66 0x0)
@@ -192,7 +192,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 138 [0 0 0]
                 frag 13 RembourrageFin de Inline début 0 fin 0 rect (571,82 0x18)
                 frag 14 MargeFin de Inline début 0 fin 0 rect (571,82 0x18)
                 Inline <(anonyme)> <360, 82> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <360, 82> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <360, 82> CH [0 0 0] 211 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Block <(anonyme)> <24, 66> CH [0 0 0] 640 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (664,66 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (664,66 0x0)

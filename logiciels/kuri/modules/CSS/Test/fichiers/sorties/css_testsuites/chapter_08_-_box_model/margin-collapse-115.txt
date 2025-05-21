@@ -70,7 +70,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 364 [0 0 0]
             frag 27 RembourrageFin de Inline début 0 fin 0 rect (430,16 0x18)
             frag 28 MargeFin de Inline début 0 fin 0 rect (430,16 0x18)
             Inline <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <8, 16> CH [0 0 0] 422 [0 0 0] CV [0 0 0] 18 [0 0 0]
         Block <(anonyme)> <8, 50> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,50 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,50 0x0)
@@ -258,17 +258,17 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 364 [0 0 0]
             frag 52 RembourrageFin de Inline début 0 fin 0 rect (405,322 0x18)
             frag 53 MargeFin de Inline début 0 fin 0 rect (405,322 0x18)
             Inline <(anonyme)> <8, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <8, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <8, 322> CH [0 0 0] 262 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <a> <270, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Inline <(anonyme)> <270, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <270, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <270, 322> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <(anonyme)> <320, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <320, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <320, 322> CH [0 0 0] 31 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <a> <351, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Inline <(anonyme)> <351, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <351, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <351, 322> CH [0 0 0] 50 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <(anonyme)> <401, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <401, 322> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <401, 322> CH [0 0 0] 4 [0 0 0] CV [0 0 0] 18 [0 0 0]
         Block <(anonyme)> <8, 356> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,356 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,356 0x0)

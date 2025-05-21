@@ -38,7 +38,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 148 [0 0 0]
                         " "
                     frag 6 Normal de Text début 6 fin 7 rect (1862,88 58x18)
                         "required]"
-                    Text <(anonyme)> <1854, -8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <1862, 16> CH [0 0 0] 58 [0 0 0] CV [0 0 0] 90 [0 0 0]
             Block <(anonyme)> <8, 16> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 108 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (8,16 0x18)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,16 0x18)
@@ -1101,12 +1101,12 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 148 [0 0 0]
                 frag 536 RembourrageFin de Inline début 0 fin 0 rect (1048,106 0x0)
                 frag 537 MargeFin de Inline début 0 fin 0 rect (1048,106 0x0)
                 Inline <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <8, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <8, 16> CH [0 0 0] 328 [0 0 0] CV [0 0 0] 18 [0 0 0]
                 Inline <span> <336, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                     Inline <(anonyme)> <336, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                        Text <(anonyme)> <336, 16> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                        Text <(anonyme)> <8, 16> CH [0 0 0] 1892 [0 0 0] CV [0 0 0] 108 [0 0 0]
                 Inline <(anonyme)> <1044, 106> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <1044, 106> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <1044, 106> CH [0 0 0] 4 [0 0 0] CV [0 0 0] 0 [0 0 0]
         Block <(anonyme)> <8, 140> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,140 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,140 0x0)

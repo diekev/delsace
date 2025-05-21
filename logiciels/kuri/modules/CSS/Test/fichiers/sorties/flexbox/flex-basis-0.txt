@@ -85,7 +85,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 66 [0 0 0]
                 frag 33 RembourrageFin de Inline début 0 fin 0 rect (1793.33,24 0x18)
                 frag 34 MargeFin de Inline début 0 fin 0 rect (1793.33,24 0x18)
                 Inline <(anonyme)> <1277.33, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <1277.33, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <1277.33, 24> CH [0 0 0] 516 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Text <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
             Block <p> <642.67, 24> CH [0 0 0] 634.67 [0 0 0] CV [16 0 0] 18 [0 0 16]
@@ -156,7 +156,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 66 [0 0 0]
                 frag 33 RembourrageFin de Inline début 0 fin 0 rect (1158.67,24 0x18)
                 frag 34 MargeFin de Inline début 0 fin 0 rect (1158.67,24 0x18)
                 Inline <(anonyme)> <642.67, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <642.67, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <642.67, 24> CH [0 0 0] 516 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Text <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
             Block <p> <8, 24> CH [0 0 0] 634.67 [0 0 0] CV [16 0 0] 18 [0 0 16]
@@ -227,7 +227,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 66 [0 0 0]
                 frag 33 RembourrageFin de Inline début 0 fin 0 rect (524,24 0x18)
                 frag 34 MargeFin de Inline début 0 fin 0 rect (524,24 0x18)
                 Inline <(anonyme)> <8, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                    Text <(anonyme)> <8, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                    Text <(anonyme)> <8, 24> CH [0 0 0] 516 [0 0 0] CV [0 0 0] 18 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Text <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
         Block <(anonyme)> <8, 58> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
