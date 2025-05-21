@@ -3332,7 +3332,7 @@ aligne_cellules_verticalement :: fonc (ctx: *ContexteDeFormattageTable, ligne: *
             si it.donne_alignement_vertical() != alignement {
                 continue
             }
-            it.baseline = donne_baseline(it.box).Quelque
+            it.baseline = donne_baseline(it.box).Quelque.position
             ligne.baseline = max(ligne.baseline, it.baseline)
         }
     

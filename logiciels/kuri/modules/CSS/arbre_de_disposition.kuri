@@ -1873,6 +1873,22 @@ définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.contenu.hauteur = hauteur
 }
 
+donne_ligne_de_base_marge :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.marge.y
+    résultat.position = modèle.marge.y + modèle.marge.hauteur
+    retourne résultat
+}
+
+donne_ligne_de_base_contenu :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.contenu.y
+    résultat.position = modèle.contenu.y + modèle.contenu.hauteur
+    retourne résultat
+}
+
 /* Représente les cotations pour un axe donné du modèle de boite. */
 CotationModèleDeBoite :: struct {
     marge_début: r32
@@ -1915,6 +1931,13 @@ imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleD
     imprime_dans_enchaineuse(enchaineuse, "[% % %] % [% % %]", cotation.marge_début, cotation.bordure_début, cotation.rembourrage_début, cotation.contenu, cotation.rembourrage_fin, cotation.bordure_fin, cotation.marge_fin)
 }
 
+InfoLigneDeBase :: struct {
+    /* L'origine de la boite fournissant la ligne de base ; utilisée pour calculer un delta. */
+    origine: r32
+    /* La position de la ligne de base. */
+    position: r32
+}
+
 TableVirtuelleNoeudDeDispo :: struct {
     type: type_de_données
 
@@ -1925,7 +1948,7 @@ TableVirtuelleNoeudDeDispo :: struct {
     sur_dessin_fragment_tampon_id: fonc (*Box, *Fragment, *ContexteDessin)(rien)
     sur_divise_en_lignes: fonc (*Box, *Enligneuse, ModeDeFormattage)(rien)
     sur_correction_hiérarchie: fonc(*Box, *CréatriceArbre)(rien)
-    sur_donne_baseline: fonc(*Box)(Optionnel(r32))
+    sur_donne_baseline: fonc(*Box)(Optionnel(InfoLigneDeBase))
 }
 
 __table_box_base := TableVirtuelleNoeudDeDispo(type = Box)
@@ -2159,7 +2182,7 @@ donne_décalage_left_pour_relative :: fonc (box: *Box) -> r32
     retourne left.donne_pixels() comme r32
 }
 
-donne_baseline :: fonc (box: *Box) -> Optionnel(r32)
+donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
 {
     si box.table_virtuelle.sur_donne_baseline {
         résultat := box.table_virtuelle.sur_donne_baseline(box)
@@ -2169,7 +2192,7 @@ donne_baseline :: fonc (box: *Box) -> Optionnel(r32)
     }
 
     // À FAIRE : est-ce la bonne valeur ?
-    retourne box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur
+    retourne donne_ligne_de_base_marge(box.modèle_de_boite)
 }
 
 donne_élément :: fonc (box: *Box) -> *HTML.Élément
@@ -2625,11 +2648,14 @@ donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, 
     retourne résultat
 }
 
-donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> r32
+donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> InfoLigneDeBase
 {
     ligne := lignes_tenante.lignes[index]
     // À FAIRE : baseline de la fonte
-    retourne ligne.position_y + ligne.hauteur_contenu
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = ligne.position_y
+    résultat.position = ligne.hauteur_contenu
+    retourne résultat
 }
 
 /** \} */
@@ -2985,7 +3011,7 @@ block_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
     box.enfants = nouveaux_enfants
 }
 
-block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
+block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
     bloc := base comme *BlockBox
 
@@ -2996,11 +3022,11 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
     si est_inline_block(bloc) {
         overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
         si !overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         si bloc.lignes_tenante.lignes.taille == 0 {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         index_ligne := bloc.lignes_tenante.lignes.taille - 1
@@ -4639,7 +4665,7 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
     retourne largeur_disponible
 }
 
-table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
+table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
     // À FAIRE : The baseline of a cell is the baseline of the first in-flow line box in the cell,
     // or the first in-flow table-row in the cell, whichever comes first.
@@ -4649,7 +4675,7 @@ table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
     }
 
     // If there is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
-    retourne base.modèle_de_boite.contenu.y + base.modèle_de_boite.contenu.hauteur
+    retourne donne_ligne_de_base_contenu(base.modèle_de_boite)
 }
 
 /** \} */
