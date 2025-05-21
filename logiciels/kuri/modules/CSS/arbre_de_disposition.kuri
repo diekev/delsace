@@ -4695,7 +4695,13 @@ table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
     // or the first in-flow table-row in the cell, whichever comes first.
     résultat := block_box_donne_baseline(base)
     si résultat.possède_valeur() {
-        retourne résultat
+        info := résultat.Quelque
+        si info.position != info.origine {
+            /* Nous pouvons avoir une ligne de base nulle à cause de la logique de block_box_donne_baseline (p.e. un enfant in-flow n'ayant pas été dûment coté).
+             * Dans ce cas, ne retournons que si la ligne de base n'est pas nulle.
+             * À voir si ceci sera encore un problème lorsque nous aurons proprement implémenté le cas « à faire » plus haut. */
+            retourne résultat
+        }
     }
 
     // If there is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
