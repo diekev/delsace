@@ -1165,29 +1165,24 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
             }
         }
 
-        si it.box.table_virtuelle.type == TextBox {
-            init_de(ModèleDeBoite)(*it.box.modèle_de_boite)
+        // À FAIRE : ceci supprime les marges, etc.
+        init_de(ModèleDeBoite)(*it.box.modèle_de_boite)
 
-            min_x := R64_INFINITÉ
-            min_y := R64_INFINITÉ
-            max_x := R64_INFINITÉ_NÉGATIVE
-            max_y := R64_INFINITÉ_NÉGATIVE
+        min_x := R64_INFINITÉ
+        min_y := R64_INFINITÉ
+        max_x := R64_INFINITÉ_NÉGATIVE
+        max_y := R64_INFINITÉ_NÉGATIVE
 
-            pour * fragment dans fragments {
-                min_x = min(min_x, fragment.x)
-                min_y = min(min_y, fragment.y)
-                max_x = max(max_x, fragment.x + fragment.largeur)
-                max_y = max(max_y, fragment.y + fragment.hauteur)
-            }
-
-            it.box.décale_vers_position(min_x comme r32, min_y comme r32)
-            it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32)
-            it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32)
+        pour * fragment dans fragments {
+            min_x = min(min_x, fragment.x)
+            min_y = min(min_y, fragment.y)
+            max_x = max(max_x, fragment.x + fragment.largeur)
+            max_y = max(max_y, fragment.y + fragment.hauteur)
         }
-        sinon {
-            fragment := fragments[0]
-            it.box.décale_vers_position(fragment.x, fragment.y)
-        }
+
+        it.box.décale_vers_position(min_x comme r32, min_y comme r32)
+        it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32)
+        it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32)
     }
 
     déloge(ctx.boites_enlignées)

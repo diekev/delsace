@@ -53,7 +53,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 258 [0 0 0]
                 "below."
             frag 19 RembourrageFin de Inline début 0 fin 0 rect (274,24 0x18)
             frag 20 MargeFin de Inline début 0 fin 0 rect (274,24 0x18)
-            Inline <(anonyme)> <8, 24> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Inline <(anonyme)> <8, 24> CH [0 0 0] 266 [0 0 0] CV [0 0 0] 18 [0 0 0]
                 Text <(anonyme)> <8, 24> CH [0 0 0] 266 [0 0 0] CV [0 0 0] 18 [0 0 0]
         Block <(anonyme)> <8, 58> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,58 0x0)

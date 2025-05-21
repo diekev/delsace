@@ -63,7 +63,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 126 [0 0 0]
                     " "
                 frag 20 RembourrageFin de Inline début 0 fin 0 rect (282,63 0x55)
                 frag 21 MargeFin de Inline début 0 fin 0 rect (282,63 0x55)
-                Inline <(anonyme)> <8, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Inline <(anonyme)> <8, 8> CH [0 0 0] 444 [0 0 0] CV [0 0 0] 110 [0 0 0]
                     Text <(anonyme)> <8, 8> CH [0 0 0] 444 [0 0 0] CV [0 0 0] 110 [0 0 0]
             Block <(anonyme)> <8, 118> CH [0 0 0] 476 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (8,118 0x0)
@@ -128,7 +128,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 126 [0 0 0]
                     " "
                 frag 20 RembourrageFin de Inline début 0 fin 0 rect (1709,63 0x55)
                 frag 21 MargeFin de Inline début 0 fin 0 rect (1709,63 0x55)
-                Inline <(anonyme)> <1436, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+                Inline <(anonyme)> <1436, 8> CH [0 0 0] 459 [0 0 0] CV [0 0 0] 110 [0 0 0]
                     Text <(anonyme)> <1436, 8> CH [0 0 0] 459 [0 0 0] CV [0 0 0] 110 [0 0 0]
             Block <(anonyme)> <1436, 118> CH [0 0 0] 476 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (1436,118 0x0)
@@ -225,7 +225,7 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 126 [0 0 0]
                 " "
             frag 40 RembourrageFin de Inline début 0 fin 0 rect (1118,63 0x55)
             frag 41 MargeFin de Inline début 0 fin 0 rect (1118,63 0x55)
-            Inline <(anonyme)> <484, 8> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
+            Inline <(anonyme)> <484, 8> CH [0 0 0] 939 [0 0 0] CV [0 0 0] 110 [0 0 0]
                 Text <(anonyme)> <484, 8> CH [0 0 0] 939 [0 0 0] CV [0 0 0] 110 [0 0 0]
         Block <(anonyme)> <8, 118> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (484,118 0x0)
