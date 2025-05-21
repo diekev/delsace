@@ -2189,6 +2189,10 @@ donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
         si résultat.possède_valeur() {
             retourne résultat
         }
+
+        si box.table_virtuelle.type == TextBox {
+            retourne
+        }
     }
 
     // À FAIRE : est-ce la bonne valeur ?
@@ -2544,6 +2548,10 @@ BoiteDeLigne :: struct {
     dernier_fragment: z64
     largeur_courante: r32
     hauteur_contenu: r32
+
+    top: r64
+    bottom: r64
+    baseline: r64
 }
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
@@ -3042,6 +3050,10 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
     }
 
     pour bloc.enfants {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         saufsi est_in_flow(it) {
             continue
         }
@@ -3246,7 +3258,8 @@ break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mod
 __table_text_box := TableVirtuelleNoeudDeDispo(
     type = TextBox,
     sur_dessin_fragment = text_box_sur_dessin_fragment,
-    sur_divise_en_lignes = text_box_sur_divise_en_lignes)
+    sur_divise_en_lignes = text_box_sur_divise_en_lignes,
+    sur_donne_baseline = text_box_sur_donne_baseline)
 
 #portée_export
 
@@ -3270,6 +3283,12 @@ donne_propriétés :: fonc (text_box: *TextBox) -> *PropriétésDeStyle
         parent = parent.parent
     }
     retourne parent.propriétés
+}
+
+text_box_sur_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
+{
+    // À FAIRE : utilise la fonte
+    retourne donne_ligne_de_base_marge(base.modèle_de_boite)
 }
 
 text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)

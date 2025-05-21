@@ -1103,8 +1103,12 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
 
     lignes_tenante := box.lignes_tenante
 
+    // imprimeln("----------------------------")
+
     pour * lignes_tenante.lignes {
         fragments := donne_fragments_ligne(lignes_tenante, it)
+
+        it.top = it.position_y
 
         si fragments.taille == 0 {
             continue
@@ -1141,6 +1145,41 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
             }
 
             fragment.x += décalage_fragment_x
+        }
+
+        // imprimeln("-- hauteur ligne : %", it.hauteur_contenu)
+
+        /* Alignement vertical. */
+        pour * fragment dans fragments {
+            propriétés_fragment := donne_propriétés(fragment.box)
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+
+            si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
+                baseline_box := fragment.box.donne_baseline()
+                si baseline_box.possède_valeur() {
+                    // À FAIRE : décalage pour la baseline de la boite
+                    info_ligne_de_base := baseline_box.Quelque
+                    it.baseline = max(it.baseline, it.top + info_ligne_de_base.position - info_ligne_de_base.origine)
+                }
+            }
+
+            // imprimeln("    -- hauteur fragment % : % (%) (%)", fragment.hauteur, vertical_align, fragment.type, donne_nom_classe(fragment.box))
+        }
+
+        // imprimeln("  -- top %, baseline %, bottom %", it.top, it.baseline, it.bottom)
+
+        pour * fragment dans fragments {
+            propriétés_fragment := donne_propriétés(fragment.box)
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+
+            si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
+                baseline_box := fragment.box.donne_baseline()
+                si baseline_box.possède_valeur() {
+                    position_y := fragment.y + fragment.hauteur
+                    delta := it.baseline - position_y 
+                    fragment.y += delta comme r32
+                }
+            }
         }
     }
 
