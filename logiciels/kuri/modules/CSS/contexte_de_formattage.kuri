@@ -1142,13 +1142,6 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
 
             fragment.x += décalage_fragment_x
         }
-
-        /* Positionnement des fragments. */
-        pour * fragment dans fragments {
-            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne || fragment.type == Fragment.Type.MargeDébut {
-                fragment.box.décale_vers_position(fragment.x, fragment.y)
-            }
-        }
     }
 
     pour lignes_tenante.fragments {
@@ -1158,10 +1151,22 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
     }
 
     pour ctx.boites_enlignées {
+        fragments := lignes_tenante.donne_fragments(it.premier_fragment, it.dernier_fragment)
+        si fragments.taille == 0 {
+            continue
+        }
+
+        si fragments.taille == 1 {
+            fragment := fragments[0]
+
+            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne {
+                it.box.décale_vers_position(fragment.x, fragment.y)
+                continue
+            }
+        }
+
         si it.box.table_virtuelle.type == TextBox {
             init_de(ModèleDeBoite)(*it.box.modèle_de_boite)
-
-            fragments := lignes_tenante.donne_fragments(it.premier_fragment, it.dernier_fragment)
 
             min_x := R64_INFINITÉ
             min_y := R64_INFINITÉ
@@ -1178,6 +1183,10 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
             it.box.décale_vers_position(min_x comme r32, min_y comme r32)
             it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32)
             it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32)
+        }
+        sinon {
+            fragment := fragments[0]
+            it.box.décale_vers_position(fragment.x, fragment.y)
         }
     }
 
