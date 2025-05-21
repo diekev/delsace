@@ -1942,7 +1942,7 @@ InfoLigneDeBase :: struct {
     position: r32
 }
 
-TableVirtuelleNoeudDeDispo :: struct {
+TableVirtuelleBox :: struct {
     type: type_de_données
 
     sur_mesure: fonc (*Box, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation, AvailableSpace)(rien)
@@ -1955,7 +1955,7 @@ TableVirtuelleNoeudDeDispo :: struct {
     sur_donne_baseline: fonc(*Box)(Optionnel(InfoLigneDeBase))
 }
 
-__table_box_base := TableVirtuelleNoeudDeDispo(type = Box)
+__table_box_base := TableVirtuelleBox(type = Box)
 
 Box :: struct {
     table_virtuelle := *__table_box_base
@@ -2781,7 +2781,7 @@ peut_ignorer_espace_blanche_en_début_de_ligne :: fonc (empl enligneuse: *Enlign
 
 #portée_fichier
 
-__table_block_box := TableVirtuelleNoeudDeDispo(
+__table_block_box := TableVirtuelleBox(
     type = BlockBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -3077,7 +3077,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 
 #portée_fichier
 
-__table_inline_box := TableVirtuelleNoeudDeDispo(
+__table_inline_box := TableVirtuelleBox(
     type = InlineBox,
     sur_mesure = inline_box_sur_mesure,
     sur_dessin = inline_box_sur_dessin,
@@ -3217,7 +3217,7 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
 
 #portée_fichier
 
-__table_break_box := TableVirtuelleNoeudDeDispo(
+__table_break_box := TableVirtuelleBox(
     type = BreakBox,
     sur_divise_en_lignes = break_box_sur_divise_en_lignes)
 
@@ -3259,7 +3259,7 @@ break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mod
 
 #portée_fichier
 
-__table_text_box := TableVirtuelleNoeudDeDispo(
+__table_text_box := TableVirtuelleBox(
     type = TextBox,
     sur_dessin_fragment = text_box_sur_dessin_fragment,
     sur_divise_en_lignes = text_box_sur_divise_en_lignes,
@@ -3587,7 +3587,7 @@ collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
 
 #portée_fichier
 
-__table_replaced_box := TableVirtuelleNoeudDeDispo(
+__table_replaced_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_mesure = replaced_box_sur_mesure,
     sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
@@ -3691,7 +3691,7 @@ replaced_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, 
 
 #portée_fichier
 
-__table_image_box := TableVirtuelleNoeudDeDispo(
+__table_image_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = image_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3728,7 +3728,7 @@ image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_object_box := TableVirtuelleNoeudDeDispo(
+__table_object_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = object_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3765,7 +3765,7 @@ object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Con
 
 #portée_fichier
 
-__table_text_input_box := TableVirtuelleNoeudDeDispo(
+__table_text_input_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = text_input_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3844,7 +3844,7 @@ convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesF
 
 #portée_fichier
 
-__table_button_input_box := TableVirtuelleNoeudDeDispo(
+__table_button_input_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = button_input_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3879,7 +3879,7 @@ button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_radio_button_box := TableVirtuelleNoeudDeDispo(
+__table_radio_button_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = radio_button_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3910,7 +3910,7 @@ radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_checkbox_box := TableVirtuelleNoeudDeDispo(
+__table_checkbox_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = checkbox_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3942,7 +3942,7 @@ checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Contexte
 
 #portée_fichier
 
-__table_textarea_box := TableVirtuelleNoeudDeDispo(
+__table_textarea_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = textarea_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3995,7 +3995,7 @@ donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeForm
 
 #portée_fichier
 
-__table_canvas_box := TableVirtuelleNoeudDeDispo(
+__table_canvas_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = canvas_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -4028,7 +4028,7 @@ canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Con
 
 #portée_fichier
 
-__table_select_box := TableVirtuelleNoeudDeDispo(
+__table_select_box := TableVirtuelleBox(
     type = SelectBox,
     sur_dessin = select_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -4165,7 +4165,7 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
 
 #portée_fichier
 
-__table_table_wrapper_box := TableVirtuelleNoeudDeDispo(
+__table_table_wrapper_box := TableVirtuelleBox(
     type = TableWrapperBox,
     sur_mesure = table_wrapper_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4501,7 +4501,7 @@ generate_missing_parents :: fonc (box: *Box @inutilisée, créatrice: *Créatric
 
 #portée_fichier
 
-__table_table_box := TableVirtuelleNoeudDeDispo(
+__table_table_box := TableVirtuelleBox(
     type = TableBox,
     sur_mesure = table_box_sur_mesure,
     sur_dessin = table_box_sur_dessin,
@@ -4533,7 +4533,7 @@ table_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mode
 
 #portée_fichier
 
-__table_table_column_group_box := TableVirtuelleNoeudDeDispo(type = TableColumnGroupBox)
+__table_table_column_group_box := TableVirtuelleBox(type = TableColumnGroupBox)
 
 #portée_module
 
@@ -4550,7 +4550,7 @@ TableColumnGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_column_box := TableVirtuelleNoeudDeDispo(type = TableColumnBox)
+__table_table_column_box := TableVirtuelleBox(type = TableColumnBox)
 
 #portée_module
 
@@ -4567,7 +4567,7 @@ TableColumnBox :: struct {
 
 #portée_fichier
 
-__table_table_footer_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_footer_group_box := TableVirtuelleBox(
     type = TableFooterGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4589,7 +4589,7 @@ TableFooterGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_header_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_header_group_box := TableVirtuelleBox(
     type = TableHeaderGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4611,7 +4611,7 @@ TableHeaderGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_row_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_group_box := TableVirtuelleBox(
     type = TableRowGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4633,7 +4633,7 @@ TableRowGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_row_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_box := TableVirtuelleBox(
     type = TableRowBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4655,7 +4655,7 @@ TableRowBox :: struct {
 
 #portée_fichier
 
-__table_table_cell_box := TableVirtuelleNoeudDeDispo(
+__table_table_cell_box := TableVirtuelleBox(
     type = TableCellBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4709,7 +4709,7 @@ table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 
 #portée_fichier
 
-__table_table_caption_box := TableVirtuelleNoeudDeDispo(
+__table_table_caption_box := TableVirtuelleBox(
     type = CaptionBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
