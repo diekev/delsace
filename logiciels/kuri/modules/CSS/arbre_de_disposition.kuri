@@ -272,6 +272,7 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
     résultat: n32
     pour arbre.boxes {
         résultat += it.donne_taille_en_octet()
+        résultat += (it.enfants.capacité * 8) comme n32
     }
     retourne résultat
 }
