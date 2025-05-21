@@ -1445,6 +1445,10 @@ donne_taille_descendants :: fonc (box: *Box) -> (largeur: r32, hauteur: r32)
     hauteur = 0.0
 
     pour ItératriceArbre(box) {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         position_x := it.modèle_de_boite.marge.x + it.modèle_de_boite.marge.largeur
         position_y := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
 
