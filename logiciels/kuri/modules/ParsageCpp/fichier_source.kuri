@@ -136,7 +136,6 @@ construit_fichier_source :: fonc (chemin: CheminFichier, contenu: chaine) -> Fic
 détruit_données_fichier :: fonc (fichier: *FichierSource)
 {
     déloge(fichier.contenu)
-    déloge(fichier.lexèmes)
     détruit_chemin(fichier.chemin)
 }
 

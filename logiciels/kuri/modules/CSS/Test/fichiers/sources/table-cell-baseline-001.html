@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Test CSS : détermination des lignes de base pour table-cell</title>
+  <style type="text/css">
+    ul {
+      display: table;
+      padding: 0;
+      background: red;
+    }
+
+    ul li.first-part {
+      display: table-cell;
+      height: 1em;
+      width: 1em;
+      background: black;
+    }
+
+    ul li.second-part {
+      display: table;
+      height: 1em;
+      width: 1em;
+      background: black;
+    }
+
+    ul li.third-part {
+      display: table-cell;
+      height: 0.5em;
+      width: 1em;
+      background: black;
+    }
+
+    ul li.fourth-part {
+      list-style: none;
+      height: 1em;
+      width: 1em;
+      background: black;
+    }
+  </style>
+</head>
+
+<body>
+  <p>Le test passe si un rectangle apparait ci-dessous.</p>
+  <ul>
+    <li class="first-part"></li>
+    <li class="second-part"></li>
+    <li class="third-part"></li>
+    <li class="fourth-part"></li>
+  </ul>
+
+</body>
+
+</html>
