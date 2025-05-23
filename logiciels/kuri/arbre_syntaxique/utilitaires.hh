@@ -38,6 +38,17 @@ struct chaine;
 /** \name Drapeaux génériques pour les noeuds.
  * \{ */
 
+struct Annotation {
+    kuri::chaine_statique nom{};
+    kuri::chaine_statique valeur{};
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux génériques pour les noeuds.
+ * \{ */
+
 enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                              // decl var

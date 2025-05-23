@@ -14,6 +14,8 @@
  * Catégorie : [génération code, expression loge, initialisation zéro]
  */
 
+importe Fondation
+
 MaStructure :: struct {
     tabl: [..]z32
 }
