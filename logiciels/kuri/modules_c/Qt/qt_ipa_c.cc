@@ -3396,10 +3396,12 @@ QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
 /** \name QT_TreeWidgetItem
  * \{ */
 
-QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, QT_TreeWidgetItem *parent)
+QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees,
+                                          uint64_t taille_données,
+                                          QT_TreeWidgetItem *parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new TreeWidgetItem(donnees, qparent));
+    return vers_ipa(new TreeWidgetItem(donnees, taille_données, qparent));
 }
 
 void *QT_treewidgetitem_donne_donnees(QT_TreeWidgetItem *widget)
