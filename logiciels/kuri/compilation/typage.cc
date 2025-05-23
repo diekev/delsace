@@ -422,6 +422,7 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
         }
     }
 }
+
 #define VERROUILLE(x) std::unique_lock<std::mutex> verrou(mutex_##x)
 
 Typeuse::Typeuse()
