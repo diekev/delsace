@@ -995,12 +995,20 @@ donne_décalage_horizontal_floats_gauche :: fonc (empl ctx: *ContexteDeFormattag
 /** \nom ContexteDeFormattage
  * \{ */
 
+InfoBoiteEnlignée :: struct {
+    box: *Box
+    premier_fragment: z64
+    dernier_fragment: z64
+}
+
 ContexteDeFormattageInline :: struct {
     empl base: ContexteDeFormattage
     type = #type_de_cette_structure
     sur_formatte = contexte_formattage_inline_sur_formatte
 
     racine: *BlockBox
+
+    boites_enlignées: [..]InfoBoiteEnlignée
 }
 
 donne_position_et_largeur_ligne :: fonc (ctx: *ContexteDeFormattageInline, x_min: r32, x_max: r32, position_y: r32) -> (position: r32, largeur: r32)
@@ -1095,8 +1103,12 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
 
     lignes_tenante := box.lignes_tenante
 
+    // imprimeln("----------------------------")
+
     pour * lignes_tenante.lignes {
         fragments := donne_fragments_ligne(lignes_tenante, it)
+
+        it.top = it.position_y
 
         si fragments.taille == 0 {
             continue
@@ -1120,6 +1132,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
             décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((fragments.taille - 1) comme r32)
         }
 
+        /* Alignement horizontal. */
         pour * fragment, index_fragment dans fragments {
             décalage_fragment_x := 0.0
             si alignement == AlignementTexte.Justifié {
@@ -1132,12 +1145,86 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
             }
 
             fragment.x += décalage_fragment_x
+        }
 
-            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne || fragment.type == Fragment.Type.MargeDébut {
-                fragment.box.décale_vers_position(fragment.x, fragment.y)
+        // imprimeln("-- hauteur ligne : %", it.hauteur_contenu)
+
+        /* Alignement vertical. */
+        pour * fragment dans fragments {
+            propriétés_fragment := donne_propriétés(fragment.box)
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+
+            si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
+                baseline_box := fragment.box.donne_baseline()
+                si baseline_box.possède_valeur() {
+                    // À FAIRE : décalage pour la baseline de la boite
+                    info_ligne_de_base := baseline_box.Quelque
+                    it.baseline = max(it.baseline, it.top + info_ligne_de_base.position - info_ligne_de_base.origine)
+                }
+            }
+
+            // imprimeln("    -- hauteur fragment % : % (%) (%)", fragment.hauteur, vertical_align, fragment.type, donne_nom_classe(fragment.box))
+        }
+
+        // imprimeln("  -- top %, baseline %, bottom %", it.top, it.baseline, it.bottom)
+
+        pour * fragment dans fragments {
+            propriétés_fragment := donne_propriétés(fragment.box)
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+
+            si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
+                baseline_box := fragment.box.donne_baseline()
+                si baseline_box.possède_valeur() {
+                    position_y := fragment.y + fragment.hauteur
+                    delta := it.baseline - position_y 
+                    fragment.y += delta comme r32
+                }
             }
         }
     }
+
+    pour lignes_tenante.fragments {
+        info_boite := donne_info_boite_enlignée(ctx, it.box)
+        info_boite.premier_fragment = min(info_boite.premier_fragment, index_it)
+        info_boite.dernier_fragment = max(info_boite.dernier_fragment, index_it + 1)
+    }
+
+    pour ctx.boites_enlignées {
+        fragments := lignes_tenante.donne_fragments(it.premier_fragment, it.dernier_fragment)
+        si fragments.taille == 0 {
+            continue
+        }
+
+        si fragments.taille == 1 {
+            fragment := fragments[0]
+
+            si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne {
+                it.box.décale_vers_position(fragment.x, fragment.y)
+                continue
+            }
+        }
+
+        // À FAIRE : ceci supprime les marges, etc.
+        init_de(ModèleDeBoite)(*it.box.modèle_de_boite)
+
+        min_x := R64_INFINITÉ
+        min_y := R64_INFINITÉ
+        max_x := R64_INFINITÉ_NÉGATIVE
+        max_y := R64_INFINITÉ_NÉGATIVE
+
+        pour * fragment dans fragments {
+            min_x = min(min_x, fragment.x)
+            min_y = min(min_y, fragment.y)
+            max_x = max(max_x, fragment.x + fragment.largeur)
+            max_y = max(max_y, fragment.y + fragment.hauteur)
+        }
+
+        it.box.décale_vers_position(min_x comme r32, min_y comme r32)
+        it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32)
+        it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32)
+    }
+
+    déloge(ctx.boites_enlignées)
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -1159,6 +1246,20 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
     }
 }
 
+donne_info_boite_enlignée :: fonc (ctx: *ContexteDeFormattageInline, box: *Box) -> *InfoBoiteEnlignée
+{
+    pour * ctx.boites_enlignées {
+        si it.box == box {
+            retourne it
+        }
+    }
+
+    résultat := tableau_ajoute_élément(*ctx.boites_enlignées)
+    résultat.box = box
+    résultat.premier_fragment = (1 comme z64 << 32)
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1176,7 +1277,7 @@ est_espace_blanche_document :: fonc (base: *Box) -> bool
     si base.table_virtuelle.type == BlockBox || base.table_virtuelle.type == InlineBox {
         box := base comme *BlockBox
 
-        si box.élément != nul {
+        si box.noeud != nul {
             /* Nous voulons un box anonyme. */
             retourne faux
         }
@@ -3060,8 +3161,8 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
         cellule.colonne = index_colonne
         cellule.ligne = index_ligne
 
-        si cell.élément {
-            cellule.colspan = HTML.donne_colspan(cell.élément)
+        si cell.donne_élément() {
+            cellule.colspan = HTML.donne_colspan(cell.donne_élément())
         }
         sinon {
             cellule.colspan = 1
@@ -3270,7 +3371,7 @@ aligne_cellules_verticalement :: fonc (ctx: *ContexteDeFormattageTable, ligne: *
             si it.donne_alignement_vertical() != alignement {
                 continue
             }
-            it.baseline = donne_baseline(it.box).Quelque
+            it.baseline = donne_baseline(it.box).Quelque.position
             ligne.baseline = max(ligne.baseline, it.baseline)
         }
     

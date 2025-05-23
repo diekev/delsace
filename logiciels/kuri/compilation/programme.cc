@@ -1242,6 +1242,13 @@ static bool peut_ignorer_globale_pour_chercher_fonction(AtomeGlobale const *glob
     }
 
     auto const type = globale->donne_type_alloué();
+    if (type == nullptr) {
+        kuri::chaine_statique nom_globale = "<anonyme>";
+        if (globale->ident) {
+            nom_globale = globale->ident->nom;
+        }
+        dbg() << "Type nul pour " << nom_globale;
+    }
     if (peut_ignorer_type_pour_chercher_fonction(type)) {
         return true;
     }
