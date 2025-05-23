@@ -97,12 +97,7 @@ table_virtuelle_élément := TableVirtuelleÉlément(
     noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
     si élément.box {
-        si élément.box.table_virtuelle.type != CSS.BreakBox {
-            (élément.box comme *CSS.BlockBox).élément = nul
-        }
-        sinon {
-            (élément.box comme *CSS.BreakBox).élément = nul
-        }
+        élément.box.noeud = nul
     }
     déloge(élément.liste_classes)
 }

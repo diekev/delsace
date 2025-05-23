@@ -82,15 +82,11 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("dans");
     lexèmes.ajoute_mot_clé("diffère");
     lexèmes.ajoute_mot_clé("discr");
-    lexèmes.ajoute_mot_clé("dyn");
-    lexèmes.ajoute_mot_clé("définis");
     lexèmes.ajoute_mot_clé("eini", EST_IDENTIFIANT_TYPE);
-    lexèmes.ajoute_mot_clé("eini_erreur", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("empl");
     lexèmes.ajoute_mot_clé("erreur");
     lexèmes.ajoute_mot_clé("faux");
     lexèmes.ajoute_mot_clé("fonc");
-    lexèmes.ajoute_mot_clé("garde");
     lexèmes.ajoute_mot_clé("importe");
     lexèmes.ajoute_mot_clé("info_de");
     lexèmes.ajoute_mot_clé("init_de");

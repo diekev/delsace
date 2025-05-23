@@ -10,7 +10,6 @@ charge "infos_types"
 charge "intrinseques"
 charge "panique"
 charge "r16"
-charge "tableaux"
 
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
@@ -21,6 +20,7 @@ charge "tableaux"
 
 // --------------------------
 
+// À FAIRE(langage) : valeur défaut pour les tableaux (p.e. t := [..]z32())
 valeur_nulle :: fonc ($T: type_de_données) -> T
 {
     v: T

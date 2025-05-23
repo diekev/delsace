@@ -688,7 +688,7 @@ ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
 
     arbre := rappels.widget_arbre_dom
 
-    item_document := QT_cree_treewidgetitem(nul, nul)
+    item_document := QT_cree_treewidgetitem(nul, 0, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
     texte := vers_qt("document")
     QT_treewidgetitem_definis_texte(item_document, 0, *texte)
@@ -732,7 +732,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
         texte = imprime_chaine("%", noeud.genre)
     }
 
-    item_noeud := QT_cree_treewidgetitem(nul, nul)
+    item_noeud := QT_cree_treewidgetitem(nul, 0, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
     qtexte := vers_qt(texte)
     QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
@@ -819,7 +819,7 @@ ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
 
     widget := rappels.widget_arbre_de_disposition
 
-    item_document := QT_cree_treewidgetitem(nul, nul)
+    item_document := QT_cree_treewidgetitem(nul, 0, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
     texte := donne_texte_item_pour_noeud(arbre.racine)
     diffère déloge_si_logée(texte)
@@ -834,7 +834,7 @@ ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
 
 ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.Box)
 {
-    item_noeud := QT_cree_treewidgetitem(nul, nul)
+    item_noeud := QT_cree_treewidgetitem(nul, 0, nul)
     QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
     texte := donne_texte_item_pour_noeud(noeud)
     diffère déloge_si_logée(texte)

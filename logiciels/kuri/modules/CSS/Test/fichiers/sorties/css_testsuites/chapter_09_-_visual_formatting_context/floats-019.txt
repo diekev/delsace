@@ -81,8 +81,8 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 123.60 [0 0 0]
                 "page."
             frag 29 RembourrageFin de Inline début 0 fin 0 rect (402,105.60 0x18)
             frag 30 MargeFin de Inline début 0 fin 0 rect (402,105.60 0x18)
-            Inline <(anonyme)> <0, 105.60> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-                Text <(anonyme)> <0, 105.60> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 18 [0 0 0]
+            Inline <(anonyme)> <0, 105.60> CH [0 0 0] 402 [0 0 0] CV [0 0 0] 18 [0 0 0]
+                Text <(anonyme)> <0, 105.60> CH [0 0 0] 402 [0 0 0] CV [0 0 0] 18 [0 0 0]
         Block <(anonyme)> <0, 123.60> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (0,123.60 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (0,123.60 0x0)
