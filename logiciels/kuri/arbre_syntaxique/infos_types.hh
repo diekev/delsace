@@ -9,8 +9,7 @@
 #include "structures/tablet.hh"
 #include "structures/tranche.hh"
 
-/* À FAIRE : utilise AnnotationCode. */
-struct Annotation;
+#include "utilitaires.hh"
 
 /* À tenir synchronisé avec info_type.kuri.
  * Structures utilisées pour passer les informations des types au métaprogrammes.

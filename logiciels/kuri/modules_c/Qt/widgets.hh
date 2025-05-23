@@ -152,19 +152,26 @@ class ComboBox : public QComboBox {
  * \{ */
 
 class TreeWidgetItem : public QTreeWidgetItem {
-    void *m_données = nullptr;
+    std::vector<uint8_t> m_données{};
 
   public:
     TreeWidgetItem(void *données, QTreeWidgetItem *parent = nullptr)
-        : QTreeWidgetItem(parent), m_données(données)
+        : TreeWidgetItem(données, 8, parent)
     {
+    }
+
+    TreeWidgetItem(void *données, size_t taille_données, QTreeWidgetItem *parent = nullptr)
+        : QTreeWidgetItem(parent)
+    {
+        m_données.resize(taille_données);
+        memcpy(m_données.data(), données, taille_données);
     }
 
     EMPECHE_COPIE(TreeWidgetItem);
 
     void *donne_données()
     {
-        return m_données;
+        return m_données.data();
     }
 };
 

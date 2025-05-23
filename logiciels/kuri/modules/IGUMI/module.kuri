@@ -70,6 +70,27 @@ termine_2d :: fonc ()
     glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
 }
 
+commence_3d :: fonc (caméra: *Caméra3D)
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_2d == nul)
+    assert(__ctx_courant.caméra_3d == nul)
+    __ctx_courant.caméra_3d = caméra
+
+    glViewport(0, 0, caméra.largeur, caméra.hauteur)
+}
+
+termine_3d :: fonc ()
+{
+    termine_immédiat()
+
+    assert(__ctx_courant.caméra_3d != nul)
+    __ctx_courant.caméra_3d = nul
+
+    glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -243,6 +264,7 @@ DonnéesContexteGL :: struct {
     hauteur_cannevas: z32
 
     caméra_2d: *Caméra2D
+    caméra_3d: *Caméra3D
 
     nuanceurs: [..]*NuanceurGL
 
@@ -424,6 +446,11 @@ termine_immédiat :: fonc ()
         __ctx_courant.caméra_2d.ajourne_matrice()
         définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection())
     }
+    sinon si __ctx_courant.caméra_3d {
+        __ctx_courant.caméra_3d.ajourne()
+        MVP := __ctx_courant.caméra_3d.projection * __ctx_courant.caméra_3d.MV()
+        définis_uniforme(nuanceur.loc_projection, MVP)
+    }
     sinon {
         définis_uniforme(nuanceur.loc_projection, projection)
     }
@@ -512,6 +539,19 @@ ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
     données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
     données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].uv = uv
     données_tampon_xcnu.num_sommets += 1
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Triangle
+ * \{ */
+
+triangle_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, couleur: CouleurRVBA)
+{
+    ajoute_sommets(p0, couleur)
+    ajoute_sommets(p1, couleur)
+    ajoute_sommets(p2, couleur)
 }
 
 /** \} */

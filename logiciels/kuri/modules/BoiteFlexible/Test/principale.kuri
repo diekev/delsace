@@ -418,7 +418,7 @@ dessine_atlas_fonte :: fonc (app: *App)
         si atlas {
             hauteur := atlas.height comme z32
             largeur := atlas.width comme z32
-            image := crée_image_pour_données_externe(atlas.data, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8)
+            image := crée_image_pour_données_externe(atlas.data.pointeur, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8)
             dispose_image(image, Cotation(FIXE(largeur), FIXE(hauteur)))
         }
     }

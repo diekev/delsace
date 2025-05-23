@@ -34,7 +34,7 @@ using Type = NoeudDéclarationType;
     O(type_info_type_opaque, ID::InfoTypeOpaque)                                                  \
     O(type_info_type_variadique, ID::InfoTypeVariadique)                                          \
     O(type_contexte, ID::ContexteProgramme)                                                       \
-    O(type_annotation, ID::AnnotationCode)
+    O(type_annotation, ID::Annotation)
 
 #define ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(Op)                                               \
     Op(decl_panique, ID::panique) Op(decl_panique_memoire, ID::panique_hors_memoire)              \

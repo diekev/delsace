@@ -1111,6 +1111,16 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: Cha
     retourne compare_ascii_insensible_à_la_casse(chn1_utf16, chn2_utf16)
 }
 
+compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chns: ...ChaineUTF16Unique) -> bool
+{
+    pour chns {
+        si compare_ascii_insensible_à_la_casse(chn1, it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
 compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: chaine) -> bool
 {
     retourne compare_ascii_insensible_à_la_casse(chn1, crée_chaine_utf16_unique(chn2))

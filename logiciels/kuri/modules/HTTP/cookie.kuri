@@ -456,6 +456,473 @@ fusionne_cookie :: fonc (cookies: *[..]Cookie, cookie: Cookie) -> bool
     retourne faux
 }
 
+
+ContexteParsageEntête :: struct {
+    uri: URI
+}
+
+ClienteEntête :: struct {
+    sur_reception_cookie: fonc (*ClienteEntête, chaine, chaine, AttributsCookie)(rien)
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2 */
+parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
+{
+    parseuse := ParseuseChaine(chn = chn)
+
+    _ := consomme(*parseuse, "Set-Cookie:")
+
+    /* Parse le nom et la valeur du cookie. */
+    pos_point_virgule := trouve_prochain(*parseuse, ';')
+    si pos_point_virgule <= 0 {
+        pos_point_virgule = parseuse.chn.taille
+    }
+    paire_nom_valeur := sous_chaine_jusque_index(*parseuse, pos_point_virgule)
+
+    pos_égal := trouve_caractère_depuis_le_début(paire_nom_valeur, '=')
+    si pos_égal == -1 {
+        retourne
+    }
+
+    nom_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, 0, pos_égal))
+    si nom_cookie.taille == 0 {
+        retourne
+    }
+
+    valeur_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, pos_égal + 1, paire_nom_valeur.taille))
+
+    attributs: AttributsCookie
+
+    /* Parse les attributs du cookie. */
+    positionne(*parseuse, pos_point_virgule)
+    tantque !fini(*parseuse) {
+        assert(apparie(*parseuse, ';'))
+        avance(*parseuse, 1)
+
+        pos_point_virgule = trouve_prochain(*parseuse, ';')
+        si pos_point_virgule <= 0 {
+            pos_point_virgule = parseuse.chn.taille
+        }
+        valeur_attribut_cookie := sous_chaine_jusque_index(*parseuse, pos_point_virgule)
+
+        nom_attribut := valeur_attribut_cookie
+        valeur_attribut := ""
+
+        pos_égal = trouve_caractère_depuis_le_début(valeur_attribut_cookie, '=')
+        si pos_égal >= 0 {
+            nom_attribut = sous_chaine(valeur_attribut_cookie, 0, pos_égal)
+            valeur_attribut = sous_chaine(valeur_attribut_cookie, pos_égal + 1, valeur_attribut_cookie.taille)
+        }
+
+        nom_attribut = supprime_espaces_blancs(nom_attribut)
+        valeur_attribut = supprime_espaces_blancs(valeur_attribut)
+
+        parse_attribut_cookie(ctx, nom_attribut, valeur_attribut, *attributs)
+        
+        positionne(*parseuse, pos_point_virgule)
+    }
+}
+
+AttributsCookie :: struct {
+    expires: Optionnel(Date)
+    max_age: Optionnel(z64)
+    domain: Optionnel(chaine)
+    path: Optionnel(chaine)
+    http_only: Optionnel(bool)
+    secure: Optionnel(bool)
+}
+
+parse_attribut_cookie :: fonc (ctx: *ContexteParsageEntête, nom: chaine, valeur: chaine, résultat: *AttributsCookie)
+{
+    si compare_ascii_insensible_à_la_casse(nom, "Expires") {
+        parse_attribut_cookie_expires(ctx, valeur, résultat)
+        retourne
+    }
+
+    si compare_ascii_insensible_à_la_casse(nom, "Max-Age") {
+        parse_attribut_cookie_max_age(ctx, valeur, résultat)
+        retourne
+    }
+
+    si compare_ascii_insensible_à_la_casse(nom, "Domain") {
+        parse_attribut_cookie_domain(ctx, valeur, résultat)
+        retourne
+    }
+
+    si compare_ascii_insensible_à_la_casse(nom, "Path") {
+        parse_attribut_cookie_path(ctx, valeur, résultat)
+        retourne
+    }
+
+    si compare_ascii_insensible_à_la_casse(nom, "Secure") {
+        parse_attribut_cookie_secure(ctx, résultat)
+        retourne
+    }
+
+    si compare_ascii_insensible_à_la_casse(nom, "HttpOnly") {
+        parse_attribut_cookie_httponly(ctx, résultat)
+        retourne
+    }
+
+    /* Ignore les autres attribus. */
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.1 */
+parse_attribut_cookie_expires :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+{
+    opt_date := parse_date_cookie(valeur)
+    si opt_date.possède_valeur() {
+        résultat.expires = opt_date.Quelque
+    }
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.1.1 */
+parse_date_cookie :: fonc (valeur: chaine) -> Optionnel(Date)
+{
+    temps_trouvé := faux
+    jour_du_mois_trouvé := faux
+    mois_trouvé := faux
+    année_trouvée := faux
+
+    valeur_heure: z32
+    valeur_minute: z32
+    valeur_seconde: z32
+    valeur_jour_du_mois: z32
+    valeur_mois: z32
+    valeur_année: z32
+
+    tantque valeur.taille != 0 {
+        tantque valeur.taille != 0 && est_délimiteur(valeur[0]) {
+            valeur = avance(valeur, 1)
+        }
+
+        token := valeur
+        token.taille = 0
+        tantque valeur.taille != 0 && est_non_délimiteur(valeur[0]) {
+            token.taille += 1
+            valeur = avance(valeur, 1)
+        }
+
+        si temps_trouvé == faux && est_production_temps(token) {
+            succès, valeur, reste := consomme_nombre_entier(token)
+            assert(succès == vrai)
+            assert(reste[0] == ':')
+
+            valeur_heure = valeur comme z32
+
+            token = avance(reste, 1)
+            succès, valeur, reste = consomme_nombre_entier(token)
+            assert(succès == vrai)
+            assert(reste[0] == ':')
+
+            valeur_minute = valeur comme z32
+
+            token = avance(reste, 1)
+            succès, valeur, reste = consomme_nombre_entier(token)
+            assert(succès == vrai)
+
+            valeur_seconde = valeur comme z32
+
+            temps_trouvé = vrai
+            continue
+        }
+
+        si jour_du_mois_trouvé == faux && est_production_jour_du_mois(token) {
+            /* La grammaire, pour le parsage, permet d'avoir d'autres caractères (même des chiffres) après le deuxième. */
+            si token.taille > 2 {
+                token.taille = 2
+            }
+
+            succès, valeur, _ := consomme_nombre_entier(token)
+            assert(succès == vrai)
+
+            valeur_jour_du_mois = valeur comme z32
+
+            jour_du_mois_trouvé = vrai
+            continue
+        }
+
+        si mois_trouvé == faux {
+            index_mois := est_production_mois(token)
+            si index_mois >= 0 {
+                valeur_mois = index_mois
+                mois_trouvé = vrai
+                continue
+            }
+        }
+
+        si année_trouvée == faux && est_production_année(token) {
+            /* La grammaire, pour le parsage, permet d'avoir d'autres caractères (même des chiffres) après le quatrième. */
+            si token.taille > 4 {
+                token.taille = 4
+            }
+
+            succès, valeur, _ := consomme_nombre_entier(token)
+            assert(succès == vrai)
+
+            valeur_année = valeur comme z32
+
+            année_trouvée = vrai
+            continue
+        }
+    }
+
+    si 70 <= valeur_année <= 99 {
+        valeur_année += 1900
+    }
+
+    si 0 <= valeur_année <= 69 {
+        valeur_année += 2000
+    }
+
+    saufsi temps_trouvé && jour_du_mois_trouvé && mois_trouvé && année_trouvée {
+        retourne
+    }
+
+    saufsi 1 <= valeur_jour_du_mois <= 31 {
+        retourne
+    }
+
+    si valeur_année < 1601 {
+        retourne
+    }
+
+    saufsi 0 <= valeur_heure <= 23 {
+        retourne
+    }
+
+    saufsi 0 <= valeur_minute <= 59 {
+        retourne
+    }
+
+    saufsi 0 <= valeur_seconde <= 59 {
+        retourne
+    }
+
+    date: DateHTTP
+    date.jour = valeur_jour_du_mois
+    date.mois = valeur_mois
+    date.année = valeur_année
+    date.heure = valeur_heure
+    date.minute = valeur_minute
+    date.seconde = valeur_seconde
+    // À FAIRE : valide l'existence de la date (p.e. 30 Février, etc.)
+    retourne date_depuis_date_http(date)
+}
+
+est_délimiteur :: fonc (c: z8) -> bool
+{
+    // %x09 / %x20-2F / %x3B-40 / %x5B-60 / %x7B-7E
+    retourne (c == 0x09) || (0x20 <= c <= 0x2F) || (0x3B <= c <= 0x40) || (0x5B <= c <= 0x60) || (0x7B <= c <= 0x7E)
+}
+
+est_non_délimiteur :: fonc (c: z8) -> bool
+{
+    // %x00-08 / %x0A-1F / DIGIT / ":" / ALPHA / %x7F-FF
+    retourne (0x00 <= c <= 0x08) || (0x0A <= c <= 0x1F) || ('0' <= c <= '9') || c == ':' || ('A' <= (c & ~0x20) <= 'Z') || (0x7F <= c)
+}
+
+est_production_année :: fonc (token: chaine) -> bool
+{
+    /* Minimum de 2 chiffres. */
+    si token.taille < 2 {
+        retourne faux
+    }
+
+    saufsi est_nombre_décimal(token[0]) && est_nombre_décimal(token[1]) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+est_production_temps :: fonc (token: chaine) -> bool
+{
+    /* Au mimimum 0:0:0. */
+    si token.taille < 5 {
+        retourne faux
+    }
+
+    saufsi est_nombre_décimal(token[0]) {
+        retourne faux
+    }
+    token = avance(token, 1)
+
+    si est_nombre_décimal(token[0]) {
+        token = avance(token, 1)
+    }
+
+    si token[0] != ':' {
+        retourne faux
+    }
+    token = avance(token, 1)
+
+    si token.taille < 3 {
+        retourne faux
+    }
+
+    saufsi est_nombre_décimal(token[0]) {
+        retourne faux
+    }
+    token = avance(token, 1)
+
+    si est_nombre_décimal(token[0]) {
+        token = avance(token, 1)
+    }
+
+    si token[0] != ':' {
+        retourne faux
+    }
+    token = avance(token, 1)
+
+    si token.taille == 0 {
+        retourne faux
+    }
+
+    saufsi est_nombre_décimal(token[0]) {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+est_production_jour_du_mois :: fonc (token: chaine) -> bool
+{
+    si token.taille < 1 {
+        retourne faux
+    }
+    retourne est_nombre_décimal(token[0])
+}
+
+est_production_mois :: fonc (token: chaine) -> z32
+{
+    si token.taille < 3 {
+        retourne -1
+    }
+
+    mois := ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+
+    token.taille = 3
+    pour mois {
+        si compare_ascii_insensible_à_la_casse(it, token) {
+            retourne index_it comme z32
+        }
+    }
+
+    retourne -1
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.2 */
+parse_attribut_cookie_max_age :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+{
+    si valeur == "" || (valeur[0] != '-' && est_nombre_décimal(valeur[0])) {
+        retourne
+    }
+
+    tmp := valeur
+    si valeur[0] == '-' {
+        tmp = avance(valeur, 1)
+    }
+
+    pour tmp {
+        saufsi est_nombre_décimal(it) {
+            retourne
+        }
+    }
+
+    nombre := tente extrait_z64(valeur) piège nonatteignable
+    résultat.max_age = nombre
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.3 */
+parse_attribut_cookie_domain :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
+{
+    si valeur == "" {
+        retourne
+    }
+
+    si valeur[0] == '.' {
+        valeur = avance(valeur, 1)
+    }
+
+    // À FAIRE : convertis en minuscule
+    résultat.domain = valeur
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.4 */
+parse_attribut_cookie_path :: fonc (ctx: *ContexteParsageEntête, valeur: chaine, résultat: *AttributsCookie)
+{
+    chemin_cookie := valeur
+
+    si valeur == "" || valeur[0] != '/' {
+        chemin_cookie = donne_chemin_cookie_défaut(ctx)
+    }
+
+    résultat.path = chemin_cookie
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.1.4 */
+donne_chemin_cookie_défaut :: fonc (ctx: *ContexteParsageEntête) -> chaine
+{
+    chemin_uri := ctx.uri.chemin
+
+    si chemin_uri == "" || chemin_uri[0] != '/' {
+        retourne "/"
+    }
+
+    si compte_occurences_de(chemin_uri, '/') == 1 {
+        retourne "/"
+    }
+
+    pos := trouve_caractère_depuis_la_fin(chemin_uri, '/')
+    assert(pos > 0)
+    retourne sous_chaine(chemin_uri, 0, pos)
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.5 */
+parse_attribut_cookie_secure :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
+{
+    résultat.secure = vrai
+}
+
+/* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.6 */
+parse_attribut_cookie_httponly :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
+{
+    résultat.http_only = vrai
+}
+
+/*
+At least 4096 bytes per cookie (as measured by the sum of the length of the cookie's name, value, and attributes).
+At least 50 cookies per domain.
+At least 3000 cookies total.
+*/
+
+GardeCookies :: struct {
+    cookies: [..]Cookie
+    // cookies par domaine
+}
+
+// ajoute_cookie :: fonc (garde: *GardeCookies, cookie: Cookie, est_api_non_http: bool)
+// {
+
+// }
+
+// purge_cookies :: fonc (garde: *GardeCookies)
+// {
+
+// }
+
+// purge_cookies_non_persistants :: fonc (garde: *GardeCookies)
+// {
+
+// }
+
+// /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.4 */
+// donne_chaine_cookie :: fonc (garde: *GardeCookies, uri: *URI, est_api_non_http: bool) -> chaine
+// {
+
+// }
+
 /*
 
     cookies := parse_cookie_client("Cookie: yummy_cookie=choco; tasty_cookie=strawberry")
