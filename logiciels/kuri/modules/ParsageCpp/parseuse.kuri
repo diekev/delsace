@@ -19,6 +19,8 @@ Parseuse :: struct {
     sur_prodéclaration_énum: fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
     sur_identifiant: fonc(&Parseuse, chaine)(rien)
     sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
+
+    contextes: [..]*DeclContext
 }
 
 initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
@@ -38,15 +40,34 @@ restaure_position :: fonc (parseuse: &Parseuse)
     parseuse.lexeuse = parseuse.lexeuse_sauvegardée
 }
 
-rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème @inutilisée)
+empile_contexte :: fonc (parseuse: &Parseuse, ctx: *DeclContext)
+{
+    tableau_ajoute(*parseuse.contextes, ctx)
+}
+
+dépile_contexte :: fonc (parseuse: &Parseuse)
+{
+    parseuse.contextes.taille -= 1
+}
+
+ajoute_au_contexte :: fonc (parseuse: &Parseuse, decl: *NoeudSyntaxique)
+{
+    assert(parseuse.contextes.taille != 0)
+    ctx := parseuse.contextes[parseuse.contextes.taille - 1]
+    tableau_ajoute(*ctx.déclarations, decl)
+}
+
+rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème)
 {
     si parseuse.possède_erreur {
         retourne
     }
 
     // À FAIRE : ligne
+    ligne := donne_ligne_pour_erreur(*parseuse.lexeuse)
     imprime("%:%:\n", parseuse.fichier.chemin, 0)
-    imprime("\tErreur : %\n", message)
+    imprimeln("%", ligne.texte)
+    imprime("\tErreur : % (lexème : '%')\n", message, lexème.donne_texte())
 
     parseuse.possède_erreur = vrai
 }
@@ -95,11 +116,11 @@ consomme_ou_rapporte_erreur :: fonc (parseuse: &Parseuse, c: z8)
 consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
 {
     lexème := donne_lexème_suivant(*parseuse.lexeuse)
-    si lexème == TypeLexème.FinDeFichier {
+    si lexème.type == TypeLexème.FinDeFichier {
         rapporte_erreur(parseuse, "fin de fichier inattendu", lexème)
         retourne ""
     }
-    si lexème != TypeLexème.Symbole {
+    si lexème.type != TypeLexème.Symbole {
         rapporte_erreur(parseuse, "attendu un identifiant", lexème)
     }
     retourne lexème.donne_texte()
@@ -111,53 +132,165 @@ CléClasse :: énum {
     UNION
 }
 
-parse :: fonc (parseuse: &Parseuse)
+/* A.13 Grammar */
+parse_translation_unit :: fonc (parseuse: &Parseuse)
 {
+    assert(parseuse.contextes.taille == 0)
+    translation_unit := crée_noeud(parseuse.créatrice_noeuds, TranslationUnit)
+    tableau_ajoute(*parseuse.contextes, translation_unit)
+
     tantque !fini(parseuse) {
-        lexème := donne_lexème_suivant(*parseuse.lexeuse)
-
-        // si est_mot_clé(lexème, "struct") {
-        //     parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "class") {
-        //     parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "union") {
-        //     parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "enum") {
-        //     parseuse.parse_enum()
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "typedef") {
-        //     parseuse.parse_typedef()
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "template") {
-        //     parseuse.parse_template()
-        //     continue
-        // }
-
-        // si est_mot_clé(lexème, "using") {
-        //     parseuse.parse_using()
-        //     continue
-        // }
-
-        // si est_ponctuation(lexème, "#") {
-        //     parseuse.parse_directive_préprocesseur()
-        //     continue
-        // }
-
-        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+        parse_external_declaration(parseuse)
     }
+}
+
+parse_external_declaration :: fonc (parseuse: &Parseuse)
+{
+    lexème := donne_lexème_suivant(*parseuse.lexeuse)
+
+    si est_mot_clé(lexème, "namespace") {
+        parseuse.parse_décalaration_namespace()
+        retourne
+    }
+
+    si est_ponctuation(lexème, "#") {
+        parseuse.parse_directive_préprocesseur()
+        retourne
+    }
+
+    // function-definition
+
+    // declaration
+    tantque est_declaration_specifier(lexème.donne_texte()) {
+        lexème = donne_lexème_suivant(*parseuse.lexeuse)
+    }
+
+    // init-declarator
+
+    // declarator
+
+    // direct-declarator
+    saufsi lexème.type == TypeLexème.Symbole {
+        rapporte_erreur(parseuse, "attendu un symbole", lexème)
+    }
+
+    // = 
+    consomme_ponctuation(*parseuse.lexeuse, "=")
+
+    // initializer
+    _ := donne_nombre(*parseuse.lexeuse)
+
+    consomme_ponctuation(*parseuse.lexeuse, ";")
+}
+
+/*
+
+function-definition:
+ declaration-specifiersopt declarator declaration-listopt compound-statement
+
+declaration:
+ declaration-specifiers init-declarator-listopt;
+
+declaration-specifiers:
+ storage-class-specifier declaration-specifiersopt
+ type-specifier declaration-specifiersopt
+ type-qualifier declaration-specifiersopt
+
+
+init-declarator-list:
+ init-declarator
+ init-declarator-list , init-declarator
+
+init-declarator:
+ declarator
+ declarator = initializer
+
+declarator:
+ pointeropt direct-declarator
+
+pointer:
+ * type-qualifier-listopt
+ * type-qualifier-listopt pointer 
+
+direct-declarator:
+ identifier
+ (declarator)
+ direct-declarator [ constant-expressionopt ]
+ direct-declarator ( parameter-type-list )
+ direct-declarator ( identifier-listopt ) 
+*/
+
+est_declaration_specifier :: fonc (texte: chaine) -> bool
+{
+    retourne est_storage_class_specifier(texte) || est_type_specifier(texte) || est_type_qualifier(texte)
+}
+
+est_storage_class_specifier :: fonc (texte: chaine) -> bool
+{
+    retourne fait_partie_de(texte, "auto", "register", "static", "extern", "typedef")
+}
+
+est_type_specifier :: fonc (texte: chaine) -> bool
+{
+    // À FAIRE : C++ (class), typedef-name
+    retourne fait_partie_de(texte, "void", "char", "short", "int", "long", "float", "double", "signed", "union", "struct", "enum")
+}
+
+est_type_qualifier :: fonc (texte: chaine) -> bool
+{
+    retourne fait_partie_de(texte, "const", "volatile")
+}
+
+parse_décalaration_haut_niveau :: fonc (parseuse: &Parseuse)
+{
+    lexème := donne_lexème_suivant(*parseuse.lexeuse)
+
+    // si est_mot_clé(lexème, "struct") {
+    //     parseuse.parse_classe(CléClasse.STRUCT, ContexteParsageClasse.DÉCLARATION)
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "class") {
+    //     parseuse.parse_classe(CléClasse.CLASS, ContexteParsageClasse.DÉCLARATION)
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "union") {
+    //     parseuse.parse_classe(CléClasse.UNION, ContexteParsageClasse.DÉCLARATION)
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "enum") {
+    //     parseuse.parse_enum()
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "typedef") {
+    //     parseuse.parse_typedef()
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "template") {
+    //     parseuse.parse_template()
+    //     continue
+    // }
+
+    // si est_mot_clé(lexème, "using") {
+    //     parseuse.parse_using()
+    //     continue
+    // }
+
+    si est_mot_clé(lexème, "namespace") {
+        parseuse.parse_décalaration_namespace()
+        retourne
+    }
+
+    si est_ponctuation(lexème, "#") {
+        parseuse.parse_directive_préprocesseur()
+        retourne
+    }
+
+    rapporte_erreur(parseuse, "lexème inattendu", lexème)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -648,18 +781,35 @@ parse_enum :: fonc (parseuse: &Parseuse)
 
 parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
 {
-    symbole := parseuse.consomme_ident()
-    si symbole == "include" {
+    directive := donne_lexème_suivant(*parseuse.lexeuse)
+    si directive.donne_texte() == "include" {
         lexème := donne_lexème_suivant(*parseuse.lexeuse)
         si lexème.type == TypeLexème.ChaineLittérale {
             si parseuse.sur_inclusion {
-                parseuse.sur_inclusion(parseuse, lexème.ident, faux)
+                parseuse.sur_inclusion(parseuse, lexème.donne_texte(), faux)
             }
             retourne
         }
+
+        rapporte_erreur(parseuse, "attendu une chaine littérale", lexème)
+        retourne
     }
 
-    rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    si directive.donne_texte() == "if" {
+        tantque !parseuse.fini() {
+            lexème := donne_lexème_suivant(*parseuse.lexeuse)
+            si lexème.est_ponctuation("#") {
+                lexème = donne_lexème_suivant(*parseuse.lexeuse)
+                si lexème.donne_texte() == "endif" {
+                    arrête
+                }
+            }
+        }
+
+        retourne
+    }
+
+    rapporte_erreur(parseuse, "directive inconnue", directive)
 }
 
 /* ------------------------------------------------------------------------- */
@@ -757,4 +907,27 @@ parse_using :: fonc (parseuse: &Parseuse)
 parse_référence_type :: fonc (parseuse: &Parseuse)
 {
     _ := parseuse.consomme_ident()
+}
+
+parse_décalaration_namespace :: fonc (parseuse: &Parseuse)
+{
+    namespace := crée_noeud(parseuse.créatrice_noeuds, NamespaceDecl)
+    ajoute_au_contexte(parseuse, namespace)
+    empile_contexte(parseuse, namespace)
+    diffère dépile_contexte(parseuse)
+
+    consomme_symbole(*parseuse.lexeuse)
+    consomme_ponctuation(*parseuse.lexeuse, "{")
+
+    tantque !fini(parseuse) {
+        lexeuse := parseuse.lexeuse
+        lexème := donne_lexème_suivant(*lexeuse)
+        si lexème.est_ponctuation("}") {
+            arrête
+        } 
+
+        parse_external_declaration(parseuse)
+    }
+
+    consomme_ponctuation(*parseuse.lexeuse, "}")
 }
