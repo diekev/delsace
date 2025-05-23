@@ -77,7 +77,7 @@ ConfidentialitéTypeIPA :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéTypeIPA
+confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> ConfidentialitéTypeIPA
 {
     pour annotations {
         si it.nom == "privé" {
