@@ -1146,7 +1146,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés_parent, résolveuse.globales)
     }
     sinon {
-        fonte := donne_fonte(résolveuse.globales, "sérif", "normal", GraisseFonte.Normal, résolveuse.globales.taille_fonte_défaut)
+        fonte := donne_fonte_défaut(résolveuse.globales)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, fonte)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, fonte)
     }
