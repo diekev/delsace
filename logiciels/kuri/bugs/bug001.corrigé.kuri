@@ -5,6 +5,8 @@
  * Catégorie : [génération code, court-circuit comparaison]
  */
 
+importe Fondation
+
 principale :: fonc ()
 {
     tabl: [..]z32

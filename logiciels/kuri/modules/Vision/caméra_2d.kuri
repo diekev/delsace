@@ -103,8 +103,7 @@ définis_zoom :: fonc (empl caméra: *Caméra2D, nouveau_zoom: r32)
 applique_pan :: fonc (empl caméra: *Caméra2D, dx: r32, dy: r32)
 {
     si zoom != 0.0 {
-        définis_position(pos_x - dx / zoom)
-        définis_position(pos_y - dy / zoom)
+        définis_position(caméra, pos_x - dx / zoom, pos_y - dy / zoom)
     }
 }
 
