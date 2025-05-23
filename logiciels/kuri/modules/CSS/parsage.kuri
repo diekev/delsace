@@ -2610,7 +2610,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 102
+NOMBRE_PROPRIÉTÉS :: 103
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2679,12 +2679,13 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_background_color, id = IDPropriété.BackgroundColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_background_image, id = IDPropriété.BackgroundImage, fonction_de_parsage = parse_propriété_background_image, genre_valeur_calculée = GenreValeurCalculée.BackgroundImage),
         InfoTypePropriété(PROP_background_repeat, id = IDPropriété.BackgroundRepeat, fonction_de_parsage = parse_propriété_background_repeat, genre_valeur_calculée = GenreValeurCalculée.BackgroundRepeat),
-        InfoTypePropriété(PROP_background_attachment, id = IDPropriété.BackgroundAttachment, fonction_de_parsage = parse_propriété_background_attachment, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_background_attachment, id = IDPropriété.BackgroundAttachment, fonction_de_parsage = parse_propriété_background_attachment, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.BackgroundPosition),
+        InfoTypePropriété(PROP_background_position, id = IDPropriété.BackgroundPosition, fonction_de_parsage = parse_propriété_background_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
         InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
         InfoTypePropriété(PROP_text_decoration_color, id = IDPropriété.TextDecorationColor, fonction_de_parsage = parse_propriété_color, genre_valeur_calculée = GenreValeurCalculée.Couleur),
-        InfoTypePropriété(PROP_text_transform, id = IDPropriété.TextTransform, fonction_de_parsage = parse_propriété_text_transform, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_text_transform, id = IDPropriété.TextTransform, fonction_de_parsage = parse_propriété_text_transform, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_cursor, id = IDPropriété.Cursor, fonction_de_parsage = parse_propriété_cursor, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Cursor),
         InfoTypePropriété(PROP_font_family, id = IDPropriété.FontFamily, fonction_de_parsage = parse_propriété_font_family, drapeaux = DrapeauxPropriété.Héritée | DrapeauxPropriété.AffecteDisposition, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_font_weight, id = IDPropriété.FontWeight, fonction_de_parsage = parse_propriété_font_weight, drapeaux = DrapeauxPropriété.Héritée | DrapeauxPropriété.AffecteDisposition, genre_valeur_calculée = GenreValeurCalculée.Nombre | GenreValeurCalculée.FontWeight),
@@ -3448,7 +3449,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
     si lexème.est_fonction() {
         fonction := lexème.function
 
-        si fonction.name == PROP_rgb || fonction.name == PROP_rgba {
+        si compare_ascii_insensible_à_la_casse(fonction.name, PROP_rgb, PROP_rgba) {
             résultat := parse_couleur_rgb(fonction)
             si résultat.possède_valeur() {
                 parseuse.avance()
@@ -3456,7 +3457,7 @@ parse_valeur_couleur :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(
             retourne résultat
         }
 
-        si fonction.name == PROP_hsl || fonction.name == PROP_hsla {
+        si compare_ascii_insensible_à_la_casse(fonction.name, PROP_hsl, PROP_hsla) {
             résultat := parse_couleur_hsl(fonction)
             si résultat.possède_valeur() {
                 parseuse.avance()
@@ -4392,6 +4393,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     image := donne_valeur_none()
     background_repeat := donne_valeur_background_repeat_défaut()
     background_attachment := donne_valeur_scroll()
+    background_position := donne_valeur_background_position_défaut()
 
     parseuse := initialise_une_parseuse(value)
 
@@ -4427,6 +4429,12 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
             continue
         }
 
+        valeur_position := parse_valeur_background_position(parseuse)
+        si valeur_position.possède_valeur() {
+            background_position = valeur_position.Quelque
+            continue
+        }
+
         retourne faux
     }
 
@@ -4434,6 +4442,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     ajoute_propriété(ctx, PROP_background_image, image)
     ajoute_propriété(ctx, PROP_background_attachment, background_attachment)
     ajoute_propriété(ctx, PROP_background_repeat, background_repeat)
+    ajoute_propriété(ctx, PROP_background_position, background_position)
 
     retourne vrai
 }
@@ -4543,6 +4552,117 @@ parse_valeur_background_attachment :: fonc (parseuse: &Parseuse(ComponentValue))
 {
     mots_clés := [PROP_scroll, PROP_fixed, PROP_local]
     retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://drafts.csswg.org/css-backgrounds/#background-position */
+parse_propriété_background_position :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_background_position(parseuse)
+}
+
+parse_valeur_background_position :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    mots_clés := [PROP_left, PROP_center, PROP_right, PROP_top, PROP_bottom]
+
+    valeurs: [4]*ValeurDeStyle
+    nombre_de_valeurs: z32
+    diffère {
+        pour nombre_de_valeurs {
+            détruit_valeur_de_style(valeurs[it])
+        }
+    }
+
+    tantque !parseuse.fini() && nombre_de_valeurs != 4 {
+        parseuse.consomme_espaces_blanches()
+
+        opt_mot_clé := parse_mot_clé(parseuse, mots_clés)
+        si opt_mot_clé.possède_valeur() {
+            valeurs[nombre_de_valeurs] = opt_mot_clé.Quelque
+            nombre_de_valeurs += 1
+            continue
+        }
+
+        opt_length := parse_valeur_length_percentage(parseuse)
+        si opt_length.possède_valeur() {
+            valeurs[nombre_de_valeurs] = opt_length.Quelque
+            nombre_de_valeurs += 1
+            continue
+        }
+
+        arrête
+    }
+
+    si nombre_de_valeurs == 0 {
+        retourne
+    }
+
+    résultat: BackgroundPosition = ---
+
+    si nombre_de_valeurs == 1 {
+        si valeurs[0].est_mot_clé() {
+            résultat.horizontal = valeurs[0].donne_mot_clé()
+            résultat.décalage_horizontal = donne_valeur_percentage_zéro()
+        }
+        sinon {
+            résultat.horizontal = PROP_left
+            résultat.décalage_horizontal = copie_valeur(valeurs[0])
+        }
+        /* If only one value is specified, the second value is assumed to be center. */
+        résultat.vertical = PROP_center
+        résultat.décalage_vertical = donne_valeur_percentage_zéro()
+    }
+    sinon si nombre_de_valeurs == 2 {
+        si valeurs[0].est_mot_clé() {
+            résultat.horizontal = valeurs[0].donne_mot_clé()
+            résultat.décalage_horizontal = donne_valeur_percentage_zéro()
+        }
+        sinon {
+            résultat.horizontal = PROP_left
+            résultat.décalage_horizontal = copie_valeur(valeurs[0])
+        }
+        si valeurs[1].est_mot_clé() {
+            résultat.vertical = valeurs[1].donne_mot_clé()
+            résultat.décalage_vertical = donne_valeur_percentage_zéro()
+        }
+        sinon {
+            résultat.vertical = PROP_top
+            résultat.décalage_vertical = copie_valeur(valeurs[1])
+        }
+    }
+    sinon si nombre_de_valeurs == 3 {
+        si valeurs[0].est_mot_clé() && valeurs[1].est_mot_clé() && !valeurs[2].est_mot_clé() {
+            valeurs[3] = valeurs[2]
+            valeurs[2] = valeurs[1]
+            valeurs[1] = donne_valeur_percentage_zéro()
+        }
+        sinon si valeurs[0].est_mot_clé() && !valeurs[1].est_mot_clé() && valeurs[2].est_mot_clé() {
+            valeurs[3] = donne_valeur_percentage_zéro()
+        }
+        sinon {
+            // invalide
+            retourne
+        }
+
+        résultat.horizontal = valeurs[0].donne_mot_clé()
+        résultat.décalage_horizontal = copie_valeur(valeurs[1])
+        résultat.vertical = valeurs[2].donne_mot_clé()
+        résultat.décalage_vertical = copie_valeur(valeurs[3])
+    }
+    sinon {
+        assert(nombre_de_valeurs == 4)
+        saufsi valeurs[0].est_mot_clé() && !valeurs[1].est_mot_clé() && valeurs[2].est_mot_clé() && !valeurs[3].est_mot_clé() {
+            // invalide
+            retourne
+        }
+
+        résultat.horizontal = valeurs[0].donne_mot_clé()
+        résultat.décalage_horizontal = copie_valeur(valeurs[1])
+        résultat.vertical = valeurs[2].donne_mot_clé()
+        résultat.décalage_vertical = copie_valeur(valeurs[3])
+    }
+
+    retourne crée_valeur_background_position(résultat)
 }
 
 /** \} */
