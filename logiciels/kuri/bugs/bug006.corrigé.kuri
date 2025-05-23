@@ -5,6 +5,7 @@
  * Catégorie : [génération code, expression déloge]
  */
 
+importe Fondation
 importe Support
 
 principale :: fonc ()

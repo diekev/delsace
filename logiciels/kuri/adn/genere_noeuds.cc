@@ -832,10 +832,6 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            if (it->nom().nom() == "Annotation") {
-                continue;
-            }
-
             os << "\tkuri::tableau_page<" << nom_code << "> noeuds_code_" << it->accede_nom_comme()
                << "{};\n";
         }
@@ -847,10 +843,6 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         POUR (protéines_struct) {
             const auto nom_code = it->accede_nom_code();
             if (nom_code.est_nul()) {
-                continue;
-            }
-
-            if (it->nom().nom() == "Annotation") {
                 continue;
             }
 
