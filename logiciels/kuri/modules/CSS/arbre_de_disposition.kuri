@@ -2023,7 +2023,7 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
-    famille_fonte := "sérif"
+    famille_fonte := "serif"
     style := "normal"
     graisse := GraisseFonte.Normal
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32

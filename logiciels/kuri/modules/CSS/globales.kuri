@@ -1,3 +1,4 @@
+importe FontConfig
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -5,28 +6,10 @@ importe SysFichier
  * \{ */
 
 GlobalesDessin :: struct {
+    fontconfig: *FcConfig
+
     /* Correspond à 1em. */
     taille_fonte_défaut := 16.0
-
-    fonte_défaut_mono_grasse := "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf"
-    fonte_défaut_mono_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf"
-    fonte_défaut_mono_italique := "/usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf"
-    fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
-
-    fonte_défaut_sans_grasse := "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-    fonte_défaut_sans_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf"
-    fonte_défaut_sans_italique := "/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf"
-    fonte_défaut_sans := "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-
-    fonte_défaut_sans_narrow_grasse := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf"
-    fonte_défaut_sans_narrow_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-BoldItalic.ttf"
-    fonte_défaut_sans_narrow_italique := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Italic.ttf"
-    fonte_défaut_sans_narrow := "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf"
-
-    fonte_défaut_sérif_grasse := "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
-    fonte_défaut_sérif_italique_grasse := "/usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf"
-    fonte_défaut_sérif_italique := "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf"
-    fonte_défaut_sérif := "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
 
     FonteEnCache :: struct {
         famille: chaine
@@ -57,6 +40,12 @@ données_image_checkbox := n8.[
 
 crée_globales_dessin :: fonc () -> *GlobalesDessin
 {
+    fontconfig := FcInitLoadConfigAndFonts()
+    saufsi fontconfig {
+        imprimeln("Impossible de créer une configuration pour fontconfig")
+        exit(1)
+    }
+
     résultat := loge(GlobalesDessin)
 
     résultat.image_checkbox.desc.hauteur = 10
@@ -64,6 +53,8 @@ crée_globales_dessin :: fonc () -> *GlobalesDessin
     résultat.image_checkbox.desc.format = FormatPixel.RVBA_8
     résultat.image_checkbox.source_données = SourceDonnéesImage.Externe
     résultat.image_checkbox.données = *données_image_checkbox[0]
+
+    résultat.fontconfig = fontconfig
 
     retourne résultat
 }
@@ -79,6 +70,7 @@ détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
     }
 
     déloge(globales.fontes_en_cache)
+    FcConfigDestroy(globales.fontconfig)
     déloge(globales)
 }
 
@@ -89,7 +81,12 @@ GraisseFonte :: énum {
 
 donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 {
-    retourne ctx.donne_fonte("sérif", "normal", GraisseFonte.Normal, ctx.taille_fonte_défaut)
+    résultat := ctx.donne_fonte("serif", "normal", GraisseFonte.Normal, ctx.taille_fonte_défaut)
+    saufsi résultat {
+        imprimeln("Impossible de trouver la fonte défaut")
+        exit(1)
+    }
+    retourne résultat
 }
 
 donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
@@ -124,46 +121,45 @@ donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chai
 
 donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte) -> chaine
 {
-    si famille == "sans-serif" {
-        si style == "italic" {
-            si graisse == GraisseFonte.Gras {
-                retourne ctx.fonte_défaut_sans_italique_grasse
-            }
-            retourne ctx.fonte_défaut_sans_italique
-        }
+    assert(ctx.fontconfig != nul)
 
-        si graisse == GraisseFonte.Gras {
-            retourne ctx.fonte_défaut_sans_grasse
-        }
-        retourne ctx.fonte_défaut_sans
-    }
+    pattern := FcPatternCreate()
+    diffère FcPatternDestroy(pattern)
 
-    si famille == "monospace" {
-        si style == "italic" {
-            si graisse == GraisseFonte.Gras {
-                retourne ctx.fonte_défaut_mono_italique_grasse
-            }
-            retourne ctx.fonte_défaut_mono_italique
-        }
+    chaine_c_famille := crée_chaine_c(famille)
+    diffère détruit_chaine_c(chaine_c_famille)
 
-        si graisse == GraisseFonte.Gras {
-            retourne ctx.fonte_défaut_mono_grasse
-        }
-        retourne ctx.fonte_défaut_mono
-    }
+    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);
 
-    /* Défaut sérif. */
     si style == "italic" {
-        si graisse == GraisseFonte.Gras {
-            retourne ctx.fonte_défaut_sérif_italique_grasse
-        }
-        retourne ctx.fonte_défaut_sérif_italique
+        _ := FcPatternAddInteger(pattern, FC_SLANT.pointeur, FC_SLANT_ITALIC)
+    }
+    sinon {
+        assert(style == "normal")
     }
 
     si graisse == GraisseFonte.Gras {
-        retourne ctx.fonte_défaut_sérif_grasse
+        _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, FC_WEIGHT_BOLD)
     }
-    retourne ctx.fonte_défaut_sérif
+
+    _ := FcConfigSubstitute(ctx.fontconfig, pattern, FcMatchKind.FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    result: FcResult
+    match := FcFontMatch(ctx.fontconfig, pattern, *result)
+    saufsi match {
+        retourne ""
+    }
+    diffère FcPatternDestroy(match)
+
+    value: FcValue;
+    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value)
+    si résultat == FcResult.FcResultMatch {
+        chemin := convertis_chaine_c(ChaineC(value.u.f comme *z8))
+        retourne copie_chaine(chemin)
+    }
+
+    retourne ""
 }
 
 /** \} */
