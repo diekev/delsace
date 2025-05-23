@@ -260,7 +260,7 @@ compte_occurences_de :: fonc (ligne: chaine, motif: chaine) -> z64
 compte_occurences_de :: fonc (ligne: chaine, c: z8) -> z64
 {
     résultat := 0
-    pour résultat {
+    pour ligne {
         si it == c {
             résultat += 1
         }
@@ -312,6 +312,10 @@ dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
 sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enligne
 {
     si chn.taille == 0 {
+        retourne ""
+    }
+
+    si pos_début >= chn.taille {
         retourne ""
     }
 

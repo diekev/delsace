@@ -4,6 +4,7 @@
 // binaire pour stocker les données.
 
 importe Algorithmes
+importe Fondation
 
 ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
 {

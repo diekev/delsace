@@ -11,13 +11,6 @@
     @horslignée
 }
 
-struct Annotation {
-    @code AnnotationCode
-
-    chaine_statique nom [code]
-    chaine_statique valeur [code]
-}
-
 struct NoeudExpression {
     @code NoeudCode
     // définis l'énumération qui devra être utilisée pour discriminé le noeud

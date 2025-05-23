@@ -3,6 +3,7 @@
  * Catégorie : [validation sémantique, conversion implicite, type tableau]
  */
 
+importe Fondation
 importe Support
 
 Paginatrice :: struct {

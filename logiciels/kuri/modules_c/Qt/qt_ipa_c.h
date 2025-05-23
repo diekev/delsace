@@ -2473,7 +2473,9 @@ enum QT_Indicateur_Enfant_Arbre {
     ENUMERE_INDICATEUR_ENFANT_TREE_WIDGET(ENUMERE_DECLARATION_ENUM_IPA)
 };
 
-struct QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, struct QT_TreeWidgetItem *parent);
+struct QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees,
+                                                 uint64_t taille_données,
+                                                 struct QT_TreeWidgetItem *parent);
 void *QT_treewidgetitem_donne_donnees(struct QT_TreeWidgetItem *widget);
 void QT_treewidgetitem_definis_indicateur_enfant(struct QT_TreeWidgetItem *widget,
                                                  enum QT_Indicateur_Enfant_Arbre indicateur);

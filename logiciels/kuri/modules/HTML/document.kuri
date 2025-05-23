@@ -955,6 +955,8 @@ est_données_caractères :: fonc (noeud: Noeud)
 NoeudTexte :: struct {
     empl base_données: NoeudDonnéesCaractères
     table = *table_virtuelle_texte
+
+    box: *CSS.Box
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
@@ -983,6 +985,9 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     texte := base comme *NoeudTexte
+    si texte.box {
+        texte.box.noeud = nul
+    }
     détruit_chaine(texte.données)
 }
 

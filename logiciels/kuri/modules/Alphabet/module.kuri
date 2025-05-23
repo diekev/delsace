@@ -3,6 +3,8 @@
     que certains caractères.
  */
 
+importe Fondation
+
 Alphabet :: struct {
     caractères: [..]z8
 }

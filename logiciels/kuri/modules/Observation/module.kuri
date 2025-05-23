@@ -2,6 +2,8 @@
  * dépendences entre objets et prévenir les observateurs qu'un changement eu lieu.
  */
 
+importe Fondation
+
 /* ------------------------------------------------------------------------- */
 /** \nom Message contenant des informations sur un changement.
  * \{ */

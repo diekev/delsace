@@ -80,6 +80,14 @@ donne_paramètres_box_sizing_pour_largeur :: fonc (propriétés: *PropriétésDe
         padding_right := propriétés.donne_valeur_calculée(IDPropriété.PaddingRight)
         border_right_width := propriétés.donne_valeur_calculée(IDPropriété.BorderWidthRight)
 
+        // À FAIRE : détermine quand résoudre ceci (joelonsoftware)
+        si padding_left.est_percentage() {
+            padding_left = donne_valeur_pixels_zéro()
+        }
+        si padding_right.est_percentage() {
+            padding_right = donne_valeur_pixels_zéro()
+        }
+
         résultat.delta = border_left_width.donne_pixels() + padding_left.donne_pixels() + padding_right.donne_pixels() + border_right_width.donne_pixels()
     }
 
@@ -122,13 +130,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (box: *Box)
 {
     propriétés := box.propriétés
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
+    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels_ou_zéro_si_auto() comme r32
     border_left_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthLeft).donne_pixels() comme r32
     padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
     width := propriétés.donne_valeur_utilisée(IDPropriété.Width).donne_pixels() comme r32
     padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
     border_right_width := propriétés.donne_valeur_utilisée(IDPropriété.BorderWidthRight).donne_pixels() comme r32
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
+    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels_ou_zéro_si_auto() comme r32
 
     x := box.modèle_de_boite.marge.x
 

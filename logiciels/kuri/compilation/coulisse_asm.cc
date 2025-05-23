@@ -2526,19 +2526,25 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                     if (est_type_entier(inst_un->type)) {
                         auto registre = registres.donne_registre_entier_inoccupé();
 
-                        assembleuse.pop(registre, inst_un->type->taille_octet);
+                        assembleuse.pop(registre);
                         assembleuse.neg(registre, inst_un->type->taille_octet);
                         assembleuse.empile(registre, inst_un->type->taille_octet);
 
                         registres.marque_registre_inoccupé(registre);
                     }
                     else if (inst_un->type == TypeBase::R32) {
-                        VERIFIE_NON_ATTEINT;
-                        // assembleuse.movss(Registre::XMM0, valeur);
-                        // assembleuse.movss(Registre::XMM1,
-                        //                   AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
-                        // assembleuse.xorps(Registre::XMM0, Registre::XMM1);
-                        // assembleuse.movss(dest, Registre::XMM0);
+                        auto registre = registres.donne_registre_entier_inoccupé();
+
+                        assembleuse.pop(registre);
+                        assembleuse.movss(Registre::XMM0, AssembleuseASM::Mémoire{registre});
+                        registres.marque_registre_inoccupé(registre);
+
+                        assembleuse.movss(Registre::XMM1,
+                                          AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
+                        assembleuse.xorps(Registre::XMM0, Registre::XMM1);
+                        assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8},
+                                          Registre::XMM0);
+                        assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
                     }
                     else {
                         VERIFIE_NON_ATTEINT;
@@ -2636,18 +2642,15 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         }
 
         if (est_adresse_locale(it)) {
-            VERIFIE_NON_ATTEINT;
-            //         assert(classement_arg.premier_huitoctet_inclusif ==
-            //                classement_arg.dernier_huitoctet_exclusif - 1);
-            //         auto registre = classement
-            //                             .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
-            //                             .registre;
-            //         // Nous prenons l'adresse d'une variable.
-            //         auto adresse_source = génère_code_pour_atome(
-            //             it, assembleuse, UtilisationAtome::AUCUNE);
-            //         assembleuse.lea(registre, adresse_source);
-            //         registres.marque_registre_occupé(registre);
-            //         continue;
+            assert(classement_arg.premier_huitoctet_inclusif ==
+                   classement_arg.dernier_huitoctet_exclusif - 1);
+            auto registre = classement
+                                .registres_huitoctets[classement_arg.premier_huitoctet_inclusif]
+                                .registre;
+            génère_code_pour_atome(it, assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.pop(registre);
+            registres.marque_registre_occupé(registre);
+            continue;
         }
 
         if (est_adresse_globale(it)) {
@@ -2964,7 +2967,29 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
 {
     assert(atome == source || source->est_instruction());
 
-    if (atome->est_instruction()) {
+    if (atome->est_constante_entière()) {
+        assembleuse.mov(
+            registre, AssembleuseASM::Immédiate64{atome->comme_constante_entière()->valeur}, 8);
+    }
+    else if (atome->est_constante_nulle()) {
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{0}, 8);
+    }
+    else if (atome->est_constante_booléenne()) {
+        assembleuse.mov(
+            registre, AssembleuseASM::Immédiate64{atome->comme_constante_booléenne()->valeur}, 8);
+    }
+    else if (atome->est_constante_réelle()) {
+        assert(atome->type == TypeBase::R32);
+
+        auto constante_réelle = atome->comme_constante_réelle();
+        auto valeur_float = float(constante_réelle->valeur);
+        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+
+        auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
+        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
+        assembleuse.movsd(registre, adresse);
+    }
+    else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
         if (est_adresse_locale(inst) || inst->est_appel()) {
@@ -2981,8 +3006,11 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 registres.marque_registre_inoccupé(tmp);
             }
             else {
-                assert(est_type_entier(source->type) || source->type->est_type_pointeur() ||
-                       source->type->est_type_bool());
+                assert_rappel(est_type_entier(source->type) || source->type->est_type_pointeur() ||
+                                  source->type->est_type_bool() ||
+                                  source->type->est_type_référence() ||
+                                  source->type->est_type_énum(),
+                              [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.pop(registre);
                 assembleuse.mov(
                     registre, AssembleuseASM::Mémoire{registre}, source->type->taille_octet);
@@ -3053,40 +3081,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         registres, inst_bin->op, opérande_gauche, opérande_droite);
 
     assembleuse.commente("charge (atome_droite)");
-    if (atome_droite->est_constante_entière()) {
-        assembleuse.mov(
-            opérande_droite,
-            AssembleuseASM::Immédiate64{atome_droite->comme_constante_entière()->valeur},
-            8);
-    }
-    else if (atome_droite->est_constante_nulle()) {
-        assembleuse.mov(opérande_droite, AssembleuseASM::Immédiate64{0}, 8);
-    }
-    else if (atome_droite->est_constante_booléenne()) {
-        assembleuse.mov(
-            opérande_droite,
-            AssembleuseASM::Immédiate64{atome_droite->comme_constante_booléenne()->valeur},
-            8);
-    }
-    else if (atome_droite->est_constante_réelle()) {
-        assert(atome_droite->type == TypeBase::R32);
-
-        auto constante_réelle = atome_droite->comme_constante_réelle();
-        auto valeur_float = float(constante_réelle->valeur);
-        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
-
-        auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
-        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
-        assembleuse.movsd(opérande_droite, adresse);
-    }
-    else if (atome_droite->est_instruction()) {
-        charge_atome_dans_registre(
-            atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
-    }
-    else {
-        dbg() << __func__ << " : genre atome non supporté " << atome_droite->genre_atome;
-        VERIFIE_NON_ATTEINT;
-    }
+    charge_atome_dans_registre(
+        atome_droite, inst_bin->valeur_droite, opérande_droite, assembleuse);
 
     assembleuse.commente("charge (atome_gauche)");
     charge_atome_dans_registre(
@@ -3519,8 +3515,14 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     SAUVEGARDE_REGISTRES(registres);
 
-    assert(accès->accédé->est_instruction());
-    assert(accès->accédé->comme_instruction()->est_alloc());
+    assert_rappel(accès->accédé->est_globale() || accès->accédé->est_instruction(),
+                  [&]() { dbg() << "L'atome est de genre " << accès->accédé->genre_atome; });
+
+    assert_rappel(
+        accès->accédé->est_globale() || est_adresse_locale(accès->accédé->comme_instruction()),
+        [&]() {
+            dbg() << "L'instruction est de genre " << accès->accédé->comme_instruction()->genre;
+        });
 
     auto index = registres.donne_registre_entier_inoccupé();
 
@@ -3535,6 +3537,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
         if (type_accédé->est_type_tableau_fixe()) {
             type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
+        }
+        else if (type_accédé->est_type_pointeur()) {
+            type_accédé = type_accédé->comme_type_pointeur()->type_pointé;
         }
         else {
             dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
@@ -3561,6 +3566,9 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
         if (type_accédé->est_type_tableau_fixe()) {
             type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
+        }
+        else if (type_accédé->est_type_pointeur()) {
+            type_accédé = type_accédé->comme_type_pointeur()->type_pointé;
         }
         else {
             dbg() << __func__ << " : type non-supporté " << chaine_type(type_accédé);
@@ -3607,22 +3615,21 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.movzx(registre, type_vers->taille_octet, valeur,
-            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            if (type_de->taille_octet < 4) {
+                assembleuse.movzx(
+                    registre, type_vers->taille_octet, registre, type_de->taille_octet);
+            }
+            assembleuse.push(registre);
             break;
         }
         case TypeTranstypage::AUGMENTE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.movsx(registre, type_vers->taille_octet, valeur,
-            // type_de->taille_octet); assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            assembleuse.movsx(registre, type_vers->taille_octet, registre, type_de->taille_octet);
+            assembleuse.push(registre);
             break;
         }
         case TypeTranstypage::AUGMENTE_REEL:
@@ -3632,17 +3639,20 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_NATUREL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            auto registre2 = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre2, registre, type_vers->taille_octet);
+            assembleuse.push(registre2);
             break;
         }
         case TypeTranstypage::DIMINUE_RELATIF:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.mov(registre, valeur, type_de->taille_octet);
-            // assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
+            auto registre2 = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre2, registre, type_vers->taille_octet);
+            assembleuse.push(registre2);
             break;
         }
         case TypeTranstypage::DIMINUE_REEL:
@@ -3892,7 +3902,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
 {
     assert((utilisation & UtilisationAtome::POUR_DESTINATION_ÉCRITURE) !=
            UtilisationAtome::AUCUNE);
-    assert(inst_charge->type->est_type_pointeur());
+    assert(inst_charge->type->est_type_pointeur() || inst_charge->type->est_type_référence());
 
     génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
 
@@ -3963,7 +3973,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
             auto inst = source->comme_instruction();
 
-            if (est_adresse_locale(inst) || inst->est_appel()) {
+            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype()) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */

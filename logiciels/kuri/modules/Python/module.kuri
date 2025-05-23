@@ -283,7 +283,7 @@ ConfidentialitéType :: énum {
     OPAQUE
 }
 
-confidentialité_pour_annotation :: fonc (annotations: []*AnnotationCode) -> ConfidentialitéType
+confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> ConfidentialitéType
 {
     pour annotations {
         si it.nom == "privé" {
