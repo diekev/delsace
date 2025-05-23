@@ -64,6 +64,40 @@ NoeudDéfinitionClasse :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom DeclContext
+ * Structure de base pour tous les noeuds représentant un contexte de déclaration.
+ * \{ */
+
+DeclContext :: struct {
+    empl noeud: NoeudSyntaxique
+    déclarations: [..]*NoeudSyntaxique
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TranslationUnit
+ * \{ */
+
+TranslationUnit :: struct {
+    empl base: DeclContext
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NamespaceDecl
+ * \{ */
+
+NamespaceDecl :: struct {
+    empl base: DeclContext
+
+    identifiant: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Créatrice de Noeuds
  * \{ */
 
