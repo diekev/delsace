@@ -2025,7 +2025,6 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
 {
     famille_fonte := "serif"
     style := "normal"
-    graisse := GraisseFonte.Normal
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
@@ -2037,9 +2036,7 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     }
 
     font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
-    si font_weight >= 700.0 {
-        graisse = GraisseFonte.Gras
-    }
+    graisse := donne_graisse_fonte_depuis_poids(font_weight)
 
     font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé()
     si font_style == PROP_italic {

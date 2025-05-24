@@ -75,13 +75,55 @@ détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
 }
 
 GraisseFonte :: énum {
-    Normal
-    Gras
+    Fine
+    UltraLégère
+    Légère
+    Normale
+    Medium
+    SemiGrasse
+    Grasse
+    UltraGrasse
+    Noire
+    ExtraNoire
+}
+
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping */ 
+donne_graisse_fonte_depuis_poids :: fonc (poids: r64) -> GraisseFonte
+{
+    si poids < 200.0 { retourne GraisseFonte.Fine }
+    si poids < 300.0 { retourne GraisseFonte.UltraLégère }
+    si poids < 400.0 { retourne GraisseFonte.Légère }
+    si poids < 500.0 { retourne GraisseFonte.Normale }
+    si poids < 600.0 { retourne GraisseFonte.Medium }
+    si poids < 700.0 { retourne GraisseFonte.SemiGrasse }
+    si poids < 800.0 { retourne GraisseFonte.Grasse }
+    si poids < 900.0 { retourne GraisseFonte.UltraGrasse }
+    si poids < 950.0 { retourne GraisseFonte.Noire }
+    retourne GraisseFonte.ExtraNoire
+}
+
+donne_fontconfig_weight :: fonc (graisse: GraisseFonte) -> z32
+{
+    discr graisse {
+        Fine { retourne FC_WEIGHT_THIN }
+        UltraLégère { retourne FC_WEIGHT_ULTRALIGHT }
+        Légère { retourne FC_WEIGHT_LIGHT }
+        Normale { retourne FC_WEIGHT_REGULAR }
+        Medium { retourne FC_WEIGHT_MEDIUM }
+        SemiGrasse { retourne FC_WEIGHT_SEMIBOLD }
+        Grasse { retourne FC_WEIGHT_BOLD }
+        UltraGrasse { retourne FC_WEIGHT_ULTRABOLD }
+        Noire { retourne FC_WEIGHT_BLACK }
+        ExtraNoire { retourne FC_WEIGHT_EXTRABLACK }
+    }
+
+    assert(faux)
+    retourne FC_WEIGHT_REGULAR
 }
 
 donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 {
-    résultat := ctx.donne_fonte("serif", "normal", GraisseFonte.Normal, ctx.taille_fonte_défaut)
+    résultat := ctx.donne_fonte("serif", "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut)
     saufsi résultat {
         imprimeln("Impossible de trouver la fonte défaut")
         exit(1)
@@ -138,9 +180,7 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine
         assert(style == "normal")
     }
 
-    si graisse == GraisseFonte.Gras {
-        _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, FC_WEIGHT_BOLD)
-    }
+    _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, donne_fontconfig_weight(graisse))
 
     _ := FcConfigSubstitute(ctx.fontconfig, pattern, FcMatchKind.FcMatchPattern);
     FcDefaultSubstitute(pattern);
