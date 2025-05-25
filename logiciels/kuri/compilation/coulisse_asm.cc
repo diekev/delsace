@@ -1700,6 +1700,33 @@ struct AssembleuseASM {
         m_sortie << TABULATION << "cqo" << NOUVELLE_LIGNE;
     }
 
+    void pxor(Registre reg1, Registre reg2)
+    {
+        m_sortie << TABULATION << "pxor ";
+        imprime_opérande(reg1, 8);
+        m_sortie << ", ";
+        imprime_opérande(reg2, 8);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void cvtsi2ss(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvtsi2ss ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void cvtsi2sd(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        m_sortie << TABULATION << "cvtsi2sd ";
+        imprime_opérande(dst, 8);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
   private:
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
@@ -1741,7 +1768,12 @@ struct AssembleuseASM {
                     m_sortie << abs(décalage) << "]";
                 }
                 else {
-                    m_sortie << adresse;
+                    if (adresse.pointeur()[0] == '.') {
+                        m_sortie << "[" << adresse << "]";
+                    }
+                    else {
+                        m_sortie << adresse;
+                    }
                 }
                 return;
             }
@@ -3797,12 +3829,71 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre_entier = registres.donne_registre_entier_inoccupé();
+            auto registre_réelle = registres.donne_registre_réel_inoccupé();
+
+            charge_atome_dans_registre(valeur, transtype->valeur, registre_entier, assembleuse);
+
+            auto type_source = transtype->valeur->type;
+            if (type_source == TypeBase::Z8 || type_source == TypeBase::Z16) {
+                assembleuse.movsx(registre_entier, 4, registre_entier, type_source->taille_octet);
+            }
+
+            if (type_source->taille_octet < 4) {
+                assembleuse.pxor(registre_réelle, registre_réelle);
+            }
+
+            auto taille = type_source->taille_octet;
+            if (taille < 4) {
+                taille = 4;
+            }
+
+            if (transtype->type == TypeBase::R32) {
+                assembleuse.cvtsi2ss(registre_réelle, registre_entier, taille);
+                assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else if (transtype->type == TypeBase::R64) {
+                assembleuse.cvtsi2sd(registre_réelle, registre_entier, taille);
+                assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre_entier = registres.donne_registre_entier_inoccupé();
+            auto registre_réelle = registres.donne_registre_réel_inoccupé();
+
+            charge_atome_dans_registre(valeur, transtype->valeur, registre_entier, assembleuse);
+
+            auto type_source = transtype->valeur->type;
+
+            if (type_source->taille_octet < 4) {
+                assembleuse.pxor(registre_réelle, registre_réelle);
+            }
+
+            auto taille = type_source->taille_octet;
+            if (taille < 4) {
+                taille = 4;
+            }
+
+            if (transtype->type == TypeBase::R32) {
+                assembleuse.cvtsi2ss(registre_réelle, registre_entier, taille);
+                assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else if (transtype->type == TypeBase::R64) {
+                assembleuse.cvtsi2sd(registre_réelle, registre_entier, taille);
+                assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
     }
