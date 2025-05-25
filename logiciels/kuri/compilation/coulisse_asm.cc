@@ -2896,6 +2896,11 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
         auto caractère = atome->comme_constante_caractère();
         assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
     }
+    else if (atome->est_taille_de()) {
+        auto constante = atome->comme_taille_de();
+        auto type = constante->type_de_données;
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{type->taille_octet}, 8);
+    }
     else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
