@@ -2989,6 +2989,10 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
         assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
         assembleuse.movsd(registre, adresse);
     }
+    else if (atome->est_constante_caractère()) {
+        auto caractère = atome->comme_constante_caractère();
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
+    }
     else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
@@ -3966,6 +3970,12 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             }
 
             assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
+            src = registre;
+        }
+        else if (source->est_constante_caractère()) {
+            auto caractère = source->comme_constante_caractère();
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
             src = registre;
         }
         else if (source->est_instruction()) {
