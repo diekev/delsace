@@ -35,11 +35,6 @@
 
 #define VERIFIE_NON_ATTEINT assert(false)
 
-/* clang-format off */
-#define OPERANDE1 AssembleuseASM::Opérande{}
-#define OPERANDE2 AssembleuseASM::Opérande{}, AssembleuseASM::Opérande{}
-/* clang-format on */
-
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires
  * \{ */
