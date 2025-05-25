@@ -1632,12 +1632,12 @@ struct AssembleuseASM {
                     auto const décalage = opérande.mémoire.décalage;
                     m_sortie << "[" << adresse;
                     if (décalage < 0) {
-                        m_sortie << " - ";
+                        m_sortie << " - " << abs(décalage);
                     }
-                    else {
-                        m_sortie << " + ";
+                    else if (décalage > 0) {
+                        m_sortie << " + " << décalage;
                     }
-                    m_sortie << abs(décalage) << "]";
+                    m_sortie << "]";
                 }
                 else {
                     if (adresse.pointeur()[0] == '.') {
