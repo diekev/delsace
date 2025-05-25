@@ -3066,8 +3066,9 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     auto atome_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
 
     assembleuse.commente("génère_code_pour_atome(atome_gauche)");
-    assert(!atome_gauche->est_constante());
-    génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
+    if (!atome_gauche->est_constante()) {
+        génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
+    }
 
     assembleuse.commente("génère_code_pour_atome(atome_droite)");
     if (!atome_droite->est_constante()) {
