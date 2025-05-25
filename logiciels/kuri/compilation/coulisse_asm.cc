@@ -3036,7 +3036,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
     else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
-        if (est_adresse_locale(inst) || inst->est_appel()) {
+        if (est_adresse_locale(inst) || inst->est_appel() || inst->est_charge()) {
             if (source->type == TypeBase::R32) {
                 auto tmp = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(tmp, 8);
