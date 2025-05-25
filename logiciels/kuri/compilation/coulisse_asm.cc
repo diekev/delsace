@@ -2030,17 +2030,9 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto const structure = atome->comme_constante_structure();
-
-            // À FAIRE : rubrique
-            static int nombre_de_constantes = 0;
-            assembleuse.m_sortie << "  .constante" << nombre_de_constantes++ << ":"
-                                 << NOUVELLE_LIGNE;
-
-            génère_code_pour_initialisation_globale(structure, assembleuse.m_sortie, 1);
-
-            assembleuse.m_sortie << "  push .constante" << nombre_de_constantes - 1
-                                 << NOUVELLE_LIGNE;
-
+            auto index = ajoute_constante(structure);
+            auto nom = enchaine(".C", index);
+            assembleuse.push(AssembleuseASM::Mémoire(nom), 8);
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -2165,7 +2157,16 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_réelle = initialisateur->comme_constante_réelle();
+            if (constante_réelle->type == TypeBase::R32) {
+                auto valeur_float = float(constante_réelle->valeur);
+                auto bits = *reinterpret_cast<const uint32_t *>(&valeur_float);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dd " << bits;
+            }
+            else {
+                auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dq " << bits;
+            }
             return;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
@@ -2231,6 +2232,9 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
 
             if (type->est_type_tranche()) {
                 nom_structure = "tranche";
+            }
+            else if (type->est_type_tableau_dynamique()) {
+                nom_structure = "tableau";
             }
 
             enchaineuse << chaine_indentations_espace(profondeur) << "istruc " << nom_structure
@@ -4200,6 +4204,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
     os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
     os << "endstruc" << NOUVELLE_LIGNE;
+
+    os << "struc " << "tableau" << NOUVELLE_LIGNE;
+    os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".capacitxC3xA9 resq 1" << NOUVELLE_LIGNE;
+    os << "endstruc" << NOUVELLE_LIGNE;
     POUR (types_pour_globales.donne_éléments()) {
         déclare_structure(it, broyeuse, os);
     }
@@ -4446,13 +4456,8 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     }
 
     POUR_INDEX (m_constantes_fonction_courante) {
-        auto constante_réelle = it->comme_constante_réelle();
-        assert(it->type == TypeBase::R64);
-
-        auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
-
         os << TABULATION << ".C" << index_it << ":" << NOUVELLE_LIGNE;
-        os << TABULATION2 << "dq " << bits << NOUVELLE_LIGNE;
+        génère_code_pour_initialisation_globale(it, os, 1);
     }
 
     m_fonction_courante = nullptr;
