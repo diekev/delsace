@@ -3577,12 +3577,12 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_REEL:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.mov(registre, valeur, type_de->taille_octet);
-            // assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
+            auto registre1 = registres.donne_registre_réel_inoccupé();
+            auto registre2 = registres.donne_registre_réel_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre1, assembleuse);
+            assembleuse.cvtsd2ss(registre2, registre1);
+            assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre2);
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
         case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
