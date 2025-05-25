@@ -541,6 +541,11 @@ static void donne_classe_argument(Type const *type, kuri::tablet<Huitoctet, 4> &
         }
         case GenreNoeud::RÉEL:
         {
+            if (type == TypeBase::R16) {
+                résultat.ajoute({ClasseArgument::INTEGER});
+                return;
+            }
+
             /* @Incomplet : __m128, __m256, etc. */
             résultat.ajoute({ClasseArgument::SSE});
             return;
