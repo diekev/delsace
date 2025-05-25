@@ -987,7 +987,7 @@ static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
 }
 
 struct AssembleuseASM {
-  private:
+  public:
     Enchaineuse &m_sortie;
 
   public:
@@ -2129,28 +2129,17 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto const structure = atome->comme_constante_structure();
-            auto const type = structure->type->comme_type_composé();
-            // auto const tableau_valeur = structure->donne_atomes_membres();
 
-            auto résultat = alloue_variable(type);
+            // À FAIRE : rubrique
+            static int nombre_de_constantes = 0;
+            assembleuse.m_sortie << "  .constante" << nombre_de_constantes++ << ":"
+                                 << NOUVELLE_LIGNE;
 
-            VERIFIE_NON_ATTEINT;
-            // POUR_INDEX (type->donne_membres_pour_code_machine()) {
-            //     auto dst = résultat;
-            //     dst.décalage = int32_t(it.decalage);
+            génère_code_pour_initialisation_globale(structure, assembleuse.m_sortie, 1);
 
-            //     auto valeur = génère_code_pour_atome(
-            //         tableau_valeur[index_it], assembleuse, UtilisationAtome::AUCUNE);
+            assembleuse.m_sortie << "  push .constante" << nombre_de_constantes - 1
+                                 << NOUVELLE_LIGNE;
 
-            //     if (AssembleuseASM::est_immédiate(valeur.type)) {
-            //         assembleuse.mov(dst, valeur, it.type->taille_octet);
-            //     }
-            //     else {
-            //         copie(dst, valeur, it.type->taille_octet, assembleuse);
-            //     }
-            // }
-
-            assembleuse.push(résultat, 8);
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
