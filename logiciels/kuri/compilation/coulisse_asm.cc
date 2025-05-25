@@ -1134,16 +1134,7 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type));
         assert(taille <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "mov ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille) << " ";
-        }
-        imprime_opérande(dst, taille);
-        m_sortie << ", ";
-        imprime_opérande(src, taille);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille, src, taille);
     }
 
     void mov_ah(Opérande dst)
@@ -1165,16 +1156,7 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
         assert(taille_dst <= 8 && taille_src <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "movsx ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
-        }
-        imprime_opérande(dst, taille_dst);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_src);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_dst, src, taille_src);
     }
 
     void movzx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
@@ -1182,42 +1164,21 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
         assert(taille_dst <= 8 && taille_src <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "movzx ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
-        }
-        imprime_opérande(dst, taille_dst);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_src);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_dst, src, taille_src);
     }
 
     void movss(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
         assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
-
-        m_sortie << TABULATION << "movss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void movsd(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
         assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
-
-        m_sortie << TABULATION << "movsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void lea(Opérande dst, Opérande src)
@@ -1225,20 +1186,12 @@ struct AssembleuseASM {
         assert_rappel(src.type == TypeOpérande::MÉMOIRE,
                       [&]() { dbg() << "La source est de type " << src.type; });
         assert(dst.type == TypeOpérande::REGISTRE);
-
-        m_sortie << TABULATION << "lea ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void call(Opérande src)
     {
-        m_sortie << TABULATION << "call ";
-        imprime_opérande(src);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, 8);
     }
 
     void jump(int id_label)
@@ -1304,10 +1257,7 @@ struct AssembleuseASM {
     void mul(Opérande src, uint32_t taille_octet)
     {
         assert(!est_immédiate(src.type));
-        m_sortie << TABULATION << "mul ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void imul(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1317,114 +1267,67 @@ struct AssembleuseASM {
 
     void imul(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "imul ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void div(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "div ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void idiv(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "idiv ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void neg(Opérande dst, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "neg ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, dst, taille_octet);
     }
 
     void addss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void addsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void mulss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void mulsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void subss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void subsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void divss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void divsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void xorps(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "xorps ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void and_(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1444,9 +1347,7 @@ struct AssembleuseASM {
 
     void not_(Opérande dst, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "not ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("not", dst, taille_octet);
     }
 
     void shl(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1466,40 +1367,21 @@ struct AssembleuseASM {
 
     void cmp(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cmp ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        }
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void ucomiss(Opérande dst, Opérande src)
     {
         assert(dst.type == TypeOpérande::REGISTRE);
         assert(!est_immédiate(src.type));
-
-        m_sortie << TABULATION << "ucomiss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void ucomisd(Opérande dst, Opérande src)
     {
         assert(dst.type == TypeOpérande::REGISTRE);
         assert(!est_immédiate(src.type));
-
-        m_sortie << TABULATION << "ucomisd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void cmove(Opérande dst, Opérande src)
@@ -1534,56 +1416,32 @@ struct AssembleuseASM {
 
     void cvttss2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvttss2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtss2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtss2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvttsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvttsd2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtsd2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtsd2ss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "cvtsd2ss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 8);
     }
 
     void test(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "test ";
-        imprime_opérande(dst);
-        m_sortie << ", ";
-        imprime_opérande(src);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void push(Opérande src, uint32_t taille_octet)
@@ -1591,14 +1449,7 @@ struct AssembleuseASM {
         if (src.type == TypeOpérande::REGISTRE) {
             assert(taille_octet == 8);
         }
-
-        m_sortie << TABULATION << "push ";
-
-        if (src.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << "qword ";
-        }
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void empile(Registre reg, uint32_t taille_octet)
@@ -1643,9 +1494,7 @@ struct AssembleuseASM {
         if (dst.type == TypeOpérande::REGISTRE) {
             assert(taille_octet == 8);
         }
-        m_sortie << TABULATION << "pop ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, dst, taille_octet);
     }
 
     void pop(Registre reg)
@@ -1667,67 +1516,85 @@ struct AssembleuseASM {
 
     void ret()
     {
-        m_sortie << TABULATION << "ret" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void syscall()
     {
-        m_sortie << TABULATION << "syscall" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void ud2()
     {
-        m_sortie << TABULATION << "ud2" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cbw()
     {
-        m_sortie << TABULATION << "cbw" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cwd()
     {
-        m_sortie << TABULATION << "cwd" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cdq()
     {
-        m_sortie << TABULATION << "cdq" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cqo()
     {
-        m_sortie << TABULATION << "cqo" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void pxor(Registre reg1, Registre reg2)
     {
-        m_sortie << TABULATION << "pxor ";
-        imprime_opérande(reg1, 8);
-        m_sortie << ", ";
-        imprime_opérande(reg2, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, reg1, 8, reg2, 8);
     }
 
     void cvtsi2ss(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtsi2ss ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, taille_octet);
     }
 
     void cvtsi2sd(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtsi2sd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, taille_octet);
     }
 
   private:
+    void ajoute_instruction(kuri::chaine_statique nom)
+    {
+        m_sortie << TABULATION << nom << NOUVELLE_LIGNE;
+    }
+
+    void ajoute_instruction_unaire(kuri::chaine_statique nom, Opérande dst, uint32_t taille_dst)
+    {
+        m_sortie << TABULATION << nom << " ";
+        imprime_opérande(dst, taille_dst);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void ajoute_instruction_binaire(kuri::chaine_statique nom,
+                                    Opérande dst,
+                                    uint32_t taille_dst,
+                                    Opérande src,
+                                    uint32_t taille_src)
+    {
+        m_sortie << TABULATION << nom << " ";
+
+        if (nom == "mov" && dst.type == TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
+        }
+
+        imprime_opérande(dst, taille_dst);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_src);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
         switch (opérande.type) {
@@ -1804,12 +1671,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(!(dst.type == TypeOpérande::MÉMOIRE && src.type == TypeOpérande::MÉMOIRE));
-
-        m_sortie << TABULATION << nom_op << " ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(nom_op, dst, taille_octet, src, taille_octet);
     }
 
     void génère_code_décalage_bits(Opérande dst,
@@ -1819,11 +1681,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(est_immédiate(src.type) || est_registre(src, Registre::RCX));
-        m_sortie << TABULATION << nom_op << " ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, 1);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(nom_op, dst, taille_octet, src, 1);
     }
 };
 
