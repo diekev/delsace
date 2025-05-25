@@ -23,6 +23,8 @@
 #include "utilitaires/log.hh"
 
 #include "broyage.hh"
+#include "compilatrice.hh"
+#include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "programme.hh"
@@ -4251,6 +4253,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
             os << "extern " << it->nom << "\n";
         }
         else {
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+            if (it->nom == "principale") {
+                os << "global __principale\n";
+                continue;
+            }
+#endif
             os << "global " << it->nom << "\n";
         }
     }
@@ -4365,11 +4373,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     }
 
     // Fonction de test.
+#ifndef COMPILE_TOUTES_LES_FONCTIONS
     os << "global main\n";
     os << "main:\n";
-
     assembleuse.call(AssembleuseASM::Fonction{"principale"});
     assembleuse.ret();
+#endif
 }
 
 void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonction,
@@ -4378,7 +4387,16 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 {
     fonction->numérote_instructions();
 
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    if (fonction->nom == "principale") {
+        os << "__principale:\n";
+    }
+    else {
+        os << fonction->nom << ":\n";
+    }
+#else
     os << fonction->nom << ":\n";
+#endif
     définis_fonction_courante(fonction);
 
     /* Décale de 8 car l'adresse de l'instruction de retour se trouve à RSP. */
@@ -4595,12 +4613,36 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
+
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
+    auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    fichiers_objet.ajoute(fichier_point_d_entrée_c);
+
+    fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
+
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+    auto err_commande = exécute_commande_externe_erreur(commande);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
+    }
+#else
     auto commande = "gcc -ggdb -no-pie -lc -o a.out /tmp/compilation_kuri_asm.o";
     if (system(commande) != 0) {
         return ErreurCoulisse{"Impossible de lier le fichier objet."};
     }
+#endif
 
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
+    auto résultat_exécution = system(nom_exécutable.pointeur());
+#else
     auto résultat_exécution = system("./a.out");
+#endif
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";
     dbg() << "     " << WEXITSTATUS(résultat_exécution);
