@@ -1966,7 +1966,9 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_type = atome->comme_constante_type();
+            auto type = constante_type->donne_type();
+            assembleuse.push_immédiate_64(type->index_dans_table_types);
             return;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
@@ -2157,16 +2159,10 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto constante_réelle = initialisateur->comme_constante_réelle();
-            if (constante_réelle->type == TypeBase::R32) {
-                auto valeur_float = float(constante_réelle->valeur);
-                auto bits = *reinterpret_cast<const uint32_t *>(&valeur_float);
-                enchaineuse << chaine_indentations_espace(profondeur) << "dd " << bits;
-            }
-            else {
-                auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
-                enchaineuse << chaine_indentations_espace(profondeur) << "dq " << bits;
-            }
+            auto constante_type = initialisateur->comme_constante_type();
+            auto type = constante_type->donne_type();
+            enchaineuse << chaine_indentations_espace(profondeur) << "dq "
+                        << type->index_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
@@ -2185,7 +2181,16 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_réelle = initialisateur->comme_constante_réelle();
+            if (constante_réelle->type == TypeBase::R32) {
+                auto valeur_float = float(constante_réelle->valeur);
+                auto bits = *reinterpret_cast<const uint32_t *>(&valeur_float);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dd " << bits;
+            }
+            else {
+                auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dq " << bits;
+            }
             return;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
@@ -3950,6 +3955,14 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             auto caractère = source->comme_constante_caractère();
             auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
+            src = registre;
+        }
+        else if (source->est_constante_type()) {
+            auto constante_type = source->comme_constante_type();
+            auto type = constante_type->donne_type();
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(
+                registre, AssembleuseASM::Immédiate64{type->index_dans_table_types}, 8);
             src = registre;
         }
         else if (source->est_instruction()) {
