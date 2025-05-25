@@ -2618,7 +2618,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         return;
     }
 
-    // VERIFIE_NON_ATTEINT;
     SAUVEGARDE_REGISTRES(registres);
 
     auto classement = m_classifieuse.donne_classement_arguments(
@@ -2725,11 +2724,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         appelée = registre;
     }
-
-    // struct OpérandeTaillée {
-    //     AssembleuseASM::Opérande opérande{};
-    //     Type const *type = 0;
-    // };
 
     kuri::tablet<Atome *, 6> arguments_mémoire;
 
