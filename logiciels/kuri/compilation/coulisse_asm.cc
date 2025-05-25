@@ -1828,6 +1828,8 @@ struct GénératriceCodeASM {
     AtomeFonction const *m_fonction_courante = nullptr;
     ClassementArgument m_classement_fonction_courante{};
 
+    AtomeConstanteEntière m_constante_négation_r32;
+    AtomeConstanteEntière m_constante_zéro_z32;
     kuri::tableau<AtomeConstante const *> m_constantes_fonction_courante{};
 
     /* Si la valeur de retour doit être retournée en mémoire. */
@@ -1843,6 +1845,14 @@ struct GénératriceCodeASM {
     ClassifieuseArgument m_classifieuse{};
 
   public:
+    GénératriceCodeASM()
+        : m_constante_négation_r32(AtomeConstanteEntière(TypeBase::Z32, uint64_t(-2147483648))),
+          m_constante_zéro_z32(AtomeConstanteEntière(TypeBase::Z32, uint64_t(0)))
+    {
+    }
+
+    EMPECHE_COPIE(GénératriceCodeASM);
+
     void génère_code_pour_atome(Atome const *atome,
                                 AssembleuseASM &assembleuse,
                                 const UtilisationAtome utilisation);
@@ -2453,8 +2463,15 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                         assembleuse.movss(Registre::XMM0, AssembleuseASM::Mémoire{registre});
                         registres.marque_registre_inoccupé(registre);
 
-                        assembleuse.movss(Registre::XMM1,
-                                          AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
+                        // nous devrons avoir 4 valeurs pour remplir le registre (ajout
+                        // de trois zéros).
+                        auto index_constante = ajoute_constante(&m_constante_négation_r32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        auto nom_constante = enchaine(".C", index_constante);
+
+                        assembleuse.movss(Registre::XMM1, AssembleuseASM::Globale{nom_constante});
                         assembleuse.xorps(Registre::XMM0, Registre::XMM1);
                         assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8},
                                           Registre::XMM0);
