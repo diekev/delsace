@@ -1447,9 +1447,11 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "xor", taille_octet);
     }
 
-    void not_(Opérande dst, Opérande src)
+    void not_(Opérande dst, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "not" << NOUVELLE_LIGNE;
+        m_sortie << TABULATION << "not ";
+        imprime_opérande(dst, taille_octet);
+        m_sortie << NOUVELLE_LIGNE;
     }
 
     void shl(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -2543,8 +2545,14 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                 }
                 case OpérateurUnaire::Genre::Négation_Binaire:
                 {
-                    assembleuse.not_(OPERANDE2);
-                    VERIFIE_NON_ATTEINT;
+                    auto atome_valeur = donne_source_charge_ou_atome(inst_un->valeur);
+                    génère_code_pour_atome(
+                        atome_valeur, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
+                    auto registre = registres.donne_registre_entier_inoccupé();
+                    charge_atome_dans_registre(
+                        atome_valeur, inst_un->valeur, registre, assembleuse);
+                    assembleuse.not_(registre, inst_un->type->taille_octet);
+                    assembleuse.push(registre);
                     break;
                 }
             }
