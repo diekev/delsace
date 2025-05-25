@@ -3805,7 +3805,9 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
     auto const si_vrai = inst_branche->label_si_vrai;
     auto const si_faux = inst_branche->label_si_faux;
 
-    génère_code_pour_atome(prédicat, assembleuse, UtilisationAtome::POUR_BRANCHE_CONDITION);
+    auto atome_prédicat = donne_source_charge_ou_atome(prédicat);
+
+    génère_code_pour_atome(atome_prédicat, assembleuse, UtilisationAtome::POUR_BRANCHE_CONDITION);
 
     auto génère_code_branche = [&](auto &&méthode_si_vrai, auto &&méthode_si_faux) {
         /* Ne générons qu'un seul saut si possible. */
@@ -3879,8 +3881,9 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
         }
     }
 
-    VERIFIE_NON_ATTEINT;
-    // assembleuse.test(condition, condition);
+    auto condition = registres.donne_registre_entier_inoccupé();
+    charge_atome_dans_registre(atome_prédicat, prédicat, condition, assembleuse);
+    assembleuse.test(condition, condition);
 
     /* Ne générons qu'un seul saut si possible. */
     if (si_vrai->numero == inst_branche->numero + 1) {
