@@ -2198,6 +2198,22 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto constante_entière = initialisateur->comme_constante_entière();
             auto const type = constante_entière->type;
             enchaineuse << chaine_indentations_espace(profondeur);
+            if (type->est_type_entier_relatif()) {
+                if (type->taille_octet == 1) {
+                    enchaineuse << "db " << int8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                if (type->taille_octet == 2) {
+                    enchaineuse << "dw " << int16_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                if (type->taille_octet == 4) {
+                    enchaineuse << "dd " << int64_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                enchaineuse << "dq " << int64_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                return;
+            }
             if (type->taille_octet == 1) {
                 enchaineuse << "db " << uint8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
                 return;
