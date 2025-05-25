@@ -4097,10 +4097,12 @@ void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
     }
 }
 
+#undef COMPILE_TOUTES_LES_FONCTIONS
+
 static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
     kuri::tableau_statique<AtomeFonction *> fonctions)
 {
-#if 0
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
     kuri::tableau<AtomeFonction *> résultat;
     POUR (fonctions) {
         résultat.ajoute(it);
