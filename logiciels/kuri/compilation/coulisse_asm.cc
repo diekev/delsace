@@ -1933,6 +1933,8 @@ struct GénératriceCodeASM {
     AtomeFonction const *m_fonction_courante = nullptr;
     ClassementArgument m_classement_fonction_courante{};
 
+    kuri::tableau<AtomeConstante const *> m_constantes_fonction_courante{};
+
     /* Si la valeur de retour doit être retournée en mémoire. */
     AssembleuseASM::Mémoire m_adresse_retour{};
 
@@ -1987,6 +1989,13 @@ struct GénératriceCodeASM {
      * @Long-terme : ne préserve que les registres que nous modifions. */
     void sauvegarde_registres_appel(AssembleuseASM &assembleuse);
     void restaure_registres_appel(AssembleuseASM &assembleuse);
+
+    int64_t ajoute_constante(AtomeConstante const *constante)
+    {
+        auto résultat = m_constantes_fonction_courante.taille();
+        m_constantes_fonction_courante.ajoute(constante);
+        return résultat;
+    }
 
   private:
     template <typename... Ts>
@@ -2972,15 +2981,21 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
             registre, AssembleuseASM::Immédiate64{atome->comme_constante_booléenne()->valeur}, 8);
     }
     else if (atome->est_constante_réelle()) {
-        assert(atome->type == TypeBase::R32);
-
         auto constante_réelle = atome->comme_constante_réelle();
-        auto valeur_float = float(constante_réelle->valeur);
-        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
 
         auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
-        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
-        assembleuse.movsd(registre, adresse);
+
+        if (atome->type == TypeBase::R32) {
+            auto valeur_float = float(constante_réelle->valeur);
+            auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+            assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
+            assembleuse.movsd(registre, adresse);
+        }
+        else {
+            auto index_constante = ajoute_constante(constante_réelle);
+            auto nom = enchaine(".C", index_constante);
+            assembleuse.movsd(registre, AssembleuseASM::Mémoire(nom));
+        }
     }
     else if (atome->est_constante_caractère()) {
         auto caractère = atome->comme_constante_caractère();
@@ -4470,6 +4485,16 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         génère_code_pour_instruction(it, assembleuse, UtilisationAtome::AUCUNE);
     }
 
+    POUR_INDEX (m_constantes_fonction_courante) {
+        auto constante_réelle = it->comme_constante_réelle();
+        assert(it->type == TypeBase::R64);
+
+        auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
+
+        os << TABULATION << ".C" << index_it << ":" << NOUVELLE_LIGNE;
+        os << TABULATION2 << "dq " << bits << NOUVELLE_LIGNE;
+    }
+
     m_fonction_courante = nullptr;
     os << "\n\n";
 }
@@ -4508,6 +4533,8 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     POUR (m_adresses_locales) {
         it = valeur_défaut;
     }
+
+    m_constantes_fonction_courante.efface();
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(InstructionAllocation const *alloc)
