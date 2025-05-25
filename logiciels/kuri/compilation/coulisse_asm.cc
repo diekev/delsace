@@ -2232,8 +2232,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto structure = initialisateur->comme_constante_structure();
             auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_membres();
-            auto nom_structure = chaine_type(type);
-            nom_structure = broyeuse.broye_nom_simple(nom_structure);
+            auto nom_structure = broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type));
 
             if (type->est_type_tranche()) {
                 nom_structure = "tranche";
@@ -4155,9 +4154,7 @@ static void déclare_structure(TypeCompose const *type,
                               Broyeuse &broyeuse,
                               Enchaineuse &enchaineuse)
 {
-    auto nom_type = chaine_type(type);
-
-    nom_type = broyeuse.broye_nom_simple(nom_type);
+    auto nom_type = broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type));
 
     enchaineuse << "struc " << nom_type << NOUVELLE_LIGNE;
 
@@ -4196,23 +4193,6 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
                                      Enchaineuse &os)
 {
     /* Déclaration des types. */
-    kuri::rassembleuse<TypeCompose const *> types_pour_globales;
-    auto visiteuse_type = VisiteuseType{};
-
-    POUR (repr_inter_programme.donne_globales()) {
-        if (!it->est_constante) {
-            continue;
-        }
-
-        table_globales.insère(it, broyeuse.broye_nom_simple(it->ident));
-
-        visiteuse_type.visite_type(const_cast<Type *>(it->donne_type_alloué()), [&](Type *type) {
-            if (type->est_type_structure() || type->est_type_chaine()) {
-                types_pour_globales.insère(type->comme_type_composé());
-            }
-        });
-    }
-
     os << "struc " << "tranche" << NOUVELLE_LIGNE;
     os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
     os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
@@ -4223,8 +4203,10 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
     os << TABULATION << ".capacitxC3xA9 resq 1" << NOUVELLE_LIGNE;
     os << "endstruc" << NOUVELLE_LIGNE;
-    POUR (types_pour_globales.donne_éléments()) {
-        déclare_structure(it, broyeuse, os);
+    POUR (repr_inter_programme.donne_types()) {
+        if (it->est_type_structure() || it->est_type_chaine() || it->est_type_eini()) {
+            déclare_structure(it->comme_type_composé(), broyeuse, os);
+        }
     }
 
     /* Prodéclaration des fonctions. */
