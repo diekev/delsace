@@ -3981,7 +3981,8 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
 
             auto inst = source->comme_instruction();
 
-            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype()) {
+            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype() ||
+                inst->est_charge()) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
