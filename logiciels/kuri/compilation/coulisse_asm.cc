@@ -2360,8 +2360,9 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::GLOBALE:
         {
+            // À FAIRE : prédéclare les noms des globales
             enchaineuse << chaine_indentations_espace(profondeur) << "dq "
-                        << table_globales.valeur_ou(initialisateur, "") << NOUVELLE_LIGNE;
+                        << table_globales.valeur_ou(initialisateur, "0") << NOUVELLE_LIGNE;
             return;
         }
     }
