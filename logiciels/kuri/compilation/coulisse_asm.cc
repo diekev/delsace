@@ -3997,6 +3997,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             }
             else {
                 dbg() << "Instruction non-supportée " << inst->genre;
+                dbg() << imprime_arbre_instruction(inst);
                 VERIFIE_NON_ATTEINT;
             }
         }
