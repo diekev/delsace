@@ -1641,7 +1641,7 @@ struct AssembleuseASM {
                 }
                 else {
                     if (adresse.pointeur()[0] == '.') {
-                        m_sortie << "[" << adresse << "]";
+                        m_sortie << "qword [" << adresse << "]";
                     }
                     else {
                         m_sortie << adresse;
