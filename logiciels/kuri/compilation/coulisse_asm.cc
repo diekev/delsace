@@ -3879,6 +3879,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
     assembleuse.pop(registre);
     assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
     assembleuse.push(registre);
+    registres.marque_registre_inoccupé(registre);
 }
 
 void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
