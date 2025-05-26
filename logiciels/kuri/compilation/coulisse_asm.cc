@@ -58,6 +58,11 @@ inline bool est_adresse_locale(Atome const *atome)
         return true;
     }
 
+    if (inst->est_transtype()) {
+        auto transtype = inst->comme_transtype();
+        return est_adresse_locale(transtype->valeur);
+    }
+
     return false;
 }
 
