@@ -2905,6 +2905,11 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
 
 static bool est_type_compatible_registre_entier(Type const *type)
 {
+    if (type->est_type_opaque()) {
+        auto opaque = type->comme_type_opaque();
+        return est_type_compatible_registre_entier(opaque->type_opacifié);
+    }
+
     return est_type_entier(type) || type->est_type_pointeur() || type->est_type_bool() ||
            type->est_type_référence() || type->est_type_énum() ||
            type->est_type_adresse_fonction() || type->est_type_fonction();
