@@ -4010,7 +4010,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
-                if (!est_adresse_locale(inst_stocke->source)) {
+                if (!est_adresse_locale(inst_stocke->source) && !inst->est_transtype()) {
                     src = AssembleuseASM::Mémoire{registre};
                 }
             }
