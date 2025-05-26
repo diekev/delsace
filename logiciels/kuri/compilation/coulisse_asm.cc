@@ -971,6 +971,7 @@ enum class TypeOpérande {
     MÉMOIRE,
     FONCTION,
     GLOBALE,
+    LABEL,
 };
 
 static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
@@ -988,6 +989,7 @@ static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
         IMPRIME_CAS(MÉMOIRE);
         IMPRIME_CAS(FONCTION);
         IMPRIME_CAS(GLOBALE);
+        IMPRIME_CAS(LABEL);
     }
 #undef IMPRIME_CAS
     return os;
@@ -1022,6 +1024,11 @@ struct AssembleuseASM {
         kuri::chaine_statique valeur;
     };
 
+    struct Label {
+        kuri::chaine_statique nom;
+        int index;
+    };
+
     static bool est_immédiate(TypeOpérande type)
     {
         switch (type) {
@@ -1036,6 +1043,7 @@ struct AssembleuseASM {
             case TypeOpérande::MÉMOIRE:
             case TypeOpérande::FONCTION:
             case TypeOpérande::GLOBALE:
+            case TypeOpérande::LABEL:
             {
                 return false;
             }
@@ -1071,6 +1079,7 @@ struct AssembleuseASM {
         Mémoire mémoire{};
         Fonction fonction{};
         Globale globale{};
+        Label label{};
 
         Opérande()
         {
@@ -1105,6 +1114,10 @@ struct AssembleuseASM {
         }
 
         Opérande(Globale glob) : type(TypeOpérande::GLOBALE), globale(glob)
+        {
+        }
+
+        Opérande(Label lab) : type(TypeOpérande::LABEL), label(lab)
         {
         }
 
@@ -1210,52 +1223,52 @@ struct AssembleuseASM {
 
     void jump(int id_label)
     {
-        m_sortie << TABULATION << "jmp .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jmp", Label{"label", id_label}, 0);
     }
 
     void jump_si_zéro(int id_label)
     {
-        m_sortie << TABULATION << "jz .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jz", Label{"label", id_label}, 0);
     }
 
     void jump_si_non_zéro(int id_label)
     {
-        m_sortie << TABULATION << "jnz .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jnz", Label{"label", id_label}, 0);
     }
 
     void jump_si_égal(int id_label)
     {
-        m_sortie << TABULATION << "je .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("je", Label{"label", id_label}, 0);
     }
 
     void jump_si_inégal(int id_label)
     {
-        m_sortie << TABULATION << "jne .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jne", Label{"label", id_label}, 0);
     }
 
     void jump_si_inférieur(int id_label)
     {
-        m_sortie << TABULATION << "jl .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jl", Label{"label", id_label}, 0);
     }
 
     void jump_si_inférieur_égal(int id_label)
     {
-        m_sortie << TABULATION << "jle .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jle", Label{"label", id_label}, 0);
     }
 
     void jump_si_supérieur(int id_label)
     {
-        m_sortie << TABULATION << "jg .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jg", Label{"label", id_label}, 0);
     }
 
     void jump_si_supérieur_égal(int id_label)
     {
-        m_sortie << TABULATION << "jge .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jge", Label{"label", id_label}, 0);
     }
 
     void label(int id)
     {
-        m_sortie << ".label" << id << ":" << NOUVELLE_LIGNE;
+        ajoute_label(Label{"label", id});
     }
 
     void add(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1609,6 +1622,11 @@ struct AssembleuseASM {
         m_sortie << NOUVELLE_LIGNE;
     }
 
+    void ajoute_label(Label label)
+    {
+        m_sortie << "." << label.nom << label.index << ":" << NOUVELLE_LIGNE;
+    }
+
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
         switch (opérande.type) {
@@ -1671,6 +1689,11 @@ struct AssembleuseASM {
             case TypeOpérande::GLOBALE:
             {
                 m_sortie << "[" << opérande.globale.valeur << "]";
+                return;
+            }
+            case TypeOpérande::LABEL:
+            {
+                m_sortie << "." << opérande.label.nom << opérande.label.index;
                 return;
             }
         }
