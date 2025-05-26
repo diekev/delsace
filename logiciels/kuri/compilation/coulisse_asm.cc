@@ -3586,6 +3586,8 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             break;
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
         {
             auto registre = registres.donne_registre_entier_inoccupé();
             charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
@@ -3610,6 +3612,8 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             break;
         }
         case TypeTranstypage::DIMINUE_NATUREL:
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
         {
             auto registre = registres.donne_registre_entier_inoccupé();
             charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
@@ -3635,26 +3639,6 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             assembleuse.cvtsd2ss(registre2, registre1);
             assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre2);
             assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
-            break;
-        }
-        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
-        {
-            VERIFIE_NON_ATTEINT;
             break;
         }
         case TypeTranstypage::POINTEUR_VERS_ENTIER:
