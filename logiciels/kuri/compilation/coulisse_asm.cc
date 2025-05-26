@@ -1072,7 +1072,9 @@ struct AssembleuseASM {
         Fonction fonction{};
         Globale globale{};
 
-        Opérande() {};
+        Opérande()
+        {
+        }
 
         Opérande(Mémoire mém) : type(TypeOpérande::MÉMOIRE), mémoire(mém)
         {
