@@ -2641,11 +2641,12 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             if (classe == ClasseArgument::SSE) {
-                if (it->type == TypeBase::R32) {
+                if (taille_à_copier == 4) {
                     assembleuse.movss(registre, adresse_source);
                 }
                 else {
-                    assert(it->type == TypeBase::R64);
+                    assert_rappel(taille_à_copier == 8,
+                                  [&]() { dbg() << "La taille est de " << taille_à_copier; });
                     assembleuse.movsd(registre, adresse_source);
                 }
             }
@@ -2739,11 +2740,12 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             if (classe == ClasseArgument::SSE) {
-                if (type_retour == TypeBase::R32) {
+                if (taille_à_copier == 4) {
                     assembleuse.movss(adresse_retour, registre);
                 }
                 else {
-                    assert(type_retour == TypeBase::R64);
+                    assert_rappel(taille_à_copier == 8,
+                                  [&]() { dbg() << "La taille est de " << taille_à_copier; });
                     assembleuse.movsd(adresse_retour, registre);
                 }
             }
@@ -3443,11 +3445,12 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
                 }
 
                 if (classe == ClasseArgument::SSE) {
-                    if (type_retour == TypeBase::R32) {
+                    if (taille_à_copier == 4) {
                         assembleuse.movss(registre, adresse_source);
                     }
                     else {
-                        assert(type_retour == TypeBase::R64);
+                        assert_rappel(taille_à_copier == 8,
+                                      [&]() { dbg() << "La taille est de " << taille_à_copier; });
                         assembleuse.movsd(registre, adresse_source);
                     }
                 }
