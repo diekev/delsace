@@ -4640,6 +4640,9 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 
 #ifdef COMPILE_TOUTES_LES_FONCTIONS
     auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
+
+    info() << "Exécution de la commande " << nom_exécutable;
+
     auto résultat_exécution = system(nom_exécutable.pointeur());
 #else
     auto résultat_exécution = system("./a.out");
