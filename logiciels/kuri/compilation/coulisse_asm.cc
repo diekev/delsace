@@ -3013,7 +3013,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
         }
     }
     else if (atome->est_globale()) {
-        if (est_type_entier(source->type) || source->type->est_type_bool()) {
+        if (est_type_compatible_registre_entier(source->type)) {
             assembleuse.pop(registre);
             assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         }
