@@ -1997,7 +1997,9 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_taille_de = atome->comme_taille_de();
+            auto type = constante_taille_de->type_de_données;
+            assembleuse.push_immédiate_64(type->taille_octet);
             return;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
@@ -4034,6 +4036,13 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
                 dbg() << imprime_arbre_instruction(inst);
                 VERIFIE_NON_ATTEINT;
             }
+        }
+        else if (source->est_taille_de()) {
+            auto constante_taille_de = source->comme_taille_de();
+            auto type = constante_taille_de->type_de_données;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre, AssembleuseASM::Immédiate64{type->taille_octet}, 8);
+            src = registre;
         }
         else if (source->est_fonction() || source->est_globale()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
