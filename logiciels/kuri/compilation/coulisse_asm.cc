@@ -1970,8 +1970,7 @@ struct GénératriceCodeASM {
                                          UtilisationAtome utilisation);
 
     void génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
-                                         AssembleuseASM &assembleuse,
-                                         UtilisationAtome utilisation);
+                                         AssembleuseASM &assembleuse);
 
     void copie(AssembleuseASM::Opérande dest,
                AssembleuseASM::Opérande src,
@@ -2447,7 +2446,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::STOCKE_MEMOIRE:
         {
-            génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse, utilisation);
+            génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse);
             break;
         }
         case GenreInstruction::LABEL:
@@ -3955,8 +3954,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
 }
 
 void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
-                                                         AssembleuseASM &assembleuse,
-                                                         UtilisationAtome utilisation)
+                                                         AssembleuseASM &assembleuse)
 {
     SAUVEGARDE_REGISTRES(registres);
 
