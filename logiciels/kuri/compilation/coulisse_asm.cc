@@ -996,7 +996,7 @@ static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
 }
 
 struct AssembleuseASM {
-  public:
+  private:
     Enchaineuse &m_sortie;
 
   public:
