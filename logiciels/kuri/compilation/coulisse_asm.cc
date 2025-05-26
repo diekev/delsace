@@ -116,6 +116,9 @@ enum class Registre {
     XMM5,
     XMM6,
     XMM7,
+
+    /* Cas spécial. */
+    AH,
 };
 
 #define NOMBRE_REGISTRES_ENTIER 16
@@ -162,6 +165,10 @@ static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t ta
         APPARIE_REGISTRE(XMM5, "xmm5", "xmm5", "xmm5", "xmm5")
         APPARIE_REGISTRE(XMM6, "xmm6", "xmm6", "xmm6", "xmm6")
         APPARIE_REGISTRE(XMM7, "xmm7", "xmm7", "xmm7", "xmm7")
+        case Registre::AH:
+        {
+            return "ah";
+        }
     }
 
 #undef APPARIE_REGISTRE
@@ -1167,15 +1174,7 @@ struct AssembleuseASM {
     void mov_ah(Opérande dst)
     {
         assert(!est_immédiate(dst.type));
-
-        m_sortie << TABULATION << "mov ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(1) << " ";
-        }
-        imprime_opérande(dst, 1);
-        m_sortie << ", ah";
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire("mov", dst, 1, Registre::AH, 1);
     }
 
     void movsx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
