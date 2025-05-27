@@ -3583,6 +3583,14 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     auto accédé = registres.donne_registre_entier_inoccupé();
     assembleuse.pop(accédé);
+
+    if (accès->accédé->est_instruction()) {
+        if (accès->donne_type_accédé()->est_type_pointeur()) {
+            // l'accédé est le pointeur vers le pointeur, donc déréférence-le
+            assembleuse.mov(accédé, AssembleuseASM::Mémoire{accédé}, 8);
+        }
+    }
+
     assembleuse.add(accédé, index, 8);
     assembleuse.push(accédé);
 }
