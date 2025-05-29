@@ -3611,6 +3611,15 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
     switch (transtype->op) {
         case TypeTranstypage::BITS:
         {
+            if (transtype->type->est_type_pointeur() && transtype->valeur->est_instruction() &&
+                transtype->valeur->comme_instruction()->est_charge()) {
+                /* Déréférençons manuellement l'adresse pour ne pas avoir à détecter ce cas dans la
+                 * compilation des autres instructions. */
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(registre);
+                assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
+                assembleuse.push(registre);
+            }
             break;
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
