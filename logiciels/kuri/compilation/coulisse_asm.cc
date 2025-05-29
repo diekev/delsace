@@ -2075,8 +2075,7 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         {
             auto const structure = atome->comme_constante_structure();
             auto index = ajoute_constante(structure);
-            auto nom = enchaine(".C", index);
-            assembleuse.push(AssembleuseASM::Mémoire(nom), 8);
+            assembleuse.push(AssembleuseASM::Label("C", int32_t(index)), 8);
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
