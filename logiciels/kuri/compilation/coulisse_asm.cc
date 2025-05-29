@@ -2557,13 +2557,13 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_atome(accédé, assembleuse, UtilisationAtome::AUCUNE);
 
             auto const &membre = accès->donne_membre_accédé();
-
-            auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.pop(registre, 8);
-            assembleuse.add(registre, AssembleuseASM::Immédiate64{membre.decalage}, 8);
-            assembleuse.push(registre, 8);
-
-            registres.marque_registre_inoccupé(registre);
+            if (membre.decalage != 0) {
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(registre, 8);
+                assembleuse.add(registre, AssembleuseASM::Immédiate64{membre.decalage}, 8);
+                assembleuse.push(registre, 8);
+                registres.marque_registre_inoccupé(registre);
+            }
             break;
         }
         case GenreInstruction::TRANSTYPE:
