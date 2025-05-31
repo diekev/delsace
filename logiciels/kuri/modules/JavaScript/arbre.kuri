@@ -3567,10 +3567,11 @@ sur_exécution_if_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *In
     expr_ref := complétion_expr_ref.valeur
 
     // 2. Let exprValue be ToBoolean(? GetValue(exprRef)).
-    expr_value := get_value(interpréteuse, expr_ref)
+    value_expr_ref := get_value(interpréteuse, expr_ref)
     si interpréteuse.possède_exception() {
         retourne throw_completion(interpréteuse.donne_exception())
     }
+    expr_value := to_boolean(value_expr_ref)
 
     stmt_completion: CompletionRecord
 
