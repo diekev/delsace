@@ -4714,9 +4714,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
 
         si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(NoeudSyntaxique)) {
             membre := eini_depuis_info_membre(valeur_eini, it)
-            visiteuse.profondeur -= 1
             visite_structure(visiteuse, membre)
-            visiteuse.profondeur += 1
             continue
         }
     }
