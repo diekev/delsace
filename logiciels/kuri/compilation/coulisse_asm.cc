@@ -3,6 +3,7 @@
 
 #include "coulisse_asm.hh"
 
+#include <array>
 #include <fstream>
 #include <iostream>
 

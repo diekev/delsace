@@ -4,7 +4,10 @@
 #include "erreur.h"
 
 #include <iostream>
+
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #include "biblinternes/langage/erreur.hh"
 #include "biblinternes/outils/chaine.hh"
@@ -596,13 +599,23 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
+static bool est_dirigé_vers_un_terminal()
+{
+#ifdef _MSC_VER
+    // @sansfusion
+    return true;
+#else
+    return isatty(STDOUT_FILENO) && isatty(STDERR_FILENO);
+#endif
+}
+
 static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
                                          ParamètresErreurExterne const &params)
 {
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(erreur::Genre::NORMAL);
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_CYAN_GRAS;
     }
 
@@ -613,7 +626,7 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
     }
     flux << "\n\n";
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_NORMALE;
     }
 
@@ -649,7 +662,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(genre);
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_CYAN_GRAS;
     }
 
@@ -660,7 +673,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     }
     flux << "\n\n";
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_NORMALE;
     }
 

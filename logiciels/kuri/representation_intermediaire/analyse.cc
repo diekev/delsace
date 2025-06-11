@@ -24,6 +24,8 @@
 #include "instructions.hh"
 #include "visite_instructions.hh"
 
+#include "plateforme/windows.h"
+
 /* ********************************************************************************************* */
 
 /* Détecte le manque de retour. Toutes les fonctions, y compris celles ne retournant rien doivent

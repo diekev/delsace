@@ -286,6 +286,72 @@ static void génère_code_machine_virtuelle(const kuri::tableau<Protéine *> &pr
     inclus(os, "compilation/intrinseques.hh");
     os << "\n";
 
+#ifdef _MSC_VER
+    auto code = R"(
+#include <windows.h>
+#include <intrin.h>
+
+uint32_t __builtin_ctz(uint32_t value)
+{
+    DWORD trailing_zero = 0;
+
+    if ( _BitScanForward( &trailing_zero, value ) )
+    {
+        return trailing_zero;
+    }
+    else
+    {
+        // This is undefined, I better choose 32 than 0
+        return 32;
+    }
+}
+uint32_t __builtin_clz(uint32_t value)
+{
+    DWORD leading_zero = 0;
+
+    if (_BitScanReverse( &leading_zero, value ) )
+    {
+       return 31 - leading_zero;
+    }
+    return 32;
+}
+uint64_t __builtin_ctzl(uint64_t value)
+{
+    DWORD trailing_zero = 0;
+
+    if ( _BitScanForward64( &trailing_zero, value ) )
+    {
+        return trailing_zero;
+    }
+    else
+    {
+        return 64;
+    }
+}
+uint64_t __builtin_clzl(uint64_t value)
+{
+    DWORD leading_zero = 0;
+
+    if (_BitScanReverse64( &leading_zero, value ) )
+    {
+       return 63 - leading_zero;
+    }
+    return 64;
+}
+
+static void __builtin_trap()
+{
+    __fastfail(1);
+}
+static void __builtin_unreachable()
+{
+    __fastfail(1);
+}
+
+)";
+    os << code;
+#endif
+
     os << "void MachineVirtuelle::appel_fonction_intrinsèque(AtomeFonction *ptr_fonction)\n";
     os << "{\n";
 

@@ -475,13 +475,15 @@ inline GenreLexème lexème_pour_chaine(dls::vue_chaine_compacte chn)
     fichier_tmp.close();
 
     std::stringstream ss;
-    ss << CHEMIN_GPERF << " ";
+    ss << '"' << CHEMIN_GPERF << "\" ";
     ss << "-m100 ";
     ss << empreinte_parfaite_txt << " ";
     ss << "--output-file=";
     ss << empreinte_parfaite_tmp_hh;
 
     const auto commande = ss.str();
+
+    std::cout << "Exécution de la commande : " << commande << std::endl;
 
     if (system(commande.c_str()) != 0) {
         std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte "

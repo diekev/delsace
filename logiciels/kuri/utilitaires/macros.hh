@@ -25,8 +25,13 @@
 #define PRAGMA_IMPL(x) _Pragma(#x)
 #define A_FAIRE(x) PRAGMA_IMPL(message("À FAIRE : " CHAINE(x)))
 
+#if defined(__GNUC__)
 #define PROBABLE(x) (__builtin_expect((x), 1))
 #define IMPROBABLE(x) (__builtin_expect((x), 0))
+#else
+#define PROBABLE(x) (x)
+#define IMPROBABLE(x) (x)
+#endif
 
 /* clang-format off */
 #if defined(__clang__) || defined(__GNUC__)

@@ -30,7 +30,7 @@ set(BIBLIOTHEQUES
 )
 
 add_library(${NOM_CIBLE} STATIC
-    arbre_kd.cc
+    #arbre_kd.cc
     chaine.cc
     chaine_referencee.cc
     chaine_utf8.cc

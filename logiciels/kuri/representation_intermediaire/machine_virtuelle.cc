@@ -4,7 +4,10 @@
 #include "machine_virtuelle.hh"
 
 #include <iostream>
+
+#ifndef _MSC_VER
 #include <x86intrin.h>
+#endif
 
 #include "biblinternes/chrono/chronometrage.hh"
 
