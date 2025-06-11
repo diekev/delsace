@@ -1146,7 +1146,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés_parent, résolveuse.globales)
     }
     sinon {
-        fonte := donne_fonte(résolveuse.globales, "sérif", "normal", GraisseFonte.Normal, résolveuse.globales.taille_fonte_défaut)
+        fonte := donne_fonte_défaut(résolveuse.globales)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, fonte)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, fonte)
     }
@@ -2023,9 +2023,8 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
-    famille_fonte := "sérif"
+    famille_fonte := "serif"
     style := "normal"
-    graisse := GraisseFonte.Normal
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
@@ -2037,9 +2036,7 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     }
 
     font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
-    si font_weight >= 700.0 {
-        graisse = GraisseFonte.Gras
-    }
+    graisse := donne_graisse_fonte_depuis_poids(font_weight)
 
     font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé()
     si font_style == PROP_italic {

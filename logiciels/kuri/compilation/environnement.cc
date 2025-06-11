@@ -423,6 +423,10 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         enchaineuse << it << " ";
     }
 
+    if (options.coulisse == TypeCoulisse::ASM) {
+        enchaineuse << "-no-pie" << " ";
+    }
+
     POUR (fichiers_entrée) {
         enchaineuse << "\"" << it << "\" ";
     }
