@@ -169,7 +169,7 @@ void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
     std::sort(
         entrées.begin(), entrées.end(), [](auto &a, auto &b) { return a.second > b.second; });
 
-    auto taille_max_chaine = 0l;
+    auto taille_max_chaine = int64_t(0);
     POUR (entrées) {
         auto chaine_code = chaine_code_operation(it.first);
         taille_max_chaine = std::max(taille_max_chaine, chaine_code.taille());

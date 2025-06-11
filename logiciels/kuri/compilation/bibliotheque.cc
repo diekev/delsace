@@ -156,12 +156,12 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
     résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
 
 #ifdef _MSC_VER
-    kuri::ensemblon<kuri::chaine_statique, 16> résultat;
-    résultat.insere(resultat[0]);
+    kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
+    chemins_connus.insère(résultat[0]);
 
     if (architecture == ArchitectureCible::X64) {
-        ajoute_chemins_depuis_env("LIB", resultat, chemins_connus);
-        ajoute_chemins_depuis_env("LIBPATH", resultat, chemins_connus);
+        ajoute_chemins_depuis_env("LIB", résultat, chemins_connus);
+        ajoute_chemins_depuis_env("LIBPATH", résultat, chemins_connus);
     }
     // A FAIRE : version 32-bit
 #else

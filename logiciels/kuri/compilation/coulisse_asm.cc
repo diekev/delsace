@@ -4694,7 +4694,9 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 #endif
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";
+#ifndef _MSC_VER
     dbg() << "     " << WEXITSTATUS(résultat_exécution);
+#endif
     dbg() << "=================================================";
     return {};
 }

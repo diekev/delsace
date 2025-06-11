@@ -20,15 +20,15 @@ static kuri::chaine chaine_echappee(kuri::chaine_statique chn)
 {
     Enchaineuse enchaineuse;
 
-    enchaineuse.pousse_caractere('"');
+    enchaineuse << '"';
     for (auto i = 0; i < chn.taille(); i++) {
         auto it = chn.pointeur()[i];
         //        if (it == ' ') {
         //            enchaineuse.pousse_caractere('\\');
         //        }
-        enchaineuse.pousse_caractere(it);
+        enchaineuse << it;
     }
-    enchaineuse.pousse_caractere('"');
+    enchaineuse << '"';
 
     return enchaineuse.chaine();
 }
@@ -518,7 +518,7 @@ static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique 
     enchaineuse << donne_compilateur_cpp();
 
 #ifdef _MSC_VER
-    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entree << "\""
+    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entrée << "\""
                 << " /link /DLL /OUT:" << nom_sortie;
 #else
     enchaineuse << " -shared -fPIC ";

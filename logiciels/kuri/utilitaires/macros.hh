@@ -14,8 +14,13 @@
 #    define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
 #endif
 
+#ifdef _MSC_VER
+#define TOUJOURS_ENLIGNE __forceinline
+#define TOUJOURS_HORSLIGNE
+#else
 #define TOUJOURS_ENLIGNE [[gnu::always_inline]]
 #define TOUJOURS_HORSLIGNE [[gnu::noinline]]
+#endif
 
 #define INUTILISE(x) static_cast<void>(x)
 
