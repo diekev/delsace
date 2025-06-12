@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
+#include "utilitaires/synchrone.hh"
 
 #include "erreur.h"
 #include "messagere.hh"
@@ -75,18 +75,18 @@ struct EspaceDeTravail {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void tache_ajoutee(GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère);
-    void tache_terminee(GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère);
+    void tache_ajoutee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère);
+    void tache_terminee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère);
 
     void progresse_phase_pour_tache_terminee(GenreTâche genre_tache,
-                                             dls::outils::Synchrone<Messagère> &messagère);
+                                             kuri::Synchrone<Messagère> &messagère);
     void regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
-                                           dls::outils::Synchrone<Messagère> &messagère);
+                                           kuri::Synchrone<Messagère> &messagère);
 
     bool peut_generer_code_final() const;
     bool parsage_termine() const;
 
-    Message *change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
+    Message *change_de_phase(kuri::Synchrone<Messagère> &messagère,
                              PhaseCompilation nouvelle_phase);
 
     PhaseCompilation phase_courante() const

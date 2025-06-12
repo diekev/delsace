@@ -4,11 +4,11 @@
 #pragma once
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/moultfilage/synchrone.hh"
 
 #include "tableau_statique.hh"
 
 #include "utilitaires/macros.hh"
+#include "utilitaires/synchrone.hh"
 
 namespace kuri {
 
@@ -363,6 +363,6 @@ struct tableau {
 };
 
 template <typename T>
-using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
+using tableau_synchrone = kuri::Synchrone<kuri::tableau<T, int>>;
 
 }  // namespace kuri
