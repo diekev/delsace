@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/langage/tampon_source.hh"
-
 #include <mutex>
 #include <optional>
 #include <variant>
@@ -22,6 +20,7 @@
 
 #include "identifiant.hh"
 #include "lexemes.hh"
+#include "tampon_source.hh"
 
 struct Enchaineuse;
 struct IdentifiantCode;
@@ -92,7 +91,7 @@ struct Fichier {
     double temps_découpage = 0.0;
     double temps_tampon = 0.0;
 
-    lng::tampon_source tampon_{""};
+    TamponSource tampon_{""};
 
     kuri::tableau<Lexème, int> lexèmes{};
 
@@ -151,12 +150,12 @@ struct Fichier {
         return id_;
     }
 
-    lng::tampon_source const &tampon() const
+    TamponSource const &tampon() const
     {
         return tampon_;
     }
 
-    void charge_tampon(lng::tampon_source &&t)
+    void charge_tampon(TamponSource &&t)
     {
         tampon_ = t;
         fut_chargé = true;
@@ -256,10 +255,9 @@ struct SystèmeModule {
 
     Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    InfoRequêteModule trouve_ou_crée_module(
-        kuri::Synchrone<TableIdentifiant> &table_identifiants,
-        Fichier const *fichier,
-        kuri::chaine_statique nom_module);
+    InfoRequêteModule trouve_ou_crée_module(kuri::Synchrone<TableIdentifiant> &table_identifiants,
+                                            Fichier const *fichier,
+                                            kuri::chaine_statique nom_module);
 
     Module *module(const IdentifiantCode *nom) const;
 
@@ -305,4 +303,4 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */
-dls::chaine charge_contenu_fichier(dls::chaine const &chemin);
+kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin);

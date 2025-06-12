@@ -38,6 +38,13 @@ struct chaine_statique {
     {
     }
 
+    char operator[](int64_t index) const
+    {
+        assert(index >= 0);
+        assert(index < taille());
+        return pointeur_[index];
+    }
+
     const char *pointeur() const
     {
         return pointeur_;
@@ -85,6 +92,8 @@ struct chaine_statique {
     {
         return this->begin() + this->taille_;
     }
+
+    int64_t décalage_pour_caractère(int64_t i) const;
 };
 
 bool operator<(chaine_statique const &c1, chaine_statique const &c2);

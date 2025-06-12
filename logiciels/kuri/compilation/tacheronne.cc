@@ -296,12 +296,11 @@ bool Tacheronne::gère_tâche()
 
                     if (!fichier->fut_chargé) {
                         auto debut_chargement = kuri::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(
-                            dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
+                        auto texte = charge_contenu_fichier(fichier->chemin());
                         temps_chargement += debut_chargement.temps();
 
                         auto debut_tampon = kuri::chrono::compte_seconde();
-                        fichier->charge_tampon(lng::tampon_source(std::move(texte)));
+                        fichier->charge_tampon(TamponSource(texte));
                         temps_tampons += debut_tampon.temps();
                     }
 
@@ -633,7 +632,7 @@ void Tacheronne::exécute_métaprogrammes()
                 auto fichier = it->fichier;
                 assert(it->fichier);
 
-                fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
+                fichier->charge_tampon(TamponSource(tampon.c_str()));
 
                 fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
                     résultat);

@@ -22,6 +22,7 @@ set(SOURCES
     poule_de_taches.cc
     synchrone.cc
     type_opaque.cc
+    unicode.cc
 
     algorithmes.hh
     calcul.hh
@@ -34,6 +35,7 @@ set(SOURCES
     poule_de_taches.hh
     synchrone.hh
     type_opaque.hh
+    unicode.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

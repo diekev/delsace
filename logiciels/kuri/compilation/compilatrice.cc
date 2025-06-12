@@ -371,7 +371,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
                                            Module *module,
                                            kuri::chaine_statique c)
 {
-    auto chaine = dls::chaine(c.pointeur(), c.taille());
+    auto chaine = kuri::chaine(c.pointeur(), c.taille());
 
     auto decalage = chaines_ajoutées_à_la_compilation->ajoute(
         kuri::chaine(c.pointeur(), c.taille()));
@@ -389,7 +389,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     fichier->source = SourceFichier::CHAINE_AJOUTÉE;
     fichier->décalage_fichier = decalage;
     fichier->site = site;
-    fichier->charge_tampon(lng::tampon_source(std::move(chaine)));
+    fichier->charge_tampon(TamponSource(chaine));
     gestionnaire_code->requiers_lexage(espace, fichier);
 }
 
@@ -450,7 +450,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     auto tampon = charge_contenu_fichier({chemin_absolu.pointeur(), chemin_absolu.taille()});
-    fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+    fichier->charge_tampon(TamponSource(std::move(tampon)));
 
     auto lexeuse = Lexeuse(
         contexte_lexage(espace), fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);

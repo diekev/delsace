@@ -113,7 +113,7 @@ static void reecris_fichier(kuri::chemin_systeme &chemin, Configuration const &c
         auto compilatrice = Compilatrice("", {});
         auto donnees_fichier = Fichier();
         auto tampon = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
-        donnees_fichier.charge_tampon(lng::tampon_source(std::move(tampon)));
+        donnees_fichier.charge_tampon(TamponSource(std::move(tampon)));
 
         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr),
                                &donnees_fichier,
