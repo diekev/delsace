@@ -6,7 +6,6 @@
 #include <array>
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "parsage/modules.hh"
@@ -26,6 +25,7 @@
 
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 enum {
     OPÉRATEUR_EST_SURCHARGEABLE = (1 << 0),

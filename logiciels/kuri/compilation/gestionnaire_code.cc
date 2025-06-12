@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
@@ -14,7 +13,9 @@
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
+
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 /*
   À FAIRE(gestion) : pour chaque type :

@@ -177,7 +177,7 @@ struct GeneratriceCodeCPP {
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        inclus(os, "biblinternes/outils/assert.hh");
+        inclus(os, "utilitaires/macros.hh");
         inclus(os, "utilitaires/synchrone.hh");
         inclus(os, "structures/chaine.hh");
         inclus(os, "structures/chaine_statique.hh");

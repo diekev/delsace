@@ -6,7 +6,6 @@
 #include <iostream>
 #include <variant>
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/assembleuse.hh"
@@ -22,6 +21,7 @@
 #include "validation_semantique.hh"
 
 #include "utilitaires/chrono.hh"
+#include "utilitaires/macros.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Poids pour les arguments polymorphiques et variadiques.

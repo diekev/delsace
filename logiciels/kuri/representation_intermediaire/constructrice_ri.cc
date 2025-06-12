@@ -3,7 +3,6 @@
 
 #include "constructrice_ri.hh"
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -21,6 +20,7 @@
 #include "structures/rassembleuse.hh"
 
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "analyse.hh"
 #include "impression.hh"

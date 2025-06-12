@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/numerique.hh"
 
 #include "structures/enchaineuse.hh"
@@ -17,7 +16,9 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "typage.hh"
+
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 #include "utilitaires/unicode.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)

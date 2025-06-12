@@ -3,7 +3,6 @@
 
 #include "typage.hh"
 
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
 #include <algorithm>
@@ -18,11 +17,13 @@
 
 #include "compilatrice.hh"
 #include "graphe_dependance.hh"
-#include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
 
 #include "structures/pile.hh"
+
+#include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 /* ************************************************************************** */
 

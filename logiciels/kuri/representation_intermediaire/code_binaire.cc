@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/outils/assert.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -25,6 +24,7 @@
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "impression.hh"
 #include "instructions.hh"
