@@ -1844,7 +1844,7 @@ RésultatValidation Sémanticienne::valide_entête_fonction(NoeudDéclarationEnt
 
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             m_stats_typage.entêtes_fonctions.fusionne_entrée(ENTETE_FONCTION__TENTATIVES_RATEES,
                                                              {"", temps});
@@ -1905,7 +1905,7 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             m_stats_typage.entêtes_fonctions.fusionne_entrée({"tentatives râtées", temps});
         }

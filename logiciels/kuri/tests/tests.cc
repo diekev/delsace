@@ -7,8 +7,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilation/compilatrice.hh"
@@ -19,6 +17,8 @@
 #include "parsage/modules.hh"
 
 #include "structures/chemin_systeme.hh"
+
+#include "utilitaires/chrono.hh"
 
 struct Test {
     const char *cas = "";
@@ -216,7 +216,7 @@ int main()
                     return static_cast<int>(res);
                 }
                 else if (pid > 0) {
-                    auto debut = dls::chrono::compte_seconde();
+                    auto debut = kuri::chrono::compte_seconde();
 
                     while (true) {
                         int status;

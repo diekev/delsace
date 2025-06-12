@@ -31,7 +31,7 @@ compilation
 #endif
 
 #ifdef STATS_DÉTAILLÉES_GESTION
-#    define DÉBUTE_STAT(stat) auto chrono_##stat = dls::chrono::compte_milliseconde()
+#    define DÉBUTE_STAT(stat) auto chrono_##stat = kuri::chrono::compte_milliseconde()
 #    define TERMINE_STAT(stat)                                                                    \
         stats.stats.fusionne_entrée(GESTION__##stat, {"", chrono_##stat.temps()})
 #else

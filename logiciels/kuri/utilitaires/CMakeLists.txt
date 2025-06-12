@@ -13,6 +13,7 @@ set(BIBLIOTHEQUES
 set(SOURCES
     algorithmes.cc
     calcul.cc
+    chrono.cc
     compteuse_cas.cc
     enum_drapeau.cc
     garde_portee.cc
@@ -23,6 +24,7 @@ set(SOURCES
 
     algorithmes.hh
     calcul.hh
+    chrono.hh
     compteuse_cas.hh
     enum_drapeau.hh
     garde_portee.hh

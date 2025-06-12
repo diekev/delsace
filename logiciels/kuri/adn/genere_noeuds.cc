@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/badge.hh"
 
 #include "parsage/base_syntaxeuse.hh"
@@ -19,6 +18,7 @@
 #include "structures/table_hachage.hh"
 
 #include "utilitaires/algorithmes.hh"
+#include "utilitaires/chrono.hh"
 
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
