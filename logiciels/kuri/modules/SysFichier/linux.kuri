@@ -1,7 +1,4 @@
-importe Chaine
-importe Fondation
 importe GlibC
-importe POSIX
 importe Temps
 
 TypePoignéeFichier :: #opaque z32

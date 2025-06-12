@@ -1664,7 +1664,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
     auto type_sortie = TypeBase::RIEN;
 
     auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
-    fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie, false);
+    fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
@@ -2385,8 +2385,16 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     m_constructrice.insère_label(label4);
                 };
 
+            auto sans_vlt = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+                            m_fonction_courante->decl->possède_drapeau(
+                                DrapeauxNoeudFonction::SANS_VLT);
+
+            auto sans_vlc = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+                            m_fonction_courante->decl->possède_drapeau(
+                                DrapeauxNoeudFonction::SANS_VLC);
+
             if (type_gauche->est_type_tableau_fixe()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlt) {
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
                     auto acces_taille = m_constructrice.crée_z64(
                         static_cast<unsigned>(type_tableau_fixe->taille));
@@ -2402,7 +2410,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (type_gauche->est_type_tableau_dynamique() || type_gauche->est_type_variadique() ||
                 type_gauche->est_type_tranche()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlt) {
                     auto acces_taille = m_constructrice.crée_reference_membre_et_charge(
                         noeud, pointeur, 1);
                     genere_protection_limites(
@@ -2417,7 +2425,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             if (type_gauche->est_type_chaine()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlc) {
                     auto acces_taille = m_constructrice.crée_reference_membre_et_charge(
                         noeud, pointeur, 1);
                     genere_protection_limites(
@@ -2461,10 +2469,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         }
         case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
         {
-            assert_rappel(false, [&]() {
-                dbg() << "Prise de référence dans la RI :\n"
-                      << erreur::imprime_site(*m_espace, noeud);
-            });
+            auto prise_référence = noeud->comme_prise_référence();
+            génère_ri_pour_noeud(prise_référence->opérande);
+            auto valeur = depile_valeur();
+            valeur = m_constructrice.crée_transtype(
+                noeud, noeud->type, valeur, TypeTranstypage::BITS);
+            valeur = crée_temporaire(noeud, valeur);
+            empile_valeur(valeur, noeud);
             return;
         }
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
@@ -3284,7 +3295,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             if (!type_union->est_nonsure) {
-                if (transformation.type != TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION) {
+                auto sans_vru =
+                    transformation.type == TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION ||
+                    (m_fonction_courante->decl &&
+                     m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU));
+                if (!sans_vru) {
                     auto membre_actif = m_constructrice.crée_reference_membre_et_charge(
                         noeud, valeur, 1);
 
@@ -3477,7 +3492,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             Atome *info_type = crée_info_type(noeud->type, noeud);
 
             auto pointeur_type_info_type = m_compilatrice.typeuse.type_pointeur_pour(
-                m_compilatrice.typeuse.type_info_type_, false, false);
+                m_compilatrice.typeuse.type_info_type_, false);
             if (info_type->type != pointeur_type_info_type) {
                 info_type = m_constructrice.crée_transtype(
                     noeud, pointeur_type_info_type, info_type, TypeTranstypage::BITS);
@@ -3837,7 +3852,9 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         return;
     }
 
-    if (!expression_gauche) {
+    auto sans_vru = m_fonction_courante->decl &&
+                    m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU);
+    if (!expression_gauche && !sans_vru) {
         // vérifie l'index du membre
         auto membre_actif = m_constructrice.crée_reference_membre_et_charge(noeud, ptr_union, 1);
 

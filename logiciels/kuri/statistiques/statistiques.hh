@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
+
+#include "utilitaires/chrono.hh"
 
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
 #    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
-        dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                         \
+        kuri::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                        \
             [&](double temps) { entrée_stats.fusionne_entrée(index, {"", temps}); })
 #else
 #    define CHRONO_TYPAGE(entrée_stats, nom)
@@ -361,7 +361,6 @@ struct StatistiquesTypage {
     OP(GESTION__AJOUTE_RACINES, "ajoute racine")                                                  \
     OP(GESTION__TYPAGE_TERMINÉ, "typage terminé")                                                 \
     OP(GESTION__DOIT_DÉTERMINER_DÉPENDANCES, "doit déterminer dépendances")                       \
-    OP(GESTION__VÉRIFIE_ENTÊTE_VALIDÉES, "vérifie entête validées")                               \
     OP(GESTION__CRÉATION_TÂCHES, "création tâches")
 
 DEFINIS_ENUM(GESTIONNAIRE_CODE)
@@ -373,7 +372,7 @@ struct StatistiquesGestion {
     void imprime_stats();
 };
 
-void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début_compilation);
+void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde début_compilation);
 
 void imprime_stats_détaillées(Statistiques const &stats);
 

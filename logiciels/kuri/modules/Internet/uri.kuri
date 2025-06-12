@@ -22,9 +22,7 @@
  https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 */
 
-importe Fondation
 importe Introspection
-importe Numérique
 
 // ------------------------------
 // fonctions auxilliares
@@ -895,8 +893,6 @@ origine :: fonc (uri: &URI) -> Origine
 
 // -----------------------------------------------
 // tests unitaires
-
-importe Compilatrice
 
 #test {
     uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable

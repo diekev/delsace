@@ -1,10 +1,3 @@
-importe Couleur
-importe Fondation
-importe Fràtzala
-importe Géométrie
-importe Math
-importe Qt
-
 ThèmeGraphe :: struct {
     couleur_texte: CouleurRVBA
     couleur_connexion: CouleurRVBA
@@ -627,16 +620,16 @@ crée_géométrie_noeud :: fonc (parent: QT_Generic_GraphicsItem, noeud: *Noeud,
 /** \nom Menu
  * \{ */
 
-affiche_menu_noeuds_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clique: *DNJ_Pilote_Clique)
+affiche_menu_noeuds_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clic: *DNJ_Pilote_Clic)
 {
-    menu := donne_menu_pour_graphe(graphe, gestionnaire, pilote_clique)
+    menu := donne_menu_pour_graphe(graphe, gestionnaire, pilote_clic)
     saufsi menu {
         retourne
     }
     QT_menu_popup(menu, QT_cursor_pos())
 }
 
-donne_menu_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clique: *DNJ_Pilote_Clique) -> *QT_Menu
+donne_menu_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire_Interface, pilote_clic: *DNJ_Pilote_Clic) -> *QT_Menu
 {
     saufsi graphe {
         retourne nul
@@ -663,7 +656,7 @@ donne_menu_pour_graphe :: fonc (graphe: *Graphe, gestionnaire: *DNJ_Gestionnaire
     diffère déloge(texte)
 
     ctx_danjo: DNJ_Contexte_Interface
-    ctx_danjo.pilote_clique = pilote_clique
+    ctx_danjo.pilote_clic = pilote_clic
 
     retourne DNJ_gestionaire_compile_menu_texte(gestionnaire, *ctx_danjo, vers_qt(texte))
 }

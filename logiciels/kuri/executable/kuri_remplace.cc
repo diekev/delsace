@@ -131,7 +131,7 @@ static void reecris_fichier(kuri::chemin_systeme &chemin, Configuration const &c
             auto trouve = false;
 
             for (auto const &paire : config.mots_cles) {
-                if (paire.first != dls::chaine(lexeme.chaine)) {
+                if (paire.first != dls::chaine(lexeme.chaine.pointeur(), lexeme.chaine.taille())) {
                     continue;
                 }
 

@@ -2,13 +2,21 @@
 // fractions, afin d'être plus précis que des nombres à point flottant.
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
-importe Bits
-importe Fondation
-
 NombreRationnel :: struct {
     N: n32
     D: n32
     s: bool
+}
+
+construit_nombre_rationnel :: fonc (a: z32) -> NombreRationnel
+{
+    positif := vrai
+    si a < 0 {
+        a = -a
+        positif = faux
+    }
+
+    retourne construit_nombre_rationnel(a comme n32, 1, positif)
 }
 
 construit_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRationnel
@@ -58,8 +66,8 @@ opérateur + :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     r_D = r_D / dc
 
     // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
-    nb_N := nombre_de_bits_zéro_en_fin(r_N)
-    nb_D := nombre_de_bits_zéro_en_fin(r_D)
+    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32
+    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32
 
     si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
@@ -82,9 +90,15 @@ opérateur + :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 opérateur - :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
-    tmp.s = vrai
+    tmp.s = !tmp.s
 
     retourne a + tmp
+}
+
+opérateur * :: fonc (a: NombreRationnel, b: z32) -> NombreRationnel
+{
+    n := construit_nombre_rationnel(b)
+    retourne a * n
 }
 
 opérateur * :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
@@ -106,8 +120,8 @@ opérateur * :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     r_D = r_D / dc
 
     // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
-    nb_N := nombre_de_bits_zéro_en_fin(r_N)
-    nb_D := nombre_de_bits_zéro_en_fin(r_D)
+    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32
+    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32
 
     si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
@@ -138,15 +152,36 @@ opérateur / :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne a * tmp
 }
 
-imprime_nombre_rationnel :: fonc (a: NombreRationnel) -> rien
+opérateur / :: fonc (a: NombreRationnel, b: z32) -> NombreRationnel
 {
-    si a.s {
-        imprime("- % / %\n", a.N, a.D)
+    positif := vrai
+    si b < 0 {
+        b = -b
+        positif = faux
     }
-    sinon {
-        imprime("% / %\n", a.N, a.D)
-    }
+    n : NombreRationnel = ---
+    n.N = 1
+    n.D = b comme n32
+    n.s = !positif
+    retourne a * n
 }
+
+imprime_nombre_rationnel :: fonc (enchaineuse: *Enchaineuse, a: *NombreRationnel)
+{
+    saufsi a {
+        retourne
+    }
+
+    si a.s {
+        ajoute_au_tampon(enchaineuse, "- ")
+    }
+
+    imprime_dans_enchaineuse(enchaineuse, "%", a.N)
+
+    si a.D != 1 {
+        imprime_dans_enchaineuse(enchaineuse, " / %", a.D)
+    }
+} @FormattageImpression
 
 // https://en.wikipedia.org/wiki/Binary_GCD_algorithm
 pgdc_récursif :: fonc (u: n64, v: n64) -> n64

@@ -2,6 +2,7 @@ importe Chaine
 HTML :: importe HTML
 importe Fondation
 importe Internet
+importe Unicode
 
 charge "arbre_de_disposition"
 charge "contexte_de_formattage"
@@ -45,14 +46,10 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
  * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
 prétraite :: fonc (chn: &ChaineUTF32)
 {
-    CARRIAGE_RETURN : n32 : 0x0D
-    FORM_FEED : n32 : 0x0C
-    LINE_FEED : n32 : 0x0A
-
     pour & chn.points_de_code {
         /* À FAIRE : \r\n => \n */
-        si it == CARRIAGE_RETURN || it == FORM_FEED {
-            it = LINE_FEED
+        si it == RETOUR_CHARIOT || it == SAUT_DE_PAGE {
+            it = NOUVELLE_LIGNE
         }
     }
 }
@@ -301,6 +298,10 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
+                si simple.ident == PROP_has {
+                    retourne apparie_selector_has(simple.selector_list, élément)
+                }
+
                 retourne faux
             }
 
@@ -318,7 +319,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
             retourne faux
         }
         Type {
-            retourne simple.ident == élément.local_name
+            retourne compare_ascii_insensible_à_la_casse(simple.ident, élément.local_name)
         }
         PseudoElement {
             si pseudo_element {
@@ -353,6 +354,36 @@ apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *H
     pour complex dans selector_list.complex_selectors {
         si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
             retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
+{
+    // À FAIRE : combinateur
+
+    traversée: [..]*HTML.Élément
+    diffère déloge(traversée)
+
+    pour > élément.enfants {
+        si HTML.est_élément(it) {
+            tableau_ajoute(*traversée, it comme *HTML.Élément)
+        }
+    }
+
+    tantque traversée {
+        élément = enlève_dernier_élément(*traversée)
+
+        si apparie_sélecteur_fonction(selector_list, élément) {
+            retourne vrai
+        }
+
+        pour > élément.enfants {
+            si HTML.est_élément(it) {
+                tableau_ajoute(*traversée, it comme *HTML.Élément)
+            }
         }
     }
 
@@ -873,6 +904,8 @@ opérateur > :: fonc (s1: Spécificité, s2: Spécificité) -> bool
 
 SelectorList :: struct {
     complex_selectors: [..]ComplexSelector
+    /* Pour :has(). */
+    combinateur: Combinator
 }
 
 détruit_données_selector_list :: fonc (selector: *SelectorList)

@@ -107,6 +107,7 @@ RAPPEL_POUR_ERREUR(type)
         case RaisonDÊtre::EXECUTION:
         case RaisonDÊtre::LIAISON_PROGRAMME:
         case RaisonDÊtre::GENERATION_CODE_MACHINE:
+        case RaisonDÊtre::CALCULE_TAILLE_TYPE:
         {
             break;
         }
@@ -131,7 +132,7 @@ RAPPEL_POUR_ERREUR(type)
         .ajoute_message("Note : le type attendu est ")
         .ajoute_message(chaine_type(attente.type()))
         .ajoute_message("\n")
-        .ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        .ajoute_message("Note : l'unité de compilation est dans cet état :\n")
         .ajoute_message(unité->chaine_attentes_récursives())
         .ajoute_message("\n");
 }
@@ -190,7 +191,7 @@ RAPPEL_POUR_ERREUR(déclaration)
 
     // À FAIRE : ne devrait pas arriver
     if (unité_decl && *unité_decl) {
-        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        erreur.ajoute_message("Note : l'unité de compilation est dans cet état :\n")
             .ajoute_message(unité->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
@@ -238,7 +239,7 @@ RAPPEL_POUR_ERREUR(type_déclaration)
 
     // À FAIRE : ne devrait pas arriver
     if (unité_decl && *unité_decl) {
-        erreur.ajoute_message("Note : l'unité de compilation est dans cette état :\n")
+        erreur.ajoute_message("Note : l'unité de compilation est dans cet état :\n")
             .ajoute_message(unité->chaine_attentes_récursives())
             .ajoute_message("\n");
     }
@@ -801,7 +802,10 @@ RAPPEL_POUR_ERREUR(initialisation_type)
         chaine_type(type),
         " ».");
 
-    espace->rapporte_erreur(noeud, message);
+    espace->rapporte_erreur(noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
 }
 
 InfoTypeAttente info_type_attente_sur_initialisation_type = {
@@ -816,6 +820,12 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
 /** -----------------------------------------------------------------
  * AttenteSurInfoType
  * \{ */
+
+RAPPEL_POUR_UNITÉ(info_type)
+{
+    auto type = attente.info_type();
+    return type->unité;
+}
 
 RAPPEL_POUR_COMMENTAIRE(info_type)
 {
@@ -849,10 +859,13 @@ RAPPEL_POUR_ERREUR(info_type)
                             " ».");
 
     auto espace = unité->espace;
-    espace->rapporte_erreur(unité->noeud, message);
+    espace->rapporte_erreur(unité->noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
 }
 
-InfoTypeAttente info_type_attente_sur_info_type = {nullptr,
+InfoTypeAttente info_type_attente_sur_info_type = {NOM_RAPPEL_POUR_UNITÉ(info_type),
                                                    condition_blocage_défaut,
                                                    NOM_RAPPEL_POUR_COMMENTAIRE(info_type),
                                                    NOM_RAPPEL_POUR_EST_RÉSOLUE(info_type),

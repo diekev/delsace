@@ -7,8 +7,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilation/compilatrice.hh"
@@ -19,6 +17,8 @@
 #include "parsage/modules.hh"
 
 #include "structures/chemin_systeme.hh"
+
+#include "utilitaires/chrono.hh"
 
 struct Test {
     const char *cas = "";
@@ -110,13 +110,9 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
 
     auto espace = compilatrice.espace_defaut_compilation();
 
-    /* Charge d'abord le module basique, car nous en avons besoin pour le type ContexteProgramme.
-     */
-    compilatrice.importe_module(espace, "Kuri", {});
-
     /* Ne nomme pas le module, car c'est le module racine. */
-    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, "");
-    auto résultat = compilatrice.trouve_ou_crée_fichier(module, "", "", false);
+    auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
+    auto résultat = compilatrice.sys_module->trouve_ou_crée_fichier(module, "", "");
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->charge_tampon(std::move(tampon));
 
@@ -220,7 +216,7 @@ int main()
                     return static_cast<int>(res);
                 }
                 else if (pid > 0) {
-                    auto debut = dls::chrono::compte_seconde();
+                    auto debut = kuri::chrono::compte_seconde();
 
                     while (true) {
                         int status;

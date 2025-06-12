@@ -2,7 +2,6 @@
  * Définitions des macros de Python. */
 
 importe Chaine
-importe Fondation
 importe Math
 
 /*

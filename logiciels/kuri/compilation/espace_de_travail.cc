@@ -53,25 +53,22 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 }
 
 void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache,
-                                    dls::outils::Synchrone<Messagère> &messagère)
+                                    kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] += 1;
     regresse_phase_pour_tache_ajoutee(genre_tache, messagère);
 }
 
 void EspaceDeTravail::tache_terminee(GenreTâche genre_tache,
-                                     dls::outils::Synchrone<Messagère> &messagère,
-                                     bool peut_envoyer_changement_de_phase)
+                                     kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] -= 1;
     assert(nombre_de_tâches[size_t(genre_tache)] >= 0);
-    progresse_phase_pour_tache_terminee(genre_tache, messagère, peut_envoyer_changement_de_phase);
+    progresse_phase_pour_tache_terminee(genre_tache, messagère);
 }
 
 void EspaceDeTravail::progresse_phase_pour_tache_terminee(
-    GenreTâche genre_tache,
-    dls::outils::Synchrone<Messagère> &messagère,
-    bool peut_envoyer_changement_de_phase)
+    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -91,7 +88,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         case GenreTâche::TYPAGE:
         {
             if (nombre_de_tâches[size_t(genre_tache)] == 0 &&
-                phase == PhaseCompilation::PARSAGE_TERMINÉ && peut_envoyer_changement_de_phase) {
+                phase == PhaseCompilation::PARSAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
 
                 /* Il est possible que les dernières tâches de typages soient pour des choses qui
@@ -123,6 +120,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
         case GenreTâche::LIAISON_PROGRAMME:
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
+        case GenreTâche::CALCULE_TAILLE_TYPE:
         {
             break;
         }
@@ -134,7 +132,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
 }
 
 void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
-    GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère)
+    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -181,6 +179,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
         case GenreTâche::ENVOIE_MESSAGE:
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
+        case GenreTâche::CALCULE_TAILLE_TYPE:
         {
             break;
         }
@@ -217,16 +216,12 @@ bool EspaceDeTravail::parsage_termine() const
 
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 {
-    os << "nombre_tâches_chargement : " << NOMBRE_DE_TACHES(CHARGEMENT) << '\n';
-    os << "nombre_tâches_lexage : " << NOMBRE_DE_TACHES(LEXAGE) << '\n';
-    os << "nombre_tâches_parsage : " << NOMBRE_DE_TACHES(PARSAGE) << '\n';
-    os << "nombre_tâches_typage : " << NOMBRE_DE_TACHES(TYPAGE) << '\n';
-    os << "nombre_tâches_ri : " << NOMBRE_DE_TACHES(GENERATION_RI) << '\n';
-    os << "nombre_tâches_execution : " << NOMBRE_DE_TACHES(EXECUTION) << '\n';
-    os << "nombre_tâches_optimisation : " << NOMBRE_DE_TACHES(OPTIMISATION) << '\n';
+    for (int i = 0; i < int(GenreTâche::NOMBRE_ELEMENTS); i++) {
+        os << "-- tâche " << GenreTâche(i) << " " << nombre_de_tâches[i].load() << '\n';
+    }
 }
 
-Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
+Message *EspaceDeTravail::change_de_phase(kuri::Synchrone<Messagère> &messagère,
                                           PhaseCompilation nouvelle_phase)
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \

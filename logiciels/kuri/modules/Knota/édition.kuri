@@ -1,16 +1,10 @@
-importe Ensemble
-importe Fondation
-importe Fràtzala
-importe Géométrie
-importe Math
-importe Observation
 importe Périphériques
 
 /* ------------------------------------------------------------------------- */
 /** \nom Modification interractive des noeuds.
  * \{ */
 
-commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+commence_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris)
 {
     graphe.mode_interaction = ModeInteractionGraphe.AUCUNE
 
@@ -71,7 +65,7 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
     }
 }
 
-ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, delta: Vec2)
+ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris, delta: Vec2)
 {
     discr graphe.mode_interaction {
         AUCUNE {
@@ -105,7 +99,7 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris, d
     }
 }
 
-termine_édition_interractive :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+termine_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris)
 {
     diffère graphe.connexion_pour_survol_noeud = nul
 
@@ -437,7 +431,7 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
 /** \nom Noeud pour information.
  * \{ */
 
-sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> bool
+sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &ClicSouris) -> bool
 {
     sélection := graphe.sélection
     sélection.clic(donne_point_2d_réel(souris.état.où))
@@ -469,7 +463,7 @@ sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &CliqueSou
 /** \nom Accès du sous-graphe d'un noeud via un clic.
  * \{ */
 
-donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> *Graphe
+donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &ClicSouris) -> *Graphe
 {
     sélection := graphe.sélection
     sélection.clic(donne_point_2d_réel(souris.état.où))
@@ -499,7 +493,7 @@ donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &CliqueSouris) -> 
 /** \nom Zoom.
  * \{ */
 
-applique_zoom :: fonc (graphe: *Graphe, souris: &CliqueSouris)
+applique_zoom :: fonc (graphe: *Graphe, souris: &ClicSouris)
 {
     delta := souris.delta
 

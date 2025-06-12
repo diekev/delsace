@@ -38,6 +38,17 @@ struct chaine;
 /** \name Drapeaux génériques pour les noeuds.
  * \{ */
 
+struct Annotation {
+    kuri::chaine_statique nom{};
+    kuri::chaine_statique valeur{};
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Drapeaux génériques pour les noeuds.
+ * \{ */
+
 enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                              // decl var
@@ -213,6 +224,20 @@ enum class DrapeauxNoeudFonction : uint32_t {
     CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS = (1 << 22),
 
     FORCE_SANS_ASAN = (1 << 23),
+
+    EST_MACRO = (1 << 24),
+
+    /* N'ajoute pas des vérifications sur les limites des tableaux.
+     * À FAIRE : macros. */
+    SANS_VLT = (1 << 25),
+
+    /* N'ajoute pas des vérifications sur les limites des chaines.
+     * À FAIRE : macros. */
+    SANS_VLC = (1 << 26),
+
+    /* N'ajoute pas des vérifications sur les rubriques des unions.
+     * À FAIRE : macros. */
+    SANS_VRU = (1 << 27),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |

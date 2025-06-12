@@ -1,9 +1,4 @@
-importe Chaine
-CSS :: importe CSS
 importe Ensemble
-importe Fondation
-importe Image
-JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -67,7 +62,7 @@ DocumentUnloadTimingInfo :: struct {
 }
 
 ImageDisponible :: struct {
-    données: ImageIO
+    données: NouvelleImage
     url: chaine
     état: ÉtatRequêteImage
 }
@@ -157,7 +152,7 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
 
     pour document.images_disponibles {
         déloge(it.url)
-        IMG_detruit_image(*it.données)
+        détruit_données_image(*it.données)
     }
 
     détruit_policy_container(document.policy_container)
@@ -326,6 +321,20 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
     retourne nul
 }
 
+/* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
+donne_head :: fonc (document: *Document) -> *Élément
+{
+    élément_html := document.donne_élément_html()
+    si élément_html {
+        pour élément_html.enfants {
+            si it.est_élément_type(TAG_head) {
+                retourne it comme *Élément
+            }
+        }
+    }
+    retourne nul
+}
+
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
 donne_élément_body :: fonc (document: *Document) -> *Élément
 {
@@ -479,27 +488,6 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
     retourne nul
 }
 
-// À FAIRE(langage)
-opérateur + :: fonc (a: **Élément, b: z64) -> **Élément
-{
-    retourne ((a comme *octet) + 8 * b) comme **Élément
-}
-
-opérateur - :: fonc (a: **Élément, b: **Élément) -> z64
-{
-    retourne ((a comme *octet) - (b comme *octet)) / 8
-}
-
-opérateur < :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) < (b comme *octet)
-}
-
-opérateur == :: fonc (a: **Élément, b: **Élément) -> bool
-{
-    retourne (a comme *octet) == (b comme *octet)
-}
-
 donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
 {
     si a == nul {
@@ -638,7 +626,7 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
 {
     résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
 
-    si résultat == CSS.AjournementArbre.zéro && élément.noeud_de_disposition == nul {
+    si résultat == CSS.AjournementArbre.zéro && élément.box == nul {
         /* Nous avons, par exemple, un noeud qui est "display: none", et reste "display: none". */
         retourne résultat
     }
@@ -759,7 +747,7 @@ définis_état_requête_image :: fonc (document: *Document, url: chaine, état: 
     }
 }
 
-définis_données_image :: fonc (document: *Document, url: chaine, données: ImageIO)
+définis_données_image :: fonc (document: *Document, url: chaine, données: NouvelleImage)
 {
     pour & document.images_disponibles {
         si it.url == url {
@@ -793,6 +781,11 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     doctype.document = document
 
     retourne doctype
+}
+
+est_document_type :: fonc (noeud: *Noeud) -> bool
+{
+    retourne noeud.genre == GenreNoeud.TypeDocument
 }
 
 #portée_fichier
@@ -962,6 +955,8 @@ est_données_caractères :: fonc (noeud: Noeud)
 NoeudTexte :: struct {
     empl base_données: NoeudDonnéesCaractères
     table = *table_virtuelle_texte
+
+    box: *CSS.Box
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
@@ -990,6 +985,9 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
     texte := base comme *NoeudTexte
+    si texte.box {
+        texte.box.noeud = nul
+    }
     détruit_chaine(texte.données)
 }
 

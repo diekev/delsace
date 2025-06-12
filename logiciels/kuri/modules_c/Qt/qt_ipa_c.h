@@ -317,6 +317,8 @@ union QT_AbstractSocket {
     O(QEventLoop, QT_Event_Loop, event_loop)                                                      \
     O(QGraphicsScene, QT_GraphicsScene, graphics_scene)                                           \
     O(QIODevice, QT_IODevice, io_device)                                                          \
+    O(QLocalServer, QT_LocalServer, local_server)                                                 \
+    O(QLocalSocket, QT_LocalSocket, local_socket)                                                 \
     O(QMimeData, QT_MimeData, mimedata)                                                           \
     O(QObject, QT_Object, object)                                                                 \
     O(QOpenGLContext, QT_OpenGL_Context, opengl_context)                                          \
@@ -519,7 +521,7 @@ struct QT_Rappels_Fenetre_Principale {
     int (*sur_filtre_evenement)(struct QT_Rappels_Fenetre_Principale *, struct QT_Evenement *);
     void (*sur_creation_barre_menu)(struct QT_Rappels_Fenetre_Principale *,
                                     struct QT_Creatrice_Barre_Menu *);
-    void (*sur_clique_action_menu)(struct QT_Rappels_Fenetre_Principale *, struct QT_Chaine *);
+    void (*sur_clic_action_menu)(struct QT_Rappels_Fenetre_Principale *, struct QT_Chaine *);
     /** Appelé quand la fenêtre principale est fermée, et permet de controler si la fermeture est
      * avortée. Si faux est retourné, la fenêtre n'est pas fermée. */
     bool (*sur_fermeture)(struct QT_Rappels_Fenetre_Principale *);
@@ -586,6 +588,12 @@ struct QT_Clipboard *QT_application_donne_clipboard();
 void QT_application_process_events();
 
 struct QT_Thread *QT_application_thread();
+
+int QT_application_screen_count();
+
+struct QT_Rect;
+
+void QT_application_screen_geometry(int index, struct QT_Rect *rect);
 
 /** \} */
 
@@ -794,6 +802,14 @@ void QT_mimedata_definis_donnee(struct QT_MimeData *mimedata,
                                 struct QT_Chaine mimetype,
                                 uint8_t *donnees,
                                 uint64_t taille_donnees);
+void QT_mimedata_donne_infos(struct QT_MimeData *mimedata,
+                             int *nombre_de_formats,
+                             int *taille_donnees);
+void QT_mimedata_exporte_donnees(struct QT_MimeData *mimedata,
+                                 uint8_t *donnees,
+                                 int64_t taille_donnees,
+                                 int32_t *tailles,
+                                 int64_t nombre_de_tailles);
 bool QT_mimedata_a_format(struct QT_MimeData *mimedata, struct QT_Chaine mimetype);
 struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
                                              struct QT_Chaine mimetype);
@@ -1396,6 +1412,8 @@ void QT_window_detruit(struct QT_Window *window);
 
 struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
 
+void QT_window_create(struct QT_Window *window);
+void QT_window_destroy(struct QT_Window *window);
 void QT_window_request_update(struct QT_Window *window);
 void QT_window_show(struct QT_Window *window);
 void QT_window_show_maximized(struct QT_Window *window);
@@ -1406,6 +1424,7 @@ void QT_window_resize(struct QT_Window *window, int width, int height);
 int QT_window_height(struct QT_Window *window);
 int QT_window_width(struct QT_Window *window);
 bool QT_window_is_exposed(struct QT_Window *window);
+void QT_window_set_position(struct QT_Window *window, int x, int y);
 
 /** \} */
 
@@ -1431,11 +1450,47 @@ void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Surface_Format
+ * \{ */
+
+struct QT_Surface_Format {
+    int alpha_buffer_size;
+    int blue_buffer_size;
+    int depth_buffer_size;
+    int green_buffer_size;
+    int red_buffer_size;
+    int stencil_buffer_size;
+
+    int samples;
+    int swap_interval;
+    int major_version;
+    int minor_version;
+
+    /* À FAIRE : énumérations */
+    /* QSurfaceFormat::FormatOptions */
+    int options;
+    /* QSurfaceFormat::OpenGLContextProfile */
+    int profile;
+    /* QSurfaceFormat::RenderableType */
+    int renderable_type;
+    /* QSurfaceFormat::SwapBehavior */
+    int swap_behavior;
+};
+
+void QT_initialize_surface_format(struct QT_Surface_Format *format);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 
 struct QT_OpenGL_Context *QT_OpenGL_Context_cree_avec_parent(union QT_Generic_Object parent);
 void QT_OpenGL_detruit(struct QT_OpenGL_Context *context);
+
+void QT_OpenGL_Context_format(struct QT_OpenGL_Context *context, struct QT_Surface_Format *format);
+void QT_OpenGL_Context_set_format(struct QT_OpenGL_Context *context,
+                                  struct QT_Surface_Format *format);
 
 bool QT_OpenGL_Context_create(struct QT_OpenGL_Context *context);
 bool QT_OpenGL_Context_make_current(struct QT_OpenGL_Context *context, struct QT_Window *window);
@@ -1759,6 +1814,7 @@ enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 
 void QT_mouse_event_donne_position(struct QT_MouseEvent *event, struct QT_Position *r_position);
 enum QT_MouseButton QT_mouse_event_donne_bouton(struct QT_MouseEvent *event);
+enum QT_MouseButton QT_mouse_event_donne_boutons(struct QT_MouseEvent *event);
 
 /** \} */
 
@@ -1873,7 +1929,7 @@ struct QT_Painter {
     void (*sur_pression_souris)(struct type_rappels *, struct QT_MouseEvent *);                   \
     void (*sur_deplacement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
     void (*sur_relachement_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
-    void (*sur_double_clique_souris)(struct type_rappels *, struct QT_MouseEvent *);              \
+    void (*sur_double_clic_souris)(struct type_rappels *, struct QT_MouseEvent *);                \
     void (*sur_molette_souris)(struct type_rappels *, struct QT_WheelEvent *);                    \
     void (*sur_redimensionnement)(struct type_rappels *, struct QT_ResizeEvent *);                \
     void (*sur_pression_cle)(struct type_rappels *, struct QT_KeyEvent *);                        \
@@ -2417,7 +2473,9 @@ enum QT_Indicateur_Enfant_Arbre {
     ENUMERE_INDICATEUR_ENFANT_TREE_WIDGET(ENUMERE_DECLARATION_ENUM_IPA)
 };
 
-struct QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, struct QT_TreeWidgetItem *parent);
+struct QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees,
+                                                 uint64_t taille_données,
+                                                 struct QT_TreeWidgetItem *parent);
 void *QT_treewidgetitem_donne_donnees(struct QT_TreeWidgetItem *widget);
 void QT_treewidgetitem_definis_indicateur_enfant(struct QT_TreeWidgetItem *widget,
                                                  enum QT_Indicateur_Enfant_Arbre indicateur);
@@ -2429,6 +2487,7 @@ void QT_treewidgetitem_ajoute_enfant(struct QT_TreeWidgetItem *widget,
                                      struct QT_TreeWidgetItem *enfant);
 void QT_treewidgetitem_definis_selectionne(struct QT_TreeWidgetItem *widget, bool ouinon);
 void QT_treewidgetitem_set_expanded(struct QT_TreeWidgetItem *widget, bool ouinon);
+struct QT_TreeWidgetItem *QT_treewidgetitem_parent(struct QT_TreeWidgetItem *widget);
 
 /** \} */
 
@@ -2680,6 +2739,36 @@ struct QT_IODevice *QT_iodevice_cree_avec_rappels(struct QT_Rappels_IODevice *ra
 void QT_iodevice_ready_read(struct QT_IODevice *iodevice);
 
 void QT_iodevice_open(struct QT_IODevice *iodevice, enum QT_Device_Open_Mode open_mode);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalServer
+ * \{ */
+
+struct QT_Rappels_LocalServer {
+    struct QT_LocalServer *server;
+
+    void (*sur_connexion)(struct QT_Rappels_LocalServer *, struct QT_LocalSocket *);
+    void (*sur_lecture)(struct QT_Rappels_LocalServer *, struct QT_LocalSocket *);
+};
+
+struct QT_LocalServer *QT_local_server_cree(struct QT_Rappels_LocalServer *rappels,
+                                            union QT_Generic_Object parent);
+
+bool QT_local_server_listen(struct QT_LocalServer *server, struct QT_Chaine nom);
+
+void QT_local_server_close(struct QT_LocalServer *server);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_LocalSocket
+ * \{ */
+
+int64_t QT_local_socket_read(struct QT_LocalSocket *socket, char *data, int64_t maxlen);
+
+bool QT_local_socket_is_valid(struct QT_LocalSocket *socket);
 
 /** \} */
 
@@ -3483,27 +3572,27 @@ struct DNJ_Constructrice_Liste {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Rappels_Pilote_Clique
+/** \name DNJ_Rappels_Pilote_Clic
  * \{ */
 
-struct DNJ_Rappels_Pilote_Clique {
-    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clique *);
-    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clique *,
+struct DNJ_Rappels_Pilote_Clic {
+    void (*sur_destruction)(struct DNJ_Rappels_Pilote_Clic *);
+    bool (*sur_évaluation_prédicat)(struct DNJ_Rappels_Pilote_Clic *,
                                     struct QT_Chaine,
                                     struct QT_Chaine);
-    void (*sur_clique)(struct DNJ_Rappels_Pilote_Clique *, struct QT_Chaine, struct QT_Chaine);
+    void (*sur_clic)(struct DNJ_Rappels_Pilote_Clic *, struct QT_Chaine, struct QT_Chaine);
 };
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Pilote_Clique
+/** \name DNJ_Pilote_Clic
  * \{ */
 
-struct DNJ_Pilote_Clique;
+struct DNJ_Pilote_Clic;
 
-struct DNJ_Pilote_Clique *DNJ_cree_pilote_clique(struct DNJ_Rappels_Pilote_Clique *rappels);
-void DNJ_detruit_pilote_clique(struct DNJ_Pilote_Clique *pilote);
+struct DNJ_Pilote_Clic *DNJ_cree_pilote_clic(struct DNJ_Rappels_Pilote_Clic *rappels);
+void DNJ_detruit_pilote_clic(struct DNJ_Pilote_Clic *pilote);
 
 /** \} */
 
@@ -3521,7 +3610,7 @@ struct DNJ_Rappels_Widget {
     void (*sur_requete_liste)(struct DNJ_Rappels_Widget *,
                               struct QT_Chaine,
                               struct DNJ_Constructrice_Liste *);
-    struct DNJ_Pilote_Clique *(*donne_pilote_clique)(struct DNJ_Rappels_Widget *);
+    struct DNJ_Pilote_Clic *(*donne_pilote_clic)(struct DNJ_Rappels_Widget *);
     struct DNJ_Gestionnaire_Interface *(*donne_gestionnaire)(struct DNJ_Rappels_Widget *);
     void (*sur_creation_interface)(struct DNJ_Rappels_Widget *,
                                    struct DNJ_ConstructriceInterfaceParametres *);
@@ -3548,7 +3637,7 @@ void DNJ_conteneur_ajourne_controles(struct DNJ_Conteneur_Controles *conteneur);
  * \{ */
 
 struct DNJ_Contexte_Interface {
-    struct DNJ_Pilote_Clique *pilote_clique;
+    struct DNJ_Pilote_Clic *pilote_clic;
     struct DNJ_Conteneur_Controles *conteneur;
     union QT_Generic_Widget parent_barre_outils;
     union QT_Generic_Widget parent_menu;
@@ -3561,7 +3650,7 @@ struct DNJ_Contexte_Interface {
  * \{ */
 
 struct DNJ_Donnees_Action {
-    struct DNJ_Pilote_Clique *pilote_clique;
+    struct DNJ_Pilote_Clic *pilote_clic;
     struct QT_Chaine attache;
     struct QT_Chaine nom;
     struct QT_Chaine metadonnee;

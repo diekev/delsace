@@ -6,6 +6,7 @@
 #include "biblinternes/langage/tampon_source.hh"
 
 #include <mutex>
+#include <optional>
 #include <variant>
 
 #include "structures/chaine.hh"
@@ -19,6 +20,7 @@
 #include "utilitaires/macros.hh"
 #include "utilitaires/type_opaque.hh"
 
+#include "identifiant.hh"
 #include "lexemes.hh"
 
 struct Enchaineuse;
@@ -111,8 +113,6 @@ struct Fichier {
     bool en_lexage = false;
     bool fut_parsé = false;
 
-    kuri::ensemblon<ModuleImporté, 16> modules_importés{};
-
     Module *module = nullptr;
     MetaProgramme *métaprogramme_corps_texte = nullptr;
 
@@ -135,11 +135,6 @@ struct Fichier {
     Fichier() = default;
 
     EMPECHE_COPIE(Fichier);
-
-    /**
-     * Retourne vrai si le fichier importe un module du nom spécifié.
-     */
-    bool importe_module(IdentifiantCode *nom_module) const;
 
     kuri::chaine_statique chemin() const
     {
@@ -184,6 +179,8 @@ struct Module {
     std::mutex mutex{};
     NoeudBloc *bloc = nullptr;
 
+    kuri::ensemblon<ModuleImporté, 16> modules_importés{};
+
     kuri::tablet<Fichier *, 16> fichiers{};
     bool importé = false;
 
@@ -200,6 +197,11 @@ struct Module {
 
     EMPECHE_COPIE(Module);
 
+    /**
+     * Retourne vrai si l'un des fichiers du module importe un module du nom spécifié.
+     */
+    bool importe_module(IdentifiantCode *nom_module) const;
+
     void ajoute_fichier(Fichier *fichier);
 
     kuri::chaine_statique chemin() const
@@ -213,6 +215,26 @@ struct Module {
     }
 };
 
+struct InfoRequêteModule {
+    enum class État {
+        TROUVÉ,
+        CHEMIN_INEXISTANT,
+        PAS_UN_DOSSIER,
+        PAS_DE_FICHIER_MODULE_KURI,
+    };
+
+    État état{};
+
+    /* Les chemins testés. Pour rapporter une erreur si le module n'est pas trouvé. */
+    kuri::tablet<kuri::chemin_systeme, 3> chemins_testés{};
+
+    /* Non-nul si état égale PAS_DE_FICHIER_MODULE_KURI. */
+    kuri::chemin_systeme chemin{};
+
+    /* Non-nul si le module fut trouvé. */
+    Module *module = nullptr;
+};
+
 struct SystèmeModule {
     kuri::tableau_page<Module> modules{};
     kuri::tableau_page<Fichier> fichiers{};
@@ -220,15 +242,34 @@ struct SystèmeModule {
     kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
         "Fichiers système modules"};
 
+    Module *module_kuri = nullptr;
+    bool importe_kuri = false;
+    kuri::chaine_statique racine_modules_kuri = "";
+
+    Module *initialise_module_kuri(kuri::chaine_statique chemin_racine_modules,
+                                   bool doit_importer_kuri_implicitement);
+
+    Module *crée_module_fichier_racine_compilation(kuri::chaine_statique dossier,
+                                                   kuri::chaine_statique nom_fichier);
+
     Module *trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
     Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
+
+    InfoRequêteModule trouve_ou_crée_module(
+        kuri::Synchrone<TableIdentifiant> &table_identifiants,
+        Fichier const *fichier,
+        kuri::chaine_statique nom_module);
 
     Module *module(const IdentifiantCode *nom) const;
 
     RésultatFichier trouve_ou_crée_fichier(Module *module,
                                            kuri::chaine_statique nom,
                                            kuri::chaine_statique chemin);
+
+    std::optional<kuri::chemin_systeme> détermine_chemin_dossier_module(Fichier const *fichier,
+                                                                        kuri::chaine_statique nom,
+                                                                        InfoRequêteModule *info);
 
     FichierNeuf crée_fichier(Module *module,
                              kuri::chaine_statique nom,

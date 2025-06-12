@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
@@ -24,6 +22,8 @@
 
 #include "structures/chemin_systeme.hh"
 #include "structures/date.hh"
+
+#include "utilitaires/synchrone.hh"
 
 class Broyeuse;
 struct ContexteLexage;
@@ -89,17 +89,17 @@ struct ArgumentsCompilatrice {
 };
 
 struct Compilatrice {
-    dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
+    kuri::Synchrone<TableIdentifiant> table_identifiants{};
 
-    dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
+    kuri::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 
-    dls::outils::Synchrone<GeranteChaine> gérante_chaine{};
+    kuri::Synchrone<GeranteChaine> gérante_chaine{};
 
-    dls::outils::Synchrone<Messagère> messagère{};
+    kuri::Synchrone<Messagère> messagère{};
 
-    dls::outils::Synchrone<GestionnaireCode> gestionnaire_code{};
+    kuri::Synchrone<GestionnaireCode> gestionnaire_code{};
 
-    dls::outils::Synchrone<GestionnaireBibliothèques> gestionnaire_bibliothèques;
+    kuri::Synchrone<GestionnaireBibliothèques> gestionnaire_bibliothèques;
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
@@ -109,7 +109,7 @@ struct Compilatrice {
 
     ArgumentsCompilatrice arguments{};
 
-    dls::outils::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
+    kuri::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
 
     kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
@@ -117,17 +117,17 @@ struct Compilatrice {
     kuri::chemin_systeme racine_kuri{};
     kuri::chemin_systeme racine_modules_kuri{};
 
-    dls::outils::Synchrone<SystèmeModule> sys_module{};
+    kuri::Synchrone<SystèmeModule> sys_module{};
 
     kuri::tableau_page_synchrone<MetaProgramme> métaprogrammes{};
 
-    dls::outils::Synchrone<GrapheDépendance> graphe_dépendance{};
+    kuri::Synchrone<GrapheDépendance> graphe_dépendance{};
 
-    dls::outils::Synchrone<RegistreDesOpérateurs> opérateurs{};
+    kuri::Synchrone<RegistreDesOpérateurs> opérateurs{};
 
     Typeuse typeuse;
 
-    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
+    kuri::Synchrone<InterfaceKuri> interface_kuri{};
     NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
     NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
     NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
@@ -146,9 +146,9 @@ struct Compilatrice {
     };
 
     using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
-    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+    kuri::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-    dls::outils::Synchrone<RegistreChainesRI> registre_chaines_ri{};
+    kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
     Module *module_racine_compilation = nullptr;
@@ -198,48 +198,10 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     /**
-     * Charge le module dont le nom est spécifié.
-     *
-     * Le nom doit être celui d'un fichier s'appelant '<nom>.kuri' et se trouvant
-     * dans le dossier du module racine.
-     *
-     * Les fonctions contenues dans le module auront leurs noms préfixés par le nom
-     * du module, sauf pour le module racine.
-     *
-     * Le std::ostream est un flux de sortie où sera imprimé le nom du module ouvert
-     * pour tenir compte de la progression de la compilation. Si un nom de module ne
-     * pointe pas vers un fichier Kuri, ou si le fichier ne peut être ouvert, une
-     * exception est lancée.
-     *
-     * Les Lexème doivent être celles du nom du module et sont utilisées
-     * pour les erreurs lancées.
-     *
-     * Le paramètre est_racine ne doit être vrai que pour le module racine.
-     */
-    Module *importe_module(EspaceDeTravail *espace,
-                           kuri::chaine_statique nom,
-                           NoeudExpression const *site);
-
-    /**
-     * Retourne un pointeur vers le module avec le nom et le chemin spécifiés.
-     * Si un tel module n'existe pas, un nouveau module est créé.
-     */
-    Module *trouve_ou_crée_module(IdentifiantCode *nom_module, kuri::chaine_statique chemin);
-
-    /**
      * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
      * module n'a ce nom, retourne nullptr.
      */
     Module *module(const IdentifiantCode *nom_module) const;
-
-    /**
-     * Crée un fichier avec le nom spécifié, et retourne un pointeur vers le
-     * fichier ainsi créé ou un pointeur vers un fichier existant.
-     */
-    RésultatFichier trouve_ou_crée_fichier(Module *module,
-                                           kuri::chaine_statique nom_fichier,
-                                           kuri::chaine_statique chemin,
-                                           bool importe_kuri);
 
     Fichier *crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
 
@@ -337,10 +299,10 @@ struct Compilatrice {
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
     ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
     void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);
-
-  private:
-    std::optional<kuri::chemin_systeme> détermine_chemin_dossier_module(
-        EspaceDeTravail *espace, kuri::chaine_statique nom, NoeudExpression const *site);
 };
 
 int fonction_test_variadique_externe(int sentinel, ...);
+
+std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *espace,
+                                                            kuri::chaine_statique chemin,
+                                                            NoeudExpression const *site);

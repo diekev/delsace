@@ -9,6 +9,8 @@ importe Structures
 importe SysFichier
 importe Temps
 
+// À FAIRE : les images ne sont pas chargées
+
 principale :: fonc ()
 {
     logue_propriétés_non_supportées = faux
@@ -66,6 +68,7 @@ test_mises_en_pages :: fonc () -> bool
     diffère déloge(échecs)
 
     nombre_de_tests_passants: z32
+    nombre_de_tests_ignorés: z32
 
     pour chemins_sources {
         imprime(".")
@@ -100,7 +103,7 @@ test_mises_en_pages :: fonc () -> bool
     }
 
     imprime("\n")
-    imprime("Tests    : % réussis, % en tout\n", nombre_de_tests_passants, chemins_sources.taille)
+    imprime("Tests    : % réussis, % ignorés, % en tout\n", nombre_de_tests_passants, nombre_de_tests_ignorés, chemins_sources.taille)
     imprime("Temps    : %ms\n", fin)
     imprime("\n")
 
@@ -276,6 +279,12 @@ donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
 
     parsat := HTML.parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu)
     diffère HTML.détruit(parsat)
+
+    chaine_url := enchaine("file://", chemin.chn)
+    diffère déloge(chaine_url)
+
+    parsat.document.url = HTML.basic_url_parser(chaine_url)
+    assert(parsat.document.url != nul)
 
     largeur := 1920
     hauteur := 1080

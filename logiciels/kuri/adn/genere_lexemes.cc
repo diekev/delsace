@@ -82,15 +82,11 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("dans");
     lexèmes.ajoute_mot_clé("diffère");
     lexèmes.ajoute_mot_clé("discr");
-    lexèmes.ajoute_mot_clé("dyn");
-    lexèmes.ajoute_mot_clé("définis");
     lexèmes.ajoute_mot_clé("eini", EST_IDENTIFIANT_TYPE);
-    lexèmes.ajoute_mot_clé("eini_erreur", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("empl");
     lexèmes.ajoute_mot_clé("erreur");
     lexèmes.ajoute_mot_clé("faux");
     lexèmes.ajoute_mot_clé("fonc");
-    lexèmes.ajoute_mot_clé("garde");
     lexèmes.ajoute_mot_clé("importe");
     lexèmes.ajoute_mot_clé("info_de");
     lexèmes.ajoute_mot_clé("init_de");
@@ -303,7 +299,7 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
     os << "#pragma once\n";
     os << '\n';
     inclus_système(os, "iosfwd");
-    inclus(os, "biblinternes/structures/chaine.hh");
+    inclus(os, "structures/chaine_statique.hh");
     os << '\n';
     prodéclare_struct(os, "IdentifiantCode");
     os << '\n';
@@ -315,7 +311,7 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
 #    pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 struct Lexème {
-    dls::vue_chaine_compacte chaine{};
+    kuri::chaine_statique chaine{};
 
 	union {
 		uint64_t valeur_entiere;
@@ -450,7 +446,7 @@ struct EntreeTable {  const char *nom; GenreLexème genre;  };
 )";
 
     const char *fin_fichier = R"(
-inline GenreLexème lexème_pour_chaine(dls::vue_chaine_compacte chn)
+inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
 {
   return EmpreinteParfaite::lexème_pour_chaine(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }

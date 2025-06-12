@@ -1,6 +1,3 @@
-importe Fondation
-importe Structures
-importe Triage
 
 /* ------------------------------------------------------------------------- */
 /** \nom StackingContext
@@ -13,13 +10,13 @@ StackingContext :: struct {
     enfants: [..]*StackingContext
 
     id: n32
-    racine: *NoeudDeDisposition
+    racine: *Box
     fut_dessiné: bool
 }
 
 #portée_module
 
-construit_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *NoeudDeDisposition) -> *StackingContext
+construit_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *Box) -> *StackingContext
 {
     constructrice: ConstructriceStackingContext
     constructrice.arbre = arbre
@@ -129,7 +126,7 @@ crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) ->
     retourne résultat
 }
 
-construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *NoeudDeDisposition, parent: *StackingContext) -> *StackingContext
+construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *Box, parent: *StackingContext) -> *StackingContext
 {
     résultat := parent
 
@@ -151,19 +148,19 @@ construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStack
 }
 
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context */
-doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
+doit_générer_un_stacking_context :: fonc (box: *Box) -> bool
 {
-    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
+    si box.table_virtuelle.type == TextBox {
         retourne faux
     }
 
     // Root element of the document (<html>).
-    si noeud.parent == nul {
+    si box.parent == nul {
         retourne vrai
     }
 
-    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
-    z_index := noeud.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    z_index := box.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
 
     // Element with a position value absolute or relative and z-index value other than auto.
     si (position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_relative)) && !z_index.est_auto() {
@@ -178,14 +175,14 @@ doit_générer_un_stacking_context :: fonc (noeud: *NoeudDeDisposition) -> bool
     // À FAIRE : Element with a container-type value size or inline-size set, intended for container queries.
 
     // Element that is a child of a flex container, with z-index value other than auto.
-    si noeud.parent.donne_display().inner_type == Display.Type.Flex && !z_index.est_auto() {
+    si box.parent.donne_display().inner_type == Display.Type.Flex && !z_index.est_auto() {
         retourne vrai
     }
 
     // À FAIRE : Element that is a child of a grid container, with z-index value other than auto.
 
     // Element with an opacity value less than 1.
-    opacity := noeud.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
+    opacity := box.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
     si (opacity.est_number() && opacity.donne_number() < 1.0) || (opacity.est_percentage() && opacity.donne_percentage() < 1.0) {
         retourne vrai
     }
@@ -226,6 +223,24 @@ compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingCon
 
 #portée_module
 
+donne_rectangle_ciselage_pour_overflow :: fonc (box: *Box) -> bool, RectanglePosDim(r32)
+{
+    résultat: RectanglePosDim(r32)
+
+    tantque box != nul {
+        overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+        overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+
+        saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+            retourne vrai, box.donne_rectangle_rembourrage()
+        }
+
+        box = box.parent
+    }
+
+    retourne faux, résultat
+}
+
 dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
     ctx.id_stacking_context = stacking_context.id
@@ -237,6 +252,12 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     opacité := donne_opacité(stacking_context)
     si opacité == 0.0 {
         retourne
+    }
+
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    si doit_ciseler {
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
+        ctx.commandes.débute_ciselage(rect)
     }
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
@@ -251,6 +272,10 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
 
     pour stacking_context.enfants {
         dessine_stacking_context(it, ctx)
+    }
+
+    si doit_ciseler {
+        ctx.commandes.termine_ciselage()
     }
 }
 
@@ -267,10 +292,20 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
         retourne
     }
 
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    si doit_ciseler {
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
+        ctx.commandes.débute_ciselage(rect)
+    }
+
     dessine_tampon_id(stacking_context.racine, ctx)
 
     pour stacking_context.enfants {
         dessine_stacking_context_tampon_id(it, ctx)
+    }
+
+    si doit_ciseler {
+        ctx.commandes.termine_ciselage()
     }
 }
 
@@ -301,7 +336,7 @@ dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, c
 
 #portée_fichier
 
-dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *Box, ctx: *ContexteDessin)
 {
     élément.fut_dessiné = vrai
     si stacking_context {
@@ -334,7 +369,7 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
         }
     }
 
-    descendants: [..]*NoeudDeDisposition
+    descendants: [..]*Box
     diffère déloge(descendants)
 
     // 4. For all its in-flow, non-positioned, block-level descendants in tree order:
@@ -347,7 +382,7 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     //    treat the element as if it created a new stacking context, but any positioned
     //    descendants and descendants which actually create a new stacking context should
     //    be considered part of the parent stacking context, not this new one.
-    floating_descendants: [..]*NoeudDeDisposition
+    floating_descendants: [..]*Box
     diffère déloge(floating_descendants)
 
     donne_non_positioned_floating_descendants(élément, *floating_descendants)
@@ -405,26 +440,26 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     // 10. Finally, implementations that do not draw outlines in steps above must draw outlines from this stacking context at this stage. (It is recommended to draw outlines in this step and not in the steps above.)
 }
 
-dessine_arrière_plan_et_bordures_bloc :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+dessine_arrière_plan_et_bordures_bloc :: fonc (ctx: *ContexteDessin, box: *Box)
 {
     // If the element is a block, list-item, or other block equivalent:
-    si is_block_list_item_or_block_equivalent(noeud) {
+    si is_block_list_item_or_block_equivalent(box) {
         // 1. background color of element.
         // 2. background image of element.
         // 3. border of element.
-        dessine_arrière_plan(ctx, noeud)
-        dessine_bordure(ctx, noeud)
+        dessine_arrière_plan(ctx, box)
+        dessine_bordure(ctx, box)
         retourne
     }
 
     // Otherwise, if the element is a block level table:
-    si is_block_level_table(noeud) {
-        si noeud.table_virtuelle.type == TableWrapperBox {
+    si is_block_level_table(box) {
+        si box.table_virtuelle.type == TableWrapperBox {
             retourne
         }
 
-        assert(noeud.table_virtuelle.type == TableBox)
-        table := noeud comme *TableBox
+        assert(box.table_virtuelle.type == TableBox)
+        table := box comme *TableBox
 
         // 1. table backgrounds (color then image).
         dessine_arrière_plan(ctx, table)
@@ -542,17 +577,17 @@ dessine_bordures_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
     }
 }
 
-dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: *ContexteDessin)
+dessine_stacking_context_étape_7 :: fonc (élément: *Box, ctx: *ContexteDessin)
 {
     // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
-    si élément.est_block_level() && élément.table_virtuelle.type == NoeudDeDispositionRemplacement {
+    si élément.est_block_level() && élément.table_virtuelle.type == ReplacedBox {
         élément.fut_dessiné = vrai
         dessine(élément, ctx)
         retourne
     }
 
-    si (élément.table_virtuelle.type == NoeudDeDispositionBloc || élément.table_virtuelle.type == NoeudDeDispositionInline || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
-        élément_bloc := élément comme *NoeudDeDispositionBloc
+    si (élément.table_virtuelle.type == BlockBox || élément.table_virtuelle.type == InlineBox || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
+        élément_bloc := élément comme *BlockBox
         élément.fut_dessiné = vrai
         lignes_tenante := élément_bloc.lignes_tenante
         saufsi lignes_tenante {
@@ -560,18 +595,18 @@ dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: 
         }
 
         pour * lignes_tenante.fragments {
-            it.noeud.fut_dessiné = vrai
+            it.box.fut_dessiné = vrai
 
             si it.type == Fragment.Type.InlineBlock {
-                si it.noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
-                    dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+                si it.box.table_virtuelle.type == ReplacedBox {
+                    dessine_fragment(it.box, it, lignes_tenante, ctx)
                 }
                 sinon {
-                    dessine_stacking_context_pour_élément(nul, it.noeud, ctx)
+                    dessine_stacking_context_pour_élément(nul, it.box, ctx)
                 }
             }
             sinon {
-                dessine_fragment(it.noeud, it, lignes_tenante, ctx)
+                dessine_fragment(it.box, it, lignes_tenante, ctx)
             }
         }
 
@@ -613,9 +648,9 @@ dessine_stacking_context_étape_7 :: fonc (élément: *NoeudDeDisposition, ctx: 
     // 3. Optionally, if the element is block-level, the outline of the element (see 10 below).
 }
 
-is_block_list_item_or_block_equivalent :: fonc (noeud: *NoeudDeDisposition) -> bool
+is_block_list_item_or_block_equivalent :: fonc (box: *Box) -> bool
 {
-    display := noeud.donne_display()
+    display := box.donne_display()
     si display.outer_type != Display.Type.Block {
         retourne faux
     }
@@ -627,18 +662,18 @@ is_block_list_item_or_block_equivalent :: fonc (noeud: *NoeudDeDisposition) -> b
     retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex || display.est_list_item
 }
 
-is_block_level_table :: fonc (noeud: *NoeudDeDisposition) -> bool
+is_block_level_table :: fonc (box: *Box) -> bool
 {
-    display := noeud.donne_display()
+    display := box.donne_display()
     retourne display.outer_type == Display.Type.Block && display.inner_type == Display.Type.Table
 }
 
-donne_in_flow_non_positioned_block_level_descendants :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+donne_in_flow_non_positioned_block_level_descendants :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*NoeudDeDisposition)
+    pile: Pile(*Box)
     diffère détruit(pile)
 
-    pour > noeud.enfants {
+    pour > box.enfants {
         pile.empile(it)
     }
 
@@ -674,12 +709,12 @@ donne_in_flow_non_positioned_block_level_descendants :: fonc (noeud: *NoeudDeDis
     }
 }
 
-donne_non_positioned_floating_descendants :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+donne_non_positioned_floating_descendants :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*NoeudDeDisposition)
+    pile: Pile(*Box)
     diffère détruit(pile)
 
-    pour > noeud.enfants {
+    pour > box.enfants {
         pile.empile(it)
     }
 
@@ -707,12 +742,12 @@ donne_non_positioned_floating_descendants :: fonc (noeud: *NoeudDeDisposition, r
     }
 }
 
-donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (noeud: *NoeudDeDisposition, résultat: *[..]*NoeudDeDisposition)
+donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*NoeudDeDisposition)
+    pile: Pile(*Box)
     diffère détruit(pile)
 
-    pour > noeud.enfants {
+    pour > box.enfants {
         pile.empile(it)
     }
 

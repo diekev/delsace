@@ -1,10 +1,4 @@
 importe Aléa
-importe Chaine
-importe Couleur
-importe Fondation
-importe Géométrie
-importe Image
-importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom CommandesDeRendu
@@ -156,17 +150,17 @@ CommandeDessineImage :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_IMAGE
 
-    image_data: ImageIO
+    image_data: NouvelleImage
     rect_image: RectanglePosDim(r32)
     répétition: RépétitionImage
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32))
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32))
 {
     dessine_image(commandes, image_data, rect_image, rect_image, RépétitionImage())
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: ImageIO, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
 {
     résultat := crée_commande(commandes, CommandeDessineImage)
     résultat.image_data = image_data
@@ -307,7 +301,7 @@ ContexteDessin :: struct {
 
 donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r32)) -> RectanglePosDim(r32)
 {
-    /* Nous disposons les noeuds comme si leur origine était leur coin du haut
+    /* Nous disposons les boxes comme si leur origine était leur coin du haut
      * gauche mais nous devons les dessiner comme si leur origine était leur
      * coin du bas gauche.
      * De plus, nous devons nous assurer que l'origine du document est le bas
@@ -331,7 +325,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *Commandes
 
     // imprime_et_réinitialise_fut_dessiné(arbre.stacking_context)
 
-    // pour arbre.noeuds {
+    // pour arbre.boxes {
     //     si it.fut_dessiné {
     //         it.fut_dessiné = faux
     //         continue
@@ -344,7 +338,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *Commandes
     //     position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
     //     float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
     //     display := it.donne_display()
-    //     imprime("noeud non dessiné : % (position : %, float : %, outer : %, inner : %) ", it.donne_nom_classe(), position, float, display.outer_type, display.inner_type)
+    //     imprime("box non dessiné : % (position : %, float : %, outer : %, inner : %) ", it.donne_nom_classe(), position, float, display.outer_type, display.inner_type)
     //     imprime_élément(it, "")
     // }
 
@@ -381,64 +375,64 @@ dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> 
     retourne ctx.commandes
 }
 
-dessine :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
+dessine :: fonc (box: *Box, ctx: *ContexteDessin)
 {
-    si noeud.id_stacking_context != ctx.id_stacking_context {
+    si box.id_stacking_context != ctx.id_stacking_context {
         retourne
     }
 
-    si noeud.table_virtuelle.sur_dessin {
-        noeud.table_virtuelle.sur_dessin(noeud, ctx)
+    si box.table_virtuelle.sur_dessin {
+        box.table_virtuelle.sur_dessin(box, ctx)
     }
 }
 
-dessine_fragment :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
+dessine_fragment :: fonc (box: *Box, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
-    si noeud.table_virtuelle.sur_dessin_fragment {
-        noeud.table_virtuelle.sur_dessin_fragment(noeud, fragment, lignes_tenante, ctx)
+    si box.table_virtuelle.sur_dessin_fragment {
+        box.table_virtuelle.sur_dessin_fragment(box, fragment, lignes_tenante, ctx)
     }
     sinon {
-        noeud.dessine(ctx)
+        box.dessine(ctx)
     }
 }
 
-dessine_tampon_id :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDessin)
+dessine_tampon_id :: fonc (box: *Box, ctx: *ContexteDessin)
 {
-    si noeud.id_stacking_context != ctx.id_stacking_context {
+    si box.id_stacking_context != ctx.id_stacking_context {
         retourne
     }
 
-    si noeud.table_virtuelle.sur_dessin_tampon_id {
-        noeud.table_virtuelle.sur_dessin_tampon_id(noeud, ctx)
+    si box.table_virtuelle.sur_dessin_tampon_id {
+        box.table_virtuelle.sur_dessin_tampon_id(box, ctx)
     }
 }
 
-dessine_fragment_tampon_id :: fonc (noeud: *NoeudDeDisposition, fragment: *Fragment, ctx: *ContexteDessin)
+dessine_fragment_tampon_id :: fonc (box: *Box, fragment: *Fragment, ctx: *ContexteDessin)
 {
-    saufsi noeud.table_virtuelle.sur_dessin_fragment_tampon_id {
-        ctx.remplis_rectangle_id(noeud, fragment.donne_rectangle())
+    saufsi box.table_virtuelle.sur_dessin_fragment_tampon_id {
+        ctx.remplis_rectangle_id(box, fragment.donne_rectangle())
 
-        pour noeud.enfants {
-            noeud.dessine_tampon_id(ctx)
+        pour box.enfants {
+            box.dessine_tampon_id(ctx)
         }
 
         retourne
     }
 
-    noeud.table_virtuelle.sur_dessin_fragment_tampon_id(noeud, fragment, ctx)
+    box.table_virtuelle.sur_dessin_fragment_tampon_id(box, fragment, ctx)
 }
 
-dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+dessine_enfants_block :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    // overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
-    // overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
-    //     ctx.commandes.débute_ciselage(rect)
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
+    }
 
-    pour noeud.enfants {
+    pour box.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         saufsi position.est_mot_clé(PROP_static) {
             continue
@@ -450,7 +444,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
         dessine(it, ctx)
     }
 
-    pour noeud.enfants {
+    pour box.enfants {
         position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
         si position.est_mot_clé(PROP_static) {
             continue
@@ -462,7 +456,7 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
         dessine(it, ctx)
     }
 
-    pour noeud.enfants {
+    pour box.enfants {
         float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
         si float.est_none() {
             continue
@@ -470,91 +464,115 @@ dessine_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDes
         dessine(it, ctx)
     }
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     ctx.commandes.termine_ciselage()
-    // }
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
+    }
 }
 
-dessine_tampon_id_enfants_block :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+dessine_tampon_id_enfants_block :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    pour noeud.enfants {
+    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
+    }
+
+    pour box.enfants {
         dessine_tampon_id(it, ctx)
     }
+
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
+    }
 }
 
-dessine_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+dessine_enfants_inline :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    saufsi noeud.lignes_tenante {
+    saufsi box.lignes_tenante {
         retourne
     }
 
-    // overflow_x := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
-    // overflow_y := noeud.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_rembourrage())
-    //     ctx.commandes.débute_ciselage(rect)
-    // }
-
-    pour * noeud.lignes_tenante.fragments {
-        dessine_fragment(it.noeud, it, noeud.lignes_tenante, ctx)
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
     }
 
-    // saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-    //     ctx.commandes.termine_ciselage()
-    // }
+    pour * box.lignes_tenante.fragments {
+        dessine_fragment(it.box, it, box.lignes_tenante, ctx)
+    }
+
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
+    }
 }
 
-dessine_tampon_id_enfants_inline :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDessin)
+dessine_tampon_id_enfants_inline :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    saufsi noeud.lignes_tenante {
+    saufsi box.lignes_tenante {
         retourne
     }
 
-    pour * noeud.lignes_tenante.fragments {
-        dessine_fragment_tampon_id(it.noeud, it, ctx)
+    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage())
+        ctx.commandes.débute_ciselage(rect)
+    }
+
+    pour * box.lignes_tenante.fragments {
+        dessine_fragment_tampon_id(it.box, it, ctx)
+    }
+
+    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
+        ctx.commandes.termine_ciselage()
     }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Fonctions de dessin des noeuds.
+/** \nom Fonctions de dessin des boxes.
  * \{ */
 
-noeud_disposition_bloc_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+block_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionBloc
+    box := base comme *BlockBox
 
-    si noeud.est_noeud_non_anonyme() || noeud.est_pseudo_element {
-        dessine_arrière_plan(ctx, noeud)
-        dessine_bordure(ctx, noeud)
+    si box.est_box_non_anonyme() || box.est_pseudo_element {
+        dessine_arrière_plan(ctx, box)
+        dessine_bordure(ctx, box)
     }
 
-    saufsi noeud.est_disposition_inline {
-        dessine_enfants_block(noeud, ctx)
+    saufsi box.est_disposition_inline {
+        dessine_enfants_block(box, ctx)
     }
     sinon {
-        dessine_enfants_inline(noeud, ctx)
+        dessine_enfants_inline(box, ctx)
     }
 }
 
-noeud_disposition_inline_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+inline_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionInline
+    box := base comme *InlineBox
 
-    si noeud.est_inline_block() {
-        noeud_disposition_bloc_sur_dessin(noeud, ctx)
+    si box.est_inline_block() {
+        block_box_sur_dessin(box, ctx)
         retourne
     }
 
-    dessine_enfants_inline(noeud, ctx)
+    dessine_enfants_inline(box, ctx)
 }
 
-noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
+inline_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx: *ContexteDessin)
 {
     si fragment.type == Fragment.Type.InlineBlock {
-        noeud_disposition_bloc_sur_dessin(base, ctx)
+        block_box_sur_dessin(base, ctx)
         retourne
     }
 
@@ -580,23 +598,23 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
             premier_fragment := fragment
             dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille
             tantque fragment != dernier_fragment {
-                rect_noeud := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
-                rect_noeud.y -= padding_top
-                rect_noeud.hauteur += padding_top + padding_bottom
+                rect_box := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+                rect_box.y -= padding_top
+                rect_box.hauteur += padding_top + padding_bottom
 
                 est_premier_fragment := fragment == premier_fragment
-                est_dernier_fragment := fragment.type == Fragment.Type.RembourrageFin && fragment.noeud == base
+                est_dernier_fragment := fragment.type == Fragment.Type.RembourrageFin && fragment.box == base
 
                 si est_premier_fragment {
                     rayons := [border_radius_top_left, 0.0, 0.0, border_radius_bottom_left]
-                    ctx.commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                    ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
                 }
                 sinon si est_dernier_fragment {
                     rayons := [0.0, border_radius_top_right, border_radius_bottom_right, 0.0]
-                    ctx.commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+                    ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
                 }
                 sinon {
-                    ctx.commandes.remplis_rectangle(rect_noeud, background_color)
+                    ctx.commandes.remplis_rectangle(rect_box, background_color)
                 }
 
                 si est_dernier_fragment {
@@ -609,11 +627,11 @@ noeud_disposition_inline_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition,
     }
 }
 
-noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+text_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionTexte
+    box := base comme *TextBox
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(box)
 
     effets: EffetsTexte
 
@@ -637,53 +655,53 @@ noeud_disposition_texte_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, 
     }
 
     commandes := ctx.commandes
-    fonte := noeud.fonte
+    fonte := box.fonte
     assert(fonte != nul)
 
     couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
 
-    texte := noeud.fragments[fragment.index_début].texte
+    texte := box.fragments[fragment.index_début].texte
 
     commandes.dessine_texte(fonte, texte, rect, couleur, *effets)
 }
 
-noeud_disposition_remplacement_sur_dessin_fragment :: fonc (base: *NoeudDeDisposition, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
+replaced_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
 {
     base.table_virtuelle.sur_dessin(base, ctx)
 }
 
-noeud_image_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+image_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     dessine_arrière_plan(ctx, base)
     dessine_bordure(ctx, base)
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_img)
-    image := noeud.élément comme *HTML.HTMLImageElement
-    dessine_image(ctx, image.image_data, noeud.donne_rectangle_contenu())
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_img)
+    image := box.donne_élément() comme *HTML.HTMLImageElement
+    dessine_image(ctx, image.image_data, box.donne_rectangle_contenu())
 }
 
-noeud_object_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+object_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     dessine_arrière_plan(ctx, base)
     dessine_bordure(ctx, base)
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_object)
-    object := noeud.élément comme *HTML.HTMLObjectElement
-    dessine_image(ctx, object.image_data, noeud.donne_rectangle_contenu())
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_object)
+    object := box.donne_élément() comme *HTML.HTMLObjectElement
+    dessine_image(ctx, object.image_data, box.donne_rectangle_contenu())
 }
 
-noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_input)
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    dessine_arrière_plan(ctx, noeud)
-    dessine_bordure(ctx, noeud)
+    dessine_arrière_plan(ctx, box)
+    dessine_bordure(ctx, box)
 
-    élément := noeud.élément comme *HTML.HTMLInputElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
+    élément := box.donne_élément() comme *HTML.HTMLInputElement
+    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_value(élément)
     state := HTML.donne_state(élément)
 
@@ -703,14 +721,14 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 
     saufsi value.est_vide() {
-        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte := donne_rect_texte_pour_input(box)
         rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
-        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul)
     }
 
     éditrice := élément.éditrice
     si éditrice && éditrice.curseur_est_affiché {
-        rect_curseur := donne_rect_texte_pour_input(noeud)
+        rect_curseur := donne_rect_texte_pour_input(box)
 
         curseur_x: z32
         si state == HTML.HTMLInputElement.State.Password {
@@ -733,32 +751,32 @@ noeud_text_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDe
     }
 }
 
-noeud_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+button_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_input)
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    dessine_arrière_plan(ctx, noeud)
-    dessine_bordure(ctx, noeud)
+    dessine_arrière_plan(ctx, box)
+    dessine_bordure(ctx, box)
 
-    élément := noeud.élément comme *HTML.HTMLInputElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
+    élément := box.donne_élément() comme *HTML.HTMLInputElement
+    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     saufsi value.est_vide() {
-        rect_texte := donne_rect_texte_pour_input(noeud)
+        rect_texte := donne_rect_texte_pour_input(box)
         rect_texte = ctx.donne_rectangle_corrigé(rect_texte)
-        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul)
     }
 }
 
-donne_rect_texte_pour_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> RectanglePosDim(r32)
+donne_rect_texte_pour_input :: fonc (box: *ReplacedBox) -> RectanglePosDim(r32)
 {
-    rect_texte := noeud.donne_rectangle_contenu()
+    rect_texte := box.donne_rectangle_contenu()
     
     /* Centre le texte dans le rectangle. Le centrage se fait en centrant les minuscules. */
-    métriques := donne_métriques_fonte(noeud.fonte)
-    taille_minuscule := donne_hauteur_glyph(noeud.fonte, 'x' comme n32).Quelque comme r32
+    métriques := donne_métriques_fonte(box.fonte)
+    taille_minuscule := donne_hauteur_glyph(box.fonte, 'x' comme n32).Quelque comme r32
 
     taille_disponible := (rect_texte.hauteur - taille_minuscule)
     déplacement := taille_disponible * 0.5
@@ -771,14 +789,14 @@ donne_rect_texte_pour_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> 
     retourne rect_texte
 }
 
-noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+radio_button_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_input)
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    input := noeud.élément comme *HTML.HTMLInputElement
+    input := box.donne_élément() comme *HTML.HTMLInputElement
 
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
 
     remplis_cercle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255))
 
@@ -797,14 +815,14 @@ noeud_radio_button_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Co
     }
 }
 
-noeud_checkbox_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+checkbox_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_input)
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    input := noeud.élément comme *HTML.HTMLInputElement
+    input := box.donne_élément() comme *HTML.HTMLInputElement
 
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
 
     remplis_rectangle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255))
     dessine_rectangle(ctx.commandes, rect, CouleurRVBAN8(0x8f, 0x8f, 0x9d, 255))
@@ -819,16 +837,16 @@ noeud_checkbox_input_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *Contex
     }
 }
 
-noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+textarea_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    assert(noeud.élément.local_name == HTML.TAG_textarea)
+    box := base comme *ReplacedBox
+    assert(box.donne_élément().local_name == HTML.TAG_textarea)
 
-    dessine_arrière_plan(ctx, noeud)
-    dessine_bordure(ctx, noeud)
+    dessine_arrière_plan(ctx, box)
+    dessine_bordure(ctx, box)
 
-    élément := noeud.élément comme *HTML.HTMLTextAreaElement
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
+    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
     si value.est_vide() {
@@ -837,19 +855,19 @@ noeud_textarea_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDess
     }
 
     saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
-        ctx.commandes.dessine_texte(noeud.fonte, value, rect_texte, couleur, nul)
+        rect_texte := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
+        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul)
     }
 }
 
-noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+canvas_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    élément := noeud.élément comme *HTML.HTMLCanvasElement
-    assert(noeud.élément.local_name == HTML.TAG_canvas)
+    box := base comme *ReplacedBox
+    élément := box.donne_élément() comme *HTML.HTMLCanvasElement
+    assert(box.donne_élément().local_name == HTML.TAG_canvas)
 
-    dessine_arrière_plan(ctx, noeud)
-    dessine_bordure(ctx, noeud)
+    dessine_arrière_plan(ctx, box)
+    dessine_bordure(ctx, box)
 
     tampon_de_rendu := HTML.donne_tampon_de_rendu(élément)
 
@@ -858,31 +876,31 @@ noeud_canvas_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin
     image.largeur = tampon_de_rendu.rect.largeur
     image.hauteur = tampon_de_rendu.rect.hauteur
     
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
     ctx.commandes.dessine_image(image, rect)
 }
 
-noeud_select_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+select_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionSelect
-    dessine_arrière_plan(ctx, noeud)
+    box := base comme *SelectBox
+    dessine_arrière_plan(ctx, box)
 
     commandes := ctx.commandes
-    fonte := noeud.fonte
+    fonte := box.fonte
     assert(fonte != nul)
 
-    couleur := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
+    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
 
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_contenu())
+    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
 
-    pour noeud.fragments {
+    pour box.fragments {
         commandes.dessine_texte(fonte, it.texte, rect, couleur, nul)
 
         rect.x += donne_largeur_texte(fonte, it.texte) comme r32
     }
 }
 
-table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+table_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     table := base comme *TableBox
     pour table.enfants {
@@ -906,7 +924,7 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
             continue
         }
 
-        group_box := it comme *NoeudDeDispositionBloc
+        group_box := it comme *BlockBox
         dessine_arrière_plan(ctx, group_box)
 
         pour enfant_row_group dans it.enfants {
@@ -932,39 +950,39 @@ table_box_sur_dessin :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Fonctions de dessin des ids des noeuds.
+/** \nom Fonctions de dessin des ids des boxes.
  * \{ */
 
-noeud_disposition_bloc_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+block_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionBloc
+    box := base comme *BlockBox
 
-    ctx.remplis_rectangle_id(noeud)
+    ctx.remplis_rectangle_id(box)
 
-    saufsi noeud.est_disposition_inline {
-        dessine_tampon_id_enfants_block(noeud, ctx)
+    saufsi box.est_disposition_inline {
+        dessine_tampon_id_enfants_block(box, ctx)
     }
     sinon {
-        dessine_tampon_id_enfants_inline(noeud, ctx)
+        dessine_tampon_id_enfants_inline(box, ctx)
     }
 }
 
-noeud_disposition_inline_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+inline_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionInline
-    ctx.remplis_rectangle_id(noeud)
-    si noeud.est_inline_block() {
-        dessine_tampon_id_enfants_block(noeud, ctx)
+    box := base comme *InlineBox
+    ctx.remplis_rectangle_id(box)
+    si box.est_inline_block() {
+        dessine_tampon_id_enfants_block(box, ctx)
     }
     sinon {
-        dessine_tampon_id_enfants_inline(noeud, ctx)
+        dessine_tampon_id_enfants_inline(box, ctx)
     }
 }
 
-noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDessin)
+replaced_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
-    ctx.remplis_rectangle_id(noeud)
+    box := base comme *ReplacedBox
+    ctx.remplis_rectangle_id(box)
 }
 
 /** \} */
@@ -973,18 +991,18 @@ noeud_disposition_remplacement_sur_dessin_tampon_id :: fonc (base: *NoeudDeDispo
 /** \nom Utilitaires
  * \{ */
 
-remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box)
 {
-    remplis_rectangle_id(ctx, noeud, noeud.donne_rectangle_bordure())
+    remplis_rectangle_id(ctx, box, box.donne_rectangle_bordure())
 }
 
-remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, rect: RectanglePosDim(r32))
+remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box, rect: RectanglePosDim(r32))
 {
     commandes := ctx.commandes
     rect = ctx.donne_rectangle_corrigé(rect)
 
     si ctx.tampon_id_couleur {
-        entropie := graine_aléatoire(noeud.id + 1)
+        entropie := graine_aléatoire(box.id + 1)
 
         couleur: CouleurRVBA
         couleur.r = aléatoire_unilatérale(entropie)
@@ -995,15 +1013,15 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition, 
         retourne
     }
 
-    commandes.remplis_rectangle_id(rect, noeud.id)
+    commandes.remplis_rectangle_id(rect, box.id)
 }
 
-dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosDim(r32))
+dessine_image :: fonc (ctx: *ContexteDessin, image: NouvelleImage, rect: RectanglePosDim(r32))
 {
     rect = ctx.donne_rectangle_corrigé(rect)
     commandes := ctx.commandes
 
-    si image.donnees {
+    si image.données {
         commandes.dessine_image(image, rect)
     }
     sinon {
@@ -1012,35 +1030,35 @@ dessine_image :: fonc (ctx: *ContexteDessin, image: ImageIO, rect: RectanglePosD
     }
 }
 
-dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
 {
     commandes := ctx.commandes
 
-    background_color := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
+    background_color := box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
     si background_color.a != 0 {
-        rect_noeud: RectanglePosDim(r32)
-        si noeud.parent == nul {
+        rect_box: RectanglePosDim(r32)
+        si box.parent == nul {
             /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
-            rect_noeud.hauteur = ctx.hauteur_vue comme r32
-            rect_noeud.largeur = ctx.largeur_vue comme r32
+            rect_box.hauteur = ctx.hauteur_vue comme r32
+            rect_box.largeur = ctx.largeur_vue comme r32
         }
         sinon {
-            rect_noeud = ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+            rect_box = ctx.donne_rectangle_corrigé(box.donne_rectangle_bordure())
         }
 
-        border_radius_top_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32
-        border_radius_top_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32
-        border_radius_bottom_right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32
-        border_radius_bottom_left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32
+        border_radius_top_left := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32
+        border_radius_top_right := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32
+        border_radius_bottom_right := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32
+        border_radius_bottom_left := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32
 
         rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
-        commandes.remplis_rectangle_arrondi(rect_noeud, rayons, background_color)
+        commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
     }
-    sinon si noeud.parent == nul {
-        dessine_arrière_plan_racine_html(ctx, noeud)
+    sinon si box.parent == nul {
+        dessine_arrière_plan_racine_html(ctx, box)
     }
 
-    image := noeud.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
+    image := box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage)
     si image.est_none() {
         retourne
     }
@@ -1050,13 +1068,13 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         retourne
     }
 
-    background_attachment := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundAttachment)
+    background_attachment := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundAttachment)
     si background_attachment.est_mot_clé(PROP_fixed) {
         /* À FAIRE : dessine l'image mais avec des ciseaux pour le rect. */
         retourne
     }
 
-    background_repeat := noeud.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).donne_background_repeat()
+    background_repeat := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).donne_background_repeat()
     // imprime("background_repeat : %\n", background_repeat)
     répétition: RépétitionImage
     répétition.x = convertis_genre_répétition_image(background_repeat.horizontal)
@@ -1064,20 +1082,30 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
 
     image_data := opt_image_data.Quelque
     /* À FAIRE : background-clip */
-    rect := noeud.donne_rectangle_bordure()
+    rect := box.donne_rectangle_bordure()
 
     rect_image := rect
-    rect_image.largeur = image_data.largeur comme r32
-    rect_image.hauteur = image_data.hauteur comme r32
+    rect_image.largeur = image_data.desc.largeur comme r32
+    rect_image.hauteur = image_data.desc.hauteur comme r32
+
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundPosition).donne_background_position()
+
+    // À FAIRE : pourcentages, mots-clés
+    si position.décalage_horizontal.est_pixels() {
+        rect_image.x += position.décalage_horizontal.donne_pixels() comme r32
+    }
+    si position.décalage_vertical.est_pixels() {
+        rect_image.y += position.décalage_vertical.donne_pixels() comme r32
+    }
 
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)
     commandes.dessine_image(image_data, rect_image, rect, répétition)
 }
 
-dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, box: *Box)
 {
-    élément := noeud.donne_élément()
+    élément := box.donne_élément()
     saufsi élément {
         retourne
     }
@@ -1089,17 +1117,17 @@ dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, noeud: *NoeudDe
     /* Hérite de l'arrière-plan du "body".
      * https://www.w3.org/TR/CSS21/colors.html#background */
     body := HTML.donne_élément_body(élément.document)
-    saufsi body && body.noeud_de_disposition {
+    saufsi body && body.box {
         retourne
     }
 
-    background_color := body.noeud_de_disposition.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
+    background_color := body.box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur()
     si background_color.a != 0 {
         /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
-        rect_noeud: RectanglePosDim(r32)
-        rect_noeud.hauteur = ctx.hauteur_vue comme r32
-        rect_noeud.largeur = ctx.largeur_vue comme r32
-        ctx.commandes.remplis_rectangle(rect_noeud, background_color)
+        rect_box: RectanglePosDim(r32)
+        rect_box.hauteur = ctx.hauteur_vue comme r32
+        rect_box.largeur = ctx.largeur_vue comme r32
+        ctx.commandes.remplis_rectangle(rect_box, background_color)
     }
 }
 
@@ -1117,9 +1145,9 @@ convertis_genre_répétition_image :: fonc (mot_clé: CSSOMString) -> GenreRép�
     retourne GenreRépétitionImage.Aucune
 }
 
-dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
+dessine_bordure :: fonc (ctx: *ContexteDessin, box: *Box)
 {
-    bordure := donne_bordure(*noeud.propriétés.style)
+    bordure := donne_bordure(*box.propriétés.style)
 
     largeurs: [4]r32
     couleurs: [4]CouleurRVBAN8
@@ -1157,7 +1185,7 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
             /* À FAIRE : ce n'est pas calculé pour css_testsuites/chapter_08_-_box_model/border-bottom-width-092.html */
             couleur_bordure := bordure.color[coté]
             si couleur_bordure.est_mot_clé(PROP_currentColor) {
-                couleur = noeud.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
+                couleur = box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
             }
             sinon {
                 couleur = bordure.color[coté].donne_couleur()
@@ -1174,7 +1202,7 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, noeud: *NoeudDeDisposition)
         retourne
     }
 
-    rect := ctx.donne_rectangle_corrigé(noeud.donne_rectangle_bordure())
+    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_bordure())
     ctx.commandes.dessine_bordure(rect, largeurs, couleurs)
 }
 

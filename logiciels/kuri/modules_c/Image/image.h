@@ -22,13 +22,41 @@ enum ResultatOperation {
     LECTURE_DONNEES_IMPOSSIBLE,
 };
 
+#define ENUMERE_DECLARATION_ENUM_IPA(nom_ipa, nom_natif) nom_ipa,
+
+#define ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA(nom_ipa, nom_natif)                               \
+    case nom_natif:                                                                               \
+    {                                                                                             \
+        return nom_ipa;                                                                           \
+    }
+
+#define ENUM_IMAGEIO_DATATYPE(O)                                                                  \
+    O(IMAGEIO_DATATYPE_UNKNOWN, OIIO::TypeDesc::UNKNOWN)                                          \
+    O(IMAGEIO_DATATYPE_NONE, OIIO::TypeDesc::NONE)                                                \
+    O(IMAGEIO_DATATYPE_UINT8, OIIO::TypeDesc::UINT8)                                              \
+    O(IMAGEIO_DATATYPE_INT8, OIIO::TypeDesc::INT8)                                                \
+    O(IMAGEIO_DATATYPE_UINT16, OIIO::TypeDesc::UINT16)                                            \
+    O(IMAGEIO_DATATYPE_INT16, OIIO::TypeDesc::INT16)                                              \
+    O(IMAGEIO_DATATYPE_UINT32, OIIO::TypeDesc::UINT32)                                            \
+    O(IMAGEIO_DATATYPE_INT32, OIIO::TypeDesc::INT32)                                              \
+    O(IMAGEIO_DATATYPE_UINT64, OIIO::TypeDesc::UINT64)                                            \
+    O(IMAGEIO_DATATYPE_INT64, OIIO::TypeDesc::INT64)                                              \
+    O(IMAGEIO_DATATYPE_HALF, OIIO::TypeDesc::HALF)                                                \
+    O(IMAGEIO_DATATYPE_FLOAT, OIIO::TypeDesc::FLOAT)                                              \
+    O(IMAGEIO_DATATYPE_DOUBLE, OIIO::TypeDesc::DOUBLE)                                            \
+    O(IMAGEIO_DATATYPE_STRING, OIIO::TypeDesc::STRING)                                            \
+    O(IMAGEIO_DATATYPE_PTR, OIIO::TypeDesc::PTR)
+
+enum ImageIO_DataType { ENUM_IMAGEIO_DATATYPE(ENUMERE_DECLARATION_ENUM_IPA) };
+
 struct ImageIO {
-    float *donnees;
+    uint8_t *donnees;
     int64_t taille_donnees;
 
     int largeur;
     int hauteur;
     int nombre_composants;
+    enum ImageIO_DataType format;
 };
 
 struct ImageIOProxy;
@@ -37,10 +65,11 @@ struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size);
 
 void IMG_detruit_proxy(struct ImageIOProxy *proxy);
 
-enum ResultatOperation IMG_ouvre_image(const char *chemin, struct ImageIO *image);
+enum ResultatOperation IMG_ouvre_image(const char *chemin, struct ImageIO *image, enum ImageIO_DataType format);
 enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
                                                   struct ImageIO *image,
-                                                  struct ImageIOProxy *proxy);
+                                                  struct ImageIOProxy *proxy,
+                                                  enum ImageIO_DataType format);
 
 enum ResultatOperation IMG_ouvre_gif_depuis_fichier(const char *chemin, struct ImageIO *resultat);
 enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
@@ -88,33 +117,6 @@ typedef struct IMG_Fenetre {
     int min_y;
     int max_y;
 } IMG_Fenetre;
-
-#define ENUMERE_DECLARATION_ENUM_IPA(nom_ipa, nom_natif) nom_ipa,
-
-#define ENUMERE_TRANSLATION_ENUM_NATIF_VERS_IPA(nom_ipa, nom_natif)                               \
-    case nom_natif:                                                                               \
-    {                                                                                             \
-        return nom_ipa;                                                                           \
-    }
-
-#define ENUM_IMAGEIO_DATATYPE(O)                                                                  \
-    O(IMAGEIO_DATATYPE_UNKNOWN, OIIO::TypeDesc::UNKNOWN)                                          \
-    O(IMAGEIO_DATATYPE_NONE, OIIO::TypeDesc::NONE)                                                \
-    O(IMAGEIO_DATATYPE_UINT8, OIIO::TypeDesc::UINT8)                                              \
-    O(IMAGEIO_DATATYPE_INT8, OIIO::TypeDesc::INT8)                                                \
-    O(IMAGEIO_DATATYPE_UINT16, OIIO::TypeDesc::UINT16)                                            \
-    O(IMAGEIO_DATATYPE_INT16, OIIO::TypeDesc::INT16)                                              \
-    O(IMAGEIO_DATATYPE_UINT32, OIIO::TypeDesc::UINT32)                                            \
-    O(IMAGEIO_DATATYPE_INT32, OIIO::TypeDesc::INT32)                                              \
-    O(IMAGEIO_DATATYPE_UINT64, OIIO::TypeDesc::UINT64)                                            \
-    O(IMAGEIO_DATATYPE_INT64, OIIO::TypeDesc::INT64)                                              \
-    O(IMAGEIO_DATATYPE_HALF, OIIO::TypeDesc::HALF)                                                \
-    O(IMAGEIO_DATATYPE_FLOAT, OIIO::TypeDesc::FLOAT)                                              \
-    O(IMAGEIO_DATATYPE_DOUBLE, OIIO::TypeDesc::DOUBLE)                                            \
-    O(IMAGEIO_DATATYPE_STRING, OIIO::TypeDesc::STRING)                                            \
-    O(IMAGEIO_DATATYPE_PTR, OIIO::TypeDesc::PTR)
-
-enum ImageIO_DataType { ENUM_IMAGEIO_DATATYPE(ENUMERE_DECLARATION_ENUM_IPA) };
 
 #define ENUM_IMAGEIO_AGGREGATETYPE(O)                                                             \
     O(IMAGEIO_AGGREGATETYPE_SCALAR, OIIO::TypeDesc::SCALAR)                                       \

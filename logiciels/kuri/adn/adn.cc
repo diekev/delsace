@@ -333,9 +333,6 @@ void ProtéineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
 void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
-    if (m_nom_code.nom() == "AnnotationCode") {
-        os << "#interface ";
-    }
     os << "{";
     if (m_mere) {
         if (m_mere->accede_nom_comme().est_nul()) {
@@ -870,7 +867,7 @@ void SyntaxeuseADN::parse_struct()
         auto nom_struct_mere = lexème_courant()->chaine;
 
         POUR (protéines) {
-            if (it->nom().nom() == kuri::chaine_statique(nom_struct_mere)) {
+            if (it->nom().nom() == nom_struct_mere) {
                 if (!it->comme_struct()) {
                     rapporte_erreur("Impossible de trouver la structure mère !");
                 }
