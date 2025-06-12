@@ -1179,13 +1179,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto type = atome->comme_constante_type()->type_de_données;
-            if (type->est_type_type_de_données()) {
-                auto type_de_données = type->comme_type_type_de_données();
-                if (type_de_données->type_connu) {
-                    return enchaine(type_de_données->type_connu->index_dans_table_types);
-                }
-            }
+            auto type = atome->comme_constante_type()->donne_type();
             return enchaine(type->index_dans_table_types);
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:

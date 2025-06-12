@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
+#include "utilitaires/synchrone.hh"
 
 #include "tableau.hh"
 
@@ -162,7 +162,7 @@ struct tableau_page {
 };
 
 template <typename T>
-using tableau_page_synchrone = dls::outils::Synchrone<tableau_page<T>>;
+using tableau_page_synchrone = kuri::Synchrone<tableau_page<T>>;
 
 #define POUR_TABLEAU_PAGE(x)                                                                      \
     for (auto &p : x)                                                                             \

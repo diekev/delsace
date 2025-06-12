@@ -424,7 +424,7 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
 
 #define VERROUILLE(x) std::unique_lock<std::mutex> verrou(mutex_##x)
 
-Typeuse::Typeuse(dls::outils::Synchrone<GrapheDépendance> &g) : graphe_(g)
+Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 {
     alloc = memoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
 

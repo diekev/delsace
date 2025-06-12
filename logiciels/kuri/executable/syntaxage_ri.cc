@@ -41,7 +41,7 @@ static void imprime_erreur(SiteSource site, kuri::chaine message)
             enchaineuse << ' ';
         }
 
-        i += lng::decalage_pour_caractere(ligne_courante, i);
+        i += ligne_courante.décalage_pour_caractère(i);
     }
 
     enchaineuse << "^~~~\n";
@@ -64,11 +64,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto texte = charge_contenu_fichier(
-        {chemin_fichier_ri.pointeur(), chemin_fichier_ri.taille()});
+    auto texte = charge_contenu_fichier(chemin_fichier_ri);
 
     Fichier fichier;
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = TamponSource(texte);
     fichier.chemin_ = "";
 
     ArgumentsCompilatrice arguments;

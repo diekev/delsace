@@ -3,12 +3,13 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
 #include "biblinternes/structures/tuples.hh"
 
 #include "arbre_syntaxique/expression.hh"
 
 #include "structures/tableau.hh"
+
+#include "utilitaires/synchrone.hh"
 
 struct Enchaineuse;
 struct IdentifiantCode;

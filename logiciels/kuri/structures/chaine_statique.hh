@@ -3,10 +3,11 @@
 
 #pragma once
 
+#include <assert.h>
+#include <cstdint>
 #include <cstring>    /* pour la déclaration de std::strlen */
 #include <functional> /* pour la déclaration de std::hash */
-
-#include "biblinternes/structures/vue_chaine_compacte.hh"
+#include <string_view>
 
 namespace kuri {
 
@@ -24,10 +25,6 @@ struct chaine_statique {
     chaine_statique(chaine_statique const &) = default;
     chaine_statique &operator=(chaine_statique const &) = default;
 
-    chaine_statique(dls::vue_chaine_compacte chn) : chaine_statique(chn.pointeur(), chn.taille())
-    {
-    }
-
     chaine_statique(const char *ptr, int64_t taille) : pointeur_(ptr), taille_(taille)
     {
     }
@@ -39,6 +36,13 @@ struct chaine_statique {
     template <uint64_t N>
     chaine_statique(const char (&ptr)[N]) : chaine_statique(ptr, static_cast<int64_t>(N))
     {
+    }
+
+    char operator[](int64_t index) const
+    {
+        assert(index >= 0);
+        assert(index < taille());
+        return pointeur_[index];
     }
 
     const char *pointeur() const
@@ -68,6 +72,28 @@ struct chaine_statique {
         assert(début <= fin);
         return chaine_statique(pointeur() + début, fin - début);
     }
+
+    const char *begin()
+    {
+        return this->pointeur_;
+    }
+
+    char const *begin() const
+    {
+        return this->pointeur_;
+    }
+
+    const char *end()
+    {
+        return this->begin() + this->taille_;
+    }
+
+    char const *end() const
+    {
+        return this->begin() + this->taille_;
+    }
+
+    int64_t décalage_pour_caractère(int64_t i) const;
 };
 
 bool operator<(chaine_statique const &c1, chaine_statique const &c2);

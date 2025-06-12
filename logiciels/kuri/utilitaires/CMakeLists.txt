@@ -13,23 +13,29 @@ set(BIBLIOTHEQUES
 set(SOURCES
     algorithmes.cc
     calcul.cc
+    chrono.cc
     compteuse_cas.cc
     enum_drapeau.cc
     garde_portee.cc
     log.cc
     macros.cc
     poule_de_taches.cc
+    synchrone.cc
     type_opaque.cc
+    unicode.cc
 
     algorithmes.hh
     calcul.hh
+    chrono.hh
     compteuse_cas.hh
     enum_drapeau.hh
     garde_portee.hh
     log.hh
     macros.hh
     poule_de_taches.hh
+    synchrone.hh
     type_opaque.hh
+    unicode.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

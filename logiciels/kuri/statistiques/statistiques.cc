@@ -17,7 +17,7 @@ static inline int ratio(double a, double b)
     return static_cast<int>(a / b);
 }
 
-void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début_compilation)
+void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde début_compilation)
 {
     auto const temps_total = début_compilation.temps();
 

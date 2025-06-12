@@ -2932,6 +2932,24 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
                 lexème_directive);
             directives.ajoute(noeud_directive);
         }
+        else if (ident_directive == ID::sans_vlc) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLC;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vlt) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLT;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vru) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VRU;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }

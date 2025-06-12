@@ -120,7 +120,7 @@ Lexeuse lexeuse(str, str + len);
         {";", {0ull}, GenreLexème::POINT_VIRGULE}};
 
     auto donnees_fichier = Fichier();
-    donnees_fichier.charge_tampon(lng::tampon_source(texte));
+    donnees_fichier.charge_tampon(TamponSource(texte));
 
     auto compilatrice = Compilatrice("", {});
 

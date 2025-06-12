@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/langage/unicode.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/numerique.hh"
 
@@ -19,6 +18,7 @@
 
 #include "typage.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/unicode.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
@@ -26,7 +26,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
     auto fin = nom.pointeur() + nom.taille();
 
     while (début < fin) {
-        auto no = lng::nombre_octets(début);
+        auto no = unicode::nombre_octets(début);
 
         switch (no) {
             case 0:
