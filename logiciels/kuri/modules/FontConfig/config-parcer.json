@@ -1,0 +1,13 @@
+{
+    "fichier": "/usr/include/fontconfig/fontconfig.h",
+    "bibliothèque": "fontconfig",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/fontconfig"
+    ],
+    "modules_à_importer": [
+        "GlibC",
+        "POSIX"
+    ]
+}
