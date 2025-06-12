@@ -63,7 +63,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     auto résultat = enchaineuse.chaine();
     auto const &source = fichier->tampon().chaine();
 
-    if (source != résultat) {
+    if (kuri::chaine(source.c_str(), source.taille()) != résultat) {
         auto os = std::ofstream(vers_std_path(chemin_fichier));
         os << résultat;
     }

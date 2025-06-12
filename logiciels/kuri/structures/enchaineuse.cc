@@ -219,12 +219,6 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine &chn)
     return enchaineuse;
 }
 
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn)
-{
-    enchaineuse.ajoute(chn.begin(), chn.taille());
-    return enchaineuse;
-}
-
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn)
 {
     enchaineuse.ajoute(chn.begin(), chn.taille());

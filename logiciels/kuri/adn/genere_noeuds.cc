@@ -959,8 +959,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         else {
                             if (nom_membre.nom() == "valeur" &&
                                 it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
-                                os << "\t\t\tn->valeur = { &racine_typee->lexème->chaine[0], "
-                                      "racine_typee->lexème->chaine.taille() };\n";
+                                os << "\t\t\tn->valeur = racine_typee->lexème->chaine;\n";
                             }
                             else {
                                 os << "\t\t\tn->" << nom_membre << " = racine_typee->"

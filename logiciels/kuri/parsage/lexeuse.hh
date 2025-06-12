@@ -96,7 +96,7 @@ struct Lexeuse {
         return *(m_début + n);
     }
 
-    dls::vue_chaine_compacte mot_courant() const;
+    kuri::chaine_statique mot_courant() const;
 
     void rapporte_erreur(kuri::chaine_statique quoi, int centre, int min, int max);
 

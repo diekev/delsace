@@ -168,13 +168,12 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
                                                    Module *module,
                                                    NoeudExpression const *site)
 {
-    auto chemin = dls::chaine(kuri::chaine(module->chemin())) + dls::chaine(kuri::chaine(nom));
-
-    if (chemin.trouve(".kuri") == dls::chaine::npos) {
-        chemin += ".kuri";
+    auto chemin = enchaine(module->chemin(), nom);
+    if (chemin.trouve(".kuri") == kuri::chaine::npos) {
+        chemin = enchaine(chemin, ".kuri");
     }
 
-    auto opt_chemin = determine_chemin_absolu(espace, chemin.c_str(), site);
+    auto opt_chemin = determine_chemin_absolu(espace, chemin, site);
     if (!opt_chemin.has_value()) {
         return;
     }

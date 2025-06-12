@@ -1617,14 +1617,13 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
             auto const lexème = inst->expression->lexème;
             auto const nom = lexème->chaine;
             auto module = fichier->module;
-            auto chemin = dls::chaine(kuri::chaine(module->chemin())) +
-                          dls::chaine(kuri::chaine(nom));
+            auto chemin = enchaine(module->chemin(), nom);
 
-            if (chemin.trouve(".kuri") == dls::chaine::npos) {
-                chemin += ".kuri";
+            if (chemin.trouve(".kuri") == kuri::chaine::npos) {
+                chemin = enchaine(chemin, ".kuri");
             }
 
-            auto opt_chemin = determine_chemin_absolu(espace, chemin.c_str(), it);
+            auto opt_chemin = determine_chemin_absolu(espace, chemin, it);
             if (!opt_chemin.has_value()) {
                 return;
             }

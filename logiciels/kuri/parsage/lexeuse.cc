@@ -859,9 +859,9 @@ void Lexeuse::avance(int n)
     }
 }
 
-dls::vue_chaine_compacte Lexeuse::mot_courant() const
+kuri::chaine_statique Lexeuse::mot_courant() const
 {
-    return dls::vue_chaine_compacte(m_début_mot, m_taille_mot_courant);
+    return kuri::chaine_statique(m_début_mot, m_taille_mot_courant);
 }
 
 void Lexeuse::rapporte_erreur(kuri::chaine_statique quoi)
