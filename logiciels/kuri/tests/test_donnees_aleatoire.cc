@@ -25,8 +25,8 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
     try {
         auto donnees_char = reinterpret_cast<const char *>(donnees);
 
-        dls::chaine texte;
-        texte.reserve(static_cast<int64_t>(taille) + 1l);
+        kuri::chaine texte;
+        texte.réserve(static_cast<int64_t>(taille) + 1l);
 
         for (auto i = 0ul; i < taille; ++i) {
             texte.ajoute(donnees_char[i]);
@@ -35,7 +35,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto compilatrice = Compilatrice("", {});
         auto espace = compilatrice.espace_defaut_compilation();
         auto fichier = Fichier();
-        fichier.charge_tampon(lng::tampon_source(std::move(texte)));
+        fichier.charge_tampon(TamponSource(texte));
 
         Lexeuse lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
         lexeuse.performe_lexage();
@@ -445,7 +445,7 @@ static int test_entree_aleatoire(const u_char *donnees, size_t taille)
         auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
         auto résultat = compilatrice.sys_module->trouve_ou_crée_fichier(module, "", "");
         auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-        fichier->charge_tampon(lng::tampon_source("texte_test"));
+        fichier->charge_tampon(TamponSource("texte_test"));
         fichier->lexèmes = lexemes;
         fichier->fut_lexé = true;
 

@@ -3,16 +3,16 @@
 
 #pragma once
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
+
+#include "utilitaires/chrono.hh"
 
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
 #    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
-        dls::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                         \
+        kuri::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                        \
             [&](double temps) { entrée_stats.fusionne_entrée(index, {"", temps}); })
 #else
 #    define CHRONO_TYPAGE(entrée_stats, nom)
@@ -372,7 +372,7 @@ struct StatistiquesGestion {
     void imprime_stats();
 };
 
-void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début_compilation);
+void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde début_compilation);
 
 void imprime_stats_détaillées(Statistiques const &stats);
 

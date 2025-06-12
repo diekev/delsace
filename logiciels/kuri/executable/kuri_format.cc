@@ -30,7 +30,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
 
     /* Chargement fichier. */
     auto tampon = charge_contenu_fichier({chemin_fichier.pointeur(), chemin_fichier.taille()});
-    fichier->charge_tampon(lng::tampon_source(std::move(tampon)));
+    fichier->charge_tampon(TamponSource(std::move(tampon)));
 
     /* Lexage. */
     auto lexeuse = Lexeuse(

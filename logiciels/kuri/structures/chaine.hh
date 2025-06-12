@@ -6,7 +6,6 @@
 #include <cstring>
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
 
 #include "chaine_statique.hh"
 
@@ -30,6 +29,8 @@ struct chaine {
     TypeIndex capacite_ = 0;
 
   public:
+    static TypeIndex npos;
+
     chaine() = default;
 
     chaine(chaine const &autre) : chaine()
@@ -63,10 +64,6 @@ struct chaine {
     }
 
     chaine(const char *c_str) : chaine(c_str, static_cast<int64_t>(std::strlen(c_str)))
-    {
-    }
-
-    chaine(dls::vue_chaine_compacte const &chn) : chaine(chn.pointeur(), chn.taille())
     {
     }
 
@@ -188,11 +185,6 @@ struct chaine {
         return chaine_statique(this->pointeur() + index, this->taille() - index);
     }
 
-    operator dls::vue_chaine_compacte() const
-    {
-        return {pointeur(), taille()};
-    }
-
     operator chaine_statique() const
     {
         return {pointeur(), taille()};
@@ -209,6 +201,8 @@ struct chaine {
     {
         return taille() != 0;
     }
+
+    TypeIndex trouve(kuri::chaine_statique motif) const;
 };
 
 bool operator==(chaine const &chn1, chaine const &chn2);

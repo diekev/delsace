@@ -55,11 +55,11 @@ int main(int argc, const char **argv)
     auto texte = charge_contenu_fichier(chemin_adn_ipa);
 
     auto fichier = Fichier();
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = TamponSource(texte);
     fichier.chemin_ = chemin_adn_ipa;
 
-    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
-    auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
+    auto gérante_chaine = kuri::Synchrone<GeranteChaine>();
+    auto table_identifiants = kuri::Synchrone<TableIdentifiant>();
     auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);
