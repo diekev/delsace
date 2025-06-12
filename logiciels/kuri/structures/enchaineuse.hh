@@ -216,8 +216,6 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine_statique const &c
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
 
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn);
-
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 
 template <typename... Ts>

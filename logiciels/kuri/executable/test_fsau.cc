@@ -80,7 +80,7 @@ int main(int argc, char **argv)
         auto ligne = tampon[i];
 
         if (ligne.taille() > 4) {
-            auto sous_chaine = dls::vue_chaine(ligne.begin(), 4);
+            auto sous_chaine = kuri::chaine_statique(ligne.begin(), 4);
             if (sous_chaine == "----") {
                 texte_source = supprime_espaces_blanches_autour(enchaineuse.chaine());
                 enchaineuse.réinitialise();
