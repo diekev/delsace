@@ -3,8 +3,6 @@
 
 #include "typage.hh"
 
-#include "biblinternes/outils/conditions.h"
-
 #include <algorithm>
 #include <iostream>
 
@@ -22,6 +20,7 @@
 
 #include "structures/pile.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
@@ -1797,18 +1796,18 @@ Type *type_déréférencé_pour(Type const *type)
 
 bool est_type_booléen_implicite(Type *type)
 {
-    return dls::outils::est_element(type->genre,
-                                    GenreNoeud::BOOL,
-                                    GenreNoeud::CHAINE,
-                                    GenreNoeud::EINI,
-                                    GenreNoeud::ENTIER_CONSTANT,
-                                    GenreNoeud::ENTIER_NATUREL,
-                                    GenreNoeud::ENTIER_RELATIF,
-                                    GenreNoeud::FONCTION,
-                                    GenreNoeud::TYPE_ADRESSE_FONCTION,
-                                    GenreNoeud::POINTEUR,
-                                    GenreNoeud::TABLEAU_DYNAMIQUE,
-                                    GenreNoeud::TYPE_TRANCHE);
+    return est_élément(type->genre,
+                       GenreNoeud::BOOL,
+                       GenreNoeud::CHAINE,
+                       GenreNoeud::EINI,
+                       GenreNoeud::ENTIER_CONSTANT,
+                       GenreNoeud::ENTIER_NATUREL,
+                       GenreNoeud::ENTIER_RELATIF,
+                       GenreNoeud::FONCTION,
+                       GenreNoeud::TYPE_ADRESSE_FONCTION,
+                       GenreNoeud::POINTEUR,
+                       GenreNoeud::TABLEAU_DYNAMIQUE,
+                       GenreNoeud::TYPE_TRANCHE);
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
