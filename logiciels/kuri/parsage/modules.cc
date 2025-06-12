@@ -72,7 +72,7 @@ Module *SystèmeModule::initialise_module_kuri(kuri::chaine_statique chemin_raci
     auto fichier = static_cast<Fichier *>(fichier_neuf);
 
     const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
-    fichier->charge_tampon(lng::tampon_source(source));
+    fichier->charge_tampon(TamponSource(source));
 
     fichier->fut_chargé = true;
 
@@ -155,7 +155,7 @@ std::optional<kuri::chemin_systeme> SystèmeModule::détermine_chemin_dossier_mo
 }
 
 InfoRequêteModule SystèmeModule::trouve_ou_crée_module(
-    dls::outils::Synchrone<TableIdentifiant> &table_identifiants,
+    kuri::Synchrone<TableIdentifiant> &table_identifiants,
     Fichier const *fichier,
     kuri::chaine_statique nom_module)
 {
@@ -335,7 +335,6 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                 int index_colonne_début,
                                 int index_colonne_fin)
 {
-    auto texte_ligne_dls = dls::vue_chaine(texte_ligne.pointeur(), texte_ligne.taille());
 
     enchaineuse << chemin_fichier << ':' << numéro_ligne;
 
@@ -349,10 +348,10 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
         enchaineuse << ' ';
     }
 
-    enchaineuse << numéro_ligne << " | " << texte_ligne_dls;
+    enchaineuse << numéro_ligne << " | " << texte_ligne;
 
     /* Le manque de nouvelle ligne peut arriver en fin de fichier. */
-    if (texte_ligne_dls.taille() != 0 && texte_ligne_dls[texte_ligne_dls.taille() - 1] != '\n') {
+    if (texte_ligne.taille() != 0 && texte_ligne[texte_ligne.taille() - 1] != '\n') {
         enchaineuse << '\n';
     }
 
@@ -360,17 +359,16 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
         enchaineuse << "      | ";
 
         if (index_colonne_début != -1 && index_colonne_début != index_colonne) {
-            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne_début, texte_ligne_dls);
-            lng::erreur::imprime_tilde(
-                enchaineuse, sous_chaine(texte_ligne_dls, index_colonne_début, index_colonne + 1));
+            enchaineuse.imprime_caractère_vide(index_colonne_début, texte_ligne);
+            enchaineuse.imprime_tilde(
+                texte_ligne.sous_chaine(index_colonne_début, index_colonne + 1));
         }
         else {
-            lng::erreur::imprime_caractere_vide(enchaineuse, index_colonne, texte_ligne_dls);
+            enchaineuse.imprime_caractère_vide(index_colonne, texte_ligne);
         }
 
         enchaineuse << '^';
-        lng::erreur::imprime_tilde(enchaineuse,
-                                   sous_chaine(texte_ligne_dls, index_colonne, index_colonne_fin));
+        enchaineuse.imprime_tilde(texte_ligne.sous_chaine(index_colonne, index_colonne_fin));
         enchaineuse << '\n';
     }
 }
@@ -405,14 +403,24 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                site.index_colonne_max);
 }
 
-dls::chaine charge_contenu_fichier(const dls::chaine &chemin)
+kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin)
 {
+    auto chemin_std = vers_std_path(chemin);
     std::ifstream fichier;
-    fichier.open(chemin.c_str());
+    fichier.open(chemin_std.c_str());
 
     if (!fichier.is_open()) {
         return "";
     }
 
-    return dls::chaine(std::istreambuf_iterator<char>(fichier), std::istreambuf_iterator<char>());
+    fichier.seekg(0, std::ios_base::end);
+    auto taille = fichier.tellg();
+    fichier.seekg(0, std::ios_base::beg);
+
+    auto résultat = kuri::chaine();
+    résultat.redimensionne(taille);
+
+    fichier.read(résultat.pointeur(), taille);
+
+    return résultat;
 }

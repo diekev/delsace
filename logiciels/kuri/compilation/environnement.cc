@@ -350,6 +350,10 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         enchaineuse << it << " ";
     }
 
+    if (options.coulisse == TypeCoulisse::ASM) {
+        enchaineuse << "-no-pie" << " ";
+    }
+
     POUR (fichiers_entrée) {
         enchaineuse << "\"" << it << "\" ";
     }
@@ -539,7 +543,7 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
 kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin)
 {
     /* Lis le fichier d'erreur. */
-    auto texte = charge_contenu_fichier(vers_std_path(chemin).string());
+    auto texte = charge_contenu_fichier(chemin);
     return kuri::chaine(&texte[0], texte.taille());
 }
 
