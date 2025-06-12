@@ -180,7 +180,7 @@ struct GeneratriceCodeCPP {
     {
         os << "#pragma once\n";
         inclus(os, "biblinternes/outils/assert.hh");
-        inclus(os, "biblinternes/moultfilage/synchrone.hh");
+        inclus(os, "utilitaires/synchrone.hh");
         inclus(os, "structures/chaine.hh");
         inclus(os, "structures/chaine_statique.hh");
         inclus(os, "structures/tableau.hh");
@@ -1685,8 +1685,8 @@ int main(int argc, char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = chemin_adn;
 
-    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
-    auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
+    auto gérante_chaine = kuri::Synchrone<GeranteChaine>();
+    auto table_identifiants = kuri::Synchrone<TableIdentifiant>();
     auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);

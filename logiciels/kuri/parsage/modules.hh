@@ -257,7 +257,7 @@ struct SystèmeModule {
     Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
     InfoRequêteModule trouve_ou_crée_module(
-        dls::outils::Synchrone<TableIdentifiant> &table_identifiants,
+        kuri::Synchrone<TableIdentifiant> &table_identifiants,
         Fichier const *fichier,
         kuri::chaine_statique nom_module);
 

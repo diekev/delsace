@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "structures/chaine.hh"
 
 #include "utilitaires/macros.hh"
+#include "utilitaires/synchrone.hh"
 
 #include "lexemes.hh"
 #include "site_source.hh"
@@ -27,15 +26,15 @@ enum {
 using TypeRappelErreur = std::function<void(SiteSource, kuri::chaine)>;
 
 struct ContexteLexage {
-    dls::outils::Synchrone<GeranteChaine> &gérante_chaine;
-    dls::outils::Synchrone<TableIdentifiant> &table_identifiants;
+    kuri::Synchrone<GeranteChaine> &gérante_chaine;
+    kuri::Synchrone<TableIdentifiant> &table_identifiants;
     TypeRappelErreur rappel_erreur;
 };
 
 struct Lexeuse {
   private:
-    dls::outils::Synchrone<GeranteChaine> &m_gérante_chaine;
-    dls::outils::Synchrone<TableIdentifiant> &m_table_identifiants;
+    kuri::Synchrone<GeranteChaine> &m_gérante_chaine;
+    kuri::Synchrone<TableIdentifiant> &m_table_identifiants;
     Fichier *m_données;
 
     const char *m_début_mot = nullptr;

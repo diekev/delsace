@@ -5927,7 +5927,7 @@ static bool est_appel_coroutine(const NoeudExpression *itérand)
  * - une instance de #TypageItérandeBouclePour remplis convenablement.
  */
 static RésultatTypeItérande détermine_typage_itérande(
-    const NoeudExpression *itéré, dls::outils::Synchrone<RegistreDesOpérateurs> &registre)
+    const NoeudExpression *itéré, kuri::Synchrone<RegistreDesOpérateurs> &registre)
 {
     auto type_variable_itérée = itéré->type;
     while (type_variable_itérée->est_type_opaque()) {

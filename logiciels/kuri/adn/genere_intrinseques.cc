@@ -6,8 +6,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
@@ -16,6 +14,8 @@
 
 #include "structures/chemin_systeme.hh"
 #include "structures/tableau.hh"
+
+#include "utilitaires/synchrone.hh"
 
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
@@ -332,8 +332,8 @@ int main(int argc, const char **argv)
     fichier.tampon_ = lng::tampon_source(texte.c_str());
     fichier.chemin_ = chemin_adn_ipa;
 
-    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
-    auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
+    auto gérante_chaine = kuri::Synchrone<GeranteChaine>();
+    auto table_identifiants = kuri::Synchrone<TableIdentifiant>();
     auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);

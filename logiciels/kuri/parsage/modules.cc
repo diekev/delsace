@@ -155,7 +155,7 @@ std::optional<kuri::chemin_systeme> SystèmeModule::détermine_chemin_dossier_mo
 }
 
 InfoRequêteModule SystèmeModule::trouve_ou_crée_module(
-    dls::outils::Synchrone<TableIdentifiant> &table_identifiants,
+    kuri::Synchrone<TableIdentifiant> &table_identifiants,
     Fichier const *fichier,
     kuri::chaine_statique nom_module)
 {
