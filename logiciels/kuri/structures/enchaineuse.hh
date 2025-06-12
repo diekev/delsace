@@ -72,6 +72,11 @@ struct Enchaineuse {
      * nouvelle chaine pour les données ajoutées.
      */
     kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
+
+    /* Fonctions pour les formattages d'erreurs. */
+    void imprime_caractère_vide(const int64_t nombre, kuri::chaine_statique chaine);
+    void imprime_tilde(kuri::chaine_statique chaine);
+    void imprime_tilde(kuri::chaine_statique chaine, int64_t début, int64_t fin);
 };
 
 #if defined(__GNUC__)
@@ -215,10 +220,6 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char (&c)[N])
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
-
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn);
-
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 

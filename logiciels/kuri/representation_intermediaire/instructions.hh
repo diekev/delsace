@@ -276,6 +276,8 @@ struct AtomeConstanteType : public AtomeConstante {
     }
 
     EMPECHE_COPIE(AtomeConstanteType);
+
+    Type const *donne_type() const;
 };
 
 struct AtomeIndexTableType : public AtomeConstante {

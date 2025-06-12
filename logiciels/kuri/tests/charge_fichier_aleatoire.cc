@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
     {
         auto compilatrice = Compilatrice("", {});
         auto fichier = Fichier();
-        auto vue_donnees = dls::vue_chaine(donnees, taille_fichier);
-        fichier.charge_tampon(lng::tampon_source(dls::chaine(vue_donnees)));
+        auto vue_donnees = kuri::chaine(donnees, taille_fichier);
+        fichier.charge_tampon(TamponSource(vue_donnees));
 
         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(nullptr), &fichier);
         lexeuse.performe_lexage();
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     {
         auto compilatrice = Compilatrice{};
         auto module = compilatrice.crée_module("", "");
-        module->tampon = lng::tampon_source("texte_test");
+        module->tampon = TamponSource("texte_test");
         module->morceaux = morceaux;
         auto assembleuse = AssembleuseArbre(compilatrice);
         compilatrice.assembleuse = &assembleuse;
