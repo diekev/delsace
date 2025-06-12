@@ -24,22 +24,22 @@ set(CMAKE_CXX_STANDARD 20)
 
 option(AVEC_ASAN "Utilise asan lors de la compilation en mode débogage" OFF)
 option(AVEC_CRESUS "Compiler Crésus" ON)
-option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" OFF)
-option(AVEC_DEPLOIE "Compiler l'outil de déploiement d'application web Déploie" OFF)
-option(AVEC_HIKAGE "Compiler Hikage" OFF)
-option(AVEC_HIMITSU "Compiler Himitsu" OFF)
-option(AVEC_IMAGO "Compiler Imago" OFF)
-option(AVEC_INFOGRAPHIE "Compiler Infographie" OFF)
-option(AVEC_JORJALA "Compiler le logiciel de création 3D et compositing Jorjala" OFF)
-option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" OFF)
-option(AVEC_KUMO "Compiler le langage de création de tables MySQL Kumo" OFF)
+option(AVEC_DANJO "Compiler le langage de création d'interface Danjo" ON)
+option(AVEC_DEPLOIE "Compiler l'outil de déploiement d'application web Déploie" ON)
+option(AVEC_HIKAGE "Compiler Hikage" ON)
+option(AVEC_HIMITSU "Compiler Himitsu" ON)
+option(AVEC_IMAGO "Compiler Imago" ON)
+option(AVEC_INFOGRAPHIE "Compiler Infographie" ON)
+option(AVEC_JORJALA "Compiler le logiciel de création 3D et compositing Jorjala" ON)
+option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" ON)
+option(AVEC_KUMO "Compiler le langage de création de tables MySQL Kumo" ON)
 option(AVEC_KURI "Compiler le compilateur du langage Kuri" ON)
-option(AVEC_KYANBASU "Compiler Kyanbasu" OFF)
+option(AVEC_KYANBASU "Compiler Kyanbasu" ON)
 option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
-option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure" OFF)
-option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" OFF)
-option(AVEC_TESTS "Compiler les tests des bibliothèques internes" OFF)
-option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" OFF)
+option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure" ON)
+option(AVEC_SILVATHEQUE "Compiler le logiciel de création d'arbre 3D Silvathèque" ON)
+option(AVEC_TESTS "Compiler les tests des bibliothèques internes" ON)
+option(AVEC_VULKAN "Compiler le logiciel test de Vulkan" ON)
 option(AVEC_DEMON_REACT "Compiler le démon de compilation de projets React" OFF)
 
 option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
@@ -110,7 +110,7 @@ if(SEULEMENT_KURI)
     set(AVEC_KUMO OFF)
     set(AVEC_KYANBASU OFF)
     set(AVEC_MESURE OFF)
-    set(AVEC_JORJALA OFF)
+    # set(AVEC_JORJALA OFF)
     set(REQUIERS_QT OFF)
     set(AVEC_SILVATHEQUE OFF)
     set(AVEC_TESTS OFF)
@@ -200,7 +200,7 @@ active_dependances(AVEC_KYANBASU REQUIERS_BIB_EGO)
 active_dependances(
     AVEC_KURI
 
-    #AVEC_DANJO
+    AVEC_DANJO
     REQUIERS_BIB_CHRONO
     REQUIERS_BIB_JSON
     REQUIERS_BIB_LANGAGE
@@ -244,7 +244,7 @@ active_dependances(
     AVEC_KANBA
 
     AVEC_DANJO
-    #REQUIERS_BIB_BRUIT
+    REQUIERS_BIB_BRUIT
     REQUIERS_BIB_IMAGE
     REQUIERS_BIB_MATH
     REQUIERS_BIB_PHYS
@@ -305,13 +305,13 @@ if(REQUIERS_QT)
         set(BIBLIOTHEQUES_QT_NETWORK Qt::Network)
     else()
         # Teste QT 5 sinon.
-        #find_package(Qt5 COMPONENTS Core Gui OpenGL Widgets Sql Network)
-        #set(BIBLIOTHEQUES_QT_CORE Qt5::Core)
-        #set(BIBLIOTHEQUES_QT_GUI Qt5::Gui)
-        #set(BIBLIOTHEQUES_QT_OPENGL Qt5::OpenGL)
-        #set(BIBLIOTHEQUES_QT_WIDGETS Qt5::Widgets)
-        #set(BIBLIOTHEQUES_QT_SQL Qt5::Sql)
-        #set(BIBLIOTHEQUES_QT_NETWORK Qt5::Network)
+        find_package(Qt5 REQUIRED COMPONENTS Core Gui OpenGL Widgets Sql Network)
+        set(BIBLIOTHEQUES_QT_CORE Qt5::Core)
+        set(BIBLIOTHEQUES_QT_GUI Qt5::Gui)
+        set(BIBLIOTHEQUES_QT_OPENGL Qt5::OpenGL)
+        set(BIBLIOTHEQUES_QT_WIDGETS Qt5::Widgets)
+        set(BIBLIOTHEQUES_QT_SQL Qt5::Sql)
+        set(BIBLIOTHEQUES_QT_NETWORK Qt5::Network)
     endif()
 
     set(BIBLIOTHEQUES_QT "${BIBLIOTHEQUES_QT_CORE}" "${BIBLIOTHEQUES_QT_GUI}" "${BIBLIOTHEQUES_QT_OPENGL}" "${BIBLIOTHEQUES_QT_WIDGETS}" "${BIBLIOTHEQUES_QT_SQL}" "${BIBLIOTHEQUES_QT_NETWORK}")
@@ -320,15 +320,15 @@ endif()
 if(REQUIERS_OPENGL)
     set(OpenGL_GL_PREFERENCE "LEGACY")
 
-    #find_package(GLEW REQUIRED)
-    #find_package(OpenGL REQUIRED)
+    find_package(GLEW REQUIRED)
+    find_package(OpenGL REQUIRED)
 
-    #set(BIBLIOTHEQUES_OPENGL ${GLEW_LIBRARIES} OpenGL::GL OpenGL::GLU)
+    set(BIBLIOTHEQUES_OPENGL ${GLEW_LIBRARIES} OpenGL::GL OpenGL::GLU)
 endif()
 
 if(REQUIERS_TBB)
-    #find_package(TBB REQUIRED)
-    #set(BIBLIOTHEQUES_TBB TBB::tbb)
+    find_package(TBB REQUIRED)
+    set(BIBLIOTHEQUES_TBB TBB::tbb)
 endif()
 
 add_definitions(-DAVEC_JPEG)
