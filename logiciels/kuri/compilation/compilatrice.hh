@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
 #include "parsage/modules.hh"
@@ -23,6 +21,8 @@
 
 #include "structures/chemin_systeme.hh"
 #include "structures/date.hh"
+
+#include "utilitaires/synchrone.hh"
 
 class Broyeuse;
 class GestionnaireCode;
@@ -89,17 +89,17 @@ struct ArgumentsCompilatrice {
 };
 
 struct Compilatrice {
-    dls::outils::Synchrone<TableIdentifiant> table_identifiants{};
+    kuri::Synchrone<TableIdentifiant> table_identifiants{};
 
-    dls::outils::Synchrone<OrdonnanceuseTache> ordonnanceuse;
+    kuri::Synchrone<OrdonnanceuseTache> ordonnanceuse;
 
-    dls::outils::Synchrone<GeranteChaine> gérante_chaine{};
+    kuri::Synchrone<GeranteChaine> gérante_chaine{};
 
-    dls::outils::Synchrone<Messagère> messagère{};
+    kuri::Synchrone<Messagère> messagère{};
 
     GestionnaireCode *gestionnaire_code{};
 
-    dls::outils::Synchrone<GestionnaireBibliothèques> gestionnaire_bibliothèques;
+    kuri::Synchrone<GestionnaireBibliothèques> gestionnaire_bibliothèques;
 
     /* Option pour pouvoir désactivé l'import implicite de Kuri dans les tests unitaires notamment.
      */
@@ -109,7 +109,7 @@ struct Compilatrice {
 
     ArgumentsCompilatrice arguments{};
 
-    dls::outils::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
+    kuri::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
 
     kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
     EspaceDeTravail *espace_de_travail_defaut = nullptr;
@@ -117,17 +117,17 @@ struct Compilatrice {
     kuri::chemin_systeme racine_kuri{};
     kuri::chemin_systeme racine_modules_kuri{};
 
-    dls::outils::Synchrone<SystèmeModule> sys_module{};
+    kuri::Synchrone<SystèmeModule> sys_module{};
 
     kuri::tableau_page_synchrone<MetaProgramme> métaprogrammes{};
 
-    dls::outils::Synchrone<GrapheDépendance> graphe_dépendance{};
+    kuri::Synchrone<GrapheDépendance> graphe_dépendance{};
 
-    dls::outils::Synchrone<RegistreDesOpérateurs> opérateurs{};
+    kuri::Synchrone<RegistreDesOpérateurs> opérateurs{};
 
     Typeuse typeuse;
 
-    dls::outils::Synchrone<InterfaceKuri> interface_kuri{};
+    kuri::Synchrone<InterfaceKuri> interface_kuri{};
     NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
     NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
     NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
@@ -146,9 +146,9 @@ struct Compilatrice {
     };
 
     using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
-    dls::outils::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+    kuri::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
 
-    dls::outils::Synchrone<RegistreChainesRI> registre_chaines_ri{};
+    kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
     Module *module_racine_compilation = nullptr;

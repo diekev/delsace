@@ -51,8 +51,7 @@ kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const Noe
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = donne_étendue_source_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
-    return kuri::chaine_statique(&ligne[etendue_expr.colonne_début],
-                                 etendue_expr.colonne_fin - etendue_expr.colonne_début);
+    return ligne.sous_chaine(etendue_expr.colonne_début, etendue_expr.colonne_fin);
 }
 
 void redefinition_fonction(EspaceDeTravail const &espace,
@@ -502,10 +501,10 @@ void imprime_site(Enchaineuse &enchaineuse,
     auto const pos_mot = pos.pos;
     auto const ligne = fichier->tampon()[pos.index_ligne];
     enchaineuse << ligne;
-    lng::erreur::imprime_caractere_vide(enchaineuse, etendue.colonne_début, ligne);
-    lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.colonne_début, pos_mot);
+    enchaineuse.imprime_caractère_vide(etendue.colonne_début, ligne);
+    enchaineuse.imprime_tilde(ligne, etendue.colonne_début, pos_mot);
     enchaineuse << '^';
-    lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.colonne_fin);
+    enchaineuse.imprime_tilde(ligne, pos_mot + 1, etendue.colonne_fin);
     enchaineuse << '\n';
 }
 

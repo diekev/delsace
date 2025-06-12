@@ -21,3 +21,12 @@ test("simple if sans bloc", function () {
 
     vérifie_égalité(x, 7);
 });
+
+test("conversion de l'expression vers bool", function () {
+    var o = { x: 123 };
+    var ok = false;
+    if (o.x) {
+        ok = true;
+    }
+    vérifie_égalité(ok, true);
+});

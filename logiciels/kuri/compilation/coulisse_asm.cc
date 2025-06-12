@@ -23,6 +23,8 @@
 #include "utilitaires/log.hh"
 
 #include "broyage.hh"
+#include "compilatrice.hh"
+#include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
 #include "programme.hh"
@@ -34,11 +36,6 @@
 #define NOUVELLE_LIGNE "\n"
 
 #define VERIFIE_NON_ATTEINT assert(false)
-
-/* clang-format off */
-#define OPERANDE1 AssembleuseASM::Opérande{}
-#define OPERANDE2 AssembleuseASM::Opérande{}, AssembleuseASM::Opérande{}
-/* clang-format on */
 
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires
@@ -59,6 +56,11 @@ inline bool est_adresse_locale(Atome const *atome)
 
     if (inst->est_alloc() || inst->est_acces_membre() || inst->est_acces_index()) {
         return true;
+    }
+
+    if (inst->est_transtype()) {
+        auto transtype = inst->comme_transtype();
+        return est_adresse_locale(transtype->valeur);
     }
 
     return false;
@@ -114,6 +116,9 @@ enum class Registre {
     XMM5,
     XMM6,
     XMM7,
+
+    /* Cas spécial. */
+    AH,
 };
 
 #define NOMBRE_REGISTRES_ENTIER 16
@@ -160,6 +165,10 @@ static kuri::chaine_statique chaine_pour_registre(Registre registre, uint32_t ta
         APPARIE_REGISTRE(XMM5, "xmm5", "xmm5", "xmm5", "xmm5")
         APPARIE_REGISTRE(XMM6, "xmm6", "xmm6", "xmm6", "xmm6")
         APPARIE_REGISTRE(XMM7, "xmm7", "xmm7", "xmm7", "xmm7")
+        case Registre::AH:
+        {
+            return "ah";
+        }
     }
 
 #undef APPARIE_REGISTRE
@@ -546,6 +555,11 @@ static void donne_classe_argument(Type const *type, kuri::tablet<Huitoctet, 4> &
         }
         case GenreNoeud::RÉEL:
         {
+            if (type == TypeBase::R16) {
+                résultat.ajoute({ClasseArgument::INTEGER});
+                return;
+            }
+
             /* @Incomplet : __m128, __m256, etc. */
             résultat.ajoute({ClasseArgument::SSE});
             return;
@@ -964,6 +978,7 @@ enum class TypeOpérande {
     MÉMOIRE,
     FONCTION,
     GLOBALE,
+    LABEL,
 };
 
 static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
@@ -981,6 +996,7 @@ static std::ostream &operator<<(std::ostream &os, TypeOpérande type)
         IMPRIME_CAS(MÉMOIRE);
         IMPRIME_CAS(FONCTION);
         IMPRIME_CAS(GLOBALE);
+        IMPRIME_CAS(LABEL);
     }
 #undef IMPRIME_CAS
     return os;
@@ -1015,6 +1031,11 @@ struct AssembleuseASM {
         kuri::chaine_statique valeur;
     };
 
+    struct Label {
+        kuri::chaine_statique nom;
+        int index;
+    };
+
     static bool est_immédiate(TypeOpérande type)
     {
         switch (type) {
@@ -1029,6 +1050,7 @@ struct AssembleuseASM {
             case TypeOpérande::MÉMOIRE:
             case TypeOpérande::FONCTION:
             case TypeOpérande::GLOBALE:
+            case TypeOpérande::LABEL:
             {
                 return false;
             }
@@ -1064,8 +1086,11 @@ struct AssembleuseASM {
         Mémoire mémoire{};
         Fonction fonction{};
         Globale globale{};
+        Label label{};
 
-        Opérande() {};
+        Opérande()
+        {
+        }
 
         Opérande(Mémoire mém) : type(TypeOpérande::MÉMOIRE), mémoire(mém)
         {
@@ -1096,6 +1121,10 @@ struct AssembleuseASM {
         }
 
         Opérande(Globale glob) : type(TypeOpérande::GLOBALE), globale(glob)
+        {
+        }
+
+        Opérande(Label lab) : type(TypeOpérande::LABEL), label(lab)
         {
         }
 
@@ -1139,30 +1168,13 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type));
         assert(taille <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "mov ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille) << " ";
-        }
-        imprime_opérande(dst, taille);
-        m_sortie << ", ";
-        imprime_opérande(src, taille);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille, src, taille);
     }
 
     void mov_ah(Opérande dst)
     {
         assert(!est_immédiate(dst.type));
-
-        m_sortie << TABULATION << "mov ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(1) << " ";
-        }
-        imprime_opérande(dst, 1);
-        m_sortie << ", ah";
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire("mov", dst, 1, Registre::AH, 1);
     }
 
     void movsx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
@@ -1170,16 +1182,7 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
         assert(taille_dst <= 8 && taille_src <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "movsx ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
-        }
-        imprime_opérande(dst, taille_dst);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_src);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_dst, src, taille_src);
     }
 
     void movzx(Opérande dst, uint32_t taille_dst, Opérande src, uint32_t taille_src)
@@ -1187,42 +1190,21 @@ struct AssembleuseASM {
         assert(!est_immédiate(dst.type) && !est_immédiate(src.type));
         assert(taille_dst <= 8 && taille_src <= 8);
         assert(!dst.est_mémoire() || !src.est_mémoire());
-
-        m_sortie << TABULATION << "movzx ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
-        }
-        imprime_opérande(dst, taille_dst);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_src);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_dst, src, taille_src);
     }
 
     void movss(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
         assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
-
-        m_sortie << TABULATION << "movss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void movsd(Opérande dst, Opérande src)
     {
         assert(!est_immédiate(dst.type));
         assert(dst.type != TypeOpérande::MÉMOIRE || src.type != TypeOpérande::MÉMOIRE);
-
-        m_sortie << TABULATION << "movsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void lea(Opérande dst, Opérande src)
@@ -1230,70 +1212,62 @@ struct AssembleuseASM {
         assert_rappel(src.type == TypeOpérande::MÉMOIRE,
                       [&]() { dbg() << "La source est de type " << src.type; });
         assert(dst.type == TypeOpérande::REGISTRE);
-
-        m_sortie << TABULATION << "lea ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void call(Opérande src)
     {
-        m_sortie << TABULATION << "call ";
-        imprime_opérande(src);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, 8);
     }
 
     void jump(int id_label)
     {
-        m_sortie << TABULATION << "jmp .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jmp", Label{"label", id_label}, 0);
     }
 
     void jump_si_zéro(int id_label)
     {
-        m_sortie << TABULATION << "jz .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jz", Label{"label", id_label}, 0);
     }
 
     void jump_si_non_zéro(int id_label)
     {
-        m_sortie << TABULATION << "jnz .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jnz", Label{"label", id_label}, 0);
     }
 
     void jump_si_égal(int id_label)
     {
-        m_sortie << TABULATION << "je .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("je", Label{"label", id_label}, 0);
     }
 
     void jump_si_inégal(int id_label)
     {
-        m_sortie << TABULATION << "jne .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jne", Label{"label", id_label}, 0);
     }
 
     void jump_si_inférieur(int id_label)
     {
-        m_sortie << TABULATION << "jl .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jl", Label{"label", id_label}, 0);
     }
 
     void jump_si_inférieur_égal(int id_label)
     {
-        m_sortie << TABULATION << "jle .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jle", Label{"label", id_label}, 0);
     }
 
     void jump_si_supérieur(int id_label)
     {
-        m_sortie << TABULATION << "jg .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jg", Label{"label", id_label}, 0);
     }
 
     void jump_si_supérieur_égal(int id_label)
     {
-        m_sortie << TABULATION << "jge .label" << id_label << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("jge", Label{"label", id_label}, 0);
     }
 
     void label(int id)
     {
-        m_sortie << ".label" << id << ":" << NOUVELLE_LIGNE;
+        ajoute_label(Label{"label", id});
     }
 
     void add(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1309,10 +1283,7 @@ struct AssembleuseASM {
     void mul(Opérande src, uint32_t taille_octet)
     {
         assert(!est_immédiate(src.type));
-        m_sortie << TABULATION << "mul ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void imul(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1322,114 +1293,67 @@ struct AssembleuseASM {
 
     void imul(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "imul ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void div(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "div ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void idiv(Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "idiv ";
-        m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void neg(Opérande dst, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "neg ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, dst, taille_octet);
     }
 
     void addss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void addsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "addsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void mulss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void mulsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "mulsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void subss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void subsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "subsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void divss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void divsd(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "divsd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void xorps(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "xorps ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void and_(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1447,9 +1371,9 @@ struct AssembleuseASM {
         génère_code_opération_binaire(dst, src, "xor", taille_octet);
     }
 
-    void not_(Opérande dst, Opérande src)
+    void not_(Opérande dst, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "not" << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire("not", dst, taille_octet);
     }
 
     void shl(Opérande dst, Opérande src, uint32_t taille_octet)
@@ -1469,40 +1393,21 @@ struct AssembleuseASM {
 
     void cmp(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cmp ";
-        if (dst.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << donne_chaine_taille_opérande(taille_octet) << " ";
-        }
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void ucomiss(Opérande dst, Opérande src)
     {
         assert(dst.type == TypeOpérande::REGISTRE);
         assert(!est_immédiate(src.type));
-
-        m_sortie << TABULATION << "ucomiss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 4);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 4);
     }
 
     void ucomisd(Opérande dst, Opérande src)
     {
         assert(dst.type == TypeOpérande::REGISTRE);
         assert(!est_immédiate(src.type));
-
-        m_sortie << TABULATION << "ucomisd ";
-        imprime_opérande(dst, 8);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void cmove(Opérande dst, Opérande src)
@@ -1537,56 +1442,32 @@ struct AssembleuseASM {
 
     void cvttss2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvttss2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtss2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtss2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvttsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvttsd2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtsd2si(Opérande dst, Opérande src, uint32_t taille_octet)
     {
-        m_sortie << TABULATION << "cvtsd2si ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, taille_octet, src, taille_octet);
     }
 
     void cvtsd2ss(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "cvtsd2ss ";
-        imprime_opérande(dst, 4);
-        m_sortie << ", ";
-        imprime_opérande(src, 8);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 4, src, 8);
     }
 
     void test(Opérande dst, Opérande src)
     {
-        m_sortie << TABULATION << "test ";
-        imprime_opérande(dst);
-        m_sortie << ", ";
-        imprime_opérande(src);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(__func__, dst, 8, src, 8);
     }
 
     void push(Opérande src, uint32_t taille_octet)
@@ -1594,14 +1475,7 @@ struct AssembleuseASM {
         if (src.type == TypeOpérande::REGISTRE) {
             assert(taille_octet == 8);
         }
-
-        m_sortie << TABULATION << "push ";
-
-        if (src.type == TypeOpérande::MÉMOIRE) {
-            m_sortie << "qword ";
-        }
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, src, taille_octet);
     }
 
     void empile(Registre reg, uint32_t taille_octet)
@@ -1646,9 +1520,7 @@ struct AssembleuseASM {
         if (dst.type == TypeOpérande::REGISTRE) {
             assert(taille_octet == 8);
         }
-        m_sortie << TABULATION << "pop ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_unaire(__func__, dst, taille_octet);
     }
 
     void pop(Registre reg)
@@ -1670,40 +1542,90 @@ struct AssembleuseASM {
 
     void ret()
     {
-        m_sortie << TABULATION << "ret" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void syscall()
     {
-        m_sortie << TABULATION << "syscall" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void ud2()
     {
-        m_sortie << TABULATION << "ud2" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cbw()
     {
-        m_sortie << TABULATION << "cbw" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cwd()
     {
-        m_sortie << TABULATION << "cwd" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cdq()
     {
-        m_sortie << TABULATION << "cdq" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
     }
 
     void cqo()
     {
-        m_sortie << TABULATION << "cqo" << NOUVELLE_LIGNE;
+        ajoute_instruction(__func__);
+    }
+
+    void pxor(Registre reg1, Registre reg2)
+    {
+        ajoute_instruction_binaire(__func__, reg1, 8, reg2, 8);
+    }
+
+    void cvtsi2ss(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        ajoute_instruction_binaire(__func__, dst, 8, src, taille_octet);
+    }
+
+    void cvtsi2sd(Opérande dst, Opérande src, uint32_t taille_octet)
+    {
+        ajoute_instruction_binaire(__func__, dst, 8, src, taille_octet);
     }
 
   private:
+    void ajoute_instruction(kuri::chaine_statique nom)
+    {
+        m_sortie << TABULATION << nom << NOUVELLE_LIGNE;
+    }
+
+    void ajoute_instruction_unaire(kuri::chaine_statique nom, Opérande dst, uint32_t taille_dst)
+    {
+        m_sortie << TABULATION << nom << " ";
+        imprime_opérande(dst, taille_dst);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void ajoute_instruction_binaire(kuri::chaine_statique nom,
+                                    Opérande dst,
+                                    uint32_t taille_dst,
+                                    Opérande src,
+                                    uint32_t taille_src)
+    {
+        m_sortie << TABULATION << nom << " ";
+
+        if (nom == "mov" && dst.type == TypeOpérande::MÉMOIRE) {
+            m_sortie << donne_chaine_taille_opérande(taille_dst) << " ";
+        }
+
+        imprime_opérande(dst, taille_dst);
+        m_sortie << ", ";
+        imprime_opérande(src, taille_src);
+        m_sortie << NOUVELLE_LIGNE;
+    }
+
+    void ajoute_label(Label label)
+    {
+        m_sortie << "." << label.nom << label.index << ":" << NOUVELLE_LIGNE;
+    }
+
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
     {
         switch (opérande.type) {
@@ -1736,15 +1658,20 @@ struct AssembleuseASM {
                     auto const décalage = opérande.mémoire.décalage;
                     m_sortie << "[" << adresse;
                     if (décalage < 0) {
-                        m_sortie << " - ";
+                        m_sortie << " - " << abs(décalage);
                     }
-                    else {
-                        m_sortie << " + ";
+                    else if (décalage > 0) {
+                        m_sortie << " + " << décalage;
                     }
-                    m_sortie << abs(décalage) << "]";
+                    m_sortie << "]";
                 }
                 else {
-                    m_sortie << adresse;
+                    if (adresse.pointeur()[0] == '.') {
+                        m_sortie << "qword [" << adresse << "]";
+                    }
+                    else {
+                        m_sortie << adresse;
+                    }
                 }
                 return;
             }
@@ -1763,6 +1690,11 @@ struct AssembleuseASM {
                 m_sortie << "[" << opérande.globale.valeur << "]";
                 return;
             }
+            case TypeOpérande::LABEL:
+            {
+                m_sortie << "." << opérande.label.nom << opérande.label.index;
+                return;
+            }
         }
 
         m_sortie << "opérande_invalide";
@@ -1775,12 +1707,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(!(dst.type == TypeOpérande::MÉMOIRE && src.type == TypeOpérande::MÉMOIRE));
-
-        m_sortie << TABULATION << nom_op << " ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, taille_octet);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(nom_op, dst, taille_octet, src, taille_octet);
     }
 
     void génère_code_décalage_bits(Opérande dst,
@@ -1790,11 +1717,7 @@ struct AssembleuseASM {
     {
         assert(!est_immédiate(dst.type));
         assert(est_immédiate(src.type) || est_registre(src, Registre::RCX));
-        m_sortie << TABULATION << nom_op << " ";
-        imprime_opérande(dst, taille_octet);
-        m_sortie << ", ";
-        imprime_opérande(src, 1);
-        m_sortie << NOUVELLE_LIGNE;
+        ajoute_instruction_binaire(nom_op, dst, taille_octet, src, 1);
     }
 };
 
@@ -1936,6 +1859,10 @@ struct GénératriceCodeASM {
     AtomeFonction const *m_fonction_courante = nullptr;
     ClassementArgument m_classement_fonction_courante{};
 
+    AtomeConstanteEntière m_constante_négation_r32;
+    AtomeConstanteEntière m_constante_zéro_z32;
+    kuri::tableau<AtomeConstante const *> m_constantes_fonction_courante{};
+
     /* Si la valeur de retour doit être retournée en mémoire. */
     AssembleuseASM::Mémoire m_adresse_retour{};
 
@@ -1949,6 +1876,14 @@ struct GénératriceCodeASM {
     ClassifieuseArgument m_classifieuse{};
 
   public:
+    GénératriceCodeASM()
+        : m_constante_négation_r32(AtomeConstanteEntière(TypeBase::Z32, uint64_t(-2147483648))),
+          m_constante_zéro_z32(AtomeConstanteEntière(TypeBase::Z32, uint64_t(0)))
+    {
+    }
+
+    EMPECHE_COPIE(GénératriceCodeASM);
+
     void génère_code_pour_atome(Atome const *atome,
                                 AssembleuseASM &assembleuse,
                                 const UtilisationAtome utilisation);
@@ -1991,6 +1926,13 @@ struct GénératriceCodeASM {
     void sauvegarde_registres_appel(AssembleuseASM &assembleuse);
     void restaure_registres_appel(AssembleuseASM &assembleuse);
 
+    int64_t ajoute_constante(AtomeConstante const *constante)
+    {
+        auto résultat = m_constantes_fonction_courante.taille();
+        m_constantes_fonction_courante.ajoute(constante);
+        return résultat;
+    }
+
   private:
     template <typename... Ts>
     kuri::chaine_statique enchaine(Ts &&...ts)
@@ -2028,8 +1970,7 @@ struct GénératriceCodeASM {
                                          UtilisationAtome utilisation);
 
     void génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
-                                         AssembleuseASM &assembleuse,
-                                         UtilisationAtome utilisation);
+                                         AssembleuseASM &assembleuse);
 
     void copie(AssembleuseASM::Opérande dest,
                AssembleuseASM::Opérande src,
@@ -2065,7 +2006,9 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_type = atome->comme_constante_type();
+            auto type = constante_type->donne_type();
+            assembleuse.push_immédiate_64(type->index_dans_table_types);
             return;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
@@ -2075,7 +2018,9 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_taille_de = atome->comme_taille_de();
+            auto type = constante_taille_de->type_de_données;
+            assembleuse.push_immédiate_64(type->taille_octet);
             return;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
@@ -2129,28 +2074,8 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto const structure = atome->comme_constante_structure();
-            auto const type = structure->type->comme_type_composé();
-            // auto const tableau_valeur = structure->donne_atomes_membres();
-
-            auto résultat = alloue_variable(type);
-
-            VERIFIE_NON_ATTEINT;
-            // POUR_INDEX (type->donne_membres_pour_code_machine()) {
-            //     auto dst = résultat;
-            //     dst.décalage = int32_t(it.decalage);
-
-            //     auto valeur = génère_code_pour_atome(
-            //         tableau_valeur[index_it], assembleuse, UtilisationAtome::AUCUNE);
-
-            //     if (AssembleuseASM::est_immédiate(valeur.type)) {
-            //         assembleuse.mov(dst, valeur, it.type->taille_octet);
-            //     }
-            //     else {
-            //         copie(dst, valeur, it.type->taille_octet, assembleuse);
-            //     }
-            // }
-
-            assembleuse.push(résultat, 8);
+            auto index = ajoute_constante(structure);
+            assembleuse.push(AssembleuseASM::Label("C", int32_t(index)), 8);
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -2275,7 +2200,10 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_type = initialisateur->comme_constante_type();
+            auto type = constante_type->donne_type();
+            enchaineuse << chaine_indentations_espace(profondeur) << "dq "
+                        << type->index_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
@@ -2294,7 +2222,16 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
-            VERIFIE_NON_ATTEINT;
+            auto constante_réelle = initialisateur->comme_constante_réelle();
+            if (constante_réelle->type == TypeBase::R32) {
+                auto valeur_float = float(constante_réelle->valeur);
+                auto bits = *reinterpret_cast<const uint32_t *>(&valeur_float);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dd " << bits;
+            }
+            else {
+                auto bits = *reinterpret_cast<const uint64_t *>(&constante_réelle->valeur);
+                enchaineuse << chaine_indentations_espace(profondeur) << "dq " << bits;
+            }
             return;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
@@ -2302,6 +2239,22 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto constante_entière = initialisateur->comme_constante_entière();
             auto const type = constante_entière->type;
             enchaineuse << chaine_indentations_espace(profondeur);
+            if (type->est_type_entier_relatif()) {
+                if (type->taille_octet == 1) {
+                    enchaineuse << "db " << int8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                if (type->taille_octet == 2) {
+                    enchaineuse << "dw " << int16_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                if (type->taille_octet == 4) {
+                    enchaineuse << "dd " << int64_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                    return;
+                }
+                enchaineuse << "dq " << int64_t(constante_entière->valeur) << NOUVELLE_LIGNE;
+                return;
+            }
             if (type->taille_octet == 1) {
                 enchaineuse << "db " << uint8_t(constante_entière->valeur) << NOUVELLE_LIGNE;
                 return;
@@ -2336,11 +2289,13 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto structure = initialisateur->comme_constante_structure();
             auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_membres();
-            auto nom_structure = chaine_type(type);
-            nom_structure = broyeuse.broye_nom_simple(nom_structure);
+            auto nom_structure = broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type));
 
             if (type->est_type_tranche()) {
                 nom_structure = "tranche";
+            }
+            else if (type->est_type_tableau_dynamique()) {
+                nom_structure = "tableau";
             }
 
             enchaineuse << chaine_indentations_espace(profondeur) << "istruc " << nom_structure
@@ -2434,8 +2389,9 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::GLOBALE:
         {
+            // À FAIRE : prédéclare les noms des globales
             enchaineuse << chaine_indentations_espace(profondeur) << "dq "
-                        << table_globales.valeur_ou(initialisateur, "") << NOUVELLE_LIGNE;
+                        << table_globales.valeur_ou(initialisateur, "0") << NOUVELLE_LIGNE;
             return;
         }
     }
@@ -2489,7 +2445,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         }
         case GenreInstruction::STOCKE_MEMOIRE:
         {
-            génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse, utilisation);
+            génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse);
             break;
         }
         case GenreInstruction::LABEL:
@@ -2539,8 +2495,15 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                         assembleuse.movss(Registre::XMM0, AssembleuseASM::Mémoire{registre});
                         registres.marque_registre_inoccupé(registre);
 
-                        assembleuse.movss(Registre::XMM1,
-                                          AssembleuseASM::Immédiate64{uint64_t(-2147483648)});
+                        // nous devrons avoir 4 valeurs pour remplir le registre (ajout
+                        // de trois zéros).
+                        auto index_constante = ajoute_constante(&m_constante_négation_r32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        ajoute_constante(&m_constante_zéro_z32);
+                        auto nom_constante = enchaine(".C", index_constante);
+
+                        assembleuse.movss(Registre::XMM1, AssembleuseASM::Globale{nom_constante});
                         assembleuse.xorps(Registre::XMM0, Registre::XMM1);
                         assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8},
                                           Registre::XMM0);
@@ -2554,8 +2517,14 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
                 }
                 case OpérateurUnaire::Genre::Négation_Binaire:
                 {
-                    assembleuse.not_(OPERANDE2);
-                    VERIFIE_NON_ATTEINT;
+                    auto atome_valeur = donne_source_charge_ou_atome(inst_un->valeur);
+                    génère_code_pour_atome(
+                        atome_valeur, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
+                    auto registre = registres.donne_registre_entier_inoccupé();
+                    charge_atome_dans_registre(
+                        atome_valeur, inst_un->valeur, registre, assembleuse);
+                    assembleuse.not_(registre, inst_un->type->taille_octet);
+                    assembleuse.push(registre);
                     break;
                 }
             }
@@ -2587,13 +2556,13 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_atome(accédé, assembleuse, UtilisationAtome::AUCUNE);
 
             auto const &membre = accès->donne_membre_accédé();
-
-            auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.pop(registre, 8);
-            assembleuse.add(registre, AssembleuseASM::Immédiate64{membre.decalage}, 8);
-            assembleuse.push(registre, 8);
-
-            registres.marque_registre_inoccupé(registre);
+            if (membre.decalage != 0) {
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(registre, 8);
+                assembleuse.add(registre, AssembleuseASM::Immédiate64{membre.decalage}, 8);
+                assembleuse.push(registre, 8);
+                registres.marque_registre_inoccupé(registre);
+            }
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -2626,7 +2595,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         return;
     }
 
-    // VERIFIE_NON_ATTEINT;
     SAUVEGARDE_REGISTRES(registres);
 
     auto classement = m_classifieuse.donne_classement_arguments(
@@ -2697,11 +2665,12 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             if (classe == ClasseArgument::SSE) {
-                if (it->type == TypeBase::R32) {
+                if (taille_à_copier == 4) {
                     assembleuse.movss(registre, adresse_source);
                 }
                 else {
-                    assert(it->type == TypeBase::R64);
+                    assert_rappel(taille_à_copier == 8,
+                                  [&]() { dbg() << "La taille est de " << taille_à_copier; });
                     assembleuse.movsd(registre, adresse_source);
                 }
             }
@@ -2733,11 +2702,6 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         appelée = registre;
     }
-
-    // struct OpérandeTaillée {
-    //     AssembleuseASM::Opérande opérande{};
-    //     Type const *type = 0;
-    // };
 
     kuri::tablet<Atome *, 6> arguments_mémoire;
 
@@ -2800,11 +2764,12 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
             }
 
             if (classe == ClasseArgument::SSE) {
-                if (type_retour == TypeBase::R32) {
+                if (taille_à_copier == 4) {
                     assembleuse.movss(adresse_retour, registre);
                 }
                 else {
-                    assert(type_retour == TypeBase::R64);
+                    assert_rappel(taille_à_copier == 8,
+                                  [&]() { dbg() << "La taille est de " << taille_à_copier; });
                     assembleuse.movsd(adresse_retour, registre);
                 }
             }
@@ -2958,6 +2923,18 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
     }
 }
 
+static bool est_type_compatible_registre_entier(Type const *type)
+{
+    if (type->est_type_opaque()) {
+        auto opaque = type->comme_type_opaque();
+        return est_type_compatible_registre_entier(opaque->type_opacifié);
+    }
+
+    return est_type_entier(type) || type->est_type_pointeur() || type->est_type_bool() ||
+           type->est_type_référence() || type->est_type_énum() ||
+           type->est_type_adresse_fonction() || type->est_type_fonction();
+}
+
 /* Atome *atome est l'atome que nous chargeons, Atome *source est soit l'atome, soit son
  * instruction de charge. */
 void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
@@ -2979,20 +2956,35 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
             registre, AssembleuseASM::Immédiate64{atome->comme_constante_booléenne()->valeur}, 8);
     }
     else if (atome->est_constante_réelle()) {
-        assert(atome->type == TypeBase::R32);
-
         auto constante_réelle = atome->comme_constante_réelle();
-        auto valeur_float = float(constante_réelle->valeur);
-        auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
 
         auto adresse = AssembleuseASM::Mémoire{Registre::RSP, -8};
-        assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
-        assembleuse.movsd(registre, adresse);
+
+        if (atome->type == TypeBase::R32) {
+            auto valeur_float = float(constante_réelle->valeur);
+            auto bits = *reinterpret_cast<uint32_t *>(&valeur_float);
+            assembleuse.mov(adresse, AssembleuseASM::Immédiate64{bits}, 8);
+            assembleuse.movsd(registre, adresse);
+        }
+        else {
+            auto index_constante = ajoute_constante(constante_réelle);
+            auto nom = enchaine(".C", index_constante);
+            assembleuse.movsd(registre, AssembleuseASM::Mémoire(nom));
+        }
+    }
+    else if (atome->est_constante_caractère()) {
+        auto caractère = atome->comme_constante_caractère();
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
+    }
+    else if (atome->est_taille_de()) {
+        auto constante = atome->comme_taille_de();
+        auto type = constante->type_de_données;
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{type->taille_octet}, 8);
     }
     else if (atome->est_instruction()) {
         auto inst = atome->comme_instruction();
 
-        if (est_adresse_locale(inst) || inst->est_appel()) {
+        if (est_adresse_locale(inst) || inst->est_appel() || inst->est_charge()) {
             if (source->type == TypeBase::R32) {
                 auto tmp = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(tmp, 8);
@@ -3006,10 +2998,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 registres.marque_registre_inoccupé(tmp);
             }
             else {
-                assert_rappel(est_type_entier(source->type) || source->type->est_type_pointeur() ||
-                                  source->type->est_type_bool() ||
-                                  source->type->est_type_référence() ||
-                                  source->type->est_type_énum(),
+                assert_rappel(est_type_compatible_registre_entier(source->type),
                               [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.pop(registre);
                 assembleuse.mov(
@@ -3033,7 +3022,8 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             }
             else {
-                assert(est_type_entier(source->type));
+                assert_rappel(est_type_compatible_registre_entier(source->type),
+                              [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.dépile(registre, source->type->taille_octet);
             }
         }
@@ -3043,7 +3033,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
         }
     }
     else if (atome->est_globale()) {
-        if (est_type_entier(source->type)) {
+        if (est_type_compatible_registre_entier(source->type)) {
             assembleuse.pop(registre);
             assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         }
@@ -3068,8 +3058,9 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
     auto atome_gauche = donne_source_charge_ou_atome(inst_bin->valeur_gauche);
 
     assembleuse.commente("génère_code_pour_atome(atome_gauche)");
-    assert(!atome_gauche->est_constante());
-    génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
+    if (!atome_gauche->est_constante()) {
+        génère_code_pour_atome(atome_gauche, assembleuse, UtilisationAtome::AUCUNE);
+    }
 
     assembleuse.commente("génère_code_pour_atome(atome_droite)");
     if (!atome_droite->est_constante()) {
@@ -3483,11 +3474,12 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
                 }
 
                 if (classe == ClasseArgument::SSE) {
-                    if (type_retour == TypeBase::R32) {
+                    if (taille_à_copier == 4) {
                         assembleuse.movss(registre, adresse_source);
                     }
                     else {
-                        assert(type_retour == TypeBase::R64);
+                        assert_rappel(taille_à_copier == 8,
+                                      [&]() { dbg() << "La taille est de " << taille_à_copier; });
                         assembleuse.movsd(registre, adresse_source);
                     }
                 }
@@ -3590,6 +3582,14 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
 
     auto accédé = registres.donne_registre_entier_inoccupé();
     assembleuse.pop(accédé);
+
+    if (accès->accédé->est_instruction()) {
+        if (accès->donne_type_accédé()->est_type_pointeur()) {
+            // l'accédé est le pointeur vers le pointeur, donc déréférence-le
+            assembleuse.mov(accédé, AssembleuseASM::Mémoire{accédé}, 8);
+        }
+    }
+
     assembleuse.add(accédé, index, 8);
     assembleuse.push(accédé);
 }
@@ -3611,9 +3611,20 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
     switch (transtype->op) {
         case TypeTranstypage::BITS:
         {
+            if (transtype->type->est_type_pointeur() && transtype->valeur->est_instruction() &&
+                transtype->valeur->comme_instruction()->est_charge()) {
+                /* Déréférençons manuellement l'adresse pour ne pas avoir à détecter ce cas dans la
+                 * compilation des autres instructions. */
+                auto registre = registres.donne_registre_entier_inoccupé();
+                assembleuse.pop(registre);
+                assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
+                assembleuse.push(registre);
+            }
             break;
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
+        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
+        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
         {
             auto registre = registres.donne_registre_entier_inoccupé();
             charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
@@ -3638,6 +3649,8 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             break;
         }
         case TypeTranstypage::DIMINUE_NATUREL:
+        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
+        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
         {
             auto registre = registres.donne_registre_entier_inoccupé();
             charge_atome_dans_registre(valeur, transtype->valeur, registre, assembleuse);
@@ -3657,32 +3670,12 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::DIMINUE_REEL:
         {
-            VERIFIE_NON_ATTEINT;
-            // auto registre = registres.donne_registre_entier_inoccupé();
-            // auto dst = alloue_variable(type_vers);
-            // assembleuse.mov(registre, valeur, type_de->taille_octet);
-            // assembleuse.mov(dst, registre, type_vers->taille_octet);
-            // valeur = dst;
-            break;
-        }
-        case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
-        {
-            VERIFIE_NON_ATTEINT;
-            break;
-        }
-        case TypeTranstypage::DIMINUE_RELATIF_VERS_NATUREL:
-        {
-            VERIFIE_NON_ATTEINT;
+            auto registre1 = registres.donne_registre_réel_inoccupé();
+            auto registre2 = registres.donne_registre_réel_inoccupé();
+            charge_atome_dans_registre(valeur, transtype->valeur, registre1, assembleuse);
+            assembleuse.cvtsd2ss(registre2, registre1);
+            assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre2);
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
         case TypeTranstypage::POINTEUR_VERS_ENTIER:
@@ -3786,12 +3779,71 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
         }
         case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre_entier = registres.donne_registre_entier_inoccupé();
+            auto registre_réelle = registres.donne_registre_réel_inoccupé();
+
+            charge_atome_dans_registre(valeur, transtype->valeur, registre_entier, assembleuse);
+
+            auto type_source = transtype->valeur->type;
+            if (type_source == TypeBase::Z8 || type_source == TypeBase::Z16) {
+                assembleuse.movsx(registre_entier, 4, registre_entier, type_source->taille_octet);
+            }
+
+            if (type_source->taille_octet < 4) {
+                assembleuse.pxor(registre_réelle, registre_réelle);
+            }
+
+            auto taille = type_source->taille_octet;
+            if (taille < 4) {
+                taille = 4;
+            }
+
+            if (transtype->type == TypeBase::R32) {
+                assembleuse.cvtsi2ss(registre_réelle, registre_entier, taille);
+                assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else if (transtype->type == TypeBase::R64) {
+                assembleuse.cvtsi2sd(registre_réelle, registre_entier, taille);
+                assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
         {
-            VERIFIE_NON_ATTEINT;
+            auto registre_entier = registres.donne_registre_entier_inoccupé();
+            auto registre_réelle = registres.donne_registre_réel_inoccupé();
+
+            charge_atome_dans_registre(valeur, transtype->valeur, registre_entier, assembleuse);
+
+            auto type_source = transtype->valeur->type;
+
+            if (type_source->taille_octet < 4) {
+                assembleuse.pxor(registre_réelle, registre_réelle);
+            }
+
+            auto taille = type_source->taille_octet;
+            if (taille < 4) {
+                taille = 4;
+            }
+
+            if (transtype->type == TypeBase::R32) {
+                assembleuse.cvtsi2ss(registre_réelle, registre_entier, taille);
+                assembleuse.movss(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else if (transtype->type == TypeBase::R64) {
+                assembleuse.cvtsi2sd(registre_réelle, registre_entier, taille);
+                assembleuse.movsd(AssembleuseASM::Mémoire{Registre::RSP, -8}, registre_réelle);
+            }
+            else {
+                VERIFIE_NON_ATTEINT;
+            }
+
+            assembleuse.sub(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             break;
         }
     }
@@ -3806,7 +3858,9 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
     auto const si_vrai = inst_branche->label_si_vrai;
     auto const si_faux = inst_branche->label_si_faux;
 
-    génère_code_pour_atome(prédicat, assembleuse, UtilisationAtome::POUR_BRANCHE_CONDITION);
+    auto atome_prédicat = donne_source_charge_ou_atome(prédicat);
+
+    génère_code_pour_atome(atome_prédicat, assembleuse, UtilisationAtome::POUR_BRANCHE_CONDITION);
 
     auto génère_code_branche = [&](auto &&méthode_si_vrai, auto &&méthode_si_faux) {
         /* Ne générons qu'un seul saut si possible. */
@@ -3880,8 +3934,9 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
         }
     }
 
-    VERIFIE_NON_ATTEINT;
-    // assembleuse.test(condition, condition);
+    auto condition = registres.donne_registre_entier_inoccupé();
+    charge_atome_dans_registre(atome_prédicat, prédicat, condition, assembleuse);
+    assembleuse.test(condition, condition);
 
     /* Ne générons qu'un seul saut si possible. */
     if (si_vrai->numero == inst_branche->numero + 1) {
@@ -3911,11 +3966,11 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
     assembleuse.pop(registre);
     assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
     assembleuse.push(registre);
+    registres.marque_registre_inoccupé(registre);
 }
 
 void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeMem const *inst_stocke,
-                                                         AssembleuseASM &assembleuse,
-                                                         UtilisationAtome utilisation)
+                                                         AssembleuseASM &assembleuse)
 {
     SAUVEGARDE_REGISTRES(registres);
 
@@ -3968,16 +4023,31 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             assembleuse.mov(registre, AssembleuseASM::Immédiate64{bits}, 8);
             src = registre;
         }
+        else if (source->est_constante_caractère()) {
+            auto caractère = source->comme_constante_caractère();
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
+            src = registre;
+        }
+        else if (source->est_constante_type()) {
+            auto constante_type = source->comme_constante_type();
+            auto type = constante_type->donne_type();
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(
+                registre, AssembleuseASM::Immédiate64{type->index_dans_table_types}, 8);
+            src = registre;
+        }
         else if (source->est_instruction()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::AUCUNE);
 
             auto inst = source->comme_instruction();
 
-            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype()) {
+            if (est_adresse_locale(inst) || inst->est_appel() || inst->est_transtype() ||
+                inst->est_charge()) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
                 /* Ne chargeons la valeur que si nous ne stockons pas l'adresse. */
-                if (!est_adresse_locale(inst_stocke->source)) {
+                if (!est_adresse_locale(inst_stocke->source) && !inst->est_transtype()) {
                     src = AssembleuseASM::Mémoire{registre};
                 }
             }
@@ -3988,8 +4058,16 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             }
             else {
                 dbg() << "Instruction non-supportée " << inst->genre;
+                dbg() << imprime_arbre_instruction(inst);
                 VERIFIE_NON_ATTEINT;
             }
+        }
+        else if (source->est_taille_de()) {
+            auto constante_taille_de = source->comme_taille_de();
+            auto type = constante_taille_de->type_de_données;
+            auto registre = registres.donne_registre_entier_inoccupé();
+            assembleuse.mov(registre, AssembleuseASM::Immédiate64{type->taille_octet}, 8);
+            src = registre;
         }
         else if (source->est_fonction() || source->est_globale()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::POUR_OPÉRANDE);
@@ -4087,10 +4165,12 @@ void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
     }
 }
 
+#undef COMPILE_TOUTES_LES_FONCTIONS
+
 static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
     kuri::tableau_statique<AtomeFonction *> fonctions)
 {
-#if 0
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
     kuri::tableau<AtomeFonction *> résultat;
     POUR (fonctions) {
         résultat.ajoute(it);
@@ -4154,9 +4234,7 @@ static void déclare_structure(TypeCompose const *type,
                               Broyeuse &broyeuse,
                               Enchaineuse &enchaineuse)
 {
-    auto nom_type = chaine_type(type);
-
-    nom_type = broyeuse.broye_nom_simple(nom_type);
+    auto nom_type = broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type));
 
     enchaineuse << "struc " << nom_type << NOUVELLE_LIGNE;
 
@@ -4195,29 +4273,20 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
                                      Enchaineuse &os)
 {
     /* Déclaration des types. */
-    kuri::rassembleuse<TypeCompose const *> types_pour_globales;
-    auto visiteuse_type = VisiteuseType{};
-
-    POUR (repr_inter_programme.donne_globales()) {
-        if (!it->est_constante) {
-            continue;
-        }
-
-        table_globales.insère(it, broyeuse.broye_nom_simple(it->ident));
-
-        visiteuse_type.visite_type(const_cast<Type *>(it->donne_type_alloué()), [&](Type *type) {
-            if (type->est_type_structure() || type->est_type_chaine()) {
-                types_pour_globales.insère(type->comme_type_composé());
-            }
-        });
-    }
-
     os << "struc " << "tranche" << NOUVELLE_LIGNE;
     os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
     os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
     os << "endstruc" << NOUVELLE_LIGNE;
-    POUR (types_pour_globales.donne_éléments()) {
-        déclare_structure(it, broyeuse, os);
+
+    os << "struc " << "tableau" << NOUVELLE_LIGNE;
+    os << TABULATION << ".pointeur resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".taille resq 1" << NOUVELLE_LIGNE;
+    os << TABULATION << ".capacitxC3xA9 resq 1" << NOUVELLE_LIGNE;
+    os << "endstruc" << NOUVELLE_LIGNE;
+    POUR (repr_inter_programme.donne_types()) {
+        if (it->est_type_structure() || it->est_type_chaine() || it->est_type_eini()) {
+            déclare_structure(it->comme_type_composé(), broyeuse, os);
+        }
     }
 
     /* Prodéclaration des fonctions. */
@@ -4229,6 +4298,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
             os << "extern " << it->nom << "\n";
         }
         else {
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+            if (it->nom == "principale") {
+                os << "global __principale\n";
+                continue;
+            }
+#endif
             os << "global " << it->nom << "\n";
         }
     }
@@ -4343,11 +4418,12 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     }
 
     // Fonction de test.
+#ifndef COMPILE_TOUTES_LES_FONCTIONS
     os << "global main\n";
     os << "main:\n";
-
     assembleuse.call(AssembleuseASM::Fonction{"principale"});
     assembleuse.ret();
+#endif
 }
 
 void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonction,
@@ -4356,7 +4432,16 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
 {
     fonction->numérote_instructions();
 
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    if (fonction->nom == "principale") {
+        os << "__principale:\n";
+    }
+    else {
+        os << fonction->nom << ":\n";
+    }
+#else
     os << fonction->nom << ":\n";
+#endif
     définis_fonction_courante(fonction);
 
     /* Décale de 8 car l'adresse de l'instruction de retour se trouve à RSP. */
@@ -4461,6 +4546,11 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         génère_code_pour_instruction(it, assembleuse, UtilisationAtome::AUCUNE);
     }
 
+    POUR_INDEX (m_constantes_fonction_courante) {
+        os << TABULATION << ".C" << index_it << ":" << NOUVELLE_LIGNE;
+        génère_code_pour_initialisation_globale(it, os, 1);
+    }
+
     m_fonction_courante = nullptr;
     os << "\n\n";
 }
@@ -4499,6 +4589,8 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
     POUR (m_adresses_locales) {
         it = valeur_défaut;
     }
+
+    m_constantes_fonction_courante.efface();
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(InstructionAllocation const *alloc)
@@ -4566,12 +4658,39 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
+
+    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
+    auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+    fichiers_objet.ajoute(fichier_point_d_entrée_c);
+
+    fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
+
+    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+    auto err_commande = exécute_commande_externe_erreur(commande);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
+    }
+#else
     auto commande = "gcc -ggdb -no-pie -lc -o a.out /tmp/compilation_kuri_asm.o";
     if (system(commande) != 0) {
         return ErreurCoulisse{"Impossible de lier le fichier objet."};
     }
+#endif
 
+#ifdef COMPILE_TOUTES_LES_FONCTIONS
+    auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
+
+    info() << "Exécution de la commande " << nom_exécutable;
+
+    auto résultat_exécution = system(nom_exécutable.pointeur());
+#else
     auto résultat_exécution = system("./a.out");
+#endif
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";
     dbg() << "     " << WEXITSTATUS(résultat_exécution);

@@ -251,7 +251,7 @@ Tacheronne::~Tacheronne()
 
 bool Tacheronne::gère_tâche()
 {
-    auto temps_debut = dls::chrono::compte_seconde();
+    auto temps_debut = kuri::chrono::compte_seconde();
     auto tâche = Tâche::dors(compilatrice.espace_de_travail_defaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
@@ -285,7 +285,7 @@ bool Tacheronne::gère_tâche()
                 else {
                     if (compilatrice.arguments.compile_en_mode_parallèle) {
                         nombre_dodos += 1;
-                        dls::chrono::dors_microsecondes(100 * nombre_dodos);
+                        kuri::chrono::dors_microsecondes(100 * nombre_dodos);
                         temps_passe_à_dormir += 0.1 * nombre_dodos;
                     }
                     return false;
@@ -301,13 +301,12 @@ bool Tacheronne::gère_tâche()
                     fichier->mutex.lock();
 
                     if (!fichier->fut_chargé) {
-                        auto debut_chargement = dls::chrono::compte_seconde();
-                        auto texte = charge_contenu_fichier(
-                            dls::chaine(fichier->chemin().pointeur(), fichier->chemin().taille()));
+                        auto debut_chargement = kuri::chrono::compte_seconde();
+                        auto texte = charge_contenu_fichier(fichier->chemin());
                         temps_chargement += debut_chargement.temps();
 
-                        auto debut_tampon = dls::chrono::compte_seconde();
-                        fichier->charge_tampon(lng::tampon_source(std::move(texte)));
+                        auto debut_tampon = kuri::chrono::compte_seconde();
+                        fichier->charge_tampon(TamponSource(texte));
                         temps_tampons += debut_tampon.temps();
                     }
 
@@ -335,7 +334,7 @@ bool Tacheronne::gère_tâche()
 
                     if (!fichier->en_lexage) {
                         fichier->en_lexage = true;
-                        auto debut_lexage = dls::chrono::compte_seconde();
+                        auto debut_lexage = kuri::chrono::compte_seconde();
                         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unite->espace),
                                                fichier);
                         lexeuse.performe_lexage();
@@ -360,7 +359,7 @@ bool Tacheronne::gère_tâche()
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unite = tâche.unité;
-                auto debut_parsage = dls::chrono::compte_seconde();
+                auto debut_parsage = kuri::chrono::compte_seconde();
                 auto syntaxeuse = Syntaxeuse(*this, unite);
                 syntaxeuse.analyse();
                 unite->fichier->fut_parsé = true;
@@ -372,7 +371,7 @@ bool Tacheronne::gère_tâche()
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
                 auto unite = tâche.unité;
-                auto debut_validation = dls::chrono::compte_seconde();
+                auto debut_validation = kuri::chrono::compte_seconde();
                 gère_unité_pour_typage(unite);
                 temps_validation += debut_validation.temps();
                 break;
@@ -380,7 +379,7 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::GENERATION_RI:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
-                auto debut_generation = dls::chrono::compte_seconde();
+                auto debut_generation = kuri::chrono::compte_seconde();
                 if (gère_unité_pour_ri(tâche.unité)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 }
@@ -390,7 +389,7 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::OPTIMISATION:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
-                auto debut_generation = dls::chrono::compte_seconde();
+                auto debut_generation = kuri::chrono::compte_seconde();
                 temps_optimisation += debut_generation.temps();
                 break;
             }
@@ -646,7 +645,7 @@ void Tacheronne::exécute_métaprogrammes()
                 auto fichier = it->fichier;
                 assert(it->fichier);
 
-                fichier->charge_tampon(lng::tampon_source(tampon.c_str()));
+                fichier->charge_tampon(TamponSource(tampon.c_str()));
 
                 fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
                     résultat);

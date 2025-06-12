@@ -15,10 +15,10 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/unicode.hh"
-
 #include "structures/chemin_systeme.hh"
+
+#include "utilitaires/chrono.hh"
+#include "utilitaires/unicode.hh"
 
 /**
  * Fonction de rappel pour les fils d'exécutions.
@@ -101,7 +101,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
 
 static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
-                          dls::chrono::compte_seconde debut_compilation)
+                          kuri::chrono::compte_seconde debut_compilation)
 {
     if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
         return;
@@ -322,7 +322,7 @@ static int calcule_taille_utf8(kuri::chaine_statique chaine)
 {
     int résultat = 0;
     for (auto i = 0l; i < chaine.taille();) {
-        auto n = lng::nombre_octets(&chaine.pointeur()[i]);
+        auto n = unicode::nombre_octets(&chaine.pointeur()[i]);
         résultat += 1;
         i += n;
     }
@@ -583,7 +583,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
 
 static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique chemin_fichier)
 {
-    auto debut_compilation = dls::chrono::compte_seconde();
+    auto debut_compilation = kuri::chrono::compte_seconde();
 
     /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
     if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {

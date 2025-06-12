@@ -43,7 +43,7 @@ static void imprime_erreur(SiteSource site, kuri::chaine message)
             enchaineuse << ' ';
         }
 
-        i += lng::decalage_pour_caractere(ligne_courante, i);
+        i += ligne_courante.décalage_pour_caractère(i);
     }
 
     enchaineuse << "^~~~\n";
@@ -66,10 +66,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    auto texte = charge_contenu_fichier(
-        {chemin_fichier_ri.pointeur(), chemin_fichier_ri.taille()});
+    auto texte = charge_contenu_fichier(chemin_fichier_ri);
 
-    auto tampon = lng::tampon_source(texte.c_str());
+    auto tampon = TamponSource(texte);
 
     Enchaineuse enchaineuse;
 
@@ -80,7 +79,7 @@ int main(int argc, char **argv)
         auto ligne = tampon[i];
 
         if (ligne.taille() > 4) {
-            auto sous_chaine = dls::vue_chaine(ligne.begin(), 4);
+            auto sous_chaine = kuri::chaine_statique(ligne.begin(), 4);
             if (sous_chaine == "----") {
                 texte_source = supprime_espaces_blanches_autour(enchaineuse.chaine());
                 enchaineuse.réinitialise();
@@ -98,7 +97,7 @@ int main(int argc, char **argv)
     }
 
     Fichier fichier;
-    fichier.tampon_ = lng::tampon_source(dls::chaine(texte_source.begin(), texte_source.end()));
+    fichier.tampon_ = TamponSource(texte_source);
     fichier.chemin_ = "";
 
     ArgumentsCompilatrice arguments;

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "parsage/lexemes.hh"
@@ -15,6 +13,8 @@
 #include "structures/tableau_page.hh"
 #include "structures/tableaux_partage_synchrones.hh"
 #include "structures/tablet.hh"
+
+#include "utilitaires/synchrone.hh"
 
 #include "operateurs.hh"
 

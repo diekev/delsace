@@ -6,7 +6,6 @@
 #include <iostream>
 #include <variant>
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
@@ -22,6 +21,8 @@
 #include "portee.hh"
 #include "utilitaires/log.hh"
 #include "validation_semantique.hh"
+
+#include "utilitaires/chrono.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Poids pour les arguments polymorphiques et variadiques.
@@ -2235,7 +2236,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             contexte.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
