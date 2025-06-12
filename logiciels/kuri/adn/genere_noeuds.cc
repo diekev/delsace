@@ -4,8 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/outils/badge.hh"
-
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"

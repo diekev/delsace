@@ -8,7 +8,6 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/dico_fixe.hh"
 
 #include "statistiques/statistiques.hh"
 

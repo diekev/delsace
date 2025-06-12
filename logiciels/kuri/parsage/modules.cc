@@ -5,7 +5,6 @@
 
 #include <fstream>
 
-#include "biblinternes/langage/erreur.hh"
 #include "biblinternes/outils/numerique.hh"
 
 #include "structures/chemin_systeme.hh"
@@ -319,11 +318,6 @@ Fichier *SystèmeModule::fichier(kuri::chaine_statique chemin) const
     }
 
     return nullptr;
-}
-
-static dls::vue_chaine sous_chaine(dls::vue_chaine chaine, int debut, int fin)
-{
-    return {&chaine[debut], fin - debut};
 }
 
 void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
