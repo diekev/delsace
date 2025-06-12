@@ -25,6 +25,30 @@ est_membre_actif :: fonc (u: $TypeUnion, $TypeMembre: type_de_données) -> bool
     retourne membre.id == info_de(TypeMembre)
 }
 
+définis_membre_actif :: fonc (u: *$TypeUnion, index: z32)
+{
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION
+    #assert info_de(TypeUnion).est_sûre == vrai
+
+    info_union := info_de(TypeUnion)
+
+    assert(index >= 0 && index < info_union.membres.taille)
+
+    adresse_index := (u comme *octet + info_union.décalage_index) comme *z32
+    mémoire(adresse_index) = index + 1
+}
+
+donne_index_membre_actif :: fonc (u: $TypeUnion) -> z32
+{
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION
+    #assert info_de(TypeUnion).est_sûre == vrai
+
+    info_union := info_de(TypeUnion)
+
+    adresse_index := (*u comme *octet + info_union.décalage_index) comme *z32
+    retourne mémoire(adresse_index)
+}
+
 est_valide :: fonc (valeur: eini) -> bool
 {
     retourne valeur.pointeur != nul
@@ -853,6 +877,8 @@ CréatriceTableFonction :: struct {
      * Seuls les modules n'étant pas découvrable via les fonctions candidates
      * devrait être manuellement ajoutées. */
     modules_importés: [..]chaine
+
+    module: *Module
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -941,7 +967,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     }
 
     pour créatrice.modules_importés {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, it, " :: importe ", it, "\n")
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
@@ -949,17 +975,28 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
         it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, it)
     }
 
+    nom_module := compilatrice_nom_module(créatrice.module)
+
     /* Création de la fonction d'initialisation. */
     ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
     si créatrice.initialise_types_de_bases {
-        ajoute_au_tampon(*enchaineuse, "\tinitalise_types_base(*", créatrice.nom_table_fonctions, ")\n")
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*")
+        si nom_module {
+            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        }
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n")
     }
 
     pour données_fonctions {
-        ajoute_au_tampon(*enchaineuse, "\tajoute_fonction(*", créatrice.nom_table_fonctions, ", info_de(")
-        imprime_type(*enchaineuse, it.info_type)
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*")
+        si nom_module {
+            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        }
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
+        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(it.fonction))
+        imprime_type(*enchaineuse, it.info_type, nom_module_fonction)
         ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n")
         déloge(it.nom_fonction_enveloppe)
     }
@@ -978,11 +1015,32 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
 }
 
+génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction, préfixe: chaine) -> chaine
+{
+    nom_enveloppe := enchaine(préfixe, données.fonction.nom)
+
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
+    ajoute_au_tampon(enchaineuse, "{\n")
+    module := compilatrice_module_pour_code(données.fonction)
+    nom_module := compilatrice_nom_module(module)
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ")
+    si nom_module {
+        ajoute_au_tampon(enchaineuse, nom_module, ".")
+    }
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn)\n")
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
+    ajoute_au_tampon(enchaineuse, "\tcopie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
+    ajoute_au_tampon(enchaineuse, "}\n")
+
+    retourne nom_enveloppe
+}
+
 // ----------------------------------------------------------------------------
 // Fonction pour parser les arguments de la ligne de commandes depuis une
 // structure.
 //
-// Les arguments doivent avoir la forme "--nom valeur" où nom est le nom d'un
+// Les arguments doivent avoir la forme "--nom valeur" ou "-nom valeur" où nom est le nom d'un
 // membre de la structure.
 //
 // Par exemple pour une structure :
@@ -992,9 +1050,20 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 //  nombre: z32
 // }
 //
-// la ligne de commande devra avoir la forme :
+// la ligne de commande devra avoir l'une des formes suivantes :
 //
 // ./programme --option une_chaine --nombre 2
+// ./programme -option une_chaine -nombre 2
+//
+// Il est possible de référer une rubrique via le premier caractère de son nom :
+// 
+// ./programme -o une_chaine -n 2
+//
+// Toutefois ceci ne fonctionnera que si une seule rubrique commence par cette lettre.
+// 
+// Il est possible de renseigner une fonction pour décrire les options via le paramètre "rapporte_aide".
+// Si un argument nommé "aide" est rencontré, cette fonction est appelée et le programme se terminera.
+// Si cette fonction n'est pas renseignée (nul est passé), nous tenterons de parser un argument nommé "aide".
 //
 // Optionnellement, un et un seul membre de la structure peut être « anonyme » :
 // il n'y a pas besoin d'avoir le nom du membre comme argument.
@@ -1110,7 +1179,20 @@ parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
     retourne faux
 }
 
+RapporteuseAide :: struct {
+}
+
+explique_argument :: fonc (rapporteuse: *RapporteuseAide @inutilisée, nom: chaine, texte: chaine)
+{
+    imprimeln("  -% : %", nom, texte)
+}
+
 parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) -> Résultat(T, chaine)
+{
+    retourne parse_arguments_ligne_commande(T, args, nul)
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
 {
     infos := info_de(T)
     résultat: T
@@ -1120,7 +1202,7 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
     tantque args.taille != 0 {
         arg := consomme(*args)
 
-        saufsi arg.commence_par("--") {
+        saufsi arg.commence_par("-") {
             membre_anonyme: *InfoTypeMembreStructure
             pour infos.membres {
                 saufsi it.possède_annotation("anonyme") {
@@ -1154,28 +1236,59 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
             continue
         }
 
-        arg = avance(arg, 2)
+        si arg.commence_par("--") {
+            arg = avance(arg, 2)
+        }
+        sinon {
+            arg = avance(arg, 1)
+        }
+
+        si arg == "aide" {
+            si rapporte_aide {
+                rapporteuse: RapporteuseAide
+                rapporte_aide(*rapporteuse)
+                exit(0)
+            }
+        }
 
         membre := trouve_info_membre(infos, arg)
         saufsi membre {
-            retourne imprime_chaine("Argument '--%' inconnu", arg)
+            si arg.taille == 1 {
+                pour infos.membres {
+                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                        continue
+                    }
+
+                    si it.nom[0] == arg[0] {
+                        si membre {
+                            membre = nul
+                            arrête
+                        }
+                        membre = it
+                    }
+                }
+            }
+
+            saufsi membre {
+                retourne imprime_chaine("Argument '%' inconnu", arg)
+            }
         }
 
-        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, arg))
+        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, membre.nom))
 
         si valeur_renseignée.comme_bool() {
-            retourne imprime_chaine("Argument dupliqué pour '--%'", arg)
+            retourne imprime_chaine("Argument dupliqué pour '%'", arg)
         }
 
         saufsi args {
-            retourne imprime_chaine("Argument manquant après '--%'", arg)
+            retourne imprime_chaine("Argument manquant après '%'", arg)
         }
 
         valeur_arg := consomme(*args)
         valeur_membre := eini_depuis_info_membre(résultat, membre)
 
         saufsi parse_valeur(valeur_arg, valeur_membre) {
-            retourne imprime_chaine("Impossible de parser la valeur de '--%'", arg)
+            retourne imprime_chaine("Impossible de parser la valeur de '%'", arg)
         }
 
         valeur_renseignée.assigne_bool(vrai)
@@ -1186,6 +1299,11 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) 
 
 parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
 {
+    retourne parse_arguments_ligne_commande(T, nul)
+}
+
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
+{
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     args := arguments_ligne_commande()
@@ -1193,5 +1311,205 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, ch
     /* Saute le nom du programme. */
     _ := consomme(*args)
 
-    retourne parse_arguments_ligne_commande(T, args)
+    retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
 }
+
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données) -> bool, T
+{
+    retourne parse_arguments_ligne_commande2(T, nul)
+}
+
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> bool, T
+{
+    args := arguments_ligne_commande()
+
+    /* Saute le nom du programme. */
+    _ := consomme(*args)
+
+    résultat := parse_arguments_ligne_commande(T, args, rapporte_aide)
+
+    discr résultat {
+        Ok(t) {
+            retourne vrai, t
+        }
+        Erreur(e) {
+            imprimeln("%", e)
+            retourne faux, T()
+        }
+        sinon {
+            imprimeln("Impossible de parser les arguments, erreur inconnue")
+            retourne faux, T()
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Visiteuse arbre.
+ * Structure pour visiter des structures représentants des arbres (par exemple
+ * des arbres syntaxiques).
+ * La visite se fait en visitant récurisevemnt les rubriques des structures qui
+ * possèdent le même type de base. Par exemple :
+ *
+ * Expression :: struct {
+ *   type: type_de_données   <-- ne sera pas visité
+ * }
+ *
+ * ExpressionBinaire :: struct {
+ *   empl base: Expression
+ *   type = #type_de_cette_structure
+ *
+ *   gauche: *Expression   <-- sera visité
+ *   droite: *Expression   <-- sera visité
+ *   op: Opération   <-- ne sera pas visité
+ * }
+ *
+ * Pour que cela fonctionne le type des noeuds doit se trouver dans une rubrique
+ * appelée "type" de type "type_de_données".
+ *
+ * On peut définir les membres à ne pas visiter avec l'annotation @NeVisitePas
+ * \{ */
+
+VisiteEnfants :: énum {
+    Oui
+    Non
+}
+
+VisiteuseArbre :: struct ($T: type_de_données) {
+    InfoTraversée :: struct {
+        noeud: *T
+        profondeur: z32
+    }
+
+    rappel_pour_noeud: fonc(*VisiteuseArbre(T), *T, *InfoTypeStructure)(VisiteEnfants)
+    rappel_pour_tableau: fonc(*VisiteuseArbre(T), [..]*T)(rien)
+    profondeur: z32
+}
+
+visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
+{
+    saufsi racine {
+        retourne
+    }
+
+    traversée: [..]VisiteuseArbre(T).InfoTraversée
+    diffère déloge(traversée)
+
+    début_traversée := tableau_ajoute_élément(*traversée)
+    début_traversée.noeud = racine
+    début_traversée.profondeur = 0
+
+    tantque traversée.taille != 0 {
+        info_traversée := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        racine = info_traversée.noeud
+        saufsi racine {
+            continue
+        }
+        infos := donne_info_pour_type_noeud(racine)
+
+        visiteuse.profondeur = info_traversée.profondeur
+
+        si visiteuse.rappel_pour_noeud {
+            si visiteuse.rappel_pour_noeud(visiteuse, racine, infos) == VisiteEnfants.Non {
+                continue
+            }
+        }
+
+        valeur_eini : eini = ---
+        valeur_eini.pointeur = racine
+        valeur_eini.info = infos
+
+        traverse_structure(visiteuse, valeur_eini, *traversée)
+    }
+}
+
+#portée_fichier
+
+donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
+{
+    // À FAIRE : paramétrise l'accès du type
+    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, info_de(T)))
+    retourne résultat
+}
+
+traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, traversée: *$IT)
+{
+    info := valeur_eini.info comme *InfoTypeStructure
+
+    pour > info.membres {
+        si est_type_adresse_noeud_syntaxique(it.id, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            noeud := mémoire(membre.pointeur comme **T)
+            si noeud == nul {
+                continue
+            }
+
+            si possède_annotation(it, "NeVisitePas") {
+                continue
+            }
+
+            info_traversée := tableau_ajoute_élément(traversée)
+            info_traversée.noeud = noeud
+            info_traversée.profondeur = visiteuse.profondeur + 1
+            continue
+        }
+
+        si est_type_adresse_tableau_noeud_syntaxique(it.id, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+
+            tableau := mémoire(membre.pointeur comme *[..]*T)
+
+            saufsi possède_annotation(it, "NeVisitePas") {
+                pour > noeud dans tableau {
+                    info_traversée := tableau_ajoute_élément(traversée)
+                    info_traversée.noeud = noeud
+                    info_traversée.profondeur = visiteuse.profondeur + 1
+                }
+            }
+
+            si visiteuse.rappel_pour_tableau {
+                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+            }
+
+            continue
+        }
+
+        si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(T)) {
+            membre := eini_depuis_info_membre(valeur_eini, it)
+            traverse_structure(visiteuse, membre, traversée)
+            continue
+        }
+    }
+}
+
+est_type_adresse_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
+{
+    saufsi infos.id == GenreInfoType.POINTEUR {
+        retourne faux
+    }
+
+    type_pointeur := infos comme *InfoTypePointeur
+    saufsi type_pointeur.type_pointé {
+        retourne faux
+    }
+    saufsi type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+        retourne faux
+    }
+
+    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+    retourne est_struct_ou_employeuse_de(type_structure, info_noeud_base)
+}
+
+est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
+{
+    saufsi infos.id == GenreInfoType.TABLEAU {
+        retourne faux
+    }
+
+    type_tableau := infos comme *InfoTypeTableau
+    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé, info_noeud_base)
+}
+
+/** \} */

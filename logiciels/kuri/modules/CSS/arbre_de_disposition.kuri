@@ -1,11 +1,7 @@
-importe Chaine
 importe Ensemble
 importe EnsembleDeBits
-importe Fondation
 importe Géométrie
-HTML :: importe HTML
 importe Image
-importe Internet
 importe Math
 importe MIME
 importe Structures
@@ -21,7 +17,7 @@ BarreDeDéfilement :: struct {
     est_cliqué: bool
     est_survolé: bool
     est_visible: bool
-    pos_clique_y: r32
+    pos_clic_y: r32
     hauteur: r32
     ratio : r32 = 1.0
 }
@@ -111,18 +107,18 @@ donne_index_pour_position :: fonc (tampon: *TamponID, x: z32, y: z32) -> Optionn
 }
 
 ArbreDeDisposition :: struct {
-    racine: *NoeudDeDisposition
+    racine: *Box
     stacking_context: *StackingContext
     commandes: *CommandesDeRendu
 
     stacking_contexts: [..]*StackingContext
 
-    noeuds: [..]*NoeudDeDisposition
+    boxes: [..]*Box
     lignes_tenantes: [..]*LignesTenante
     tampon_id: TamponID
 
-    noeuds_position_float: n32
-    noeuds_position_absolue: n32
+    boxes_position_float: n32
+    boxes_position_absolue: n32
 
     défilement_vertical: *BarreDeDéfilement
 }
@@ -133,7 +129,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         retourne
     }
 
-    pour arbre.noeuds {
+    pour arbre.boxes {
         déloge(it.enfants)
         si it.propriétés {
             détruit_propriétés(it.propriétés)
@@ -141,33 +137,38 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         élément := it.donne_élément()
         si élément {
-            élément.noeud_de_disposition = nul
+            élément.box = nul
+        }
+        sinon si it.noeud {
+            assert(HTML.est_texte(it.noeud))
+            noeud_texte := it.noeud comme *HTML.NoeudTexte
+            noeud_texte.box = nul
         }
 
-        si it.table_virtuelle.type == NoeudDeDispositionBloc {
-            bloc := it comme *NoeudDeDispositionBloc
+        si it.table_virtuelle.type == BlockBox {
+            bloc := it comme *BlockBox
             déloge(bloc)
         }
-        sinon si it.table_virtuelle.type == NoeudDeDispositionInline {
-            noeud := it comme *NoeudDeDispositionInline
-            déloge(noeud)
+        sinon si it.table_virtuelle.type == InlineBox {
+            box := it comme *InlineBox
+            déloge(box)
         }
-        sinon si it.table_virtuelle.type == NoeudDeDispositionTexte {
-            texte := it comme *NoeudDeDispositionTexte
+        sinon si it.table_virtuelle.type == TextBox {
+            texte := it comme *TextBox
             détruit_chaine(texte.texte)
             déloge(texte.fragments)
             déloge(texte)
         }
-        sinon si it.table_virtuelle.type == NoeudDeDispositionNouvelleLigne {
-            bris := it comme *NoeudDeDispositionNouvelleLigne
+        sinon si it.table_virtuelle.type == BreakBox {
+            bris := it comme *BreakBox
             déloge(bris)
         }
-        sinon si it.table_virtuelle.type == NoeudDeDispositionRemplacement {
-            remplacement := it comme *NoeudDeDispositionRemplacement
-            déloge(remplacement)
+        sinon si it.table_virtuelle.type == ReplacedBox {
+            replaced := it comme *ReplacedBox
+            déloge(replaced)
         }
-        sinon si it.table_virtuelle.type == NoeudDeDispositionSelect {
-            select := it comme *NoeudDeDispositionSelect
+        sinon si it.table_virtuelle.type == SelectBox {
+            select := it comme *SelectBox
             détruit_chaine(select.texte)
             déloge(select.fragments)
             déloge(select)
@@ -213,7 +214,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             déloge(box)
         }
         sinon {
-            imprime("noeud inconnu !")
+            imprime("box inconnu !")
             déloge(it)
         }
     }
@@ -228,15 +229,15 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
     détruit(arbre.défilement_vertical)
     déloge(arbre.tampon_id.données)
     déloge(arbre.lignes_tenantes)
-    déloge(arbre.noeuds)
+    déloge(arbre.boxes)
     déloge(arbre)
 }
 
-crée_noeud :: fonc (arbre: *ArbreDeDisposition, $TypeNoeud: type_de_données) -> *TypeNoeud
+crée_box :: fonc (arbre: *ArbreDeDisposition, $TypeBox: type_de_données) -> *TypeBox
 {
-    résultat := loge(TypeNoeud)
-    résultat.id = arbre.noeuds.taille comme n32
-    tableau_ajoute(*arbre.noeuds, résultat)
+    résultat := loge(TypeBox)
+    résultat.id = arbre.boxes.taille comme n32
+    tableau_ajoute(*arbre.boxes, résultat)
     retourne résultat
 }
 
@@ -266,11 +267,12 @@ donne_tampon_id :: fonc (arbre: *ArbreDeDisposition) -> *TamponID
     retourne *arbre.tampon_id
 }
 
-donne_taille_en_octet_noeuds :: fonc (arbre: *ArbreDeDisposition) -> n32
+donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
 {
     résultat: n32
-    pour arbre.noeuds {
+    pour arbre.boxes {
         résultat += it.donne_taille_en_octet()
+        résultat += (it.enfants.capacité * 8) comme n32
     }
     retourne résultat
 }
@@ -282,11 +284,11 @@ donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z3
         retourne nul
     }
 
-    noeud := arbre.noeuds[index.Quelque]
-    saufsi noeud {
+    box := arbre.boxes[index.Quelque]
+    saufsi box {
         retourne nul
     }
-    retourne noeud.donne_élément_récursif()
+    retourne box.donne_élément_récursif()
 }
 
 imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
@@ -294,14 +296,14 @@ imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
     imprime("--------------------------------------------\n")
     imprime("             Statistiques Arbre\n")
 
-    taille_octets_noeuds := arbre.donne_taille_en_octet_noeuds()
-    nombre_de_noeuds := arbre.noeuds.taille
+    taille_octets_boxes := arbre.donne_taille_en_octet_boxes()
+    nombre_de_boxes := arbre.boxes.taille
 
-    imprime("Nombre de noeuds        : %\n", nombre_de_noeuds)
-    imprime("Mémoire noeuds          : %o\n", taille_octets_noeuds)
-    imprime("Mémoire par noeud       : %o\n", taille_octets_noeuds comme r32 / nombre_de_noeuds comme r32)
-    imprime("Noeuds position float   : %\n", arbre.noeuds_position_float)
-    imprime("Noeuds position absolue : %\n", arbre.noeuds_position_absolue)
+    imprime("Nombre de boxes        : %\n", nombre_de_boxes)
+    imprime("Mémoire boxes          : %o\n", taille_octets_boxes)
+    imprime("Mémoire par box       : %o\n", taille_octets_boxes comme r32 / nombre_de_boxes comme r32)
+    imprime("Noeuds position float   : %\n", arbre.boxes_position_float)
+    imprime("Noeuds position absolue : %\n", arbre.boxes_position_absolue)
 }
 
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -331,11 +333,11 @@ donne_chaine_impression_arbre :: fonc (arbre: *ArbreDeDisposition) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, profondeur: n32)
+imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *Box, profondeur: n32)
 {
     indentation := donne_chaine_indentation(profondeur comme z32)
 
-    nom_classe := racine.donne_nom_classe_sans_préfixe()
+    nom_classe := racine.donne_nom_classe_sans_suffixe()
 
     imprime_dans_enchaineuse(enchaineuse, "%%", indentation, nom_classe)
 
@@ -381,28 +383,28 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *NoeudDeDisposition, p
     }
 }
 
-imprime_fragments :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition, profondeur: n32)
+imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32)
 {
-    si noeud.table_virtuelle.type != NoeudDeDispositionBloc && noeud.table_virtuelle.type != NoeudDeDispositionInline {
+    si box.table_virtuelle.type != BlockBox && box.table_virtuelle.type != InlineBox {
         retourne
     }
 
     indentation := donne_chaine_indentation(profondeur comme z32)
     indentation_texte := donne_chaine_indentation(profondeur comme z32 + 1)
 
-    bloc := noeud comme *NoeudDeDispositionBloc
+    bloc := box comme *BlockBox
     saufsi bloc.lignes_tenante {
         retourne
     }
 
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation)
-        nom_classe := it.noeud.donne_nom_classe_sans_préfixe()
+        nom_classe := it.box.donne_nom_classe_sans_suffixe()
         imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.index_début, it.index_fin, it.x, it.y, it.largeur, it.hauteur)
 
-        si it.noeud.table_virtuelle.type == NoeudDeDispositionTexte {
-            noeud_texte := it.noeud comme *NoeudDeDispositionTexte
-            fragment_texte := noeud_texte.fragments[it.index_début]
+        si it.box.table_virtuelle.type == TextBox {
+            text_box := it.box comme *TextBox
+            fragment_texte := text_box.fragments[it.index_début]
             ajoute_au_tampon(enchaineuse, "\n", indentation_texte, "\"", fragment_texte.texte, "\"")
         }
 
@@ -861,12 +863,12 @@ AjournementArbre :: énum_drapeau {
 
 donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
 {
-    noeud_de_disposition := élément.noeud_de_disposition
+    box := élément.box
     anciennes_propriétés: *PropriétésDeStyle
     propriétés_parent: *PropriétésDeStyle
 
-    si noeud_de_disposition {
-        anciennes_propriétés = noeud_de_disposition.propriétés
+    si box {
+        anciennes_propriétés = box.propriétés
         assert(anciennes_propriétés != nul)
         propriétés_parent = anciennes_propriétés.parent
     }
@@ -877,7 +879,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     /* Vérifie si "display: none" reste "display: none". */
     display := nouvelles_propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
     si display.outer_type == Display.Type.None {
-        si noeud_de_disposition == nul {
+        si box == nul {
             /* Nous restons sur "display: none". */
             retourne AjournementArbre.zéro
         }
@@ -885,7 +887,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
         retourne AjournementArbre.Construction
     }
 
-    si noeud_de_disposition == nul {
+    si box == nul {
         /* Nous sommes passé de "display: none" à autre chose, reconstruisons. */
         retourne AjournementArbre.Construction
     }
@@ -912,10 +914,10 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     /* Sauvegarde les propriétés. */
     permute(nouvelles_propriétés, anciennes_propriétés)
 
-    /* Puisque les rayons des bordures ne modifie pas les dimensions du noeud (et donc ne
+    /* Puisque les rayons des bordures ne modifie pas les dimensions du box (et donc ne
      * requiers pas de recalcul du mis-en-page sur modification), nous devons les recalculer
      * au cas où ils seraient (re)devenus des pourcentages. */
-    résoud_pourcentage_largeur_border_radius(noeud_de_disposition)
+    résoud_pourcentage_largeur_border_radius(box)
 
     retourne résultat
 }
@@ -1044,7 +1046,7 @@ compare_déclarations_pour_cascade :: fonc (a: DéclarationCascadée, b: Déclar
     retourne 0
 }
 
-crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *NoeudDeDispositionBloc, bloc_parent: *NoeudDeDispositionBloc, outer_display: Display.Type)
+crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *BlockBox, bloc_parent: *BlockBox, outer_display: Display.Type)
 {
     display := crée_valeur_display(Display(outer_type = outer_display, inner_type = Display.Type.Flow)) comme *ValeurDeStyle
 
@@ -1144,7 +1146,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés_parent, résolveuse.globales)
     }
     sinon {
-        fonte := donne_fonte(résolveuse.globales, "sérif", "normal", GraisseFonte.Normal, résolveuse.globales.taille_fonte_défaut)
+        fonte := donne_fonte_défaut(résolveuse.globales)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, fonte)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, fonte)
     }
@@ -1347,10 +1349,10 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
     créatrice.arbre = résultat
     créatrice.résolveuse = résolveuse
 
-    crée_noeud_pour_élément(*créatrice, nul, html)
-    résultat.racine = html.noeud_de_disposition
+    crée_box_pour_élément(*créatrice, nul, html)
+    résultat.racine = html.box
 
-    // imprime("Créé % noeud(s)\n", résultat.noeuds.taille)
+    // imprime("Créé % box(s)\n", résultat.boxes.taille)
 
     dispose_arbre(document.globales_dessin, résultat, largeur, hauteur)
 
@@ -1368,29 +1370,29 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)
 {
-    arbre.noeuds_position_absolue = 0
-    arbre.noeuds_position_float = 0
+    arbre.boxes_position_absolue = 0
+    arbre.boxes_position_float = 0
 
-    pour arbre.noeuds {
+    pour arbre.boxes {
         saufsi it.propriétés {
             continue
         }
 
         float := it.propriétés.donne_valeur_calculée(IDPropriété.Float)
         saufsi float.est_none() {
-            arbre.noeuds_position_float += 1
+            arbre.boxes_position_float += 1
         }
 
         position := it.propriétés.donne_valeur_calculée(IDPropriété.Position)
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-            arbre.noeuds_position_absolue += 1
+            arbre.boxes_position_absolue += 1
         }
     }
 
     initial_containing_block: ContainingBlock
     initial_containing_block.rect.hauteur = hauteur comme r32
     initial_containing_block.rect.largeur = largeur comme r32
-    initial_containing_block.noeud = arbre.racine
+    initial_containing_block.box = arbre.racine
 
     ctx: ContexteDeFormattage
     ctx.arbre = arbre
@@ -1410,7 +1412,11 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
 
     ctx.ctx_calcul_style = *ctx_calcul_style
 
-    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, nul)
+    available: AvailableSpace
+    available.width = AvailableSize(largeur comme r64)
+    available.height = AvailableSize(hauteur comme r64)
+
+    mesure(arbre.racine, *ctx, ModeDeFormattage.Normal, PersonnalisationCotation(), available)
 
     largeur_descendants, hauteur_descendants := donne_taille_descendants(arbre.racine)
     // imprime("taille arbre : %x%, descedants %x%\n", arbre.racine.modèle_de_boite.marge.largeur, arbre.racine.modèle_de_boite.marge.hauteur, largeur_descendants, hauteur_descendants)
@@ -1434,16 +1440,20 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     // imprime_statistiques(arbre)
 }
 
-donne_taille_descendants :: fonc (noeud: *NoeudDeDisposition) -> (largeur: r32, hauteur: r32)
+donne_taille_descendants :: fonc (box: *Box) -> (largeur: r32, hauteur: r32)
 {
     largeur = 0.0
     hauteur = 0.0
 
-    pour ItératriceArbre(noeud) {
+    pour ItératriceArbre(box) {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         position_x := it.modèle_de_boite.marge.x + it.modèle_de_boite.marge.largeur
         position_y := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
 
-        // À FAIRE : prendre en compte le débordement des enfants du noeud courant
+        // À FAIRE : prendre en compte le débordement des enfants du box courant
 
         si largeur < position_x {
             largeur = position_x
@@ -1461,17 +1471,10 @@ CréatriceArbre :: struct {
     arbre: *ArbreDeDisposition
 }
 
-crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, noeud: *HTML.Noeud)
+crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Noeud)
 {
     si HTML.est_texte(noeud) {
-        /* Les textes doivent une boite inline anonyme autour d'eux. */
-        résultat := arbre.crée_noeud(NoeudDeDispositionInline)
-        crée_style_pour_bloc_anonyme(résolveuse, résultat, parent comme *NoeudDeDispositionBloc, Display.Type.Inline)
-        parent.ajoute_enfant(résultat)
-
-        texte := arbre.crée_noeud(NoeudDeDispositionTexte)
-        texte.noeud_texte = noeud comme *HTML.NoeudTexte
-        résultat.ajoute_enfant(texte)
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
         retourne
     }
 
@@ -1496,44 +1499,58 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
 
     ignore_enfants := faux
 
-    résultat: *NoeudDeDisposition
+    résultat: *Box
     si élément.local_name == HTML.TAG_img {
-        résultat = crée_noeud_de_remplacement_image(arbre, élément comme *HTML.HTMLImageElement)
+        img := élément comme *HTML.HTMLImageElement
+        représentation_image := HTML.donne_représentation_image(img)
+
+        si représentation_image == HTML.ReprésentationImage.RIEN {
+            détruit_propriétés(propriétés)
+            retourne
+        }
+
+        si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
+            résultat = crée_box_pour_display(arbre, display, élément)
+            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16(), nul)
+        }
+        sinon {
+            résultat = crée_image_box(arbre, img)
+        }
     }
     sinon si élément.local_name == HTML.TAG_input {
         input_element := élément comme *HTML.HTMLInputElement
         si HTML.is_text_entry_widget(input_element) {
-            résultat = crée_noeud_de_remplacement_text_input(arbre, input_element)
+            résultat = crée_text_input_box(arbre, input_element)
         }
         sinon si HTML.is_button_widget(input_element) {
-            résultat = crée_noeud_de_remplacement_button_input(arbre, input_element)
+            résultat = crée_button_box(arbre, input_element)
         }
         sinon si HTML.is_radio_button_widget(input_element) {
-            résultat = crée_noeud_de_remplacement_radio_button_input(arbre, input_element)
+            résultat = crée_radio_button_box(arbre, input_element)
         }
         sinon si HTML.is_checkbox_widget(input_element) {
-            résultat = crée_noeud_de_remplacement_checkbox_input(arbre, input_element)
+            résultat = crée_checkbox_box(arbre, input_element)
         }
         sinon {
-            résultat = crée_noeud_pour_display(arbre, display, élément)
+            résultat = crée_box_pour_display(arbre, display, élément)
         }
     }
     sinon si élément.local_name == HTML.TAG_textarea {
-        résultat = crée_noeud_de_remplacement_textarea(arbre, élément comme *HTML.HTMLTextAreaElement)
+        résultat = crée_textarea_box(arbre, élément comme *HTML.HTMLTextAreaElement)
     }
     sinon si élément.local_name == HTML.TAG_canvas {
-        résultat = crée_noeud_de_remplacement_canvas(arbre, élément comme *HTML.HTMLCanvasElement)
+        résultat = crée_canvas_box(arbre, élément comme *HTML.HTMLCanvasElement)
     }
     sinon si élément.local_name == HTML.TAG_select {
-        résultat = crée_noeud_de_remplacement_select(arbre, élément comme *HTML.HTMLSelectElement)
+        résultat = crée_select_box(arbre, élément comme *HTML.HTMLSelectElement)
         ignore_enfants = vrai
     }
     sinon si élément.local_name == HTML.TAG_object && (élément comme *HTML.HTMLObjectElement).chose_représentée == HTML.ChoseReprésentée.DONNÉES {
-        résultat = crée_noeud_de_remplacement_object(arbre, élément comme *HTML.HTMLObjectElement)
+        résultat = crée_object_box(arbre, élément comme *HTML.HTMLObjectElement)
         ignore_enfants = vrai
     }
     sinon {
-        résultat = crée_noeud_pour_display(arbre, display, élément)
+        résultat = crée_box_pour_display(arbre, display, élément)
     }
 
     table: *TableBox
@@ -1541,7 +1558,7 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         table = (résultat comme *TableWrapperBox).table
     }
 
-    élément.noeud_de_disposition = résultat
+    élément.box = résultat
     résultat.propriétés = propriétés
     si table {
         résultat.propriétés = résoud_style(résolveuse, élément, nul, propriétés_parent)
@@ -1576,86 +1593,103 @@ crée_noeud_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *
         nouveau_parent = table
     }
 
-    crée_noeud_pour_pseudo_élément(créatrice, résultat, élément, PROP_before)
+    crée_box_pour_pseudo_élément(créatrice, résultat, élément, PROP_before)
 
     pour noeud.enfants {
-        crée_noeud_pour_élément(créatrice, nouveau_parent, it)
+        crée_box_pour_élément(créatrice, nouveau_parent, it)
     }
 
-    crée_noeud_pour_pseudo_élément(créatrice, résultat, élément, PROP_after)
+    crée_box_pour_pseudo_élément(créatrice, résultat, élément, PROP_after)
     
     corrige_hiérarchie(résultat, créatrice)
 }
 
-crée_noeud_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *NoeudDeDisposition
+crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.NoeudTexte)
+{
+    /* Les textes doivent une boite inline anonyme autour d'eux. */
+    résultat := arbre.crée_box(InlineBox)
+    résultat.est_boite_anonyme_pour_texte = vrai
+    crée_style_pour_bloc_anonyme(résolveuse, résultat, parent, Display.Type.Inline)
+    parent.ajoute_enfant(résultat)
+
+    texte := arbre.crée_box(TextBox)
+    texte.texte_original = texte_original
+    texte.noeud = noeud
+    si noeud {
+        noeud.box = texte
+    }
+    résultat.ajoute_enfant(texte)
+}
+
+crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *Box
 {
     si display.inner_type == Display.Type.Table {
-        wrapper_box := arbre.crée_noeud(TableWrapperBox)
-        wrapper_box.élément = élément
+        wrapper_box := arbre.crée_box(TableWrapperBox)
+        wrapper_box.noeud = élément
 
-        box := arbre.crée_noeud(TableBox)
+        box := arbre.crée_box(TableBox)
         wrapper_box.table = box
 
         wrapper_box.ajoute_enfant(box)
         retourne wrapper_box
     }
     si display.inner_type == Display.Type.TableCaption {
-        box := arbre.crée_noeud(CaptionBox)
-        box.élément = élément
+        box := arbre.crée_box(CaptionBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumn {
-        box := arbre.crée_noeud(TableColumnBox)
-        box.élément = élément
+        box := arbre.crée_box(TableColumnBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumnGroup {
-        box := arbre.crée_noeud(TableColumnGroupBox)
-        box.élément = élément
+        box := arbre.crée_box(TableColumnGroupBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableCell {
-        box := arbre.crée_noeud(TableCellBox)
-        box.élément = élément
+        box := arbre.crée_box(TableCellBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRow {
-        box := arbre.crée_noeud(TableRowBox)
-        box.élément = élément
+        box := arbre.crée_box(TableRowBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableFooterGroup {
-        box := arbre.crée_noeud(TableFooterGroupBox)
-        box.élément = élément
+        box := arbre.crée_box(TableFooterGroupBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableHeaderGroup {
-        box := arbre.crée_noeud(TableHeaderGroupBox)
-        box.élément = élément
+        box := arbre.crée_box(TableHeaderGroupBox)
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRowGroup {
-        box := arbre.crée_noeud(TableRowGroupBox)
-        box.élément = élément
+        box := arbre.crée_box(TableRowGroupBox)
+        box.noeud = élément
         retourne box
     }
     si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
-        bloc := arbre.crée_noeud(NoeudDeDispositionBloc)
-        bloc.élément = élément
+        bloc := arbre.crée_box(BlockBox)
+        bloc.noeud = élément
         retourne bloc
     }
     si élément && élément.local_name == HTML.TAG_br {
-        bris := arbre.crée_noeud(NoeudDeDispositionNouvelleLigne)
-        bris.élément = élément
+        bris := arbre.crée_box(BreakBox)
+        bris.noeud = élément
         retourne bris
     }
 
-    inline := arbre.crée_noeud(NoeudDeDispositionInline)
-    inline.élément = élément
+    inline := arbre.crée_box(InlineBox)
+    inline.noeud = élément
     retourne inline
 }
 
-crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *NoeudDeDisposition, élément: *HTML.Élément, ident_pseudo_element: CSSOMString)
+crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, élément: *HTML.Élément, ident_pseudo_element: CSSOMString)
 {
     pseudo_element := PseudoElement(ident_pseudo_element)
     propriétés_pseudo := résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
@@ -1669,18 +1703,28 @@ crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pa
         retourne
     }
 
-    // À FAIRE : content
+    content := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Content)
+    si ident_pseudo_element == PROP_before || ident_pseudo_element == PROP_after {
+        si content.est_mot_clé(PROP_none) || content.est_mot_clé(PROP_normal) {
+            détruit_propriétés(propriétés_pseudo)
+            retourne
+        }
+    }
 
-    noeud := crée_noeud_pour_display(arbre, display, nul)
-    noeud.propriétés = propriétés_pseudo
-    noeud.est_pseudo_element = vrai
+    box := crée_box_pour_display(arbre, display, nul)
+    box.propriétés = propriétés_pseudo
+    box.est_pseudo_element = vrai
 
-    si noeud.table_virtuelle.type == TableWrapperBox {
-        table := (noeud comme *TableWrapperBox).table
+    si box.table_virtuelle.type == TableWrapperBox {
+        table := (box comme *TableWrapperBox).table
         table.propriétés = résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
     }
 
-    ajoute_enfant(parent, noeud)
+    ajoute_enfant(parent, box)
+
+    si content.est_string() {
+        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16(), nul)
+    }
 }
 
 /** \} */
@@ -1689,7 +1733,7 @@ crée_noeud_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pa
 /** \nom Requête image.
  * \{ */
 
-donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optionnel(ImageIO)
+donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optionnel(NouvelleImage)
 {
     données_image := HTML.donne_image_pour_url(ctx.document, url_string)
 
@@ -1736,7 +1780,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 
         contenu := réponse.body.Quelque
 
-        image_data: ImageIO
+        image_data: NouvelleImage
         saufsi HTML.décode_image(contenu, content_type, *image_data) {
             HTML.définis_état_requête_image(rappel.document, rappel.url_string, HTML.ÉtatRequêteImage.Échec)
             retourne
@@ -1774,7 +1818,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDisposition
+/** \nom Box
  * \{ */
 
 ModèleDeBoite :: struct {
@@ -1834,6 +1878,22 @@ définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.contenu.hauteur = hauteur
 }
 
+donne_ligne_de_base_marge :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.marge.y
+    résultat.position = modèle.marge.y + modèle.marge.hauteur
+    retourne résultat
+}
+
+donne_ligne_de_base_contenu :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.contenu.y
+    résultat.position = modèle.contenu.y + modèle.contenu.hauteur
+    retourne résultat
+}
+
 /* Représente les cotations pour un axe donné du modèle de boite. */
 CotationModèleDeBoite :: struct {
     marge_début: r32
@@ -1876,73 +1936,95 @@ imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleD
     imprime_dans_enchaineuse(enchaineuse, "[% % %] % [% % %]", cotation.marge_début, cotation.bordure_début, cotation.rembourrage_début, cotation.contenu, cotation.rembourrage_fin, cotation.bordure_fin, cotation.marge_fin)
 }
 
-TableVirtuelleNoeudDeDispo :: struct {
-    type: type_de_données
-
-    sur_mesure: fonc (*NoeudDeDisposition, *ContexteDeFormattage, ModeDeFormattage, *OutrepasCotation)(rien)
-    sur_dessin: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
-    sur_dessin_fragment: fonc (*NoeudDeDisposition, *Fragment, *LignesTenante, *ContexteDessin)(rien)
-    sur_dessin_tampon_id: fonc (*NoeudDeDisposition, *ContexteDessin)(rien)
-    sur_dessin_fragment_tampon_id: fonc (*NoeudDeDisposition, *Fragment, *ContexteDessin)(rien)
-    sur_divise_en_lignes: fonc (*NoeudDeDisposition, *Enligneuse, ModeDeFormattage)(rien)
-    sur_correction_hiérarchie: fonc(*NoeudDeDisposition, *CréatriceArbre)(rien)
-    sur_donne_baseline: fonc(*NoeudDeDisposition)(Optionnel(r32))
+InfoLigneDeBase :: struct {
+    /* L'origine de la boite fournissant la ligne de base ; utilisée pour calculer un delta. */
+    origine: r32
+    /* La position de la ligne de base. */
+    position: r32
 }
 
-__table_base_noeud_de_disposition := TableVirtuelleNoeudDeDispo(type = NoeudDeDisposition)
+TableVirtuelleBox :: struct {
+    type: type_de_données
 
-NoeudDeDisposition :: struct {
-    table_virtuelle := *__table_base_noeud_de_disposition
+    sur_mesure: fonc (*Box, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation, AvailableSpace)(rien)
+    sur_dessin: fonc (*Box, *ContexteDessin)(rien)
+    sur_dessin_fragment: fonc (*Box, *Fragment, *LignesTenante, *ContexteDessin)(rien)
+    sur_dessin_tampon_id: fonc (*Box, *ContexteDessin)(rien)
+    sur_dessin_fragment_tampon_id: fonc (*Box, *Fragment, *ContexteDessin)(rien)
+    sur_divise_en_lignes: fonc (*Box, *Enligneuse, ModeDeFormattage)(rien)
+    sur_correction_hiérarchie: fonc(*Box, *CréatriceArbre)(rien)
+    sur_donne_baseline: fonc(*Box)(Optionnel(InfoLigneDeBase))
+}
+
+__table_box_base := TableVirtuelleBox(type = Box)
+
+Box :: struct {
+    table_virtuelle := *__table_box_base
 
     id: n32
     id_stacking_context: n32
     propriétés: *PropriétésDeStyle
 
-    parent: *NoeudDeDisposition
-    enfants: [..]*NoeudDeDisposition
+    parent: *Box
+    enfants: [..]*Box
+
+    noeud: *HTML.Noeud
 
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
     est_pseudo_element: bool
     fut_dessiné: bool
-}
+    est_boite_anonyme_pour_texte: bool
 
-donne_propriétés :: fonc (noeud: *NoeudDeDisposition) -> *PropriétésDeStyle
-{
-    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
-        retourne donne_propriété_parent(noeud comme *NoeudDeDispositionTexte)
+    MémoireVive :: struct {
+        min_content_width: Optionnel(r64)
+        max_content_width: Optionnel(r64)
     }
-    retourne noeud.propriétés
+
+    mémoire_vive: MémoireVive
 }
 
-détermine_fonte :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> *Fonte
+donne_propriétés :: fonc (box: *Box) -> *PropriétésDeStyle
+{
+    si box.table_virtuelle.type == TextBox {
+        retourne donne_propriétés(box comme *TextBox)
+    }
+    si box.est_boite_anonyme_pour_texte {
+        box = box.parent
+        tantque est_box_anonyme(box) {
+            box = box.parent
+        }
+    }
+    retourne box.propriétés
+}
+
+détermine_fonte :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> *Fonte
 {
     globales := ctx.globales
     assert(globales != nul)
-    retourne détermine_fonte(noeud, globales)
+    retourne détermine_fonte(box, globales)
 }
 
-détermine_fonte :: fonc (noeud: *NoeudDeDisposition, globales: *GlobalesDessin) -> *Fonte
+détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 {
-    propriétés := noeud.donne_propriétés()
+    propriétés := box.donne_propriétés()
 
     résultat := détermine_fonte(propriétés, globales)
-    si noeud.table_virtuelle.type == NoeudDeDispositionTexte {
-        noeud_texte := noeud comme *NoeudDeDispositionTexte
-        noeud_texte.fonte = résultat
+    si box.table_virtuelle.type == TextBox {
+        text_box := box comme *TextBox
+        text_box.fonte = résultat
     }
-    sinon si noeud.table_virtuelle.type == NoeudDeDispositionSelect {
-        noeud_select := noeud comme *NoeudDeDispositionSelect
-        noeud_select.fonte = résultat
+    sinon si box.table_virtuelle.type == SelectBox {
+        select_box := box comme *SelectBox
+        select_box.fonte = résultat
     }
     retourne résultat
 }
 
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
-    famille_fonte := "sérif"
+    famille_fonte := "serif"
     style := "normal"
-    graisse := GraisseFonte.Normal
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
     font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
@@ -1954,9 +2036,7 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     }
 
     font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
-    si font_weight >= 700.0 {
-        graisse = GraisseFonte.Gras
-    }
+    graisse := donne_graisse_fonte_depuis_poids(font_weight)
 
     font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé()
     si font_style == PROP_italic {
@@ -1966,72 +2046,63 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
     retourne globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
 }
 
-donne_rectangle_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
+donne_rectangle_rembourrage :: fonc (box: *Box) -> RectanglePosDim(r32)
 {
-    retourne noeud.modèle_de_boite.rembourrage
+    retourne box.modèle_de_boite.rembourrage
 }
 
-donne_rectangle_bordure :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
+donne_rectangle_bordure :: fonc (box: *Box) -> RectanglePosDim(r32)
 {
-    retourne noeud.modèle_de_boite.bordure
+    retourne box.modèle_de_boite.bordure
 }
 
-donne_rectangle_contenu :: fonc (noeud: *NoeudDeDisposition) -> RectanglePosDim(r32)
+donne_rectangle_contenu :: fonc (box: *Box) -> RectanglePosDim(r32)
 {
-    retourne noeud.modèle_de_boite.contenu
+    retourne box.modèle_de_boite.contenu
 }
 
-donne_propriété_parent :: fonc (noeud_texte: *NoeudDeDispositionTexte) -> *PropriétésDeStyle
+est_box_anonyme :: fonc (box: *Box) -> bool
 {
-    parent := noeud_texte.parent
-    tantque est_noeud_anonyme(parent) {
-        parent = parent.parent
-    }
-    retourne parent.propriétés
-}
-
-est_noeud_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
-{
-    si noeud.table_virtuelle.type != NoeudDeDispositionBloc && noeud.table_virtuelle.type != NoeudDeDispositionInline {
+    si box.table_virtuelle.type != BlockBox && box.table_virtuelle.type != InlineBox {
         retourne faux
     }
 
-    noeud_bloc := noeud comme *NoeudDeDispositionBloc
-    retourne noeud_bloc.élément == nul
+    block_box := box comme *BlockBox
+    retourne block_box.noeud == nul
 }
 
-est_noeud_non_anonyme :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_box_non_anonyme :: fonc (box: *Box) -> bool
 {
-    retourne !est_noeud_anonyme(noeud)
+    retourne !est_box_anonyme(box)
 }
 
-est_block_level :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_block_level :: fonc (box: *Box) -> bool
 {
-    assert(noeud.propriétés != nul)
-    retourne donne_display(noeud).outer_type == Display.Type.Block
+    assert(box.propriétés != nul)
+    retourne donne_display(box).outer_type == Display.Type.Block
 }
 
-est_inline_level :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_inline_level :: fonc (box: *Box) -> bool
 {
-    assert(noeud.propriétés != nul)
-    retourne donne_display(noeud).outer_type == Display.Type.Inline
+    assert(box.propriétés != nul)
+    retourne donne_display(box).outer_type == Display.Type.Inline
 }
 
-est_inline_block :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_inline_block :: fonc (box: *Box) -> bool
 {
-    assert(noeud.propriétés != nul)
-    display := donne_display(noeud)
+    assert(box.propriétés != nul)
+    display := donne_display(box)
     retourne display.outer_type == Display.Type.Inline && display.inner_type == Display.Type.FlowRoot
 }
 
-est_in_flow :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_in_flow :: fonc (box: *Box) -> bool
 {
-    position := noeud.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position)
     si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
         retourne faux
     }
 
-    float := noeud.propriétés.donne_valeur_calculée(IDPropriété.Float)
+    float := box.propriétés.donne_valeur_calculée(IDPropriété.Float)
     saufsi float.est_none() {
         retourne faux
     }
@@ -2039,29 +2110,29 @@ est_in_flow :: fonc (noeud: *NoeudDeDisposition) -> bool
     retourne vrai
 }
 
-est_block_container :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_block_container :: fonc (box: *Box) -> bool
 {
-    si noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == TableWrapperBox || noeud.table_virtuelle.type == TableCellBox {
+    si box.table_virtuelle.type == BlockBox || box.table_virtuelle.type == TableWrapperBox || box.table_virtuelle.type == TableCellBox {
         retourne vrai
     }
 
-    si noeud.est_inline_block() {
+    si box.est_inline_block() {
         retourne vrai
     }
 
     retourne faux
 }
 
-donne_display :: fonc (noeud: *NoeudDeDisposition) -> Display
+donne_display :: fonc (box: *Box) -> Display
 {
-    assert(noeud.propriétés != nul)
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Display).donne_display()
+    assert(box.propriétés != nul)
+    retourne box.propriétés.donne_valeur_utilisée(IDPropriété.Display).donne_display()
 }
 
-donne_line_height :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> r32
+donne_line_height :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> r32
 {
-    fonte := détermine_fonte(noeud, ctx)
-    retourne donne_line_height(noeud.propriétés, fonte)
+    fonte := détermine_fonte(box, ctx)
+    retourne donne_line_height(box.propriétés, fonte)
 }
 
 donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) -> r32
@@ -2081,10 +2152,10 @@ donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) ->
     retourne métriques.donne_hauteur_ligne()
 }
 
-donne_décalage_top_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
+donne_décalage_top_pour_relative :: fonc (box: *Box) -> r32
 {
-    top := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-    bottom := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
+    top := box.propriétés.donne_valeur_utilisée(IDPropriété.Top)
+    bottom := box.propriétés.donne_valeur_utilisée(IDPropriété.Bottom)
 
     si top.est_auto() && bottom.est_auto() {
         retourne 0.0
@@ -2097,10 +2168,10 @@ donne_décalage_top_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     retourne top.donne_pixels() comme r32
 }
 
-donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
+donne_décalage_left_pour_relative :: fonc (box: *Box) -> r32
 {
-    left := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Left)
-    right := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Right)
+    left := box.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+    right := box.propriétés.donne_valeur_utilisée(IDPropriété.Right)
 
     si left.est_auto() && right.est_auto() {
         retourne 0.0
@@ -2113,102 +2184,75 @@ donne_décalage_left_pour_relative :: fonc (noeud: *NoeudDeDisposition) -> r32
     retourne left.donne_pixels() comme r32
 }
 
-donne_baseline :: fonc (noeud: *NoeudDeDisposition) -> Optionnel(r32)
+donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
 {
-    si noeud.table_virtuelle.sur_donne_baseline {
-        résultat := noeud.table_virtuelle.sur_donne_baseline(noeud)
+    si box.table_virtuelle.sur_donne_baseline {
+        résultat := box.table_virtuelle.sur_donne_baseline(box)
         si résultat.possède_valeur() {
             retourne résultat
+        }
+
+        si box.table_virtuelle.type == TextBox {
+            retourne
         }
     }
 
     // À FAIRE : est-ce la bonne valeur ?
-    retourne noeud.modèle_de_boite.marge.y + noeud.modèle_de_boite.marge.hauteur
+    retourne donne_ligne_de_base_marge(box.modèle_de_boite)
 }
 
-donne_élément :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
+donne_élément :: fonc (box: *Box) -> *HTML.Élément
 {
-    si noeud.table_virtuelle.type == NoeudDeDispositionInline {
-        retourne (noeud comme *NoeudDeDispositionBloc).élément
+    si box.noeud == nul {
+        retourne nul
     }
-    si noeud.table_virtuelle.type == NoeudDeDispositionRemplacement {
-        retourne (noeud comme *NoeudDeDispositionBloc).élément
+
+    noeud := box.noeud
+    saufsi HTML.est_élément(noeud) {
+        retourne nul
     }
-    si noeud.table_virtuelle.type == NoeudDeDispositionBloc {
-        retourne (noeud comme *NoeudDeDispositionBloc).élément
-    }
-    si noeud.table_virtuelle.type == NoeudDeDispositionNouvelleLigne {
-        retourne (noeud comme *NoeudDeDispositionNouvelleLigne).élément
-    }
-    si noeud.table_virtuelle.type == TableWrapperBox {
-        retourne (noeud comme *TableWrapperBox).élément
-    }
-    si noeud.table_virtuelle.type == TableBox {
-        retourne (noeud comme *TableBox).élément
-    }
-    si noeud.table_virtuelle.type == TableColumnGroupBox {
-        retourne (noeud comme *TableColumnGroupBox).élément
-    }
-    si noeud.table_virtuelle.type == TableColumnBox {
-        retourne (noeud comme *TableColumnBox).élément
-    }
-    si noeud.table_virtuelle.type == TableFooterGroupBox {
-        retourne (noeud comme *TableFooterGroupBox).élément
-    }
-    si noeud.table_virtuelle.type == TableHeaderGroupBox {
-        retourne (noeud comme *TableHeaderGroupBox).élément
-    }
-    si noeud.table_virtuelle.type == TableRowGroupBox {
-        retourne (noeud comme *TableRowGroupBox).élément
-    }
-    si noeud.table_virtuelle.type == TableRowBox {
-        retourne (noeud comme *TableRowBox).élément
-    }
-    si noeud.table_virtuelle.type == TableCellBox {
-        retourne (noeud comme *TableCellBox).élément
-    }
-    si noeud.table_virtuelle.type == CaptionBox {
-        retourne (noeud comme *CaptionBox).élément
-    }
-    retourne nul
+
+    retourne noeud comme *HTML.Élément
 }
 
-donne_élément_récursif :: fonc (noeud: *NoeudDeDisposition) -> *HTML.Élément
+donne_élément_récursif :: fonc (box: *Box) -> *HTML.Élément
 {
-    noeud_courant := noeud
+    box_courant := box
 
-    tantque noeud_courant != nul {
-        élément := noeud_courant.donne_élément()
+    tantque box_courant != nul {
+        élément := box_courant.donne_élément()
         si élément {
             retourne élément
         }
 
-        noeud_courant = noeud_courant.parent
+        box_courant = box_courant.parent
     }
 
     retourne nul
 }
 
-imprime_élément :: fonc (noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+imprime_élément :: fonc (box: *Box, message := "", récursif := faux)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    imprime_élément(*enchaineuse, noeud, message, récursif)
+    imprime_élément(*enchaineuse, box, message, récursif)
     copie_dans_sortie_standarde(*enchaineuse)
 }
 
-imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition, message: chaine, récursif := faux)
+imprime_élément :: fonc (enchaineuse: *Enchaineuse, box: *Box, message: chaine, récursif := faux)
 {
     élément := si récursif {
-        noeud.donne_élément_récursif()
+        box.donne_élément_récursif()
     }
     sinon {
-        noeud.donne_élément()
+        box.donne_élément()
     }
 
-    ajoute_au_tampon(enchaineuse, message, " : ")
+    si message {
+        ajoute_au_tampon(enchaineuse, message, " : ")
+    }
 
     saufsi élément {
         ajoute_au_tampon(enchaineuse, "<anonyme>\n")
@@ -2230,36 +2274,36 @@ imprime_élément :: fonc (enchaineuse: *Enchaineuse, noeud: *NoeudDeDisposition
     ajoute_au_tampon(enchaineuse, "\n")
 }
 
-définis_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+définis_position :: fonc (box: *Box, x: r32, y: r32)
 {
-    dx := x - noeud.modèle_de_boite.marge.x
-    dy := y - noeud.modèle_de_boite.marge.y
-    décale_horizontalement(noeud.modèle_de_boite, dx)
-    décale_verticalement(noeud.modèle_de_boite, dy)
+    dx := x - box.modèle_de_boite.marge.x
+    dy := y - box.modèle_de_boite.marge.y
+    décale_horizontalement(box.modèle_de_boite, dx)
+    décale_verticalement(box.modèle_de_boite, dy)
 }
 
-décale_vers_position :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+décale_vers_position :: fonc (box: *Box, x: r32, y: r32)
 {
-    dx := x - noeud.modèle_de_boite.marge.x
-    dy := y - noeud.modèle_de_boite.marge.y
-    décale(noeud, dx, dy)
+    dx := x - box.modèle_de_boite.marge.x
+    dy := y - box.modèle_de_boite.marge.y
+    décale(box, dx, dy)
 }
 
-décale :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+décale :: fonc (box: *Box, x: r32, y: r32)
 {
-    décale_horizontalement(noeud.modèle_de_boite, x)
-    décale_verticalement(noeud.modèle_de_boite, y)
-    décale_contenu(noeud, x, y)
+    décale_horizontalement(box.modèle_de_boite, x)
+    décale_verticalement(box.modèle_de_boite, y)
+    décale_contenu(box, x, y)
 }
 
-décale_contenu :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
+décale_contenu :: fonc (box: *Box, x: r32, y: r32)
 {
-    pour noeud.enfants {
+    pour box.enfants {
         it.décale(x, y)
     }
 
-    si noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == NoeudDeDispositionInline || noeud.table_virtuelle.type == TableCellBox {
-        bloc := noeud comme *NoeudDeDispositionBloc
+    si box.table_virtuelle.type == BlockBox || box.table_virtuelle.type == InlineBox || box.table_virtuelle.type == TableCellBox {
+        bloc := box comme *BlockBox
         saufsi bloc.lignes_tenante {
             retourne
         }
@@ -2270,36 +2314,36 @@ décale_contenu :: fonc (noeud: *NoeudDeDisposition, x: r32, y: r32)
     }
 }
 
-donne_nom_classe :: fonc (noeud: *NoeudDeDisposition) -> chaine
+donne_nom_classe :: fonc (box: *Box) -> chaine
 {
-    infos := __table_des_types[noeud.table_virtuelle.type] comme *InfoTypeStructure
+    infos := __table_des_types[box.table_virtuelle.type] comme *InfoTypeStructure
     retourne infos.nom
 }
 
-donne_taille_en_octet :: fonc (noeud: *NoeudDeDisposition) -> n32
+donne_taille_en_octet :: fonc (box: *Box) -> n32
 {
-    infos := __table_des_types[noeud.table_virtuelle.type] comme *InfoTypeStructure
+    infos := __table_des_types[box.table_virtuelle.type] comme *InfoTypeStructure
     retourne infos.taille_en_octet
 }
 
-donne_nom_classe_sans_préfixe :: fonc (noeud: *NoeudDeDisposition) -> chaine
+donne_nom_classe_sans_suffixe :: fonc (box: *Box) -> chaine
 {
-    résultat := noeud.donne_nom_classe()
-    préfixe := "NoeudDeDisposition"
-    si résultat.commence_par(préfixe) {
-        résultat = avance(résultat, préfixe.taille)
+    résultat := box.donne_nom_classe()
+    suffixe :: "Box"
+    si résultat.fini_par(suffixe) {
+        résultat = recule(résultat, suffixe.taille)
     }
     retourne résultat
 }
 
-mesure :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+mesure :: fonc (box: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
-    si noeud.table_virtuelle.sur_mesure {
-        noeud.table_virtuelle.sur_mesure(noeud, ctx, mode, outrepas_largeur)
+    si box.table_virtuelle.sur_mesure {
+        box.table_virtuelle.sur_mesure(box, ctx, mode, personnalisation, available)
     }
 }
 
-ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
+ajoute_enfant :: fonc (parent: *Box, enfant: *Box)
 {
     si enfant.table_virtuelle.type == CaptionBox && parent.table_virtuelle.type == TableBox {
         ajoute_enfant(parent.parent, enfant)
@@ -2310,37 +2354,41 @@ ajoute_enfant :: fonc (parent: *NoeudDeDisposition, enfant: *NoeudDeDisposition)
     tableau_ajoute(*parent.enfants, enfant)
 }
 
-donne_curseur :: fonc (noeud: *NoeudDeDisposition) -> CursorType
+donne_curseur :: fonc (box: *Box) -> CursorType
 {
-    saufsi noeud.propriétés {
+    saufsi box.propriétés {
         retourne CursorType.auto
     }
-    retourne noeud.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).donne_cursor_type()
+    retourne box.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).donne_cursor_type()
 }
 
-divise_en_lignes :: fonc (noeud: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
+divise_en_lignes :: fonc (box: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    si (noeud.table_virtuelle.type == NoeudDeDispositionTexte || noeud.donne_display().inner_type == Display.Type.Flow) {
-        si noeud.table_virtuelle.sur_divise_en_lignes {
-            noeud.table_virtuelle.sur_divise_en_lignes(noeud, enligneuse, mode)
+    si (box.table_virtuelle.type == TextBox || box.donne_display().inner_type == Display.Type.Flow) {
+        si box.table_virtuelle.sur_divise_en_lignes {
+            box.table_virtuelle.sur_divise_en_lignes(box, enligneuse, mode)
             retourne
         }
 
-        pour noeud.enfants {
+        pour box.enfants {
             divise_en_lignes(it, enligneuse, mode)
         }
 
         retourne
     }
 
-    noeud.mesure(enligneuse.ctx, mode, nul)
-    _ := enligneuse.ajoute_fragment(noeud, noeud.modèle_de_boite.marge.hauteur, noeud.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
+    // À FAIRE : available space
+    available : AvailableSpace = ---
+    available.width = crée_min_content_size()
+    available.height = crée_indefinite_size()
+    box.mesure(enligneuse.ctx, mode, PersonnalisationCotation(), available)
+    _ := enligneuse.ajoute_fragment(box, box.modèle_de_boite.marge.hauteur, box.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock)
 }
 
-corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+corrige_hiérarchie :: fonc (box: *Box, créatrice: *CréatriceArbre)
 {
-    si noeud.table_virtuelle.sur_correction_hiérarchie {
-        noeud.table_virtuelle.sur_correction_hiérarchie(noeud, créatrice)
+    si box.table_virtuelle.sur_correction_hiérarchie {
+        box.table_virtuelle.sur_correction_hiérarchie(box, créatrice)
     }
 }
 
@@ -2355,22 +2403,22 @@ corrige_hiérarchie :: fonc (noeud: *NoeudDeDisposition, créatrice: *Créatrice
 
 ContainingBlock :: struct {
     rect: RectanglePosDim(r32)
-    noeud: *NoeudDeDisposition
+    box: *Box
 }
 
-crée_containing_block_pour_contenu :: fonc (noeud: *NoeudDeDisposition) -> ContainingBlock
+crée_containing_block_pour_contenu :: fonc (box: *Box) -> ContainingBlock
 {
     résultat: ContainingBlock
-    résultat.rect = noeud.modèle_de_boite.contenu
-    résultat.noeud = noeud
+    résultat.rect = box.modèle_de_boite.contenu
+    résultat.box = box
     retourne résultat
 }
 
-crée_containing_block_pour_rembourrage :: fonc (noeud: *NoeudDeDisposition) -> ContainingBlock
+crée_containing_block_pour_rembourrage :: fonc (box: *Box) -> ContainingBlock
 {
     résultat: ContainingBlock
-    résultat.rect = noeud.modèle_de_boite.rembourrage
-    résultat.noeud = noeud
+    résultat.rect = box.modèle_de_boite.rembourrage
+    résultat.box = box
     retourne résultat
 }
 
@@ -2394,22 +2442,22 @@ donne_hauteur :: fonc (bloc: &ContainingBlock) -> r32
     retourne bloc.rect.hauteur
 }
 
-donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeFormattage) -> ContainingBlock
+donne_containing_block :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> ContainingBlock
 {
     // 1. The containing block in which the root element lives is a rectangle called the initial containing block.
     // For continuous media, it has the dimensions of the viewport and is anchored at the canvas origin;
     // it is the page area for paged media.
     // The 'direction' property of the initial containing block is the same as for the root element.
-    si noeud.parent == nul {
+    si box.parent == nul {
         retourne ctx.donne_initial_containing_block()
     }
 
     // 2. For other elements, if the element's position is 'relative' or 'static',
     // the containing block is formed by the content edge of the nearest block
     // container ancestor box.
-    position := noeud.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+    position := box.propriétés.donne_valeur_utilisée(IDPropriété.Position)
     si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
-        parent := noeud.parent
+        parent := box.parent
 
         tantque parent != nul {
             si est_block_container(parent) {
@@ -2427,7 +2475,7 @@ donne_containing_block :: fonc (noeud: *NoeudDeDisposition, ctx: *ContexteDeForm
     // 4. If the element has 'position: absolute', the containing block is established by the nearest
     // ancestor with a 'position' of 'absolute', 'relative' or 'fixed', in the following way:
     sinon si position.est_mot_clé(PROP_absolute) {
-        ancêtre := noeud.parent
+        ancêtre := box.parent
 
         tantque ancêtre != nul {
             position_parent := ancêtre.propriétés.donne_valeur_utilisée(IDPropriété.Position)
@@ -2472,7 +2520,7 @@ Fragment :: struct {
         NouvelleLigne
     }
 
-    noeud: *NoeudDeDisposition
+    box: *Box
     index_début: z64
     index_fin: z64
     type: Type
@@ -2502,6 +2550,10 @@ BoiteDeLigne :: struct {
     dernier_fragment: z64
     largeur_courante: r32
     hauteur_contenu: r32
+
+    top: r64
+    bottom: r64
+    baseline: r64
 }
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
@@ -2522,7 +2574,7 @@ garantis_hauteur_minimale :: fonc (boite: *BoiteDeLigne, hauteur: r32)
  * \{ */
 
 LignesTenante :: struct {
-    bloc: *NoeudDeDispositionBloc
+    bloc: *BlockBox
     lignes: [..]BoiteDeLigne
     fragments: [..]Fragment
 
@@ -2595,17 +2647,25 @@ ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: &Fragment) ->
 
 donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLigne) -> []Fragment
 {
-    résultat: []Fragment
-    résultat.pointeur = lignes_tenante.fragments.pointeur + ligne.premier_fragment
-    résultat.taille = ligne.dernier_fragment - ligne.premier_fragment + 1
+    retourne donne_fragments(lignes_tenante, ligne.premier_fragment, ligne.dernier_fragment + 1)
+}
+
+donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, dernier_fragment: z64) -> []Fragment
+{
+    résultat : []Fragment = ---
+    résultat.pointeur = lignes_tenante.fragments.pointeur + premier_fragment
+    résultat.taille = dernier_fragment - premier_fragment
     retourne résultat
 }
 
-donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> r32
+donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> InfoLigneDeBase
 {
     ligne := lignes_tenante.lignes[index]
     // À FAIRE : baseline de la fonte
-    retourne ligne.position_y + ligne.hauteur_contenu
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = ligne.position_y
+    résultat.position = ligne.hauteur_contenu
+    retourne résultat
 }
 
 /** \} */
@@ -2616,12 +2676,12 @@ donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> r32
 
 Enligneuse :: struct {
     ctx: *ContexteDeFormattageInline
-    bloc_contenant: *NoeudDeDispositionBloc
+    bloc_contenant: *BlockBox
     ligne_courante: *BoiteDeLigne
     mode_de_formattage: ModeDeFormattage
 }
 
-divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *NoeudDeDispositionBloc, mode: ModeDeFormattage)
+divise_en_lignes :: fonc (enligneuse: *Enligneuse, bloc_contenant: *BlockBox, mode: ModeDeFormattage)
 {
     réinitialise_lignes(bloc_contenant, enligneuse.ctx.arbre)
     enligneuse.bloc_contenant = bloc_contenant
@@ -2662,7 +2722,7 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
     retourne faux
 }
 
-ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
+ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
 {
     lignes_tenante := enligneuse.bloc_contenant.lignes_tenante
 
@@ -2672,7 +2732,7 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     }
 
     fragment: Fragment
-    fragment.noeud = noeud
+    fragment.box = box
     fragment.index_début = index_début
     fragment.index_fin = index_fin
     fragment.hauteur = hauteur
@@ -2695,9 +2755,9 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, noeud: *NoeudDeDispositio
     retourne résultat
 }
 
-ajoute_fragment :: fonc (enligneuse: *Enligneuse, noeud: *NoeudDeDisposition, hauteur: r32, largeur: r32, type: Fragment.Type) -> z64
+ajoute_fragment :: fonc (enligneuse: *Enligneuse, box: *Box, hauteur: r32, largeur: r32, type: Fragment.Type) -> z64
 {
-    retourne ajoute_fragment(enligneuse, noeud, 0, 0, hauteur, largeur, type)
+    retourne ajoute_fragment(enligneuse, box, 0, 0, hauteur, largeur, type)
 }
 
 garantis_hauteur_minimale :: fonc (enligneuse: *Enligneuse, hauteur: r32)
@@ -2714,46 +2774,44 @@ peut_ignorer_espace_blanche_en_début_de_ligne :: fonc (empl enligneuse: *Enlign
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionBloc
+/** \nom BlockBox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_bloc := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionBloc,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
-    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
+__table_block_box := TableVirtuelleBox(
+    type = BlockBox,
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie,
+    sur_donne_baseline = block_box_donne_baseline)
 
 #portée_export
 
-/* Créé pour chaque noeud hors texte */
-NoeudDeDispositionBloc :: struct {
-    empl base: NoeudDeDisposition
-    table_virtuelle = *__table_noeud_de_disposition_bloc
-
-    élément: *HTML.Élément
+/* Créé pour chaque box hors texte */
+BlockBox :: struct {
+    empl base: Box
+    table_virtuelle = *__table_block_box
 
     lignes_tenante: *LignesTenante
 
     est_disposition_inline: bool
 }
 
-réinitialise_lignes :: fonc (noeud: *NoeudDeDispositionBloc, arbre: *ArbreDeDisposition)
+réinitialise_lignes :: fonc (box: *BlockBox, arbre: *ArbreDeDisposition)
 {
-    saufsi noeud.lignes_tenante {
-        noeud.lignes_tenante = arbre.crée_lignes_tenante()
+    saufsi box.lignes_tenante {
+        box.lignes_tenante = arbre.crée_lignes_tenante()
     }
 
-    réinitialise(noeud.lignes_tenante)
+    réinitialise(box.lignes_tenante)
 }
 
-détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
+détermine_disposition_interne :: fonc (box: *BlockBox)
 {
-    si noeud.enfants.taille == 0 || noeud.est_inline_block() {
-        noeud.est_disposition_inline = faux
+    si box.enfants.taille == 0 || box.est_inline_block() {
+        box.est_disposition_inline = faux
         retourne
     }
 
@@ -2762,14 +2820,14 @@ détermine_disposition_interne :: fonc (noeud: *NoeudDeDispositionBloc)
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#block-boxes */
     doit_formatter_en_blocs := faux
 
-    pour noeud.enfants {
+    pour box.enfants {
         si it.est_block_level() {
             doit_formatter_en_blocs = vrai
             arrête
         }
     }
 
-    noeud.est_disposition_inline = doit_formatter_en_blocs == faux
+    box.est_disposition_inline = doit_formatter_en_blocs == faux
 }
 
 MéthodeDeFormattage :: énum {
@@ -2779,36 +2837,36 @@ MéthodeDeFormattage :: énum {
     DansContexteCourant
 }
 
-donne_méthode_de_formattage_intérieur :: fonc (noeud: *NoeudDeDisposition) -> MéthodeDeFormattage
+donne_méthode_de_formattage_intérieur :: fonc (box: *Box) -> MéthodeDeFormattage
 {
-    si noeud.table_virtuelle.type == NoeudDeDispositionInline {
-        si noeud.est_inline_block() {
+    si box.table_virtuelle.type == InlineBox {
+        si box.est_inline_block() {
             retourne MéthodeDeFormattage.Bloc
         }
         retourne MéthodeDeFormattage.Inline
     }
 
-    si (noeud.table_virtuelle.type == NoeudDeDispositionBloc || noeud.table_virtuelle.type == TableCellBox || noeud.table_virtuelle.type == CaptionBox) {
-        noeud_bloc := noeud comme *NoeudDeDispositionBloc
-        si noeud_bloc.est_disposition_inline {
+    si (box.table_virtuelle.type == BlockBox || box.table_virtuelle.type == TableCellBox || box.table_virtuelle.type == CaptionBox) {
+        block_box := box comme *BlockBox
+        si block_box.est_disposition_inline {
             retourne MéthodeDeFormattage.Inline
         }
     }
 
-    si noeud.donne_display().inner_type == Display.Type.Flex {
+    si box.donne_display().inner_type == Display.Type.Flex {
         retourne MéthodeDeFormattage.Flex
     }
 
-    si noeud.requiers_contexte_de_formattage_indépendant() {
+    si box.requiers_contexte_de_formattage_indépendant() {
         retourne MéthodeDeFormattage.Bloc
     }
 
     retourne MéthodeDeFormattage.DansContexteCourant
 }
 
-formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFormattage, mode: ModeDeFormattage)
+formatte_intérieur :: fonc (box: *BlockBox, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, available: AvailableSpace)
 {
-    discr donne_méthode_de_formattage_intérieur(noeud) {
+    discr donne_méthode_de_formattage_intérieur(box) {
         Inline {
             ctx_local: ContexteDeFormattageInline
             initialise_depuis_parent(*ctx_local, ctx)
@@ -2817,31 +2875,31 @@ formatte_intérieur :: fonc (noeud: *NoeudDeDispositionBloc, ctx: *ContexteDeFor
              * afin que les boites flottantes de ce dernier n'influencent pas nos lignes.
              * (Ceci peut arriver quand un boite flottante établis un contexte de 
              * formattage inline.) */
-            si noeud.requiers_contexte_de_formattage_indépendant() {
+            si box.requiers_contexte_de_formattage_indépendant() {
                 ctx_local.parent = nul
             }
 
-            ctx_local.racine = noeud
+            ctx_local.racine = box
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
 
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, box, mode, available)
         }
         Flex {
             ctx_local: ContexteDeFormattageFlex
             initialise_depuis_parent(*ctx_local, ctx)
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, box, mode, available)
         }
         Bloc {
             ctx_local: ContexteDeFormattageBloc
             initialise_depuis_parent(*ctx_local, ctx)
             diffère détruit_données_contexte(*ctx_local)
-            ctx_local.racine = noeud
+            ctx_local.racine = box
             ctx_local.doit_aligner_les_descendants = ctx.doit_aligner_les_descendants
 
-            formatte(*ctx_local, noeud, mode)
+            formatte(*ctx_local, box, mode, available)
         }
         DansContexteCourant {
-            formatte(ctx, noeud, mode)
+            formatte(ctx, box, mode, available)
         }
     }
 }
@@ -2859,18 +2917,19 @@ est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élém
     retourne faux
 }
 
-donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionnel(AlignementTexte)
+donne_alignement_descendants :: fonc (box: *BlockBox) -> Optionnel(AlignementTexte)
 {
-    saufsi noeud.élément {
+    élément := box.donne_élément()
+    saufsi élément {
         retourne
     }
 
-    si noeud.élément.local_name == HTML.TAG_center {
+    si élément.local_name == HTML.TAG_center {
         retourne AlignementTexte.Centre
     }
 
-    si est_élément_avec_attribut_alignement_spécial(noeud.élément) {
-        attribut_align := HTML.donne_attribut(noeud.élément, HTML.ATTR_align)
+    si est_élément_avec_attribut_alignement_spécial(élément) {
+        attribut_align := HTML.donne_attribut(élément, HTML.ATTR_align)
         saufsi attribut_align.possède_valeur() {
             retourne
         }
@@ -2896,25 +2955,25 @@ donne_alignement_descendants :: fonc (noeud: *NoeudDeDispositionBloc) -> Optionn
     }
 }
 
-noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+block_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
-    noeud := base comme *NoeudDeDispositionBloc
+    box := base comme *BlockBox
 
     containing_block := donne_containing_block(base, ctx)
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants
-    alignement := donne_alignement_descendants(noeud)
+    alignement := donne_alignement_descendants(box)
     si alignement.possède_valeur() {
         ctx.doit_aligner_les_descendants = alignement
     }
 
-    formatte_intérieur(noeud, ctx, mode)
+    formatte_intérieur(box, ctx, mode, available)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
@@ -2923,24 +2982,24 @@ noeud_disposition_bloc_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Cont
 
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants
 
-    si mode == ModeDeFormattage.Normal {
-        ctx.dispose_les_boites_absolues(noeud)
+    si mode == ModeDeFormattage.Normal && ctx.type != ContexteDeFormattageFlex {
+        ctx.dispose_les_boites_absolues(box)
     }
 }
 
-noeud_disposition_bloc_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+block_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
 {
-    noeud := base comme *NoeudDeDispositionBloc
-    détermine_disposition_interne(noeud)
+    box := base comme *BlockBox
+    détermine_disposition_interne(box)
 
-    si noeud.est_disposition_inline {
+    si box.est_disposition_inline {
         retourne
     }
 
-    nouveaux_enfants: [..]*NoeudDeDisposition
+    nouveaux_enfants: [..]*Box
 
-    bloc_anonyme_courant: *NoeudDeDispositionBloc
-    pour noeud.enfants {
+    bloc_anonyme_courant: *BlockBox
+    pour box.enfants {
         si it.est_block_level() {
             tableau_ajoute(*nouveaux_enfants, it)
             bloc_anonyme_courant = nul
@@ -2948,23 +3007,23 @@ noeud_disposition_bloc_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, c
         }
 
         si bloc_anonyme_courant == nul {
-            bloc_anonyme_courant = créatrice.arbre.crée_noeud(NoeudDeDispositionBloc)
-            bloc_anonyme_courant.parent = noeud
+            bloc_anonyme_courant = créatrice.arbre.crée_box(BlockBox)
+            bloc_anonyme_courant.parent = box
             bloc_anonyme_courant.est_disposition_inline = vrai
-            crée_style_pour_bloc_anonyme(créatrice.résolveuse, bloc_anonyme_courant, noeud, Display.Type.Block)
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, bloc_anonyme_courant, box, Display.Type.Block)
             tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant)
         }
 
         bloc_anonyme_courant.ajoute_enfant(it)
     }
 
-    déloge(noeud.enfants)
-    noeud.enfants = nouveaux_enfants
+    déloge(box.enfants)
+    box.enfants = nouveaux_enfants
 }
 
-noeud_disposition_bloc_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r32)
+block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
-    bloc := base comme *NoeudDeDispositionBloc
+    bloc := base comme *BlockBox
 
     // The baseline of an 'inline-block' is the baseline of its last line box in the normal flow,
     // unless it has either no in-flow line boxes or if its 'overflow' property has a computed
@@ -2972,12 +3031,12 @@ noeud_disposition_bloc_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Opt
     // https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-vertical-align
     si est_inline_block(bloc) {
         overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
-        saufsi overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+        si !overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         si bloc.lignes_tenante.lignes.taille == 0 {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         index_ligne := bloc.lignes_tenante.lignes.taille - 1
@@ -2993,6 +3052,10 @@ noeud_disposition_bloc_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Opt
     }
 
     pour bloc.enfants {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         saufsi est_in_flow(it) {
             continue
         }
@@ -3007,38 +3070,38 @@ noeud_disposition_bloc_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Opt
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionInline
+/** \nom InlineBox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_inline := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionInline,
-    sur_mesure = noeud_disposition_inline_sur_mesure,
-    sur_dessin = noeud_disposition_inline_sur_dessin,
-    sur_dessin_fragment = noeud_disposition_inline_sur_dessin_fragment,
-    sur_divise_en_lignes = noeud_disposition_inline_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_inline_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_inline_corrige_hiérarchie,
-    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
+__table_inline_box := TableVirtuelleBox(
+    type = InlineBox,
+    sur_mesure = inline_box_sur_mesure,
+    sur_dessin = inline_box_sur_dessin,
+    sur_dessin_fragment = inline_box_sur_dessin_fragment,
+    sur_divise_en_lignes = inline_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = inline_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = inline_box_corrige_hiérarchie,
+    sur_donne_baseline = block_box_donne_baseline)
 
 #portée_export
 
-/* Créé pour chaque noeud hors texte */
-NoeudDeDispositionInline :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_inline
+/* Créé pour chaque box hors texte */
+InlineBox :: struct {
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_inline_box
 }
 
-noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+inline_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
-    noeud := base comme *NoeudDeDispositionInline
+    box := base comme *InlineBox
     containing_block := donne_containing_block(base, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     état_calcul_hauteur := calcule_hauteur_et_marges(*args)
 
-    formatte_intérieur(noeud, ctx, mode)
+    formatte_intérieur(box, ctx, mode, available)
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
         args.calcul_hauteur_après_contenu = vrai
@@ -3046,31 +3109,31 @@ noeud_disposition_inline_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *Co
     }
 }
 
-noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
+inline_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
     ctx := enligneuse.ctx
-    noeud := base comme *NoeudDeDispositionInline
-    containing_block := donne_containing_block(noeud, ctx)
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, mode)
+    box := base comme *InlineBox
+    containing_block := donne_containing_block(box, ctx)
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, PersonnalisationCotation(), mode)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
-    propriétés := noeud.propriétés
+    propriétés := box.propriétés
 
     margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32
     padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32
     padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32
     margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32
 
-    fragment_marge_début := enligneuse.ajoute_fragment(noeud, 0.0, margin_left, Fragment.Type.MargeDébut)
-    fragment_rembourrage_début := enligneuse.ajoute_fragment(noeud, 0.0, padding_left, Fragment.Type.RembourrageDébut)
+    fragment_marge_début := enligneuse.ajoute_fragment(box, 0.0, margin_left, Fragment.Type.MargeDébut)
+    fragment_rembourrage_début := enligneuse.ajoute_fragment(box, 0.0, padding_left, Fragment.Type.RembourrageDébut)
 
-    pour noeud.enfants {
+    pour box.enfants {
         divise_en_lignes(it, enligneuse, mode)
     }
 
-    fragment_rembourrage_fin := enligneuse.ajoute_fragment(noeud, 0.0, padding_right, Fragment.Type.RembourrageFin)
-    fragment_marge_fin := enligneuse.ajoute_fragment(noeud, 0.0, margin_right, Fragment.Type.MargeFin)
+    fragment_rembourrage_fin := enligneuse.ajoute_fragment(box, 0.0, padding_right, Fragment.Type.RembourrageFin)
+    fragment_marge_fin := enligneuse.ajoute_fragment(box, 0.0, margin_right, Fragment.Type.MargeFin)
 
     lignes_tenante := enligneuse.donne_lignes_tenante()
 
@@ -3087,21 +3150,21 @@ noeud_disposition_inline_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition
     }
 }
 
-noeud_disposition_inline_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
 {
-    noeud := base comme *NoeudDeDispositionInline
-    détermine_disposition_interne(noeud)
+    box := base comme *InlineBox
+    détermine_disposition_interne(box)
 
-    si noeud.est_inline_block() {
-        noeud_disposition_bloc_corrige_hiérarchie(noeud, créatrice)
+    si box.est_inline_block() {
+        block_box_corrige_hiérarchie(box, créatrice)
         retourne
     }
 
-    si noeud.est_disposition_inline {
+    si box.est_disposition_inline {
         retourne
     }
 
-    assert(noeud.parent != nul)
+    assert(box.parent != nul)
 
     /* When an inline box contains an in-flow block-level box, the inline box (and its
      * inline ancestors within the same line box) are broken around the block-level
@@ -3117,55 +3180,53 @@ noeud_disposition_inline_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition,
      * À FAIRE : récursion
      *
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
-    anciens_enfants := noeud.enfants
+    anciens_enfants := box.enfants
     diffère déloge(anciens_enfants)
 
-    noeud_inline_courant := noeud
-    noeud_inline_courant.enfants.pointeur = nul
-    noeud_inline_courant.enfants.taille = 0
-    noeud_inline_courant.enfants.capacité = 0
+    inline_box_courant := box
+    inline_box_courant.enfants.pointeur = nul
+    inline_box_courant.enfants.taille = 0
+    inline_box_courant.enfants.capacité = 0
 
     pour anciens_enfants {
         si it.est_block_level() {
-            noeud.parent.ajoute_enfant(it)
-            noeud_inline_courant = nul
+            box.parent.ajoute_enfant(it)
+            inline_box_courant = nul
             continue
         }
 
-        si noeud_inline_courant == nul {
-            noeud_inline_courant = créatrice.arbre.crée_noeud(NoeudDeDispositionInline)
-            noeud_inline_courant.parent = noeud
-            noeud_inline_courant.est_disposition_inline = vrai
-            crée_style_pour_bloc_anonyme(créatrice.résolveuse, noeud_inline_courant, noeud, Display.Type.Inline)
-            noeud.parent.ajoute_enfant(noeud_inline_courant)
+        si inline_box_courant == nul {
+            inline_box_courant = créatrice.arbre.crée_box(InlineBox)
+            inline_box_courant.parent = box
+            inline_box_courant.est_disposition_inline = vrai
+            crée_style_pour_bloc_anonyme(créatrice.résolveuse, inline_box_courant, box, Display.Type.Inline)
+            box.parent.ajoute_enfant(inline_box_courant)
         }
 
-        noeud_inline_courant.ajoute_enfant(it)
+        inline_box_courant.ajoute_enfant(it)
     }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionNouvelleLigne
+/** \nom BreakBox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_nouvelle_ligne := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionNouvelleLigne,
-    sur_divise_en_lignes = noeud_disposition_nouvelle_ligne_sur_divise_en_lignes)
+__table_break_box := TableVirtuelleBox(
+    type = BreakBox,
+    sur_divise_en_lignes = break_box_sur_divise_en_lignes)
 
 #portée_export
 
-/* Créé pour chaque noeud hors texte */
-NoeudDeDispositionNouvelleLigne :: struct {
-    empl base_bloc: NoeudDeDisposition
-    table_virtuelle = *__table_noeud_de_disposition_nouvelle_ligne
-    élément: *HTML.Élément
+BreakBox :: struct {
+    empl base_bloc: Box
+    table_virtuelle = *__table_break_box
 }
 
-noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
+break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
 {
     line_height := donne_line_height(base, enligneuse.ctx)
 
@@ -3191,67 +3252,84 @@ noeud_disposition_nouvelle_ligne_sur_divise_en_lignes :: fonc (base: *NoeudDeDis
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionTexte
+/** \nom TextBox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_texte := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionTexte,
-    sur_dessin_fragment = noeud_disposition_texte_sur_dessin_fragment,
-    sur_divise_en_lignes = noeud_disposition_texte_sur_divise_en_lignes)
+__table_text_box := TableVirtuelleBox(
+    type = TextBox,
+    sur_dessin_fragment = text_box_sur_dessin_fragment,
+    sur_divise_en_lignes = text_box_sur_divise_en_lignes,
+    sur_donne_baseline = text_box_sur_donne_baseline)
 
 #portée_export
 
 /* Créé pour chaque élément contenant du texte. */
-NoeudDeDispositionTexte :: struct {
-    empl base: NoeudDeDisposition
-    table_virtuelle = *__table_noeud_de_disposition_texte
+TextBox :: struct {
+    empl base: Box
+    table_virtuelle = *__table_text_box
 
-    noeud_texte: *HTML.NoeudTexte
+    texte_original: ChaineUTF16
+
     texte: ChaineUTF16
     fonte: *Fonte
 
     fragments: [..]FragmentTexte
 }
 
-noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
+donne_propriétés :: fonc (text_box: *TextBox) -> *PropriétésDeStyle
+{
+    parent := text_box.parent
+    tantque est_box_anonyme(parent) {
+        parent = parent.parent
+    }
+    retourne parent.propriétés
+}
+
+text_box_sur_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
+{
+    // À FAIRE : utilise la fonte
+    retourne donne_ligne_de_base_marge(base.modèle_de_boite)
+}
+
+text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
     ctx := enligneuse.ctx
-    noeud := base comme *NoeudDeDispositionTexte
+    box := base comme *TextBox
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(box)
 
     text_transform := propriétés.donne_valeur_utilisée(IDPropriété.TextTransform)
     si text_transform.est_mot_clé(PROP_uppercase) {
-        noeud.texte = transforme_texte_en_majuscule(noeud.noeud_texte.données)
+        box.texte = transforme_texte_en_majuscule(box.texte_original)
     }
     sinon si text_transform.est_mot_clé(PROP_lowercase) {
-        noeud.texte = transforme_texte_en_minuscule(noeud.noeud_texte.données)
+        box.texte = transforme_texte_en_minuscule(box.texte_original)
     }
     sinon {
-        noeud.texte = copie_chaine(noeud.noeud_texte.données)
+        box.texte = copie_chaine(box.texte_original)
     }
 
-    traite_espaces_blanches(noeud)
+    traite_espaces_blanches(box)
 
-    fonte := détermine_fonte(noeud, ctx)
+    fonte := détermine_fonte(box, ctx)
     métriques := fonte.donne_métriques_fonte()
 
-    définis_hauteur_contenu(noeud.modèle_de_boite, métriques.donne_hauteur_ligne())
+    définis_hauteur_contenu(box.modèle_de_boite, métriques.donne_hauteur_ligne())
 
     /* "On a non-replaced inline element, line-height specifies the height that is used
      * in the calculation of the line box height."
      * https://drafts.csswg.org/css2/#propdef-line-height */
     hauteur_texte := donne_line_height(propriétés, fonte)
 
-    // À FAIRE : traite proprement la hauteur de ligne pour les noeuds interéléments.
-    // La taille de fonte peut avoir été héritée de l'élément parent des noeuds adelphes.
-    si est_vide_ou_uniquement_espaces_blanches(noeud.texte) {
+    // À FAIRE : traite proprement la hauteur de ligne pour les boxes interéléments.
+    // La taille de fonte peut avoir été héritée de l'élément parent des boxes adelphes.
+    si est_vide_ou_uniquement_espaces_blanches(box.texte) {
         hauteur_texte = 0.0
     }
 
-    pour noeud.fragments {
+    pour box.fragments {
         si it.ignore_mais_préserve_soft_wrap_opportunity {
             continue
         }
@@ -3270,11 +3348,11 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
             ToutesLesBrisuresDeLigne {
                 saufsi it.est_espace_blanche {
-                    _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                    _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
                 }
 
                 ligne := enligneuse.ajoute_ligne()
@@ -3285,39 +3363,39 @@ noeud_disposition_texte_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition,
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(noeud, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }
     }
 }
 
 /* https://drafts.csswg.org/css-text/#white-space-phase-1 */
-traite_espaces_blanches :: fonc (noeud: *NoeudDeDispositionTexte)
+traite_espaces_blanches :: fonc (box: *TextBox)
 {
-    noeud.fragments.taille = 0
-    fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
+    box.fragments.taille = 0
+    fragmente_texte_avec_espaces_blanches_ascii(box.texte, *box.fragments)
 
-    propriétés := donne_propriété_parent(noeud)
+    propriétés := donne_propriétés(box)
     white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).donne_mot_clé()
 
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
         // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
         //    break is removed.
-        collapse_séquences_d_espaces_blanches_autour_bris_segments(noeud.fragments)
+        collapse_séquences_d_espaces_blanches_autour_bris_segments(box.fragments)
 
         // 2. Collapsible segment breaks are transformed for rendering according to the segment break
         //    transformation rules.
-        collapse_bris_segments(noeud.fragments, white_space)
+        collapse_bris_segments(box.fragments, white_space)
 
         // 3. Every collapsible tab is converted to a collapsible space (U+0020).
-        convertis_tabulations_en_espaces(noeud.fragments)
+        convertis_tabulations_en_espaces(box.fragments)
 
         // 4. Any collapsible space immediately following another collapsible space—​even one outside
         //    the boundary of the inline containing that space, provided both spaces are within the
         //    same inline formatting context—​is collapsed to have zero advance width. (It is invisible,
         //    but retains its soft wrap opportunity, if any.)
-        // À FAIRE : collapse également (entre les noeuds) lors de la disposition
-        collapse_espaces_consécutives(noeud.fragments)
+        // À FAIRE : collapse également (entre les boxes) lors de la disposition
+        collapse_espaces_consécutives(box.fragments)
     }
     sinon {
         assert(white_space == PROP_wrap || white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces)
@@ -3337,7 +3415,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
     texte: ChaineUTF16
 
-    tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 1
         tableau_ajoute(fragments, FragmentTexte(texte, vrai))
@@ -3349,7 +3427,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && !est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.taille += 1
             position += 1
         }
@@ -3361,7 +3439,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         texte.unités.pointeur = chn.unités.pointeur + position
         texte.unités.taille = 0
 
-        tantque position < chn.taille() && est_espace_blanche_ascii(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
             texte.unités.pointeur = chn.unités.pointeur + position
             texte.unités.taille = 1
             tableau_ajoute(fragments, FragmentTexte(texte, vrai))
@@ -3502,27 +3580,27 @@ collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement
+/** \nom ReplacedBox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_remplacement := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_replaced_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
 #portée_export
 
-/* Créé pour chaque noeud hors texte */
-NoeudDeDispositionRemplacement :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_remplacement
+/* Créé pour chaque box hors texte */
+ReplacedBox :: struct {
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_replaced_box
 
     /* Rappels spécifiques. */
-    sur_calcul_dimensions_intrinsèques: fonc(*NoeudDeDispositionRemplacement,*ContexteDeFormattage)(rien)
+    sur_calcul_dimensions_intrinsèques: fonc(*ReplacedBox,*ContexteDeFormattage)(rien)
     
     ratio_intrinsèque: Optionnel(r32)
     largeur_intrinsèque: Optionnel(r32)
@@ -3531,184 +3609,202 @@ NoeudDeDispositionRemplacement :: struct {
     fonte: *Fonte
 }
 
-possède_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+possède_ratio_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne noeud.ratio_intrinsèque.possède_valeur()
+    retourne box.ratio_intrinsèque.possède_valeur()
 }
 
-possède_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+possède_largeur_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne noeud.largeur_intrinsèque.possède_valeur()
+    retourne box.largeur_intrinsèque.possède_valeur()
 }
 
-possède_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> bool
+possède_hauteur_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne noeud.hauteur_intrinsèque.possède_valeur()
+    retourne box.hauteur_intrinsèque.possède_valeur()
 }
 
-donne_ratio_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+donne_ratio_intrinsèque :: fonc (box: *ReplacedBox) -> r32
 {
-    retourne noeud.ratio_intrinsèque.Quelque
+    retourne box.ratio_intrinsèque.Quelque
 }
 
-donne_largeur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+donne_largeur_intrinsèque :: fonc (box: *ReplacedBox) -> r32
 {
-    retourne noeud.largeur_intrinsèque.Quelque
+    retourne box.largeur_intrinsèque.Quelque
 }
 
-donne_hauteur_intrinsèque :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+donne_hauteur_intrinsèque :: fonc (box: *ReplacedBox) -> r32
 {
-    retourne noeud.hauteur_intrinsèque.Quelque
+    retourne box.hauteur_intrinsèque.Quelque
 }
 
-noeud_disposition_remplacement_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation @inutilisée)
+replaced_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace)
 {
-    noeud := base comme *NoeudDeDispositionRemplacement
+    box := base comme *ReplacedBox
 
-    noeud.sur_calcul_dimensions_intrinsèques(noeud, ctx)
+    box.sur_calcul_dimensions_intrinsèques(box, ctx)
 
-    containing_block := donne_containing_block(noeud, ctx)
+    containing_block := donne_containing_block(box, ctx)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, nul, mode)
+    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height)
+
+    personnalisation_boite: PersonnalisationCotation
+    outrepas_largeur: OutrepasCotation
+    outrepas_hauteur: OutrepasCotation
+
+    si (available.width.est_max_content() || available.width.est_min_content()) && box.possède_largeur_intrinsèque() && !width.est_pixels() {
+        outrepas_largeur = crée_outrepas_pour_coter_contenu(box.donne_largeur_intrinsèque())
+        personnalisation_boite.outrepas_largeur = *outrepas_largeur
+    }
+
+    si (available.height.est_max_content() || available.height.est_min_content()) && box.possède_hauteur_intrinsèque() && !height.est_pixels() {
+        outrepas_hauteur = crée_outrepas_pour_coter_contenu(box.donne_hauteur_intrinsèque())
+        personnalisation_boite.outrepas_hauteur = *outrepas_hauteur
+    }
+
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation_boite, mode)
+
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 }
 
-noeud_disposition_remplacement_sur_divise_en_lignes :: fonc (base: *NoeudDeDisposition, enligneuse: *Enligneuse, mode: ModeDeFormattage)
+replaced_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    noeud_disposition_remplacement_sur_mesure(base, enligneuse.ctx, mode, nul)
+    replaced_box_sur_mesure(base, enligneuse.ctx, mode, PersonnalisationCotation(), AvailableSpace())
 
-    noeud := base comme *NoeudDeDispositionRemplacement
-    largeur := noeud.modèle_de_boite.marge.largeur
-    hauteur := noeud.modèle_de_boite.marge.hauteur
+    box := base comme *ReplacedBox
+    largeur := box.modèle_de_boite.marge.largeur
+    hauteur := box.modèle_de_boite.marge.hauteur
 
-    _ := enligneuse.ajoute_fragment(noeud, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock)
+    _ := enligneuse.ajoute_fragment(box, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour image
+/** \nom ReplacedBox pour image
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_image := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_image_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_image_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = image_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_image :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageElement) -> *NoeudDeDispositionRemplacement
+crée_image_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_image
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_image_calcul_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_image_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = image_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_image_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := noeud.élément comme *HTML.HTMLImageElement
+    élément := box.donne_élément() comme *HTML.HTMLImageElement
     assert(élément.local_name == HTML.TAG_img)
 
-    si élément.image_data.donnees {
-        noeud.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
-        noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
-        noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+    si élément.image_data.données {
+        box.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
+        box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+        box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
     }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour object
+/** \nom ReplacedBox pour object
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_object := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_object_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_object_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = object_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_object :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjectElement) -> *NoeudDeDispositionRemplacement
+crée_object_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjectElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_object
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_object_calcul_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_object_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = object_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_object_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := noeud.élément comme *HTML.HTMLObjectElement
+    élément := box.donne_élément() comme *HTML.HTMLObjectElement
     assert(élément.local_name == HTML.TAG_object)
 
-    si élément.image_data.donnees {
-        noeud.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
-        noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
-        noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+    si élément.image_data.données {
+        box.ratio_intrinsèque = HTML.donne_ratio_intrinsèque(élément)
+        box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+        box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
     }
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour input
+/** \nom ReplacedBox pour input
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_text_input := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_text_input_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_text_input_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = text_input_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_text_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+crée_text_input_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_text_input
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_text_input_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_text_input_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = text_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_text_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+text_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(noeud.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    noeud.fonte = détermine_fonte(noeud, ctx)
-    métriques := noeud.fonte.donne_métriques_fonte()
+    box.fonte = détermine_fonte(box, ctx)
+    métriques := box.fonte.donne_métriques_fonte()
     hauteur_ligne := métriques.donne_hauteur_ligne()
 
-    line_height := donne_line_height(noeud, ctx)
+    line_height := donne_line_height(box, ctx)
 
     /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
      * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
     si line_height < hauteur_ligne {
-        noeud.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, crée_valeur_pixels(hauteur_ligne))
+        box.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, crée_valeur_pixels(hauteur_ligne))
         line_height = hauteur_ligne
     }
 
-    noeud.largeur_intrinsèque = donne_inline_size_pour_text_input(noeud)
-    noeud.hauteur_intrinsèque = line_height
+    box.largeur_intrinsèque = donne_inline_size_pour_text_input(box)
+    box.hauteur_intrinsèque = line_height
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
-donne_inline_size_pour_text_input :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
 {
-    métriques := noeud.fonte.donne_métriques_fonte()
+    métriques := box.fonte.donne_métriques_fonte()
 
     // À FAIRE : 1. If the 'field-sizing' property on the element has a computed value of 'content',
     // the inline size is determined by the text which the element shows. The text is either
@@ -3719,7 +3815,7 @@ donne_inline_size_pour_text_input :: fonc (noeud: *NoeudDeDispositionRemplacemen
     // rules for parsing non-negative integers doesn't generate an error, return the value
     // obtained from applying the converting a character width to pixels algorithm to the value
     // of the attribute.
-    size := HTML.donne_attribut_ou_chaine_vide(noeud.élément, HTML.ATTR_size)
+    size := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_size)
     saufsi size.est_vide() {
         opt_value := HTML.parse_a_non_negative_integer(size)
         si opt_value.possède_valeur() {
@@ -3741,208 +3837,208 @@ convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesF
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour input type=button
+/** \nom ReplacedBox pour input type=button
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_button_input := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_button_input_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_button_input_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = button_input_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_button_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+crée_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_button_input
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_button_input_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_button_input_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = button_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_button_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(noeud.élément.local_name == HTML.TAG_input)
-    noeud.fonte = détermine_fonte(noeud, ctx)
-    line_height := donne_line_height(noeud, ctx)
-    value := HTML.donne_attribut_ou_chaine_vide(noeud.élément, HTML.ATTR_value)
-    noeud.largeur_intrinsèque = donne_largeur_texte(noeud.fonte, value) comme r32
-    noeud.hauteur_intrinsèque = line_height
+    assert(box.donne_élément().local_name == HTML.TAG_input)
+    box.fonte = détermine_fonte(box, ctx)
+    line_height := donne_line_height(box, ctx)
+    value := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_value)
+    box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value) comme r32
+    box.hauteur_intrinsèque = line_height
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour input type=radio
+/** \nom ReplacedBox pour input type=radio
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_radio_button_input := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_radio_button_input_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_radio_button_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = radio_button_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_radio_button_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+crée_radio_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_radio_button_input
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_radio_button_input_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_radio_button_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = radio_button_box_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_radio_button_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(noeud.élément.local_name == HTML.TAG_input)
-    noeud.largeur_intrinsèque = 14.0
-    noeud.hauteur_intrinsèque = 14.0
+    assert(box.donne_élément().local_name == HTML.TAG_input)
+    box.largeur_intrinsèque = 14.0
+    box.hauteur_intrinsèque = 14.0
 }
 
 /** \} */
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour input type=checkbox
+/** \nom ReplacedBox pour input type=checkbox
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_checkbox_input := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_checkbox_input_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_checkbox_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = checkbox_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_checkbox_input :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *NoeudDeDispositionRemplacement
+crée_checkbox_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_checkbox_input
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_checkbox_input_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_checkbox_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = checkbox_box_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_checkbox_input_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(noeud.élément.local_name == HTML.TAG_input)
-    noeud.largeur_intrinsèque = 14.0
-    noeud.hauteur_intrinsèque = 14.0
+    assert(box.donne_élément().local_name == HTML.TAG_input)
+    box.largeur_intrinsèque = 14.0
+    box.hauteur_intrinsèque = 14.0
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour textarea
+/** \nom ReplacedBox pour textarea
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_textarea := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_textarea_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_textarea_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = textarea_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_textarea :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTextAreaElement) -> *NoeudDeDispositionRemplacement
+crée_textarea_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTextAreaElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_textarea
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_textarea_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_textarea_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = textarea_box_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_textarea_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage)
+textarea_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(noeud.élément.local_name == HTML.TAG_textarea)
-    noeud.fonte = détermine_fonte(noeud, ctx)
-    noeud.largeur_intrinsèque = donne_textarea_effective_width(noeud)
-    noeud.hauteur_intrinsèque = donne_textarea_effective_height(noeud, ctx)
+    assert(box.donne_élément().local_name == HTML.TAG_textarea)
+    box.fonte = détermine_fonte(box, ctx)
+    box.largeur_intrinsèque = donne_textarea_effective_width(box)
+    box.hauteur_intrinsèque = donne_textarea_effective_height(box, ctx)
 }
 
 LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
-donne_textarea_effective_width :: fonc (noeud: *NoeudDeDispositionRemplacement) -> r32
+donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 {
-    élément := noeud.élément comme *HTML.HTMLTextAreaElement
-    métriques := noeud.fonte.donne_métriques_fonte()
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
+    métriques := box.fonte.donne_métriques_fonte()
     character_width := HTML.donne_character_width(élément)
     retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
-donne_textarea_effective_height :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage) -> r32
+donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage) -> r32
 {
-    élément := noeud.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     character_height := HTML.donne_character_height(élément)
-    line_height := donne_line_height(noeud, ctx)
+    line_height := donne_line_height(box, ctx)
     retourne character_height comme r32 * line_height
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour canvas
+/** \nom ReplacedBox pour canvas
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_canvas := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionRemplacement,
-    sur_dessin = noeud_canvas_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_canvas_box := TableVirtuelleBox(
+    type = ReplacedBox,
+    sur_dessin = canvas_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
-crée_noeud_de_remplacement_canvas :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanvasElement) -> *NoeudDeDispositionRemplacement
+crée_canvas_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanvasElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionRemplacement)
-    résultat.table_virtuelle = *__table_noeud_de_disposition_canvas
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_canvas_calcul_dimensions_intrinsèques
+    résultat := arbre.crée_box(ReplacedBox)
+    résultat.table_virtuelle = *__table_canvas_box
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = canvas_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
-noeud_canvas_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionRemplacement, ctx: *ContexteDeFormattage @inutilisée)
+canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := noeud.élément comme *HTML.HTMLCanvasElement
+    élément := box.donne_élément() comme *HTML.HTMLCanvasElement
     assert(élément.local_name == HTML.TAG_canvas)
-    noeud.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
-    noeud.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
+    box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
+    box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDeDispositionRemplacement pour select
+/** \nom ReplacedBox pour select
  * \{ */
 
 #portée_fichier
 
-__table_noeud_de_disposition_select := TableVirtuelleNoeudDeDispo(
-    type = NoeudDeDispositionSelect,
-    sur_dessin = noeud_select_sur_dessin,
-    sur_mesure = noeud_disposition_remplacement_sur_mesure,
-    sur_divise_en_lignes = noeud_disposition_remplacement_sur_divise_en_lignes,
-    sur_dessin_tampon_id = noeud_disposition_remplacement_sur_dessin_tampon_id,
-    sur_dessin_fragment = noeud_disposition_remplacement_sur_dessin_fragment)
+__table_select_box := TableVirtuelleBox(
+    type = SelectBox,
+    sur_dessin = select_box_sur_dessin,
+    sur_mesure = replaced_box_sur_mesure,
+    sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
+    sur_dessin_tampon_id = replaced_box_sur_dessin_tampon_id,
+    sur_dessin_fragment = replaced_box_sur_dessin_fragment)
 
 #portée_export
 
-NoeudDeDispositionSelect :: struct {
-    empl noeud_rempl: NoeudDeDispositionRemplacement
-    table_virtuelle = *__table_noeud_de_disposition_select
+SelectBox :: struct {
+    empl replaced_box: ReplacedBox
+    table_virtuelle = *__table_select_box
 
     texte: ChaineUTF16
     fragments: [..]FragmentTexte
@@ -3950,48 +4046,48 @@ NoeudDeDispositionSelect :: struct {
 
 #portée_fichier
 
-réinitialise :: fonc (noeud: *NoeudDeDispositionSelect)
+réinitialise :: fonc (box: *SelectBox)
 {
-    détruit_chaine(noeud.texte)
-    noeud.fragments.taille = 0
+    détruit_chaine(box.texte)
+    box.fragments.taille = 0
 }
 
-crée_noeud_de_remplacement_select :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *NoeudDeDispositionRemplacement
+crée_select_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_noeud(NoeudDeDispositionSelect)
-    résultat.élément = élément
-    résultat.sur_calcul_dimensions_intrinsèques = noeud_select_calcul_dimensions_intrinsèques
+    résultat := arbre.crée_box(SelectBox)
+    résultat.noeud = élément
+    résultat.sur_calcul_dimensions_intrinsèques = select_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 // À FAIRE : standardise (https://html.spec.whatwg.org/multipage/rendering.html#the-select-element-2)
-donne_select_labels_width :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDeFormattage) -> r32
+donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) -> r32
 {
-    réinitialise(noeud)
+    réinitialise(box)
 
-    select := noeud.élément comme *HTML.HTMLSelectElement
+    select := box.donne_élément() comme *HTML.HTMLSelectElement
 
     option := donne_première_option(select)
     saufsi option {
         retourne 0.0
     }
 
-    noeud.texte = HTML.donne_contenu_texte_descandants(option)
-    si noeud.texte.taille() == 0 {
+    box.texte = HTML.donne_contenu_texte_descandants(option)
+    si box.texte.taille() == 0 {
         retourne 0.0
     }
 
-    fragmente_texte_avec_espaces_blanches_ascii(noeud.texte, *noeud.fragments)
-    collapse_séquences_d_espaces_blanches_autour_bris_segments(noeud.fragments)
-    collapse_bris_segments(noeud.fragments, PROP_normal)
-    convertis_tabulations_en_espaces(noeud.fragments)
-    collapse_espaces_consécutives(noeud.fragments)
+    fragmente_texte_avec_espaces_blanches_ascii(box.texte, *box.fragments)
+    collapse_séquences_d_espaces_blanches_autour_bris_segments(box.fragments)
+    collapse_bris_segments(box.fragments, PROP_normal)
+    convertis_tabulations_en_espaces(box.fragments)
+    collapse_espaces_consécutives(box.fragments)
 
-    fonte := détermine_fonte(noeud, ctx)
+    fonte := détermine_fonte(box, ctx)
 
     résultat := 0.0
 
-    pour noeud.fragments {
+    pour box.fragments {
         résultat += donne_largeur_texte(fonte, it.texte) comme r32
     }
 
@@ -4016,12 +4112,12 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
     retourne nul
 }
 
-noeud_select_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDispositionSelect, ctx: *ContexteDeFormattage)
+select_box_calcul_dimensions_intrinsèques :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage)
 {
-    élément := noeud.élément comme *HTML.HTMLSelectElement
+    élément := box.donne_élément() comme *HTML.HTMLSelectElement
     assert(élément.local_name == HTML.TAG_select)
-    noeud.largeur_intrinsèque = donne_select_labels_width(noeud, ctx)
-    noeud.hauteur_intrinsèque = donne_line_height(noeud, ctx)
+    box.largeur_intrinsèque = donne_select_labels_width(box, ctx)
+    box.hauteur_intrinsèque = donne_line_height(box, ctx)
 }
 
 /** \} */
@@ -4031,12 +4127,12 @@ noeud_select_calcul_dimensions_intrinsèques :: fonc (noeud: *NoeudDeDisposition
  * \{ */
 
 ItératriceArbre :: struct {
-    racine: *NoeudDeDisposition
+    racine: *Box
 }
 
-opérateur pour :: fonc (itératrice: ItératriceArbre) -> *NoeudDeDisposition
+opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
 {
-    pile: Pile(*NoeudDeDisposition)
+    pile: Pile(*Box)
     diffère détruit(pile)
 
     pile.empile(itératrice.racine)
@@ -4067,29 +4163,29 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *NoeudDeDisposition
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_wrapper := TableVirtuelleNoeudDeDispo(
+__table_table_wrapper_box := TableVirtuelleBox(
     type = TableWrapperBox,
     sur_mesure = table_wrapper_box_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_table_wrapper_box_corrige_hiérarchie)
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = table_wrapper_box_corrige_hiérarchie)
 
 #portée_module
 
 TableWrapperBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_wrapper
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_wrapper_box
 
     table: *TableBox
 }
 
-table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, outrepas_largeur: *OutrepasCotation)
+table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, available: AvailableSpace)
 {
-    noeud := base comme *TableWrapperBox
+    box := base comme *TableWrapperBox
 
     containing_block := donne_containing_block(base, ctx)
 
-    args := crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, outrepas_largeur, mode)
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode)
     calcule_largeur_et_marges(*args)
     _ := calcule_hauteur_et_marges(*args)
 
@@ -4097,61 +4193,65 @@ table_wrapper_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteD
     initialise_depuis_parent(*ctx_local, ctx)
     diffère détruit_données_contexte(*ctx_local)
 
-    ctx_local.racine = noeud
+    ctx_local.racine = box
 
-    formatte(*ctx_local, noeud, mode)
+    formatte(*ctx_local, box, mode, available)
 
-    width := noeud.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width)
     si width.est_auto() {
-        largeur_final := crée_outrepas_pour_coter_contenu(noeud.table.modèle_de_boite.contenu.largeur)
-        args = crée_arguments_dimensionnement_largeur(ctx, noeud, containing_block, *largeur_final, mode)
+        largeur_final := crée_outrepas_pour_coter_contenu(box.table.modèle_de_boite.contenu.largeur)
+        personnalisation_ := personnalisation
+        personnalisation_.outrepas_largeur = *largeur_final
+        args = crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation_, mode)
         calcule_largeur_et_marges(*args)
 
         /* Si les marges ont changés la position, nous devons décaler les descendants. */
-        si noeud.modèle_de_boite.contenu.x != noeud.table.modèle_de_boite.marge.x {
-            noeud.table.décale_vers_position(noeud.modèle_de_boite.contenu.x, noeud.table.modèle_de_boite.marge.y)
+        si box.modèle_de_boite.contenu.x != box.table.modèle_de_boite.marge.x {
+            box.table.décale_vers_position(box.modèle_de_boite.contenu.x, box.table.modèle_de_boite.marge.y)
         }
     }
 
-    height := noeud.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height)
     si height.est_auto() {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(noeud.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels())
-        args = crée_arguments_dimensionnement_hauteur(ctx, noeud, containing_block, *hauteur_finale)
+        hauteur_finale := crée_outrepas_pour_coter_contenu(box.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels())
+        personnalisation_ := personnalisation
+        personnalisation_.outrepas_hauteur = *hauteur_finale
+        args = crée_arguments_dimensionnement_hauteur(ctx, box, containing_block, personnalisation_)
         _ := calcule_hauteur_et_marges(*args)
     }
 }
 
-est_row_group_box :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_row_group_box :: fonc (box: *Box) -> bool
 {
     // A 'table-row-group', 'table-header-group', or 'table-footer-group' 
-    retourne noeud.table_virtuelle.type == TableRowGroupBox || noeud.table_virtuelle.type == TableHeaderGroupBox || noeud.table_virtuelle.type == TableFooterGroupBox
+    retourne box.table_virtuelle.type == TableRowGroupBox || box.table_virtuelle.type == TableHeaderGroupBox || box.table_virtuelle.type == TableFooterGroupBox
 }
 
-est_proper_table_child :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_proper_table_child :: fonc (box: *Box) -> bool
 {
     // A 'table-row' box, row group box, 'table-column' box, 'table-column-group' box, or 'table-caption' box. 
-    retourne noeud.table_virtuelle.type == TableRowBox || est_row_group_box(noeud) || noeud.table_virtuelle.type == TableColumnBox || noeud.table_virtuelle.type == TableColumnGroupBox || noeud.table_virtuelle.type == CaptionBox
+    retourne box.table_virtuelle.type == TableRowBox || est_row_group_box(box) || box.table_virtuelle.type == TableColumnBox || box.table_virtuelle.type == TableColumnGroupBox || box.table_virtuelle.type == CaptionBox
 }
 
-est_proper_table_row_parent :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_proper_table_row_parent :: fonc (box: *Box) -> bool
 {
     // A 'table' or 'inline-table' box or row group box 
-    retourne noeud.table_virtuelle.type == TableBox || est_row_group_box(noeud)
+    retourne box.table_virtuelle.type == TableBox || est_row_group_box(box)
 }
 
-est_internal_table_box :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_internal_table_box :: fonc (box: *Box) -> bool
 {
     // A 'table-cell' box, 'table-row' box, row group box, 'table-column' box, or 'table-column-group' box. 
-    retourne noeud.table_virtuelle.type == TableCellBox || noeud.table_virtuelle.type == TableRowBox || est_row_group_box(noeud) || noeud.table_virtuelle.type == TableColumnBox || noeud.table_virtuelle.type == TableColumnGroupBox
+    retourne box.table_virtuelle.type == TableCellBox || box.table_virtuelle.type == TableRowBox || est_row_group_box(box) || box.table_virtuelle.type == TableColumnBox || box.table_virtuelle.type == TableColumnGroupBox
 }
 
-est_tabular_container :: fonc (noeud: *NoeudDeDisposition) -> bool
+est_tabular_container :: fonc (box: *Box) -> bool
 {
     // A 'table-row' box or proper table row parent 
-    retourne noeud.table_virtuelle.type == TableRowBox || est_proper_table_row_parent(noeud)
+    retourne box.table_virtuelle.type == TableRowBox || est_proper_table_row_parent(box)
 }
 
-sont_consecutifs :: fonc (a: *NoeudDeDisposition, b: *NoeudDeDisposition) -> bool
+sont_consecutifs :: fonc (a: *Box, b: *Box) -> bool
 {
     // Two sibling boxes are consecutive if they have no intervening siblings
     // other than, optionally, an anonymous inline containing only white spaces.
@@ -4162,7 +4262,7 @@ sont_consecutifs :: fonc (a: *NoeudDeDisposition, b: *NoeudDeDisposition) -> boo
     }
 }
 
-noeud_table_wrapper_box_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+table_wrapper_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
 {
     // 1. Remove irrelevant boxes
     pour ItératriceArbre(base) {
@@ -4180,20 +4280,20 @@ noeud_table_wrapper_box_corrige_hiérarchie :: fonc (base: *NoeudDeDisposition, 
     }
 }
 
-remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
+remove_irrelevant_boxes :: fonc (box: *Box)
 {
     // 1. All child boxes of a 'table-column' parent are treated as if they had 'display: none'.
-    si noeud.table_virtuelle.type == TableColumnBox {
-        pour noeud.enfants {
+    si box.table_virtuelle.type == TableColumnBox {
+        pour box.enfants {
             it.traite_comme_display_none = vrai
         }
     }
 
     // 2. If a child C of a 'table-column-group' parent is not a 'table-column' box,
     // then it is treated as if it had 'display: none'.
-    si noeud.table_virtuelle.type == TableColumnGroupBox {
-        si noeud.parent == nul || noeud.parent.table_virtuelle.type != TableColumnBox {
-            noeud.traite_comme_display_none = vrai
+    si box.table_virtuelle.type == TableColumnGroupBox {
+        si box.parent == nul || box.parent.table_virtuelle.type != TableColumnBox {
+            box.traite_comme_display_none = vrai
         }
     }
 
@@ -4202,22 +4302,22 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
     // siblings, if any, are proper table descendants of P and are either
     // 'table-caption' or internal table boxes, then it is treated as if it had
     // 'display: none'.
-    si est_tabular_container(noeud) {
-        pour noeud.enfants {
+    si est_tabular_container(box) {
+        pour box.enfants {
             saufsi est_espace_blanche_document(it) {
                 continue
             }
 
             si index_it > 0 {
-                précédent := noeud.enfants[index_it - 1]
-                saufsi est_proper_table_descendant(noeud, précédent) {
+                précédent := box.enfants[index_it - 1]
+                saufsi est_proper_table_descendant(box, précédent) {
                     continue
                 }
             }
 
-            si index_it < noeud.enfants.taille - 1 {
-                suivant := noeud.enfants[index_it + 1]
-                saufsi est_proper_table_descendant(noeud, suivant) {
+            si index_it < box.enfants.taille - 1 {
+                suivant := box.enfants[index_it + 1]
+                saufsi est_proper_table_descendant(box, suivant) {
                     continue
                 }
             }
@@ -4225,8 +4325,8 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
             it.traite_comme_display_none = vrai
         }
 
-        premier := noeud.enfants.pointeur
-        dernier := premier + noeud.enfants.taille
+        premier := box.enfants.pointeur
+        dernier := premier + box.enfants.taille
 
         insertion := premier
 
@@ -4241,7 +4341,7 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
             insertion += 1
         }
 
-        noeud.enfants.taille = insertion - noeud.enfants.pointeur
+        box.enfants.taille = insertion - box.enfants.pointeur
     }
 
     // 4. If a box B is an anonymous inline containing only white space, and is
@@ -4252,7 +4352,7 @@ remove_irrelevant_boxes :: fonc (noeud: *NoeudDeDisposition)
 
 // A box D is a proper table descendant of A if D can be a descendant of A
 // without causing the generation of any intervening 'table' or 'inline-table' boxes.
-est_proper_table_descendant :: fonc (A: *NoeudDeDisposition, D: *NoeudDeDisposition) -> bool
+est_proper_table_descendant :: fonc (A: *Box, D: *Box) -> bool
 {
     si A.table_virtuelle.type == TableRowBox {
         retourne D.table_virtuelle.type == TableCellBox
@@ -4266,16 +4366,16 @@ est_proper_table_descendant :: fonc (A: *NoeudDeDisposition, D: *NoeudDeDisposit
     retourne D.table_virtuelle.type == TableRowBox
 }
 
-generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice: *CréatriceArbre)
+generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre)
 {
     // 1. If a child C of a 'table' or 'inline-table' box is not a proper table
     // child, then generate an anonymous 'table-row' box around C and all
     // consecutive siblings of C that are not proper table children.
-    si noeud.table_virtuelle.type == TableBox {
-        table := noeud comme *TableBox
+    si box.table_virtuelle.type == TableBox {
+        table := box comme *TableBox
 
-        premier := noeud.enfants.pointeur
-        dernier := premier + noeud.enfants.taille
+        premier := box.enfants.pointeur
+        dernier := premier + box.enfants.taille
 
         insertion := premier
 
@@ -4292,7 +4392,7 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
                 continue
             }
 
-            table_row_box := créatrice.arbre.crée_noeud(TableRowBox)
+            table_row_box := créatrice.arbre.crée_box(TableRowBox)
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table, Display.Type.TableRow)
             table_row_box.est_pseudo_element = mémoire(premier).est_pseudo_element
 
@@ -4312,18 +4412,18 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
             }
         }
 
-        noeud.enfants.taille = insertion - noeud.enfants.pointeur
+        box.enfants.taille = insertion - box.enfants.pointeur
     }
 
     // 2. If a child C of a row group box is not a 'table-row' box, then
     // generate an anonymous 'table-row' box around C and all consecutive
     // siblings of C that are not 'table-row' boxes.
-    si noeud.table_virtuelle.type == TableRowGroupBox {
-        table_row_group := noeud comme *TableRowGroupBox
+    si box.table_virtuelle.type == TableRowGroupBox {
+        table_row_group := box comme *TableRowGroupBox
 
         pour table_row_group.enfants {
             si it.table_virtuelle.type != TableRowBox {
-                table_row_box := créatrice.arbre.crée_noeud(TableRowBox)
+                table_row_box := créatrice.arbre.crée_box(TableRowBox)
                 crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table_row_group, Display.Type.TableRow)
                 table_row_box.est_pseudo_element = it.est_pseudo_element
                 ajoute_enfant(table_row_box, it)
@@ -4336,11 +4436,11 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
     // 3. If a child C of a 'table-row' box is not a 'table-cell', then
     // generate an anonymous 'table-cell' box around C and all consecutive
     // siblings of C that are not 'table-cell' boxes. 
-    si noeud.table_virtuelle.type == TableRowBox {
-        table_row_box := noeud comme *TableRowBox
+    si box.table_virtuelle.type == TableRowBox {
+        table_row_box := box comme *TableRowBox
 
-        premier := noeud.enfants.pointeur
-        dernier := premier + noeud.enfants.taille
+        premier := box.enfants.pointeur
+        dernier := premier + box.enfants.taille
 
         insertion := premier
 
@@ -4357,7 +4457,7 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
                 continue
             }
 
-            table_cell := créatrice.arbre.crée_noeud(TableCellBox)
+            table_cell := créatrice.arbre.crée_box(TableCellBox)
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_cell, table_row_box, Display.Type.TableCell)
             table_cell.est_pseudo_element = mémoire(premier).est_pseudo_element
 
@@ -4377,11 +4477,11 @@ generate_missing_child_wrappers :: fonc (noeud: *NoeudDeDisposition, créatrice:
             }
         }
 
-        noeud.enfants.taille = insertion - noeud.enfants.pointeur
+        box.enfants.taille = insertion - box.enfants.pointeur
     }
 }
 
-generate_missing_parents :: fonc (noeud: *NoeudDeDisposition @inutilisée, créatrice: *CréatriceArbre @inutilisée)
+generate_missing_parents :: fonc (box: *Box @inutilisée, créatrice: *CréatriceArbre @inutilisée)
 {
     // À FAIRE
     // For each 'table-cell' box C in a sequence of consecutive internal table and 'table-caption' siblings, if C's parent is not a 'table-row' then generate an anonymous 'table-row' box around C and all consecutive siblings of C that are 'table-cell' boxes.
@@ -4399,28 +4499,28 @@ generate_missing_parents :: fonc (noeud: *NoeudDeDisposition @inutilisée, créa
 
 #portée_fichier
 
-__table_noeud_de_disposition_table := TableVirtuelleNoeudDeDispo(
+__table_table_box := TableVirtuelleBox(
     type = TableBox,
     sur_mesure = table_box_sur_mesure,
     sur_dessin = table_box_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie)
 
 #portée_module
 
 TableBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_box
 }
 
-table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, outrepas_largeur: *OutrepasCotation @inutilisée)
+table_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage @inutilisée, personnalisation: PersonnalisationCotation @inutilisée, available: AvailableSpace)
 {
-    noeud := base comme *TableBox
+    box := base comme *TableBox
 
     ctx_local: ContexteDeFormattageTable
     initialise_depuis_parent(*ctx_local, ctx)
 
-    formatte_table(*ctx_local, noeud)
+    formatte_table(*ctx_local, box, available)
 }
 
 /** \} */
@@ -4431,15 +4531,13 @@ table_box_sur_mesure :: fonc (base: *NoeudDeDisposition, ctx: *ContexteDeFormatt
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_group_box := TableVirtuelleNoeudDeDispo(type = TableColumnGroupBox)
+__table_table_column_group_box := TableVirtuelleBox(type = TableColumnGroupBox)
 
 #portée_module
 
 TableColumnGroupBox :: struct {
-    empl base: NoeudDeDisposition
-    table_virtuelle = *__table_noeud_de_disposition_table_group_box
-
-    élément: *HTML.Élément
+    empl base: Box
+    table_virtuelle = *__table_table_column_group_box
 }
 
 /** \} */
@@ -4450,15 +4548,13 @@ TableColumnGroupBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_column_box := TableVirtuelleNoeudDeDispo(type = TableColumnBox)
+__table_table_column_box := TableVirtuelleBox(type = TableColumnBox)
 
 #portée_module
 
 TableColumnBox :: struct {
-    empl base: NoeudDeDisposition
-    table_virtuelle = *__table_noeud_de_disposition_table_column_box
-
-    élément: *HTML.Élément
+    empl base: Box
+    table_virtuelle = *__table_table_column_box
 }
 
 /** \} */
@@ -4469,18 +4565,18 @@ TableColumnBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_footer_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_footer_group_box := TableVirtuelleBox(
     type = TableFooterGroupBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie)
 
 #portée_module
 
 TableFooterGroupBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_footer_group_box
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_footer_group_box
 }
 
 /** \} */
@@ -4491,18 +4587,18 @@ TableFooterGroupBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_header_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_header_group_box := TableVirtuelleBox(
     type = TableHeaderGroupBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie)
 
 #portée_module
 
 TableHeaderGroupBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_header_group_box
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_header_group_box
 }
 
 /** \} */
@@ -4513,18 +4609,18 @@ TableHeaderGroupBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_row_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_group_box := TableVirtuelleBox(
     type = TableRowGroupBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie)
 
 #portée_module
 
 TableRowGroupBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_row_group_box
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_row_group_box
 }
 
 /** \} */
@@ -4535,18 +4631,18 @@ TableRowGroupBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_row_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_box := TableVirtuelleBox(
     type = TableRowBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie)
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie)
 
 #portée_module
 
 TableRowBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_row_box
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_row_box
 }
 
 /** \} */
@@ -4557,19 +4653,19 @@ TableRowBox :: struct {
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_cell := TableVirtuelleNoeudDeDispo(
+__table_table_cell_box := TableVirtuelleBox(
     type = TableCellBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie,
     sur_donne_baseline = table_cell_box_donne_baseline)
 
 #portée_export
 
 TableCellBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_cell
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_cell_box
 }
 
 /* Retourne la largeur pour le contenu de la cellule étant donné la largeur disponible. */
@@ -4590,17 +4686,23 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
     retourne largeur_disponible
 }
 
-table_cell_box_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r32)
+table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
     // À FAIRE : The baseline of a cell is the baseline of the first in-flow line box in the cell,
     // or the first in-flow table-row in the cell, whichever comes first.
-    résultat := noeud_disposition_bloc_donne_baseline(base)
+    résultat := block_box_donne_baseline(base)
     si résultat.possède_valeur() {
-        retourne résultat
+        info := résultat.Quelque
+        si info.position != info.origine {
+            /* Nous pouvons avoir une ligne de base nulle à cause de la logique de block_box_donne_baseline (p.e. un enfant in-flow n'ayant pas été dûment coté).
+             * Dans ce cas, ne retournons que si la ligne de base n'est pas nulle.
+             * À voir si ceci sera encore un problème lorsque nous aurons proprement implémenté le cas « à faire » plus haut. */
+            retourne résultat
+        }
     }
 
     // If there is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
-    retourne base.modèle_de_boite.contenu.y + base.modèle_de_boite.contenu.hauteur
+    retourne donne_ligne_de_base_contenu(base.modèle_de_boite)
 }
 
 /** \} */
@@ -4611,19 +4713,19 @@ table_cell_box_donne_baseline :: fonc (base: *NoeudDeDisposition) -> Optionnel(r
 
 #portée_fichier
 
-__table_noeud_de_disposition_table_caption_box := TableVirtuelleNoeudDeDispo(
+__table_table_caption_box := TableVirtuelleBox(
     type = CaptionBox,
-    sur_mesure = noeud_disposition_bloc_sur_mesure,
-    sur_dessin = noeud_disposition_bloc_sur_dessin,
-    sur_dessin_tampon_id = noeud_disposition_bloc_sur_dessin_tampon_id,
-    sur_correction_hiérarchie = noeud_disposition_bloc_corrige_hiérarchie,
-    sur_donne_baseline = noeud_disposition_bloc_donne_baseline)
+    sur_mesure = block_box_sur_mesure,
+    sur_dessin = block_box_sur_dessin,
+    sur_dessin_tampon_id = block_box_sur_dessin_tampon_id,
+    sur_correction_hiérarchie = block_box_corrige_hiérarchie,
+    sur_donne_baseline = block_box_donne_baseline)
 
 #portée_module
 
 CaptionBox :: struct {
-    empl base_bloc: NoeudDeDispositionBloc
-    table_virtuelle = *__table_noeud_de_disposition_table_caption_box
+    empl base_bloc: BlockBox
+    table_virtuelle = *__table_table_caption_box
 }
 
 /** \} */

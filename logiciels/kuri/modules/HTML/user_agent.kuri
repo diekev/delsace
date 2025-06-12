@@ -1,6 +1,4 @@
 importe HTTP
-importe Fondation
-JS :: importe JavaScript
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -188,6 +186,7 @@ RappelsInterface :: struct {
     sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
     sur_rapporte_exception: fonc (*RappelsInterface, *Document, chaine)(rien)
     sur_rapporte_log: fonc (*RappelsInterface, *Document, chaine)(rien)
+    sur_affiche_menu_contextuel_pour: fonc(*RappelsInterface, *Élément, *ClicSouris)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -424,6 +423,15 @@ rapporte_log :: fonc (user_agent: *UserAgent, document: *Document, message: chai
         retourne
     }
     rappels.sur_rapporte_log(rappels, document, message)
+}
+
+affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Élément, clic: *ClicSouris)
+{
+    rappels := user_agent.rappels_interface
+    saufsi rappels && rappels.sur_affiche_menu_contextuel_pour {
+        retourne
+    }
+    rappels.sur_affiche_menu_contextuel_pour(rappels, élément, clic)
 }
 
 /** \} */

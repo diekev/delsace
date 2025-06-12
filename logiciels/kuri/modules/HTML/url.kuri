@@ -1,7 +1,4 @@
-importe Chaine
-importe Fondation
 importe Internet
-importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom Host
@@ -10,6 +7,22 @@ importe Unicode
 
 /* À FAIRE : structure correcte. */
 Host :: chaine
+
+crée_hôte_opaque :: fonc (chn: chaine) -> Host
+{
+    retourne chn
+}
+
+/* https://url.spec.whatwg.org/#forbidden-host-code-point */
+est_point_code_interdit_pour_hôte :: fonc (point_de_code: n32) -> bool
+{
+    pour "\0\t\n\r #/:<>?@[\\]^|" {
+        si point_de_code == it comme n32 {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
 
 /** \} */
 
@@ -413,14 +426,19 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
     // 1. If input starts with U+005B ([), then:
     si input.taille() > 0 && input.unités[0] == 0x5B {
         // 1. If input does not end with U+005D (]), IPv6-unclosed validation error, return failure.
+        si input.unités[input.unités.taille - 1] != 0x5D {
+            rapporte_erreur_url(ErreurDeParsage.IPv6Unclosed)
+            retourne
+        }
 
-        // 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
-        panique("non-implémenté")
+        // À FAIRE : 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
+        chaine_ipv6 := input.sous_chaine(1, input.taille() - 2)
+        retourne converti_vers_chaine(chaine_ipv6)
     }
 
     // 2. If isOpaque is true, then return the result of opaque-host parsing input.
     si is_opaque {
-        panique("non-implémenté")
+        retourne parse_opaque_host(input)
     }
 
     // 3. Assert: input is not the empty string.
@@ -439,14 +457,44 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
     retourne ascii_domain
 }
 
+/* https://url.spec.whatwg.org/#concept-opaque-host-parser */
+parse_opaque_host :: fonc (input: ChaineUTF16) -> Optionnel(Host)
+{
+    // 1. If input contains a forbidden host code point, host-invalid-code-point validation error, return failure.
+    si possède(input, est_point_code_interdit_pour_hôte) {
+        rapporte_erreur_url(ErreurDeParsage.HostInvalidCodePoint)
+        retourne
+    }
+
+    // 2. If input contains a code point that is not a URL code point and not U+0025 (%), invalid-URL-unit validation error.
+    pour c dans input.unités {
+        si c != 0x25 && !est_point_de_code_url(c) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
+    }
+
+    // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits, invalid-URL-unit validation error.
+    pour input.unités {
+        si it != 0x25 {
+            continue
+        }
+        
+        restant := sous_chaine(input, index_it + 1, input.taille() - 1)
+        si !commence_par(restant, est_chiffre_hexadecimal_ascii, 2) {
+            rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
+        }
+    }
+
+    // À FAIRE 4. Return the result of running UTF-8 percent-encode on input using the C0 control percent-encode set.
+    retourne crée_hôte_opaque(converti_vers_chaine(input))
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 4.2 URL miscellaneous
  * https://url.spec.whatwg.org/#url-miscellaneous
  * \{ */
-
-DOUBLE_POINT : n32 : 0x3A
 
 /* https://url.spec.whatwg.org/#windows-drive-letter */
 est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -> bool #enligne
@@ -455,8 +503,7 @@ est_lettre_stockage_windows :: fonc (point_de_code1: n32, point_de_code2: n32) -
         retourne faux
     }
 
-    PIPE : n32 : 0x7C
-    retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == PIPE
+    retourne point_de_code2 == DOUBLE_POINT || point_de_code2 == BARRE_VERTICALE
 }
 
 est_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
@@ -741,11 +788,14 @@ ErreurDeParsage :: énum {
     MissingSchemeNonRelativeURL
     InvalidReverseSolidus
     HostMissing
+    HostInvalidCodePoint
     PortOutOfRange
     PortInvalid
     FileInvalidWindowsDriveLetter
     FileInvalidWindowsDriveLetterHost
     InvalidURLUnit
+    InvalidCredentials
+    IPv6Unclosed
 }
 
 rapporte_erreur_url :: fonc (code: ErreurDeParsage, fonction := #nom_de_cette_fonction)
@@ -868,7 +918,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
 {
     // 1. If c is an ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.), append c, lowercased, to buffer.
     c := parser.donne_caractère()
-    si est_lettre_ascii(c) || c == 0x2B || c == 0x2D || c == 0x2E {
+    si est_ascii_alphanumérique(c) || c == 0x2B || c == 0x2D || c == 0x2E {
         chaine_ajoute(*parser.buffer, en_minuscule(c comme n16))
         retourne RésultatParsageURL.Ok
     }
@@ -1195,14 +1245,20 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
     // 1. If c is U+0040 (@), then:
     c := parser.donne_caractère()
     si c == 0x40 {
-        panique("non-implementé")
         // 1. Invalid-credentials validation error.
+        rapporte_erreur_url(ErreurDeParsage.InvalidCredentials)
 
         // 2. If atSignSeen is true, then prepend "%40" to buffer.
+        si parser.at_sign_seen {
+            tableau_insère_index(*parser.buffer.unités, 0x00, 0)
+            tableau_insère_index(*parser.buffer.unités, 0x04, 0)
+            tableau_insère_index(*parser.buffer.unités, 0x25, 0)
+        }
 
         // 3. Set atSignSeen to true.
+        parser.at_sign_seen = vrai
 
-        // 4. For each codePoint in buffer:
+        // À FAIRE : 4. For each codePoint in buffer:
 
             // 1. If codePoint is U+003A (:) and passwordTokenSeen is false, then set passwordTokenSeen to true and continue.
 
@@ -1213,6 +1269,7 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
             // 4. Otherwise, append encodedCodePoints to url’s username.
 
         // 5. Set buffer to the empty string.
+        parser.buffer.unités.taille = 0
     }
     // 2. Otherwise, if one of the following is true:
         // c is the EOF code point, U+002F (/), U+003F (?), or U+0023 (#)
@@ -1730,7 +1787,7 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
     // 3. Otherwise:
     sinon {
         // 1. If c is not the EOF code point, not a URL code point, and not U+0025 (%), invalid-URL-unit validation error.
-        si c != 0x25 && !est_point_de_code_url(c) {
+        si c != FIN_DE_FICHIER && c != 0x25 && !est_point_de_code_url(c) {
             rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
         }
 

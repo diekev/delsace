@@ -1,8 +1,3 @@
-importe Chaine
-importe CodecDonnées
-importe Fondation
-importe Internet
-importe Numérique
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContenuHTTP

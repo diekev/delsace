@@ -7,6 +7,7 @@ charge "chaine_utf32"
 charge "chaine_utf_16"
 charge "éditrice_texte"
 charge "empreintes"
+charge "lexage"
 
 est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
 {
@@ -23,7 +24,7 @@ supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
 supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
-        saufsi est_espace_blanc(ligne[0]) {
+        saufsi est_espace_blanche(ligne[0]) {
             arrête
         }
         ligne = avance(ligne, 1)
@@ -34,7 +35,7 @@ supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
 supprime_espaces_blancs_à_la_fin :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
-        saufsi est_espace_blanc(ligne[ligne.taille - 1]) {
+        saufsi est_espace_blanche(ligne[ligne.taille - 1]) {
             arrête
         }
         ligne = recule(ligne, 1)
@@ -75,31 +76,54 @@ convertis_casse_serpent_pour_interface :: fonc (chn: chaine) -> chaine
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
+    convertis_casse_serpent_pour_interface(*enchaineuse, chn)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+convertis_casse_serpent_pour_interface :: fonc (enchaineuse: *Enchaineuse, chn: chaine)
+{
     en_majuscule := vrai
 
     pour chn {
         si it == '_' {
-            ajoute_au_tampon(*enchaineuse, ' ')
+            ajoute_au_tampon(enchaineuse, ' ')
             en_majuscule = vrai
             continue
         }
 
         si en_majuscule {
             si 'a' <= it <= 'z' {
-                ajoute_au_tampon(*enchaineuse, it - 'a' + 'A')
+                ajoute_au_tampon(enchaineuse, it - 'a' + 'A')
             }
             sinon {
-                ajoute_au_tampon(*enchaineuse, it)
+                ajoute_au_tampon(enchaineuse, it)
             }
 
             en_majuscule = faux
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, it)
+            ajoute_au_tampon(enchaineuse, it)
         }
     }
+}
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+convertis_casse_serpent_pour_interface :: fonc (chn: *chaine)
+{
+    remplace_sans_copie(*chn, '_', ' ')
+
+    dernier_est_espace := vrai
+    pour & mémoire(chn) {
+        si dernier_est_espace && ('a' <= it <= 'z') {
+            it = it - 'a' + 'A'
+            dernier_est_espace = faux
+            continue
+        }
+
+        si it == ' ' {
+            dernier_est_espace = vrai
+        }
+    }
 }
 
 /* ------------------------------------------------------------------------- */

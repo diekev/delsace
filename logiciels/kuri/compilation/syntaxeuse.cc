@@ -2354,6 +2354,9 @@ NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lex
                 annule_sauvegarde_position();
 
                 auto noeud_fonction = analyse_déclaration_fonction(lexème_référence);
+                if (!noeud_fonction) {
+                    return nullptr;
+                }
 
                 if (noeud_fonction->est_expression_type_fonction()) {
                     auto noeud = m_tacheronne.assembleuse->crée_déclaration_constante(
@@ -2589,6 +2592,10 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
     while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexème::VIRGULE);
+        if (!param) {
+            return nullptr;
+        }
+
         params.ajoute(param);
 
         if (param->est_déclaration_variable()) {
@@ -2915,6 +2922,30 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
         }
         else if (ident_directive == ID::sansasan) {
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANS_ASAN;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::développe) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_MACRO;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vlc) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLC;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vlt) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLT;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vru) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VRU;
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);
@@ -3667,6 +3698,16 @@ NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
     if (lexème_référence) {
         noeud->ident = lexème_référence->ident;
     }
+
+    auto noeud_déclaration = m_tacheronne.assembleuse
+                                 ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(lexème)
+                                 ->comme_déclaration_module();
+    noeud_déclaration->ident = noeud->ident;
+    noeud_déclaration->bloc_parent->ajoute_expression(noeud_déclaration);
+    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+    requiers_typage(noeud_déclaration);
+
+    noeud->noeud_déclaration = noeud_déclaration;
 
     consomme();
 

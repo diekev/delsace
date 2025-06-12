@@ -14,10 +14,10 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
-#include "biblinternes/langage/unicode.hh"
-
 #include "structures/chemin_systeme.hh"
+
+#include "utilitaires/chrono.hh"
+#include "utilitaires/unicode.hh"
 
 /**
  * Fonction de rappel pour les fils d'exécutions.
@@ -100,7 +100,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
 
 static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
-                          dls::chrono::compte_seconde debut_compilation)
+                          kuri::chrono::compte_seconde debut_compilation)
 {
     if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
         return;
@@ -321,7 +321,7 @@ static int calcule_taille_utf8(kuri::chaine_statique chaine)
 {
     int résultat = 0;
     for (auto i = 0l; i < chaine.taille();) {
-        auto n = lng::nombre_octets(&chaine.pointeur()[i]);
+        auto n = unicode::nombre_octets(&chaine.pointeur()[i]);
         résultat += 1;
         i += n;
     }
@@ -582,7 +582,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
 
 static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique chemin_fichier)
 {
-    auto debut_compilation = dls::chrono::compte_seconde();
+    auto debut_compilation = kuri::chrono::compte_seconde();
 
     /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
     if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {
@@ -602,19 +602,18 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
 
-    auto nom_fichier = chemin.nom_fichier_sans_extension();
-
     /* Charge d'abord le module basique. */
     auto espace_defaut = compilatrice.espace_de_travail_defaut;
+    espace_defaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
 
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
 
     info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
-    auto module = compilatrice.trouve_ou_crée_module(ID::chaine_vide, dossier);
+    auto module = compilatrice.sys_module->crée_module_fichier_racine_compilation(dossier, chemin);
     compilatrice.module_racine_compilation = module;
-    compilatrice.ajoute_fichier_a_la_compilation(espace_defaut, nom_fichier, module, {});
+    compilatrice.gestionnaire_code->requiers_chargement(espace_defaut, module->fichiers[0]);
 
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
@@ -794,7 +793,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto const chemin_fichier = argv[argc - 1];
+    auto chemin_fichier = kuri::chemin_systeme(argv[argc - 1]);
+    auto extension = chemin_fichier.extension();
+    if (extension != ".kuri") {
+        if (extension == "") {
+            /* Puisque le nom de fichier de sortie par défaut est le nom du fichier qui est
+             * compilé, ajoute une extension si nous compilons le compilat.
+             * Ceci permet de compiler en ligne de commande quand l'autocomplétion s'arrête avant
+             * l'extension, mais que le développeur lança l'exécution de la commande avec de
+             * compléter plus. */
+            chemin_fichier = chemin_fichier.remplace_extension(".kuri");
+        }
+        else {
+            dbg() << "Le fichier spécifié doit avoir l'extension '.kuri'";
+            dbg() << "    L'extension du fichier est '" << extension << "'";
+            return 1;
+        }
+    }
+
     if (!kuri::chemin_systeme::existe(chemin_fichier)) {
         dbg() << "Impossible d'ouvrir le fichier : " << chemin_fichier;
         return 1;

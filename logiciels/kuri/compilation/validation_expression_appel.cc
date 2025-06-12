@@ -6,7 +6,6 @@
 #include <iostream>
 #include <variant>
 
-#include "biblinternes/chrono/outils.hh"
 #include "biblinternes/outils/assert.hh"
 #include "biblinternes/outils/conditions.h"
 
@@ -21,6 +20,8 @@
 #include "portee.hh"
 #include "utilitaires/log.hh"
 #include "validation_semantique.hh"
+
+#include "utilitaires/chrono.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Poids pour les arguments polymorphiques et variadiques.
@@ -2234,7 +2235,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             contexte.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
@@ -2315,6 +2316,16 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
 
             decl_fonction_appelée = noeud_decl;
+        }
+        else if (decl_fonction_appelée->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
+            auto copie_macro = copie_noeud(contexte.donne_assembleuse(),
+                                           decl_fonction_appelée,
+                                           decl_fonction_appelée->bloc_parent,
+                                           OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
+                                               OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES);
+
+            auto entête_copie_macro = copie_macro->comme_entête_fonction();
+            decl_fonction_appelée = entête_copie_macro;
         }
 
         // nous devons monomorpher (ou avoir les types monomorphés) avant de pouvoir faire ça

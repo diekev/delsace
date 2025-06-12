@@ -1638,7 +1638,6 @@ void NoeudBloc::ajoute_membre(NoeudDéclaration *decl)
     }
 
     membres_->ajoute(decl);
-    membres_sont_sales = true;
 }
 
 void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
@@ -1650,7 +1649,6 @@ void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
     }
 
     membres_->ajoute_au_début(decl);
-    membres_sont_sales = true;
 }
 
 void NoeudBloc::fusionne_membres(NoeudBloc *de)
@@ -1711,7 +1709,6 @@ NoeudDéclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression co
 void NoeudBloc::ajoute_expression(NoeudExpression *expr)
 {
     expressions->ajoute(expr);
-    expressions_sont_sales = true;
 }
 
 kuri::tableau_statique<const MembreTypeComposé> NoeudDéclarationTypeComposé::
@@ -2104,13 +2101,13 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
 
     auto type_param = typeuse.type_pointeur_pour(type);
     if (type->est_type_union() && !type->comme_type_union()->est_nonsure) {
-        type_param = typeuse.type_pointeur_pour(type, false, false);
+        type_param = typeuse.type_pointeur_pour(type, false);
     }
 
     auto types_entrées = kuri::tablet<Type *, 6>();
     types_entrées.ajoute(type_param);
 
-    auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN, false);
+    auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN);
 
     static Lexème lexème_entête = {};
     auto entête = assembleuse->crée_entête_fonction(&lexème_entête);
@@ -2261,8 +2258,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto type_tableau = type->comme_type_tableau_fixe();
             auto type_élément = type_tableau->type_pointé;
 
-            auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(
-                type_élément, false, false);
+            auto type_pointeur_type_pointe = typeuse.type_pointeur_pour(type_élément, false);
 
             /* NOTE: pour les tableaux fixes, puisque le déréférencement de pointeur est compliqué
              * avec les indexages, nous passons par une variable locale temporaire et copierons la
@@ -2560,7 +2556,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                  * membres de la structure de l'union (membre le plus grand + index).
                  */
                 auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
-                    type_union->type_structure, false, false);
+                    type_union->type_structure, false);
 
                 auto param_comme_structure = assembleuse->crée_comme(
                     &lexème_sentinel, ref_param, nullptr);
@@ -2750,6 +2746,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_déclaration_constante()) {
         return &noeud->comme_déclaration_constante()->unité;
+    }
+    if (noeud->est_déclaration_module()) {
+        return &noeud->comme_déclaration_module()->unité;
     }
 
     assert_rappel(false, [&]() {

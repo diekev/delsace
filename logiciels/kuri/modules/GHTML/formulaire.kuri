@@ -1,6 +1,5 @@
+importe Chaine
 importe Courriel
-importe Fondation
-importe Introspection
 
 MotDePasse :: struct {
     chn: chaine
@@ -52,23 +51,7 @@ ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: ch
     ajoute_au_tampon(enchaineuse, "<div>\n")
     ajoute_au_tampon(enchaineuse, "<label for='", nom, "'>")
 
-    début_mot := vrai
-
-    pour nom {
-        si it == '_' {
-            it = ' '
-            début_mot = vrai
-        }
-        sinon {
-            si début_mot && ('a' <= it <= 'z') {
-                it -= 0x20
-            }
-
-            début_mot = faux
-        }
-
-        ajoute_au_tampon(enchaineuse, it)
-    }
+    convertis_casse_serpent_pour_interface(enchaineuse, nom)
 
     ajoute_au_tampon(enchaineuse, "</label><br>\n")
 

@@ -1,10 +1,3 @@
-importe Couleur
-importe Fondation
-importe Géométrie
-importe Périphériques
-importe PeintureInterface
-importe Typographie
-
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Diviseur
  * \{ */
@@ -40,17 +33,17 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         }
     }
 
-    sur_clique_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clique: CliqueSouris) -> bool
+    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool
     {
-        saufsi panneau_diviseur.rect.contient(clique.état.où) {
+        saufsi panneau_diviseur.rect.contient(clic.état.où) {
             panneau_diviseur.souris_pressée = faux
             retourne faux
         }
 
-        si clique.action == ActionSouris.PRESSÉE {
+        si clic.action == ActionSouris.PRESSÉE {
             panneau_diviseur.souris_pressée = vrai
         }
-        sinon si clique.action == ActionSouris.RELACHÉE {
+        sinon si clic.action == ActionSouris.RELACHÉE {
             panneau_diviseur.souris_pressée = faux
         }
 
@@ -96,7 +89,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
     résultat := ctx.crée_panneau(PanneauDiviseur)
     tableau_ajoute(*ctx.diviseurs, résultat)
     résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clique_souris = sur_clique_souris
+    résultat.sur_clic_souris = sur_clic_souris
     résultat.sur_dessin = sur_dessin
     résultat.sur_redimension = sur_redimension
     résultat.sur_début_survol = sur_début_survol

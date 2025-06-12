@@ -1,9 +1,5 @@
-importe Couleur
-importe Fondation
 importe Image
 importe Introspection
-importe Math
-importe SysFichier
 
 /* ------------------------------------------------------------------------- */
 /** \nom TypeFichier
@@ -243,9 +239,6 @@ détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Op
 
 /* ------------------------------------------------------------------------- */
 
-importe Compilatrice // Pour AnnotationCode
-importe Numérique
-
 TypeChaineRecherchée :: énum {
     NOM_CANAL_CHAMPS_DE_HAUTEUR
     NOM_ATTRIBUT_POINT
@@ -256,7 +249,7 @@ TypeChaineRecherchée :: énum {
 }
 
 // À FAIRE : déduplique avec les fonctions du métaprogramme
-détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeMembreStructure, param: *TableParamètres.Paramètre, annotation: *AnnotationCode, type: TypeChaineRecherchée)
+détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeMembreStructure, param: *TableParamètres.Paramètre, annotation: *Annotation, type: TypeChaineRecherchée)
 {
     si infos.id != info_de(chaine) {
         // compilatrice_rapporte_erreur("ChercheCanal sur un type n'étant pas une chaine")
@@ -382,7 +375,7 @@ parse_annotations_paramètres :: fonc (infos: *InfoTypeMembreStructure, param: *
 ÉtiquetteTableParamètre :: #opaque octet
 EspaçageTableParamètre :: #opaque octet
 
-donne_valeur_étiquette_table :: fonc (annotations: []*AnnotationCode) -> chaine
+donne_valeur_étiquette_table :: fonc (annotations: []*Annotation) -> chaine
 {
     pour annotations {
         si it.nom == "Texte" {

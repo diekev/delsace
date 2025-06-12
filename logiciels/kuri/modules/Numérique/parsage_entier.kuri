@@ -6,7 +6,6 @@
 //           -- nombres négatifs ?
 //           -- validation dans l'algorithme de parsage via SIMD
 
-importe Fondation
 importe Math
 importe Ordinatrice
 
@@ -67,6 +66,50 @@ extrait_n64_nonsûr :: fonc (chn: chaine) -> n64
     }
 
     retourne résultat
+}
+
+consomme_nombre_entier :: fonc (chn: chaine) -> (succès: bool, résultat: z64, reste: chaine)
+{
+    si chn.taille == 0 {
+        retourne faux, 0, ""
+    }
+
+    orig := chn
+
+    est_négatif := faux
+    si chn[0] == '-' {
+        chn = avance(chn, 1)
+    }
+    
+    si chn.taille == 0 {
+        retourne faux, 0, orig
+    }
+
+    eu_chiffre := faux
+
+    résultat = 0
+
+    tantque chn.taille != 0 {
+        saufsi est_nombre_décimal(chn[0]) {
+            arrête
+        }
+
+        eu_chiffre = vrai
+        résultat *= 10
+        résultat += (chn[0] - '0')
+
+        chn = avance(chn, 1)
+    }
+
+    saufsi eu_chiffre {
+        retourne faux, 0, orig
+    }
+
+    si est_négatif {
+        résultat *= -1
+    }
+
+    retourne vrai, résultat, chn
 }
 
 extrait_n32_nonsûr :: fonc (chn: chaine) -> n32
@@ -295,23 +338,12 @@ parse_hexadécimal_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
     résultat: n64
 
     pour chn {
-        v: n64
-
-        si '0' <= it <= '9' {
-            v = (it - '0') comme n64
-        }
-        sinon si 'a' <= it <= 'f' {
-            v = 10 + (it - 'a') comme n64
-        }
-        sinon si 'A' <= it <= 'F' {
-            v = 10 + (it - 'A') comme n64
-        }
-        sinon {
+        saufsi est_nombre_hexadécimal(it) {
             retourne ErreurParsageEntier.EntréeMalformée
         }
 
         résultat *= 16
-        résultat += v
+        résultat += donne_valeur_hex(it) comme n64
     }
 
     retourne résultat

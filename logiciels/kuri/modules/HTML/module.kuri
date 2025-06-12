@@ -249,3 +249,13 @@ parse_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, document: chaine) ->
     parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)
     retourne parsat
 }
+
+est_fichier_html :: fonc (chn: chaine) -> bool
+{
+    retourne est_fichier_html(CheminFichier(chn))
+}
+
+est_fichier_html :: fonc (chm: CheminFichier) -> bool
+{
+    retourne chm.extension() == ".html"
+}

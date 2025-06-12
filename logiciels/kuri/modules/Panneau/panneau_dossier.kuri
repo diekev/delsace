@@ -1,10 +1,3 @@
-importe Couleur
-importe Fondation
-importe Géométrie
-importe Périphériques
-importe PeintureInterface
-importe Typographie
-
 Dossier :: struct {
     onglets: [..]chaine
 }
@@ -37,7 +30,7 @@ crée_panneau_dossier :: fonc (contexte: *ContexteInterface, parent: *Panneau) -
 {
     résultat := contexte.crée_panneau(PanneauDossier)
     résultat.sur_dessin = sur_dessin_panneau_dossier
-    résultat.sur_clique_souris = sur_clique_souris_panneau_dossier
+    résultat.sur_clic_souris = sur_clic_souris_panneau_dossier
     résultat.sur_déplacement_souris = sur_déplacement_souris_panneau_dossier
     parent.ajoute_enfant(résultat)
     retourne résultat
@@ -99,9 +92,9 @@ sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @
 {
 }
 
-sur_clique_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clique: CliqueSouris) -> bool
+sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: ClicSouris) -> bool
 {
-    saufsi rect.contient(clique.état.où) {
+    saufsi rect.contient(clic.état.où) {
         retourne faux
     }
 
@@ -110,7 +103,7 @@ sur_clique_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clique
     }
 
     pour éléments {
-        saufsi it.rect.contient(clique.état.où) {
+        saufsi it.rect.contient(clic.état.où) {
             continue
         }
 

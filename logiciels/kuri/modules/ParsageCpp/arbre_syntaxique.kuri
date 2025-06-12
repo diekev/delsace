@@ -3,7 +3,6 @@
  * \{ */
 
 NoeudSyntaxique :: struct {
-    lexème: *Lexème
 }
 
 /** \} */
@@ -65,6 +64,40 @@ NoeudDéfinitionClasse :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom DeclContext
+ * Structure de base pour tous les noeuds représentant un contexte de déclaration.
+ * \{ */
+
+DeclContext :: struct {
+    empl noeud: NoeudSyntaxique
+    déclarations: [..]*NoeudSyntaxique
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TranslationUnit
+ * \{ */
+
+TranslationUnit :: struct {
+    empl base: DeclContext
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NamespaceDecl
+ * \{ */
+
+NamespaceDecl :: struct {
+    empl base: DeclContext
+
+    identifiant: chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Créatrice de Noeuds
  * \{ */
 
@@ -72,10 +105,9 @@ CréatriceNoeuds :: struct {
     noeuds: [..]*NoeudSyntaxique
 }
 
-crée_noeud :: fonc (créatrice: &CréatriceNoeuds, lexème: *Lexème, $TypeNoeud: type_de_données) -> *TypeNoeud
+crée_noeud :: fonc (créatrice: &CréatriceNoeuds, $TypeNoeud: type_de_données) -> *TypeNoeud
 {
     noeud := loge(TypeNoeud)
-    noeud.lexème = lexème
     tableau_ajoute(*créatrice.noeuds, noeud)
     retourne noeud
 }

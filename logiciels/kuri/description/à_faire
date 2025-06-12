@@ -331,19 +331,6 @@ investigue l'utilisation des types entiers, des représentations binaires et des
 
 meilleure gestion des modulos : négatif % positif => négatif, positif % négatif => négatif, ceci est à éviter
 
-amélioration du typage des expressions de tableaux constants
-    plusieurs problèmes de l'approche courrante
-    - le premier élément défini le type du tableau ce qui fait échoué les tableaux mélangeant des constantes de nombre et de caractère (voir Noyau)
-    - les nombres constants sont définis comme z32, nous ne pouvons avoir un tableau de n32 par exemple avec uniquement des constantes
-        -- voir cas dans HTML/Autres/parse_entite.kuri
-
-normalisation de tous les types pour supprimer les unions et les entiers constants de la RI
-    -- mention dans Internet/module.kuri
-    -- // u : anonyme4 dans MySQL/mysql.kuri
-    - passe en revue les initialisations des unions
-    - déplace la normalisation dans une passe secondaire après la génération de RI, le code courant est bien trop complexe
-        -- une analyse de la RI pourra mieux se faire avant la normalisation
-
 déclaration d'énum, de structures, et d'unions anonymes :
     énum {
         X
@@ -456,20 +443,6 @@ que les types de bases et dérivés
 
 // ----------------------------------------------------------------------------
 // Modules / Espaces de Noms
-
-utilisation d'un fichier "module.kuri" pour définir le contenu d'un module, les fichiers à charger
-
-// Garde trace des espaces de noms, mais permet l'utilisation des membres via empl
-
-importe Fondation
-empl Fondation
-
-ou
-
-empl importe Fondation
-
-renomme un import
-F :: importe Fondation
 
 - pouvoir renommer les symboles d'un import pour une utilisation locale (importe Fondation ma_fonction_de_renommage) ?
 
@@ -620,8 +593,6 @@ Idées
 - opérateur 'chaîne' pour retourner une chaîne de caractère contenant ce qu'il y a entre ses parenthèses : par exemple chaîne(a) -> "a"
 - utilisation de propriétés pour appeler un code avant ou après une fonction à chaque qu'elle est appelée (comme ctor/dtor en C++, ou les gestionnaires de contextes en Python avec "with")
 - fonction membres de structures similaire à Python avec 'self' explicit, ou appel explicit en passant l'objet en premier paramètre
-- passer uniquement par référence, ou utilisation d'un mot-clé spécifique pour dire qu'un paramètre peut-être nul
-- transformer les messages d'erreur en tutoriaux
 - ajout de valeur par défaut au type de retour
 - constructeurs/destructeurs via mot-clés et pointeurs de fonction
 - controler la génération d'exécutable depuis les métaprogrammes
@@ -673,13 +644,42 @@ Zones d'ombres
 007_struct_litterals.jai
 008_types.jai
 010_calling_procedures.jai
-011_contexte.jai
+011_context.jai
 012_temporary_storage.jai
 013_enums.jai
 014_enum_unary_dot.jai
 015_array_litterals.jai
+018_print_functions.jai
+019_looping.jai
 020_type_info.jai
+022_if.jai
+025_ifx.jai
+027_if_case.jai
 030_any.jai
+042_using.jai
+050_this.jai
+080_scopes.jai
+085_default_types_for_literals.jai
+090_how_typechecking_works.jai
+093_operator_overloading.jai
+094_array_operators.jai
+095_static_if.jai
+100_polymorphic_procedures.jai
+110_polymorphic_arguments.jai
+115_auto_bakes.jai
+120_polymorphic_structs.jai
+160_types_restrictions.jai
+170_modify.jai (#modify)
+180_type_variants.jai
+200_memory_management.jai
+225_comma_comma.jai (operator ,, dans les appels)
+250_how_parameters_are_passed.jai
+350_logging.jai
+400_workspaces.jai
+420_command_line.jai
+495_default_metaprogram.jai
+497_caller_code.jai
+500_use_of_compile_time_execution.jai
 550_is_constant.jai
 551_things_that_are_constant.jai
 600_insert.jai

@@ -707,7 +707,7 @@ QT_Thread *QT_application_thread()
 
 int QT_application_screen_count()
 {
-    return QApplication::screens().size();
+    return static_cast<int>(QApplication::screens().size());
 }
 
 void QT_application_screen_geometry(int index, QT_Rect *rect)
@@ -1022,6 +1022,74 @@ void QT_mimedata_definis_donnee(QT_MimeData *mimedata,
     VERS_QT(mimetype);
     qmimedata->setData(qmimetype,
                        QByteArray(reinterpret_cast<const char *>(donnees), int(taille_donnees)));
+}
+
+void QT_mimedata_donne_infos(QT_MimeData *mimedata, int *nombre_de_formats, int *taille_donnees)
+{
+    VERS_QT(mimedata);
+
+    if (nombre_de_formats) {
+        *nombre_de_formats = int(qmimedata->formats().size());
+    }
+
+    if (taille_donnees) {
+        for (auto const &format : qmimedata->formats()) {
+            *taille_donnees += int(format.size());
+            auto array = qmimedata->data(format);
+            *taille_donnees += int(array.size());
+        }
+    }
+}
+
+#define FERME_PROGRAMME_SI_NUL(X, MESSAGE)                                                        \
+    do {                                                                                          \
+        if (!(X)) {                                                                               \
+            std::cerr << __func__ << " : " MESSAGE << "\n";                                       \
+            exit(1);                                                                              \
+        }                                                                                         \
+    } while (0)
+
+void QT_mimedata_exporte_donnees(QT_MimeData *mimedata,
+                                 uint8_t *donnees,
+                                 int64_t taille_donnees,
+                                 int32_t *tailles,
+                                 int64_t nombre_de_tailles)
+{
+    FERME_PROGRAMME_SI_NUL(mimedata, "mimedata est nul");
+    FERME_PROGRAMME_SI_NUL(donnees, "les données de destination sont nulles");
+    FERME_PROGRAMME_SI_NUL(taille_donnees, "la taille de données de destination est égale à zéro");
+    FERME_PROGRAMME_SI_NUL(tailles, "les tailles de destination sont nulles");
+    FERME_PROGRAMME_SI_NUL(nombre_de_tailles,
+                           "le nombre de tailles de destination est égale à zéro");
+
+    VERS_QT(mimedata);
+
+    FERME_PROGRAMME_SI_NUL(nombre_de_tailles / 2 == qmimedata->formats().size(),
+                           "le nombre de tailles ne correspond pas au nombre de formats");
+
+    auto taille = 0;
+    for (auto const &format : qmimedata->formats()) {
+        taille += int(format.size());
+        auto array = qmimedata->data(format);
+        taille += int(array.size());
+    }
+
+    FERME_PROGRAMME_SI_NUL(
+        taille == taille_donnees,
+        "la taille des données ne correspond pas à la taille des données du mimedata");
+
+    int32_t *taille_courante = tailles;
+    uint8_t *sortie_donnees = donnees;
+    for (auto const &format : qmimedata->formats()) {
+        *taille_courante++ = int(format.size());
+        memcpy(sortie_donnees, format.toStdString().c_str(), uint64_t(format.size()));
+        sortie_donnees += format.size();
+
+        auto array = qmimedata->data(format);
+        *taille_courante++ = int(array.size());
+        memcpy(sortie_donnees, array.data(), uint64_t(array.size()));
+        sortie_donnees += array.size();
+    }
 }
 
 QT_ByteArray QT_mimedata_donne_donnee(QT_MimeData *mimedata, QT_Chaine mimetype)
@@ -1372,6 +1440,16 @@ struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window)
     return nullptr;
 }
 
+void QT_window_create(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, create);
+}
+
+void QT_window_destroy(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, destroy);
+}
+
 void QT_window_request_update(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, requestUpdate);
@@ -1527,6 +1605,58 @@ void QT_Event_Loop_exit(struct QT_Event_Loop *event_loop)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Surface_Format
+ * \{ */
+
+static void copie_vers_ipa(QSurfaceFormat const &qformat, struct QT_Surface_Format *format)
+{
+    format->alpha_buffer_size = qformat.alphaBufferSize();
+    format->blue_buffer_size = qformat.blueBufferSize();
+    format->depth_buffer_size = qformat.depthBufferSize();
+    format->green_buffer_size = qformat.greenBufferSize();
+    format->red_buffer_size = qformat.redBufferSize();
+    format->stencil_buffer_size = qformat.stencilBufferSize();
+
+    format->samples = qformat.samples();
+    format->swap_interval = qformat.swapInterval();
+    format->major_version = qformat.majorVersion();
+    format->minor_version = qformat.minorVersion();
+
+    format->options = int(qformat.options());
+    format->profile = int(qformat.profile());
+    format->renderable_type = int(qformat.renderableType());
+    format->swap_behavior = int(qformat.swapBehavior());
+}
+
+static void copie_vers_qt(struct QT_Surface_Format *format, QSurfaceFormat &qformat)
+{
+    qformat.setAlphaBufferSize(format->alpha_buffer_size);
+    qformat.setBlueBufferSize(format->blue_buffer_size);
+    qformat.setDepthBufferSize(format->depth_buffer_size);
+    qformat.setGreenBufferSize(format->green_buffer_size);
+    qformat.setRedBufferSize(format->red_buffer_size);
+    qformat.setStencilBufferSize(format->stencil_buffer_size);
+
+    qformat.setSamples(format->samples);
+    qformat.setSwapInterval(format->swap_interval);
+    qformat.setMajorVersion(format->major_version);
+    qformat.setMinorVersion(format->minor_version);
+
+    qformat.setOptions(QSurfaceFormat::FormatOptions(format->options));
+    qformat.setProfile(QSurfaceFormat::OpenGLContextProfile(format->profile));
+    qformat.setRenderableType(QSurfaceFormat::RenderableType(format->renderable_type));
+    qformat.setSwapBehavior(QSurfaceFormat::SwapBehavior(format->swap_behavior));
+}
+
+void QT_initialize_surface_format(struct QT_Surface_Format *format)
+{
+    QSurfaceFormat qformat;
+    copie_vers_ipa(qformat, format);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_OpenGL_Context
  * \{ */
 
@@ -1541,6 +1671,20 @@ void QT_OpenGL_detruit(QT_OpenGL_Context *context)
 {
     VERS_QT(context);
     delete qcontext;
+}
+
+void QT_OpenGL_Context_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    copie_vers_ipa(qcontext->format(), format);
+}
+
+void QT_OpenGL_Context_set_format(QT_OpenGL_Context *context, QT_Surface_Format *format)
+{
+    VERS_QT(context);
+    QSurfaceFormat surface_format;
+    copie_vers_qt(format, surface_format);
+    qcontext->setFormat(surface_format);
 }
 
 bool QT_OpenGL_Context_create(QT_OpenGL_Context *context)
@@ -1703,6 +1847,18 @@ QT_MouseButton QT_mouse_event_donne_bouton(QT_MouseEvent *event)
 {
     auto qevent = vers_qt(event);
     switch (qevent->button()) {
+        ENUMERE_BOUTON_SOURIS(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+        default:
+        {
+            return QT_MOUSEBUTTON_AUCUN;
+        }
+    }
+}
+
+QT_MouseButton QT_mouse_event_donne_boutons(QT_MouseEvent *event)
+{
+    auto qevent = vers_qt(event);
+    switch (qevent->buttons()) {
         ENUMERE_BOUTON_SOURIS(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
         default:
         {
@@ -3240,10 +3396,12 @@ QT_StandardButton QT_message_box_affiche_information(QT_Generic_Widget parent,
 /** \name QT_TreeWidgetItem
  * \{ */
 
-QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees, QT_TreeWidgetItem *parent)
+QT_TreeWidgetItem *QT_cree_treewidgetitem(void *donnees,
+                                          uint64_t taille_données,
+                                          QT_TreeWidgetItem *parent)
 {
     auto qparent = vers_qt(parent);
-    return vers_ipa(new TreeWidgetItem(donnees, qparent));
+    return vers_ipa(new TreeWidgetItem(donnees, taille_données, qparent));
 }
 
 void *QT_treewidgetitem_donne_donnees(QT_TreeWidgetItem *widget)
@@ -3301,6 +3459,12 @@ void QT_treewidgetitem_set_expanded(QT_TreeWidgetItem *widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
     qwidget->setExpanded(ouinon);
+}
+
+QT_TreeWidgetItem *QT_treewidgetitem_parent(QT_TreeWidgetItem *widget)
+{
+    VERS_QT(widget);
+    return vers_ipa(qwidget->parent());
 }
 
 /** \} */
@@ -4852,18 +5016,18 @@ int64_t QT_abstract_socket_write(QT_AbstractSocket socket, int8_t *donnees, int6
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name DNJ_Pilote_Clique
+/** \name DNJ_Pilote_Clic
  * \{ */
 
-DNJ_Pilote_Clique *DNJ_cree_pilote_clique(DNJ_Rappels_Pilote_Clique *rappels)
+DNJ_Pilote_Clic *DNJ_cree_pilote_clic(DNJ_Rappels_Pilote_Clic *rappels)
 {
-    auto résultat = new PiloteClique(rappels);
-    return reinterpret_cast<DNJ_Pilote_Clique *>(résultat);
+    auto résultat = new PiloteClic(rappels);
+    return reinterpret_cast<DNJ_Pilote_Clic *>(résultat);
 }
 
-void DNJ_detruit_pilote_clique(DNJ_Pilote_Clique *pilote)
+void DNJ_detruit_pilote_clic(DNJ_Pilote_Clic *pilote)
 {
-    auto qpilote = reinterpret_cast<PiloteClique *>(pilote);
+    auto qpilote = reinterpret_cast<PiloteClic *>(pilote);
     delete qpilote;
 }
 
@@ -4905,7 +5069,7 @@ void DNJ_conteneur_ajourne_controles(DNJ_Conteneur_Controles *conteneur)
 static danjo::DonneesInterface convertis_contexte(DNJ_Contexte_Interface *context)
 {
     auto résultat = danjo::DonneesInterface();
-    résultat.repondant_bouton = reinterpret_cast<PiloteClique *>(context->pilote_clique);
+    résultat.repondant_bouton = reinterpret_cast<PiloteClic *>(context->pilote_clic);
     résultat.conteneur = vers_qt(context->conteneur);
     résultat.parent_menu = vers_qt(context->parent_menu);
     résultat.parent_barre_outils = vers_qt(context->parent_barre_outils);
@@ -4977,7 +5141,7 @@ void DNJ_gestionnaire_recree_menu(DNJ_Gestionnaire_Interface *gestionnaire,
         donnée.attache = action.attache.vers_std_string();
         donnée.metadonnee = action.metadonnee.vers_std_string();
         donnée.nom = action.nom.vers_std_string();
-        donnée.repondant_bouton = reinterpret_cast<PiloteClique *>(action.pilote_clique);
+        donnée.repondant_bouton = reinterpret_cast<PiloteClic *>(action.pilote_clic);
 
         données_actions.ajoute(donnée);
     }
