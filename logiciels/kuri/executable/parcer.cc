@@ -787,7 +787,8 @@ static kuri::chaine converti_type(CXType const &type, dico_typedefs const &typed
     auto plg_type = dico_type.trouve(kind);
 
     if (!plg_type.est_finie()) {
-        return plg_type.front().second;
+        auto chaine_résultat = plg_type.front().second;
+        return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
     }
 
     auto type_fonction_opt = est_type_fonction(type);
@@ -841,7 +842,8 @@ static kuri::chaine converti_type(CXType const &type, dico_typedefs const &typed
             plg_type = dico_type.trouve(canonique.kind);
             if (!plg_type.est_finie()) {
                 if (typedefs.trouve(spelling) != typedefs.fin()) {
-                    return plg_type.front().second;
+                    auto chaine_résultat = plg_type.front().second;
+                    return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
                 }
             }
 

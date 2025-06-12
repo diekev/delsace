@@ -14,11 +14,10 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "biblinternes/langage/unicode.hh"
-
 #include "structures/chemin_systeme.hh"
 
 #include "utilitaires/chrono.hh"
+#include "utilitaires/unicode.hh"
 
 /**
  * Fonction de rappel pour les fils d'exécutions.
@@ -322,7 +321,7 @@ static int calcule_taille_utf8(kuri::chaine_statique chaine)
 {
     int résultat = 0;
     for (auto i = 0l; i < chaine.taille();) {
-        auto n = lng::nombre_octets(&chaine.pointeur()[i]);
+        auto n = unicode::nombre_octets(&chaine.pointeur()[i]);
         résultat += 1;
         i += n;
     }

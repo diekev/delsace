@@ -5,10 +5,11 @@
 
 #include "biblinternes/langage/nombres.hh"
 #include "biblinternes/langage/outils.hh"
-#include "biblinternes/langage/unicode.hh"
 
 #include <array>
 #include <cmath>
+
+#include "utilitaires/unicode.hh"
 
 #include "empreinte_parfaite.hh"
 #include "gerante_chaine.hh"
@@ -451,7 +452,7 @@ void Lexeuse::consomme_espaces_blanches()
             }
             default:
             {
-                auto rune = lng::converti_utf32(m_début, nombre_octet);
+                auto rune = unicode::converti_utf32(m_début, nombre_octet);
 
                 if (rune == 0) {
                     rapporte_erreur_caractère_unicode();
@@ -627,7 +628,7 @@ Lexème Lexeuse::donne_lexème_suivant()
         }
         default:
         {
-            auto rune = lng::converti_utf32(m_début, nombre_octet);
+            auto rune = unicode::converti_utf32(m_début, nombre_octet);
 
             if (rune == 0) {
                 rapporte_erreur_caractère_unicode();
@@ -701,7 +702,7 @@ Lexème Lexeuse::lèxe_chaine_littérale()
 
 Lexème Lexeuse::lèxe_chaine_littérale_guillemet()
 {
-    auto nombre_octet = lng::nombre_octets(m_début);
+    auto nombre_octet = unicode::nombre_octets(m_début);
     /* Saute le premier guillemet si nécessaire. */
     if ((m_drapeaux & INCLUS_GUILLEMETS) != 0) {
         this->enregistre_pos_mot();
@@ -720,8 +721,8 @@ Lexème Lexeuse::lèxe_chaine_littérale_guillemet()
     auto const ligne_début = m_compte_ligne;
 
     while (!this->fini()) {
-        nombre_octet = lng::nombre_octets(m_début);
-        auto c = lng::converti_utf32(m_début, nombre_octet);
+        nombre_octet = unicode::nombre_octets(m_début);
+        auto c = unicode::converti_utf32(m_début, nombre_octet);
 
         if (c == GUILLEMET_OUVRANT) {
             ++profondeur;
@@ -816,7 +817,7 @@ Lexème Lexeuse::lèxe_identifiant()
             continue;
         }
 
-        auto rune = lng::converti_utf32(m_début, nombre_octet);
+        auto rune = unicode::converti_utf32(m_début, nombre_octet);
 
         if (rune == 0) {
             rapporte_erreur_caractère_unicode();
@@ -1053,14 +1054,14 @@ Lexème Lexeuse::lèxe_nombre_décimal()
         auto c = this->caractère_courant();
         taille_texte += 1;
 
-        if (!lng::est_nombre_decimal(c)) {
+        if (!((c >= '0') && (c <= '9'))) {
             if (c == '_') {
                 this->avance_fixe<1>();
                 this->ajoute_caractère();
                 continue;
             }
 
-            if (lng::est_espace_blanc(c)) {
+            if (est_espace_blanche(c)) {
                 break;
             }
 
@@ -1469,7 +1470,7 @@ unsigned Lexeuse::lèxe_caractère_littéral(kuri::chaine *chaine)
         }
 
         unsigned char sequence[4];
-        auto n = lng::point_de_code_vers_utf8(v, sequence);
+        auto n = unicode::point_de_code_vers_utf8(v, sequence);
 
         if (n == 0) {
             rapporte_erreur(
@@ -1507,7 +1508,7 @@ unsigned Lexeuse::lèxe_caractère_littéral(kuri::chaine *chaine)
         }
 
         unsigned char sequence[4];
-        auto n = lng::point_de_code_vers_utf8(v, sequence);
+        auto n = unicode::point_de_code_vers_utf8(v, sequence);
 
         if (n == 0) {
             rapporte_erreur(

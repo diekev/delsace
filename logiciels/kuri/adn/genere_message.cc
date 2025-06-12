@@ -58,7 +58,7 @@ int main(int argc, const char **argv)
     auto texte = charge_contenu_fichier(chemin_adn_ipa);
 
     auto fichier = Fichier();
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = TamponSource(texte);
     fichier.chemin_ = chemin_adn_ipa;
 
     auto gérante_chaine = kuri::Synchrone<GeranteChaine>();

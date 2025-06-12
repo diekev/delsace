@@ -207,6 +207,33 @@ void Enchaineuse::réinitialise()
     tampon_courant = &m_tampon_base;
 }
 
+void Enchaineuse::imprime_caractère_vide(const int64_t nombre, kuri::chaine_statique chaine)
+{
+    for (auto i = int64_t(0); i < std::min(nombre, chaine.taille());) {
+        if (chaine[i] == '\t') {
+            this->ajoute_caractère('\t');
+        }
+        else {
+            this->ajoute_caractère(' ');
+        }
+
+        i += chaine.décalage_pour_caractère(i);
+    }
+}
+
+void Enchaineuse::imprime_tilde(kuri::chaine_statique chaine)
+{
+    imprime_tilde(chaine, 0, chaine.taille() - 1);
+}
+
+void Enchaineuse::imprime_tilde(kuri::chaine_statique chaine, int64_t début, int64_t fin)
+{
+    for (auto i = début; i < fin;) {
+        this->ajoute_caractère('~');
+        i += chaine.décalage_pour_caractère(i);
+    }
+}
+
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine_statique &chn)
 {
     enchaineuse.ajoute(chn.pointeur(), chn.taille());
@@ -216,12 +243,6 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine_statique &c
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const kuri::chaine &chn)
 {
     enchaineuse.ajoute(chn.pointeur(), chn.taille());
-    return enchaineuse;
-}
-
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn)
-{
-    enchaineuse.ajoute(chn.begin(), chn.taille());
     return enchaineuse;
 }
 

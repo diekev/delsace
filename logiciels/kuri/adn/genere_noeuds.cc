@@ -1682,7 +1682,7 @@ int main(int argc, char **argv)
     auto texte = charge_contenu_fichier(chemin_adn);
 
     auto fichier = Fichier();
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = TamponSource(texte);
     fichier.chemin_ = chemin_adn;
 
     auto gérante_chaine = kuri::Synchrone<GeranteChaine>();
