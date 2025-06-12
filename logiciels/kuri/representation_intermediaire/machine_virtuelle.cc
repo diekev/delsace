@@ -6,8 +6,6 @@
 #include <iostream>
 #include <x86intrin.h>
 
-#include "biblinternes/chrono/chronometrage.hh"
-
 #include "arbre_syntaxique/noeud_code.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
@@ -22,6 +20,7 @@
 #include "structures/table_hachage.hh"
 
 #include "utilitaires/calcul.hh"
+#include "utilitaires/chrono.hh"
 #include "utilitaires/log.hh"
 
 #include "impression.hh"
@@ -2282,7 +2281,7 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
 
     auto nombre_métaprogrammes = m_métaprogrammes.taille();
 
-    dls::chrono::compte_seconde chrono_exec;
+    kuri::chrono::compte_seconde chrono_exec;
 
     for (auto i = 0; i < nombre_métaprogrammes; ++i) {
         auto métaprogramme = m_métaprogrammes[i];

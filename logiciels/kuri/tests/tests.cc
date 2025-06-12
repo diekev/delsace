@@ -7,8 +7,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilation/compilatrice.hh"
@@ -19,6 +17,8 @@
 #include "parsage/modules.hh"
 
 #include "structures/chemin_systeme.hh"
+
+#include "utilitaires/chrono.hh"
 
 struct Test {
     const char *cas = "";
@@ -101,7 +101,7 @@ static Test tests_unitaires[] = {
     {"", "fichiers/test_appel_fonction_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
 };
 
-static erreur::Genre lance_test(lng::tampon_source &tampon)
+static erreur::Genre lance_test(TamponSource &tampon)
 {
     auto chemin_courant = kuri::chemin_systeme::chemin_courant();
     kuri::chemin_systeme::change_chemin_courant("/opt/bin/kuri/fichiers_tests/fichiers/");
@@ -125,15 +125,15 @@ static erreur::Genre lance_test(lng::tampon_source &tampon)
     return compilatrice.code_erreur();
 }
 
-static auto decoupe_tampon(lng::tampon_source const &tampon)
+static auto decoupe_tampon(TamponSource const &tampon)
 {
-    kuri::tableau<lng::tampon_source> résultat;
+    kuri::tableau<TamponSource> résultat;
 
     auto debut_cas = 0ul;
     auto fin_cas = 1ul;
 
     for (auto i = 0ul; i < tampon.nombre_lignes(); ++i) {
-        auto ligne = dls::chaine(tampon[static_cast<int64_t>(i)]);
+        auto ligne = tampon[static_cast<int64_t>(i)];
 
         if (ligne.sous_chaine(0, 8) == "// Cas :") {
             debut_cas = i + 1;
@@ -174,14 +174,14 @@ struct ResultatTest {
     erreur::Genre erreur_recue{};
 };
 
-static auto ecris_fichier_tmp(dls::chaine const &source, int index)
+static auto ecris_fichier_tmp(kuri::chaine_statique source, int index)
 {
     auto nom_fichier = enchaine("echec_test", index, ".kuri");
     auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 
     std::ofstream of;
     of.open(vers_std_path(chemin_fichier));
-    of.write(source.c_str(), source.taille());
+    of.write(source.pointeur(), source.taille());
 
     return chemin_fichier;
 }
@@ -199,7 +199,7 @@ int main()
         if (kuri::chemin_systeme::existe(chemin)) {
             auto compilatrice = Compilatrice("", {});
             auto contenu_fichier = charge_contenu_fichier({chemin.pointeur(), chemin.taille()});
-            auto tampon = lng::tampon_source(std::move(contenu_fichier));
+            auto tampon = TamponSource(std::move(contenu_fichier));
 
             if (tampon.nombre_lignes() == 0) {
                 // std::cerr << "Le fichier " << chemin << " est vide\n";
@@ -216,7 +216,7 @@ int main()
                     return static_cast<int>(res);
                 }
                 else if (pid > 0) {
-                    auto debut = dls::chrono::compte_seconde();
+                    auto debut = kuri::chrono::compte_seconde();
 
                     while (true) {
                         int status;

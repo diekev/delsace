@@ -53,14 +53,14 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 }
 
 void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache,
-                                    dls::outils::Synchrone<Messagère> &messagère)
+                                    kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] += 1;
     regresse_phase_pour_tache_ajoutee(genre_tache, messagère);
 }
 
 void EspaceDeTravail::tache_terminee(GenreTâche genre_tache,
-                                     dls::outils::Synchrone<Messagère> &messagère)
+                                     kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] -= 1;
     assert(nombre_de_tâches[size_t(genre_tache)] >= 0);
@@ -68,7 +68,7 @@ void EspaceDeTravail::tache_terminee(GenreTâche genre_tache,
 }
 
 void EspaceDeTravail::progresse_phase_pour_tache_terminee(
-    GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère)
+    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -132,7 +132,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
 }
 
 void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
-    GenreTâche genre_tache, dls::outils::Synchrone<Messagère> &messagère)
+    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -221,7 +221,7 @@ void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
     }
 }
 
-Message *EspaceDeTravail::change_de_phase(dls::outils::Synchrone<Messagère> &messagère,
+Message *EspaceDeTravail::change_de_phase(kuri::Synchrone<Messagère> &messagère,
                                           PhaseCompilation nouvelle_phase)
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
