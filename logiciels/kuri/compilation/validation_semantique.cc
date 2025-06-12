@@ -1839,7 +1839,7 @@ RésultatValidation Sémanticienne::valide_entête_fonction(NoeudDéclarationEnt
 
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             m_stats_typage.entêtes_fonctions.fusionne_entrée(ENTETE_FONCTION__TENTATIVES_RATEES,
                                                              {"", temps});
@@ -1900,7 +1900,7 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             m_stats_typage.entêtes_fonctions.fusionne_entrée({"tentatives râtées", temps});
         }
@@ -5922,7 +5922,7 @@ static bool est_appel_coroutine(const NoeudExpression *itérand)
  * - une instance de #TypageItérandeBouclePour remplis convenablement.
  */
 static RésultatTypeItérande détermine_typage_itérande(
-    const NoeudExpression *itéré, dls::outils::Synchrone<RegistreDesOpérateurs> &registre)
+    const NoeudExpression *itéré, kuri::Synchrone<RegistreDesOpérateurs> &registre)
 {
     auto type_variable_itérée = itéré->type;
     while (type_variable_itérée->est_type_opaque()) {
