@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "parsage/lexemes.hh"
@@ -14,6 +12,8 @@
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
+
+#include "utilitaires/synchrone.hh"
 
 #include "operateurs.hh"
 
@@ -194,7 +194,7 @@ struct Trie {
 // À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux
 // types
 struct Typeuse {
-    dls::outils::Synchrone<GrapheDépendance> &graphe_;
+    kuri::Synchrone<GrapheDépendance> &graphe_;
 
     // NOTE : nous synchronisons les tableaux individuellement et non la Typeuse
     // dans son entièreté afin que différents threads puissent accéder librement
@@ -265,7 +265,7 @@ struct Typeuse {
   public:
     // -------------------------
 
-    Typeuse(dls::outils::Synchrone<GrapheDépendance> &g);
+    Typeuse(kuri::Synchrone<GrapheDépendance> &g);
 
     Typeuse(Typeuse const &) = delete;
     Typeuse &operator=(Typeuse const &) = delete;

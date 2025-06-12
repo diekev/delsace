@@ -6,7 +6,25 @@
 #include <cstring>
 #include <iostream>
 
+#include "utilitaires/unicode.hh"
+
 namespace kuri {
+
+int64_t chaine_statique::décalage_pour_caractère(int64_t i) const
+{
+    auto résultat = int64_t(0);
+    auto n = unicode::nombre_octets(&pointeur_[i]);
+
+    while (n == 0 && i < taille()) {
+        ++résultat;
+        ++i;
+        n = unicode::nombre_octets(&pointeur_[i]);
+    }
+
+    résultat += n;
+
+    return résultat;
+}
 
 bool operator<(const chaine_statique &c1, const chaine_statique &c2)
 {

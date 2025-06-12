@@ -1,0 +1,95 @@
+importe Chaine
+importe Fondation
+importe FontConfig
+
+principale :: fonc ()
+{
+    nom := "sans-serif"
+
+    conf := FcInitLoadConfigAndFonts()
+    diffère FcConfigDestroy(conf)
+
+    pattern := FcPatternCreate()
+    diffère FcPatternDestroy(pattern)
+
+    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, nom.pointeur comme *FcChar8);
+
+    _ := FcConfigSubstitute(conf, pattern, FcMatchKind.FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    result: FcResult
+    match := FcFontMatch(conf, pattern, *result)
+    saufsi match {
+        imprimeln("Impossible de trouver une fonte pour '%'", nom)
+        exit(1)
+    }
+
+    value: FcValue;
+    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value)
+    si résultat == FcResult.FcResultMatch {
+        filepath := convertis_chaine_c(ChaineC(value.u.f comme *z8))
+        imprimeln("chemin : %", filepath)
+    }
+    sinon {
+        imprimeln("Impossible de déterminer le chemin : '%'", résultat)
+    }
+}
+
+/* https://www.camconn.cc/post/how-to-fontconfig-lib-c/ */
+test_fontconfig1 :: fonc ()
+{
+    nom := "Times New Roman"
+
+    conf := FcInitLoadConfigAndFonts()
+    pat := FcNameParse(nom.pointeur comme *FcChar8)
+    si pat == nul {
+        exit(2)
+    }
+
+    _ := FcConfigSubstitute(conf, pat, FcMatchKind.FcMatchPattern)
+    FcDefaultSubstitute(pat)
+
+    fs := FcFontSetCreate();
+    os := FcObjectSetBuild(FC_FAMILY.pointeur, FC_STYLE.pointeur, FC_FILE.pointeur, nul);
+
+    result: FcResult
+    font_patterns := FcFontSort(conf, pat, FcTrue, nul, *result);
+
+    si (!font_patterns || font_patterns.nfont == 0) {
+        imprimeln("Fontconfig could not find ANY fonts on the system ?");
+        exit(3)
+    }
+
+    font_pattern := FcFontRenderPrepare(conf, pat, font_patterns.fonts[0]);
+    saufsi font_pattern {
+        imprimeln("Could not prepare matched font for loading.");
+        exit(4)
+    }
+
+    _ := FcFontSetAdd(fs, font_pattern);
+
+    FcFontSetSortDestroy(font_patterns);
+    FcPatternDestroy(pat);
+
+    si fs {
+        si fs.nfont > 0 {
+            font := FcPatternFilter(fs.fonts[0], os);
+            diffère FcPatternDestroy(font);
+
+            v: FcValue;
+            _ := FcPatternGet(font, FC_FILE.pointeur, 0, *v);
+
+            filepath := convertis_chaine_c(ChaineC(v.u.f comme *z8))
+            imprimeln("path: %", filepath)
+        }
+
+        FcFontSetDestroy(fs);
+    }
+    sinon {
+        imprimeln("could not obtain fs");
+    }
+
+    si (os) {
+        FcObjectSetDestroy(os);
+    }
+}
