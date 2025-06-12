@@ -59,10 +59,6 @@ struct IdentifiantADN {
   public:
     IdentifiantADN() = default;
 
-    IdentifiantADN(dls::vue_chaine_compacte n) : m_nom(n)
-    {
-    }
-
     IdentifiantADN(kuri::chaine_statique n) : m_nom(n)
     {
     }
@@ -472,7 +468,7 @@ class ProtéineStruct final : public Protéine {
         return m_paire;
     }
 
-    void mute_nom_comme(dls::vue_chaine_compacte chaine)
+    void mute_nom_comme(kuri::chaine_statique chaine)
     {
         m_nom_comme = chaine;
 
@@ -481,17 +477,17 @@ class ProtéineStruct final : public Protéine {
         }
     }
 
-    void mute_genre_valeur(dls::vue_chaine_compacte chaine)
+    void mute_genre_valeur(kuri::chaine_statique chaine)
     {
         m_genre_valeur = chaine;
     }
 
-    void mute_nom_code(dls::vue_chaine_compacte chaine)
+    void mute_nom_code(kuri::chaine_statique chaine)
     {
         m_nom_code = chaine;
     }
 
-    void mute_nom_genre(dls::vue_chaine_compacte chaine)
+    void mute_nom_genre(kuri::chaine_statique chaine)
     {
         m_nom_genre = chaine;
 

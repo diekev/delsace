@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/chrono/outils.hh"
-
 #include "structures/chaine.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
+
+#include "utilitaires/chrono.hh"
 
 #include "lexemes.hh"
 
@@ -83,7 +83,7 @@ struct BaseSyntaxeuse {
     bool m_possède_erreur = false;
     char _pad[2];
 
-    dls::chrono::metre_seconde m_chrono_analyse{};
+    kuri::chrono::metre_seconde m_chrono_analyse{};
 
     kuri::tablet<DonneesEtatSyntaxage, 33> m_données_état_syntaxage{};
 
