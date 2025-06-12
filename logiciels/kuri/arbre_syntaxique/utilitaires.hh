@@ -227,6 +227,18 @@ enum class DrapeauxNoeudFonction : uint32_t {
 
     EST_MACRO = (1 << 24),
 
+    /* N'ajoute pas des vérifications sur les limites des tableaux.
+     * À FAIRE : macros. */
+    SANS_VLT = (1 << 25),
+
+    /* N'ajoute pas des vérifications sur les limites des chaines.
+     * À FAIRE : macros. */
+    SANS_VLC = (1 << 26),
+
+    /* N'ajoute pas des vérifications sur les rubriques des unions.
+     * À FAIRE : macros. */
+    SANS_VRU = (1 << 27),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
                        EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),
