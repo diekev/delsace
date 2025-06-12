@@ -28,6 +28,7 @@ set(SOURCES
     modules.cc
     outils_lexemes.cc
     site_source.cc
+    tampon_source.cc
 
     identifiant.def
 
@@ -40,6 +41,7 @@ set(SOURCES
     modules.hh
     outils_lexemes.hh
     site_source.hh
+    tampon_source.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")

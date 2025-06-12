@@ -2394,8 +2394,16 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     m_constructrice.insère_label(label4);
                 };
 
+            auto sans_vlt = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+                            m_fonction_courante->decl->possède_drapeau(
+                                DrapeauxNoeudFonction::SANS_VLT);
+
+            auto sans_vlc = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+                            m_fonction_courante->decl->possède_drapeau(
+                                DrapeauxNoeudFonction::SANS_VLC);
+
             if (type_gauche->est_type_tableau_fixe()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlt) {
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
                     auto acces_taille = m_constructrice.crée_z64(
                         static_cast<unsigned>(type_tableau_fixe->taille));
@@ -2411,7 +2419,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (type_gauche->est_type_tableau_dynamique() || type_gauche->est_type_variadique() ||
                 type_gauche->est_type_tranche()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlt) {
                     auto acces_taille = m_constructrice.crée_reference_membre_et_charge(
                         noeud, pointeur, 1);
                     genere_protection_limites(
@@ -2426,7 +2434,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             if (type_gauche->est_type_chaine()) {
-                if (noeud->aide_génération_code != IGNORE_VERIFICATION) {
+                if (!sans_vlc) {
                     auto acces_taille = m_constructrice.crée_reference_membre_et_charge(
                         noeud, pointeur, 1);
                     genere_protection_limites(
@@ -3296,7 +3304,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             if (!type_union->est_nonsure) {
-                if (transformation.type != TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION) {
+                auto sans_vru =
+                    transformation.type == TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION ||
+                    (m_fonction_courante->decl &&
+                     m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU));
+                if (!sans_vru) {
                     auto membre_actif = m_constructrice.crée_reference_membre_et_charge(
                         noeud, valeur, 1);
 
@@ -3849,7 +3861,9 @@ void CompilatriceRI::génère_ri_pour_accès_membre_union(NoeudExpressionMembre 
         return;
     }
 
-    if (!expression_gauche) {
+    auto sans_vru = m_fonction_courante->decl &&
+                    m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU);
+    if (!expression_gauche && !sans_vru) {
         // vérifie l'index du membre
         auto membre_actif = m_constructrice.crée_reference_membre_et_charge(noeud, ptr_union, 1);
 
