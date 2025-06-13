@@ -27,8 +27,6 @@ set(INCLUSIONS
 )
 
 set(BIBLIOTHEQUES
-    dls::memoire
-    dls::outils
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     kuri::utilitaires
 )
@@ -42,6 +40,7 @@ set(SOURCES
     ensemble.cc
     ensemblon.cc
     file.cc
+    format.cc
     intervalle.cc
     pile.cc
     pile_de_tableaux.cc
@@ -52,6 +51,7 @@ set(SOURCES
     tableau_compresse.cc
     tableau_page.cc
     tableau_statique.cc
+    tabuleuse.cc
     tranche.cc
     trie.cc
 
@@ -64,6 +64,7 @@ set(SOURCES
     ensemblon.hh
     file.hh
     file_fixe.hh
+    format.hh
     intervalle.hh
     pile.hh
     pile_de_tableaux.hh
@@ -74,6 +75,7 @@ set(SOURCES
     tableau_compresse.hh
     tableau_page.hh
     tableau_statique.hh
+    tabuleuse.hh
     tranche.hh
     trie.hh
 )

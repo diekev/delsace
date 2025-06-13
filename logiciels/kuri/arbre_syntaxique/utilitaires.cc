@@ -3,8 +3,6 @@
 
 #include "utilitaires.hh"
 
-#include "biblinternes/outils/assert.hh"
-
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
@@ -17,6 +15,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "assembleuse.hh"
 #include "canonicalisation.hh"

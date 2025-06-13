@@ -13,10 +13,6 @@ set(BIBLIOTHEQUES
     kuri_structures
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
     langage
-    dls::outils
-    dls::moultfilage
-    dls::structures
-    dls::memoire
 )
 
 set(SOURCES
