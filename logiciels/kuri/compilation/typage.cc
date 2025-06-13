@@ -3,9 +3,6 @@
 
 #include "typage.hh"
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include <algorithm>
 #include <iostream>
 
@@ -18,11 +15,14 @@
 
 #include "compilatrice.hh"
 #include "graphe_dependance.hh"
-#include "utilitaires/log.hh"
 
 #include "statistiques/statistiques.hh"
 
 #include "structures/pile.hh"
+
+#include "utilitaires/divers.hh"
+#include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ static DonneesTypeCommun donnees_types_communs[] = {
 
 static TypeCompose *crée_type_eini()
 {
-    auto type = memoire::loge<TypeCompose>("TypeCompose");
+    auto type = mémoire::loge<TypeCompose>("TypeCompose");
     type->ident = ID::eini;
     type->genre = GenreNoeud::EINI;
     type->taille_octet = 16;
@@ -105,7 +105,7 @@ static TypeCompose *crée_type_eini()
 
 static TypeCompose *crée_type_chaine()
 {
-    auto type = memoire::loge<TypeCompose>("TypeCompose");
+    auto type = mémoire::loge<TypeCompose>("TypeCompose");
     type->ident = ID::chaine;
     type->genre = GenreNoeud::CHAINE;
     type->taille_octet = 16;
@@ -115,7 +115,7 @@ static TypeCompose *crée_type_chaine()
 
 static Type *crée_type_entier(IdentifiantCode *ident, unsigned taille_octet, bool est_naturel)
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ident;
     type->genre = est_naturel ? GenreNoeud::ENTIER_NATUREL : GenreNoeud::ENTIER_RELATIF;
     type->taille_octet = taille_octet;
@@ -126,7 +126,7 @@ static Type *crée_type_entier(IdentifiantCode *ident, unsigned taille_octet, bo
 
 static Type *crée_type_entier_constant()
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ID::entier_constant;
     type->genre = GenreNoeud::ENTIER_CONSTANT;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -135,7 +135,7 @@ static Type *crée_type_entier_constant()
 
 static Type *crée_type_reel(IdentifiantCode *ident, unsigned taille_octet)
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ident;
     type->genre = GenreNoeud::RÉEL;
     type->taille_octet = taille_octet;
@@ -146,7 +146,7 @@ static Type *crée_type_reel(IdentifiantCode *ident, unsigned taille_octet)
 
 static Type *crée_type_rien()
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ID::rien;
     type->genre = GenreNoeud::RIEN;
     type->taille_octet = 0;
@@ -156,7 +156,7 @@ static Type *crée_type_rien()
 
 static Type *crée_type_bool()
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ID::bool_;
     type->genre = GenreNoeud::BOOL;
     type->taille_octet = 1;
@@ -167,7 +167,7 @@ static Type *crée_type_bool()
 
 static Type *crée_type_octet()
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ID::octet;
     type->genre = GenreNoeud::OCTET;
     type->taille_octet = 1;
@@ -178,7 +178,7 @@ static Type *crée_type_octet()
 
 static Type *crée_type_adresse_fonction()
 {
-    auto type = memoire::loge<Type>("Type");
+    auto type = mémoire::loge<Type>("Type");
     type->ident = ID::adresse_fonction;
     type->genre = GenreNoeud::TYPE_ADRESSE_FONCTION;
     type->taille_octet = 8;
@@ -426,7 +426,7 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
 
 Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 {
-    alloc = memoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
+    alloc = mémoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
 
     /* initialise les types communs */
 #define CREE_TYPE_SIMPLE(IDENT)                                                                   \
@@ -514,14 +514,14 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 Typeuse::~Typeuse()
 {
     for (auto ptr : *types_simples.verrou_ecriture()) {
-        memoire::deloge("Type", ptr);
+        mémoire::deloge("Type", ptr);
     }
 
     auto type_chaine = TypeBase::CHAINE->comme_type_composé();
-    memoire::deloge("TypeCompose", type_chaine);
+    mémoire::deloge("TypeCompose", type_chaine);
     auto type_eini = TypeBase::EINI->comme_type_composé();
-    memoire::deloge("TypeCompose", type_eini);
-    memoire::deloge("AllocatriceNoeud", alloc);
+    mémoire::deloge("TypeCompose", type_eini);
+    mémoire::deloge("AllocatriceNoeud", alloc);
 }
 
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
@@ -1796,18 +1796,18 @@ Type *type_déréférencé_pour(Type const *type)
 
 bool est_type_booléen_implicite(Type *type)
 {
-    return dls::outils::est_element(type->genre,
-                                    GenreNoeud::BOOL,
-                                    GenreNoeud::CHAINE,
-                                    GenreNoeud::EINI,
-                                    GenreNoeud::ENTIER_CONSTANT,
-                                    GenreNoeud::ENTIER_NATUREL,
-                                    GenreNoeud::ENTIER_RELATIF,
-                                    GenreNoeud::FONCTION,
-                                    GenreNoeud::TYPE_ADRESSE_FONCTION,
-                                    GenreNoeud::POINTEUR,
-                                    GenreNoeud::TABLEAU_DYNAMIQUE,
-                                    GenreNoeud::TYPE_TRANCHE);
+    return est_élément(type->genre,
+                       GenreNoeud::BOOL,
+                       GenreNoeud::CHAINE,
+                       GenreNoeud::EINI,
+                       GenreNoeud::ENTIER_CONSTANT,
+                       GenreNoeud::ENTIER_NATUREL,
+                       GenreNoeud::ENTIER_RELATIF,
+                       GenreNoeud::FONCTION,
+                       GenreNoeud::TYPE_ADRESSE_FONCTION,
+                       GenreNoeud::POINTEUR,
+                       GenreNoeud::TABLEAU_DYNAMIQUE,
+                       GenreNoeud::TYPE_TRANCHE);
 }
 
 static inline uint32_t marge_pour_alignement(const uint32_t alignement,
