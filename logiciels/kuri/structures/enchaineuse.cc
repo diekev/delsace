@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "utilitaires/logeuse_memoire.hh"
 
 Enchaineuse::Enchaineuse() : tampon_courant(&m_tampon_base)
 {
@@ -19,7 +19,7 @@ Enchaineuse::~Enchaineuse()
         auto tmp = tampon;
         tampon = tampon->suivant;
 
-        memoire::deloge("Tampon", tmp);
+        mémoire::deloge("Tampon", tmp);
     }
 }
 
@@ -98,7 +98,7 @@ void Enchaineuse::ajoute_tampon()
         return;
     }
 
-    auto tampon = memoire::loge<Tampon>("Tampon");
+    auto tampon = mémoire::loge<Tampon>("Tampon");
     tampon_courant->suivant = tampon;
     tampon_courant = tampon;
 }

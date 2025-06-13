@@ -77,10 +77,10 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagère(this),
-      gestionnaire_code(memoire::loge<GestionnaireCode>("GestionnaireCode", this)),
+      gestionnaire_code(mémoire::loge<GestionnaireCode>("GestionnaireCode", this)),
       gestionnaire_bibliothèques(GestionnaireBibliothèques(*this)), arguments(arguments_),
       racine_kuri(chemin_racine_kuri), typeuse(),
-      registre_ri(memoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
+      registre_ri(mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
 {
     racine_modules_kuri = racine_kuri / "modules";
 
@@ -117,7 +117,7 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
         module_kuri->importé = true;
     }
 
-    broyeuse = memoire::loge<Broyeuse>("Broyeuse");
+    broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
     m_date_début_compilation = hui_systeme();
 }
@@ -125,24 +125,24 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 Compilatrice::~Compilatrice()
 {
     POUR ((*espaces_de_travail.verrou_ecriture())) {
-        memoire::deloge("EspaceDeTravail", it);
+        mémoire::deloge("EspaceDeTravail", it);
     }
 
     POUR (m_états_libres) {
-        memoire::deloge("ÉtatRésolutionAppel", it);
+        mémoire::deloge("ÉtatRésolutionAppel", it);
     }
 
     POUR (m_sémanticiennes) {
-        memoire::deloge("Sémanticienne", it);
+        mémoire::deloge("Sémanticienne", it);
     }
 
     POUR (m_convertisseuses_noeud_code) {
-        memoire::deloge("ConvertisseuseNoeudCode", it);
+        mémoire::deloge("ConvertisseuseNoeudCode", it);
     }
 
-    memoire::deloge("Broyeuse", broyeuse);
-    memoire::deloge("RegistreSymboliqueRI", registre_ri);
-    memoire::deloge("GestionnaireCode", gestionnaire_code);
+    mémoire::deloge("Broyeuse", broyeuse);
+    mémoire::deloge("RegistreSymboliqueRI", registre_ri);
+    mémoire::deloge("GestionnaireCode", gestionnaire_code);
 }
 
 /* ************************************************************************** */
@@ -323,7 +323,7 @@ bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
 EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options,
                                                             kuri::chaine_statique nom)
 {
-    auto espace = memoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
+    auto espace = mémoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
     espaces_de_travail->ajoute(espace);
     gestionnaire_code->espace_créé(espace);
     return espace;
@@ -551,7 +551,7 @@ MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
         return résultat;
     }
 
-    return memoire::loge<ÉtatRésolutionAppel>("ÉtatRésolutionAppel");
+    return mémoire::loge<ÉtatRésolutionAppel>("ÉtatRésolutionAppel");
 }
 
 void Compilatrice::libère_état_résolution_appel(ÉtatRésolutionAppel *&état)
@@ -608,7 +608,7 @@ Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacher
         m_sémanticiennes.supprime_dernier();
     }
     else {
-        résultat = memoire::loge<Sémanticienne>("Sémanticienne", *this);
+        résultat = mémoire::loge<Sémanticienne>("Sémanticienne", *this);
     }
 
     résultat->réinitialise();
@@ -636,7 +636,7 @@ ConvertisseuseNoeudCode *Compilatrice::donne_convertisseuse_noeud_code_disponibl
         m_convertisseuses_noeud_code.supprime_dernier();
     }
     else {
-        résultat = memoire::loge<ConvertisseuseNoeudCode>("ConvertisseuseNoeudCode");
+        résultat = mémoire::loge<ConvertisseuseNoeudCode>("ConvertisseuseNoeudCode");
     }
 
     return résultat;

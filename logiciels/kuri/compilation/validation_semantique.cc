@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/canonicalisation.hh"
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -15,6 +13,7 @@
 
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
@@ -50,12 +49,12 @@ static bool est_expression_valide_pour_terminer_bloc_piège(NoeudExpression cons
         return false;
     }
 
-    if (dls::outils::est_element(expression->genre,
-                                 GenreNoeud::INSTRUCTION_RETOUR,
-                                 GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
-                                 GenreNoeud::INSTRUCTION_ARRÊTE,
-                                 GenreNoeud::INSTRUCTION_CONTINUE,
-                                 GenreNoeud::INSTRUCTION_REPRENDS)) {
+    if (est_élément(expression->genre,
+                    GenreNoeud::INSTRUCTION_RETOUR,
+                    GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE,
+                    GenreNoeud::INSTRUCTION_ARRÊTE,
+                    GenreNoeud::INSTRUCTION_CONTINUE,
+                    GenreNoeud::INSTRUCTION_REPRENDS)) {
         return true;
     }
 
@@ -79,7 +78,7 @@ Sémanticienne::Sémanticienne(Compilatrice &compilatrice) : m_compilatrice(comp
 Sémanticienne::~Sémanticienne()
 {
     POUR (m_arbres_aplatis) {
-        memoire::deloge("ArbreAplatis", it);
+        mémoire::deloge("ArbreAplatis", it);
     }
 }
 
@@ -1429,11 +1428,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_var);
             }
             else {
-                if (!dls::outils::est_element(type_expr->genre,
-                                              GenreNoeud::TABLEAU_FIXE,
-                                              GenreNoeud::TABLEAU_DYNAMIQUE,
-                                              GenreNoeud::TYPE_TRANCHE,
-                                              GenreNoeud::VARIADIQUE)) {
+                if (!est_élément(type_expr->genre,
+                                 GenreNoeud::TABLEAU_FIXE,
+                                 GenreNoeud::TABLEAU_DYNAMIQUE,
+                                 GenreNoeud::TYPE_TRANCHE,
+                                 GenreNoeud::VARIADIQUE)) {
                     m_espace
                         ->rapporte_erreur(
                             expr,
@@ -2159,10 +2158,10 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
 
 static bool est_point_entrée_sortie(const NoeudDéclarationEntêteFonction *decl)
 {
-    return dls::outils::est_element(decl->ident,
-                                    ID::__point_d_entree_systeme,
-                                    ID::__point_d_entree_dynamique,
-                                    ID::__point_de_sortie_dynamique);
+    return est_élément(decl->ident,
+                       ID::__point_d_entree_systeme,
+                       ID::__point_d_entree_dynamique,
+                       ID::__point_de_sortie_dynamique);
 }
 
 RésultatValidation Sémanticienne::valide_définition_unique_fonction(
@@ -5671,11 +5670,11 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
 
 static bool est_decalage_bits(GenreLexème genre)
 {
-    return dls::outils::est_element(genre,
-                                    GenreLexème::DECALAGE_DROITE,
-                                    GenreLexème::DECALAGE_GAUCHE,
-                                    GenreLexème::DEC_DROITE_EGAL,
-                                    GenreLexème::DEC_GAUCHE_EGAL);
+    return est_élément(genre,
+                       GenreLexème::DECALAGE_DROITE,
+                       GenreLexème::DECALAGE_GAUCHE,
+                       GenreLexème::DEC_DROITE_EGAL,
+                       GenreLexème::DEC_GAUCHE_EGAL);
 }
 
 RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudExpressionBinaire *expr)
@@ -6468,7 +6467,7 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 {
     ArbreAplatis *résultat;
     if (m_arbres_aplatis.est_vide()) {
-        résultat = memoire::loge<ArbreAplatis>("ArbreAplatis");
+        résultat = mémoire::loge<ArbreAplatis>("ArbreAplatis");
     }
     else {
         résultat = m_arbres_aplatis.dernier_élément();
