@@ -24,8 +24,6 @@
 
 #include "tampon_source.hh"
 
-#include "biblinternes/outils/definitions.h"
-
 #include <immintrin.h>
 #include <iostream>
 
@@ -63,8 +61,7 @@ TamponSource::TamponSource(const char *chaine) : m_tampon(chaine)
     construit_lignes();
 }
 
-TamponSource::TamponSource(kuri::chaine chaine) noexcept
-    : m_tampon(std::move(chaine))
+TamponSource::TamponSource(kuri::chaine chaine) noexcept : m_tampon(std::move(chaine))
 {
     construit_lignes();
 }
