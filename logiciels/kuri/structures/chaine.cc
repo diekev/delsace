@@ -13,9 +13,9 @@ namespace kuri {
 
 chaine::TypeIndex chaine::npos = -1;
 
-chaine::TypeIndex chaine::trouve(char caractère) const
+chaine::TypeIndex chaine::trouve(char caractère, TypeIndex pos) const
 {
-    for (TypeIndex i = 0; i < taille(); i++) {
+    for (TypeIndex i = pos; i < taille(); i++) {
         if (this->pointeur()[i] == caractère) {
             return i;
         }

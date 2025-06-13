@@ -185,6 +185,11 @@ struct chaine {
         return chaine_statique(this->pointeur() + index, this->taille() - index);
     }
 
+    chaine_statique sous_chaine(TypeIndex début, TypeIndex fin) const
+    {
+        return chaine_statique(this->pointeur() + début, fin - début);
+    }
+
     operator chaine_statique() const
     {
         return {pointeur(), taille()};
@@ -202,7 +207,7 @@ struct chaine {
         return taille() != 0;
     }
 
-    TypeIndex trouve(char caractère) const;
+    TypeIndex trouve(char caractère, TypeIndex pos = 0) const;
     TypeIndex trouve(kuri::chaine_statique motif) const;
 };
 

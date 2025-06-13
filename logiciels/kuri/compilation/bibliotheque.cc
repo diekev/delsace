@@ -809,7 +809,7 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
         return chemin_dynamique;
     }
 
-    auto chaine = dls::chaine();
+    auto chaine = kuri::chaine();
     chaine.redimensionne(taille);
     auto taille_lue = read(fd, &chaine[0], static_cast<size_t>(taille));
     if (taille_lue != taille) {
@@ -847,9 +847,8 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
         return chemin_dynamique;
     }
 
-    auto chemin_potentiel = chaine.sous_chaine(pos_premier_slash,
-                                               pos_premiere_espace - pos_premier_slash);
-    return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
+    auto chemin_potentiel = chaine.sous_chaine(pos_premier_slash, pos_premiere_espace);
+    return chemin_potentiel;
 }
 
 struct ResultatRechercheBibliothèque {
