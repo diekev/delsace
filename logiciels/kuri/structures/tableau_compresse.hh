@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
+#include "utilitaires/logeuse_memoire.hh"
 
 namespace kuri {
 
@@ -70,7 +70,7 @@ struct tableau_compresse {
                 m_pointeur = reinterpret_cast<T *>(POINTEUR_MORT);
             }
             else {
-                m_pointeur = memoire::loge_tableau<T>("tableau_compresse", m_capacite);
+                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacite);
 
                 for (auto i = 0; i < autre.m_taille; ++i) {
                     m_pointeur[i] = autre.m_pointeur[i];
@@ -165,7 +165,7 @@ struct tableau_compresse {
         else {
             if (!alloue()) {
                 m_capacite = std::max(static_cast<TypeIndex>(m_taille + 1), m_capacite);
-                m_pointeur = memoire::loge_tableau<T>("tableau_compresse", m_capacite);
+                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacite);
 
                 if (!std::is_trivially_constructible_v<T>) {
                     for (auto i = 0; i < m_taille; ++i) {
@@ -199,7 +199,7 @@ struct tableau_compresse {
                 return;
             }
 
-            memoire::reloge_tableau("tableau_compresse", m_pointeur, m_capacite, nombre);
+            mémoire::reloge_tableau("tableau_compresse", m_pointeur, m_capacite, nombre);
             m_capacite = nombre;
         }
     }
@@ -231,7 +231,7 @@ struct tableau_compresse {
     void supprime_données()
     {
         if (alloue()) {
-            memoire::deloge_tableau("tableau_compresse", m_pointeur, m_capacite);
+            mémoire::deloge_tableau("tableau_compresse", m_pointeur, m_capacite);
         }
 
         m_taille = 0;
