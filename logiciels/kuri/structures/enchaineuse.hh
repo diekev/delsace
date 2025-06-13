@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/structures/vue_chaine.hh"
+#include <sstream>
+
 #include "structures/chaine.hh"
 #include "structures/chaine_statique.hh"
 
@@ -193,10 +193,10 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
         return enchaineuse;
     }
 
-    dls::flux_chaine flux;
+    std::stringstream flux;
     flux << valeur;
 
-    auto const chn = flux.chn();
+    auto const chn = flux.str();
     enchaineuse.ajoute(chn.c_str(), static_cast<int64_t>(chn.size()));
     return enchaineuse;
 }
