@@ -560,7 +560,7 @@ MachineVirtuelle::~MachineVirtuelle()
     }
 
     POUR (m_données_exécution_libres) {
-        memoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
+        mémoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
     }
 }
 
@@ -2345,7 +2345,7 @@ DonnéesExécution *MachineVirtuelle::loge_données_exécution()
     }
 
     auto données = données_exécution.ajoute_élément();
-    données->pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
+    données->pile = mémoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
     données->pointeur_pile = données->pile;
     return données;
 }

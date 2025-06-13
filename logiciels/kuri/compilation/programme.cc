@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
@@ -26,6 +24,8 @@
 #include "ipa.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
+
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 
 /* ------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@
 
 Programme *Programme::crée(EspaceDeTravail *espace)
 {
-    Programme *résultat = memoire::loge<Programme>("Programme");
+    Programme *résultat = mémoire::loge<Programme>("Programme");
     résultat->m_espace = espace;
     return résultat;
 }
@@ -207,12 +207,10 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
         return false;
     }
 
-    using dls::outils::est_element;
-
     if (m_éléments_sont_sales[FONCTIONS][POUR_RI]) {
         POUR (m_fonctions.donne_éléments()) {
             if (!it->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE) &&
-                !est_element(it->ident,
+                !est_élément(it->ident,
                              ID::init_execution_kuri,
                              ID::fini_execution_kuri,
                              ID::init_globales_kuri)) {

@@ -5,16 +5,16 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
+
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 /*
   À FAIRE(gestion) : pour chaque type :
@@ -141,7 +141,7 @@ void ÉtatChargementFichiers::imprime_état() const
 
 GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
-      m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
+      m_assembleuse(mémoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
 {
 #ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
     mt = std::mt19937(1337);
@@ -150,7 +150,7 @@ GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
 
 GestionnaireCode::~GestionnaireCode()
 {
-    memoire::deloge("AssembleuseArbre", m_assembleuse);
+    mémoire::deloge("AssembleuseArbre", m_assembleuse);
 }
 
 void GestionnaireCode::espace_créé(EspaceDeTravail *espace)
@@ -1779,10 +1779,10 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 
         /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
          * attendre la génération de code final avant de générer la RI pour ces fonctions. */
-        if (dls::outils::est_element(entete->ident,
-                                     ID::init_execution_kuri,
-                                     ID::fini_execution_kuri,
-                                     ID::init_globales_kuri)) {
+        if (est_élément(entete->ident,
+                        ID::init_execution_kuri,
+                        ID::fini_execution_kuri,
+                        ID::init_globales_kuri)) {
             return false;
         }
 
