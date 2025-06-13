@@ -3,9 +3,6 @@
 
 #include "constructrice_ri.hh"
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -20,7 +17,9 @@
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
@@ -192,15 +191,15 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
  * \{ */
 
 RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
-    : broyeuse(memoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
-      m_constructrice(memoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
+    : broyeuse(mémoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
+      m_constructrice(mémoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
 {
 }
 
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
-    memoire::deloge("Broyeuse", broyeuse);
-    memoire::deloge("ConstructriceRI", m_constructrice);
+    mémoire::deloge("Broyeuse", broyeuse);
+    mémoire::deloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
@@ -896,12 +895,11 @@ InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression con
     }
 
     assert_rappel(
-        dls::outils::est_element(
-            type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
+        est_élément(type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
             (type_élément->est_type_opaque() &&
-             dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifié->genre,
-                                      GenreNoeud::POINTEUR,
-                                      GenreNoeud::TABLEAU_FIXE)),
+             est_élément(type_élément->comme_type_opaque()->type_opacifié->genre,
+                         GenreNoeud::POINTEUR,
+                         GenreNoeud::TABLEAU_FIXE)),
         [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_élément), false);
@@ -1354,7 +1352,7 @@ AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstant
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
     auto type_pointeur = accédé->type->comme_type_pointeur();
     assert_rappel(
-        dls::outils::est_element(
+        est_élément(
             type_pointeur->type_pointé->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
         [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointé) << "'"; });
 
