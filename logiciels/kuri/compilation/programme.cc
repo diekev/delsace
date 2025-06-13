@@ -34,7 +34,7 @@
 
 Programme *Programme::crée(EspaceDeTravail *espace)
 {
-    Programme *résultat = memoire::loge<Programme>("Programme");
+    Programme *résultat = mémoire::loge<Programme>("Programme");
     résultat->m_espace = espace;
     return résultat;
 }

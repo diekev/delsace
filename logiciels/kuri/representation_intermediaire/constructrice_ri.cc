@@ -191,15 +191,15 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
  * \{ */
 
 RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
-    : broyeuse(memoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
-      m_constructrice(memoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
+    : broyeuse(mémoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
+      m_constructrice(mémoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
 {
 }
 
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
-    memoire::deloge("Broyeuse", broyeuse);
-    memoire::deloge("ConstructriceRI", m_constructrice);
+    mémoire::deloge("Broyeuse", broyeuse);
+    mémoire::deloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)

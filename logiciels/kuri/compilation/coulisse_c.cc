@@ -997,12 +997,12 @@ static void déclare_visibilité_globale(Enchaineuse &os,
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
     : m_espace(espace), broyeuse(broyeuse_)
 {
-    m_convertisseuse_type_c = memoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
+    m_convertisseuse_type_c = mémoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
 }
 
 GénératriceCodeC::~GénératriceCodeC()
 {
-    memoire::deloge("Conver", m_convertisseuse_type_c);
+    mémoire::deloge("Conver", m_convertisseuse_type_c);
 }
 
 int64_t GénératriceCodeC::mémoire_utilisée() const

@@ -19,6 +19,7 @@ set(SOURCES
     enum_drapeau.cc
     garde_portee.cc
     log.cc
+    logeuse_memoire.cc
     macros.cc
     poule_de_taches.cc
     synchrone.cc
@@ -33,6 +34,7 @@ set(SOURCES
     enum_drapeau.hh
     garde_portee.hh
     log.hh
+    logeuse_memoire.hh
     macros.hh
     poule_de_taches.hh
     synchrone.hh

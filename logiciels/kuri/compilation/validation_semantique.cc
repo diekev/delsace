@@ -77,7 +77,7 @@ Sémanticienne::Sémanticienne(Compilatrice &compilatrice) : m_compilatrice(comp
 Sémanticienne::~Sémanticienne()
 {
     POUR (m_arbres_aplatis) {
-        memoire::deloge("ArbreAplatis", it);
+        mémoire::deloge("ArbreAplatis", it);
     }
 }
 
@@ -6466,7 +6466,7 @@ ArbreAplatis *Sémanticienne::donne_un_arbre_aplatis()
 {
     ArbreAplatis *résultat;
     if (m_arbres_aplatis.est_vide()) {
-        résultat = memoire::loge<ArbreAplatis>("ArbreAplatis");
+        résultat = mémoire::loge<ArbreAplatis>("ArbreAplatis");
     }
     else {
         résultat = m_arbres_aplatis.dernier_élément();

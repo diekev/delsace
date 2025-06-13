@@ -230,17 +230,17 @@ void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
 }
 
 Tacheronne::Tacheronne(Compilatrice &comp)
-    : compilatrice(comp), analyseuse_ri(memoire::loge<ContexteAnalyseRI>("ContexteAnalyseRI")),
-      assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud)),
+    : compilatrice(comp), analyseuse_ri(mémoire::loge<ContexteAnalyseRI>("ContexteAnalyseRI")),
+      assembleuse(mémoire::loge<AssembleuseArbre>("AssembleuseArbre", this->allocatrice_noeud)),
       id(compilatrice.ordonnanceuse->enregistre_tacheronne({}))
 {
 }
 
 Tacheronne::~Tacheronne()
 {
-    memoire::deloge("MachineVirtuelle", mv);
-    memoire::deloge("AssembleuseArbre", assembleuse);
-    memoire::deloge("ContexteAnalyseRI", analyseuse_ri);
+    mémoire::deloge("MachineVirtuelle", mv);
+    mémoire::deloge("AssembleuseArbre", assembleuse);
+    mémoire::deloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
 bool Tacheronne::gère_tâche()
@@ -561,7 +561,7 @@ void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
 void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
 {
     if (!mv) {
-        mv = memoire::loge<MachineVirtuelle>("MachineVirtuelle", compilatrice);
+        mv = mémoire::loge<MachineVirtuelle>("MachineVirtuelle", compilatrice);
     }
 
     auto metaprogramme = unite->metaprogramme;

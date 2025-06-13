@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
 #include "biblinternes/systeme_fichier/shared_library.h"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -24,6 +23,7 @@
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
+#include "utilitaires/logeuse_memoire.hh"
 #include "utilitaires/macros.hh"
 
 #include "impression.hh"
@@ -103,7 +103,7 @@ void Chunk::initialise()
 
 void Chunk::détruit()
 {
-    memoire::deloge_tableau("Chunk::code", code, capacité);
+    mémoire::deloge_tableau("Chunk::code", code, capacité);
     initialise();
 }
 
@@ -113,7 +113,7 @@ void Chunk::rétrécis_capacité_sur_taille()
         return;
     }
 
-    memoire::reloge_tableau("Chunk::code", code, capacité, compte);
+    mémoire::reloge_tableau("Chunk::code", code, capacité, compte);
     capacité = compte;
 }
 
@@ -141,7 +141,7 @@ void Chunk::agrandis_si_nécessaire(int64_t taille)
         if (nouvelle_capacité < capacité * 2) {
             nouvelle_capacité = capacité * 2;
         }
-        memoire::reloge_tableau("Chunk::code", code, capacité, nouvelle_capacité);
+        mémoire::reloge_tableau("Chunk::code", code, capacité, nouvelle_capacité);
         capacité = nouvelle_capacité;
     }
 }
@@ -1296,7 +1296,7 @@ bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inte
             continue;
         }
 
-        it->données_exécution = memoire::loge<DonnéesExécutionFonction>(
+        it->données_exécution = mémoire::loge<DonnéesExécutionFonction>(
             "DonnéesExécutionFonction");
         m_atome_fonction_courante = it;
         fonction_courante = it->decl;

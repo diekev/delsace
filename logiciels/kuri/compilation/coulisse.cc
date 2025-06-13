@@ -67,19 +67,19 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
     switch (options.coulisse) {
         case TypeCoulisse::C:
         {
-            return memoire::loge<CoulisseC>("CoulisseC");
+            return mémoire::loge<CoulisseC>("CoulisseC");
         }
         case TypeCoulisse::LLVM:
         {
 #ifdef AVEC_COULISSE_LLVM
-            return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+            return mémoire::loge<CoulisseLLVM>("CoulisseLLVM");
 #else
             return nullptr;
 #endif
         }
         case TypeCoulisse::ASM:
         {
-            return memoire::loge<CoulisseASM>("CoulisseASM");
+            return mémoire::loge<CoulisseASM>("CoulisseASM");
         }
     }
 
@@ -89,31 +89,31 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
 
 Coulisse *Coulisse::crée_pour_metaprogramme()
 {
-    return memoire::loge<CoulisseMV>("CoulisseMV");
+    return mémoire::loge<CoulisseMV>("CoulisseMV");
 }
 
 void Coulisse::détruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
         auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
+        mémoire::deloge("CoulisseC", c);
         coulisse = nullptr;
     }
 #ifdef AVEC_COULISSE_LLVM
     else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
+        mémoire::deloge("CoulisseLLVM", c);
         coulisse = nullptr;
     }
 #endif
     else if (dynamic_cast<CoulisseASM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
+        mémoire::deloge("CoulisseASM", c);
         coulisse = nullptr;
     }
     else if (dynamic_cast<CoulisseMV *>(coulisse)) {
         auto c = dynamic_cast<CoulisseMV *>(coulisse);
-        memoire::deloge("CoulisseMV", c);
+        mémoire::deloge("CoulisseMV", c);
         coulisse = nullptr;
     }
 }

@@ -50,7 +50,7 @@ void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde débu
         mémoire_suivie += it.quantité;
     }
 
-    auto mémoire_consommee = memoire::consommee();
+    auto mémoire_consommee = mémoire::consommee();
 
     auto const nombre_lignes = stats.stats_fichiers.totaux.nombre_lignes;
     auto const lignes_double = static_cast<double>(nombre_lignes);
@@ -101,7 +101,7 @@ void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde débu
     }
 
     tableau.ajoute_ligne(
-        {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
+        {"Nombre allocations", formatte_nombre(mémoire::nombre_allocations()), ""});
     tableau.ajoute_ligne(
         {"Nombre métaprogrammes", formatte_nombre(stats.nombre_métaprogrammes_exécutés), ""});
     tableau.ajoute_ligne(

@@ -141,7 +141,7 @@ void ÉtatChargementFichiers::imprime_état() const
 
 GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
     : m_compilatrice(compilatrice),
-      m_assembleuse(memoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
+      m_assembleuse(mémoire::loge<AssembleuseArbre>("AssembleuseArbre", allocatrice_noeud))
 {
 #ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
     mt = std::mt19937(1337);
@@ -150,7 +150,7 @@ GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
 
 GestionnaireCode::~GestionnaireCode()
 {
-    memoire::deloge("AssembleuseArbre", m_assembleuse);
+    mémoire::deloge("AssembleuseArbre", m_assembleuse);
 }
 
 void GestionnaireCode::espace_créé(EspaceDeTravail *espace)

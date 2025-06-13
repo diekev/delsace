@@ -30,12 +30,12 @@ std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
 
 AtomeConstanteStructure::~AtomeConstanteStructure()
 {
-    memoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
+    mémoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
 }
 
 AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 {
-    memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
+    mémoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
 }
 
 Type const *AtomeConstanteType::donne_type() const
@@ -79,7 +79,7 @@ PartageMémoire AtomeGlobale::donne_partage_mémoire() const
 AtomeFonction::~AtomeFonction()
 {
     /* À FAIRE : stocke ça quelque part dans un tableau_page. */
-    memoire::deloge("DonnéesExécutionFonction", données_exécution);
+    mémoire::deloge("DonnéesExécutionFonction", données_exécution);
 }
 
 Instruction *AtomeFonction::dernière_instruction() const
