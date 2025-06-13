@@ -40,7 +40,7 @@ int64_t AllocatriceInfosType::memoire_utilisee() const
 template <typename T>
 kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &tableau)
 {
-    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto pointeur = mémoire::loge_tableau<T>("tranche", tableau.taille());
     auto résultat = kuri::tranche(pointeur, tableau.taille());
 
     POUR (tableau) {
@@ -54,7 +54,7 @@ kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &t
 template <typename T>
 kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tableau<T> const &tableau)
 {
-    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto pointeur = mémoire::loge_tableau<T>("tranche", tableau.taille());
     auto résultat = kuri::tranche(pointeur, tableau.taille());
 
     POUR (tableau) {
