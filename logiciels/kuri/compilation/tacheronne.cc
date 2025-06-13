@@ -622,9 +622,9 @@ void Tacheronne::exécute_métaprogrammes()
                                             "Le corps-texte a retourné une chaine vide");
                 }
 
-                auto tampon = dls::chaine(résultat.pointeur(), résultat.taille());
+                auto tampon = kuri::chaine(résultat.pointeur(), résultat.taille());
 
-                if (*tampon.fin() != '\n') {
+                if (*tampon.end() != '\n') {
                     tampon.ajoute('\n');
                 }
 
@@ -632,7 +632,7 @@ void Tacheronne::exécute_métaprogrammes()
                 auto fichier = it->fichier;
                 assert(it->fichier);
 
-                fichier->charge_tampon(TamponSource(tampon.c_str()));
+                fichier->charge_tampon(TamponSource(tampon));
 
                 fichier->décalage_fichier = compilatrice.chaines_ajoutées_à_la_compilation->ajoute(
                     résultat);
