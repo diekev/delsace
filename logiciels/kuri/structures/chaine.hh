@@ -202,6 +202,7 @@ struct chaine {
         return taille() != 0;
     }
 
+    TypeIndex trouve(char caractère) const;
     TypeIndex trouve(kuri::chaine_statique motif) const;
 };
 

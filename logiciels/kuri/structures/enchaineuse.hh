@@ -20,6 +20,8 @@ struct Enchaineuse {
         Tampon *suivant = nullptr;
     };
 
+    bool format_réel_court = false;
+
     Tampon m_tampon_base{};
     Tampon *tampon_courant = nullptr;
 
@@ -181,8 +183,14 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 
     if constexpr (std::is_floating_point_v<T>) {
         char tampon[128];
-        auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
-        enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        if (enchaineuse.format_réel_court) {
+            auto const n = snprintf(tampon, 128, "%.3f", double(valeur));
+            enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        }
+        else {
+            auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
+            enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        }
         return enchaineuse;
     }
 
