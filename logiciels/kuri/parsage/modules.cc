@@ -5,13 +5,12 @@
 
 #include <fstream>
 
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
 #include "statistiques/statistiques.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 
 #include "lexeuse.hh"
@@ -338,7 +337,7 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
     enchaineuse << " : " << message << "\n";
 
-    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numéro_ligne); ++i) {
+    for (auto i = 0; i < 5 - nombre_de_chiffres(numéro_ligne); ++i) {
         enchaineuse << ' ';
     }
 

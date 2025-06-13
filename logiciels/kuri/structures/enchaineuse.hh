@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/outils/numerique.hh"
 #include "biblinternes/structures/flux_chaine.hh"
 #include "biblinternes/structures/vue_chaine.hh"
 #include "structures/chaine.hh"

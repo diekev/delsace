@@ -7,8 +7,6 @@
 #include <iostream>
 #include <set>
 
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
@@ -16,6 +14,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/poule_de_taches.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -2490,8 +2489,8 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
                 os << "\n";
             }
             os << "0x";
-            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-            os << dls::num::char_depuis_hex(octet & 0x0f);
+            os << char_depuis_hex((octet & 0xf0) >> 4);
+            os << char_depuis_hex(octet & 0x0f);
             virgule = ", ";
         }
 
