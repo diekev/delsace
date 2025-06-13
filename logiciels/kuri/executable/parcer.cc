@@ -29,7 +29,6 @@
 #include <clang-c/Index.h>
 
 #include "biblinternes/json/json.hh"
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
@@ -41,7 +40,7 @@
 #include "structures/pile.hh"
 #include "structures/tableau.hh"
 
-using dls::outils::est_element;
+#include "utilitaires/divers.hh"
 
 /* À FAIRE :
  * - 'auto'
@@ -930,7 +929,7 @@ void imprime_asa(CXCursor c, int tab, std::ostream &os)
 
 static inline const clang::Stmt *getCursorStmt(CXCursor c)
 {
-    auto est_stmt = !est_element(
+    auto est_stmt = !est_élément(
         c.kind, CXCursor_ObjCSuperClassRef, CXCursor_ObjCProtocolRef, CXCursor_ObjCClassRef);
 
     return est_stmt ? static_cast<const clang::Stmt *>(c.data[1]) : nullptr;
@@ -1858,7 +1857,7 @@ struct Convertisseuse {
                 auto debut = true;
 
                 for (auto enfant : enfants) {
-                    auto besoin_nouvelle_ligne = est_element(enfant.kind,
+                    auto besoin_nouvelle_ligne = est_élément(enfant.kind,
                                                              CXCursorKind::CXCursor_IfStmt,
                                                              CXCursorKind::CXCursor_WhileStmt,
                                                              CXCursorKind::CXCursor_ForStmt,

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/systeme_fichier/shared_library.h"
-
 #include "parsage/identifiant.hh"
 
 #include "structures/chaine.hh"
@@ -171,6 +169,31 @@ struct CheminsBibliothèque {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name BibliothèqueExécutable
+ * Représente une bibliothèque partagée (.so sur Linux, .dll sur Windows) qui
+ * sera utilisée lors de l'exécution dans la machine virtuelle.
+ * \{ */
+
+class BibliothèqueExécutable {
+    void *m_handle = nullptr;
+
+  public:
+    BibliothèqueExécutable() = default;
+
+    explicit BibliothèqueExécutable(kuri::chaine_statique chemin);
+
+    ~BibliothèqueExécutable() noexcept;
+
+    COPIE_CONSTRUCT(BibliothèqueExécutable);
+
+    explicit operator bool() const noexcept;
+
+    void *operator()(kuri::chaine_statique symbol_name);
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Bibliothèque
  * Représente une bibliothèque logiciel qui sera potentiellement liée au
  * résultat d'exécution, ou ouverte pour l'exécution des métaprogrammes.
@@ -184,7 +207,7 @@ struct Bibliothèque {
     kuri::chaine_statique nom = "";
 
     NoeudExpression *site = nullptr;
-    dls::systeme_fichier::shared_library bib{};
+    BibliothèqueExécutable bib{};
 
     ÉtatRechercheBibliothèque état_recherche = ÉtatRechercheBibliothèque::NON_RECHERCHÉE;
 

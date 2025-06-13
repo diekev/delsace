@@ -37,7 +37,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    memoire::deloge("Programme", programme);
+    mémoire::deloge("Programme", programme);
 }
 
 int64_t EspaceDeTravail::memoire_utilisee() const

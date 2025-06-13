@@ -621,7 +621,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     tacheronnes.réserve(nombre_tacheronnes);
 
     for (auto i = 0u; i < nombre_tacheronnes; ++i) {
-        tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+        tacheronnes.ajoute(mémoire::loge<Tacheronne>("Tacheronne", compilatrice));
     }
 
     // pour le moment, une seule tacheronne peut exécuter du code
@@ -644,12 +644,12 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         threads.réserve(nombre_tacheronnes);
 
         POUR (tacheronnes) {
-            threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+            threads.ajoute(mémoire::loge<std::thread>("std::thread", lance_tacheronne, it));
         }
 
         POUR (threads) {
             it->join();
-            memoire::deloge("std::thread", it);
+            mémoire::deloge("std::thread", it);
         }
     }
     else {
@@ -685,7 +685,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     info() << "Nettoyage...";
 
     POUR (tacheronnes) {
-        memoire::deloge("Tacheronne", it);
+        mémoire::deloge("Tacheronne", it);
     }
 
     return true;

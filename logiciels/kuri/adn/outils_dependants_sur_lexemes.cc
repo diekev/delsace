@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/langage/erreur.hh"
-
 #include "parsage/modules.hh"
 #include "parsage/site_source.hh"
 

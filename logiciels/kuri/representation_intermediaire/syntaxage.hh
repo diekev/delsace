@@ -6,8 +6,6 @@
 #include <optional>
 #include <variant>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/assembleuse.hh"
 
 #include "compilation/operateurs.hh"
@@ -18,6 +16,7 @@
 
 #include "structures/tablet.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 
 #include "constructrice_ri.hh"
@@ -448,7 +447,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_opaque()
 
 static bool est_instruction(Lexème const *lexème)
 {
-    if (dls::outils::est_element(
+    if (est_élément(
             lexème->ident, ID::si, ID::appel, ID::retourne, ID::branche, ID::label, ID::stocke)) {
         return true;
     }

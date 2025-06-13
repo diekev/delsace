@@ -62,7 +62,7 @@ struct tableau_page {
                 it.données[i].~T();
             }
 
-            memoire::deloge_tableau("page", it.données, TAILLE_PAGE);
+            mémoire::deloge_tableau("page", it.données, TAILLE_PAGE);
         }
     }
 
@@ -154,7 +154,7 @@ struct tableau_page {
     void ajoute_page()
     {
         auto p = page();
-        p.données = memoire::loge_tableau<T>("page", TAILLE_PAGE);
+        p.données = mémoire::loge_tableau<T>("page", TAILLE_PAGE);
         m_pages.ajoute(p);
 
         m_page_courante = &m_pages.dernier_élément();

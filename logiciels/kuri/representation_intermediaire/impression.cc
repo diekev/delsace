@@ -11,6 +11,8 @@
 
 #include "instructions.hh"
 
+#include "utilitaires/divers.hh"
+
 static void imprime_information_atome(Atome const *atome, Enchaineuse &os)
 {
     os << atome->genre_atome;
@@ -206,8 +208,8 @@ static void imprime_atome_ex(Atome const *atome,
                 auto octet = it;
                 os << virgule;
                 os << "0x";
-                os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                os << dls::num::char_depuis_hex(octet & 0x0f);
+                os << char_depuis_hex((octet & 0xf0) >> 4);
+                os << char_depuis_hex(octet & 0x0f);
                 virgule = ", ";
             }
 

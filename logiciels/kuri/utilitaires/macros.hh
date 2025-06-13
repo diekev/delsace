@@ -113,3 +113,21 @@
     if (auto index_it = -1)                                                                       \
         for (auto &it : (variable))                                                               \
             if (++index_it, true)
+
+void imprime_message_assert(const char *fichier,
+                            int ligne,
+                            const char *fonction,
+                            const char *texte_ligne);
+
+#ifndef NDEBUG
+#    define assert_rappel(condition, rappel)                                                      \
+        do {                                                                                      \
+            if (!(condition)) {                                                                   \
+                imprime_message_assert(__FILE__, __LINE__, __func__, #condition);                 \
+                rappel();                                                                         \
+                abort();                                                                          \
+            }                                                                                     \
+        } while (0)
+#else
+#    define assert_rappel(condition, rappel)
+#endif

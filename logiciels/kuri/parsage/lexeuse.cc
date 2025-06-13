@@ -3,9 +3,6 @@
 
 #include "lexeuse.hh"
 
-#include "biblinternes/langage/nombres.hh"
-#include "biblinternes/langage/outils.hh"
-
 #include <array>
 #include <cmath>
 

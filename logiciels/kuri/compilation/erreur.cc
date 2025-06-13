@@ -6,10 +6,6 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "biblinternes/langage/erreur.hh"
-#include "biblinternes/outils/chaine.hh"
-#include "biblinternes/outils/numerique.hh"
-
 #include "arbre_syntaxique/etendue_code_source.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 

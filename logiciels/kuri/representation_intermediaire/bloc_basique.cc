@@ -257,7 +257,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
         blocs_libres.supprime_dernier();
     }
     else {
-        bloc = memoire::loge<Bloc>("Bloc");
+        bloc = mémoire::loge<Bloc>("Bloc");
     }
 
     bloc->label = label;
@@ -269,7 +269,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
-        memoire::deloge("Bloc", it);
+        mémoire::deloge("Bloc", it);
     }
     blocs.efface();
 }

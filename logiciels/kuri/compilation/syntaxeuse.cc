@@ -6,9 +6,6 @@
 #include <array>
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 #include "parsage/site_source.hh"
@@ -24,8 +21,10 @@
 #include "typage.hh"
 #include "validation_semantique.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 enum {
     OPÉRATEUR_EST_SURCHARGEABLE = (1 << 0),
@@ -3096,11 +3095,11 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         else if (genre_opérateur == GenreLexème::MOINS) {
             lexème->genre = GenreLexème::MOINS_UNAIRE;
         }
-        else if (!dls::outils::est_element(genre_opérateur,
-                                           GenreLexème::TILDE,
-                                           GenreLexème::PLUS_UNAIRE,
-                                           GenreLexème::MOINS_UNAIRE,
-                                           GenreLexème::POUR)) {
+        else if (!est_élément(genre_opérateur,
+                              GenreLexème::TILDE,
+                              GenreLexème::PLUS_UNAIRE,
+                              GenreLexème::MOINS_UNAIRE,
+                              GenreLexème::POUR)) {
             rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
                             "pour '+', '-', '~', ou 'pour'");
             return nullptr;
