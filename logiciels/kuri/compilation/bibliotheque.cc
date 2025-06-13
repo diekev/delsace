@@ -3,6 +3,7 @@
 
 #include "bibliotheque.hh"
 
+#include <dlfcn.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 #include "espace_de_travail.hh"
 
 #include "utilitaires/garde_portee.hh"
+#include "utilitaires/log.hh"
 
 /* ************************************************************************** */
 
@@ -163,18 +165,8 @@ bool Symbole::charge(EspaceDeTravail *espace,
         }
     }
 
-    try {
-        auto ptr_symbole = bibliothèque->bib(dls::chaine(nom.pointeur(), nom.taille()));
-        if (type == TypeSymbole::FONCTION) {
-            this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
-                ptr_symbole.ptr());
-        }
-        else {
-            this->adresse_liaison.objet = ptr_symbole.ptr();
-        }
-        état_recherche = ÉtatRechercheSymbole::TROUVÉ;
-    }
-    catch (...) {
+    auto ptr_symbole = bibliothèque->bib(nom);
+    if (ptr_symbole == nullptr) {
         espace->rapporte_erreur(site, "Impossible de trouver un symbole !")
             .ajoute_message("La bibliothèque « ",
                             bibliothèque->ident->nom,
@@ -185,6 +177,14 @@ bool Symbole::charge(EspaceDeTravail *espace,
         return false;
     }
 
+    if (type == TypeSymbole::FONCTION) {
+        this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
+            ptr_symbole);
+    }
+    else {
+        this->adresse_liaison.objet = ptr_symbole;
+    }
+    état_recherche = ÉtatRechercheSymbole::TROUVÉ;
     return true;
 }
 
@@ -308,6 +308,48 @@ int64_t CheminsBibliothèque::mémoire_utilisée() const
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name BibliothèqueExécutable
+ * Représente une bibliothèque partagée (.so sur Linux, .dll sur Windows) qui
+ * sera utilisée lors de l'exécution dans la machine virtuelle.
+ * \{ */
+
+BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
+{
+    auto std_chemin = vers_std_path(chemin);
+    m_handle = dlopen(std_chemin.c_str(), RTLD_LAZY);
+}
+
+BibliothèqueExécutable::~BibliothèqueExécutable() noexcept
+{
+    if (m_handle) {
+        dlclose(m_handle);
+    }
+}
+
+BibliothèqueExécutable::operator bool() const noexcept
+{
+    return m_handle != nullptr;
+}
+
+void *BibliothèqueExécutable::operator()(kuri::chaine_statique symbol)
+{
+    /* Vide les erreurs. */
+    dlerror();
+
+    auto symbol_c = std::string(symbol.pointeur(), size_t(symbol.taille()));
+    const auto sym = dlsym(m_handle, symbol_c.c_str());
+
+    auto const err = dlerror();
+    if (err) {
+        dbg() << err;
+    }
+
+    return sym;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Bibliothèque
  * \{ */
 
@@ -341,26 +383,15 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return false;
     }
 
-    try {
-        this->bib = dls::systeme_fichier::shared_library(
-            dls::chaine(chemin_dynamique.pointeur(), chemin_dynamique.taille()).c_str());
-        état_recherche = ÉtatRechercheBibliothèque::TROUVÉE;
-    }
-    catch (std::filesystem::filesystem_error const &e) {
-        espace
-            ->rapporte_erreur(site,
-                              enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"))
-            .ajoute_message("Message d'erreur : ", e.what());
-        état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
-        return false;
-    }
-    catch (...) {
+    this->bib = BibliothèqueExécutable(chemin_dynamique);
+    if (!this->bib) {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
         état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
         return false;
     }
 
+    état_recherche = ÉtatRechercheBibliothèque::TROUVÉE;
     return true;
 }
 

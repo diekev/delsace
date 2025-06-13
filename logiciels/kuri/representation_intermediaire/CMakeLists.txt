@@ -16,7 +16,6 @@ set(BIBLIOTHEQUES
     kuri_compilation
     kuri_statistiques
     kuri::utilitaires
-    systeme_fichier
     ${BIBLIOTHEQUES_LIBFFI}
     ${BIBLIOTHEQUE_DL}
 )

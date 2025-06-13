@@ -6,8 +6,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "biblinternes/systeme_fichier/shared_library.h"
-
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
