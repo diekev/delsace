@@ -5,9 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/enchaineuse.hh"
 
 #include "parsage/identifiant.hh"
@@ -17,7 +14,10 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "typage.hh"
+
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 #include "utilitaires/unicode.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
@@ -44,9 +44,9 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
                 for (int i = 0; i < no; ++i) {
                     enchaineuse.ajoute_caractère('x');
                     enchaineuse.ajoute_caractère(
-                        dls::num::char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
+                        char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
                     enchaineuse.ajoute_caractère(
-                        dls::num::char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
+                        char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
                 }
 
                 break;

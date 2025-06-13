@@ -1283,8 +1283,8 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 #if 0
             auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
             auto decl_fonc = static_cast<NoeudDéclarationCorpsFonction const *>(expr_appel->noeud_fonction_appelée);
-            auto nom_etat = "__etat" + dls::vers_chaine(enfant2);
-            auto nom_type_coro = "__etat_coro" + decl_fonc->nom_broye;
+            auto nom_etat = enchaine("__etat", enfant2);
+            auto nom_type_coro = enchaine("__etat_coro", decl_fonc->nom_broye);
 
             constructrice << nom_type_coro << " " << nom_etat << " = {\n";
             constructrice << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
@@ -1327,7 +1327,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             if (b->aide_génération_code == GENERE_BOUCLE_COROUTINE_INDEX) {
                 idx = feuilles.back();
-                nom_idx = "__idx" + dls::vers_chaine(b);
+                nom_idx = enchaine("__idx", b);
                 constructrice << "int " << nom_idx << " = 0;";
             }
 
