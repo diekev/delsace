@@ -7,9 +7,6 @@
 #include <iostream>
 #include <set>
 
-#include "biblinternes/outils/conditions.h"
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
@@ -17,6 +14,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/poule_de_taches.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -1107,12 +1105,12 @@ static void déclare_visibilité_globale(Enchaineuse &os,
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
     : m_espace(espace), broyeuse(broyeuse_)
 {
-    m_convertisseuse_type_c = memoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
+    m_convertisseuse_type_c = mémoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
 }
 
 GénératriceCodeC::~GénératriceCodeC()
 {
-    memoire::deloge("Conver", m_convertisseuse_type_c);
+    mémoire::deloge("Conver", m_convertisseuse_type_c);
 }
 
 int64_t GénératriceCodeC::mémoire_utilisée() const
@@ -2680,8 +2678,8 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
                 os << "\n";
             }
             os << "0x";
-            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-            os << dls::num::char_depuis_hex(octet & 0x0f);
+            os << char_depuis_hex((octet & 0xf0) >> 4);
+            os << char_depuis_hex(octet & 0x0f);
             virgule = ", ";
         }
 

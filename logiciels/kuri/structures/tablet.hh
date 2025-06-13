@@ -540,10 +540,10 @@ class tablet {
         auto nouvelle_capacité = cap * 2;
 
         if (m_mémoire != m_tablet) {
-            memoire::reloge_tableau("tablet", m_mémoire, m_alloué, nouvelle_capacité);
+            mémoire::reloge_tableau("tablet", m_mémoire, m_alloué, nouvelle_capacité);
         }
         else {
-            m_mémoire = memoire::loge_tableau<T>("tablet", nouvelle_capacité);
+            m_mémoire = mémoire::loge_tableau<T>("tablet", nouvelle_capacité);
 
             for (int i = 0; i < nouvelle_capacité; ++i) {
                 new (&m_mémoire[i]) T();
@@ -571,7 +571,7 @@ class tablet {
     void supprime_données()
     {
         if (m_mémoire != m_tablet) {
-            memoire::deloge_tableau("tablet", m_mémoire, m_alloué);
+            mémoire::deloge_tableau("tablet", m_mémoire, m_alloué);
             m_mémoire = m_tablet;
             m_alloué = TAILLE_INITIALE;
         }
