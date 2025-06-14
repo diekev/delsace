@@ -3,11 +3,10 @@
 
 #pragma once
 
-#include "biblinternes/structures/tuples.hh"
-
 #include "arbre_syntaxique/expression.hh"
 
 #include "structures/tableau.hh"
+#include "structures/tuples.hh"
 
 #include "utilitaires/synchrone.hh"
 
@@ -73,7 +72,7 @@ std::ostream &operator<<(std::ostream &os, const ItemMonomorphisation &item);
 struct Monomorphisations {
   protected:
     using tableau_items = kuri::tableau<ItemMonomorphisation, int>;
-    kuri::tableau_synchrone<dls::paire<tableau_items, NoeudExpression *>> monomorphisations{};
+    kuri::tableau_synchrone<kuri::paire<tableau_items, NoeudExpression *>> monomorphisations{};
 
   public:
     void ajoute(tableau_items const &items, NoeudExpression *noeud);
