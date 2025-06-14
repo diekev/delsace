@@ -5,7 +5,6 @@
 set(INCLUSIONS
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/../
-    ${INCLUSIONS_DELSACE_CHRONO}
 )
 
 ################################################################################
@@ -16,9 +15,6 @@ set(BIBLIOTHEQUES
     kuri_compilation
     kuri_parsage
     kuri_representation_intermediaire
-    ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    dls::outils
-    systeme_fichier
 )
 
 add_executable(kuri
@@ -59,7 +55,7 @@ add_executable(kuri_remplace
 
 target_include_directories(kuri_remplace PUBLIC "${INCLUSIONS}")
 
-target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}" bib_json)
+target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}" bib_json dls::outils)
 
 install(
     TARGETS kuri_remplace RUNTIME DESTINATION ${RACINE_INSTALLATION}
