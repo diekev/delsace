@@ -32,6 +32,8 @@
 /** \name Programme.
  * \{ */
 
+#include "plateforme/windows.h"
+
 Programme *Programme::crée(EspaceDeTravail *espace)
 {
     Programme *résultat = mémoire::loge<Programme>("Programme");
