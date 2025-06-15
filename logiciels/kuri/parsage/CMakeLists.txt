@@ -12,7 +12,6 @@ set(BIBLIOTHEQUES
     kuri_statistiques
     kuri_structures
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    langage
 )
 
 set(SOURCES
