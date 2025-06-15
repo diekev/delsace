@@ -26,6 +26,8 @@
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
+#include "plateforme/windows.h"
+
 enum {
     OPÉRATEUR_EST_SURCHARGEABLE = (1 << 0),
     EST_EXPRESSION = (1 << 1),

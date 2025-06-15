@@ -371,13 +371,19 @@ set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
 
 # ------------------------------------------------------------------------------
 
+if(UNIX AND NOT APPLE)
+    include(platform_unix)
+elseif(WIN32)
+    include(platform_win32)
+endif()
+
+# ------------------------------------------------------------------------------
+
 macro(installe_dans_module_kuri __nom_archive__ __nom_dossier__)
     install(TARGETS ${__nom_archive__} DESTINATION kuri/modules/${__nom_dossier__}/lib/x86_64-linux-gnu/)
 endmacro(installe_dans_module_kuri)
 
 # ------------------------------------------------------------------------------
-
-include(platform_unix)
 
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)

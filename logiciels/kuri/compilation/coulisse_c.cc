@@ -122,6 +122,42 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(A
     return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, index);
 }
 
+static bool est_nan(float v)
+{
+#ifdef _MSC_VER
+    return isnan(v);
+#else
+    return isnanf(v);
+#endif
+}
+
+static bool est_nan(double v)
+{
+#ifdef _MSC_VER
+    return isnan(v);
+#else
+    return isnanl(v);
+#endif
+}
+
+static bool est_infini(float v)
+{
+#ifdef _MSC_VER
+    return isinf(v);
+#else
+    return isinff(v);
+#endif
+}
+
+static bool est_infini(double v)
+{
+#ifdef _MSC_VER
+    return isinf(v);
+#else
+    return isinfl(v);
+#endif
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1199,11 +1235,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (type->taille_octet == 4) {
                 auto valeur = static_cast<float>(constante_réelle->valeur);
 
-                if (isnanf(valeur)) {
+                if (est_nan(valeur)) {
                     return "__builtin_nanf(\"\")";
                 }
 
-                if (isinff(valeur)) {
+                if (est_infini(valeur)) {
                     if (valeur < 0.0f) {
                         return "-__builtin_inff()";
                     }
@@ -1213,11 +1249,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 return enchaine(constante_réelle->valeur, "f");
             }
 
-            if (isnanl(constante_réelle->valeur)) {
+            if (est_nan(constante_réelle->valeur)) {
                 return "__builtin_nanl(\"\")";
             }
 
-            if (isinfl(constante_réelle->valeur)) {
+            if (est_infini(constante_réelle->valeur)) {
                 if (constante_réelle->valeur < 0.0) {
                     return "-__builtin_infl()";
                 }

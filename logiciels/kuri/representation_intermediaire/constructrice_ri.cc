@@ -25,6 +25,8 @@
 #include "impression.hh"
 #include "optimisations.hh"
 
+#include "plateforme/windows.h"
+
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
  */

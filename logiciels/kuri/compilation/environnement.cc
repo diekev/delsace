@@ -16,6 +16,7 @@
 #include "options.hh"
 #include "utilitaires/log.hh"
 
+#ifndef _MSC_VER
 /* Pour Linux, nous préfixons avec "lib", sauf si nous avons un chemin. */
 static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_base,
                                                     bool utilise_préfixe)
@@ -32,10 +33,15 @@ static kuri::chaine_statique préfixe_lib_pour_linux(kuri::chaine_statique nom_b
 
     return "lib";
 }
+#endif
 
 kuri::chaine nom_fichier_objet_pour(kuri::chaine_statique nom_base)
 {
+#ifdef _MSC_VER
+    return enchaine(nom_base, ".obj");
+#else
     return enchaine(nom_base, ".o");
+#endif
 }
 
 kuri::chemin_systeme chemin_fichier_objet_temporaire_pour(kuri::chaine_statique nom_base)
@@ -45,8 +51,12 @@ kuri::chemin_systeme chemin_fichier_objet_temporaire_pour(kuri::chaine_statique 
 
 kuri::chaine nom_bibliothèque_dynamique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe)
 {
+#ifdef _MSC_VER
+    return enchaine(nom_base, ".dll");
+#else
     auto préfixe = préfixe_lib_pour_linux(nom_base, utilise_préfixe);
     return enchaine(préfixe, nom_base, ".so");
+#endif
 }
 
 kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine_statique nom_base,
@@ -58,8 +68,12 @@ kuri::chemin_systeme chemin_bibliothèque_dynamique_temporaire_pour(kuri::chaine
 
 kuri::chaine nom_bibliothèque_statique_pour(kuri::chaine_statique nom_base, bool utilise_préfixe)
 {
+#ifdef _MSC_VER
+    return enchaine(nom_base, ".lib");
+#else
     auto préfixe = préfixe_lib_pour_linux(nom_base, utilise_préfixe);
     return enchaine(préfixe, nom_base, ".a");
+#endif
 }
 
 kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_statique nom_base,
@@ -71,11 +85,24 @@ kuri::chemin_systeme chemin_bibliothèque_statique_temporaire_pour(kuri::chaine_
 
 kuri::chaine nom_executable_pour(kuri::chaine_statique nom_base)
 {
+#ifdef _MSC_VER
+    if (nom_base == "") {
+        /* Utilise "a.exe", en référence au "a.out" de Unix.
+         * À FAIRE : utilise du nom du fichier principal. */
+        return "a.exe";
+    }
+
+    auto chemin = kuri::chemin_systeme(nom_base);
+    /* Garantis que le nom de fichier possède l'extension ".exe". */
+    chemin = chemin.remplace_extension(".exe");
+    return kuri::chaine(chemin);
+#else
     if (nom_base == "") {
         /* Utilise "a.out" par convention. */
         return "a.out";
     }
     return nom_base;
+#endif
 }
 
 kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom_base)
@@ -85,10 +112,17 @@ kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom
 
 kuri::chemin_systeme suffixe_chemin_module_pour_bibliothèque(ArchitectureCible architecture_cible)
 {
+#ifdef _MSC_VER
+    const kuri::chaine_statique suffixes[2] = {
+        "lib/i386-windows",
+        "lib/x86_64-windows",
+    };
+#else
     const kuri::chaine_statique suffixes[2] = {
         "lib/i386-linux-gnu",
         "lib/x86_64-linux-gnu",
     };
+#endif
 
     return suffixes[static_cast<int>(architecture_cible)];
 }
@@ -171,12 +205,20 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
 
 static kuri::chaine_statique donne_compilateur_c()
 {
+#ifdef _MSC_VER
+    return "cl";
+#else
     return COMPILATEUR_C_COULISSE_C;
+#endif
 }
 
 static kuri::chaine_statique donne_compilateur_cpp()
 {
+#ifdef _MSC_VER
+    return "cl";
+#else
     return COMPILATEUR_CXX_COULISSE_C;
+#endif
 }
 
 /* Pour les options d'avertissements et d'erreurs de GCC, voir :
@@ -186,6 +228,9 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
 {
     TableauOptions résultat;
 
+#ifdef _MSC_VER
+    résultat.ajoute("/c");
+#else
     résultat.ajoute("-c");
 
     if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE ||
@@ -248,6 +293,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     if (options.architecture == ArchitectureCible::X86) {
         résultat.ajoute("-m32");
     }
+#endif
 
     return résultat;
 }
@@ -257,6 +303,7 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
 {
     TableauOptions résultat;
 
+#ifndef _MSC_VER
     if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         résultat.ajoute("-shared");
         résultat.ajoute("-fPIC");
@@ -281,6 +328,7 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
     if (options.architecture == ArchitectureCible::X86) {
         résultat.ajoute("-m32");
     }
+#endif
 
     return résultat;
 }
@@ -299,7 +347,12 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
         enchaineuse << it << " ";
     }
 
+#ifdef _MSC_VER
+    /* NOTE : le nom de sortie doit être collé à "/Fo" */
+    enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << fichier_sortie;
+#else
     enchaineuse << "\"" << fichier_entrée << "\" -o \"" << fichier_sortie << "\"";
+#endif
 
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
@@ -444,6 +497,10 @@ static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique 
     Enchaineuse enchaineuse;
     enchaineuse << donne_compilateur_cpp();
 
+#ifdef _MSC_VER
+    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entrée << "\""
+                << " /link /DLL /OUT:" << nom_sortie;
+#else
     enchaineuse << " -shared -fPIC ";
 
     if (architecture_cible == ArchitectureCible::X86) {
@@ -453,6 +510,7 @@ static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique 
     enchaineuse << nom_entrée;
     enchaineuse << " -o ";
     enchaineuse << nom_sortie;
+#endif
 
     /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
     enchaineuse << '\0';

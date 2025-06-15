@@ -166,4 +166,8 @@ bool operator<(chemin_systeme const &chemin_a, chemin_systeme const &chemin_b);
 
 std::ostream &operator<<(std::ostream &os, chemin_systeme const &chemin);
 
+#ifdef _MSC_VER
+std::string vers_utf8(const std::wstring &wstr);
+#endif
+
 }  // namespace kuri

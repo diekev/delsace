@@ -17,6 +17,8 @@
 
 #include "operateurs.hh"
 
+#include "plateforme/windows.h"
+
 struct AllocatriceNoeud;
 struct Compilatrice;
 struct GrapheDépendance;

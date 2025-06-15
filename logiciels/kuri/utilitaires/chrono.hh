@@ -6,8 +6,17 @@
 #include <assert.h>
 #include <cstdint>
 #include <functional>
-#include <sys/time.h>
-#include <unistd.h>
+
+#ifdef _MSC_VER
+#    define NOMINMAX
+#    include <chrono>
+#    include <thread>
+#    include <windows.h>
+#    include <profileapi.h>
+#else
+#    include <sys/time.h>
+#    include <unistd.h>
+#endif
 
 namespace kuri {
 namespace chrono {
@@ -26,10 +35,17 @@ struct compte_temps {
      */
     [[nodiscard]] inline double maintenant() const noexcept
     {
+#ifdef _MSC_VER
+        LARGE_INTEGER fq, t;
+        QueryPerformanceFrequency(&fq);
+        QueryPerformanceCounter(&t);
+        return static_cast<double>(1000000 * t.QuadPart) / static_cast<double>(fq.QuadPart);
+#else
         struct timeval now;
         gettimeofday(&now, nullptr);
 
         return static_cast<double>(now.tv_sec) * 1000000.0 + static_cast<double>(now.tv_usec);
+#endif
     }
 
     /**
@@ -134,8 +150,11 @@ using metre_seconde = metre<1000000>;
 
 inline void dors_microsecondes(int microsecondes)
 {
-    assert(microsecondes >= 0);
+#ifdef _MSC_VER
+    std::this_thread::sleep_for(std::chrono::microseconds(microsecondes));
+#else
     usleep(static_cast<unsigned>(microsecondes));
+#endif
 }
 
 }  // namespace chrono

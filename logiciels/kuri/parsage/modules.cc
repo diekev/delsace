@@ -400,7 +400,7 @@ kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin)
 {
     auto chemin_std = vers_std_path(chemin);
     std::ifstream fichier;
-    fichier.open(chemin_std.c_str());
+    fichier.open(chemin_std.c_str(), std::ios::in | std::ios::binary);
 
     if (!fichier.is_open()) {
         return "";
