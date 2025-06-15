@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/outils/badge.hh"
-
 #include "arbre_syntaxique/allocatrice.hh"
 
 #include "structures/file.hh"
+
+#include "utilitaires/badge.hh"
 
 #include "broyage.hh"
 #include "statistiques/statistiques.hh"
