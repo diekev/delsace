@@ -4,7 +4,9 @@
 #pragma once
 
 #include <functional>
+#ifndef _MSC_VER
 #include <sys/wait.h>
+#endif
 #include <thread>
 
 #include "structures/tableau.hh"
@@ -53,7 +55,9 @@ struct PouleDeTâchesEnSérie final : public PouleDeTâches {
 
 struct PouleDeTâchesSousProcessus final : public PouleDeTâches {
   private:
+#ifndef _MSC_VER
     kuri::tablet<pid_t, 16> m_enfants;
+#endif
 
   public:
     void ajoute_tâche(std::function<void()> &&tâche) override;
