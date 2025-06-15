@@ -3,20 +3,56 @@
 
 #include "chemin_systeme.hh"
 
+#ifdef _MSC_VER
+#    include <windows.h>
+#endif
+
 #include "utilitaires/log.hh"
 
 namespace kuri {
 
+#ifdef _MSC_VER
+/* https://stackoverflow.com/questions/6693010/how-do-i-use-multibytetowidechar */
+std::string vers_utf8(const std::wstring &wstr)
+{
+    auto const count = WideCharToMultiByte(
+        CP_UTF8, 0, wstr.c_str(), static_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
+    std::string str(count, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], count, nullptr, nullptr);
+    return str;
+}
+
+static std::wstring vers_utf16(const std::string &str)
+{
+    auto const count = MultiByteToWideChar(
+        CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), nullptr, 0);
+    std::wstring wstr(count, 0);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), static_cast<int>(str.length()), &wstr[0], count);
+    return wstr;
+}
+#endif
+
 std::filesystem::path vers_std_path(chaine_statique chn)
 {
     std::string std_string(chn.pointeur(), size_t(chn.taille()));
+#ifdef _MSC_VER
+    /* Convertis vers UTF-16. */
+    auto std_wstring = vers_utf16(std_string);
+    auto std_path = std::filesystem::path(std_wstring);
+#else
     auto std_path = std::filesystem::path(std_string);
+#endif
     return std_path.make_preferred();
 }
 
 static chaine chaine_depuis_std_path(std::filesystem::path const &std_path)
 {
+#ifdef _MSC_VER
+    /* Convertis vers UTF-8. */
+    auto string = vers_utf8(std_path.wstring());
+#else
     auto string = std_path.string();
+#endif
     return {string.c_str(), int64_t(string.size())};
 }
 
@@ -28,7 +64,11 @@ static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)
 /* Retourne le caractère utilisé par préférence pour le système. */
 static char séparateur_préféré()
 {
+#ifdef _MSC_VER
+    return '\\';
+#else
     return '/';
+#endif
 }
 
 static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char motif)

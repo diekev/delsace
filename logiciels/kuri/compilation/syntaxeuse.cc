@@ -26,6 +26,8 @@
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
+#include "plateforme/windows.h"
+
 #define DEDUPLIQUE_NOEUDS
 
 /* ------------------------------------------------------------------------- */
