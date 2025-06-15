@@ -27,16 +27,18 @@ set(INCLUSIONS
 
 set(BIBLIOTHEQUES kuri_compilation)
 
-set(SOURCES tests.cc)
+if(UNIX)
+    set(SOURCES tests.cc)
 
-add_executable(test_kuri ${SOURCES})
+    add_executable(test_kuri ${SOURCES})
 
-target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
-target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
+    target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
+    target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
 
-add_test(NAME tests_unitaires COMMAND test_kuri)
+    add_test(NAME tests_unitaires COMMAND test_kuri)
 
-install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
+    install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
+endif()
 
 ###############################################################
 
