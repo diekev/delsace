@@ -43,8 +43,8 @@ set(BIBLIOTHEQUES
     kuri_representation_intermediaire
     kuri_statistiques
     kuri_structures
+    kuri::r16
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    nombre_decimaux
 )
 
 set(SOURCES
