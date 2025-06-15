@@ -18,6 +18,8 @@
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
+#include "plateforme/windows.h"
+
 static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexème genre_lexeme,
                                                             IndiceTypeOp type_opérandes)
 {
