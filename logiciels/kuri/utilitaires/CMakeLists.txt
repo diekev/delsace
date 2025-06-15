@@ -27,6 +27,7 @@ set(SOURCES
     unicode.cc
 
     algorithmes.hh
+    badge.hh
     calcul.hh
     chrono.hh
     compteuse_cas.hh

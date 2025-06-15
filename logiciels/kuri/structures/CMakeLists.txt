@@ -78,6 +78,7 @@ set(SOURCES
     tabuleuse.hh
     tranche.hh
     trie.hh
+    tuples.hh
 )
 
 add_library(${NOM_CIBLE} STATIC "${SOURCES}")
