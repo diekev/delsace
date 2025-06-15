@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2018 Kévin Dietrich. */
 
-#include "test_decoupage.h"
-
 #include <fstream>
+#include <iostream>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -168,7 +167,7 @@ enum {
 };
 
 struct ResultatTest {
-    dls::chaine fichier_origine{};
+    kuri::chaine fichier_origine{};
     kuri::chemin_systeme chemin_fichier{};
     int raison_echec{};
     erreur::Genre erreur_attendue{};
