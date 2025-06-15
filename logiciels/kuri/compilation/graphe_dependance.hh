@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "biblinternes/outils/badge.hh"
-
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
 #include "structures/tableau_page.hh"
+
+#include "utilitaires/badge.hh"
 
 struct AtomeFonction;
 struct EspaceDeTravail;

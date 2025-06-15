@@ -10,11 +10,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "biblinternes/nombre_decimaux/r16_c.h"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/lexeuse.hh"
+
+#include "r16/r16_c.h"
 
 #include "statistiques/statistiques.hh"
 
