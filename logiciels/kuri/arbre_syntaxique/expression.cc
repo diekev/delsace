@@ -14,6 +14,8 @@
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont
  * toujours sur les lexèmes */
 
+#include "plateforme/windows.h"
+
 /* ************************************************************************** */
 
 template <typename T>
