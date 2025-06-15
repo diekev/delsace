@@ -15,6 +15,8 @@
  * Structures utilisées pour passer les informations des types au métaprogrammes.
  */
 
+#include "plateforme/windows.h"
+
 enum class GenreInfoType : int32_t {
     ENTIER = 0,
     RÉEL = 1,
