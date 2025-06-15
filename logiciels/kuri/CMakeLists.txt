@@ -3,7 +3,6 @@
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_MODULES_C "Active la génération des modules implémentés en C" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
@@ -110,7 +109,7 @@ add_subdirectory(structures)
 add_subdirectory(tests)
 add_subdirectory(utilitaires)
 
-if(AVEC_MODULES_C)
+if(AVEC_MODULES_C_KURI)
     add_subdirectory(modules_c/Aléa)
     add_subdirectory(modules_c/Compression)
     add_subdirectory(modules_c/Exétron)

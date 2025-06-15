@@ -60,9 +60,6 @@ set(BIBLIOTHEQUES
     kuri_outils_dependants_sur_lexemes_adn
     kuri_parsage
     kuri_structures
-    bib_structures
-    bib_moultfilage
-    langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_ipa.cc)
@@ -83,9 +80,6 @@ set(BIBLIOTHEQUES
     kuri_outils_dependants_sur_lexemes_adn
     kuri_parsage
     kuri_structures
-    bib_structures
-    bib_moultfilage
-    langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_options.cc)
@@ -105,9 +99,6 @@ set(BIBLIOTHEQUES
     kuri_outils_dependants_sur_lexemes_adn
     kuri_parsage
     kuri_structures
-    bib_structures
-    bib_moultfilage
-    langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_message.cc)
@@ -127,9 +118,6 @@ set(BIBLIOTHEQUES
     kuri_outils_dependants_sur_lexemes_adn
     kuri_parsage
     kuri_structures
-    bib_structures
-    bib_moultfilage
-    langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_noeuds.cc)
@@ -149,9 +137,6 @@ set(BIBLIOTHEQUES
     kuri_outils_dependants_sur_lexemes_adn
     kuri_parsage
     kuri_structures
-    bib_structures
-    bib_moultfilage
-    langage
 )
 
 add_executable(${NOM_EXECUTABLE} genere_intrinseques.cc)
