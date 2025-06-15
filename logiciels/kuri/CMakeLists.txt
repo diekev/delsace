@@ -11,7 +11,7 @@ option(AVEC_COULISSE_LLVM "Active la coulisse LLVM" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
-find_program(CHEMIN_GPERF NAMES gperf REQUIRED)
+find_program(CHEMIN_GPERF NAMES gperf PATH_SUFFIXES GPerf GPerf/bin REQUIRED)
 add_definitions(-DCHEMIN_GPERF="${CHEMIN_GPERF}")
 
 if(AVEC_LLVM)
