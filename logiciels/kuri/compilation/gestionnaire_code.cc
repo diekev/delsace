@@ -16,6 +16,8 @@
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
+#include "plateforme/windows.h"
+
 /*
   À FAIRE(gestion) : pour chaque type :
 - avoir un lexème sentinel pour l'impression des erreurs si le noeud est crée lors de la

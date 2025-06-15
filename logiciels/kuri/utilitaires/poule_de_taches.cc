@@ -3,7 +3,9 @@
 
 #include "poule_de_taches.hh"
 
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 namespace kuri {
 
@@ -31,6 +33,9 @@ void PouleDeTâchesEnSérie::attends_sur_tâches()
 
 void PouleDeTâchesSousProcessus::ajoute_tâche(std::function<void()> &&tâche)
 {
+#ifdef _MSC_VER
+    tâche();
+#else
     auto child_pid = fork();
     if (child_pid == 0) {
         tâche();
@@ -38,10 +43,12 @@ void PouleDeTâchesSousProcessus::ajoute_tâche(std::function<void()> &&tâche)
     }
 
     m_enfants.ajoute(child_pid);
+#endif
 }
 
 void PouleDeTâchesSousProcessus::attends_sur_tâches()
 {
+#ifndef _MSC_VER
     POUR (m_enfants) {
         int etat;
         if (waitpid(it, &etat, 0) != it) {
@@ -56,6 +63,7 @@ void PouleDeTâchesSousProcessus::attends_sur_tâches()
             continue;
         }
     }
+#endif
 }
 
 /** \} */
