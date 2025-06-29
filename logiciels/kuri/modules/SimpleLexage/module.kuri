@@ -321,6 +321,7 @@ DrapeauxCaractère :: énum_drapeau n16 {
     DébuteCommentaireMultiLignes
 
     DébuteSuffixeNombre
+    DébutePartDécimale
 
     DébuteCommentaire :: DébuteCommentaireLigneSingulière | DébuteCommentaireMultiLignes
 }
@@ -392,7 +393,7 @@ construit_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
     lexeuse.table_drapeaux_caractère['\v'] |= DrapeauxCaractère.EspaceBlanche
     lexeuse.table_drapeaux_caractère[' '] |= DrapeauxCaractère.EspaceBlanche
 
-    lexeuse.table_drapeaux_caractère['.'] |= DrapeauxCaractère.Ponctuation
+    lexeuse.table_drapeaux_caractère['.'] |= DrapeauxCaractère.Ponctuation | DrapeauxCaractère.DébutePartDécimale
 
     lexeuse.table_drapeaux_caractère['"'] |= DrapeauxCaractère.DébuteChaineLittérale
     lexeuse.table_drapeaux_caractère['\''] |= DrapeauxCaractère.DébuteChaineLittérale
@@ -662,7 +663,11 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
     }
 
     résultat := Lexème(type = TypeLexème.Nombre, début = début_lexème, fin = fin_lexème)
-    si drapeaux_accumulés.ChiffreHexadécimal {
+    si drapeaux_accumulés.DébutePartDécimale {
+        nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable
+        résultat.nombre = nombre_parsé comme n64
+    }
+    sinon si drapeaux_accumulés.ChiffreHexadécimal {
         résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     sinon {
