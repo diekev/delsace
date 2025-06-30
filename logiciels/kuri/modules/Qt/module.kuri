@@ -325,7 +325,7 @@ donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, actio
     résultat.état.où.x = position.x
     résultat.état.où.y = position.y
     résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
-    si action == ActionSouris.PRESSÉE || action == ActionSouris.RELACHÉE {
+    si action == ActionSouris.PRESSÉE || action == ActionSouris.RELACHÉE || action == ActionSouris.DOUBLE_CLIQUE {
         résultat.bouton = donne_bouton_souris(évènement)
     }
     sinon si action == ActionSouris.DÉPLACÉE {
