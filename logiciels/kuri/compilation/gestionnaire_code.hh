@@ -274,6 +274,10 @@ class GestionnaireCode {
 
     void optimisation_terminée(UniteCompilation *unite);
 
+    void ajoute_noeud_de_haut_niveau(NoeudExpression *it,
+                                     EspaceDeTravail *espace,
+                                     Fichier *fichier);
+
   public:
     /* Remplis les tâches. */
     void crée_tâches(OrdonnanceuseTache &ordonnanceuse);
