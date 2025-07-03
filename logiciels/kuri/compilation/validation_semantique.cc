@@ -214,6 +214,10 @@ RésultatValidation Sémanticienne::valide(UniteCompilation *unité)
         return valide_sémantique_noeud(racine_validation());
     }
 
+    if (racine_validation()->est_si_statique()) {
+        return valide_arbre_aplatis(racine_validation());
+    }
+
     m_unité->espace->rapporte_erreur_sans_site("Erreur interne : aucune racine de typage valide");
     return CodeRetourValidation::Erreur;
 }
@@ -504,6 +508,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
+            if (noeud->bloc_parent->type_bloc == TypeBloc::SI_STATIQUE) {
+                return CodeRetourValidation::OK;
+            }
             m_espace->rapporte_erreur(noeud,
                                       "[ERREUR INTERNE] Une instruction 'charge' se trouve dans "
                                       "la validation sémantique.");
@@ -511,6 +518,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
+            if (noeud->bloc_parent->type_bloc == TypeBloc::SI_STATIQUE) {
+                return CodeRetourValidation::OK;
+            }
             m_espace->rapporte_erreur(noeud,
                                       "[ERREUR INTERNE] Une instruction 'importe' se trouve dans "
                                       "la validation sémantique.");
