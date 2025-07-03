@@ -43,8 +43,8 @@ lexeuse: SimpleLexeuse
 //     "retourne", "retiens", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable", "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "corout", "dyn", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme"
 // ]
 
-__ponctuation_config := ["[", "]"]
-__mots_clés_config := ["thème"]
+__ponctuation_config := ["[", "]", ":"]
+__mots_clés_config := ["compilation", "espace", "paramètres", "thème"]
 __commentaires_ligne_singulière_config := ["#"]
 
 Thème :: struct {
@@ -55,6 +55,21 @@ Thème :: struct {
 }
 
 thème: Thème
+
+Projet :: struct {
+    /* Espace de travail. */
+    chemins: [..]chaine
+
+    /* Commandes de compilation. */
+    commandes_de_compilation: [..]InfoCompilation
+}
+
+InfoCompilation :: struct {
+    dossier_de_compilation: chaine
+    commande: [..]chaine
+}
+
+__projet: Projet
 
 InfoFichier :: struct {
     taille: n64
@@ -81,26 +96,54 @@ donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 }
 
 info_fichier_config: InfoFichier
+info_config_projet: InfoFichier
 
-parse_config_globale :: fonc ()
+parse_config_depuis_fichier :: fonc (chemin: chaine)
 {
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
     lexeuse.ponctuations = __ponctuation_config
     lexeuse.mots_clés = __mots_clés_config
-    lexeuse.caractères_symboliques = "-"
+    lexeuse.caractères_symboliques = "-/"
 
-    contenu := contenu_fichier_texte("globale.config-éditeur")
+    contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
     initialise_lexeuse_pour_texte(*lexeuse, contenu)
 
-    consomme_ponctuation(*lexeuse, "[")
-    consomme_mot_clé(*lexeuse, "thème")
-    consomme_ponctuation(*lexeuse, "]")
-
     tantque !fini(*lexeuse) {
-        symbole := donne_symbole(*lexeuse).donne_texte()
-        nombre_couleur := donne_nombre(*lexeuse).nombre
+        consomme_ponctuation(*lexeuse, "[")
+        consomme_ponctuation(*lexeuse, "[")
+
+        lexème := donne_lexème_suivant(*lexeuse)
+
+        consomme_ponctuation(*lexeuse, "]")
+        consomme_ponctuation(*lexeuse, "]")
+
+        si lexème.est_mot_clé("paramètres") {
+            parse_paramètres(*lexeuse)
+        }
+        sinon si lexème.est_mot_clé("espace") {
+            parse_espace_de_travail(*lexeuse, *__projet)
+        }
+        sinon si lexème.est_mot_clé("compilation") {
+            parse_commandes_compilation(*lexeuse, *__projet)
+        }
+        sinon {
+            imprimeln("catégorie inconnue : %", lexème.donne_texte())
+            exit(1)
+        }
+    }
+}
+
+parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
+{
+    consomme_ponctuation(lexeuse, "[")
+    consomme_mot_clé(lexeuse, "thème")
+    consomme_ponctuation(lexeuse, "]")
+
+    tantque !fini(lexeuse) {
+        symbole := donne_symbole(lexeuse).donne_texte()
+        nombre_couleur := donne_nombre(lexeuse).nombre
 
         r := (nombre_couleur >> 24 & 0xff) comme r32 / 255.0
         v := (nombre_couleur >> 16 & 0xff) comme r32 / 255.0
@@ -128,12 +171,72 @@ parse_config_globale :: fonc ()
     }
 }
 
+parse_espace_de_travail :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
+{
+    tantque !lexeuse.fini() {
+        lexème := donne_lexème_suivant(lexeuse)
+
+        si lexème.est_ponctuation("[") {
+            lexeuse.reprends_depuis_lexème(lexème)
+            arrête
+        }
+
+        tableau_ajoute(*projet.chemins, copie_chaine(lexème.donne_texte()))
+    }
+}
+
+parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
+{
+    info_compilation := tableau_ajoute_élément(*projet.commandes_de_compilation)
+
+    tantque !lexeuse.fini() {
+        lexème := donne_lexème_suivant(lexeuse)
+
+        si lexème.est_ponctuation("[") {
+            lexeuse.reprends_depuis_lexème(lexème)
+            arrête
+        }
+
+        consomme_ponctuation(lexeuse, ":")
+
+        propriété := lexème.donne_texte()
+
+        si propriété == "dossier_compilat" {
+            // @validation
+            lexème = donne_lexème_suivant(lexeuse)
+            info_compilation.dossier_de_compilation = copie_chaine(lexème.donne_texte())
+        }
+        sinon si propriété == "commande" {
+            // @validation
+            texte := lexeuse.donne_texte_jusque_nouvelle_ligne()
+            divise(texte, ' ', *info_compilation.commande)
+            pour & info_compilation.commande {
+                it = copie_chaine(it)
+            }
+        }
+        sinon {
+            imprimeln("propriété inconnue pour la compilation : %", propriété)
+            exit(1)
+        }
+    }
+}
+
 ajourne_configuration :: fonc ()
 {
-    info := donne_info_fichier("globale.config-éditeur")
+    chemin_config_globale := "globale.config-éditeur"
+
+    info := donne_info_fichier(chemin_config_globale)
     si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
-        parse_config_globale()
+        parse_config_depuis_fichier(chemin_config_globale)
         info_fichier_config = info
+    }
+
+    chemin_config_projet := "blender.config-éditeur"
+
+    info = donne_info_fichier(chemin_config_projet)
+    si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
+        parse_config_depuis_fichier(chemin_config_projet)
+        info_config_projet = info
     }
 }
 

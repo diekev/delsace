@@ -217,6 +217,8 @@ active_dependances(
     REQUIERS_BIB_STRUCTURES
     REQUIERS_BIB_SYSTEME_FICHIER
     REQUIERS_BIB_TESTS
+
+    REQUIERS_TBB
 )
 
 active_dependances(

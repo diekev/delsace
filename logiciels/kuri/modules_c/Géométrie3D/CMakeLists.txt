@@ -37,6 +37,7 @@ set(BIBLIOTHEQUES
     dls::outils
     dls::structures
     dls::memoire
+    kuri::structures
 )
 
 set(SOURCES_BOOLEEN

@@ -64,7 +64,7 @@ ActionSouris :: énum {
     RELACHÉE
     DÉPLACÉE
     ROULEMENT
-    DOUBLE_CLIQUE
+    DOUBLE_CLIC
 }
 
 BoutonSouris :: énum {

@@ -202,6 +202,11 @@ std::ostream &operator<<(std::ostream &os, TypeBloc const type)
             os << "PARAMÈTRES";
             break;
         }
+        case TypeBloc::SI_STATIQUE:
+        {
+            os << "SI_STATIQUE";
+            break;
+        }
     }
     return os;
 }
@@ -1127,6 +1132,14 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         auto opaque = declaration->comme_type_opaque();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(opaque, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    if (declaration->est_si_statique()) {
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            auto si_statique = declaration->comme_si_statique();
+            aplatis_arbre(si_statique, arbre_aplatis->noeuds, {});
         }
         return;
     }
@@ -2748,6 +2761,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_déclaration_module()) {
         return &noeud->comme_déclaration_module()->unité;
+    }
+    if (noeud->est_si_statique()) {
+        return &noeud->comme_si_statique()->unité;
     }
 
     assert_rappel(false, [&]() {

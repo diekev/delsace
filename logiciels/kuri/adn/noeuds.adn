@@ -1012,6 +1012,7 @@ struct NoeudSiStatique : NoeudExpression {
     @code  NoeudCodeSiStatique
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité
     NoeudExpression *condition [code enfant construction]
     NoeudBloc *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
