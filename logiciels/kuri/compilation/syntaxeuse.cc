@@ -400,9 +400,11 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::ACCOLADE_OUVRANTE:
             case GenreLexème::ARRÊTE:
             case GenreLexème::BOUCLE:
+            case GenreLexème::CHARGE:
             case GenreLexème::CONTINUE:
             case GenreLexème::DIFFÈRE:
             case GenreLexème::DISCR:
+            case GenreLexème::IMPORTE:
             case GenreLexème::NONSÛR:
             case GenreLexème::POUR:
             case GenreLexème::POUSSE_CONTEXTE:
@@ -865,6 +867,9 @@ void Syntaxeuse::analyse_une_chose()
         else if (noeud->est_importe()) {
             requiers_typage(noeud);
             m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
+        }
+        else if (noeud->est_si_statique()) {
+            requiers_typage(noeud);
         }
         else {
             rapporte_erreur_avec_site(
@@ -1984,6 +1989,38 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         {
             return analyse_instruction_tantque();
         }
+        case GenreLexème::IMPORTE:
+        {
+            consomme();
+            auto noeud = analyse_importe(lexème, nullptr);
+            m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
+            return noeud;
+        }
+        case GenreLexème::CHARGE:
+        {
+            consomme();
+
+            auto expression = NoeudExpression::nul();
+            if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+                expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
+            }
+            else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+                expression = m_tacheronne.assembleuse->crée_référence_déclaration(
+                    lexème_courant());
+            }
+            else {
+                rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'charge'");
+            }
+
+            auto noeud = m_tacheronne.assembleuse->crée_charge(lexème, expression);
+            noeud->bloc_parent->ajoute_expression(noeud);
+            noeud->expression->ident = nullptr;
+
+            m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CHARGE;
+
+            consomme();
+            return noeud;
+        }
         default:
         {
             assert_rappel(false, [&]() {
@@ -2027,7 +2064,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
 
         if (apparie_instruction()) {
             auto noeud = analyse_instruction();
-            expressions.ajoute(noeud);
+            if (!noeud->est_importe() && !noeud->est_charge()) {
+                /* Nous avons déjà ajouté l'import ou la charge aux expressions. */
+                expressions.ajoute(noeud);
+            }
         }
         else if (apparie_expression()) {
             auto noeud = analyse_expression({}, GenreLexème::INCONNU);
@@ -2379,7 +2419,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
                      m_tacheronne.assembleuse->crée_si_statique(lexème, condition) :
                      m_tacheronne.assembleuse->crée_saufsi_statique(lexème, condition);
 
-    noeud->bloc_si_vrai = analyse_bloc(TypeBloc::IMPÉRATIF);
+    auto type_bloc = TypeBloc::IMPÉRATIF;
+    if (m_tacheronne.assembleuse->bloc_courant()->type_bloc == TypeBloc::MODULE) {
+        type_bloc = TypeBloc::SI_STATIQUE;
+    }
+
+    noeud->bloc_si_vrai = analyse_bloc(type_bloc);
 
     if (apparie(GenreLexème::SINON)) {
         consomme();
@@ -2399,7 +2444,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
             noeud->bloc_si_faux = analyse_instruction_si_statique(lexème);
         }
         else if (apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
-            noeud->bloc_si_faux = analyse_bloc(TypeBloc::IMPÉRATIF);
+            noeud->bloc_si_faux = analyse_bloc(type_bloc);
         }
         else {
             rapporte_erreur("l'instruction « sinon » des #si statiques doit être suivie par soit "
