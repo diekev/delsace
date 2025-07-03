@@ -1603,6 +1603,140 @@ static Module *donne_module_existant_pour_importe(NoeudInstructionImporte *inst,
     return module;
 }
 
+void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
+                                                   EspaceDeTravail *espace,
+                                                   Fichier *fichier)
+{
+    /* Nous avons sans doute déjà requis le typage de ce noeud. */
+    auto adresse_unité = donne_adresse_unité(it);
+    if (*adresse_unité) {
+        return;
+    }
+
+    if (it->est_charge()) {
+        auto inst = it->comme_charge();
+        auto const lexème = inst->expression->lexème;
+        auto const nom = lexème->chaine;
+        auto module = fichier->module;
+        auto chemin = enchaine(module->chemin(), nom);
+
+        if (chemin.trouve(".kuri") == kuri::chaine::npos) {
+            chemin = enchaine(chemin, ".kuri");
+        }
+
+        auto opt_chemin = determine_chemin_absolu(espace, chemin, it);
+        if (!opt_chemin.has_value()) {
+            return;
+        }
+        auto résultat = m_compilatrice->sys_module->trouve_ou_crée_fichier(
+            module, nom, opt_chemin.value());
+
+        if (std::holds_alternative<FichierNeuf>(résultat)) {
+            auto nouveau_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
+            requiers_chargement(espace, nouveau_fichier);
+        }
+        else {
+            auto fichier_existant = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
+            if (fichier_existant == fichier) {
+                espace->rapporte_erreur(it, "chargement du fichier dans lui-même");
+                return;
+            }
+        }
+    }
+    else if (it->est_importe()) {
+        auto inst = it->comme_importe();
+        auto const module_du_fichier = fichier->module;
+
+        auto module = donne_module_existant_pour_importe(inst, module_du_fichier);
+        if (!module) {
+            const auto lexème = inst->expression->lexème;
+
+            auto info_module = m_compilatrice->sys_module->trouve_ou_crée_module(
+                m_compilatrice->table_identifiants, fichier, lexème->chaine);
+
+            switch (info_module.état) {
+                case InfoRequêteModule::État::TROUVÉ:
+                {
+                    module = info_module.module;
+                    if (module->importé) {
+                        break;
+                    }
+                    module->importé = true;
+                    m_compilatrice->messagère->ajoute_message_module_ouvert(espace, module);
+                    POUR_NOMME (f, module->fichiers) {
+                        requiers_chargement(espace, f);
+                    }
+                    m_compilatrice->messagère->ajoute_message_module_fermé(espace, module);
+                    break;
+                }
+                case InfoRequêteModule::État::CHEMIN_INEXISTANT:
+                {
+                    espace->rapporte_erreur(inst,
+                                            "Le nom du module ne pointe pas vers un dossier.");
+                    return;
+                }
+                case InfoRequêteModule::État::PAS_UN_DOSSIER:
+                {
+                    kuri::chaine_statique message_chemins_testés;
+                    if (info_module.chemins_testés.taille() > 1) {
+                        message_chemins_testés = "Le chemin testé fut :\n";
+                    }
+                    else {
+                        message_chemins_testés = "Les chemins testés furent :\n";
+                    }
+
+                    auto &e = espace
+                                  ->rapporte_erreur(
+                                      inst,
+                                      "Impossible de trouver un dossier correspondant au module "
+                                      "importé.")
+                                  .ajoute_message(message_chemins_testés);
+
+                    POUR_NOMME (chemin, info_module.chemins_testés) {
+                        e.ajoute_message("    ", chemin, "\n");
+                    }
+                    return;
+                }
+                case InfoRequêteModule::État::PAS_DE_FICHIER_MODULE_KURI:
+                {
+                    espace->rapporte_erreur(inst,
+                                            "Impossible d'importer le module, car le dossier "
+                                            "ne contient de fichier 'module.kuri'.");
+                    return;
+                }
+            }
+        }
+
+        if (module_du_fichier == module) {
+            espace->rapporte_erreur(inst, "Import d'un module dans lui-même.\n");
+            return;
+        }
+
+        if (module_du_fichier->importe_module(module->nom())) {
+            if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
+                /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
+                 * de générer ces instructions redondantes. */
+                espace->rapporte_avertissement(inst, "Import superflux du module");
+            }
+        }
+        else {
+            module_du_fichier->modules_importés.insère({module, inst->est_employé});
+        }
+
+        auto noeud_déclaration = inst->noeud_déclaration;
+        if (noeud_déclaration->ident == nullptr) {
+            noeud_déclaration->ident = module->nom();
+            noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+        }
+        noeud_déclaration->module = module;
+
+        // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
+    }
+    else {
+        m_noeuds_à_valider.ajoute({espace, it});
+    }
+}
+
 void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 {
     assert(unité->fichier);
@@ -1615,136 +1749,7 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
     auto fichier = unité->fichier;
 
     POUR (fichier->noeuds_à_valider) {
-        /* Nous avons sans doute déjà requis le typage de ce noeud. */
-        auto adresse_unité = donne_adresse_unité(it);
-        if (*adresse_unité) {
-            continue;
-        }
-
-        if (it->est_charge()) {
-            auto inst = it->comme_charge();
-            auto const lexème = inst->expression->lexème;
-            auto const nom = lexème->chaine;
-            auto module = fichier->module;
-            auto chemin = enchaine(module->chemin(), nom);
-
-            if (chemin.trouve(".kuri") == kuri::chaine::npos) {
-                chemin = enchaine(chemin, ".kuri");
-            }
-
-            auto opt_chemin = determine_chemin_absolu(espace, chemin, it);
-            if (!opt_chemin.has_value()) {
-                return;
-            }
-            auto résultat = m_compilatrice->sys_module->trouve_ou_crée_fichier(
-                module, nom, opt_chemin.value());
-
-            if (std::holds_alternative<FichierNeuf>(résultat)) {
-                auto nouveau_fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
-                requiers_chargement(espace, nouveau_fichier);
-            }
-            else {
-                auto fichier_existant = static_cast<Fichier *>(
-                    std::get<FichierExistant>(résultat));
-                if (fichier_existant == fichier) {
-                    espace->rapporte_erreur(it, "chargement du fichier dans lui-même");
-                    return;
-                }
-            }
-        }
-        else if (it->est_importe()) {
-            auto inst = it->comme_importe();
-            auto const module_du_fichier = fichier->module;
-
-            auto module = donne_module_existant_pour_importe(inst, module_du_fichier);
-            if (!module) {
-                const auto lexème = inst->expression->lexème;
-
-                auto info_module = m_compilatrice->sys_module->trouve_ou_crée_module(
-                    m_compilatrice->table_identifiants, fichier, lexème->chaine);
-
-                switch (info_module.état) {
-                    case InfoRequêteModule::État::TROUVÉ:
-                    {
-                        module = info_module.module;
-                        if (module->importé) {
-                            break;
-                        }
-                        module->importé = true;
-                        m_compilatrice->messagère->ajoute_message_module_ouvert(espace, module);
-                        POUR_NOMME (f, module->fichiers) {
-                            requiers_chargement(espace, f);
-                        }
-                        m_compilatrice->messagère->ajoute_message_module_fermé(espace, module);
-                        break;
-                    }
-                    case InfoRequêteModule::État::CHEMIN_INEXISTANT:
-                    {
-                        espace->rapporte_erreur(inst,
-                                                "Le nom du module ne pointe pas vers un dossier.");
-                        return;
-                    }
-                    case InfoRequêteModule::État::PAS_UN_DOSSIER:
-                    {
-                        kuri::chaine_statique message_chemins_testés;
-                        if (info_module.chemins_testés.taille() > 1) {
-                            message_chemins_testés = "Le chemin testé fut :\n";
-                        }
-                        else {
-                            message_chemins_testés = "Les chemins testés furent :\n";
-                        }
-
-                        auto &e =
-                            espace
-                                ->rapporte_erreur(
-                                    inst,
-                                    "Impossible de trouver un dossier correspondant au module "
-                                    "importé.")
-                                .ajoute_message(message_chemins_testés);
-
-                        POUR_NOMME (chemin, info_module.chemins_testés) {
-                            e.ajoute_message("    ", chemin, "\n");
-                        }
-                        return;
-                    }
-                    case InfoRequêteModule::État::PAS_DE_FICHIER_MODULE_KURI:
-                    {
-                        espace->rapporte_erreur(inst,
-                                                "Impossible d'importer le module, car le dossier "
-                                                "ne contient de fichier 'module.kuri'.");
-                        return;
-                    }
-                }
-            }
-
-            if (module_du_fichier == module) {
-                espace->rapporte_erreur(inst, "Import d'un module dans lui-même.\n");
-                return;
-            }
-
-            if (module_du_fichier->importe_module(module->nom())) {
-                if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
-                    /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
-                     * de générer ces instructions redondantes. */
-                    espace->rapporte_avertissement(inst, "Import superflux du module");
-                }
-            }
-            else {
-                module_du_fichier->modules_importés.insère({module, inst->est_employé});
-            }
-
-            auto noeud_déclaration = inst->noeud_déclaration;
-            if (noeud_déclaration->ident == nullptr) {
-                noeud_déclaration->ident = module->nom();
-                noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
-            }
-            noeud_déclaration->module = module;
-
-            // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
-        }
-        else {
-            m_noeuds_à_valider.ajoute({espace, it});
-        }
+        ajoute_noeud_de_haut_niveau(it, espace, fichier);
     }
 
     /* Il est possible que tous les noeuds de charge et d'import furent géré alors que des fichiers
@@ -1844,17 +1849,59 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
     return false;
 }
 
+static NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
+{
+    if (si_statique->condition_est_vraie) {
+        return si_statique->bloc_si_vrai;
+    }
+
+    if (si_statique->bloc_si_faux) {
+        if (si_statique->bloc_si_vrai->est_bloc()) {
+            return si_statique->bloc_si_faux->comme_bloc();
+        }
+
+        if (si_statique->bloc_si_faux->est_si_statique()) {
+            return donne_bloc_à_fusionner(si_statique->bloc_si_faux->comme_si_statique());
+        }
+    }
+
+    return nullptr;
+}
+
 void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
     assert(unité->noeud);
+
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
+
+    if (noeud->est_si_statique()) {
+        auto bloc_parent = noeud->bloc_parent;
+        assert(bloc_parent->type_bloc == TypeBloc::MODULE);
+
+        auto si_statique = noeud->comme_si_statique();
+        auto bloc = donne_bloc_à_fusionner(si_statique);
+
+        auto fichier = m_compilatrice->fichier(si_statique->lexème->fichier);
+
+        if (bloc) {
+            POUR (*bloc->membres.verrou_ecriture()) {
+                bloc_parent->ajoute_membre(it);
+            }
+            POUR (*bloc->expressions.verrou_ecriture()) {
+                ajoute_noeud_de_haut_niveau(it, espace, fichier);
+            }
+        }
+
+        TACHE_TERMINEE(TYPAGE);
+        return;
+    }
+
     assert_rappel(unité->noeud->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&] {
         dbg() << "Le noeud de genre " << unité->noeud->genre << " ne fut pas validé !\n"
               << erreur::imprime_site(*unité->espace, unité->noeud);
     });
-
-    auto espace = unité->espace;
-    auto noeud = unité->noeud;
 
     UniteCompilation *unité_pour_ri = nullptr;
     UniteCompilation *unité_pour_noeud_code = nullptr;
