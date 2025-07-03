@@ -1,0 +1,13 @@
+[[espace]]
+/home/kevin/src/blender/blender/extern
+/home/kevin/src/blender/blender/intern
+/home/kevin/src/blender/blender/scripts/startup
+/home/kevin/src/blender/blender/source
+
+# [ignore]
+# [autorise]
+
+[[compilation]]
+
+dossier_compilat: /home/kevin/src/blender/build_debug/
+commande: cmake --build . --target all install -j16
