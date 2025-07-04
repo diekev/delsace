@@ -11,6 +11,7 @@ importe SimpleLexage
 importe Temps
 importe Typographie
 
+charge "commandes"
 charge "éditeur"
 
 // À FAIRE : colorisation
@@ -44,7 +45,7 @@ lexeuse: SimpleLexeuse
 // ]
 
 __ponctuation_config := ["[", "]", ":"]
-__mots_clés_config := ["compilation", "espace", "paramètres", "thème"]
+__mots_clés_config := ["compilation", "espace", "paramètres", "raccourcis", "thème"]
 __commentaires_ligne_singulière_config := ["#"]
 
 Thème :: struct {
@@ -56,12 +57,30 @@ Thème :: struct {
 
 thème: Thème
 
+RaccourciCommande :: struct {
+    raccourci: RaccourcisClavier
+    commande: fonc(*Éditeur)(rien)
+}
+
+donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement) -> *RaccourciCommande
+{
+    pour * projet.raccourcis {
+        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
 Projet :: struct {
     /* Espace de travail. */
     chemins: [..]chaine
 
     /* Commandes de compilation. */
     commandes_de_compilation: [..]InfoCompilation
+
+    raccourcis: [..]RaccourciCommande
 }
 
 InfoCompilation :: struct {
@@ -128,6 +147,9 @@ parse_config_depuis_fichier :: fonc (chemin: chaine)
         sinon si lexème.est_mot_clé("compilation") {
             parse_commandes_compilation(*lexeuse, *__projet)
         }
+        sinon si lexème.est_mot_clé("raccourcis") {
+            parse_raccourcis(*lexeuse, *__projet)
+        }
         sinon {
             imprimeln("catégorie inconnue : %", lexème.donne_texte())
             exit(1)
@@ -142,6 +164,12 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
     consomme_ponctuation(lexeuse, "]")
 
     tantque !fini(lexeuse) {
+        lexème := donne_lexème_suivant(lexeuse)
+        lexeuse.reprends_depuis_lexème(lexème)
+        si lexème.est_ponctuation("[") {
+            arrête
+        }
+
         symbole := donne_symbole(lexeuse).donne_texte()
         nombre_couleur := donne_nombre(lexeuse).nombre
 
@@ -221,6 +249,99 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     }
 }
 
+parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
+{
+    tantque !lexeuse.fini() {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+
+        si lexème.est_ponctuation("[") {
+            lexeuse.reprends_depuis_lexème(lexème)
+            arrête
+        }
+
+        raccourci, succès := donne_raccourci_pour_texte(lexème.donne_texte())
+        saufsi succès {
+            imprimeln("Impossible de déterminer le raccourci pour '%'", lexème.donne_texte())
+            exit(1)
+        }
+
+        lexème = donne_lexème_suivant(lexeuse)
+        commande := donne_commande_pour_nom(lexème.donne_texte())
+        saufsi commande {
+            imprimeln("Commande inconnue '%'", lexème.donne_texte())
+        }
+
+        raccourci_commande := tableau_ajoute_élément(*projet.raccourcis)
+        raccourci_commande.raccourci = raccourci
+        raccourci_commande.commande = commande
+    }
+}
+
+donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourcisClavier, bool
+{
+    résultat: RaccourcisClavier
+
+    boucle {
+        si texte.commence_par("Ctrl-") {
+            texte = texte.avance("Ctrl-".taille)
+            résultat.modificateur.CONTROL = vrai
+        }
+        sinon si texte.commence_par("Alt-") {
+            texte = texte.avance("Alt-".taille)
+            résultat.modificateur.ALT = vrai
+        }
+        sinon si texte.commence_par("Maj-") {
+            texte = texte.avance("Maj-".taille)
+            résultat.modificateur.MAJUSCULE = vrai
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    si texte == "FlècheGauche" {
+        résultat.clé = ToucheClavier.FLÈCHE_GAUCHE
+    }
+    sinon si texte == "FlècheDroite" {
+        résultat.clé = ToucheClavier.FLÈCHE_DROITE
+    }
+    sinon si texte == "FlècheHaut" {
+        résultat.clé = ToucheClavier.FLÈCHE_HAUT
+    }
+    sinon si texte == "FlècheBas" {
+        résultat.clé = ToucheClavier.FLÈCHE_BAS
+    }
+    sinon si texte == "Début" {
+        résultat.clé = ToucheClavier.DÉBUT
+    }
+    sinon si texte == "Fin" {
+        résultat.clé = ToucheClavier.FIN
+    }
+    sinon si texte == "PageHaut" {
+        résultat.clé = ToucheClavier.PAGE_HAUT
+    }
+    sinon si texte == "PageBas" {
+        résultat.clé = ToucheClavier.PAGE_BAS
+    }
+    sinon si texte == "Entrée" {
+        résultat.clé = ToucheClavier.ENTRÉE
+    }
+    sinon si texte == "RetourArrière" {
+        résultat.clé = ToucheClavier.EFFACE
+    }
+    sinon si texte == "Suppr" {
+        résultat.clé = ToucheClavier.SUPPRIMER
+    }
+    sinon {
+        retourne résultat, faux
+    }
+
+    retourne résultat, vrai
+}
+
 ajourne_configuration :: fonc ()
 {
     chemin_config_globale := "globale.config-éditeur"
@@ -286,63 +407,9 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    si it.touche == ToucheClavier.FLÈCHE_GAUCHE {
-                        mouvement := Mouvement.Recule
-                        si it.modificateurs.CONTROL {
-                            mouvement = Mouvement.MotPrécédent
-                        }
-                        éditeur_déplace_curseur(*E, mouvement)
-                    }
-                    sinon si it.touche == ToucheClavier.FLÈCHE_DROITE {
-                        mouvement := Mouvement.Avance
-                        si it.modificateurs.CONTROL {
-                            mouvement = Mouvement.MotSuivant
-                        }
-                        éditeur_déplace_curseur(*E, mouvement)
-                    }
-                    sinon si it.touche == ToucheClavier.FLÈCHE_HAUT {
-                        si it.modificateurs.CONTROL {
-                            E.décalage_ligne -= 1
-                            si E.décalage_ligne < 0 {
-                                E.décalage_ligne = 0
-                            }
-                        }
-                        sinon {
-                            éditeur_déplace_curseur(*E, Mouvement.LignePrécédente)
-                        }
-                    }
-                    sinon si it.touche == ToucheClavier.FLÈCHE_BAS {
-                        si it.modificateurs.CONTROL {
-                            E.décalage_ligne += 1
-                            si E.décalage_ligne >= E.lignes_texte.taille {
-                                E.décalage_ligne = E.lignes_texte.taille comme z32 - 1
-                            }
-                        }
-                        sinon {
-                            éditeur_déplace_curseur(*E, Mouvement.LigneSuivante)
-                        }
-                    }
-                    sinon si it.touche == ToucheClavier.DÉBUT {
-                        éditeur_déplace_curseur(*E, Mouvement.DébutLigne)
-                    }
-                    sinon si it.touche == ToucheClavier.FIN {
-                        éditeur_déplace_curseur(*E, Mouvement.FinLigne)
-                    }
-                    sinon si it.touche == ToucheClavier.PAGE_HAUT {
-                        éditeur_déplace_curseur(*E, Mouvement.PagePrécédente)
-                    }
-                    sinon si it.touche == ToucheClavier.PAGE_BAS {
-                        éditeur_déplace_curseur(*E, Mouvement.PageSuivante)
-                    }
-                    sinon si it.touche == ToucheClavier.ENTRÉE {
-                        éditeur_ajoute_nouvelle_ligne(*E)
-                    }
-                    sinon si it.touche == ToucheClavier.EFFACE {
-                        éditeur_supprime_caractère(*E)
-                    }
-                    sinon si it.touche == ToucheClavier.SUPPRIMER {
-                        éditeur_déplace_curseur(*E, Mouvement.Avance)
-                        éditeur_supprime_caractère(*E)
+                    raccourci_commande := donne_raccourci_pour_évènement(*__projet, it)
+                    si raccourci_commande {
+                        raccourci_commande.commande(*E)
                     }
                     sinon si it.texte != "" {
                         éditeur_insère_texte(*E, it.texte)
