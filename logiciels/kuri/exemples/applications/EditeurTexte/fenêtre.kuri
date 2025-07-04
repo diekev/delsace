@@ -392,8 +392,8 @@ principale :: fonc ()
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
             ajourne_configuration()
-            tics_fichier += 1
         }
+        tics_fichier += 1
 
         évènements := ajourne_évènements_fenêtre()
 
