@@ -352,7 +352,7 @@ ajourne_configuration :: fonc ()
         info_fichier_config = info
     }
 
-    chemin_config_projet := "blender.config-éditeur"
+    chemin_config_projet := "projets/blender.config-éditeur"
 
     info = donne_info_fichier(chemin_config_projet)
     si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
