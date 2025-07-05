@@ -4654,8 +4654,8 @@ parse_valeur_background_position :: fonc (parseuse: &Parseuse(ComponentValue)) -
             résultat.décalage_horizontal = copie_valeur(valeurs[0])
         }
         /* If only one value is specified, the second value is assumed to be center. */
-        résultat.vertical = PROP_center
-        résultat.décalage_vertical = donne_valeur_percentage_zéro()
+        résultat.vertical = PROP_top
+        résultat.décalage_vertical = crée_valeur_percentage(50.0)
     }
     sinon si nombre_de_valeurs == 2 {
         si valeurs[0].est_mot_clé() {
