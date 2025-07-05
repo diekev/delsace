@@ -1782,6 +1782,8 @@ IDPropriété :: énum n16 {
     BackgroundRepeat
     BackgroundAttachment
     BackgroundPosition
+    BackgroundClip
+    BackgroundOrigin
 
     BorderWidthBottom
     BorderWidthLeft
@@ -1910,6 +1912,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.BackgroundRepeat] = donne_valeur_background_repeat_défaut()
     style.valeurs[IDPropriété.BackgroundPosition] = donne_valeur_background_position_défaut()
     style.valeurs[IDPropriété.BackgroundAttachment] = donne_valeur_scroll()
+    style.valeurs[IDPropriété.BackgroundClip] = donne_valeur_border_box()
+    style.valeurs[IDPropriété.BackgroundOrigin] = donne_valeur_border_box()
 
     /* Bordure */
     style.valeurs[IDPropriété.BorderWidthBottom] = donne_valeur_medium()
@@ -3012,6 +3016,7 @@ __valeur_background_repeat : ValeurMotClé = ---
 __valeur_couleur_noire : ValeurCouleur = ---
 __valeur_couleur_transparente : ValeurCouleur = ---
 __valeur_background_position : ValeurBackgroundPosition = ---
+__valeur_border_box : ValeurMotClé = ---
 
 __valeurs_défauts_initialisées := faux
 
@@ -3052,6 +3057,7 @@ initialise_valeurs_défaut :: fonc ()
     __valeur_couleur_noire = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 255))
     __valeur_couleur_transparente = ValeurCouleur(utilisations = 1, valeur = CouleurRVBAN8(0, 0, 0, 0))
     __valeur_background_position = ValeurBackgroundPosition(utilisations = 1, valeur = BackgroundPosition(PROP_top, donne_valeur_percentage_zéro(), PROP_left, donne_valeur_percentage_zéro()))
+    __valeur_border_box = ValeurMotClé(utilisations = 1, valeur = PROP_border_box)
 }
 
 donne_valeur_défaut :: fonc (valeur: *ValeurDeStyle) -> *ValeurDeStyle
@@ -3207,6 +3213,11 @@ donne_valeur_couleur_transparente :: fonc () -> *ValeurDeStyle
 donne_valeur_background_position_défaut :: fonc () -> *ValeurDeStyle
 {
     retourne donne_valeur_défaut(*__valeur_background_position)
+}
+
+donne_valeur_border_box :: fonc () -> *ValeurDeStyle
+{
+    retourne donne_valeur_défaut(*__valeur_border_box)
 }
 
 /** \} */
