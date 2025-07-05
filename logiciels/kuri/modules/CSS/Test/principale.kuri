@@ -8,7 +8,92 @@ importe SysFichier
 principale :: fonc ()
 {
     // test_collection_règles()
-    test_fragmentation_texte()
+    // test_fragmentation_texte()
+    test_parsage_propriété()
+}
+
+test_parsage_propriété :: fonc ()
+{
+    entrée := "background: url(\"chess.png\") 40% / 10em gray round fixed border-box;"
+    sortie := "background-position: 40% 50%;
+               background-color: gray;
+               background-size: 10em auto;
+               background-clip: border-box;
+               background-origin: border-box;
+               background-attachment: fixed;
+               background-image: url(chess.png);
+               background-repeat: round;"
+
+    style_entrée := parse_css_style_declaration(entrée)
+    style_sortie := parse_css_style_declaration(sortie)
+
+    saufsi sont_équivalents(style_entrée, style_sortie) {
+        imprimeln("Les styles ne sont pas équivalents")
+    }
+}
+
+sont_équivalents :: fonc (style1: *CSSStyleDeclaration, style2: *CSSStyleDeclaration) -> bool
+{
+    si style1.déclarations.taille != style2.déclarations.taille {
+        retourne faux
+    }
+
+    pour décl1 dans style1.déclarations {
+        décl2 := donne_déclaration(style2, décl1.property_name)
+        si décl2 == nul {
+            retourne faux
+        }
+
+        saufsi sont_équivalents(décl1, décl2) {
+            imprime_déclaration(décl1)
+            imprime_déclaration(décl2)
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+sont_équivalents :: fonc (décl1: *DéclarationPropriété, décl2: *DéclarationPropriété) -> bool
+{
+    si décl1.est_personnalisée || décl2.est_personnalisée {
+        // À FAIRE
+        retourne faux
+    }
+
+    si décl1.value.taille != décl2.value.taille {
+        retourne faux
+    }
+
+    pour valeur1, index dans décl1.value {
+        saufsi sont_mêmes_valeurs(valeur1, décl2.value[index]) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+parse_css_style_declaration :: fonc (texte: chaine) -> *CSSStyleDeclaration
+{
+    lexèmes := lèxe_style(texte)
+    diffère détruit_lexèmes(*lexèmes)
+
+    components := parse_a_list_of_component_values(lexèmes)
+    diffère déloge(components)
+
+    parseuse_decl := initialise_une_parseuse(components)
+
+    content := consomme_une_liste_de_déclarations(parseuse_decl)
+    si content.decls.taille == 0 {
+        imprimeln("Impossible de préparser la déclaration : %", texte)
+        exit(1)
+    }
+
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
+
+    retourne parse_css_style_declaration(*ctx, content.decls)
 }
 
 test_collection_règles :: fonc ()
