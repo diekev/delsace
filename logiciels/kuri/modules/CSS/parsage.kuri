@@ -2540,12 +2540,16 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
     }
 
     pour déclaration.value {
-        saufsi it.est_lexème_de_genre(GenreLexème.Ident) {
-            continue
+        si it.est_lexème_de_genre(GenreLexème.Ident) {
+            si commence_par_préfixe_vendeur(it.lexème.valeur) {
+                retourne
+            }
         }
-
-        si commence_par_préfixe_vendeur(it.lexème.valeur) {
-            retourne
+        sinon si it.est_fonction() {
+            fonction := it.function
+            si commence_par_préfixe_vendeur(fonction.name) {
+                retourne
+            }
         }
     }
 
