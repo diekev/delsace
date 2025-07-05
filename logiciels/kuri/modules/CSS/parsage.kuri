@@ -2610,7 +2610,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 105
+NOMBRE_PROPRIÉTÉS :: 106
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2683,6 +2683,7 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_background_position, id = IDPropriété.BackgroundPosition, fonction_de_parsage = parse_propriété_background_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_background_clip, id = IDPropriété.BackgroundClip, fonction_de_parsage = parse_propriété_valeur_visual_box, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_background_origin, id = IDPropriété.BackgroundOrigin, fonction_de_parsage = parse_propriété_valeur_visual_box, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_background_size, id = IDPropriété.BackgroundSize, fonction_de_parsage = parse_propriété_background_size, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.BackgroundSize),
         InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
         InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
@@ -4396,6 +4397,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     background_repeat := donne_valeur_background_repeat_défaut()
     background_attachment := donne_valeur_scroll()
     background_position := donne_valeur_background_position_défaut()
+    background_size := donne_valeur_auto()
     background_origin := donne_valeur_border_box()
     background_clip := donne_valeur_border_box()
 
@@ -4438,6 +4440,20 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         valeur_position := parse_valeur_background_position(parseuse)
         si valeur_position.possède_valeur() {
             background_position = valeur_position.Quelque
+
+            lexème := parseuse.lexème_courant()
+            si lexème.est_lexème_slash() {
+                parseuse.avance()
+                parseuse.consomme_espaces_blanches()
+
+                size := parse_valeur_background_size(parseuse)
+                saufsi size.possède_valeur() {
+                    retourne faux
+                }
+
+                background_size = size.Quelque
+            }
+
             continue
         }
 
@@ -4469,6 +4485,7 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     ajoute_propriété(ctx, PROP_background_attachment, background_attachment)
     ajoute_propriété(ctx, PROP_background_repeat, background_repeat)
     ajoute_propriété(ctx, PROP_background_position, background_position)
+    ajoute_propriété(ctx, PROP_background_size, background_size)
     ajoute_propriété(ctx, PROP_background_origin, background_origin)
     ajoute_propriété(ctx, PROP_background_clip, background_clip)
 
@@ -4709,6 +4726,37 @@ parse_valeur_visual_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionn
 {
     mots_clés := [PROP_content_box, PROP_padding_box, PROP_border_box]
     retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://drafts.csswg.org/css-backgrounds-3/#background-size */
+parse_propriété_background_size :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_background_size(parseuse)
+}
+
+parse_valeur_background_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    mots_clés := [PROP_contain, PROP_cover]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur
+    }
+
+    horizontal := parse_valeur_length_percentage_positive_ou_auto(parseuse)
+    saufsi horizontal.possède_valeur() {
+        retourne
+    }
+
+    vertical := parse_valeur_length_percentage_positive_ou_auto(parseuse)
+    saufsi vertical.possède_valeur() {
+        vertical = donne_valeur_auto()
+    }
+
+    résultat : BackgroundSize = ---
+    résultat.horizontal = horizontal
+    résultat.vertical = vertical
+    retourne crée_valeur_background_size(résultat)
 }
 
 /** \} */
