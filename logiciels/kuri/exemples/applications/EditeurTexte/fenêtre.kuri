@@ -54,7 +54,7 @@ thème: Thème
 
 RaccourciCommande :: struct {
     raccourci: RaccourcisClavier
-    commande: fonc(*Éditeur)(rien)
+    commande: fonc(*Anonyme)(rien)
 }
 
 donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement) -> *RaccourciCommande
@@ -527,7 +527,7 @@ principale :: fonc ()
                 si it.touche_pressée {
                     raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it)
                     si raccourci_commande {
-                        raccourci_commande.commande(*anonyme.éditeur)
+                        raccourci_commande.commande(*anonyme)
                     }
                     sinon si it.texte != "" {
                         éditeur_insère_texte(*anonyme.éditeur, it.texte)

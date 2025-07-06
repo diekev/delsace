@@ -1,6 +1,6 @@
 importe Compilatrice
 
-donne_commande_pour_nom :: fonc (nom: chaine) -> fonc(*Éditeur)(rien)
+donne_commande_pour_nom :: fonc (nom: chaine) -> fonc(*Anonyme)(rien)
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -38,84 +38,84 @@ donne_commande_pour_nom :: fonc (nom: chaine) -> fonc(*Éditeur)(rien)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-commande_défilage_bas :: fonc (éditeur: *Éditeur)
+commande_défilage_bas :: fonc (anonyme: *Anonyme)
 {
-    éditeur.décalage_ligne += 1
-    si éditeur.décalage_ligne >= éditeur.lignes_texte.taille {
-        éditeur.décalage_ligne = éditeur.lignes_texte.taille comme z32 - 1
+    anonyme.éditeur.décalage_ligne += 1
+    si anonyme.éditeur.décalage_ligne >= anonyme.éditeur.lignes_texte.taille {
+        anonyme.éditeur.décalage_ligne = anonyme.éditeur.lignes_texte.taille comme z32 - 1
     }
 }
 
-commande_déplace_curseur_bas :: fonc (éditeur: *Éditeur)
+commande_déplace_curseur_bas :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.LigneSuivante)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LigneSuivante)
 }
 
-commande_défilage_haut :: fonc (éditeur: *Éditeur)
+commande_défilage_haut :: fonc (anonyme: *Anonyme)
 {
-    éditeur.décalage_ligne -= 1
-    si éditeur.décalage_ligne < 0 {
-        éditeur.décalage_ligne = 0
+    anonyme.éditeur.décalage_ligne -= 1
+    si anonyme.éditeur.décalage_ligne < 0 {
+        anonyme.éditeur.décalage_ligne = 0
     }
 }
 
-commande_déplace_curseur_haut :: fonc (éditeur: *Éditeur)
+commande_déplace_curseur_haut :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.LignePrécédente)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LignePrécédente)
 }
 
-commande_va_début_ligne :: fonc (éditeur: *Éditeur)
+commande_va_début_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.DébutLigne)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.DébutLigne)
 }
 
-commande_va_fin_ligne :: fonc (éditeur: *Éditeur)
+commande_va_fin_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.FinLigne)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.FinLigne)
 }
 
-commande_va_page_précédente :: fonc (éditeur: *Éditeur)
+commande_va_page_précédente :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.PagePrécédente)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PagePrécédente)
 }
 
-commande_va_page_suivante :: fonc (éditeur: *Éditeur)
+commande_va_page_suivante :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.PageSuivante)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PageSuivante)
 }
 
-commande_va_au_mot_précédent :: fonc (éditeur: *Éditeur)
+commande_va_au_mot_précédent :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.MotPrécédent)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotPrécédent)
 }
 
-commande_va_à_gauche :: fonc (éditeur: *Éditeur)
+commande_va_à_gauche :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.Recule)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Recule)
 }
 
-commande_va_à_droite :: fonc (éditeur: *Éditeur)
+commande_va_à_droite :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.Avance)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance)
 }
 
-commande_va_au_mot_suivant :: fonc (éditeur: *Éditeur)
+commande_va_au_mot_suivant :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.MotSuivant)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotSuivant)
 }
 
-commande_ajoute_nouvelle_ligne :: fonc (éditeur: *Éditeur)
+commande_ajoute_nouvelle_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_ajoute_nouvelle_ligne(éditeur)
+    éditeur_ajoute_nouvelle_ligne(*anonyme.éditeur)
 }
 
-commande_supprime_caractère :: fonc (éditeur: *Éditeur)
+commande_supprime_caractère :: fonc (anonyme: *Anonyme)
 {
-    éditeur_supprime_caractère(éditeur)
+    éditeur_supprime_caractère(*anonyme.éditeur)
 }
 
-commande_supprime :: fonc (éditeur: *Éditeur)
+commande_supprime :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(éditeur, Mouvement.Avance)
-    éditeur_supprime_caractère(éditeur)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance)
+    éditeur_supprime_caractère(*anonyme.éditeur)
 }
