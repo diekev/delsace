@@ -24,11 +24,6 @@ charge "éditeur"
 // À FAIRE : sauvegarde automatique
 // À FAIRE : refait/défait
 
-E: Éditeur
-peintre: *Peintre
-emboiteuse: Emboiteuse
-fonte: *Fonte
-lexeuse: SimpleLexeuse
 
 // importe SysFichier
 
@@ -119,7 +114,7 @@ donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 info_fichier_config: InfoFichier
 info_config_projet: InfoFichier
 
-parse_config_depuis_fichier :: fonc (chemin: chaine, projet: *Projet)
+parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, projet: *Projet)
 {
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
     lexeuse.ponctuations = __ponctuation_config
@@ -368,20 +363,20 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourcisClavier, bool
     retourne résultat, vrai
 }
 
-ajourne_configuration :: fonc (chemin_config_projet: chaine, projet: *Projet)
+ajourne_configuration :: fonc (anonyme: *Anonyme, chemin_config_projet: chaine, projet: *Projet)
 {
     chemin_config_globale := "globale.config-éditeur"
 
     info := donne_info_fichier(chemin_config_globale)
     si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
-        parse_config_depuis_fichier(chemin_config_globale, projet)
+        parse_config_depuis_fichier(anonyme, chemin_config_globale, projet)
         info_fichier_config = info
     }
 
     si chemin_config_projet {
         info = donne_info_fichier(chemin_config_projet)
         si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
-            parse_config_depuis_fichier(chemin_config_projet, projet)
+            parse_config_depuis_fichier(anonyme, chemin_config_projet, projet)
             info_config_projet = info
         }
     }
@@ -401,10 +396,20 @@ Anonyme :: struct {
     infos_projets: [..]InfoProjet
 
     projet_ouvert: *Projet
+
+    éditeur: Éditeur
+    peintre: *Peintre
+    emboiteuse: Emboiteuse
+    fonte: *Fonte
+    lexeuse: SimpleLexeuse
 }
 
 initialise_anonyme :: fonc (anonyme: *Anonyme)
 {
+    fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
+    anonyme.fonte = crée_fonte(fonte_défaut_mono, 16)
+    anonyme.fonte.font.kerning = faux
+
     chemin_config_utilisateur := système_chemin_pour_dossier_configuration_utilisateur().Quelque
     chemin_projets := chemin_config_utilisateur / "anonyme/projets"
 
@@ -444,7 +449,7 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
 
     /* Ajourne les configuration. */
     imprimeln("Ouverture de '%'", info_projet.chemin_config)
-    ajourne_configuration(info_projet.chemin_config, projet)
+    ajourne_configuration(anonyme, info_projet.chemin_config, projet)
 
     /* Charge la liste de fichiers du projet. */
     charge_fichiers_projets :: fonc (info_fichier: InfoVisiteFichier, projet: *Projet) -> DécisionVisiteFichier
@@ -493,13 +498,10 @@ principale :: fonc ()
 
     _ := ouvre_projet(*anonyme, "blender")
 
-    fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
-    fonte = crée_fonte(fonte_défaut_mono, 16)
-    fonte.font.kerning = faux
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
-    éditeur_ouvre(*E, copie_chaine("éditeur.kuri"))
+    éditeur_ouvre(*anonyme.éditeur, copie_chaine("éditeur.kuri"))
 
     doit_fermer := faux
 
@@ -507,7 +509,7 @@ principale :: fonc ()
 
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
-            ajourne_configuration(anonyme.projet_ouvert.info_projet.chemin_config, anonyme.projet_ouvert)
+            ajourne_configuration(*anonyme, anonyme.projet_ouvert.info_projet.chemin_config, anonyme.projet_ouvert)
         }
         tics_fichier += 1
 
@@ -525,28 +527,28 @@ principale :: fonc ()
                 si it.touche_pressée {
                     raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it)
                     si raccourci_commande {
-                        raccourci_commande.commande(*E)
+                        raccourci_commande.commande(*anonyme.éditeur)
                     }
                     sinon si it.texte != "" {
-                        éditeur_insère_texte(*E, it.texte)
+                        éditeur_insère_texte(*anonyme.éditeur, it.texte)
                     }
                 }
             }
         }
 
-        métriques := donne_métriques_fonte(fonte)
-        E.lignes = ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2
+        métriques := donne_métriques_fonte(anonyme.fonte)
+        anonyme.éditeur.lignes = ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2
 
-        ajourne_tampon_rendu(*E)
-        éditeur_défile(*E)
+        ajourne_tampon_rendu(*anonyme.éditeur)
+        éditeur_défile(*anonyme.éditeur)
 
-        dessine_fenêtre(largeur, hauteur)
+        dessine_fenêtre(*anonyme, largeur, hauteur)
 
         permute_tampons_fenêtre(fenêtre)
     }
 }
 
-dessine_fenêtre :: fonc (largeur: z32, hauteur: z32)
+dessine_fenêtre :: fonc (empl anonyme: *Anonyme, largeur: z32, hauteur: z32)
 {
     marque := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marque)
@@ -559,13 +561,13 @@ dessine_fenêtre :: fonc (largeur: z32, hauteur: z32)
     peintre.définis_taille_cannevas(taille_cannevas)
     peintre.efface_cible_rendu()
 
-    commandes := crée_interface(largeur, hauteur)
+    commandes := crée_interface(anonyme, largeur, hauteur)
     dessine_commandes(peintre, *commandes)
 }
 
-crée_interface :: fonc (largeur: z32, hauteur: z32) -> CommandesDeRendu
+crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> CommandesDeRendu
 {
-    commence_disposition(*emboiteuse, largeur, hauteur)
+    commence_disposition(*anonyme.emboiteuse, largeur, hauteur)
 
     dispose_rectangle()
     {
@@ -576,24 +578,24 @@ crée_interface :: fonc (largeur: z32, hauteur: z32) -> CommandesDeRendu
             définis_arrière_plan(thème.arrière_plan)
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
 
-            dessine_indicateurs_lignes(hauteur)
-            dessine_texte()
+            dessine_indicateurs_lignes(anonyme, hauteur)
+            dessine_texte(anonyme)
         }
         termine_rectangle()
 
-        dessine_barre_status()
-        dessine_barre_message()
+        dessine_barre_status(anonyme)
+        dessine_barre_message(anonyme)
     }
     termine_rectangle()
 
-    retourne termine_disposition(*emboiteuse)
+    retourne termine_disposition(*anonyme.emboiteuse)
 }
 
-dessine_indicateurs_lignes :: fonc (hauteur: z32)
+dessine_indicateurs_lignes :: fonc (anonyme: *Anonyme, hauteur: z32)
 {
-    métriques := donne_métriques_fonte(fonte)
+    métriques := donne_métriques_fonte(anonyme.fonte)
     nombre_de_lignes := ((hauteur comme r32) / métriques.donne_hauteur_ligne()) comme z32 - 2
-    nombre_de_colonnes := max(4, magnitude_décimale(E.lignes_texte.taille comme z32) + 2)
+    nombre_de_colonnes := max(4, magnitude_décimale(anonyme.éditeur.lignes_texte.taille comme z32) + 2)
     largeur_colonnes := (métriques.largeur_moyenne * nombre_de_colonnes comme r32) comme z32
 
     dispose_rectangle()
@@ -602,21 +604,21 @@ dessine_indicateurs_lignes :: fonc (hauteur: z32)
         définis_disposition(cotation = Cotation(FIXE(largeur_colonnes), CROISSANTE()), alignement_horizontal = AlignementEnfant.Fin, direction = Direction.Verticale)
 
         pour nombre_de_lignes {
-            txt := imprime_chaine_temp(" % ", it + E.décalage_ligne + 1)
+            txt := imprime_chaine_temp(" % ", it + anonyme.éditeur.décalage_ligne + 1)
 
-            couleur := si index_it == (E.cy - E.décalage_ligne) {
+            couleur := si index_it == (anonyme.éditeur.cy - anonyme.éditeur.décalage_ligne) {
                 thème.indicateur_ligne_courante
             }
             sinon {
                 thème.indicateur_ligne
             }
-            dispose_texte(txt, ConfigurationTexte(fonte, couleur))
+            dispose_texte(txt, ConfigurationTexte(anonyme.fonte, couleur))
         }
     }
     termine_rectangle()
 }
 
-dessine_texte :: fonc ()
+dessine_texte :: fonc (empl anonyme: *Anonyme)
 {
     métriques := donne_métriques_fonte(fonte)
     hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
@@ -629,32 +631,32 @@ dessine_texte :: fonc ()
 
         config_texte := ConfigurationTexte(fonte, thème.texte)
 
-        pour E.lignes {
-            index_ligne := it + E.décalage_ligne
+        pour anonyme.éditeur.lignes {
+            index_ligne := it + anonyme.éditeur.décalage_ligne
 
-            si index_ligne >= E.lignes_texte.taille {
+            si index_ligne >= anonyme.éditeur.lignes_texte.taille {
                 dispose_texte("", config_texte)
             }
             sinon {
-                dispose_texte(E.lignes_rendu[index_ligne], config_texte)
+                dispose_texte(anonyme.éditeur.lignes_rendu[index_ligne], config_texte)
             }
 
             /* Curseur. */
-            si E.cy == index_ligne {
+            si anonyme.éditeur.cy == index_ligne {
                 dispose_rectangle()
                 {
                     définis_arrière_plan(thème.texte)
                     définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
 
-                    texte_ligne := E.lignes_rendu[index_ligne]
+                    texte_ligne := anonyme.éditeur.lignes_rendu[index_ligne]
                     texte_avant_curseur := texte_ligne
-                    texte_avant_curseur.points_de_code.taille = E.cx
+                    texte_avant_curseur.points_de_code.taille = anonyme.éditeur.cx
 
                     position_curseur := fonte.donne_largeur_texte(texte_avant_curseur)
 
                     définis_flottance(position_curseur comme r32, (it * hauteur_ligne) comme r32)
 
-                    texte_sous_curseur := avance(texte_ligne, E.cx)
+                    texte_sous_curseur := avance(texte_ligne, anonyme.éditeur.cx)
                     si texte_sous_curseur.taille() {
                         texte_sous_curseur.points_de_code.taille = 1
                         dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, thème.arrière_plan))
@@ -667,36 +669,36 @@ dessine_texte :: fonc ()
     termine_rectangle()
 }
 
-dessine_barre_status :: fonc ()
+dessine_barre_status :: fonc (anonyme: *Anonyme)
 {
-    métriques := donne_métriques_fonte(fonte)
+    métriques := donne_métriques_fonte(anonyme.fonte)
     hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
 
-    chemin := E.chemin_fichier
+    chemin := anonyme.éditeur.chemin_fichier
     saufsi chemin {
         chemin = "Document sans nom"
     }
 
     modifié := ""
-    si E.modifié {
+    si anonyme.éditeur.modifié {
         modifié = " (modifié)"
     }
 
-    texte := imprime_chaine_temp("%% - % lignes", chemin, modifié, E.lignes_texte.taille)
+    texte := imprime_chaine_temp("%% - % lignes", chemin, modifié, anonyme.éditeur.lignes_texte.taille)
 
     dispose_rectangle()
     {
         définis_arrière_plan(thème.texte)
         définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
 
-        dispose_texte(texte, ConfigurationTexte(fonte, thème.arrière_plan))
+        dispose_texte(texte, ConfigurationTexte(anonyme.fonte, thème.arrière_plan))
     }
     termine_rectangle()
 }
 
-dessine_barre_message :: fonc ()
+dessine_barre_message :: fonc (anonyme: *Anonyme)
 {
-    métriques := donne_métriques_fonte(fonte)
+    métriques := donne_métriques_fonte(anonyme.fonte)
     hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
 
     dispose_rectangle()
@@ -704,8 +706,8 @@ dessine_barre_message :: fonc ()
         définis_arrière_plan(thème.arrière_plan)
         définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)))
 
-        si temps_écoulé_secondes(E.temps_message) < 5 {
-            dispose_texte(E.message, ConfigurationTexte(fonte, thème.texte))
+        si temps_écoulé_secondes(anonyme.éditeur.temps_message) < 5 {
+            dispose_texte(anonyme.éditeur.message, ConfigurationTexte(anonyme.fonte, thème.texte))
         }
     }
     termine_rectangle()
