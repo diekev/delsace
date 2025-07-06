@@ -2614,7 +2614,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 106
+NOMBRE_PROPRIÉTÉS :: 108
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2669,7 +2669,7 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_inset, sur_parsage_shorthand = parse_propriété_inset_shorthand, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
-        InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_text_align, sur_parsage_shorthand = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
         InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
         InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand),
@@ -2784,19 +2784,14 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_align_content, id = IDPropriété.AlignContent, fonction_de_parsage = parse_propriété_align_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_align_items, id = IDPropriété.AlignItems, fonction_de_parsage = parse_propriété_align_items, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_align_self, id = IDPropriété.AlignSelf, fonction_de_parsage = parse_propriété_align_self, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
-        InfoTypePropriété(PROP_content, id = IDPropriété.Content, fonction_de_parsage = parse_propriété_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
+        InfoTypePropriété(PROP_content, id = IDPropriété.Content, fonction_de_parsage = parse_propriété_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+        InfoTypePropriété(PROP_text_align_all, id = IDPropriété.TextAlignAll, fonction_de_parsage = parse_propriété_text_align_all, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_text_align_last, id = IDPropriété.TextAlignLast, fonction_de_parsage = parse_propriété_text_align_last, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
     ]
 
     /* NOTE : par défaut les infos n'ayant pas d'id prennent la valeur défaut de "Display".
      * nous devons donc vérfier si la valeur "Display" est pour la propriété "display". */
     assert(IDPropriété.Display comme n16 == 0)
-    pour infos_types_propriétés_shorthand {
-        si it.id == IDPropriété.Display && it.nom != PROP_display {
-            continue
-        }
-
-        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés_shorthand[index_it]
-    }
     pour infos_types_propriétés {
         si it.id == IDPropriété.Display && it.nom != PROP_display {
             continue
@@ -5599,10 +5594,40 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
  * https://drafts.csswg.org/css-text/#text-align-property
  * \{ */
 
-parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+parse_propriété_text_align :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_text_align_all, PROP_text_align_last]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    saufsi valeur.possède_valeur() {
+        retourne faux
+    }
+
+    pour noms_propriétés {
+        ctx.ajoute_propriété(it, valeur.Quelque)
+    }
+
+    retourne vrai
+}
+
+/* https://drafts.csswg.org/css-text/#propdef-text-align-all */
+parse_propriété_text_align_all :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://drafts.csswg.org/css-text/#propdef-text-align-last */
+parse_propriété_text_align_last :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_auto, PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 

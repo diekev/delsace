@@ -1141,8 +1141,6 @@ crée_propriétés_de_style :: fonc (parent: *PropriétésDeStyle) -> *Propriét
             id := it.id
             résultat.définis_valeur_calculée(id, parent.donne_valeur_calculée(id))
         }
-
-        résultat.définis_valeur_calculée(IDPropriété.TextAlign, parent.donne_valeur_calculée(IDPropriété.TextAlign))
     }
 
     retourne résultat
@@ -1887,7 +1885,8 @@ IDPropriété :: énum n16 {
     VerticalAlign
     WhiteSpace
 
-    TextAlign
+    TextAlignAll
+    TextAlignLast
     JustifyContent
 
     FlexBasis
@@ -2006,7 +2005,8 @@ initialise_style :: fonc (style: *Style)
     style.valeurs[IDPropriété.VerticalAlign] = donne_valeur_baseline()
     style.valeurs[IDPropriété.WhiteSpace] = donne_valeur_normal()
 
-    style.valeurs[IDPropriété.TextAlign] = donne_valeur_start()
+    style.valeurs[IDPropriété.TextAlignAll] = donne_valeur_start()
+    style.valeurs[IDPropriété.TextAlignLast] = donne_valeur_auto()
     style.valeurs[IDPropriété.JustifyContent] = donne_valeur_flex_start()
 
     style.valeurs[IDPropriété.Content] = donne_valeur_normal()
