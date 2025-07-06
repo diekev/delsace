@@ -673,18 +673,23 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
                     définis_arrière_plan(thème.texte)
                     définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
 
-                    texte_ligne := anonyme.éditeur.lignes_rendu[index_ligne]
-                    texte_avant_curseur := texte_ligne
-                    texte_avant_curseur.points_de_code.taille = anonyme.éditeur.cx
+                    si index_ligne < anonyme.éditeur.lignes_texte.taille {
+                        texte_ligne := anonyme.éditeur.lignes_rendu[index_ligne]
+                        texte_avant_curseur := texte_ligne
+                        texte_avant_curseur.points_de_code.taille = anonyme.éditeur.cx
 
-                    position_curseur := fonte.donne_largeur_texte(texte_avant_curseur)
+                        position_curseur := fonte.donne_largeur_texte(texte_avant_curseur)
 
-                    définis_flottance(position_curseur comme r32, (it * hauteur_ligne) comme r32)
+                        définis_flottance(position_curseur comme r32, (it * hauteur_ligne) comme r32)
 
-                    texte_sous_curseur := avance(texte_ligne, anonyme.éditeur.cx)
-                    si texte_sous_curseur.taille() {
-                        texte_sous_curseur.points_de_code.taille = 1
-                        dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, thème.arrière_plan))
+                        texte_sous_curseur := avance(texte_ligne, anonyme.éditeur.cx)
+                        si texte_sous_curseur.taille() {
+                            texte_sous_curseur.points_de_code.taille = 1
+                            dispose_texte(texte_sous_curseur, ConfigurationTexte(fonte, thème.arrière_plan))
+                        }
+                    }
+                    sinon {
+                        définis_flottance(0.0, (it * hauteur_ligne) comme r32)
                     }
                 }
                 termine_rectangle()
