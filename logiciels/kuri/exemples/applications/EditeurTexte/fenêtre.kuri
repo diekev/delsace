@@ -471,7 +471,7 @@ principale :: fonc ()
 
     _ := ouvre_projet(*anonyme, "blender")
 
-    fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
+    fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
     fonte = crée_fonte(fonte_défaut_mono, 16)
     fonte.font.kerning = faux
 
