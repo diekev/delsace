@@ -554,7 +554,7 @@ système_chemin_pour_dossier_données_utilisateur :: fonc () -> Optionnel(Chemin
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_configuration_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".local/config/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".config/")
 }
 
 /* Chemin vers le dossier de données d'état des programmes de l'utilisateur.
@@ -842,7 +842,7 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     TAILLE_TAMPON_READLINK :: 1024
     tampon : [TAILLE_TAMPON_READLINK]z8 = ---
 
-    lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
+    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
     si lus < 0 {
         retourne convertis_errno_en_erreur_fichier()
     }
