@@ -1,0 +1,14 @@
+// Données pour les tests de parsage
+
+// entrée
+background: url("chess.png") 40% / 10em gray round fixed border-box;
+
+// sortie
+background-position: 40% 50%;
+background-color: gray;
+background-size: 10em auto;
+background-clip: border-box;
+background-origin: border-box;
+background-attachment: fixed;
+background-image: url(chess.png);
+background-repeat: round;

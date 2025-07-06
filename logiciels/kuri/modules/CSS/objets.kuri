@@ -179,6 +179,17 @@ ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *Déclar
     tableau_ajoute(*style.déclarations, déclaration)
 }
 
+donne_déclaration :: fonc (style: *CSSStyleDeclaration, nom: CSSOMString) -> *DéclarationPropriété
+{
+    pour style.déclarations {
+        si it.property_name == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
 imprime_style :: fonc (style: *CSSStyleDeclaration)
 {
     pour déclaration dans style.déclarations {
