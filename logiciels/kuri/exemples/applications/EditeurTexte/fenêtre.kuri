@@ -337,8 +337,32 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourcisClavier, bool
     sinon si texte == "Suppr" {
         résultat.clé = ToucheClavier.SUPPRIMER
     }
+    sinon si texte.taille == 1 {
+        caractère := texte[0]
+
+        si 'A' <= caractère <= 'Z' {
+            décalage := caractère - 'A'
+            résultat.clé = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+        }
+        sinon si 'a' <= caractère <= 'z' {
+            décalage := caractère - 'a'
+            résultat.clé = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+        }
+        sinon si '0' <= caractère <= '9' {
+            décalage := caractère - '0'
+            résultat.clé = (ToucheClavier._0 comme z32 + décalage) comme ToucheClavier
+        }
+        sinon {
+            retourne résultat, faux
+        }
+    }
     sinon {
-        retourne résultat, faux
+        valeur, trouvée := donne_valeur_énum_pour_nom(info_de(ToucheClavier), texte)
+        saufsi trouvée {
+            retourne résultat, faux
+        }
+
+        résultat.clé = valeur comme ToucheClavier
     }
 
     retourne résultat, vrai
