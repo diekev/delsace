@@ -92,8 +92,6 @@ InfoCompilation :: struct {
     commande: [..]chaine
 }
 
-__projet: Projet
-
 InfoFichier :: struct {
     taille: n64
     modification: z64
@@ -485,7 +483,7 @@ principale :: fonc ()
 
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
-            ajourne_configuration("", *__projet)
+            ajourne_configuration(anonyme.projet_ouvert.info_projet.chemin_config, anonyme.projet_ouvert)
         }
         tics_fichier += 1
 
@@ -501,7 +499,7 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    raccourci_commande := donne_raccourci_pour_évènement(*__projet, it)
+                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it)
                     si raccourci_commande {
                         raccourci_commande.commande(*E)
                     }
