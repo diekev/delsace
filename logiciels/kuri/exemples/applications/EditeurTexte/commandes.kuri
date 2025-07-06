@@ -119,3 +119,8 @@ commande_supprime :: fonc (anonyme: *Anonyme)
     éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance)
     éditeur_supprime_caractère(*anonyme.éditeur)
 }
+
+commande_ouvrir_fichier :: fonc (anonyme: *Anonyme)
+{
+    anonyme.état = Anonyme.État.OUVERTURE_FICHIER
+}

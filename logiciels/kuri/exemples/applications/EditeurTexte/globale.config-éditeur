@@ -9,6 +9,8 @@ indicateur-ligne-courante CCCCCCFF
 
 [[raccourcis]]
 
+Ctrl-O                  ouvrir_fichier
+
 FlècheGauche            va_à_gauche
 FlècheDroite            va_à_droite
 Ctrl-FlècheGauche       va_au_mot_précédent

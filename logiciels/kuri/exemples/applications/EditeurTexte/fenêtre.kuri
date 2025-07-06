@@ -397,6 +397,12 @@ Anonyme :: struct {
 
     projet_ouvert: *Projet
 
+    État :: énum {
+        ÉDITION
+        OUVERTURE_FICHIER
+    }
+    état: État
+
     éditeur: Éditeur
     peintre: *Peintre
     emboiteuse: Emboiteuse
@@ -455,16 +461,17 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
     charge_fichiers_projets :: fonc (info_fichier: InfoVisiteFichier, projet: *Projet) -> DécisionVisiteFichier
     {
         // À FAIRE : exclusions de fichiers
-        info := tableau_ajoute_élément(*projet.fichiers_disponibles)
-        mémoire(info) = info_fichier
-        info.nom = copie_chaine(info.nom)
-        info.chemin = copie_chaine(info.chemin)
+        saufsi info_fichier.est_dossier {
+            info := tableau_ajoute_élément(*projet.fichiers_disponibles)
+            mémoire(info) = info_fichier
+            info.nom = copie_chaine(info.nom)
+            info.chemin = copie_chaine(info.chemin)
+        }
         retourne DécisionVisiteFichier.Continue
     }
 
     // À FAIRE : protection contre les doublons
     pour projet.chemins {
-        imprimeln("%", it)
         visite_fichiers(it, vrai, projet, charge_fichiers_projets)
     }
 
@@ -569,24 +576,42 @@ crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> Comma
 {
     commence_disposition(*anonyme.emboiteuse, largeur, hauteur)
 
-    dispose_rectangle()
-    {
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
-
+    si anonyme.état == Anonyme.État.ÉDITION {
         dispose_rectangle()
         {
-            définis_arrière_plan(thème.arrière_plan)
-            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
 
-            dessine_indicateurs_lignes(anonyme, hauteur)
-            dessine_texte(anonyme)
+            dispose_rectangle()
+            {
+                définis_arrière_plan(thème.arrière_plan)
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+
+                dessine_indicateurs_lignes(anonyme, hauteur)
+                dessine_texte(anonyme)
+            }
+            termine_rectangle()
+
+            dessine_barre_status(anonyme)
+            dessine_barre_message(anonyme)
         }
         termine_rectangle()
-
-        dessine_barre_status(anonyme)
-        dessine_barre_message(anonyme)
     }
-    termine_rectangle()
+    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        dispose_rectangle()
+        {
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
+
+            dispose_rectangle()
+            {
+                définis_arrière_plan(thème.arrière_plan)
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+
+                dessine_sélecteur_fichier(anonyme)
+            }
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
 
     retourne termine_disposition(*anonyme.emboiteuse)
 }
@@ -708,6 +733,37 @@ dessine_barre_message :: fonc (anonyme: *Anonyme)
 
         si temps_écoulé_secondes(anonyme.éditeur.temps_message) < 5 {
             dispose_texte(anonyme.éditeur.message, ConfigurationTexte(anonyme.fonte, thème.texte))
+        }
+    }
+    termine_rectangle()
+}
+
+dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
+{
+    assert(projet_ouvert != nul)
+
+    config_texte := ConfigurationTexte(fonte, thème.texte)
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(thème.arrière_plan)
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0))
+
+        dispose_rectangle(id = "Cliquez-moi pour m'éditer")
+        {
+            définis_arrière_plan(1.0, 1.0, 1.0, 0.2)
+            définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(5.0), alignement_vertical = AlignementEnfant.Milieu)
+
+            dispose_texte("Choisir fichier", config_texte)
+        }
+        termine_rectangle()
+
+        pour projet_ouvert.fichiers_disponibles {
+            si index_it >= 50 {
+                arrête
+            }
+
+            dispose_texte(it.chemin, config_texte)
         }
     }
     termine_rectangle()
