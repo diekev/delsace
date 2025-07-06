@@ -1052,7 +1052,7 @@ AlignementTexte :: énum {
 
 donne_alignement_texte :: fonc (box: *BlockBox) -> AlignementTexte
 {
-    text_align := box.propriétés.donne_valeur_utilisée(IDPropriété.TextAlign)
+    text_align := box.propriétés.donne_valeur_utilisée(IDPropriété.TextAlignAll)
 
     si text_align.est_mot_clé(PROP_start) {
         retourne AlignementTexte.Gauche
