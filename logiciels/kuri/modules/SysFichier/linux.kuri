@@ -842,7 +842,7 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     TAILLE_TAMPON_READLINK :: 1024
     tampon : [TAILLE_TAMPON_READLINK]z8 = ---
 
-    lus := readlink(ChaineC("/proc/self/exe\0".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
+    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
     si lus < 0 {
         retourne convertis_errno_en_erreur_fichier()
     }
