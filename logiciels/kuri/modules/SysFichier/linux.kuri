@@ -554,7 +554,7 @@ système_chemin_pour_dossier_données_utilisateur :: fonc () -> Optionnel(Chemin
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_configuration_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".local/config/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".config/")
 }
 
 /* Chemin vers le dossier de données d'état des programmes de l'utilisateur.
