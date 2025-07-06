@@ -81,6 +81,10 @@ Projet :: struct {
     commandes_de_compilation: [..]InfoCompilation
 
     raccourcis: [..]RaccourciCommande
+
+    /* Mémoire vive. */
+    info_projet: InfoProjet
+    fichiers_disponibles: [..]InfoVisiteFichier
 }
 
 InfoCompilation :: struct {
@@ -117,7 +121,7 @@ donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 info_fichier_config: InfoFichier
 info_config_projet: InfoFichier
 
-parse_config_depuis_fichier :: fonc (chemin: chaine)
+parse_config_depuis_fichier :: fonc (chemin: chaine, projet: *Projet)
 {
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
     lexeuse.ponctuations = __ponctuation_config
@@ -142,13 +146,13 @@ parse_config_depuis_fichier :: fonc (chemin: chaine)
             parse_paramètres(*lexeuse)
         }
         sinon si lexème.est_mot_clé("espace") {
-            parse_espace_de_travail(*lexeuse, *__projet)
+            parse_espace_de_travail(*lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("compilation") {
-            parse_commandes_compilation(*lexeuse, *__projet)
+            parse_commandes_compilation(*lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("raccourcis") {
-            parse_raccourcis(*lexeuse, *__projet)
+            parse_raccourcis(*lexeuse, projet)
         }
         sinon {
             imprimeln("catégorie inconnue : %", lexème.donne_texte())
@@ -342,23 +346,108 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourcisClavier, bool
     retourne résultat, vrai
 }
 
-ajourne_configuration :: fonc ()
+ajourne_configuration :: fonc (chemin_config_projet: chaine, projet: *Projet)
 {
     chemin_config_globale := "globale.config-éditeur"
 
     info := donne_info_fichier(chemin_config_globale)
     si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
-        parse_config_depuis_fichier(chemin_config_globale)
+        parse_config_depuis_fichier(chemin_config_globale, projet)
         info_fichier_config = info
     }
 
-    chemin_config_projet := "projets/blender.config-éditeur"
-
-    info = donne_info_fichier(chemin_config_projet)
-    si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
-        parse_config_depuis_fichier(chemin_config_projet)
-        info_config_projet = info
+    si chemin_config_projet {
+        info = donne_info_fichier(chemin_config_projet)
+        si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
+            parse_config_depuis_fichier(chemin_config_projet, projet)
+            info_config_projet = info
+        }
     }
+}
+
+InfoProjet :: struct {
+    nom_court: chaine
+    chemin_config: chaine
+}
+
+CheminsAnonyme :: struct {
+    projets_utilisateur: CheminFichier
+}
+
+Anonyme :: struct {
+    chemins: CheminsAnonyme
+    infos_projets: [..]InfoProjet
+
+    projet_ouvert: *Projet
+}
+
+initialise_anonyme :: fonc (anonyme: *Anonyme)
+{
+    chemin_config_utilisateur := système_chemin_pour_dossier_configuration_utilisateur().Quelque
+    chemin_projets := chemin_config_utilisateur / "anonyme/projets"
+
+    anonyme.chemins.projets_utilisateur = chemin_projets
+    _ := tente crée_dossiers_pour_chemin(chemin_projets, vrai) piège nonatteignable
+
+    charge_infos_projets :: fonc (info_fichier: InfoVisiteFichier, anonyme: *Anonyme) -> DécisionVisiteFichier
+    {
+        info_projet := tableau_ajoute_élément(*anonyme.infos_projets)
+        info_projet.chemin_config = copie_chaine(info_fichier.chemin)
+        info_projet.nom_court = CheminFichier(info_projet.chemin_config).nom_fichier()
+
+        retourne DécisionVisiteFichier.Continue
+    }
+
+    visite_fichiers(chemin_projets, faux, anonyme, charge_infos_projets)
+}
+
+ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
+{
+    // À FAIRE : fermeture du projet courant
+    assert(anonyme.projet_ouvert == nul)
+
+    info_projet: InfoProjet
+    pour anonyme.infos_projets {
+        si nom == it.nom_court {
+            info_projet = it
+            arrête
+        }
+    }
+    sansarrêt {
+        imprimeln("Aucun projet nommé '%'", nom)
+        retourne faux
+    }
+
+    projet := loge(Projet)
+
+    /* Ajourne les configuration. */
+    imprimeln("Ouverture de '%'", info_projet.chemin_config)
+    ajourne_configuration(info_projet.chemin_config, projet)
+
+    /* Charge la liste de fichiers du projet. */
+    charge_fichiers_projets :: fonc (info_fichier: InfoVisiteFichier, projet: *Projet) -> DécisionVisiteFichier
+    {
+        // À FAIRE : exclusions de fichiers
+        info := tableau_ajoute_élément(*projet.fichiers_disponibles)
+        mémoire(info) = info_fichier
+        info.nom = copie_chaine(info.nom)
+        info.chemin = copie_chaine(info.chemin)
+        retourne DécisionVisiteFichier.Continue
+    }
+
+    // À FAIRE : protection contre les doublons
+    pour projet.chemins {
+        imprimeln("%", it)
+        visite_fichiers(it, vrai, projet, charge_fichiers_projets)
+    }
+
+    projet.info_projet = info_projet
+
+    anonyme.projet_ouvert = projet
+
+    imprimeln("Projet '%' ouvert", info_projet.nom_court)
+
+    retourne vrai
 }
 
 principale :: fonc ()
@@ -377,6 +466,11 @@ principale :: fonc ()
     //     imprimeln("%", it)
     // }
 
+    anonyme: Anonyme
+    initialise_anonyme(*anonyme)
+
+    _ := ouvre_projet(*anonyme, "blender")
+
     fonte_défaut_mono := "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"
     fonte = crée_fonte(fonte_défaut_mono, 16)
     fonte.font.kerning = faux
@@ -391,7 +485,7 @@ principale :: fonc ()
 
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
-            ajourne_configuration()
+            ajourne_configuration("", *__projet)
         }
         tics_fichier += 1
 
