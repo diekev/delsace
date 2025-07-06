@@ -12,23 +12,86 @@ principale :: fonc ()
     test_parsage_propriété()
 }
 
+CasParsage :: struct {
+    entrée: []chaine
+    sortie: []chaine
+}
+
+DonnéesTestParsage :: struct {
+    contenu: chaine
+    lignes: [..]chaine
+    cas_parsage: [..]CasParsage
+}
+
+charge_cas_parsage :: fonc () -> DonnéesTestParsage
+{
+    chemin := "fichiers/parsage.css"
+    contenu := contenu_fichier_texte(chemin)
+
+    lignes := divise(contenu, '\n')
+
+    cas_parsage: [..]CasParsage
+
+    index := 0
+    tantque index < lignes.taille {
+        si lignes[index] == "// entrée" {
+            index += 1
+
+            cas := tableau_ajoute_élément(*cas_parsage)
+            cas.entrée.pointeur = lignes.pointeur + index
+            cas.entrée.taille = 1
+            index += 1
+
+            tantque index < lignes.taille {
+                si lignes[index] == "// sortie" {
+                    index += 1
+                    arrête
+                }
+
+                cas.entrée.taille += 1
+                index += 1
+            }
+
+            cas.sortie.pointeur = lignes.pointeur + index
+            cas.sortie.taille = 1
+            index += 1
+
+            tantque index < lignes.taille {
+                si lignes[index] == "// entrée" {
+                    arrête
+                }
+
+                cas.sortie.taille += 1
+                index += 1
+            }
+
+            continue
+        }
+
+        index += 1
+    }
+
+    résultat: DonnéesTestParsage
+    résultat.contenu = contenu
+    résultat.lignes = lignes
+    résultat.cas_parsage = cas_parsage
+    retourne résultat
+}
+
 test_parsage_propriété :: fonc ()
 {
-    entrée := "background: url(\"chess.png\") 40% / 10em gray round fixed border-box;"
-    sortie := "background-position: 40% 50%;
-               background-color: gray;
-               background-size: 10em auto;
-               background-clip: border-box;
-               background-origin: border-box;
-               background-attachment: fixed;
-               background-image: url(chess.png);
-               background-repeat: round;"
+    données_test := charge_cas_parsage()
 
-    style_entrée := parse_css_style_declaration(entrée)
-    style_sortie := parse_css_style_declaration(sortie)
+    pour données_test.cas_parsage {
+        entrée := enchaine(...it.entrée)
+        sortie := enchaine(...it.sortie)
 
-    saufsi sont_équivalents(style_entrée, style_sortie) {
-        imprimeln("Les styles ne sont pas équivalents")
+        style_entrée := parse_css_style_declaration(entrée)
+        style_sortie := parse_css_style_declaration(sortie)
+
+        saufsi sont_équivalents(style_entrée, style_sortie) {
+            imprimeln("Les styles ne sont pas équivalents")
+        }
     }
 }
 
