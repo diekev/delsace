@@ -55,12 +55,13 @@ thème: Thème
 RaccourciCommande :: struct {
     raccourci: RaccourcisClavier
     commande: fonc(*Anonyme)(rien)
+    contexte: chaine
 }
 
-donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
 {
     pour * projet.raccourcis {
-        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche {
+        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche && it.contexte == contexte {
             retourne it
         }
     }
@@ -246,6 +247,8 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 
 parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 {
+    contexte_courant := ""
+
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
         si lexème.type == TypeLexème.FinDeFichier {
@@ -255,6 +258,13 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
         si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
+        }
+
+        si lexème.est_ponctuation("[") {
+            lexème = donne_lexème_suivant(lexeuse)
+            contexte_courant = lexème.donne_texte()
+            consomme_ponctuation(lexeuse, "]")
+            continue
         }
 
         raccourci, succès := donne_raccourci_pour_texte(lexème.donne_texte())
@@ -272,6 +282,7 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
         raccourci_commande := tableau_ajoute_élément(*projet.raccourcis)
         raccourci_commande.raccourci = raccourci
         raccourci_commande.commande = commande
+        raccourci_commande.contexte = copie_chaine(contexte_courant)
     }
 }
 
@@ -482,6 +493,19 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
     retourne vrai
 }
 
+donne_contexte_pour_raccourci :: fonc (anonyme: *Anonyme) -> chaine
+{
+    si anonyme.état == Anonyme.État.ÉDITION {
+        retourne "édition"
+    }
+
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        retourne "ouverture_fichier"
+    }
+
+    retourne ""
+}
+
 principale :: fonc ()
 {
     // lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
@@ -530,7 +554,7 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it)
+                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it, donne_contexte_pour_raccourci(*anonyme))
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme)
                     }
