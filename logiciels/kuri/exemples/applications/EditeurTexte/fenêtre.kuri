@@ -39,7 +39,7 @@ charge "éditeur"
 //     "retourne", "retiens", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable", "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "corout", "dyn", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme"
 // ]
 
-__ponctuation_config := ["[", "]", ":"]
+__ponctuation_config := ["[", "]", "[[", "]]", ":"]
 __mots_clés_config := ["compilation", "espace", "paramètres", "raccourcis", "thème"]
 __commentaires_ligne_singulière_config := ["#"]
 
@@ -127,13 +127,11 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     initialise_lexeuse_pour_texte(*lexeuse, contenu)
 
     tantque !fini(*lexeuse) {
-        consomme_ponctuation(*lexeuse, "[")
-        consomme_ponctuation(*lexeuse, "[")
+        consomme_ponctuation(*lexeuse, "[[")
 
         lexème := donne_lexème_suivant(*lexeuse)
 
-        consomme_ponctuation(*lexeuse, "]")
-        consomme_ponctuation(*lexeuse, "]")
+        consomme_ponctuation(*lexeuse, "]]")
 
         si lexème.est_mot_clé("paramètres") {
             parse_paramètres(*lexeuse)
@@ -163,7 +161,7 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
     tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse)
         lexeuse.reprends_depuis_lexème(lexème)
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             arrête
         }
 
@@ -201,7 +199,7 @@ parse_espace_de_travail :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
         }
@@ -217,7 +215,7 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
         }
@@ -254,7 +252,7 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
             arrête
         }
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
         }
