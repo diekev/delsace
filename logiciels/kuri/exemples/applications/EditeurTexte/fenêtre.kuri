@@ -417,6 +417,9 @@ Anonyme :: struct {
     emboiteuse: Emboiteuse
     fonte: *Fonte
     lexeuse: SimpleLexeuse
+
+    /* Pour la sélection de fichier. */
+    éditrice_sélection_fichier: ÉditriceTexte
 }
 
 initialise_anonyme :: fonc (anonyme: *Anonyme)
@@ -424,6 +427,8 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
     fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
     anonyme.fonte = crée_fonte(fonte_défaut_mono, 16)
     anonyme.fonte.font.kerning = faux
+
+    initialise_éditrice(*anonyme.éditrice_sélection_fichier, anonyme.fonte, "", nul)
 
     chemin_config_utilisateur := système_chemin_pour_dossier_configuration_utilisateur().Quelque
     chemin_projets := chemin_config_utilisateur / "anonyme/projets"
@@ -525,6 +530,8 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
+    anonyme.état = Anonyme.État.OUVERTURE_FICHIER
+
     _ := ouvre_projet(*anonyme, "blender")
 
 
@@ -557,6 +564,12 @@ principale :: fonc ()
                     raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it, donne_contexte_pour_raccourci(*anonyme))
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme)
+                    }
+                    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+                        si it.touche == ToucheClavier.ENTRÉE {
+                            continue
+                        }
+                        sur_touche_clavier(*anonyme.éditrice_sélection_fichier, InfoToucheClavier(it.touche, it.texte))
                     }
                     sinon si it.texte != "" {
                         éditeur_insère_texte(*anonyme.éditeur, it.texte)
@@ -781,7 +794,7 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
             définis_arrière_plan(1.0, 1.0, 1.0, 0.2)
             définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(5.0), alignement_vertical = AlignementEnfant.Milieu)
 
-            dispose_texte("Choisir fichier", config_texte)
+            dispose_texte(anonyme.éditrice_sélection_fichier.texte_à_éditer, config_texte)
         }
         termine_rectangle()
 
