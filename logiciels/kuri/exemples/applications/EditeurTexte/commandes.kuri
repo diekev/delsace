@@ -147,3 +147,9 @@ commande_ouvre_fichier_sélectionné :: fonc (anonyme: *Anonyme)
     éditeur_ouvre(*anonyme.éditeur, fichier.chemin)
     anonyme.état = Anonyme.État.ÉDITION
 }
+
+commande_sauvegarde :: fonc (anonyme: *Anonyme)
+{
+    // À FAIRE : prompt
+    éditeur_sauvegarde_fichier(*anonyme.éditeur, nul)
+}

@@ -35,3 +35,5 @@ PageBas                 va_page_suivante
 Entrée                  ajoute_nouvelle_ligne
 RetourArrière           supprime_caractère
 Suppr                   supprime
+
+Ctrl-S                  sauvegarde
