@@ -45,6 +45,7 @@ __commentaires_ligne_singulière_config := ["#"]
 
 Thème :: struct {
     texte: CouleurRVBA
+    texte_sélectionné: CouleurRVBA
     arrière_plan: CouleurRVBA
     indicateur_ligne: CouleurRVBA
     indicateur_ligne_courante: CouleurRVBA
@@ -178,6 +179,9 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
 
         si symbole == "texte" {
             thème.texte = couleur
+        }
+        sinon si symbole == "texte-sélectionné" {
+            thème.texte_sélectionné = couleur
         }
         sinon si symbole == "arrière-plan" {
             thème.arrière_plan = couleur
@@ -422,6 +426,7 @@ Anonyme :: struct {
     éditrice_sélection_fichier: ÉditriceTexte
     rappels_édition_texte: RappelsÉditionTexteSélecteurFichier
     fichiers_filtrés: [..]InfoVisiteFichier
+    fichier_sélectionné: z64
 }
 
 initialise_anonyme :: fonc (anonyme: *Anonyme)
@@ -513,6 +518,15 @@ donne_contexte_pour_raccourci :: fonc (anonyme: *Anonyme) -> chaine
     }
 
     retourne ""
+}
+
+donne_fichiers_pour_sélecteur :: fonc (anonyme: *Anonyme) -> []InfoVisiteFichier
+{
+    fichiers := anonyme.projet_ouvert.fichiers_disponibles
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER && anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() != 0 {
+        fichiers = anonyme.fichiers_filtrés
+    }
+    retourne fichiers
 }
 
 principale :: fonc ()
@@ -803,8 +817,6 @@ sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSél
             tableau_ajoute(*anonyme.fichiers_filtrés, it)
         }
     }
-
-    imprimeln("% résultat", anonyme.fichiers_filtrés.taille)
 }
 
 dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
@@ -812,6 +824,7 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
     assert(projet_ouvert != nul)
 
     config_texte := ConfigurationTexte(fonte, thème.texte)
+    config_texte_sélectionné := ConfigurationTexte(fonte, thème.texte_sélectionné)
 
     dispose_rectangle()
     {
@@ -827,17 +840,19 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
         }
         termine_rectangle()
 
-        fichiers := projet_ouvert.fichiers_disponibles
-        si anonyme.état == Anonyme.État.OUVERTURE_FICHIER && anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() != 0 {
-            fichiers = anonyme.fichiers_filtrés
-        }
+        fichiers := donne_fichiers_pour_sélecteur(anonyme)
 
         pour fichiers {
             si index_it >= 50 {
                 arrête
             }
 
-            dispose_texte(it.chemin, config_texte)
+            si index_it == fichier_sélectionné {
+                dispose_texte(it.chemin, config_texte_sélectionné)
+            }
+            sinon {
+                dispose_texte(it.chemin, config_texte)
+            }
         }
     }
     termine_rectangle()

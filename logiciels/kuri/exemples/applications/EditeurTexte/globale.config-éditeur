@@ -3,6 +3,7 @@
 [thème]
 
 texte                     FFFFFFFF
+texte-sélectionné         18FF18FF
 arrière-plan              181818FF
 indicateur-ligne          CCCCCC7F
 indicateur-ligne-courante CCCCCCFF
@@ -10,6 +11,10 @@ indicateur-ligne-courante CCCCCCFF
 [[raccourcis]]
 
 [ouverture_fichier]
+
+FlècheHaut              sélectionne_fichier_précédent
+FlècheBas               sélectionne_fichier_suivant
+Entrée                  ouvre_fichier_sélectionné
 
 [édition]
 
