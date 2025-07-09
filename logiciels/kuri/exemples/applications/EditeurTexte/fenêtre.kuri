@@ -420,6 +420,8 @@ Anonyme :: struct {
 
     /* Pour la sélection de fichier. */
     éditrice_sélection_fichier: ÉditriceTexte
+    rappels_édition_texte: RappelsÉditionTexteSélecteurFichier
+    fichiers_filtrés: [..]InfoVisiteFichier
 }
 
 initialise_anonyme :: fonc (anonyme: *Anonyme)
@@ -429,6 +431,8 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
     anonyme.fonte.font.kerning = faux
 
     initialise_éditrice(*anonyme.éditrice_sélection_fichier, anonyme.fonte, "", nul)
+    initialise_édition_sélection_fichier(*anonyme.rappels_édition_texte, anonyme)
+    anonyme.éditrice_sélection_fichier.rappels = *anonyme.rappels_édition_texte
 
     chemin_config_utilisateur := système_chemin_pour_dossier_configuration_utilisateur().Quelque
     chemin_projets := chemin_config_utilisateur / "anonyme/projets"
@@ -778,6 +782,31 @@ dessine_barre_message :: fonc (anonyme: *Anonyme)
     termine_rectangle()
 }
 
+RappelsÉditionTexteSélecteurFichier :: struct {
+    empl base: RappelsÉditionTexte
+
+    anonyme: *Anonyme
+}
+
+initialise_édition_sélection_fichier :: fonc (rappels: *RappelsÉditionTexteSélecteurFichier, anonyme: *Anonyme)
+{
+    rappels.anonyme = anonyme
+    rappels.sur_édition = sur_édition_sélection_fichier
+}
+
+sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSélecteurFichier, texte: chaine)
+{
+    anonyme.fichiers_filtrés.taille = 0
+
+    pour anonyme.projet_ouvert.fichiers_disponibles {
+        si it.nom.commence_par(texte) {
+            tableau_ajoute(*anonyme.fichiers_filtrés, it)
+        }
+    }
+
+    imprimeln("% résultat", anonyme.fichiers_filtrés.taille)
+}
+
 dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
 {
     assert(projet_ouvert != nul)
@@ -798,7 +827,12 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
         }
         termine_rectangle()
 
-        pour projet_ouvert.fichiers_disponibles {
+        fichiers := projet_ouvert.fichiers_disponibles
+        si anonyme.état == Anonyme.État.OUVERTURE_FICHIER && anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() != 0 {
+            fichiers = anonyme.fichiers_filtrés
+        }
+
+        pour fichiers {
             si index_it >= 50 {
                 arrête
             }
