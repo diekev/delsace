@@ -548,10 +548,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    anonyme.état = Anonyme.État.OUVERTURE_FICHIER
-
     _ := ouvre_projet(*anonyme, "blender")
-
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
