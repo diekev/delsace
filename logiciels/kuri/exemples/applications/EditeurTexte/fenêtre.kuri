@@ -547,7 +547,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    _ := ouvre_projet(*anonyme, "blender")
+    _ := ouvre_projet(*anonyme, "kuri")
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
