@@ -1139,6 +1139,17 @@ compare_chaine_utf16_unique :: fonc (a1: ChaineUTF16Unique, a2: ChaineUTF16Uniqu
     retourne compare_chaine_utf16(a1.donne_chaine_utf16(), a2.donne_chaine_utf16())
 }
 
+enchaine :: fonc (chns: ...ChaineUTF16Unique) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+    pour chns {
+        ajoute_au_tampon(*enchaineuse, it)
+    }
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

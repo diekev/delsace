@@ -4253,28 +4253,59 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
     // <generic-complete> = serif | sans-serif | system-ui | cursive | fantasy | math | monospace
     // <generic-incomplete> = ui-serif | ui-sans-serif | ui-monospace | ui-rounded
 
-    mots_clés := [
+    generic_complete := [
         PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
-    dernière_valeur_connue: Optionnel(*ValeurDeStyle)
+    valeurs: [..]CSSOMString
+    diffère déloge(valeurs)
 
-    /* À FAIRE : stocke la liste complète. */
+    /* Pour les familles composées sans guillemets */
+    morceaux: [..]CSSOMString
+    diffère déloge(morceaux)
+
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            valeur := parse_mot_clé(parseuse, mots_clés)
-            si valeur.possède_valeur() {
-                dernière_valeur_connue = valeur
+            si fait_partie_de(lexème.lexème.valeur, ...generic_complete) {
+                tableau_ajoute(*valeurs, lexème.lexème.valeur)
+                parseuse.avance()
                 continue
             }
 
+            /* Essaie de parser une suite d'identifiants pouvant correspondre à une famille composée sans guillemets. */
+            morceaux.taille = 0
+            tableau_ajoute(*morceaux, lexème.lexème.valeur)
             parseuse.avance()
+
+            chn_espace := crée_chaine_utf16_unique(" ")
+
+            tantque !fini(parseuse) {
+                parseuse.consomme_espaces_blanches()
+                lexème = parseuse.lexème_courant()
+
+                saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+                    arrête
+                }
+
+                tableau_ajoute(*morceaux, chn_espace)
+                tableau_ajoute(*morceaux, lexème.lexème.valeur)
+                parseuse.avance()
+            }
+
+            /* Nous ne pouvons savoir si les guillemets sont manquants où s'il y des mots-clés en plus. */
+            si morceaux.taille != 1 && pour_shorthand {
+                retourne
+            }
+
+            famille := enchaine(...morceaux)
+            tableau_ajoute(*valeurs, crée_chaine_utf16_unique(famille))
             continue
         }
 
         si lexème.est_lexème_de_genre(GenreLexème.String) {
+            tableau_ajoute(*valeurs, lexème.lexème.valeur)
             parseuse.avance()
             continue
         }
@@ -4290,13 +4321,19 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
         retourne
     }
 
-    si dernière_valeur_connue.possède_valeur() {
-        retourne dernière_valeur_connue
+    si valeurs.taille == 0 {
+        retourne
     }
 
-    /* Si nous arrivons ici, la syntaxe est valide, mais nous ne connaissons pas la fonte.
-     * Retourne une valeur par défaut pour ne pas polluer la sortie avec des messages d'erreur. */
-    retourne donne_valeur_serif()
+    si valeurs.taille == 1 {
+        retourne crée_valeur_string(valeurs[0])
+    }
+
+    résultat := crée_valeur_liste()
+    pour valeurs {
+        tableau_ajoute(*résultat.valeur, crée_valeur_string(it))
+    }
+    retourne résultat
 }
 
 /** \} */

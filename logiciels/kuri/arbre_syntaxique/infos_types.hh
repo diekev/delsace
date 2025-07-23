@@ -98,7 +98,6 @@ struct InfoTypeUnion : public InfoType {
 };
 
 struct InfoTypeFonction : public InfoType {
-    bool est_coroutine = false;
     kuri::tranche<InfoType *> types_entrée{};
     kuri::tranche<InfoType *> types_sortie{};
 };

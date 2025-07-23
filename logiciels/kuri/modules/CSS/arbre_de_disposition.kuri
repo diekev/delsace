@@ -2023,17 +2023,8 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
-    famille_fonte := "serif"
     style := "normal"
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
-
-    font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
-    si font_family == PROP_monospace {
-        famille_fonte = "monospace"
-    }
-    sinon si font_family == PROP_sans_serif {
-        famille_fonte = "sans-serif"
-    }
 
     font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
     graisse := donne_graisse_fonte_depuis_poids(font_weight)
@@ -2043,7 +2034,30 @@ détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *Globale
         style = "italic"
     }
 
-    retourne globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    prop_font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily)
+
+    si prop_font_family.est_mot_clé() {
+        font_family := prop_font_family.donne_mot_clé()
+        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte)
+    }
+    
+    si prop_font_family.est_string() {
+        font_family := prop_font_family.donne_string()
+        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte)
+    }
+
+    assert(prop_font_family.est_liste())
+    liste_fontes := prop_font_family.donne_liste()
+
+    pour liste_fontes {
+        font_family := it.donne_string()
+        fonte := globales.donne_fonte(font_family, style, graisse, taille_fonte, faux)
+        si fonte {
+            retourne fonte
+        }
+    }
+
+    retourne globales.donne_fonte(PROP_serif, style, graisse, taille_fonte)
 }
 
 donne_rectangle_rembourrage :: fonc (box: *Box) -> RectanglePosDim(r32)

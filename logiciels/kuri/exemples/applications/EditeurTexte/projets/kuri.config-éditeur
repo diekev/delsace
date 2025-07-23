@@ -1,0 +1,21 @@
+[[espace]]
+/home/kevin/src/repos/delsace/logiciels/kuri/adn
+/home/kevin/src/repos/delsace/logiciels/kuri/arbre_syntaxique
+/home/kevin/src/repos/delsace/logiciels/kuri/bugs
+/home/kevin/src/repos/delsace/logiciels/kuri/compilation
+/home/kevin/src/repos/delsace/logiciels/kuri/executable
+/home/kevin/src/repos/delsace/logiciels/kuri/outils
+/home/kevin/src/repos/delsace/logiciels/kuri/parsage
+/home/kevin/src/repos/delsace/logiciels/kuri/plateforme
+/home/kevin/src/repos/delsace/logiciels/kuri/representation_intermediaire
+/home/kevin/src/repos/delsace/logiciels/kuri/statistiques
+/home/kevin/src/repos/delsace/logiciels/kuri/structures
+/home/kevin/src/repos/delsace/logiciels/kuri/utilitaires
+
+# [ignore]
+# [autorise]
+
+[[compilation]]
+
+dossier_compilat: /home/kevin/src/repos/compilats/delsace_production/
+commande: cmake --build . --target all install -j16

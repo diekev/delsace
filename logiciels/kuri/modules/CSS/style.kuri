@@ -1109,6 +1109,14 @@ imprime_valeur_de_style :: fonc (enchaineuse: *Enchaineuse, adresse: **ValeurDeS
             b := valeur.donne_background_position()
             imprime_dans_enchaineuse(enchaineuse, "% % % %", b.horizontal, b.décalage_horizontal, b.vertical, b.décalage_vertical)
         }
+        Liste {
+            liste := valeur.donne_liste()
+            virgule := ""
+            pour liste {
+                imprime_dans_enchaineuse(enchaineuse, "%%", virgule, it)
+                virgule = ", "
+            }
+        }
     }
 } @FormattageImpression
 

@@ -120,8 +120,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
 {
     /* Module et nom. */
     if (!est_feuille_hiérarchie) {
-        enchaineuse << "_K";
-        enchaineuse << (entête->est_coroutine ? "C" : "F");
+        enchaineuse << "_KF";
     }
 
     if (!pour_hiérarchie) {
@@ -240,7 +239,6 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
  * Kt : tableau dynamique
  * Ks : introduit un type scalaire, suivi de la chaine du type
  * Kf : fonction
- * Kc : coroutine
  *
  * Un type scalaire est un type de base, ou un type du programme.
  *
@@ -560,7 +558,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
 
 /* format :
  * _K préfixe pour tous les noms de Kuri
- * C, E, F, S, U : coroutine, énum, fonction, structure, ou union
+ * E, F, S, U : énum, fonction, structure, ou union
  * paire(s) : longueur + chaine ascii pour module et nom
  *
  * pour les fonctions :
@@ -614,8 +612,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
     nom_broyé_type(type_fonc->type_sortie);
 
     stockage_temp.réinitialise();
-    stockage_temp << "_K";
-    stockage_temp << (decl->est_coroutine ? "C" : "F");
+    stockage_temp << "_KF";
     ::broye_nom_fonction(stockage_temp, decl, false, true);
     return chaine_finale_pour_stockage_temp();
 }

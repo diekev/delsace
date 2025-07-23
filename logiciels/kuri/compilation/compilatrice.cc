@@ -469,8 +469,7 @@ kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parse
     auto résultat = kuri::tableau<NoeudCodeEntêteFonction *>();
     résultat.réserve(entetes.taille());
     POUR (entetes) {
-        if (it->est_opérateur || it->est_coroutine ||
-            it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+        if (it->est_opérateur || it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }
         auto code_entete = convertisseuse->convertis_noeud_syntaxique(espace, it);

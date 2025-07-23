@@ -108,7 +108,6 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CARACTÈRE:
             case GenreLexème::CHAINE_CARACTERE:
             case GenreLexème::CHAINE_LITTERALE:
-            case GenreLexème::COROUT:
             case GenreLexème::CROCHET_OUVRANT:  // construit tableau
             case GenreLexème::DIRECTIVE:
             case GenreLexème::DOLLAR:
@@ -240,7 +239,6 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::POUSSE_CONTEXTE:
             case GenreLexème::RÉPÈTE:
             case GenreLexème::REPRENDS:
-            case GenreLexème::RETIENS:
             case GenreLexème::RETOURNE:
             case GenreLexème::SAUFSI:
             case GenreLexème::SI:
@@ -1188,7 +1186,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
             return analyse_déclaration_fonction(lexème);
         }
         /* Ceux-ci doivent déjà avoir été gérés. */
-        case GenreLexème::COROUT:
         case GenreLexème::ÉNUM:
         case GenreLexème::ÉNUM_DRAPEAU:
         case GenreLexème::ERREUR:
@@ -1719,17 +1716,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
             }
 
             return m_tacheronne.assembleuse->crée_reprends(lexème, expression);
-        }
-        case GenreLexème::RETIENS:
-        {
-            consomme();
-
-            auto expression = NoeudExpression::nul();
-            if (apparie_expression()) {
-                expression = analyse_expression_avec_virgule(false);
-            }
-
-            return m_tacheronne.assembleuse->crée_retiens(lexème, expression);
         }
         case GenreLexème::RETOURNE:
         {
@@ -2394,7 +2380,6 @@ NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lex
 
         auto lexème = lexème_courant();
         switch (lexème->genre) {
-            case GenreLexème::COROUT:
             case GenreLexème::FONC:
             {
                 annule_sauvegarde_position();
@@ -2607,7 +2592,6 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
 
     auto noeud = m_tacheronne.assembleuse->crée_entête_fonction(lexème);
-    noeud->est_coroutine = lexème_mot_clé->genre == GenreLexème::COROUT;
 
     // @concurrence critique, si nous avons plusieurs définitions
     if (noeud->ident == ID::principale) {
@@ -2786,10 +2770,6 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
         else if (ident_directive == ID::externe) {
             noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
             drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-            if (noeud->est_coroutine) {
-                rapporte_erreur("Une coroutine ne peut pas être externe");
-            }
 
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
                 lexème_directive);

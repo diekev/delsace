@@ -78,7 +78,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("charge");
     lexèmes.ajoute_mot_clé("comme");
     lexèmes.ajoute_mot_clé("continue");
-    lexèmes.ajoute_mot_clé("corout");
     lexèmes.ajoute_mot_clé("dans");
     lexèmes.ajoute_mot_clé("diffère");
     lexèmes.ajoute_mot_clé("discr");
@@ -107,7 +106,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("r32", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("r64", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("reprends");
-    lexèmes.ajoute_mot_clé("retiens");
     lexèmes.ajoute_mot_clé("retourne");
     lexèmes.ajoute_mot_clé("rien", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("répète");
