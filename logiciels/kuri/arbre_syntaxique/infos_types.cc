@@ -407,7 +407,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_élément();
             info_type->genre = GenreInfoType::FONCTION;
-            info_type->est_coroutine = false;
             info_type->taille_en_octet = type->taille_octet;
 
             auto types_entrée = kuri::tablet<InfoType *, 6>();

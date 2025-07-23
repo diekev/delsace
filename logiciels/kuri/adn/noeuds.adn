@@ -408,16 +408,6 @@ struct NoeudInstructionRetourMultiple : NoeudInstructionRetour {
     DonneesAssignations [compressé] données_exprs
 }
 
-struct NoeudRetiens : NoeudExpression {
-    @genre INSTRUCTION_RETIENS
-    @comme retiens
-    @code  NoeudCodeRetiens
-    @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-    DonneesAssignations [compressé] données_exprs
-}
-
 struct NoeudExpressionRéférence : NoeudExpression {
     @genre EXPRESSION_RÉFÉRENCE_DÉCLARATION
     @comme référence_déclaration
@@ -588,7 +578,6 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     DrapeauxNoeudFonction drapeaux_fonction;
 
     bool est_opérateur [code copie]
-    bool est_coroutine [code copie]
 
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
