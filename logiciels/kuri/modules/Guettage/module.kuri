@@ -142,50 +142,12 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
         retourne
     }
 
-    si touche.type == ToucheClavier.DÉBUT {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
-        retourne
-    }
-
-    si touche.type == ToucheClavier.FIN {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
-        retourne
-    }
-
-    si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
-        retourne
-    }
-
-    si touche.type == ToucheClavier.FLÈCHE_DROITE {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
-        retourne
-    }
-
-    si touche.type == ToucheClavier.EFFACE {
-        efface(*éditrice.curseur)
-        retourne
-    }
-
-    si touche.type == ToucheClavier.SUPPRIMER {
-        supprime(*éditrice.curseur)
-        retourne
-    }
-
     si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
         retourne
     }
 
-    si touche.texte.taille != 0 {
-        est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille
-        si est_valide {
-            point_de_code := converti_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
-            insère(*éditrice.curseur, point_de_code)
-        }
-
-        retourne
-    }
+    sur_touche_clavier(éditrice, touche)
 }
 
 guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
