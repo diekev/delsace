@@ -18,7 +18,6 @@ charge "éditeur"
 // À FAIRE : exécution de commandes
 // À FAIRE : cherche/remplace
 // À FAIRE : sélection
-// À FAIRE : ouverture, navigation dossier
 // À FAIRE : souris
 // À FAIRE : transformation de texte (majuscule, minuscule, etc.)
 // À FAIRE : sauvegarde automatique
@@ -39,12 +38,13 @@ charge "éditeur"
 //     "retourne", "retiens", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable", "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "corout", "dyn", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme"
 // ]
 
-__ponctuation_config := ["[", "]", ":"]
+__ponctuation_config := ["[", "]", "[[", "]]", ":"]
 __mots_clés_config := ["compilation", "espace", "paramètres", "raccourcis", "thème"]
 __commentaires_ligne_singulière_config := ["#"]
 
 Thème :: struct {
     texte: CouleurRVBA
+    texte_sélectionné: CouleurRVBA
     arrière_plan: CouleurRVBA
     indicateur_ligne: CouleurRVBA
     indicateur_ligne_courante: CouleurRVBA
@@ -55,12 +55,13 @@ thème: Thème
 RaccourciCommande :: struct {
     raccourci: RaccourcisClavier
     commande: fonc(*Anonyme)(rien)
+    contexte: chaine
 }
 
-donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
 {
     pour * projet.raccourcis {
-        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche {
+        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche && it.contexte == contexte {
             retourne it
         }
     }
@@ -127,13 +128,11 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     initialise_lexeuse_pour_texte(*lexeuse, contenu)
 
     tantque !fini(*lexeuse) {
-        consomme_ponctuation(*lexeuse, "[")
-        consomme_ponctuation(*lexeuse, "[")
+        consomme_ponctuation(*lexeuse, "[[")
 
         lexème := donne_lexème_suivant(*lexeuse)
 
-        consomme_ponctuation(*lexeuse, "]")
-        consomme_ponctuation(*lexeuse, "]")
+        consomme_ponctuation(*lexeuse, "]]")
 
         si lexème.est_mot_clé("paramètres") {
             parse_paramètres(*lexeuse)
@@ -163,7 +162,7 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
     tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse)
         lexeuse.reprends_depuis_lexème(lexème)
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             arrête
         }
 
@@ -179,6 +178,9 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
 
         si symbole == "texte" {
             thème.texte = couleur
+        }
+        sinon si symbole == "texte-sélectionné" {
+            thème.texte_sélectionné = couleur
         }
         sinon si symbole == "arrière-plan" {
             thème.arrière_plan = couleur
@@ -201,7 +203,7 @@ parse_espace_de_travail :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
         }
@@ -217,7 +219,7 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
         }
@@ -248,15 +250,24 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 
 parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
 {
+    contexte_courant := ""
+
     tantque !lexeuse.fini() {
         lexème := donne_lexème_suivant(lexeuse)
         si lexème.type == TypeLexème.FinDeFichier {
             arrête
         }
 
-        si lexème.est_ponctuation("[") {
+        si lexème.est_ponctuation("[[") {
             lexeuse.reprends_depuis_lexème(lexème)
             arrête
+        }
+
+        si lexème.est_ponctuation("[") {
+            lexème = donne_lexème_suivant(lexeuse)
+            contexte_courant = lexème.donne_texte()
+            consomme_ponctuation(lexeuse, "]")
+            continue
         }
 
         raccourci, succès := donne_raccourci_pour_texte(lexème.donne_texte())
@@ -274,6 +285,7 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
         raccourci_commande := tableau_ajoute_élément(*projet.raccourcis)
         raccourci_commande.raccourci = raccourci
         raccourci_commande.commande = commande
+        raccourci_commande.contexte = copie_chaine(contexte_courant)
     }
 }
 
@@ -408,6 +420,12 @@ Anonyme :: struct {
     emboiteuse: Emboiteuse
     fonte: *Fonte
     lexeuse: SimpleLexeuse
+
+    /* Pour la sélection de fichier. */
+    éditrice_sélection_fichier: ÉditriceTexte
+    rappels_édition_texte: RappelsÉditionTexteSélecteurFichier
+    fichiers_filtrés: [..]InfoVisiteFichier
+    fichier_sélectionné: z64
 }
 
 initialise_anonyme :: fonc (anonyme: *Anonyme)
@@ -415,6 +433,10 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
     fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
     anonyme.fonte = crée_fonte(fonte_défaut_mono, 16)
     anonyme.fonte.font.kerning = faux
+
+    initialise_éditrice(*anonyme.éditrice_sélection_fichier, anonyme.fonte, "", nul)
+    initialise_édition_sélection_fichier(*anonyme.rappels_édition_texte, anonyme)
+    anonyme.éditrice_sélection_fichier.rappels = *anonyme.rappels_édition_texte
 
     chemin_config_utilisateur := système_chemin_pour_dossier_configuration_utilisateur().Quelque
     chemin_projets := chemin_config_utilisateur / "anonyme/projets"
@@ -484,6 +506,28 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
     retourne vrai
 }
 
+donne_contexte_pour_raccourci :: fonc (anonyme: *Anonyme) -> chaine
+{
+    si anonyme.état == Anonyme.État.ÉDITION {
+        retourne "édition"
+    }
+
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        retourne "ouverture_fichier"
+    }
+
+    retourne ""
+}
+
+donne_fichiers_pour_sélecteur :: fonc (anonyme: *Anonyme) -> []InfoVisiteFichier
+{
+    fichiers := anonyme.projet_ouvert.fichiers_disponibles
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER && anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() != 0 {
+        fichiers = anonyme.fichiers_filtrés
+    }
+    retourne fichiers
+}
+
 principale :: fonc ()
 {
     // lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
@@ -503,8 +547,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    _ := ouvre_projet(*anonyme, "blender")
-
+    _ := ouvre_projet(*anonyme, "kuri")
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
@@ -532,9 +575,15 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it)
+                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it, donne_contexte_pour_raccourci(*anonyme))
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme)
+                    }
+                    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+                        si it.touche == ToucheClavier.ENTRÉE {
+                            continue
+                        }
+                        sur_touche_clavier(*anonyme.éditrice_sélection_fichier, InfoToucheClavier(it.touche, it.texte))
                     }
                     sinon si it.texte != "" {
                         éditeur_insère_texte(*anonyme.éditeur, it.texte)
@@ -743,11 +792,35 @@ dessine_barre_message :: fonc (anonyme: *Anonyme)
     termine_rectangle()
 }
 
+RappelsÉditionTexteSélecteurFichier :: struct {
+    empl base: RappelsÉditionTexte
+
+    anonyme: *Anonyme
+}
+
+initialise_édition_sélection_fichier :: fonc (rappels: *RappelsÉditionTexteSélecteurFichier, anonyme: *Anonyme)
+{
+    rappels.anonyme = anonyme
+    rappels.sur_édition = sur_édition_sélection_fichier
+}
+
+sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSélecteurFichier, texte: chaine)
+{
+    anonyme.fichiers_filtrés.taille = 0
+
+    pour anonyme.projet_ouvert.fichiers_disponibles {
+        si it.nom.commence_par(texte) {
+            tableau_ajoute(*anonyme.fichiers_filtrés, it)
+        }
+    }
+}
+
 dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
 {
     assert(projet_ouvert != nul)
 
     config_texte := ConfigurationTexte(fonte, thème.texte)
+    config_texte_sélectionné := ConfigurationTexte(fonte, thème.texte_sélectionné)
 
     dispose_rectangle()
     {
@@ -759,16 +832,23 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
             définis_arrière_plan(1.0, 1.0, 1.0, 0.2)
             définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(5.0), alignement_vertical = AlignementEnfant.Milieu)
 
-            dispose_texte("Choisir fichier", config_texte)
+            dispose_texte(anonyme.éditrice_sélection_fichier.texte_à_éditer, config_texte)
         }
         termine_rectangle()
 
-        pour projet_ouvert.fichiers_disponibles {
+        fichiers := donne_fichiers_pour_sélecteur(anonyme)
+
+        pour fichiers {
             si index_it >= 50 {
                 arrête
             }
 
-            dispose_texte(it.chemin, config_texte)
+            si index_it == fichier_sélectionné {
+                dispose_texte(it.chemin, config_texte_sélectionné)
+            }
+            sinon {
+                dispose_texte(it.chemin, config_texte)
+            }
         }
     }
     termine_rectangle()

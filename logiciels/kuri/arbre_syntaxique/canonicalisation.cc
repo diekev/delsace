@@ -75,11 +75,6 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 return entête;
             }
 
-            if (entête->est_coroutine) {
-                simplifie_coroutine(entête);
-                return entête;
-            }
-
             fonction_courante = entête;
             simplifie(entête->corps);
             return entête;
@@ -552,10 +547,6 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             return virgule;
-        }
-        case GenreNoeud::INSTRUCTION_RETIENS:
-        {
-            return simplifie_retiens(noeud->comme_retiens());
         }
         case GenreNoeud::INSTRUCTION_DISCR:
         case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
@@ -1292,85 +1283,6 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             bloc_inc->ajoute_expression(inc_it);
             break;
         }
-        case GENERE_BOUCLE_COROUTINE:
-        {
-            /* À FAIRE(ri) : coroutine */
-#if 0
-            auto expr_appel = static_cast<NoeudExpressionAppel *>(enfant2);
-            auto decl_fonc = static_cast<NoeudDéclarationCorpsFonction const *>(expr_appel->noeud_fonction_appelée);
-            auto nom_etat = enchaine("__etat", enfant2);
-            auto nom_type_coro = enchaine("__etat_coro", decl_fonc->nom_broye);
-
-            constructrice << nom_type_coro << " " << nom_etat << " = {\n";
-            constructrice << ".mutex_boucle = PTHREAD_MUTEX_INITIALIZER,\n";
-            constructrice << ".mutex_coro = PTHREAD_MUTEX_INITIALIZER,\n";
-            constructrice << ".cond_coro = PTHREAD_COND_INITIALIZER,\n";
-            constructrice << ".cond_boucle = PTHREAD_COND_INITIALIZER,\n";
-            constructrice << ".contexte = contexte,\n";
-            constructrice << ".__termine_coro = 0\n";
-            constructrice << "};\n";
-
-            /* intialise les arguments de la fonction. */
-            POUR (expr_appel->params) {
-                génère_code_C(it, constructrice, compilatrice, false);
-            }
-
-            auto iter_enf = expr_appel->params.begin();
-
-            POUR (decl_fonc->params) {
-                auto nom_broye = broye_nom_simple(it->ident);
-                constructrice << nom_etat << '.' << nom_broye << " = ";
-                constructrice << (*iter_enf)->chaine_calculee();
-                constructrice << ";\n";
-                ++iter_enf;
-            }
-
-            constructrice << "pthread_t fil_coro;\n";
-            constructrice << "pthread_create(&fil_coro, NULL, " << decl_fonc->nom_broye << ", &" << nom_etat << ");\n";
-            constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-            constructrice << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-            constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-            /* À FAIRE : utilisation du type */
-            auto nombre_vars_ret = decl_fonc->type_fonc->types_sorties.taille;
-
-            auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
-            rassemble_feuilles(enfant1, feuilles);
-
-            auto idx = NoeudExpression::nul();
-            auto nom_idx = kuri::chaine{};
-
-            if (b->aide_génération_code == GENERE_BOUCLE_COROUTINE_INDEX) {
-                idx = feuilles.back();
-                nom_idx = enchaine("__idx", b);
-                constructrice << "int " << nom_idx << " = 0;";
-            }
-
-            constructrice << "while (" << nom_etat << ".__termine_coro == 0) {\n";
-            constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_boucle);\n";
-
-            for (auto i = 0l; i < nombre_vars_ret; ++i) {
-                auto f = feuilles[i];
-                auto nom_var_broye = broye_chaine(f);
-                constructrice.declare_variable(type, nom_var_broye, "");
-                constructrice << nom_var_broye << " = "
-                               << nom_etat << '.' << decl_fonc->noms_retours[i]
-                               << ";\n";
-            }
-
-            constructrice << "pthread_mutex_lock(&" << nom_etat << ".mutex_coro);\n";
-            constructrice << "pthread_cond_signal(&" << nom_etat << ".cond_coro);\n";
-            constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_coro);\n";
-            constructrice << "pthread_cond_wait(&" << nom_etat << ".cond_boucle, &" << nom_etat << ".mutex_boucle);\n";
-            constructrice << "pthread_mutex_unlock(&" << nom_etat << ".mutex_boucle);\n";
-
-            if (idx) {
-                constructrice << "int " << broye_chaine(idx) << " = " << nom_idx << ";\n";
-                constructrice << nom_idx << " += 1;";
-            }
-#endif
-            break;
-        }
         case BOUCLE_POUR_OPÉRATEUR:
         {
             assert(false);
@@ -1521,7 +1433,7 @@ void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
         auto bloc = expr->comme_bloc();
 
         auto di = bloc->expressions->dernier_élément();
-        if (di->est_retourne() || di->est_retiens()) {
+        if (di->est_retourne()) {
             return;
         }
 
@@ -2639,64 +2551,6 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
     return expr_bin;
 }
 
-NoeudExpression *Simplificatrice::simplifie_coroutine(NoeudDéclarationEntêteFonction *corout)
-{
-#if 0
-    compilatrice.commence_fonction(decl);
-
-    /* Crée fonction */
-    auto nom_fonction = decl->nom_broye;
-    auto nom_type_coro = "__etat_coro" + nom_fonction;
-
-    /* Déclare la structure d'état de la coroutine. */
-    constructrice << "typedef struct " << nom_type_coro << " {\n";
-    constructrice << "pthread_mutex_t mutex_boucle;\n";
-    constructrice << "pthread_cond_t cond_boucle;\n";
-    constructrice << "pthread_mutex_t mutex_coro;\n";
-    constructrice << "pthread_cond_t cond_coro;\n";
-    constructrice << "bool __termine_coro;\n";
-    constructrice << "ContexteProgramme contexte;\n";
-
-    auto idx_ret = 0l;
-    POUR (decl->type_fonc->types_sorties) {
-        auto &nom_ret = decl->noms_retours[idx_ret++];
-        constructrice.declare_variable(it, nom_ret, "");
-    }
-
-    POUR (decl->params) {
-        auto nom_broye = broye_nom_simple(it->ident);
-        constructrice.declare_variable(it->type, nom_broye, "");
-    }
-
-    constructrice << " } " << nom_type_coro << ";\n";
-
-    /* Déclare la fonction. */
-    constructrice << "static void *" << nom_fonction << "(\nvoid *data)\n";
-    constructrice << "{\n";
-    constructrice << nom_type_coro << " *__etat = (" << nom_type_coro << " *) data;\n";
-    constructrice << "ContexteProgramme contexte = __etat->contexte;\n";
-
-    /* déclare les paramètres. */
-    POUR (decl->params) {
-        auto nom_broye = broye_nom_simple(it->ident);
-        constructrice.declare_variable(it->type, nom_broye, "__etat->" + nom_broye);
-    }
-
-    /* Crée code pour le bloc. */
-    génère_code_C(decl->bloc, constructrice, compilatrice, false);
-
-    if (b->aide_génération_code == REQUIERS_CODE_EXTRA_RETOUR) {
-        génère_code_extra_pre_retour(decl->bloc, compilatrice, constructrice);
-    }
-
-    constructrice << "}\n";
-
-    compilatrice.termine_fonction();
-    noeud->drapeaux |= RI_FUT_GENEREE;
-#endif
-    return corout;
-}
-
 static NoeudExpression *est_bloc_avec_une_seule_expression_simple(NoeudExpression const *noeud)
 {
     if (!noeud->est_bloc()) {
@@ -2808,36 +2662,6 @@ NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
 
     inst_si->substitution = ref_temp;
     return ref_temp;
-}
-
-NoeudExpression *Simplificatrice::simplifie_retiens(NoeudRetiens *retiens)
-{
-#if 0
-    auto df = compilatrice.donnees_fonction;
-    auto enfant = retiens->expression;
-
-    constructrice << "pthread_mutex_lock(&__etat->mutex_coro);\n";
-
-    auto feuilles = kuri::tablet<NoeudExpression *, 10>{};
-    rassemble_feuilles(enfant, feuilles);
-
-    for (auto i = 0l; i < feuilles.taille(); ++i) {
-        auto f = feuilles[i];
-
-        génère_code_C(f, constructrice, compilatrice, true);
-
-        constructrice << "__etat->" << df->noms_retours[i] << " = ";
-        constructrice << f->chaine_calculee();
-        constructrice << ";\n";
-    }
-
-    constructrice << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-    constructrice << "pthread_cond_signal(&__etat->cond_boucle);\n";
-    constructrice << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-    constructrice << "pthread_cond_wait(&__etat->cond_coro, &__etat->mutex_coro);\n";
-    constructrice << "pthread_mutex_unlock(&__etat->mutex_coro);\n";
-#endif
-    return retiens;
 }
 
 static uint64_t valeur_énum(TypeEnum *type_énum, IdentifiantCode *ident)

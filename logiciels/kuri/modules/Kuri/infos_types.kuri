@@ -152,7 +152,6 @@ trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *Annotation
 InfoTypeFonction :: struct #interface {
     empl base: InfoType
 
-    est_coroutine: bool
     types_entrée: []*InfoType
     types_sortie: []*InfoType
 }

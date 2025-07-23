@@ -1935,7 +1935,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         case GenreNoeud::INSTRUCTION_POUR:
-        case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
@@ -4062,15 +4061,6 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
 {
-#if 0
-	if (compilatrice.donnees_fonction->est_coroutine) {
-		constructrice << "__etat->__termine_coro = 1;\n";
-		constructrice << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-		constructrice << "pthread_cond_signal(&__etat->cond_boucle);\n";
-		constructrice << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-	}
-#endif
-
     if (m_est_dans_diffère) {
         return;
     }

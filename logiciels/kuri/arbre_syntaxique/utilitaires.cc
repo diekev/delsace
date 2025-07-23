@@ -775,15 +775,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             ajoute_noeud_arbre_aplatis(arbre_aplatis, inst);
             break;
         }
-        case GenreNoeud::INSTRUCTION_RETIENS:
-        {
-            auto inst = racine->comme_retiens();
-            inst->position |= position;
-            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
-            aplatis_arbre(inst->expression, arbre_aplatis, position);
-            ajoute_noeud_arbre_aplatis(arbre_aplatis, inst);
-            break;
-        }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
             auto cuisine = racine->comme_cuisine();
@@ -1978,10 +1969,6 @@ static const char *ordre_fonction(NoeudDéclarationEntêteFonction const *entete
 {
     if (entete->est_opérateur) {
         return "l'opérateur";
-    }
-
-    if (entete->est_coroutine) {
-        return "la coroutine";
     }
 
     return "la fonction";
