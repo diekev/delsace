@@ -90,7 +90,15 @@ test_parsage_propriété :: fonc ()
         style_sortie := parse_css_style_declaration(sortie)
 
         saufsi sont_équivalents(style_entrée, style_sortie) {
-            imprimeln("Les styles ne sont pas équivalents")
+            imprimeln("Les styles ne sont pas équivalents :\n")
+
+            imprimeln("Le style en entrée est :")
+            imprime_style(style_entrée)
+            imprimeln("")
+
+            imprimeln("Le style en sortie est :")
+            imprime_style(style_sortie)
+            imprimeln("")
         }
     }
 }
