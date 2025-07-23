@@ -77,7 +77,6 @@
     case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:                                                 \
     case GenreNoeud::INSTRUCTION_RÉPÈTE:                                                          \
     case GenreNoeud::INSTRUCTION_REPRENDS:                                                        \
-    case GenreNoeud::INSTRUCTION_RETIENS:                                                         \
     case GenreNoeud::INSTRUCTION_RETOUR:                                                          \
     case GenreNoeud::INSTRUCTION_RETOUR_MULTIPLE:                                                 \
     case GenreNoeud::INSTRUCTION_SAUFSI:                                                          \
@@ -121,4 +120,5 @@
     case GenreNoeud::VARIADIQUE
 
 #define CAS_POUR_NOEUDS_TYPES                                                                     \
-    CAS_POUR_NOEUDS_TYPES_PERSONALISABLES : CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX
+    CAS_POUR_NOEUDS_TYPES_PERSONALISABLES:                                                        \
+    CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX
