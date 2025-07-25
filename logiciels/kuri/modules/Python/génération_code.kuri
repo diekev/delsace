@@ -100,7 +100,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
     enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_globale)
 
     pour type.membres {
-        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = crée_chaine_c(\"%\"), ", it.nom)
+        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(\"%\".pointeur), ", it.nom)
         enchaineuse.imprime_dans_enchaineuse("get = get_%_%, ", type.nom_sauf, it.nom)
         si it.confidentialité == ConfidentialitéType.MUTABLE {
             enchaineuse.imprime_dans_enchaineuse("set = set_%_%, ", type.nom_sauf, it.nom)
@@ -512,7 +512,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
     enchaineuse.ajoute_au_tampon("    ob_refcnt = 1,\n")
     enchaineuse.ajoute_au_tampon("    ob_size = 0,\n")
     enchaineuse.ajoute_au_tampon("    tp_basicsize = taille_de(", type.nom_sauf, "PourPython) comme Py_ssize_t,\n")
-    enchaineuse.ajoute_au_tampon("    tp_name = crée_chaine_c(\"", tp_name, "\"),\n")
+    enchaineuse.ajoute_au_tampon("    tp_name = ChaineC(\"", tp_name, "\".pointeur),\n")
     enchaineuse.ajoute_au_tampon("    tp_flags = 1 << 10 | 1 << 18,\n")
 
     si type.méthodes {
@@ -807,7 +807,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
         }
     }
 
-    enchaineuse.ajoute_au_tampon("    chn_objets := crée_chaine_c(\"")
+    enchaineuse.ajoute_au_tampon("    chn_objets := ChaineC(\"")
     séparateur_arguments_optionel_fut_ajouté := faux
     pour méthode.paramètres_entrée {
         si it.valeur_défaut != nul && !séparateur_arguments_optionel_fut_ajouté {
@@ -816,8 +816,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
         }
         enchaineuse.ajoute_au_tampon("O")
     }
-    enchaineuse.ajoute_au_tampon("\")\n")
-    enchaineuse.ajoute_au_tampon("diffère détruit_chaine_c(chn_objets)\n")
+    enchaineuse.ajoute_au_tampon("\".pointeur)\n")
 
     enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, chn_objets")
     virgule := ", "
@@ -965,7 +964,7 @@ génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: [..]M
             "METH_NOARGS"
         }
 
-        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = crée_chaine_c(\"%\"), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode)
+        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(\"%\".pointeur), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode)
     }
 
     /* Sentinelle */
@@ -983,7 +982,7 @@ ajoute_type_à_la_liste :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
         ajoute_type_à_la_liste(enchaineuse, type.base)
     }
 
-    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\\0\".pointeur)),\n")
+    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\".pointeur)),\n")
     type.code_pour_init_module_fut_généré = vrai
 }
 
@@ -991,10 +990,12 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
 {
     génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module")
 
+    enchaineuse.ajoute_au_tampon("ChaineC :: Chaine.ChaineC\n")
+
     /* Déclaration de la globale pour la définition du module. */
     enchaineuse.ajoute_au_tampon("définition_module := PyModuleDef(\n")
 
-    enchaineuse.imprime_dans_enchaineuse("    m_name = crée_chaine_c(\"%\"),\n", module.nom)
+    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\"),\n", module.nom)
     enchaineuse.ajoute_au_tampon("    m_doc = ChaineC(nul),\n")
     enchaineuse.ajoute_au_tampon("    m_size = -1,\n")
     enchaineuse.ajoute_au_tampon("    m_methods = *méthodes_du_module[0],\n")
@@ -1009,13 +1010,13 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
 
     pour module.constantes_nombre_entier {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, crée_chaine_c(\"%\"), %) == -1 {\n", it.nom, it.valeur)
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, ChaineC(\"%\".pointeur), %) == -1 {\n", it.nom, it.valeur)
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
         enchaineuse.ajoute_au_tampon("    }\n")
     }
 
     pour module.constantes_chaine {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, crée_chaine_c(\"%\"), crée_chaine_c(\"%\")) == -1 {\n", it.nom, it.valeur)
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, ChaineC(\"%\".pointeur), ChaineC(\"%\".pointeur)) == -1 {\n", it.nom, it.valeur)
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
         enchaineuse.ajoute_au_tampon("    }\n")
     }
@@ -1034,7 +1035,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     }
     /* Type itérateur info type. */
     si itérateur_info_type_est_requis {
-        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\0\".pointeur)),\n")
+        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\".pointeur)),\n")
     }
     /* Sentinelle pour simplifier la génération de code pour les virgules. */
     enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(nul, ChaineC(nul))\n")
