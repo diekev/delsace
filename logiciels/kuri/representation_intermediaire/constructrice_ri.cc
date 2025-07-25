@@ -1910,6 +1910,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         case GenreNoeud::DIRECTIVE_CUISINE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
