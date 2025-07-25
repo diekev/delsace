@@ -6774,7 +6774,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         return CodeRetourValidation::Erreur;
     }
 
-    POUR_INDEX (type_employé->membres) {
+    POUR (type_employé->membres) {
         if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
             continue;
         }
