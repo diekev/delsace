@@ -1850,6 +1850,9 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
 
         if (apparie_instruction()) {
             auto noeud = analyse_instruction();
+            if (!noeud) {
+                continue;
+            }
             if (!noeud->est_importe() && !noeud->est_charge()) {
                 /* Nous avons déjà ajouté l'import ou la charge aux expressions. */
                 expressions.ajoute(noeud);
