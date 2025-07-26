@@ -205,6 +205,8 @@ struct Compilatrice {
 
     Fichier *crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
 
+    Fichier *crée_fichier_pour_insère(NoeudDirectiveInsère *insère);
+
     /**
      * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
      * en dehors de portée, le programme crashera.

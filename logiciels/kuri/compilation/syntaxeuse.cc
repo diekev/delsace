@@ -536,7 +536,15 @@ void Syntaxeuse::quand_commence()
     /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
-    if (!m_fichier->métaprogramme_corps_texte) {
+    if (!m_fichier->métaprogramme_corps_texte && !m_fichier->directve_insère) {
+        return;
+    }
+
+    if (m_fichier->directve_insère) {
+        auto insère = m_fichier->directve_insère;
+        m_tacheronne.assembleuse->bloc_courant(insère->bloc_parent);
+        insère->substitution = analyse_bloc(TypeBloc::IMPÉRATIF, false);
+        m_tacheronne.assembleuse->dépile_bloc();
         return;
     }
 
@@ -1130,6 +1138,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                      directive == ID::type_de_cette_fonction ||
                      directive == ID::type_de_cette_structure) {
                 auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexème);
+                return noeud;
+            }
+            else if (directive == ID::insère) {
+                auto expression = analyse_expression({}, GenreLexème::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::INSÈRE;
+                auto noeud = m_tacheronne.assembleuse->crée_insère(lexème, expression);
+                noeud->ident = directive;
                 return noeud;
             }
             else {
@@ -1835,6 +1850,9 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
 
         if (apparie_instruction()) {
             auto noeud = analyse_instruction();
+            if (!noeud) {
+                continue;
+            }
             if (!noeud->est_importe() && !noeud->est_charge()) {
                 /* Nous avons déjà ajouté l'import ou la charge aux expressions. */
                 expressions.ajoute(noeud);
