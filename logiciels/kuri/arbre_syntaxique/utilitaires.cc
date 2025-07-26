@@ -202,6 +202,11 @@ std::ostream &operator<<(std::ostream &os, TypeBloc const type)
             os << "PARAMÈTRES";
             break;
         }
+        case TypeBloc::SI_STATIQUE:
+        {
+            os << "SI_STATIQUE";
+            break;
+        }
     }
     return os;
 }
@@ -763,15 +768,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(inst);
             break;
         }
-        case GenreNoeud::INSTRUCTION_RETIENS:
-        {
-            auto inst = racine->comme_retiens();
-            inst->position |= position;
-            position |= PositionCodeNoeud::DROITE_ASSIGNATION;
-            aplatis_arbre(inst->expression, arbre_aplatis, position);
-            arbre_aplatis.ajoute(inst);
-            break;
-        }
         case GenreNoeud::DIRECTIVE_CUISINE:
         {
             auto cuisine = racine->comme_cuisine();
@@ -793,6 +789,17 @@ static void aplatis_arbre(NoeudExpression *racine,
                 position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
 
+            aplatis_arbre(expr->expression, arbre_aplatis, position);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
+        {
+            auto expr = racine->comme_insère();
+            expr->position |= position;
+            if (expr->expression->est_exécute()) {
+                position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            }
             aplatis_arbre(expr->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
@@ -1127,6 +1134,22 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         auto opaque = declaration->comme_type_opaque();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(opaque, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    if (declaration->est_si_statique()) {
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            auto si_statique = declaration->comme_si_statique();
+            aplatis_arbre(si_statique, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    /* Pour #insère entre autres. */
+    if (declaration->est_bloc()) {
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(declaration, arbre_aplatis->noeuds, {});
         }
         return;
     }
@@ -1959,10 +1982,6 @@ static const char *ordre_fonction(NoeudDéclarationEntêteFonction const *entete
         return "l'opérateur";
     }
 
-    if (entete->est_coroutine) {
-        return "la coroutine";
-    }
-
     return "la fonction";
 }
 
@@ -2748,6 +2767,9 @@ UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
     }
     if (noeud->est_déclaration_module()) {
         return &noeud->comme_déclaration_module()->unité;
+    }
+    if (noeud->est_si_statique()) {
+        return &noeud->comme_si_statique()->unité;
     }
 
     assert_rappel(false, [&]() {

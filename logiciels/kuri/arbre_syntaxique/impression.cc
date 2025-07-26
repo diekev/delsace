@@ -1083,13 +1083,6 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << "---";
             break;
         }
-        case GenreNoeud::INSTRUCTION_RETIENS:
-        {
-            auto inst = noeud->comme_retiens();
-            imprime_lexème_mot_clé(enchaineuse, "retiens", inst->expression != nullptr);
-            imprime_arbre(enchaineuse, état, inst->expression);
-            break;
-        }
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
             auto inst = noeud->comme_retourne();
@@ -1532,6 +1525,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             break;
         }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         {
             auto directive = noeud->comme_exécute();
             enchaineuse << "#";

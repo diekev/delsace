@@ -408,16 +408,6 @@ struct NoeudInstructionRetourMultiple : NoeudInstructionRetour {
     DonneesAssignations [compressé] données_exprs
 }
 
-struct NoeudRetiens : NoeudExpression {
-    @genre INSTRUCTION_RETIENS
-    @comme retiens
-    @code  NoeudCodeRetiens
-    @genre_valeur INVALIDE
-
-    NoeudExpression *expression [code enfant construction]
-    DonneesAssignations [compressé] données_exprs
-}
-
 struct NoeudExpressionRéférence : NoeudExpression {
     @genre EXPRESSION_RÉFÉRENCE_DÉCLARATION
     @comme référence_déclaration
@@ -586,7 +576,6 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     DrapeauxNoeudFonction drapeaux_fonction;
 
     bool est_opérateur [code copie]
-    bool est_coroutine [code copie]
 
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur
@@ -1012,6 +1001,7 @@ struct NoeudSiStatique : NoeudExpression {
     @code  NoeudCodeSiStatique
     @genre_valeur INVALIDE
 
+    UniteCompilation * unité
     NoeudExpression *condition [code enfant construction]
     NoeudBloc *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
@@ -1204,6 +1194,17 @@ struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
     @comme cuisine
     @code  NoeudCodeDirectiveCuisine
     @genre_valeur DROITE
+}
+
+/* Directive #insère. */
+struct NoeudDirectiveInsère : NoeudDirectiveExécute {
+    @genre DIRECTIVE_INSÈRE
+    @comme insère
+    @code  NoeudCodeDirectiveInsère
+    @genre_valeur INVALIDE
+
+    Fichier *fichier // Pour le parsage du code.
+    ArbreAplatis *arbre_aplatis
 }
 
 /* Directive #corps_boucle. */

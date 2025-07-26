@@ -176,6 +176,8 @@ enum class TypeBloc : uint8_t {
     CONSTANTES = 3,
     /* Le bloc est le bloc de paramètres d'une fonction. */
     PARAMÈTRES = 4,
+    /* Le bloc appartient à un si statique (#si) dans le contexte global. */
+    SI_STATIQUE = 5,
 };
 
 std::ostream &operator<<(std::ostream &os, TypeBloc const type);
@@ -297,7 +299,6 @@ enum {
     GENERE_BOUCLE_PLAGE,
     GENERE_BOUCLE_PLAGE_IMPLICITE,
     GENERE_BOUCLE_TABLEAU,
-    GENERE_BOUCLE_COROUTINE,
     BOUCLE_POUR_OPÉRATEUR,
 
     CONSTRUIT_OPAQUE,

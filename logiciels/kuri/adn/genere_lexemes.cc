@@ -78,7 +78,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("charge");
     lexèmes.ajoute_mot_clé("comme");
     lexèmes.ajoute_mot_clé("continue");
-    lexèmes.ajoute_mot_clé("corout");
     lexèmes.ajoute_mot_clé("dans");
     lexèmes.ajoute_mot_clé("diffère");
     lexèmes.ajoute_mot_clé("discr");
@@ -107,7 +106,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("r32", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("r64", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("reprends");
-    lexèmes.ajoute_mot_clé("retiens");
     lexèmes.ajoute_mot_clé("retourne");
     lexèmes.ajoute_mot_clé("rien", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("répète");
@@ -303,6 +301,7 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
     os << '\n';
     prodéclare_struct(os, "IdentifiantCode");
     os << '\n';
+    os << "#include \"plateforme/windows.h\"\n";
     génère_enum(lexèmes, os);
 
     const char *declarations = R"(
@@ -474,13 +473,15 @@ inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
     fichier_tmp.close();
 
     std::stringstream ss;
-    ss << CHEMIN_GPERF << " ";
+    ss << '"' << CHEMIN_GPERF << "\" ";
     ss << "-m100 ";
     ss << empreinte_parfaite_txt << " ";
     ss << "--output-file=";
     ss << empreinte_parfaite_tmp_hh;
 
     const auto commande = ss.str();
+
+    std::cout << "Exécution de la commande : " << commande << std::endl;
 
     if (system(commande.c_str()) != 0) {
         std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte "

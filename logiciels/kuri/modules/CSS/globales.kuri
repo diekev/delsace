@@ -12,7 +12,7 @@ GlobalesDessin :: struct {
     taille_fonte_défaut := 16.0
 
     FonteEnCache :: struct {
-        famille: chaine
+        famille: CSSOMString
         style: chaine
         graisse: GraisseFonte
         taille: r32
@@ -123,7 +123,7 @@ donne_fontconfig_weight :: fonc (graisse: GraisseFonte) -> z32
 
 donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 {
-    résultat := ctx.donne_fonte("serif", "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut)
+    résultat := ctx.donne_fonte(PROP_serif, "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut)
     saufsi résultat {
         imprimeln("Impossible de trouver la fonte défaut")
         exit(1)
@@ -131,7 +131,7 @@ donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
     retourne résultat
 }
 
-donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
+donne_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte, taille: r32, replis_sur_défaut := vrai) -> *Fonte
 {
     existante := ctx.donne_fonte_en_cache(famille, style, graisse, taille)
     si existante {
@@ -142,7 +142,10 @@ donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, grais
 
     fonte := crée_fonte(CheminFichier(chemin), taille)
     saufsi fonte {
-        retourne donne_fonte_défaut(ctx)
+        si replis_sur_défaut {
+            retourne donne_fonte_défaut(ctx)
+        }
+        retourne nul
     }
 
     fonte_en_cache := GlobalesDessin.FonteEnCache(famille, style, graisse, taille, fonte)
@@ -151,7 +154,7 @@ donne_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, grais
     retourne fonte
 }
 
-donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
+donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
 {
     pour ctx.fontes_en_cache {
         si it.famille == famille && it.style == style && it.graisse == graisse && it.taille == taille {
@@ -161,14 +164,17 @@ donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chai
     retourne nul
 }
 
-donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: chaine, style: chaine, graisse: GraisseFonte) -> chaine
+donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte) -> chaine
 {
     assert(ctx.fontconfig != nul)
 
     pattern := FcPatternCreate()
     diffère FcPatternDestroy(pattern)
 
-    chaine_c_famille := crée_chaine_c(famille)
+    chn_famille := converti_vers_chaine(famille.donne_chaine_utf16())
+    diffère déloge(chn_famille)
+
+    chaine_c_famille := crée_chaine_c(chn_famille)
     diffère détruit_chaine_c(chaine_c_famille)
 
     _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);

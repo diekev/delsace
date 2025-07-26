@@ -469,8 +469,7 @@ kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parse
     auto résultat = kuri::tableau<NoeudCodeEntêteFonction *>();
     résultat.réserve(entetes.taille());
     POUR (entetes) {
-        if (it->est_opérateur || it->est_coroutine ||
-            it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+        if (it->est_opérateur || it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
             continue;
         }
         auto code_entete = convertisseuse->convertis_noeud_syntaxique(espace, it);
@@ -512,6 +511,23 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     résultat->id_source_corps_texte = id_source_corps_texte;
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
     metaprogramme_->fichier = résultat;
+    return résultat;
+}
+
+Fichier *Compilatrice::crée_fichier_pour_insère(NoeudDirectiveInsère *insère)
+{
+    auto const id_source_insère = insère->lexème->fichier;
+    auto fichier_racine = this->fichier(id_source_insère);
+    auto module = fichier_racine->module;
+    auto nom_fichier = enchaine(insère);
+    auto résultat_fichier = this->sys_module->trouve_ou_crée_fichier(
+        module, nom_fichier, nom_fichier);
+    assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
+    auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
+    résultat->directve_insère = insère;
+    résultat->id_source_insère = id_source_insère;
+    résultat->source = SourceFichier::CHAINE_AJOUTÉE;
+    insère->fichier = résultat;
     return résultat;
 }
 

@@ -25,6 +25,8 @@
 #include "impression.hh"
 #include "optimisations.hh"
 
+#include "plateforme/windows.h"
+
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
  */
@@ -1908,6 +1910,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         case GenreNoeud::DIRECTIVE_CUISINE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -1924,7 +1927,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         case GenreNoeud::INSTRUCTION_POUR:
-        case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
@@ -4051,15 +4053,6 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
 {
-#if 0
-	if (compilatrice.donnees_fonction->est_coroutine) {
-		constructrice << "__etat->__termine_coro = 1;\n";
-		constructrice << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-		constructrice << "pthread_cond_signal(&__etat->cond_boucle);\n";
-		constructrice << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-	}
-#endif
-
     if (m_est_dans_diffère) {
         return;
     }
@@ -4484,11 +4477,10 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_types_entrée = donne_tableau_pour_types_entrées(type_fonction, site);
             auto tableau_types_sortie = donne_tableau_pour_type_sortie(type_fonction, site);
 
-            auto valeurs = kuri::tableau<AtomeConstante *>(4);
+            auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::FONCTION, type);
-            valeurs[1] = m_constructrice.crée_constante_booléenne(false);
-            valeurs[2] = tableau_types_entrée;
-            valeurs[3] = tableau_types_sortie;
+            valeurs[1] = tableau_types_entrée;
+            valeurs[2] = tableau_types_sortie;
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_fonction, std::move(valeurs));
