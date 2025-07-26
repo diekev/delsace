@@ -1525,6 +1525,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             break;
         }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         {
             auto directive = noeud->comme_exécute();
             enchaineuse << "#";

@@ -1910,6 +1910,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         case GenreNoeud::DIRECTIVE_CUISINE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -4476,11 +4477,10 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_types_entrée = donne_tableau_pour_types_entrées(type_fonction, site);
             auto tableau_types_sortie = donne_tableau_pour_type_sortie(type_fonction, site);
 
-            auto valeurs = kuri::tableau<AtomeConstante *>(4);
+            auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::FONCTION, type);
-            valeurs[1] = m_constructrice.crée_constante_booléenne(false);
-            valeurs[2] = tableau_types_entrée;
-            valeurs[3] = tableau_types_sortie;
+            valeurs[1] = tableau_types_entrée;
+            valeurs[2] = tableau_types_sortie;
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_fonction, std::move(valeurs));

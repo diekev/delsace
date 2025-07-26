@@ -25,20 +25,20 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
             Block <h1> <31, 31> CH [0 0 0] 1858 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (31,25 0x20)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (31,25 0x20)
-                frag 2 Normal de Text début 0 fin 1 rect (31,25 54x20)
+                frag 2 Normal de Text début 0 fin 1 rect (31,25 46x20)
                     "Division"
-                frag 3 Normal de Text début 1 fin 2 rect (85,25 4x20)
+                frag 3 Normal de Text début 1 fin 2 rect (77,25 3x20)
                     " "
-                frag 4 Normal de Text début 2 fin 3 rect (89,25 55x20)
+                frag 4 Normal de Text début 2 fin 3 rect (80,25 46x20)
                     "Element"
-                frag 5 Normal de Text début 3 fin 4 rect (144,25 4x20)
+                frag 5 Normal de Text début 3 fin 4 rect (126,25 3x20)
                     " "
-                frag 6 Normal de Text début 4 fin 5 rect (148,25 18x20)
+                frag 6 Normal de Text début 4 fin 5 rect (129,25 13x20)
                     "#1"
-                frag 7 RembourrageFin de Inline début 0 fin 0 rect (166,25 0x20)
-                frag 8 MargeFin de Inline début 0 fin 0 rect (166,25 0x20)
-                Inline <(anonyme)> <31, 25> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                    Text <(anonyme)> <31, 25> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                frag 7 RembourrageFin de Inline début 0 fin 0 rect (142,25 0x20)
+                frag 8 MargeFin de Inline début 0 fin 0 rect (142,25 0x20)
+                Inline <(anonyme)> <31, 25> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    Text <(anonyme)> <31, 25> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
             Block <(anonyme)> <31, 51> CH [0 0 0] 1858 [0 0 0] CV [0 0 0] 40 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (31,71 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (31,71 0x0)
@@ -105,20 +105,20 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
             Block <h1> <31, 303> CH [0 0 0] 1858 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (31,297 0x20)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (31,297 0x20)
-                frag 2 Normal de Text début 0 fin 1 rect (31,297 54x20)
+                frag 2 Normal de Text début 0 fin 1 rect (31,297 46x20)
                     "Division"
-                frag 3 Normal de Text début 1 fin 2 rect (85,297 4x20)
+                frag 3 Normal de Text début 1 fin 2 rect (77,297 3x20)
                     " "
-                frag 4 Normal de Text début 2 fin 3 rect (89,297 55x20)
+                frag 4 Normal de Text début 2 fin 3 rect (80,297 46x20)
                     "Element"
-                frag 5 Normal de Text début 3 fin 4 rect (144,297 4x20)
+                frag 5 Normal de Text début 3 fin 4 rect (126,297 3x20)
                     " "
-                frag 6 Normal de Text début 4 fin 5 rect (148,297 18x20)
+                frag 6 Normal de Text début 4 fin 5 rect (129,297 13x20)
                     "#2"
-                frag 7 RembourrageFin de Inline début 0 fin 0 rect (166,297 0x20)
-                frag 8 MargeFin de Inline début 0 fin 0 rect (166,297 0x20)
-                Inline <(anonyme)> <31, 297> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                    Text <(anonyme)> <31, 297> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                frag 7 RembourrageFin de Inline début 0 fin 0 rect (142,297 0x20)
+                frag 8 MargeFin de Inline début 0 fin 0 rect (142,297 0x20)
+                Inline <(anonyme)> <31, 297> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    Text <(anonyme)> <31, 297> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
             Block <(anonyme)> <31, 323> CH [0 0 0] 1858 [0 0 0] CV [0 0 0] 40 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (31,343 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (31,343 0x0)
@@ -193,20 +193,20 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
                 Block <h1> <212, 107> CH [0 0 0] 308 [0 0 0] CV [0 0 0] 20 [0 0 0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (212,101 0x20)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (212,101 0x20)
-                    frag 2 Normal de Text début 0 fin 1 rect (212,101 54x20)
+                    frag 2 Normal de Text début 0 fin 1 rect (212,101 46x20)
                         "Division"
-                    frag 3 Normal de Text début 1 fin 2 rect (266,101 4x20)
+                    frag 3 Normal de Text début 1 fin 2 rect (258,101 3x20)
                         " "
-                    frag 4 Normal de Text début 2 fin 3 rect (270,101 55x20)
+                    frag 4 Normal de Text début 2 fin 3 rect (261,101 46x20)
                         "Element"
-                    frag 5 Normal de Text début 3 fin 4 rect (325,101 4x20)
+                    frag 5 Normal de Text début 3 fin 4 rect (307,101 3x20)
                         " "
-                    frag 6 Normal de Text début 4 fin 5 rect (329,101 18x20)
+                    frag 6 Normal de Text début 4 fin 5 rect (310,101 13x20)
                         "#4"
-                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (347,101 0x20)
-                    frag 8 MargeFin de Inline début 0 fin 0 rect (347,101 0x20)
-                    Inline <(anonyme)> <212, 101> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                        Text <(anonyme)> <212, 101> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (323,101 0x20)
+                    frag 8 MargeFin de Inline début 0 fin 0 rect (323,101 0x20)
+                    Inline <(anonyme)> <212, 101> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                        Text <(anonyme)> <212, 101> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 Block <(anonyme)> <212, 127> CH [0 0 0] 308 [0 0 0] CV [0 0 0] 40 [0 0 0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (212,147 0x0)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (212,147 0x0)
@@ -265,20 +265,20 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
             Block <h1> <201, 188> CH [0 0 0] 330 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (201,182 0x20)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (201,182 0x20)
-                frag 2 Normal de Text début 0 fin 1 rect (201,182 54x20)
+                frag 2 Normal de Text début 0 fin 1 rect (201,182 46x20)
                     "Division"
-                frag 3 Normal de Text début 1 fin 2 rect (255,182 4x20)
+                frag 3 Normal de Text début 1 fin 2 rect (247,182 3x20)
                     " "
-                frag 4 Normal de Text début 2 fin 3 rect (259,182 55x20)
+                frag 4 Normal de Text début 2 fin 3 rect (250,182 46x20)
                     "Element"
-                frag 5 Normal de Text début 3 fin 4 rect (314,182 4x20)
+                frag 5 Normal de Text début 3 fin 4 rect (296,182 3x20)
                     " "
-                frag 6 Normal de Text début 4 fin 5 rect (318,182 18x20)
+                frag 6 Normal de Text début 4 fin 5 rect (299,182 13x20)
                     "#3"
-                frag 7 RembourrageFin de Inline début 0 fin 0 rect (336,182 0x20)
-                frag 8 MargeFin de Inline début 0 fin 0 rect (336,182 0x20)
-                Inline <(anonyme)> <201, 182> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                    Text <(anonyme)> <201, 182> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                frag 7 RembourrageFin de Inline début 0 fin 0 rect (312,182 0x20)
+                frag 8 MargeFin de Inline début 0 fin 0 rect (312,182 0x20)
+                Inline <(anonyme)> <201, 182> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    Text <(anonyme)> <201, 182> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
             Block <(anonyme)> <201, 208> CH [0 0 0] 330 [0 0 0] CV [0 0 0] 40 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (201,228 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (201,228 0x0)
@@ -338,20 +338,20 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
                 Block <h1> <212, 269> CH [0 0 0] 308 [0 0 0] CV [0 0 0] 20 [0 0 0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (212,263 0x20)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (212,263 0x20)
-                    frag 2 Normal de Text début 0 fin 1 rect (212,263 54x20)
+                    frag 2 Normal de Text début 0 fin 1 rect (212,263 46x20)
                         "Division"
-                    frag 3 Normal de Text début 1 fin 2 rect (266,263 4x20)
+                    frag 3 Normal de Text début 1 fin 2 rect (258,263 3x20)
                         " "
-                    frag 4 Normal de Text début 2 fin 3 rect (270,263 55x20)
+                    frag 4 Normal de Text début 2 fin 3 rect (261,263 46x20)
                         "Element"
-                    frag 5 Normal de Text début 3 fin 4 rect (325,263 4x20)
+                    frag 5 Normal de Text début 3 fin 4 rect (307,263 3x20)
                         " "
-                    frag 6 Normal de Text début 4 fin 5 rect (329,263 18x20)
+                    frag 6 Normal de Text début 4 fin 5 rect (310,263 13x20)
                         "#5"
-                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (347,263 0x20)
-                    frag 8 MargeFin de Inline début 0 fin 0 rect (347,263 0x20)
-                    Inline <(anonyme)> <212, 263> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                        Text <(anonyme)> <212, 263> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (323,263 0x20)
+                    frag 8 MargeFin de Inline début 0 fin 0 rect (323,263 0x20)
+                    Inline <(anonyme)> <212, 263> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                        Text <(anonyme)> <212, 263> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 Block <(anonyme)> <212, 289> CH [0 0 0] 308 [0 0 0] CV [0 0 0] 40 [0 0 0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (212,309 0x0)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (212,309 0x0)
@@ -416,22 +416,22 @@ Block <html> <0, 0> CH [0 0 20] 1880 [20 0 0] CV [0 0 20] 354 [20 0 0]
                     Inline <(anonyme)> <437, 187> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                         Text <(anonyme)> <617, 227> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 14 [0 0 0]
                 Block <h1> <362, 187> CH [0 0 0] 150 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                    frag 0 MargeDébut de Inline début 0 fin 0 rect (369.5,181 0x20)
-                    frag 1 RembourrageDébut de Inline début 0 fin 0 rect (369.5,181 0x20)
-                    frag 2 Normal de Text début 0 fin 1 rect (369.5,181 54x20)
+                    frag 0 MargeDébut de Inline début 0 fin 0 rect (381.5,181 0x20)
+                    frag 1 RembourrageDébut de Inline début 0 fin 0 rect (381.5,181 0x20)
+                    frag 2 Normal de Text début 0 fin 1 rect (381.5,181 46x20)
                         "Division"
-                    frag 3 Normal de Text début 1 fin 2 rect (423.5,181 4x20)
+                    frag 3 Normal de Text début 1 fin 2 rect (427.5,181 3x20)
                         " "
-                    frag 4 Normal de Text début 2 fin 3 rect (427.5,181 55x20)
+                    frag 4 Normal de Text début 2 fin 3 rect (430.5,181 46x20)
                         "Element"
-                    frag 5 Normal de Text début 3 fin 4 rect (482.5,181 4x20)
+                    frag 5 Normal de Text début 3 fin 4 rect (476.5,181 3x20)
                         " "
-                    frag 6 Normal de Text début 4 fin 5 rect (486.5,181 18x20)
+                    frag 6 Normal de Text début 4 fin 5 rect (479.5,181 13x20)
                         "#6"
-                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (504.5,181 0x20)
-                    frag 8 MargeFin de Inline début 0 fin 0 rect (504.5,181 0x20)
-                    Inline <(anonyme)> <369.5, 181> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
-                        Text <(anonyme)> <369.5, 181> CH [0 0 0] 135 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                    frag 7 RembourrageFin de Inline début 0 fin 0 rect (492.5,181 0x20)
+                    frag 8 MargeFin de Inline début 0 fin 0 rect (492.5,181 0x20)
+                    Inline <(anonyme)> <381.5, 181> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
+                        Text <(anonyme)> <381.5, 181> CH [0 0 0] 111 [0 0 0] CV [0 0 0] 20 [0 0 0]
                 Block <(anonyme)> <362, 207> CH [0 0 0] 150 [0 0 0] CV [0 0 0] 40 [0 0 0]
                     frag 0 MargeDébut de Inline début 0 fin 0 rect (369.5,227 0x0)
                     frag 1 RembourrageDébut de Inline début 0 fin 0 rect (369.5,227 0x0)

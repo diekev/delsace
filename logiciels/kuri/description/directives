@@ -29,3 +29,4 @@ Directive pour la métaprogrammation
 #si          évalue une expression booléenne, et ne compile la branche que si l'expression est vraie
 #test        comme #assert mais seulement évaluée si les tests sont activés
 #texte_corps pour les fonctions et les structures, exécute le corps de la fonction qui doit retourner une chaine définissant le corps de la structure ou de la fonction, si la fonction ou structure est polymorphique, ne lance le code que lors de l'instantiation
+#insère                 pour parser et insèrer du code lors de la compilation

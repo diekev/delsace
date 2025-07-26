@@ -219,10 +219,6 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
         FONCTION {
             info_fonction := type comme *InfoTypeFonction
 
-            si info_fonction.est_coroutine {
-                compilatrice_rapporte_erreur("Les coroutines ne sont pas convertibles en C/C++.")
-            }
-
             si info_fonction.types_sortie.taille > 1 {
                 compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.")
             }

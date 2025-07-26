@@ -21,6 +21,7 @@
     case GenreNoeud::DIRECTIVE_EXÉCUTE:                                                           \
     case GenreNoeud::DIRECTIVE_FONCTION:                                                          \
     case GenreNoeud::DIRECTIVE_INTROSPECTION:                                                     \
+    case GenreNoeud::DIRECTIVE_INSÈRE:                                                            \
     case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:                                                    \
     case GenreNoeud::EXPANSION_VARIADIQUE:                                                        \
     case GenreNoeud::EXPRESSION_APPEL:                                                            \

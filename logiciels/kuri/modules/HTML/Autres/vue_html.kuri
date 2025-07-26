@@ -848,29 +848,27 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.Box)
     }
 }
 
-donne_texte_item_pour_noeud :: fonc (noeud: *CSS.Box) -> chaine
+donne_texte_item_pour_noeud :: fonc (box: *CSS.Box) -> chaine
 {
-    si noeud.table_virtuelle.type == CSS.TextBox {
+    si box.table_virtuelle.type == CSS.TextBox {
         retourne "texte"
     }
 
-    si noeud.table_virtuelle.type == CSS.BreakBox {
+    si box.table_virtuelle.type == CSS.BreakBox {
         retourne "<br/>"
     }
 
-    noeud_bloc := noeud comme *CSS.BlockBox
-
     local_name := crée_chaine_utf16_unique("#anonyme")
-    si noeud_bloc.élément {
-        local_name = noeud_bloc.élément.local_name
+    si box.noeud && CSS.donne_élément(box) {
+        local_name = CSS.donne_élément(box).local_name
     }
 
-    position_x := noeud.modèle_de_boite.marge.x
-    position_y := noeud.modèle_de_boite.marge.y
-    largeur := noeud.modèle_de_boite.marge.largeur
-    hauteur := noeud.modèle_de_boite.marge.hauteur
+    position_x := box.modèle_de_boite.marge.x
+    position_y := box.modèle_de_boite.marge.y
+    largeur := box.modèle_de_boite.marge.largeur
+    hauteur := box.modèle_de_boite.marge.hauteur
 
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(noeud), local_name, position_x, position_y, largeur, hauteur)
+    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(box), local_name, position_x, position_y, largeur, hauteur)
 }
 
 /** \} */

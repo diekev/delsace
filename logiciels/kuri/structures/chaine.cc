@@ -30,7 +30,7 @@ chaine::TypeIndex chaine::trouve(chaine_statique motif) const
         return -1;
     }
 
-    auto nombre_de_positions = this->taille() - motif.taille();
+    auto nombre_de_positions = this->taille() - motif.taille() + 1;
 
     for (TypeIndex i = 0; i < nombre_de_positions; i++) {
         auto test = chaine_statique(this->pointeur_ + i, motif.taille());
