@@ -1200,6 +1200,17 @@ struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
     @genre_valeur DROITE
 }
 
+/* Directive #insère. */
+struct NoeudDirectiveInsère : NoeudDirectiveExécute {
+    @genre DIRECTIVE_INSÈRE
+    @comme insère
+    @code  NoeudCodeDirectiveInsère
+    @genre_valeur INVALIDE
+
+    Fichier *fichier // Pour le parsage du code.
+    ArbreAplatis *arbre_aplatis
+}
+
 /* Directive #corps_boucle. */
 struct NoeudDirectiveCorpsBoucle : NoeudExpression {
     @genre DIRECTIVE_CORPS_BOUCLE

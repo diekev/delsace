@@ -9,6 +9,7 @@ test_emploi
 test_énum
 test_énum_drapeau
 test_erreur
+test_insère
 test_logement
 test_macros
 test_memoire

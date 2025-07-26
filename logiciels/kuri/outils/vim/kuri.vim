@@ -8,11 +8,11 @@ if exists("b:current_syntax")
 endif
 
 " Keywords
-syn keyword mot_cles fonc corout retourne retiens nul soit dyn empl diffère externe eini chaine loge déloge reloge rien z8 z16 z32 z64 r16 r32 r64 n8 n16 n32 n64 importe
+syn keyword mot_cles fonc retourne nul empl diffère externe eini chaine rien z8 z16 z32 z64 r16 r32 r64 n8 n16 n32 n64 importe charge
 syn keyword mot_cles_struct struct union énum énum_drapeau
-syn keyword mot_cles_cond si sinon saufsi garde discr nonsûr
+syn keyword mot_cles_cond si sinon saufsi discr nonsûr
 syn keyword mot_cles_boucle boucle pour dans arrête continue sansarrêt tantque répète
-syn keyword operateurs mémoire transtype taille_de type_de info_de
+syn keyword operateurs mémoire comme taille_de type_de info_de
 syn keyword booleen vrai faux
 
 " Matches
