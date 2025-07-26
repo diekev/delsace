@@ -998,13 +998,7 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") 
         }
         FONCTION {
             info_fonction := info comme *InfoTypeFonction
-
-            si info_fonction.est_coroutine {
-                ajoute_au_tampon(enchaineuse, "corout")
-            }
-            sinon {
-                ajoute_au_tampon(enchaineuse, "fonc")
-            }
+            ajoute_au_tampon(enchaineuse, "fonc")
 
             virgule := "("
             saufsi info_fonction.types_entrée {

@@ -1,0 +1,18 @@
+importe Fondation
+
+// La directive #insère permet de parser une chaine de caractère et
+// d'insèrer le code en lieu et place de la directive.
+// La directive peut être utilisée en conjonction avec #exécute pour
+// crée du code arbitraire lors de la compilation.
+
+principale :: fonc () #cliche format_canon
+{
+    #insère "imprime(\"Bonjour, tout le monde !\\n\")"
+
+    #insère #exécute retourne_une_chaine()
+}
+
+retourne_une_chaine :: fonc () -> chaine
+{
+    retourne "imprime(\"Bonjour, depuis une expression retournée par #exécute !\\n\")"
+}
