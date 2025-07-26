@@ -632,6 +632,56 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
+        {
+            auto insère = noeud->comme_insère();
+            auto expression = insère->expression;
+            auto type = expression->type;
+
+            if (type != TypeBase::CHAINE) {
+                m_espace->rapporte_erreur(
+                    expression, "Le type de l'expression de #insère doit être une chaine");
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto expression_ou_résultat_exécution = expression;
+            if (expression_ou_résultat_exécution->est_exécute()) {
+                expression_ou_résultat_exécution =
+                    expression_ou_résultat_exécution->comme_exécute()->substitution;
+            }
+
+            if (expression_ou_résultat_exécution->genre !=
+                GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE) {
+                m_espace->rapporte_erreur(expression_ou_résultat_exécution,
+                                          "L'expression à droite de #insère doit pouvoir être "
+                                          "évaluée vers une chaine littérale.");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (insère->fichier == nullptr) {
+                auto fichier = m_compilatrice.crée_fichier_pour_insère(insère);
+                auto littérale = expression_ou_résultat_exécution->comme_littérale_chaine();
+                auto source = m_compilatrice.gérante_chaine->chaine_pour_adresse(
+                    littérale->valeur);
+                fichier->charge_tampon(TamponSource(source));
+                return Attente::sur_parsage(fichier);
+            }
+
+            /* Valide le code dans insère->substitution. C'est ici que la syntaxeuse le plaçat. */
+            assert(insère->substitution);
+
+            if (!insère->arbre_aplatis) {
+                insère->arbre_aplatis = donne_un_arbre_aplatis();
+                aplatis_arbre(insère->substitution, insère->arbre_aplatis);
+            }
+
+            TENTE(valide_arbre_aplatis(insère->substitution, insère->arbre_aplatis));
+
+            m_arbres_aplatis.ajoute(insère->arbre_aplatis);
+            insère->arbre_aplatis = nullptr;
+
+            return CodeRetourValidation::OK;
+        }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
             return valide_référence_déclaration(noeud->comme_référence_déclaration(),
@@ -2280,9 +2330,20 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
 {
     aplatis_arbre(declaration, m_arbre_courant);
 
-    for (; m_arbre_courant->index_courant < m_arbre_courant->noeuds.taille();
-         ++m_arbre_courant->index_courant) {
-        auto noeud_enfant = m_arbre_courant->noeuds[m_arbre_courant->index_courant];
+    TENTE(valide_arbre_aplatis(declaration, m_arbre_courant));
+
+    m_unité->arbre_aplatis = nullptr;
+    m_arbres_aplatis.ajoute(m_arbre_courant);
+
+    return CodeRetourValidation::OK;
+}
+
+RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declaration,
+                                                       ArbreAplatis *arbre_aplatis)
+{
+    for (; arbre_aplatis->index_courant < arbre_aplatis->noeuds.taille();
+         ++arbre_aplatis->index_courant) {
+        auto noeud_enfant = arbre_aplatis->noeuds[arbre_aplatis->index_courant];
 
         if (noeud_enfant->est_déclaration_type() && noeud_enfant != racine_validation()) {
             /* Les types ont leurs propres unités de compilation. */
@@ -2305,7 +2366,7 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
 
         auto résultat = valide_sémantique_noeud(noeud_enfant);
         if (est_erreur(résultat)) {
-            m_arbres_aplatis.ajoute(m_arbre_courant);
+            m_arbres_aplatis.ajoute(arbre_aplatis);
             return résultat;
         }
 
@@ -2313,9 +2374,6 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
             return résultat;
         }
     }
-
-    m_unité->arbre_aplatis = nullptr;
-    m_arbres_aplatis.ajoute(m_arbre_courant);
 
     return CodeRetourValidation::OK;
 }
@@ -6780,7 +6838,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         return CodeRetourValidation::Erreur;
     }
 
-    POUR_INDEX (type_employé->membres) {
+    POUR (type_employé->membres) {
         if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
             continue;
         }

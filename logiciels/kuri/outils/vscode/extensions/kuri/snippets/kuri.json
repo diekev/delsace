@@ -121,16 +121,6 @@
         ],
         "description": "Fragment de code pour générer la définition de la fonction principale"
     },
-    "corout": {
-        "prefix": "corout",
-        "body": [
-            "${1:nom_fonction} :: corout (${2:parameter_list}) -> ${3:type_retour}",
-            "{",
-            "\t${4:retiens}",
-            "}"
-        ],
-        "description": "Fragment de code pour une définition de coroutine"
-    },
     "struct": {
         "prefix": "struct",
         "body": [
