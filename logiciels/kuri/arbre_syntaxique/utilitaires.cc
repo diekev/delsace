@@ -793,6 +793,17 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(expr);
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
+        {
+            auto expr = racine->comme_insère();
+            expr->position |= position;
+            if (expr->expression->est_exécute()) {
+                position |= PositionCodeNoeud::DROITE_ASSIGNATION;
+            }
+            aplatis_arbre(expr->expression, arbre_aplatis, position);
+            arbre_aplatis.ajoute(expr);
+            break;
+        }
         case GenreNoeud::EXPRESSION_INIT_DE:
         {
             auto init_de = racine->comme_init_de();
@@ -1131,6 +1142,14 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         if (arbre_aplatis->noeuds.taille() == 0) {
             auto si_statique = declaration->comme_si_statique();
             aplatis_arbre(si_statique, arbre_aplatis->noeuds, {});
+        }
+        return;
+    }
+
+    /* Pour #insère entre autres. */
+    if (declaration->est_bloc()) {
+        if (arbre_aplatis->noeuds.taille() == 0) {
+            aplatis_arbre(declaration, arbre_aplatis->noeuds, {});
         }
         return;
     }
