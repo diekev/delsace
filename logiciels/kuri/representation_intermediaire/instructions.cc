@@ -5,11 +5,11 @@
 
 #include <ostream>
 
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
+
+#include "utilitaires/divers.hh"
 
 #include "code_binaire.hh"
 
@@ -30,12 +30,12 @@ std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
 
 AtomeConstanteStructure::~AtomeConstanteStructure()
 {
-    memoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
+    mémoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
 }
 
 AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 {
-    memoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
+    mémoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
 }
 
 Type const *AtomeConstanteType::donne_type() const
@@ -79,7 +79,7 @@ PartageMémoire AtomeGlobale::donne_partage_mémoire() const
 AtomeFonction::~AtomeFonction()
 {
     /* À FAIRE : stocke ça quelque part dans un tableau_page. */
-    memoire::deloge("DonnéesExécutionFonction", données_exécution);
+    mémoire::deloge("DonnéesExécutionFonction", données_exécution);
 }
 
 Instruction *AtomeFonction::dernière_instruction() const
@@ -543,14 +543,14 @@ bool est_constante_pointeur_nul(Atome const *atome)
 
 bool instruction_est_racine(Instruction const *inst)
 {
-    return dls::outils::est_element(inst->genre,
-                                    GenreInstruction::APPEL,
-                                    GenreInstruction::BRANCHE,
-                                    GenreInstruction::BRANCHE_CONDITION,
-                                    GenreInstruction::LABEL,
-                                    GenreInstruction::RETOUR,
-                                    GenreInstruction::STOCKE_MEMOIRE,
-                                    GenreInstruction::INATTEIGNABLE);
+    return est_élément(inst->genre,
+                       GenreInstruction::APPEL,
+                       GenreInstruction::BRANCHE,
+                       GenreInstruction::BRANCHE_CONDITION,
+                       GenreInstruction::LABEL,
+                       GenreInstruction::RETOUR,
+                       GenreInstruction::STOCKE_MEMOIRE,
+                       GenreInstruction::INATTEIGNABLE);
 }
 
 static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,

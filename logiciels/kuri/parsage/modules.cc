@@ -5,14 +5,12 @@
 
 #include <fstream>
 
-#include "biblinternes/langage/erreur.hh"
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
 
 #include "statistiques/statistiques.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 
 #include "lexeuse.hh"
@@ -321,11 +319,6 @@ Fichier *SystèmeModule::fichier(kuri::chaine_statique chemin) const
     return nullptr;
 }
 
-static dls::vue_chaine sous_chaine(dls::vue_chaine chaine, int debut, int fin)
-{
-    return {&chaine[debut], fin - debut};
-}
-
 void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                 kuri::chaine_statique message,
                                 kuri::chaine_statique chemin_fichier,
@@ -344,7 +337,7 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
     enchaineuse << " : " << message << "\n";
 
-    for (auto i = 0; i < 5 - dls::num::nombre_de_chiffres(numéro_ligne); ++i) {
+    for (auto i = 0; i < 5 - nombre_de_chiffres(numéro_ligne); ++i) {
         enchaineuse << ' ';
     }
 
@@ -407,7 +400,7 @@ kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin)
 {
     auto chemin_std = vers_std_path(chemin);
     std::ifstream fichier;
-    fichier.open(chemin_std.c_str());
+    fichier.open(chemin_std.c_str(), std::ios::in | std::ios::binary);
 
     if (!fichier.is_open()) {
         return "";

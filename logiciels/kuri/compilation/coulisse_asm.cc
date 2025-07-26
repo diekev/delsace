@@ -3,10 +3,9 @@
 
 #include "coulisse_asm.hh"
 
+#include <array>
 #include <fstream>
 #include <iostream>
-
-#include "biblinternes/outils/conditions.h"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -20,6 +19,7 @@
 #include "structures/pile.hh"
 #include "structures/table_hachage.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 
 #include "broyage.hh"
@@ -4344,8 +4344,8 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
                     os << virgule;
                 }
                 os << "0x";
-                os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-                os << dls::num::char_depuis_hex(octet & 0x0f);
+                os << char_depuis_hex((octet & 0xf0) >> 4);
+                os << char_depuis_hex(octet & 0x0f);
                 virgule = ", ";
             }
 
@@ -4693,7 +4693,9 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 #endif
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";
+#ifndef _MSC_VER
     dbg() << "     " << WEXITSTATUS(résultat_exécution);
+#endif
     dbg() << "=================================================";
     return {};
 }

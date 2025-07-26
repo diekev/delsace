@@ -8,7 +8,163 @@ importe SysFichier
 principale :: fonc ()
 {
     // test_collection_règles()
-    test_fragmentation_texte()
+    // test_fragmentation_texte()
+    test_parsage_propriété()
+}
+
+CasParsage :: struct {
+    entrée: []chaine
+    sortie: []chaine
+}
+
+DonnéesTestParsage :: struct {
+    contenu: chaine
+    lignes: [..]chaine
+    cas_parsage: [..]CasParsage
+}
+
+charge_cas_parsage :: fonc () -> DonnéesTestParsage
+{
+    chemin := "fichiers/parsage.css"
+    contenu := contenu_fichier_texte(chemin)
+
+    lignes := divise(contenu, '\n')
+
+    cas_parsage: [..]CasParsage
+
+    index := 0
+    tantque index < lignes.taille {
+        si lignes[index] == "// entrée" {
+            index += 1
+
+            cas := tableau_ajoute_élément(*cas_parsage)
+            cas.entrée.pointeur = lignes.pointeur + index
+            cas.entrée.taille = 1
+            index += 1
+
+            tantque index < lignes.taille {
+                si lignes[index] == "// sortie" {
+                    index += 1
+                    arrête
+                }
+
+                cas.entrée.taille += 1
+                index += 1
+            }
+
+            cas.sortie.pointeur = lignes.pointeur + index
+            cas.sortie.taille = 1
+            index += 1
+
+            tantque index < lignes.taille {
+                si lignes[index] == "// entrée" {
+                    arrête
+                }
+
+                cas.sortie.taille += 1
+                index += 1
+            }
+
+            continue
+        }
+
+        index += 1
+    }
+
+    résultat: DonnéesTestParsage
+    résultat.contenu = contenu
+    résultat.lignes = lignes
+    résultat.cas_parsage = cas_parsage
+    retourne résultat
+}
+
+test_parsage_propriété :: fonc ()
+{
+    données_test := charge_cas_parsage()
+
+    pour données_test.cas_parsage {
+        entrée := enchaine(...it.entrée)
+        sortie := enchaine(...it.sortie)
+
+        style_entrée := parse_css_style_declaration(entrée)
+        style_sortie := parse_css_style_declaration(sortie)
+
+        saufsi sont_équivalents(style_entrée, style_sortie) {
+            imprimeln("Les styles ne sont pas équivalents :\n")
+
+            imprimeln("Le style en entrée est :")
+            imprime_style(style_entrée)
+            imprimeln("")
+
+            imprimeln("Le style en sortie est :")
+            imprime_style(style_sortie)
+            imprimeln("")
+        }
+    }
+}
+
+sont_équivalents :: fonc (style1: *CSSStyleDeclaration, style2: *CSSStyleDeclaration) -> bool
+{
+    si style1.déclarations.taille != style2.déclarations.taille {
+        retourne faux
+    }
+
+    pour décl1 dans style1.déclarations {
+        décl2 := donne_déclaration(style2, décl1.property_name)
+        si décl2 == nul {
+            retourne faux
+        }
+
+        saufsi sont_équivalents(décl1, décl2) {
+            imprime_déclaration(décl1)
+            imprime_déclaration(décl2)
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+sont_équivalents :: fonc (décl1: *DéclarationPropriété, décl2: *DéclarationPropriété) -> bool
+{
+    si décl1.est_personnalisée || décl2.est_personnalisée {
+        // À FAIRE
+        retourne faux
+    }
+
+    si décl1.value.taille != décl2.value.taille {
+        retourne faux
+    }
+
+    pour valeur1, index dans décl1.value {
+        saufsi sont_mêmes_valeurs(valeur1, décl2.value[index]) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+parse_css_style_declaration :: fonc (texte: chaine) -> *CSSStyleDeclaration
+{
+    lexèmes := lèxe_style(texte)
+    diffère détruit_lexèmes(*lexèmes)
+
+    components := parse_a_list_of_component_values(lexèmes)
+    diffère déloge(components)
+
+    parseuse_decl := initialise_une_parseuse(components)
+
+    content := consomme_une_liste_de_déclarations(parseuse_decl)
+    si content.decls.taille == 0 {
+        imprimeln("Impossible de préparser la déclaration : %", texte)
+        exit(1)
+    }
+
+    ctx: ContexteParsageFeuilleDeStyle
+    diffère détruit_données_contexte(*ctx)
+
+    retourne parse_css_style_declaration(*ctx, content.decls)
 }
 
 test_collection_règles :: fonc ()

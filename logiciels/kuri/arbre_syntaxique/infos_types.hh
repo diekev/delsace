@@ -15,6 +15,8 @@
  * Structures utilisées pour passer les informations des types au métaprogrammes.
  */
 
+#include "plateforme/windows.h"
+
 enum class GenreInfoType : int32_t {
     ENTIER = 0,
     RÉEL = 1,
@@ -96,7 +98,6 @@ struct InfoTypeUnion : public InfoType {
 };
 
 struct InfoTypeFonction : public InfoType {
-    bool est_coroutine = false;
     kuri::tranche<InfoType *> types_entrée{};
     kuri::tranche<InfoType *> types_sortie{};
 };

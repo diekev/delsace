@@ -19,6 +19,19 @@
 #include "utilitaires/chrono.hh"
 #include "utilitaires/unicode.hh"
 
+#ifdef _MSC_VER
+#    include <windows.h>
+#endif
+
+#if 0
+__declspec(noinline) size_t available_stack_size()
+{
+    MEMORY_BASIC_INFORMATION mbi;
+    VirtualQuery(&mbi, &mbi, sizeof(mbi));
+    return uintptr_t(&mbi) - uintptr_t(mbi.AllocationBase);
+}
+#endif
+
 /**
  * Fonction de rappel pour les fils d'exécutions.
  */
@@ -621,7 +634,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     tacheronnes.réserve(nombre_tacheronnes);
 
     for (auto i = 0u; i < nombre_tacheronnes; ++i) {
-        tacheronnes.ajoute(memoire::loge<Tacheronne>("Tacheronne", compilatrice));
+        tacheronnes.ajoute(mémoire::loge<Tacheronne>("Tacheronne", compilatrice));
     }
 
     // pour le moment, une seule tacheronne peut exécuter du code
@@ -644,12 +657,12 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         threads.réserve(nombre_tacheronnes);
 
         POUR (tacheronnes) {
-            threads.ajoute(memoire::loge<std::thread>("std::thread", lance_tacheronne, it));
+            threads.ajoute(mémoire::loge<std::thread>("std::thread", lance_tacheronne, it));
         }
 
         POUR (threads) {
             it->join();
-            memoire::deloge("std::thread", it);
+            mémoire::deloge("std::thread", it);
         }
     }
     else {
@@ -685,7 +698,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     info() << "Nettoyage...";
 
     POUR (tacheronnes) {
-        memoire::deloge("Tacheronne", it);
+        mémoire::deloge("Tacheronne", it);
     }
 
     return true;
@@ -714,6 +727,16 @@ static std::optional<kuri::chemin_systeme> dossier_manquant_racine_execution(
 /* Tente de déterminer la racine depuis le système. */
 static std::optional<kuri::chaine> détermine_chemin_exécutable()
 {
+#ifdef _MSC_VER
+    std::wstring path(1024, L'\0');
+    const DWORD len = GetModuleFileNameW(NULL, &path[0], (DWORD)path.size());
+    if (!len) {
+        return {};
+    }
+    path.resize(len);
+    std::string string = kuri::vers_utf8(path);
+    return kuri::chaine(string.c_str(), long(string.size()));
+#else
     /* Tente de déterminer la racine depuis le système. */
     char tampon[1024];
     ssize_t len = readlink("/proc/self/exe", tampon, 1024);
@@ -721,6 +744,7 @@ static std::optional<kuri::chaine> détermine_chemin_exécutable()
         return {};
     }
     return kuri::chaine(&tampon[0], len);
+#endif
 }
 
 /* Détermine le chemin racine d'exécution de Kuri. Ceci est nécessaire puisque les modules de la
@@ -782,6 +806,10 @@ static std::optional<kuri::chaine> determine_racine_execution_kuri()
 int main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(false);
+
+#ifdef _MSC_VER
+    SetConsoleOutputCP(CP_UTF8);
+#endif
 
     auto const opt_racine_kuri = determine_racine_execution_kuri();
     if (!opt_racine_kuri.has_value()) {

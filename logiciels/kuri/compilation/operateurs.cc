@@ -7,17 +7,18 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/structures/dico_fixe.hh"
-
 #include "statistiques/statistiques.hh"
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
-#include "utilitaires/log.hh"
 #include "validation_semantique.hh"
+
+#include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
+
+#include "plateforme/windows.h"
 
 static OpérateurBinaire::Genre genre_op_binaire_pour_lexeme(GenreLexème genre_lexeme,
                                                             IndiceTypeOp type_opérandes)

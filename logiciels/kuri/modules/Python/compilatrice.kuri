@@ -222,6 +222,16 @@ ajoute_type :: fonc (système: &SystèmeType, info: *InfoType, drapeaux: Drapeau
 crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine) -> *TypePython
 {
     type_python := loge(TypePython)
+
+    // À FAIRE : modules
+    // module_type := compilatrice_module_pour_type(info)
+    // si module_type {
+    //     nom_module := compilatrice_nom_module(module_type)
+    //     si nom_module {
+    //         nom = enchaine(nom_module, ".", nom)
+    //     }
+    // }
+
     type_python.nom = nom
     type_python.nom_sauf = remplace(nom, '.', '_')
     remplace_sans_copie(*type_python.nom_sauf, '(', '_')
@@ -456,6 +466,14 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 
     si type_python && type_python.nom_type_kuri.taille == 0 {
         type_python.nom_type_kuri = chaine_pour_type(info)
+        // À FAIRE : modules
+        // module_type := compilatrice_module_pour_type(info)
+        // si module_type {
+        //     nom_module := compilatrice_nom_module(module_type)
+        //     si nom_module {
+        //         type_python.nom_type_kuri = enchaine(nom_module, ".", type_python.nom_type_kuri)
+        //     }
+        // }
     }
 
     retourne type_python

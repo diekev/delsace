@@ -3,17 +3,21 @@
 
 #include "bibliotheque.hh"
 
-#include <fcntl.h>
+#ifndef _MSC_VER
+#    include <dlfcn.h>
+#    include <fcntl.h>
+#    include <sys/stat.h>
+#    include <sys/types.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#include "biblinternes/nombre_decimaux/r16_c.h"
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/lexeuse.hh"
+
+#include "r16/r16_c.h"
 
 #include "statistiques/statistiques.hh"
 
@@ -26,6 +30,82 @@
 #include "espace_de_travail.hh"
 
 #include "utilitaires/garde_portee.hh"
+#include "utilitaires/log.hh"
+
+#ifdef _MSC_VER
+#    define NOMINMAX
+#    include <libloaderapi.h>
+#    include <windows.h>
+
+#    include <array>
+#    include <codecvt>
+#    include <stack>
+
+/* Référence : https://smacdo.com/code-examples/windows-getlasterror-message/ */
+static std::string donne_message_pour_erreur(DWORD code_erreur)
+{
+    LPSTR tampon_message = nullptr;
+    const DWORD drapeaux_format = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                                  FORMAT_MESSAGE_IGNORE_INSERTS;
+
+    /* Utilisons FormatMessageA pour recevoir une chaine UTF-8 (FormatMessage en retourne une
+     * UTF-16).
+     * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-formatmessagea */
+    const auto longueur_message = ::FormatMessageA(drapeaux_format,
+                                                   nullptr,
+                                                   code_erreur,
+                                                   0,
+                                                   reinterpret_cast<LPSTR>(&tampon_message),
+                                                   0,
+                                                   nullptr);
+
+    /* Retourne une erreur générique si nous n'avons pas pu en générer une. */
+    if (longueur_message == 0) {
+        std::array<char, 50> tampon_temp{};
+
+        const auto longueur_erreur = snprintf(tampon_temp.data(),
+                                              tampon_temp.size(),
+                                              "::FormatMessage échoua avec l'erreur 0x%x",
+                                              static_cast<unsigned int>(::GetLastError()));
+
+        return std::string{tampon_temp.data(),
+                           std::min(tampon_temp.size(), size_t(longueur_erreur))};
+    }
+
+    std::string message_erreur{tampon_message, longueur_message};
+    ::LocalFree(tampon_message);
+
+    while (!message_erreur.empty() &&
+           (message_erreur.back() == '\n' || message_erreur.back() == '\r')) {
+        message_erreur.erase(message_erreur.end() - 1);
+    }
+
+    return message_erreur;
+}
+
+static std::string dlerror()
+{
+    auto error_code = GetLastError();
+    return donne_message_pour_erreur(error_code);
+}
+
+static void *dlsym(void *handle, LPCSTR name)
+{
+    return GetProcAddress((HMODULE)handle, name);
+}
+
+#define RTLD_LAZY 0
+
+static void *dlopen(const char *filepath, int /*flags*/)
+{
+    return LoadLibraryExA(filepath, nullptr, 0);
+}
+
+static int dlclose(void *handle)
+{
+    return FreeLibrary((HMODULE)handle);
+}
+#endif
 
 /* ************************************************************************** */
 
@@ -99,6 +179,55 @@ static int type_informations(const OptionsDeCompilation &options)
     return POUR_PRODUCTION;
 }
 
+static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_statique chn,
+                                                                 char separateur)
+{
+    kuri::tablet<kuri::chaine_statique, 16> resultat;
+
+    auto taille = 0;
+    auto pointeur = chn.pointeur();
+    auto debut = chn.pointeur();
+
+    for (auto i = 0; i < chn.taille(); i++) {
+        if (pointeur[i] == separateur) {
+            auto sous_chaine = kuri::chaine_statique(debut, taille);
+            taille = 0;
+            debut = &pointeur[i + 1];
+            resultat.ajoute(sous_chaine);
+            continue;
+        }
+
+        taille += 1;
+    }
+
+    if (taille != 0) {
+        auto sous_chaine = kuri::chaine_statique(debut, taille);
+        resultat.ajoute(sous_chaine);
+    }
+
+    return resultat;
+}
+
+static void ajoute_chemins_depuis_env(const char *variable,
+                                      kuri::tablet<kuri::chemin_systeme, 16> &chemins,
+                                      kuri::ensemblon<kuri::chaine_statique, 16> &chemins_connus)
+{
+    auto valeurs = getenv(variable);
+    if (!valeurs) {
+        return;
+    }
+
+    auto chaines = divise_chaine_par(valeurs, ';');
+    POUR (chaines) {
+        if (chemins_connus.possède(it)) {
+            continue;
+        }
+
+        chemins.ajoute(it);
+        chemins_connus.insère(it);
+    }
+}
+
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
 {
     kuri::tablet<kuri::chemin_systeme, 16> résultat;
@@ -106,6 +235,16 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
     /* Pour les tables r16. */
     résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
 
+#ifdef _MSC_VER
+    kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
+    chemins_connus.insère(résultat[0]);
+
+    if (architecture == ArchitectureCible::X64) {
+        ajoute_chemins_depuis_env("LIB", résultat, chemins_connus);
+        ajoute_chemins_depuis_env("LIBPATH", résultat, chemins_connus);
+    }
+    // A FAIRE : version 32-bit
+#else
     if (architecture == ArchitectureCible::X64) {
         résultat.ajoute("/lib/x86_64-linux-gnu/");
         résultat.ajoute("/usr/lib/x86_64-linux-gnu/");
@@ -114,6 +253,7 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
         résultat.ajoute("/lib/i386-linux-gnu/");
         résultat.ajoute("/usr/lib/i386-linux-gnu/");
     }
+#endif
 
     return résultat;
 }
@@ -163,18 +303,8 @@ bool Symbole::charge(EspaceDeTravail *espace,
         }
     }
 
-    try {
-        auto ptr_symbole = bibliothèque->bib(dls::chaine(nom.pointeur(), nom.taille()));
-        if (type == TypeSymbole::FONCTION) {
-            this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
-                ptr_symbole.ptr());
-        }
-        else {
-            this->adresse_liaison.objet = ptr_symbole.ptr();
-        }
-        état_recherche = ÉtatRechercheSymbole::TROUVÉ;
-    }
-    catch (...) {
+    auto ptr_symbole = bibliothèque->bib(nom);
+    if (ptr_symbole == nullptr) {
         espace->rapporte_erreur(site, "Impossible de trouver un symbole !")
             .ajoute_message("La bibliothèque « ",
                             bibliothèque->ident->nom,
@@ -185,6 +315,14 @@ bool Symbole::charge(EspaceDeTravail *espace,
         return false;
     }
 
+    if (type == TypeSymbole::FONCTION) {
+        this->adresse_liaison.fonction = reinterpret_cast<Symbole::type_adresse_fonction>(
+            ptr_symbole);
+    }
+    else {
+        this->adresse_liaison.objet = ptr_symbole;
+    }
+    état_recherche = ÉtatRechercheSymbole::TROUVÉ;
     return true;
 }
 
@@ -308,6 +446,57 @@ int64_t CheminsBibliothèque::mémoire_utilisée() const
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name BibliothèqueExécutable
+ * Représente une bibliothèque partagée (.so sur Linux, .dll sur Windows) qui
+ * sera utilisée lors de l'exécution dans la machine virtuelle.
+ * \{ */
+
+BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
+{
+    auto std_chemin = vers_std_path(chemin);
+
+#ifdef _MSC_VER
+    std::wstring w_string = std_chemin.c_str();
+    using convert_type = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_type, wchar_t> converter;
+    std::string c_string = converter.to_bytes( w_string );
+    const char *filepath = c_string.c_str();
+#else
+    const char *filepath = std_chemin.c_str();
+#endif
+
+    m_handle = dlopen(filepath, RTLD_LAZY);
+}
+
+BibliothèqueExécutable::~BibliothèqueExécutable() noexcept
+{
+    if (m_handle) {
+        dlclose(m_handle);
+    }
+}
+
+BibliothèqueExécutable::operator bool() const noexcept
+{
+    return m_handle != nullptr;
+}
+
+void *BibliothèqueExécutable::operator()(kuri::chaine_statique symbol)
+{
+    /* Vide les erreurs. */
+    dlerror();
+
+    auto symbol_c = std::string(symbol.pointeur(), size_t(symbol.taille()));
+    const auto sym = dlsym(m_handle, symbol_c.c_str());
+    if (sym == nullptr) {
+        dbg() << dlerror();
+    }
+
+    return sym;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Bibliothèque
  * \{ */
 
@@ -341,26 +530,15 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return false;
     }
 
-    try {
-        this->bib = dls::systeme_fichier::shared_library(
-            dls::chaine(chemin_dynamique.pointeur(), chemin_dynamique.taille()).c_str());
-        état_recherche = ÉtatRechercheBibliothèque::TROUVÉE;
-    }
-    catch (std::filesystem::filesystem_error const &e) {
-        espace
-            ->rapporte_erreur(site,
-                              enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"))
-            .ajoute_message("Message d'erreur : ", e.what());
-        état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
-        return false;
-    }
-    catch (...) {
+    this->bib = BibliothèqueExécutable(chemin_dynamique);
+    if (!this->bib) {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
         état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
         return false;
     }
 
+    état_recherche = ÉtatRechercheBibliothèque::TROUVÉE;
     return true;
 }
 
@@ -528,6 +706,16 @@ void BibliothèquesUtilisées::trie_bibliothèques()
 /** \name GestionnaireBibliothèques
  * \{ */
 
+static kuri::chaine_statique nom_bibliothèque_c()
+{
+#ifdef _MSC_VER
+    // "ucrt" est pour la version dynamique, "libucrt" est pour la version statique
+    return "ucrt";
+#else
+    return "c";
+#endif
+}
+
 GestionnaireBibliothèques::GestionnaireBibliothèques(Compilatrice &compilatrice_)
     : compilatrice(compilatrice_)
 {
@@ -541,7 +729,7 @@ bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compi
     auto espace = compilatrice.espace_defaut_compilation();
 
     /* La bibliothèque C. */
-    auto libc = gestionnaire->crée_bibliothèque(*espace, nullptr, ID::libc, "c");
+    auto libc = gestionnaire->crée_bibliothèque(*espace, nullptr, ID::libc, nom_bibliothèque_c());
 
     auto malloc_ = libc->crée_symbole("malloc", TypeSymbole::FONCTION);
     malloc_->définis_adresse_pour_exécution(
@@ -572,9 +760,11 @@ bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compi
         ->définis_adresse_pour_exécution(
             reinterpret_cast<Symbole::type_adresse_fonction>(depuis_r64));
 
+#ifndef _MSC_VER
     /* La bibliothèque pthread. */
     gestionnaire->crée_bibliothèque(
         *espace, nullptr, table_idents->identifiant_pour_chaine("libpthread"), "pthread");
+#endif
 
     return !compilatrice.possède_erreur();
 }
@@ -633,6 +823,7 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
     return bibliothèque;
 }
 
+#ifndef _MSC_VER
 static bool est_fichier_elf(unsigned char tampon[4])
 {
     /* .ELF */
@@ -809,7 +1000,7 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
         return chemin_dynamique;
     }
 
-    auto chaine = dls::chaine();
+    auto chaine = kuri::chaine();
     chaine.redimensionne(taille);
     auto taille_lue = read(fd, &chaine[0], static_cast<size_t>(taille));
     if (taille_lue != taille) {
@@ -847,10 +1038,10 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
         return chemin_dynamique;
     }
 
-    auto chemin_potentiel = chaine.sous_chaine(pos_premier_slash,
-                                               pos_premiere_espace - pos_premier_slash);
-    return kuri::chaine(chemin_potentiel.c_str(), chemin_potentiel.taille());
+    auto chemin_potentiel = chaine.sous_chaine(pos_premier_slash, pos_premiere_espace);
+    return chemin_potentiel;
 }
+#endif
 
 struct ResultatRechercheBibliothèque {
     kuri::chaine_statique chemin_de_base = "";
@@ -899,10 +1090,12 @@ static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
         }
     }
 
+#ifndef _MSC_VER
     if (chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
         résultat.chemins[DYNAMIQUE][POUR_PRODUCTION] = resoud_chemin_dynamique_si_script_ld(
             espace, site, résultat.chemins[DYNAMIQUE][POUR_PRODUCTION]);
     }
+#endif
 
     if (chemin_trouve[STATIQUE][POUR_PRODUCTION] || chemin_trouve[DYNAMIQUE][POUR_PRODUCTION]) {
         return résultat;

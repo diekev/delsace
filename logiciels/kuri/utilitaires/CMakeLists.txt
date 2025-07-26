@@ -15,9 +15,11 @@ set(SOURCES
     calcul.cc
     chrono.cc
     compteuse_cas.cc
+    divers.cc
     enum_drapeau.cc
     garde_portee.cc
     log.cc
+    logeuse_memoire.cc
     macros.cc
     poule_de_taches.cc
     synchrone.cc
@@ -25,12 +27,15 @@ set(SOURCES
     unicode.cc
 
     algorithmes.hh
+    badge.hh
     calcul.hh
     chrono.hh
     compteuse_cas.hh
+    divers.hh
     enum_drapeau.hh
     garde_portee.hh
     log.hh
+    logeuse_memoire.hh
     macros.hh
     poule_de_taches.hh
     synchrone.hh
@@ -44,3 +49,5 @@ add_library(kuri::utilitaires ALIAS kuri_utilitaires)
 target_include_directories(${NOM_CIBLE} PUBLIC "${INCLUSIONS}")
 
 target_link_libraries(${NOM_CIBLE} "${BIBLIOTHEQUES}")
+
+set_property(TARGET ${NOM_CIBLE} PROPERTY POSITION_INDEPENDENT_CODE ON)

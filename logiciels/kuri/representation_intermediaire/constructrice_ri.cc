@@ -3,9 +3,6 @@
 
 #include "constructrice_ri.hh"
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -20,11 +17,15 @@
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "analyse.hh"
 #include "impression.hh"
 #include "optimisations.hh"
+
+#include "plateforme/windows.h"
 
 /* À FAIRE : (représentation intermédiaire, non-urgent)
  * - copie les tableaux fixes quand nous les assignations (a = b -> copie_mem(a, b))
@@ -192,15 +193,15 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
  * \{ */
 
 RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
-    : broyeuse(memoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
-      m_constructrice(memoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
+    : broyeuse(mémoire::loge<Broyeuse>("Broyeuse")), m_typeuse(typeuse),
+      m_constructrice(mémoire::loge<ConstructriceRI>("ConstructriceRI", m_typeuse, *this))
 {
 }
 
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
-    memoire::deloge("Broyeuse", broyeuse);
-    memoire::deloge("ConstructriceRI", m_constructrice);
+    mémoire::deloge("Broyeuse", broyeuse);
+    mémoire::deloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
@@ -887,12 +888,11 @@ InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression con
     }
 
     assert_rappel(
-        dls::outils::est_element(
-            type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
+        est_élément(type_élément->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE) ||
             (type_élément->est_type_opaque() &&
-             dls::outils::est_element(type_élément->comme_type_opaque()->type_opacifié->genre,
-                                      GenreNoeud::POINTEUR,
-                                      GenreNoeud::TABLEAU_FIXE)),
+             est_élément(type_élément->comme_type_opaque()->type_opacifié->genre,
+                         GenreNoeud::POINTEUR,
+                         GenreNoeud::TABLEAU_FIXE)),
         [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_élément), false);
@@ -1345,7 +1345,7 @@ AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstant
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
     auto type_pointeur = accédé->type->comme_type_pointeur();
     assert_rappel(
-        dls::outils::est_element(
+        est_élément(
             type_pointeur->type_pointé->genre, GenreNoeud::POINTEUR, GenreNoeud::TABLEAU_FIXE),
         [=]() { dbg() << "Type accédé : '" << chaine_type(type_pointeur->type_pointé) << "'"; });
 
@@ -1910,6 +1910,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         case GenreNoeud::DIRECTIVE_CUISINE:
         case GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE:
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -1926,7 +1927,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
         case GenreNoeud::INSTRUCTION_DISCR_UNION:
         case GenreNoeud::INSTRUCTION_POUR:
-        case GenreNoeud::INSTRUCTION_RETIENS:
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
@@ -4053,15 +4053,6 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
 
 void CompilatriceRI::génère_ri_insts_différées(NoeudBloc const *bloc_final)
 {
-#if 0
-	if (compilatrice.donnees_fonction->est_coroutine) {
-		constructrice << "__etat->__termine_coro = 1;\n";
-		constructrice << "pthread_mutex_lock(&__etat->mutex_boucle);\n";
-		constructrice << "pthread_cond_signal(&__etat->cond_boucle);\n";
-		constructrice << "pthread_mutex_unlock(&__etat->mutex_boucle);\n";
-	}
-#endif
-
     if (m_est_dans_diffère) {
         return;
     }
@@ -4486,11 +4477,10 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tableau_types_entrée = donne_tableau_pour_types_entrées(type_fonction, site);
             auto tableau_types_sortie = donne_tableau_pour_type_sortie(type_fonction, site);
 
-            auto valeurs = kuri::tableau<AtomeConstante *>(4);
+            auto valeurs = kuri::tableau<AtomeConstante *>(3);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::FONCTION, type);
-            valeurs[1] = m_constructrice.crée_constante_booléenne(false);
-            valeurs[2] = tableau_types_entrée;
-            valeurs[3] = tableau_types_sortie;
+            valeurs[1] = tableau_types_entrée;
+            valeurs[2] = tableau_types_sortie;
 
             type->atome_info_type = crée_globale_info_type(
                 m_compilatrice.typeuse.type_info_type_fonction, std::move(valeurs));

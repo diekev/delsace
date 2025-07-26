@@ -2540,12 +2540,16 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
     }
 
     pour déclaration.value {
-        saufsi it.est_lexème_de_genre(GenreLexème.Ident) {
-            continue
+        si it.est_lexème_de_genre(GenreLexème.Ident) {
+            si commence_par_préfixe_vendeur(it.lexème.valeur) {
+                retourne
+            }
         }
-
-        si commence_par_préfixe_vendeur(it.lexème.valeur) {
-            retourne
+        sinon si it.est_fonction() {
+            fonction := it.function
+            si commence_par_préfixe_vendeur(fonction.name) {
+                retourne
+            }
         }
     }
 
@@ -2610,7 +2614,7 @@ InfoTypePropriété :: struct {
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26
-NOMBRE_PROPRIÉTÉS :: 103
+NOMBRE_PROPRIÉTÉS :: 108
 
 infos_types_propriétés_shorthand : [NOMBRE_PROPRIÉTÉS_SHORTHAND]InfoTypePropriété = ---
 infos_types_propriétés : [NOMBRE_PROPRIÉTÉS]InfoTypePropriété = ---
@@ -2665,7 +2669,7 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_inset, sur_parsage_shorthand = parse_propriété_inset_shorthand, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_inset_block, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_inset_inline, sur_parsage_shorthand = parse_propriété_inset_logique, drapeaux = DrapeauxPropriété.AffecteDisposition),
-        InfoTypePropriété(PROP_text_align, id = IDPropriété.TextAlign, fonction_de_parsage = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_text_align, sur_parsage_shorthand = parse_propriété_text_align, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
         InfoTypePropriété(PROP_font, sur_parsage_shorthand = parse_propriété_font, drapeaux = DrapeauxPropriété.AffecteDisposition /* | DrapeauxPropriété.Héritée */),
         InfoTypePropriété(PROP_all, sur_parsage_shorthand = parse_propriété_all, drapeaux = DrapeauxPropriété.AffecteConstructionArbre),
         InfoTypePropriété(PROP_border_radius, sur_parsage_shorthand = parse_propriété_border_radius_shorthand),
@@ -2681,6 +2685,9 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_background_repeat, id = IDPropriété.BackgroundRepeat, fonction_de_parsage = parse_propriété_background_repeat, genre_valeur_calculée = GenreValeurCalculée.BackgroundRepeat),
         InfoTypePropriété(PROP_background_attachment, id = IDPropriété.BackgroundAttachment, fonction_de_parsage = parse_propriété_background_attachment, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.BackgroundPosition),
         InfoTypePropriété(PROP_background_position, id = IDPropriété.BackgroundPosition, fonction_de_parsage = parse_propriété_background_position, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_background_clip, id = IDPropriété.BackgroundClip, fonction_de_parsage = parse_propriété_valeur_visual_box, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_background_origin, id = IDPropriété.BackgroundOrigin, fonction_de_parsage = parse_propriété_valeur_visual_box, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_background_size, id = IDPropriété.BackgroundSize, fonction_de_parsage = parse_propriété_background_size, genre_valeur_calculée = GenreValeurCalculée.Spécifié | GenreValeurCalculée.BackgroundSize),
         InfoTypePropriété(PROP_color, id = IDPropriété.Color, fonction_de_parsage = parse_propriété_color, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Couleur),
         InfoTypePropriété(PROP_text_decoration_line, id = IDPropriété.TextDecorationLine, fonction_de_parsage = parse_propriété_text_decoration_line, genre_valeur_calculée = GenreValeurCalculée.TextDecorationLine),
         InfoTypePropriété(PROP_text_decoration_style, id = IDPropriété.TextDecorationStyle, fonction_de_parsage = parse_propriété_text_decoration_style, genre_valeur_calculée = GenreValeurCalculée.TextDecorationStyle),
@@ -2777,19 +2784,14 @@ initialise_tables_infos_propriétés :: fonc ()
         InfoTypePropriété(PROP_align_content, id = IDPropriété.AlignContent, fonction_de_parsage = parse_propriété_align_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_align_items, id = IDPropriété.AlignItems, fonction_de_parsage = parse_propriété_align_items, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
         InfoTypePropriété(PROP_align_self, id = IDPropriété.AlignSelf, fonction_de_parsage = parse_propriété_align_self, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
-        InfoTypePropriété(PROP_content, id = IDPropriété.Content, fonction_de_parsage = parse_propriété_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition)
+        InfoTypePropriété(PROP_content, id = IDPropriété.Content, fonction_de_parsage = parse_propriété_content, genre_valeur_calculée = GenreValeurCalculée.Spécifié, drapeaux = DrapeauxPropriété.AffecteDisposition),
+        InfoTypePropriété(PROP_text_align_all, id = IDPropriété.TextAlignAll, fonction_de_parsage = parse_propriété_text_align_all, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié),
+        InfoTypePropriété(PROP_text_align_last, id = IDPropriété.TextAlignLast, fonction_de_parsage = parse_propriété_text_align_last, drapeaux = DrapeauxPropriété.Héritée, genre_valeur_calculée = GenreValeurCalculée.Spécifié)
     ]
 
     /* NOTE : par défaut les infos n'ayant pas d'id prennent la valeur défaut de "Display".
      * nous devons donc vérfier si la valeur "Display" est pour la propriété "display". */
     assert(IDPropriété.Display comme n16 == 0)
-    pour infos_types_propriétés_shorthand {
-        si it.id == IDPropriété.Display && it.nom != PROP_display {
-            continue
-        }
-
-        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés_shorthand[index_it]
-    }
     pour infos_types_propriétés {
         si it.id == IDPropriété.Display && it.nom != PROP_display {
             continue
@@ -4251,28 +4253,59 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
     // <generic-complete> = serif | sans-serif | system-ui | cursive | fantasy | math | monospace
     // <generic-incomplete> = ui-serif | ui-sans-serif | ui-monospace | ui-rounded
 
-    mots_clés := [
+    generic_complete := [
         PROP_serif, PROP_sans_serif, PROP_monospace
     ]
 
-    dernière_valeur_connue: Optionnel(*ValeurDeStyle)
+    valeurs: [..]CSSOMString
+    diffère déloge(valeurs)
 
-    /* À FAIRE : stocke la liste complète. */
+    /* Pour les familles composées sans guillemets */
+    morceaux: [..]CSSOMString
+    diffère déloge(morceaux)
+
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant()
 
         si lexème.est_lexème_de_genre(GenreLexème.Ident) {
-            valeur := parse_mot_clé(parseuse, mots_clés)
-            si valeur.possède_valeur() {
-                dernière_valeur_connue = valeur
+            si fait_partie_de(lexème.lexème.valeur, ...generic_complete) {
+                tableau_ajoute(*valeurs, lexème.lexème.valeur)
+                parseuse.avance()
                 continue
             }
 
+            /* Essaie de parser une suite d'identifiants pouvant correspondre à une famille composée sans guillemets. */
+            morceaux.taille = 0
+            tableau_ajoute(*morceaux, lexème.lexème.valeur)
             parseuse.avance()
+
+            chn_espace := crée_chaine_utf16_unique(" ")
+
+            tantque !fini(parseuse) {
+                parseuse.consomme_espaces_blanches()
+                lexème = parseuse.lexème_courant()
+
+                saufsi lexème.est_lexème_de_genre(GenreLexème.Ident) {
+                    arrête
+                }
+
+                tableau_ajoute(*morceaux, chn_espace)
+                tableau_ajoute(*morceaux, lexème.lexème.valeur)
+                parseuse.avance()
+            }
+
+            /* Nous ne pouvons savoir si les guillemets sont manquants où s'il y des mots-clés en plus. */
+            si morceaux.taille != 1 && pour_shorthand {
+                retourne
+            }
+
+            famille := enchaine(...morceaux)
+            tableau_ajoute(*valeurs, crée_chaine_utf16_unique(famille))
             continue
         }
 
         si lexème.est_lexème_de_genre(GenreLexème.String) {
+            tableau_ajoute(*valeurs, lexème.lexème.valeur)
             parseuse.avance()
             continue
         }
@@ -4288,13 +4321,19 @@ parse_valeur_font_family :: fonc (parseuse: &Parseuse(ComponentValue), pour_shor
         retourne
     }
 
-    si dernière_valeur_connue.possède_valeur() {
-        retourne dernière_valeur_connue
+    si valeurs.taille == 0 {
+        retourne
     }
 
-    /* Si nous arrivons ici, la syntaxe est valide, mais nous ne connaissons pas la fonte.
-     * Retourne une valeur par défaut pour ne pas polluer la sortie avec des messages d'erreur. */
-    retourne donne_valeur_serif()
+    si valeurs.taille == 1 {
+        retourne crée_valeur_string(valeurs[0])
+    }
+
+    résultat := crée_valeur_liste()
+    pour valeurs {
+        tableau_ajoute(*résultat.valeur, crée_valeur_string(it))
+    }
+    retourne résultat
 }
 
 /** \} */
@@ -4394,6 +4433,11 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     background_repeat := donne_valeur_background_repeat_défaut()
     background_attachment := donne_valeur_scroll()
     background_position := donne_valeur_background_position_défaut()
+    background_size := donne_valeur_auto()
+    background_origin := donne_valeur_border_box()
+    background_clip := donne_valeur_border_box()
+
+    nombre_visual_box_spécifiés := 0
 
     parseuse := initialise_une_parseuse(value)
 
@@ -4432,6 +4476,40 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
         valeur_position := parse_valeur_background_position(parseuse)
         si valeur_position.possède_valeur() {
             background_position = valeur_position.Quelque
+
+            lexème := parseuse.lexème_courant()
+            si lexème.est_lexème_slash() {
+                parseuse.avance()
+                parseuse.consomme_espaces_blanches()
+
+                size := parse_valeur_background_size(parseuse)
+                saufsi size.possède_valeur() {
+                    retourne faux
+                }
+
+                background_size = size.Quelque
+            }
+
+            continue
+        }
+
+        valeur_visual_box := parse_valeur_visual_box(parseuse)
+        si valeur_visual_box.possède_valeur() {
+            /* If one <visual-box> value is present then it sets both background-origin and background-clip
+             * to that value. If two values are present, then the first sets background-origin and the second
+             * background-clip. */
+            si nombre_visual_box_spécifiés == 0 {
+                background_clip = valeur_visual_box.Quelque
+                background_origin = copie_valeur(background_clip)
+                nombre_visual_box_spécifiés = 1
+            }
+            sinon si nombre_visual_box_spécifiés == 1 {
+                background_clip = valeur_visual_box.Quelque
+            }
+            sinon {
+                /* Ignore ou erreur de parsage ? */
+            }
+
             continue
         }
 
@@ -4443,6 +4521,9 @@ parse_propriété_background :: fonc (ctx: *ContexteParsageShorthand, value: []C
     ajoute_propriété(ctx, PROP_background_attachment, background_attachment)
     ajoute_propriété(ctx, PROP_background_repeat, background_repeat)
     ajoute_propriété(ctx, PROP_background_position, background_position)
+    ajoute_propriété(ctx, PROP_background_size, background_size)
+    ajoute_propriété(ctx, PROP_background_origin, background_origin)
+    ajoute_propriété(ctx, PROP_background_clip, background_clip)
 
     retourne vrai
 }
@@ -4609,8 +4690,8 @@ parse_valeur_background_position :: fonc (parseuse: &Parseuse(ComponentValue)) -
             résultat.décalage_horizontal = copie_valeur(valeurs[0])
         }
         /* If only one value is specified, the second value is assumed to be center. */
-        résultat.vertical = PROP_center
-        résultat.décalage_vertical = donne_valeur_percentage_zéro()
+        résultat.vertical = PROP_top
+        résultat.décalage_vertical = crée_valeur_percentage(50.0)
     }
     sinon si nombre_de_valeurs == 2 {
         si valeurs[0].est_mot_clé() {
@@ -4663,6 +4744,55 @@ parse_valeur_background_position :: fonc (parseuse: &Parseuse(ComponentValue)) -
     }
 
     retourne crée_valeur_background_position(résultat)
+}
+
+/* Pour background-clip et background-origin
+ * https://drafts.csswg.org/css-backgrounds-3/#background-clip
+ * https://drafts.csswg.org/css-backgrounds-3/#background-origin
+ */
+parse_propriété_valeur_visual_box :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_visual_box(parseuse)
+}
+
+/* https://drafts.csswg.org/css-box-4/#typedef-visual-box
+ * <visual-box> = content-box | padding-box | border-box */
+parse_valeur_visual_box :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    mots_clés := [PROP_content_box, PROP_padding_box, PROP_border_box]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://drafts.csswg.org/css-backgrounds-3/#background-size */
+parse_propriété_background_size :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    retourne parse_valeur_background_size(parseuse)
+}
+
+parse_valeur_background_size :: fonc (parseuse: &Parseuse(ComponentValue)) -> Optionnel(*ValeurDeStyle)
+{
+    mots_clés := [PROP_contain, PROP_cover]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    si valeur.possède_valeur() {
+        retourne valeur
+    }
+
+    horizontal := parse_valeur_length_percentage_positive_ou_auto(parseuse)
+    saufsi horizontal.possède_valeur() {
+        retourne
+    }
+
+    vertical := parse_valeur_length_percentage_positive_ou_auto(parseuse)
+    saufsi vertical.possède_valeur() {
+        vertical = donne_valeur_auto()
+    }
+
+    résultat : BackgroundSize = ---
+    résultat.horizontal = horizontal
+    résultat.vertical = vertical
+    retourne crée_valeur_background_size(résultat)
 }
 
 /** \} */
@@ -5501,10 +5631,40 @@ parse_propriété_inset_shorthand :: fonc (ctx: *ContexteParsageShorthand, value
  * https://drafts.csswg.org/css-text/#text-align-property
  * \{ */
 
-parse_propriété_text_align :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+parse_propriété_text_align :: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+{
+    noms_propriétés := [PROP_text_align_all, PROP_text_align_last]
+    si parse_mot_clé_global(ctx, noms_propriétés, value) {
+        retourne vrai
+    }
+
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    valeur := parse_mot_clé(parseuse, mots_clés)
+    saufsi valeur.possède_valeur() {
+        retourne faux
+    }
+
+    pour noms_propriétés {
+        ctx.ajoute_propriété(it, valeur.Quelque)
+    }
+
+    retourne vrai
+}
+
+/* https://drafts.csswg.org/css-text/#propdef-text-align-all */
+parse_propriété_text_align_all :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
 {
     parseuse := initialise_une_parseuse(value)
     mots_clés := [PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
+    retourne parse_mot_clé(parseuse, mots_clés)
+}
+
+/* https://drafts.csswg.org/css-text/#propdef-text-align-last */
+parse_propriété_text_align_last :: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+{
+    parseuse := initialise_une_parseuse(value)
+    mots_clés := [PROP_auto, PROP_start, PROP_end, PROP_left, PROP_right, PROP_center, PROP_justify, PROP_match_parent, PROP_justify_all]
     retourne parse_mot_clé(parseuse, mots_clés)
 }
 

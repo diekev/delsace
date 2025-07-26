@@ -12,11 +12,6 @@ set(BIBLIOTHEQUES
     kuri_statistiques
     kuri_structures
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    langage
-    dls::outils
-    dls::moultfilage
-    dls::structures
-    dls::memoire
 )
 
 set(SOURCES
