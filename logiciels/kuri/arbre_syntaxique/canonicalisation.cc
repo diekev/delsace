@@ -952,6 +952,14 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
             return exécute->substitution;
         }
+        case GenreNoeud::DIRECTIVE_INSÈRE:
+        {
+            auto exécute = noeud->comme_exécute();
+            if (exécute->substitution) {
+                simplifie(exécute->substitution);
+            }
+            return exécute->substitution;
+        }
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
