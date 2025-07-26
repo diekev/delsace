@@ -5,10 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/langage/unicode.hh"
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/enchaineuse.hh"
 
 #include "parsage/identifiant.hh"
@@ -18,7 +14,11 @@
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "typage.hh"
+
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
+#include "utilitaires/unicode.hh"
 
 static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom)
 {
@@ -26,7 +26,7 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
     auto fin = nom.pointeur() + nom.taille();
 
     while (début < fin) {
-        auto no = lng::nombre_octets(début);
+        auto no = unicode::nombre_octets(début);
 
         switch (no) {
             case 0:
@@ -44,9 +44,9 @@ static void broye_nom_simple(Enchaineuse &enchaineuse, kuri::chaine_statique nom
                 for (int i = 0; i < no; ++i) {
                     enchaineuse.ajoute_caractère('x');
                     enchaineuse.ajoute_caractère(
-                        dls::num::char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
+                        char_depuis_hex(static_cast<char>((début[i] & 0xf0) >> 4)));
                     enchaineuse.ajoute_caractère(
-                        dls::num::char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
+                        char_depuis_hex(static_cast<char>(début[i] & 0x0f)));
                 }
 
                 break;
@@ -120,8 +120,7 @@ static void broye_nom_fonction(Enchaineuse &enchaineuse,
 {
     /* Module et nom. */
     if (!est_feuille_hiérarchie) {
-        enchaineuse << "_K";
-        enchaineuse << (entête->est_coroutine ? "C" : "F");
+        enchaineuse << "_KF";
     }
 
     if (!pour_hiérarchie) {
@@ -240,7 +239,6 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
  * Kt : tableau dynamique
  * Ks : introduit un type scalaire, suivi de la chaine du type
  * Kf : fonction
- * Kc : coroutine
  *
  * Un type scalaire est un type de base, ou un type du programme.
  *
@@ -560,7 +558,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
 
 /* format :
  * _K préfixe pour tous les noms de Kuri
- * C, E, F, S, U : coroutine, énum, fonction, structure, ou union
+ * E, F, S, U : énum, fonction, structure, ou union
  * paire(s) : longueur + chaine ascii pour module et nom
  *
  * pour les fonctions :
@@ -614,8 +612,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
     nom_broyé_type(type_fonc->type_sortie);
 
     stockage_temp.réinitialise();
-    stockage_temp << "_K";
-    stockage_temp << (decl->est_coroutine ? "C" : "F");
+    stockage_temp << "_KF";
     ::broye_nom_fonction(stockage_temp, decl, false, true);
     return chaine_finale_pour_stockage_temp();
 }

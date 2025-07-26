@@ -34,6 +34,10 @@ option(AVEC_JORJALA "Compiler le logiciel de création 3D et compositing Jorjala
 option(AVEC_KANBA "Compiler le logiciel de peinture 3D Kanba" ON)
 option(AVEC_KUMO "Compiler le langage de création de tables MySQL Kumo" ON)
 option(AVEC_KURI "Compiler le compilateur du langage Kuri" ON)
+option(AVEC_KURI_REMPLACE "Compiler l'outil kuri_remplace pour automatiser des changements de syntaxes" OFF)
+option(AVEC_KURI_PARCER "Compiler l'outil kuri_parcer pour générer des interfaces Kuri depuis des entêtes C" OFF)
+option(AVEC_MODULES_C_KURI "Compiler les modules de Kuri écrits en C/C++" OFF)
+option(AVEC_DEMON_KURI "Compiler le démon pour Kuri" OFF)
 option(AVEC_KYANBASU "Compiler Kyanbasu" ON)
 option(AVEC_LLVM "Active l'utilisation de la bibliothèque LLVM" OFF)
 option(AVEC_MESURE "Compiler le langage de statistiques de lignes de code Mesure" ON)
@@ -48,9 +52,9 @@ option(SEULEMENT_KURI "Ne compiler que Kuri et ses dépendances" OFF)
 
 # Évite de polluer les options pour l'instant.
 set(REQUIERS_QT OFF)
-set(REQUIERS_TBB ON) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
+set(REQUIERS_TBB OFF) # 'ON' par défaut pour l'instant car besoin dans les biblinternes
 set(REQUIERS_OPENGL OFF)
-set(REQUIERS_BOOST ON)
+set(REQUIERS_BOOST OFF)
 set(REQUIERS_DOCOPT OFF)
 set(REQUIERS_KELVINLET OFF)
 set(REQUIERS_PATATE OFF)
@@ -60,7 +64,7 @@ set(REQUIERS_IPROF OFF)
 # Options pour les bibliothèques internes
 set(REQUIERS_BIB_BRUIT OFF)
 set(REQUIERS_BIB_CHISEI OFF)
-set(REQUIERS_BIB_CHRONO ON) # Toujours ON
+set(REQUIERS_BIB_CHRONO OFF) # Toujours ON
 set(REQUIERS_BIB_COMPILER OFF)
 set(REQUIERS_BIB_COMPRESSION OFF)
 set(REQUIERS_BIB_EGO OFF)
@@ -74,24 +78,24 @@ set(REQUIERS_BIB_JSON OFF)
 set(REQUIERS_BIB_LANGAGE OFF)
 set(REQUIERS_BIB_LINGUA OFF)
 set(REQUIERS_BIB_MATH OFF)
-set(REQUIERS_BIB_MEMOIRE ON) # Toujours ON
+set(REQUIERS_BIB_MEMOIRE OFF) # Toujours ON
 set(REQUIERS_BIB_MOULTFILAGE OFF)
 set(REQUIERS_BIB_NOMBRE_DECIMAUX OFF)
 set(REQUIERS_BIB_OBJETS OFF)
 set(REQUIERS_BIB_OPENCV OFF)
 set(REQUIERS_BIB_OPENGL OFF)
-set(REQUIERS_BIB_OUTILS ON) # Toujours ON
+set(REQUIERS_BIB_OUTILS OFF) # Toujours ON
 set(REQUIERS_BIB_PATRONS_CONCEPTION OFF)
 set(REQUIERS_BIB_PHYS OFF)
 set(REQUIERS_BIB_REFERENCE OFF)
 set(REQUIERS_BIB_RUNTIME_POLYMORPHY OFF)
-set(REQUIERS_BIB_STRUCTURES ON) # Toujours ON
+set(REQUIERS_BIB_STRUCTURES OFF) # Toujours ON
 set(REQUIERS_BIB_SYSTEME_FICHIER OFF)
-set(REQUIERS_BIB_TESTS ON) # Toujours ON
+set(REQUIERS_BIB_TESTS OFF) # Toujours ON
 set(REQUIERS_BIB_TEXTURE OFF)
 set(REQUIERS_BIB_TORI OFF)
 set(REQUIERS_BIB_TREES OFF)
-set(REQUIERS_BIB_TYPES ON) # Requis pour les tests
+set(REQUIERS_BIB_TYPES OFF) # Requis pour les tests
 set(REQUIERS_BIB_UNICODE OFF)
 set(REQUIERS_BIB_VISION OFF)
 set(REQUIERS_BIB_XML OFF)
@@ -198,11 +202,11 @@ active_dependances(AVEC_KUMO REQUIERS_BIB_LANGAGE)
 active_dependances(AVEC_KYANBASU REQUIERS_BIB_EGO)
 
 active_dependances(
-    AVEC_KURI
+    AVEC_MODULES_C_KURI
 
     AVEC_DANJO
+    AVEC_KURI_PARCER
     REQUIERS_BIB_CHRONO
-    REQUIERS_BIB_JSON
     REQUIERS_BIB_LANGAGE
     REQUIERS_BIB_MATH
     REQUIERS_BIB_MEMOIRE
@@ -213,6 +217,21 @@ active_dependances(
     REQUIERS_BIB_STRUCTURES
     REQUIERS_BIB_SYSTEME_FICHIER
     REQUIERS_BIB_TESTS
+
+    REQUIERS_TBB
+)
+
+active_dependances(
+    AVEC_KURI_PARCER
+
+    REQUIERS_BIB_JSON
+    REQUIERS_BIB_TORI
+)
+
+active_dependances(
+    AVEC_KURI_REMPLACE
+
+    REQUIERS_BIB_JSON
     REQUIERS_BIB_TORI
 )
 
@@ -354,13 +373,19 @@ set(BIBLIOTHEQUE_DL $<$<CXX_COMPILER_ID:GNU>:dl>)
 
 # ------------------------------------------------------------------------------
 
+if(UNIX AND NOT APPLE)
+    include(platform_unix)
+elseif(WIN32)
+    include(platform_win32)
+endif()
+
+# ------------------------------------------------------------------------------
+
 macro(installe_dans_module_kuri __nom_archive__ __nom_dossier__)
     install(TARGETS ${__nom_archive__} DESTINATION kuri/modules/${__nom_dossier__}/lib/x86_64-linux-gnu/)
 endmacro(installe_dans_module_kuri)
 
 # ------------------------------------------------------------------------------
-
-include(platform_unix)
 
 add_subdirectory(biblexternes)
 add_subdirectory(biblinternes)

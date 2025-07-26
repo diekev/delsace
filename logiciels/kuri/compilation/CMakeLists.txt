@@ -43,13 +43,8 @@ set(BIBLIOTHEQUES
     kuri_representation_intermediaire
     kuri_statistiques
     kuri_structures
+    kuri::r16
     ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-    langage
-    dls::outils
-    dls::moultfilage
-    dls::structures
-    dls::memoire
-    nombre_decimaux
 )
 
 set(SOURCES

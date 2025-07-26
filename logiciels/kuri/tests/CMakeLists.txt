@@ -25,49 +25,22 @@ set(INCLUSIONS
 	${INCLUSIONS_DELSACE_TESTS}
 )
 
-set(BIBLIOTHEQUES
-	tests
-	kuri_compilation
-)
+set(BIBLIOTHEQUES kuri_compilation)
 
-set(SOURCES
-	test_decoupage.h
+if(UNIX)
+    set(SOURCES tests.cc)
 
-	test_decoupage.cc
-	tests.cc
-)
+    add_executable(test_kuri ${SOURCES})
 
-add_executable(test_kuri ${SOURCES})
+    target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
+    target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
 
-target_include_directories(test_kuri PUBLIC "${INCLUSIONS}")
-target_link_libraries(test_kuri "${BIBLIOTHEQUES}")
+    add_test(NAME tests_unitaires COMMAND test_kuri)
 
-add_test(NAME tests_unitaires COMMAND test_kuri)
-
-install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
+    install(TARGETS test_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
+endif()
 
 ###############################################################
-
-add_executable(tests_unitaires_structures tests_unitaires_structures.cc)
-target_include_directories(tests_unitaires_structures PUBLIC "${INCLUSIONS}")
-target_link_libraries(tests_unitaires_structures "${BIBLIOTHEQUES}")
-add_test(NAME tests_structures COMMAND tests_unitaires_structures)
-
-###############################################################
-
-add_executable(test_aleatoire_kuri test_donnees_aleatoire.cc)
-target_include_directories(test_aleatoire_kuri PUBLIC "${INCLUSIONS}")
-target_link_libraries(test_aleatoire_kuri "${BIBLIOTHEQUES}")
-
-# À FAIRE add_test(NAME test_aleatoire COMMAND test_aleatoire_kuri)
-
-install(TARGETS test_aleatoire_kuri RUNTIME DESTINATION ${RACINE_INSTALLATION})
-
-add_executable(charge_fichier_aleatoire charge_fichier_aleatoire.cc)
-target_include_directories(charge_fichier_aleatoire PUBLIC "${INCLUSIONS}")
-target_link_libraries(charge_fichier_aleatoire "${BIBLIOTHEQUES}")
-
-install(TARGETS charge_fichier_aleatoire RUNTIME DESTINATION ${RACINE_INSTALLATION})
 
 set(FICHIERS_TESTS
 	fichiers/module_test.kuri

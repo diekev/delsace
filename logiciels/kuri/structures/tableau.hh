@@ -3,12 +3,11 @@
 
 #pragma once
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/moultfilage/synchrone.hh"
-
 #include "tableau_statique.hh"
 
+#include "utilitaires/logeuse_memoire.hh"
 #include "utilitaires/macros.hh"
+#include "utilitaires/synchrone.hh"
 
 namespace kuri {
 
@@ -26,7 +25,7 @@ struct tableau {
     tableau() = default;
 
     explicit tableau(TypeIndex taille_initiale)
-        : m_éléments(memoire::loge_tableau<T>("kuri::tableau", taille_initiale)),
+        : m_éléments(mémoire::loge_tableau<T>("kuri::tableau", taille_initiale)),
           m_taille(taille_initiale), m_capacité(taille_initiale)
     {
     }
@@ -73,7 +72,7 @@ struct tableau {
             this->m_éléments[i].~T();
         }
 
-        memoire::deloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
+        mémoire::deloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
     }
 
     T &operator[](TypeIndex i)
@@ -143,7 +142,7 @@ struct tableau {
             return;
         }
 
-        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
+        mémoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
         this->m_capacité = nombre;
     }
 
@@ -177,13 +176,13 @@ struct tableau {
             }
         }
 
-        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
+        mémoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, nombre);
         this->m_capacité = nombre;
     }
 
     void copie_données(T *données, TypeIndex taille)
     {
-        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, taille);
+        mémoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, taille);
         this->m_taille = taille;
         this->m_capacité = taille;
 
@@ -230,7 +229,7 @@ struct tableau {
             return;
         }
 
-        memoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, m_taille);
+        mémoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, m_taille);
         this->m_capacité = m_taille;
     }
 
@@ -363,6 +362,6 @@ struct tableau {
 };
 
 template <typename T>
-using tableau_synchrone = dls::outils::Synchrone<kuri::tableau<T, int>>;
+using tableau_synchrone = kuri::Synchrone<kuri::tableau<T, int>>;
 
 }  // namespace kuri

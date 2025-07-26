@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "biblinternes/outils/numerique.hh"
-#include "biblinternes/structures/flux_chaine.hh"
-#include "biblinternes/structures/vue_chaine.hh"
+#include <sstream>
+
 #include "structures/chaine.hh"
 #include "structures/chaine_statique.hh"
 
@@ -19,6 +18,8 @@ struct Enchaineuse {
         int occupe = 0;
         Tampon *suivant = nullptr;
     };
+
+    bool format_réel_court = false;
 
     Tampon m_tampon_base{};
     Tampon *tampon_courant = nullptr;
@@ -72,6 +73,11 @@ struct Enchaineuse {
      * nouvelle chaine pour les données ajoutées.
      */
     kuri::chaine_statique ajoute_chaine_statique(kuri::chaine_statique chaine);
+
+    /* Fonctions pour les formattages d'erreurs. */
+    void imprime_caractère_vide(const int64_t nombre, kuri::chaine_statique chaine);
+    void imprime_tilde(kuri::chaine_statique chaine);
+    void imprime_tilde(kuri::chaine_statique chaine, int64_t début, int64_t fin);
 };
 
 #if defined(__GNUC__)
@@ -176,15 +182,21 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, T valeur)
 
     if constexpr (std::is_floating_point_v<T>) {
         char tampon[128];
-        auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
-        enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        if (enchaineuse.format_réel_court) {
+            auto const n = snprintf(tampon, 128, "%.3f", double(valeur));
+            enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        }
+        else {
+            auto const n = snprintf(tampon, 128, "%.19f", double(valeur));
+            enchaineuse.ajoute(kuri::chaine_statique(tampon, n));
+        }
         return enchaineuse;
     }
 
-    dls::flux_chaine flux;
+    std::stringstream flux;
     flux << valeur;
 
-    auto const chn = flux.chn();
+    auto const chn = flux.str();
     enchaineuse.ajoute(chn.c_str(), static_cast<int64_t>(chn.size()));
     return enchaineuse;
 }
@@ -215,10 +227,6 @@ Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char (&c)[N])
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine_statique const &chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, kuri::chaine const &chn);
-
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine_compacte chn);
-
-Enchaineuse &operator<<(Enchaineuse &enchaineuse, dls::vue_chaine chn);
 
 Enchaineuse &operator<<(Enchaineuse &enchaineuse, const char *chn);
 

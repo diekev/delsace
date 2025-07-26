@@ -5,8 +5,7 @@
 
 #include <cstring>
 
-#include "biblinternes/memoire/logeuse_memoire.hh"
-#include "biblinternes/structures/vue_chaine_compacte.hh"
+#include "utilitaires/logeuse_memoire.hh"
 
 #include "chaine_statique.hh"
 
@@ -30,6 +29,8 @@ struct chaine {
     TypeIndex capacite_ = 0;
 
   public:
+    static TypeIndex npos;
+
     chaine() = default;
 
     chaine(chaine const &autre) : chaine()
@@ -66,17 +67,13 @@ struct chaine {
     {
     }
 
-    chaine(dls::vue_chaine_compacte const &chn) : chaine(chn.pointeur(), chn.taille())
-    {
-    }
-
     chaine(chaine_statique chn) : chaine(chn.pointeur(), chn.taille())
     {
     }
 
     ~chaine()
     {
-        memoire::deloge_tableau("chaine", this->pointeur_, this->capacite_);
+        mémoire::deloge_tableau("chaine", this->pointeur_, this->capacite_);
     }
 
     chaine &operator=(chaine const &autre)
@@ -148,7 +145,7 @@ struct chaine {
             return;
         }
 
-        memoire::reloge_tableau("chaine", this->pointeur_, this->capacite_, nouvelle_taille);
+        mémoire::reloge_tableau("chaine", this->pointeur_, this->capacite_, nouvelle_taille);
         this->capacite_ = nouvelle_taille;
     }
 
@@ -188,9 +185,9 @@ struct chaine {
         return chaine_statique(this->pointeur() + index, this->taille() - index);
     }
 
-    operator dls::vue_chaine_compacte() const
+    chaine_statique sous_chaine(TypeIndex début, TypeIndex fin) const
     {
-        return {pointeur(), taille()};
+        return chaine_statique(this->pointeur() + début, fin - début);
     }
 
     operator chaine_statique() const
@@ -209,6 +206,9 @@ struct chaine {
     {
         return taille() != 0;
     }
+
+    TypeIndex trouve(char caractère, TypeIndex pos = 0) const;
+    TypeIndex trouve(kuri::chaine_statique motif) const;
 };
 
 bool operator==(chaine const &chn1, chaine const &chn2);

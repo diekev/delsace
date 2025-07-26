@@ -677,8 +677,8 @@ image_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     dessine_arrière_plan(ctx, base)
     dessine_bordure(ctx, base)
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_img)
-    image := box.élément comme *HTML.HTMLImageElement
+    assert(box.donne_élément().local_name == HTML.TAG_img)
+    image := box.donne_élément() comme *HTML.HTMLImageElement
     dessine_image(ctx, image.image_data, box.donne_rectangle_contenu())
 }
 
@@ -687,20 +687,20 @@ object_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     dessine_arrière_plan(ctx, base)
     dessine_bordure(ctx, base)
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_object)
-    object := box.élément comme *HTML.HTMLObjectElement
+    assert(box.donne_élément().local_name == HTML.TAG_object)
+    object := box.donne_élément() comme *HTML.HTMLObjectElement
     dessine_image(ctx, object.image_data, box.donne_rectangle_contenu())
 }
 
 text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
     dessine_arrière_plan(ctx, box)
     dessine_bordure(ctx, box)
 
-    élément := box.élément comme *HTML.HTMLInputElement
+    élément := box.donne_élément() comme *HTML.HTMLInputElement
     couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_value(élément)
     state := HTML.donne_state(élément)
@@ -754,12 +754,12 @@ text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 button_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
     dessine_arrière_plan(ctx, box)
     dessine_bordure(ctx, box)
 
-    élément := box.élément comme *HTML.HTMLInputElement
+    élément := box.donne_élément() comme *HTML.HTMLInputElement
     couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
@@ -792,9 +792,9 @@ donne_rect_texte_pour_input :: fonc (box: *ReplacedBox) -> RectanglePosDim(r32)
 radio_button_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    input := box.élément comme *HTML.HTMLInputElement
+    input := box.donne_élément() comme *HTML.HTMLInputElement
 
     rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
 
@@ -818,9 +818,9 @@ radio_button_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 checkbox_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
-    input := box.élément comme *HTML.HTMLInputElement
+    input := box.donne_élément() comme *HTML.HTMLInputElement
 
     rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu())
 
@@ -840,12 +840,12 @@ checkbox_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 textarea_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    assert(box.élément.local_name == HTML.TAG_textarea)
+    assert(box.donne_élément().local_name == HTML.TAG_textarea)
 
     dessine_arrière_plan(ctx, box)
     dessine_bordure(ctx, box)
 
-    élément := box.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur()
     value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16()
 
@@ -863,8 +863,8 @@ textarea_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 canvas_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox
-    élément := box.élément comme *HTML.HTMLCanvasElement
-    assert(box.élément.local_name == HTML.TAG_canvas)
+    élément := box.donne_élément() comme *HTML.HTMLCanvasElement
+    assert(box.donne_élément().local_name == HTML.TAG_canvas)
 
     dessine_arrière_plan(ctx, box)
     dessine_bordure(ctx, box)

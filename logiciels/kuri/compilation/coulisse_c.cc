@@ -7,8 +7,6 @@
 #include <iostream>
 #include <set>
 
-#include "biblinternes/outils/numerique.hh"
-
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
@@ -16,6 +14,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/poule_de_taches.hh"
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
@@ -121,6 +120,42 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(A
     }
 
     return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, index);
+}
+
+static bool est_nan(float v)
+{
+#ifdef _MSC_VER
+    return isnan(v);
+#else
+    return isnanf(v);
+#endif
+}
+
+static bool est_nan(double v)
+{
+#ifdef _MSC_VER
+    return isnan(v);
+#else
+    return isnanl(v);
+#endif
+}
+
+static bool est_infini(float v)
+{
+#ifdef _MSC_VER
+    return isinf(v);
+#else
+    return isinff(v);
+#endif
+}
+
+static bool est_infini(double v)
+{
+#ifdef _MSC_VER
+    return isinf(v);
+#else
+    return isinfl(v);
+#endif
 }
 
 /** \} */
@@ -998,12 +1033,12 @@ static void déclare_visibilité_globale(Enchaineuse &os,
 GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeuse_)
     : m_espace(espace), broyeuse(broyeuse_)
 {
-    m_convertisseuse_type_c = memoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
+    m_convertisseuse_type_c = mémoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
 }
 
 GénératriceCodeC::~GénératriceCodeC()
 {
-    memoire::deloge("Conver", m_convertisseuse_type_c);
+    mémoire::deloge("Conver", m_convertisseuse_type_c);
 }
 
 int64_t GénératriceCodeC::mémoire_utilisée() const
@@ -1179,13 +1214,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto type = atome->comme_constante_type()->type_de_données;
-            if (type->est_type_type_de_données()) {
-                auto type_de_données = type->comme_type_type_de_données();
-                if (type_de_données->type_connu) {
-                    return enchaine(type_de_données->type_connu->index_dans_table_types);
-                }
-            }
+            auto type = atome->comme_constante_type()->donne_type();
             return enchaine(type->index_dans_table_types);
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
@@ -1206,11 +1235,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (type->taille_octet == 4) {
                 auto valeur = static_cast<float>(constante_réelle->valeur);
 
-                if (isnanf(valeur)) {
+                if (est_nan(valeur)) {
                     return "__builtin_nanf(\"\")";
                 }
 
-                if (isinff(valeur)) {
+                if (est_infini(valeur)) {
                     if (valeur < 0.0f) {
                         return "-__builtin_inff()";
                     }
@@ -1220,11 +1249,11 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 return enchaine(constante_réelle->valeur, "f");
             }
 
-            if (isnanl(constante_réelle->valeur)) {
+            if (est_nan(constante_réelle->valeur)) {
                 return "__builtin_nanl(\"\")";
             }
 
-            if (isinfl(constante_réelle->valeur)) {
+            if (est_infini(constante_réelle->valeur)) {
                 if (constante_réelle->valeur < 0.0) {
                     return "-__builtin_infl()";
                 }
@@ -2496,8 +2525,8 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
                 os << "\n";
             }
             os << "0x";
-            os << dls::num::char_depuis_hex((octet & 0xf0) >> 4);
-            os << dls::num::char_depuis_hex(octet & 0x0f);
+            os << char_depuis_hex((octet & 0xf0) >> 4);
+            os << char_depuis_hex(octet & 0x0f);
             virgule = ", ";
         }
 

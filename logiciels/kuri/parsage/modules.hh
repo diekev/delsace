@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "biblinternes/langage/tampon_source.hh"
-
 #include <mutex>
 #include <optional>
 #include <variant>
@@ -22,12 +20,14 @@
 
 #include "identifiant.hh"
 #include "lexemes.hh"
+#include "tampon_source.hh"
 
 struct Enchaineuse;
 struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
 struct NoeudBloc;
+struct NoeudDirectiveInsère;
 struct NoeudDirectivePréExécutable;
 struct NoeudExpression;
 struct SiteSource;
@@ -63,6 +63,8 @@ enum class FonctionnalitéLangage : uint16_t {
     CUISINE = (1 << 8),
     /* Le fichier contient des directives #pré_exécutable. */
     PRÉ_EXÉCUTABLE = (1 << 9),
+    /* Le fichier contient des directives #insère. */
+    INSÈRE = (1 << 10),
 };
 DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
@@ -92,7 +94,7 @@ struct Fichier {
     double temps_découpage = 0.0;
     double temps_tampon = 0.0;
 
-    lng::tampon_source tampon_{""};
+    TamponSource tampon_{""};
 
     kuri::tableau<Lexème, int> lexèmes{};
 
@@ -103,6 +105,9 @@ struct Fichier {
     /* Si le fichier est le résultat d'un #corps_texte, ceci est l'id du fichier contenant le corps
      * texte. */
     int64_t id_source_corps_texte = -1;
+    /* Si le fichier est le résultat d'un #insère, ceci est l'id du fichier contenant la directive.
+     */
+    int64_t id_source_insère = -1;
 
     std::mutex mutex{};
 
@@ -115,6 +120,7 @@ struct Fichier {
 
     Module *module = nullptr;
     MetaProgramme *métaprogramme_corps_texte = nullptr;
+    NoeudDirectiveInsère *directve_insère = nullptr;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t décalage_fichier = 0;
@@ -151,12 +157,12 @@ struct Fichier {
         return id_;
     }
 
-    lng::tampon_source const &tampon() const
+    TamponSource const &tampon() const
     {
         return tampon_;
     }
 
-    void charge_tampon(lng::tampon_source &&t)
+    void charge_tampon(TamponSource &&t)
     {
         tampon_ = t;
         fut_chargé = true;
@@ -256,10 +262,9 @@ struct SystèmeModule {
 
     Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
-    InfoRequêteModule trouve_ou_crée_module(
-        dls::outils::Synchrone<TableIdentifiant> &table_identifiants,
-        Fichier const *fichier,
-        kuri::chaine_statique nom_module);
+    InfoRequêteModule trouve_ou_crée_module(kuri::Synchrone<TableIdentifiant> &table_identifiants,
+                                            Fichier const *fichier,
+                                            kuri::chaine_statique nom_module);
 
     Module *module(const IdentifiantCode *nom) const;
 
@@ -305,4 +310,4 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */
-dls::chaine charge_contenu_fichier(dls::chaine const &chemin);
+kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin);

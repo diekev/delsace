@@ -8,6 +8,8 @@
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
 
+#include "plateforme/windows.h"
+
 struct IdentifiantCode {
     kuri::chaine_statique nom{};
     kuri::chaine_statique nom_broye{};

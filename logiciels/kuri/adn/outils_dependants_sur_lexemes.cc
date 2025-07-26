@@ -5,8 +5,6 @@
 
 #include <iostream>
 
-#include "biblinternes/langage/erreur.hh"
-
 #include "parsage/modules.hh"
 #include "parsage/site_source.hh"
 
@@ -34,7 +32,7 @@ void imprime_erreur(SiteSource site, kuri::chaine message)
             enchaineuse << ' ';
         }
 
-        i += lng::decalage_pour_caractere(ligne_courante, i);
+        i += ligne_courante.décalage_pour_caractère(i);
     }
 
     enchaineuse << "^~~~\n";

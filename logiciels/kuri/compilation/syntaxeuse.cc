@@ -6,9 +6,6 @@
 #include <array>
 #include <iostream>
 
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
 #include "parsage/site_source.hh"
@@ -24,8 +21,12 @@
 #include "typage.hh"
 #include "validation_semantique.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
+
+#include "plateforme/windows.h"
 
 enum {
     OPÉRATEUR_EST_SURCHARGEABLE = (1 << 0),
@@ -107,7 +108,6 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CARACTÈRE:
             case GenreLexème::CHAINE_CARACTERE:
             case GenreLexème::CHAINE_LITTERALE:
-            case GenreLexème::COROUT:
             case GenreLexème::CROCHET_OUVRANT:  // construit tableau
             case GenreLexème::DIRECTIVE:
             case GenreLexème::DOLLAR:
@@ -229,15 +229,16 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::ACCOLADE_OUVRANTE:
             case GenreLexème::ARRÊTE:
             case GenreLexème::BOUCLE:
+            case GenreLexème::CHARGE:
             case GenreLexème::CONTINUE:
             case GenreLexème::DIFFÈRE:
             case GenreLexème::DISCR:
+            case GenreLexème::IMPORTE:
             case GenreLexème::NONSÛR:
             case GenreLexème::POUR:
             case GenreLexème::POUSSE_CONTEXTE:
             case GenreLexème::RÉPÈTE:
             case GenreLexème::REPRENDS:
-            case GenreLexème::RETIENS:
             case GenreLexème::RETOURNE:
             case GenreLexème::SAUFSI:
             case GenreLexème::SI:
@@ -535,7 +536,15 @@ void Syntaxeuse::quand_commence()
     /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
-    if (!m_fichier->métaprogramme_corps_texte) {
+    if (!m_fichier->métaprogramme_corps_texte && !m_fichier->directve_insère) {
+        return;
+    }
+
+    if (m_fichier->directve_insère) {
+        auto insère = m_fichier->directve_insère;
+        m_tacheronne.assembleuse->bloc_courant(insère->bloc_parent);
+        insère->substitution = analyse_bloc(TypeBloc::IMPÉRATIF, false);
+        m_tacheronne.assembleuse->dépile_bloc();
         return;
     }
 
@@ -689,6 +698,9 @@ void Syntaxeuse::analyse_une_chose()
         else if (noeud->est_importe()) {
             requiers_typage(noeud);
             m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
+        }
+        else if (noeud->est_si_statique()) {
+            requiers_typage(noeud);
         }
         else {
             rapporte_erreur_avec_site(
@@ -1128,6 +1140,13 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                 auto noeud = m_tacheronne.assembleuse->crée_directive_instrospection(lexème);
                 return noeud;
             }
+            else if (directive == ID::insère) {
+                auto expression = analyse_expression({}, GenreLexème::INCONNU);
+                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::INSÈRE;
+                auto noeud = m_tacheronne.assembleuse->crée_insère(lexème, expression);
+                noeud->ident = directive;
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */
@@ -1182,7 +1201,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
             return analyse_déclaration_fonction(lexème);
         }
         /* Ceux-ci doivent déjà avoir été gérés. */
-        case GenreLexème::COROUT:
         case GenreLexème::ÉNUM:
         case GenreLexème::ÉNUM_DRAPEAU:
         case GenreLexème::ERREUR:
@@ -1714,17 +1732,6 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
             return m_tacheronne.assembleuse->crée_reprends(lexème, expression);
         }
-        case GenreLexème::RETIENS:
-        {
-            consomme();
-
-            auto expression = NoeudExpression::nul();
-            if (apparie_expression()) {
-                expression = analyse_expression_avec_virgule(false);
-            }
-
-            return m_tacheronne.assembleuse->crée_retiens(lexème, expression);
-        }
         case GenreLexème::RETOURNE:
         {
             consomme();
@@ -1772,6 +1779,38 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
         {
             return analyse_instruction_tantque();
         }
+        case GenreLexème::IMPORTE:
+        {
+            consomme();
+            auto noeud = analyse_importe(lexème, nullptr);
+            m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::IMPORTE;
+            return noeud;
+        }
+        case GenreLexème::CHARGE:
+        {
+            consomme();
+
+            auto expression = NoeudExpression::nul();
+            if (apparie(GenreLexème::CHAINE_LITTERALE)) {
+                expression = m_tacheronne.assembleuse->crée_littérale_chaine(lexème_courant());
+            }
+            else if (apparie(GenreLexème::CHAINE_CARACTERE)) {
+                expression = m_tacheronne.assembleuse->crée_référence_déclaration(
+                    lexème_courant());
+            }
+            else {
+                rapporte_erreur("Attendu une chaine littérale ou un identifiant après 'charge'");
+            }
+
+            auto noeud = m_tacheronne.assembleuse->crée_charge(lexème, expression);
+            noeud->bloc_parent->ajoute_expression(noeud);
+            noeud->expression->ident = nullptr;
+
+            m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::CHARGE;
+
+            consomme();
+            return noeud;
+        }
         default:
         {
             assert_rappel(false, [&]() {
@@ -1811,7 +1850,13 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
 
         if (apparie_instruction()) {
             auto noeud = analyse_instruction();
-            expressions.ajoute(noeud);
+            if (!noeud) {
+                continue;
+            }
+            if (!noeud->est_importe() && !noeud->est_charge()) {
+                /* Nous avons déjà ajouté l'import ou la charge aux expressions. */
+                expressions.ajoute(noeud);
+            }
         }
         else if (apparie_expression()) {
             auto noeud = analyse_expression({}, GenreLexème::INCONNU);
@@ -2140,7 +2185,12 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
                      m_tacheronne.assembleuse->crée_si_statique(lexème, condition) :
                      m_tacheronne.assembleuse->crée_saufsi_statique(lexème, condition);
 
-    noeud->bloc_si_vrai = analyse_bloc(TypeBloc::IMPÉRATIF);
+    auto type_bloc = TypeBloc::IMPÉRATIF;
+    if (m_tacheronne.assembleuse->bloc_courant()->type_bloc == TypeBloc::MODULE) {
+        type_bloc = TypeBloc::SI_STATIQUE;
+    }
+
+    noeud->bloc_si_vrai = analyse_bloc(type_bloc);
 
     if (apparie(GenreLexème::SINON)) {
         consomme();
@@ -2160,7 +2210,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_si_statique(Lexème *lexème)
             noeud->bloc_si_faux = analyse_instruction_si_statique(lexème);
         }
         else if (apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
-            noeud->bloc_si_faux = analyse_bloc(TypeBloc::IMPÉRATIF);
+            noeud->bloc_si_faux = analyse_bloc(type_bloc);
         }
         else {
             rapporte_erreur("l'instruction « sinon » des #si statiques doit être suivie par soit "
@@ -2348,7 +2398,6 @@ NoeudExpression *Syntaxeuse::analyse_référence_déclaration(Lexème const *lex
 
         auto lexème = lexème_courant();
         switch (lexème->genre) {
-            case GenreLexème::COROUT:
             case GenreLexème::FONC:
             {
                 annule_sauvegarde_position();
@@ -2561,7 +2610,6 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
 
     auto noeud = m_tacheronne.assembleuse->crée_entête_fonction(lexème);
-    noeud->est_coroutine = lexème_mot_clé->genre == GenreLexème::COROUT;
 
     // @concurrence critique, si nous avons plusieurs définitions
     if (noeud->ident == ID::principale) {
@@ -2740,10 +2788,6 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
         else if (ident_directive == ID::externe) {
             noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
             drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
-
-            if (noeud->est_coroutine) {
-                rapporte_erreur("Une coroutine ne peut pas être externe");
-            }
 
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
                 lexème_directive);
@@ -2932,6 +2976,24 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
                 lexème_directive);
             directives.ajoute(noeud_directive);
         }
+        else if (ident_directive == ID::sans_vlc) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLC;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vlt) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VLT;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sans_vru) {
+            drapeaux_fonction |= DrapeauxNoeudFonction::SANS_VRU;
+            auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }
@@ -3078,11 +3140,11 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         else if (genre_opérateur == GenreLexème::MOINS) {
             lexème->genre = GenreLexème::MOINS_UNAIRE;
         }
-        else if (!dls::outils::est_element(genre_opérateur,
-                                           GenreLexème::TILDE,
-                                           GenreLexème::PLUS_UNAIRE,
-                                           GenreLexème::MOINS_UNAIRE,
-                                           GenreLexème::POUR)) {
+        else if (!est_élément(genre_opérateur,
+                              GenreLexème::TILDE,
+                              GenreLexème::PLUS_UNAIRE,
+                              GenreLexème::MOINS_UNAIRE,
+                              GenreLexème::POUR)) {
             rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
                             "pour '+', '-', '~', ou 'pour'");
             return nullptr;

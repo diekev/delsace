@@ -644,7 +644,7 @@ to_string :: fonc (realm: *Realm, argument: Valeur) -> *PrimitiveChaine
     // 10. Let primValue be ? ToPrimitive(argument, STRING).
     prim_value := to_primitive(realm, argument, TypePréféré.String)
     si realm.possède_exception() {
-        retourne js_undefined
+        retourne nul
     }
 
     // 11. Assert: primValue is not an Object.

@@ -201,6 +201,11 @@ consomme_ponctuation :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
     _ := donne_lexème(lexeuse, TypeLexème.Ponctuation, texte)
 }
 
+consomme_symbole :: fonc (lexeuse: *SimpleLexeuse)
+{
+    _ := donne_lexème(lexeuse, TypeLexème.Symbole)
+}
+
 consomme_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     _ := donne_symbole(lexeuse, texte)
@@ -234,6 +239,35 @@ donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine) -> Lexème
 {
     retourne donne_lexème(lexeuse, TypeLexème.MotClé, texte)
+}
+
+reprends_depuis_lexème :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème)
+{
+    assert(lexème.début >= lexeuse.texte.pointeur)
+    assert(lexème.début < lexeuse.fin)
+    assert(lexème.fin >= lexeuse.texte.pointeur)
+    assert(lexème.fin <= lexeuse.fin)
+
+    lexeuse.début = lexème.début
+}
+
+donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> chaine
+{
+    lexeuse.consomme_espace_blanches()
+
+    début := lexeuse.début
+
+    tantque !fini(lexeuse) {
+        si mémoire(lexeuse.début) == '\n' {
+            lexeuse.début += 1
+            arrête
+        }
+
+        lexeuse.début += 1
+    }
+
+    résultat := chaine(début, lexeuse.début - début - 1)
+    retourne résultat
 }
 
 #portée_fichier
@@ -316,6 +350,7 @@ DrapeauxCaractère :: énum_drapeau n16 {
     DébuteCommentaireMultiLignes
 
     DébuteSuffixeNombre
+    DébutePartDécimale
 
     DébuteCommentaire :: DébuteCommentaireLigneSingulière | DébuteCommentaireMultiLignes
 }
@@ -387,7 +422,7 @@ construit_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
     lexeuse.table_drapeaux_caractère['\v'] |= DrapeauxCaractère.EspaceBlanche
     lexeuse.table_drapeaux_caractère[' '] |= DrapeauxCaractère.EspaceBlanche
 
-    lexeuse.table_drapeaux_caractère['.'] |= DrapeauxCaractère.Ponctuation
+    lexeuse.table_drapeaux_caractère['.'] |= DrapeauxCaractère.Ponctuation | DrapeauxCaractère.DébutePartDécimale
 
     lexeuse.table_drapeaux_caractère['"'] |= DrapeauxCaractère.DébuteChaineLittérale
     lexeuse.table_drapeaux_caractère['\''] |= DrapeauxCaractère.DébuteChaineLittérale
@@ -657,7 +692,11 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
     }
 
     résultat := Lexème(type = TypeLexème.Nombre, début = début_lexème, fin = fin_lexème)
-    si drapeaux_accumulés.ChiffreHexadécimal {
+    si drapeaux_accumulés.DébutePartDécimale {
+        nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable
+        résultat.nombre = nombre_parsé comme n64
+    }
+    sinon si drapeaux_accumulés.ChiffreHexadécimal {
         résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     sinon {
@@ -794,6 +833,8 @@ donne_drapeaux_peut_suivre :: fonc (lexeuse: *SimpleLexeuse, c: z8) -> PeutSuivr
     retourne PeutSuivre.Symbole
 }
 
+#portée_export
+
 LignePourErreur :: struct {
     texte: chaine
 }
@@ -831,6 +872,8 @@ donne_ligne_pour_erreur :: fonc (lexeuse: *SimpleLexeuse) -> LignePourErreur
 /* ------------------------------------------------------------------------- */
 /** \nom Lexeuses pour C et C++.
  * \{ */
+
+#portée_fichier
 
 __mots_clés_c := [
     "if",

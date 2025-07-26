@@ -14,8 +14,13 @@
 #    define VARIABLE_ANONYME(str) CONCATENE(str, __LINE__)
 #endif
 
-#define TOUJOURS_ENLIGNE [[gnu::always_inline]]
-#define TOUJOURS_HORSLIGNE [[gnu::noinline]]
+#ifdef _MSC_VER
+#    define TOUJOURS_ENLIGNE inline
+#    define TOUJOURS_HORSLIGNE __declspec(noinline)
+#else
+#    define TOUJOURS_ENLIGNE [[gnu::always_inline]]
+#    define TOUJOURS_HORSLIGNE [[gnu::noinline]]
+#endif
 
 #define INUTILISE(x) static_cast<void>(x)
 
@@ -25,8 +30,13 @@
 #define PRAGMA_IMPL(x) _Pragma(#x)
 #define A_FAIRE(x) PRAGMA_IMPL(message("À FAIRE : " CHAINE(x)))
 
-#define PROBABLE(x) (__builtin_expect((x), 1))
-#define IMPROBABLE(x) (__builtin_expect((x), 0))
+#if defined(__GNUC__)
+#    define PROBABLE(x) (__builtin_expect((x), 1))
+#    define IMPROBABLE(x) (__builtin_expect((x), 0))
+#else
+#    define PROBABLE(x) (x)
+#    define IMPROBABLE(x) (x)
+#endif
 
 /* clang-format off */
 #if defined(__clang__) || defined(__GNUC__)
@@ -113,3 +123,21 @@
     if (auto index_it = -1)                                                                       \
         for (auto &it : (variable))                                                               \
             if (++index_it, true)
+
+void imprime_message_assert(const char *fichier,
+                            int ligne,
+                            const char *fonction,
+                            const char *texte_ligne);
+
+#ifndef NDEBUG
+#    define assert_rappel(condition, rappel)                                                      \
+        do {                                                                                      \
+            if (!(condition)) {                                                                   \
+                imprime_message_assert(__FILE__, __LINE__, __func__, #condition);                 \
+                rappel();                                                                         \
+                abort();                                                                          \
+            }                                                                                     \
+        } while (0)
+#else
+#    define assert_rappel(condition, rappel)
+#endif

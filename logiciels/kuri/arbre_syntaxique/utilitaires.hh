@@ -176,6 +176,8 @@ enum class TypeBloc : uint8_t {
     CONSTANTES = 3,
     /* Le bloc est le bloc de paramètres d'une fonction. */
     PARAMÈTRES = 4,
+    /* Le bloc appartient à un si statique (#si) dans le contexte global. */
+    SI_STATIQUE = 5,
 };
 
 std::ostream &operator<<(std::ostream &os, TypeBloc const type);
@@ -226,6 +228,18 @@ enum class DrapeauxNoeudFonction : uint32_t {
     FORCE_SANS_ASAN = (1 << 23),
 
     EST_MACRO = (1 << 24),
+
+    /* N'ajoute pas des vérifications sur les limites des tableaux.
+     * À FAIRE : macros. */
+    SANS_VLT = (1 << 25),
+
+    /* N'ajoute pas des vérifications sur les limites des chaines.
+     * À FAIRE : macros. */
+    SANS_VLC = (1 << 26),
+
+    /* N'ajoute pas des vérifications sur les rubriques des unions.
+     * À FAIRE : macros. */
+    SANS_VRU = (1 << 27),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
@@ -285,7 +299,6 @@ enum {
     GENERE_BOUCLE_PLAGE,
     GENERE_BOUCLE_PLAGE_IMPLICITE,
     GENERE_BOUCLE_TABLEAU,
-    GENERE_BOUCLE_COROUTINE,
     BOUCLE_POUR_OPÉRATEUR,
 
     CONSTRUIT_OPAQUE,

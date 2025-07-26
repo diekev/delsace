@@ -1,0 +1,70 @@
+// Données pour les tests de parsage
+
+// entrée
+background: url("chess.png") 40% / 10em gray round fixed border-box;
+
+// sortie
+background-position: 40% 50%;
+background-color: gray;
+background-size: 10em auto;
+background-clip: border-box;
+background-origin: border-box;
+background-attachment: fixed;
+background-image: url(chess.png);
+background-repeat: round;
+
+// entrée
+font-family: Arial;
+
+// sortie
+font-family: Arial;
+
+// entrée
+font-family: "Arial";
+
+// sortie
+font-family: Arial;
+
+// entrée
+font-family: Arial,
+sans-serif;
+
+// sortie
+font-family: Arial,
+sans-serif;
+
+// entrée
+font-family: Arial,
+sans-serif;
+
+// sortie
+font-family: "Arial",
+sans-serif;
+
+// entrée
+font-family:-apple-system,
+BlinkMacSystemFont,
+Segoe UI,
+Roboto,
+Helvetica Neue,
+Arial,
+Noto Sans,
+sans-serif,
+Apple Color Emoji,
+Segoe UI Emoji,
+Segoe UI Symbol,
+Noto Color Emoji;
+
+// sortie
+font-family:-apple-system,
+BlinkMacSystemFont,
+Segoe UI,
+Roboto,
+Helvetica Neue,
+Arial,
+Noto Sans,
+sans-serif,
+Apple Color Emoji,
+Segoe UI Emoji,
+Segoe UI Symbol,
+Noto Color Emoji;

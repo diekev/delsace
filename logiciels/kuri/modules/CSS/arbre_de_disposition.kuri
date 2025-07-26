@@ -139,6 +139,11 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         si élément {
             élément.box = nul
         }
+        sinon si it.noeud {
+            assert(HTML.est_texte(it.noeud))
+            noeud_texte := it.noeud comme *HTML.NoeudTexte
+            noeud_texte.box = nul
+        }
 
         si it.table_virtuelle.type == BlockBox {
             bloc := it comme *BlockBox
@@ -267,6 +272,7 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
     résultat: n32
     pour arbre.boxes {
         résultat += it.donne_taille_en_octet()
+        résultat += (it.enfants.capacité * 8) comme n32
     }
     retourne résultat
 }
@@ -1140,7 +1146,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, propriétés_parent, résolveuse.globales)
     }
     sinon {
-        fonte := donne_fonte(résolveuse.globales, "sérif", "normal", GraisseFonte.Normal, résolveuse.globales.taille_fonte_défaut)
+        fonte := donne_fonte_défaut(résolveuse.globales)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte, fonte)
         initialise_métriques_fonte(*ctx_calcul_style.longueurs_relative_fonte_racine, fonte)
     }
@@ -1440,6 +1446,10 @@ donne_taille_descendants :: fonc (box: *Box) -> (largeur: r32, hauteur: r32)
     hauteur = 0.0
 
     pour ItératriceArbre(box) {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         position_x := it.modèle_de_boite.marge.x + it.modèle_de_boite.marge.largeur
         position_y := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
 
@@ -1461,18 +1471,18 @@ CréatriceArbre :: struct {
     arbre: *ArbreDeDisposition
 }
 
-crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, box: *HTML.Noeud)
+crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Noeud)
 {
-    si HTML.est_texte(box) {
-        crée_box_pour_texte(créatrice, parent comme *BlockBox, (box comme *HTML.NoeudTexte).données)
+    si HTML.est_texte(noeud) {
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
         retourne
     }
 
-    saufsi HTML.est_élément(box) {
+    saufsi HTML.est_élément(noeud) {
         retourne
     }
 
-    élément := box comme *HTML.Élément
+    élément := noeud comme *HTML.Élément
 
     propriétés_parent: *PropriétésDeStyle
     si parent {
@@ -1501,7 +1511,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
         si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
             résultat = crée_box_pour_display(arbre, display, élément)
-            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16())
+            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16(), nul)
         }
         sinon {
             résultat = crée_image_box(arbre, img)
@@ -1585,7 +1595,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
     crée_box_pour_pseudo_élément(créatrice, résultat, élément, PROP_before)
 
-    pour box.enfants {
+    pour noeud.enfants {
         crée_box_pour_élément(créatrice, nouveau_parent, it)
     }
 
@@ -1594,15 +1604,20 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
     corrige_hiérarchie(résultat, créatrice)
 }
 
-crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16)
+crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.NoeudTexte)
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
     résultat := arbre.crée_box(InlineBox)
+    résultat.est_boite_anonyme_pour_texte = vrai
     crée_style_pour_bloc_anonyme(résolveuse, résultat, parent, Display.Type.Inline)
     parent.ajoute_enfant(résultat)
 
     texte := arbre.crée_box(TextBox)
     texte.texte_original = texte_original
+    texte.noeud = noeud
+    si noeud {
+        noeud.box = texte
+    }
     résultat.ajoute_enfant(texte)
 }
 
@@ -1610,7 +1625,7 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
 {
     si display.inner_type == Display.Type.Table {
         wrapper_box := arbre.crée_box(TableWrapperBox)
-        wrapper_box.élément = élément
+        wrapper_box.noeud = élément
 
         box := arbre.crée_box(TableBox)
         wrapper_box.table = box
@@ -1620,57 +1635,57 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
     }
     si display.inner_type == Display.Type.TableCaption {
         box := arbre.crée_box(CaptionBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumn {
         box := arbre.crée_box(TableColumnBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableColumnGroup {
         box := arbre.crée_box(TableColumnGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableCell {
         box := arbre.crée_box(TableCellBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRow {
         box := arbre.crée_box(TableRowBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableFooterGroup {
         box := arbre.crée_box(TableFooterGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableHeaderGroup {
         box := arbre.crée_box(TableHeaderGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.inner_type == Display.Type.TableRowGroup {
         box := arbre.crée_box(TableRowGroupBox)
-        box.élément = élément
+        box.noeud = élément
         retourne box
     }
     si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
         bloc := arbre.crée_box(BlockBox)
-        bloc.élément = élément
+        bloc.noeud = élément
         retourne bloc
     }
     si élément && élément.local_name == HTML.TAG_br {
         bris := arbre.crée_box(BreakBox)
-        bris.élément = élément
+        bris.noeud = élément
         retourne bris
     }
 
     inline := arbre.crée_box(InlineBox)
-    inline.élément = élément
+    inline.noeud = élément
     retourne inline
 }
 
@@ -1708,7 +1723,7 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
     ajoute_enfant(parent, box)
 
     si content.est_string() {
-        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16())
+        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16(), nul)
     }
 }
 
@@ -1863,6 +1878,22 @@ définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.contenu.hauteur = hauteur
 }
 
+donne_ligne_de_base_marge :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.marge.y
+    résultat.position = modèle.marge.y + modèle.marge.hauteur
+    retourne résultat
+}
+
+donne_ligne_de_base_contenu :: fonc (modèle: ModèleDeBoite) -> InfoLigneDeBase
+{
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = modèle.contenu.y
+    résultat.position = modèle.contenu.y + modèle.contenu.hauteur
+    retourne résultat
+}
+
 /* Représente les cotations pour un axe donné du modèle de boite. */
 CotationModèleDeBoite :: struct {
     marge_début: r32
@@ -1905,7 +1936,14 @@ imprime_cotation :: fonc (enchaineuse: *Enchaineuse, cotation: *CotationModèleD
     imprime_dans_enchaineuse(enchaineuse, "[% % %] % [% % %]", cotation.marge_début, cotation.bordure_début, cotation.rembourrage_début, cotation.contenu, cotation.rembourrage_fin, cotation.bordure_fin, cotation.marge_fin)
 }
 
-TableVirtuelleNoeudDeDispo :: struct {
+InfoLigneDeBase :: struct {
+    /* L'origine de la boite fournissant la ligne de base ; utilisée pour calculer un delta. */
+    origine: r32
+    /* La position de la ligne de base. */
+    position: r32
+}
+
+TableVirtuelleBox :: struct {
     type: type_de_données
 
     sur_mesure: fonc (*Box, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation, AvailableSpace)(rien)
@@ -1915,10 +1953,10 @@ TableVirtuelleNoeudDeDispo :: struct {
     sur_dessin_fragment_tampon_id: fonc (*Box, *Fragment, *ContexteDessin)(rien)
     sur_divise_en_lignes: fonc (*Box, *Enligneuse, ModeDeFormattage)(rien)
     sur_correction_hiérarchie: fonc(*Box, *CréatriceArbre)(rien)
-    sur_donne_baseline: fonc(*Box)(Optionnel(r32))
+    sur_donne_baseline: fonc(*Box)(Optionnel(InfoLigneDeBase))
 }
 
-__table_box_base := TableVirtuelleNoeudDeDispo(type = Box)
+__table_box_base := TableVirtuelleBox(type = Box)
 
 Box :: struct {
     table_virtuelle := *__table_box_base
@@ -1930,10 +1968,13 @@ Box :: struct {
     parent: *Box
     enfants: [..]*Box
 
+    noeud: *HTML.Noeud
+
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
     est_pseudo_element: bool
     fut_dessiné: bool
+    est_boite_anonyme_pour_texte: bool
 
     MémoireVive :: struct {
         min_content_width: Optionnel(r64)
@@ -1947,6 +1988,12 @@ donne_propriétés :: fonc (box: *Box) -> *PropriétésDeStyle
 {
     si box.table_virtuelle.type == TextBox {
         retourne donne_propriétés(box comme *TextBox)
+    }
+    si box.est_boite_anonyme_pour_texte {
+        box = box.parent
+        tantque est_box_anonyme(box) {
+            box = box.parent
+        }
     }
     retourne box.propriétés
 }
@@ -1976,30 +2023,41 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
-    famille_fonte := "sérif"
     style := "normal"
-    graisse := GraisseFonte.Normal
     taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32
 
-    font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily).donne_mot_clé()
-    si font_family == PROP_monospace {
-        famille_fonte = "monospace"
-    }
-    sinon si font_family == PROP_sans_serif {
-        famille_fonte = "sans-serif"
-    }
-
     font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number()
-    si font_weight >= 700.0 {
-        graisse = GraisseFonte.Gras
-    }
+    graisse := donne_graisse_fonte_depuis_poids(font_weight)
 
     font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé()
     si font_style == PROP_italic {
         style = "italic"
     }
 
-    retourne globales.donne_fonte(famille_fonte, style, graisse, taille_fonte)
+    prop_font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily)
+
+    si prop_font_family.est_mot_clé() {
+        font_family := prop_font_family.donne_mot_clé()
+        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte)
+    }
+    
+    si prop_font_family.est_string() {
+        font_family := prop_font_family.donne_string()
+        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte)
+    }
+
+    assert(prop_font_family.est_liste())
+    liste_fontes := prop_font_family.donne_liste()
+
+    pour liste_fontes {
+        font_family := it.donne_string()
+        fonte := globales.donne_fonte(font_family, style, graisse, taille_fonte, faux)
+        si fonte {
+            retourne fonte
+        }
+    }
+
+    retourne globales.donne_fonte(PROP_serif, style, graisse, taille_fonte)
 }
 
 donne_rectangle_rembourrage :: fonc (box: *Box) -> RectanglePosDim(r32)
@@ -2024,7 +2082,7 @@ est_box_anonyme :: fonc (box: *Box) -> bool
     }
 
     block_box := box comme *BlockBox
-    retourne block_box.élément == nul
+    retourne block_box.noeud == nul
 }
 
 est_box_non_anonyme :: fonc (box: *Box) -> bool
@@ -2140,64 +2198,35 @@ donne_décalage_left_pour_relative :: fonc (box: *Box) -> r32
     retourne left.donne_pixels() comme r32
 }
 
-donne_baseline :: fonc (box: *Box) -> Optionnel(r32)
+donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
 {
     si box.table_virtuelle.sur_donne_baseline {
         résultat := box.table_virtuelle.sur_donne_baseline(box)
         si résultat.possède_valeur() {
             retourne résultat
         }
+
+        si box.table_virtuelle.type == TextBox {
+            retourne
+        }
     }
 
     // À FAIRE : est-ce la bonne valeur ?
-    retourne box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur
+    retourne donne_ligne_de_base_marge(box.modèle_de_boite)
 }
 
 donne_élément :: fonc (box: *Box) -> *HTML.Élément
 {
-    si box.table_virtuelle.type == InlineBox {
-        retourne (box comme *BlockBox).élément
+    si box.noeud == nul {
+        retourne nul
     }
-    si box.table_virtuelle.type == ReplacedBox {
-        retourne (box comme *BlockBox).élément
+
+    noeud := box.noeud
+    saufsi HTML.est_élément(noeud) {
+        retourne nul
     }
-    si box.table_virtuelle.type == BlockBox {
-        retourne (box comme *BlockBox).élément
-    }
-    si box.table_virtuelle.type == BreakBox {
-        retourne (box comme *BreakBox).élément
-    }
-    si box.table_virtuelle.type == TableWrapperBox {
-        retourne (box comme *TableWrapperBox).élément
-    }
-    si box.table_virtuelle.type == TableBox {
-        retourne (box comme *TableBox).élément
-    }
-    si box.table_virtuelle.type == TableColumnGroupBox {
-        retourne (box comme *TableColumnGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableColumnBox {
-        retourne (box comme *TableColumnBox).élément
-    }
-    si box.table_virtuelle.type == TableFooterGroupBox {
-        retourne (box comme *TableFooterGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableHeaderGroupBox {
-        retourne (box comme *TableHeaderGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableRowGroupBox {
-        retourne (box comme *TableRowGroupBox).élément
-    }
-    si box.table_virtuelle.type == TableRowBox {
-        retourne (box comme *TableRowBox).élément
-    }
-    si box.table_virtuelle.type == TableCellBox {
-        retourne (box comme *TableCellBox).élément
-    }
-    si box.table_virtuelle.type == CaptionBox {
-        retourne (box comme *CaptionBox).élément
-    }
-    retourne nul
+
+    retourne noeud comme *HTML.Élément
 }
 
 donne_élément_récursif :: fonc (box: *Box) -> *HTML.Élément
@@ -2535,6 +2564,10 @@ BoiteDeLigne :: struct {
     dernier_fragment: z64
     largeur_courante: r32
     hauteur_contenu: r32
+
+    top: r64
+    bottom: r64
+    baseline: r64
 }
 
 peut_ajouter_fragment :: fonc (boite: *BoiteDeLigne, largeur: r32) -> bool
@@ -2628,17 +2661,25 @@ ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: &Fragment) ->
 
 donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLigne) -> []Fragment
 {
-    résultat: []Fragment
-    résultat.pointeur = lignes_tenante.fragments.pointeur + ligne.premier_fragment
-    résultat.taille = ligne.dernier_fragment - ligne.premier_fragment + 1
+    retourne donne_fragments(lignes_tenante, ligne.premier_fragment, ligne.dernier_fragment + 1)
+}
+
+donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, dernier_fragment: z64) -> []Fragment
+{
+    résultat : []Fragment = ---
+    résultat.pointeur = lignes_tenante.fragments.pointeur + premier_fragment
+    résultat.taille = dernier_fragment - premier_fragment
     retourne résultat
 }
 
-donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> r32
+donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> InfoLigneDeBase
 {
     ligne := lignes_tenante.lignes[index]
     // À FAIRE : baseline de la fonte
-    retourne ligne.position_y + ligne.hauteur_contenu
+    résultat : InfoLigneDeBase = ---
+    résultat.origine = ligne.position_y
+    résultat.position = ligne.hauteur_contenu
+    retourne résultat
 }
 
 /** \} */
@@ -2752,7 +2793,7 @@ peut_ignorer_espace_blanche_en_début_de_ligne :: fonc (empl enligneuse: *Enlign
 
 #portée_fichier
 
-__table_block_box := TableVirtuelleNoeudDeDispo(
+__table_block_box := TableVirtuelleBox(
     type = BlockBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -2766,8 +2807,6 @@ __table_block_box := TableVirtuelleNoeudDeDispo(
 BlockBox :: struct {
     empl base: Box
     table_virtuelle = *__table_block_box
-
-    élément: *HTML.Élément
 
     lignes_tenante: *LignesTenante
 
@@ -2894,16 +2933,17 @@ est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élém
 
 donne_alignement_descendants :: fonc (box: *BlockBox) -> Optionnel(AlignementTexte)
 {
-    saufsi box.élément {
+    élément := box.donne_élément()
+    saufsi élément {
         retourne
     }
 
-    si box.élément.local_name == HTML.TAG_center {
+    si élément.local_name == HTML.TAG_center {
         retourne AlignementTexte.Centre
     }
 
-    si est_élément_avec_attribut_alignement_spécial(box.élément) {
-        attribut_align := HTML.donne_attribut(box.élément, HTML.ATTR_align)
+    si est_élément_avec_attribut_alignement_spécial(élément) {
+        attribut_align := HTML.donne_attribut(élément, HTML.ATTR_align)
         saufsi attribut_align.possède_valeur() {
             retourne
         }
@@ -2995,7 +3035,7 @@ block_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
     box.enfants = nouveaux_enfants
 }
 
-block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
+block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
     bloc := base comme *BlockBox
 
@@ -3005,12 +3045,12 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
     // https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-vertical-align
     si est_inline_block(bloc) {
         overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY)
-        saufsi overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+        si !overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         si bloc.lignes_tenante.lignes.taille == 0 {
-            retourne bloc.modèle_de_boite.marge.y + bloc.modèle_de_boite.marge.hauteur
+            retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
         index_ligne := bloc.lignes_tenante.lignes.taille - 1
@@ -3026,6 +3066,10 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
     }
 
     pour bloc.enfants {
+        si it.table_virtuelle.type == TextBox {
+            continue
+        }
+
         saufsi est_in_flow(it) {
             continue
         }
@@ -3045,7 +3089,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
 
 #portée_fichier
 
-__table_inline_box := TableVirtuelleNoeudDeDispo(
+__table_inline_box := TableVirtuelleBox(
     type = InlineBox,
     sur_mesure = inline_box_sur_mesure,
     sur_dessin = inline_box_sur_dessin,
@@ -3185,7 +3229,7 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
 
 #portée_fichier
 
-__table_break_box := TableVirtuelleNoeudDeDispo(
+__table_break_box := TableVirtuelleBox(
     type = BreakBox,
     sur_divise_en_lignes = break_box_sur_divise_en_lignes)
 
@@ -3194,7 +3238,6 @@ __table_break_box := TableVirtuelleNoeudDeDispo(
 BreakBox :: struct {
     empl base_bloc: Box
     table_virtuelle = *__table_break_box
-    élément: *HTML.Élément
 }
 
 break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage @inutilisée)
@@ -3228,10 +3271,11 @@ break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mod
 
 #portée_fichier
 
-__table_text_box := TableVirtuelleNoeudDeDispo(
+__table_text_box := TableVirtuelleBox(
     type = TextBox,
     sur_dessin_fragment = text_box_sur_dessin_fragment,
-    sur_divise_en_lignes = text_box_sur_divise_en_lignes)
+    sur_divise_en_lignes = text_box_sur_divise_en_lignes,
+    sur_donne_baseline = text_box_sur_donne_baseline)
 
 #portée_export
 
@@ -3240,8 +3284,6 @@ TextBox :: struct {
     empl base: Box
     table_virtuelle = *__table_text_box
 
-    /* Soit un box texte, ou un élément. */
-    box: *HTML.Noeud
     texte_original: ChaineUTF16
 
     texte: ChaineUTF16
@@ -3257,6 +3299,12 @@ donne_propriétés :: fonc (text_box: *TextBox) -> *PropriétésDeStyle
         parent = parent.parent
     }
     retourne parent.propriétés
+}
+
+text_box_sur_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
+{
+    // À FAIRE : utilise la fonte
+    retourne donne_ligne_de_base_marge(base.modèle_de_boite)
 }
 
 text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
@@ -3551,7 +3599,7 @@ collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
 
 #portée_fichier
 
-__table_replaced_box := TableVirtuelleNoeudDeDispo(
+__table_replaced_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_mesure = replaced_box_sur_mesure,
     sur_divise_en_lignes = replaced_box_sur_divise_en_lignes,
@@ -3655,7 +3703,7 @@ replaced_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, 
 
 #portée_fichier
 
-__table_image_box := TableVirtuelleNoeudDeDispo(
+__table_image_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = image_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3667,14 +3715,14 @@ crée_image_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageE
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_image_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = image_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLImageElement
+    élément := box.donne_élément() comme *HTML.HTMLImageElement
     assert(élément.local_name == HTML.TAG_img)
 
     si élément.image_data.données {
@@ -3692,7 +3740,7 @@ image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_object_box := TableVirtuelleNoeudDeDispo(
+__table_object_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = object_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3704,14 +3752,14 @@ crée_object_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjec
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_object_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = object_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLObjectElement
+    élément := box.donne_élément() comme *HTML.HTMLObjectElement
     assert(élément.local_name == HTML.TAG_object)
 
     si élément.image_data.données {
@@ -3729,7 +3777,7 @@ object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Con
 
 #portée_fichier
 
-__table_text_input_box := TableVirtuelleNoeudDeDispo(
+__table_text_input_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = text_input_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3741,14 +3789,14 @@ crée_text_input_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLI
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_text_input_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = text_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
 text_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
 
     box.fonte = détermine_fonte(box, ctx)
     métriques := box.fonte.donne_métriques_fonte()
@@ -3781,7 +3829,7 @@ donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
     // rules for parsing non-negative integers doesn't generate an error, return the value
     // obtained from applying the converting a character width to pixels algorithm to the value
     // of the attribute.
-    size := HTML.donne_attribut_ou_chaine_vide(box.élément, HTML.ATTR_size)
+    size := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_size)
     saufsi size.est_vide() {
         opt_value := HTML.parse_a_non_negative_integer(size)
         si opt_value.possède_valeur() {
@@ -3808,7 +3856,7 @@ convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesF
 
 #portée_fichier
 
-__table_button_input_box := TableVirtuelleNoeudDeDispo(
+__table_button_input_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = button_input_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3820,17 +3868,17 @@ crée_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInput
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_button_input_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = button_input_box_dimensions_intrinsèques
     retourne résultat
 }
 
 button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.fonte = détermine_fonte(box, ctx)
     line_height := donne_line_height(box, ctx)
-    value := HTML.donne_attribut_ou_chaine_vide(box.élément, HTML.ATTR_value)
+    value := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_value)
     box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value) comme r32
     box.hauteur_intrinsèque = line_height
 }
@@ -3843,7 +3891,7 @@ button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_radio_button_box := TableVirtuelleNoeudDeDispo(
+__table_radio_button_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = radio_button_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3855,14 +3903,14 @@ crée_radio_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTM
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_radio_button_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = radio_button_box_dimensions_intrinsèques
     retourne résultat
 }
 
 radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.largeur_intrinsèque = 14.0
     box.hauteur_intrinsèque = 14.0
 }
@@ -3874,7 +3922,7 @@ radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
 
 #portée_fichier
 
-__table_checkbox_box := TableVirtuelleNoeudDeDispo(
+__table_checkbox_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = checkbox_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3886,14 +3934,14 @@ crée_checkbox_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInp
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_checkbox_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = checkbox_box_dimensions_intrinsèques
     retourne résultat
 }
 
 checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.élément.local_name == HTML.TAG_input)
+    assert(box.donne_élément().local_name == HTML.TAG_input)
     box.largeur_intrinsèque = 14.0
     box.hauteur_intrinsèque = 14.0
 }
@@ -3906,7 +3954,7 @@ checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Contexte
 
 #portée_fichier
 
-__table_textarea_box := TableVirtuelleNoeudDeDispo(
+__table_textarea_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = textarea_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3918,14 +3966,14 @@ crée_textarea_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTex
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_textarea_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = textarea_box_dimensions_intrinsèques
     retourne résultat
 }
 
 textarea_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.élément.local_name == HTML.TAG_textarea)
+    assert(box.donne_élément().local_name == HTML.TAG_textarea)
     box.fonte = détermine_fonte(box, ctx)
     box.largeur_intrinsèque = donne_textarea_effective_width(box)
     box.hauteur_intrinsèque = donne_textarea_effective_height(box, ctx)
@@ -3936,7 +3984,7 @@ LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
 donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 {
-    élément := box.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     métriques := box.fonte.donne_métriques_fonte()
     character_width := HTML.donne_character_width(élément)
     retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT
@@ -3945,7 +3993,7 @@ donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
 donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage) -> r32
 {
-    élément := box.élément comme *HTML.HTMLTextAreaElement
+    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement
     character_height := HTML.donne_character_height(élément)
     line_height := donne_line_height(box, ctx)
     retourne character_height comme r32 * line_height
@@ -3959,7 +4007,7 @@ donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeForm
 
 #portée_fichier
 
-__table_canvas_box := TableVirtuelleNoeudDeDispo(
+__table_canvas_box := TableVirtuelleBox(
     type = ReplacedBox,
     sur_dessin = canvas_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -3971,14 +4019,14 @@ crée_canvas_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanva
 {
     résultat := arbre.crée_box(ReplacedBox)
     résultat.table_virtuelle = *__table_canvas_box
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = canvas_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
 
 canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.élément comme *HTML.HTMLCanvasElement
+    élément := box.donne_élément() comme *HTML.HTMLCanvasElement
     assert(élément.local_name == HTML.TAG_canvas)
     box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32
     box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32
@@ -3992,7 +4040,7 @@ canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Con
 
 #portée_fichier
 
-__table_select_box := TableVirtuelleNoeudDeDispo(
+__table_select_box := TableVirtuelleBox(
     type = SelectBox,
     sur_dessin = select_box_sur_dessin,
     sur_mesure = replaced_box_sur_mesure,
@@ -4021,7 +4069,7 @@ réinitialise :: fonc (box: *SelectBox)
 crée_select_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *ReplacedBox
 {
     résultat := arbre.crée_box(SelectBox)
-    résultat.élément = élément
+    résultat.noeud = élément
     résultat.sur_calcul_dimensions_intrinsèques = select_box_calcul_dimensions_intrinsèques
     retourne résultat
 }
@@ -4031,7 +4079,7 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
 {
     réinitialise(box)
 
-    select := box.élément comme *HTML.HTMLSelectElement
+    select := box.donne_élément() comme *HTML.HTMLSelectElement
 
     option := donne_première_option(select)
     saufsi option {
@@ -4080,7 +4128,7 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
 
 select_box_calcul_dimensions_intrinsèques :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage)
 {
-    élément := box.élément comme *HTML.HTMLSelectElement
+    élément := box.donne_élément() comme *HTML.HTMLSelectElement
     assert(élément.local_name == HTML.TAG_select)
     box.largeur_intrinsèque = donne_select_labels_width(box, ctx)
     box.hauteur_intrinsèque = donne_line_height(box, ctx)
@@ -4129,7 +4177,7 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
 
 #portée_fichier
 
-__table_table_wrapper_box := TableVirtuelleNoeudDeDispo(
+__table_table_wrapper_box := TableVirtuelleBox(
     type = TableWrapperBox,
     sur_mesure = table_wrapper_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4465,7 +4513,7 @@ generate_missing_parents :: fonc (box: *Box @inutilisée, créatrice: *Créatric
 
 #portée_fichier
 
-__table_table_box := TableVirtuelleNoeudDeDispo(
+__table_table_box := TableVirtuelleBox(
     type = TableBox,
     sur_mesure = table_box_sur_mesure,
     sur_dessin = table_box_sur_dessin,
@@ -4497,15 +4545,13 @@ table_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mode
 
 #portée_fichier
 
-__table_table_column_group_box := TableVirtuelleNoeudDeDispo(type = TableColumnGroupBox)
+__table_table_column_group_box := TableVirtuelleBox(type = TableColumnGroupBox)
 
 #portée_module
 
 TableColumnGroupBox :: struct {
     empl base: Box
     table_virtuelle = *__table_table_column_group_box
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4516,15 +4562,13 @@ TableColumnGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_column_box := TableVirtuelleNoeudDeDispo(type = TableColumnBox)
+__table_table_column_box := TableVirtuelleBox(type = TableColumnBox)
 
 #portée_module
 
 TableColumnBox :: struct {
     empl base: Box
     table_virtuelle = *__table_table_column_box
-
-    élément: *HTML.Élément
 }
 
 /** \} */
@@ -4535,7 +4579,7 @@ TableColumnBox :: struct {
 
 #portée_fichier
 
-__table_table_footer_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_footer_group_box := TableVirtuelleBox(
     type = TableFooterGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4557,7 +4601,7 @@ TableFooterGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_header_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_header_group_box := TableVirtuelleBox(
     type = TableHeaderGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4579,7 +4623,7 @@ TableHeaderGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_row_group_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_group_box := TableVirtuelleBox(
     type = TableRowGroupBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4601,7 +4645,7 @@ TableRowGroupBox :: struct {
 
 #portée_fichier
 
-__table_table_row_box := TableVirtuelleNoeudDeDispo(
+__table_table_row_box := TableVirtuelleBox(
     type = TableRowBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4623,7 +4667,7 @@ TableRowBox :: struct {
 
 #portée_fichier
 
-__table_table_cell_box := TableVirtuelleNoeudDeDispo(
+__table_table_cell_box := TableVirtuelleBox(
     type = TableCellBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,
@@ -4656,17 +4700,23 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
     retourne largeur_disponible
 }
 
-table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
+table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
 {
     // À FAIRE : The baseline of a cell is the baseline of the first in-flow line box in the cell,
     // or the first in-flow table-row in the cell, whichever comes first.
     résultat := block_box_donne_baseline(base)
     si résultat.possède_valeur() {
-        retourne résultat
+        info := résultat.Quelque
+        si info.position != info.origine {
+            /* Nous pouvons avoir une ligne de base nulle à cause de la logique de block_box_donne_baseline (p.e. un enfant in-flow n'ayant pas été dûment coté).
+             * Dans ce cas, ne retournons que si la ligne de base n'est pas nulle.
+             * À voir si ceci sera encore un problème lorsque nous aurons proprement implémenté le cas « à faire » plus haut. */
+            retourne résultat
+        }
     }
 
     // If there is no such line box or table-row, the baseline is the bottom of content edge of the cell box.
-    retourne base.modèle_de_boite.contenu.y + base.modèle_de_boite.contenu.hauteur
+    retourne donne_ligne_de_base_contenu(base.modèle_de_boite)
 }
 
 /** \} */
@@ -4677,7 +4727,7 @@ table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(r32)
 
 #portée_fichier
 
-__table_table_caption_box := TableVirtuelleNoeudDeDispo(
+__table_table_caption_box := TableVirtuelleBox(
     type = CaptionBox,
     sur_mesure = block_box_sur_mesure,
     sur_dessin = block_box_sur_dessin,

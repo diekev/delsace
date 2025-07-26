@@ -78,7 +78,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("charge");
     lexèmes.ajoute_mot_clé("comme");
     lexèmes.ajoute_mot_clé("continue");
-    lexèmes.ajoute_mot_clé("corout");
     lexèmes.ajoute_mot_clé("dans");
     lexèmes.ajoute_mot_clé("diffère");
     lexèmes.ajoute_mot_clé("discr");
@@ -107,7 +106,6 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_mot_clé("r32", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("r64", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("reprends");
-    lexèmes.ajoute_mot_clé("retiens");
     lexèmes.ajoute_mot_clé("retourne");
     lexèmes.ajoute_mot_clé("rien", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("répète");
@@ -299,10 +297,11 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
     os << "#pragma once\n";
     os << '\n';
     inclus_système(os, "iosfwd");
-    inclus(os, "biblinternes/structures/chaine.hh");
+    inclus(os, "structures/chaine_statique.hh");
     os << '\n';
     prodéclare_struct(os, "IdentifiantCode");
     os << '\n';
+    os << "#include \"plateforme/windows.h\"\n";
     génère_enum(lexèmes, os);
 
     const char *declarations = R"(
@@ -311,7 +310,7 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
 #    pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 struct Lexème {
-    dls::vue_chaine_compacte chaine{};
+    kuri::chaine_statique chaine{};
 
 	union {
 		uint64_t valeur_entiere;
@@ -446,7 +445,7 @@ struct EntreeTable {  const char *nom; GenreLexème genre;  };
 )";
 
     const char *fin_fichier = R"(
-inline GenreLexème lexème_pour_chaine(dls::vue_chaine_compacte chn)
+inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
 {
   return EmpreinteParfaite::lexème_pour_chaine(chn.pointeur(), static_cast<size_t>(chn.taille()));
 }
@@ -474,13 +473,15 @@ inline GenreLexème lexème_pour_chaine(dls::vue_chaine_compacte chn)
     fichier_tmp.close();
 
     std::stringstream ss;
-    ss << CHEMIN_GPERF << " ";
+    ss << '"' << CHEMIN_GPERF << "\" ";
     ss << "-m100 ";
     ss << empreinte_parfaite_txt << " ";
     ss << "--output-file=";
     ss << empreinte_parfaite_tmp_hh;
 
     const auto commande = ss.str();
+
+    std::cout << "Exécution de la commande : " << commande << std::endl;
 
     if (system(commande.c_str()) != 0) {
         std::cerr << "Ne peut pas exécuter la commande de création du fichier d'empreinte "

@@ -7,8 +7,6 @@
 #include "etendue_code_source.hh"
 #include "noeud_expression.hh"
 
-#include "biblinternes/langage/unicode.hh"
-
 #include "compilation/bibliotheque.hh"
 #include "compilation/operateurs.hh"
 #include "compilation/typage.hh"
@@ -18,6 +16,7 @@
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
+#include "utilitaires/unicode.hh"
 
 /*
 formattage :
@@ -273,12 +272,12 @@ static bool doit_ajouter_guillemets(kuri::chaine_statique chn)
     }
 
     // À FAIRE : dernier caractère...
-    auto nombre_octet = lng::nombre_octets(chn.pointeur());
+    auto nombre_octet = unicode::nombre_octets(chn.pointeur());
     if (nombre_octet == 0) {
         return true;
     }
 
-    auto rune = lng::converti_utf32(chn.pointeur(), nombre_octet);
+    auto rune = unicode::converti_utf32(chn.pointeur(), nombre_octet);
     return rune != GUILLEMET_OUVRANT;
 }
 
@@ -1084,13 +1083,6 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << "---";
             break;
         }
-        case GenreNoeud::INSTRUCTION_RETIENS:
-        {
-            auto inst = noeud->comme_retiens();
-            imprime_lexème_mot_clé(enchaineuse, "retiens", inst->expression != nullptr);
-            imprime_arbre(enchaineuse, état, inst->expression);
-            break;
-        }
         case GenreNoeud::INSTRUCTION_RETOUR:
         {
             auto inst = noeud->comme_retourne();
@@ -1533,6 +1525,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             break;
         }
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
+        case GenreNoeud::DIRECTIVE_INSÈRE:
         {
             auto directive = noeud->comme_exécute();
             enchaineuse << "#";

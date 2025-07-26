@@ -29,7 +29,6 @@
 #include <clang-c/Index.h>
 
 #include "biblinternes/json/json.hh"
-#include "biblinternes/outils/conditions.h"
 #include "biblinternes/structures/chaine.hh"
 #include "biblinternes/structures/dico_desordonne.hh"
 #include "biblinternes/structures/dico_fixe.hh"
@@ -41,7 +40,7 @@
 #include "structures/pile.hh"
 #include "structures/tableau.hh"
 
-using dls::outils::est_element;
+#include "utilitaires/divers.hh"
 
 /* À FAIRE :
  * - 'auto'
@@ -760,30 +759,32 @@ static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs con
 
 static dls::chaine converti_type(CXType const &type, dico_typedefs const &typedefs)
 {
-    static auto dico_type = dls::cree_dico(dls::paire{CXType_Void, dls::vue_chaine("rien")},
-                                           dls::paire{CXType_Bool, dls::vue_chaine("bool")},
-                                           dls::paire{CXType_Char_U, dls::vue_chaine("n8")},
-                                           dls::paire{CXType_UChar, dls::vue_chaine("n8")},
-                                           dls::paire{CXType_UShort, dls::vue_chaine("n16")},
-                                           dls::paire{CXType_UInt, dls::vue_chaine("n32")},
-                                           dls::paire{CXType_ULong, dls::vue_chaine("n64")},
-                                           dls::paire{CXType_ULongLong, dls::vue_chaine("n64")},
-                                           dls::paire{CXType_Char_S, dls::vue_chaine("z8")},
-                                           dls::paire{CXType_SChar, dls::vue_chaine("z8")},
-                                           dls::paire{CXType_Short, dls::vue_chaine("z16")},
-                                           dls::paire{CXType_Int, dls::vue_chaine("z32")},
-                                           dls::paire{CXType_Long, dls::vue_chaine("z64")},
-                                           dls::paire{CXType_LongLong, dls::vue_chaine("z64")},
-                                           dls::paire{CXType_Float, dls::vue_chaine("r32")},
-                                           dls::paire{CXType_Double, dls::vue_chaine("r64")},
-                                           dls::paire{CXType_LongDouble, dls::vue_chaine("r64")});
+    static auto dico_type = dls::cree_dico(
+        dls::paire{CXType_Void, kuri::chaine_statique("rien")},
+        dls::paire{CXType_Bool, kuri::chaine_statique("bool")},
+        dls::paire{CXType_Char_U, kuri::chaine_statique("n8")},
+        dls::paire{CXType_UChar, kuri::chaine_statique("n8")},
+        dls::paire{CXType_UShort, kuri::chaine_statique("n16")},
+        dls::paire{CXType_UInt, kuri::chaine_statique("n32")},
+        dls::paire{CXType_ULong, kuri::chaine_statique("n64")},
+        dls::paire{CXType_ULongLong, kuri::chaine_statique("n64")},
+        dls::paire{CXType_Char_S, kuri::chaine_statique("z8")},
+        dls::paire{CXType_SChar, kuri::chaine_statique("z8")},
+        dls::paire{CXType_Short, kuri::chaine_statique("z16")},
+        dls::paire{CXType_Int, kuri::chaine_statique("z32")},
+        dls::paire{CXType_Long, kuri::chaine_statique("z64")},
+        dls::paire{CXType_LongLong, kuri::chaine_statique("z64")},
+        dls::paire{CXType_Float, kuri::chaine_statique("r32")},
+        dls::paire{CXType_Double, kuri::chaine_statique("r64")},
+        dls::paire{CXType_LongDouble, kuri::chaine_statique("r64")});
 
     auto kind = type.kind;
 
     auto plg_type = dico_type.trouve(kind);
 
     if (!plg_type.est_finie()) {
-        return plg_type.front().second;
+        auto chaine_résultat = plg_type.front().second;
+        return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
     }
 
     auto type_fonction_opt = est_type_fonction(type);
@@ -837,7 +838,8 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
             plg_type = dico_type.trouve(canonique.kind);
             if (!plg_type.est_finie()) {
                 if (typedefs.trouve(spelling) != typedefs.fin()) {
-                    return plg_type.front().second;
+                    auto chaine_résultat = plg_type.front().second;
+                    return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
                 }
             }
 
@@ -927,7 +929,7 @@ void imprime_asa(CXCursor c, int tab, std::ostream &os)
 
 static inline const clang::Stmt *getCursorStmt(CXCursor c)
 {
-    auto est_stmt = !est_element(
+    auto est_stmt = !est_élément(
         c.kind, CXCursor_ObjCSuperClassRef, CXCursor_ObjCProtocolRef, CXCursor_ObjCClassRef);
 
     return est_stmt ? static_cast<const clang::Stmt *>(c.data[1]) : nullptr;
@@ -1855,7 +1857,7 @@ struct Convertisseuse {
                 auto debut = true;
 
                 for (auto enfant : enfants) {
-                    auto besoin_nouvelle_ligne = est_element(enfant.kind,
+                    auto besoin_nouvelle_ligne = est_élément(enfant.kind,
                                                              CXCursorKind::CXCursor_IfStmt,
                                                              CXCursorKind::CXCursor_WhileStmt,
                                                              CXCursorKind::CXCursor_ForStmt,

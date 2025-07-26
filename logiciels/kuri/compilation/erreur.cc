@@ -4,11 +4,10 @@
 #include "erreur.h"
 
 #include <iostream>
-#include <unistd.h>
 
-#include "biblinternes/langage/erreur.hh"
-#include "biblinternes/outils/chaine.hh"
-#include "biblinternes/outils/numerique.hh"
+#ifndef _MSC_VER
+#    include <unistd.h>
+#endif
 
 #include "arbre_syntaxique/etendue_code_source.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -51,8 +50,7 @@ kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const Noe
     auto fichier = espace.compilatrice().fichier(lexeme->fichier);
     auto etendue_expr = donne_étendue_source_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
-    return kuri::chaine_statique(&ligne[etendue_expr.colonne_début],
-                                 etendue_expr.colonne_fin - etendue_expr.colonne_début);
+    return ligne.sous_chaine(etendue_expr.colonne_début, etendue_expr.colonne_fin);
 }
 
 void redefinition_fonction(EspaceDeTravail const &espace,
@@ -502,10 +500,10 @@ void imprime_site(Enchaineuse &enchaineuse,
     auto const pos_mot = pos.pos;
     auto const ligne = fichier->tampon()[pos.index_ligne];
     enchaineuse << ligne;
-    lng::erreur::imprime_caractere_vide(enchaineuse, etendue.colonne_début, ligne);
-    lng::erreur::imprime_tilde(enchaineuse, ligne, etendue.colonne_début, pos_mot);
+    enchaineuse.imprime_caractère_vide(etendue.colonne_début, ligne);
+    enchaineuse.imprime_tilde(ligne, etendue.colonne_début, pos_mot);
     enchaineuse << '^';
-    lng::erreur::imprime_tilde(enchaineuse, ligne, pos_mot + 1, etendue.colonne_fin);
+    enchaineuse.imprime_tilde(ligne, pos_mot + 1, etendue.colonne_fin);
     enchaineuse << '\n';
 }
 
@@ -596,13 +594,23 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
 #define COULEUR_NORMALE "\033[0m"
 #define COULEUR_CYAN_GRAS "\033[1;36m"
 
+static bool est_dirigé_vers_un_terminal()
+{
+#ifdef _MSC_VER
+    // À FAIRE(windows)
+    return true;
+#else
+    return isatty(STDOUT_FILENO) && isatty(STDERR_FILENO);
+#endif
+}
+
 static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
                                          ParamètresErreurExterne const &params)
 {
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(erreur::Genre::NORMAL);
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_CYAN_GRAS;
     }
 
@@ -613,7 +621,7 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
     }
     flux << "\n\n";
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_NORMALE;
     }
 
@@ -649,7 +657,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(genre);
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_CYAN_GRAS;
     }
 
@@ -660,7 +668,7 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     }
     flux << "\n\n";
 
-    if (isatty(STDOUT_FILENO) && isatty(STDERR_FILENO)) {
+    if (est_dirigé_vers_un_terminal()) {
         flux << COULEUR_NORMALE;
     }
 

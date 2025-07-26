@@ -4,9 +4,10 @@
 #include "machine_virtuelle.hh"
 
 #include <iostream>
-#include <x86intrin.h>
 
-#include "biblinternes/chrono/chronometrage.hh"
+#ifndef _MSC_VER
+#include <x86intrin.h>
+#endif
 
 #include "arbre_syntaxique/noeud_code.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -22,6 +23,7 @@
 #include "structures/table_hachage.hh"
 
 #include "utilitaires/calcul.hh"
+#include "utilitaires/chrono.hh"
 #include "utilitaires/log.hh"
 
 #include "instructions.hh"
@@ -166,7 +168,7 @@ void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
     std::sort(
         entrées.begin(), entrées.end(), [](auto &a, auto &b) { return a.second > b.second; });
 
-    auto taille_max_chaine = 0l;
+    auto taille_max_chaine = int64_t(0);
     POUR (entrées) {
         auto chaine_code = chaine_code_operation(it.first);
         taille_max_chaine = std::max(taille_max_chaine, chaine_code.taille());
@@ -560,7 +562,7 @@ MachineVirtuelle::~MachineVirtuelle()
     }
 
     POUR (m_données_exécution_libres) {
-        memoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
+        mémoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
     }
 }
 
@@ -2269,7 +2271,7 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
 
     auto nombre_métaprogrammes = m_métaprogrammes.taille();
 
-    dls::chrono::compte_seconde chrono_exec;
+    kuri::chrono::compte_seconde chrono_exec;
 
     for (auto i = 0; i < nombre_métaprogrammes; ++i) {
         auto métaprogramme = m_métaprogrammes[i];
@@ -2333,7 +2335,7 @@ DonnéesExécution *MachineVirtuelle::loge_données_exécution()
     }
 
     auto données = données_exécution.ajoute_élément();
-    données->pile = memoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
+    données->pile = mémoire::loge_tableau<octet_t>("MachineVirtuelle::pile", TAILLE_PILE);
     données->pointeur_pile = données->pile;
     return données;
 }

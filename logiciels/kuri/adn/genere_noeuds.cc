@@ -4,9 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/chrono/outils.hh"
-#include "biblinternes/outils/badge.hh"
-
 #include "parsage/base_syntaxeuse.hh"
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
@@ -19,6 +16,7 @@
 #include "structures/table_hachage.hh"
 
 #include "utilitaires/algorithmes.hh"
+#include "utilitaires/chrono.hh"
 
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
@@ -179,8 +177,8 @@ struct GeneratriceCodeCPP {
     void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
-        inclus(os, "biblinternes/outils/assert.hh");
-        inclus(os, "biblinternes/moultfilage/synchrone.hh");
+        inclus(os, "utilitaires/macros.hh");
+        inclus(os, "utilitaires/synchrone.hh");
         inclus(os, "structures/chaine.hh");
         inclus(os, "structures/chaine_statique.hh");
         inclus(os, "structures/tableau.hh");
@@ -959,8 +957,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         else {
                             if (nom_membre.nom() == "valeur" &&
                                 it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
-                                os << "\t\t\tn->valeur = { &racine_typee->lexème->chaine[0], "
-                                      "racine_typee->lexème->chaine.taille() };\n";
+                                os << "\t\t\tn->valeur = racine_typee->lexème->chaine;\n";
                             }
                             else {
                                 os << "\t\t\tn->" << nom_membre << " = racine_typee->"
@@ -1683,11 +1680,11 @@ int main(int argc, char **argv)
     auto texte = charge_contenu_fichier(chemin_adn);
 
     auto fichier = Fichier();
-    fichier.tampon_ = lng::tampon_source(texte.c_str());
+    fichier.tampon_ = TamponSource(texte);
     fichier.chemin_ = chemin_adn;
 
-    auto gérante_chaine = dls::outils::Synchrone<GeranteChaine>();
-    auto table_identifiants = dls::outils::Synchrone<TableIdentifiant>();
+    auto gérante_chaine = kuri::Synchrone<GeranteChaine>();
+    auto table_identifiants = kuri::Synchrone<TableIdentifiant>();
     auto contexte_lexage = ContexteLexage{gérante_chaine, table_identifiants, imprime_erreur};
 
     auto lexeuse = Lexeuse(contexte_lexage, &fichier);

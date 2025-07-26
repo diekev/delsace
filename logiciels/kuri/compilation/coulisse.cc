@@ -3,8 +3,6 @@
 
 #include "coulisse.hh"
 
-#include "biblinternes/chrono/chronometrage.hh"
-
 #include "options.hh"
 
 #include "coulisse_asm.hh"
@@ -20,6 +18,8 @@
 
 #include "structures/chemin_systeme.hh"
 #include "structures/enchaineuse.hh"
+
+#include "utilitaires/chrono.hh"
 
 ArgsGénérationCode crée_args_génération_code(Compilatrice &compilatrice,
                                              EspaceDeTravail &espace,
@@ -67,19 +67,19 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
     switch (options.coulisse) {
         case TypeCoulisse::C:
         {
-            return memoire::loge<CoulisseC>("CoulisseC");
+            return mémoire::loge<CoulisseC>("CoulisseC");
         }
         case TypeCoulisse::LLVM:
         {
 #ifdef AVEC_COULISSE_LLVM
-            return memoire::loge<CoulisseLLVM>("CoulisseLLVM");
+            return mémoire::loge<CoulisseLLVM>("CoulisseLLVM");
 #else
             return nullptr;
 #endif
         }
         case TypeCoulisse::ASM:
         {
-            return memoire::loge<CoulisseASM>("CoulisseASM");
+            return mémoire::loge<CoulisseASM>("CoulisseASM");
         }
     }
 
@@ -89,31 +89,31 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
 
 Coulisse *Coulisse::crée_pour_metaprogramme()
 {
-    return memoire::loge<CoulisseMV>("CoulisseMV");
+    return mémoire::loge<CoulisseMV>("CoulisseMV");
 }
 
 void Coulisse::détruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
         auto c = dynamic_cast<CoulisseC *>(coulisse);
-        memoire::deloge("CoulisseC", c);
+        mémoire::deloge("CoulisseC", c);
         coulisse = nullptr;
     }
 #ifdef AVEC_COULISSE_LLVM
     else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        memoire::deloge("CoulisseLLVM", c);
+        mémoire::deloge("CoulisseLLVM", c);
         coulisse = nullptr;
     }
 #endif
     else if (dynamic_cast<CoulisseASM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        memoire::deloge("CoulisseASM", c);
+        mémoire::deloge("CoulisseASM", c);
         coulisse = nullptr;
     }
     else if (dynamic_cast<CoulisseMV *>(coulisse)) {
         auto c = dynamic_cast<CoulisseMV *>(coulisse);
-        memoire::deloge("CoulisseMV", c);
+        mémoire::deloge("CoulisseMV", c);
         coulisse = nullptr;
     }
 }
@@ -128,7 +128,7 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     if (!est_coulisse_métaprogramme()) {
         info() << "Génération du code...";
     }
-    auto début_génération_code = dls::chrono::compte_seconde();
+    auto début_génération_code = kuri::chrono::compte_seconde();
     auto err = génère_code_impl(args);
     if (err.has_value()) {
         args.espace->rapporte_erreur_sans_site("Impossible de générer le code machine.")
@@ -144,7 +144,7 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     }
     auto args_fichier_objet = crée_args_création_fichier_objet(
         *args.compilatrice, *args.espace, args.programme, *args.ri_programme);
-    auto debut_fichier_objet = dls::chrono::compte_seconde();
+    auto debut_fichier_objet = kuri::chrono::compte_seconde();
     err = crée_fichier_objet_impl(args_fichier_objet);
     if (err.has_value()) {
         args.espace->rapporte_erreur_sans_site("Impossible de générer les fichiers objets.")
@@ -161,7 +161,7 @@ bool Coulisse::crée_exécutable(ArgsLiaisonObjets const &args)
     if (!est_coulisse_métaprogramme()) {
         info() << "Liaison du programme...";
     }
-    auto début_exécutable = dls::chrono::compte_seconde();
+    auto début_exécutable = kuri::chrono::compte_seconde();
     auto err = crée_exécutable_impl(args);
     if (err.has_value()) {
         args.espace->rapporte_erreur_sans_site("Impossible de générer le compilat.")

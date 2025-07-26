@@ -3,10 +3,11 @@
 
 #include "statistiques.hh"
 
-#include "biblinternes/outils/format.hh"
-#include "biblinternes/outils/tableau_donnees.hh"
+#include <iostream>
 
 #include "structures/enchaineuse.hh"
+#include "structures/format.hh"
+#include "structures/tabuleuse.hh"
 
 static inline int ratio(double a, double b)
 {
@@ -17,7 +18,7 @@ static inline int ratio(double a, double b)
     return static_cast<int>(a / b);
 }
 
-void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début_compilation)
+void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde début_compilation)
 {
     auto const temps_total = début_compilation.temps();
 
@@ -49,7 +50,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
         mémoire_suivie += it.quantité;
     }
 
-    auto mémoire_consommee = memoire::consommee();
+    auto mémoire_consommee = mémoire::consommee();
 
     auto const nombre_lignes = stats.stats_fichiers.totaux.nombre_lignes;
     auto const lignes_double = static_cast<double>(nombre_lignes);
@@ -59,7 +60,7 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
     auto const débit_lignes_coulisse = ratio(lignes_double, temps_coulisse);
     auto const débit_seconde = ratio(static_cast<double>(mémoire_consommee), temps_aggrégé);
 
-    auto tableau = Tableau({"Nom", "Valeur", "Unité", "Pourcentage"});
+    auto tableau = Tabuleuse({"Nom", "Valeur", "Unité", "Pourcentage"});
     tableau.alignement(1, Alignement::DROITE);
     tableau.alignement(3, Alignement::DROITE);
 
@@ -93,14 +94,14 @@ void imprime_stats(Statistiques const &stats, dls::chrono::compte_seconde début
     POUR (infos_mémoire_utilisée) {
         auto label = enchaine("- ", it.catégorie);
         tableau.ajoute_ligne(
-            {dls::chaine(label.pointeur(), label.taille()),
+            {label,
              formatte_nombre(it.quantité),
              "o",
              formatte_nombre(calc_pourcentage(double(it.quantité), double(mémoire_consommee)))});
     }
 
     tableau.ajoute_ligne(
-        {"Nombre allocations", formatte_nombre(memoire::nombre_allocations()), ""});
+        {"Nombre allocations", formatte_nombre(mémoire::nombre_allocations()), ""});
     tableau.ajoute_ligne(
         {"Nombre métaprogrammes", formatte_nombre(stats.nombre_métaprogrammes_exécutés), ""});
     tableau.ajoute_ligne(
@@ -173,7 +174,7 @@ static void imprime_stats_tableau(EntréesStats<EntréeNombreMémoire> const &st
                   return a.mémoire > b.mémoire;
               });
 
-    auto tableau = Tableau({"Nom", "Compte", "Mémoire"});
+    auto tableau = Tabuleuse({"Nom", "Compte", "Mémoire"});
     tableau.alignement(1, Alignement::DROITE);
     tableau.alignement(2, Alignement::DROITE);
 
@@ -182,9 +183,7 @@ static void imprime_stats_tableau(EntréesStats<EntréeNombreMémoire> const &st
             continue;
         }
 
-        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
-                              formatte_nombre(it.compte),
-                              formatte_nombre(it.mémoire)});
+        tableau.ajoute_ligne({it.nom, formatte_nombre(it.compte), formatte_nombre(it.mémoire)});
     }
 
     tableau.ajoute_ligne(
@@ -201,14 +200,14 @@ static void imprime_stats_fichier(EntréesStats<EntréeFichier> const &stats)
                   return a.nombre_lignes > b.nombre_lignes;
               });
 
-    auto tableau = Tableau({"Nom", "Lignes", "Mémoire", "Lexèmes", "Mémoire Lexèmes"});
+    auto tableau = Tabuleuse({"Nom", "Lignes", "Mémoire", "Lexèmes", "Mémoire Lexèmes"});
     tableau.alignement(1, Alignement::DROITE);
     tableau.alignement(2, Alignement::DROITE);
     tableau.alignement(3, Alignement::DROITE);
     tableau.alignement(4, Alignement::DROITE);
 
     POUR (stats.entrées) {
-        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
+        tableau.ajoute_ligne({it.nom,
                               formatte_nombre(it.nombre_lignes),
                               formatte_nombre(it.mémoire_tampons),
                               formatte_nombre(it.nombre_lexèmes),
@@ -232,7 +231,7 @@ static void imprime_stats_tableaux(EntréesStats<EntréeTailleTableau> const &st
                   return a.taille_max > b.taille_max;
               });
 
-    auto tableau = Tableau({"Nom", "Taille Minimum", "Mode", "Taille Maximum"});
+    auto tableau = Tabuleuse({"Nom", "Taille Minimum", "Mode", "Taille Maximum"});
     tableau.alignement(1, Alignement::DROITE);
     tableau.alignement(2, Alignement::DROITE);
 
@@ -265,7 +264,7 @@ static void imprime_stats_tableaux(EntréesStats<EntréeTailleTableau> const &st
             continue;
         }
 
-        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
+        tableau.ajoute_ligne({it.nom,
                               formatte_nombre(it.taille_min),
                               formatte_nombre(mode),
                               formatte_nombre(it.taille_max)});
@@ -282,10 +281,10 @@ static void imprime_stats_programme(EntréesStats<EntréeProgramme> const &stats
                   return a.fonctions_utilisées > b.fonctions_utilisées;
               });
 
-    auto tableau = Tableau({"Nom", "Fonctions", "Globales", "Types", "init_de()", "info_de()"});
+    auto tableau = Tabuleuse({"Nom", "Fonctions", "Globales", "Types", "init_de()", "info_de()"});
 
     POUR (stats.entrées) {
-        tableau.ajoute_ligne({dls::chaine(it.nom.pointeur(), it.nom.taille()),
+        tableau.ajoute_ligne({it.nom,
                               formatte_nombre(it.fonctions_utilisées),
                               formatte_nombre(it.globales_utilisées),
                               formatte_nombre(it.types_utilisés),
@@ -322,11 +321,11 @@ static void imprime_stats_temps(EntréesStats<EntréeTemps> const &stats)
               stats.entrées.end(),
               [](const EntréeTemps &a, const EntréeTemps &b) { return a.temps > b.temps; });
 
-    auto tableau = Tableau({"Nom", "Temps"});
+    auto tableau = Tabuleuse({"Nom", "Temps"});
     tableau.alignement(1, Alignement::DROITE);
 
     POUR (stats.entrées) {
-        tableau.ajoute_ligne({dls::chaine(it.nom), formatte_nombre(it.temps)});
+        tableau.ajoute_ligne({it.nom, formatte_nombre(it.temps)});
     }
 
     std::cout << stats.nom << " :\n";

@@ -11,6 +11,37 @@
 
 namespace kuri {
 
+chaine::TypeIndex chaine::npos = -1;
+
+chaine::TypeIndex chaine::trouve(char caractère, TypeIndex pos) const
+{
+    for (TypeIndex i = pos; i < taille(); i++) {
+        if (this->pointeur()[i] == caractère) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+chaine::TypeIndex chaine::trouve(chaine_statique motif) const
+{
+    if (this->taille() < motif.taille()) {
+        return -1;
+    }
+
+    auto nombre_de_positions = this->taille() - motif.taille() + 1;
+
+    for (TypeIndex i = 0; i < nombre_de_positions; i++) {
+        auto test = chaine_statique(this->pointeur_ + i, motif.taille());
+        if (test == motif) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 bool operator==(const chaine &chn1, const chaine &chn2)
 {
     if (chn1.taille() != chn2.taille()) {

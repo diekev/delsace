@@ -6,10 +6,6 @@
 #include <iostream>
 #include <variant>
 
-#include "biblinternes/chrono/outils.hh"
-#include "biblinternes/outils/assert.hh"
-#include "biblinternes/outils/conditions.h"
-
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
 
@@ -21,6 +17,10 @@
 #include "portee.hh"
 #include "utilitaires/log.hh"
 #include "validation_semantique.hh"
+
+#include "utilitaires/chrono.hh"
+#include "utilitaires/divers.hh"
+#include "utilitaires/macros.hh"
 
 /* ------------------------------------------------------------------------- */
 /** \name Poids pour les arguments polymorphiques et variadiques.
@@ -1978,14 +1978,14 @@ static bool appel_fonction_est_valide(EspaceDeTravail &espace,
         return true;
     }
 
-    if (dls::outils::est_element(fonction->ident,
-                                 ID::atomique_donne_puis_sst,
-                                 ID::atomique_donne_puis_ajt,
-                                 ID::atomique_donne_puis_et,
-                                 ID::atomique_donne_puis_ou,
-                                 ID::atomique_donne_puis_oux,
-                                 ID::atomique_donne_puis_net,
-                                 ID::atomique_échange)) {
+    if (est_élément(fonction->ident,
+                    ID::atomique_donne_puis_sst,
+                    ID::atomique_donne_puis_ajt,
+                    ID::atomique_donne_puis_et,
+                    ID::atomique_donne_puis_ou,
+                    ID::atomique_donne_puis_oux,
+                    ID::atomique_donne_puis_net,
+                    ID::atomique_échange)) {
         return requiers_valeur_droite(espace, fonction->ident, args, 2, "OrdreMémoire");
     }
 
@@ -2234,7 +2234,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
-    dls::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
+    kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
             contexte.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});

@@ -40,7 +40,7 @@ int64_t AllocatriceInfosType::memoire_utilisee() const
 template <typename T>
 kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &tableau)
 {
-    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto pointeur = mémoire::loge_tableau<T>("tranche", tableau.taille());
     auto résultat = kuri::tranche(pointeur, tableau.taille());
 
     POUR (tableau) {
@@ -54,7 +54,7 @@ kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tablet<T, 6> const &t
 template <typename T>
 kuri::tranche<T> AllocatriceInfosType::donne_tranche(kuri::tableau<T> const &tableau)
 {
-    auto pointeur = memoire::loge_tableau<T>("tranche", tableau.taille());
+    auto pointeur = mémoire::loge_tableau<T>("tranche", tableau.taille());
     auto résultat = kuri::tranche(pointeur, tableau.taille());
 
     POUR (tableau) {
@@ -407,7 +407,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_élément();
             info_type->genre = GenreInfoType::FONCTION;
-            info_type->est_coroutine = false;
             info_type->taille_en_octet = type->taille_octet;
 
             auto types_entrée = kuri::tablet<InfoType *, 6>();

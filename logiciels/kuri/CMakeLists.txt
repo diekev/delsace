@@ -3,7 +3,6 @@
 
 # ------------------------------------------------------------------------------
 
-option(AVEC_MODULES_C "Active la génération des modules implémentés en C" OFF)
 option(AVEC_ALEMBIC "Active la génération du module Alembic" OFF)
 option(AVEC_IMAGE "Active la génération du module Image" OFF)
 option(AVEC_OPENVDB "Active la génération du module OpenVDB" OFF)
@@ -12,7 +11,7 @@ option(AVEC_COULISSE_LLVM "Active la coulisse LLVM" OFF)
 
 # Nous avons besoin de GPerf pour générer les empreintes parfaites
 # des lexèmes.
-find_program(CHEMIN_GPERF NAMES gperf REQUIRED)
+find_program(CHEMIN_GPERF NAMES gperf PATH_SUFFIXES GPerf GPerf/bin REQUIRED)
 add_definitions(-DCHEMIN_GPERF="${CHEMIN_GPERF}")
 
 if(AVEC_LLVM)
@@ -104,12 +103,13 @@ add_subdirectory(executable)
 add_subdirectory(exemples)
 add_subdirectory(parsage)
 add_subdirectory(representation_intermediaire)
+add_subdirectory(r16)
 add_subdirectory(statistiques)
 add_subdirectory(structures)
 add_subdirectory(tests)
 add_subdirectory(utilitaires)
 
-if(AVEC_MODULES_C)
+if(AVEC_MODULES_C_KURI)
     add_subdirectory(modules_c/Aléa)
     add_subdirectory(modules_c/Compression)
     add_subdirectory(modules_c/Exétron)
@@ -216,6 +216,7 @@ execute_fichier(exemples/tests test_emploi)
 compile_fichier(exemples/tests test_énum)
 compile_fichier(exemples/tests test_énum_drapeau)
 compile_fichier(exemples/tests test_erreur)
+compile_fichier(exemples/tests test_insère)
 compile_fichier(exemples/tests test_logement)
 compile_fichier(exemples/tests test_macros)
 compile_fichier(exemples/tests test_memoire)
