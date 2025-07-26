@@ -239,10 +239,16 @@ ToucheClavier :: énum {
     F35
 }
 
-__caractères_clé_clavier: [ToucheClavier.nombre_éléments]z8
+__caractères_clé_clavier: [ToucheClavier.nombre_éléments]z8 = ---
+__caractères_clé_clavier_initialisés := faux
 
 caractère_pour_clé_clavier :: fonc (clé_clavier: ToucheClavier) -> z8
 {
+    saufsi __caractères_clé_clavier_initialisés {
+        initialise_caractères_clé_clavier()
+        __caractères_clé_clavier_initialisés = vrai
+    }
+
     retourne __caractères_clé_clavier[clé_clavier]
 }
 
@@ -299,19 +305,6 @@ initialise_caractères_clé_clavier :: fonc ()
     __caractères_clé_clavier[ToucheClavier.DOUBLE_POINT] = ':'
     __caractères_clé_clavier[ToucheClavier.POINT_EXCLAMATION] = '!'
 }
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Initialisation du module
- * \{ */
-
-initialise_tables_clavier :: fonc ()
-{
-    initialise_caractères_clé_clavier()
-}
-
-#ajoute_init initialise_tables_clavier()
 
 /** \} */
 

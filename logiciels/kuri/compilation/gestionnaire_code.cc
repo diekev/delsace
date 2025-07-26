@@ -1374,6 +1374,13 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
             requiers_typage(espace, type);
         }
     }
+    else if (attente.est<AttenteSurParsage>()) {
+        auto fichier = attente.fichier_à_parser();
+        // À FAIRE @Rigidité, nous pouvons le requérir plusieurs fois
+        if (!fichier->en_lexage) {
+            requiers_lexage(espace, fichier);
+        }
+    }
 }
 
 void GestionnaireCode::imprime_état_parsage() const
