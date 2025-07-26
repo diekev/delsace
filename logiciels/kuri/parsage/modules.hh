@@ -27,6 +27,7 @@ struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
 struct NoeudBloc;
+struct NoeudDirectiveInsère;
 struct NoeudDirectivePréExécutable;
 struct NoeudExpression;
 struct SiteSource;
@@ -62,6 +63,8 @@ enum class FonctionnalitéLangage : uint16_t {
     CUISINE = (1 << 8),
     /* Le fichier contient des directives #pré_exécutable. */
     PRÉ_EXÉCUTABLE = (1 << 9),
+    /* Le fichier contient des directives #insère. */
+    INSÈRE = (1 << 10),
 };
 DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
@@ -102,6 +105,9 @@ struct Fichier {
     /* Si le fichier est le résultat d'un #corps_texte, ceci est l'id du fichier contenant le corps
      * texte. */
     int64_t id_source_corps_texte = -1;
+    /* Si le fichier est le résultat d'un #insère, ceci est l'id du fichier contenant la directive.
+     */
+    int64_t id_source_insère = -1;
 
     std::mutex mutex{};
 
@@ -114,6 +120,7 @@ struct Fichier {
 
     Module *module = nullptr;
     MetaProgramme *métaprogramme_corps_texte = nullptr;
+    NoeudDirectiveInsère *directve_insère = nullptr;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t décalage_fichier = 0;
