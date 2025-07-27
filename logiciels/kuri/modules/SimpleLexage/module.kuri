@@ -1131,3 +1131,36 @@ initialise_lexeuse_python :: fonc (lexeuse: *SimpleLexeuse)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Lexeuse pour Rust
+ * \{ */
+
+#portée_fichier
+
+__ponctuation_rust := [
+    "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
+    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>="
+]
+
+__commentaires_ligne_singulière_rust := [ "//" ]
+__commentaires_multi_lignes_rust := [ ["/*", "*/"] ]
+
+/* https://doc.rust-lang.org/reference/keywords.html */
+__mots_clés_rust := [
+    "as", "break", "const", "continue", "crate", "else", "enum", "extern", "false", "fn", "for", "if", "impl", "in", "let", "loop", "match", "mod", "move", "mut", "pub", "ref", "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "unsafe", "use", "where", "while", "async", "await", "dyn", 
+    // Reserved
+    "abstract", "become", "box", "do", "final", "macro", "override", "priv", "typeof", "unsized", "virtual", "yield"
+]
+
+#portée_export
+
+initialise_lexeuse_rust :: fonc (lexeuse: *SimpleLexeuse)
+{
+    lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_rust
+    lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_rust
+    lexeuse.ponctuations = __ponctuation_rust
+    lexeuse.mots_clés = __mots_clés_rust
+}
+
+/** \} */
