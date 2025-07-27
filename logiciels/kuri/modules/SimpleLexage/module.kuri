@@ -124,9 +124,7 @@ SimpleLexeuse :: struct {
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
-    lexeuse.début = texte.pointeur
-    lexeuse.fin = texte.pointeur + texte.taille
-    lexeuse.texte = texte
+    définis_texte_courant(lexeuse, texte)
 
     construit_tables_de_lexage(lexeuse)
 
@@ -141,6 +139,13 @@ initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
             lexeuse.taille_mot_clé_min = it.taille comme z32
         }
     }
+}
+
+définis_texte_courant :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
+{
+    lexeuse.début = texte.pointeur
+    lexeuse.fin = texte.pointeur + texte.taille
+    lexeuse.texte = texte
 }
 
 donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
