@@ -84,6 +84,10 @@ importe Unicode
         initialise_lexeuse_python(*éditeur.lexeuse)
         éditeur.texte_possède_lexeuse = vrai
     }
+    sinon si chm.extension() == ".rs" {
+        initialise_lexeuse_rust(*éditeur.lexeuse)
+        éditeur.texte_possède_lexeuse = vrai
+    }
     sinon si chm.extension() == ".c" || chm.extension() == ".h" {
         initialise_lexeuse_c(*éditeur.lexeuse)
         éditeur.texte_possède_lexeuse = vrai
