@@ -74,14 +74,28 @@ importe Unicode
     éditeur.modifié = 0
     éditeur.tampon_rendu_est_surannée = vrai
     éditeur.texte_possède_lexeuse = faux
+    init_de(SimpleLexeuse)(*éditeur.lexeuse)
 
     si chm.extension() == ".kuri" {
-        init_de(SimpleLexeuse)(*éditeur.lexeuse)
         initialise_lexeuse_kuri(*éditeur.lexeuse)
-        éditeur.lexeuse.options.INCLUS_TOUT = vrai
-
-        initialise_lexeuse_pour_texte(*éditeur.lexeuse, contenu)
         éditeur.texte_possède_lexeuse = vrai
+    }
+    sinon si chm.extension() == ".py" {
+        initialise_lexeuse_python(*éditeur.lexeuse)
+        éditeur.texte_possède_lexeuse = vrai
+    }
+    sinon si chm.extension() == ".c" || chm.extension() == ".h" {
+        initialise_lexeuse_c(*éditeur.lexeuse)
+        éditeur.texte_possède_lexeuse = vrai
+    }
+    sinon si chm.extension() == ".cpp" || chm.extension() == ".hpp" || chm.extension() == ".cc" || chm.extension() == ".hh" {
+        initialise_lexeuse_cpp(*éditeur.lexeuse)
+        éditeur.texte_possède_lexeuse = vrai
+    }
+
+    si éditeur.texte_possède_lexeuse {
+        éditeur.lexeuse.options.INCLUS_TOUT = vrai
+        initialise_lexeuse_pour_texte(*éditeur.lexeuse, contenu)
     }
 }
 
