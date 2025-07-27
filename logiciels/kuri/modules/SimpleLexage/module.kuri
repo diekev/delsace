@@ -102,9 +102,19 @@ est_ponctuation :: fonc (lexème: Lexème, texte: chaine) -> bool
 /** \nom SimpleLexeuse
  * \{ */
 
+OptionsLexage :: énum_drapeau {
+    INCLUS_ESPACE_BLANCHES
+    INCLUS_COMMENTAIRES
+    INCLUS_GUILLEMETS
+
+    INCLUS_TOUT :: INCLUS_COMMENTAIRES | INCLUS_ESPACE_BLANCHES | INCLUS_GUILLEMETS
+}
+
 SimpleLexeuse :: struct {
     début: *z8
     fin: *z8
+
+    options: OptionsLexage
 
     taille_mot_clé_min: z32
     taille_mot_clé_max: z32
@@ -120,6 +130,9 @@ SimpleLexeuse :: struct {
 
     table_drapeaux_caractère: [256]DrapeauxCaractère = ---
     table_peut_suivre: [256]PeutSuivre = ---
+
+    /* Pour les options incluant les espaces blanches et commentaires. */
+    lexèmes_extras: [..]Lexème
 }
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
@@ -150,7 +163,19 @@ définis_texte_courant :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 
 donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
+    si lexeuse.lexèmes_extras {
+        résultat := lexeuse.lexèmes_extras[0]
+        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        retourne résultat
+    }
+
     consomme_espace_blanches(lexeuse)
+
+    si lexeuse.lexèmes_extras {
+        résultat := lexeuse.lexèmes_extras[0]
+        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        retourne résultat
+    }
 
     si lexeuse.fini() {
         retourne Lexème(type = TypeLexème.FinDeFichier)
@@ -258,7 +283,10 @@ reprends_depuis_lexème :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème)
 
 donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> chaine
 {
+    // À FAIRE : gère lexèmes extras
+    lexeuse.lexèmes_extras.taille = 0
     lexeuse.consomme_espace_blanches()
+    lexeuse.lexèmes_extras.taille = 0
 
     début := lexeuse.début
 
@@ -670,6 +698,11 @@ donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8) ->
 
     lexeuse.avance()
 
+    si lexeuse.options.INCLUS_GUILLEMETS {
+        début_lexème -= 1
+        fin_lexème += 1
+    }
+
     retourne Lexème(type = TypeLexème.ChaineLittérale, début = début_lexème, fin = fin_lexème)
 }
 
@@ -755,11 +788,20 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
         drapeaux := donne_drapeaux_caractère(lexeuse, c)
 
         si drapeaux.EspaceBlanche {
+            si lexeuse.options.INCLUS_ESPACE_BLANCHES {
+                début_lexème := lexeuse.début
+                fin_lexème := début_lexème + 1
+                lexème := Lexème(type = TypeLexème.EspaceBlanche, début = début_lexème, fin = fin_lexème)
+                tableau_ajoute(*lexeuse.lexèmes_extras, lexème)
+            }
+
             lexeuse.avance()
             continue
         }
 
         si drapeaux.DébuteCommentaireLigneSingulière && est_début_commentaire_ligne_singulière(lexeuse) {
+            début_lexème := lexeuse.début
+            
             tantque !fini(lexeuse) {
                 c = donne_caractère_courant(lexeuse)
                 lexeuse.avance()
@@ -769,6 +811,11 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
                 }
             }
 
+            si lexeuse.options.INCLUS_ESPACE_BLANCHES {
+                fin_lexème := lexeuse.début
+                lexème := Lexème(type = TypeLexème.Commentaire, début = début_lexème, fin = fin_lexème)
+                tableau_ajoute(*lexeuse.lexèmes_extras, lexème)
+            }
             continue
         }
 
@@ -777,6 +824,8 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
             saufsi paire_possible.possède_valeur() {
                 arrête
             }
+
+            début_lexème := lexeuse.début
 
             paire := paire_possible.Quelque
             lexeuse.avance(paire[1].taille comme z32)
@@ -788,6 +837,12 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
                     arrête
                 }
                 lexeuse.avance(1)
+            }
+
+            si lexeuse.options.INCLUS_ESPACE_BLANCHES {
+                fin_lexème := lexeuse.début
+                lexème := Lexème(type = TypeLexème.Commentaire, début = début_lexème, fin = fin_lexème)
+                tableau_ajoute(*lexeuse.lexèmes_extras, lexème)
             }
 
             continue
