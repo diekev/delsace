@@ -16,7 +16,6 @@ importe Unicode
     cy: z32
 
     lignes_texte: [..]ChaineUTF32
-    lignes_rendu: [..]ChaineUTF32
 
     chemin_fichier: chaine
 
@@ -28,6 +27,11 @@ importe Unicode
     recalcule_défilage: bool
 
     griffonier: ChaineUTF32
+
+    /* Pour le rendu. */
+    lignes_rendu: [..]ChaineUTF32
+    lexeuse: SimpleLexeuse
+    texte_possède_lexeuse: bool
 }
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
@@ -69,6 +73,19 @@ importe Unicode
 
     éditeur.modifié = 0
     éditeur.tampon_rendu_est_surannée = vrai
+    éditeur.texte_possède_lexeuse = faux
+
+    si chm.extension() == ".kuri" {
+        init_de(SimpleLexeuse)(*éditeur.lexeuse)
+        éditeur.lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
+        éditeur.lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_kuri
+        éditeur.lexeuse.ponctuations = __ponctuation_kuri
+        éditeur.lexeuse.mots_clés = __mots_clés_kuri
+        éditeur.lexeuse.options.INCLUS_TOUT = vrai
+
+        initialise_lexeuse_pour_texte(*éditeur.lexeuse, contenu)
+        éditeur.texte_possède_lexeuse = vrai
+    }
 }
 
 marque_modifié :: fonc (éditeur: *Éditeur)
