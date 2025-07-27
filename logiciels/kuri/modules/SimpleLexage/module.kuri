@@ -133,6 +133,10 @@ SimpleLexeuse :: struct {
 
     /* Pour les options incluant les espaces blanches et commentaires. */
     lexèmes_extras: [..]Lexème
+
+    /* Pour lexer les commentaires en plusieurs fois (ligne par ligne). */
+    dans_commentaire: bool
+    paire_commentaire: [2]chaine
 }
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
@@ -164,6 +168,18 @@ définis_texte_courant :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
     si lexeuse.lexèmes_extras {
+        résultat := lexeuse.lexèmes_extras[0]
+        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        retourne résultat
+    }
+
+    si lexeuse.fini() {
+        retourne Lexème(type = TypeLexème.FinDeFichier)
+    }
+
+    si lexeuse.dans_commentaire {
+        parse_commentaire_multiligne(lexeuse, lexeuse.début)
+        assert(lexeuse.lexèmes_extras.taille == 1)
         résultat := lexeuse.lexèmes_extras[0]
         tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
         retourne résultat
@@ -830,25 +846,37 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
             paire := paire_possible.Quelque
             lexeuse.avance(paire[1].taille comme z32)
 
-            tantque !lexeuse.fini() {
-                texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début)
-                si commence_par(texte, paire[1]) {
-                    lexeuse.avance(paire[1].taille comme z32)
-                    arrête
-                }
-                lexeuse.avance(1)
-            }
+            lexeuse.dans_commentaire = vrai
+            lexeuse.paire_commentaire = paire
 
-            si lexeuse.options.INCLUS_ESPACE_BLANCHES {
-                fin_lexème := lexeuse.début
-                lexème := Lexème(type = TypeLexème.Commentaire, début = début_lexème, fin = fin_lexème)
-                tableau_ajoute(*lexeuse.lexèmes_extras, lexème)
-            }
-
+            parse_commentaire_multiligne(lexeuse, début_lexème)
             continue
         }
 
         arrête
+    }
+}
+
+parse_commentaire_multiligne :: fonc (lexeuse: *SimpleLexeuse, début_lexème: *z8)
+{
+    paire := lexeuse.paire_commentaire
+
+    assert(lexeuse.dans_commentaire == vrai)
+
+    tantque !lexeuse.fini() {
+        texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début)
+        si commence_par(texte, paire[1]) {
+            lexeuse.dans_commentaire = faux
+            lexeuse.avance(paire[1].taille comme z32)
+            arrête
+        }
+        lexeuse.avance(1)
+    }
+
+    si lexeuse.options.INCLUS_ESPACE_BLANCHES {
+        fin_lexème := lexeuse.début
+        lexème := Lexème(type = TypeLexème.Commentaire, début = début_lexème, fin = fin_lexème)
+        tableau_ajoute(*lexeuse.lexèmes_extras, lexème)
     }
 }
 
