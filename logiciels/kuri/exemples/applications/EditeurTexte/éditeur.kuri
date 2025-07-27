@@ -77,10 +77,7 @@ importe Unicode
 
     si chm.extension() == ".kuri" {
         init_de(SimpleLexeuse)(*éditeur.lexeuse)
-        éditeur.lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_kuri
-        éditeur.lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_kuri
-        éditeur.lexeuse.ponctuations = __ponctuation_kuri
-        éditeur.lexeuse.mots_clés = __mots_clés_kuri
+        initialise_lexeuse_kuri(*éditeur.lexeuse)
         éditeur.lexeuse.options.INCLUS_TOUT = vrai
 
         initialise_lexeuse_pour_texte(*éditeur.lexeuse, contenu)

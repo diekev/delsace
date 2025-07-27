@@ -22,25 +22,6 @@ charge "éditeur"
 // À FAIRE : sauvegarde automatique
 // À FAIRE : refait/défait
 
-
-__ponctuation_kuri := [
-    "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
-    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>="
-]
-
-__commentaires_ligne_singulière_kuri := [ "//" ]
-__commentaires_multi_lignes_kuri := [ ["/*", "*/"] ]
-
-__mots_clés_kuri := [
-    // Instructions
-    "retourne", "si", "saufsi", "sinon", "boucle", "tantque", "répète", "pour", "dans", "arrête", "continue", "reprends", "discr", "sansarrêt", "diffère", "pousse_contexte", "tente", "piège", "nonatteignable",
-    // Autres
-    "struct", "énum", "énum_drapeau", "erreur", "eini_erreur", "importe", "charge", "fonc", "empl", "union", "nonsûr", "externe", "mémoire", "info_de", "init_de", "type_de", "taille_de", "opérateur", "comme",
-    "vrai", "faux", "nul",
-    // Types
-    "bool", "chaine", "eini", "n8", "n16", "n32", "n64", "rien", "r16", "r32", "r64", "z8", "z16", "z32", "z64"
-]
-
 __ponctuation_config := ["[", "]", "[[", "]]", ":"]
 __mots_clés_config := ["compilation", "espace", "paramètres", "raccourcis", "thème"]
 __commentaires_ligne_singulière_config := ["#"]
