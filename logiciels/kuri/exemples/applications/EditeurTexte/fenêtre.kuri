@@ -17,7 +17,6 @@ charge "éditeur"
 // À FAIRE : exécution de commandes
 // À FAIRE : cherche/remplace
 // À FAIRE : sélection
-// À FAIRE : souris
 // À FAIRE : transformation de texte (majuscule, minuscule, etc.)
 // À FAIRE : sauvegarde automatique
 // À FAIRE : refait/défait
@@ -583,6 +582,9 @@ principale :: fonc ()
                     }
                 }
             }
+            sinon {
+                gère_évènement(*anonyme.emboiteuse, it)
+            }
         }
 
         métriques := donne_métriques_fonte(anonyme.fonte)
@@ -696,7 +698,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
     largeur_caractère := métriques.largeur_moyenne
 
-    dispose_rectangle()
+    dispose_rectangle(id = "Vue Texte")
     {
         définis_arrière_plan(thème.arrière_plan)
         définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
@@ -722,8 +724,9 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
 
                 lexèmes := donne_tous_les_lexèmes(*anonyme.éditeur.lexeuse)
 
-                dispose_rectangle()
+                dispose_rectangle(id = "Vue Ligne")
                 {
+                    sur_pression_souris(déplace_curseur_souris, anonyme, 0)
                     définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Horizontale)
                     pour lexème dans lexèmes {
                         config := config_texte
@@ -780,6 +783,37 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
         }
     }
     termine_rectangle()
+}
+
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, index_chaine: z32 @inutilisée)
+{
+    rect := donne_rect(*emboiteuse, id)
+
+    où_relatif_x := souris.état.où.x comme r32 - rect.x
+    où_relatif_y := souris.état.où.y comme r32 - rect.y
+    si où_relatif_x < 0.0 || où_relatif_y < 0.0 {
+        retourne
+    }
+
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_ligne := métriques.donne_hauteur_ligne()
+    largeur_caractère := métriques.largeur_moyenne
+
+    cx := (où_relatif_x / largeur_caractère) comme z32
+    cy := (où_relatif_y / hauteur_ligne) comme z32 + éditeur.décalage_ligne
+
+    si cy >= éditeur.lignes_texte.taille {
+        cx = 0
+    }
+    sinon {
+        ligne := éditeur.lignes_texte[cy]
+        si cx >= ligne.taille() {
+            cx = ligne.taille() comme z32
+        }
+    }
+
+    éditeur.cx = cx
+    éditeur.cy = cy
 }
 
 dessine_barre_status :: fonc (anonyme: *Anonyme)
