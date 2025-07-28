@@ -727,7 +727,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
                 dispose_rectangle(id = "Vue Ligne")
                 {
                     sur_pression_souris(déplace_curseur_souris, anonyme, 0)
-                    définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Horizontale)
+                    définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_ligne)), direction = Direction.Horizontale)
                     pour lexème dans lexèmes {
                         config := config_texte
                         si lexème.type == TypeLexème.MotClé {
