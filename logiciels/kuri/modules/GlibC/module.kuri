@@ -33,6 +33,8 @@ sinon {
 
 /** \} */
 
+#si SYS_EXP == SystèmeExploitation.LINUX {
+
 /* ------------------------------------------------------------------------- */
 /** \nom sys/epoll.h
  * \{ */
@@ -143,3 +145,5 @@ timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value:
 timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc
 
 /** \} */
+
+}
