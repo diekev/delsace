@@ -7,7 +7,6 @@ importe Math
 importe Numérique
 importe PeintureInterface
 importe Périphériques
-importe SimpleLexage
 importe Temps
 importe Typographie
 
