@@ -1916,7 +1916,7 @@ static NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
     }
 
     if (si_statique->bloc_si_faux) {
-        if (si_statique->bloc_si_vrai->est_bloc()) {
+        if (si_statique->bloc_si_faux->est_bloc()) {
             return si_statique->bloc_si_faux->comme_bloc();
         }
 
