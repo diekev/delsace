@@ -1,0 +1,16 @@
+{
+    "fichier": "/usr/include/zlib.h",
+    "bibliothèque": "z",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/"
+    ],
+    "fichiers_à_inclure": [
+        "/usr/include/zconf.h"
+    ],
+    "modules_à_importer": [
+        "GlibC",
+        "POSIX"
+    ]
+}
