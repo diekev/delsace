@@ -578,7 +578,7 @@ void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
     }
 
     auto metaprogramme = unite->metaprogramme;
-    assert(metaprogramme->fonction->drapeaux & DrapeauxNoeud::RI_FUT_GENEREE);
+    assert(metaprogramme->fonction->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE));
 
     metaprogramme->données_exécution = mv->loge_données_exécution();
     mv->ajoute_métaprogramme(metaprogramme);
