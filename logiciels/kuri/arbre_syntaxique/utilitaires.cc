@@ -360,6 +360,29 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux)
 }
 
 /** \} */
+/* ------------------------------------------------------------------------- */
+/** \name ÉtatValidationEntête.
+ * \{ */
+
+std::ostream &operator<<(std::ostream &os, ÉtatValidationEntête état_validation)
+{
+#define CAS(x) case ÉtatValidationEntête::x: os << #x; break
+    switch (état_validation) {
+        CAS(NON_COMMENCÉE);
+        CAS(PARAMÈTRES_CONSTANTS);
+        CAS(ARBRE_APLATIS);
+        CAS(PARAMÈTRES);
+        CAS(TYPES_PARAMÈTRES);
+        CAS(DÉFINITION_UNIQUE);
+        CAS(SYMBOLE_EXTERNE);
+        CAS(TERMINÉE);
+    }
+
+#undef CAS
+    return os;
+}
+
+/** \} */
 
 /* ************************************************************************** */
 

@@ -62,7 +62,7 @@ static chemin_systeme vers_chemin_systeme(std::filesystem::path const &chemin)
 }
 
 /* Retourne le caractère utilisé par préférence pour le système. */
-static char séparateur_préféré()
+char chemin_systeme::séparateur_préféré()
 {
 #ifdef _MSC_VER
     return '\\';

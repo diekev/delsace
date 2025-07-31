@@ -89,8 +89,8 @@ Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_sta
                                                               kuri::chaine_statique chemin_fichier)
 {
     auto chemin_normalisé = kuri::chaine(dossier);
-    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != '/') {
-        chemin_normalisé = enchaine(chemin_normalisé, '/');
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != kuri::chemin_systeme::séparateur_préféré()) {
+        chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
     }
     auto module = crée_module(ID::chaine_vide, chemin_normalisé);
     module->importé = true;
@@ -103,8 +103,8 @@ Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chain
 {
     auto chemin_normalisé = kuri::chaine(chemin);
 
-    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != '/') {
-        chemin_normalisé = enchaine(chemin_normalisé, '/');
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != kuri::chemin_systeme::séparateur_préféré()) {
+        chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
     }
 
     POUR_TABLEAU_PAGE (modules) {
