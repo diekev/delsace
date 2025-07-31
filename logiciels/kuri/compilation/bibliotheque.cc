@@ -223,6 +223,8 @@ static void ajoute_chemins_depuis_env(const char *variable,
             continue;
         }
 
+        dbg() << it;
+
         chemins.ajoute(it);
         chemins_connus.insère(it);
     }
@@ -477,6 +479,8 @@ BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
 #endif
 
     m_handle = dlopen(filepath, RTLD_LAZY);
+    dbg() << __func__ << " : " << m_handle;
+    dbg() << dlerror();
 }
 
 BibliothèqueExécutable::~BibliothèqueExécutable() noexcept
@@ -495,6 +499,8 @@ void *BibliothèqueExécutable::operator()(kuri::chaine_statique symbol)
 {
     /* Vide les erreurs. */
     dlerror();
+
+    dbg() << __func__ << " : " << m_handle << symbol;
 
     auto symbol_c = std::string(symbol.pointeur(), size_t(symbol.taille()));
     const auto sym = dlsym(m_handle, symbol_c.c_str());
@@ -533,7 +539,7 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
 
     auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
 
-    if (chemin_dynamique == "" && nom != "ucrt") {
+    if (chemin_dynamique == "") {
         espace
             ->rapporte_erreur(
                 site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
@@ -543,8 +549,10 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return false;
     }
 
+    dbg() << __func__ << " : " << chemin_dynamique;
     this->bib = BibliothèqueExécutable(chemin_dynamique);
-    if (!this->bib && nom != "ucrt") {
+    dbg() << (!this->bib);
+    if (!this->bib) {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
         état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;
@@ -828,7 +836,16 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
 
     if (nom != "") {
         bibliothèque->nom = nom;
-        résoud_chemins_bibliothèque(espace, site, bibliothèque);
+        if (nom == "ucrt") {
+            kuri::chemin_systeme chemins_ucrt[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+                                                    // "C:\Program Files (x86)\Windows Kits\10\Redist\10.0.26100.0\ucrt\DLLs\x64\ucrtbase.dll"
+            chemins_ucrt[DYNAMIQUE][POUR_PRODUCTION] = "C:/Program Files (x86)/Windows Kits/10/Redist/10.0.26100.0/ucrt/DLLs/x64/ucrtbase.dll";
+            chemins_ucrt[STATIQUE][POUR_PRODUCTION] = "C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.26100.0\\ucrt\\x64\\liburct.lib";
+            bibliothèque->chemins.définis_chemins(PLATEFORME_64_BIT, chemins_ucrt);
+        }
+        else {
+            résoud_chemins_bibliothèque(espace, site, bibliothèque);
+        }
     }
 
     bibliothèque->site = site;
