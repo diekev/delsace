@@ -1,0 +1,206 @@
+importe Fondation
+
+charge "interface"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Macros définis par zlib.h
+ * \{ */
+
+ZLIB_VERSION :: "1.2.11"
+ZLIB_VERNUM :: 0x12b0
+ZLIB_VER_MAJOR :: 1
+ZLIB_VER_MINOR :: 2
+ZLIB_VER_REVISION :: 11
+ZLIB_VER_SUBREVISION :: 0
+
+                        /* constants */
+
+Z_NO_FLUSH      :: 0
+Z_PARTIAL_FLUSH :: 1
+Z_SYNC_FLUSH    :: 2
+Z_FULL_FLUSH    :: 3
+Z_FINISH        :: 4
+Z_BLOCK         :: 5
+Z_TREES         :: 6
+/* Allowed flush values; see deflate() and inflate() below for details */
+
+Z_OK           ::  0
+Z_STREAM_END   ::  1
+Z_NEED_DICT    ::  2
+Z_ERRNO        :: (-1)
+Z_STREAM_ERROR :: (-2)
+Z_DATA_ERROR   :: (-3)
+Z_MEM_ERROR    :: (-4)
+Z_BUF_ERROR    :: (-5)
+Z_VERSION_ERROR :: (-6)
+/* Return codes for the compression/decompression functions. Negative values
+ * are errors, positive values are used for special but normal events.
+ */
+
+Z_NO_COMPRESSION       ::   0
+Z_BEST_SPEED           ::   1
+Z_BEST_COMPRESSION     ::   9
+Z_DEFAULT_COMPRESSION  :: (-1)
+/* compression levels */
+
+Z_FILTERED            :: 1
+Z_HUFFMAN_ONLY        :: 2
+Z_RLE                 :: 3
+Z_FIXED               :: 4
+Z_DEFAULT_STRATEGY    :: 0
+/* compression strategy; see deflateInit2() below for details */
+
+Z_BINARY   :: 0
+Z_TEXT     :: 1
+Z_ASCII    :: Z_TEXT   /* for compatibility with 1.2.2 and earlier */
+Z_UNKNOWN  :: 2
+/* Possible values of the data_type field for deflate() */
+
+Z_DEFLATED :: 8
+/* The deflate compression method (the only one supported in this version) */
+
+Z_NULL :: 0  /* for initializing zalloc, zfree, opaque */
+
+deflateInit :: fonc (strm: z_streamp, level: z32) -> z32
+{
+    retourne deflateInit_(strm, level, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32)
+}
+
+inflateInit :: fonc (strm: z_streamp) -> z32
+{
+    retourne inflateInit_(strm, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32)
+}
+
+deflateInit2 :: fonc (strm: z_streamp, level: z32, method: z32, windowBits: z32, memLevel: z32, strategy: z32) -> z32
+{
+    retourne deflateInit2_(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32)
+}
+
+inflateInit2 :: fonc (strm: z_streamp, windowBits: z32) -> z32
+{
+    retourne inflateInit2_(strm, windowBits, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32)
+}
+
+inflateBackInit :: fonc (strm: z_streamp, windowBits: z32, window: *n8) -> z32
+{
+    retourne inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32)
+}
+
+// gzgetc :: fonc (file: gzFile) -> z32
+// {
+//     si file.have {
+//         file.have -= 1
+//         file.pos += 1
+//         résultat := mémoire(file.next)
+//         file.next += 1
+//         retourne résultat comme z32
+//     }
+
+//     retourne gzgetc_(file)
+// }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions simples de compression et décompression.
+ * \{ */
+
+/* Compresse des données depuis un flux d'entrée vers un flux de sortie. */
+compresse :: fonc (entrée: []octet, niveau: z32) -> z32, [..]octet
+{
+    résultat: [..]octet
+
+    /* Alloue l'état de deflate. */
+    strm: z_stream;
+    ret := deflateInit(*strm, niveau);
+    si ret != Z_OK {
+        retourne ret, résultat
+    }
+
+    /* Compresse jusqu'à la fin du flux d'entrée. */
+    strm.avail_in = entrée.taille comme n32
+    strm.next_in = entrée.pointeur comme *n8
+
+    tampon: [1024]n8
+
+    répète {
+        strm.avail_out = 1024
+        strm.next_out = *tampon[0]
+
+        ret = deflate(*strm, Z_FINISH);   /* Pas de mauvaise valeur de retour. */
+        assert(ret != Z_STREAM_ERROR); /* state not clobbered */
+
+        /* Quantité de données renvoiée par deflate. */
+        have := 1024 - strm.avail_out
+
+        ancienne_taille := résultat.taille
+        tableau_redimensionne(résultat, résultat.taille + have comme z64)
+        copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64)
+    } tantque (strm.avail_out == 0)
+
+    assert(strm.avail_in == 0); /* all input will be used */
+
+    /* clean up and return */
+    _ := deflateEnd(*strm);
+    retourne 0, résultat
+}
+
+décompresse :: fonc (entrée: []octet) -> z32, [..]octet
+{
+    // @Paramétrise
+    /* Passe des informations entre les fonctions de Zlib. */
+    tampon: [1024]n8
+
+    résultat: [..]octet
+
+    /* allocate inflate state */
+    strm: z_stream
+    ret := inflateInit(*strm);
+    si ret != Z_OK {
+        retourne ret, résultat
+    }
+    diffère _ := inflateEnd(*strm);
+
+    /* Compresse jusqu'à la fin du flux d'entrée. */
+    répète {
+        entrée_courante := entrée
+        si entrée_courante.taille > 1024 {
+            entrée_courante.taille = 1024
+        }
+
+        entrée.taille -= entrée_courante.taille
+        entrée.pointeur += entrée_courante.taille
+
+        strm.avail_in = entrée_courante.taille comme n32;
+        strm.next_in = entrée_courante.pointeur comme *n8;
+        si strm.avail_in == 0 {
+            arrête
+        }
+
+        /* run inflate() on input until output buffer not full */
+        répète {
+            strm.avail_out = 1024;
+            strm.next_out = *tampon[0];
+
+            ret = inflate(*strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR); /* state not clobbered */
+            si ret == Z_NEED_DICT {
+                ret = Z_DATA_ERROR
+            }
+            si ret == Z_DATA_ERROR || ret == Z_MEM_ERROR {
+                retourne ret, résultat
+            }
+
+            /* Quantité de données renvoiée par inflate. */
+            have := 1024 - strm.avail_out;
+            ancienne_taille := résultat.taille
+            tableau_redimensionne(résultat, ancienne_taille + have comme z64)
+            copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64)
+        } tantque (strm.avail_out == 0); /* done when inflate() says it's done */
+    } tantque (ret != Z_STREAM_END);
+
+    ret = si ret == Z_STREAM_END { Z_OK } sinon { Z_DATA_ERROR }
+    retourne ret, résultat;
+}
+
+/** \} */
