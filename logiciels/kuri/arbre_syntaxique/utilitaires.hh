@@ -408,6 +408,25 @@ struct DonnéesSymboleExterne {
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \name ÉtatValidationEntête.
+ * \{ */
+
+enum class ÉtatValidationEntête : int8_t {
+    NON_COMMENCÉE,
+    PARAMÈTRES_CONSTANTS,
+    ARBRE_APLATIS,
+    PARAMÈTRES,
+    TYPES_PARAMÈTRES,
+    DÉFINITION_UNIQUE,
+    SYMBOLE_EXTERNE,
+    TERMINÉE,
+};
+
+std::ostream &operator<<(std::ostream &os, ÉtatValidationEntête état_validation);
+
+/** \} */
+
 void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
