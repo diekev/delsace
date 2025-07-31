@@ -371,8 +371,6 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 
 */
 
-importe Chaine
-
 transforme_point_de_code_en_majuscule :: fonc (point_de_code: n32) -> n32
 {
     rune := Rune(point_de_code)
@@ -397,18 +395,4 @@ transforme_point_de_code_en_minuscule :: fonc (point_de_code: n32) -> n32
 
     rune = applique_permutation(f, rune)
     retourne rune comme n32
-}
-
-en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
-{
-    pour & chn.points_de_code {
-        it = transforme_point_de_code_en_minuscule(it)
-    }
-}
-
-en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
-{
-    pour & chn.points_de_code {
-        it = transforme_point_de_code_en_majuscule(it)
-    }
 }

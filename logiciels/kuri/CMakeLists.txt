@@ -110,8 +110,6 @@ add_subdirectory(tests)
 add_subdirectory(utilitaires)
 
 if(AVEC_MODULES_C_KURI)
-    add_subdirectory(modules_c/Aléa)
-    add_subdirectory(modules_c/Compression)
     add_subdirectory(modules_c/Exétron)
     add_subdirectory(modules_c/Géométrie3D)
     add_subdirectory(modules_c/Krypto)

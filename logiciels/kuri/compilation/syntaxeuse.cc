@@ -3704,7 +3704,8 @@ void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *dé
     déclaration_symbole->données_externes =
         m_tacheronne.allocatrice_noeud.crée_données_symbole_externe();
     auto données_externes = déclaration_symbole->données_externes;
-    données_externes->ident_bibliothèque = lexème_courant()->ident;
+    données_externes->ident_bibliothèque = m_tacheronne.assembleuse->crée_référence_déclaration(
+        lexème_courant());
     if (directive) {
         directive->opérandes.ajoute(lexème_courant());
     }
