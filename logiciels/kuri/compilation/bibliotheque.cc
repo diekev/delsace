@@ -94,7 +94,7 @@ static void *dlsym(void *handle, LPCSTR name)
     return GetProcAddress((HMODULE)handle, name);
 }
 
-#define RTLD_LAZY 0
+#    define RTLD_LAZY 0
 
 static void *dlopen(const char *filepath, int /*flags*/)
 {
@@ -448,11 +448,11 @@ int64_t CheminsBibliothèque::mémoire_utilisée() const
 void CheminsBibliothèque::cliche() const
 {
     for (int p = 0; p < NUM_TYPES_PLATEFORME; p++) {
-    for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
-        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
-            dbg() << p << " " << i << " " << j << " " << m_chemins[p][i][j];
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
+                dbg() << p << " " << i << " " << j << " " << m_chemins[p][i][j];
+            }
         }
-    }
     }
 }
 
@@ -472,7 +472,7 @@ BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
     std::wstring w_string = std_chemin.c_str();
     using convert_type = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_type, wchar_t> converter;
-    std::string c_string = converter.to_bytes( w_string );
+    std::string c_string = converter.to_bytes(w_string);
     const char *filepath = c_string.c_str();
 #else
     const char *filepath = std_chemin.c_str();
