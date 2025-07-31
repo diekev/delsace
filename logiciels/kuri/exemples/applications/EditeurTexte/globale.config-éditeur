@@ -3,6 +3,11 @@
 [thème]
 
 texte                     FFFFFFFF
+texte-mot-clé             569CD6FF
+texte-instruction         C586C0FF
+texte-chaine-littérale    BD8E69FF
+texte-nombre              B2C67AFF
+texte-commentaire         6A9955FF
 texte-sélectionné         18FF18FF
 arrière-plan              181818FF
 indicateur-ligne          CCCCCC7F
