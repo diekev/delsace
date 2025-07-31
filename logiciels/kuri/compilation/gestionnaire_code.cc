@@ -876,6 +876,7 @@ void GestionnaireCode::requiers_chargement(EspaceDeTravail *espace, Fichier *fic
     TACHE_AJOUTEE(CHARGEMENT);
     auto unité = crée_unité_pour_fichier(espace, fichier, RaisonDÊtre::CHARGEMENT_FICHIER);
     m_état_chargement_fichiers.ajoute_unité_pour_chargement_fichier(unité);
+    m_réinitialise_cycles_pour_charge_ou_import = true;
 }
 
 void GestionnaireCode::requiers_lexage(EspaceDeTravail *espace, Fichier *fichier)
@@ -2178,8 +2179,17 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
                 break;
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
+            {
+                it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
+                ordonnanceuse.crée_tâche_pour_unité(it);
+                break;
+            }
             case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
             {
+                // if (m_réinitialise_cycles_pour_charge_ou_import) {
+                //     it->cycle = 0;
+                //     m_réinitialise_cycles_pour_charge_ou_import = false;
+                // }
                 it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
                 ordonnanceuse.crée_tâche_pour_unité(it);
                 break;
