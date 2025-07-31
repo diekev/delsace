@@ -5,7 +5,6 @@ charge "chaine_c"
 charge "chaine_internée"
 charge "chaine_utf16"
 charge "chaine_utf32"
-charge "éditrice_texte"
 charge "empreintes"
 charge "lexage"
 
