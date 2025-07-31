@@ -396,7 +396,7 @@ struct DonneesAssignations {
  * - le symbole lui-même */
 struct DonnéesSymboleExterne {
     kuri::chaine_statique nom_symbole = "";
-    IdentifiantCode *ident_bibliothèque = nullptr;
+    NoeudExpressionRéférence *ident_bibliothèque = nullptr;
     Symbole *symbole = nullptr;
     IdentifiantCode *ident_énum_intrinsèque = nullptr;
 };

@@ -1,5 +1,8 @@
+importe Chaine
+importe Fondation
 importe Périphériques
 importe Typographie
+importe Unicode
 
 /* ------------------------------------------------------------------------- */
 /** \nom RappelsÉditionTexte
