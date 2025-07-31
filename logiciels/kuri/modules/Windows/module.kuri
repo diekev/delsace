@@ -1,0 +1,10 @@
+libkernel32 :: #bibliothèque "Kernel32"
+
+STD_INPUT_HANDLE : DWORD : -10
+STD_OUTPUT_HANDLE : DWORD : -11
+STD_ERROR_HANDLE : DWORD : -12
+
+DWORD :: n32
+HANDLE :: n32 
+
+GetStdHandle :: fonc (nStdHandle: DWORD) -> HANDLE #externe libkernel32

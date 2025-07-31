@@ -5,7 +5,10 @@ GlibC :: importe GlibC
 POSIX :: importe POSIX
 exit :: POSIX.exit
 
-charge "bibliothèques"
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    charge "bibliothèques"
+}
+
 charge "infos_types"
 charge "intrinseques"
 charge "panique"

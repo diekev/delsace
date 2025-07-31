@@ -1,7 +1,14 @@
 importe Bits
 
-libcmath :: #bibliothèque "m"
-#dépendance_bibliothèque libcmath libc
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    libcmath :: #bibliothèque "m"
+    #dépendance_bibliothèque libcmath libc
+}
+sinon si SYS_EXP == SystèmeExploitation.WINDOWS {
+    libcmath :: #bibliothèque "ucrt"
+}
+
+libcmath :: #bibliothèque "ucrt"
 
 /* Fonctions trigonométriques. */
 

@@ -70,6 +70,7 @@ readdir :: fonc (d: *DIR) -> *dirent #externe libc
 /** \nom 
  * \{ */
 
+#si SYS_EXP == SystèmeExploitation.LINUX {
 libdl :: #bibliothèque "dl"
 
 RTLD_LOCAL :: 0
@@ -110,6 +111,7 @@ dlsym_func :: fonc (__handle: *rien, __name: ChaineC) -> adresse_fonction #exter
    to return a string describing the error.  Each call resets
    the error string so that a following call returns null.  */
 dlerror :: fonc () -> ChaineC #externe libdl
+}
 
 /** \} */
 
@@ -326,6 +328,7 @@ IPPROTO_TCP :: 6
 /** \nom semaphore.h
  * \{ */
 
+#si SYS_EXP == SystèmeExploitation.LINUX {
 // À FAIRE : 32-bit
 // #if __WORDSIZE == 64
 // # define __SIZEOF_SEM_T	32
@@ -342,6 +345,7 @@ sem_t :: union nonsûr {
 sem_init :: fonc (sem: *sem_t, pshared: z32, value: n32) -> z32 #externe libpthread
 sem_post :: fonc (sem: *sem_t) -> z32 #externe libpthread
 sem_wait :: fonc (sem: *sem_t) -> z32 #externe libpthread
+}
 
 /** \} */
 
