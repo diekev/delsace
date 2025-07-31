@@ -1,0 +1,270 @@
+/* Implémentation d'un Mesrsenne Twister basée sur celle de Mantaflow :
+ * 
+ * MantaFlow fluid solver framework
+ * Copyright 2011 Tobias Pfaff, Nils Thuerey
+ * SPDX License Identifier : Apache-2.0
+ *
+ * Elle-même basée sur un exemple de Makoto Matsumoto, Takuji Nishimura, Shawn Cokus, and Richard J. Wagner
+ */
+
+importe Krypto
+
+// À NE PAS utiliser pour de la CRYPTOGRAPHIE sans sécurement hacher plusieurs
+// valeurs de retour ensemble, autrement l'état du générateur peut être connu
+// après la lecture de 624 valeurs consécutives.
+
+MersenneTwister :: struct {
+    /* Longueur du tableau d'état. */
+    N :: 624
+    /* Longueur du tableau pour sauvegarde(). */
+    SAVE :: N + 1
+    /* Paramètre de période. */
+    M :: 397
+
+    /* État interne. */
+    état: [N]n32
+    /* Valeur suivante à prendre de l'état. */
+    p_suivant: *n32
+    /* Nombre de valeurs restantes avant de devoir recharger. */
+    restant: z32
+}
+
+crée_mersenne_twister :: fonc (avec_une_graine: n32) -> MersenneTwister
+{
+    résultat: MersenneTwister
+    ensemmence(*résultat, avec_une_graine)
+    retourne résultat
+}
+
+crée_mersenne_twister :: fonc (grande_graine: ...n32) -> MersenneTwister
+{
+    résultat: MersenneTwister
+    ensemmence(*résultat, grande_graine)
+    retourne résultat
+}
+
+crée_mersenne_twister :: fonc () -> MersenneTwister
+{
+    résultat: MersenneTwister
+    ensemmence(*résultat)
+    retourne résultat
+}
+
+/* Retoure un nombre réel dans [0,1] */
+donne_uniforme :: fonc (mt: *MersenneTwister) -> r64
+{
+    retourne donne_uniforme_entier(mt) comme r64 * (1.0 / 4294967295.0)
+}
+
+/* Retoure un nombre réel dans [0,n] */
+donne_uniforme :: fonc (mt: *MersenneTwister, n: r64) -> r64
+{
+    retourne donne_uniforme(mt) * n
+}
+
+/* Retoure un nombre réel dans [0,1) */
+donne_uniforme_exclusive :: fonc (mt: *MersenneTwister) -> r64
+{
+    retourne donne_uniforme_entier(mt) comme r64 * (1.0 / 4294967296.0)
+}
+
+/* Retoure un nombre réel dans [0,n) */
+donne_uniforme_exclusive :: fonc (mt: *MersenneTwister, n: r64) -> r64
+{
+    retourne donne_uniforme_exclusive(mt) * n
+}
+
+/* Retoure un nombre réel dans (0,1) */
+donne_uniforme_double_exclusive :: fonc (mt: *MersenneTwister) -> r64
+{
+    retourne (donne_uniforme_entier(mt) comme r64 + 0.5) * (1.0 / 4294967296.0)
+}
+
+/* Retoure un nombre réel dans (0,n) */
+donne_uniforme_double_exclusive :: fonc (mt: *MersenneTwister, n: r64) -> r64
+{
+    retourne donne_uniforme_exclusive(mt) * n
+}
+
+/* Retoure un nombre réel dans [0,1), en utilisant 53-bit (la capacité de précision des doubles IEEE). */
+donne_uniforme_53bit :: fonc (mt: *MersenneTwister) -> r64
+{
+    a := (donne_uniforme_entier(mt) >> 5) comme r64
+    b := (donne_uniforme_entier(mt) >> 6) comme r64
+	retourne ( a * 67108864.0 + b ) * (1.0/9007199254740992.0);  // Par Isaku Wada
+}
+
+// Retourne un nombre réel d'une distrution normale (gaussienne) avec la moyenne et l'écart-type donnés
+// selon la méthode de Box-Muller.
+donne_normal :: fonc (mt: *MersenneTwister, moyenne : r64 = 0.0, écart_type : r64 = 1.0) -> r64
+{
+	r := racine_carrée(-2.0 * log(1.0 - donne_uniforme_double_exclusive(mt))) * écart_type
+	phi := 2.0 * 3.14159265358979323846264338328 * donne_uniforme_exclusive(mt)
+	retourne moyenne + r * cosinus(phi)
+}
+
+/* Retourne un entier dans [0,2^32-1] */
+donne_uniforme_entier :: fonc (empl mt: *MersenneTwister) -> n32
+{
+	// Tire un entier sur 32-bit de l'état du générateur.
+    // Toutes les autres fonctions d'accès ne font que transformer les nombres tirés d'ici.
+
+    saufsi restant {
+        recharge(mt)
+    }
+    restant -= 1
+	
+	s1 := mémoire(p_suivant);
+    p_suivant += 1
+
+	s1 ^= (s1 >> 11);
+	s1 ^= (s1 <<  7) & 0x9d2c5680;
+	s1 ^= (s1 << 15) & 0xefc60000;
+	retourne (s1 ^ (s1 >> 18));
+}
+
+/* Retourne un entier dans [0,n], pour n < 2^32 */
+donne_uniforme_entier :: fonc (mt: *MersenneTwister, n: n32) -> n32
+{
+	// Trouve quels bits sont utilisés dans n.
+	// Optimisé par Magnus Jonsson (magnus@smartelectronix.com)
+	utilisé := n;
+	utilisé |= utilisé >> 1;
+	utilisé |= utilisé >> 2;
+	utilisé |= utilisé >> 4;
+	utilisé |= utilisé >> 8;
+	utilisé |= utilisé >> 16;
+
+	// Tire des nombres jusqu'en trouver un dans [0,n]
+	i: n32;
+	répète {
+		i = donne_uniforme_entier(mt) & utilisé;  // toss unutilisé bits to shorten search
+    } tantque i > n
+	retourne i;
+}
+
+ensemmence :: fonc (mt: *MersenneTwister, avec_une_graine: n32)
+{
+    initialise(mt, avec_une_graine)
+    recharge(mt)
+}
+
+ensemmence :: fonc (empl mt: *MersenneTwister, grande_graine: ...n32)
+{
+    // Ensemmence le générateur avec une list de n32.
+    // Il y a 2^19937-1 états initiaux possibles. Cette fonction permet
+    // de tous les accéder en fournissant au moins 19937 bits (avec une
+    // taille de semmence par défaut de N = 624 n32). Tout bit en dessus
+    // des 32 bits du bas de chaque élément est tout simplement jeté.
+    // Il suffit d'appeler ensemmence() (sans paramètre) pour avoir
+    // un état initialisé aléatoirement.
+	initialise(mt, 19650218)
+
+    i := 1
+    j : n32 = 0
+    k := si MersenneTwister.N > grande_graine.taille { MersenneTwister.N } sinon { grande_graine.taille comme z32 }
+
+    pour k {
+		état[i] = état[i] ^ ( (état[i-1] ^ (état[i-1] >> 30)) * 1664525 );
+		état[i] += ( grande_graine[j] & 0xffffffff ) + j;
+		état[i] &= 0xffffffff;
+		i += 1;
+        j += 1;
+        si i >= MersenneTwister.N {
+            état[0] = état[N-1];
+            i = 1
+        }
+        si j >= grande_graine.taille {
+            j = 0
+        }
+    }
+
+    pour MersenneTwister.N {
+		état[i] = état[i] ^ ( (état[i-1] ^ (état[i-1] >> 30)) * 1566083941 );
+		état[i] -= i;
+		état[i] &= 0xffffffff;
+		i += 1;
+        si i >= MersenneTwister.N {
+            état[0] = état[N-1];
+            i = 1
+        }
+	}
+
+	état[0] = 0x80000000;  // MSB is 1, assuring non-zero initial array
+	recharge(mt);
+}
+
+ensemmence :: fonc (empl mt: *MersenneTwister)
+{
+    grande_graine : [MersenneTwister.N]n32 = ---
+    // À FAIRE : code erreur, utilise ensemmence(hash(time(NULL), clock())) si erreur
+    remplis_avec_octets_cryptographiquement_sécurisés(grande_graine)
+}
+
+#portée_fichier
+
+haut_bit :: fonc (u: n32) -> n32
+{
+    retourne u & 0x80000000;
+}
+
+bas_bit :: fonc (u: n32) -> n32
+{
+    retourne u & 0x00000001;
+}
+
+bas_bits :: fonc (u: n32) -> n32
+{
+    retourne u & 0x7fffffff;
+}
+
+mélange_bits :: fonc (u: n32, v: n32) -> n32
+{
+    retourne haut_bit(u) | bas_bits(v);
+}
+
+twist :: fonc (m: n32, s0: n32, s1: n32) -> n32
+{ 
+    retourne m ^ (mélange_bits(s0, s1) >> 1) ^ (-bas_bit(s1) & 0x9908b0df);
+}
+
+initialise :: fonc (mt: *MersenneTwister, graine: n32)
+{
+    // Initialise l'état du génération avec une simple graine.
+	// Voir Knuth TAOCP Vol 2, 3rd Ed, p.106 pour le multiplicande.
+	s := *mt.état[0];
+	r := *mt.état[0];
+
+	mémoire(s) = graine & 0xffffffff;
+    s += 1
+
+    pour i dans 1 ... MersenneTwister.N - 1 {
+        mult : n64 = 1812433253
+
+        mémoire(s) = ((mult * (mémoire(r) ^ (mémoire(r) >> 30) ) + i comme n64) & 0xffffffff) comme n32;
+        s += 1
+		r += 1
+	}
+}
+
+recharge :: fonc (mt: *MersenneTwister)
+{
+	// Génère N nouvelles valeurs dans l'état.
+	// Simplifier et optimiser par Matthew Bellew (matthew.bellew@home.com)
+	p := *mt.état[0];
+
+    pour MersenneTwister.N - MersenneTwister.M {
+        mémoire(p) = twist(p[MersenneTwister.M], p[0], p[1])
+        p += 1
+    }
+
+    pour MersenneTwister.M {
+        mémoire(p) = twist(mémoire(p + MersenneTwister.M - MersenneTwister.N), p[0], p[1])
+        p += 1
+    }
+
+    mémoire(p) = twist(mémoire(p + MersenneTwister.M - MersenneTwister.N), p[0], mt.état[0])
+
+    mt.restant = MersenneTwister.N
+    mt.p_suivant = *mt.état[0]
+}

@@ -2310,15 +2310,10 @@ RésultatValidation Sémanticienne::valide_symbole_externe(NoeudDéclarationSymb
     auto données_externes = decl->données_externes;
 
     auto bibliothèque = m_compilatrice.gestionnaire_bibliothèques->trouve_bibliothèque(
-        données_externes->ident_bibliothèque);
+        données_externes->ident_bibliothèque->ident);
 
     if (!bibliothèque) {
-        m_espace
-            ->rapporte_erreur(decl, "Impossible de définir la bibliothèque où trouver le symbole")
-            .ajoute_message("« ",
-                            données_externes->ident_bibliothèque->nom,
-                            " » ne réfère à aucune bibliothèque !");
-        return CodeRetourValidation::Erreur;
+        return Attente::sur_symbole(données_externes->ident_bibliothèque);
     }
 
     données_externes->symbole = bibliothèque->crée_symbole(données_externes->nom_symbole,
