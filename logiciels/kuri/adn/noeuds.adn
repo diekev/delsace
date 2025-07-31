@@ -576,6 +576,7 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     Annotation [] annotations [code copie]
 
     DrapeauxNoeudFonction drapeaux_fonction;
+    ÉtatValidationEntête état_validation;
 
     bool est_opérateur [code copie]
 
