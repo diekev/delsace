@@ -8,8 +8,6 @@ sinon si SYS_EXP == SystèmeExploitation.WINDOWS {
     libcmath :: #bibliothèque "ucrt"
 }
 
-libcmath :: #bibliothèque "ucrt"
-
 /* Fonctions trigonométriques. */
 
 cosinus :: fonc (a: r32) -> r32 #externe libcmath "cosf"
