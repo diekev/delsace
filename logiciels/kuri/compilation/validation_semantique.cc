@@ -1846,8 +1846,8 @@ static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction c
     if (fonction1.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) &&
         fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) && fonction1.données_externes &&
         fonction2.données_externes &&
-        fonction1.données_externes->ident_bibliothèque ==
-            fonction2.données_externes->ident_bibliothèque &&
+        fonction1.données_externes->ident_bibliothèque->ident ==
+            fonction2.données_externes->ident_bibliothèque->ident &&
         fonction1.données_externes->nom_symbole == fonction2.données_externes->nom_symbole) {
         return true;
     }
@@ -1898,25 +1898,48 @@ RésultatValidation Sémanticienne::valide_entête_fonction(NoeudDéclarationEnt
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
 
-    valide_paramètres_constants_fonction(decl);
-
-    {
-        CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
-        TENTE(valide_arbre_aplatis(decl));
+    if (decl->état_validation == ÉtatValidationEntête::NON_COMMENCÉE) {
+        decl->état_validation = ÉtatValidationEntête::PARAMÈTRES_CONSTANTS;
     }
 
-    TENTE(valide_paramètres_fonction(decl))
+    if (decl->état_validation == ÉtatValidationEntête::PARAMÈTRES_CONSTANTS) {
+        valide_paramètres_constants_fonction(decl);
+        decl->état_validation = ÉtatValidationEntête::ARBRE_APLATIS;
+    }
+
+    if (decl->état_validation == ÉtatValidationEntête::ARBRE_APLATIS) {
+        CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
+        TENTE(valide_arbre_aplatis(decl));
+        decl->état_validation = ÉtatValidationEntête::PARAMÈTRES;
+    }
+
+    if (decl->état_validation == ÉtatValidationEntête::PARAMÈTRES) {
+        TENTE(valide_paramètres_fonction(decl));
+        decl->état_validation = ÉtatValidationEntête::TYPES_PARAMÈTRES;
+    }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
         /* Puisque les types sont polymorphiques, nous n'avons pas besoin de les valider.
          * Ce sera fait lors de la monomorphisation de la fonction. */
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl->état_validation = ÉtatValidationEntête::TERMINÉE;
         return CodeRetourValidation::OK;
     }
 
-    TENTE(valide_types_paramètres_fonction(decl));
-    TENTE(valide_définition_unique_fonction(decl));
-    TENTE(valide_symbole_externe(decl, TypeSymbole::FONCTION));
+    if (decl->état_validation == ÉtatValidationEntête::TYPES_PARAMÈTRES) {
+        TENTE(valide_types_paramètres_fonction(decl));
+        decl->état_validation = ÉtatValidationEntête::DÉFINITION_UNIQUE;
+    }
+
+    if (decl->état_validation == ÉtatValidationEntête::DÉFINITION_UNIQUE) {
+        TENTE(valide_définition_unique_fonction(decl));
+        decl->état_validation = ÉtatValidationEntête::SYMBOLE_EXTERNE;
+    }
+
+    if (decl->état_validation == ÉtatValidationEntête::SYMBOLE_EXTERNE) {
+        TENTE(valide_symbole_externe(decl, TypeSymbole::FONCTION));
+        decl->état_validation = ÉtatValidationEntête::TERMINÉE;
+    }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
         auto type_retour = decl->type->comme_type_fonction()->type_sortie;
