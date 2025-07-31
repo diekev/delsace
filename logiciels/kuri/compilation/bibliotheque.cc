@@ -443,6 +443,17 @@ int64_t CheminsBibliothèque::mémoire_utilisée() const
     return résultat;
 }
 
+void CheminsBibliothèque::cliche() const
+{
+    for (int p = 0; p < NUM_TYPES_PLATEFORME; p++) {
+    for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+        for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
+            dbg() << p << " " << i << " " << j << " " << m_chemins[p][i][j];
+        }
+    }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -522,16 +533,18 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
 
     auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
 
-    if (chemin_dynamique == "") {
+    if (chemin_dynamique == "" && nom != "ucrt") {
         espace
             ->rapporte_erreur(
                 site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
             .ajoute_message("La bibliothèque « ", nom, " » n'a pas de version dynamique !\n");
+
+        chemins.cliche();
         return false;
     }
 
     this->bib = BibliothèqueExécutable(chemin_dynamique);
-    if (!this->bib) {
+    if (!this->bib && nom != "ucrt") {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));
         état_recherche = ÉtatRechercheBibliothèque::INTROUVÉE;

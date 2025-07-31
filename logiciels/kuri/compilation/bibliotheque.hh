@@ -164,6 +164,8 @@ struct CheminsBibliothèque {
     IndexBibliothèque rafine_index(IndexBibliothèque const index) const;
 
     int64_t mémoire_utilisée() const;
+
+    void cliche() const;
 };
 
 /** \} */

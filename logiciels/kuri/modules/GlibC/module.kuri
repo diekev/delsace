@@ -20,7 +20,16 @@ va_list :: struct {
 /** \nom C11
  * \{ */
 
-aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc
+}
+sinon {
+    // À FAIRE(Windows) : aligned_alloc, alligned_free
+    aligned_alloc :: fonc (alignement: n64 @inutilisée, taille: n64) -> *rien
+    {
+        retourne malloc(taille);
+    }
+}
 
 /** \} */
 
