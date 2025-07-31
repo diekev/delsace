@@ -138,10 +138,8 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JS.
  * soit valide jusqu'à sa desctruction. */
 crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *JS.MachineVirtuelle) -> *Document
 {
-    ctx_kuri := initialise_contexte_kuri()
-
-    gna : *GNA = crée_gna(*ctx_kuri, paramètres.graine)
-    diffère détruit_gna(*ctx_kuri, gna)
+    gna : *GNA = crée_gna(paramètres.graine)
+    diffère détruit_gna(gna)
 
     document := crée_noeud_document(*mv.tas_de_mémoire, nul)
 

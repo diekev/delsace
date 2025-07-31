@@ -69,7 +69,12 @@ Module *SystèmeModule::initialise_module_kuri(kuri::chaine_statique chemin_raci
     auto fichier_neuf = crée_fichier(module, "constantes", chemin_fichier_constantes_kuri);
     auto fichier = static_cast<Fichier *>(fichier_neuf);
 
+#ifdef _MSC_VER
+    const char *source = "SYS_EXP :: SystèmeExploitation.WINDOWS\n";
+#else
     const char *source = "SYS_EXP :: SystèmeExploitation.LINUX\n";
+#endif
+
     fichier->charge_tampon(TamponSource(source));
 
     fichier->fut_chargé = true;

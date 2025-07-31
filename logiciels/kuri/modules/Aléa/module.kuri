@@ -3,48 +3,48 @@
 importe Alphabet
 importe Fondation
 importe Introspection
-importe Math // nous dépendons sur libm.so pour le moment
-
-charge "interface_aléa"
+importe Math
 
 charge "halton"
+charge "mersenne_twister"
 
-// À FAIRE : ce serait bien de le définir lors de la génération du code
-#dépendance_bibliothèque libmodule_c_alea libcmath
+GNA :: MersenneTwister
 
-crée_gna :: fonc (ctx_kuri: *ContexteKuri, graine: n32) -> *GNA
+crée_gna :: fonc (graine: n32) -> *GNA
 {
-    retourne ALEA_cree_gna(ctx_kuri, graine)
+    résultat := loge(MersenneTwister)
+    mémoire(résultat) = crée_mersenne_twister(graine)
+    retourne résultat
 }
 
-resème :: fonc (gna: *GNA, graine: n32) -> rien
+resème :: fonc (gna: *GNA, graine: n32)
 {
-    ALEA_reseme_gna(gna, graine)
+    ensemmence(gna, graine)
 }
 
-détruit_gna :: fonc (ctx_kuri: *ContexteKuri, gna: *GNA) -> rien
+détruit_gna :: fonc (gna: *GNA)
 {
-    ALEA_detruit_gna(ctx_kuri, gna)
+    déloge(gna)
 }
 
 uniforme :: fonc (gna: *GNA, min: r32, max: r32) -> r32
 {
-    retourne ALEA_uniforme_r32(gna, min, max)
+    retourne (donne_uniforme(gna, max - min) + min) comme r32
 }
 
 uniforme :: fonc (gna: *GNA, min: r64, max: r64) -> r64
 {
-    retourne ALEA_uniforme_r64(gna, min, max)
+    retourne donne_uniforme(gna, max - min) + min
 }
 
 normale :: fonc (gna: *GNA, moyenne: r32, écart: r32) -> r32
 {
-    retourne ALEA_normale_r32(gna, moyenne, écart)
+    retourne donne_normal(gna, moyenne, écart)
 }
 
 normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 {
-    retourne ALEA_normale_r64(gna, moyenne, écart)
+    retourne donne_normal(gna, moyenne, écart)
 }
 
 // ------------------------------------------------------

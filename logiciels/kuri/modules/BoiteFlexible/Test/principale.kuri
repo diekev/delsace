@@ -2,6 +2,7 @@ importe BoiteFlexible
 importe CréationFenêtre
 importe Chaine
 importe Couleur
+importe ÉditionTexte
 importe Fondation
 importe Géométrie
 importe Guettage

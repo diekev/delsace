@@ -1,6 +1,7 @@
 importe Chaine
 importe Couleur
 importe Empreinte
+importe ÉditionTexte
 importe Fondation
 importe Géométrie
 importe Image

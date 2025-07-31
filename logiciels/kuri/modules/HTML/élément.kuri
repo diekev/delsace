@@ -1,6 +1,7 @@
 importe Couleur
 CSS :: importe CSS
 importe Dessin
+importe ÉditionTexte
 importe Géométrie
 importe Image
 importe MIME

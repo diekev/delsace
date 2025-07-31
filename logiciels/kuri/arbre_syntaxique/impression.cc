@@ -424,7 +424,7 @@ static void imprime_données_externes(Enchaineuse &enchaineuse,
     }
 
     enchaineuse << " #externe ";
-    imprime_ident(enchaineuse, données->ident_bibliothèque);
+    imprime_ident(enchaineuse, données->ident_bibliothèque->ident);
     if (données->nom_symbole.taille() != 0 && données->nom_symbole != ident_symbole->nom) {
         enchaineuse << " \"" << données->nom_symbole << "\"";
     }

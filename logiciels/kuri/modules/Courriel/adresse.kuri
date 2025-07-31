@@ -553,8 +553,7 @@ tests_validité_adresses :: fonc ()
     // @qqaazz1122wwssxx33eeddcc44rrffvv55ttggbb66yyhhnn77uujjmm88iikk99ooll00ppQQAAZZ1122WWSSXX33EEDDCC44RRFFVV55TTGGBB66YYHHNN77UUJJMM88IIKK99OOLL00PPQWERTYUIOPASDFGHJKLZXCVBNMpoiuytrewqasdfghjklmnbv.com
     // est valide, pourtant ce devrait être un domaine...
 
-    ctx_kuri := initialise_contexte_kuri()
-    gna := crée_gna(*ctx_kuri, 123)
+    gna := crée_gna(123)
 
     /* Test des adresses valides */
     pour 2000 {
