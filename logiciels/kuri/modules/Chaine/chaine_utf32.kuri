@@ -199,6 +199,20 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
     retourne résultat
 }
 
+en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
+{
+    pour & chn.points_de_code {
+        it = transforme_point_de_code_en_minuscule(it)
+    }
+}
+
+en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
+{
+    pour & chn.points_de_code {
+        it = transforme_point_de_code_en_majuscule(it)
+    }
+}
+
 /*
 principale :: fonc ()
 {
