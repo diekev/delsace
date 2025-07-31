@@ -154,6 +154,8 @@ struct chemin_systeme {
      * le chemin n'est pas l'adresse d'un fichier régulier.
      */
     [[nodiscard]] static bool supprime(chaine_statique chemin);
+
+    [[nodiscard]] static char séparateur_préféré();
 };
 
 chemin_systeme operator/(chemin_systeme const &chemin, chaine_statique chn);
