@@ -1851,8 +1851,8 @@ static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction c
     if (fonction1.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) &&
         fonction2.possède_drapeau(DrapeauxNoeud::EST_EXTERNE) && fonction1.données_externes &&
         fonction2.données_externes &&
-        fonction1.données_externes->ident_bibliothèque ==
-            fonction2.données_externes->ident_bibliothèque &&
+        fonction1.données_externes->ident_bibliothèque->ident ==
+            fonction2.données_externes->ident_bibliothèque->ident &&
         fonction1.données_externes->nom_symbole == fonction2.données_externes->nom_symbole) {
         return true;
     }
