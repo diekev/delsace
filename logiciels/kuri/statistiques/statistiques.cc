@@ -45,7 +45,7 @@ void imprime_stats(Statistiques const &stats, kuri::chrono::compte_seconde débu
 
     auto const &infos_mémoire_utilisée = stats.donne_mémoire_utilisée_pour_impression();
 
-    auto mémoire_suivie = 0l;
+    auto mémoire_suivie = int64_t(0);
     POUR (infos_mémoire_utilisée) {
         mémoire_suivie += it.quantité;
     }
