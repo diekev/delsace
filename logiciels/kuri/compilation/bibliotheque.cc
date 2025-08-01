@@ -475,6 +475,17 @@ BibliothèqueExécutable::~BibliothèqueExécutable() noexcept
     }
 }
 
+BibliothèqueExécutable::BibliothèqueExécutable(BibliothèqueExécutable &&autre) noexcept
+{
+    std::swap(m_handle, autre.m_handle);
+}
+
+BibliothèqueExécutable &BibliothèqueExécutable::operator=(BibliothèqueExécutable &&autre) noexcept
+{
+    std::swap(m_handle, autre.m_handle);
+    return *this;
+}
+
 BibliothèqueExécutable::operator bool() const noexcept
 {
     return m_handle != nullptr;
