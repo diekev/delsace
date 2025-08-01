@@ -94,7 +94,7 @@ static void *dlsym(void *handle, LPCSTR name)
     return GetProcAddress((HMODULE)handle, name);
 }
 
-#define RTLD_LAZY 0
+#    define RTLD_LAZY 0
 
 static void *dlopen(const char *filepath, int /*flags*/)
 {
@@ -459,7 +459,7 @@ BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
     std::wstring w_string = std_chemin.c_str();
     using convert_type = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_type, wchar_t> converter;
-    std::string c_string = converter.to_bytes( w_string );
+    std::string c_string = converter.to_bytes(w_string);
     const char *filepath = c_string.c_str();
 #else
     const char *filepath = std_chemin.c_str();
