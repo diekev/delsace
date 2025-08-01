@@ -349,7 +349,7 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
 
 #ifdef _MSC_VER
     /* NOTE : le nom de sortie doit être collé à "/Fo" */
-    enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << fichier_sortie;
+    enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << '"' << fichier_sortie << '"';
 #else
     enchaineuse << "\"" << fichier_entrée << "\" -o \"" << fichier_sortie << "\"";
 #endif

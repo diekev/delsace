@@ -21,6 +21,7 @@
 
 #include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
+#include "utilitaires/macros.hh"
 
 #include "broyage.hh"
 #include "compilatrice.hh"
@@ -459,7 +460,7 @@ static void détermine_classe_argument_aggrégé(TypeCompose const *type,
     /* 3. If the size of the aggregate exceeds a single eightbyte, each is classified separately.
      *    Each eightbyte gets initialized to class NO_CLASS. */
     auto huitoctets = kuri::tablet<Huitoctet, 4>();
-    for (auto i = 0; i < nombre_huitoctets; i++) {
+    for (auto i = 0u; i < nombre_huitoctets; i++) {
         huitoctets.ajoute({ClasseArgument::NO_CLASS});
     }
 
@@ -2311,7 +2312,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
                                 << nom_structure << ".rembourrage" << nombre_rembourrage;
 
                     auto virgule = ", db ";
-                    for (int i = 0; i < rembourrage; i++) {
+                    for (auto i = 0u; i < rembourrage; i++) {
                         enchaineuse << virgule << "0";
                         virgule = ", ";
                     }
@@ -2345,7 +2346,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
                             << ".rembourrage" << nombre_rembourrage;
 
                 auto virgule = ", db ";
-                for (int i = 0; i < rembourrage; i++) {
+                for (auto i = 0u; i < rembourrage; i++) {
                     enchaineuse << virgule << "0";
                     virgule = ", ";
                 }

@@ -108,7 +108,7 @@ StatistiquesTypage &Sémanticienne::donne_stats_typage()
 
 void Sémanticienne::rassemble_statistiques(Statistiques &stats)
 {
-    auto mémoire_utilisée = 0l;
+    auto mémoire_utilisée = int64_t(0);
     POUR (m_arbres_aplatis) {
         mémoire_utilisée += it->noeuds.taille_mémoire();
         mémoire_utilisée += taille_de(ArbreAplatis);

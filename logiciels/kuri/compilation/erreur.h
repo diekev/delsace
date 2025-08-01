@@ -133,12 +133,12 @@ struct Erreur {
     Erreur(Erreur &) = delete;
     Erreur &operator=(Erreur &) = delete;
 
-    Erreur(Erreur &&autre)
+    Erreur(Erreur &&autre) noexcept
     {
         this->permute(autre);
     }
 
-    Erreur &operator=(Erreur &&autre)
+    Erreur &operator=(Erreur &&autre) noexcept
     {
         this->permute(autre);
         return *this;

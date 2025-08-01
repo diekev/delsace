@@ -6,6 +6,9 @@ gmon.out
 test.db
 config.json
 principale
+CMakeSettings.json
+out/
+.vs/
 
 logiciels/kuri/arbre_syntaxique/allocatrice.cc
 logiciels/kuri/arbre_syntaxique/allocatrice.hh
