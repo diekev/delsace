@@ -186,7 +186,22 @@ class BibliothèqueExécutable {
 
     ~BibliothèqueExécutable() noexcept;
 
-    COPIE_CONSTRUCT(BibliothèqueExécutable);
+    EMPECHE_COPIE(BibliothèqueExécutable);
+
+    BibliothèqueExécutable(BibliothèqueExécutable &&autre) noexcept
+    {
+        void *tmp = m_handle;
+        m_handle = autre.m_handle;
+        autre.m_handle = tmp;
+    }
+
+    BibliothèqueExécutable &operator =(BibliothèqueExécutable &&autre) noexcept
+    {
+        void *tmp = m_handle;
+        m_handle = autre.m_handle;
+        autre.m_handle = tmp;
+        return *this;
+    }
 
     explicit operator bool() const noexcept;
 
