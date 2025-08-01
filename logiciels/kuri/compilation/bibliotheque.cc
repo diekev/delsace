@@ -244,6 +244,8 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
     if (architecture == ArchitectureCible::X64) {
         ajoute_chemins_depuis_env("LIB", résultat, chemins_connus);
         ajoute_chemins_depuis_env("LIBPATH", résultat, chemins_connus);
+        // Pour Kernel32
+        résultat.ajoute("C:\\Windows\\System32\\");
     }
     // A FAIRE : version 32-bit
 #else
@@ -549,6 +551,10 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
     }
 
     auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
+
+    if (nom == "Kernel32") {
+        chemin_dynamique = "C:\\Windows\\System32\\Kernel32.dll";
+    }
 
     if (chemin_dynamique == "") {
         espace

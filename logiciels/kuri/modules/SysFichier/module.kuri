@@ -5,9 +5,15 @@ charge "chemin"
 charge "exploratrice"
 charge "fichier"
 charge "fichier_paginé_mémoire"
-charge "linux"
 charge "liste_entrées_dossier"
 charge "requête"
+
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    charge "linux"
+}
+sinon si SYS_EXP == SystèmeExploitation.WINDOWS {
+    charge "windows"
+}
 
 /*
 

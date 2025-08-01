@@ -1059,6 +1059,8 @@ nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
 /** \nom unistd.h
  * \{ */
 
+#si SYS_EXP == SystèmeExploitation.LINUX {
+
 charge "confname"
 
 SEEK_SET :: 0 /* Seek from beginning of file.  */
@@ -1113,6 +1115,8 @@ fdatasync :: fonc (fd: z32) -> z32 #externe libc
 readlink :: fonc (pathname: ChaineC, tampon: *z8, taille_tampon: n64) -> z64 #externe libc
 
 symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
+
+}
 
 /** \} */
 
