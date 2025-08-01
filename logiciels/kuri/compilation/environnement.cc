@@ -341,7 +341,7 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     auto options_compilateur = options_pour_fichier_objet(compilateur, options);
 
     Enchaineuse enchaineuse;
-    enchaineuse << '"' << compilateur << '"' << " ";
+    enchaineuse << compilateur << " ";
 
     POUR (options_compilateur) {
         enchaineuse << it << " ";
