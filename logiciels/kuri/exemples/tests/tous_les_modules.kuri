@@ -28,6 +28,12 @@ génère_script :: fonc ()
             }
         }
 
+        #si SYS_EXP == SystèmeExploitation.LINUX {
+            si nom_fichier == Windows {
+                retourne
+            }
+        }
+
         ensemble_ajoute(ensemble, copie_chaine(nom_fichier))
     }
 
