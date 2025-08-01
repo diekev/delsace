@@ -29,7 +29,7 @@ génère_script :: fonc ()
         }
 
         #si SYS_EXP == SystèmeExploitation.LINUX {
-            si nom_fichier == Windows {
+            si nom_fichier == "Windows" {
                 retourne
             }
         }
