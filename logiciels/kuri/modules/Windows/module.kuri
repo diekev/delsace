@@ -5,6 +5,16 @@ STD_OUTPUT_HANDLE : DWORD : -11
 STD_ERROR_HANDLE : DWORD : -12
 
 DWORD :: n32
-HANDLE :: n32 
+LPDWORD :: *DWORD
+HANDLE :: *rien
+LCPVOID :: *rien
+OVERLAPPED :: struct #externe
+LPOVERLAPPED :: *OVERLAPPED
 
 GetStdHandle :: fonc (nStdHandle: DWORD) -> HANDLE #externe libkernel32
+
+CloseHandle :: fonc (hOBject: HANDLE) -> bool #externe libkernel32
+
+WriteFile :: fonc (hFile: HANDLE, lpBuffer: LPCVOID, nNumberOfBytesToWrite: DWORD, lpOverlapped: LPOVERLAPPED, lpOverlappedCompletion: LPOVERLAPPED_COMPLETION_ROUTINE) -> bool #externe libkernel32
+
+// WriteFileEx :: fonc (hFile: HANDLE, lpBuffer: LPCVOID, nNumberOfBytesToWrite: DWORD, nNUmberOfBytesWritten: LPDWORD, lpOverlapped: LPOVERLAPPED) -> bool #externe libkernel32
