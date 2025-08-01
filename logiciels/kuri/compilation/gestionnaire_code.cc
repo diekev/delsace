@@ -1733,7 +1733,12 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         // m_état_chargement_fichiers.ajoute_unité_pour_charge_ou_importe(*adresse_unité);
     }
     else {
-        m_noeuds_à_valider.ajoute({espace, it});
+        if (tous_les_fichiers_à_parser_le_sont()) {
+            requiers_typage(espace, it);
+        }
+        else {
+            m_noeuds_à_valider.ajoute({espace, it});
+        }
     }
 }
 

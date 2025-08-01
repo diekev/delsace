@@ -184,7 +184,11 @@ class BibliothèqueExécutable {
 
     ~BibliothèqueExécutable() noexcept;
 
-    COPIE_CONSTRUCT(BibliothèqueExécutable);
+    EMPECHE_COPIE(BibliothèqueExécutable);
+
+    BibliothèqueExécutable(BibliothèqueExécutable &&autre) noexcept;
+
+    BibliothèqueExécutable &operator=(BibliothèqueExécutable &&autre) noexcept;
 
     explicit operator bool() const noexcept;
 
