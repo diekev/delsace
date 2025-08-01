@@ -696,7 +696,7 @@ insère_mode_DansHead :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
             parseuse.dépile_tous_les_éléments_jusque(TAG_template)
             parseuse.pile_insertion_template.taille -= 1
-            parseuse.restaure_mode_insertion_appropriemment()
+            parseuse.reset_the_insertion_mode_appropriately()
             retourne
         }
 
@@ -1213,15 +1213,29 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_select {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
-            _ := parseuse.insère_élément_html(lexème)
-            parseuse.frameset_ok = faux
-
-            si fait_partie_de(parseuse.mode_insertion, insère_mode_DansTable, insère_mode_DansCaption, insère_mode_DansCorpsTable, insère_mode_DansRow, insère_mode_DansCell) {
-                parseuse.mode_insertion = insère_mode_DansSelectDansTable
+            // If the parser was created as part of the HTML fragment parsing algorithm (fragment case)
+            // and the context element passed to that algorithm is a select element:
+            si parseuse.crée_par_html_fragment_parsing && parseuse.fragment_context.local_name == TAG_select {
+                // Parse error.
+                // Ignore the token.
             }
+            // Otherwise, if the stack of open elements has a select element in scope:
+            sinon si possède_dans_portée(*parseuse.pile_éléments_ouvert, TAG_select) {
+                // Parse error.
+                // Ignore the token.
+                // Pop elements from the stack of open elements until a select element has been popped from the stack.
+                parseuse.dépile_tous_les_éléments_jusque(TAG_select)
+            }
+            // Otherwise:
             sinon {
-                parseuse.mode_insertion = insère_mode_DansSelect
+                // Reconstruct the active formatting elements, if any.
+                parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+
+                // Insert an HTML element for the token.
+                _ := parseuse.insère_élément_html(lexème)
+
+                // Set the frameset-ok flag to "not ok".
+                parseuse.frameset_ok = faux
             }
 
             retourne
@@ -1700,7 +1714,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             parseuse.dépile_tous_les_éléments_jusque(TAG_table)
-            parseuse.restaure_mode_insertion_appropriemment()
+            parseuse.reset_the_insertion_mode_appropriately()
             parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
             retourne
         }
@@ -1749,7 +1763,7 @@ insère_mode_DansTable :: fonc (parseuse: *Parseuse, lexème: Lexème)
             }
 
             parseuse.dépile_tous_les_éléments_jusque(TAG_table)
-            parseuse.restaure_mode_insertion_appropriemment()
+            parseuse.reset_the_insertion_mode_appropriately()
             retourne
         }
 
@@ -2097,143 +2111,6 @@ insère_mode_DansCell :: fonc (parseuse: *Parseuse, lexème: Lexème)
     parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
 }
 
-insère_mode_DansSelect :: fonc (parseuse: *Parseuse, lexème: Lexème)
-{
-    si lexème.genre == GenreLexème.Caractère {
-        si lexème.point_de_code == NUL {
-            erreur_de_parsage(parseuse, "caractère nul dans <select>")
-            retourne
-        }
-
-        parseuse.insère_caractère(lexème.point_de_code)
-        retourne
-    }
-
-    si lexème.genre == GenreLexème.Commentaire {
-        parseuse.insère_commentaire(lexème)
-        retourne
-    }
-
-    si lexème.genre == GenreLexème.Doctype {
-        erreur_de_parsage(parseuse, "<doctype> dans <select>")
-        retourne
-    }
-
-    si lexème.genre == GenreLexème.DébutTag {
-        si lexème.nom == TAG_html {
-            parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
-            retourne
-        }
-
-        si lexème.nom == TAG_option {
-            si parseuse.noeud_courant().local_name == TAG_option {
-                dépile(*parseuse.pile_éléments_ouvert)
-            }
-
-            _ := parseuse.insère_élément_html(lexème)
-            retourne
-        }
-
-        si lexème.nom == TAG_optgroup {
-            si parseuse.noeud_courant().local_name == TAG_option {
-                dépile(*parseuse.pile_éléments_ouvert)
-            }
-
-            si parseuse.noeud_courant().local_name == TAG_optgroup {
-                dépile(*parseuse.pile_éléments_ouvert)
-            }
-
-            _ := parseuse.insère_élément_html(lexème)
-            retourne
-        }
-
-        si lexème.nom == TAG_select {
-            erreur_de_parsage(parseuse, "<select> inattendu")
-
-            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, TAG_select) {
-                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
-                retourne
-            }
-
-            parseuse.dépile_tous_les_éléments_jusque(TAG_select)
-            parseuse.restaure_mode_insertion_appropriemment()
-            retourne
-        }
-
-        si fait_partie_de(lexème.nom, TAG_input, TAG_keygen, TAG_textarea) {
-            erreur_de_parsage(parseuse, "élément inattendu dans <select>")
-
-            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, TAG_select) {
-                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
-                retourne
-            }
-
-            parseuse.dépile_tous_les_éléments_jusque(TAG_select)
-            parseuse.restaure_mode_insertion_appropriemment()
-            retourne
-        }
-
-        si fait_partie_de(lexème.nom, TAG_script, TAG_template) {
-            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
-            retourne
-        }
-    }
-
-    si lexème.genre == GenreLexème.FinTag {
-        si lexème.nom == TAG_optgroup {
-            si parseuse.noeud_courant().local_name == TAG_option && parseuse.pile_éléments_ouvert.éléments[parseuse.pile_éléments_ouvert.éléments.taille - 1].local_name == TAG_optgroup {
-                dépile(*parseuse.pile_éléments_ouvert)
-            }
-
-            si parseuse.noeud_courant().local_name != TAG_optgroup {
-                erreur_de_parsage(parseuse, "attendu <optgroup> sur la pile d'éléments ouverts")
-                retourne
-            }
-
-            dépile(*parseuse.pile_éléments_ouvert)
-            retourne
-        }
-
-        si lexème.nom == TAG_option {
-            si parseuse.noeud_courant().local_name != TAG_option {
-                erreur_de_parsage(parseuse, "attendu <option> sur la pile d'éléments ouverts")
-                retourne
-            }
-
-            dépile(*parseuse.pile_éléments_ouvert)
-            retourne
-        }
-
-        si lexème.nom == TAG_select {
-            si !possède_dans_portée_select(*parseuse.pile_éléments_ouvert, TAG_select) {
-                erreur_de_parsage(parseuse, "aucun <select> dans la portée <select>")
-                retourne
-            }
-
-            parseuse.dépile_tous_les_éléments_jusque(TAG_select)
-            parseuse.restaure_mode_insertion_appropriemment()
-            retourne
-        }
-
-        si fait_partie_de(lexème.nom, TAG_template) {
-            parseuse.gère_lexème_pour_mode(insère_mode_DansHead, lexème)
-            retourne
-        }
-    }
-
-    si lexème.genre == GenreLexème.FinDeFichier {
-        parseuse.gère_lexème_pour_mode(insère_mode_DansBody, lexème)
-        retourne
-    }
-
-    erreur_de_parsage(parseuse, "lexème inattendu dans <select>")
-}
-
-insère_mode_DansSelectDansTable :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
-{
-    panique("algorithme d'insertion incomplet")
-}
-
 insère_mode_DansFrameSet :: fonc (parseuse: *Parseuse @inutilisée, lexème: Lexème @inutilisée)
 {
     panique("algorithme d'insertion incomplet")
@@ -2306,7 +2183,7 @@ insère_mode_DansTemplate :: fonc (parseuse: *Parseuse, lexème: Lexème)
         parseuse.dépile_tous_les_éléments_jusque(TAG_template)
         enlève_éléments_jusqu_au_dernier_marqueur(*parseuse.liste_éléments_actifs_formattage)
         parseuse.pile_insertion_template.taille -= 1
-        parseuse.restaure_mode_insertion_appropriemment()
+        parseuse.reset_the_insertion_mode_appropriately()
         parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème)
         retourne
     }
@@ -2664,114 +2541,114 @@ erreur_de_parsage :: fonc (parseuse: *Parseuse, message: chaine)
     tableau_ajoute(*parseuse.erreurs, message)
 }
 
-restaure_mode_insertion_appropriemment :: fonc (parseuse: *Parseuse)
+/* https://html.spec.whatwg.org/multipage/parsing.html#reset-the-insertion-mode-appropriately */
+reset_the_insertion_mode_appropriately :: fonc (parseuse: *Parseuse)
 {
-    dernier := faux
-    index := parseuse.pile_éléments_ouvert.éléments.taille - 1
+    // 1. Let last be false.
+    last := faux
+
+    // 2. Let node be the last node in the stack of open elements.
+    node_index := parseuse.pile_éléments_ouvert.éléments.taille - 1
 
     boucle {
-        noeud := parseuse.pile_éléments_ouvert.éléments[index]
-
-        si index == 0 {
-            dernier = vrai
+        // 3. Loop: If node is the first node in the stack of open elements,
+        //    then set last to true, and, if the parser was created as part of the HTML fragment parsing algorithm (fragment case),
+        //    set node to the context element passed to that algorithm.
+        node := parseuse.pile_éléments_ouvert.éléments[node_index]
+        si node_index == 0 {
+            last = vrai
 
             si parseuse.crée_par_html_fragment_parsing {
-                noeud = parseuse.fragment_context
+                node = parseuse.fragment_context
             }
         }
 
-        si noeud.local_name == TAG_select {
-            si !dernier {
-                index_ancêtre := index
-
-                tantque index_ancêtre != 0 {
-                    ancêtre := parseuse.pile_éléments_ouvert.éléments[index_ancêtre]
-
-                    si ancêtre.local_name == TAG_template {
-                        arrête
-                    }
-
-                    si ancêtre.local_name == TAG_table {
-                        parseuse.mode_insertion = insère_mode_DansSelectDansTable
-                        retourne
-                    }
-
-                    index_ancêtre -= 1
-                }
-            }
-
-            parseuse.mode_insertion = insère_mode_DansSelect
-            retourne
-        }
-
-        si noeud.local_name == TAG_td || noeud.local_name == TAG_th {
+        // 4. If node is a td or th element and last is false, then switch the insertion mode to "in cell" and return.
+        si (node.local_name == TAG_td || node.local_name == TAG_th) && last == faux {
             parseuse.mode_insertion = insère_mode_DansCell
             retourne
         }
 
-        si noeud.local_name == TAG_tr {
+        // 5. If node is a tr element, then switch the insertion mode to "in row" and return.
+        si node.local_name == TAG_tr {
             parseuse.mode_insertion = insère_mode_DansRow
             retourne
         }
 
-        si fait_partie_de(noeud.local_name, TAG_tbody, TAG_thead, TAG_tfoot) {
+        // 6. If node is a tbody, thead, or tfoot element, then switch the insertion mode to "in table body" and return.
+        si (node.local_name == TAG_tbody || node.local_name == TAG_thead || node.local_name == TAG_tfoot) {
             parseuse.mode_insertion = insère_mode_DansCorpsTable
             retourne
         }
 
-        si noeud.local_name == TAG_caption {
+        // 7. If node is a caption element, then switch the insertion mode to "in caption" and return.
+        si node.local_name == TAG_caption {
             parseuse.mode_insertion = insère_mode_DansCaption
             retourne
         }
 
-        si noeud.local_name == TAG_colgroup {
+        // 8. If node is a colgroup element, then switch the insertion mode to "in column group" and return.
+        si node.local_name == TAG_colgroup {
             parseuse.mode_insertion = insère_mode_DansGroupeColonne
             retourne
         }
 
-        si noeud.local_name == TAG_table {
+        // 9. If node is a table element, then switch the insertion mode to "in table" and return.
+        si node.local_name == TAG_table {
             parseuse.mode_insertion = insère_mode_DansTable
             retourne
         }
 
-        si noeud.local_name == TAG_template {
+        // 10. If node is a template element, then switch the insertion mode to the current template insertion mode and return.
+        si node.local_name == TAG_template {
             // À FAIRE : pile de mode d'insertion pour les templates
             parseuse.mode_insertion = parseuse.pile_insertion_template[parseuse.pile_insertion_template.taille - 1]
             retourne
         }
 
-        si noeud.local_name == TAG_head && !dernier {
+        // 11. If node is a head element and last is false, then switch the insertion mode to "in head" and return.
+        si node.local_name == TAG_head && last == faux {
             parseuse.mode_insertion = insère_mode_DansHead
             retourne
         }
 
-        si noeud.local_name == TAG_body {
+        // 12. If node is a body element, then switch the insertion mode to "in body" and return.
+        si node.local_name == TAG_body {
             parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
-        si noeud.local_name == TAG_frameset {
+        // 13. If node is a frameset element, then switch the insertion mode to "in frameset" and return. (fragment case)
+        si node.local_name == TAG_frameset {
+            assert(parseuse.crée_par_html_fragment_parsing)
             parseuse.mode_insertion = insère_mode_DansFrameSet
             retourne
         }
 
-        si noeud.local_name == TAG_html {
+        // 14. If node is an html element, run these substeps:
+        si node.local_name == TAG_html {
+            // 1. If the head element pointer is null, switch the insertion mode to "before head" and return. (fragment case)
             si parseuse.élément_head == nul {
                 parseuse.mode_insertion = insère_mode_AvantHead
-            }
-            sinon {
-                parseuse.mode_insertion = insère_mode_AprèsHead
+                retourne
             }
 
+            // 2. Otherwise, the head element pointer is not null, switch the insertion mode to "after head" and return.
+            parseuse.mode_insertion = insère_mode_AprèsHead
             retourne
         }
 
-        si dernier {
+        // 15. If last is true, then switch the insertion mode to "in body" and return. (fragment case)
+        si last {
+            assert(parseuse.crée_par_html_fragment_parsing)
             parseuse.mode_insertion = insère_mode_DansBody
             retourne
         }
 
-        index -= 1
+        // 16. Let node now be the node before node in the stack of open elements.
+        node_index -= 1
+
+        // 17. Return to the step labeled loop.
     }
 }
 
@@ -3227,7 +3104,7 @@ HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_de
     // Let this start tag token be the start tag token of the context node, e.g. for the purposes of determining if it is an HTML integration point.
 
     // 11. Reset the parser's insertion mode appropriately.
-    restaure_mode_insertion_appropriemment(*parseuse)
+    reset_the_insertion_mode_appropriately(*parseuse)
 
     // 12. Set the parser's form element pointer to the nearest node to the context element that is a form element (going straight up the ancestor chain, and including the element itself, if it is a form element), if any. (If there is no such form element, the form element pointer keeps its initial value, null.)
     parent : *Noeud = context
