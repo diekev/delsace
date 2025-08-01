@@ -348,6 +348,10 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     }
 
 #ifdef _MSC_VER
+    /* Utilisation de C11 pour _Alignas, _Thread_Local, etc. */
+    enchaineuse << "/std:c11 ";
+    /* Chutis l'avertissement sur const manquant pour les assignements. */
+    enchaineuse << "/wd4090 ";
     /* NOTE : le nom de sortie doit être collé à "/Fo" */
     enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << '"' << fichier_sortie << '"';
 #else
