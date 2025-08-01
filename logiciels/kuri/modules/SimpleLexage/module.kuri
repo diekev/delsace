@@ -704,6 +704,13 @@ donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8) ->
 
     tantque !lexeuse.fini() {
         c := donne_caractère_courant(lexeuse)
+
+        si c == '\\' {
+            lexeuse.avance(2)
+            fin_lexème += 2
+            continue
+        }
+
         si c == début {
             arrête
         }
