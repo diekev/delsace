@@ -56,7 +56,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type);
 struct TransformationType {
     TypeTransformation type{};
     /* Pour les transformations entre type base et type dérivé. */
-    uint32_t décalage_type_base = -1u;
+    uint32_t décalage_type_base = uint32_t(-1);
     int64_t index_membre = 0;
     Type const *type_cible = nullptr;
 
