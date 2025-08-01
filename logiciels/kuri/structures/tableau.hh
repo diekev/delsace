@@ -55,12 +55,12 @@ struct tableau {
         return *this;
     }
 
-    tableau(tableau &&autre)
+    tableau(tableau &&autre) noexcept
     {
         permute(autre);
     }
 
-    tableau &operator=(tableau &&autre)
+    tableau &operator=(tableau &&autre) noexcept
     {
         permute(autre);
         return *this;
