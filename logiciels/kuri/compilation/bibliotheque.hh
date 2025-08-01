@@ -188,20 +188,9 @@ class BibliothèqueExécutable {
 
     EMPECHE_COPIE(BibliothèqueExécutable);
 
-    BibliothèqueExécutable(BibliothèqueExécutable &&autre) noexcept
-    {
-        void *tmp = m_handle;
-        m_handle = autre.m_handle;
-        autre.m_handle = tmp;
-    }
+    BibliothèqueExécutable(BibliothèqueExécutable &&autre) noexcept;
 
-    BibliothèqueExécutable &operator =(BibliothèqueExécutable &&autre) noexcept
-    {
-        void *tmp = m_handle;
-        m_handle = autre.m_handle;
-        autre.m_handle = tmp;
-        return *this;
-    }
+    BibliothèqueExécutable &operator=(BibliothèqueExécutable &&autre) noexcept;
 
     explicit operator bool() const noexcept;
 
