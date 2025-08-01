@@ -44,7 +44,7 @@ struct chaine {
         }
     }
 
-    chaine(chaine &&autre)
+    chaine(chaine &&autre) noexcept
     {
         permute(autre);
     }
@@ -89,7 +89,7 @@ struct chaine {
         return *this;
     }
 
-    chaine &operator=(chaine &&autre)
+    chaine &operator=(chaine &&autre) noexcept
     {
         permute(autre);
         return *this;
