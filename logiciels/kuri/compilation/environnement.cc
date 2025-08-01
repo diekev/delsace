@@ -495,7 +495,7 @@ static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique 
                                                          ArchitectureCible architecture_cible)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << '"' << donne_compilateur_cpp() << '"';
+    enchaineuse << donne_compilateur_cpp();
 
 #ifdef _MSC_VER
     enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entrée << "\""

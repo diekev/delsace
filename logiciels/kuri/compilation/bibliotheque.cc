@@ -223,8 +223,6 @@ static void ajoute_chemins_depuis_env(const char *variable,
             continue;
         }
 
-        dbg() << it;
-
         chemins.ajoute(it);
         chemins_connus.insère(it);
     }
@@ -481,8 +479,6 @@ BibliothèqueExécutable::BibliothèqueExécutable(kuri::chaine_statique chemin)
 #endif
 
     m_handle = dlopen(filepath, RTLD_LAZY);
-    dbg() << __func__ << " : " << m_handle;
-    dbg() << dlerror();
 }
 
 BibliothèqueExécutable::~BibliothèqueExécutable() noexcept
@@ -512,8 +508,6 @@ void *BibliothèqueExécutable::operator()(kuri::chaine_statique symbol)
 {
     /* Vide les erreurs. */
     dlerror();
-
-    dbg() << __func__ << " : " << m_handle << symbol;
 
     auto symbol_c = std::string(symbol.pointeur(), size_t(symbol.taille()));
     const auto sym = dlsym(m_handle, symbol_c.c_str());
@@ -561,14 +555,10 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
             ->rapporte_erreur(
                 site, "Impossible de charger une bibliothèque dynamique pour l'exécution du code")
             .ajoute_message("La bibliothèque « ", nom, " » n'a pas de version dynamique !\n");
-
-        chemins.cliche();
         return false;
     }
 
-    dbg() << __func__ << " : " << chemin_dynamique;
     this->bib = BibliothèqueExécutable(chemin_dynamique);
-    dbg() << (!this->bib);
     if (!this->bib) {
         espace->rapporte_erreur(
             site, enchaine("Impossible de charger la bibliothèque « ", nom, " » !\n"));

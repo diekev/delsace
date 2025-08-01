@@ -116,7 +116,6 @@ class GestionnaireCode {
     kuri::tableau<UniteCompilation *> unités_en_attente{};
     kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
     bool metaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
-    bool m_réinitialise_cycles_pour_charge_ou_import = true;
 
     struct InfoUnitéTemporisée {
         UniteCompilation *unité = nullptr;
