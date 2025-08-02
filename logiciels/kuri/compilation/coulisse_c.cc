@@ -955,8 +955,13 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine_
 #  define SYMBOLE_PUBLIC __attribute__ ((visibility ("default")))
 #  define SYMBOLE_LOCAL  __attribute__ ((visibility ("hidden")))
 #else
-#  define SYMBOLE_PUBLIC
-#  define SYMBOLE_LOCAL
+#  ifdef _MSC_VER
+#    define SYMBOLE_PUBLIC __declspec(dllexport)
+#    define SYMBOLE_LOCAL
+#  else
+#    define SYMBOLE_PUBLIC
+#    define SYMBOLE_LOCAL
+#  endif
 #endif
 
 #ifdef __GNUC__
@@ -1878,7 +1883,9 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             }
 
             if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANS_ASAN)) {
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+                os << " __declspec(no_sanitize_address) ";
+#else
                 os << " __attribute__((no_sanitize_address)) ";
 #endif
             }
