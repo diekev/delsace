@@ -1026,11 +1026,11 @@ static void déclare_visibilité_globale(Enchaineuse &os,
     }
 
     if (valeur_globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
-        #ifdef _MSC_VER
+#ifdef _MSC_VER
         os << "_Thread_local ";
-        #else
+#else
         os << "__thread ";
-        #endif
+#endif
     }
 
     if (valeur_globale->est_constante) {
@@ -1841,9 +1841,9 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
         if (atome_fonc->decl &&
             atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-            #ifndef _MSC_VER
+#ifndef _MSC_VER
             os << "__attribute__ ((nonnull (1))) ";
-            #endif
+#endif
         }
     }
     else {
@@ -1858,18 +1858,18 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                 }
 
                 if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
-                    #ifdef _MSC_VER
+#ifdef _MSC_VER
                     os << " __declspec(noreturn) ";
-                    #else
+#else
                     os << " __attribute__((noreturn)) ";
-                    #endif
+#endif
                 }
             }
 
             if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
-                #ifndef _MSC_VER
+#ifndef _MSC_VER
                 os << " __attribute__((constructor)) ";
-                #endif
+#endif
             }
             else if (atome_fonc->decl->ident == ID::__point_de_sortie_dynamique) {
 #ifndef _MSC_VER
@@ -1878,7 +1878,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             }
 
             if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANS_ASAN)) {
-#    ifndef _MSC_VER
+#ifndef _MSC_VER
                 os << " __attribute__((no_sanitize_address)) ";
 #endif
             }
