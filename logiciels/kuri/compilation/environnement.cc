@@ -221,6 +221,15 @@ static kuri::chaine_statique donne_compilateur_cpp()
 #endif
 }
 
+static kuri::chaine_statique donne_lieur()
+{
+#ifdef _MSC_VER
+    return "link";
+#else
+    return COMPILATEUR_CXX_COULISSE_C;
+#endif
+}
+
 /* Pour les options d'avertissements et d'erreurs de GCC, voir :
  * https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html */
 static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilateur,
@@ -397,12 +406,44 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
                                    BibliothèquesUtilisées const &bibliothèques)
 {
-    auto compilateur = donne_compilateur_cpp();
+    auto compilateur = donne_lieur();
     auto options_compilateur = options_pour_liaison(compilateur, options);
 
     Enchaineuse enchaineuse;
     enchaineuse << compilateur << " ";
 
+#ifdef _MSC_VER
+    enchaineuse << "/machine:X64 ";
+
+    POUR (fichiers_entrée) {
+        enchaineuse << "\"" << it << "\" ";
+    }
+
+    enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
+
+    enchaineuse << " /OUT:\"" << nom_sortie_résultat_final(options) << "\" ";
+
+    POUR (bibliothèques.donne_tableau()) {
+        if (it->nom == "r16") {
+            continue;
+        }
+
+        auto chemin_parent = it->chemin_de_base(options);
+        if (chemin_parent.taille() != 0) {
+            enchaineuse << "/LIBPATH:\"" << chemin_parent << "\" ";
+        }
+
+        auto const liaison = donne_type_liaison_pour_bibliothèque(options, bibliothèques, *it);
+        enchaineuse << it->nom;
+
+        if (liaison == TypeLiaison::STATIQUE) {
+            enchaineuse << ".lib ";
+        }
+        else {
+            enchaineuse << ".dll ";
+        }
+    }
+#else
     POUR (options_compilateur) {
         enchaineuse << it << " ";
     }
@@ -476,7 +517,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     enchaineuse << " -Wl,-Bdynamic";
 
     enchaineuse << " -o " << nom_sortie_résultat_final(options);
-
+#endif
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
 
