@@ -1,4 +1,115 @@
 
+/* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
+
+empl => ajoute erreur si nom variable est nom d'un membre
+
+MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
+
+
+erreur de compilation :
+    fonction :: fonc (a: z32)
+    fonction :: fonc (a: z32, b := 5)
+
+    fonction(6)
+
+    nous devrions choisir la fonction qui n'a pas de valeur par défaut
+
+adressage relatif :
+*~z32 z32
+
+//////////// fonctionnalités
+
+assignation dans l'initialisaiton de tableau :
+    x := [0 = 8, 2 = 9, 3 = 5]
+
+constructeurs types
+    z8('9')
+
+interpolation de chaines:
+
+        imprime("J'ai \(pommes) pommes et \(bananes), soit \(pommes + bananes) fruits\n")
+        => imprime("J'ai \(0) pommes et \(1) bananes, soit \(2) fruits", pommes, bananes, pommes + bananes)
+
+
+mémoire(x) => x.*
+
+mémoire(x comme *r32) => x.(*r32).*
+
+(x comme *Struct).y => x.(*Struct).y
+
+
+// inversion des accès de rubriques
+    pour recréer la syntaxe française
+
+    x.y.z   => z.y.x
+
+    (x.y).z => z.(y.x)
+    (x.y comme *z32).z => z.(y.x comme *z32)
+            confusion avec opérateur de transtypage, si nous l'ajoutons
+
+    (*z32).y.x
+
+    x.y[2].z   => z.[2]y.x
+            confusion avec construction tableau typé ??? il y a 'y' après
+
+    *Module.Type => *Type.Module
+
+    idx comme z32 => idx.z32
+            impossible d'ajouter des rubriques pour min, max, epsilon, etc. dans les types scalaires (colésion de symbole)
+
+    mémoire(x) => x.*
+        => *.x
+
+    mémoire(x comme *r32) => x.(*r32).*
+        => *.(*r32).x
+
+    (x comme *Struct).y => x.(*Struct).y
+        => y.(*Struct).x
+
+    .Enum => Enum.
+
+-----
+a : *rien = nul
+saufsi a == nul {
+    exit(1)
+}
+
+génère : egl *rien nul, *rien nul
+    -> simplifie en "vrai"
+----
+
+stocke_trace_appel()
+restaure_trace_appel()
+
+vérifie_indexage(tableau, index)
+vérifie_rubrique_union(union, index)
+vérifie_transtypage // pour les troncations
+vérifie_surflux
+
+SupportExécution
+----
+
+bibliohtèques externes/systèmes
+-- GMP
+-- FFMPEG
+-- MySQL
+-- OpenGL
+-- OpenSSL
+-- POSIX
+-- Unicode
+-- WebP
+
+-- Delsace/CURL
+
+
+Nettoyage
+-- Exétron (renomme Moultfilage ?)
+
+test_dessin_texte -> Fragment
+
+copie / tableau_copie
+----
+
 - ne crée pas de trace d'appels pour les fonctions pures
 
 ADN pour les arguments de compilation
