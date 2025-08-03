@@ -83,7 +83,6 @@ restaure_trace_appel()
 
 vérifie_indexage(tableau, index)
 vérifie_rubrique_union(union, index)
-vérifie_eini
 vérifie_transtypage // pour les troncations
 vérifie_surflux
 

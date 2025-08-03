@@ -87,3 +87,21 @@ panique_erreur_non_gérée :: fonc () -> rien #sanstrace #interface #sansretour
 {
     panique("une erreur n'a pas été piégée")
 }
+
+vérifie_typage_extraction_eini :: fonc (info_eini: *InfoType, info_cible: *InfoType) #sanstrace #interface
+{
+    si info_eini == info_cible {
+        retourne
+    }
+
+    info_eini_pointe_structure := est_pointeur_de_structure(info_eini)
+    info_cible_pointe_structure := est_pointeur_de_structure(info_cible)
+
+    si info_eini_pointe_structure && info_cible_pointe_structure {
+        si est_struct_ou_employeuse_de(info_cible_pointe_structure, info_eini_pointe_structure) {
+            retourne
+        }
+    }
+
+    panique("extraction d'une valeur depuis un eini avec le mauvais type\n  Le type contenu par l'eini est '%' alors que le type cible de l'extraction est '%'", chaine_pour_type(info_eini), chaine_pour_type(info_cible))
+}
