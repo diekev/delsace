@@ -102,6 +102,12 @@ vérifie_typage_extraction_eini :: fonc (info_eini: *InfoType, info_cible: *Info
             retourne
         }
     }
+    sinon si info_eini.id == GenreInfoType.ENTIER && info_cible.id == GenreInfoType.ÉNUM {
+        info_énum := info_cible comme *InfoTypeÉnum
+        si info_énum.type_sous_jacent == info_eini {
+            retourne
+        }
+    }
 
     panique("extraction d'une valeur depuis un eini avec le mauvais type\n  Le type contenu par l'eini est '%' alors que le type cible de l'extraction est '%'", chaine_pour_type(info_eini), chaine_pour_type(info_cible))
 }
