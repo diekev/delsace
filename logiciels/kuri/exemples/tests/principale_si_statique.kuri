@@ -1,0 +1,5 @@
+
+principale :: fonc ()
+{
+    imprimeln("Ok")
+}

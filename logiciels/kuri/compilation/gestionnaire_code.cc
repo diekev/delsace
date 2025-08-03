@@ -368,6 +368,11 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         else if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
             ajoute_info_de(type);
         }
+        else if (transformation.type == TypeTransformation::EXTRAIT_EINI) {
+            ajoute_info_de(type);
+            assert(interface->decl_vérifie_typage_extraction_eini);
+            ajoute_fonction(interface->decl_vérifie_typage_extraction_eini);
+        }
 
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
          * RI. À FAIRE: généralise pour toutes les variables. */
