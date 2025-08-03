@@ -129,7 +129,7 @@ ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
 
 parse_données :: fonc (parseuse: *ParseuseHTTP)
 {
-    boucle {
+    tantque !fini(*parseuse.parseuse_chaine) {
         résultat := parseuse.état_parsage(parseuse)
 
         parseuse.dernier_résultat = résultat
