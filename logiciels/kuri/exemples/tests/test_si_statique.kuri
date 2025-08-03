@@ -1,0 +1,6 @@
+
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    importe Fondation
+    charge "principale_si_statique"
+}
+
