@@ -307,7 +307,7 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         parseuse.données_message.ajoute_entête(position_nom, position_valeur)
     }
 
-    retourne RésultatParsage.OK
+    retourne RésultatParsage.MESSAGE_INCOMPLET
 }
 
 parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
