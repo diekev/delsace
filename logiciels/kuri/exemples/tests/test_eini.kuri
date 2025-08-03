@@ -1,0 +1,24 @@
+importe Fondation
+
+/*
+   eini est un type qui détient une adresse vers une valeur, et une adresse vers l'InfoType pour le type de la valeur
+ */
+
+principale :: fonc ()
+{
+    /* Nous pouvons construire un eini depuis n'importe quel type. */
+    valeur_eini : eini = 1.0
+
+    /* Nous pouvons également extraire la valeur de l'eini via "comme" */
+    valeur := valeur_eini comme r32
+
+    saufsi valeur == 1.0 {
+        imprimeln("La valeur extraite n'est pas la bonne.")
+        exit(1)
+    }
+
+    /* Erreur : mauvais type pour l'extraction.
+    valeur_entière := valeur_eini comme z32
+    imprimeln("La valeur est : %", valeur_entière)
+    */
+}

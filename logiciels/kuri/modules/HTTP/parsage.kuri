@@ -97,6 +97,7 @@ ParseuseHTTP :: struct {
 
     contenu_chunked: bool
     contenu_fixe: bool
+    une_entête_de_taille_de_contenu_fut_spécifiée: bool
 
     pour_sous_message := faux
 }
@@ -129,7 +130,7 @@ ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
 
 parse_données :: fonc (parseuse: *ParseuseHTTP)
 {
-    boucle {
+    tantque !fini(*parseuse.parseuse_chaine) {
         résultat := parseuse.état_parsage(parseuse)
 
         parseuse.dernier_résultat = résultat
@@ -307,7 +308,7 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         parseuse.données_message.ajoute_entête(position_nom, position_valeur)
     }
 
-    retourne RésultatParsage.OK
+    retourne RésultatParsage.MESSAGE_INCOMPLET
 }
 
 parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
@@ -334,6 +335,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
             retourne erreur_de_parsage("Content-Length n'est pas un nombre")
         }
 
+        parseuse.une_entête_de_taille_de_contenu_fut_spécifiée = vrai
         parseuse.contenu_fixe = vrai
         parseuse.taille_contenu = taille_contenu
         parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
@@ -343,6 +345,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
     }
 
     si parseuse.pour_sous_message {
+        parseuse.une_entête_de_taille_de_contenu_fut_spécifiée = vrai
         parseuse.contenu_fixe = vrai
         parseuse.taille_contenu = (parseuse.parseuse_chaine.chn.taille - parseuse.parseuse_chaine.curseur) comme z32
         parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
@@ -488,8 +491,14 @@ finalise_message_base :: fonc (parseuse: *ParseuseHTTP) -> MessageHTTP
         chn_taille_contenu := entier_vers_chaine(parseuse.message_en_cours.contenu.taille)
         fusionne_entête(*parseuse.message_en_cours, "Content-Length", chn_taille_contenu)
     }
-    sinon {
+    sinon si parseuse.une_entête_de_taille_de_contenu_fut_spécifiée {
         parseuse.message_en_cours.contenu = sous_chaine(parseuse.données, parseuse.données_message.position_contenu)
+    }
+    sinon {
+        restant := donne_données_après_message(parseuse)
+        parseuse.message_en_cours.contenu = chaine(restant.pointeur comme *z8, restant.taille)
+        /* Consomme le reste. */
+        parseuse.parseuse_chaine.curseur = parseuse.parseuse_chaine.chn.taille comme z32
     }
 
     retourne parseuse.message_en_cours

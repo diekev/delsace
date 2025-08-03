@@ -58,6 +58,7 @@ DEFINIS_IDENTIFIANT_COMMUN(panique_erreur_non_geree, "panique_erreur_non_gérée
 DEFINIS_IDENTIFIANT_COMMUN(panique_hors_memoire, "panique_hors_mémoire")
 DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(panique_membre_union)
 DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(principale)
+DEFINIS_IDENTIFIANT_COMMUN_SIMPLE(vérifie_typage_extraction_eini)
 
 /* Fonctions externes. */
 DEFINIS_IDENTIFIANT_COMMUN(free_, "free")

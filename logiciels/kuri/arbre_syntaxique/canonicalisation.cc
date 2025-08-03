@@ -440,6 +440,41 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
 
             simplifie(inst->expression);
+
+            if (inst->transformation.type == TypeTransformation::EXTRAIT_EINI) {
+                // À FAIRE : utilise une temporaire pour éviter d'évaluer 2 fois l'expression.
+                auto lexème = inst->lexème;
+
+                auto type_info_type = typeuse.type_info_type_;
+                auto type_pointeur_info_type = typeuse.type_pointeur_pour(type_info_type, false);
+                auto référence_membre = assem->crée_référence_membre(
+                    lexème, inst->expression, type_pointeur_info_type, 1);
+
+                auto expression_pour_info_de = assem->crée_référence_type(lexème);
+                expression_pour_info_de->type = typeuse.type_type_de_donnees(inst->type);
+                auto expr_info_de = assem->crée_info_de(lexème, expression_pour_info_de);
+                expr_info_de->type = type_pointeur_info_type;
+
+                auto expression_pour_type_pointer_info_type = assem->crée_expression_unaire(
+                    lexème, assem->crée_référence_déclaration(lexème));
+
+                auto transtype_info_de = assem->crée_comme(
+                    lexème, expr_info_de, expression_pour_type_pointer_info_type);
+                transtype_info_de->transformation.type =
+                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+                transtype_info_de->transformation.type_cible = type_pointeur_info_type;
+                transtype_info_de->type = type_pointeur_info_type;
+
+                auto appel = assem->crée_appel(
+                    inst->lexème,
+                    espace->compilatrice().interface_kuri->decl_vérifie_typage_extraction_eini,
+                    TypeBase::RIEN);
+                appel->paramètres_résolus.ajoute(référence_membre);
+                appel->paramètres_résolus.ajoute(transtype_info_de);
+
+                ajoute_expression(appel);
+            }
+
             return inst;
         }
         case GenreNoeud::INSTRUCTION_POUR:

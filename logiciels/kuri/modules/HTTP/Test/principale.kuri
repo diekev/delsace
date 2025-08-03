@@ -1,0 +1,12 @@
+importe Fondation
+importe HTTP
+
+principale :: fonc ()
+{
+    parseuse: ParseuseMessageServeuseHTTP
+
+    ajourne_données(*parseuse, "HTTP/1.1 200 OK\r\n")
+    ajourne_données(*parseuse, "Content-Type: ")
+    ajourne_données(*parseuse, "text/html\r\nServer: ")
+    ajourne_données(*parseuse, "BaseHTTP/0.6 Python/3.10.12\r\n")
+}

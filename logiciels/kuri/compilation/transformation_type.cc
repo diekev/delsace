@@ -445,7 +445,6 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 }
 
                 if (POUR_TRANSTYPAGE) {
-                    // À FAIRE : pour les einis, nous devrions avoir une meilleure sûreté de type
                     return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                               type_vers};
                 }
