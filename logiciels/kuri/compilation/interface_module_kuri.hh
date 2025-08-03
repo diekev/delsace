@@ -49,7 +49,9 @@ using Type = NoeudDéclarationType;
                             Op(decl_creation_contexte, ID::crée_contexte)                         \
                                 Op(decl_init_execution_kuri, ID::init_execution_kuri)             \
                                     Op(decl_fini_execution_kuri, ID::fini_execution_kuri)         \
-                                        Op(decl_init_globales_kuri, ID::init_globales_kuri)
+                                        Op(decl_init_globales_kuri, ID::init_globales_kuri)       \
+                                            Op(decl_vérifie_typage_extraction_eini,               \
+                                               ID::vérifie_typage_extraction_eini)
 
 struct InterfaceKuri {
 #define DECLARATION_MEMBRE(nom_membre, id) NoeudDéclarationEntêteFonction *nom_membre = nullptr;
