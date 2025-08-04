@@ -105,25 +105,35 @@ est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...DOMString) -> bool
 /* https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node */
 trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
 {
+    // 1. If there was an override target specified, then let target be the override target.
     cible := si cible_override {
         cible_override
     }
     sinon {
+        // Otherwise, let target be the current node.
         parseuse.noeud_courant()
     }
 
+    // 2. Determine the adjusted insertion location using the first matching steps from the following list:
     position_ajustée_d_insertion: *Noeud
+
     si parseuse.adoption_activée && est_un_élément_parmis(cible, TAG_table, TAG_tbody, TAG_thead, TAG_tfoot, TAG_tr) {
+        // If foster parenting is enabled and target is a table, tbody, tfoot, thead, or tr element
         panique("adoption non implémenté")
     }
     sinon {
+        // Let adjusted insertion location be inside target, after its last child (if any).
         position_ajustée_d_insertion = cible
     }
 
+    // 3. If the adjusted insertion location is inside a template element,
+    //    let it instead be inside the template element's template contents,
+    //    after its last child (if any).
     si position_ajustée_d_insertion.est_élément_type(TAG_template) {
         panique("insertion dans template non-implémentée")
     }
 
+    // 4. Return the adjusted insertion location.
     retourne position_ajustée_d_insertion
 }
 
