@@ -759,11 +759,14 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
     // 12. If response is null, then set response to the result of running the steps corresponding to the first matching statement:
     si response == nul {
         // fetchParams’s preloaded response candidate is non-null
+        si fetch_params.preloaded_response_candidate {
+            panique("non-implémenté")
             // Wait until fetchParams’s preloaded response candidate is not "pending".
 
             // Assert: fetchParams’s preloaded response candidate is a response.
 
             // Return fetchParams’s preloaded response candidate.
+        }
 
         // request’s current URL’s origin is same origin with request’s origin, and request’s response tainting is "basic"
         // request’s current URL’s scheme is "data"
@@ -815,9 +818,14 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
             // Return corsWithPreflightResponse.
 
         // Otherwise
+        sinon {
             // Set request’s response tainting to "cors".
+            request.response_tainting = "cors"
 
             // Return the result of running HTTP fetch given fetchParams.
+            response = http_fetch(user_agent, fetch_params)
+            retourne
+        }
     }
 
     // 13. If recursive is true, then return response.
