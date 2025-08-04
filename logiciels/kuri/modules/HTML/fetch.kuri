@@ -1016,7 +1016,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
         retourne network_error(request)
     }
     sinon si schéma == "http" || schéma == "https" {
-        retourne user_agent.lance_requête(request)
+        retourne http_fetch(user_agent, fetch_params)
     }
 
     retourne network_error(request)
@@ -1118,7 +1118,21 @@ scheme_fetch_blob :: fonc (request: *Request) -> *Response
     // 10. Return response.
 }
 
-/** } */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.3 HTTP Fetch
+ * https://fetch.spec.whatwg.org/#http-fetch
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#concept-http-fetch */
+http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
+{
+    /* À FAIRE : standardise */
+    retourne user_agent.lance_requête(fetch_params.request)
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom 6. Data URLs
