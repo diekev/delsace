@@ -417,6 +417,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_tr {
         élément = crée_platform_object(document, HTMLTableRowElement)
     }
+    sinon si tag == TAG_template {
+        élément = crée_platform_object(document, HTMLTemplateElement)
+    }
     sinon si tag == TAG_textarea {
         élément = crée_platform_object(document, HTMLTextAreaElement)
     }
@@ -428,6 +431,12 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
 
     initialise_élément(élément, document, tag)
+
+    si tag == TAG_template {
+        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
+        template_element_sur_création(élément comme *HTMLTemplateElement)
+    }
+
     retourne élément
 }
 
@@ -4858,6 +4867,76 @@ table_section_element_sur_applique_presentational_hints :: fonc (base: *Élémen
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTemplateElement
+ * https://html.spec.whatwg.org/multipage/scripting.html#the-template-element
+ * \{ */
+
+#portée_export
+
+HTMLTemplateElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_template_element
+
+    content: *DocumentFragment
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
+donne_template_contents :: fonc (template: *HTMLTemplateElement) -> *DocumentFragment
+{
+    assert(template.content != nul)
+    retourne template.content
+}
+
+#portée_fichier
+
+table_virtuelle_template_element := TableVirtuelleÉlément(
+    classe = HTMLTemplateElement,
+    sur_destruction = élément_sur_destruction,
+)
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
+template_element_sur_création :: fonc (template: *HTMLTemplateElement)
+{
+    // 1. Let doc be the template element's node document's appropriate template contents owner document.
+    doc := donne_appropriate_template_contents_owner_document(template.document)
+
+    // 2. Create a DocumentFragment object whose node document is doc and host is the template element.
+    fragment := crée_noeud_fragment_document(doc)
+    fragment.host = template
+
+    // 3. Set the template element's template contents to the newly created DocumentFragment object.
+    template.content = fragment
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#appropriate-template-contents-owner-document */
+donne_appropriate_template_contents_owner_document :: fonc (doc: *Document) -> *Document
+{
+    // 1. If doc is not a Document created by this algorithm, then:
+    saufsi doc.créé_par_appropriate_template_contents_owner_document {
+        // 1. If doc does not yet have an associated inert template document, then:
+        saufsi doc.inert_template_document {
+            // 1. Let new doc be a new Document (whose browsing context is null). This is "a Document created by this algorithm" for the purposes of the step above.
+            new_doc := crée_noeud_document(JS.donne_tas_de_mémoire(doc), doc.realm)
+            new_doc.créé_par_appropriate_template_contents_owner_document = vrai
+
+            // 2. If doc is an HTML document, mark new doc as an HTML document also.
+            new_doc.type = doc.type
+
+            // 3. Set doc's associated inert template document to new doc.
+            doc.inert_template_document = new_doc
+        }
+
+        // 2. Set doc to doc's associated inert template document.
+        doc = doc.inert_template_document
+    }
+
+    // 2. Return doc.
+    retourne doc
 }
 
 /** \} */
