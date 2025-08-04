@@ -130,7 +130,8 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
     //    let it instead be inside the template element's template contents,
     //    after its last child (if any).
     si position_ajustée_d_insertion.est_élément_type(TAG_template) {
-        panique("insertion dans template non-implémentée")
+        template := position_ajustée_d_insertion comme *HTMLTemplateElement
+        position_ajustée_d_insertion = template.donne_template_contents()
     }
 
     // 4. Return the adjusted insertion location.
