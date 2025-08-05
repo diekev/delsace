@@ -2377,6 +2377,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
     }
 
     request := loge(Request)
+    request.client = image.donne_relevant_settings_object()
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"

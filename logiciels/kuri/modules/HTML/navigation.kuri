@@ -1386,16 +1386,18 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // 2. Let documentResource be entry's document state's resource.
 
     // 3. Let request be a new request, with
-    //     url entry's URL
-    //     client  sourceSnapshotParams's fetch client
-    //     destination "document"
-    //     credentials mode    "include"
-    //     use-URL-credentials flag    set
-    //     redirect mode   "manual"
-    //     replaces client id  navigable's active document's relevant settings object's id
-    //     mode    "navigate"
-    //     referrer    entry's document state's request referrer
-    //     referrer policy entry's document state's request referrer policy
+    //     url                            entry's URL
+    //     client                         sourceSnapshotParams's fetch client
+    //     destination                    "document"
+    //     credentials mode               "include"
+    //     use-URL-credentials flag       set
+    //     redirect mode                  "manual"
+    //     replaces client id             navigable's active document's relevant settings object's id
+    //     mode                           "navigate"
+    //     referrer                       entry's document state's request referrer
+    //     referrer policy                entry's document state's request referrer policy
+    //     policy container               sourceSnapshotParams's source policy container
+    //     traversable for user prompts   navigable's top-level traversable
     request := loge(Request)
     request.définis_url(copie_url(entry.url))
     request.client = source_snapshot_params.fetch_client
@@ -1407,6 +1409,8 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     request.mode = "navigate"
     request.referrer = entry.document_state.request_referrer
     request.referrer_policy = entry.document_state.request_referrer_policy
+    request.policy_container = source_snapshot_params.source_policy_container
+    request.traversable_for_user_prompts = navigable.donne_top_level_traversable()
 
     // 4. If documentResource is a POST resource, then:
 

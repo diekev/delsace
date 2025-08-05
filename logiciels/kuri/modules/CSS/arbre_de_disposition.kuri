@@ -1804,6 +1804,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     process_response.sur_destruction = sur_destruction_process_response
 
     request := loge(HTML.Request)
+    request.client = HTML.donne_relevant_settings_object(ctx.document)
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"

@@ -72,6 +72,50 @@ donne_referrer_policy :: fonc (policy_container: RequestPolicyContainer) -> Refe
     retourne policy_container.policy_container.referrer_policy
 }
 
+RequestTraversable :: énum {
+    Client
+    NoTraversable
+}
+
+RequestTraversableType :: union {
+    E: RequestTraversable
+    T: *TraversableNavigable
+}
+
+est_client :: fonc (request_traversable: RequestTraversableType) -> bool
+{
+    discr request_traversable {
+        E(e) {
+            retourne e == RequestTraversable.Client
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+RequestOrigin :: énum {
+    Client
+}
+
+/* https://fetch.spec.whatwg.org/#concept-request-origin */
+RequestOriginType :: union {
+    C: RequestOrigin
+    O: Origin
+}
+
+est_client :: fonc (origin: RequestOriginType) -> bool
+{
+    discr origin {
+        C(c) {
+            retourne c == RequestOrigin.Client
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 Header :: struct {
     name: chaine
     value: chaine
@@ -87,7 +131,6 @@ Request :: struct {
     client: *EnvironmentSettings
     reserved_client: *Environment
     replaces_client_id: chaine
-    window: *rien
     keepalive: bool
 
     /* "audio", "audioworklet", "document", "embed", "font", "frame", "iframe", "image", "json", "manifest", "object", "paintworklet", "report", "script", "serviceworker", "sharedworker", "style", "track", "video", "webidentity", "worker", or "xslt" */
@@ -131,6 +174,16 @@ Request :: struct {
     integrity_metadata := crée_chaine_utf16_unique_vide()
 
     priority: FetchPriorityState
+
+    // https://fetch.spec.whatwg.org/#concept-request-origin
+    // A request has an associated origin, which is "client" or an origin. Unless stated otherwise it is "client".
+    origin : RequestOriginType = RequestOrigin.Client
+
+    // https://fetch.spec.whatwg.org/#concept-request-window
+    // A request has an associated traversable for user prompts,
+    // that is "no-traversable", "client", or a traversable navigable.
+    // Unless stated otherwise it is "client".
+    traversable_for_user_prompts: RequestTraversableType = RequestTraversable.Client 
 }
 
 définis_url :: fonc (request: *Request, url: *URL)
@@ -526,6 +579,7 @@ FetchTimingInfo :: struct {
  * https://fetch.spec.whatwg.org/#fetching
  * \{ */
 
+/* https://fetch.spec.whatwg.org/#concept-fetch */
 fetch :: fonc (user_agent: *UserAgent,
                request: *Request,
                process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength = nul,
@@ -545,22 +599,25 @@ fetch :: fonc (user_agent: *UserAgent,
     // 3. Let crossOriginIsolatedCapability be false.
     cross_origin_isolated_capability := faux
 
-    // 4. If request’s client is non-null, then:
+    // 4. Populate request from client given request.
+    populate_request_from_client(request)
+
+    // 5. If request’s client is non-null, then:
 
         // 1. Set taskDestination to request’s client’s global object.
 
         // 2. Set crossOriginIsolatedCapability to request’s client’s cross-origin isolated capability.
 
-    // 5. If useParallelQueue is true, then set taskDestination to the result of starting a new parallel queue.
+    // 6. If useParallelQueue is true, then set taskDestination to the result of starting a new parallel queue.
     si use_parallel_queue {
         panique("parallel queue non-implémentée")
     }
 
-    // À FAIRE : 6. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
+    // À FAIRE : 7. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
     timing_info: FetchTimingInfo
     timing_info.render_blocking = request.render_blocking
 
-    // 7. Let fetchParams be a new fetch params whose
+    // 8. Let fetchParams be a new fetch params whose
     //    request is request,
     //    timing info is timingInfo,
     //    process request body chunk length is processRequestBodyChunkLength,
@@ -586,16 +643,12 @@ fetch :: fonc (user_agent: *UserAgent,
     fetch_params.task_destination = task_destination
     fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability
 
-    // 8. If request’s body is a byte sequence, then set request’s body to request’s body as a body.
+    // 9. If request’s body is a byte sequence, then set request’s body to request’s body as a body.
 
-    // 9. If request’s window is "client", then set request’s window to request’s client, if request’s client’s global object is a Window object; otherwise "no-window".
-
-    // 10. If request’s origin is "client", then set request’s origin to request’s client’s origin.
-
-    // 11. If all of the following conditions are true:
+    // 10. If all of the following conditions are true:
     //     request’s URL’s scheme is an HTTP(S) scheme
     //     request’s mode is "same-origin", "cors", or "no-cors"
-    //     request’s window is an environment settings object
+    //     request’s client is not null, and request’s client’s global object is a Window object
     //     request’s method is `GET`
     //     request’s unsafe-request flag is not set or request’s header list is empty
     //     then:
@@ -608,20 +661,7 @@ fetch :: fonc (user_agent: *UserAgent,
 
         // 4. If foundPreloadedResource is true and fetchParams’s preloaded response candidate is null, then set fetchParams’s preloaded response candidate to "pending".
 
-    // 12. If request’s policy container is "client", then:
-    si request.policy_container == "client" {
-        // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
-        si request.client != nul {
-            imprime("À FAIRE : set request’s policy container to a clone of request’s client’s policy container\n")
-            request.policy_container = loge(PolicyContainer)
-        }
-        // 2. Otherwise, set request’s policy container to a new policy container.
-        sinon {
-            request.policy_container = loge(PolicyContainer)
-        }
-    }
-
-    // 13. If request’s header list does not contain `Accept`, then:
+    // 11. If request’s header list does not contain `Accept`, then:
     saufsi possède_entête(request, "Accept") {
         // 1. Let value be `*/*`.
         value := "*/*"
@@ -663,11 +703,11 @@ fetch :: fonc (user_agent: *UserAgent,
         ajoute_entête(request, "Accept", value)
     }
 
-    // 14. If request’s header list does not contain `Accept-Language`, then user agents should append (`Accept-Language, an appropriate header value) to request’s header list.
+    // 12. If request’s header list does not contain `Accept-Language`, then user agents should append (`Accept-Language, an appropriate header value) to request’s header list.
 
-    // 15. If request’s internal priority is null, then use request’s priority, initiator, destination, and render-blocking in an implementation-defined manner to set request’s internal priority to an implementation-defined object.
+    // 13. If request’s internal priority is null, then use request’s priority, initiator, destination, and render-blocking in an implementation-defined manner to set request’s internal priority to an implementation-defined object.
 
-    // 16. If request is a subresource request, then:
+    // 14. If request is a subresource request, then:
     // si request.is_subressource() {
     //    imprime("À FAIRE : [request.is_subressource()]\n")
         // 1. Let record be a new fetch record whose request is request and controller is fetchParams’s controller.
@@ -675,11 +715,52 @@ fetch :: fonc (user_agent: *UserAgent,
         // 2. Append record to request’s client’s fetch group list of fetch records.
     //}
 
-    // 17. Run main fetch given fetchParams.
+    // 15. Run main fetch given fetchParams.
     main_fetch(user_agent, fetch_params)
 
-    // 18. Return fetchParams’s controller.
+    // 16. Return fetchParams’s controller.
     retourne fetch_params.controller
+}
+
+/* https://fetch.spec.whatwg.org/#populate-request-from-client */
+populate_request_from_client :: fonc (request: *Request)
+{
+    // 1. If request’s traversable for user prompts is "client":
+    si request.traversable_for_user_prompts.est_client() {
+
+        // 1. Set request’s traversable for user prompts to "no-traversable".
+        request.traversable_for_user_prompts = RequestTraversable.NoTraversable
+
+        // 2. If request’s client is non-null:
+        si request.client != nul {
+            // 1. Let global be request’s client’s global object.
+            // global := request.client.donne_global_object()
+
+            // À FAIRE 2. If global is a Window object and global’s navigable is not null, then set request’s traversable for user prompts to global’s navigable’s traversable navigable.
+        }
+    }
+
+    // 2. If request’s origin is "client":
+    si request.origin.est_client() {
+        // 1. Assert: request’s client is non-null.
+        assert(request.client != nul)
+
+        // 2. Set request’s origin to request’s client’s origin.
+        request.origin = request.client.donne_origin()
+    }
+
+    // 3. If request’s policy container is "client":
+    si request.policy_container == "client" {
+        // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
+        si request.client != nul {
+            imprime("À FAIRE : set request’s policy container to a clone of request’s client’s policy container\n")
+            request.policy_container = loge(PolicyContainer)
+        }
+        // 2. Otherwise, set request’s policy container to a new policy container.
+        sinon {
+            request.policy_container = loge(PolicyContainer)
+        }
+    }
 }
 
 /* https://fetch.spec.whatwg.org/#document-accept-header-value */
