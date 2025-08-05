@@ -2790,7 +2790,7 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
         next_index += 1
     }
 
-    set(résultat, STR_length, Valeur(Number = noeud.éléments.taille comme r64), vrai)
+    set(résultat, STR_length, Valeur(Number = next_index comme r64), vrai)
     si interpréteuse.possède_exception() {
         retourne throw_completion(interpréteuse.donne_exception())
     }
