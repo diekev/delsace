@@ -830,13 +830,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_object_expression(parseuse, lexème, properties)
         }
         CrochetOuvrant {
-            parseuse.consomme()
-
-            éléments := parse_expressions_séparées_par_des_virgules(parseuse)
-
-            parseuse.consomme(GenreLexème.CrochetFermant)
-
-            retourne crée_array_literal(parseuse, lexème, éléments)
+            retourne parse_array_litteral(parseuse, lexème)
         }
         Let {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
@@ -1453,6 +1447,34 @@ parse_statement_list :: fonc (parseuse: *Parseuse) -> [..]*Statement
     }
 
     retourne statements
+}
+
+parse_array_litteral :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
+{
+    parseuse.consomme()
+
+    éléments: [..]*Expression
+
+    tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
+        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+
+        tableau_ajoute(*éléments, expr)
+
+        saufsi parseuse.apparie(GenreLexème.Virgule) {
+            arrête
+        }
+
+        parseuse.consomme()
+        /* Permet d'avoir des virgules en fin de liste sans expression suivante :
+         * [a, b, c,] */
+        saufsi apparie_expression(parseuse) {
+            arrête
+        }
+    }
+
+    parseuse.consomme(GenreLexème.CrochetFermant)
+
+    retourne crée_array_literal(parseuse, lexème, éléments)
 }
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
