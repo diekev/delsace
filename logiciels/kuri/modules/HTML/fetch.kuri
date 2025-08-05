@@ -766,8 +766,7 @@ populate_request_from_client :: fonc (request: *Request)
     si request.policy_container == "client" {
         // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
         si request.client != nul {
-            imprime("À FAIRE : set request’s policy container to a clone of request’s client’s policy container\n")
-            request.policy_container = loge(PolicyContainer)
+            request.policy_container = clone(request.client.donne_policy_container())
         }
         // 2. Otherwise, set request’s policy container to a new policy container.
         sinon {
