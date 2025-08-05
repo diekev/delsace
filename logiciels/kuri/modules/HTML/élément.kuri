@@ -220,7 +220,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_na
         valeur_chaine := converti_vers_chaine(mémoire(valeur).donne_chaine_utf16())
         diffère déloge(valeur_chaine)
 
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(élément, "script attribute", valeur_chaine)
+        bloqué := should_element_s_inline_behavior_be_blocked(élément, "script attribute", valeur_chaine)
         si bloqué == "Blocked" {
             retourne faux
         }
@@ -4072,7 +4072,7 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 19. */
     saufsi possède_attr_src {
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(el, "script", texte_source)
+        bloqué := should_element_s_inline_behavior_be_blocked(el, "script", texte_source)
         si bloqué == "Blocked" {
             retourne
         }
@@ -4658,7 +4658,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     texte_source := extrait_texte_noeud(style)
     diffère déloge(texte_source)
 
-    bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(element, "style", texte_source)
+    bloqué := should_element_s_inline_behavior_be_blocked(element, "style", texte_source)
     si bloqué == "Blocked" {
         retourne
     }
