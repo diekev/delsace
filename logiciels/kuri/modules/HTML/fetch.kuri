@@ -129,7 +129,11 @@ Request :: struct {
     unsafe_request: bool
     body: Optionnel(chaine) // À FAIRE : plus complexe
     client: *EnvironmentSettings
+
+    /* https://fetch.spec.whatwg.org/#concept-request-reserved-client
+     * A request has an associated reserved client (null, an environment, or an environment settings object). Unless stated otherwise it is null. */
     reserved_client: *Environment
+
     replaces_client_id: chaine
     keepalive: bool
 
@@ -140,12 +144,17 @@ Request :: struct {
     credentials_mode := "same-origin"
     use_url_credentials: bool
 
-    /* "no-referrer", "client", or a URL */
+    /* https://fetch.spec.whatwg.org/#concept-request-referrer
+     * A request has an associated referrer, which is "no-referrer", "client", or a URL. Unless stated otherwise it is "client". */
     referrer := "client"
 
     cryptographic_nonce: DOMString
 
     referrer_policy := ReferrerPolicy.EmptyString
+
+    /* https://fetch.spec.whatwg.org/#request-top-level-navigation-initiator-origin
+     * A request has an associated top-level navigation initiator origin, which is an origin or null. Unless stated otherwise it is null. */
+    top_level_initiator_origin: Optionnel(Origin)
 
     policy_container : RequestPolicyContainer = "client"
 
@@ -160,6 +169,10 @@ Request :: struct {
 
     /* "basic", "cors", or "opaque" */
     response_tainting := "basic"
+
+    /* https://fetch.spec.whatwg.org/#request-service-workers-mode
+     * A request has an associated service-workers mode, that is "all" or "none". Unless stated otherwise it is "all". */
+    service_workers_mode := "all"
 
     /* empty string, "download", "imageset", "manifest", "prefetch", "prerender", or "xslt" */
     initiator := ""

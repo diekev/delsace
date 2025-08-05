@@ -1198,6 +1198,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     navigation_id := params.navigation_id
     navigation_params := params.navigation_params
     completion_steps := params.completion_steps
+    csp_navigation_type := params.csp_navigation_type
 
     // 1. Assert: this is running in parallel.
     assert(user_agent.est_exécuté_en_parallèle())
@@ -1217,7 +1218,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, nav_timing_type)
+        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type)
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -1369,15 +1370,14 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 }
 
-/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
-    To create navigation params by fetching given a session history entry entry, a navigable navigable, a source snapshot params sourceSnapshotParams, a target snapshot params targetSnapshotParams, a string cspNavigationType, a navigation ID-or-null navigationId, and a NavigationTimingType navTimingType, perform the following steps. They return a navigation params, a non-fetch scheme navigation params, or null.
- */
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching */
 create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
                                               source_snapshot_params: &SourceSnapshotParams,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
                                               navigation_id: Optionnel(NavigationID),
+                                              csp_navigation_type: chaine,
                                               nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
@@ -1412,7 +1412,24 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     request.policy_container = source_snapshot_params.source_policy_container
     request.traversable_for_user_prompts = navigable.donne_top_level_traversable()
 
-    // 4. If documentResource is a POST resource, then:
+    // 4. If navigable is a top-level traversable, then set request's top-level navigation initiator origin to entry's document state's initiator origin.
+    si navigable.est_top_level_traversable() {
+        request.top_level_initiator_origin = entry.document_state.initiator_origin
+    }
+
+    // 5. If request's client is null:
+    si request.client == nul {
+        // 1. Set request's origin to a new opaque origin.
+        request.origin = crée_nouvelle_origin_opaque()
+
+        // 2. Set request's service-workers mode to "all".
+        request.service_workers_mode = "all"
+
+        // 3. Set request's referrer to "no-referrer".
+        request.referrer = "no-referrer"
+    }
+
+    // 6. If documentResource is a POST resource, then:
 
         // 1. Set request's method to `POST`.
 
@@ -1420,38 +1437,41 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
         // 3. Set `Content-Type` to documentResource's request content-type in request's header list.
 
-    // 5. If entry's document state's reload pending is true, then set request's reload-navigation flag.
+    // 7. If entry's document state's reload pending is true, then set request's reload-navigation flag.
     si entry.document_state.reload_pending {
         request.reload_navigation = vrai
     }
-    // 6. Otherwise, if entry's document state's ever populated is true, then set request's history-navigation flag.
+    // 8. Otherwise, if entry's document state's ever populated is true, then set request's history-navigation flag.
     sinon si entry.document_state.ever_populated {
         request.history_navigation = vrai
     }
 
-    // 7. If sourceSnapshotParams's has transient activation is true, then set request's user-activation to true.
+    // 9. If sourceSnapshotParams's has transient activation is true, then set request's user-activation to true.
     si source_snapshot_params.has_transient_activation {
         request.user_activation = vrai
     }
 
-    // 8. If navigable's container is non-null:
-
+    // 10. If navigable's container is non-null:
+    navigable_container := navigable.donne_container()
+    si navigable_container {
         // 1. If the navigable's container has a browsing context scope origin, then set request's origin to that browsing context scope origin.
+        imprimeln("À FAIRE : [% : navigable_container]", #nom_de_cette_fonction)
 
         // 2. Set request's destination to navigable's container's local name.
 
         // 3. If sourceSnapshotParams's fetch client is navigable's container document's relevant settings object, then set request's initiator type to navigable's container's local name.
+    }
 
-    // 9. Let response be null.
+    // 11. Let response be null.
     response: *Response
 
-    // 10. Let responseOrigin be null.
+    // 12. Let responseOrigin be null.
     response_origin: Optionnel(Origin)
 
-    // 11. Let fetchController be null.
+    // 13. Let fetchController be null.
     fetch_controller: *FetchController
 
-    // 12. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
+    // 14. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
     //     url navigable's active document's URL
     //     origin  navigable's active document's origin
     //     cross-origin opener policy  navigable's active document's cross-origin opener policy
@@ -1461,50 +1481,78 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     coop_enforcement_result.origin = navigable.donne_active_document().origin
     coop_enforcement_result.cross_origin_opener_policy = navigable.donne_active_document().cross_origin_opener_policy
 
-    // 13. Let finalSandboxFlags be an empty sandboxing flag set.
+    // 15. Let finalSandboxFlags be an empty sandboxing flag set.
     // final_sandboxing_flags: SandboxingFlags
 
-    // 14. Let responsePolicyContainer be null.
+    // 16. Let responsePolicyContainer be null.
     response_policy_container: *PolicyContainer
 
-    // 15. Let responseCOOP be a new cross-origin opener policy.
+    // 17. Let responseCOOP be a new cross-origin opener policy.
     response_coop: CrossOriginOpenerPolicy
 
-    // 16. Let locationURL be null.
+    // 18. Let locationURL be null.
     location_url: *URL
 
-    // 17. Let currentURL be request's current URL.
+    // 19. Let currentURL be request's current URL.
     current_url := request.donne_url_courant()
 
-    // 18. Let commitEarlyHints be null.
+    // 20. Let commitEarlyHints be null.
 
-    // 19. While true:
+    // 21. While true:
     boucle {
         // 1. If request's reserved client is not null and currentURL's origin is not the same as request's reserved client's creation URL's origin, then:
-
+        si request.reserved_client != nul && !sont_même_origine(current_url.donne_origin(), request.reserved_client.creation_url.donne_origin()) {
+            imprimeln("À FAIRE : [% : request.reserved_client != nul]", #nom_de_cette_fonction)
             // 1. Run the environment discarding steps for request's reserved client.
 
             // 2. Set request's reserved client to null.
 
             // 3. Set commitEarlyHints to null.
+        }
             
         // 2. If request's reserved client is null, then:
-
+        si request.reserved_client == nul {
             // 1. Let topLevelCreationURL be currentURL.
+            top_level_creation_url := current_url
 
             // 2. Let topLevelOrigin be null.
+            top_level_origin: Optionnel(Origin)
 
             // 3. If navigable is not a top-level traversable, then:
-
+            saufsi navigable.est_top_level_traversable() {
                 // 1. Let parentEnvironment be navigable's parent's active document's relevant settings object.
+                parent_environment := navigable.parent.donne_active_document().donne_relevant_settings_object()
 
                 // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
+                top_level_creation_url = parent_environment.top_level_creation_url
 
                 // 3. Set topLevelOrigin to parentEnvironment's top-level origin.
+                top_level_origin = parent_environment.top_level_origin
+            }
 
-            // 4. Set request's reserved client to a new environment whose id is a unique opaque string, target browsing context is navigable's active browsing context, creation URL is currentURL, top-level creation URL is topLevelCreationURL, and top-level origin is topLevelOrigin.
+            // 4. Set request's reserved client to a new environment whose...
+            reserved_environment := loge(Environment)
+            // ...id is a unique opaque string,
+            // À FAIRE : opaque string
+            reserved_environment.id = imprime_chaine("%", reserved_environment)
+            // ...target browsing context is navigable's active browsing context,
+            reserved_environment.target_browsing_context = navigable.donne_active_browsing_context()
+            // ...creation URL is currentURL,
+            reserved_environment.creation_url = copie_url(current_url)
+            // ...top-level creation URL is topLevelCreationURL,
+            reserved_environment.top_level_creation_url = copie_url(top_level_creation_url)
+            // ...and top-level origin is topLevelOrigin.
+            reserved_environment.top_level_origin = top_level_origin
 
-        // 3. If the result of should navigation request of type be blocked by Content Security Policy? given request and cspNavigationType is "Blocked", then set response to a network error and break. [CSP]
+            request.reserved_client = reserved_environment
+        }
+
+        // 3. If the result of should navigation request of type be blocked by Content Security Policy? given request and cspNavigationType is "Blocked",
+        si should_navigation_request_be_blocked(request, csp_navigation_type) == "Blocked" {
+            // then set response to a network error and break. [CSP]
+            response = network_error(request)
+            arrête
+        }
 
         // 4. Set response to null.
         response = nul
@@ -1615,7 +1663,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         entry.url = current_url
     }
 
-    // 20. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
+    // 22. If locationURL is a URL whose scheme is not a fetch scheme, then return a new non-fetch scheme navigation params, with
     //     id  navigationId
     //     navigable   navigable
     //     URL locationURL
@@ -1624,21 +1672,21 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     initiator origin    responseOrigin
     //     navigation timing type  navTimingType
 
-    // 21. If any of the following are true:
+    // 23. If any of the following are true:
     //     response is a network error;
     //     locationURL is failure; or
     //     locationURL is a URL whose scheme is a fetch scheme,
     //     then return null.
 
-    // 22. Assert: locationURL is null and response is not a network error.
+    // 24. Assert: locationURL is null and response is not a network error.
 
-    // 23. Let resultPolicyContainer be the result of determining navigation params policy container
+    // 25. Let resultPolicyContainer be the result of determining navigation params policy container
     //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
     result_policy_container := determine_navigation_params_policy_container(response.donne_url(), entry.document_state.history_policy_container, source_snapshot_params.source_policy_container, nul, response_policy_container)
 
-    // 24. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
+    // 26. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
-    // 25. Return a new navigation params, with
+    // 27. Return a new navigation params, with
     //     id  navigationId
     //     navigable   navigable
     //     request request

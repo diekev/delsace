@@ -20,3 +20,15 @@ le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élém
 
     retourne résultat
 }
+
+/* https://w3c.github.io/webappsec-csp/#should-block-navigation-request */
+should_navigation_request_be_blocked :: fonc (navigation_request: *Request @inutilisée, type: chaine) -> chaine
+{
+    assert(type == "form-submission" || type == "other")
+
+    résultat := "Allowed"
+
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
+
+    retourne résultat
+}
