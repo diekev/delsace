@@ -352,6 +352,12 @@ donne_url :: fonc (response: *Response) -> *URL
     retourne response.url_list[response.url_list.taille - 1]
 }
 
+ajoute_entête :: fonc (response: *Response, nom: chaine, valeur: chaine)
+{
+    entête := Header(nom, valeur)
+    tableau_ajoute(*response.header_list, entête)
+}
+
 donne_mime_type :: fonc (response: *Response) -> chaine
 {
     si response.body_info {
