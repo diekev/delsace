@@ -220,7 +220,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_na
         valeur_chaine := converti_vers_chaine(mémoire(valeur).donne_chaine_utf16())
         diffère déloge(valeur_chaine)
 
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(élément, "script attribute", valeur_chaine)
+        bloqué := should_element_s_inline_behavior_be_blocked(élément, "script attribute", valeur_chaine)
         si bloqué == "Blocked" {
             retourne faux
         }
@@ -417,6 +417,9 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     sinon si tag == TAG_tr {
         élément = crée_platform_object(document, HTMLTableRowElement)
     }
+    sinon si tag == TAG_template {
+        élément = crée_platform_object(document, HTMLTemplateElement)
+    }
     sinon si tag == TAG_textarea {
         élément = crée_platform_object(document, HTMLTextAreaElement)
     }
@@ -428,6 +431,12 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
     }
 
     initialise_élément(élément, document, tag)
+
+    si tag == TAG_template {
+        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
+        template_element_sur_création(élément comme *HTMLTemplateElement)
+    }
+
     retourne élément
 }
 
@@ -2368,6 +2377,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
     }
 
     request := loge(Request)
+    request.client = image.donne_relevant_settings_object()
     request.destination = "image"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
@@ -4062,7 +4072,7 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 19. */
     saufsi possède_attr_src {
-        bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(el, "script", texte_source)
+        bloqué := should_element_s_inline_behavior_be_blocked(el, "script", texte_source)
         si bloqué == "Blocked" {
             retourne
         }
@@ -4087,7 +4097,9 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 21. INCOMPLET : charset */
 
-    /* 22. INCOMPLET */
+    /* 22. Let classic script CORS setting be the current state of el's crossorigin content attribute. */
+    classic_script_cors_setting := donne_cross_origin_content_attribute_state(el)
+
     /* 23. INCOMPLET */
     module_script_credentials := ""
 
@@ -4095,13 +4107,13 @@ prépare :: fonc (el: *HTMLScriptElement)
     cryptographic_nonce := el.cryptographic_nonce
 
     /* 25. INCOMPLET */
-    integrity := ""
+    integrity := crée_chaine_utf16_unique_vide()
 
-    /* 26. INCOMPLET */
-    referrer_policy := ""
+    /* 26. Let referrer policy be the current state of el's referrerpolicy content attribute. */
+    referrer_policy := donne_referrerpolicy_content_attribute_state(el)
 
-    /* 27. INCOMPLET */
-    fetch_priority := ""
+    /* 27. Let fetch priority be the current state of el's fetchpriority content attribute. */
+    fetch_priority := donne_fetch_priority_content_attribute_state(el)
 
     /* 28. */
     métadonnée_parseuse := si el.est_inséré_par_parseuse() {
@@ -4184,7 +4196,7 @@ prépare :: fonc (el: *HTMLScriptElement)
         // 11. Switch on el's type:
         si el.type == TypeScript.CLASSIC {
             // Fetch a classic script given url, settings object, options, classic script CORS setting, encoding, and onComplete.
-            fetch_a_classic_script(user_agent, url, settings_object, options, on_complete)
+            fetch_a_classic_script(user_agent, url, settings_object, options, classic_script_cors_setting, on_complete)
         }
         sinon si el.type == TypeScript.MODULE {
             // If el does not have an integrity attribute, then set options's integrity metadata to the result of resolving a module integrity metadata with url and settings object.
@@ -4451,18 +4463,24 @@ run :: fonc (on_complete: *ScriptFetchComplete, result: *rien)
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#fetch-a-classic-script */
-fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_object: *EnvironmentSettings, options: OptionsFetchScript, on_complete: *ScriptFetchComplete)
+fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_object: *EnvironmentSettings, options: OptionsFetchScript, cors_setting: CORSAttributeState, on_complete: *ScriptFetchComplete)
 {
-    // À FAIRE : standardise
+    // 1. Let request be the result of creating a potential-CORS request given url, "script", and corsSetting.
+    request := create_a_potential_cors_request(url, TAG_script, cors_setting)
 
-    request := loge(Request)
-    request.destination = "script"
-    request.mode = "no-cors"
-    request.redirect_mode = "follow"
-    request.définis_url(url)
+    // 2. Set request's client to settingsObject.
+    request.client = settings_object
+
+    // 3. Set request's initiator type to "script".
+    request.initiator_type = "script"
+
+    // 4. Set up the classic script request given request and options.
+    set_up_the_classic_script_request(request, options)
+
+    // 5. Fetch request with the following processResponseConsumeBody steps given response response and null, failure, or a byte sequence bodyBytes:
 
     RappelProcessResponse :: struct {
-        empl base: BaseProcessResponse
+        empl base: BaseProcessResponseConsumeBody
 
         request: *Request
         user_agent: *UserAgent
@@ -4471,32 +4489,42 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         options: OptionsFetchScript
     }
 
-    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, null_or_bytes: Optionnel([]octet))
     {
-        diffère détruit_response(réponse)
-
         rappel := base comme *RappelProcessResponse
+        diffère détruit_response(response)
 
-        saufsi réponse.body_info {
+        // 1. Set response to response's unsafe response.
+        response = response.donne_unsafe_response()
+
+        // 2. If any of the following are true:
+        //    bodyBytes is null or failure; or
+        //    response's status is not an ok status,
+        si !null_or_bytes.possède_valeur() || !is_ok_status(response.status) {
+            // then run onComplete given null, and abort these steps.
             rappel.on_complete.run(nul)
             retourne
         }
 
-        content_type := réponse.body_info.content_type
-        saufsi est_type_mime_javascript(crée_chaine_utf16_unique(content_type)) {
-            rappel.on_complete.run(nul)
-            retourne
-        }
+        // À FAIRE : 3. Let potentialMIMETypeForEncoding be the result of extracting a MIME type given response's header list.
 
-        contenu := réponse.body.Quelque
+        // 4. Set encoding to the result of legacy extracting an encoding given potentialMIMETypeForEncoding and encoding.
 
+        // 5. Let sourceText be the result of decoding bodyBytes to Unicode, using encoding as the fallback encoding.
+        bytes := null_or_bytes.Quelque
+        contenu := chaine(bytes.pointeur comme *z8, bytes.taille)
+
+        // 6. Let mutedErrors be true if response was CORS-cross-origin, and false otherwise.
+
+        // 7. Let script be the result of creating a classic script given sourceText, settingsObject, response's URL, options, mutedErrors, and url.
         url := copie_url(rappel.request.donne_url_courant())
-
         script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, rappel.options)
+
+        // 8. Run onComplete given script.
         rappel.on_complete.run(script)
     }
 
-    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponseConsumeBody)
     {
         rappel := base comme *RappelProcessResponse
         détruit_request(rappel.request)
@@ -4512,9 +4540,31 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
     process_response.sur_rappel = sur_rappel_process_response
     process_response.sur_destruction = sur_destruction_process_response
 
-    fetch_controller := fetch(user_agent, request, process_response = process_response)
-    diffère détruit_fetch_controller(fetch_controller)
+    _ := fetch(user_agent, request, process_response_consume_body = process_response)
 }
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#set-up-the-classic-script-request */
+set_up_the_classic_script_request :: fonc (request: *Request, options: OptionsFetchScript)
+{
+    // set request's cryptographic nonce metadata to options's cryptographic nonce,
+    request.cryptographic_nonce = options.cryptographic_nonce
+
+    // its integrity metadata to options's integrity metadata,
+    request.integrity_metadata = options.integrity_metadata
+
+    // its parser metadata to options's parser metadata,
+    request.parser_metadata = options.parser_metadata
+
+    // its referrer policy to options's referrer policy,
+    request.referrer_policy = options.referrer_policy
+
+    // its render-blocking to options's render-blocking,
+    request.render_blocking = options.render_blocking
+
+    // and its priority to options's fetch priority.
+    request.priority = options.fetch_priority
+}
+
 
 /** \} */
 
@@ -4648,7 +4698,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     texte_source := extrait_texte_noeud(style)
     diffère déloge(texte_source)
 
-    bloqué := le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp(element, "style", texte_source)
+    bloqué := should_element_s_inline_behavior_be_blocked(element, "style", texte_source)
     si bloqué == "Blocked" {
         retourne
     }
@@ -4858,6 +4908,76 @@ table_section_element_sur_applique_presentational_hints :: fonc (base: *Élémen
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLTemplateElement
+ * https://html.spec.whatwg.org/multipage/scripting.html#the-template-element
+ * \{ */
+
+#portée_export
+
+HTMLTemplateElement :: struct {
+    empl html_element: HTMLElement
+    table = *table_virtuelle_template_element
+
+    content: *DocumentFragment
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
+donne_template_contents :: fonc (template: *HTMLTemplateElement) -> *DocumentFragment
+{
+    assert(template.content != nul)
+    retourne template.content
+}
+
+#portée_fichier
+
+table_virtuelle_template_element := TableVirtuelleÉlément(
+    classe = HTMLTemplateElement,
+    sur_destruction = élément_sur_destruction,
+)
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
+template_element_sur_création :: fonc (template: *HTMLTemplateElement)
+{
+    // 1. Let doc be the template element's node document's appropriate template contents owner document.
+    doc := donne_appropriate_template_contents_owner_document(template.document)
+
+    // 2. Create a DocumentFragment object whose node document is doc and host is the template element.
+    fragment := crée_noeud_fragment_document(doc)
+    fragment.host = template
+
+    // 3. Set the template element's template contents to the newly created DocumentFragment object.
+    template.content = fragment
+}
+
+/* https://html.spec.whatwg.org/multipage/scripting.html#appropriate-template-contents-owner-document */
+donne_appropriate_template_contents_owner_document :: fonc (doc: *Document) -> *Document
+{
+    // 1. If doc is not a Document created by this algorithm, then:
+    saufsi doc.créé_par_appropriate_template_contents_owner_document {
+        // 1. If doc does not yet have an associated inert template document, then:
+        saufsi doc.inert_template_document {
+            // 1. Let new doc be a new Document (whose browsing context is null). This is "a Document created by this algorithm" for the purposes of the step above.
+            new_doc := crée_noeud_document(JS.donne_tas_de_mémoire(doc), doc.realm)
+            new_doc.créé_par_appropriate_template_contents_owner_document = vrai
+
+            // 2. If doc is an HTML document, mark new doc as an HTML document also.
+            new_doc.type = doc.type
+
+            // 3. Set doc's associated inert template document to new doc.
+            doc.inert_template_document = new_doc
+        }
+
+        // 2. Set doc to doc's associated inert template document.
+        doc = doc.inert_template_document
+    }
+
+    // 2. Return doc.
+    retourne doc
 }
 
 /** \} */

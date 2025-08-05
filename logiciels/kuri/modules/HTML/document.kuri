@@ -78,6 +78,11 @@ Document :: struct {
     mode: ModeDocument
     permets_racines_shadow_déclaratives: bool
 
+    créé_par_appropriate_template_contents_owner_document: bool
+
+    /* https://html.spec.whatwg.org/multipage/scripting.html#associated-inert-template-document */
+    inert_template_document: *Document
+
     current_script: *HTMLScriptElement
     pending_parsing_blocking_script: *HTMLScriptElement
     scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement

@@ -56,6 +56,7 @@ GenreLexème :: énum {
     Exponentiation
     ExponentiationÉgal
     Arrow
+    Spread
 
     // opérateurs unaires
     PlusUnaire
@@ -305,7 +306,8 @@ est_lexème_expression_unaire :: fonc (genre: GenreLexème) -> bool
         New,
         Typeof,
         Void,
-        Delete  {
+        Delete,
+        Spread  {
             retourne vrai
         }
         sinon {
@@ -448,7 +450,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.Arrow, 2, Associativité.Droite)
     // définis_données_précédence(GenreLexème.Yield, 2, Associativité.Aucune)
     // définis_données_précédence(GenreLexème.YieldStar, 2, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.Spread, 2, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Spread, 2, Associativité.Aucune)
 
     définis_données_précédence(GenreLexème.OuLogique, 3, Associativité.Gauche)
     définis_données_précédence(GenreLexème.Coalesce, 3, Associativité.Gauche)

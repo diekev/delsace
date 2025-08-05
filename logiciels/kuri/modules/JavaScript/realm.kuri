@@ -83,6 +83,7 @@ Intrinsics :: struct {
     date_prototype: *DatePrototype
     number_prototype: *NumberPrototype
     boolean_prototype: *BooleanPrototype
+    array_iterator_prototype: *Object
 
     array: *ArrayConstructor
     date: *DateConstructor
@@ -130,6 +131,7 @@ create_intrinsics :: fonc (realm: *Realm)
     realm.intrinsics.date_prototype = crée_date_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
     realm.intrinsics.number_prototype = crée_number_prototype(realm, realm.intrinsics.object_prototype)
     realm.intrinsics.boolean_prototype = crée_boolean_prototype(realm, realm.intrinsics.object_prototype)
+    realm.intrinsics.array_iterator_prototype = crée_array_iterator_prototype(realm, realm.intrinsics.object_prototype)
 
     realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
     realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)

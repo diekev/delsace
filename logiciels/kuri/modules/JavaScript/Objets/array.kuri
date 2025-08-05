@@ -394,6 +394,8 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
     résultat.ajoute_fonction_native(STR_join, array_prototype_join)
     résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
     résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
+    résultat.ajoute_fonction_native(STR_values, array_prototype_values)
+    résultat.ajoute_fonction_native(PropertyKey(Symbol = *Symbol_iterator), array_prototype_values)
 
     retourne résultat
 }
@@ -630,6 +632,182 @@ array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeu
 
     // 4. Return ? Call(func, array).
     retourne call(interpréteuse, func, Valeur(Object = array))
+}
+
+/* 23.1.3.38 Array.prototype.values ( )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.values */
+array_prototype_values :: fonc (empl params: *ParamètresObjectCall) -> Valeur
+{
+    // 1. Let O be ? ToObject(this value)
+    O := to_object(interpréteuse, this_value)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
+    }
+
+    // 2. Return CreateArrayIterator(O, value)
+    retourne create_array_iterator(interpréteuse, O, IterationKind.VALUE)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 23.1.5 Array Iterator Objects
+ * \{ */
+#portée_fichier
+
+table_virtuelle_objet_array_iterator := TableVirtuelleObject(classe = ArrayIterator)
+
+#portée_export
+
+IterationKind :: énum {
+    KEY_VALUE
+    KEY
+    VALUE
+}
+
+ArrayIterator :: struct {
+    empl objet: Object
+    table = *table_virtuelle_objet_array_iterator
+
+    iterated_array_like: *Object @slot "[[IteratedArrayLike]]"
+    array_like_next_index: z32 @slot "[[ArrayLikeNextIndex]]"
+    array_like_iteration_kind: IterationKind @slot "[[ArrayLikeIterationKind]]"
+}
+
+array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
+{
+    retourne realm.donne_tas_de_mémoire().alloue(ArrayIterator)
+}
+
+/* 23.1.5.1 CreateArrayIterator ( array, kind )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-createarrayiterator */
+create_array_iterator :: fonc (interpréteuse: *Interpréteuse, array: *Object, kind: IterationKind) -> *ArrayIterator
+{
+    // 1. Let iterator be OrdinaryObjectCreate(%ArrayIteratorPrototype%, « [[IteratedArrayLike]], [[ArrayLikeNextIndex]], [[ArrayLikeIterationKind]] »).
+    realm := interpréteuse.donne_realm()
+    iterator := ordinary_object_create(realm, realm.intrinsics.array_iterator_prototype, array_iterator_instance_crée).vérifie_comme(ArrayIterator)
+
+    // 2. Set iterator.[[IteratedArrayLike]] to array.
+    iterator.iterated_array_like = array
+
+    // 3. Set iterator.[[ArrayLikeNextIndex]] to 0.
+    iterator.array_like_next_index = 0
+
+    // 4. Set iterator.[[ArrayLikeIterationKind]] to kind.
+    iterator.array_like_iteration_kind = kind
+
+    // 5. Return iterator.
+    retourne iterator
+}
+
+/* 23.1.5.2 The %ArrayIteratorPrototype% Object
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-%arrayiteratorprototype%-object */
+crée_array_iterator_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *Object
+{
+    // À FAIRE : %Iterator.prototype%
+    résultat := ordinary_object_create(realm, prototype, object_instance_crée)
+
+    ajoute_fonction_native(résultat, STR_next, array_iterator_prototype_next)
+
+    retourne résultat
+}
+
+/* 23.1.5.2.1 %ArrayIteratorPrototype%.next ( )
+ * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-%arrayiteratorprototype%.next */
+array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> Valeur
+{
+    // 1. Let O be the this value.
+    o := this_value
+
+    // 2. If O is not an Object, throw a TypeError exception.
+    saufsi o.est_object() {
+        _ := interpréteuse.lance_type_error("iterator is not an Object")
+        retourne js_undefined
+    }
+    O := this_value.donne_objet() comme *ArrayIterator
+
+    // 3. If O does not have all of the internal slots of an Array Iterator Instance (23.1.5.3), throw a TypeError exception.
+    saufsi O.table.classe == ArrayIterator {
+        _ := interpréteuse.lance_type_error("Object is not an array iterator")
+        retourne js_undefined
+    }
+
+    // 4. Let array be O.[[IteratedArrayLike]].
+    array := O.iterated_array_like
+
+    // 5. If array is undefined, return CreateIteratorResultObject(undefined, true).
+    si array == nul {
+        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai)
+    }
+
+    // 6. Let index be O.[[ArrayLikeNextIndex]].
+    index := O.array_like_next_index
+
+    // 7. Let kind be O.[[ArrayLikeIterationKind]].
+    kind := O.array_like_iteration_kind
+
+    // À FAIRE 8. If array has a [[TypedArrayName]] internal slot, then
+        // a. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(array, seq-cst).
+        // b. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
+        // c. Let len be TypedArrayLength(taRecord).
+    // 9. Else,
+        // a. Let len be ? LengthOfArrayLike(array).
+    len := length_of_array_like(interpréteuse, array)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
+    }
+
+    // 10. If index ≥ len, then
+    si index comme r64 >= len {
+        // a. Set O.[[IteratedArrayLike]] to undefined.
+        O.iterated_array_like = nul
+
+        // b. Return CreateIteratorResultObject(undefined, true).
+        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai)
+    }
+
+    // 11. Set O.[[ArrayLikeNextIndex]] to index + 1.
+    O.array_like_next_index = index + 1
+
+    // 12. Let indexNumber be 𝔽(index).
+    index_number := index comme r64
+
+    result: Valeur
+
+    // 13. If kind is key, then
+    si kind == IterationKind.KEY {
+        // a. Let result be indexNumber.
+        result.Number = index_number
+    }
+    // 14. Else,
+    sinon {
+        // a. Let elementKey be ! ToString(indexNumber).
+        element_key := to_string(interpréteuse, index_number)
+
+        // b. Let elementValue be ? Get(array, elementKey).
+        element_value := get(array, element_key.texte)
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
+        }
+
+        // c. If kind is value, then
+        si kind == IterationKind.VALUE {
+            // i. Let result be elementValue.
+            result = element_value
+
+        }
+        // d. Else,
+        sinon {
+            // i. Assert: kind is key+value.
+            assert(kind == IterationKind.KEY_VALUE)
+
+            // ii. Let result be CreateArrayFromList(« indexNumber, elementValue »).
+            panique("non-implémenté")
+        }
+    }
+
+    // 15. Return CreateIteratorResultObject(result, false).
+    retourne create_iterator_result_object(interpréteuse.donne_realm(), result, faux)
 }
 
 /** \} */

@@ -10,13 +10,25 @@ ContentSecurityPolicy :: struct {
 /** \} */
 
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
-le_comportement_inline_de_l_élément_doit_être_bloqué_par_csp :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
+should_element_s_inline_behavior_be_blocked :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
 {
     assert(élément != nul)
 
     résultat := "Allowed"
 
-    /* À FAIRE. */
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
+
+    retourne résultat
+}
+
+/* https://w3c.github.io/webappsec-csp/#should-block-navigation-request */
+should_navigation_request_be_blocked :: fonc (navigation_request: *Request @inutilisée, type: chaine) -> chaine
+{
+    assert(type == "form-submission" || type == "other")
+
+    résultat := "Allowed"
+
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
 
     retourne résultat
 }

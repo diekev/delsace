@@ -9,4 +9,19 @@ principale :: fonc ()
     ajourne_données(*parseuse, "Content-Type: ")
     ajourne_données(*parseuse, "text/html\r\nServer: ")
     ajourne_données(*parseuse, "BaseHTTP/0.6 Python/3.10.12\r\n")
+
+    test_redirection_avec_content_length_zero()
+}
+
+test_redirection_avec_content_length_zéro :: fonc ()
+{
+    parseuse: ParseuseMessageServeuseHTTP
+    diffère réinitialise(*parseuse)
+
+    ajourne_données(*parseuse, "HTTP/1.1 301 Moved Permanently\r\n")
+    ajourne_données(*parseuse, "Content-Length: 0\r\n")
+    ajourne_données(*parseuse, "Location: https://www.nouveau.lieu/\r\n")
+    ajourne_données(*parseuse, "\r\n")
+
+    assert(message_prêt_pour_finalisation(*parseuse))
 }

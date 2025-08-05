@@ -1,0 +1,3 @@
+interface HTMLTemplateElement : HTMLElement {
+    [Member] readonly attribute DocumentFragment content;
+};

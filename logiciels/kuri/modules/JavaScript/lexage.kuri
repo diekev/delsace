@@ -969,7 +969,14 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
         genre_lexème: GenreLexème
 
         discr c {
-            '.' { genre_lexème = GenreLexème.Point }
+            '.' { 
+                genre_lexème = GenreLexème.Point
+                si apparie(lexeuse, "...") {
+                    débute_lexème(lexeuse)
+                    lexeuse.avance(2)
+                    retourne crée_lexème(lexeuse, GenreLexème.Spread)
+                }
+            }
             ',' { genre_lexème = GenreLexème.Virgule }
             ';' { genre_lexème = GenreLexème.PointVirgule }
             '(' { genre_lexème = GenreLexème.ParenthèseOuvrante }

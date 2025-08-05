@@ -136,7 +136,10 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
         retourne
     }
 
-    rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    si ligne {
+        imprimeln("%", ligne)
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    }
 }
 
 parse_instruction_if :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionIf
@@ -171,6 +174,27 @@ parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
         return := loge(InstructionReturn)
         return.expression = parse_expression(parseuse)
         tableau_ajoute(*bloc.instructions, return)
+    }
+    sinon si lexème == "throw" {
+        throw := loge(InstructionThrow)
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "a" {
+            rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème)
+        }
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "TypeError" {
+            rapporte_erreur(parseuse, "type d'exception inconnue", lexème)
+        }
+        throw.type_exception = lexème
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "exception" {
+            rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème)
+        }
+
+        tableau_ajoute(*bloc.instructions, throw)
     }
     sinon {
         rapporte_erreur(parseuse, "lexème inattendu", lexème)
@@ -371,6 +395,47 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
 
     résultat := chaine(parseuse.début, 0)
 
+    si mémoire(parseuse.début) == '%' {
+        parseuse.début += 1
+        résultat.taille += 1
+        tantque parseuse.début < parseuse.fin {
+            c := mémoire(parseuse.début)
+            si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') || c == '.' {
+                parseuse.début += 1
+                résultat.taille += 1
+                continue
+            }
+
+            arrête
+        }
+
+        si parseuse.début >= parseuse.fin || mémoire(parseuse.début) != '%' {
+            parseuse.rapporte_erreur("fin de fichier dans le parsage d'un symbole")
+            retourne ""
+        }
+
+        parseuse.début += 1
+        résultat.taille += 1
+        retourne résultat
+    }
+
+    si mémoire(parseuse.début) == '"' {
+        parseuse.début += 1
+        résultat.taille += 1
+
+        tantque parseuse.début < parseuse.fin {
+            c := mémoire(parseuse.début)
+            parseuse.début += 1
+            résultat.taille += 1
+
+            si c == '"' {
+                arrête
+            }
+        }
+
+        retourne résultat
+    }
+
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
         si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') {
@@ -521,6 +586,13 @@ InstructionReturn :: struct {
     expression: *Expression
 }
 
+InstructionThrow :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    type_exception: chaine
+}
+
 imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instruction)
 {
     discr base.type {
@@ -583,6 +655,12 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
             si instruction.expression {
                 génératrice.ajoute_chaine(" ")
                 imprime_expression(génératrice, instruction.expression)
+            }
+        }
+        InstructionThrow {
+            instruction := base comme *InstructionThrow
+            si instruction.type_exception == "TypeError" {
+                génératrice.ajoute_chaine("_ := lance_type_error(interpréteuse, message)")
             }
         }
         sinon {}
@@ -650,7 +728,17 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
     discr base.type {
         ExpressionRéférence {
             expression := base comme *ExpressionRéférence
-            génératrice.ajoute_chaine(expression.texte)
+
+            texte := expression.texte
+
+            si texte[0] == '%' {
+                texte = avance(texte, 1)
+                texte = recule(texte, 1)
+
+                remplace_sans_copie(*texte, '.', '_')
+            }
+
+            génératrice.ajoute_chaine(texte)
         }
         ExpressionBinaire {
             expression := base comme *ExpressionBinaire

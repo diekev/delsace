@@ -43,6 +43,20 @@ get_by_index :: fonc (object: *Object, index: n32) -> Valeur
     retourne object.internal_get_by_index(index, Valeur(Object = object))
 }
 
+/* 7.3.3 GetV ( V, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getv */
+get_v :: fonc (interpréteuse: *Interpréteuse, V: Valeur, P: PropertyKey) -> Valeur
+{
+    // 1. Let O be ? ToObject(V)
+    O := to_object(interpréteuse, V)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
+    }
+
+    // 2. Return ? O.[[Get]](P, V)
+    retourne O.internal_get(P, V)
+}
+
 /* 7.3.4 Set
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-set-o-p-v-throw */
 set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: bool)
@@ -110,6 +124,31 @@ define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, de
     }
 
     // 3. Return UNUSED.
+}
+
+/* 7.3.10 GetMethod ( V, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getmethod */
+get_method :: fonc (interpréteuse: *Interpréteuse, V: Valeur, P: PropertyKey) -> Valeur
+{
+    // 1. Let func be ? GetV(V, P)
+    func := get_v(interpréteuse, V, P)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined
+    }
+
+    // 2. If func is either undefined or null, return undefined
+    si func.est_undefined() || func.est_nulle() {
+        retourne js_undefined
+    }
+
+    // 3. If IsCallable(func) is false, throw a TypeError exception
+    si is_callable(func) == faux {
+        _ := lance_type_error(interpréteuse, "unknown method")
+        retourne js_undefined
+    }
+
+    // 4. Return func
+    retourne func
 }
 
 /* 7.3.11 HasProperty ( O, P ) 
@@ -263,3 +302,259 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.4 Operations on Iterator Objects
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-iterator-objects
+ * \{ */
+
+IteratorKind :: énum {
+    SYNC
+    ASYNC
+}
+
+/* 7.4.1 Iterator Records
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iterator-records */
+Iterator :: struct {
+    iterator: *Object
+    next_method: Valeur
+    done: bool
+}
+
+/* 7.4.2 GetIteratorDirect ( obj )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getiteratordirect */
+get_iterator_direct :: fonc (interpréteuse: *Interpréteuse, obj: *Object) -> Iterator
+{
+    // 1. Let nextMethod be ? Get(obj, "next")
+    next_method := get(obj, STR_next)
+    si interpréteuse.possède_exception() {
+        retourne Iterator()
+    }
+
+    // 2. Let iteratorRecord be the Iterator Record { [[Iterator]]: obj, [[NextMethod]]: nextMethod, [[Done]]: false }
+    iterator_record := Iterator(obj, next_method, faux)
+
+    // 3. Return iteratorRecord
+    retourne iterator_record
+}
+
+/* 7.4.3 GetIteratorFromMethod ( obj, method )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getiteratorfrommethod */
+get_iterator_from_method :: fonc (interpréteuse: *Interpréteuse, obj: Valeur, method: *Function) -> Iterator
+{
+    // 1. Let iterator be ? Call(method, obj)
+    iterator := call(interpréteuse, Valeur(Function = method), obj)
+    si interpréteuse.possède_exception() {
+        retourne Iterator()
+    }
+
+    // 2. If iterator is not an Object, throw a TypeError exception
+    saufsi iterator.est_object() {
+        _ := lance_type_error(interpréteuse, "method is not an Object")
+        retourne Iterator()
+    }
+
+    // 3. Return ? GetIteratorDirect(iterator)
+    retourne get_iterator_direct(interpréteuse, iterator)
+}
+
+/* 7.4.4 GetIterator ( obj, kind )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-getiterator */
+get_iterator :: fonc (interpréteuse: *Interpréteuse, obj: Valeur, kind: IteratorKind) -> Iterator
+{
+    method: Valeur = ---
+
+    // 1. If kind is async, then
+    si kind == IteratorKind.ASYNC {
+        // a. Let method be ? GetMethod(obj, %Symbol.asyncIterator%)
+        method = get_method(interpréteuse, obj, *Symbol_asyncIterator)
+        si interpréteuse.possède_exception() {
+            retourne Iterator()
+        }
+        
+        // b. If method is undefined, then
+        si method.est_undefined() {
+            // i. Let syncMethod be ? GetMethod(obj, %Symbol.iterator%)
+            sync_method := get_method(interpréteuse, obj, *Symbol_iterator)
+            si interpréteuse.possède_exception() {
+                retourne Iterator()
+            }
+            
+            // ii. If syncMethod is undefined, throw a TypeError exception
+            si sync_method.est_undefined() {
+                _ := lance_type_error(interpréteuse, "unknown method %Symbol.iterator%")
+                retourne Iterator()
+            }
+            
+            // iii. Let syncIteratorRecord be ? GetIteratorFromMethod(obj, syncMethod)
+            /* sync_iterator_record */ _ := get_iterator_from_method(interpréteuse, obj, sync_method)
+            si interpréteuse.possède_exception() {
+                retourne Iterator()
+            }
+            
+            // iv. Return CreateAsyncFromSyncIterator(syncIteratorRecord)
+            panique("non-implémenté")
+            // retourne create_async_from_sync_iterator(sync_iterator_record)
+        }
+    }
+    // 2. Else
+    sinon {
+        // a. Let method be ? GetMethod(obj, %Symbol.iterator%)
+        method = get_method(interpréteuse, obj, *Symbol_iterator)
+        si interpréteuse.possède_exception() {
+            retourne Iterator()
+        }
+    }
+    
+    // 3. If method is undefined, throw a TypeError exception
+    si method.est_undefined() {
+        _ := lance_type_error(interpréteuse, "unknown method %Symbol.iterator%")
+        retourne Iterator()
+    }
+
+    // 4. Return ? GetIteratorFromMethod(obj, method)
+    retourne get_iterator_from_method(interpréteuse, obj, method)
+}
+
+/* 7.4.6 IteratorNext ( iteratorRecord [ , value ] )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratornext */
+iterator_next :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator, value : *Valeur = nul) -> *Object
+{
+    result: Valeur
+
+    // 1. If value is not present, then
+    saufsi value {
+        // a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]])).
+        result = call(interpréteuse, iterator_record.next_method, iterator_record.iterator)
+    }
+    // 2. Else,
+    sinon {
+        // a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »)).
+        arguments := [mémoire(value)]
+        result = call(interpréteuse, iterator_record.next_method, iterator_record.iterator, arguments)
+    }
+
+    // 3. If result is a throw completion, then
+    si interpréteuse.possède_exception() {
+        // a. Set iteratorRecord.[[Done]] to true.
+        iterator_record.done = vrai
+
+        // b. Return ? result.
+        retourne nul
+    }
+
+    // 4. Set result to ! result.
+
+    // 5. If result is not an Object, then
+    saufsi result.est_object() {
+        // a. Set iteratorRecord.[[Done]] to true.
+        iterator_record.done = vrai
+
+        // b. Throw a TypeError exception.
+        _ := lance_type_error(interpréteuse, "iterator result is not an Object")
+        retourne nul
+    }
+
+    // 6. Return result.
+    retourne result.donne_objet()
+}
+
+/* 7.4.7 IteratorComplete ( iteratorResult )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorcomplete */
+iterator_complete :: fonc (iterator_result: *Object) -> bool
+{
+    // 1. Return ToBoolean(? Get(iteratorResult, "done")).
+    value := get(iterator_result, STR_done)
+    retourne to_boolean(value)
+}
+
+/* 7.4.8 IteratorValue ( iteratorResult )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorvalue */
+iterator_value :: fonc (iterator_result: *Object) -> Valeur
+{
+    // 1. Return ? Get(iteratorResult, "value").
+    retourne get(iterator_result, STR_value)
+}
+
+/* 7.4.9 IteratorStep ( iteratorRecord )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorstep */
+iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> *Object, bool
+{
+    // 1. Let result be ? IteratorNext(iteratorRecord).
+    result := iterator_next(interpréteuse, iterator_record)
+    si interpréteuse.possède_exception() {
+        retourne nul, faux
+    }
+
+    // 2. Let done be Completion(IteratorComplete(result)).
+    done := iterator_complete(result)
+
+    // 3. If done is a throw completion, then
+    si interpréteuse.possède_exception() {
+        // a. Set iteratorRecord.[[Done]] to true.
+        iterator_record.done = vrai
+        // b. Return ? done.
+        retourne nul, faux
+    }
+
+    // 4. Set done to ! done.
+    // 5. If done is true, then
+    si done {
+        // a. Set iteratorRecord.[[Done]] to true.
+        iterator_record.done = vrai
+        // b. Return done.
+        retourne nul, iterator_record.done
+    }
+
+    // 6. Return result.
+    retourne result, iterator_record.done
+}
+
+/* 7.4.10 IteratorStepValue ( iteratorRecord )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorstepvalue */
+iterator_step_value :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> Valeur, bool
+{
+    // 1. Let result be ? IteratorStep(iteratorRecord).
+    result, done := iterator_step(interpréteuse, iterator_record)
+    si interpréteuse.possède_exception() {
+        retourne js_undefined, faux
+    }
+
+    // 2. If result is DONE, then
+    si done {
+        // a. Return DONE.
+        retourne js_undefined, done
+    }
+
+    // 3. Let value be Completion(IteratorValue(result)).
+    value := iterator_value(result)
+
+    // 4. If value is a throw completion, then
+    si interpréteuse.possède_exception() {
+        // a. Set iteratorRecord.[[Done]] to true.
+        iterator_record.done = vrai
+    }
+
+    // 5. Return ? value.
+    retourne value, iterator_record.done
+}
+
+/* 7.4.14 CreateIteratorResultObject ( value, done )
+The abstract operation CreateIteratorResultObject takes arguments value (an ECMAScript language value) and done (a Boolean) and returns an Object that conforms to the IteratorResult interface. It creates an object that conforms to the IteratorResult interface. It performs the following steps when called:
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-createiterresultobject */
+create_iterator_result_object :: fonc (realm: *Realm, value: Valeur, done: bool) -> *Object
+{
+    // 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+    obj := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+
+    // 2. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
+    create_data_property_or_throw(obj, STR_value, value)
+
+    // 3. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
+    create_data_property_or_throw(obj, STR_done, Valeur(Boolean = done))
+
+    // 4. Return obj.
+    retourne obj
+}
+
+/** } */
