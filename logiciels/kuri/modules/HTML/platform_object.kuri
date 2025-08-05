@@ -121,9 +121,16 @@ donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.O
  * \{ */
 
 Environment :: struct {
+    /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-id */
+    id: chaine
+    /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-creation-url */
     creation_url: *URL
+    /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-top-level-creation-url */
     top_level_creation_url: *URL
-    top_level_origin: Origin
+    /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-top-level-origin */
+    top_level_origin: Optionnel(Origin)
+    /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-target-browsing-context */
+    target_browsing_context: *BrowsingContext
     execution_ready: bool
 }
 
