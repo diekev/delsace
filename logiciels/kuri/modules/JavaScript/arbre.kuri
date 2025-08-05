@@ -2727,7 +2727,53 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
     résultat := crée_array(realm.donne_tas_de_mémoire(), realm.intrinsics.array_prototype, 0)
 
+    next_index: z64
+
     pour noeud.éléments {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-SpreadElement */
+        si it.type == SpreadElement {
+            spread := it comme *SpreadElement
+
+            // 1. Let spreadRef be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(spread.argument, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            spread_ref := completion.valeur
+
+            // 2. Let spreadObj be ? GetValue(spreadRef).
+            spread_obj := get_value(interpréteuse, spread_ref)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 3. Let iteratorRecord be ? GetIterator(spreadObj, sync).
+            iterator_record := get_iterator(interpréteuse, spread_obj, IteratorKind.SYNC)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 4. Repeat,
+            boucle {
+                // a. Let next be ? IteratorStepValue(iteratorRecord).
+                next, done := iterator_step_value(interpréteuse, *iterator_record)
+
+                // b. If next is done, return nextIndex.
+                si done {
+                    arrête
+                }
+
+                // c. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(nextIndex)), next).
+                nom_propriété := to_string(interpréteuse, Valeur(Number = next_index comme r64)).texte
+                _ := create_data_property(résultat, nom_propriété, next)
+
+                // d. Set nextIndex to nextIndex + 1.
+                next_index = next_index + 1
+            }
+
+            continue
+        }
+
         completion := exécute_noeud(it, interpréteuse)
         saufsi completion.est_normal() {
             retourne completion
@@ -2737,9 +2783,11 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
             retourne throw_completion(interpréteuse.donne_exception())
         }
 
-        nom_propriété := to_string(interpréteuse, Valeur(Number = index_it comme r64)).texte
+        nom_propriété := to_string(interpréteuse, Valeur(Number = next_index comme r64)).texte
 
         _ := create_data_property(résultat, nom_propriété, valeur)
+
+        next_index += 1
     }
 
     set(résultat, STR_length, Valeur(Number = noeud.éléments.taille comme r64), vrai)
@@ -4607,6 +4655,26 @@ crée_template_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, value: E
     résultat := parseuse.crée_noeud(lexème, TemplateElement)
     résultat.value = value
     résultat.tail = tail
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SpreadElement
+ * \{ */
+
+SpreadElement :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    argument: *Expression
+}
+
+crée_spread_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: *Expression) -> *SpreadElement
+{
+    résultat := parseuse.crée_noeud(lexème, SpreadElement)
+    résultat.argument = argument
     retourne résultat
 }
 

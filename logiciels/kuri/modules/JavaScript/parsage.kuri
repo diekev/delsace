@@ -911,6 +911,13 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             argument := parseuse.parse_expression(params)
             retourne crée_new_expression(parseuse, lexème, argument);
         }
+        Spread {
+            parseuse.consomme()
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+            params.lexème_final = GenreLexème.Virgule
+            argument := parseuse.parse_expression(params)
+            retourne crée_spread_element(parseuse, lexème, argument);
+        }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")
         }
