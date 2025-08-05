@@ -1386,30 +1386,30 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // 2. Let documentResource be entry's document state's resource.
 
     // 3. Let request be a new request, with
-    //     url                            entry's URL
-    //     client                         sourceSnapshotParams's fetch client
-    //     destination                    "document"
-    //     credentials mode               "include"
-    //     use-URL-credentials flag       set
-    //     redirect mode                  "manual"
-    //     replaces client id             navigable's active document's relevant settings object's id
-    //     mode                           "navigate"
-    //     referrer                       entry's document state's request referrer
-    //     referrer policy                entry's document state's request referrer policy
-    //     policy container               sourceSnapshotParams's source policy container
-    //     traversable for user prompts   navigable's top-level traversable
     request := loge(Request)
+    //     url                            entry's URL
     request.définis_url(copie_url(entry.url))
+    //     client                         sourceSnapshotParams's fetch client
     request.client = source_snapshot_params.fetch_client
+    //     destination                    "document"
     request.destination = "document"
+    //     credentials mode               "include"
     request.credentials_mode = "include"
+    //     use-URL-credentials flag       set
     request.use_url_credentials = vrai
+    //     redirect mode                  "manual"
     request.redirect_mode = "manual"
     // À FAIRE replaces_client_id
+    //     replaces client id             navigable's active document's relevant settings object's id
+    //     mode                           "navigate"
     request.mode = "navigate"
+    //     referrer                       entry's document state's request referrer
     request.referrer = entry.document_state.request_referrer
+    //     referrer policy                entry's document state's request referrer policy
     request.referrer_policy = entry.document_state.request_referrer_policy
+    //     policy container               sourceSnapshotParams's source policy container
     request.policy_container = source_snapshot_params.source_policy_container
+    //     traversable for user prompts   navigable's top-level traversable
     request.traversable_for_user_prompts = navigable.donne_top_level_traversable()
 
     // 4. If navigable is a top-level traversable, then set request's top-level navigation initiator origin to entry's document state's initiator origin.
