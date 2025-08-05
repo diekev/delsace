@@ -175,6 +175,27 @@ parse_bloc_if :: fonc (parseuse: *Parseuse, bloc: *InstructionBloc)
         return.expression = parse_expression(parseuse)
         tableau_ajoute(*bloc.instructions, return)
     }
+    sinon si lexème == "throw" {
+        throw := loge(InstructionThrow)
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "a" {
+            rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème)
+        }
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "TypeError" {
+            rapporte_erreur(parseuse, "type d'exception inconnue", lexème)
+        }
+        throw.type_exception = lexème
+
+        lexème = parseuse.donne_lexème_suivant()
+        si lexème != "exception" {
+            rapporte_erreur(parseuse, "attendu 'a' après 'throw'", lexème)
+        }
+
+        tableau_ajoute(*bloc.instructions, throw)
+    }
     sinon {
         rapporte_erreur(parseuse, "lexème inattendu", lexème)
     }
@@ -548,6 +569,13 @@ InstructionReturn :: struct {
     expression: *Expression
 }
 
+InstructionThrow :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    type_exception: chaine
+}
+
 imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instruction)
 {
     discr base.type {
@@ -610,6 +638,12 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
             si instruction.expression {
                 génératrice.ajoute_chaine(" ")
                 imprime_expression(génératrice, instruction.expression)
+            }
+        }
+        InstructionThrow {
+            instruction := base comme *InstructionThrow
+            si instruction.type_exception == "TypeError" {
+                génératrice.ajoute_chaine("_ := lance_type_error(interpréteuse, message)")
             }
         }
         sinon {}
