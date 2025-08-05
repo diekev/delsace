@@ -173,7 +173,7 @@ NavigationParams :: struct {
     
     navigation_timing_type: NavigationTimingType
     
-    about_base_URL: *URL
+    about_base_url: *URL
 }
 
 /* À FAIRE https://html.spec.whatwg.org/multipage/browsing-the-web.html#non-fetch-scheme-navigation-params */
@@ -1378,7 +1378,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
                                               navigation_id: Optionnel(NavigationID),
                                               csp_navigation_type: chaine,
-                                              nav_timing_type: NavigationTimingType @inutilisée) -> *NavigationParams
+                                              nav_timing_type: NavigationTimingType) -> *NavigationParams
 {
     // 1. Assert: this is running in parallel.
     assert(user_agent.est_exécuté_en_parallèle())
@@ -1472,17 +1472,17 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     fetch_controller: *FetchController
 
     // 14. Let coopEnforcementResult be a new cross-origin opener policy enforcement result, with
-    //     url navigable's active document's URL
-    //     origin  navigable's active document's origin
-    //     cross-origin opener policy  navigable's active document's cross-origin opener policy
-    //     À FAIRE : current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
     coop_enforcement_result: CrossOriginOpenerPolicyEnforcementResult
+    //     url navigable's active document's URL
     coop_enforcement_result.url = navigable.donne_active_document().url
+    //     origin  navigable's active document's origin
     coop_enforcement_result.origin = navigable.donne_active_document().origin
+    //     cross-origin opener policy  navigable's active document's cross-origin opener policy
     coop_enforcement_result.cross_origin_opener_policy = navigable.donne_active_document().cross_origin_opener_policy
+    //     À FAIRE : current context is navigation source    true if navigable's active document's origin is same origin with entry's document state's initiator origin otherwise false
 
     // 15. Let finalSandboxFlags be an empty sandboxing flag set.
-    // final_sandboxing_flags: SandboxingFlags
+    final_sandboxing_flags: SandboxingFlags
 
     // 16. Let responsePolicyContainer be null.
     response_policy_container: *PolicyContainer
@@ -1497,6 +1497,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     current_url := request.donne_url_courant()
 
     // 20. Let commitEarlyHints be null.
+    commit_early_hints: *CommitEarlyHints
 
     // 21. While true:
     boucle {
@@ -1506,8 +1507,10 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
             // 1. Run the environment discarding steps for request's reserved client.
 
             // 2. Set request's reserved client to null.
+            request.reserved_client = nul
 
             // 3. Set commitEarlyHints to null.
+            commit_early_hints = nul
         }
             
         // 2. If request's reserved client is null, then:
@@ -1693,6 +1696,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     then return null.
 
     // 24. Assert: locationURL is null and response is not a network error.
+    assert(location_url == nul && !est_network_error(response))
 
     // 25. Let resultPolicyContainer be the result of determining navigation params policy container
     //     given response's URL, entry's document state's history policy container, sourceSnapshotParams's source policy container, null, and responsePolicyContainer.
@@ -1701,35 +1705,35 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     // 26. If navigable's container is an iframe, and response's timing allow passed flag is set, then set container's pending resource-timing start time to null.
 
     // 27. Return a new navigation params, with
-    //     id  navigationId
-    //     navigable   navigable
-    //     request request
-    //     response    response
-    //     fetch controller    fetchController
-    //     commit early hints  commitEarlyHints
-    //     cross-origin opener policy  responseCOOP
-    //     reserved environment    request's reserved client
-    //     origin  responseOrigin
-    //     policy container    resultPolicyContainer
-    //     final sandboxing flag set   finalSandboxFlags
-    //     COOP enforcement result coopEnforcementResult
-    //     navigation timing type  navTimingType
-    //     about base URL  entry's document state's about base URL
     résultat := loge(NavigationParams)
+    //     id  navigationId
     résultat.id = navigation_id
+    //     navigable   navigable
     résultat.navigable = navigable
+    //     request request
     résultat.request = request
+    //     response    response
     résultat.response = response
+    //     fetch controller    fetchController
     résultat.fetch_controller = fetch_controller
     //     commit early hints  commitEarlyHints
+    résultat.commit_early_hints = commit_early_hints
+    //     cross-origin opener policy  responseCOOP
     résultat.cross_origin_opener_policy = response_coop
     //     reserved environment    request's reserved client
+    résultat.reserved_environment = request.reserved_client
+    //     origin  responseOrigin
     résultat.origin = response_origin.Quelque
+    //     policy container    resultPolicyContainer
     résultat.policy_container = result_policy_container
     //     final sandboxing flag set   finalSandboxFlags
+    résultat.final_sandboxing_flag = final_sandboxing_flags
+    //     COOP enforcement result coopEnforcementResult
     résultat.COOP_enforcement_result = coop_enforcement_result
     //     navigation timing type  navTimingType
+    résultat.navigation_timing_type = nav_timing_type
     //     about base URL  entry's document state's about base URL
+    résultat.about_base_url = copie_url(entry.document_state.about_base_url)
     retourne résultat
 }
 
@@ -3134,7 +3138,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     //     during-loading navigation ID for WebDriver BiDi navigationParams's id
     document.url = copie_url(creation_url)
     //     current document readiness "loading"
-    document.about_base_url = navigation_params.about_base_URL
+    document.about_base_url = navigation_params.about_base_url
     document.permets_racines_shadow_déclaratives = vrai
 
     // 11. Set window's associated Document to document.
