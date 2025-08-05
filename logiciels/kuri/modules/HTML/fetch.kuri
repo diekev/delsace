@@ -42,6 +42,12 @@ is_redirect_status :: fonc (status: z32) -> bool
     retourne status == 301 || status == 302 || status == 303 || status == 307 || status == 308
 }
 
+/* https://fetch.spec.whatwg.org/#ok-status */
+is_ok_status :: fonc (status: z32) -> bool
+{
+    retourne 200 <= status <= 299
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -514,18 +520,6 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
     contenu = nouveau_contenu
 
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom 2.2.3 Statuses
- * \{ */
-
-/* https://fetch.spec.whatwg.org/#ok-status */
-est_ok_status :: fonc (status: z32) -> bool
-{
-    retourne 200 <= status <= 299
 }
 
 /** \} */

@@ -4500,7 +4500,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         // 2. If any of the following are true:
         //    bodyBytes is null or failure; or
         //    response's status is not an ok status,
-        si !null_or_bytes.possède_valeur() || !est_ok_status(response.status) {
+        si !null_or_bytes.possède_valeur() || !is_ok_status(response.status) {
             // then run onComplete given null, and abort these steps.
             rappel.on_complete.run(nul)
             retourne
