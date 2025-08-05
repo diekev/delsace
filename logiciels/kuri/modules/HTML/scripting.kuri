@@ -31,12 +31,12 @@ ClassicScript :: struct {
 
 OptionsFetchScript :: struct {
     cryptographic_nonce: DOMString
-    integrity_metadata: chaine
+    integrity_metadata: DOMString
     parser_metadata := "not-parser-inserted"
     credentials_mode := "same-origin"
-    referrer_policy: chaine
+    referrer_policy: ReferrerPolicy
     render_blocking: bool
-    fetch_priority := "auto"
+    fetch_priority: FetchPriorityState
 }
 
 /** \} */
