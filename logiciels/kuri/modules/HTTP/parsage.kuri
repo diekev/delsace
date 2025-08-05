@@ -130,7 +130,7 @@ ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
 
 parse_données :: fonc (parseuse: *ParseuseHTTP)
 {
-    tantque !fini(*parseuse.parseuse_chaine) {
+    boucle {
         résultat := parseuse.état_parsage(parseuse)
 
         parseuse.dernier_résultat = résultat
@@ -325,6 +325,11 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
 
         parseuse.état_parsage = parse_état_corps_message
         parseuse.contenu_chunked = vrai
+
+        si fini(*parseuse.parseuse_chaine) {
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
         retourne RésultatParsage.OK
     }
 
@@ -341,6 +346,15 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
         parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.curseur
         parseuse.état_parsage = parse_état_corps_message
+
+        si taille_contenu == 0 {
+            retourne RésultatParsage.TERMINÉ
+        }
+
+        si fini(*parseuse.parseuse_chaine) {
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
         retourne RésultatParsage.OK
     }
 
@@ -351,6 +365,11 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         parseuse.données_message.position_contenu.début = parseuse.parseuse_chaine.curseur
         parseuse.données_message.position_contenu.fin = parseuse.parseuse_chaine.curseur
         parseuse.état_parsage = parse_état_corps_message
+
+        si fini(*parseuse.parseuse_chaine) {
+            retourne RésultatParsage.MESSAGE_INCOMPLET
+        }
+
         retourne RésultatParsage.OK
     }
 

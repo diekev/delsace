@@ -10,6 +10,7 @@ STR_ceil : ChaineUTF16Unique = ---
 STR_constructor : ChaineUTF16Unique = ---
 STR_cos : ChaineUTF16Unique = ---
 STR_create : ChaineUTF16Unique = ---
+STR_done : ChaineUTF16Unique = ---
 STR_encodeURIComponent : ChaineUTF16Unique = ---
 STR_eval : ChaineUTF16Unique = ---
 STR_exp : ChaineUTF16Unique = ---
@@ -30,6 +31,7 @@ STR_max : ChaineUTF16Unique = ---
 STR_message : ChaineUTF16Unique = ---
 STR_min : ChaineUTF16Unique = ---
 STR_name : ChaineUTF16Unique = ---
+STR_next : ChaineUTF16Unique = ---
 STR_null : ChaineUTF16Unique = ---
 STR_number : ChaineUTF16Unique = ---
 STR_object : ChaineUTF16Unique = ---
@@ -50,6 +52,8 @@ STR_symbol : ChaineUTF16Unique = ---
 STR_toString : ChaineUTF16Unique = ---
 STR_true : ChaineUTF16Unique = ---
 STR_undefined : ChaineUTF16Unique = ---
+STR_value : ChaineUTF16Unique = ---
+STR_values : ChaineUTF16Unique = ---
 STR_valueOf : ChaineUTF16Unique = ---
 STR_Array : ChaineUTF16Unique = ---
 STR_Boolean : ChaineUTF16Unique = ---
@@ -72,6 +76,10 @@ STR_SyntaxError : ChaineUTF16Unique = ---
 STR_TypeError : ChaineUTF16Unique = ---
 STR_URIError : ChaineUTF16Unique = ---
 STR___proto__ : ChaineUTF16Unique = ---
+
+// À FAIRE
+Symbol_asyncIterator: Symbol = ---
+Symbol_iterator: Symbol = ---
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
