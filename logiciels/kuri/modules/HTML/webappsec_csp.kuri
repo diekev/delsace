@@ -16,7 +16,7 @@ should_element_s_inline_behavior_be_blocked :: fonc (élément: *Élément, type
 
     résultat := "Allowed"
 
-    /* À FAIRE. */
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
 
     retourne résultat
 }
