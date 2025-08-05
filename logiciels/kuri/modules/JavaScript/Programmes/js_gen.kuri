@@ -136,7 +136,10 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
         retourne
     }
 
-    rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    si ligne {
+        imprimeln("%", ligne)
+        rapporte_erreur(parseuse, "lexème inattendu", lexème)
+    }
 }
 
 parse_instruction_if :: fonc (parseuse: *Parseuse, ligne: chaine) -> *InstructionIf
@@ -370,6 +373,30 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
     }
 
     résultat := chaine(parseuse.début, 0)
+
+    si mémoire(parseuse.début) == '%' {
+        parseuse.début += 1
+        résultat.taille += 1
+        tantque parseuse.début < parseuse.fin {
+            c := mémoire(parseuse.début)
+            si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') || c == '.' {
+                parseuse.début += 1
+                résultat.taille += 1
+                continue
+            }
+
+            arrête
+        }
+
+        si parseuse.début >= parseuse.fin || mémoire(parseuse.début) != '%' {
+            parseuse.rapporte_erreur("fin de fichier dans le parsage d'un symbole")
+            retourne ""
+        }
+
+        parseuse.début += 1
+        résultat.taille += 1
+        retourne résultat
+    }
 
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
@@ -650,7 +677,17 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
     discr base.type {
         ExpressionRéférence {
             expression := base comme *ExpressionRéférence
-            génératrice.ajoute_chaine(expression.texte)
+
+            texte := expression.texte
+
+            si texte[0] == '%' {
+                texte = avance(texte, 1)
+                texte = recule(texte, 1)
+
+                remplace_sans_copie(*texte, '.', '_')
+            }
+
+            génératrice.ajoute_chaine(texte)
         }
         ExpressionBinaire {
             expression := base comme *ExpressionBinaire
