@@ -201,19 +201,43 @@ SourceSnapshotParams :: struct {
     has_transient_activation: bool
     sandboxing_flags: SandboxingFlags
     allows_downloading: bool
-    fetch_client: *rien // À FAIRE(settings object)
+    fetch_client: *EnvironmentSettings
     source_policy_container: *PolicyContainer
 }
 
 snapshot_source_snapshot_params :: fonc (source_document: *Document) -> SourceSnapshotParams
 {
-    résultat: SourceSnapshotParams
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    // has transient activation = true if sourceDocument's relevant global object has transient activation; otherwise false
-    // sandboxing flags = sourceDocument's active sandboxing flag set
-    // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
-    // fetch client = sourceDocument's relevant settings object
-    résultat.source_policy_container = source_document.policy_container
+
+    résultat: SourceSnapshotParams
+    // 1. If sourceDocument is null, then return a new source snapshot params with
+    si source_document == nul {
+        // has transient activation -> true
+        résultat.has_transient_activation = vrai
+        // sandboxing flags -> an empty sandboxing flag set
+        // allows downloading -> true
+        résultat.allows_downloading = vrai
+        // fetch client -> null
+        résultat.fetch_client = nul
+        // source policy container -> a new policy container
+        résultat.source_policy_container = loge(PolicyContainer)
+    }
+    // 2. Return a new source snapshot params with
+    sinon {
+        // has transient activation = true if sourceDocument's relevant global object has transient activation; otherwise false
+        // sandboxing flags = sourceDocument's active sandboxing flag set
+        // allows downloading = false if sourceDocument's active sandboxing flag set has the sandboxed downloads browsing context flag set; otherwise true
+        // fetch client = sourceDocument's relevant settings object
+        résultat.fetch_client = source_document.donne_relevant_settings_object()
+        // source policy container -> a clone of sourceDocument's policy container
+
+        // À FAIRE : doit être fait lors de la création
+        saufsi source_document.policy_container {
+            source_document.policy_container = loge(PolicyContainer)
+        }
+
+        résultat.source_policy_container = clone(source_document.policy_container)
+    }
     retourne résultat
 }
 
