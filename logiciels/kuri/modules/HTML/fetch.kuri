@@ -416,21 +416,39 @@ est_network_error :: fonc (response: *Response) -> bool
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-location-url */
-donne_location_url :: fonc (response: *Response, fragment: Optionnel(chaine) @inutilisée) -> *URL
+donne_location_url :: fonc (response: *Response, user_agent: *UserAgent, fragment: Optionnel(chaine)) -> *URL
 {
     // 1. If response’s status is not a redirect status, then return null.
     saufsi is_redirect_status(response.status) {
         retourne nul
     }
 
-    panique("Non-implémenté")
-    // 2. Let location be the result of extracting header list values given `Location` and response’s header list.
+    // À FAIRE : 2. Let location be the result of extracting header list values given `Location` and response’s header list.
+
+    location_url: chaine
+    pour response.header_list {
+        si compare_ascii_insensible_à_la_casse(it.name, "Location") {
+            location_url = it.value
+            arrête
+        }
+    }
+    sansarrêt {
+        retourne nul
+    }
 
     // 3. If location is a header value, then set location to the result of parsing location with response’s URL.
+    location := url_parser(user_agent, location_url, response.donne_url())
+    si location == nul {
+        retourne nul
+    }
 
     // 4. If location is a URL whose fragment is null, then set location’s fragment to requestFragment.
+    saufsi location.fragment.possède_valeur() {
+        location.fragment = fragment
+    }
 
     // 5. Return location.
+    retourne location
 }
 
 /* https://fetch.spec.whatwg.org/#concept-internal-response */

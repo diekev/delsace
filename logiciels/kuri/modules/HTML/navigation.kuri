@@ -1591,7 +1591,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         }
         // 6. Otherwise, process the next manual redirect for fetchController.
         sinon {
-
+            panique("redirection non-implémentée")
         }
 
         // 7. Wait until either response is non-null, or navigable's ongoing navigation changes to no longer equal navigationId.
@@ -1624,7 +1624,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         // 13. If response is not a network error, navigable is a child navigable, and the result of performing a cross-origin resource policy check with navigable's container document's origin, navigable's container document's relevant settings object, request's destination, response, and true is blocked, then set response to a network error and break.
 
         // 14. Set locationURL to response's location URL given currentURL's fragment.
-        location_url = donne_location_url(response, current_url.fragment)
+        location_url = donne_location_url(response, user_agent, current_url.fragment)
 
         // 15. If locationURL is failure or null, then break.
         si location_url == nul {
@@ -1633,20 +1633,34 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
         // 16. Assert: locationURL is a URL.
 
-        // 17. Set entry's classic history API state to StructuredSerializeForStorage(null).
+        // À FAIRE : 17. Set entry's classic history API state to StructuredSerializeForStorage(null).
 
         // 18. Let oldDocState be entry's document state.
+        old_doc_state := entry.document_state
 
         // 19. Set entry's document state to a new document state, with
+        new_document_state := loge(DocumentState)
         //     history policy container    a clone of the oldDocState's history policy container if it is non-null; null otherwise
+        new_document_state.history_policy_container = clone(old_doc_state.history_policy_container)
         //     request referrer    oldDocState's request referrer
+        new_document_state.request_referrer = old_doc_state.request_referrer
         //     request referrer policy oldDocState's request referrer policy
+        new_document_state.request_referrer_policy = old_doc_state.request_referrer_policy
         //     initiator origin    oldDocState's initiator origin
+        new_document_state.initiator_origin = old_doc_state.initiator_origin
         //     origin  oldDocState's origin
+        new_document_state.origin = old_doc_state.origin
         //     about base URL  oldDocState's about base URL
-        //     resource    oldDocState's resource
+        si old_doc_state.about_base_url {
+            new_document_state.about_base_url = copie_url(old_doc_state.about_base_url)
+        }
+        //  À FAIRE    resource    oldDocState's resource
         //     ever populated  oldDocState's ever populated
+        new_document_state.ever_populated = old_doc_state.ever_populated
         //     navigable target name   oldDocState's navigable target name
+        new_document_state.navigable_target_name = old_doc_state.navigable_target_name
+
+        entry.document_state = new_document_state
 
         // 20. If locationURL's scheme is not an HTTP(S) scheme, then:
         saufsi is_http_scheme(location_url.scheme) {
@@ -1657,7 +1671,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         }
 
         // 21. Set currentURL to locationURL.
-        current_url = copie_url(location_url)
+        current_url = location_url
 
         // 22. Set entry's URL to currentURL.
         entry.url = current_url
