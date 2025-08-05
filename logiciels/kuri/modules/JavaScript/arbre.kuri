@@ -1964,6 +1964,46 @@ argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: 
 {
     // À FAIRE : standardise
     pour arguments {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-ArgumentList */
+        si it.type == SpreadElement {
+            spread := it comme *SpreadElement
+            // 1. Let list be a new empty List.
+            // 2. Let spreadRef be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(spread.argument, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            spread_ref := completion.valeur
+
+            // 3. Let spreadObj be ? GetValue(spreadRef).
+            spread_obj := get_value(interpréteuse, spread_ref)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 4. Let iteratorRecord be ? GetIterator(spreadObj, sync).
+            iterator_record := get_iterator(interpréteuse, spread_obj, IteratorKind.SYNC)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 5. Repeat,
+            boucle {
+                // a. Let next be ? IteratorStepValue(iteratorRecord).
+                next, done := iterator_step_value(interpréteuse, *iterator_record)
+
+                // b. If next is done, return list.
+                si done {
+                    arrête
+                }
+
+                // c. Append next to list.
+                tableau_ajoute(résultat, next)
+            }
+
+            continue
+        }
+
         complétion_arg := exécute_noeud(it, interpréteuse)
         saufsi complétion_arg.est_normal() {
             retourne complétion_arg
