@@ -186,6 +186,10 @@ Request :: struct {
 
     integrity_metadata := crée_chaine_utf16_unique_vide()
 
+    // https://fetch.spec.whatwg.org/#concept-request-parser-metadata
+    // A request has associated parser metadata which is the empty string, "parser-inserted", or "not-parser-inserted". Unless otherwise stated, it is the empty string.
+    parser_metadata := ""
+
     priority: FetchPriorityState
 
     // https://fetch.spec.whatwg.org/#concept-request-origin
@@ -430,6 +434,29 @@ donne_internal_response :: fonc (response: *Response) -> *Response
     retourne response
 }
 
+/* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#unsafe-response */
+donne_unsafe_response :: fonc (response: *Response) -> *Response
+{
+    // A response's unsafe response is its internal response if it has one, and the response itself otherwise.
+    internal := donne_internal_response(response)
+    si internal {
+        retourne internal
+    }
+    retourne response
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 2.2.3 Statuses
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#ok-status */
+est_ok_status :: fonc (status: z32) -> bool
+{
+    retourne 200 <= status <= 299
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -470,7 +497,7 @@ BaseProcessResponseEndOfBody :: struct {
 /* must be an algorithm accepting a response and null, failure, or a byte sequence */
 BaseProcessResponseConsumeBody :: struct {
     /* À FAIRE : null, failure, or a byte sequence  */
-    sur_rappel: fonc(*BaseProcessResponseConsumeBody, []octet)(rien)
+    sur_rappel: fonc(*BaseProcessResponseConsumeBody, *Response, Optionnel([]octet))(rien)
     sur_destruction: fonc (*BaseProcessResponseConsumeBody)(rien)
 }
 
@@ -1083,14 +1110,19 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
 
     // 9. If fetchParams’s process response consume body is non-null, then:
     si fetch_params.process_response_consume_body {
-        panique("non-implémenté")
-        // 1. Let processBody given nullOrBytes be this step: run fetchParams’s process response consume body given response and nullOrBytes.
+        // À FAIRE : 1. Let processBody given nullOrBytes be this step: run fetchParams’s process response consume body given response and nullOrBytes.
 
         // 2. Let processBodyError be this step: run fetchParams’s process response consume body given response and failure.
 
         // 3. If internalResponse’s body is null, then queue a fetch task to run processBody given null, with fetchParams’s task destination.
 
         // 4. Otherwise, fully read internalResponse’s body given processBody, processBodyError, and fetchParams’s task destination.
+        null_or_bytes: Optionnel([]octet)
+        si internal_response.body.possède_valeur() {
+            bytes : []octet = internal_response.body.Quelque
+            null_or_bytes = bytes
+        }
+        fetch_params.process_response_consume_body.sur_rappel(fetch_params.process_response_consume_body, internal_response, null_or_bytes)
     }
 }
 
