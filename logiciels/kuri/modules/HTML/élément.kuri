@@ -4466,6 +4466,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
     // À FAIRE : standardise
 
     request := loge(Request)
+    request.client = settings_object
     request.destination = "script"
     request.mode = "no-cors"
     request.redirect_mode = "follow"
