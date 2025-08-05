@@ -419,6 +419,23 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
         retourne résultat
     }
 
+    si mémoire(parseuse.début) == '"' {
+        parseuse.début += 1
+        résultat.taille += 1
+
+        tantque parseuse.début < parseuse.fin {
+            c := mémoire(parseuse.début)
+            parseuse.début += 1
+            résultat.taille += 1
+
+            si c == '"' {
+                arrête
+            }
+        }
+
+        retourne résultat
+    }
+
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
         si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') {
