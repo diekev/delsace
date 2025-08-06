@@ -801,22 +801,88 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         AccoladeOuvrante {
             parseuse.consomme()
 
-            properties: [..]*PropertyDefinition
+            properties: [..]*Expression
 
             tantque !fini(parseuse) {
                 si apparie(parseuse, GenreLexème.AccoladeFermante) {
                     arrête
                 }
 
-                nom_membre := parse_property_name(parseuse)
+                si apparie(parseuse, GenreLexème.Spread) {
+                    spread := parse_spread(parseuse, parseuse.lexème_courant())
+                    tableau_ajoute(*properties, spread)
+                }
+                sinon {
+                    nom_membre: *Expression
+                    method_kind := MethodKind.Method
 
-                lexème_déf := parseuse.lexème_courant()
-                parseuse.consomme(GenreLexème.DoublePoint)
+                    si apparie(parseuse, GenreLexème.Get) {
+                        sauvegarde := parseuse.position
+                        parseuse.consomme()
 
-                expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+                        class_element_name := apparie_class_element_name(parseuse)
+                        si class_element_name {
+                            nom_membre = class_element_name
+                            method_kind = MethodKind.Get
+                        }
+                        sinon {
+                            parseuse.position = sauvegarde
+                        }
+                    }
+                    sinon si apparie(parseuse, GenreLexème.Set) {
+                        sauvegarde := parseuse.position
+                        parseuse.consomme()
 
-                property := crée_property_definition(parseuse, lexème_déf, nom_membre, expression)
-                tableau_ajoute(*properties, property)
+                        class_element_name := apparie_class_element_name(parseuse)
+                        si class_element_name {
+                            nom_membre = class_element_name
+                            method_kind = MethodKind.Set
+                        }
+                        sinon {
+                            parseuse.position = sauvegarde
+                        }
+                    }
+
+                    // À FAIRE : ClassElementName, pour les méthodes
+                    // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
+                    saufsi nom_membre {
+                        nom_membre = parse_property_name(parseuse)
+                    }
+
+                    si apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
+                        lexème_déf := parseuse.lexème_courant()
+                        parseuse.consomme()
+                        paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+                        parseuse.consomme(GenreLexème.ParenthèseFermante)
+
+                        si method_kind == MethodKind.Get && paramètres.taille != 0 {
+                            rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments")
+                        }
+                        sinon si method_kind == MethodKind.Set && paramètres.taille != 1 {
+                            rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
+                        }
+
+                        body := parse_function_body(parseuse)
+
+                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind)
+                        tableau_ajoute(*properties, méthode)
+                    }
+                    sinon si parseuse.apparie(GenreLexème.DoublePoint) {
+                        lexème_déf := parseuse.lexème_courant()
+                        parseuse.consomme(GenreLexème.DoublePoint)
+
+                        expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+
+                        property := crée_property_definition(parseuse, lexème_déf, nom_membre, expression)
+                        tableau_ajoute(*properties, property)
+                    }
+                    sinon si nom_membre != nul && nom_membre.type == Identifier {
+                        tableau_ajoute(*properties, nom_membre)
+                    }
+                    sinon {
+                        rapporte_erreur(parseuse, "expected a property definition")
+                    }
+                }
 
                 saufsi apparie(parseuse, GenreLexème.Virgule) {
                     arrête
@@ -827,10 +893,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
             parseuse.consomme(GenreLexème.AccoladeFermante)
 
-            retourne crée_object_expression(parseuse, lexème, properties)
+            retourne crée_object_literal(parseuse, lexème, properties)
         }
         CrochetOuvrant {
-            retourne parse_array_litteral(parseuse, lexème)
+            retourne parse_array_literal(parseuse, lexème)
         }
         Let {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
@@ -906,11 +972,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_new_expression(parseuse, lexème, argument);
         }
         Spread {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            params.lexème_final = GenreLexème.Virgule
-            argument := parseuse.parse_expression(params)
-            retourne crée_spread_element(parseuse, lexème, argument);
+            retourne parse_spread(parseuse, lexème)
         }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")
@@ -1036,6 +1098,15 @@ parse_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) 
     retourne nul
 }
 
+parse_spread :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *SpreadElement
+{
+    parseuse.consomme()
+    params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
+    params.lexème_final = GenreLexème.Virgule
+    argument := parseuse.parse_expression(params)
+    retourne crée_spread_element(parseuse, lexème, argument);
+}
+
 apparie_lexème_identifier :: fonc (parseuse: *Parseuse) -> bool
 {
     lexème := parseuse.lexème_courant()
@@ -1059,6 +1130,64 @@ apparie_lexème_identifier_property :: fonc (parseuse: *Parseuse) -> bool
         retourne vrai
     }
     retourne faux
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName */
+apparie_class_element_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    résultat := apparie_property_name(parseuse)
+    si résultat {
+        retourne résultat
+    }
+
+    // À FAIRE : PrivateIdentifier
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-PropertyName */
+apparie_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    résultat := apparie_literal_property_name(parseuse)
+    si résultat {
+        retourne résultat
+    }
+
+    // À FAIRE : ComputedPropertyName
+    retourne nul
+}
+
+// À FAIRE : redondant avec parse_property_name
+apparie_literal_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    si parseuse.fini() {
+        retourne nul
+    }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.genre == GenreLexème.ChaineLittérale {
+        parseuse.consomme()
+        retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+    }
+
+    si lexème.genre == GenreLexème.NombreLittéral {
+        parseuse.consomme()
+        valeur := parse_nombre_depuis_lexème(lexème)
+        retourne crée_literal(parseuse, lexème, valeur)
+    }
+
+    si lexème.texte.taille == 0 {
+        retourne nul
+    }
+
+    c := lexème.texte[0]
+    fanion := fanions_caractères[c comme n8]
+
+    saufsi fanion.DébuteIdentifiant {
+        retourne nul
+    }
+
+    parseuse.consomme()
+    retourne crée_identifier(parseuse, lexème, lexème.texte)
 }
 
 parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
@@ -1334,7 +1463,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         Arrow {
             parseuse.consomme()
-            droite := parseuse.parse_statement()
+
+            droite: *Statement
+            si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+                droite = parseuse.parse_statement()
+            }
+            sinon {
+                /* Virgule car nous pouvons être dans une expression d'objet ou d'array. */
+                params = ParamètresParsageExpression()
+                params.lexème_final = GenreLexème.Virgule
+                expression := parse_expression(parseuse, params)
+                droite = crée_expression_statement(parseuse, lexème, expression)
+            }
+
             si droite {
                 droite.appartient_à_fonction = vrai
             }
@@ -1449,13 +1590,19 @@ parse_statement_list :: fonc (parseuse: *Parseuse) -> [..]*Statement
     retourne statements
 }
 
-parse_array_litteral :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
+parse_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
 {
     parseuse.consomme()
 
     éléments: [..]*Expression
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
+        si parseuse.apparie(GenreLexème.Virgule) {
+            parseuse.consomme()
+            tableau_ajoute(*éléments, nul)
+            continue
+        }
+
         expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
         tableau_ajoute(*éléments, expr)
@@ -1465,11 +1612,6 @@ parse_array_litteral :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayL
         }
 
         parseuse.consomme()
-        /* Permet d'avoir des virgules en fin de liste sans expression suivante :
-         * [a, b, c,] */
-        saufsi apparie_expression(parseuse) {
-            arrête
-        }
     }
 
     parseuse.consomme(GenreLexème.CrochetFermant)
