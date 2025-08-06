@@ -53,3 +53,9 @@ test("propriété numérique déclarée en chaine", () => {
     vérifie_égalité(o["123"], 456);
     vérifie_égalité(o[123], 456);
 });
+
+test("les expressions d'une littérale d'objet peuvent contenir des fonctions arrows", function () {
+    const o = { a: () => 123, b: () => 456 };
+    vérifie_égalité(o.a(), 123);
+    vérifie_égalité(o.b(), 456);
+});

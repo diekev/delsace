@@ -1345,7 +1345,19 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         Arrow {
             parseuse.consomme()
-            droite := parseuse.parse_statement()
+
+            droite: *Statement
+            si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+                droite = parseuse.parse_statement()
+            }
+            sinon {
+                /* Virgule car nous pouvons être dans une expression d'objet ou d'array. */
+                params = ParamètresParsageExpression()
+                params.lexème_final = GenreLexème.Virgule
+                expression := parse_expression(parseuse, params)
+                droite = crée_expression_statement(parseuse, lexème, expression)
+            }
+
             si droite {
                 droite.appartient_à_fonction = vrai
             }
