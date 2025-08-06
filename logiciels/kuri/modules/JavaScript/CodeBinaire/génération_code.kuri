@@ -1206,7 +1206,7 @@ numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice:
     retourne génératrice.crée_charge(Valeur(Number = noeud.valeur))
 }
 
-object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+object_expression_sur_code_binaire :: fonc (noeud: *ObjectLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     reg_objet_src := génératrice.crée_crée_objet()
     si noeud.properties.taille == 0 {
@@ -1216,15 +1216,18 @@ object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératr
     reg_objet := génératrice.crée_stocke()
 
     pour noeud.properties {
-        nom_prop := donne_nom_propriété(it.property_name)
+        assert(it.type == PropertyDefinition)
+        property_definition := it comme *PropertyDefinition
+
+        nom_prop := donne_nom_propriété(property_definition.property_name)
 
         // À FAIRE : is_proto_setter
 
-        si is_anonymous_function_definition(it.expression) {
-            _ := génératrice.crée_named_evaluation(it.expression, nom_prop)
+        si is_anonymous_function_definition(property_definition.expression) {
+            _ := génératrice.crée_named_evaluation(property_definition.expression, nom_prop)
         }
         sinon {
-            _ := génératrice.génère_code_binaire(it.expression)
+            _ := génératrice.génère_code_binaire(property_definition.expression)
         }
 
         génératrice.crée_data_property_or_throw(reg_objet, nom_prop)
