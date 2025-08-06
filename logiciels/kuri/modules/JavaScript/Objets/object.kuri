@@ -188,7 +188,13 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
     si set {
         setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
     }
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
+
+    ajoute_propriété(objet, nom, getter, setter, drapeaux)
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: *Object, set: *Object, drapeaux: DrapeauxPropriété)
+{
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux))
 
     index: IndexPropriété
     index.empreinte = donne_empreinte(nom)
