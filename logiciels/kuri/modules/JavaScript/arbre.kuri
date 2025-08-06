@@ -4911,6 +4911,47 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
             // c. Return unused.
         }
     }
+    sinon si method_definition.kind == MethodKind.Set {
+        // 1. Let propKey be ? Evaluation of ClassElementName.
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+
+        // 2. Let env be the running execution context's LexicalEnvironment.
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // 4. Let sourceText be the source text matched by MethodDefinition.
+        source_text := donne_texte_source(method_definition)
+
+        // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, PropertySetParameterList, FunctionBody, non-lexical-this, env, privateEnv).
+        realm := interpréteuse.donne_realm()
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, method_definition.paramètres, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+
+        // 6. Perform MakeMethod(closure, object).
+        make_method(closure, object)
+
+        // 7. Perform SetFunctionName(closure, propKey, "set").
+        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
+
+        // À FAIRE 8. If propKey is a Private Name, then
+        // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: undefined, [[Set]]: closure }.
+        // 9. Else,
+        {
+            // a. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+            desc: PropertyDescriptor
+            desc.set = closure
+            desc.enumerable = enumerable
+            desc.configurable = vrai
+
+            // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
+            define_property_or_throw(object, prop_key, desc)
+
+            // c. Return unused.
+        }
+    }
     sinon {
         panique("Non-implémenté")
     }

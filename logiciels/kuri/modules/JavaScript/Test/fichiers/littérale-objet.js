@@ -69,3 +69,11 @@ test("nous pouvons définir des méthodes 'get' dans les propriétés d'une litt
     const o = { get fonction() { return 456; } };
     vérifie_égalité(o.fonction, 456);
 });
+
+test("nous pouvons définir des méthodes 'set' dans les propriétés d'une littérale d'objet", function () {
+    const o = { x: 0, set fonction(v) { this.x = v; } };
+    vérifie_égalité(o.x, 0);
+    o.fonction = 456;
+    vérifie_égalité(o.x, 456);
+});
+
