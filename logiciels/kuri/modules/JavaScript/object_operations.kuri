@@ -301,6 +301,65 @@ ordinary_has_instance :: fonc (interpréteuse: *Interpréteuse, C: Valeur, O: Va
     retourne faux
 }
 
+/* 7.3.25 CopyDataProperties ( target, source, excludedItems )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-copydataproperties */
+copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, source: Valeur, excluded_items: []PropertyKey)
+{
+    // 1. If source is either undefined or null, return unused.
+    si source.est_undefined() || source.est_nulle() {
+        retourne
+    }
+
+    // 2. Let from be ! ToObject(source).
+    from := to_object(interpréteuse, source)
+
+    // 3. Let keys be ? from.[[OwnPropertyKeys]]().
+    keys := from.internal_own_property_keys()
+    diffère déloge(keys)
+
+    si interpréteuse.possède_exception() {
+        retourne
+    }
+
+    // 4. For each element nextKey of keys, do
+    pour next_key dans keys {
+        // a. Let excluded be false.
+        excluded := faux
+
+        // b. For each element e of excludedItems, do
+        pour e dans excluded_items {
+            // i. If SameValue(e, nextKey) is true, then
+            si e == next_key {
+                // 1. Set excluded to true.
+                excluded = vrai
+            }
+        }
+
+        // c. If excluded is false, then
+        saufsi excluded {
+            // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+            opt_desc := internal_get_own_property(from, next_key)
+            si interpréteuse.possède_exception() {
+                retourne
+            }
+
+            // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+            si opt_desc.possède_valeur() && opt_desc.Quelque.enumerable.possède_valeur() && opt_desc.Quelque.enumerable.Quelque {
+                // 1. Let propValue be ? Get(from, nextKey).
+                prop_value := get(from, next_key)
+                si interpréteuse.possède_exception() {
+                    retourne
+                }
+
+                // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                create_data_property_or_throw(target, next_key, prop_value)
+            }
+        }
+    }
+
+    // 5. Return unused.
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

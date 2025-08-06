@@ -389,6 +389,49 @@ ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> bool
     retourne faux
 }
 
+/* 10.1.11.1 OrdinaryOwnPropertyKeys ( O )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryownpropertykeys */
+ordinary_own_property_keys :: fonc (object: *Object) -> [..]PropertyKey
+{
+    // 1. Let keys be a new empty List.
+    keys: [..]PropertyKey
+
+    propriétés := object.propriétés
+
+    // À FAIRE : ascending numeric index order
+    // 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
+    pour propriétés {
+        si is_array_index(it.nom) {
+            // a. Append P to keys.
+            tableau_ajoute(*keys, it.nom)
+        }
+    }
+
+    // À FAIRE : ascending chronological order of property creation
+    // 3. For each own property key P of O such that P is a String and P is not an array index, in ascending chronological order of property creation, do
+    pour propriétés {
+        si is_array_index(it.nom) || est_symbol(it.nom) {
+            continue
+        }
+
+        // a. Append P to keys.
+        tableau_ajoute(*keys, it.nom)
+    }
+
+    // 4. For each own property key P of O such that P is a Symbol, in ascending chronological order of property creation, do
+    pour propriétés {
+        saufsi est_symbol(it.nom) {
+            continue
+        }
+
+        // a. Append P to keys.
+        tableau_ajoute(*keys, it.nom)
+    }
+
+    // 5. Return keys.
+    retourne keys
+}
+
 /* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryobjectcreate */
 ordinary_object_create :: fonc (realm: *Realm, prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> *Object

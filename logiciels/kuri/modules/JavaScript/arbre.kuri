@@ -2634,10 +2634,10 @@ ObjectLiteral :: struct {
     type = #type_de_cette_structure
     sur_exécution = sur_exécution_object_literal
 
-    properties: [..]*PropertyDefinition
+    properties: [..]*Expression
 }
 
-crée_object_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectLiteral
+crée_object_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectLiteral
 {
     résultat := parseuse.crée_noeud(lexème, ObjectLiteral)
     résultat.sur_génération_code_binaire = object_expression_sur_code_binaire
@@ -2665,11 +2665,43 @@ sur_exécution_object_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-propertydefinitionevaluation */
-property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, properties: []*PropertyDefinition, object: *Object) -> CompletionRecord
+property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, properties: []*Expression, object: *Object) -> CompletionRecord
 {
     pour properties {
+        si it.type == SpreadElement {
+            spread := it comme *SpreadElement
+
+            // 1. Let exprValue be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(spread.argument, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            expr_value := completion.valeur
+
+            // 2. Let fromValue be ? GetValue(exprValue).
+            from_value := get_value(interpréteuse, expr_value)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 3. Let excludedNames be a new empty List.
+            excluded_names: []PropertyKey
+
+            // 4. Perform ? CopyDataProperties(object, fromValue, excludedNames).
+            copy_data_properties(interpréteuse, object, from_value, excluded_names)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 5. Return unused.
+            continue
+        }
+
+        assert(it.type == PropertyDefinition)
+        property_definition := it comme *PropertyDefinition
+
         // 1. Let propKey be ? Evaluation of PropertyName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), it.property_name)
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), property_definition.property_name)
 
         // À FAIRE : complète
         is_proto_setter := faux
@@ -2681,9 +2713,9 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
             // a. Let isProtoSetter be false.
         // 5. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and isProtoSetter is false, then
         prop_value: Valeur
-        si is_anonymous_function_definition(it.expression) && is_proto_setter == faux {
+        si is_anonymous_function_definition(property_definition.expression) && is_proto_setter == faux {
             // a. Let propValue be ? NamedEvaluation of AssignmentExpression with argument propKey.
-            completion := named_evaluation(interpréteuse, it.expression, prop_key)
+            completion := named_evaluation(interpréteuse, property_definition.expression, prop_key)
             saufsi completion.est_normal() {
                 retourne completion
             }
@@ -2693,7 +2725,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         // 6. Else,
         sinon {
             // a. Let exprValueRef be ? Evaluation of AssignmentExpression.
-            completion := exécute_noeud(it.expression, interpréteuse)
+            completion := exécute_noeud(property_definition.expression, interpréteuse)
             saufsi completion.est_normal() {
                 retourne completion
             }
