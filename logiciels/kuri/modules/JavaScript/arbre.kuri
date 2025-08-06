@@ -2697,6 +2697,17 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
             continue
         }
 
+        si it.type == ObjectMethod {
+            // 1. Perform ? MethodDefinitionEvaluation of MethodDefinition with arguments object and true.
+            method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 2. Return unused.
+            continue
+        }
+
         assert(it.type == PropertyDefinition)
         property_definition := it comme *PropertyDefinition
 
@@ -4748,6 +4759,93 @@ crée_spread_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: 
     résultat := parseuse.crée_noeud(lexème, SpreadElement)
     résultat.argument = argument
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectMethod
+ * \{ */
+
+ObjectMethod :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    class_element_name: *Expression
+    paramètres: [..]*Expression
+    body: *FunctionBody
+}
+
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody) -> *ObjectMethod
+{
+    résultat := parseuse.crée_noeud(lexème, ObjectMethod)
+    résultat.class_element_name = class_element_name
+    résultat.paramètres = paramètres
+    résultat.body = body
+    retourne résultat
+}
+
+MethodDefinitionInfo :: struct {
+    closure: *ECMAScriptFunction
+    key: PropertyKey
+}
+
+/* 15.4.4 Runtime Semantics: DefineMethod
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-definemethod */
+define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, function_prototype : *FunctionPrototype = nul) -> MethodDefinitionInfo
+{
+    realm := interpréteuse.donne_realm()
+
+    // 1. Let propKey be ? Evaluation of ClassElementName.
+    prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+
+    // 2. Let env be the running execution context's LexicalEnvironment.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    env := running_execution_context.lexical_environment
+
+    // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+    private_env := running_execution_context.private_environment
+
+    // 4. If functionPrototype is present, then
+    prototype := si function_prototype {
+        // a. Let prototype be functionPrototype.
+        function_prototype
+    }
+    // 5. Else,
+    sinon {
+        // a. Let prototype be %Function.prototype%.
+        realm.intrinsics.function_prototype
+    }
+
+    // 6. Let sourceText be the source text matched by MethodDefinition.
+    source_text := donne_texte_source(method_definition)
+
+    // 7. Let closure be OrdinaryFunctionCreate(prototype, sourceText, UniqueFormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
+    closure := ordinary_function_create(realm, prototype, source_text, method_definition.paramètres, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+    
+    // 8. Perform MakeMethod(closure, object).
+    make_method(closure, object)
+
+    // 9. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
+    retourne MethodDefinitionInfo(closure, prop_key)
+}
+
+/* 15.4.5 Runtime Semantics: MethodDefinitionEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-methoddefinitionevaluation */
+method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, enumerable: bool)
+{
+    // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
+    method_def := define_method(interpréteuse, method_definition, object)
+    si interpréteuse.possède_exception() {
+        retourne
+    }
+
+    // 2. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
+    set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key)
+
+    // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
+    define_method_property(object, method_def.key, method_def.closure, enumerable)
 }
 
 /** \} */
