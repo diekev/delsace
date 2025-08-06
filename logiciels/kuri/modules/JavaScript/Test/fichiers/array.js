@@ -17,6 +17,16 @@ test("array-literal", function () {
     vérifie_égalité(push_result, 4)
 });
 
+test("array-literal avec virgule en fin", function () {
+    var a = [1, 2, 3,];
+    vérifie_égalité(a.length, 3)
+    vérifie_égalité(a.toString(), "1,2,3")
+
+    vérifie_égalité(a[0], 1)
+    vérifie_égalité(a[1], 2)
+    vérifie_égalité(a[2], 3)
+});
+
 test("array-literal vide", function () {
     var a = [];
     vérifie_égalité(a.length, 0)
