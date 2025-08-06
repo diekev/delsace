@@ -4,8 +4,10 @@
 #include "portee.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
-#include "espace_de_travail.hh"
+
 #include "parsage/modules.hh"
+
+#include "espace_de_travail.hh"
 
 static bool peut_sélectionner_déclaration(NoeudDéclaration const *déclaration,
                                           Module const *module,
