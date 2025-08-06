@@ -2697,6 +2697,34 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
             continue
         }
 
+        si it.type == Identifier {
+            identifier_reference := it comme *Identifier
+
+            // 1. Let propName be the StringValue of IdentifierReference.
+            prop_name := identifier_reference.nom
+
+            // 2. Let exprValue be ? Evaluation of IdentifierReference.
+            completion := exécute_noeud(identifier_reference, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            expr_value := completion.valeur
+
+            // 3. Let propValue be ? GetValue(exprValue).
+            prop_value := get_value(interpréteuse, expr_value)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+            
+            // 4. Assert: object is an ordinary, extensible object with no non-configurable properties.
+
+            // 5. Perform ! CreateDataPropertyOrThrow(object, propName, propValue).
+            create_data_property_or_throw(object, prop_name, prop_value)
+
+            // 6. Return unused.
+            continue
+        }
+
         si it.type == ObjectMethod {
             // 1. Perform ? MethodDefinitionEvaluation of MethodDefinition with arguments object and true.
             method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai)

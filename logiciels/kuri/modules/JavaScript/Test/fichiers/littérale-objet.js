@@ -77,3 +77,9 @@ test("nous pouvons définir des méthodes 'set' dans les propriétés d'une litt
     vérifie_égalité(o.x, 456);
 });
 
+test("nous pouvons définir des rubriques depuis des références", function () {
+    var x = 789;
+    const o = { x };
+    vérifie_égalité(o.x, 789);
+});
+

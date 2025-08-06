@@ -867,7 +867,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                         méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind)
                         tableau_ajoute(*properties, méthode)
                     }
-                    sinon {
+                    sinon si parseuse.apparie(GenreLexème.DoublePoint) {
                         lexème_déf := parseuse.lexème_courant()
                         parseuse.consomme(GenreLexème.DoublePoint)
 
@@ -875,6 +875,12 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         property := crée_property_definition(parseuse, lexème_déf, nom_membre, expression)
                         tableau_ajoute(*properties, property)
+                    }
+                    sinon si nom_membre != nul && nom_membre.type == Identifier {
+                        tableau_ajoute(*properties, nom_membre)
+                    }
+                    sinon {
+                        rapporte_erreur(parseuse, "expected a property definition")
                     }
                 }
 
