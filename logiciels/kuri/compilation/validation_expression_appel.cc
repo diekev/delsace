@@ -3,7 +3,6 @@
 
 #include "validation_expression_appel.hh"
 
-#include <iostream>
 #include <variant>
 
 #include "arbre_syntaxique/assembleuse.hh"
@@ -19,7 +18,10 @@
 #include "utilitaires/log.hh"
 #include "validation_semantique.hh"
 
-#include "utilitaires/chrono.hh"
+#ifdef STATISTIQUES_DETAILLEES
+#    include "utilitaires/chrono.hh"
+#endif
+
 #include "utilitaires/divers.hh"
 #include "utilitaires/macros.hh"
 

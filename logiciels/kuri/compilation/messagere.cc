@@ -4,6 +4,7 @@
 #include "message.hh"
 
 #include "arbre_syntaxique/noeud_expression.hh"
+
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "unite_compilation.hh"

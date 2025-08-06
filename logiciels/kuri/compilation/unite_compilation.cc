@@ -5,13 +5,10 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "parsage/identifiant.hh"
-
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
 #include "message.hh"
 #include "metaprogramme.hh"
-#include "typage.hh"
 #include "validation_expression_appel.hh"
 #include "validation_semantique.hh"
 
