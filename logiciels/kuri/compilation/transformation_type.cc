@@ -6,13 +6,8 @@
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
-#include "parsage/outils_lexemes.hh"
-
-#include "espace_de_travail.hh"
 #include "typage.hh"
 #include "validation_semantique.hh"
-
-#include "utilitaires/log.hh"
 
 #define REQUIERS_TYPE_VALIDE(variable)                                                            \
     do {                                                                                          \

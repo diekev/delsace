@@ -23,6 +23,7 @@ TypeCommandeDeRendu :: énum {
 }
 
 CommandesDeRendu :: struct {
+    nombre_de_commandes: z32
     commandes: [..]octet
 }
 
@@ -38,11 +39,14 @@ détruit_commandes :: fonc (commandes: *CommandesDeRendu)
 
 réinitialise :: fonc (commandes: *CommandesDeRendu)
 {
+    commandes.nombre_de_commandes = 0
     commandes.commandes.taille = 0
 }
 
 crée_commande :: fonc (commandes: *CommandesDeRendu, $T: type_de_données) -> *T
 {
+    commandes.nombre_de_commandes += 1
+
     décalage := commandes.commandes.taille
     tableau_redimensionne(commandes.commandes, décalage + (taille_de(T) comme z64))
 
@@ -977,6 +981,21 @@ inline_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
     sinon {
         dessine_tampon_id_enfants_inline(box, ctx)
     }
+}
+
+inline_box_sur_dessin_fragment_id :: fonc (base: *Box, fragment: *Fragment, ctx: *ContexteDessin)
+{
+    si fragment.type == Fragment.Type.InlineBlock {
+        block_box_sur_dessin_tampon_id(base, ctx)
+        retourne
+    }
+
+    si fragment.type == Fragment.Type.MargeDébut || fragment.type == Fragment.Type.MargeFin {
+        retourne
+    }
+
+    rect_box := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
+    ctx.remplis_rectangle_id(base, rect_box)
 }
 
 replaced_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
