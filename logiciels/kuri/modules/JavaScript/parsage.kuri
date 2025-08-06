@@ -1494,6 +1494,12 @@ parse_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLi
     éléments: [..]*Expression
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
+        si parseuse.apparie(GenreLexème.Virgule) {
+            parseuse.consomme()
+            tableau_ajoute(*éléments, nul)
+            continue
+        }
+
         expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
         tableau_ajoute(*éléments, expr)
@@ -1503,11 +1509,6 @@ parse_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLi
         }
 
         parseuse.consomme()
-        /* Permet d'avoir des virgules en fin de liste sans expression suivante :
-         * [a, b, c,] */
-        saufsi apparie_expression(parseuse) {
-            arrête
-        }
     }
 
     parseuse.consomme(GenreLexème.CrochetFermant)

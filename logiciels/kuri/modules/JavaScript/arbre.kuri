@@ -2813,6 +2813,13 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     next_index: z64
 
     pour noeud.éléments {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-Elision */
+        saufsi it {
+            /* Élision. */
+            next_index += 1
+            continue
+        }
+
         /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-SpreadElement */
         si it.type == SpreadElement {
             spread := it comme *SpreadElement

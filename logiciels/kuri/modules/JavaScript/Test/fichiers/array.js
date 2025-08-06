@@ -32,6 +32,14 @@ test("array-literal vide", function () {
     vérifie_égalité(a.length, 0)
 });
 
+test("array-literal avec éléments vides", function () {
+    var a = [, , , ,];
+    vérifie_égalité(a.length, 4);
+
+    var b = [1, , ,];
+    vérifie_égalité(b.length, 3);
+});
+
 test("assignation array-literal vide", function () {
     var a = [];
     vérifie_égalité(a.length, 0)
