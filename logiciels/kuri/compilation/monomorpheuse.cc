@@ -3,8 +3,6 @@
 
 #include "monomorpheuse.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"
@@ -15,7 +13,6 @@
 #include "transformation_type.hh"
 #include "typage.hh"
 
-#include "utilitaires/garde_portee.hh"
 #include "utilitaires/log.hh"
 
 static kuri::chaine_statique commentaire_pour_genre(ItemMonomorphisation const &item)
