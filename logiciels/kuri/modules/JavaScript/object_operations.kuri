@@ -102,7 +102,7 @@ create_data_property_or_throw :: fonc (object: *Object, property_key: PropertyKe
 
     // 2. If success is false, throw a TypeError exception.
     saufsi success {
-        panique("Exception non-implémentée")
+        _ := lance_type_error(object, "cannot add data property to object")
     }
 
     // 3. Return UNUSED.
@@ -120,7 +120,7 @@ define_property_or_throw :: fonc (object: *Object, property_key: PropertyKey, de
 
     // 2. If success is false, throw a TypeError exception.
     saufsi success {
-        panique("Exception non-implémentée")
+        _ := lance_type_error(object, "cannot add property to object")
     }
 
     // 3. Return UNUSED.
