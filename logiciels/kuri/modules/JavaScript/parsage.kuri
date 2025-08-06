@@ -813,9 +813,28 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     tableau_ajoute(*properties, spread)
                 }
                 sinon {
+                    nom_membre: *Expression
+                    method_kind := MethodKind.Method
+
+                    si apparie(parseuse, GenreLexème.Get) {
+                        sauvegarde := parseuse.position
+                        parseuse.consomme()
+
+                        class_element_name := apparie_class_element_name(parseuse)
+                        si class_element_name {
+                            nom_membre = class_element_name
+                            method_kind = MethodKind.Get
+                        }
+                        sinon {
+                            parseuse.position = sauvegarde
+                        }
+                    }
+
                     // À FAIRE : ClassElementName, pour les méthodes
                     // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
-                    nom_membre := parse_property_name(parseuse)
+                    saufsi nom_membre {
+                        nom_membre = parse_property_name(parseuse)
+                    }
 
                     si apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
                         lexème_déf := parseuse.lexème_courant()
@@ -823,9 +842,13 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                         paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
                         parseuse.consomme(GenreLexème.ParenthèseFermante)
 
+                        si method_kind == MethodKind.Get && paramètres.taille != 0 {
+                            rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments")
+                        }
+
                         body := parse_function_body(parseuse)
 
-                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body)
+                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind)
                         tableau_ajoute(*properties, méthode)
                     }
                     sinon {
@@ -1085,6 +1108,64 @@ apparie_lexème_identifier_property :: fonc (parseuse: *Parseuse) -> bool
         retourne vrai
     }
     retourne faux
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName */
+apparie_class_element_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    résultat := apparie_property_name(parseuse)
+    si résultat {
+        retourne résultat
+    }
+
+    // À FAIRE : PrivateIdentifier
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-PropertyName */
+apparie_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    résultat := apparie_literal_property_name(parseuse)
+    si résultat {
+        retourne résultat
+    }
+
+    // À FAIRE : ComputedPropertyName
+    retourne nul
+}
+
+// À FAIRE : redondant avec parse_property_name
+apparie_literal_property_name :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    si parseuse.fini() {
+        retourne nul
+    }
+
+    lexème := parseuse.lexème_courant()
+    si lexème.genre == GenreLexème.ChaineLittérale {
+        parseuse.consomme()
+        retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+    }
+
+    si lexème.genre == GenreLexème.NombreLittéral {
+        parseuse.consomme()
+        valeur := parse_nombre_depuis_lexème(lexème)
+        retourne crée_literal(parseuse, lexème, valeur)
+    }
+
+    si lexème.texte.taille == 0 {
+        retourne nul
+    }
+
+    c := lexème.texte[0]
+    fanion := fanions_caractères[c comme n8]
+
+    saufsi fanion.DébuteIdentifiant {
+        retourne nul
+    }
+
+    parseuse.consomme()
+    retourne crée_identifier(parseuse, lexème, lexème.texte)
 }
 
 parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier

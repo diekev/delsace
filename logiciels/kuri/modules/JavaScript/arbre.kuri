@@ -4774,6 +4774,12 @@ crée_spread_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: 
 /** \nom ObjectMethod
  * \{ */
 
+MethodKind :: énum {
+    Method
+    Get
+    Set
+}
+
 ObjectMethod :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -4781,14 +4787,19 @@ ObjectMethod :: struct {
     class_element_name: *Expression
     paramètres: [..]*Expression
     body: *FunctionBody
+
+    est_méthode: bool
+    kind: MethodKind
 }
 
-crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody) -> *ObjectMethod
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind) -> *ObjectMethod
 {
     résultat := parseuse.crée_noeud(lexème, ObjectMethod)
     résultat.class_element_name = class_element_name
     résultat.paramètres = paramètres
     résultat.body = body
+    résultat.est_méthode = kind == MethodKind.Method
+    résultat.kind = kind
     retourne résultat
 }
 
@@ -4842,17 +4853,67 @@ define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *Ob
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-methoddefinitionevaluation */
 method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, enumerable: bool)
 {
-    // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
-    method_def := define_method(interpréteuse, method_definition, object)
-    si interpréteuse.possède_exception() {
-        retourne
+    si method_definition.kind == MethodKind.Method {
+        // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
+        method_def := define_method(interpréteuse, method_definition, object)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+
+        // 2. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
+        set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key)
+
+        // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
+        define_method_property(object, method_def.key, method_def.closure, enumerable)
     }
+    sinon si method_definition.kind == MethodKind.Get {
+        // 1. Let propKey be ? Evaluation of ClassElementName.
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
 
-    // 2. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
-    set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key)
+        // 2. Let env be the running execution context's LexicalEnvironment.
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+        env := running_execution_context.lexical_environment
 
-    // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
-    define_method_property(object, method_def.key, method_def.closure, enumerable)
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // 4. Let sourceText be the source text matched by MethodDefinition.
+        source_text := donne_texte_source(method_definition)
+
+        // 5. Let formalParameterList be an instance of the production FormalParameters : [empty] .
+        formal_parameter_list: [..]*Expression
+
+        // 6. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameterList, FunctionBody, non-lexical-this, env, privateEnv).
+        realm := interpréteuse.donne_realm()
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameter_list, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+
+        // 7. Perform MakeMethod(closure, object).
+        make_method(closure, object)
+
+        // 8. Perform SetFunctionName(closure, propKey, "get").
+        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
+
+        // À FAIRE 9. If propKey is a Private Name, then
+        // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: closure, [[Set]]: undefined }.
+
+        // 10. Else,
+        {
+            // a. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+            desc: PropertyDescriptor
+            desc.get = closure
+            desc.enumerable = enumerable
+            desc.configurable = vrai
+
+            // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
+            define_property_or_throw(object, prop_key, desc)
+
+            // c. Return unused.
+        }
+    }
+    sinon {
+        panique("Non-implémenté")
+    }
 }
 
 /** \} */
