@@ -1,4 +1,5 @@
 // nous importons Fondation car il nous faut le code d'impression, ce serait bien de ne pas avoir à faire cela afin que Kuri soit sans aucune dépendances...
+importe SysFichier
 importe Unicode
 
 imprime_trace_appel :: fonc () #sanstrace
@@ -25,7 +26,12 @@ imprime_trace_appel :: fonc () #sanstrace
             i += nombre_octets_utf8(*info_appel.texte[i])
         }
 
-        imprime("\x1b[1;31m^\x1b[0m\n\n")
+        si POSIX.isatty(sortie_standarde().desc) {
+            imprime("\x1b[1;31m^\x1b[0m\n\n")
+        }
+        sinon {
+            imprime("^\n\n")
+        }
 
         trace = trace.précédente
     }
@@ -57,7 +63,13 @@ panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #
         rappel()
     }
 
-    imprime("\n\x1b[1;31mErreur :\x1b[0m ")
+    si POSIX.isatty(sortie_standarde().desc) {
+        imprime("\n\x1b[1;31mErreur :\x1b[0m ")
+    }
+    sinon {
+        imprime("Erreur : ")
+    }
+
     imprime(message, ...args)
     imprime("\n\n")
     imprime_panique()
