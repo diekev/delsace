@@ -807,6 +807,15 @@ is_constructor :: fonc (argument: Valeur) -> bool
     retourne faux
 }
 
+/* 7.2.5 IsExtensible ( O )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-isextensible-o */
+is_extensible :: fonc (object: *Object) -> bool
+{
+    // À FAIRE
+    // 1. Return ? O.[[IsExtensible]]().
+    retourne object.extensible
+}
+
 /* 7.2.8 SameType ( x, y )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-sametype */
 same_type :: fonc (x: Valeur, y: Valeur) -> bool

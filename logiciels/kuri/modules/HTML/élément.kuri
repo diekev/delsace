@@ -1394,8 +1394,31 @@ HTMLButtonElement :: struct {
 table_virtuelle_button_element := TableVirtuelleÉlément(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = button_element_sur_changement_attribut,
     sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
 )
+
+button_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+        retourne vrai
+    }
+
+    button := base comme *HTMLButtonElement
+
+    si local_name == ATTR_disabled {
+        si valeur == nul {
+            button.enlève_pseudo_classe(CSS.PseudoClasses.Disabled)
+        }
+        sinon {
+            button.ajoute_pseudo_classe(CSS.PseudoClasses.Disabled)
+        }
+
+        retourne vrai
+    }
+
+    retourne faux
+}
 
 button_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
 {
