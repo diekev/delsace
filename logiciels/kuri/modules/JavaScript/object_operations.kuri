@@ -69,7 +69,7 @@ set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, throw: 
 
     // 2. If success is false and Throw is true, throw a TypeError exception.
     si succès == faux && throw == vrai {
-        panique("exceptions non-implémentées")
+        _ := lance_type_error(object, "cannot set property on Object")
     }
 
     // 3. Return UNUSED.
