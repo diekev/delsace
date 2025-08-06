@@ -3,8 +3,6 @@
 
 #include "gestionnaire_code.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
 

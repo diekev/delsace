@@ -16,9 +16,6 @@
 
 #include "statistiques/statistiques.hh"
 
-#include "structures/chemin_systeme.hh"
-#include "structures/enchaineuse.hh"
-
 #include "utilitaires/chrono.hh"
 
 ArgsGénérationCode crée_args_génération_code(Compilatrice &compilatrice,
