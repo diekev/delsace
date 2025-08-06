@@ -1,13 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is Copyright (C) 2024 Kévin Dietrich. */
 
+#undef IMPRIME_RI
+
 #include "syntaxage.hh"
 
-#include <iostream>
+#ifdef IMPRIME_RI
+#    include <iostream>
+#endif
 
 #include "impression.hh"
-
-#undef IMPRIME_RI
 
 #ifdef IMPRIME_RI
 static kuri::chaine chaine_type(kuri::tableau_statique<Lexème *> lexèmes)
