@@ -3,8 +3,6 @@
 
 #include "impression.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "parsage/identifiant.hh"

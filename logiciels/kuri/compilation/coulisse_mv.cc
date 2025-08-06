@@ -3,8 +3,6 @@
 
 #include "coulisse_mv.hh"
 
-#include <iostream>
-
 #include "representation_intermediaire/code_binaire.hh"
 #include "representation_intermediaire/constructrice_ri.hh"
 #include "representation_intermediaire/machine_virtuelle.hh"

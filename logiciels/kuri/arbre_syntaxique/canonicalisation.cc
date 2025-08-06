@@ -3,8 +3,6 @@
 
 #include "canonicalisation.hh"
 
-#include <iostream>
-
 #include "compilation/compilatrice.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"

@@ -344,6 +344,14 @@ lance_\\(1) :: fonc (realm: *Realm, message: chaine) -> Valeur
     retourne js_undefined
 }
 
+lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
+{
+    mv := cellule.donne_tas_de_mémoire().mv
+    running_execution_context := donne_running_execution_context(mv)
+    realm := running_execution_context.realm
+    retourne lance_\\(1)(realm, message)
+}
+
 \\(0)Prototype :: struct {
     empl objet: Object
     table = *table_virtuelle_\\(1)_prototype

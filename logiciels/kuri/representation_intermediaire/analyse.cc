@@ -12,9 +12,6 @@
 
 #include "parsage/identifiant.hh"
 
-#include "structures/ensemble.hh"
-#include "structures/file.hh"
-
 #include "utilitaires/calcul.hh"
 #include "utilitaires/log.hh"
 

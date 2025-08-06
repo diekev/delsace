@@ -6,7 +6,9 @@
 #include <thread>
 
 #include "compilation/compilatrice.hh"
-#include "compilation/coulisse_llvm.hh"
+#ifdef AVEC_COULISSE_LLVM
+#    include "compilation/coulisse_llvm.hh"
+#endif
 #include "compilation/environnement.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/tacheronne.hh"

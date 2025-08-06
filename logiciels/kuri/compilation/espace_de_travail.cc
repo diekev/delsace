@@ -3,20 +3,20 @@
 
 #include "espace_de_travail.hh"
 
-#include <fstream>
 #include <iostream>
 
-#include "parsage/identifiant.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/lexeuse.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/instructions.hh"
 
-#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "programme.hh"
+
 #include "statistiques/statistiques.hh"
+
 #include "utilitaires/log.hh"
 
 #define NOMBRE_DE_TACHES(x) nombre_de_tâches[size_t(GenreTâche::x)]
@@ -52,23 +52,21 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
     programme->rassemble_statistiques(stats);
 }
 
-void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache,
-                                    kuri::Synchrone<Messagère> &messagère)
+void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] += 1;
     regresse_phase_pour_tache_ajoutee(genre_tache, messagère);
 }
 
-void EspaceDeTravail::tache_terminee(GenreTâche genre_tache,
-                                     kuri::Synchrone<Messagère> &messagère)
+void EspaceDeTravail::tache_terminee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
 {
     nombre_de_tâches[size_t(genre_tache)] -= 1;
     assert(nombre_de_tâches[size_t(genre_tache)] >= 0);
     progresse_phase_pour_tache_terminee(genre_tache, messagère);
 }
 
-void EspaceDeTravail::progresse_phase_pour_tache_terminee(
-    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
+void EspaceDeTravail::progresse_phase_pour_tache_terminee(GenreTâche genre_tache,
+                                                          kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {
@@ -131,8 +129,8 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(
     }
 }
 
-void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(
-    GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
+void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
+                                                        kuri::Synchrone<Messagère> &messagère)
 {
     PhaseCompilation nouvelle_phase = phase;
     switch (genre_tache) {

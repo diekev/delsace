@@ -218,6 +218,11 @@ is_private_reference :: fonc (reference_record: &ReferenceRecord) -> bool
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ValeurCompletion) -> Valeur
 {
+    retourne get_value(interpréteuse.donne_realm(), valeur)
+}
+
+get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> Valeur
+{
     saufsi est_reference_record(valeur) {
         si est_empty(valeur) {
             retourne js_undefined
@@ -225,7 +230,7 @@ get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ValeurCompletion) ->
         retourne valeur.V
     }
 
-    retourne get_value(interpréteuse, valeur.R)
+    retourne get_value(realm, valeur.R)
 }
 
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ReferenceRecord) -> Valeur

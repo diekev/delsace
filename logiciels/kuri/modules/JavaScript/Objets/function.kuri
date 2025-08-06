@@ -65,6 +65,7 @@ ECMAScriptFunction :: struct {
     corps: *Statement @NeVisitePas
     formal_parameters: [..]*Expression @NeVisitePas
 
+    home_object: *Object
     environment: *Environment
     private_environment: *PrivateEnvironment
     source_texte: chaine
@@ -469,6 +470,41 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     define_property_or_throw(F, STR_prototype, desc)
 
     // 7. Return unused.
+}
+
+/* 10.2.7 MakeMethod ( F, homeObject )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-makemethod */
+make_method :: fonc (F: *ECMAScriptFunction, home_object: *Object)
+{
+    // À FAIRE : 1. Assert: homeObject is an ordinary object.
+
+    // 2. Set F.[[HomeObject]] to homeObject.
+    F.home_object = home_object
+
+    // 3. Return unused.
+}
+
+/* 10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )
+ * */
+define_method_property :: fonc (home_object: *Object, key: PropertyKey, closure: *ECMAScriptFunction, enumerable: bool)
+{
+    // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
+    // 2. If key is a Private Name, then
+    // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+    // 3. Else,
+
+    // a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+    desc: PropertyDescriptor
+    desc.value = Valeur(Function = closure)
+    desc.writable = vrai
+    desc.enumerable = enumerable
+    desc.configurable = vrai
+
+    // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
+    define_property_or_throw(home_object, key, desc)
+
+    // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
+    // d. Return unused.
 }
 
 /* 10.2.9 SetFunctionName ( F, name [ , prefix ] )

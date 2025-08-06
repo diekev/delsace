@@ -4,7 +4,6 @@
 #include "syntaxeuse.hh"
 
 #include <array>
-#include <iostream>
 
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"

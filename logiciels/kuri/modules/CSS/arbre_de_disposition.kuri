@@ -3097,6 +3097,7 @@ __table_inline_box := TableVirtuelleBox(
     sur_dessin_fragment = inline_box_sur_dessin_fragment,
     sur_divise_en_lignes = inline_box_sur_divise_en_lignes,
     sur_dessin_tampon_id = inline_box_sur_dessin_tampon_id,
+    sur_dessin_fragment_tampon_id = inline_box_sur_dessin_fragment_id,
     sur_correction_hiérarchie = inline_box_corrige_hiérarchie,
     sur_donne_baseline = block_box_donne_baseline)
 

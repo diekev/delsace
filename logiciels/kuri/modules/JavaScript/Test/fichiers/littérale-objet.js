@@ -53,3 +53,33 @@ test("propriété numérique déclarée en chaine", () => {
     vérifie_égalité(o["123"], 456);
     vérifie_égalité(o[123], 456);
 });
+
+test("les expressions d'une littérale d'objet peuvent contenir des fonctions arrows", function () {
+    const o = { a: () => 123, b: () => 456 };
+    vérifie_égalité(o.a(), 123);
+    vérifie_égalité(o.b(), 456);
+});
+
+test("nous pouvons définir des méthodes dans les propriétés d'une littérale d'objet", function () {
+    const o = { fonction() { return 456; } };
+    vérifie_égalité(o.fonction(), 456);
+});
+
+test("nous pouvons définir des méthodes 'get' dans les propriétés d'une littérale d'objet", function () {
+    const o = { get fonction() { return 456; } };
+    vérifie_égalité(o.fonction, 456);
+});
+
+test("nous pouvons définir des méthodes 'set' dans les propriétés d'une littérale d'objet", function () {
+    const o = { x: 0, set fonction(v) { this.x = v; } };
+    vérifie_égalité(o.x, 0);
+    o.fonction = 456;
+    vérifie_égalité(o.x, 456);
+});
+
+test("nous pouvons définir des rubriques depuis des références", function () {
+    var x = 789;
+    const o = { x };
+    vérifie_égalité(o.x, 789);
+});
+

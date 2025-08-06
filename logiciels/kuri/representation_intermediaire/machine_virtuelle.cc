@@ -6,7 +6,7 @@
 #include <iostream>
 
 #ifndef _MSC_VER
-#include <x86intrin.h>
+#    include <x86intrin.h>
 #endif
 
 #include "arbre_syntaxique/noeud_code.hh"

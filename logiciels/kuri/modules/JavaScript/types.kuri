@@ -451,6 +451,35 @@ initialise_property_descriptor :: fonc (desc: *PropertyDescriptor, valeur: Valeu
     }
 }
 
+est_vide :: fonc (desc: PropertyDescriptor) -> bool
+{
+    retourne !(desc.value.possède_valeur() || desc.get.possède_valeur() || desc.set.possède_valeur() || desc.writable.possède_valeur() || desc.enumerable.possède_valeur() || desc.configurable.possède_valeur())
+}
+
+donne_drapeaux_propriétés :: fonc (desc: PropertyDescriptor) -> DrapeauxPropriété
+{
+    drapeaux: DrapeauxPropriété
+    si desc.writable.possède_valeur() {
+        writable := desc.writable.Quelque
+        si writable {
+            drapeaux.WRITABLE = vrai
+        }
+    }
+    si desc.configurable.possède_valeur() {
+        configurable := desc.configurable.Quelque
+        si configurable {
+            drapeaux.CONFIGURABLE = vrai
+        }
+    }
+    si desc.enumerable.possède_valeur() {
+        enumerable := desc.enumerable.Quelque
+        si enumerable {
+            drapeaux.ENUMERABLE = vrai
+        }
+    }
+    retourne drapeaux
+}
+
 /* 6.2.6.1 IsAccessorDescriptor ( Desc )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isaccessordescriptor */
 is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
@@ -485,6 +514,24 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
     }
     // 4. Return false.
     retourne faux
+}
+
+/* 6.2.6.3 IsGenericDescriptor ( Desc )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-isgenericdescriptor */
+is_generic_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
+{
+    // 1. If IsAccessorDescriptor(Desc) is true, return false.
+    si is_accessor_descriptor(desc) {
+        retourne faux
+    }
+
+    // 2. If IsDataDescriptor(Desc) is true, return false.
+    si is_data_descriptor(desc) {
+        retourne faux
+    }
+
+    // 3. Return true.
+    retourne vrai
 }
 
 /** \} */

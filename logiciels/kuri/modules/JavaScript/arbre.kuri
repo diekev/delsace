@@ -1964,6 +1964,46 @@ argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: 
 {
     // À FAIRE : standardise
     pour arguments {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-ArgumentList */
+        si it.type == SpreadElement {
+            spread := it comme *SpreadElement
+            // 1. Let list be a new empty List.
+            // 2. Let spreadRef be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(spread.argument, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            spread_ref := completion.valeur
+
+            // 3. Let spreadObj be ? GetValue(spreadRef).
+            spread_obj := get_value(interpréteuse, spread_ref)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 4. Let iteratorRecord be ? GetIterator(spreadObj, sync).
+            iterator_record := get_iterator(interpréteuse, spread_obj, IteratorKind.SYNC)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 5. Repeat,
+            boucle {
+                // a. Let next be ? IteratorStepValue(iteratorRecord).
+                next, done := iterator_step_value(interpréteuse, *iterator_record)
+
+                // b. If next is done, return list.
+                si done {
+                    arrête
+                }
+
+                // c. Append next to list.
+                tableau_ajoute(résultat, next)
+            }
+
+            continue
+        }
+
         complétion_arg := exécute_noeud(it, interpréteuse)
         saufsi complétion_arg.est_normal() {
             retourne complétion_arg
@@ -2045,7 +2085,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-    si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
+    si noeud.gauche.type != ObjectLiteral && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
         completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
         saufsi completion_lref.est_normal() {
@@ -2586,29 +2626,29 @@ crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, prope
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ObjectExpression
+/** \nom ObjectLiteral
  * \{ */
 
-ObjectExpression :: struct {
+ObjectLiteral :: struct {
     empl base: Expression
     type = #type_de_cette_structure
-    sur_exécution = sur_exécution_object_expression
+    sur_exécution = sur_exécution_object_literal
 
-    properties: [..]*PropertyDefinition
+    properties: [..]*Expression
 }
 
-crée_object_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectExpression
+crée_object_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, ObjectExpression)
+    résultat := parseuse.crée_noeud(lexème, ObjectLiteral)
     résultat.sur_génération_code_binaire = object_expression_sur_code_binaire
     résultat.properties = properties
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
-sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+sur_exécution_object_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
-    noeud := base comme *ObjectExpression
+    noeud := base comme *ObjectLiteral
 
     // 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
     realm := interpréteuse.donne_realm()
@@ -2625,11 +2665,82 @@ sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-runtime-semantics-propertydefinitionevaluation */
-property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, properties: []*PropertyDefinition, object: *Object) -> CompletionRecord
+property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, properties: []*Expression, object: *Object) -> CompletionRecord
 {
     pour properties {
+        si it.type == SpreadElement {
+            spread := it comme *SpreadElement
+
+            // 1. Let exprValue be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(spread.argument, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            expr_value := completion.valeur
+
+            // 2. Let fromValue be ? GetValue(exprValue).
+            from_value := get_value(interpréteuse, expr_value)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 3. Let excludedNames be a new empty List.
+            excluded_names: []PropertyKey
+
+            // 4. Perform ? CopyDataProperties(object, fromValue, excludedNames).
+            copy_data_properties(interpréteuse, object, from_value, excluded_names)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 5. Return unused.
+            continue
+        }
+
+        si it.type == Identifier {
+            identifier_reference := it comme *Identifier
+
+            // 1. Let propName be the StringValue of IdentifierReference.
+            prop_name := identifier_reference.nom
+
+            // 2. Let exprValue be ? Evaluation of IdentifierReference.
+            completion := exécute_noeud(identifier_reference, interpréteuse)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            expr_value := completion.valeur
+
+            // 3. Let propValue be ? GetValue(exprValue).
+            prop_value := get_value(interpréteuse, expr_value)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+            
+            // 4. Assert: object is an ordinary, extensible object with no non-configurable properties.
+
+            // 5. Perform ! CreateDataPropertyOrThrow(object, propName, propValue).
+            create_data_property_or_throw(object, prop_name, prop_value)
+
+            // 6. Return unused.
+            continue
+        }
+
+        si it.type == ObjectMethod {
+            // 1. Perform ? MethodDefinitionEvaluation of MethodDefinition with arguments object and true.
+            method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai)
+            si interpréteuse.possède_exception() {
+                retourne throw_completion(interpréteuse.donne_exception())
+            }
+
+            // 2. Return unused.
+            continue
+        }
+
+        assert(it.type == PropertyDefinition)
+        property_definition := it comme *PropertyDefinition
+
         // 1. Let propKey be ? Evaluation of PropertyName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), it.property_name)
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), property_definition.property_name)
 
         // À FAIRE : complète
         is_proto_setter := faux
@@ -2641,9 +2752,9 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
             // a. Let isProtoSetter be false.
         // 5. If IsAnonymousFunctionDefinition(AssignmentExpression) is true and isProtoSetter is false, then
         prop_value: Valeur
-        si is_anonymous_function_definition(it.expression) && is_proto_setter == faux {
+        si is_anonymous_function_definition(property_definition.expression) && is_proto_setter == faux {
             // a. Let propValue be ? NamedEvaluation of AssignmentExpression with argument propKey.
-            completion := named_evaluation(interpréteuse, it.expression, prop_key)
+            completion := named_evaluation(interpréteuse, property_definition.expression, prop_key)
             saufsi completion.est_normal() {
                 retourne completion
             }
@@ -2653,7 +2764,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         // 6. Else,
         sinon {
             // a. Let exprValueRef be ? Evaluation of AssignmentExpression.
-            completion := exécute_noeud(it.expression, interpréteuse)
+            completion := exécute_noeud(property_definition.expression, interpréteuse)
             saufsi completion.est_normal() {
                 retourne completion
             }
@@ -2730,6 +2841,13 @@ sur_exécution_array_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
     next_index: z64
 
     pour noeud.éléments {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-Elision */
+        saufsi it {
+            /* Élision. */
+            next_index += 1
+            continue
+        }
+
         /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-SpreadElement */
         si it.type == SpreadElement {
             spread := it comme *SpreadElement
@@ -4676,6 +4794,195 @@ crée_spread_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, argument: 
     résultat := parseuse.crée_noeud(lexème, SpreadElement)
     résultat.argument = argument
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectMethod
+ * \{ */
+
+MethodKind :: énum {
+    Method
+    Get
+    Set
+}
+
+ObjectMethod :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    class_element_name: *Expression
+    paramètres: [..]*Expression
+    body: *FunctionBody
+
+    est_méthode: bool
+    kind: MethodKind
+}
+
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind) -> *ObjectMethod
+{
+    résultat := parseuse.crée_noeud(lexème, ObjectMethod)
+    résultat.class_element_name = class_element_name
+    résultat.paramètres = paramètres
+    résultat.body = body
+    résultat.est_méthode = kind == MethodKind.Method
+    résultat.kind = kind
+    retourne résultat
+}
+
+MethodDefinitionInfo :: struct {
+    closure: *ECMAScriptFunction
+    key: PropertyKey
+}
+
+/* 15.4.4 Runtime Semantics: DefineMethod
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-definemethod */
+define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, function_prototype : *FunctionPrototype = nul) -> MethodDefinitionInfo
+{
+    realm := interpréteuse.donne_realm()
+
+    // 1. Let propKey be ? Evaluation of ClassElementName.
+    prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+
+    // 2. Let env be the running execution context's LexicalEnvironment.
+    mv := interpréteuse.mv
+    running_execution_context := mv.donne_running_execution_context()
+    env := running_execution_context.lexical_environment
+
+    // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+    private_env := running_execution_context.private_environment
+
+    // 4. If functionPrototype is present, then
+    prototype := si function_prototype {
+        // a. Let prototype be functionPrototype.
+        function_prototype
+    }
+    // 5. Else,
+    sinon {
+        // a. Let prototype be %Function.prototype%.
+        realm.intrinsics.function_prototype
+    }
+
+    // 6. Let sourceText be the source text matched by MethodDefinition.
+    source_text := donne_texte_source(method_definition)
+
+    // 7. Let closure be OrdinaryFunctionCreate(prototype, sourceText, UniqueFormalParameters, FunctionBody, non-lexical-this, env, privateEnv).
+    closure := ordinary_function_create(realm, prototype, source_text, method_definition.paramètres, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+    
+    // 8. Perform MakeMethod(closure, object).
+    make_method(closure, object)
+
+    // 9. Return the Record { [[Key]]: propKey, [[Closure]]: closure }.
+    retourne MethodDefinitionInfo(closure, prop_key)
+}
+
+/* 15.4.5 Runtime Semantics: MethodDefinitionEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-methoddefinitionevaluation */
+method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, enumerable: bool)
+{
+    si method_definition.kind == MethodKind.Method {
+        // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
+        method_def := define_method(interpréteuse, method_definition, object)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+
+        // 2. Perform SetFunctionName(methodDef.[[Closure]], methodDef.[[Key]]).
+        set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key)
+
+        // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
+        define_method_property(object, method_def.key, method_def.closure, enumerable)
+    }
+    sinon si method_definition.kind == MethodKind.Get {
+        // 1. Let propKey be ? Evaluation of ClassElementName.
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+
+        // 2. Let env be the running execution context's LexicalEnvironment.
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // 4. Let sourceText be the source text matched by MethodDefinition.
+        source_text := donne_texte_source(method_definition)
+
+        // 5. Let formalParameterList be an instance of the production FormalParameters : [empty] .
+        formal_parameter_list: [..]*Expression
+
+        // 6. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameterList, FunctionBody, non-lexical-this, env, privateEnv).
+        realm := interpréteuse.donne_realm()
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameter_list, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+
+        // 7. Perform MakeMethod(closure, object).
+        make_method(closure, object)
+
+        // 8. Perform SetFunctionName(closure, propKey, "get").
+        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
+
+        // À FAIRE 9. If propKey is a Private Name, then
+        // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: closure, [[Set]]: undefined }.
+
+        // 10. Else,
+        {
+            // a. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+            desc: PropertyDescriptor
+            desc.get = closure
+            desc.enumerable = enumerable
+            desc.configurable = vrai
+
+            // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
+            define_property_or_throw(object, prop_key, desc)
+
+            // c. Return unused.
+        }
+    }
+    sinon si method_definition.kind == MethodKind.Set {
+        // 1. Let propKey be ? Evaluation of ClassElementName.
+        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+
+        // 2. Let env be the running execution context's LexicalEnvironment.
+        mv := interpréteuse.mv
+        running_execution_context := mv.donne_running_execution_context()
+        env := running_execution_context.lexical_environment
+
+        // 3. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // 4. Let sourceText be the source text matched by MethodDefinition.
+        source_text := donne_texte_source(method_definition)
+
+        // 5. Let closure be OrdinaryFunctionCreate(%Function.prototype%, sourceText, PropertySetParameterList, FunctionBody, non-lexical-this, env, privateEnv).
+        realm := interpréteuse.donne_realm()
+        closure := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, method_definition.paramètres, method_definition.body, NON_LEXICAL_THIS, env, private_env)
+
+        // 6. Perform MakeMethod(closure, object).
+        make_method(closure, object)
+
+        // 7. Perform SetFunctionName(closure, propKey, "set").
+        set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
+
+        // À FAIRE 8. If propKey is a Private Name, then
+        // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: undefined, [[Set]]: closure }.
+        // 9. Else,
+        {
+            // a. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+            desc: PropertyDescriptor
+            desc.set = closure
+            desc.enumerable = enumerable
+            desc.configurable = vrai
+
+            // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
+            define_property_or_throw(object, prop_key, desc)
+
+            // c. Return unused.
+        }
+    }
+    sinon {
+        panique("Non-implémenté")
+    }
 }
 
 /** \} */

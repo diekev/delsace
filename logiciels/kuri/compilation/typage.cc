@@ -4,7 +4,6 @@
 #include "typage.hh"
 
 #include <algorithm>
-#include <iostream>
 
 #include "arbre_syntaxique/allocatrice.hh"
 #include "arbre_syntaxique/cas_genre_noeud.hh"

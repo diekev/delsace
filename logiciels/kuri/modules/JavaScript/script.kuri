@@ -367,7 +367,7 @@ crée_erreur_de_compilation :: fonc (realm: *Realm, message: chaine, position: P
     pour magnitude_décimale(position.ligne + 1) + 2 {
         ajoute_au_tampon(*enchaineuse, " ")
     }
-    ajoute_au_tampon(*enchaineuse, "| ")
+    ajoute_au_tampon(*enchaineuse, "|")
 
     index_colonne := ligne_pour_erreur.index_colonne
     tantque index_colonne < position.colonne {
