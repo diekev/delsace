@@ -129,43 +129,229 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     retourne D
 }
 
-/* 10.1.6 [[DefineOwnProperty]] ( P, Desc )
+/* 10.1.6.1 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
 ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
 {
-    // À FAIRE : standardise
-    saufsi desc.value.possède_valeur() {
+    // 1. Let current be ? O.[[GetOwnProperty]](P).
+    current := internal_get_own_property(object, property_key)
+    si possède_exception(object) {
         retourne faux
     }
 
-    valeur := desc.value.Quelque
-    drapeaux: DrapeauxPropriété
-    si desc.writable.possède_valeur() {
-        writable := desc.writable.Quelque
-        si writable {
-            drapeaux.WRITABLE = vrai
-        }
-    }
-    si desc.configurable.possède_valeur() {
-        configurable := desc.configurable.Quelque
-        si configurable {
-            drapeaux.CONFIGURABLE = vrai
-        }
-    }
-    si desc.enumerable.possède_valeur() {
-        enumerable := desc.enumerable.Quelque
-        si enumerable {
-            drapeaux.ENUMERABLE = vrai
-        }
+    // 2. Let extensible be ? IsExtensible(O).
+    extensible := is_extensible(object)
+    si possède_exception(object) {
+        retourne faux
     }
 
-    propriété := trouve_propriété(object, property_key)
-    si propriété {
-        propriété.valeur = valeur
+    // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
+    retourne validate_and_apply_property_descriptor(object, property_key, extensible, desc, current)
+}
+
+/* 10.1.6.3 ValidateAndApplyPropertyDescriptor ( O, P, extensible, Desc, current )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-validateandapplypropertydescriptor */
+validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: PropertyKey, extensible: bool, desc: &PropertyDescriptor, opt_current: Optionnel(PropertyDescriptor)) -> bool
+{
+    // 1. Assert: P is a property key.
+
+    // 2. If current is undefined, then
+    saufsi opt_current.possède_valeur() {
+        // a. If extensible is false, return false.
+        saufsi extensible {
+            retourne faux
+        }
+
+        // b. If O is undefined, return true.
+        saufsi object {
+            retourne vrai
+        }
+
+        // c. If IsAccessorDescriptor(Desc) is true, then
+        si is_accessor_descriptor(desc) {
+            // i. Create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]], and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field, or to the attribute's default value otherwise.
+            get: *Object
+            si desc.get.possède_valeur() {
+                get = desc.get.Quelque
+            }
+
+            set: *Object
+            si desc.set.possède_valeur() {
+                set = desc.set.Quelque
+            }
+
+            drapeaux := donne_drapeaux_propriétés(desc)
+
+            ajoute_propriété(object, property_key, get, set, drapeaux)
+        }
+        // d. Else,
+        sinon {
+            // i. Create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]], and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field, or to the attribute's default value otherwise.
+            valeur := js_undefined
+            si desc.value.possède_valeur() {
+                valeur = desc.value.Quelque
+            }
+            drapeaux := donne_drapeaux_propriétés(desc)
+            ajoute_propriété(object, property_key, valeur, drapeaux)
+        }
+
+        // e. Return true.
         retourne vrai
     }
 
-    object.ajoute_propriété(property_key, valeur, drapeaux)
+    // 3. Assert: current is a fully populated Property Descriptor.
+    current := opt_current.Quelque
+
+    // 4. If Desc does not have any fields, return true.
+    si est_vide(desc) {
+        retourne vrai
+    }
+
+    // 5. If current.[[Configurable]] is false, then
+    si current.configurable.Quelque == faux {
+        // a. If Desc has a [[Configurable]] field and Desc.[[Configurable]] is true, return false.
+        si desc.configurable.possède_valeur() && desc.configurable.Quelque == vrai {
+            retourne faux
+        }
+
+        // b. If Desc has an [[Enumerable]] field and Desc.[[Enumerable]] is not current.[[Enumerable]], return false.
+        si desc.enumerable.possède_valeur() && desc.enumerable.Quelque != current.enumerable.Quelque {
+            retourne faux
+        }
+
+        // c. If IsGenericDescriptor(Desc) is false and IsAccessorDescriptor(Desc) is not IsAccessorDescriptor(current), return false.
+        si is_generic_descriptor(desc) == faux && is_accessor_descriptor(desc) != is_accessor_descriptor(current) {
+            retourne faux
+        }
+
+        // d. If IsAccessorDescriptor(current) is true, then
+        si is_accessor_descriptor(current) {
+            // i. If Desc has a [[Get]] field and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
+            si desc.get.possède_valeur() && same_value(desc.get.Quelque, current.get.Quelque).est_false() {
+                retourne faux
+            }
+
+            // ii. If Desc has a [[Set]] field and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
+            si desc.set.possède_valeur() && same_value(desc.set.Quelque, current.set.Quelque).est_false() {
+                retourne faux
+            }
+        }
+        // e. Else if current.[[Writable]] is false, then
+        sinon si current.writable.Quelque == faux {
+            // i. If Desc has a [[Writable]] field and Desc.[[Writable]] is true, return false.
+            si desc.writable.possède_valeur() && desc.writable.Quelque == vrai {
+                retourne faux
+            }
+
+            // ii. NOTE: SameValue returns true for NaN values which may be distinguishable by other means. Returning here ensures that any existing property of O remains unmodified.
+
+            // iii. If Desc has a [[Value]] field, return SameValue(Desc.[[Value]], current.[[Value]]).
+            si desc.value.possède_valeur() {
+                retourne same_value(desc.value.Quelque, current.value.Quelque).est_true()
+            }
+        }
+    }
+
+    // 6. If O is not undefined, then
+    si object {
+        // a. If IsDataDescriptor(current) is true and IsAccessorDescriptor(Desc) is true, then
+        si is_data_descriptor(current) && is_accessor_descriptor(desc) {
+            // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
+            //    else let configurable be current.[[Configurable]].
+            configurable := si desc.configurable.possède_valeur() {
+                desc.configurable.Quelque
+            }
+            sinon {
+                current.configurable.Quelque
+            }
+
+            // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
+            //     else let enumerable be current.[[Enumerable]].
+            enumerable := si desc.enumerable.possède_valeur() {
+                desc.enumerable.Quelque
+            }
+            sinon {
+                current.enumerable.Quelque
+            }
+
+            // iii. Replace the property named P of object O with an accessor property whose [[Configurable]]
+            //      and [[Enumerable]] attributes are set to configurable and enumerable, respectively,
+            //      and whose [[Get]] and [[Set]] attributes are set to the value of the corresponding field
+            //      in Desc if Desc has that field, or to the attribute's default value otherwise.
+            propriété := trouve_propriété(object, property_key)
+            mémoire(propriété) = Object.Propriété()
+            si desc.get.possède_valeur() {
+                propriété.get = desc.get.Quelque
+            }
+            si desc.set.possède_valeur() {
+                propriété.set = desc.set.Quelque
+            }
+            propriété.drapeaux.CONFIGURABLE = configurable
+            propriété.drapeaux.ENUMERABLE = enumerable
+        }
+        // b. Else if IsAccessorDescriptor(current) is true and IsDataDescriptor(Desc) is true, then
+        sinon si is_accessor_descriptor(current) && is_data_descriptor(desc) {
+            // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
+            //    else let configurable be current.[[Configurable]].
+            configurable := si desc.configurable.possède_valeur() {
+                desc.configurable.Quelque
+            }
+            sinon {
+                current.configurable.Quelque
+            }
+
+            // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
+            //     else let enumerable be current.[[Enumerable]].
+            enumerable := si desc.enumerable.possède_valeur() {
+                desc.enumerable.Quelque
+            }
+            sinon {
+                current.enumerable.Quelque
+            }
+
+            // iii. Replace the property named P of object O with a data property whose [[Configurable]]
+            //      and [[Enumerable]] attributes are set to configurable and enumerable, respectively,
+            //      and whose [[Value]] and [[Writable]] attributes are set to the value of the corresponding
+            //      field in Desc if Desc has that field, or to the attribute's default value otherwise.
+            propriété := trouve_propriété(object, property_key)
+            mémoire(propriété) = Object.Propriété()
+            si desc.value.possède_valeur() {
+                propriété.valeur = desc.value.Quelque
+            }
+            si desc.writable.possède_valeur() {
+                propriété.drapeaux.WRITABLE = desc.writable.Quelque
+            }
+            propriété.drapeaux.CONFIGURABLE = configurable
+            propriété.drapeaux.ENUMERABLE = enumerable
+        }
+        // c. Else,
+        sinon {
+            // i. For each field of Desc, set the corresponding attribute of the property named P
+            // of object O to the value of the field.
+            propriété := trouve_propriété(object, property_key)
+            // mémoire(propriété) = Object.Propriété()
+            si desc.value.possède_valeur() {
+                propriété.valeur = desc.value.Quelque
+            }
+            si desc.get.possède_valeur() {
+                propriété.get = desc.get.Quelque
+            }
+            si desc.set.possède_valeur() {
+                propriété.set = desc.set.Quelque
+            }
+            si desc.writable.possède_valeur() {
+                propriété.drapeaux.WRITABLE = desc.writable.Quelque
+            }
+            si desc.enumerable.possède_valeur() {
+                propriété.drapeaux.ENUMERABLE = desc.enumerable.Quelque
+            }
+            si desc.configurable.possède_valeur() {
+                propriété.drapeaux.CONFIGURABLE = desc.configurable.Quelque
+            }
+        }
+    }
+    
+    // 7. Return true.
     retourne vrai
 }
 
@@ -387,6 +573,49 @@ ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> bool
 
     // 4. Return false.
     retourne faux
+}
+
+/* 10.1.11.1 OrdinaryOwnPropertyKeys ( O )
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryownpropertykeys */
+ordinary_own_property_keys :: fonc (object: *Object) -> [..]PropertyKey
+{
+    // 1. Let keys be a new empty List.
+    keys: [..]PropertyKey
+
+    propriétés := object.propriétés
+
+    // À FAIRE : ascending numeric index order
+    // 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
+    pour propriétés {
+        si is_array_index(it.nom) {
+            // a. Append P to keys.
+            tableau_ajoute(*keys, it.nom)
+        }
+    }
+
+    // À FAIRE : ascending chronological order of property creation
+    // 3. For each own property key P of O such that P is a String and P is not an array index, in ascending chronological order of property creation, do
+    pour propriétés {
+        si is_array_index(it.nom) || est_symbol(it.nom) {
+            continue
+        }
+
+        // a. Append P to keys.
+        tableau_ajoute(*keys, it.nom)
+    }
+
+    // 4. For each own property key P of O such that P is a Symbol, in ascending chronological order of property creation, do
+    pour propriétés {
+        saufsi est_symbol(it.nom) {
+            continue
+        }
+
+        // a. Append P to keys.
+        tableau_ajoute(*keys, it.nom)
+    }
+
+    // 5. Return keys.
+    retourne keys
 }
 
 /* 10.1.12 OrdinaryObjectCreate ( proto [ , additionalInternalSlotsList ] )
