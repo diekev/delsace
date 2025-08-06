@@ -3,8 +3,6 @@
 
 #include "operateurs.hh"
 
-#include <iostream>
-
 #include "arbre_syntaxique/noeud_expression.hh"
 
 #include "statistiques/statistiques.hh"

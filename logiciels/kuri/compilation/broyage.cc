@@ -3,8 +3,6 @@
 
 #include "broyage.hh"
 
-#include <iostream>
-
 #include "structures/enchaineuse.hh"
 
 #include "parsage/identifiant.hh"
