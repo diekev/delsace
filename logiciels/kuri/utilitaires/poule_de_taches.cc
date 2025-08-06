@@ -4,7 +4,7 @@
 #include "poule_de_taches.hh"
 
 #ifndef _MSC_VER
-#include <unistd.h>
+#    include <unistd.h>
 #endif
 
 namespace kuri {
