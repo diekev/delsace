@@ -3,20 +3,20 @@
 
 #include "espace_de_travail.hh"
 
-#include <fstream>
 #include <iostream>
 
-#include "parsage/identifiant.hh"
+#include "arbre_syntaxique/noeud_expression.hh"
+
 #include "parsage/lexeuse.hh"
 
 #include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/instructions.hh"
 
-#include "arbre_syntaxique/noeud_expression.hh"
 #include "compilatrice.hh"
 #include "coulisse.hh"
 #include "programme.hh"
+
 #include "statistiques/statistiques.hh"
+
 #include "utilitaires/log.hh"
 
 #define NOMBRE_DE_TACHES(x) nombre_de_tâches[size_t(GenreTâche::x)]

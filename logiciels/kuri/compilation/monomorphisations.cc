@@ -5,8 +5,9 @@
 
 #include "parsage/identifiant.hh"
 
-#include "typage.hh"
 #include "utilitaires/log.hh"
+
+#include "typage.hh"
 
 kuri::chaine_statique chaine_pour_genre_item(GenreItem genre)
 {
