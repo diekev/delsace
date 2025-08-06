@@ -4,15 +4,12 @@
 #include "coulisse_c.hh"
 
 #include <fstream>
-#include <iostream>
-#include <set>
 
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"
 
 #include "parsage/identifiant.hh"
-#include "parsage/outils_lexemes.hh"
 
 #include "utilitaires/divers.hh"
 #include "utilitaires/poule_de_taches.hh"

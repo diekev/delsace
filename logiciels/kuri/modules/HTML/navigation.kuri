@@ -1733,7 +1733,9 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     navigation timing type  navTimingType
     résultat.navigation_timing_type = nav_timing_type
     //     about base URL  entry's document state's about base URL
-    résultat.about_base_url = copie_url(entry.document_state.about_base_url)
+    si entry.document_state.about_base_url {
+        résultat.about_base_url = copie_url(entry.document_state.about_base_url)
+    }
     retourne résultat
 }
 

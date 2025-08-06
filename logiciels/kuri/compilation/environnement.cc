@@ -3,7 +3,6 @@
 
 #include "environnement.hh"
 
-#include <iostream>
 #include <set>
 
 #include "parsage/modules.hh"
