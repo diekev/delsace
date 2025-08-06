@@ -851,7 +851,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_object_literal(parseuse, lexème, properties)
         }
         CrochetOuvrant {
-            retourne parse_array_litteral(parseuse, lexème)
+            retourne parse_array_literal(parseuse, lexème)
         }
         Let {
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
@@ -1487,7 +1487,7 @@ parse_statement_list :: fonc (parseuse: *Parseuse) -> [..]*Statement
     retourne statements
 }
 
-parse_array_litteral :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
+parse_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
 {
     parseuse.consomme()
 
