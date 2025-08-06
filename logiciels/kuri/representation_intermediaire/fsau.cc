@@ -13,7 +13,6 @@
 
 #include "structures/enchaineuse.hh"
 #include "structures/ensemble.hh"
-#include "structures/pile.hh"
 
 #include "analyse.hh"
 #include "bloc_basique.hh"
