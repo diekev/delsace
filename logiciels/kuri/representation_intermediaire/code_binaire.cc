@@ -4,7 +4,6 @@
 #include "code_binaire.hh"
 
 #include <iomanip>
-#include <iostream>
 
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -15,8 +14,6 @@
 #include "compilation/ipa.hh"
 #include "compilation/metaprogramme.hh"
 #include "compilation/programme.hh"
-
-#include "parsage/outils_lexemes.hh"
 
 #include "structures/enchaineuse.hh"
 

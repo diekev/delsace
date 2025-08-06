@@ -49,6 +49,7 @@ TableVirtuelleObject :: struct {
     sur_has_property := ordinary_has_property
     sur_get := ordinary_get
     sur_set := ordinary_set
+    sur_own_property_keys := ordinary_own_property_keys
     sur_call: TypeFonctionObjectCall
     sur_construct: TypeFonctionObjectConstruct
 }
@@ -187,7 +188,13 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
     si set {
         setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
     }
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = getter, set = setter, drapeaux = drapeaux))
+
+    ajoute_propriété(objet, nom, getter, setter, drapeaux)
+}
+
+ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: *Object, set: *Object, drapeaux: DrapeauxPropriété)
+{
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux))
 
     index: IndexPropriété
     index.empreinte = donne_empreinte(nom)
@@ -276,6 +283,12 @@ internal_define_own_property_by_index :: fonc (object: *Object, index: n32, desc
 internal_delete :: fonc (object: *Object, P: PropertyKey) -> bool
 {
     retourne object.donne_table().sur_delete(object, P)
+}
+
+/* [[OwnPropertyKeys]] */
+internal_own_property_keys :: fonc (object: *Object) -> [..]PropertyKey
+{
+    retourne object.donne_table().sur_own_property_keys(object)
 }
 
 /* [[HasProperty]] */
