@@ -25,7 +25,6 @@
 #include "tampon_source.hh"
 
 #include <immintrin.h>
-#include <iostream>
 
 #if !(defined(_MSC_VER) || defined(__SCE__)) || defined(__AVX__)
 #    define SUPPORTE_AVX
