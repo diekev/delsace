@@ -2085,7 +2085,7 @@ sur_exécution_assignment_expression :: fonc (base: *NoeudSyntaxique, interprét
 évalue_assignement_simple :: fonc (noeud: *AssignmentExpression, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     // 1. If LeftHandSideExpression is neither an ObjectLiteral nor an ArrayLiteral, then
-    si noeud.gauche.type != ObjectExpression && noeud.gauche.type != ArrayLiteral {
+    si noeud.gauche.type != ObjectLiteral && noeud.gauche.type != ArrayLiteral {
         // a. Let lref be ? Evaluation of LeftHandSideExpression.
         completion_lref := exécute_noeud(noeud.gauche, interpréteuse)
         saufsi completion_lref.est_normal() {
@@ -2626,29 +2626,29 @@ crée_property_definition :: fonc (parseuse: *Parseuse, lexème: *Lexème, prope
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ObjectExpression
+/** \nom ObjectLiteral
  * \{ */
 
-ObjectExpression :: struct {
+ObjectLiteral :: struct {
     empl base: Expression
     type = #type_de_cette_structure
-    sur_exécution = sur_exécution_object_expression
+    sur_exécution = sur_exécution_object_literal
 
     properties: [..]*PropertyDefinition
 }
 
-crée_object_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectExpression
+crée_object_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*PropertyDefinition) -> *ObjectLiteral
 {
-    résultat := parseuse.crée_noeud(lexème, ObjectExpression)
+    résultat := parseuse.crée_noeud(lexème, ObjectLiteral)
     résultat.sur_génération_code_binaire = object_expression_sur_code_binaire
     résultat.properties = properties
     retourne résultat
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
-sur_exécution_object_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+sur_exécution_object_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
-    noeud := base comme *ObjectExpression
+    noeud := base comme *ObjectLiteral
 
     // 1. Let obj be OrdinaryObjectCreate(%Object.prototype%).
     realm := interpréteuse.donne_realm()

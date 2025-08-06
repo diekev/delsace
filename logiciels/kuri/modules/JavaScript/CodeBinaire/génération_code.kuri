@@ -1206,7 +1206,7 @@ numeric_literal_sur_code_binaire :: fonc (noeud: *NumericLiteral, génératrice:
     retourne génératrice.crée_charge(Valeur(Number = noeud.valeur))
 }
 
-object_expression_sur_code_binaire :: fonc (noeud: *ObjectExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+object_expression_sur_code_binaire :: fonc (noeud: *ObjectLiteral, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     reg_objet_src := génératrice.crée_crée_objet()
     si noeud.properties.taille == 0 {
