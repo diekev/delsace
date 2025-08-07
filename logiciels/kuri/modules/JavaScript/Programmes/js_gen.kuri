@@ -635,7 +635,7 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
         }
         InstructionLet {
             let := base comme *InstructionLet
-            génératrice.ajoute_chaine(let.variable, " := ")
+            génératrice.ajoute_chaine(donne_nom_snake_case(let.variable), " := ")
             imprime_expression(génératrice, let.expression)
             vérifie_exception(génératrice, let.expression)
         }
@@ -741,7 +741,7 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 remplace_sans_copie(*texte, '.', '_')
             }
 
-            génératrice.ajoute_chaine(texte)
+            génératrice.ajoute_chaine(donne_nom_snake_case(texte))
         }
         ExpressionBinaire {
             expression := base comme *ExpressionBinaire
