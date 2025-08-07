@@ -1391,17 +1391,17 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     client                         sourceSnapshotParams's fetch client
     request.client = source_snapshot_params.fetch_client
     //     destination                    "document"
-    request.destination = "document"
+    request.destination = Request.DestinationType.Document
     //     credentials mode               "include"
-    request.credentials_mode = "include"
+    request.credentials_mode = Request.CredentialsMode.Include
     //     use-URL-credentials flag       set
-    request.use_url_credentials = vrai
+    request.drapeaux.USE_URL_CREDENTIALS = vrai
     //     redirect mode                  "manual"
-    request.redirect_mode = "manual"
+    request.redirect_mode = Request.RedirectMode.Manual
     // À FAIRE replaces_client_id
     //     replaces client id             navigable's active document's relevant settings object's id
     //     mode                           "navigate"
-    request.mode = "navigate"
+    request.mode = Request.Mode.Navigate
     //     referrer                       entry's document state's request referrer
     request.referrer = entry.document_state.request_referrer
     //     referrer policy                entry's document state's request referrer policy
@@ -1422,7 +1422,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         request.origin = crée_nouvelle_origin_opaque()
 
         // 2. Set request's service-workers mode to "all".
-        request.service_workers_mode = "all"
+        request.service_workers_mode = Request.ServiceWorkersMode.All
 
         // 3. Set request's referrer to "no-referrer".
         request.referrer = "no-referrer"
@@ -1438,16 +1438,16 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
 
     // 7. If entry's document state's reload pending is true, then set request's reload-navigation flag.
     si entry.document_state.reload_pending {
-        request.reload_navigation = vrai
+        request.drapeaux.RELOAD_NAVIGATION = vrai
     }
     // 8. Otherwise, if entry's document state's ever populated is true, then set request's history-navigation flag.
     sinon si entry.document_state.ever_populated {
-        request.history_navigation = vrai
+        request.drapeaux.HISTORY_NAVIGATION = vrai
     }
 
     // 9. If sourceSnapshotParams's has transient activation is true, then set request's user-activation to true.
     si source_snapshot_params.has_transient_activation {
-        request.user_activation = vrai
+        request.drapeaux.USER_ACTIVATION = vrai
     }
 
     // 10. If navigable's container is non-null:
