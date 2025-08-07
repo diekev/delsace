@@ -136,6 +136,12 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
         retourne
     }
 
+    si lexème == "Perform" {
+        perform := parseuse.crée_instruction(ligne, InstructionPerform)
+        perform.expression = parse_expression(parseuse)
+        retourne
+    }
+
     si ligne {
         rapporte_erreur(parseuse, "lexème inattendu", lexème)
     }
@@ -596,6 +602,13 @@ InstructionThrow :: struct {
     type_exception: chaine
 }
 
+InstructionPerform :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+
+    expression: *Expression
+}
+
 imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instruction)
 {
     discr base.type {
@@ -665,6 +678,11 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
             si instruction.type_exception == "TypeError" {
                 génératrice.ajoute_chaine("_ := lance_type_error(interpréteuse, message)")
             }
+        }
+        InstructionPerform {
+            perform := base comme *InstructionPerform
+            imprime_expression(génératrice, perform.expression)
+            vérifie_exception(génératrice, perform.expression)
         }
         sinon {}
     }
