@@ -46,6 +46,8 @@ Parseuse :: struct {
     lexèmes: [..]Lexème
     position := 0
     erreur_de_compilation: *SyntaxError
+    erreur_de_compilation_n_est_pas_ignorable: bool
+    parent: *Parseuse
 
     noeuds: [..]*NoeudSyntaxique
 }
@@ -63,11 +65,28 @@ donne_parseuse_locale :: fonc (parseuse: *Parseuse) -> Parseuse
     résultat: Parseuse
     résultat.lexèmes = parseuse.lexèmes
     résultat.position = parseuse.position
+    résultat.realm = parseuse.realm
+    résultat.source_text = parseuse.source_text
+    résultat.parent = parseuse
     retourne résultat
+}
+
+ajourne_parent :: fonc (parseuse: *Parseuse)
+{
+    assert(parseuse.parent != nul)
+    parseuse.parent.position = parseuse.position
+    si parseuse.erreur_de_compilation_n_est_pas_ignorable {
+        parseuse.parent.erreur_de_compilation = parseuse.erreur_de_compilation
+    }
+    pour parseuse.noeuds {
+        tableau_ajoute(*parseuse.parent.noeuds, it)
+    }
+    parseuse.noeuds.taille = 0
 }
 
 détruit_données_parseuse :: fonc (parseuse: *Parseuse)
 {
+    // À FAIRE : destruction des noeuds pour les parseuses locales
     déloge(parseuse.noeuds)
 }
 
@@ -174,6 +193,9 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
     lexème := parseuse.lexème_courant()
 
     discr lexème.genre {
+        Class {
+            retourne parse_class_declaration(parseuse)
+        }
         Function {
             retourne parse_function_declaration(parseuse)
         }
@@ -248,6 +270,136 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
     }
 
     retourne nul
+}
+
+parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
+{
+    lexème := parseuse.lexème_courant()
+    parseuse.consomme()
+
+    id := parse_binding_identifier(parseuse, vrai)
+
+    héritage: *Expression
+    si parseuse.apparie(GenreLexème.Extends) {
+        parseuse.consomme()
+        héritage = parse_expression(parseuse, ParamètresParsageExpression())
+    }
+
+    lexème_body := parseuse.lexème_courant()
+    parseuse.consomme(GenreLexème.AccoladeOuvrante)
+
+    éléments: [..]*NoeudSyntaxique
+
+    tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
+        si apparie(parseuse, GenreLexème.PointVirgule) {
+            lexème_expr := parseuse.lexème_courant()
+            expr := crée_empty_statement(parseuse, lexème_expr)
+            tableau_ajoute(*éléments, expr)
+            continue
+        }
+
+        parseuse_locale := parseuse.donne_parseuse_locale()
+
+        method := parse_method_definition(*parseuse_locale)
+
+        si parseuse_locale.erreur_de_compilation && parseuse_locale.erreur_de_compilation_n_est_pas_ignorable {
+            ajourne_parent(*parseuse_locale)
+            détruit_données_parseuse(*parseuse_locale)
+            arrête
+        }
+
+        si method && parseuse_locale.erreur_de_compilation == nul {
+            ajourne_parent(*parseuse_locale)
+            détruit_données_parseuse(*parseuse_locale)
+            tableau_ajoute(*éléments, method)
+            continue
+        }
+
+        // détruit_données_parseuse(*parseuse_locale)
+        // parseuse_locale := parseuse.donne_parseuse_locale()
+
+        // MethodDefinition[?Yield, ?Await]
+        // static MethodDefinition[?Yield, ?Await]
+        // FieldDefinition[?Yield, ?Await] ;
+        // static FieldDefinition[?Yield, ?Await] ;
+        // ClassStaticBlock
+    }
+
+    parseuse.consomme(GenreLexème.AccoladeFermante)
+
+    body := crée_class_body(parseuse, lexème_body, éléments)
+    retourne crée_class_declaration(parseuse, lexème, héritage, id, body)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-MethodDefinition */
+parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    method_kind := MethodKind.Method
+
+    class_element_name: *Expression
+
+    si apparie(parseuse, GenreLexème.Get) {
+        sauvegarde := parseuse.position
+        parseuse.consomme()
+
+        class_element_name = apparie_class_element_name(parseuse)
+        si class_element_name {
+            method_kind = MethodKind.Get
+        }
+        sinon {
+            parseuse.position = sauvegarde
+        }
+    }
+    sinon si apparie(parseuse, GenreLexème.Set) {
+        sauvegarde := parseuse.position
+        parseuse.consomme()
+
+        class_element_name = apparie_class_element_name(parseuse)
+        si class_element_name {
+            method_kind = MethodKind.Set
+        }
+        sinon {
+            parseuse.position = sauvegarde
+        }
+    }
+
+    // À FAIRE : ClassElementName, pour les méthodes
+    // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
+    saufsi class_element_name {
+        class_element_name = apparie_class_element_name(parseuse)
+        saufsi class_element_name {
+            retourne nul
+        }
+    }
+
+    saufsi apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
+        retourne nul
+    }
+
+    // À FAIRE : est-ce utile ?
+    parseuse.erreur_de_compilation_n_est_pas_ignorable = vrai
+
+    lexème_déf := parseuse.lexème_courant()
+    parseuse.consomme()
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+    parseuse.consomme(GenreLexème.ParenthèseFermante)
+
+    si method_kind == MethodKind.Get && paramètres.taille != 0 {
+        rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments")
+    }
+    sinon si method_kind == MethodKind.Set && paramètres.taille != 1 {
+        rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
+    }
+    sinon si class_element_name.type == Identifier {
+        identifier := class_element_name comme *Identifier
+        si identifier.nom == STR_constructor {
+            method_kind = MethodKind.Constructor
+        }
+    }
+
+    body := parse_function_body(parseuse)
+
+    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind)
 }
 
 parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
@@ -973,6 +1125,13 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         Spread {
             retourne parse_spread(parseuse, lexème)
+        }
+        Super {
+            parseuse.consomme()
+            parseuse.consomme(GenreLexème.ParenthèseOuvrante)
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse)
+            parseuse.consomme(GenreLexème.ParenthèseFermante)
+            retourne crée_super_call(parseuse, lexème, arguments)
         }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")

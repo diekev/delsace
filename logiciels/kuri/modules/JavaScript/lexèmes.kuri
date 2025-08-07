@@ -83,6 +83,7 @@ GenreLexème :: énum {
     Break
     Case
     Catch
+    Class
     Const
     Continue
     Debugger
@@ -160,6 +161,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "await" { retourne GenreLexème.Await }
         si identifiant == "break" { retourne GenreLexème.Break }
         si identifiant == "catch" { retourne GenreLexème.Catch }
+        si identifiant == "class" { retourne GenreLexème.Class }
         si identifiant == "const" { retourne GenreLexème.Const }
         si identifiant == "false" { retourne GenreLexème.False }
         si identifiant == "super" { retourne GenreLexème.Super }
@@ -281,8 +283,10 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         True,
         False,
         Function,
+        Class,
         Null, 
         CrochetOuvrant,
+        Super,
         This {
             retourne vrai
         }
@@ -384,6 +388,7 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
 est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
+        Class,
         For,
         Function,
         Return,
