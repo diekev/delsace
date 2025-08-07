@@ -137,7 +137,6 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     }
 
     si ligne {
-        imprimeln("%", ligne)
         rapporte_erreur(parseuse, "lexème inattendu", lexème)
     }
 }
@@ -346,11 +345,14 @@ Parseuse :: struct {
     début: *z8
     fin: *z8
 
+    ligne_courante: chaine
+
     bloc: *InstructionBloc
 }
 
 initialise_pour_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
 {
+    parseuse.ligne_courante = ligne
     parseuse.début = ligne.pointeur
     parseuse.fin = ligne.pointeur + ligne.taille
 }
@@ -375,8 +377,9 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
     rapporte_erreur(parseuse, message, donne_lexème_suivant(parseuse))
 }
 
-rapporte_erreur :: fonc (parseuse: *Parseuse @inutilisée, message: chaine, lexème_obtenu: chaine)
+rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine, lexème_obtenu: chaine)
 {
+    imprimeln("%", parseuse.ligne_courante)
     imprime("%, obtenu '%'\n", message, lexème_obtenu)
 }
 
