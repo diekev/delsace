@@ -35,6 +35,10 @@ principale :: fonc ()
         parse_ligne(*parseuse, it)
     }
 
+    si parseuse.possède_erreur {
+        exit(1)
+    }
+
     génératrice: GénératriceCode
     imprime_instruction(*génératrice, parseuse.bloc)
 }
@@ -373,6 +377,7 @@ Parseuse :: struct {
     fin: *z8
 
     ligne_courante: chaine
+    possède_erreur: bool
 
     bloc: *InstructionBloc
 }
@@ -406,6 +411,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine, lexème_obtenu: chaine)
 {
+    parseuse.possède_erreur = vrai
     imprimeln("%", parseuse.ligne_courante)
     imprime("%, obtenu '%'\n", message, lexème_obtenu)
 }
