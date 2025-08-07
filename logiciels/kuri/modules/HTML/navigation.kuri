@@ -1593,7 +1593,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         }
         // 6. Otherwise, process the next manual redirect for fetchController.
         sinon {
-            panique("redirection non-implémentée")
+            process_the_next_manual_redirect(fetch_controller)
         }
 
         // 7. Wait until either response is non-null, or navigable's ongoing navigation changes to no longer equal navigationId.

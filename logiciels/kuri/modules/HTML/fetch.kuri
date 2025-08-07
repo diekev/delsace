@@ -173,6 +173,10 @@ Request :: struct {
     reload_navigation: bool
     history_navigation: bool
 
+    /* https://fetch.spec.whatwg.org/#concept-request-redirect-count
+     * A request has an associated redirect count. Unless stated otherwise, it is zero. */
+    redirect_count := 0
+
     /* "basic", "cors", or "opaque" */
     response_tainting := "basic"
 
@@ -679,13 +683,24 @@ FetchController :: struct {
     /* Null or a Record (result of StructuredSerialize). */
     serialized_abort_reason: *rien
 
-    /* Null or an algorithm accepting nothing. */
-    next_manual_redirect_steps: *rien
+    /* https://fetch.spec.whatwg.org/#fetch-controller-next-manual-redirect-steps
+     * Null or an algorithm accepting nothing. */
+    next_manual_redirect_steps: *Algorithm
 }
 
 détruit_fetch_controller :: fonc (fetch_controller: *FetchController)
 {
     déloge(fetch_controller)
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-controller-process-the-next-manual-redirect */
+process_the_next_manual_redirect :: fonc (controller: *FetchController)
+{
+    // 1. Assert: controller’s next manual redirect steps is non-null.
+    assert(controller.next_manual_redirect_steps != nul)
+
+    // 2. Call controller’s next manual redirect steps.
+    run(controller.next_manual_redirect_steps)
 }
 
 /** \} */
@@ -1479,8 +1494,171 @@ scheme_fetch_blob :: fonc (request: *Request) -> *Response
 /* https://fetch.spec.whatwg.org/#concept-http-fetch */
 http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
-    /* À FAIRE : standardise */
-    retourne user_agent.lance_requête(fetch_params.request)
+    // 1. Let request be fetchParams’s request.
+    request := fetch_params.request
+    
+    // 2. Let response and internalResponse be null.
+    response: *Response
+    internal_response: *Response
+
+    // 3. If request’s service-workers mode is "all", then:
+    si request.service_workers_mode == "all" {
+        /* À FAIRE : standardise */
+        response = user_agent.lance_requête(fetch_params.request)
+
+        si response {
+            internal_response = response
+        }
+    }
+
+    // 4. If response is null, then:
+    si response == nul {
+        panique("non-implémenté")
+    }
+
+    // 5. If either request’s response tainting or response’s type is "opaque",
+    //    and the cross-origin resource policy check with request’s origin, request’s client,
+    //    request’s destination, and internalResponse returns blocked, then return a network error.
+
+    // 6. If internalResponse’s status is a redirect status:
+    si is_redirect_status(internal_response.status) {
+        // 1. If internalResponse’s status is not 303, request’s body is non-null, and the connection
+        //    uses HTTP/2, then user agents may, and are even encouraged to, transmit an RST_STREAM frame.
+
+        // 2. Switch on request’s redirect mode:
+        si request.redirect_mode == "error" {
+            // Set response to a network error.
+            response = network_error(request)
+        }
+        sinon si request.redirect_mode == "manual" {
+            // If request’s mode is "navigate", then set fetchParams’s controller’s next manual redirect steps to run HTTP-redirect fetch given fetchParams and response.
+            si request.mode == "navigate" {
+                NextManualRedirect :: struct {
+                    empl base: Algorithm
+                    user_agent: *UserAgent
+                    fetch_params: *FetchParams
+                    response: *Response
+                }
+
+                sur_next_manual_redirect :: fonc (base: *Algorithm)
+                {
+                    empl params := base comme *NextManualRedirect
+                    _ := http_redirect_fetch(user_agent, fetch_params, response)
+                }
+
+                next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect)
+                next_manual_redirect.user_agent = user_agent
+                next_manual_redirect.fetch_params = fetch_params
+                next_manual_redirect.response = response
+
+                fetch_params.controller.next_manual_redirect_steps = next_manual_redirect
+            }
+            // Otherwise, set response to an opaque-redirect filtered response whose internal response is internalResponse.
+            sinon {
+                panique("non-implémenté")
+            }
+        }
+        sinon si request.redirect_mode == "follow" {
+            // Set response to the result of running HTTP-redirect fetch given fetchParams and response.
+            response = http_redirect_fetch(user_agent, fetch_params, response)
+        }
+        sinon {
+            panique("request.redirect_mode inconnu : '%'", request.redirect_mode)
+        }
+    }
+
+    // 7. Return response.
+    retourne response
+
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.4. HTTP-redirect fetch
+ * https://fetch.spec.whatwg.org/#http-redirect-fetch
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#concept-http-redirect-fetch */
+
+http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response) -> *Response
+{
+    // 1. Let request be fetchParams’s request.
+    request := fetch_params.request
+
+    // À FAIRE 2. Let internalResponse be response, if response is not a filtered response; otherwise response’s internal response.
+    internal_reponse := response
+
+    // 3. Let locationURL be internalResponse’s location URL given request’s current URL’s fragment.
+    current_url := request.donne_url_courant()
+    location_url := donne_location_url(internal_reponse, user_agent, current_url.fragment)
+
+    // 4. If locationURL is null, then return response.
+    si location_url == nul {
+        retourne response
+    }
+
+    // À FAIRE 5. If locationURL is failure, then return a network error.
+
+    // 6. If locationURL’s scheme is not an HTTP(S) scheme, then return a network error.
+    saufsi is_http_scheme(location_url.scheme) {
+        retourne network_error(request)
+    }
+
+    // 7. If request’s redirect count is 20, then return a network error.
+    si request.redirect_count == 20 {
+        retourne network_error(request)
+    }
+
+    // 8. Increase request’s redirect count by 1.
+    request.redirect_count += 1
+
+    // 9. If request’s mode is "cors", locationURL includes credentials, and request’s origin is not same origin with locationURL’s origin, then return a network error.
+
+    // 10. If request’s response tainting is "cors" and locationURL includes credentials, then return a network error.
+
+    // 11. If internalResponse’s status is not 303, request’s body is non-null, and request’s body’s source is null, then return a network error.
+
+    // 12. If one of the following is true
+    //     internalResponse’s status is 301 or 302 and request’s method is `POST`
+    //     internalResponse’s status is 303 and request’s method is not `GET` or `HEAD`
+    // then:
+
+        // 1. Set request’s method to `GET` and request’s body to null.
+
+        // 2. For each headerName of request-body-header name, delete headerName from request’s header list.
+
+    // 13. If request’s current URL’s origin is not same origin with locationURL’s origin, then for each headerName of CORS non-wildcard request-header name, delete headerName from request’s header list.
+
+    // 14. If request’s body is non-null, then set request’s body to the body of the result of safely extracting request’s body’s source.
+
+    // 15. Let timingInfo be fetchParams’s timing info.
+
+    // 16. Set timingInfo’s redirect end time and post-redirect start time to the coarsened shared current time given fetchParams’s cross-origin isolated capability.
+
+    // 17. If timingInfo’s redirect start time is 0, then set timingInfo’s redirect start time to timingInfo’s start time.
+
+    // 18. Append locationURL to request’s URL list.
+    request.définis_url(location_url)
+
+    // 19. Invoke set request’s referrer policy on redirect on request and internalResponse. [REFERRER]
+
+    // 20. Let recursive be true.
+    recursive := vrai
+
+    // 21. If request’s redirect mode is "manual", then:
+    si request.redirect_mode == "manual" {
+        // 1. Assert: request’s mode is "navigate".
+        assert(request.mode == "navigate")
+
+        // 2. Set recursive to false.
+        recursive = faux
+    }
+
+    // 22. Return the result of running main fetch given fetchParams and recursive.
+    // À FAIRE : retourne une réponse
+    main_fetch(user_agent, fetch_params, recursive)
+    retourne nul
 }
 
 /** \} */
