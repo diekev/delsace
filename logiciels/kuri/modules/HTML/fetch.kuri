@@ -384,6 +384,27 @@ possède_entête :: fonc (response: *Response, nom: chaine) -> bool
     retourne faux
 }
 
+possède_entête :: fonc (response: *Response, nom: chaine, valeur: chaine) -> bool
+{
+    pour response.header_list {
+        saufsi compare_ascii_insensible_à_la_casse(it.name, nom) {
+            retourne faux
+        }
+
+        valeur_entête := it.value
+        morceaux := divise(valeur_entête, ';')
+        diffère déloge(morceaux)
+
+        pour morceau dans morceaux {
+            morceau = supprime_espaces_blancs(morceau)
+            si compare_ascii_insensible_à_la_casse(valeur, morceau) {
+                retourne vrai
+            }
+        }
+    }
+    retourne faux
+}
+
 /* https://fetch.spec.whatwg.org/#concept-network-error */
 network_error :: fonc (requête: *Request) -> *Response
 {

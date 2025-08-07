@@ -1296,8 +1296,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
                 // 2. Invoke WebDriver BiDi navigation failed with currentBrowsingContext and a new WebDriver BiDi navigation status whose id is navigationId, status is "canceled", and url is navigationParams's response's URL.
         }
         // 5. Otherwise, if navigationParams's response has a `Content-Disposition` header specifying the attachment disposition type, then:
-        // À FAIRE : attachment disposition type
-        sinon si navigation_params.response.possède_entête("Content-Disposition") {
+        sinon si navigation_params.response.possède_entête("Content-Disposition", "attachment") {
             panique("non-implémenté")
 
             // 1. Let sourceAllowsDownloading be sourceSnapshotParams's allows downloading.
