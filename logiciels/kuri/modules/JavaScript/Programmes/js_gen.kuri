@@ -70,6 +70,7 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     }
 
     si lexème == "Assert" {
+        _ := parseuse.crée_instruction(ligne, InstructionVide)
         retourne
     }
 
@@ -543,6 +544,12 @@ Instruction :: struct {
     ligne: chaine
 }
 
+/* Utiliser pour les assertions. */
+InstructionVide :: struct {
+    empl base: Instruction
+    type = #type_de_cette_structure
+}
+
 InstructionBloc :: struct {
     empl base: Instruction
     type = #type_de_cette_structure
@@ -624,6 +631,9 @@ InstructionPerform :: struct {
 imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instruction)
 {
     discr base.type {
+        InstructionVide {
+            /* Rien à faire. */
+        }
         InstructionBloc {
             bloc := base comme *InstructionBloc
             génératrice.commence_bloc()
