@@ -313,6 +313,18 @@ parse_expression_appel :: fonc (parseuse: *Parseuse, gestion_exception: z8) -> *
 {
     fonction := parseuse.donne_lexème_suivant()
 
+    si parseuse.apparie("of") {
+        _ := parseuse.donne_lexème_suivant()
+
+        résultat := loge(ExpressionAppel)
+        résultat.fonction = fonction
+        résultat.gestion_exception = gestion_exception
+
+        argument := parse_expression(parseuse)
+        tableau_ajoute(*résultat.params, argument)
+        retourne résultat
+    }
+
     saufsi consomme_caractère(parseuse, '(') {
         rapporte_erreur(parseuse, "attendu '('", parseuse.donne_lexème_suivant())
         retourne nul
