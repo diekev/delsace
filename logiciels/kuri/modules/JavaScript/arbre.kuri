@@ -718,20 +718,22 @@ block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: 
     realm := interpréteuse.donne_realm()
 
     // 3. For each element d of declarations, do
+    bound_names: [..]ECMAString
+    diffère déloge(bound_names)
+
     pour d dans lex_declarations {
         // a. For each element dn of the BoundNames of d, do
-        pour dn dans d.expressions {
-            assert(dn.id.type == Identifier)
-            name := (dn.id comme *Identifier).nom
+        donne_bound_names(d, *bound_names)
+        pour dn dans bound_names {
             // i. If IsConstantDeclaration of d is true, then
-            si d.nature == VariableDeclarationKind.Const {
+            si is_constant_declaration(d) {
                 // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                _ := env.create_immutable_binding(realm, name, vrai)
+                _ := env.create_immutable_binding(realm, dn, vrai)
             }
             // ii. Else,
             sinon {
                 // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
-                env.create_mutable_binding(realm, name, faux)
+                env.create_mutable_binding(realm, dn, faux)
             }
         }
         // À FAIRE b. If d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration, then
@@ -3240,9 +3242,8 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
         // 4. Let boundNames be the BoundNames of LexicalDeclaration.
         bound_names: [..]ECMAString
-        pour lexical_declaration.expressions {
-            tableau_ajoute(*bound_names, (it.id comme *Identifier).nom)
-        }
+        diffère déloge(bound_names)
+        donne_bound_names(lexical_declaration, *bound_names)
 
         // 5. For each element dn of boundNames, do
         pour bound_names {
@@ -5476,7 +5477,7 @@ donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
 
 VisteuseDéclarationsLexicales :: struct {
     empl base: VisiteuseNoeud
-    déclarations: [..]*VariableDeclaration
+    déclarations: [..]*NoeudSyntaxique
 }
 
 crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDéclarationsLexicales, noeud: *NoeudSyntaxique)
@@ -5510,7 +5511,7 @@ crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDécla
 }
 
 /* https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-lexicallydeclarednames */
-donne_lexically_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*VariableDeclaration
+donne_lexically_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*NoeudSyntaxique
 {
     visiteuse: VisteuseDéclarationsLexicales
     crée_visiteuse_pour_déclarations_lexicales(*visiteuse, noeud)
@@ -5519,3 +5520,30 @@ donne_lexically_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*Va
 }
 
 /** \} */
+
+/* 8.2.1 Static Semantics: BoundNames
+ * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-static-semantics-boundnames */
+donne_bound_names :: fonc (syntax: *NoeudSyntaxique, résultat: *[..]ECMAString)
+{
+    résultat.taille = 0
+
+    si syntax.type == VariableDeclaration {
+        variable_declaration := syntax comme *VariableDeclaration
+        pour variable_declaration.expressions {
+            assert(it.id.type == Identifier)
+            tableau_ajoute(résultat, (it.id comme *Identifier).nom)
+        }
+        retourne
+    }
+}
+
+/* 8.2.3 Static Semantics: IsConstantDeclaration
+ * https://tc39.es/ecma262/multipage/notational-conventions.html#sec-algorithm-conventions-syntax-directed-operations */
+is_constant_declaration :: fonc (syntax: *NoeudSyntaxique) -> bool
+{
+    si syntax.type == VariableDeclaration {
+        variable_declaration := syntax comme *VariableDeclaration
+        retourne variable_declaration.nature == VariableDeclarationKind.Const
+    }
+    retourne faux
+}
