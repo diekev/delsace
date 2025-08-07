@@ -24,3 +24,8 @@ test("'?.5' n'est pas un opérateur '?.' mais '? .5' suivi d'un ':'", function()
     const v = t?.5:.25;
     vérifie_égalité(v, 0.5);
 });
+
+test("lexage de /*/*/ (/ commenté)", function () {
+    const code = 47/*/*/;
+    vérifie_égalité(code, 47);
+});

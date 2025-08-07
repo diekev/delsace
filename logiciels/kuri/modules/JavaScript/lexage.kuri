@@ -1134,6 +1134,8 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
 
 consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
 {
+    lexeuse.avance(2)
+
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
         si apparie(lexeuse, "*/") {
