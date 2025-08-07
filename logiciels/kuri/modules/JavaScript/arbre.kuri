@@ -4988,6 +4988,146 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom OptionalMemberExpression.
+ * \{ */
+
+OptionalMemberExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_optional_member_expression
+
+    gauche: *Expression
+    droite: *Expression
+    calculé: bool
+}
+
+crée_optional_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, gauche: *Expression, droite: *Expression, calculé: bool) -> *OptionalMemberExpression
+{
+    résultat := parseuse.crée_noeud(lexème, OptionalMemberExpression)
+    résultat.gauche = gauche
+    résultat.droite = droite
+    résultat.calculé = calculé
+    retourne résultat
+}
+
+sur_exécution_optional_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    optional_chain := base comme *OptionalMemberExpression
+
+    // 1. Let baseReference be ? Evaluation of MemberExpression.
+    completion := exécute_noeud(optional_chain.gauche, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    base_reference := completion.valeur
+
+    // 2. Let baseValue be ? GetValue(baseReference).
+    base_value := get_value(interpréteuse, base_reference)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. If baseValue is either undefined or null, then
+    si base_value.est_undefined() || base_value.est_nulle() {
+        // a. Return undefined.
+        retourne normal_completion(js_undefined)
+    }
+
+    // 4. Return ? ChainEvaluation of OptionalChain with arguments baseValue and baseReference.
+    retourne chain_evaluation(interpréteuse, optional_chain, base_value, base_reference)
+}
+
+/* 13.3.9.2 Runtime Semantics: ChainEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-optional-chaining-chain-evaluation */
+chain_evaluation :: fonc (interpréteuse: *InterprèteArbre, optional_chain: *Expression, base_value: Valeur, base_reference: ValeurCompletion) -> CompletionRecord
+{
+    assert(optional_chain.type == OptionalMemberExpression || optional_chain.type == OptionalCallExpression)
+
+    si optional_chain.type == OptionalMemberExpression {
+        optional_member := optional_chain comme *OptionalMemberExpression
+
+        // OptionalChain : ?. [ Expression ]
+        si optional_member.calculé {
+            // 1. Let strict be IsStrict(this OptionalChain).
+            strict := is_strict(optional_chain)
+            // 2. Return ? EvaluatePropertyAccessWithExpressionKey(baseValue, Expression, strict).
+            retourne evaluate_property_access_with_expression_key(interpréteuse, base_value, optional_member.droite, strict)
+        }
+
+        // OptionalChain : ?. IdentifierName
+        si optional_member.droite.type == Identifier {
+            // 1. Let strict be IsStrict(this OptionalChain).
+            strict := is_strict(optional_chain)
+            // 2. Return EvaluatePropertyAccessWithIdentifierKey(baseValue, IdentifierName, strict).
+            retourne evaluate_property_access_with_identifier_key(interpréteuse, base_value, optional_member.droite comme *Identifier, strict)
+        }
+
+        panique("non-implémenté")
+    }
+
+    // 1. Let thisChain be this OptionalChain.
+    this_chain := optional_chain comme *OptionalCallExpression
+
+    // 2. Let tailCall be IsInTailPosition(thisChain).
+    tail_call := is_in_tail_position(this_chain)
+
+    // 3. Return ? EvaluateCall(baseValue, baseReference, Arguments, tailCall).
+    retourne evaluate_call(interpréteuse, base_value, base_reference, this_chain.arguments, tail_call)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom OptionalCallExpression.
+ * \{ */
+
+OptionalCallExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_optional_call_expression
+
+    gauche: *Expression
+    arguments: [..]*Expression
+}
+
+crée_optional_call_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, gauche: *Expression, arguments: [..]*Expression) -> *OptionalCallExpression
+{
+    résultat := parseuse.crée_noeud(lexème, OptionalCallExpression)
+    résultat.gauche = gauche
+    résultat.arguments = arguments
+    retourne résultat
+}
+
+sur_exécution_optional_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    optional_chain := base comme *OptionalCallExpression
+
+    // 1. Let baseReference be ? Evaluation of MemberExpression.
+    completion := exécute_noeud(optional_chain.gauche, interpréteuse)
+    saufsi completion.est_normal() {
+        retourne completion
+    }
+    base_reference := completion.valeur
+
+    // 2. Let baseValue be ? GetValue(baseReference).
+    base_value := get_value(interpréteuse, base_reference)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. If baseValue is either undefined or null, then
+    si base_value.est_undefined() || base_value.est_nulle() {
+        // a. Return undefined.
+        retourne normal_completion(js_undefined)
+    }
+
+    // 4. Return ? ChainEvaluation of OptionalChain with arguments baseValue and baseReference.
+    retourne chain_evaluation(interpréteuse, optional_chain, base_value, base_reference)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

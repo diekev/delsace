@@ -1412,6 +1412,9 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         Point {
             parseuse.consomme()
             propriété := parse_identifier_name(parseuse)
+            si gauche.type == OptionalMemberExpression {
+                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, faux)
+            }
             retourne crée_member_expression(parseuse, lexème, gauche, propriété, faux)
         }
         ParenthèseOuvrante {
@@ -1420,6 +1423,10 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             arguments := parse_expressions_séparées_par_des_virgules(parseuse)
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
+            
+            si gauche.type == OptionalMemberExpression {
+                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments)
+            }
 
             retourne crée_call_expression(parseuse, lexème, gauche, arguments)
         }
@@ -1429,6 +1436,10 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             propriété := parseuse.parse_expression(ParamètresParsageExpression())
 
             parseuse.consomme(GenreLexème.CrochetFermant)
+
+            si gauche.type == OptionalMemberExpression {
+                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, vrai)
+            }
 
             retourne crée_member_expression(parseuse, lexème, gauche, propriété, vrai)
         }
@@ -1486,6 +1497,30 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
 
             concise_body := parseuse.crée_concise_body(droite)
             retourne crée_arrow_function(parseuse, lexème, arrow_params, concise_body)
+        }
+        OptionalChaining {
+            parseuse.consomme()
+
+            droite: *Expression
+
+            si parseuse.apparie(GenreLexème.TemplateLiteral) {
+                rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator")
+            }
+
+            // À FAIRE ?. PrivateIdentifier
+
+            calculé := faux
+            si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+                calculé = vrai
+                parseuse.consomme()
+                droite = parseuse.parse_expression(ParamètresParsageExpression())
+                parseuse.consomme(GenreLexème.CrochetFermant)
+            }
+            sinon {
+                droite = parseuse.parse_expression(params)
+            }
+
+            retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé)
         }
         sinon {
             rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")

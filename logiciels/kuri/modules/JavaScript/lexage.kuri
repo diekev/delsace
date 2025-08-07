@@ -110,7 +110,7 @@ initialise_fanions_caractères :: fonc ()
         }
 
         si it == '.' {
-            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro | FanionCaractère.PeutDébuterLittéraleNumérique)
+            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro | FanionCaractère.PeutDébuterLittéraleNumérique | FanionCaractère.PeutSuivreOpérateur)
         }
 
         si it == '+' || it == '-' || it == '*' || it == '/' || it == '<' || it == '>' || it == '&' || it == '|' || it == '^' || it == '%' || it == '!' || it == '~' {

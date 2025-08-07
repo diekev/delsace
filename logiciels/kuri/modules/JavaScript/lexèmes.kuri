@@ -57,6 +57,7 @@ GenreLexème :: énum {
     ExponentiationÉgal
     Arrow
     Spread
+    OptionalChaining
 
     // opérateurs unaires
     PlusUnaire
@@ -235,6 +236,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "||" { retourne GenreLexème.OuLogique }
         si identifiant == "??" { retourne GenreLexème.Coalesce }
         si identifiant == "=>" { retourne GenreLexème.Arrow }
+        si identifiant == "?." { retourne GenreLexème.OptionalChaining }
     }
     sinon si identifiant.taille == 3 {
         si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
@@ -369,7 +371,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         InstanceOf,
         Exponentiation,
         ExponentiationÉgal,
-        Arrow {
+        Arrow,
+        OptionalChaining {
             retourne vrai
         }
         sinon {
@@ -509,7 +512,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.New, 17, Associativité.Aucune)
     définis_données_précédence(GenreLexème.CrochetOuvrant, 17, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Point, 17, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.OptionalChaining, 17, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.OptionalChaining, 17, Associativité.Gauche)
 
     // définis_données_précédence(GenreLexème.Grouping, 18, Associativité.Aucune)
 }
