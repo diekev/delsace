@@ -1003,7 +1003,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
         /* Pour le lexage des opérateurs, nous considérons l'opérateur le plus long possible valide.
          * Ceci nous permet d'éviter les erreurs si le code source est, p.e., "a>=-1" où nous avons
          * deux opérateurs (">=" et "-"). */
-        dernier_opérateur: Optionnel(GenreLexème)
+        opt_dernier_opérateur: Optionnel(GenreLexème)
 
         répète {
             opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant())
@@ -1012,7 +1012,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
                 arrête
             }
 
-            dernier_opérateur = opt_genre
+            opt_dernier_opérateur = opt_genre
 
             c = lexeuse.caractère_courant()
             fanion = fanions_caractères[c comme n8]
@@ -1024,12 +1024,28 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
             lexeuse.avance()
         } tantque !fini(lexeuse)
 
-        saufsi dernier_opérateur.possède_valeur() {
+        saufsi opt_dernier_opérateur.possède_valeur() {
             lexeuse.début_source = lexeuse.début_mot
             rapporte_erreur(lexeuse, "Opérateur inconnu")
         }
 
-        retourne crée_lexème(lexeuse, dernier_opérateur.Quelque)
+        dernier_opérateur := opt_dernier_opérateur.Quelque
+
+        si dernier_opérateur == GenreLexème.OptionalChaining {
+            /* Vérifie si ?. n'est pas suivi d'un chiffre, auquel cas nous devrions avoir '?' et '.' */
+            saufsi lexeuse.fini() {
+                c = caractère_courant(lexeuse)
+                fanion = fanions_caractères[c comme n8]
+                si fanion.EstChiffre {
+                    /* Remet le point. */
+                    lexeuse.recule()
+
+                    dernier_opérateur = GenreLexème.Interrogation
+                }
+            }
+        }
+
+        retourne crée_lexème(lexeuse, dernier_opérateur)
     }
 
     // cas à gérer : caractères littéraux
