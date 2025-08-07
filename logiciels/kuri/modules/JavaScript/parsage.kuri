@@ -77,6 +77,7 @@ ajourne_parent :: fonc (parseuse: *Parseuse)
     parseuse.parent.position = parseuse.position
     si parseuse.erreur_de_compilation_n_est_pas_ignorable {
         parseuse.parent.erreur_de_compilation = parseuse.erreur_de_compilation
+        parseuse.parent.erreur_de_compilation_n_est_pas_ignorable = vrai
     }
     pour parseuse.noeuds {
         tableau_ajoute(*parseuse.parent.noeuds, it)
@@ -314,6 +315,8 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
             tableau_ajoute(*éléments, method)
             continue
         }
+
+        rapporte_erreur(parseuse, "expected a method definition")
 
         // détruit_données_parseuse(*parseuse_locale)
         // parseuse_locale := parseuse.donne_parseuse_locale()
