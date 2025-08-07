@@ -1,6 +1,14 @@
 /* Ce programme génère du code Kuri depuis la spécification d'une fonction
  * du standard ECMAScript. */
 
+// fonction_requiers_interpréteuse
+// get_this_environment
+// get_new_target
+// get_super_constructor
+
+// fonction_retourne_completion
+// argument_list_evaluation
+
 importe Chaine
 importe Compilatrice
 importe Fondation
