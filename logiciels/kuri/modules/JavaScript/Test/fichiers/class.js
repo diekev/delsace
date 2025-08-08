@@ -36,3 +36,10 @@ test("nous pouvons hériter d'une 'class'", function () {
     vérifie_égalité(rectangle.width, 2000);
     vérifie_égalité(rectangle.color, 'red');
 });
+
+test("nous pouvons avoir un bloc statique vide", function () {
+    class Rectangle {
+        constructor() { }
+        static { }
+    }
+});

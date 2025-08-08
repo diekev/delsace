@@ -5517,6 +5517,8 @@ crée_class_body :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [.
 ClassMethod :: struct {
     empl object_method: ObjectMethod
     type = #type_de_cette_structure
+
+    static: bool
 }
 
 crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind) -> *ClassMethod
@@ -5527,6 +5529,26 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
     résultat.body = body
     résultat.kind = method_kind
     résultat.est_méthode = method_kind == MethodKind.Method
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ClassStaticBlock
+ * \{ */
+
+ClassStaticBlock :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    body: *FunctionBody
+}
+
+crée_class_static_block :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *FunctionBody) -> *ClassStaticBlock
+{
+    résultat := parseuse.crée_noeud(lexème, ClassStaticBlock)
+    résultat.body = body
     retourne résultat
 }
 

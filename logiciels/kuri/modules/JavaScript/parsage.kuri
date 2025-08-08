@@ -299,6 +299,21 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
             continue
         }
 
+        est_static := faux
+        si apparie(parseuse, GenreLexème.Static) {
+            lexème_static := parseuse.lexème_courant()
+            parseuse.consomme()
+
+            si apparie(parseuse, GenreLexème.AccoladeOuvrante) {
+                body := parse_function_body(parseuse)
+                static_block := crée_class_static_block(parseuse, lexème_static, body)
+                tableau_ajoute(*éléments, static_block)
+                continue
+            }
+
+            est_static = vrai
+        }
+
         parseuse_locale := parseuse.donne_parseuse_locale()
 
         method := parse_method_definition(*parseuse_locale)
@@ -310,6 +325,8 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
         }
 
         si method && parseuse_locale.erreur_de_compilation == nul {
+            method_typée := method comme *ClassMethod
+            method_typée.static = est_static
             ajourne_parent(*parseuse_locale)
             détruit_données_parseuse(*parseuse_locale)
             tableau_ajoute(*éléments, method)
@@ -321,11 +338,8 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
         // détruit_données_parseuse(*parseuse_locale)
         // parseuse_locale := parseuse.donne_parseuse_locale()
 
-        // MethodDefinition[?Yield, ?Await]
-        // static MethodDefinition[?Yield, ?Await]
         // FieldDefinition[?Yield, ?Await] ;
         // static FieldDefinition[?Yield, ?Await] ;
-        // ClassStaticBlock
     }
 
     parseuse.consomme(GenreLexème.AccoladeFermante)
