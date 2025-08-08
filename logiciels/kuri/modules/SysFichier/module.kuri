@@ -142,6 +142,79 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
     retourne contenu_fichier_texte(chm)
 }
 
+écris_fichier_entier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
+{
+    retourne écris_fichier_entier(chemin.chn, contenu)
+}
+
+écris_fichier_entier :: fonc (chemin: chaine, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin, contenu, pour_écriture_tronquée)
+}
+
+ajoute_au_fichier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin.chn, contenu, pour_écriture_supplémentaire)
+}
+
+ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin, contenu, pour_écriture_supplémentaire)
+}
+
+écris_fichier :: fonc (chemin: chaine, contenu: []octet, raison: RaisonOuvertureFichier) -> bool
+{
+    tampon: TamponChemin
+
+    saufsi ajoute(*tampon, système_chemin_dossier_temporaire()) {
+        imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction)
+        retourne faux
+    }
+
+    saufsi ajoute_avec_séparateur(*tampon, #nom_de_cette_fonction) {
+        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture")
+        retourne faux
+    }
+
+    chemin_temporaire := donne_chaine_statique(*tampon)
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin_temporaire), raison) piège err {
+        imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire)
+        retourne faux
+    }
+
+    octets_écris := tente écris(*fichier, contenu) piège err {
+        imprimeln("[%] impossible d'écrire dans le fichier '%' : %", chemin, err)
+        retourne faux
+    }
+
+    si octets_écris != contenu.taille {
+        imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", chemin, contenu.taille, octets_écris)
+        retourne faux
+    }
+
+    discr ferme(*fichier) {
+        Quelque(err) {
+            si err != 0 comme ErreurFichier {
+                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin)
+            }
+        }
+        sinon {}
+    }
+
+    discr renomme(CheminFichier(chemin_temporaire), CheminFichier(chemin)) {
+        Quelque(err) {
+            si err != 0 comme ErreurFichier {
+                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin)
+                retourne faux
+            }
+        }
+        sinon {}
+    }
+
+    retourne vrai
+}
+
 // -----------------------------------------------------------------------
 
 chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
@@ -164,7 +237,7 @@ chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, Er
     retourne système_chemin_véritable(chemin)
 }
 
-renomme :: fonc (orig: &CheminFichier, dest: &CheminFichier) -> Optionnel(ErreurFichier)
+renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_renomme(orig, dest)
 }
