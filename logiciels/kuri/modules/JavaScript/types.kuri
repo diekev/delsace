@@ -850,6 +850,114 @@ is_generic_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom 6.2.10 The PrivateElement Specification Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-privateelement-specification-type
+ * \{ */
+
+PrivateElement :: struct {
+    Kind :: énum {
+        FIELD
+        METHOD
+        ACCESSOR
+    }
+
+    key: PrivateName
+    kind: Kind
+    value: Valeur
+    get: *Object
+    set: *Object
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6.2.11 The ClassFieldDefinition Record Specification Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-private-names
+ * \{ */
+
+FieldName :: union {
+    PrivateName: PrivateName
+    String: ECMAString
+    Symbol: *Symbol
+}
+
+est_private_name :: fonc (field_name: FieldName) -> bool
+{
+    discr field_name {
+        PrivateName {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_property_key :: fonc (field_name: FieldName) -> bool
+{
+    discr field_name {
+        String {
+            retourne vrai
+        }
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+donne_property_key :: fonc (field_name: FieldName) -> PropertyKey
+{
+    discr field_name {
+        String(s) {
+            retourne s
+        }
+        Symbol(s) {
+            retourne s
+        }
+        sinon {
+        }
+    }
+    panique("FieldName n'est pas une PropertyKey")
+}
+
+ClassFieldDefinition :: struct {
+    name: FieldName
+    initializer: *ECMAScriptFunction
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6.2.12 Private Names
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-private-names
+ * \{ */
+
+PrivateName :: struct {
+    description: ECMAString // ou StringPrimitive?
+}
+
+opérateur == :: fonc (a: PrivateName, b: PrivateName) -> bool
+{
+    retourne a.description == b.description
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 6.2.13 The ClassStaticBlockDefinition Record Specification Type
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-classstaticblockdefinition-record-specification-type
+ * \{ */
+
+ClassStaticBlockDefinition :: struct {
+    body_function: *ECMAScriptFunction
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom PropertyKey
  * \{ */
 
