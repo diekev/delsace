@@ -1281,7 +1281,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 // 1. If ref is a Reference Record, then
                 si est_reference_record(ref) {
                     // a. If IsPropertyReference(ref) is true, then
-                    si est_référence_propriété(ref) {
+                    si is_property_reference(ref) {
                         // i. Let thisValue be GetThisValue(ref).
                         résultat = get_this_value(ref.R)
                     }

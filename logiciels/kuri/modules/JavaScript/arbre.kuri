@@ -1828,7 +1828,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         }
         
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
-        si ref.est_reference_record() && est_référence_propriété(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
+        si ref.est_reference_record() && is_property_reference(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
             realm := interpréteuse.donne_realm()
 
             // a. If SameValue(func, %eval%) is true, then
@@ -1906,7 +1906,7 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
     // 1. If ref is a Reference Record, then
     si est_reference_record(ref) {
         // a. If IsPropertyReference(ref) is true, then
-        si est_référence_propriété(ref) {
+        si is_property_reference(ref) {
             // i. Let thisValue be GetThisValue(ref).
             this_value = get_this_value(ref.R)
         }
@@ -3799,7 +3799,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     // 2. If val is a Reference Record, then
     si est_reference_record(val) {
         // a. If IsUnresolvableReference(val) is true, return "undefined".
-        si est_référence_non_résolvable(val) {
+        si is_unresolvable_reference(val) {
             retourne crée_string_value_completion(interpréteuse, STR_undefined)
         }
     }
