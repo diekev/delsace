@@ -292,18 +292,19 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
     private_env: *PrivateEnvironment
 
     // 15. For each element d of lexDeclarations, do
+    bound_names: [..]ECMAString
+    diffère déloge(bound_names)
+
     pour lex_declarations {
         // a. NOTE: Lexically declared names are only instantiated here but not initialized.
 
         // b. For each element dn of the BoundNames of d, do
-        pour dn dans it.expressions {
-            assert(dn.id.type == Identifier)
-            name := (dn.id comme *Identifier).nom
-
+        donne_bound_names(it, *bound_names)
+        pour dn dans bound_names {
             // i. If IsConstantDeclaration of d is true, then
-            si it.nature == VariableDeclarationKind.Const {
+            si is_constant_declaration(it) {
                 // 1. Perform ? env.CreateImmutableBinding(dn, true).
-                _ := env.create_immutable_binding(realm, name, vrai)
+                _ := env.create_immutable_binding(realm, dn, vrai)
                 si realm.possède_exception() {
                     retourne throw_completion(realm.donne_exception())
                 }
@@ -311,7 +312,7 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
             // ii. Else,
             sinon {
                 // 1. Perform ? env.CreateMutableBinding(dn, false).
-                env.create_mutable_binding(realm, name, faux)
+                env.create_mutable_binding(realm, dn, faux)
                 si realm.possède_exception() {
                     retourne throw_completion(realm.donne_exception())
                 }

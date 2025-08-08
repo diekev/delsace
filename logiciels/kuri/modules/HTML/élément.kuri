@@ -659,6 +659,22 @@ donne_fetch_priority_content_attribute_state :: fonc (élément: *Élément) -> 
     retourne FetchPriorityState.Auto
 }
 
+donne_request_priority :: fonc (state: FetchPriorityState) -> Request.Priority
+{
+    discr state {
+        Auto {
+            retourne Request.Priority.Auto
+        }
+        Low {
+            retourne Request.Priority.Low
+        }
+        High {
+            retourne Request.Priority.High
+        }
+    }
+    retourne Request.Priority.Low
+}
+
 /** \} */
 
 fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
@@ -2401,9 +2417,9 @@ update_image_data :: fonc (image: *HTMLImageElement)
 
     request := loge(Request)
     request.client = image.donne_relevant_settings_object()
-    request.destination = "image"
-    request.mode = "no-cors"
-    request.redirect_mode = "follow"
+    request.destination = Request.DestinationType.Image
+    request.mode = Request.Mode.No_CORS
+    request.redirect_mode = Request.RedirectMode.Follow
     request.définis_url(url_src)
 
     RappelProcessResponse :: struct {
@@ -3213,7 +3229,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
     }
 
     // 4. Set request's synchronous flag.
-    request.synchronous = vrai
+    request.drapeaux.SYNCHRONOUS = vrai
 
     // 5. Run the linked resource fetch setup steps, given el and request. If the result is false, then return.
     saufsi linked_resource_fetch_setup(el, request) {
@@ -3223,7 +3239,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
 
     // 6. Set request's initiator type to "css" if el's rel attribute contains the keyword stylesheet; "link" otherwise.
     si el.est_stylesheet {
-        request.initiator_type = "css"
+        request.initiator_type = Request.InitiatorType.CSS
     }
 
     // 7. Fetch request with processResponseConsumeBody set to the following steps given response response and null, failure, or a byte sequence bodyBytes:
@@ -3317,49 +3333,49 @@ create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOpt
     request.client = options.environment
 
     // 11. Set request's priority to options's fetch priority.
-    request.priority = options.fetch_priority
+    request.priority = donne_request_priority(options.fetch_priority)
 
     // 12. Return request.
     retourne request
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#create-a-potential-cors-request */
-create_a_potential_cors_request :: fonc (url: *URL, destination: DOMString, cors_attribute_state: CORSAttributeState, same_origin_fallback_flag := faux) -> *Request
+create_a_potential_cors_request :: fonc (url: *URL, destination: Request.DestinationType, cors_attribute_state: CORSAttributeState, same_origin_fallback_flag := faux) -> *Request
 {
     // 1. Let mode be "no-cors" if corsAttributeState is No CORS, and "cors" otherwise.
     mode := si cors_attribute_state == CORSAttributeState.NO_CORS {
-        "no-cors"
+        Request.Mode.No_CORS
     }
     sinon {
-        "cors"
+        Request.Mode.CORS
     }
 
     // 2. If same-origin fallback flag is set and mode is "no-cors", set mode to "same-origin".
-    si same_origin_fallback_flag && mode == "no-cors" {
-        mode = "same-origin"
+    si same_origin_fallback_flag && mode == Request.Mode.No_CORS {
+        mode = Request.Mode.Same_Origin
     }
 
     // 3. Let credentialsMode be "include".
-    credentials_mode := "include"
+    credentials_mode := Request.CredentialsMode.Include
 
     // 4. If corsAttributeState is Anonymous, set credentialsMode to "same-origin".
     si cors_attribute_state == CORSAttributeState.Anonymous {
-        credentials_mode = "same-origin"
+        credentials_mode = Request.CredentialsMode.Same_Origin
     }
 
     // 5. Return a new request whose URL is url, destination is destination, mode is mode, credentials mode is credentialsMode, and whose use-URL-credentials flag is set.
     request := loge(Request)
     request.définis_url(url)
     request.mode = mode
-    request.destination = converti_vers_chaine(destination.donne_chaine_utf16()) // @fuite-de-mémoire
+    request.destination = destination
     request.credentials_mode = credentials_mode
-    request.use_url_credentials = vrai
+    request.drapeaux.USE_URL_CREDENTIALS = vrai
     retourne request
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#link-processing-options */
 LinkProcessingOptions :: struct {
-    destination: Optionnel(DOMString)
+    destination: Optionnel(Request.DestinationType)
     crossorigin: CORSAttributeState
     referrer_policy: ReferrerPolicy
     fetch_priority: FetchPriorityState
@@ -3387,7 +3403,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
         options.destination = translate_a_preload_destination(el.donne_attribut_ou_chaine_vide(ATTR_as)) // XXX - state
     }
     sinon {
-        options.destination = crée_chaine_utf16_unique_vide()
+        options.destination = Request.DestinationType.EmptyString
     }
     // crossorigin                  -> the state of el's crossorigin content attribute
     options.crossorigin = el.donne_cross_origin_content_attribute_state()
@@ -3426,7 +3442,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
 }
 
 /* https://html.spec.whatwg.org/multipage/links.html#translate-a-preload-destination */
-translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(DOMString)
+translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(Request.DestinationType)
 {
     destination := converti_vers_chaine(destination_.donne_chaine_utf16())
     diffère déloge(destination)
@@ -3441,21 +3457,31 @@ translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(D
 }
 
 /* https://fetch.spec.whatwg.org/#concept-potential-destination-translate */
-translate_a_potential_destination :: fonc (potential_destination_: DOMString) -> DOMString
+translate_a_potential_destination :: fonc (potential_destination_: DOMString) -> Request.DestinationType
 {
     potential_destination := converti_vers_chaine(potential_destination_.donne_chaine_utf16())
     diffère déloge(potential_destination)
 
     // 1. If potentialDestination is "fetch", then return the empty string.
     si potential_destination == "fetch" {
-        retourne crée_chaine_utf16_unique_vide()
+        retourne Request.DestinationType.EmptyString
     }
 
     // 2. Assert: potentialDestination is a destination.
-    // À FAIRE "audio", "audioworklet", "document", "embed", "font", "frame", "iframe", "image", "json", "manifest", "object", "paintworklet", "report", "script", "serviceworker", "sharedworker", "style", "track", "video", "webidentity", "worker", or "xslt"
+    info_destination_type := info_de(Request.DestinationType)
+    pour info_destination_type.noms {
+        si compare_ascii_insensible_à_la_casse(it, potential_destination) {
+            // 3. Return potentialDestination.
+            // À FAIRE(langage) : erreur de compilation
+            // retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
+            résultat := donne_eini_valeur_énum_index(info_destination_type, index_it)
+            retourne mémoire(résultat.pointeur comme *Request.DestinationType)
+        }
+    }
 
-    // 3. Return potentialDestination.
-    retourne potential_destination_
+    imprimeln("potential_destination_ n'est pas une destination : %", potential_destination_)
+    assert(faux)
+    retourne Request.DestinationType.EmptyString
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#linked-resource-fetch-setup-steps */
@@ -3487,7 +3513,7 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
 
     // 4. If el is currently render-blocking, then set request's render-blocking to true.
     si is_render_blocking(el) {
-        request.render_blocking = vrai
+        request.drapeaux.RENDER_BLOCKING = vrai
     }
 
     // 5. Return true.
@@ -3831,11 +3857,11 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
         //    "object", and whose use-URL-credentials flag is set.
         request := loge(Request)
         request.client = object.document.donne_relevant_settings_object()
-        request.destination = "object"
-        request.credentials_mode = "include"
-        request.mode = "navigate"
-        request.initiator_type = "object"
-        request.use_url_credentials = vrai
+        request.destination = Request.DestinationType.Object
+        request.credentials_mode = Request.CredentialsMode.Include
+        request.mode = Request.Mode.Navigate
+        request.initiator_type = Request.InitiatorType.Object
+        request.drapeaux.USE_URL_CREDENTIALS = vrai
         request.définis_url(url)
 
         // 5. Fetch request.
@@ -4124,7 +4150,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     classic_script_cors_setting := donne_cross_origin_content_attribute_state(el)
 
     /* 23. INCOMPLET */
-    module_script_credentials := ""
+    module_script_credentials: Request.CredentialsMode
 
     /* 24. INCOMPLET */
     cryptographic_nonce := el.cryptographic_nonce
@@ -4140,10 +4166,10 @@ prépare :: fonc (el: *HTMLScriptElement)
 
     /* 28. */
     métadonnée_parseuse := si el.est_inséré_par_parseuse() {
-        "parser-inserted"
+        Request.ParserMetadata.Parser_Inserted
     }
     sinon {
-        "not-parser-inserted"
+        Request.ParserMetadata.Not_Parser_Inserted
     }
 
     /* 29. */
@@ -4489,13 +4515,13 @@ run :: fonc (on_complete: *ScriptFetchComplete, result: *rien)
 fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_object: *EnvironmentSettings, options: OptionsFetchScript, cors_setting: CORSAttributeState, on_complete: *ScriptFetchComplete)
 {
     // 1. Let request be the result of creating a potential-CORS request given url, "script", and corsSetting.
-    request := create_a_potential_cors_request(url, TAG_script, cors_setting)
+    request := create_a_potential_cors_request(url, Request.DestinationType.Script, cors_setting)
 
     // 2. Set request's client to settingsObject.
     request.client = settings_object
 
     // 3. Set request's initiator type to "script".
-    request.initiator_type = "script"
+    request.initiator_type = Request.InitiatorType.Script
 
     // 4. Set up the classic script request given request and options.
     set_up_the_classic_script_request(request, options)
@@ -4582,10 +4608,10 @@ set_up_the_classic_script_request :: fonc (request: *Request, options: OptionsFe
     request.referrer_policy = options.referrer_policy
 
     // its render-blocking to options's render-blocking,
-    request.render_blocking = options.render_blocking
+    request.drapeaux.RENDER_BLOCKING = options.render_blocking
 
     // and its priority to options's fetch priority.
-    request.priority = options.fetch_priority
+    request.priority = donne_request_priority(options.fetch_priority)
 }
 
 
