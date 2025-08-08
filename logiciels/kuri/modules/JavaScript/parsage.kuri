@@ -333,13 +333,24 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
             continue
         }
 
-        rapporte_erreur(parseuse, "expected a method definition")
+        field_name := apparie_class_element_name(parseuse)
+        saufsi field_name {
+            rapporte_erreur(parseuse, "expected a class field")
+            continue
+        }
 
-        // détruit_données_parseuse(*parseuse_locale)
-        // parseuse_locale := parseuse.donne_parseuse_locale()
+        initializer: *Expression
+        si apparie(parseuse, GenreLexème.Égal) {
+            parseuse.consomme()
+            initializer = parse_expression(parseuse, ParamètresParsageExpression())
+        }
 
-        // FieldDefinition[?Yield, ?Await] ;
-        // static FieldDefinition[?Yield, ?Await] ;
+        si apparie(parseuse, GenreLexème.PointVirgule) {
+            parseuse.consomme()
+        }
+        
+        field := crée_class_field(parseuse, field_name.lexème, field_name, initializer, est_static)
+        tableau_ajoute(*éléments, field)
     }
 
     parseuse.consomme(GenreLexème.AccoladeFermante)
@@ -1691,8 +1702,6 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             si parseuse.apparie(GenreLexème.TemplateLiteral) {
                 rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator")
             }
-
-            // À FAIRE ?. PrivateIdentifier
 
             calculé := faux
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {

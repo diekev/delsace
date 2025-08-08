@@ -5741,6 +5741,30 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ClassField
+ * \{ */
+
+ClassField :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    class_element_name: *Expression
+    initializer: *Expression
+    static: bool
+}
+
+crée_class_field :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, initializer: *Expression, static: bool) -> *ClassField
+{
+    résultat := parseuse.crée_noeud(lexème, ClassField)
+    résultat.class_element_name = class_element_name
+    résultat.initializer = initializer
+    résultat.static = static
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ClassStaticBlock
  * \{ */
 
