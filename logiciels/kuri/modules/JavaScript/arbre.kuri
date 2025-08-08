@@ -639,6 +639,26 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom PrivateIdentifier
+ * \{ */
+
+PrivateIdentifier :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+}
+
+crée_private_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *PrivateIdentifier
+{
+    résultat := parseuse.crée_noeud(lexème, PrivateIdentifier)
+    résultat.nom = crée_chaine_utf16_unique(lexème.texte)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BlockStatement
  * \{ */
 

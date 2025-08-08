@@ -8,6 +8,7 @@ FanionCaractère :: énum_drapeau n32 {
     PeutSuivreZéro
     PeutSuivreChiffre
     DébuteIdentifiant
+    DébutePrivateIdentifier
     DébuteMotClé
     ContinueIdentifiant
     EstChiffre
@@ -135,6 +136,10 @@ initialise_fanions_caractères :: fonc ()
 
         si it == ' ' || it == '\t' || it == '\r' || it == '\n' {
             fanion.EstEspaceBlanche = vrai
+        }
+
+        si it == '#' {
+            fanion.DébutePrivateIdentifier = vrai
         }
 
         fanions_caractères[it] = fanion
@@ -876,7 +881,7 @@ lèxe_regular_expression_flags :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Lexème
+lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse, genre_lexème: GenreLexème) -> Lexème
 {
     lexeuse.débute_lexème()
 
@@ -907,7 +912,7 @@ lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse) -> Lexème
         lexeuse.avance(n comme z32)
     }
 
-    retourne crée_lexème(lexeuse, GenreLexème.Identifiant)
+    retourne crée_lexème(lexeuse, genre_lexème)
 }
 
 lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
@@ -948,8 +953,12 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
         retourne lèxe_chaine_littérale(lexeuse, c)
     }
 
+    si fanion.DébutePrivateIdentifier {
+        retourne lèxe_identifiant(lexeuse, GenreLexème.PrivateIdentifier)
+    }
+
     si fanion.DébuteIdentifiant {
-        retourne lèxe_identifiant(lexeuse)
+        retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant)
     }
 
     si fanion.PeutDébuterLittéraleNumérique {
@@ -1057,7 +1066,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
         rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
     }
 
-    retourne lèxe_identifiant(lexeuse)
+    retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant)
 }
 
 consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)

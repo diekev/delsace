@@ -4,6 +4,7 @@ GenreLexème :: énum {
     Identifiant
     ChaineLittérale
     NombreLittéral
+    PrivateIdentifier
     TemplateLiteral
     TemplateLiteralStart
     TemplateLiteralMiddle
@@ -276,6 +277,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         Let,
         Const,
         Identifiant,
+        PrivateIdentifier,
         ChaineLittérale,
         TemplateLiteral,
         TemplateLiteralStart,
