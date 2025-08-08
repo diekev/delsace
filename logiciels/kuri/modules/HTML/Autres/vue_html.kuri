@@ -32,13 +32,9 @@ contexte_entrée: ContexteProgramme
 
 mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
 {
-    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier("fuites_de_mémoire.txt"), pour_écriture_tronquée) piège _ {
+    saufsi écris_fichier_entier("fuites_de_mémoire.txt", c) {
         imprime("%\n", c)
-        retourne
     }
-
-    _ := écris(*fichier, c)
-    _ := ferme(*fichier)
 }
 
 principale :: fonc ()
