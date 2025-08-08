@@ -187,7 +187,14 @@ ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
         retourne faux
     }
 
-    _ := ferme(*fichier)
+    discr ferme(*fichier) {
+        Quelque(err) {
+            si err != 0 comme ErreurFichier {
+                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin)
+            }
+        }
+        sinon {}
+    }
 
     discr renomme(CheminFichier(chemin_temporaire), CheminFichier(chemin)) {
         Quelque(err) {
