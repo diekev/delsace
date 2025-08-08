@@ -202,7 +202,7 @@ chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, Er
     retourne système_chemin_véritable(chemin)
 }
 
-renomme :: fonc (orig: &CheminFichier, dest: &CheminFichier) -> Optionnel(ErreurFichier)
+renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_renomme(orig, dest)
 }
