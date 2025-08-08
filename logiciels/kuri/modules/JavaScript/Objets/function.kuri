@@ -63,7 +63,7 @@ ECMAScriptFunction :: struct {
     empl function: Function
     table = *table_virtuelle_function_ecma
 
-    corps: *Statement @NeVisitePas
+    corps: *NoeudSyntaxique @NeVisitePas
     formal_parameters: [..]*Expression @NeVisitePas
 
     home_object: *Object
@@ -271,6 +271,35 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         retourne evaluate_concise_body(interpréteuse, function_object, arguments_list)
     }
 
+    si function_object.class_field_initializer_name.possède_valeur() {
+        // Initializer : = AssignmentExpression
+
+        // 1. Assert: argumentsList is empty.
+        assert(arguments_list.taille == 0)
+
+        // 2. Assert: functionObject.[[ClassFieldInitializerName]] is not empty.
+
+        // 3. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
+        value: Valeur
+
+        si is_anonymous_function_definition(body) {
+            // a. Let value be ? NamedEvaluation of Initializer with argument functionObject.[[ClassFieldInitializerName]].
+            completion := named_evaluation(interpréteuse, body, function_object.class_field_initializer_name.Quelque)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            value = completion.valeur.V
+        }
+        // 4. Else,
+        sinon {
+            // a. Let rhs be ? Evaluation of AssignmentExpression.
+            // b. Let value be ? GetValue(rhs).
+        }
+
+        // 5. Return ReturnCompletion(value).
+        retourne return_completion(value)
+    }
+
     panique("evaluate_body non-implémenté")
 }
 
@@ -378,7 +407,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, source_texte: chaine, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, source_texte: chaine, params: [..]*Expression, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
@@ -511,31 +540,36 @@ make_method :: fonc (F: *ECMAScriptFunction, home_object: *Object)
 }
 
 /* 10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )
- * */
-define_method_property :: fonc (home_object: *Object, key: PropertyKey, closure: *ECMAScriptFunction, enumerable: bool) -> Optionnel(PrivateElement)
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-definemethodproperty */
+define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *ECMAScriptFunction, enumerable: bool) -> Optionnel(PrivateElement)
 {
     // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
+
     // 2. If key is a Private Name, then
-    // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+    si key.est_private_name() {
+        // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+        retourne PrivateElement(key.PrivateName, PrivateElement.Kind.METHOD, Valeur(Function = closure))
+    }
     // 3. Else,
+    sinon {
+        // a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+        desc: PropertyDescriptor
+        desc.value = Valeur(Function = closure)
+        desc.writable = vrai
+        desc.enumerable = enumerable
+        desc.configurable = vrai
 
-    // a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
-    desc: PropertyDescriptor
-    desc.value = Valeur(Function = closure)
-    desc.writable = vrai
-    desc.enumerable = enumerable
-    desc.configurable = vrai
+        // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
+        define_property_or_throw(home_object, donne_property_key(key), desc)
 
-    // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
-    define_property_or_throw(home_object, key, desc)
-
-    // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
-    // d. Return unused.
+        // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
+        // d. Return unused.
+    }
 }
 
 /* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
+set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
 {
     // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
     assert(has_own_property(F, STR_name) == faux)
@@ -557,9 +591,11 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix 
             name = crée_chaine_utf16_unique(chn)
         }
     }
-
-    // À FAIRE : 3. Else if name is a Private Name, then
+    // 3. Else if name is a Private Name, then
+    sinon si name.est_private_name() {
         // a. Set name to name.[[Description]].
+        name = name.PrivateName.description
+    }
 
     // 4. If F has an [[InitialName]] internal slot, then
         // a. Set F.[[InitialName]] to name.
@@ -1154,7 +1190,7 @@ FunctionNative :: struct {
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: PropertyKey, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
-    set_function_name(nul, résultat, nom)
+    set_function_name(nul, résultat, donne_field_name(nom))
     set_function_length(résultat, length comme r64)
     résultat.sur_appel = sur_appel
     retourne résultat

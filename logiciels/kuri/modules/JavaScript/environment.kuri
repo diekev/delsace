@@ -957,7 +957,17 @@ PrivateEnvironment :: struct {
     table = *table_virtuelle_priv_env
 
     outer_private_environment: *PrivateEnvironment
-    names: [..]*PrivateName
+    names: [..]PrivateName
+}
+
+possède_nom :: fonc (private_environment: *PrivateEnvironment, nom: ECMAString) -> bool
+{
+    pour private_environment.names {
+        si it.description == nom {
+            retourne vrai
+        }
+    }
+    retourne faux
 }
 
 /* 9.2.1.1 NewPrivateEnvironment ( outerPrivEnv ) */
@@ -977,7 +987,7 @@ resolve_private_identifier :: fonc (priv_env: *PrivateEnvironment, identifier: E
     names := priv_env.names
 
     // 2. For each Private Name pn of names, do
-    pour pn dans names {
+    pour * pn dans names {
         // a. If pn.[[Description]] is identifier, then
         si pn.description == identifier {
             // i. Return pn.

@@ -893,6 +893,18 @@ est_private_name :: fonc (field_name: FieldName) -> bool
     }
 }
 
+est_symbol :: fonc (field_name: FieldName) -> bool
+{
+    discr field_name {
+        Symbol {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
 est_property_key :: fonc (field_name: FieldName) -> bool
 {
     discr field_name {
@@ -942,6 +954,11 @@ PrivateName :: struct {
 opérateur == :: fonc (a: PrivateName, b: PrivateName) -> bool
 {
     retourne a.description == b.description
+}
+
+opérateur != :: fonc (a: PrivateName, b: PrivateName) -> bool
+{
+    retourne a.description != b.description
 }
 
 /** \} */
@@ -1096,6 +1113,20 @@ donne_valeur :: fonc (property_key: PropertyKey, realm: *Realm) -> Valeur
         sinon {}
     }
     retourne js_undefined
+}
+
+donne_field_name :: fonc (property_key: PropertyKey) -> FieldName
+{
+    discr property_key {
+        String(s) {
+            retourne s
+        }
+        Symbol(s) {
+            retourne s
+        }
+        sinon {}
+    }
+    panique("property_key non-initialisée")
 }
 
 /** \} */
