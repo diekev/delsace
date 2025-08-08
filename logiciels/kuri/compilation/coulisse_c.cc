@@ -2069,6 +2069,11 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(MembreTypeComp
         return enchaine("_", index);
     }
 
+    /* Évite d'utiliser des noms de mot-clé. */
+    if (rubrique.nom->nom == "static") {
+        return "static_";
+    }
+
     return broyeuse.broye_nom_simple(rubrique.nom);
 }
 
