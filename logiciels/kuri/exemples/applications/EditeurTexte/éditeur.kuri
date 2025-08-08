@@ -171,18 +171,8 @@ marque_modifié :: fonc (éditeur: *Éditeur)
     texte := éditeur_chaine_depuis_ligne(éditeur)
     diffère déloge(texte)
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(éditeur.chemin_fichier), pour_écriture_tronquée) piège _ {
-        éditeur_ajourne_message_status(éditeur, "impossible d'ouvrir le fichier pour la sauvegarde")
-        retourne
-    }
-
-    octets_écris := tente écris(*fichier, texte) piège _ {
-        éditeur_ajourne_message_status(éditeur, "impossible d'écrire le fichier")
-        retourne
-    }
-
-    tente ferme(*fichier) piège _ {
-        éditeur_ajourne_message_status(éditeur, "impossible de fermer le fichier")
+    saufsi écris_fichier_entier(éditeur.chemin, texte) {
+        éditeur_ajourne_message_status(éditeur, "impossible de sauvegarder le fichier (voir la console pour le détail)")
         retourne
     }
 
