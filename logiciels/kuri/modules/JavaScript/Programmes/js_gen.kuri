@@ -317,6 +317,25 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         retourne parse_expression_appel(parseuse, 0)
     }
 
+    si lexème == "either" {
+        gauche := loge(ExpressionRéférence)
+        gauche.texte = donne_lexème_suivant(parseuse)
+
+        lexème = donne_lexème_suivant(parseuse)
+        saufsi lexème == "or" {
+            rapporte_erreur(parseuse, "attendu 'or'")
+            retourne nul
+        }
+
+        droite := loge(ExpressionRéférence)
+        droite.texte = donne_lexème_suivant(parseuse)
+
+        résultat := loge(ExpressionEither)
+        résultat.gauche = gauche
+        résultat.droite = droite
+        retourne résultat
+    }
+
     résultat := loge(ExpressionRéférence)
     résultat.texte = lexème
     retourne résultat
@@ -770,6 +789,14 @@ ExpressionBinaire :: struct {
     droite: *Expression
 }
 
+ExpressionEither :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    gauche: *Expression
+    droite: *Expression
+}
+
 ExpressionAppel :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -799,9 +826,19 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
         }
         ExpressionBinaire {
             expression := base comme *ExpressionBinaire
-            génératrice.imprime_expression(expression.gauche)
-            génératrice.ajoute_chaine(" ", expression.op, " ")
-            génératrice.imprime_expression(expression.droite)
+
+            si expression.op == "==" && expression.droite.type == ExpressionEither {
+                either := expression.droite comme *ExpressionEither
+
+                imprime_branche_either(génératrice, expression.gauche, either.gauche)
+                génératrice.ajoute_chaine(" || ")
+                imprime_branche_either(génératrice, expression.gauche, either.droite)
+            }
+            sinon {
+                génératrice.imprime_expression(expression.gauche)
+                génératrice.ajoute_chaine(" ", expression.op, " ")
+                génératrice.imprime_expression(expression.droite)
+            }
         }
         ExpressionAppel {
             appel := base comme *ExpressionAppel
@@ -831,7 +868,29 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 génératrice.ajoute_chaine(")")
             }
         }
+        ExpressionEither {
+            panique("expression either non-gérée")
+        }
         sinon {}
+    }
+}
+
+imprime_branche_either :: fonc (génératrice: *GénératriceCode, gauche: *Expression, droite: *Expression)
+{
+    assert(droite.type == ExpressionRéférence)
+    texte := (droite comme *ExpressionRéférence).texte
+
+    génératrice.imprime_expression(gauche)
+
+    si texte == "undefined" {
+        génératrice.ajoute_chaine(".est_undefined()")
+    }
+    sinon si texte == "null" {
+        génératrice.ajoute_chaine(".est_nulle()")
+    }
+    sinon {
+        génératrice.ajoute_chaine(" == ")
+        génératrice.imprime_expression(droite)
     }
 }
 
