@@ -42,15 +42,13 @@ principale :: fonc ()
 {
     chm := CheminFichier("/tmp/test_parcer.cc")
     contenu := contenu_fichier_texte(chm)
+    diffère déloge(contenu)
 
     chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc")
 
-    fd := tente ouvre_fichier_crée_si_non_existant(chm_sortie, pour_écriture) piège nonatteignable
-    diffère _ := ferme(*fd)
-
-    _ := écris(*fd, contenu)
+    saufsi écris_fichier_entier(chm_sortie, contenu) {
+        exit(1)
+    }
 
     imprime(contenu, '\n')
-
-    déloge(contenu)
 }

@@ -32,8 +32,8 @@ ClassicScript :: struct {
 OptionsFetchScript :: struct {
     cryptographic_nonce: DOMString
     integrity_metadata: DOMString
-    parser_metadata := "not-parser-inserted"
-    credentials_mode := "same-origin"
+    parser_metadata: Request.ParserMetadata
+    credentials_mode: Request.CredentialsMode
     referrer_policy: ReferrerPolicy
     render_blocking: bool
     fetch_priority: FetchPriorityState

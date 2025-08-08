@@ -232,15 +232,10 @@ principale :: fonc ()
         exit(0)
     }
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(args.sortie), pour_écriture_tronquée) piège err {
-        imprimeln("Impossible d'écrire dans le fichier : %", err)
-        imprimeln("%", texte)
-        exit(0)
-    }
-
     chaine_texte := texte.converti_vers_chaine()
     diffère déloge(chaine_texte)
 
-    _ := écris(*fichier, chaine_texte)
-    _ := ferme(*fichier)
+    saufsi écris_fichier_entier(args.sortie, chaine_texte) {
+        exit(0)
+    }
 }

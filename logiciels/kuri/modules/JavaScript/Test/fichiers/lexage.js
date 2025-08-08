@@ -19,3 +19,13 @@ test("les identifiants peuvent avoir '_' et '$' au début et au milieu", functio
     var x$3_v1 = '\\';
 });
 
+test("'?.5' n'est pas un opérateur '?.' mais '? .5' suivi d'un ':'", function() {
+    const t = true;
+    const v = t?.5:.25;
+    vérifie_égalité(v, 0.5);
+});
+
+test("lexage de /*/*/ (/ commenté)", function () {
+    const code = 47/*/*/;
+    vérifie_égalité(code, 47);
+});

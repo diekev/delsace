@@ -137,19 +137,6 @@ ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
     déloge(contenu)
 }
 
-sauvegarde_fichier :: fonc (contenu: chaine)
-{
-    chemin := "/tmp/test.js"
-    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège err {
-        imprime("%\n", err)
-        retourne
-    }
-
-    diffère _ := ferme(*fichier)
-
-    _ := écris(*fichier, contenu)
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetHTML
  * \{ */
@@ -254,8 +241,7 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
     diffère QT_chaine_detruit(*texte)
 
     contenu := texte.vers_kuri()
-
-    sauvegarde_fichier(contenu)
+    _ := écris_fichier_entier("/tmp/test.js", contenu)
 
     début := maintenant_précis()
 

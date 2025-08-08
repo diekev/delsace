@@ -57,6 +57,7 @@ GenreLexème :: énum {
     ExponentiationÉgal
     Arrow
     Spread
+    OptionalChaining
 
     // opérateurs unaires
     PlusUnaire
@@ -82,6 +83,7 @@ GenreLexème :: énum {
     Break
     Case
     Catch
+    Class
     Const
     Continue
     Debugger
@@ -159,6 +161,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "await" { retourne GenreLexème.Await }
         si identifiant == "break" { retourne GenreLexème.Break }
         si identifiant == "catch" { retourne GenreLexème.Catch }
+        si identifiant == "class" { retourne GenreLexème.Class }
         si identifiant == "const" { retourne GenreLexème.Const }
         si identifiant == "false" { retourne GenreLexème.False }
         si identifiant == "super" { retourne GenreLexème.Super }
@@ -235,6 +238,7 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
         si identifiant == "||" { retourne GenreLexème.OuLogique }
         si identifiant == "??" { retourne GenreLexème.Coalesce }
         si identifiant == "=>" { retourne GenreLexème.Arrow }
+        si identifiant == "?." { retourne GenreLexème.OptionalChaining }
     }
     sinon si identifiant.taille == 3 {
         si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
@@ -279,8 +283,10 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         True,
         False,
         Function,
+        Class,
         Null, 
         CrochetOuvrant,
+        Super,
         This {
             retourne vrai
         }
@@ -369,7 +375,8 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         InstanceOf,
         Exponentiation,
         ExponentiationÉgal,
-        Arrow {
+        Arrow,
+        OptionalChaining {
             retourne vrai
         }
         sinon {
@@ -381,6 +388,7 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
 est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
 {
     discr genre {
+        Class,
         For,
         Function,
         Return,
@@ -509,7 +517,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.New, 17, Associativité.Aucune)
     définis_données_précédence(GenreLexème.CrochetOuvrant, 17, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Point, 17, Associativité.Gauche)
-    // définis_données_précédence(GenreLexème.OptionalChaining, 17, Associativité.Gauche)
+    définis_données_précédence(GenreLexème.OptionalChaining, 17, Associativité.Gauche)
 
     // définis_données_précédence(GenreLexème.Grouping, 18, Associativité.Aucune)
 }

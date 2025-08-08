@@ -971,7 +971,7 @@ new_private_environment :: fonc (tas_de_mémoire: *TasDeMémoire, outer_priv_env
     // 1. Let names be a new empty List.
     // 2. Return the PrivateEnvironment Record { [[OuterPrivateEnvironment]]: outerPrivEnv, [[Names]]: names }.
     résultat := tas_de_mémoire.alloue(PrivateEnvironment)
-    résultat.outer_priv_env = outer_priv_env
+    résultat.outer_private_environment = outer_priv_env
     retourne résultat
 }
 

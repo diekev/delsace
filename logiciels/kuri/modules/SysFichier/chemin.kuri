@@ -579,6 +579,21 @@ donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
     retourne ChaineC(*tampon.données[0])
 }
 
+ajoute :: fonc (tampon: *TamponChemin, chns: ...chaine) -> bool
+{
+    pour chns {
+        saufsi ajoute(tampon, it) {
+            retourne faux
+        }
+    }
+    retourne vrai
+}
+
+ajoute :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> bool
+{
+    retourne ajoute(tampon, chemin.chn)
+}
+
 ajoute :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
 {
     saufsi chn {
@@ -622,9 +637,14 @@ ajoute :: fonc (tampon: *TamponChemin, caractère: z8) -> bool
     retourne vrai
 }
 
+ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> bool
+{
+    retourne ajoute_avec_séparateur(tampon, chemin.chn)
+}
+
 ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
 {
-    saufsi ajoute(tampon, séparateur_fichier()) {
+    saufsi ajoute(tampon, séparateur_chemin()) {
         retourne faux
     }
     retourne ajoute(tampon, chn)
