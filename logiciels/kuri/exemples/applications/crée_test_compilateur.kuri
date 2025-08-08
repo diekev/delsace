@@ -47,10 +47,8 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
     ajoute_au_tampon(*enchaineuse, chaines[7])
 
     // écris le fichier
-    chemin := CheminFichier(chemin_fichier)
-    fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture) piège nonatteignable
     chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
-    _ := écris(*fichier, chaine_reponse)
+    _ := écris_fichier_entier(chemin_fichier, )
     déloge(chaine_reponse)
 }
 

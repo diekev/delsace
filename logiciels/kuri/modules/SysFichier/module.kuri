@@ -136,6 +136,50 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> chaine
     retourne contenu_fichier_texte(chm)
 }
 
+écris_fichier_entier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
+{
+    retourne écris_fichier_entier(chemin.chn, contenu)
+}
+
+écris_fichier_entier :: fonc (chemin: chaine, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin, contenu, pour_écriture_tronquée)
+}
+
+ajoute_au_fichier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin.chn, contenu, pour_écriture_supplémentaire)
+}
+
+ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
+{
+    retourne écris_fichier(chemin, contenu, pour_écriture_supplémentaire)
+}
+
+écris_fichier :: fonc (chemin: chaine, contenu: []octet, raison: RaisonOuvertureFichier) -> bool
+{
+    // À FAIRE : utilise un fichier temporaire et renomme
+
+    fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), raison) piège err {
+        imprimeln("[%] impossible d'ouvrir le fichier '%' : %", #nom_de_cette_fonction, chemin, err)
+        retourne faux
+    }
+
+    octets_écris := tente écris(*fichier, contenu) piège err {
+        imprimeln("[%] impossible d'écrire dans le fichier '%' : %", chemin, err)
+        retourne faux
+    }
+
+    si octets_écris != contenu.taille {
+        imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", chemin, contenu.taille, octets_écris)
+        retourne faux
+    }
+
+    _ := ferme(*fichier)
+
+    retourne vrai
+}
+
 // -----------------------------------------------------------------------
 
 chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
