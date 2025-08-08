@@ -476,15 +476,32 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
 
 /* 7.3.33 InitializeInstanceElements ( O, constructor )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-initializeinstanceelements */
-initialize_instance_elements :: fonc (object: *Object @inutilisée, constructor: *ECMAScriptFunction @inutilisée)
+initialize_instance_elements :: fonc (interpréteuse: *Interpréteuse, object: *Object, constructor: *ECMAScriptFunction)
 {
-    // À FAIRE(class)
     // 1. Let methods be constructor.[[PrivateMethods]].
+    methods := constructor.private_methods
+
     // 2. For each PrivateElement method of methods, do
-    // a. Perform ? PrivateMethodOrAccessorAdd(O, method).
+    pour method dans methods {
+        // a. Perform ? PrivateMethodOrAccessorAdd(O, method).
+        private_method_or_accessor_add(interpréteuse, object, method)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+    }
+
     // 3. Let fields be constructor.[[Fields]].
+    fields := constructor.fields
+
     // 4. For each element fieldRecord of fields, do
-    // a. Perform ? DefineField(O, fieldRecord).
+    pour field_record dans fields {
+        // a. Perform ? DefineField(O, fieldRecord).
+        define_field(interpréteuse, object, field_record)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+    }
+
     // 5. Return unused.
 }
 

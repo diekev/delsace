@@ -41,7 +41,7 @@ donne_nom :: fonc (function: *Function) -> ECMAString
 
 #portée_fichier
 
-table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
+table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_destruction = ecma_script_function_sur_destruction, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
 
 #portée_export
 
@@ -76,11 +76,23 @@ ECMAScriptFunction :: struct {
     realm: *Realm
     script_or_module: *Script // ScriptOrModule
     constructor_kind: ConstructorKind
+
+    fields: [..]ClassFieldDefinition
+    private_methods: [..]PrivateElement
+    class_field_initializer_name: Optionnel(FieldName)
 }
 
 ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
 {
     retourne realm.donne_tas_de_mémoire().alloue(ECMAScriptFunction)
+}
+
+ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
+{
+    sur_destruction_objet(cellule)
+    function := cellule.vérifie_comme(ECMAScriptFunction)
+    déloge(function.fields)
+    déloge(function.private_methods)
 }
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
@@ -500,7 +512,7 @@ make_method :: fonc (F: *ECMAScriptFunction, home_object: *Object)
 
 /* 10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )
  * */
-define_method_property :: fonc (home_object: *Object, key: PropertyKey, closure: *ECMAScriptFunction, enumerable: bool)
+define_method_property :: fonc (home_object: *Object, key: PropertyKey, closure: *ECMAScriptFunction, enumerable: bool) -> Optionnel(PrivateElement)
 {
     // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
     // 2. If key is a Private Name, then
