@@ -259,6 +259,9 @@ struct GénératriceCodeC {
 
     kuri::chaine_statique donne_nom_pour_type(Type const *type);
 
+    kuri::chaine_statique donne_nom_pour_rubrique(MembreTypeComposé const &rubrique,
+                                                  int64_t index);
+
     bool préserve_symboles() const;
 };
 
@@ -875,19 +878,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
     POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
-
-        /* Cas pour les structures vides. */
-        if (it.nom == ID::chaine_vide) {
-            enchaineuse << "membre_invisible"
-                        << ";\n";
-        }
-        else if (!it.nom) {
-            /* Les membres des tuples n'ont pas de nom. */
-            enchaineuse << "_" << index_it << ";\n";
-        }
-        else {
-            enchaineuse << broyeuse.broye_nom_simple(it.nom) << ";\n";
-        }
+        enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, index_it) << ";\n";
     }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
@@ -1334,13 +1325,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 résultat << virgule;
                 virgule_placee = true;
 
-                résultat << ".";
-                if (it.nom == ID::chaine_vide) {
-                    résultat << "membre_invisible";
-                }
-                else {
-                    résultat << broyeuse.broye_nom_simple(it.nom);
-                }
+                résultat << "." << donne_nom_pour_rubrique(it, index_it);
                 résultat << " = ";
                 résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
 
@@ -1716,16 +1701,8 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                                       membre.decalage,
                                       "])");
 #else
-            /* Cas pour les structures vides (dans leurs fonctions d'initialisation). */
-            if (membre.nom == ID::chaine_vide) {
-                valeur_accédée = enchaine(valeur_accédée, "membre_invisible");
-            }
-            else if (inst_accès->donne_type_accédé()->est_type_tuple()) {
-                valeur_accédée = enchaine(valeur_accédée, "_", index_membre);
-            }
-            else {
-                valeur_accédée = enchaine(valeur_accédée, broyeuse.broye_nom_simple(membre.nom));
-            }
+            valeur_accédée = enchaine(valeur_accédée,
+                                      donne_nom_pour_rubrique(membre, index_membre));
 #endif
 
             table_valeurs[inst->numero] = valeur_accédée;
@@ -2077,6 +2054,22 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     }
 
     return nom;
+}
+
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(MembreTypeComposé const &rubrique,
+                                                                int64_t index)
+{
+    /* Cas pour les structures vides. */
+    if (rubrique.nom == ID::chaine_vide) {
+        return "rubrique_invisible";
+    }
+
+    if (!rubrique.nom) {
+        /* Les rubriques des tuples n'ont pas de nom. */
+        return enchaine("_", index);
+    }
+
+    return broyeuse.broye_nom_simple(rubrique.nom);
 }
 
 bool GénératriceCodeC::préserve_symboles() const
