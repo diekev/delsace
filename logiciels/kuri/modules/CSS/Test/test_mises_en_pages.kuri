@@ -131,12 +131,9 @@ ajourne_fichiers :: fonc ()
             continue
         }
 
-        fichier := tente ouvre_fichier_crée_si_non_existant(chemin_sortie, pour_écriture_tronquée) piège err {
-            imprime("impossible de créer le fichier '%' %\n", chemin_sortie, err)
+        saufsi écris_fichier_entier(chemin_sortie, impression) {
             retourne
         }
-
-        _ := écris(*fichier, impression)
     }
 }
 
@@ -193,12 +190,9 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
 
             si réponse == "" {
                 imprime("Ajournement du fichier de sortie...\n")
-                fichier := tente ouvre_fichier_crée_si_non_existant(chemin_sortie, pour_écriture_tronquée) piège err {
-                    imprime("impossible de créer le fichier '%' %\n", chemin_sortie, err)
+                saufsi écris_fichier_entier(chemin_sortie, impression) {
                     retourne
                 }
-
-                _ := écris(*fichier, impression)
                 continue it
             }
 

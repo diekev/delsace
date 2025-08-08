@@ -1805,9 +1805,9 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
 
     request := loge(HTML.Request)
     request.client = HTML.donne_relevant_settings_object(ctx.document)
-    request.destination = "image"
-    request.mode = "no-cors"
-    request.redirect_mode = "follow"
+    request.destination = HTML.Request.DestinationType.Image
+    request.mode = HTML.Request.Mode.No_CORS
+    request.redirect_mode = HTML.Request.RedirectMode.Follow
     HTML.définis_url(request, url_src)
     process_response.request = request
 
