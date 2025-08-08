@@ -476,10 +476,10 @@ define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_
 
 /* 7.3.33 InitializeInstanceElements ( O, constructor )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-initializeinstanceelements */
-initialize_instance_elements :: fonc (interpréteuse: *Interpréteuse, object: *Object, constructor: *ECMAScriptFunction)
+initialize_instance_elements :: fonc (interpréteuse: *Interpréteuse, object: *Object, constructor: *Function)
 {
     // 1. Let methods be constructor.[[PrivateMethods]].
-    methods := constructor.private_methods
+    methods := constructor.donne_private_methods()
 
     // 2. For each PrivateElement method of methods, do
     pour method dans methods {
@@ -491,7 +491,7 @@ initialize_instance_elements :: fonc (interpréteuse: *Interpréteuse, object: *
     }
 
     // 3. Let fields be constructor.[[Fields]].
-    fields := constructor.fields
+    fields := constructor.donne_fields()
 
     // 4. For each element fieldRecord of fields, do
     pour field_record dans fields {

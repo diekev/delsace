@@ -36,7 +36,7 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
         set_function_name(realm, F, name)
 
         // 5. Perform MakeConstructor(F).
-        make_constructor(F)
+        make_constructor(realm, F)
 
         // 6. Return F.
         retourne F
@@ -76,7 +76,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         set_function_name(realm, closure, name)
 
         // 7. Perform MakeConstructor(closure).
-        make_constructor(closure)
+        make_constructor(realm, closure)
 
         // 8. Return closure.
         retourne closure
@@ -110,7 +110,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     set_function_name(realm, closure, name)
 
     // 10. Perform MakeConstructor(closure).
-    make_constructor(closure)
+    make_constructor(realm, closure)
 
     // 11. Perform ! funcEnv.InitializeBinding(name, closure).
     func_env.initialize_binding(name, Valeur(Function = closure))

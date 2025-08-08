@@ -32,6 +32,70 @@ donne_nom :: fonc (function: *Function) -> ECMAString
     retourne crée_chaine_utf16_unique("<anonyme>")
 }
 
+définis_constructor_kind :: fonc (function: *Function, kind: ConstructorKind)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).constructor_kind = kind
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).constructor_kind = kind
+    }
+}
+
+définis_private_methods :: fonc (function: *Function, private_methods: [..]PrivateElement)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).private_methods = private_methods
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).private_methods = private_methods
+    }
+}
+
+donne_private_methods :: fonc (function: *Function) -> []PrivateElement
+{
+    si function.table.classe == ECMAScriptFunction {
+        retourne (function comme *ECMAScriptFunction).private_methods
+    }
+
+    assert(function.table.classe == BuiltInFunction)
+    retourne (function comme *BuiltInFunction).private_methods
+}
+
+définis_fields :: fonc (function: *Function, fields: [..]ClassFieldDefinition)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).fields = fields
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).fields = fields
+    }
+}
+
+donne_fields :: fonc (function: *Function) -> [..]ClassFieldDefinition
+{
+    si function.table.classe == ECMAScriptFunction {
+        retourne (function comme *ECMAScriptFunction).fields
+    }
+
+    assert(function.table.classe == BuiltInFunction)
+    retourne (function comme *BuiltInFunction).fields
+}
+
+définis_source_text :: fonc (function: *Function, source_text: chaine)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).source_texte = source_text
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).source_texte = source_text
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -474,18 +538,24 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, so
 
 /* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
  * https://tc39.es/ecma262/#sec-makeconstructor */
-make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
+make_constructor :: fonc (realm: *Realm, F: *Function, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
 {
-    // À FAIRE : complète
     // 1. If F is an ECMAScript function object, then
+    si F.table.classe == ECMAScriptFunction {
         // a. Assert: IsConstructor(F) is false.
-        // b. Assert: F is an extensible object that does not have a "prototype" own property.
-        // c. Set F.[[Construct]] to the definition specified in 10.2.2.
+        // À FAIRE b. Assert: F is an extensible object that does not have a "prototype" own property.
+
+        // c. Set F.[[Construct]] to the definition specified in 10.2.2.  
+        assert((F.table comme *TableVirtuelleObject).sur_construct == sur_construct_fonction_ecma)
+    }
     // 2. Else,
+    sinon {
        // a. Set F.[[Construct]] to the definition specified in 10.3.2.
+        assert((F.table comme *TableVirtuelleObject).sur_construct == builtin_function_sur_construct)
+    }
 
     // 3. Set F.[[ConstructorKind]] to base.
-    F.constructor_kind = ConstructorKind.Base
+    F.définis_constructor_kind(ConstructorKind.Base)
 
     // 4. If writablePrototype is not present, set writablePrototype to true.
     writable_prototype := vrai
@@ -496,7 +566,7 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     // 5. If prototype is not present, then
     saufsi prototype {
         // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
-        prototype = ordinary_object_create(F.realm, F.realm.intrinsics.object_prototype, object_instance_crée)
+        prototype = ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
     }
 
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
@@ -541,7 +611,7 @@ make_method :: fonc (F: *ECMAScriptFunction, home_object: *Object)
 
 /* 10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-definemethodproperty */
-define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *ECMAScriptFunction, enumerable: bool) -> Optionnel(PrivateElement)
+define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *Function, enumerable: bool) -> Optionnel(PrivateElement)
 {
     // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
 
@@ -938,12 +1008,33 @@ TableVirtuelleBuiltinFunction :: struct {
     sur_construct = builtin_function_sur_construct
 }
 
+#portée_fichier
+
+table_virtuelle_builtin_fonction := TableVirtuelleBuiltinFunction(classe = BuiltInFunction, sur_destruction = builtin_function_sur_destruction)
+
+builtin_function_sur_destruction :: fonc (cellule: *Cellule)
+{
+    sur_destruction_objet(cellule)
+    builtin := cellule comme *BuiltInFunction
+    déloge(builtin.fields)
+    déloge(builtin.private_methods)
+}
+
+#portée_export
+
 BuiltInFunction :: struct {
     empl function: Function
+    table = *table_virtuelle_builtin_fonction
 
     realm: *Realm
     initial_name: ECMAString
     sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(Valeur)
+
+    /* Constructeurs défauts des classes. */
+    constructor_kind: ConstructorKind
+    fields: [..]ClassFieldDefinition
+    private_methods: [..]PrivateElement
+    source_texte: chaine
 }
 
 #portée_fichier

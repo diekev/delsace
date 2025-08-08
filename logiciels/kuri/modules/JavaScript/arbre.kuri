@@ -5415,7 +5415,7 @@ class_element_evaluation :: fonc (interpréteuse: *InterprèteArbre, syntax: *No
 
 /* 15.7.14 Runtime Semantics: ClassDefinitionEvaluation
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classdefinitionevaluation */
-class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_heritage: *Expression, class_body: *ClassBody, class_binding: Optionnel(ECMAString), class_name: FieldName) -> *ECMAScriptFunction
+class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_heritage: *Expression, class_body: *ClassBody, class_binding: Optionnel(ECMAString), class_name: FieldName) -> *Function
 {
     realm := interpréteuse.donne_realm()
 
@@ -5561,25 +5561,19 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     running_execution_context.private_environment = class_private_environment
 
     // 14. If constructor is empty, then
-    F: *ECMAScriptFunction
+    F: *Function
 
     saufsi constructor {
-        panique("non-implémenté")
         // a. Let defaultConstructor be a new Abstract Closure with no parameters that captures nothing and performs the following steps when called:
-        // i. Let args be the List of arguments that was passed to this function by [[Call]] or [[Construct]].
-        // ii. If NewTarget is undefined, throw a TypeError exception.
-        // iii. Let F be the active function object.
-        // iv. If F.[[ConstructorKind]] is derived, then
-        // 1. NOTE: This branch behaves similarly to constructor(...args) { super(...args); }. The most notable distinction is that while the aforementioned ECMAScript source text observably calls the %Symbol.iterator% method on %Array.prototype%, this function does not.
-        // 2. Let func be ! F.[[GetPrototypeOf]]().
-        // 3. If IsConstructor(func) is false, throw a TypeError exception.
-        // 4. Let result be ? Construct(func, args, NewTarget).
-        // v. Else,
-        // 1. NOTE: This branch behaves similarly to constructor() {}.
-        // 2. Let result be ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        // vi. Perform ? InitializeInstanceElements(result, F).
-        // vii. Return NormalCompletion(result).
+        default_constructor := constructor_pour_classe_sans_constructor
+
         // b. Let F be CreateBuiltinFunction(defaultConstructor, 0, className, « [[ConstructorKind]], [[SourceText]] », the current Realm Record, constructorParent).
+        tas_de_mémoire := realm.donne_tas_de_mémoire()
+        builtin := tas_de_mémoire.alloue(BuiltInFunction)
+        builtin.sur_call_or_construct = default_constructor
+        create_builtin_function(builtin, 0, class_name, realm, constructor_parent)
+
+        F = builtin
     }
     // 15. Else,
     sinon {
@@ -5587,22 +5581,23 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         constructor_info := define_method(interpréteuse, constructor, proto, constructor_parent)
 
         // b. Let F be constructorInfo.[[Closure]].
-        F = constructor_info.closure
+        closure := constructor_info.closure
+        F = closure
 
         // c. Perform MakeClassConstructor(F).
-        make_class_constructor(F)
+        make_class_constructor(closure)
 
         // d. Perform SetFunctionName(F, className).
-        set_function_name(realm, F, class_name)
+        set_function_name(realm, closure, class_name)
     }
 
     // 16. Perform MakeConstructor(F, false, proto).
     writable_prototype := faux
-    make_constructor(F, *writable_prototype, proto)
+    make_constructor(realm, F, *writable_prototype, proto)
 
     // 17. If ClassHeritage is present, set F.[[ConstructorKind]] to derived.
     si class_heritage {
-        F.constructor_kind = ConstructorKind.Derived
+        F.définis_constructor_kind(ConstructorKind.Derived)
     }
     
     // 18. Perform ! DefineMethodProperty(proto, "constructor", F, false).
@@ -5751,10 +5746,10 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     }
 
     // 28. Set F.[[PrivateMethods]] to instancePrivateMethods.
-    F.private_methods = instance_private_methods
+    F.définis_private_methods(instance_private_methods)
 
     // 29. Set F.[[Fields]] to instanceFields.
-    F.fields = instance_fields
+    F.définis_fields(instance_fields)
 
     // 30. For each PrivateElement method of staticPrivateMethods, do
     pour method dans static_private_methods {
@@ -5795,9 +5790,57 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     retourne F
 }
 
+constructor_pour_classe_sans_constructor :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
+{
+    // i. Let args be the List of arguments that was passed to this function by [[Call]] or [[Construct]].
+    args := arguments
+
+    // ii. If NewTarget is undefined, throw a TypeError exception.
+    si new_target.est_undefined() {
+        _ := lance_type_error(interpréteuse, "new target is undefined")
+        retourne js_undefined
+    }
+
+    // iii. Let F be the active function object.
+    F := donne_active_function_object(interpréteuse).vérifie_comme(BuiltInFunction)
+
+    // iv. If F.[[ConstructorKind]] is derived, then
+    result: Valeur
+    si F.constructor_kind == ConstructorKind.Derived {
+        // 1. NOTE: This branch behaves similarly to constructor(...args) { super(...args); }. The most notable distinction is that while the aforementioned ECMAScript source text observably calls the %Symbol.iterator% method on %Array.prototype%, this function does not.
+
+        // 2. Let func be ! F.[[GetPrototypeOf]]().
+        func := internal_get_prototype_of(F)
+
+        // 3. If IsConstructor(func) is false, throw a TypeError exception.
+        saufsi is_constructor(func) {
+            _ := lance_type_error(interpréteuse, "function is not a constructor")
+        }
+
+        // 4. Let result be ? Construct(func, args, NewTarget).
+        result = construct(interpréteuse, func, args, new_target)
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
+        }
+    }
+    // v. Else,
+    sinon {
+        // 1. NOTE: This branch behaves similarly to constructor() {}.
+        // 2. Let result be ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
+        realm := interpréteuse.donne_realm()
+        result = ordinary_create_from_constructor(realm, new_target.Function, realm.intrinsics.object_prototype, object_instance_crée)
+    }
+
+    // vi. Perform ? InitializeInstanceElements(result, F).
+    initialize_instance_elements(interpréteuse, result, F)
+
+    // vii. Return NormalCompletion(result).
+    retourne result
+}
+
 /* 15.7.15 Runtime Semantics: BindingClassDeclarationEvaluation
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-bindingclassdeclarationevaluation */
-binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_declaration: *ClassDeclaration) -> *ECMAScriptFunction
+binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_declaration: *ClassDeclaration) -> *Function
 {
     // 1. Let className be the StringValue of BindingIdentifier.
     class_name := class_declaration.identifier.nom
@@ -5809,7 +5852,7 @@ binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre,
     }
 
     // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-    value.source_texte = donne_texte_source(class_declaration)
+    value.définis_source_text(donne_texte_source(class_declaration))
 
     // 4. Let env be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv
