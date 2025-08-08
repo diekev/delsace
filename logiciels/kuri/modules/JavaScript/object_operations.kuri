@@ -360,6 +360,20 @@ copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, 
     // 5. Return unused.
 }
 
+/* 7.3.33 InitializeInstanceElements ( O, constructor )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-initializeinstanceelements */
+initialize_instance_elements :: fonc (object: *Object @inutilisée, constructor: *ECMAScriptFunction @inutilisée)
+{
+    // À FAIRE(class)
+    // 1. Let methods be constructor.[[PrivateMethods]].
+    // 2. For each PrivateElement method of methods, do
+    // a. Perform ? PrivateMethodOrAccessorAdd(O, method).
+    // 3. Let fields be constructor.[[Fields]].
+    // 4. For each element fieldRecord of fields, do
+    // a. Perform ? DefineField(O, fieldRecord).
+    // 5. Return unused.
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

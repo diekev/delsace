@@ -128,89 +128,290 @@ Header :: struct {
 }
 
 Request :: struct {
+    Drapeaux :: énum_drapeau n32 {
+        /* https://fetch.spec.whatwg.org/#local-urls-only-flag
+         * A request has an associated local-URLs-only flag. Unless stated otherwise it is unset. */
+        LOCAL_URLS_ONLY
+        /* https://fetch.spec.whatwg.org/#unsafe-request-flag
+         * A request has an associated unsafe-request flag. Unless stated otherwise it is unset. */
+        UNSAFE_REQUEST
+        /* https://fetch.spec.whatwg.org/#request-keepalive-flag
+         * A request has an associated boolean keepalive. Unless stated otherwise it is false. */
+        KEEPALIVE
+        /* https://fetch.spec.whatwg.org/#use-cors-preflight-flag
+         * A request has an associated use-CORS-preflight flag. Unless stated otherwise, it is unset. */
+        USE_CORS_PREFLIGHT
+        /* https://fetch.spec.whatwg.org/#concept-request-use-url-credentials-flag
+         * A request has an associated use-URL-credentials flag. Unless stated otherwise, it is unset. */
+        USE_URL_CREDENTIALS
+        /* https://fetch.spec.whatwg.org/#concept-request-reload-navigation-flag
+         * A request has an associated reload-navigation flag. Unless stated otherwise, it is unset. */
+        RELOAD_NAVIGATION
+        /* https://fetch.spec.whatwg.org/#concept-request-history-navigation-flag
+         * A request has an associated history-navigation flag. Unless stated otherwise, it is unset. */
+        HISTORY_NAVIGATION
+        /* https://fetch.spec.whatwg.org/#request-user-activation
+         * A request has an associated boolean user-activation. Unless stated otherwise, it is false. */
+        USER_ACTIVATION
+        /* https://fetch.spec.whatwg.org/#request-render-blocking
+         * A request has an associated boolean render-blocking. Unless stated otherwise, it is false. */
+        RENDER_BLOCKING
+        /* https://fetch.spec.whatwg.org/#no-cache-prevent-cache-control
+         * A request has an associated prevent no-cache cache-control header modification flag. Unless stated otherwise, it is unset. */
+        PREVENT_NO_CACHE_CACHE_CONTROL_HEADER_MODIFICATION
+        /* https://fetch.spec.whatwg.org/#done-flag
+         * A request has an associated done flag. Unless stated otherwise, it is unset. */
+        DONE
+        /* https://fetch.spec.whatwg.org/#timing-allow-failed
+         * A request has an associated timing allow failed flag. Unless stated otherwise, it is unset. */
+        TIMING_ALLOW_FAILED
+        /* https://fetch.spec.whatwg.org/#synchronous-flag
+         * @spec-bug : manquant */
+        SYNCHRONOUS
+    }
+
+    drapeaux: Drapeaux
+
+    /* https://fetch.spec.whatwg.org/#concept-request-method
+     * A request has an associated method (a method). Unless stated otherwise it is `GET`. */
     method := "GET"
-    url_list: [..]*URL
-    local_urls_only: bool
+
+    /* https://fetch.spec.whatwg.org/#concept-request-url
+     * A request has an associated URL (a URL). */
+    url: *URL
+
+    /* https://fetch.spec.whatwg.org/#concept-request-header-list
+     * A request has an associated header list (a header list). Unless stated otherwise it is « ». */
     header_list: [..]Header
-    unsafe_request: bool
+
+    /* https://fetch.spec.whatwg.org/#concept-request-body
+     * A request has an associated body (null, a byte sequence, or a body). Unless stated otherwise it is null. */
     body: Optionnel(chaine) // À FAIRE : plus complexe
+
+    /* https://fetch.spec.whatwg.org/#concept-request-client
+     * A request has an associated client (null or an environment settings object). */
     client: *EnvironmentSettings
 
     /* https://fetch.spec.whatwg.org/#concept-request-reserved-client
      * A request has an associated reserved client (null, an environment, or an environment settings object). Unless stated otherwise it is null. */
     reserved_client: *Environment
 
+    /* https://fetch.spec.whatwg.org/#concept-request-replaces-client-id
+     * A request has an associated replaces client id (a string). Unless stated otherwise it is the empty string. */
     replaces_client_id: chaine
-    keepalive: bool
 
-    /* "audio", "audioworklet", "document", "embed", "font", "frame", "iframe", "image", "json", "manifest", "object", "paintworklet", "report", "script", "serviceworker", "sharedworker", "style", "track", "video", "webidentity", "worker", or "xslt" */
-    destination: chaine
+    /* https://fetch.spec.whatwg.org/#concept-request-window
+     * A request has an associated traversable for user prompts,
+     * that is "no-traversable", "client", or a traversable navigable.
+     * Unless stated otherwise it is "client". */
+    traversable_for_user_prompts: RequestTraversableType = RequestTraversable.Client
 
-    /* "omit", "same-origin", or "include" */
-    credentials_mode := "same-origin"
-    use_url_credentials: bool
+    /* https://fetch.spec.whatwg.org/#request-initiator-type
+     * A request has an associated initiator type, which is null, "audio",
+     * "beacon", "body", "css", "early-hints", "embed", "fetch", "font", "frame",
+     * "iframe", "image", "img", "input", "link", "object", "ping", "script",
+     * "track", "video", "xmlhttprequest", or "other". Unless stated otherwise it is null.  */
+    InitiatorType :: énum n8 {
+        Null
 
-    /* https://fetch.spec.whatwg.org/#concept-request-referrer
-     * A request has an associated referrer, which is "no-referrer", "client", or a URL. Unless stated otherwise it is "client". */
-    referrer := "client"
+        Audio
+        Beacon 
+        Body
+        CSS
+        Early_Hints
+        Embed
+        Fetch
+        Font
+        Frame
+        Iframe
+        Image
+        Img
+        Input
+        Link
+        Object
+        Ping
+        Script
+        Track
+        Video
+        XMLHTTPRequest
+        Other
+    }
+    initiator_type: InitiatorType
 
-    cryptographic_nonce: DOMString
+    /* https://fetch.spec.whatwg.org/#request-service-workers-mode
+     * A request has an associated service-workers mode, that is "all" or "none". Unless stated otherwise it is "all". */
+    ServiceWorkersMode :: énum n8 {
+        All
+        None
+    }
+    service_workers_mode: ServiceWorkersMode
 
-    referrer_policy := ReferrerPolicy.EmptyString
+    /* https://fetch.spec.whatwg.org/#concept-request-initiator
+     * A request has an associated initiator, which is the empty string,
+     * "download", "imageset", "manifest", "prefetch", "prerender", or "xslt".
+     * Unless stated otherwise it is the empty string. */
+    Initiator :: énum n8 {
+        EmptyString
+        Download
+        ImageSet
+        Manifest
+        Prefetch
+        Prerender
+        XSLT
+    }
+    initiator: Initiator
+
+    /* https://fetch.spec.whatwg.org/#destination-type
+     * A destination type is one of: the empty string, "audio", "audioworklet",
+     * "document", "embed", "font", "frame", "iframe", "image", "json", "manifest",
+     * "object", "paintworklet", "report", "script", "serviceworker", "sharedworker",
+     * "style", "track", "video", "webidentity", "worker", or "xslt". */
+    DestinationType :: énum n8 {
+        EmptyString
+
+        Audio
+        AudioWorklet
+        Document
+        Embed
+        Font
+        Frame
+        Iframe
+        Image
+        JSON
+        Manifest
+        Object
+        PaintWorklet
+        Report
+        Script
+        ServiceWorker
+        SharedWorker
+        Style
+        Track
+        Video
+        WebIdentity
+        Worker
+        XSLT
+    }
+
+    /* https://fetch.spec.whatwg.org/#concept-request-destination
+     * A request has an associated destination, which is destination type. Unless stated otherwise it is the empty string. */
+    destination: DestinationType
+
+    /* https://fetch.spec.whatwg.org/#request-priority
+     * A request has an associated priority, which is "high", "low", or "auto". Unless stated otherwise it is "auto". */
+    Priority :: énum n8 {
+        Auto
+        High
+        Low
+    }
+    priority: Priority
+
+    /* https://fetch.spec.whatwg.org/#request-internal-priority
+     * A request has an associated internal priority (null or an implementation-defined object). Unless otherwise stated it is null. */
+    // @ImplementationDefined
+    internal_priority: *rien
+
+    /* https://fetch.spec.whatwg.org/#concept-request-origin
+     * A request has an associated origin, which is "client" or an origin. Unless stated otherwise it is "client". */
+    origin : RequestOriginType = RequestOrigin.Client
 
     /* https://fetch.spec.whatwg.org/#request-top-level-navigation-initiator-origin
      * A request has an associated top-level navigation initiator origin, which is an origin or null. Unless stated otherwise it is null. */
     top_level_initiator_origin: Optionnel(Origin)
 
+    /* https://fetch.spec.whatwg.org/#concept-request-policy-container
+     * A request has an associated policy container, which is "client" or a policy container. Unless stated otherwise it is "client". */
     policy_container : RequestPolicyContainer = "client"
 
-    /* "same-origin", "cors", "no-cors", "navigate", or "websocket" */
-    mode := "no-cors"
+    /* https://fetch.spec.whatwg.org/#concept-request-referrer
+     * A request has an associated referrer, which is "no-referrer", "client", or a URL.
+     * Unless stated otherwise it is "client". */
+    referrer := "client"
 
-    /* "follow", "error", or "manual" */
-    redirect_mode := "follow"
+    /* https://fetch.spec.whatwg.org/#concept-request-referrer-policy
+     * A request has an associated referrer policy, which is a referrer policy.
+     * Unless stated otherwise it is the empty string. */
+    referrer_policy := ReferrerPolicy.EmptyString
 
-    reload_navigation: bool
-    history_navigation: bool
+    /* https://fetch.spec.whatwg.org/#concept-request-mode
+     * A request has an associated mode, which is "same-origin", "cors", "no-cors", "navigate", or "websocket".
+     * Unless stated otherwise, it is "no-cors". */
+    Mode :: énum n8 {
+        No_CORS
+        Same_Origin
+        CORS
+        Navigate
+        WebSocket
+    }
+    mode: Mode
 
-    /* "basic", "cors", or "opaque" */
-    response_tainting := "basic"
+    /* https://fetch.spec.whatwg.org/#concept-request-credentials-mode
+     * A request has an associated credentials mode, which is "omit", "same-origin", or "include". Unless stated otherwise, it is "same-origin". */
+    CredentialsMode :: énum n8 {
+        Same_Origin
+        Omit
+        Include
+    }
+    credentials_mode: CredentialsMode
 
-    /* https://fetch.spec.whatwg.org/#request-service-workers-mode
-     * A request has an associated service-workers mode, that is "all" or "none". Unless stated otherwise it is "all". */
-    service_workers_mode := "all"
+    /* https://fetch.spec.whatwg.org/#concept-request-cache-mode
+     * A request has an associated cache mode, which is "default",
+     * "no-store", "reload", "no-cache", "force-cache", or "only-if-cached".
+     * Unless stated otherwise, it is "default". */
+    CacheMode :: énum n8 {
+        Default
+        No_Store
+        Reload
+        No_Cache
+        Force_Cache
+        Only_If_Cached
+    }
+    cache_mode: CacheMode
 
-    /* empty string, "download", "imageset", "manifest", "prefetch", "prerender", or "xslt" */
-    initiator := ""
+    /* https://fetch.spec.whatwg.org/#concept-request-redirect-mode
+     * A request has an associated redirect mode, which is "follow", "error", or "manual".
+     * Unless stated otherwise, it is "follow". */
+    RedirectMode :: énum n8 {
+        Follow
+        Error
+        Manual
+    }
+    redirect_mode: RedirectMode
 
-    initiator_type := ""
-
-    user_activation: bool
-
-    render_blocking: bool
-    synchronous: bool
-
+    /* https://fetch.spec.whatwg.org/#concept-request-integrity-metadata
+     * A request has associated integrity metadata (a string). Unless stated otherwise, it is the empty string. */
     integrity_metadata := crée_chaine_utf16_unique_vide()
 
-    // https://fetch.spec.whatwg.org/#concept-request-parser-metadata
-    // A request has associated parser metadata which is the empty string, "parser-inserted", or "not-parser-inserted". Unless otherwise stated, it is the empty string.
-    parser_metadata := ""
+    /* https://fetch.spec.whatwg.org/#concept-request-nonce-metadata
+     * A request has associated cryptographic nonce metadata (a string). Unless stated otherwise, it is the empty string. */
+    cryptographic_nonce: DOMString
 
-    priority: FetchPriorityState
+    /* https://fetch.spec.whatwg.org/#concept-request-parser-metadata
+     * A request has associated parser metadata which is the empty string, "parser-inserted", or "not-parser-inserted".
+     * Unless otherwise stated, it is the empty string. */
+    ParserMetadata :: énum n8 {
+        EmptyString
+        Parser_Inserted
+        Not_Parser_Inserted
+    }
+    parser_metadata: ParserMetadata
 
-    // https://fetch.spec.whatwg.org/#concept-request-origin
-    // A request has an associated origin, which is "client" or an origin. Unless stated otherwise it is "client".
-    origin : RequestOriginType = RequestOrigin.Client
+    /* https://fetch.spec.whatwg.org/#concept-request-url-list
+     * A request has an associated URL list (a list of one or more URLs). Unless stated otherwise, it is a list containing a copy of request’s URL. */
+    url_list: [..]*URL
 
-    // https://fetch.spec.whatwg.org/#concept-request-window
-    // A request has an associated traversable for user prompts,
-    // that is "no-traversable", "client", or a traversable navigable.
-    // Unless stated otherwise it is "client".
-    traversable_for_user_prompts: RequestTraversableType = RequestTraversable.Client 
+    /* https://fetch.spec.whatwg.org/#concept-request-redirect-count
+     * A request has an associated redirect count. Unless stated otherwise, it is zero. */
+    redirect_count := 0
 
-    // https://fetch.spec.whatwg.org/#done-flag
-    // A request has an associated done flag. Unless stated otherwise, it is unset.
-    done: bool
+    /* https://fetch.spec.whatwg.org/#concept-request-response-tainting
+     * A request has an associated response tainting, which is "basic", "cors", or "opaque". Unless stated otherwise, it is "basic". */
+    ResponseTainting :: énum n8 {
+        Basic
+        CORS
+        Opaque
+    }
+    response_tainting: ResponseTainting
 }
 
 définis_url :: fonc (request: *Request, url: *URL)
@@ -379,6 +580,27 @@ possède_entête :: fonc (response: *Response, nom: chaine) -> bool
     pour response.header_list {
         si compare_ascii_insensible_à_la_casse(it.name, nom) {
             retourne vrai
+        }
+    }
+    retourne faux
+}
+
+possède_entête :: fonc (response: *Response, nom: chaine, valeur: chaine) -> bool
+{
+    pour response.header_list {
+        saufsi compare_ascii_insensible_à_la_casse(it.name, nom) {
+            retourne faux
+        }
+
+        valeur_entête := it.value
+        morceaux := divise(valeur_entête, ';')
+        diffère déloge(morceaux)
+
+        pour morceau dans morceaux {
+            morceau = supprime_espaces_blancs(morceau)
+            si compare_ascii_insensible_à_la_casse(valeur, morceau) {
+                retourne vrai
+            }
         }
     }
     retourne faux
@@ -658,13 +880,24 @@ FetchController :: struct {
     /* Null or a Record (result of StructuredSerialize). */
     serialized_abort_reason: *rien
 
-    /* Null or an algorithm accepting nothing. */
-    next_manual_redirect_steps: *rien
+    /* https://fetch.spec.whatwg.org/#fetch-controller-next-manual-redirect-steps
+     * Null or an algorithm accepting nothing. */
+    next_manual_redirect_steps: *Algorithm
 }
 
 détruit_fetch_controller :: fonc (fetch_controller: *FetchController)
 {
     déloge(fetch_controller)
+}
+
+/* https://fetch.spec.whatwg.org/#fetch-controller-process-the-next-manual-redirect */
+process_the_next_manual_redirect :: fonc (controller: *FetchController)
+{
+    // 1. Assert: controller’s next manual redirect steps is non-null.
+    assert(controller.next_manual_redirect_steps != nul)
+
+    // 2. Call controller’s next manual redirect steps.
+    run(controller.next_manual_redirect_steps)
 }
 
 /** \} */
@@ -712,7 +945,7 @@ fetch :: fonc (user_agent: *UserAgent,
                use_parallel_queue := faux) -> *FetchController
 {
     // 1. Assert: request’s mode is "navigate" or processEarlyHintsResponse is null.
-    assert(request.mode == "navigate" || process_early_hints_response == nul)
+    assert(request.mode == Request.Mode.Navigate || process_early_hints_response == nul)
 
     // 2. Let taskDestination be null.
     task_destination: *rien
@@ -736,7 +969,7 @@ fetch :: fonc (user_agent: *UserAgent,
 
     // À FAIRE : 7. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
     timing_info: FetchTimingInfo
-    timing_info.render_blocking = request.render_blocking
+    timing_info.render_blocking = request.drapeaux.RENDER_BLOCKING == vrai
 
     // 8. Let fetchParams be a new fetch params whose
     //    request is request,
@@ -789,7 +1022,7 @@ fetch :: fonc (user_agent: *UserAgent,
         value := "*/*"
 
         // 2. If request’s initiator is "prefetch", then set value to the document `Accept` header value.
-        si request.initiator == "prefetch" {
+        si request.initiator == Request.Initiator.Prefetch {
             value = donne_document_accept_header_value()
         }
         // 3. Otherwise, the user agent should set value to the first matching statement, if any, switching on request’s destination:
@@ -805,16 +1038,16 @@ fetch :: fonc (user_agent: *UserAgent,
         //         `text/css,*/*;q=0.1`
         sinon {
             discr request.destination {
-                "document", "frame", "iframe" {
+                Document, Frame, Iframe {
                     value = donne_document_accept_header_value()
                 }
-                "image" {
+                Image {
                     value = "image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5"
                 }
-                "json" {
+                JSON {
                     value = "application/json,*/*;q=0.5"
                 }
-                "style" {
+                Style {
                     value = "text/css,*/*;q=0.1"
                 }
                 sinon {}
@@ -906,7 +1139,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     response: *Response
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
-    si request.local_urls_only && !is_local(request.donne_url_courant()) {
+    si request.drapeaux.LOCAL_URLS_ONLY && !is_local(request.donne_url_courant()) {
         response = network_error(request)
     }
 
@@ -974,29 +1207,29 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         // request’s current URL’s scheme is "data"
         // request’s mode is "navigate" or "websocket"
         si (request.donne_url_courant().scheme == "data") ||
-           (request.mode == "navigate" || request.mode == "websocket") {
+           (request.mode == Request.Mode.Navigate || request.mode == Request.Mode.WebSocket) {
             // Set request’s response tainting to "basic".
-            request.response_tainting = "basic"
+            request.response_tainting = Request.ResponseTainting.Basic
 
             // Return the result of running scheme fetch given fetchParams.
             response = scheme_fetch(user_agent, fetch_params)
         }
 
         // request’s mode is "same-origin"
-        sinon si request.mode == "same-origin" {
+        sinon si request.mode == Request.Mode.Same_Origin {
             // Return a network error.
             response = network_error(request)
         }
 
         // request’s mode is "no-cors"
-        sinon si request.mode == "no-cors" {
+        sinon si request.mode == Request.Mode.No_CORS {
             // If request’s redirect mode is not "follow", then return a network error.
-            si request.redirect_mode != "follow" {
+            si request.redirect_mode != Request.RedirectMode.Follow {
                 response = network_error(request)
             }
             sinon {
                 // Set request’s response tainting to "opaque".
-                request.response_tainting = "opaque"
+                request.response_tainting = Request.ResponseTainting.Opaque
 
                 // Return the result of running scheme fetch given fetchParams.
                 response = scheme_fetch(user_agent, fetch_params)
@@ -1022,7 +1255,7 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         // Otherwise
         sinon {
             // Set request’s response tainting to "cors".
-            request.response_tainting = "cors"
+            request.response_tainting = Request.ResponseTainting.CORS
 
             // Return the result of running HTTP fetch given fetchParams.
             response = http_fetch(user_agent, fetch_params)
@@ -1102,7 +1335,7 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
     //    The user agent may decide to expose `Server-Timing` headers to non-secure contexts requests as well.
 
     // 3. If fetchParams’s request’s destination is "document",
-    si fetch_params.request.destination == "document" {
+    si fetch_params.request.destination == Request.DestinationType.Document {
         // then set fetchParams’s controller’s full timing info to fetchParams’s timing info.
         fetch_params.controller.full_timing_info = fetch_params.timing_info
     }
@@ -1226,7 +1459,7 @@ crée_process_response_end_of_body_task :: fonc (fetch_params: *FetchParams, res
         empl tâche := base comme *Tâche
 
         // 1. Set fetchParams’s request’s done flag.
-        fetch_params.request.done = vrai
+        fetch_params.request.drapeaux.DONE = vrai
 
         // 2. If fetchParams’s process response end-of-body is non-null, then run fetchParams’s process response end-of-body given response.
         si fetch_params.process_response_end_of_body {
@@ -1458,8 +1691,173 @@ scheme_fetch_blob :: fonc (request: *Request) -> *Response
 /* https://fetch.spec.whatwg.org/#concept-http-fetch */
 http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
-    /* À FAIRE : standardise */
-    retourne user_agent.lance_requête(fetch_params.request)
+    // 1. Let request be fetchParams’s request.
+    request := fetch_params.request
+    
+    // 2. Let response and internalResponse be null.
+    response: *Response
+    internal_response: *Response
+
+    // 3. If request’s service-workers mode is "all", then:
+    si request.service_workers_mode == Request.ServiceWorkersMode.All {
+        /* À FAIRE : standardise */
+        response = user_agent.lance_requête(fetch_params.request)
+
+        si response {
+            internal_response = response
+        }
+    }
+
+    // 4. If response is null, then:
+    si response == nul {
+        panique("non-implémenté")
+    }
+
+    // 5. If either request’s response tainting or response’s type is "opaque",
+    //    and the cross-origin resource policy check with request’s origin, request’s client,
+    //    request’s destination, and internalResponse returns blocked, then return a network error.
+
+    // 6. If internalResponse’s status is a redirect status:
+    si is_redirect_status(internal_response.status) {
+        // 1. If internalResponse’s status is not 303, request’s body is non-null, and the connection
+        //    uses HTTP/2, then user agents may, and are even encouraged to, transmit an RST_STREAM frame.
+
+        // 2. Switch on request’s redirect mode:
+        discr request.redirect_mode {
+            Error {
+                // Set response to a network error.
+                response = network_error(request)
+            }
+            Manual {
+                // If request’s mode is "navigate", then set fetchParams’s controller’s next manual redirect steps to run HTTP-redirect fetch given fetchParams and response.
+                si request.mode == Request.Mode.Navigate {
+                    NextManualRedirect :: struct {
+                        empl base: Algorithm
+                        user_agent: *UserAgent
+                        fetch_params: *FetchParams
+                        response: *Response
+                    }
+
+                    sur_next_manual_redirect :: fonc (base: *Algorithm)
+                    {
+                        empl params := base comme *NextManualRedirect
+                        _ := http_redirect_fetch(user_agent, fetch_params, response)
+                    }
+
+                    next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect)
+                    next_manual_redirect.user_agent = user_agent
+                    next_manual_redirect.fetch_params = fetch_params
+                    next_manual_redirect.response = response
+
+                    fetch_params.controller.next_manual_redirect_steps = next_manual_redirect
+                }
+                // Otherwise, set response to an opaque-redirect filtered response whose internal response is internalResponse.
+                sinon {
+                    panique("non-implémenté")
+                }
+            }
+            Follow {
+                // Set response to the result of running HTTP-redirect fetch given fetchParams and response.
+                response = http_redirect_fetch(user_agent, fetch_params, response)
+            }
+            sinon {
+                panique("request.redirect_mode inconnu : '%'", request.redirect_mode)
+            }
+        }
+    }
+
+    // 7. Return response.
+    retourne response
+
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.4. HTTP-redirect fetch
+ * https://fetch.spec.whatwg.org/#http-redirect-fetch
+ * \{ */
+
+/* https://fetch.spec.whatwg.org/#concept-http-redirect-fetch */
+
+http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response) -> *Response
+{
+    // 1. Let request be fetchParams’s request.
+    request := fetch_params.request
+
+    // À FAIRE 2. Let internalResponse be response, if response is not a filtered response; otherwise response’s internal response.
+    internal_reponse := response
+
+    // 3. Let locationURL be internalResponse’s location URL given request’s current URL’s fragment.
+    current_url := request.donne_url_courant()
+    location_url := donne_location_url(internal_reponse, user_agent, current_url.fragment)
+
+    // 4. If locationURL is null, then return response.
+    si location_url == nul {
+        retourne response
+    }
+
+    // À FAIRE 5. If locationURL is failure, then return a network error.
+
+    // 6. If locationURL’s scheme is not an HTTP(S) scheme, then return a network error.
+    saufsi is_http_scheme(location_url.scheme) {
+        retourne network_error(request)
+    }
+
+    // 7. If request’s redirect count is 20, then return a network error.
+    si request.redirect_count == 20 {
+        retourne network_error(request)
+    }
+
+    // 8. Increase request’s redirect count by 1.
+    request.redirect_count += 1
+
+    // 9. If request’s mode is "cors", locationURL includes credentials, and request’s origin is not same origin with locationURL’s origin, then return a network error.
+
+    // 10. If request’s response tainting is "cors" and locationURL includes credentials, then return a network error.
+
+    // 11. If internalResponse’s status is not 303, request’s body is non-null, and request’s body’s source is null, then return a network error.
+
+    // 12. If one of the following is true
+    //     internalResponse’s status is 301 or 302 and request’s method is `POST`
+    //     internalResponse’s status is 303 and request’s method is not `GET` or `HEAD`
+    // then:
+
+        // 1. Set request’s method to `GET` and request’s body to null.
+
+        // 2. For each headerName of request-body-header name, delete headerName from request’s header list.
+
+    // 13. If request’s current URL’s origin is not same origin with locationURL’s origin, then for each headerName of CORS non-wildcard request-header name, delete headerName from request’s header list.
+
+    // 14. If request’s body is non-null, then set request’s body to the body of the result of safely extracting request’s body’s source.
+
+    // 15. Let timingInfo be fetchParams’s timing info.
+
+    // 16. Set timingInfo’s redirect end time and post-redirect start time to the coarsened shared current time given fetchParams’s cross-origin isolated capability.
+
+    // 17. If timingInfo’s redirect start time is 0, then set timingInfo’s redirect start time to timingInfo’s start time.
+
+    // 18. Append locationURL to request’s URL list.
+    request.définis_url(location_url)
+
+    // 19. Invoke set request’s referrer policy on redirect on request and internalResponse. [REFERRER]
+
+    // 20. Let recursive be true.
+    recursive := vrai
+
+    // 21. If request’s redirect mode is "manual", then:
+    si request.redirect_mode == Request.RedirectMode.Manual {
+        // 1. Assert: request’s mode is "navigate".
+        assert(request.mode == Request.Mode.Navigate)
+
+        // 2. Set recursive to false.
+        recursive = faux
+    }
+
+    // 22. Return the result of running main fetch given fetchParams and recursive.
+    // À FAIRE : retourne une réponse
+    main_fetch(user_agent, fetch_params, recursive)
+    retourne nul
 }
 
 /** \} */
