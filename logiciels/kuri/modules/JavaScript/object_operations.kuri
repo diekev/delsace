@@ -360,6 +360,120 @@ copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, 
     // 5. Return unused.
 }
 
+/* 7.3.26 PrivateElementFind ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-privateelementfind */
+private_element_find :: fonc (O: *Object, P: PrivateName) -> *PrivateElement
+{
+    // 1. If O.[[PrivateElements]] contains a PrivateElement pe such that pe.[[Key]] is P, then
+    pour * O.private_elements {
+        // a. Return pe.
+        si it.key == P {
+            retourne it
+        }
+    }
+
+    // 2. Return empty.
+    retourne nul
+}
+
+/* 7.3.27 PrivateFieldAdd ( O, P, value )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-privatefieldadd */
+private_field_add :: fonc (interpréteuse: *Interpréteuse, O: *Object, P: PrivateName, value: Valeur)
+{
+    // À FAIRE 1. If the host is a web browser, then
+    //    a. Perform ? HostEnsureCanAddPrivateElement(O).
+
+    // 2. Let entry be PrivateElementFind(O, P).
+    entry := private_element_find(O, P)
+
+    // 3. If entry is not empty, throw a TypeError exception.
+    si entry {
+        _ := lance_type_error(interpréteuse, "cannot add duplicate private element")
+        retourne
+    }
+
+    // 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
+    element := tableau_ajoute_élément(*O.private_elements)
+    element.key = P
+    element.kind = PrivateElement.Kind.FIELD
+    element.value = value
+
+    // 5. Return unused.
+}
+
+/* 7.3.28 PrivateMethodOrAccessorAdd ( O, method )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-privatemethodoraccessoradd */
+private_method_or_accessor_add :: fonc (interpréteuse: *Interpréteuse, O: *Object, method: PrivateElement)
+{
+    // 1. Assert: method.[[Kind]] is either method or accessor.
+    assert(method.kind == PrivateElement.Kind.METHOD || method.kind == PrivateElement.Kind.ACCESSOR)
+
+    // À FAIRE : 2. If the host is a web browser, then
+    //    a. Perform ? HostEnsureCanAddPrivateElement(O).
+
+    // 3. Let entry be PrivateElementFind(O, method.[[Key]]).
+    entry := private_element_find(O, method.key)
+
+    // 4. If entry is not empty, throw a TypeError exception.
+    si entry {
+        _ := lance_type_error(interpréteuse, "cannot add duplicate private element")
+        retourne
+    }
+
+    // 5. Append method to O.[[PrivateElements]].
+    tableau_ajoute(*O.private_elements, method)
+
+    // 6. Return unused.
+}
+
+/* 7.3.32 DefineField ( receiver, fieldRecord )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definefield */
+define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_record: ClassFieldDefinition)
+{
+    // 1. Let fieldName be fieldRecord.[[Name]].
+    field_name := field_record.name
+
+    // 2. Let initializer be fieldRecord.[[Initializer]].
+    initializer := field_record.initializer
+
+    // 3. If initializer is not empty, then
+    init_value: Valeur = ---
+    si initializer {
+        // a. Let initValue be ? Call(initializer, receiver).
+        init_value = call(interpréteuse, Valeur(Function = initializer), receiver)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+    }
+    // 4. Else,
+    sinon {
+        // a. Let initValue be undefined.
+        init_value = js_undefined
+    }
+
+    // 5. If fieldName is a Private Name, then
+    si est_private_name(field_name) {
+        // a. Perform ? PrivateFieldAdd(receiver, fieldName, initValue).
+        private_field_add(interpréteuse, receiver, field_name.PrivateName, init_value)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+    }
+    // 6. Else,
+    sinon {
+        // a. Assert: fieldName is a property key.
+        assert(est_property_key(field_name))
+
+        // b. Perform ? CreateDataPropertyOrThrow(receiver, fieldName, initValue).
+        create_data_property_or_throw(receiver, donne_property_key(field_name), init_value)
+        si interpréteuse.possède_exception() {
+            retourne
+        }
+
+        // 7. Return unused.
+    }
+}
+
 /* 7.3.33 InitializeInstanceElements ( O, constructor )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-initializeinstanceelements */
 initialize_instance_elements :: fonc (object: *Object @inutilisée, constructor: *ECMAScriptFunction @inutilisée)
