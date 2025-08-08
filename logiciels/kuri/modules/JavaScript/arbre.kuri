@@ -5427,6 +5427,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     }
     // 11. Else, let constructor be the ConstructorMethod of ClassBody.
     sinon {
+        constructor = nul
         pour class_body.éléments {
             si it.type == ClassMethod {
                 class_method := it comme *ClassMethod
