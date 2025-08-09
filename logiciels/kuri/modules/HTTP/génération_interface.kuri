@@ -782,18 +782,15 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     diffère détruit_chemin(chm_dossier_pilote)
     diffère détruit_chemin(chm_fichier_pilote)
 
-    fichier := tente ouvre_fichier_crée_si_non_existant(chm_fichier_pilote, pour_lecture_écriture_tronquée) piège _ {
-        compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
-    }
-
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
     génère_code_pilote_client(paramètres, espace, *enchaineuse)
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, *fichier)
-    _ := ferme(*fichier)
+    saufsi écris_fichier_entier(chm_fichier_pilote, *enchaineuse) {
+        compilatrice_rapporte_erreur(espace, "Impossible de créer le fichier pour le pilote !\n")
+    }
 }
 
 génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *Enchaineuse, types_utilisés: *[..]*InfoTypeStructure)

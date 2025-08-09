@@ -109,6 +109,8 @@ Object :: struct {
     /* Ceci stocke les valeurs indexées par des nombres. */
     éléments_indexés: [..]Propriété
 
+    private_elements: [..]PrivateElement @slot "[[PrivateElements]]"
+
     prototype: *Object
     extensible := vrai
 }
@@ -165,6 +167,7 @@ sur_destruction_objet :: fonc (base: *Cellule)
     déloge(objet.propriétés)
     déloge(objet.index_propriétés)
     déloge(objet.éléments_indexés)
+    déloge(objet.private_elements)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)

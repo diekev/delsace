@@ -101,7 +101,7 @@ is_identifier_ref :: fonc (noeud: *NoeudSyntaxique) -> bool
 
 /* 8.4.5 Runtime Semantics: NamedEvaluation
  * https://tc39.es/ecma262/multipage/syntax-directed-operations.html#sec-runtime-semantics-namedevaluation */
-named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique, name: ECMAString) -> CompletionRecord
+named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique, name: FieldName) -> CompletionRecord
 {
     si noeud.type == FunctionExpression {
         // 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression with argument name.
@@ -634,6 +634,26 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
     }
 
     retourne realm.chaines[identifier.index_chaine_en_cache]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PrivateIdentifier
+ * \{ */
+
+PrivateIdentifier :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    nom: ECMAString
+}
+
+crée_private_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *PrivateIdentifier
+{
+    résultat := parseuse.crée_noeud(lexème, PrivateIdentifier)
+    résultat.nom = crée_chaine_utf16_unique(lexème.texte)
+    retourne résultat
 }
 
 /** \} */
@@ -1828,7 +1848,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
         }
         
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
-        si ref.est_reference_record() && est_référence_propriété(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
+        si ref.est_reference_record() && is_property_reference(ref) == faux && ref.R.referenced_name.valeur.String.texte == STR_eval {
             realm := interpréteuse.donne_realm()
 
             // a. If SameValue(func, %eval%) is true, then
@@ -1906,7 +1926,7 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
     // 1. If ref is a Reference Record, then
     si est_reference_record(ref) {
         // a. If IsPropertyReference(ref) is true, then
-        si est_référence_propriété(ref) {
+        si is_property_reference(ref) {
             // i. Let thisValue be GetThisValue(ref).
             this_value = get_this_value(ref.R)
         }
@@ -2729,7 +2749,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
 
         si it.type == ObjectMethod {
             // 1. Perform ? MethodDefinitionEvaluation of MethodDefinition with arguments object and true.
-            method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai)
+            _ := method_definition_evaluation(interpréteuse, it comme *ObjectMethod, object, vrai)
             si interpréteuse.possède_exception() {
                 retourne throw_completion(interpréteuse.donne_exception())
             }
@@ -2756,7 +2776,7 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         prop_value: Valeur
         si is_anonymous_function_definition(property_definition.expression) && is_proto_setter == faux {
             // a. Let propValue be ? NamedEvaluation of AssignmentExpression with argument propKey.
-            completion := named_evaluation(interpréteuse, property_definition.expression, prop_key)
+            completion := named_evaluation(interpréteuse, property_definition.expression, donne_field_name(prop_key))
             saufsi completion.est_normal() {
                 retourne completion
             }
@@ -2948,6 +2968,30 @@ crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: 
 sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     membre := base comme *MemberExpression
+
+    si membre.propriété.type == PrivateIdentifier {
+        private_identifier := membre.propriété comme *PrivateIdentifier
+
+        // 1. Let baseReference be ? Evaluation of MemberExpression.
+        completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
+        saufsi completion_base_reference.est_normal() {
+            retourne completion_base_reference
+        }
+        base_reference := completion_base_reference.valeur
+    
+        // 2. Let baseValue be ? GetValue(baseReference).
+        base_value := get_value(interpréteuse, base_reference)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 3. Let fieldNameString be the StringValue of PrivateIdentifier.
+        field_name_string := private_identifier.nom
+
+        // 4. Return MakePrivateReference(baseValue, fieldNameString).
+        référence := make_private_reference(interpréteuse, base_value, field_name_string)
+        retourne normal_completion(référence)
+    }
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
@@ -3799,7 +3843,7 @@ sur_exécution_typeof_operator :: fonc (base: *NoeudSyntaxique, interpréteuse: 
     // 2. If val is a Reference Record, then
     si est_reference_record(val) {
         // a. If IsUnresolvableReference(val) is true, return "undefined".
-        si est_référence_non_résolvable(val) {
+        si is_unresolvable_reference(val) {
             retourne crée_string_value_completion(interpréteuse, STR_undefined)
         }
     }
@@ -4835,7 +4879,7 @@ crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_eleme
 
 MethodDefinitionInfo :: struct {
     closure: *ECMAScriptFunction
-    key: PropertyKey
+    key: FieldName
 }
 
 /* 15.4.4 Runtime Semantics: DefineMethod
@@ -4845,7 +4889,7 @@ define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *Ob
     realm := interpréteuse.donne_realm()
 
     // 1. Let propKey be ? Evaluation of ClassElementName.
-    prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+    prop_key := évalue_classe_element_name(interpréteuse, method_definition.class_element_name)
 
     // 2. Let env be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv
@@ -4881,7 +4925,7 @@ define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *Ob
 
 /* 15.4.5 Runtime Semantics: MethodDefinitionEvaluation
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-methoddefinitionevaluation */
-method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, enumerable: bool)
+method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_definition: *ObjectMethod, object: *Object, enumerable: bool) -> Optionnel(PrivateElement)
 {
     si method_definition.kind == MethodKind.Method {
         // 1. Let methodDef be ? DefineMethod of MethodDefinition with argument object.
@@ -4894,11 +4938,11 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
         set_function_name(interpréteuse.donne_realm(), method_def.closure, method_def.key)
 
         // 3. Return ? DefineMethodProperty(object, methodDef.[[Key]], methodDef.[[Closure]], enumerable).
-        define_method_property(object, method_def.key, method_def.closure, enumerable)
+        retourne define_method_property(object, method_def.key, method_def.closure, enumerable)
     }
     sinon si method_definition.kind == MethodKind.Get {
         // 1. Let propKey be ? Evaluation of ClassElementName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+        prop_key := évalue_classe_element_name(interpréteuse, method_definition.class_element_name)
 
         // 2. Let env be the running execution context's LexicalEnvironment.
         mv := interpréteuse.mv
@@ -4924,11 +4968,13 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
         // 8. Perform SetFunctionName(closure, propKey, "get").
         set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
 
-        // À FAIRE 9. If propKey is a Private Name, then
-        // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: closure, [[Set]]: undefined }.
-
+        // 9. If propKey is a Private Name, then
+        si prop_key.est_private_name() {
+            // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: closure, [[Set]]: undefined }.
+            retourne PrivateElement(prop_key.PrivateName, PrivateElement.Kind.ACCESSOR, get = closure)
+        }
         // 10. Else,
-        {
+        sinon {
             // a. Let desc be the PropertyDescriptor { [[Get]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
             desc: PropertyDescriptor
             desc.get = closure
@@ -4936,14 +4982,14 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
             desc.configurable = vrai
 
             // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
-            define_property_or_throw(object, prop_key, desc)
+            define_property_or_throw(object, donne_property_key(prop_key), desc)
 
             // c. Return unused.
         }
     }
     sinon si method_definition.kind == MethodKind.Set {
         // 1. Let propKey be ? Evaluation of ClassElementName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), method_definition.class_element_name)
+        prop_key := évalue_classe_element_name(interpréteuse, method_definition.class_element_name)
 
         // 2. Let env be the running execution context's LexicalEnvironment.
         mv := interpréteuse.mv
@@ -4967,9 +5013,12 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
         set_function_name(interpréteuse.donne_realm(), closure, prop_key, STR_get)
 
         // À FAIRE 8. If propKey is a Private Name, then
+        si prop_key.est_private_name() {
         // a. Return PrivateElement { [[Key]]: propKey, [[Kind]]: accessor, [[Get]]: undefined, [[Set]]: closure }.
+            retourne PrivateElement(prop_key.PrivateName, PrivateElement.Kind.ACCESSOR, set = closure)
+        }
         // 9. Else,
-        {
+        sinon {
             // a. Let desc be the PropertyDescriptor { [[Set]]: closure, [[Enumerable]]: enumerable, [[Configurable]]: true }.
             desc: PropertyDescriptor
             desc.set = closure
@@ -4977,7 +5026,7 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
             desc.configurable = vrai
 
             // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
-            define_property_or_throw(object, prop_key, desc)
+            define_property_or_throw(object, donne_property_key(prop_key), desc)
 
             // c. Return unused.
         }
@@ -5167,9 +5216,230 @@ sur_exécution_class_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse
     retourne normal_completion(js_undefined)
 }
 
+/* 15.7.4 Static Semantics: IsStatic
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-static-semantics-isstatic */
+is_static :: fonc (syntax: *NoeudSyntaxique) -> bool
+{
+    si syntax.type == ClassMethod {
+        method_definition := syntax comme *ClassMethod
+        retourne method_definition.static
+    }
+
+    si syntax.type == ClassStaticBlock {
+        retourne vrai
+    }
+
+    si syntax.type == ClassField {
+        field := syntax comme *ClassField
+        retourne field.static
+    }
+
+    retourne faux
+}
+
+évalue_classe_element_name :: fonc (interpréteuse: *Interpréteuse, class_element_name: *Expression) -> FieldName
+{
+    si class_element_name.type == PrivateIdentifier {
+        /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-class-definitions-runtime-semantics-evaluation */
+        private_identifier := class_element_name comme *PrivateIdentifier
+
+        // 1. Let privateIdentifier be the StringValue of PrivateIdentifier.
+        private_identifier_str := private_identifier.nom
+
+        // 2. Let privateEnvRec be the running execution context's PrivateEnvironment.
+        mv := interpréteuse.mv
+        running_execution_context := donne_running_execution_context(mv)
+        private_env_rec := running_execution_context.private_environment
+
+        // 3. Let names be privateEnvRec.[[Names]].
+        names := private_env_rec.names
+
+        // 4. Assert: Exactly one element of names is a Private Name whose [[Description]] is privateIdentifier.
+        // 5. Let privateName be the Private Name in names whose [[Description]] is privateIdentifier.
+
+        occurences := 0
+        private_name: PrivateName
+        pour names {
+            si it.description == private_identifier_str {
+                occurences += 1
+                private_name = it
+            }
+        }
+
+        assert(occurences == 1)
+
+        // 6. Return privateName.
+        retourne private_name
+    }
+
+    property_key := évalue_property_name(interpréteuse.donne_realm(), class_element_name)
+    si interpréteuse.possède_exception() {
+        résultat: FieldName
+        retourne résultat
+    }
+
+    retourne donne_field_name(property_key)
+}
+
+/* 15.7.10 Runtime Semantics: ClassFieldDefinitionEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classfielddefinitionevaluation */
+class_field_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, class_field: *ClassField, home_object: *Object) -> ClassFieldDefinition
+{
+    // 1. Let name be ? Evaluation of ClassElementName.
+    name := évalue_classe_element_name(interpréteuse, class_field.class_element_name)
+    si interpréteuse.possède_exception() {
+        retourne ClassFieldDefinition()
+    }
+
+    // 2. If Initializer is present, then
+    initializer: *ECMAScriptFunction
+    si class_field.initializer {
+        // a. Let formalParameterList be an instance of the production FormalParameters : [empty] .
+        formal_parameter_list: [..]*Expression
+
+        // b. Let env be the LexicalEnvironment of the running execution context.
+        mv := interpréteuse.mv
+        running_execution_context := donne_running_execution_context(mv)
+        env := running_execution_context.lexical_environment
+
+        // c. Let privateEnv be the running execution context's PrivateEnvironment.
+        private_env := running_execution_context.private_environment
+
+        // d. Let sourceText be the empty sequence of Unicode code points.
+        source_text: chaine
+
+        // e. Let initializer be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameterList, Initializer, non-lexical-this, env, privateEnv).
+        realm := interpréteuse.donne_realm()
+        initializer = ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameter_list, class_field.initializer, NON_LEXICAL_THIS, env, private_env)
+
+        // f. Perform MakeMethod(initializer, homeObject).
+        make_method(initializer, home_object)
+
+        // g. Set initializer.[[ClassFieldInitializerName]] to name.
+        initializer.class_field_initializer_name = name
+    }
+    // 3. Else,
+    sinon {
+        // a. Let initializer be empty.
+    }
+
+    // 4. Return the ClassFieldDefinition Record { [[Name]]: name, [[Initializer]]: initializer }.
+    retourne ClassFieldDefinition(name, initializer)
+}
+
+/* 15.7.11 Runtime Semantics: ClassStaticBlockDefinitionEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classstaticblockdefinitionevaluation */
+class_static_block_definition_evaluation :: fonc (interpréteuse: *Interpréteuse, class_static_block: *ClassStaticBlock, home_object: *Object) -> ClassStaticBlockDefinition
+{
+    // 1. Let lex be the running execution context's LexicalEnvironment
+    mv := interpréteuse.mv
+    running_execution_context := donne_running_execution_context(mv)
+    lex := running_execution_context.lexical_environment
+
+    // 2. Let privateEnv be the running execution context's PrivateEnvironment
+    private_env := running_execution_context.private_environment
+
+    // 3. Let sourceText be the empty sequence of Unicode code points
+    source_text: chaine
+
+    // 4. Let formalParameters be an instance of the production FormalParameters : [empty] 
+    formal_parameters: [..]*Expression
+
+    // 5. Let bodyFunction be OrdinaryFunctionCreate(%Function.prototype%, sourceText, formalParameters, ClassStaticBlockBody, non-lexical-this, lex, privateEnv)
+    realm := interpréteuse.donne_realm()
+    body_function := ordinary_function_create(realm, realm.intrinsics.function_prototype, source_text, formal_parameters, class_static_block.body, NON_LEXICAL_THIS, lex, private_env)
+
+    // 6. Perform MakeMethod(bodyFunction, homeObject)
+    make_method(body_function, home_object)
+
+    // 7. Return the ClassStaticBlockDefinition Record { [[BodyFunction]]: bodyFunction }
+    retourne ClassStaticBlockDefinition(body_function)
+}
+
+/* 15.7.13 Runtime Semantics: ClassElementEvaluation
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-static-semantics-classelementevaluation */
+ClassElementEvaluationResult :: union {
+    Field: ClassFieldDefinition
+    StaticBlock: ClassStaticBlockDefinition
+    Private: PrivateElement
+}
+
+est_private_element :: fonc (result: ClassElementEvaluationResult) -> bool
+{
+    discr result {
+        Private {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_class_field_definition :: fonc (result: ClassElementEvaluationResult) -> bool
+{
+    discr result {
+        Field {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+est_class_static_block_definition :: fonc (result: ClassElementEvaluationResult) -> bool
+{
+    discr result {
+        StaticBlock {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+class_element_evaluation :: fonc (interpréteuse: *InterprèteArbre, syntax: *NoeudSyntaxique, object: *Object) -> ClassElementEvaluationResult
+{
+    si syntax.type == ClassMethod {
+        class_method := syntax comme *ClassMethod
+
+        // 1. Return ? MethodDefinitionEvaluation of MethodDefinition with arguments object and false.
+        résultat: ClassElementEvaluationResult
+        
+        opt_private_element := method_definition_evaluation(interpréteuse, class_method, object, faux)
+        si opt_private_element.possède_valeur() {
+            résultat.Private = opt_private_element.Quelque
+        }
+
+        retourne résultat
+    }
+
+    si syntax.type == ClassField {
+        class_field := syntax comme *ClassField
+        // 1. Return ? ClassFieldDefinitionEvaluation of FieldDefinition with argument object.
+        retourne class_field_definition_evaluation(interpréteuse, class_field, object)
+    }
+
+    si syntax.type == ClassStaticBlock {
+        static_block := syntax comme *ClassStaticBlock
+        // 1. Return the ClassStaticBlockDefinitionEvaluation of ClassStaticBlock with argument object.
+        retourne class_static_block_definition_evaluation(interpréteuse, static_block, object)
+    }
+
+    si syntax.type == EmptyStatement {
+        // 1. Return unused.
+        résultat: ClassElementEvaluationResult
+        retourne résultat
+    }
+
+    panique("noeud non-géré dans %", #nom_de_cette_fonction)
+}
+
 /* 15.7.14 Runtime Semantics: ClassDefinitionEvaluation
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-classdefinitionevaluation */
-class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_heritage: *Expression, class_body: *ClassBody, class_binding: Optionnel(ECMAString), class_name: PropertyKey) -> *ECMAScriptFunction
+class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_heritage: *Expression, class_body: *ClassBody, class_binding: Optionnel(ECMAString), class_name: FieldName) -> *Function
 {
     realm := interpréteuse.donne_realm()
 
@@ -5195,13 +5465,23 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
 
     // 6. If ClassBody is present, then
     si class_body {
-        // À FAIRE : PrivateIdentifier
+        private_bound_identifiers := donne_private_bound_identifiers(class_body)
+        diffère déloge(private_bound_identifiers)
+
         // a. For each String dn of the PrivateBoundIdentifiers of ClassBody, do
+        pour dn dans private_bound_identifiers {
             // i. If classPrivateEnvironment.[[Names]] contains a Private Name pn such that pn.[[Description]] is dn, then
+            si possède_nom(class_private_environment, dn) {
                 // 1. Assert: This is only possible for getter/setter pairs.
-        // ii. Else,
-            // 1. Let name be a new Private Name whose [[Description]] is dn.
-            // 2. Append name to classPrivateEnvironment.[[Names]].
+            }
+            // ii. Else,
+            sinon {
+                // 1. Let name be a new Private Name whose [[Description]] is dn.
+                name := PrivateName(dn)
+                // 2. Append name to classPrivateEnvironment.[[Names]].
+                tableau_ajoute(*class_private_environment.names, name)
+            }
+        }
     }
 
     // 7. If ClassHeritage is not present, then
@@ -5287,6 +5567,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     }
     // 11. Else, let constructor be the ConstructorMethod of ClassBody.
     sinon {
+        constructor = nul
         pour class_body.éléments {
             si it.type == ClassMethod {
                 class_method := it comme *ClassMethod
@@ -5304,25 +5585,19 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     running_execution_context.private_environment = class_private_environment
 
     // 14. If constructor is empty, then
-    F: *ECMAScriptFunction
+    F: *Function
 
     saufsi constructor {
-        panique("non-implémenté")
         // a. Let defaultConstructor be a new Abstract Closure with no parameters that captures nothing and performs the following steps when called:
-        // i. Let args be the List of arguments that was passed to this function by [[Call]] or [[Construct]].
-        // ii. If NewTarget is undefined, throw a TypeError exception.
-        // iii. Let F be the active function object.
-        // iv. If F.[[ConstructorKind]] is derived, then
-        // 1. NOTE: This branch behaves similarly to constructor(...args) { super(...args); }. The most notable distinction is that while the aforementioned ECMAScript source text observably calls the %Symbol.iterator% method on %Array.prototype%, this function does not.
-        // 2. Let func be ! F.[[GetPrototypeOf]]().
-        // 3. If IsConstructor(func) is false, throw a TypeError exception.
-        // 4. Let result be ? Construct(func, args, NewTarget).
-        // v. Else,
-        // 1. NOTE: This branch behaves similarly to constructor() {}.
-        // 2. Let result be ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        // vi. Perform ? InitializeInstanceElements(result, F).
-        // vii. Return NormalCompletion(result).
+        default_constructor := constructor_pour_classe_sans_constructor
+
         // b. Let F be CreateBuiltinFunction(defaultConstructor, 0, className, « [[ConstructorKind]], [[SourceText]] », the current Realm Record, constructorParent).
+        tas_de_mémoire := realm.donne_tas_de_mémoire()
+        builtin := tas_de_mémoire.alloue(BuiltInFunction)
+        builtin.sur_call_or_construct = default_constructor
+        create_builtin_function(builtin, 0, class_name, realm, constructor_parent)
+
+        F = builtin
     }
     // 15. Else,
     sinon {
@@ -5330,26 +5605,27 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
         constructor_info := define_method(interpréteuse, constructor, proto, constructor_parent)
 
         // b. Let F be constructorInfo.[[Closure]].
-        F = constructor_info.closure
+        closure := constructor_info.closure
+        F = closure
 
         // c. Perform MakeClassConstructor(F).
-        make_class_constructor(F)
+        make_class_constructor(closure)
 
         // d. Perform SetFunctionName(F, className).
-        set_function_name(realm, F, class_name)
+        set_function_name(realm, closure, class_name)
     }
 
     // 16. Perform MakeConstructor(F, false, proto).
     writable_prototype := faux
-    make_constructor(F, *writable_prototype, proto)
+    make_constructor(realm, F, *writable_prototype, proto)
 
     // 17. If ClassHeritage is present, set F.[[ConstructorKind]] to derived.
     si class_heritage {
-        F.constructor_kind = ConstructorKind.Derived
+        F.définis_constructor_kind(ConstructorKind.Derived)
     }
     
     // 18. Perform ! DefineMethodProperty(proto, "constructor", F, false).
-    define_method_property(proto, STR_constructor, F, faux)
+    _ := define_method_property(proto, STR_constructor, F, faux)
 
     // 19. If ClassBody is not present, let elements be a new empty List.
     // 20. Else, let elements be the NonConstructorElements of ClassBody.
@@ -5370,37 +5646,119 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     }
 
     // 21. Let instancePrivateMethods be a new empty List.
+    instance_private_methods: [..]PrivateElement
+
     // 22. Let staticPrivateMethods be a new empty List.
+    static_private_methods: [..]PrivateElement
+    diffère déloge(static_private_methods)
+
     // 23. Let instanceFields be a new empty List.
+    instance_fields: [..]ClassFieldDefinition
+
     // 24. Let staticElements be a new empty List.
+    static_elements: [..]ClassElementEvaluationResult
+    diffère déloge(static_elements)
+
     // 25. For each ClassElement e of elements, do
+    pour e dans éléments {
+        element: ClassElementEvaluationResult
         // a. If IsStatic of e is false, then
-        // i. Let element be Completion(ClassElementEvaluation of e with argument proto).
+        e_est_static := is_static(e)
+        saufsi e_est_static {
+            // i. Let element be Completion(ClassElementEvaluation of e with argument proto).
+            element = class_element_evaluation(interpréteuse, e, proto)
+        }
         // b. Else,
-        // i. Let element be Completion(ClassElementEvaluation of e with argument F).
+        sinon {
+            // i. Let element be Completion(ClassElementEvaluation of e with argument F).
+            element = class_element_evaluation(interpréteuse, e, F)
+        }
+
         // c. If element is an abrupt completion, then
-        // i. Set the running execution context's LexicalEnvironment to env.
-        // ii. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
-        // iii. Return ? element.
+        si interpréteuse.possède_exception() {
+            // i. Set the running execution context's LexicalEnvironment to env.
+            running_execution_context.lexical_environment = env
+
+            // ii. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
+            running_execution_context.private_environment = outer_private_environment
+
+            // iii. Return ? element.
+            retourne nul
+        }
+
         // d. Set element to ! element.
+
         // e. If element is a PrivateElement, then
-        // i. Assert: element.[[Kind]] is either method or accessor.
-        // ii. If IsStatic of e is false, let container be instancePrivateMethods.
-        // iii. Else, let container be staticPrivateMethods.
-        // iv. If container contains a PrivateElement pe such that pe.[[Key]] is element.[[Key]], then
-        // 1. Assert: element.[[Kind]] and pe.[[Kind]] are both accessor.
-        // 2. If element.[[Get]] is undefined, then
-        // a. Let combined be PrivateElement { [[Key]]: element.[[Key]], [[Kind]]: accessor, [[Get]]: pe.[[Get]], [[Set]]: element.[[Set]] }.
-        // 3. Else,
-        // a. Let combined be PrivateElement { [[Key]]: element.[[Key]], [[Kind]]: accessor, [[Get]]: element.[[Get]], [[Set]]: pe.[[Set]] }.
-        // 4. Replace pe in container with combined.
-        // v. Else,
-        // 1. Append element to container.
+        si element.est_private_element() {
+            private_element := element.Private
+
+            // i. Assert: element.[[Kind]] is either method or accessor.
+            assert(private_element.kind == PrivateElement.Kind.METHOD || private_element.kind == PrivateElement.Kind.ACCESSOR)
+
+            // ii. If IsStatic of e is false, let container be instancePrivateMethods.
+            container: *[..]PrivateElement
+            saufsi e_est_static {
+                container = *instance_private_methods
+            }
+            // iii. Else, let container be staticPrivateMethods.
+            sinon {
+                container = *static_private_methods
+            }
+
+            // iv. If container contains a PrivateElement pe such that pe.[[Key]] is element.[[Key]], then
+            pour mémoire(container) {
+                si it.key != private_element.key {
+
+                }
+
+                // 1. Assert: element.[[Kind]] and pe.[[Kind]] are both accessor.
+                assert(private_element.kind == PrivateElement.Kind.ACCESSOR && it.kind == PrivateElement.Kind.ACCESSOR)
+
+                // 2. If element.[[Get]] is undefined, then
+                combined: PrivateElement
+                combined.key = private_element.key
+                combined.kind = PrivateElement.Kind.ACCESSOR
+
+                si private_element.get == nul {
+                    // a. Let combined be PrivateElement { [[Key]]: element.[[Key]], [[Kind]]: accessor, [[Get]]: pe.[[Get]], [[Set]]: element.[[Set]] }.
+                    combined.get = it.get
+                    combined.set = private_element.set
+                }
+                // 3. Else,
+                sinon {
+                    // a. Let combined be PrivateElement { [[Key]]: element.[[Key]], [[Kind]]: accessor, [[Get]]: element.[[Get]], [[Set]]: pe.[[Set]] }.
+                    combined.get = private_element.get
+                    combined.set = it.set
+                }
+
+                // 4. Replace pe in container with combined.
+                container.pointeur[index_it] = combined
+
+                arrête
+            }
+            // v. Else,
+            sansarrêt {
+                // 1. Append element to container.
+                tableau_ajoute(container, private_element)
+            }
+        }
         // f. Else if element is a ClassFieldDefinition Record, then
-        // i. If IsStatic of e is false, append element to instanceFields.
-        // ii. Else, append element to staticElements.
+        sinon si element.est_class_field_definition() {
+            // i. If IsStatic of e is false, append element to instanceFields.
+            saufsi e_est_static {
+                tableau_ajoute(*instance_fields, element.Field)
+            }
+            // ii. Else, append element to staticElements.
+            sinon {
+                tableau_ajoute(*static_elements, element)
+            }
+        }
         // g. Else if element is a ClassStaticBlockDefinition Record, then
-        // i. Append element to staticElements.
+        sinon si element.est_class_static_block_definition() {
+            // i. Append element to staticElements.
+            tableau_ajoute(*static_elements, element)
+        }
+    }
 
     // 26. Set the running execution context's LexicalEnvironment to env.
     running_execution_context.lexical_environment = env
@@ -5412,21 +5770,42 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     }
 
     // 28. Set F.[[PrivateMethods]] to instancePrivateMethods.
+    F.définis_private_methods(instance_private_methods)
 
     // 29. Set F.[[Fields]] to instanceFields.
+    F.définis_fields(instance_fields)
 
     // 30. For each PrivateElement method of staticPrivateMethods, do
+    pour method dans static_private_methods {
         // a. Perform ! PrivateMethodOrAccessorAdd(F, method).
+        private_method_or_accessor_add(interpréteuse, F, method)
+    }
 
     // 31. For each element elementRecord of staticElements, do
-    // a. If elementRecord is a ClassFieldDefinition Record, then
-    // i. Let result be Completion(DefineField(F, elementRecord)).
-    // b. Else,
-    // i. Assert: elementRecord is a ClassStaticBlockDefinition Record.
-    // ii. Let result be Completion(Call(elementRecord.[[BodyFunction]], F)).
-    // c. If result is an abrupt completion, then
-    // i. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
-    // ii. Return ? result.
+    pour element_record dans static_elements {
+        // a. If elementRecord is a ClassFieldDefinition Record, then
+        si element_record.est_class_field_definition() {
+            // i. Let result be Completion(DefineField(F, elementRecord)).
+            define_field(interpréteuse, F, element_record.Field)
+        }
+        // b. Else,
+        sinon {
+            // i. Assert: elementRecord is a ClassStaticBlockDefinition Record.
+            class_static_block := element_record.StaticBlock
+
+            // ii. Let result be Completion(Call(elementRecord.[[BodyFunction]], F)).
+            _ := call(interpréteuse, Valeur(Function = class_static_block.body_function), Valeur(Function = F))
+        }
+
+        // c. If result is an abrupt completion, then
+        si interpréteuse.possède_exception() {
+            // i. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
+            running_execution_context.private_environment = outer_private_environment
+
+            // ii. Return ? result.
+            retourne nul
+        }
+    }
 
     // 32. Set the running execution context's PrivateEnvironment to outerPrivateEnvironment.
     running_execution_context.private_environment = outer_private_environment
@@ -5435,9 +5814,57 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     retourne F
 }
 
+constructor_pour_classe_sans_constructor :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
+{
+    // i. Let args be the List of arguments that was passed to this function by [[Call]] or [[Construct]].
+    args := arguments
+
+    // ii. If NewTarget is undefined, throw a TypeError exception.
+    si new_target.est_undefined() {
+        _ := lance_type_error(interpréteuse, "new target is undefined")
+        retourne js_undefined
+    }
+
+    // iii. Let F be the active function object.
+    F := donne_active_function_object(interpréteuse).vérifie_comme(BuiltInFunction)
+
+    // iv. If F.[[ConstructorKind]] is derived, then
+    result: Valeur
+    si F.constructor_kind == ConstructorKind.Derived {
+        // 1. NOTE: This branch behaves similarly to constructor(...args) { super(...args); }. The most notable distinction is that while the aforementioned ECMAScript source text observably calls the %Symbol.iterator% method on %Array.prototype%, this function does not.
+
+        // 2. Let func be ! F.[[GetPrototypeOf]]().
+        func := internal_get_prototype_of(F)
+
+        // 3. If IsConstructor(func) is false, throw a TypeError exception.
+        saufsi is_constructor(func) {
+            _ := lance_type_error(interpréteuse, "function is not a constructor")
+        }
+
+        // 4. Let result be ? Construct(func, args, NewTarget).
+        result = construct(interpréteuse, func, args, new_target)
+        si interpréteuse.possède_exception() {
+            retourne js_undefined
+        }
+    }
+    // v. Else,
+    sinon {
+        // 1. NOTE: This branch behaves similarly to constructor() {}.
+        // 2. Let result be ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
+        realm := interpréteuse.donne_realm()
+        result = ordinary_create_from_constructor(realm, new_target.Function, realm.intrinsics.object_prototype, object_instance_crée)
+    }
+
+    // vi. Perform ? InitializeInstanceElements(result, F).
+    initialize_instance_elements(interpréteuse, result, F)
+
+    // vii. Return NormalCompletion(result).
+    retourne result
+}
+
 /* 15.7.15 Runtime Semantics: BindingClassDeclarationEvaluation
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-bindingclassdeclarationevaluation */
-binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_declaration: *ClassDeclaration) -> *ECMAScriptFunction
+binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_declaration: *ClassDeclaration) -> *Function
 {
     // 1. Let className be the StringValue of BindingIdentifier.
     class_name := class_declaration.identifier.nom
@@ -5449,7 +5876,7 @@ binding_class_declaration_evaluation :: fonc (interpréteuse: *InterprèteArbre,
     }
 
     // 3. Set value.[[SourceText]] to the source text matched by ClassDeclaration.
-    value.source_texte = donne_texte_source(class_declaration)
+    value.définis_source_text(donne_texte_source(class_declaration))
 
     // 4. Let env be the running execution context's LexicalEnvironment.
     mv := interpréteuse.mv
@@ -5517,6 +5944,8 @@ crée_class_body :: fonc (parseuse: *Parseuse, lexème: *Lexème, éléments: [.
 ClassMethod :: struct {
     empl object_method: ObjectMethod
     type = #type_de_cette_structure
+
+    static: bool
 }
 
 crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind) -> *ClassMethod
@@ -5527,6 +5956,50 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
     résultat.body = body
     résultat.kind = method_kind
     résultat.est_méthode = method_kind == MethodKind.Method
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ClassField
+ * \{ */
+
+ClassField :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    class_element_name: *Expression
+    initializer: *Expression
+    static: bool
+}
+
+crée_class_field :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, initializer: *Expression, static: bool) -> *ClassField
+{
+    résultat := parseuse.crée_noeud(lexème, ClassField)
+    résultat.class_element_name = class_element_name
+    résultat.initializer = initializer
+    résultat.static = static
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ClassStaticBlock
+ * \{ */
+
+ClassStaticBlock :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    body: *FunctionBody
+}
+
+crée_class_static_block :: fonc (parseuse: *Parseuse, lexème: *Lexème, body: *FunctionBody) -> *ClassStaticBlock
+{
+    résultat := parseuse.crée_noeud(lexème, ClassStaticBlock)
+    résultat.body = body
     retourne résultat
 }
 
@@ -5600,7 +6073,7 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
     // 11. Assert: F is an ECMAScript function object
     
     // 12. Perform ? InitializeInstanceElements(result, F)
-    initialize_instance_elements(result, F)
+    initialize_instance_elements(interpréteuse, result, F)
     si interpréteuse.possède_exception() {
         retourne throw_completion(interpréteuse.donne_exception())
     }
@@ -5630,6 +6103,108 @@ get_super_constructor :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 
     // 6. Return superConstructor.
     retourne super_constructor
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom SuperProperty
+ * \{ */
+
+SuperProperty :: struct {
+    empl object_method: ObjectMethod
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_super_property
+
+    property: *Expression
+    calculé: bool
+}
+
+crée_super_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property: *Expression, calculé: bool) -> *SuperProperty
+{
+    résultat := parseuse.crée_noeud(lexème, SuperProperty)
+    résultat.property = property
+    résultat.calculé = calculé
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-super-keyword-runtime-semantics-evaluation */
+sur_exécution_super_property :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    super_property := base comme *SuperProperty
+
+    si super_property.calculé {
+        // 1. Let env be GetThisEnvironment().
+        env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+        // 2. Let actualThis be ? env.GetThisBinding().
+        actual_this := env.get_this_binding(interpréteuse.donne_realm())
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 3. Let propertyNameReference be ? Evaluation of Expression.
+        completion := exécute_noeud(super_property.property, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        property_name_reference := completion.valeur
+
+        // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
+        property_name_value := get_value(interpréteuse, property_name_reference)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 5. Let strict be IsStrict(this SuperProperty).
+        strict := is_strict(super_property)
+
+        // 6. NOTE: In most cases, ToPropertyKey will be performed on propertyNameValue immediately after this step. However, in the case of super[b] = c, it will not be performed until after evaluation of c.
+
+        // 7. Return MakeSuperPropertyReference(actualThis, propertyNameValue, strict).
+        résultat := make_super_property_reference(interpréteuse, actual_this, property_name_value, strict)
+        retourne normal_completion(résultat)
+    }
+
+    // 1. Let env be GetThisEnvironment().
+    env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+    // 2. Let actualThis be ? env.GetThisBinding().
+    actual_this := env.get_this_binding(interpréteuse.donne_realm())
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. Let propertyKey be the StringValue of IdentifierName.
+    assert(super_property.property.type == Identifier)
+    property_key := donne_chaine_primitive(super_property.property comme *Identifier, interpréteuse.donne_realm())
+
+    // 4. Let strict be IsStrict(this SuperProperty).
+    strict := is_strict(super_property)
+
+    // 5. Return MakeSuperPropertyReference(actualThis, propertyKey, strict).
+    résultat := make_super_property_reference(interpréteuse, actual_this, property_key, strict)
+    retourne normal_completion(résultat)
+}
+
+/* 13.3.7.3 MakeSuperPropertyReference ( actualThis, propertyKey, strict )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-makesuperpropertyreference */
+make_super_property_reference :: fonc (interpréteuse: *Interpréteuse, actual_this: Valeur, property_key: Valeur, strict: bool) -> ReferenceRecord
+{
+    // 1. Let env be GetThisEnvironment().
+    env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+    // 2. Assert: env.HasSuperBinding() is true.
+    assert(env.has_super_binding())
+
+    // 3. Assert: env is a Function Environment Record.
+    assert(env.table.classe == FunctionEnvironment)
+
+    // 4. Let baseValue be GetSuperBase(env).
+    base_value := get_super_base(env)
+
+    // 5. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyKey, [[Strict]]: strict, [[ThisValue]]: actualThis }.
+    retourne ReferenceRecord(Valeur(Object = base_value), property_key, strict, actual_this)
 }
 
 /** \} */
@@ -6063,4 +6638,33 @@ is_constant_declaration :: fonc (syntax: *NoeudSyntaxique) -> bool
         retourne variable_declaration.nature == VariableDeclarationKind.Const
     }
     retourne faux
+}
+
+/* 15.7.8 Static Semantics: PrivateBoundIdentifiers
+ * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-static-semantics-privateboundidentifiers */
+donne_private_bound_identifiers :: fonc (body: *ClassBody) -> [..]ECMAString
+{
+    résultat: [..]ECMAString
+
+    pour body.éléments {
+        si it.type == ClassField {
+            field := it comme *ClassField
+            si field.class_element_name.type == PrivateIdentifier {
+                private_identifier := field.class_element_name comme *PrivateIdentifier
+                tableau_ajoute(*résultat, private_identifier.nom)
+            }
+            continue
+        }
+
+        si it.type == ClassMethod {
+            method := it comme *ClassMethod
+            si method.class_element_name.type == PrivateIdentifier {
+                private_identifier := method.class_element_name comme *PrivateIdentifier
+                tableau_ajoute(*résultat, private_identifier.nom)
+            }
+            continue
+        }
+    }
+
+    retourne résultat
 }

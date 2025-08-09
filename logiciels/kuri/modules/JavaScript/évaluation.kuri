@@ -36,7 +36,7 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
         set_function_name(realm, F, name)
 
         // 5. Perform MakeConstructor(F).
-        make_constructor(F)
+        make_constructor(realm, F)
 
         // 6. Return F.
         retourne F
@@ -47,7 +47,7 @@ instantiate_ordinary_function_object :: fonc (realm: *Realm, declaration: *Funct
 
 /* 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiateordinaryfunctionexpression */
-instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *ECMAString = nul) -> *Function
+instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteuse, expression: *FunctionExpression, opt_name : *FieldName = nul) -> *Function
 {
     mv := interpréteuse.mv
     running_execution_context := mv.donne_running_execution_context()
@@ -76,7 +76,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
         set_function_name(realm, closure, name)
 
         // 7. Perform MakeConstructor(closure).
-        make_constructor(closure)
+        make_constructor(realm, closure)
 
         // 8. Return closure.
         retourne closure
@@ -110,7 +110,7 @@ instantiate_ordinary_function_expression :: fonc (interpréteuse: *Interpréteus
     set_function_name(realm, closure, name)
 
     // 10. Perform MakeConstructor(closure).
-    make_constructor(closure)
+    make_constructor(realm, closure)
 
     // 11. Perform ! funcEnv.InitializeBinding(name, closure).
     func_env.initialize_binding(name, Valeur(Function = closure))
@@ -136,7 +136,7 @@ evaluate_concise_body :: fonc (interpréteuse: *Interpréteuse, function_object:
 
 /* 15.3.4 Runtime Semantics: InstantiateArrowFunctionExpression
  * https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-runtime-semantics-instantiatearrowfunctionexpression */
-instantiate_arrow_function_expression :: fonc (interpréteuse: *Interpréteuse, arrow: *ArrowFunction, opt_name : *ECMAString = nul) -> *Function
+instantiate_arrow_function_expression :: fonc (interpréteuse: *Interpréteuse, arrow: *ArrowFunction, opt_name : *FieldName = nul) -> *Function
 {
     mv := interpréteuse.mv
     running_execution_context := mv.donne_running_execution_context()

@@ -5,13 +5,8 @@
 
 copie_enchaineuse_fichier_ex :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFichier)
 {
-    discr copie_enchaineuse_fichier(enchaineuse, chemin) {
-        Quelque(err) {
-            si err != 0 comme ErreurFichier {
-                compilatrice_rapporte_erreur("impossible d'ouvrir le fichier")
-            }
-        }
-        sinon {}
+    saufsi écris_fichier_entier(chemin, *enchaineuse) {
+        compilatrice_rapporte_erreur("impossible d'ouvrir le fichier")
     }
 }
 
