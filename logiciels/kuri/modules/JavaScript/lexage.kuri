@@ -265,6 +265,9 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
         retourne lèxe_nombre_hexadécimal(lexeuse)
     }
 
+    // Ne consommons pas le premier caractère, ce pourrait être un point.
+    lexeuse.recule()
+
     /* Partie entière. */
     lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
     si lexeuse.fini() {
