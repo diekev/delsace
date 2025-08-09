@@ -279,6 +279,7 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
  * \{ */
 
 Interpréteuse :: struct {
+    type := type_de_données
     mv: *MachineVirtuelle
     sur_exécute: fonc(*Interpréteuse, *NoeudSyntaxique)(CompletionRecord)
     /* Appelé via la MachineVirtuelle quand le contexte change. */
@@ -394,6 +395,8 @@ donne_exception :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 
 InterprèteArbre :: struct {
     empl base: Interpréteuse
+    type = #type_de_cette_structure
+
     sur_exécute = exécute_arbre
     sur_execution_context = interprète_arbre_sur_execution_context
     sur_destruction = interprète_arbre_sur_destruction

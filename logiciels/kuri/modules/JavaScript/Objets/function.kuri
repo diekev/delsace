@@ -356,8 +356,21 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         }
         // 4. Else,
         sinon {
+            assert(interpréteuse.type == InterprèteArbre)
+            interprète := interpréteuse comme *InterprèteArbre
+
             // a. Let rhs be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(body, interprète)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            rhs := completion.valeur
+            
             // b. Let value be ? GetValue(rhs).
+            value = get_value(interprète, rhs)
+            si interprète.possède_exception() {
+                retourne throw_completion(interprète.donne_exception())
+            }
         }
 
         // 5. Return ReturnCompletion(value).

@@ -605,6 +605,8 @@ InstructionSortieSwitch :: struct {
 
 InterprèteCodeBinaire :: struct {
     empl base: Interpréteuse
+    type = #type_de_cette_structure
+
     registres: [..]Valeur
     sur_exécute = exécute_code_binaire
     sur_destruction = interprète_code_binaire_sur_destruction
