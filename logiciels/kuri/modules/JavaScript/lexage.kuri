@@ -626,7 +626,7 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
             retourne vrai
         }
         Identifiant {
-            retourne dernier_lexème.texte == "return" || dernier_lexème.texte == "else"
+            retourne dernier_lexème.texte == "return" || dernier_lexème.texte == "else" || dernier_lexème.texte == "typeof"
         }
         sinon {}
     }
