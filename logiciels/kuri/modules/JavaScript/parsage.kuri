@@ -191,6 +191,11 @@ parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 
 parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
 {
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "unexpected end of input")
+        retourne nul
+    }
+
     lexème := parseuse.lexème_courant()
 
     discr lexème.genre {
