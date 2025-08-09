@@ -98,8 +98,7 @@ génére_image_noire :: fonc () -> Image
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon)
 
     debut := maintenant_précis()
-    tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
-        imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
+    saufsi écris_fichier_entier(chemin, *enchaineuse) piège err {
         retourne
     }
 
@@ -141,8 +140,7 @@ génére_image_noire :: fonc () -> Image
     }
 
     debut := maintenant_précis()
-    tente copie_enchaineuse_fichier(*enchaineuse, chemin) piège err {
-        imprime("Impossible d'écrire le fichier '%' : %\n", chemin, err)
+    saufsi écris_fichier_entier(chemin, *enchaineuse) {
         retourne
     }
     imprime("Temps d'écriture = %s\n", debut.temps_écoulé_secondes())
