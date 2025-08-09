@@ -1607,7 +1607,16 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         Point {
             parseuse.consomme()
-            propriété := parse_identifier_name(parseuse)
+            propriété: *Expression
+            si parseuse.apparie(GenreLexème.PrivateIdentifier) {
+                lexème_identifier := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété = crée_private_identifier(parseuse, lexème_identifier)
+            }
+            sinon {
+                propriété = parse_identifier_name(parseuse)
+            }
+            
             si gauche.type == OptionalMemberExpression {
                 retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, faux)
             }

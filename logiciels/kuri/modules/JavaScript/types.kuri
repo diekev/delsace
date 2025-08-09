@@ -565,7 +565,8 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
         // b. If IsPrivateReference(V) is true, then
         si is_private_reference(V) {
             // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
-            panique("get_value depuis private_reference non-implémenté")
+            résultat := private_get(base_object, V.referenced_name.private_name)
+            retourne résultat
         }
 
         si is_array_key(V.referenced_name) {
@@ -647,7 +648,8 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
         // b. If IsPrivateReference(V) is true, then
         si is_private_reference(record) {
             // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
-            panique("put_valeur avec private_reference non-implémenté")
+            private_set(base_obj, record.referenced_name.private_name, valeur)
+            retourne js_undefined
         }
 
         succeeded: bool
@@ -727,6 +729,25 @@ initialize_reference_binding :: fonc (reference: ReferenceRecord, valeur: Valeur
 
     // 4. Return ? base.InitializeBinding(V.[[ReferencedName]], W).
     base.initialize_binding(reference.referenced_name.valeur.String.texte, valeur)
+}
+
+/* 6.2.5.9 MakePrivateReference ( baseValue, privateIdentifier )
+ * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-makeprivatereference */
+make_private_reference :: fonc (interpréteuse: *Interpréteuse, base_value: Valeur, private_identifier: ECMAString) -> ReferenceRecord
+{
+    // 1. Let privateEnv be the running execution context's PrivateEnvironment.
+    mv := interpréteuse.mv
+    running_execution_context := donne_running_execution_context(mv)
+    private_env := running_execution_context.private_environment
+
+    // 2. Assert: privateEnv is not null.
+    assert(private_env != nul)
+
+    // 3. Let privateName be ResolvePrivateIdentifier(privateEnv, privateIdentifier).
+    private_name := resolve_private_identifier(private_env, private_identifier)
+
+    // 4. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: privateName, [[Strict]]: true, [[ThisValue]]: empty }.
+    retourne ReferenceRecord(base = base_value, referenced_name = private_name, strict = vrai)
 }
 
 /** \} */

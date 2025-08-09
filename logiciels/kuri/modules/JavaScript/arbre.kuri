@@ -2969,6 +2969,30 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
 {
     membre := base comme *MemberExpression
 
+    si membre.propriété.type == PrivateIdentifier {
+        private_identifier := membre.propriété comme *PrivateIdentifier
+
+        // 1. Let baseReference be ? Evaluation of MemberExpression.
+        completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
+        saufsi completion_base_reference.est_normal() {
+            retourne completion_base_reference
+        }
+        base_reference := completion_base_reference.valeur
+    
+        // 2. Let baseValue be ? GetValue(baseReference).
+        base_value := get_value(interpréteuse, base_reference)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 3. Let fieldNameString be the StringValue of PrivateIdentifier.
+        field_name_string := private_identifier.nom
+
+        // 4. Return MakePrivateReference(baseValue, fieldNameString).
+        référence := make_private_reference(interpréteuse, base_value, field_name_string)
+        retourne normal_completion(référence)
+    }
+
     // 1. Let baseReference be ? Evaluation of MemberExpression.
     completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
     saufsi completion_base_reference.est_normal() {

@@ -981,13 +981,13 @@ new_private_environment :: fonc (tas_de_mémoire: *TasDeMémoire, outer_priv_env
 }
 
 /* 9.2.1.2 ResolvePrivateIdentifier ( privEnv, identifier ) */
-resolve_private_identifier :: fonc (priv_env: *PrivateEnvironment, identifier: ECMAString) -> *PrivateName
+resolve_private_identifier :: fonc (priv_env: *PrivateEnvironment, identifier: ECMAString) -> PrivateName
 {
     // 1. Let names be privEnv.[[Names]].
     names := priv_env.names
 
     // 2. For each Private Name pn of names, do
-    pour * pn dans names {
+    pour pn dans names {
         // a. If pn.[[Description]] is identifier, then
         si pn.description == identifier {
             // i. Return pn.

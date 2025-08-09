@@ -426,6 +426,92 @@ private_method_or_accessor_add :: fonc (interpréteuse: *Interpréteuse, O: *Obj
     // 6. Return unused.
 }
 
+/* 7.3.30 PrivateGet ( O, P )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-privateget */
+private_get :: fonc (O: *Object, P: PrivateName) -> Valeur
+{
+    // 1. Let entry be PrivateElementFind(O, P).
+    entry := private_element_find(O, P)
+
+    // 2. If entry is empty, throw a TypeError exception.
+    saufsi entry {
+        _ := lance_type_error(O, imprime_chaine("private member % not found in Object", P.description))
+        retourne js_undefined
+    }
+
+    // 3. If entry.[[Kind]] is either field or method, then
+    si entry.kind == PrivateElement.Kind.FIELD || entry.kind == PrivateElement.Kind.METHOD {
+        // a. Return entry.[[Value]].
+        retourne entry.value
+    }
+
+    // 4. Assert: entry.[[Kind]] is accessor.
+    assert(entry.kind == PrivateElement.Kind.ACCESSOR)
+
+    // 5. If entry.[[Get]] is undefined, throw a TypeError exception.
+    si entry.get == nul {
+        _ := lance_type_error(O, imprime_chaine("private member % is not readable", P.description))
+        retourne js_undefined
+    }
+
+    // 6. Let getter be entry.[[Get]].
+    getter := entry.get
+
+    // 7. Return ? Call(getter, O).
+    mv := O.donne_tas_de_mémoire().donne_mv()
+    retourne call(mv, getter, O)
+}
+
+/* 7.3.31 PrivateSet ( O, P, value )
+ * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-privateset */
+private_set :: fonc (O: *Object, P: PrivateName, value: Valeur)
+{
+    // 1. Let entry be PrivateElementFind(O, P).
+    entry := private_element_find(O, P)
+
+    // 2. If entry is empty, throw a TypeError exception.
+    saufsi entry {
+        _ := lance_type_error(O, imprime_chaine("private member % not found in Object", P.description))
+        retourne
+    }
+
+    // 3. If entry.[[Kind]] is field, then
+    si entry.kind == PrivateElement.Kind.FIELD {
+        // a. Set entry.[[Value]] to value.
+        entry.value = value
+    }
+    // 4. Else if entry.[[Kind]] is method, then
+    sinon si entry.kind == PrivateElement.Kind.METHOD {
+        // a. Throw a TypeError exception.
+        _ := lance_type_error(O, imprime_chaine("private member % is not settable", P.description))
+        retourne
+    }
+    // 5. Else,
+    sinon {
+        // a. Assert: entry.[[Kind]] is accessor.
+        assert(entry.kind == PrivateElement.Kind.ACCESSOR)
+
+        // b. If entry.[[Set]] is undefined, throw a TypeError exception.
+        si entry.set == nul {
+            _ := lance_type_error(O, imprime_chaine("private member % is not settable", P.description))
+            retourne
+        }
+
+        // c. Let setter be entry.[[Set]].
+        setter := entry.set
+
+        // d. Perform ? Call(setter, O, « value »).
+        argument: []Valeur
+        argument.pointeur = *value
+        argument.taille = 1
+
+        mv := O.donne_tas_de_mémoire().donne_mv()
+        _ := call(mv, setter, O, argument)
+    }
+
+    // 6. Return unused.
+}
+
 /* 7.3.32 DefineField ( receiver, fieldRecord )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-definefield */
 define_field :: fonc (interpréteuse: *Interpréteuse, receiver: *Object, field_record: ClassFieldDefinition)

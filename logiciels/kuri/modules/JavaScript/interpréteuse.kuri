@@ -8,7 +8,7 @@ TypeUnresolvable :: #opaque z32
 /* Type pour ReferenceRecord.reference_name */
 ReferencedName :: union {
     valeur: Valeur
-    private_name: *PrivateName
+    private_name: PrivateName
 }
 
 imprime_refereced_name :: fonc (enchaineuse: *Enchaineuse, ref: *ReferencedName)
