@@ -32,6 +32,70 @@ donne_nom :: fonc (function: *Function) -> ECMAString
     retourne crée_chaine_utf16_unique("<anonyme>")
 }
 
+définis_constructor_kind :: fonc (function: *Function, kind: ConstructorKind)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).constructor_kind = kind
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).constructor_kind = kind
+    }
+}
+
+définis_private_methods :: fonc (function: *Function, private_methods: [..]PrivateElement)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).private_methods = private_methods
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).private_methods = private_methods
+    }
+}
+
+donne_private_methods :: fonc (function: *Function) -> []PrivateElement
+{
+    si function.table.classe == ECMAScriptFunction {
+        retourne (function comme *ECMAScriptFunction).private_methods
+    }
+
+    assert(function.table.classe == BuiltInFunction)
+    retourne (function comme *BuiltInFunction).private_methods
+}
+
+définis_fields :: fonc (function: *Function, fields: [..]ClassFieldDefinition)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).fields = fields
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).fields = fields
+    }
+}
+
+donne_fields :: fonc (function: *Function) -> [..]ClassFieldDefinition
+{
+    si function.table.classe == ECMAScriptFunction {
+        retourne (function comme *ECMAScriptFunction).fields
+    }
+
+    assert(function.table.classe == BuiltInFunction)
+    retourne (function comme *BuiltInFunction).fields
+}
+
+définis_source_text :: fonc (function: *Function, source_text: chaine)
+{
+    si function.table.classe == ECMAScriptFunction {
+        (function comme *ECMAScriptFunction).source_texte = source_text
+    }
+    sinon {
+        assert(function.table.classe == BuiltInFunction)
+        (function comme *BuiltInFunction).source_texte = source_text
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -41,7 +105,7 @@ donne_nom :: fonc (function: *Function) -> ECMAString
 
 #portée_fichier
 
-table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
+table_virtuelle_function_ecma := TableVirtuelleObject(classe = ECMAScriptFunction, sur_destruction = ecma_script_function_sur_destruction, sur_call = sur_appel_fonction_ecma, sur_construct = sur_construct_fonction_ecma)
 
 #portée_export
 
@@ -63,7 +127,7 @@ ECMAScriptFunction :: struct {
     empl function: Function
     table = *table_virtuelle_function_ecma
 
-    corps: *Statement @NeVisitePas
+    corps: *NoeudSyntaxique @NeVisitePas
     formal_parameters: [..]*Expression @NeVisitePas
 
     home_object: *Object
@@ -76,11 +140,23 @@ ECMAScriptFunction :: struct {
     realm: *Realm
     script_or_module: *Script // ScriptOrModule
     constructor_kind: ConstructorKind
+
+    fields: [..]ClassFieldDefinition
+    private_methods: [..]PrivateElement
+    class_field_initializer_name: Optionnel(FieldName)
 }
 
 ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
 {
     retourne realm.donne_tas_de_mémoire().alloue(ECMAScriptFunction)
+}
+
+ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
+{
+    sur_destruction_objet(cellule)
+    function := cellule.vérifie_comme(ECMAScriptFunction)
+    déloge(function.fields)
+    déloge(function.private_methods)
 }
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
@@ -259,6 +335,48 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         retourne evaluate_concise_body(interpréteuse, function_object, arguments_list)
     }
 
+    si function_object.class_field_initializer_name.possède_valeur() {
+        // Initializer : = AssignmentExpression
+
+        // 1. Assert: argumentsList is empty.
+        assert(arguments_list.taille == 0)
+
+        // 2. Assert: functionObject.[[ClassFieldInitializerName]] is not empty.
+
+        // 3. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
+        value: Valeur
+
+        si is_anonymous_function_definition(body) {
+            // a. Let value be ? NamedEvaluation of Initializer with argument functionObject.[[ClassFieldInitializerName]].
+            completion := named_evaluation(interpréteuse, body, function_object.class_field_initializer_name.Quelque)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            value = completion.valeur.V
+        }
+        // 4. Else,
+        sinon {
+            assert(interpréteuse.type == InterprèteArbre)
+            interprète := interpréteuse comme *InterprèteArbre
+
+            // a. Let rhs be ? Evaluation of AssignmentExpression.
+            completion := exécute_noeud(body, interprète)
+            saufsi completion.est_normal() {
+                retourne completion
+            }
+            rhs := completion.valeur
+            
+            // b. Let value be ? GetValue(rhs).
+            value = get_value(interprète, rhs)
+            si interprète.possède_exception() {
+                retourne throw_completion(interprète.donne_exception())
+            }
+        }
+
+        // 5. Return ReturnCompletion(value).
+        retourne return_completion(value)
+    }
+
     panique("evaluate_body non-implémenté")
 }
 
@@ -308,10 +426,18 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         // a. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
         ordinary_call_bind_this(F, callee_context, this_argument)
 
-        // À FAIRE : b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        // b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        initialize_instance_elements(interpréteuse, this_argument, F)
+
         // c. If initializeResult is an abrupt completion, then
+        si interpréteuse.possède_exception() {
             // i. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+            mv.dépile_execution_context()
+            assert(mv.donne_running_execution_context() == caller_context)
+
             // ii. Return ? initializeResult.
+            retourne js_undefined
+        }
     }
 
     // 7. Let constructorEnv be the LexicalEnvironment of calleeContext.
@@ -366,7 +492,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
 /* 10.2.3 OrdinaryFunctionCreate ( functionPrototype, sourceText, ParameterList, Body, thisMode, env, privateEnv )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinaryfunctioncreate 
  * À FAIRE : paramètres et étapes manquants */
-ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, source_texte: chaine, params: [..]*Expression, corps: *Statement, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
+ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, source_texte: chaine, params: [..]*Expression, corps: *NoeudSyntaxique, this_mode: bool, env: *Environment, private_env: *PrivateEnvironment) -> *ECMAScriptFunction
 {
     // 1. Let internalSlotsList be the internal slots listed in Table 30.
     // 2. Let F be OrdinaryObjectCreate(functionPrototype, internalSlotsList).
@@ -433,18 +559,24 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, so
 
 /* 10.2.5 MakeConstructor ( F [ , writablePrototype [ , prototype ] ] )
  * https://tc39.es/ecma262/#sec-makeconstructor */
-make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
+make_constructor :: fonc (realm: *Realm, F: *Function, opt_writable_prototype : *bool = nul, prototype : *Object = nul)
 {
-    // À FAIRE : complète
     // 1. If F is an ECMAScript function object, then
+    si F.table.classe == ECMAScriptFunction {
         // a. Assert: IsConstructor(F) is false.
-        // b. Assert: F is an extensible object that does not have a "prototype" own property.
-        // c. Set F.[[Construct]] to the definition specified in 10.2.2.
+        // À FAIRE b. Assert: F is an extensible object that does not have a "prototype" own property.
+
+        // c. Set F.[[Construct]] to the definition specified in 10.2.2.  
+        assert((F.table comme *TableVirtuelleObject).sur_construct == sur_construct_fonction_ecma)
+    }
     // 2. Else,
+    sinon {
        // a. Set F.[[Construct]] to the definition specified in 10.3.2.
+        assert((F.table comme *TableVirtuelleObject).sur_construct == builtin_function_sur_construct)
+    }
 
     // 3. Set F.[[ConstructorKind]] to base.
-    F.constructor_kind = ConstructorKind.Base
+    F.définis_constructor_kind(ConstructorKind.Base)
 
     // 4. If writablePrototype is not present, set writablePrototype to true.
     writable_prototype := vrai
@@ -455,7 +587,7 @@ make_constructor :: fonc (F: *ECMAScriptFunction, opt_writable_prototype : *bool
     // 5. If prototype is not present, then
     saufsi prototype {
         // a. Set prototype to OrdinaryObjectCreate(%Object.prototype%).
-        prototype = ordinary_object_create(F.realm, F.realm.intrinsics.object_prototype, object_instance_crée)
+        prototype = ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
     }
 
     // b. Perform ! DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor { [[Value]]: F, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: true }).
@@ -499,31 +631,36 @@ make_method :: fonc (F: *ECMAScriptFunction, home_object: *Object)
 }
 
 /* 10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )
- * */
-define_method_property :: fonc (home_object: *Object, key: PropertyKey, closure: *ECMAScriptFunction, enumerable: bool)
+ * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-definemethodproperty */
+define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *Function, enumerable: bool) -> Optionnel(PrivateElement)
 {
     // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
+
     // 2. If key is a Private Name, then
-    // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+    si key.est_private_name() {
+        // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+        retourne PrivateElement(key.PrivateName, PrivateElement.Kind.METHOD, Valeur(Function = closure))
+    }
     // 3. Else,
+    sinon {
+        // a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+        desc: PropertyDescriptor
+        desc.value = Valeur(Function = closure)
+        desc.writable = vrai
+        desc.enumerable = enumerable
+        desc.configurable = vrai
 
-    // a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
-    desc: PropertyDescriptor
-    desc.value = Valeur(Function = closure)
-    desc.writable = vrai
-    desc.enumerable = enumerable
-    desc.configurable = vrai
+        // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
+        define_property_or_throw(home_object, donne_property_key(key), desc)
 
-    // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
-    define_property_or_throw(home_object, key, desc)
-
-    // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
-    // d. Return unused.
+        // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
+        // d. Return unused.
+    }
 }
 
 /* 10.2.9 SetFunctionName ( F, name [ , prefix ] )
  * https://tc39.es/ecma262/#sec-setfunctionname */
-set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
+set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix := crée_chaine_utf16_unique_vide() @inutilisée)
 {
     // À FAIRE : 1. Assert: F is an extensible object that does not have a "name" own property.
     assert(has_own_property(F, STR_name) == faux)
@@ -545,9 +682,11 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: PropertyKey, prefix 
             name = crée_chaine_utf16_unique(chn)
         }
     }
-
-    // À FAIRE : 3. Else if name is a Private Name, then
+    // 3. Else if name is a Private Name, then
+    sinon si name.est_private_name() {
         // a. Set name to name.[[Description]].
+        name = name.PrivateName.description
+    }
 
     // 4. If F has an [[InitialName]] internal slot, then
         // a. Set F.[[InitialName]] to name.
@@ -890,12 +1029,33 @@ TableVirtuelleBuiltinFunction :: struct {
     sur_construct = builtin_function_sur_construct
 }
 
+#portée_fichier
+
+table_virtuelle_builtin_fonction := TableVirtuelleBuiltinFunction(classe = BuiltInFunction, sur_destruction = builtin_function_sur_destruction)
+
+builtin_function_sur_destruction :: fonc (cellule: *Cellule)
+{
+    sur_destruction_objet(cellule)
+    builtin := cellule comme *BuiltInFunction
+    déloge(builtin.fields)
+    déloge(builtin.private_methods)
+}
+
+#portée_export
+
 BuiltInFunction :: struct {
     empl function: Function
+    table = *table_virtuelle_builtin_fonction
 
     realm: *Realm
     initial_name: ECMAString
     sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(Valeur)
+
+    /* Constructeurs défauts des classes. */
+    constructor_kind: ConstructorKind
+    fields: [..]ClassFieldDefinition
+    private_methods: [..]PrivateElement
+    source_texte: chaine
 }
 
 #portée_fichier
@@ -1142,7 +1302,7 @@ FunctionNative :: struct {
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: PropertyKey, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
     résultat := tas_de_mémoire.alloue(FunctionNative)
-    set_function_name(nul, résultat, nom)
+    set_function_name(nul, résultat, donne_field_name(nom))
     set_function_length(résultat, length comme r64)
     résultat.sur_appel = sur_appel
     retourne résultat
