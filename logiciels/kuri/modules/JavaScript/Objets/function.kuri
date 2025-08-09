@@ -426,10 +426,18 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         // a. Perform OrdinaryCallBindThis(F, calleeContext, thisArgument).
         ordinary_call_bind_this(F, callee_context, this_argument)
 
-        // À FAIRE : b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        // b. Let initializeResult be Completion(InitializeInstanceElements(thisArgument, F)).
+        initialize_instance_elements(interpréteuse, this_argument, F)
+
         // c. If initializeResult is an abrupt completion, then
+        si interpréteuse.possède_exception() {
             // i. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
+            mv.dépile_execution_context()
+            assert(mv.donne_running_execution_context() == caller_context)
+
             // ii. Return ? initializeResult.
+            retourne js_undefined
+        }
     }
 
     // 7. Let constructorEnv be the LexicalEnvironment of calleeContext.
