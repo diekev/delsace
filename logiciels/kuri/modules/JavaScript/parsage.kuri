@@ -191,6 +191,11 @@ parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 
 parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
 {
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "unexpected end of input")
+        retourne nul
+    }
+
     lexème := parseuse.lexème_courant()
 
     discr lexème.genre {
@@ -299,6 +304,21 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
             continue
         }
 
+        est_static := faux
+        si apparie(parseuse, GenreLexème.Static) {
+            lexème_static := parseuse.lexème_courant()
+            parseuse.consomme()
+
+            si apparie(parseuse, GenreLexème.AccoladeOuvrante) {
+                body := parse_function_body(parseuse)
+                static_block := crée_class_static_block(parseuse, lexème_static, body)
+                tableau_ajoute(*éléments, static_block)
+                continue
+            }
+
+            est_static = vrai
+        }
+
         parseuse_locale := parseuse.donne_parseuse_locale()
 
         method := parse_method_definition(*parseuse_locale)
@@ -310,22 +330,32 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
         }
 
         si method && parseuse_locale.erreur_de_compilation == nul {
+            method_typée := method comme *ClassMethod
+            method_typée.static = est_static
             ajourne_parent(*parseuse_locale)
             détruit_données_parseuse(*parseuse_locale)
             tableau_ajoute(*éléments, method)
             continue
         }
 
-        rapporte_erreur(parseuse, "expected a method definition")
+        field_name := apparie_class_element_name(parseuse)
+        saufsi field_name {
+            rapporte_erreur(parseuse, "expected a class field")
+            continue
+        }
 
-        // détruit_données_parseuse(*parseuse_locale)
-        // parseuse_locale := parseuse.donne_parseuse_locale()
+        initializer: *Expression
+        si apparie(parseuse, GenreLexème.Égal) {
+            parseuse.consomme()
+            initializer = parse_expression(parseuse, ParamètresParsageExpression())
+        }
 
-        // MethodDefinition[?Yield, ?Await]
-        // static MethodDefinition[?Yield, ?Await]
-        // FieldDefinition[?Yield, ?Await] ;
-        // static FieldDefinition[?Yield, ?Await] ;
-        // ClassStaticBlock
+        si apparie(parseuse, GenreLexème.PointVirgule) {
+            parseuse.consomme()
+        }
+        
+        field := crée_class_field(parseuse, field_name.lexème, field_name, initializer, est_static)
+        tableau_ajoute(*éléments, field)
     }
 
     parseuse.consomme(GenreLexème.AccoladeFermante)
@@ -936,6 +966,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             parseuse.consomme()
             retourne crée_identifier(parseuse, lexème, lexème.texte)
         }
+        PrivateIdentifier {
+            parseuse.consomme()
+            retourne crée_private_identifier(parseuse, lexème)
+        }
         ParenthèseOuvrante {
             parseuse.consomme()
 
@@ -1131,6 +1165,22 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         Super {
             parseuse.consomme()
+
+            si parseuse.apparie(GenreLexème.Point) {
+                lexème_point := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété := parse_identifier_name(parseuse)
+                retourne crée_super_property(parseuse, lexème_point, propriété, faux)
+            }
+
+            si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+                lexème_crochet := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété := parse_expression(parseuse, ParamètresParsageExpression())
+                parseuse.consomme(GenreLexème.CrochetFermant)
+                retourne crée_super_property(parseuse, lexème_crochet, propriété, vrai)
+            }
+
             parseuse.consomme(GenreLexème.ParenthèseOuvrante)
             arguments := parse_expressions_séparées_par_des_virgules(parseuse)
             parseuse.consomme(GenreLexème.ParenthèseFermante)
@@ -1302,8 +1352,13 @@ apparie_class_element_name :: fonc (parseuse: *Parseuse) -> *Expression
         retourne résultat
     }
 
-    // À FAIRE : PrivateIdentifier
-    retourne résultat
+    si apparie(parseuse, GenreLexème.PrivateIdentifier) {
+        lexème := parseuse.lexème_courant()
+        parseuse.consomme()
+        retourne crée_private_identifier(parseuse, lexème)
+    }
+
+    retourne nul
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-PropertyName */
@@ -1573,7 +1628,16 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         }
         Point {
             parseuse.consomme()
-            propriété := parse_identifier_name(parseuse)
+            propriété: *Expression
+            si parseuse.apparie(GenreLexème.PrivateIdentifier) {
+                lexème_identifier := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété = crée_private_identifier(parseuse, lexème_identifier)
+            }
+            sinon {
+                propriété = parse_identifier_name(parseuse)
+            }
+            
             si gauche.type == OptionalMemberExpression {
                 retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, faux)
             }
@@ -1668,8 +1732,6 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             si parseuse.apparie(GenreLexème.TemplateLiteral) {
                 rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator")
             }
-
-            // À FAIRE ?. PrivateIdentifier
 
             calculé := faux
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {
