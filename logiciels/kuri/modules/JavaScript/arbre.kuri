@@ -6108,6 +6108,108 @@ get_super_constructor :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom SuperProperty
+ * \{ */
+
+SuperProperty :: struct {
+    empl object_method: ObjectMethod
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_super_property
+
+    property: *Expression
+    calculé: bool
+}
+
+crée_super_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property: *Expression, calculé: bool) -> *SuperProperty
+{
+    résultat := parseuse.crée_noeud(lexème, SuperProperty)
+    résultat.property = property
+    résultat.calculé = calculé
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-super-keyword-runtime-semantics-evaluation */
+sur_exécution_super_property :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    super_property := base comme *SuperProperty
+
+    si super_property.calculé {
+        // 1. Let env be GetThisEnvironment().
+        env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+        // 2. Let actualThis be ? env.GetThisBinding().
+        actual_this := env.get_this_binding(interpréteuse.donne_realm())
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 3. Let propertyNameReference be ? Evaluation of Expression.
+        completion := exécute_noeud(super_property.property, interpréteuse)
+        saufsi completion.est_normal() {
+            retourne completion
+        }
+        property_name_reference := completion.valeur
+
+        // 4. Let propertyNameValue be ? GetValue(propertyNameReference).
+        property_name_value := get_value(interpréteuse, property_name_reference)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 5. Let strict be IsStrict(this SuperProperty).
+        strict := is_strict(super_property)
+
+        // 6. NOTE: In most cases, ToPropertyKey will be performed on propertyNameValue immediately after this step. However, in the case of super[b] = c, it will not be performed until after evaluation of c.
+
+        // 7. Return MakeSuperPropertyReference(actualThis, propertyNameValue, strict).
+        résultat := make_super_property_reference(interpréteuse, actual_this, property_name_value, strict)
+        retourne normal_completion(résultat)
+    }
+
+    // 1. Let env be GetThisEnvironment().
+    env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+    // 2. Let actualThis be ? env.GetThisBinding().
+    actual_this := env.get_this_binding(interpréteuse.donne_realm())
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. Let propertyKey be the StringValue of IdentifierName.
+    assert(super_property.property.type == Identifier)
+    property_key := donne_chaine_primitive(super_property.property comme *Identifier, interpréteuse.donne_realm())
+
+    // 4. Let strict be IsStrict(this SuperProperty).
+    strict := is_strict(super_property)
+
+    // 5. Return MakeSuperPropertyReference(actualThis, propertyKey, strict).
+    résultat := make_super_property_reference(interpréteuse, actual_this, property_key, strict)
+    retourne normal_completion(résultat)
+}
+
+/* 13.3.7.3 MakeSuperPropertyReference ( actualThis, propertyKey, strict )
+ * https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-makesuperpropertyreference */
+make_super_property_reference :: fonc (interpréteuse: *Interpréteuse, actual_this: Valeur, property_key: Valeur, strict: bool) -> ReferenceRecord
+{
+    // 1. Let env be GetThisEnvironment().
+    env := get_this_environment(interpréteuse) comme *FunctionEnvironment
+
+    // 2. Assert: env.HasSuperBinding() is true.
+    assert(env.has_super_binding())
+
+    // 3. Assert: env is a Function Environment Record.
+    assert(env.table.classe == FunctionEnvironment)
+
+    // 4. Let baseValue be GetSuperBase(env).
+    base_value := get_super_base(env)
+
+    // 5. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyKey, [[Strict]]: strict, [[ThisValue]]: actualThis }.
+    retourne ReferenceRecord(Valeur(Object = base_value), property_key, strict, actual_this)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 

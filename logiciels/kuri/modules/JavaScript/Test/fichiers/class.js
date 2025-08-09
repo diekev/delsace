@@ -239,3 +239,37 @@ test("simulation d'un constructeur privée", function () {
 
     PrivateConstructor.create(); // PrivateConstructor {}
 });
+
+test("nous pouvons accéder aux propriétés de super", function () {
+    class Rectangle {
+        static logNbSides() {
+            return "I have 4 sides";
+        }
+    }
+
+    class Square extends Rectangle {
+        static logDescription() {
+            return `${super.logNbSides()} which are all equal`;
+        }
+    }
+
+    const desc = Square.logDescription();
+    vérifie_égalité(desc, "I have 4 sides which are all equal")
+});
+
+test("nous pouvons accéder aux propriétés de super via une expression calculé", function () {
+    class Rectangle {
+        static logNbSides() {
+            return "I have 4 sides";
+        }
+    }
+
+    class Square extends Rectangle {
+        static logDescription() {
+            return `${super["log" + "Nb" + "Sides"]()} which are all equal`;
+        }
+    }
+
+    const desc = Square.logDescription();
+    vérifie_égalité(desc, "I have 4 sides which are all equal")
+});

@@ -1165,6 +1165,22 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         Super {
             parseuse.consomme()
+
+            si parseuse.apparie(GenreLexème.Point) {
+                lexème_point := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété := parse_identifier_name(parseuse)
+                retourne crée_super_property(parseuse, lexème_point, propriété, faux)
+            }
+
+            si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+                lexème_crochet := parseuse.lexème_courant()
+                parseuse.consomme()
+                propriété := parse_expression(parseuse, ParamètresParsageExpression())
+                parseuse.consomme(GenreLexème.CrochetFermant)
+                retourne crée_super_property(parseuse, lexème_crochet, propriété, vrai)
+            }
+
             parseuse.consomme(GenreLexème.ParenthèseOuvrante)
             arguments := parse_expressions_séparées_par_des_virgules(parseuse)
             parseuse.consomme(GenreLexème.ParenthèseFermante)
