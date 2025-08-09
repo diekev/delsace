@@ -176,6 +176,8 @@ Lexeuse :: struct {
     fin_source: *z8
 
     lexèmes: [..]Lexème
+
+    dans_commentaire_html: bool
 }
 
 initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: *TexteSource)
@@ -1107,11 +1109,13 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
         }
 
         si c == '<' && apparie(lexeuse, "<!--") {
+            lexeuse.dans_commentaire_html = vrai
             lexeuse.avance(4)
             continue
         }
 
-        si c == '-' && apparie(lexeuse, "-->") {
+        si c == '-' && apparie(lexeuse, "-->") && lexeuse.dans_commentaire_html {
+            lexeuse.dans_commentaire_html = faux
             lexeuse.avance(3)
             continue
         }
