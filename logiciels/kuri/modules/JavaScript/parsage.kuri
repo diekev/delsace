@@ -200,7 +200,7 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
 
     discr lexème.genre {
         Class {
-            retourne parse_class_declaration(parseuse)
+            retourne parse_class_declaration(parseuse, faux) comme *ClassDeclaration
         }
         Function {
             retourne parse_function_declaration(parseuse)
@@ -278,12 +278,12 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
     retourne nul
 }
 
-parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
+parse_class_declaration :: fonc (parseuse: *Parseuse, pour_expression: bool) -> *NoeudSyntaxique
 {
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
-    id := parse_binding_identifier(parseuse, vrai)
+    id := parse_binding_identifier(parseuse, !pour_expression)
 
     héritage: *Expression
     si parseuse.apparie(GenreLexème.Extends) {
@@ -361,6 +361,11 @@ parse_class_declaration :: fonc (parseuse: *Parseuse) -> *ClassDeclaration
     parseuse.consomme(GenreLexème.AccoladeFermante)
 
     body := crée_class_body(parseuse, lexème_body, éléments)
+
+    si pour_expression {
+        retourne crée_class_expression(parseuse, lexème, héritage, id, body)
+    }
+
     retourne crée_class_declaration(parseuse, lexème, héritage, id, body)
 }
 
@@ -1185,6 +1190,9 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             arguments := parse_expressions_séparées_par_des_virgules(parseuse)
             parseuse.consomme(GenreLexème.ParenthèseFermante)
             retourne crée_super_call(parseuse, lexème, arguments)
+        }
+        Class {
+            retourne parse_class_declaration(parseuse, vrai) comme *ClassExpression
         }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")

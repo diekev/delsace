@@ -273,3 +273,31 @@ test("nous pouvons accéder aux propriétés de super via une expression calcul�
     const desc = Square.logDescription();
     vérifie_égalité(desc, "I have 4 sides which are all equal")
 });
+
+test("nous pouvons utiliser class comme expression", function () {
+    var MonRectangle = class Rectangle {
+        constructor(height, width) {
+            this.height = height;
+            this.width = width;
+        }
+    }
+
+    const rectangle = new MonRectangle(1000, 2000);
+    vérifie_égalité(MonRectangle.name, "Rectangle");
+    vérifie_égalité(rectangle.height, 1000);
+    vérifie_égalité(rectangle.width, 2000);
+});
+
+test("nous pouvons utiliser class comme expression sans nom", function () {
+    var MonRectangle = class {
+        constructor(height, width) {
+            this.height = height;
+            this.width = width;
+        }
+    }
+
+    const rectangle = new MonRectangle(1000, 2000);
+    vérifie_égalité(MonRectangle.name, "MonRectangle");
+    vérifie_égalité(rectangle.height, 1000);
+    vérifie_égalité(rectangle.width, 2000);
+});

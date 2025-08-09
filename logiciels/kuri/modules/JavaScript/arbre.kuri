@@ -62,6 +62,9 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
     si noeud.type == FunctionExpression {
         retourne (noeud comme *FunctionExpression).id != nul
     }
+    si noeud.type == ClassExpression {
+        retourne (noeud comme *ClassExpression).identifier != nul
+    }
     retourne faux
 }
 
@@ -70,7 +73,7 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
 is_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
 {
     // À FAIRE : implémente tous les cas
-    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction
+    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction || noeud.type == ClassExpression
 }
 
 /* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
@@ -113,6 +116,27 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
         // 1. Return InstantiateArrowFunctionExpression of ArrowFunction with argument name.
         résultat := instantiate_arrow_function_expression(interpréteuse, noeud comme *ArrowFunction, *name)
         retourne normal_completion(Valeur(Function = résultat))
+    }
+
+    si noeud.type == ClassExpression {
+        // ClassExpression : class ClassTail
+        class_expression := noeud comme *ClassExpression
+        assert(class_expression.identifier == nul)
+        assert(interpréteuse.type == InterprèteArbre)
+        interprète := interpréteuse comme *InterprèteArbre
+
+        // 1. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments undefined and name.
+        class_binding: Optionnel(ECMAString)
+        value := class_definition_evaluation(interprète, class_expression.héritage, class_expression.body, class_binding, name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
+        définis_source_text(value, donne_texte_source(class_expression))
+
+        // 3. Return value.
+        retourne normal_completion(Valeur(Function = value))
     }
 
     panique("name_evaluation non-implémenté")
@@ -5913,6 +5937,71 @@ initialize_bound_name :: fonc (interpréteuse: *Interpréteuse, name: ECMAString
         // b. Return ? PutValue(lhs, value).
         _ := put_value(interpréteuse, lhs, value)
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ClassExpression
+ * \{ */
+
+ClassExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_class_expression
+
+    identifier: *Identifier
+    héritage: *Expression
+    body: *ClassBody
+}
+
+crée_class_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, héritage: *Expression, identifier: *Identifier, body: *ClassBody) -> *ClassExpression
+{
+    résultat := parseuse.crée_noeud(lexème, ClassExpression)
+    résultat.héritage = héritage
+    résultat.identifier = identifier
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-class-definitions-runtime-semantics-evaluation */
+sur_exécution_class_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    class_expression := base comme *ClassExpression
+
+    // ClassExpression : class ClassTail
+    saufsi class_expression.identifier {
+        // 1. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments undefined and "".
+        class_binding: Optionnel(ECMAString)
+        class_name : FieldName = crée_chaine_utf16_unique_vide()
+        value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_binding, class_name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
+        définis_source_text(value, donne_texte_source(class_expression))
+
+        // 3. Return value.
+        retourne normal_completion(Valeur(Function = value))
+    }
+
+    // ClassExpression : class BindingIdentifier ClassTail
+
+    // 1. Let className be the StringValue of BindingIdentifier.
+    class_name := class_expression.identifier.nom
+
+    // 2. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments className and className.
+    value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_name, class_name)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. Set value.[[SourceText]] to the source text matched by ClassExpression.
+    définis_source_text(value, donne_texte_source(class_expression))
+
+    // 4. Return value.
+    retourne normal_completion(Valeur(Function = value))
 }
 
 /** \} */
