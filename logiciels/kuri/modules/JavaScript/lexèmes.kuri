@@ -4,6 +4,7 @@ GenreLexème :: énum {
     Identifiant
     ChaineLittérale
     NombreLittéral
+    PrivateIdentifier
     TemplateLiteral
     TemplateLiteralStart
     TemplateLiteralMiddle
@@ -111,6 +112,7 @@ GenreLexème :: énum {
     Of
     Return
     Set
+    Static
     Super
     Switch
     Target
@@ -174,6 +176,7 @@ rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
         si identifiant == "export" { retourne GenreLexème.Export }
         si identifiant == "import" { retourne GenreLexème.Import }
         si identifiant == "return" { retourne GenreLexème.Return }
+        si identifiant == "static" { retourne GenreLexème.Static }
         si identifiant == "switch" { retourne GenreLexème.Switch }
         si identifiant == "target" { retourne GenreLexème.Target }
         si identifiant == "typeof" { retourne GenreLexème.Typeof }
@@ -274,6 +277,7 @@ est_lexème_expression :: fonc (genre: GenreLexème) -> bool
         Let,
         Const,
         Identifiant,
+        PrivateIdentifier,
         ChaineLittérale,
         TemplateLiteral,
         TemplateLiteralStart,
