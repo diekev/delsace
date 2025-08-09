@@ -526,6 +526,7 @@ lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
             lexème := crée_lexème(lexeuse, genre_lexème_courant)
             tableau_ajoute(*lexeuse.lexèmes, lexème)
 
+            nichage := 0
             début_source += 2
 
             tantque !lexeuse.fini() {
@@ -535,9 +536,16 @@ lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
                 }
 
                 c = lexeuse.caractère_courant()
+                si c == '{' {
+                    nichage += 1
+                }
+
                 si c == '}' {
-                    début_source += 1
-                    arrête
+                    si nichage == 0 {
+                        début_source += 1
+                        arrête
+                    }
+                    nichage -= 1
                 }
 
                 lexème = lexeuse.donne_lexème_suivant()
