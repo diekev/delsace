@@ -511,7 +511,18 @@ parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclara
 parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
 {
     lexème := parseuse.lexème_courant()
-    id := parse_binding_identifier(parseuse, vrai)
+
+    id: *Expression
+
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        id = parse_object_binding_pattern(parseuse)
+    }
+    sinon si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+        id = parse_array_binding_pattern(parseuse)
+    }
+    sinon {
+        id = parse_binding_identifier(parseuse, vrai)
+    }
 
     init: *Expression
     si apparie(parseuse, GenreLexème.Égal) {
@@ -520,6 +531,102 @@ parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
     }
 
     retourne crée_variable_declarator(parseuse, lexème, id, init)
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#prod-ObjectBindingPattern */
+parse_object_binding_pattern :: fonc (parseuse: *Parseuse) -> *ObjectBindingPattern
+{
+    lexème := parseuse.lexème_courant()
+    parseuse.consomme()
+
+    properties: [..]*Expression
+
+    tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
+        property := parse_binding_property(parseuse)
+        tableau_ajoute(*properties, property)
+
+        saufsi apparie(parseuse, GenreLexème.Virgule) {
+            arrête
+        }
+        parseuse.consomme()
+    }
+
+    parseuse.consomme(GenreLexème.AccoladeFermante)
+
+    retourne crée_object_binding_pattern(parseuse, lexème, properties)
+}
+
+parse_binding_property :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    // À FAIRE : SingleNameBinding/BindingElement
+    id := parse_binding_identifier(parseuse, faux)
+
+    saufsi id {
+        property_name := apparie_property_name(parseuse)
+        si property_name {
+            si parseuse.apparie(GenreLexème.DoublePoint) {
+                lexème_double_point := parseuse.lexème_courant()
+                parseuse.consomme()
+                expression := parse_binding_element(parseuse)
+                retourne crée_binding_property(parseuse, lexème_double_point, id, expression)
+            }
+            sinon {
+                rapporte_erreur(parseuse, "expected a ':'")
+                retourne nul
+            }
+        }
+
+        rapporte_erreur(parseuse, "expected a property name")
+        retourne nul
+    }
+
+    si parseuse.apparie(GenreLexème.DoublePoint) {
+        lexème_double_point := parseuse.lexème_courant()
+        parseuse.consomme()
+        expression := parse_binding_element(parseuse)
+        retourne crée_binding_property(parseuse, lexème_double_point, id, expression)
+    }
+
+    retourne id
+}
+
+parse_binding_element :: fonc (parseuse: *Parseuse) -> *Expression
+{
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        retourne parse_object_binding_pattern(parseuse)
+    }
+
+    si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+        retourne parse_array_binding_pattern(parseuse)
+    }
+    
+    // SingleNameBinding
+    id := parse_binding_identifier(parseuse, vrai)
+
+    // À FAIRE : initializer
+    retourne id
+}
+
+parse_array_binding_pattern :: fonc (parseuse: *Parseuse) -> *ArrayBindingPattern
+{
+    lexème := parseuse.lexème_courant()
+    parseuse.consomme()
+
+    elements: [..]*Expression
+
+    tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
+        id := parse_binding_identifier(parseuse, vrai)
+        tableau_ajoute(*elements, id)
+
+        saufsi apparie(parseuse, GenreLexème.Virgule) {
+            arrête
+        }
+        parseuse.consomme()
+    }
+
+    parseuse.consomme(GenreLexème.CrochetFermant)
+
+    retourne crée_array_binding_pattern(parseuse, lexème, elements)
 }
 
 parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement

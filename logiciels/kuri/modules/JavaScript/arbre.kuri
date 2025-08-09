@@ -6299,6 +6299,68 @@ make_super_property_reference :: fonc (interpréteuse: *Interpréteuse, actual_t
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ObjectBindingPattern
+ * \{ */
+
+ObjectBindingPattern :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    properties: [..]*Expression
+}
+
+crée_object_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectBindingPattern
+{
+    résultat := parseuse.crée_noeud(lexème, ObjectBindingPattern)
+    résultat.properties = properties
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BindingProperty
+ * \{ */
+
+BindingProperty :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    property_name: *Expression
+    binding_element: *Expression
+}
+
+crée_binding_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *Expression, binding_element: *Expression) -> *BindingProperty
+{
+    résultat := parseuse.crée_noeud(lexème, BindingProperty)
+    résultat.property_name = property_name
+    résultat.binding_element = binding_element
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayBindingPattern
+ * \{ */
+
+ArrayBindingPattern :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    elements: [..]*Expression
+}
+
+crée_array_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, elements: [..]*Expression) -> *ArrayBindingPattern
+{
+    résultat := parseuse.crée_noeud(lexème, ArrayBindingPattern)
+    résultat.elements = elements
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
