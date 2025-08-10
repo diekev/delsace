@@ -1995,6 +1995,13 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
                 rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator")
             }
 
+            si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+                parseuse.consomme()
+                arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
+                parseuse.consomme(GenreLexème.ParenthèseFermante)
+                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments)
+            }
+
             calculé := faux
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {
                 calculé = vrai
@@ -2002,8 +2009,13 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
                 droite = parseuse.parse_expression(ParamètresParsageExpression())
                 parseuse.consomme(GenreLexème.CrochetFermant)
             }
+            sinon si parseuse.apparie(GenreLexème.PrivateIdentifier) {
+                lexème_identifier := parseuse.lexème_courant()
+                parseuse.consomme()
+                droite = crée_private_identifier(parseuse, lexème_identifier)
+            }
             sinon {
-                droite = parseuse.parse_expression(params)
+                droite = parseuse.parse_identifier_name()
             }
 
             retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé)
