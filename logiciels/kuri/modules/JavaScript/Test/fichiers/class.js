@@ -301,3 +301,20 @@ test("nous pouvons utiliser class comme expression sans nom", function () {
     vérifie_égalité(rectangle.height, 1000);
     vérifie_égalité(rectangle.width, 2000);
 });
+
+test("nous pouvons déclarer des rubriques privées", function () {
+    var x = 789;
+    class ComputedPropertyName {
+        constructor() { }
+
+        // À FAIRE : mésyntaxage si les points-virgules sont manquants
+        [x] = x;
+        ["y"] = 456;
+        ["" + "z"] = 123;
+    }
+
+    const c = new ComputedPropertyName()
+    vérifie_égalité(c[789], 789);
+    vérifie_égalité(c.y, 456);
+    vérifie_égalité(c.z, 123);
+});

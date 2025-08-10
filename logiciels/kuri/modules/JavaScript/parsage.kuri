@@ -1367,6 +1367,14 @@ parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
         retourne crée_literal(parseuse, lexème, valeur)
     }
 
+    si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+        lexème = parseuse.lexème_courant()
+        parseuse.consomme()
+        expression := parse_expression(parseuse, ParamètresParsageExpression())
+        parseuse.consomme(GenreLexème.CrochetFermant)
+        retourne crée_computed_property_name(parseuse, lexème, expression)
+    }
+
     retourne parse_identifier_name(parseuse)
 }
 
@@ -1484,7 +1492,14 @@ apparie_property_name :: fonc (parseuse: *Parseuse) -> *Expression
         retourne résultat
     }
 
-    // À FAIRE : ComputedPropertyName
+    si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+        lexème := parseuse.lexème_courant()
+        parseuse.consomme()
+        expression := parse_expression(parseuse, ParamètresParsageExpression())
+        parseuse.consomme(GenreLexème.CrochetFermant)
+        retourne crée_computed_property_name(parseuse, lexème, expression)
+    }
+
     retourne nul
 }
 

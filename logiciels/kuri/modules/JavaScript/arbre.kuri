@@ -683,6 +683,26 @@ crée_private_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *Pr
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ComputedPropertyName
+ * \{ */
+
+ComputedPropertyName :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    expression: *Expression    
+}
+
+crée_computed_property_name :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ComputedPropertyName
+{
+    résultat := parseuse.crée_noeud(lexème, ComputedPropertyName)
+    résultat.expression = expression
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom BlockStatement
  * \{ */
 
@@ -2786,7 +2806,10 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         property_definition := it comme *PropertyDefinition
 
         // 1. Let propKey be ? Evaluation of PropertyName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), property_definition.property_name)
+        prop_key := évalue_property_name(interpréteuse, property_definition.property_name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
 
         // À FAIRE : complète
         is_proto_setter := faux
@@ -2834,21 +2857,47 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
     retourne normal_completion(js_undefined)
 }
 
-évalue_property_name :: fonc (realm: *Realm, prop_name: *Expression) -> PropertyKey
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
+évalue_property_name :: fonc (interpréteuse: *Interpréteuse, expression: *Expression) -> PropertyKey
 {
-    si prop_name.type == StringLiteral {
-        string := prop_name comme *StringLiteral
+    si expression.type == StringLiteral {
+        string := expression comme *StringLiteral
         retourne string.valeur
     }
 
-    si prop_name.type == NumericLiteral {
-        number := prop_name comme *NumericLiteral
+    si expression.type == NumericLiteral {
+        number := expression comme *NumericLiteral
         valeur := Valeur(Number = number.valeur)
+        realm := interpréteuse.donne_realm()
         retourne to_string(realm, valeur).texte
     }
 
-    assert(prop_name.type == Identifier)
-    ident := prop_name comme *Identifier
+    si expression.type == ComputedPropertyName {
+        computed_property_name := expression comme *ComputedPropertyName
+
+        // 1. Let exprValue be ? Evaluation of AssignmentExpression.
+        assert(interpréteuse.type == InterprèteArbre)
+        completion := exécute_noeud(computed_property_name.expression, interpréteuse comme *InterprèteArbre)
+        saufsi completion.est_normal() {
+            interpréteuse.définis_exception(completion)
+            résultat: PropertyKey
+            retourne résultat
+        }
+        expr_value := completion.valeur
+
+        // 2. Let propName be ? GetValue(exprValue).
+        prop_name := get_value(interpréteuse, expr_value)
+        si interpréteuse.possède_exception() {
+            résultat: PropertyKey
+            retourne résultat
+        }
+
+        // 3. Return ? ToPropertyKey(propName).
+        retourne to_property_key(interpréteuse, prop_name)
+    }
+
+    assert(expression.type == Identifier)
+    ident := expression comme *Identifier
     retourne ident.nom
 }
 
@@ -5296,7 +5345,7 @@ is_static :: fonc (syntax: *NoeudSyntaxique) -> bool
         retourne private_name
     }
 
-    property_key := évalue_property_name(interpréteuse.donne_realm(), class_element_name)
+    property_key := évalue_property_name(interpréteuse, class_element_name)
     si interpréteuse.possède_exception() {
         résultat: FieldName
         retourne résultat
