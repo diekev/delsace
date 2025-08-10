@@ -1369,6 +1369,13 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         }
         New {
             parseuse.consomme()
+
+            si parseuse.apparie(GenreLexème.Point) {
+                parseuse.consomme()
+                parseuse.consomme(GenreLexème.Target)
+                retourne crée_new_target(parseuse, lexème)
+            }
+
             params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
             params.lexème_final = GenreLexème.Point
             argument := parseuse.parse_expression(params)

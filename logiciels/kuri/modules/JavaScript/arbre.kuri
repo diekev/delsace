@@ -6467,6 +6467,29 @@ sur_exécution_await_expression :: fonc (base: *NoeudSyntaxique @inutilisée, in
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom NewTarget
+ * \{ */
+
+NewTarget :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_new_target
+}
+
+crée_new_target :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NewTarget
+{
+    résultat := parseuse.crée_noeud(lexème, NewTarget)
+    retourne résultat
+}
+
+sur_exécution_new_target :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution new.target non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Visiteuse arbre.
  * \{ */
 
