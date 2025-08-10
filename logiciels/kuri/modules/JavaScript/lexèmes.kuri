@@ -389,36 +389,10 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
     }
 }
 
-est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
-{
-    discr genre {
-        Class,
-        For,
-        Function,
-        Return,
-        If,
-        Try,
-        Throw,
-        Continue,
-        Break,
-        Switch,
-        While,
-        Do,
-        Debugger,
-        Async {
-            retourne vrai
-        }
-        sinon {
-            retourne faux
-        }
-    }
-}
-
 DrapeauxLexèmePourParsage :: énum_drapeau {
     EstExpression
     EstExpressionUnaire
     EstExpressionSecondaire
-    EstInstruction
 }
 
 DonnéesLexèmePourParsage :: struct {
@@ -437,7 +411,6 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
         it.drapeaux.EstExpression = est_lexème_expression(genre_lexème)
         it.drapeaux.EstExpressionUnaire = est_lexème_expression_unaire(genre_lexème)
         it.drapeaux.EstExpressionSecondaire = est_lexème_expression_secondaire(genre_lexème)
-        it.drapeaux.EstInstruction = est_lexème_instruction(genre_lexème)
     }
 
     /* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence */
