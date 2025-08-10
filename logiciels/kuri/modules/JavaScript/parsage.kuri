@@ -757,11 +757,11 @@ parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *S
     left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final))
 
     si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
-        parseuse.rapporte_erreur("Attendu 'of'")
+        parseuse.rapporte_erreur("expected 'of'")
         retourne nul
     }
     si type_for == TypeFor.ForIn && !apparie(parseuse, GenreLexème.In) {
-        parseuse.rapporte_erreur("Attendu 'in'")
+        parseuse.rapporte_erreur("expected 'in'")
         retourne nul
     }
 
@@ -1380,7 +1380,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_await_expression(parseuse, lexème, expression)
         }
         sinon {
-            parseuse.rapporte_erreur("Attendu une expression primaire")
+            parseuse.rapporte_erreur("expected a primary expression")
         }
     }
 
@@ -1955,7 +1955,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé)
         }
         sinon {
-            rapporte_erreur(parseuse, lexème, "Genre de lexème non géré dans parse_expression_secondaire\n")
+            rapporte_erreur(parseuse, lexème, "expected a secondary expression\n")
         }
     }
 
