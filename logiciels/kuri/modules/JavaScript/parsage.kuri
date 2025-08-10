@@ -101,6 +101,23 @@ fini :: fonc (parseuse: *Parseuse) -> bool
     retourne parseuse.erreur_de_compilation != nul || parseuse.position >= parseuse.lexèmes.taille
 }
 
+est_en_fin_de_ligne :: fonc (parseuse: *Parseuse, référence: *Lexème) -> bool
+{
+    lexème := parseuse.lexème_courant()
+    assert(lexème != référence)
+    assert(lexème == référence + 1)
+
+    fin_référence := référence.texte.pointeur + référence.texte.taille
+    texte := chaine(fin_référence, lexème.texte.pointeur - fin_référence)
+
+    pour texte {
+        si it == '\n' {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
 consomme :: fonc (parseuse: *Parseuse)
 {
     parseuse.position += 1
@@ -153,16 +170,6 @@ apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
         retourne faux
     }
     retourne parseuse.lexème_courant().genre == genre_lexème
-}
-
-apparie_expression :: fonc (parseuse: *Parseuse) -> bool
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    genre := parseuse.lexème_courant().genre
-    drapeaux := données_lexèmes_pour_parsage[genre].drapeaux
-    retourne drapeaux.EstExpression == vrai || drapeaux.EstExpressionUnaire == vrai
 }
 
 apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
@@ -265,13 +272,9 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
                 parseuse.position = sauvegarde
             }
 
-            si parseuse.apparie_expression() {
-                expression := parseuse.parse_expression(ParamètresParsageExpression())
-                parseuse.consomme_point_virgule_potentiel()
-                retourne crée_expression_statement(parseuse, lexème, expression)
-            }
-
-            rapporte_erreur(parseuse, "expected a statement")
+            expression := parseuse.parse_expression(ParamètresParsageExpression())
+            parseuse.consomme_point_virgule_potentiel()
+            retourne crée_expression_statement(parseuse, lexème, expression)
         }
     }
 
@@ -419,7 +422,7 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
 
     lexème_déf := parseuse.lexème_courant()
     parseuse.consomme()
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     si method_kind == MethodKind.Get && paramètres.taille != 0 {
@@ -448,7 +451,7 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     id := parse_binding_identifier(parseuse, vrai)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_function_body(parseuse)
@@ -464,7 +467,7 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     id := parse_binding_identifier(parseuse, faux)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
     body := parse_function_body(parseuse)
@@ -636,8 +639,12 @@ parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
 
     argument: *Expression
 
-    si parseuse.apparie_expression() {
+    saufsi apparie(parseuse, GenreLexème.PointVirgule) || apparie(parseuse, GenreLexème.AccoladeFermante) || est_en_fin_de_ligne(parseuse, lexème) {
         argument = parse_expression(parseuse, ParamètresParsageExpression())
+    }
+
+    si apparie(parseuse, GenreLexème.PointVirgule) {
+        parseuse.consomme()
     }
 
     retourne crée_return_statement(parseuse, lexème, argument)
@@ -1153,7 +1160,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     si apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
                         lexème_déf := parseuse.lexème_courant()
                         parseuse.consomme()
-                        paramètres := parse_expressions_séparées_par_des_virgules(parseuse)
+                        paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
                         parseuse.consomme(GenreLexème.ParenthèseFermante)
 
                         si method_kind == MethodKind.Get && paramètres.taille != 0 {
@@ -1294,7 +1301,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             }
 
             parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-            arguments := parse_expressions_séparées_par_des_virgules(parseuse)
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
             parseuse.consomme(GenreLexème.ParenthèseFermante)
             retourne crée_super_call(parseuse, lexème, arguments)
         }
@@ -1776,7 +1783,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         ParenthèseOuvrante {
             parseuse.consomme()
 
-            arguments := parse_expressions_séparées_par_des_virgules(parseuse)
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
 
             parseuse.consomme(GenreLexème.ParenthèseFermante)
             
@@ -1927,16 +1934,11 @@ parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *Expression, 
     retourne crée_assignment_expression(parseuse, lexème, opération, gauche, expression)
 }
 
-parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse) -> [..]*Expression
+parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse, lexème_final: GenreLexème) -> [..]*Expression
 {
     résultat: [..]*Expression
-    /* Permet de ne pas avoir d'expression pour que, par exemple, le parsage des parenthèses
-     * d'expressions d'appels vides n'est pas à le vérifier. */
-    saufsi apparie_expression(parseuse) {
-        retourne résultat
-    }
 
-    tantque !fini(parseuse) {
+    tantque !fini(parseuse) && !apparie(parseuse, lexème_final) {
         expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
         tableau_ajoute(*résultat, expr)
@@ -1946,11 +1948,6 @@ parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse) -> [
         }
 
         parseuse.consomme()
-        /* Permet d'avoir des virgules en fin de liste sans expression suivante :
-         * [a, b, c,] */
-        saufsi apparie_expression(parseuse) {
-            arrête
-        }
     }
     retourne résultat
 }
