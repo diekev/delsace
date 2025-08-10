@@ -975,12 +975,12 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
     expression := parseuse.parse_expression_primaire()
 
     tantque !parseuse.fini() && !apparie(parseuse, params.lexème_final) {
-        données := données_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
-        saufsi données.drapeaux.EstExpressionSecondaire {
+        infos := infos_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
+        saufsi infos.drapeaux.EstExpressionSecondaire {
             arrête
         }
 
-        nouvelle_précédence := données.précédence
+        nouvelle_précédence := infos.précédence
 
         si nouvelle_précédence < params.précédence {
             arrête
@@ -992,7 +992,7 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
 
         nouveau_params := params
         nouveau_params.précédence = nouvelle_précédence
-        nouveau_params.associativité = données.associativité
+        nouveau_params.associativité = infos.associativité
 
         expression_secondaire := parseuse.parse_expression_secondaire(expression, nouveau_params)
         saufsi expression_secondaire {
@@ -2023,10 +2023,10 @@ parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse, lex�
 
 donne_paramètres_parsage_expression_pour_lexème_unaire :: fonc (genre: GenreLexème) -> ParamètresParsageExpression
 {
-    données := données_lexèmes_pour_parsage[genre]
+    infos := infos_lexèmes_pour_parsage[genre]
     résultat: ParamètresParsageExpression
-    résultat.précédence = données.précédence
-    résultat.associativité = données.associativité
+    résultat.précédence = infos.précédence
+    résultat.associativité = infos.associativité
     retourne résultat
 }
 
