@@ -345,8 +345,6 @@ est_lexème_expression_secondaire :: fonc (genre: GenreLexème) -> bool
         OuBinaire,
         OuLogique,
         OuExclusif,
-        NonBinaire,
-        NonLogique,
         Égal,
         PlusÉgal,
         MoinsÉgal,
