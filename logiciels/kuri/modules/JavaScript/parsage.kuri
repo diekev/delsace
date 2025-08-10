@@ -28,7 +28,7 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
             }
         }
         FunctionBody {
-            résultat = parse_function_body(*parseuse, faux)
+            résultat = parse_function_body(*parseuse, faux, faux)
         }
     }
 
@@ -52,6 +52,7 @@ Parseuse :: struct {
     noeuds: [..]*NoeudSyntaxique
 
     await_est_mot_clé: bool
+    yield_est_mot_clé: bool
 }
 
 crée_noeud :: fonc (parseuse: *Parseuse, lexème: *Lexème, $T: type_de_données) -> *T
@@ -313,7 +314,7 @@ parse_class_declaration :: fonc (parseuse: *Parseuse, pour_expression: bool) -> 
             parseuse.consomme()
 
             si apparie(parseuse, GenreLexème.AccoladeOuvrante) {
-                body := parse_function_body(parseuse, faux)
+                body := parse_function_body(parseuse, faux, faux)
                 static_block := crée_class_static_block(parseuse, lexème_static, body)
                 tableau_ajoute(*éléments, static_block)
                 continue
@@ -380,8 +381,13 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
     class_element_name: *Expression
     
     async := faux
+    generator := faux
 
-    si apparie(parseuse, GenreLexème.Get) {
+    si apparie(parseuse, GenreLexème.Étoile) {
+        parseuse.consomme()
+        generator = vrai
+    }
+    sinon si apparie(parseuse, GenreLexème.Get) {
         sauvegarde := parseuse.position
         parseuse.consomme()
 
@@ -452,9 +458,9 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
         }
     }
 
-    body := parse_function_body(parseuse, async)
+    body := parse_function_body(parseuse, async, generator)
 
-    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind, async)
+    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind, async, generator)
 }
 
 parse_function_declaration :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionDeclaration
@@ -462,15 +468,21 @@ parse_function_declaration :: fonc (parseuse: *Parseuse, async: bool) -> *Functi
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
+    generator: bool
+    si async == faux && parseuse.apparie(GenreLexème.Étoile) {
+        parseuse.consomme()
+        generator = vrai
+    }
+
     id := parse_binding_identifier(parseuse, vrai)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_function_body(parseuse, async)
+    body := parse_function_body(parseuse, async, generator)
 
-    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body, async)
+    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body, async, generator)
 }
 
 parse_function_expression :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionExpression
@@ -478,28 +490,38 @@ parse_function_expression :: fonc (parseuse: *Parseuse, async: bool) -> *Functio
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
 
+    generator: bool
+    si async == faux && parseuse.apparie(GenreLexème.Étoile) {
+        parseuse.consomme()
+        generator = vrai
+    }
+
     id := parse_binding_identifier(parseuse, faux)
 
     parseuse.consomme(GenreLexème.ParenthèseOuvrante)
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_function_body(parseuse, async)
+    body := parse_function_body(parseuse, async, generator)
 
-    retourne crée_function_expression(parseuse, lexème, id, paramètres, body, async)
+    retourne crée_function_expression(parseuse, lexème, id, paramètres, body, async, generator)
 }
 
-parse_function_body :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionBody
+parse_function_body :: fonc (parseuse: *Parseuse, async: bool, generator: bool) -> *FunctionBody
 {
     ancien_await_est_mot_clé := parseuse.await_est_mot_clé
     parseuse.await_est_mot_clé = async
     diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé
 
+    ancien_yield_est_mot_clé := parseuse.yield_est_mot_clé
+    parseuse.yield_est_mot_clé = async
+    diffère parseuse.yield_est_mot_clé = ancien_yield_est_mot_clé
+
     statement := parse_statement(parseuse)
     si statement {
         statement.appartient_à_fonction = vrai
     }
-    retourne crée_function_body(parseuse, statement, async)
+    retourne crée_function_body(parseuse, statement, async, generator)
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
@@ -1198,6 +1220,23 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
             retourne crée_identifier(parseuse, lexème, lexème.texte)
         }
+        Yield {
+            parseuse.consomme()
+
+            est_star: bool
+            expression: *Expression
+
+            si !est_en_fin_de_ligne(parseuse, lexème) {
+                si apparie(parseuse, GenreLexème.Étoile) {
+                    parseuse.consomme()
+                    est_star = vrai
+                }
+                params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.Yield)
+                expression = parseuse.parse_expression(params)
+            }
+
+            retourne crée_yield_expression(parseuse, lexème, expression, est_star)
+        }
         PrivateIdentifier {
             parseuse.consomme()
             retourne crée_private_identifier(parseuse, lexème)
@@ -1238,7 +1277,18 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     method_kind := MethodKind.Method
 
                     async := faux
-                    si apparie(parseuse, GenreLexème.Get) {
+                    generator := faux
+
+                    si apparie(parseuse, GenreLexème.Étoile) {
+                        parseuse.consomme()
+                        generator = vrai
+                        class_element_name := apparie_class_element_name(parseuse)
+                        saufsi class_element_name {
+                            rapporte_erreur(parseuse, "expected a class element name")
+                        }
+                        nom_membre = class_element_name
+                    }
+                    sinon si apparie(parseuse, GenreLexème.Get) {
                         sauvegarde := parseuse.position
                         parseuse.consomme()
 
@@ -1284,7 +1334,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                         nom_membre = parse_property_name(parseuse)
                     }
 
-                    si apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
+                    si async || generator || apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
                         lexème_déf := parseuse.lexème_courant()
                         parseuse.consomme()
                         paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
@@ -1297,9 +1347,9 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                             rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
                         }
 
-                        body := parse_function_body(parseuse, async)
+                        body := parse_function_body(parseuse, async, generator)
 
-                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind, async)
+                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind, async, generator)
                         tableau_ajoute(*properties, méthode)
                     }
                     sinon si parseuse.apparie(GenreLexème.DoublePoint) {
@@ -1715,7 +1765,7 @@ parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_
 {
     lexème := parseuse.lexème_courant()
 
-    si lexème.genre == GenreLexème.Yield {
+    si lexème.genre == GenreLexème.Yield && !parseuse.yield_est_mot_clé {
         parseuse.consomme()
         retourne crée_identifier(parseuse, lexème, lexème.texte)
     }

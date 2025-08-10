@@ -383,7 +383,7 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire
@@ -391,6 +391,7 @@ crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id:
     résultat.corps = corps
     résultat.params = params
     résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -422,7 +423,7 @@ FunctionExpression :: struct {
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.sur_génération_code_binaire = function_expression_sur_code_binaire
@@ -430,6 +431,7 @@ crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
     résultat.corps = corps
     résultat.params = params
     résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -455,13 +457,15 @@ FunctionBody :: struct {
 
     statement: *Statement
     async: bool
+    generator: bool
 }
 
-crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool) -> *FunctionBody
+crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool, generator: bool) -> *FunctionBody
 {
     résultat := parseuse.crée_noeud(nul, FunctionBody)
     résultat.statement = statement
     résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -4949,10 +4953,11 @@ ObjectMethod :: struct {
 
     est_méthode: bool
     async: bool
+    generator: bool
     kind: MethodKind
 }
 
-crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind, async: bool) -> *ObjectMethod
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind, async: bool, generator: bool) -> *ObjectMethod
 {
     résultat := parseuse.crée_noeud(lexème, ObjectMethod)
     résultat.class_element_name = class_element_name
@@ -4961,6 +4966,7 @@ crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_eleme
     résultat.est_méthode = kind == MethodKind.Method
     résultat.kind = kind
     résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -6100,7 +6106,7 @@ ClassMethod :: struct {
     static: bool
 }
 
-crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool) -> *ClassMethod
+crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool, generator: bool) -> *ClassMethod
 {
     résultat := parseuse.crée_noeud(lexème, ClassMethod)
     résultat.class_element_name = key
@@ -6109,6 +6115,7 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
     résultat.kind = method_kind
     résultat.est_méthode = method_kind == MethodKind.Method
     résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -6491,6 +6498,34 @@ crée_new_target :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NewTarget
 sur_exécution_new_target :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
     panique("exécution new.target non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom YieldExpression
+ * \{ */
+
+YieldExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_yield_expression
+
+    expression: *Expression
+    est_star: bool
+}
+
+crée_yield_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression, est_star: bool) -> *YieldExpression
+{
+    résultat := parseuse.crée_noeud(lexème, YieldExpression)
+    résultat.expression = expression
+    résultat.est_star = est_star
+    retourne résultat
+}
+
+sur_exécution_yield_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution yield non-implémenté")
 }
 
 /** \} */
