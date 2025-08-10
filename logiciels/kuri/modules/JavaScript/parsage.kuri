@@ -1014,33 +1014,30 @@ crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
 
-    morceaux := divise(chn, '\\')
-    diffère déloge(morceaux)
+    début := chn.pointeur
+    fin := chn.pointeur + chn.taille
 
-    pour morceaux {
-        si index_it == 0 {
-            ajoute_au_tampon(*enchaineuse, it)
-            continue
-        }
+    tantque début < fin {
+        caractère := mémoire(début)
 
-        si it.taille == 0 {
-            continue
+        si caractère == '\\' && (début + 1) < fin {
+            début += 1
+            caractère = mémoire(début)
+            si caractère == 'n' {
+                ajoute_au_tampon(*enchaineuse, "\n")
+            }
+            sinon si caractère == 't' {
+                ajoute_au_tampon(*enchaineuse, "\t")
+            }
+            sinon si caractère != '\n' {
+                ajoute_au_tampon(*enchaineuse, chaine(début, 1))
+            }
         }
-
-        c := it[0]
-        si c == 'n' {
-            ajoute_au_tampon(*enchaineuse, "\n")
-            it = avance(it, 1)
-        }
-        sinon si c == 't' {
-            ajoute_au_tampon(*enchaineuse, "\t")
-            it = avance(it, 1)
-        }
-        sinon si c == '\n' {
-            it = avance(it, 1)
+        sinon {
+            ajoute_au_tampon(*enchaineuse, chaine(début, 1))
         }
 
-        ajoute_au_tampon(*enchaineuse, it)
+        début += 1
     }
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
