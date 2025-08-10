@@ -623,29 +623,35 @@ parse_binding_property :: fonc (parseuse: *Parseuse) -> *Expression
         initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
     }
 
-    retourne crée_single_name_binding(parseuse, lexème, id, initializer)
+    retourne crée_binding_element(parseuse, lexème, id, initializer)
 }
 
 parse_binding_element :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        retourne parse_object_binding_pattern(parseuse)
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "unexpected end of input")
     }
 
-    si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-        retourne parse_array_binding_pattern(parseuse)
+    lexème := parseuse.lexème_courant()
+
+    expression: *Expression
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        expression = parse_object_binding_pattern(parseuse)
+    }
+    sinon si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+        expression = parse_array_binding_pattern(parseuse)
+    }
+    sinon {
+        expression = parse_binding_identifier(parseuse, vrai)
     }
     
-    lexème := parseuse.lexème_courant()
-    id := parse_binding_identifier(parseuse, vrai)
-
     initializer: *Expression
     si apparie(parseuse, GenreLexème.Égal) {
         parseuse.consomme()
         initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
     }
 
-    retourne crée_single_name_binding(parseuse, lexème, id, initializer)
+    retourne crée_binding_element(parseuse, lexème, expression, initializer)
 }
 
 parse_array_binding_pattern :: fonc (parseuse: *Parseuse) -> *ArrayBindingPattern
