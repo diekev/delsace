@@ -383,18 +383,21 @@ FunctionDeclaration :: struct {
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
     retourne résultat
 }
 
-sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
+    fonction := base comme *FunctionDeclaration
+    assert(!fonction.async)
     // 1. Return empty.
     retourne normal_completion(js_undefined)
 }
@@ -419,13 +422,14 @@ FunctionExpression :: struct {
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.sur_génération_code_binaire = function_expression_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
     retourne résultat
 }
 
@@ -433,6 +437,7 @@ crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *FunctionExpression
+    assert(!expression.async)
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_ordinary_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
@@ -449,12 +454,14 @@ FunctionBody :: struct {
     type = #type_de_cette_structure
 
     statement: *Statement
+    async: bool
 }
 
-crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *FunctionBody
+crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool) -> *FunctionBody
 {
     résultat := parseuse.crée_noeud(nul, FunctionBody)
     résultat.statement = statement
+    résultat.async = async
     retourne résultat
 }
 
@@ -6084,9 +6091,10 @@ ClassMethod :: struct {
     type = #type_de_cette_structure
 
     static: bool
+    async: bool
 }
 
-crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind) -> *ClassMethod
+crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool) -> *ClassMethod
 {
     résultat := parseuse.crée_noeud(lexème, ClassMethod)
     résultat.class_element_name = key
@@ -6094,6 +6102,7 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
     résultat.body = body
     résultat.kind = method_kind
     résultat.est_méthode = method_kind == MethodKind.Method
+    résultat.async = async
     retourne résultat
 }
 
@@ -6405,6 +6414,32 @@ crée_array_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, ele
     résultat := parseuse.crée_noeud(lexème, ArrayBindingPattern)
     résultat.elements = elements
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AwaitExpression
+ * \{ */
+
+AwaitExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_await_expression
+
+    expression: *Expression
+}
+
+crée_await_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *AwaitExpression
+{
+    résultat := parseuse.crée_noeud(lexème, AwaitExpression)
+    résultat.expression = expression
+    retourne résultat
+}
+
+sur_exécution_await_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution await non-implémenté")
 }
 
 /** \} */

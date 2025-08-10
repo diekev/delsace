@@ -404,7 +404,8 @@ est_lexème_instruction :: fonc (genre: GenreLexème) -> bool
         Switch,
         While,
         Do,
-        Debugger {
+        Debugger,
+        Async {
             retourne vrai
         }
         sinon {
@@ -507,7 +508,7 @@ initialise_données_lexèmes_pour_parsage :: fonc ()
     définis_données_précédence(GenreLexème.Typeof, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Void, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.Delete, 14, Associativité.Aucune)
-    // définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
+    définis_données_précédence(GenreLexème.Await, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreIncrement, 14, Associativité.Aucune)
     définis_données_précédence(GenreLexème.PreDecrement, 14, Associativité.Aucune)
 

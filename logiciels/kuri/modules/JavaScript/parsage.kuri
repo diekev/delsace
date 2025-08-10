@@ -28,7 +28,7 @@ parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol
             }
         }
         FunctionBody {
-            résultat = parse_function_body(*parseuse)
+            résultat = parse_function_body(*parseuse, faux)
         }
     }
 
@@ -50,6 +50,8 @@ Parseuse :: struct {
     parent: *Parseuse
 
     noeuds: [..]*NoeudSyntaxique
+
+    await_est_mot_clé: bool
 }
 
 crée_noeud :: fonc (parseuse: *Parseuse, lexème: *Lexème, $T: type_de_données) -> *T
@@ -210,7 +212,7 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
             retourne parse_class_declaration(parseuse, faux) comme *ClassDeclaration
         }
         Function {
-            retourne parse_function_declaration(parseuse)
+            retourne parse_function_declaration(parseuse, faux)
         }
         Return {
             retourne parse_return_statement(parseuse)
@@ -272,6 +274,16 @@ parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
                 parseuse.position = sauvegarde
             }
 
+            si apparie(parseuse, GenreLexème.Async) {
+                parseuse.consomme()
+
+                si !est_en_fin_de_ligne(parseuse, lexème) && parseuse.apparie(GenreLexème.Function) {
+                    retourne parse_function_declaration(parseuse, vrai)
+                }
+
+                parseuse.position = sauvegarde
+            }
+
             expression := parseuse.parse_expression(ParamètresParsageExpression())
             parseuse.consomme_point_virgule_potentiel()
             retourne crée_expression_statement(parseuse, lexème, expression)
@@ -313,7 +325,7 @@ parse_class_declaration :: fonc (parseuse: *Parseuse, pour_expression: bool) -> 
             parseuse.consomme()
 
             si apparie(parseuse, GenreLexème.AccoladeOuvrante) {
-                body := parse_function_body(parseuse)
+                body := parse_function_body(parseuse, faux)
                 static_block := crée_class_static_block(parseuse, lexème_static, body)
                 tableau_ajoute(*éléments, static_block)
                 continue
@@ -378,6 +390,8 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
     method_kind := MethodKind.Method
 
     class_element_name: *Expression
+    
+    async := faux
 
     si apparie(parseuse, GenreLexème.Get) {
         sauvegarde := parseuse.position
@@ -398,6 +412,18 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
         class_element_name = apparie_class_element_name(parseuse)
         si class_element_name {
             method_kind = MethodKind.Set
+        }
+        sinon {
+            parseuse.position = sauvegarde
+        }
+    }
+    sinon si apparie(parseuse, GenreLexème.Async) {
+        sauvegarde := parseuse.position
+        parseuse.consomme()
+
+        class_element_name = apparie_class_element_name(parseuse)
+        si class_element_name {
+            async = vrai
         }
         sinon {
             parseuse.position = sauvegarde
@@ -438,12 +464,12 @@ parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
         }
     }
 
-    body := parse_function_body(parseuse)
+    body := parse_function_body(parseuse, async)
 
-    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind)
+    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind, async)
 }
 
-parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
+parse_function_declaration :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionDeclaration
 {
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
@@ -454,12 +480,12 @@ parse_function_declaration :: fonc (parseuse: *Parseuse) -> *FunctionDeclaration
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_function_body(parseuse)
+    body := parse_function_body(parseuse, async)
 
-    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body)
+    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body, async)
 }
 
-parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
+parse_function_expression :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionExpression
 {
     lexème := parseuse.lexème_courant()
     parseuse.consomme()
@@ -470,18 +496,22 @@ parse_function_expression :: fonc (parseuse: *Parseuse) -> *FunctionExpression
     paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
     parseuse.consomme(GenreLexème.ParenthèseFermante)
 
-    body := parse_function_body(parseuse)
+    body := parse_function_body(parseuse, async)
 
-    retourne crée_function_expression(parseuse, lexème, id, paramètres, body)
+    retourne crée_function_expression(parseuse, lexème, id, paramètres, body, async)
 }
 
-parse_function_body :: fonc (parseuse: *Parseuse) -> *FunctionBody
+parse_function_body :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionBody
 {
+    ancien_await_est_mot_clé := parseuse.await_est_mot_clé
+    parseuse.await_est_mot_clé = async
+    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé
+
     statement := parse_statement(parseuse)
     si statement {
         statement.appartient_à_fonction = vrai
     }
-    retourne crée_function_body(parseuse, statement)
+    retourne crée_function_body(parseuse, statement, async)
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
@@ -1074,7 +1104,6 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne crée_this_expression(parseuse, lexème)
         }
         As,
-        Async,
         From,
         Get,
         Meta,
@@ -1083,6 +1112,15 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         Target,
         Identifiant {
             parseuse.consomme()
+            retourne crée_identifier(parseuse, lexème, lexème.texte)
+        }
+        Async {
+            parseuse.consomme()
+
+            si !est_en_fin_de_ligne(parseuse, lexème) && parseuse.apparie(GenreLexème.Function) {
+                retourne parse_function_expression(parseuse, vrai)
+            }
+
             retourne crée_identifier(parseuse, lexème, lexème.texte)
         }
         PrivateIdentifier {
@@ -1170,7 +1208,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                             rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
                         }
 
-                        body := parse_function_body(parseuse)
+                        body := parse_function_body(parseuse, faux)
 
                         méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind)
                         tableau_ajoute(*properties, méthode)
@@ -1216,7 +1254,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Const)
         }
         Function {
-            retourne parse_function_expression(parseuse)
+            retourne parse_function_expression(parseuse, faux)
         }
         Plus {
             parseuse.consomme()
@@ -1331,6 +1369,15 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             mémoire(lexème) = lexème_regex_literal
 
             retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+        }
+        Await {
+            parseuse.consomme()
+            saufsi parseuse.await_est_mot_clé {
+                retourne crée_identifier(parseuse, lexème, lexème.texte)
+            }
+
+            expression := parse_expression(parseuse, ParamètresParsageExpression())
+            retourne crée_await_expression(parseuse, lexème, expression)
         }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")
@@ -1577,7 +1624,7 @@ parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_
         retourne crée_identifier(parseuse, lexème, lexème.texte)
     }
 
-    si lexème.genre == GenreLexème.Await {
+    si lexème.genre == GenreLexème.Await && !parseuse.await_est_mot_clé {
         parseuse.consomme()
         retourne crée_identifier(parseuse, lexème, lexème.texte)
     }

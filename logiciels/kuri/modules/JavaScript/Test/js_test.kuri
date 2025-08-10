@@ -175,6 +175,7 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: CheminFichier) -
     nom_fichier := chemin.nom_fichier_avec_extension()
 
     à_ne_pas_exécuter := [
+        "async-function.js",
         "binding-patterns.js"
     ]
 

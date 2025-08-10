@@ -324,6 +324,8 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
     body := function_object.corps
 
     si body.type == FunctionBody {
+        function_body := body comme *FunctionBody
+        assert(!function_body.async)
         // FunctionBody : FunctionStatementList
         // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
         retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
