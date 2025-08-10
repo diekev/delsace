@@ -1308,6 +1308,30 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         Class {
             retourne parse_class_declaration(parseuse, vrai) comme *ClassExpression
         }
+        Slash {
+            /* Nous manquons de contexte lors du lexage initial, et ainsi certaines expression régulière
+             * peuvent ne pas être correctement détectées.
+             * Nous faisons un relexage à partir du lexème courant pour obtenir ladite expression régulière. */
+            lexeuse: Lexeuse
+            lexeuse.realm = parseuse.realm
+            initialise_lexeuse_depuis_source(lexeuse, parseuse.source_text)
+            lexeuse.début_source = lexème.texte.pointeur
+
+            lexème_regex_literal := lèxe_regex_littérale(lexeuse)
+
+            tantque !fini(parseuse) {
+                lexème_à_ignorer := parseuse.lexème_courant()
+                saufsi est_sous_chaine(lexème_regex_literal.texte, lexème_à_ignorer.texte) {
+                    arrête
+                }
+
+                parseuse.consomme()
+            }
+
+            mémoire(lexème) = lexème_regex_literal
+
+            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+        }
         sinon {
             parseuse.rapporte_erreur("Attendu une expression primaire")
         }
