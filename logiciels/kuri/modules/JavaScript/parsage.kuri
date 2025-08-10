@@ -174,18 +174,6 @@ apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
     retourne parseuse.lexème_courant().genre == genre_lexème
 }
 
-apparie_expression_secondaire :: fonc (parseuse: *Parseuse) -> bool #enligne
-{
-    si parseuse.fini() {
-        retourne faux
-    }
-    genre := parseuse.lexème_courant().genre
-    si données_lexèmes_pour_parsage[genre].drapeaux.EstExpressionSecondaire == vrai {
-        retourne vrai
-    }
-    retourne faux
-}
-
 parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 {
     script_body: *ScriptBody
@@ -986,8 +974,11 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
 {
     expression := parseuse.parse_expression_primaire()
 
-    tantque !parseuse.fini() && parseuse.apparie_expression_secondaire() && !apparie(parseuse, params.lexème_final) {
+    tantque !parseuse.fini() && !apparie(parseuse, params.lexème_final) {
         données := données_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
+        saufsi données.drapeaux.EstExpressionSecondaire {
+            arrête
+        }
 
         nouvelle_précédence := données.précédence
 
@@ -1003,7 +994,11 @@ parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpress
         nouveau_params.précédence = nouvelle_précédence
         nouveau_params.associativité = données.associativité
 
-        expression = parseuse.parse_expression_secondaire(expression, nouveau_params)
+        expression_secondaire := parseuse.parse_expression_secondaire(expression, nouveau_params)
+        saufsi expression_secondaire {
+            arrête
+        }
+        expression = expression_secondaire
     }
 
     retourne expression
@@ -1780,8 +1775,11 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             update := crée_update_expression(parseuse, lexème, gauche, operation)
 
             /* Les expressions de style var o = {x:i++,y:2} doivent s'arrêter à la virgule (qui est une expression secondaire). */
-            si parseuse.apparie_expression_secondaire() && !parseuse.apparie(params.lexème_final) {
-                retourne parseuse.parse_expression_secondaire(update, params)
+            si !parseuse.apparie(params.lexème_final) {
+                expression := parseuse.parse_expression_secondaire(update, params)
+                si expression {
+                    retourne expression
+                }
             }
 
             retourne update
@@ -1954,9 +1952,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
 
             retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé)
         }
-        sinon {
-            rapporte_erreur(parseuse, lexème, "expected a secondary expression\n")
-        }
+        sinon {}
     }
 
     retourne nul
