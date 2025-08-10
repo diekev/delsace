@@ -6,3 +6,8 @@ test("nous pouvons définir des méthodes async", function () {
         }
     }
 });
+
+test("nous pouvons déclarer des fonction arrow asyn", function () {
+    var e = async t => {
+    }
+});

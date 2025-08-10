@@ -478,14 +478,16 @@ ArrowFunction :: struct {
 
     params: [..]*Expression
     corps: *ConciseBody
+    async: bool
 }
 
-crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
+crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody, async: bool) -> *ArrowFunction
 {
     résultat := parseuse.crée_noeud(lexème, ArrowFunction)
     résultat.sur_génération_code_binaire = arrow_function_sur_code_binaire
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
     retourne résultat
 }
 
@@ -493,6 +495,7 @@ crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [.
 sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *ArrowFunction
+    assert(!expression.async)
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_arrow_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
@@ -511,13 +514,15 @@ ConciseBody :: struct {
 
     statement: *Statement
     code_binaire: *FluxDInstructions
+    async: bool
 }
 
-crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
+crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool) -> *ConciseBody
 {
     résultat := parseuse.crée_noeud(nul, ConciseBody)
     résultat.sur_génération_code_binaire = concise_body_sur_code_binaire
     résultat.statement = statement
+    résultat.async = async
     retourne résultat
 }
 

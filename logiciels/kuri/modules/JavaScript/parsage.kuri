@@ -1174,8 +1174,26 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         Async {
             parseuse.consomme()
 
-            si !est_en_fin_de_ligne(parseuse, lexème) && parseuse.apparie(GenreLexème.Function) {
-                retourne parse_function_expression(parseuse, vrai)
+            si !est_en_fin_de_ligne(parseuse, lexème) {
+                si parseuse.apparie(GenreLexème.Function) {
+                    retourne parse_function_expression(parseuse, vrai)
+                }
+
+                si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
+                    parseuse.consomme()
+                    arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
+                    parseuse.consomme(GenreLexème.ParenthèseFermante)
+                    retourne parse_arrow_function(parseuse, arguments, vrai)
+                }
+
+                sauvegarde := parseuse.position
+                id := parse_binding_identifier(parseuse, faux)
+                si id && parseuse.apparie(GenreLexème.Arrow) {
+                    retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(id), vrai)
+                }
+                sinon {
+                    parseuse.position = sauvegarde
+                }
             }
 
             retourne crée_identifier(parseuse, lexème, lexème.texte)
@@ -1974,30 +1992,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
             retourne crée_comma_expression(parseuse, lexème, gauche, droite)
         }
         Arrow {
-            parseuse.consomme()
-
-            droite: *Statement
-            si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-                droite = parseuse.parse_statement()
-            }
-            sinon {
-                /* Virgule car nous pouvons être dans une expression d'objet ou d'array. */
-                params = ParamètresParsageExpression()
-                params.lexème_final = GenreLexème.Virgule
-                expression := parse_expression(parseuse, params)
-                droite = crée_expression_statement(parseuse, lexème, expression)
-            }
-
-            si droite {
-                droite.appartient_à_fonction = vrai
-            }
-
-            // À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
-            // pour les paramètres.
-            arrow_params := aplatis_expression_et_détruit_virgules(gauche)
-
-            concise_body := parseuse.crée_concise_body(droite)
-            retourne crée_arrow_function(parseuse, lexème, arrow_params, concise_body)
+            retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(gauche), faux)
         }
         OptionalChaining {
             parseuse.consomme()
@@ -2039,6 +2034,37 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
     retourne nul
 }
 
+parse_arrow_function :: fonc (parseuse: *Parseuse, arrow_parameters: [..]*Expression, async: bool) -> *ArrowFunction
+{
+    ancien_await_est_mot_clé := parseuse.await_est_mot_clé
+    parseuse.await_est_mot_clé = async
+    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé
+
+    lexème := parseuse.lexème_courant()
+    parseuse.consomme()
+
+    droite: *Statement
+    si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+        droite = parseuse.parse_statement()
+    }
+    sinon {
+        /* Virgule car nous pouvons être dans une expression d'objet ou d'array. */
+        params := ParamètresParsageExpression()
+        params.lexème_final = GenreLexème.Virgule
+        expression := parse_expression(parseuse, params)
+        droite = crée_expression_statement(parseuse, lexème, expression)
+    }
+
+    si droite {
+        droite.appartient_à_fonction = vrai
+    }
+
+    concise_body := parseuse.crée_concise_body(droite, async)
+    retourne crée_arrow_function(parseuse, lexème, arrow_parameters, concise_body, async)
+}
+
+// À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
+// pour les paramètres.
 aplatis_expression_et_détruit_virgules :: fonc (expression: *Expression) -> [..]*Expression
 {
     résultat: [..]*Expression
