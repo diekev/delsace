@@ -125,23 +125,26 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
 
     crée_environnement_de_test(realm)
 
-    _ := exécute_script(realm, contenu, chemin)
+    si exécute_script(realm, contenu, chemin) {
+        prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
+        prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
 
-    prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
-    prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
+        prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
+        capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
 
-    prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
-    capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
+        pour capte_erreur.erreurs {
+            erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
+            erreur_captée.fichier = copie_chaine(chemin.chn)
+            erreur_captée.cas = it.cas
+            erreur_captée.message = it.message
+        }
 
-    pour capte_erreur.erreurs {
-        erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
-        erreur_captée.fichier = copie_chaine(chemin.chn)
-        erreur_captée.cas = it.cas
-        erreur_captée.message = it.message
+        stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
+        stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
     }
-
-    stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
-    stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
+    sinon {
+        stats.nombre_de_tests += 1
+    }
 }
 
 crée_environnement_de_test :: fonc (realm: *Realm)
