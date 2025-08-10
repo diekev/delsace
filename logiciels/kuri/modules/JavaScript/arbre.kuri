@@ -379,7 +379,6 @@ FunctionDeclaration :: struct {
     code_binaire: *FluxDInstructions
 
     generator := faux
-    expression := faux
     async := faux
 }
 
@@ -419,7 +418,6 @@ FunctionExpression :: struct {
     corps: *FunctionBody
 
     generator := faux
-    expression := faux
     async := faux
 }
 
