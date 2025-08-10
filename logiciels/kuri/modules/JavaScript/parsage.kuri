@@ -563,6 +563,15 @@ parse_object_binding_pattern :: fonc (parseuse: *Parseuse) -> *ObjectBindingPatt
     properties: [..]*Expression
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
+        si parseuse.apparie(GenreLexème.Spread) {
+            lexème_spread := parseuse.lexème_courant()
+            parseuse.consomme()
+            id := parse_binding_identifier(parseuse, vrai)
+            binding_rest_property := crée_spread_element(parseuse, lexème_spread, id)
+            tableau_ajoute(*properties, binding_rest_property)
+            continue
+        }
+
         property := parse_binding_property(parseuse)
         tableau_ajoute(*properties, property)
 
@@ -579,7 +588,7 @@ parse_object_binding_pattern :: fonc (parseuse: *Parseuse) -> *ObjectBindingPatt
 
 parse_binding_property :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    // À FAIRE : SingleNameBinding/BindingElement
+    lexème := parseuse.lexème_courant()
     id := parse_binding_identifier(parseuse, faux)
 
     saufsi id {
@@ -608,7 +617,13 @@ parse_binding_property :: fonc (parseuse: *Parseuse) -> *Expression
         retourne crée_binding_property(parseuse, lexème_double_point, id, expression)
     }
 
-    retourne id
+    initializer: *Expression
+    si apparie(parseuse, GenreLexème.Égal) {
+        parseuse.consomme()
+        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+    }
+
+    retourne crée_single_name_binding(parseuse, lexème, id, initializer)
 }
 
 parse_binding_element :: fonc (parseuse: *Parseuse) -> *Expression
@@ -621,11 +636,16 @@ parse_binding_element :: fonc (parseuse: *Parseuse) -> *Expression
         retourne parse_array_binding_pattern(parseuse)
     }
     
-    // SingleNameBinding
+    lexème := parseuse.lexème_courant()
     id := parse_binding_identifier(parseuse, vrai)
 
-    // À FAIRE : initializer
-    retourne id
+    initializer: *Expression
+    si apparie(parseuse, GenreLexème.Égal) {
+        parseuse.consomme()
+        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+    }
+
+    retourne crée_single_name_binding(parseuse, lexème, id, initializer)
 }
 
 parse_array_binding_pattern :: fonc (parseuse: *Parseuse) -> *ArrayBindingPattern
@@ -636,8 +656,42 @@ parse_array_binding_pattern :: fonc (parseuse: *Parseuse) -> *ArrayBindingPatter
     elements: [..]*Expression
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
-        id := parse_binding_identifier(parseuse, vrai)
-        tableau_ajoute(*elements, id)
+        si parseuse.apparie(GenreLexème.Virgule) {
+            parseuse.consomme()
+            tableau_ajoute(*elements, nul)
+            continue
+        }
+
+        si parseuse.apparie(GenreLexème.Spread) {
+            lexème_spread := parseuse.lexème_courant()
+            parseuse.consomme()
+            id := parse_binding_identifier(parseuse, faux)
+            si id {
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, id)
+                tableau_ajoute(*elements, binding_rest_property)
+                continue
+            }
+
+            si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
+                expression := parse_object_binding_pattern(parseuse)
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression)
+                tableau_ajoute(*elements, binding_rest_property)
+                continue
+            }
+
+            si parseuse.apparie(GenreLexème.CrochetOuvrant) {
+                expression := parse_array_binding_pattern(parseuse)
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression)
+                tableau_ajoute(*elements, binding_rest_property)
+                continue
+            }
+            
+            rapporte_erreur(parseuse, "expected a binding identifier or a binding pattern")
+            continue
+        }
+
+        binding_element := parse_binding_element(parseuse)
+        tableau_ajoute(*elements, binding_element)
 
         saufsi apparie(parseuse, GenreLexème.Virgule) {
             arrête

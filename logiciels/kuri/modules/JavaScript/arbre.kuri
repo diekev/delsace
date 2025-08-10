@@ -6399,6 +6399,28 @@ crée_binding_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom SingleNameBinding
+ * \{ */
+
+SingleNameBinding :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    binding_identifier: *Expression
+    initializer: *Expression
+}
+
+crée_single_name_binding :: fonc (parseuse: *Parseuse, lexème: *Lexème, binding_identifier: *Expression, initializer: *Expression) -> *SingleNameBinding
+{
+    résultat := parseuse.crée_noeud(lexème, SingleNameBinding)
+    résultat.binding_identifier = binding_identifier
+    résultat.initializer = initializer
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ArrayBindingPattern
  * \{ */
 
