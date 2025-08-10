@@ -1237,6 +1237,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     nom_membre: *Expression
                     method_kind := MethodKind.Method
 
+                    async := faux
                     si apparie(parseuse, GenreLexème.Get) {
                         sauvegarde := parseuse.position
                         parseuse.consomme()
@@ -1263,6 +1264,19 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                             parseuse.position = sauvegarde
                         }
                     }
+                    sinon si apparie(parseuse, GenreLexème.Async) {
+                        sauvegarde := parseuse.position
+                        parseuse.consomme()
+
+                        class_element_name := apparie_class_element_name(parseuse)
+                        si class_element_name {
+                            nom_membre = class_element_name
+                            async = vrai
+                        }
+                        sinon {
+                            parseuse.position = sauvegarde
+                        }
+                    }
 
                     // À FAIRE : ClassElementName, pour les méthodes
                     // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
@@ -1283,9 +1297,9 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                             rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
                         }
 
-                        body := parse_function_body(parseuse, faux)
+                        body := parse_function_body(parseuse, async)
 
-                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind)
+                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind, async)
                         tableau_ajoute(*properties, méthode)
                     }
                     sinon si parseuse.apparie(GenreLexème.DoublePoint) {

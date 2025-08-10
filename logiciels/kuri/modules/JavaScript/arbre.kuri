@@ -4948,10 +4948,11 @@ ObjectMethod :: struct {
     body: *FunctionBody
 
     est_méthode: bool
+    async: bool
     kind: MethodKind
 }
 
-crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind) -> *ObjectMethod
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind, async: bool) -> *ObjectMethod
 {
     résultat := parseuse.crée_noeud(lexème, ObjectMethod)
     résultat.class_element_name = class_element_name
@@ -4959,6 +4960,7 @@ crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_eleme
     résultat.body = body
     résultat.est_méthode = kind == MethodKind.Method
     résultat.kind = kind
+    résultat.async = async
     retourne résultat
 }
 
@@ -6096,7 +6098,6 @@ ClassMethod :: struct {
     type = #type_de_cette_structure
 
     static: bool
-    async: bool
 }
 
 crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool) -> *ClassMethod
