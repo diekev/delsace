@@ -1060,6 +1060,11 @@ possède_échappement :: fonc (chn: chaine) -> bool
 
 parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 {
+    si parseuse.fini() {
+        rapporte_erreur(parseuse, "expected a primary expression")
+        retourne nul
+    }
+
     lexème := parseuse.lexème_courant()
 
     discr lexème.genre {
