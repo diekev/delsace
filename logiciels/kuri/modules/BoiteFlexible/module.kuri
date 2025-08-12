@@ -1945,7 +1945,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 commande := base comme *CommandeDessineImage
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
-                peintre.dessine_image(*commande.image, rect, rect, RépétitionImage())
+                peintre.dessine_image(*commande.image, rect, rect, ParamètresRenduImage())
             }
             DESSINE_PROCÉDURAL {
                 commande := base comme *CommandeDessineProcédural
