@@ -856,6 +856,7 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
 
         si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
             applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
+            sur_molette_souris(emboiteuse, évènement.donne_clic_souris())
             retourne
         }
 
