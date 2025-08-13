@@ -1475,6 +1475,12 @@ void QT_window_show_minimized(struct QT_Window *window)
     CONVERTIS_ET_APPEL(window, showMinimized);
 }
 
+bool QT_window_is_visible(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->isVisible();
+}
+
 void QT_window_set_visible(struct QT_Window *window, bool oui_non)
 {
     CONVERTIS_ET_APPEL(window, setVisible, oui_non);
