@@ -1546,6 +1546,13 @@ void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags)
     qwindow->setFlags(donne_window_flags_depuis_ipa(flags));
 }
 
+void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon)
+{
+    VERS_QT(window);
+    VERS_QT(icon);
+    qwindow->setIcon(*qicon);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
