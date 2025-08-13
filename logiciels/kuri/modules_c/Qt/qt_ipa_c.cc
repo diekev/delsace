@@ -1475,6 +1475,11 @@ void QT_window_show_minimized(struct QT_Window *window)
     CONVERTIS_ET_APPEL(window, showMinimized);
 }
 
+void QT_window_set_visible(struct QT_Window *window, bool oui_non)
+{
+    CONVERTIS_ET_APPEL(window, setVisible, oui_non);
+}
+
 void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type)
 {
     auto qsurface_type = convertis_surface_type(surface_type);

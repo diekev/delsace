@@ -1472,6 +1472,7 @@ void QT_window_request_update(struct QT_Window *window);
 void QT_window_show(struct QT_Window *window);
 void QT_window_show_maximized(struct QT_Window *window);
 void QT_window_show_minimized(struct QT_Window *window);
+void QT_window_set_visible(struct QT_Window *window, bool oui_non);
 void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type);
 void QT_window_set_title(struct QT_Window *window, struct QT_Chaine title);
 void QT_window_resize(struct QT_Window *window, int width, int height);
