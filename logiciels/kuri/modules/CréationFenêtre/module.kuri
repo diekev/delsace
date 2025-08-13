@@ -57,6 +57,21 @@ possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
     retourne qt_possède_barre_de_titre_et_bordures(fenêtre)
 }
 
+minimise :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_minimise(fenêtre)
+}
+
+maximise :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_maximise(fenêtre)
+}
+
+ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_ferme(fenêtre)
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -185,6 +200,27 @@ qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
     assert(fenêtre.rappels_window.window != nul)
     flags := QT_window_flags(fenêtre.rappels_window.window)
     retourne (flags & QT_Window_Flags.FramelessWindowHint) == (0 comme QT_Window_Flags)
+}
+
+qt_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_show_minimized(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_show_maximized(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_close(fenêtre.rappels_window.window)
 }
 
 RappelsWindow :: struct {
