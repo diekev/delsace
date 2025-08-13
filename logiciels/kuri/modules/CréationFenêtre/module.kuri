@@ -72,6 +72,16 @@ ferme :: fonc (fenêtre: TypeFenêtre)
     qt_fenêtre_ferme(fenêtre)
 }
 
+est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    retourne qt_fenêtre_est_visible(fenêtre)
+}
+
+définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    qt_fenêtre_définis_visible(fenêtre, oui_non)
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -221,6 +231,18 @@ qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
     assert(fenêtre.rappels_window != nul)
     assert(fenêtre.rappels_window.window != nul)
     QT_window_close(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne QT_window_is_visible(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
 }
 
 RappelsWindow :: struct {
