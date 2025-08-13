@@ -1559,6 +1559,18 @@ void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon)
     qwindow->setIcon(*qicon);
 }
 
+double QT_window_opacity(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->opacity();
+}
+
+void QT_window_set_opacity(struct QT_Window *window, double opacity)
+{
+    VERS_QT(window);
+    qwindow->setOpacity(opacity);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

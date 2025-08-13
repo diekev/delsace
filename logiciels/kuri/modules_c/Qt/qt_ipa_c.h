@@ -1484,6 +1484,8 @@ void QT_window_set_position(struct QT_Window *window, int x, int y);
 enum QT_Window_Flags QT_window_flags(struct QT_Window *window);
 void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags);
 void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon);
+double QT_window_opacity(struct QT_Window *window);
+void QT_window_set_opacity(struct QT_Window *window, double opacity);
 
 /** \} */
 
