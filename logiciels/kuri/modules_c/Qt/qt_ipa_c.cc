@@ -1445,6 +1445,11 @@ void QT_window_create(struct QT_Window *window)
     CONVERTIS_ET_APPEL(window, create);
 }
 
+void QT_window_close(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, close);
+}
+
 void QT_window_destroy(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, destroy);

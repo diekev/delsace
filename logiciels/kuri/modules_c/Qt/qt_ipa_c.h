@@ -1466,6 +1466,7 @@ void QT_window_detruit(struct QT_Window *window);
 struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
 
 void QT_window_create(struct QT_Window *window);
+void QT_window_close(struct QT_Window *window);
 void QT_window_destroy(struct QT_Window *window);
 void QT_window_request_update(struct QT_Window *window);
 void QT_window_show(struct QT_Window *window);
