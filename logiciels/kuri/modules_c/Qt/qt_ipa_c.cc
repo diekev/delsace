@@ -1510,6 +1510,32 @@ void QT_window_set_position(struct QT_Window *window, int x, int y)
     qwindow->setPosition(x, y);
 }
 
+static QT_Window_Flags donne_window_flags_depuis_qt(Qt::WindowFlags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_WINDOW_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
+    return QT_Window_Flags(résultat);
+}
+
+static Qt::WindowFlags donne_window_flags_depuis_ipa(QT_Window_Flags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_WINDOW_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
+    return Qt::WindowFlags(résultat);
+}
+
+enum QT_Window_Flags QT_window_flags(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return donne_window_flags_depuis_qt(qwindow->flags());
+}
+
+void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags)
+{
+    VERS_QT(window);
+    qwindow->setFlags(donne_window_flags_depuis_ipa(flags));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
