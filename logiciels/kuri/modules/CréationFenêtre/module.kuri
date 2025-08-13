@@ -82,6 +82,16 @@ définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
     qt_fenêtre_définis_visible(fenêtre, oui_non)
 }
 
+donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+{
+    retourne qt_fenêtre_donne_opacité(fenêtre)
+}
+
+définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+{
+    qt_fenêtre_définis_opacité(fenêtre, opacité)
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -243,6 +253,18 @@ qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
     QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
+}
+
+qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne QT_window_opacity(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+{
+    QT_window_set_opacity(fenêtre.rappels_window.window, opacité)
 }
 
 RappelsWindow :: struct {
