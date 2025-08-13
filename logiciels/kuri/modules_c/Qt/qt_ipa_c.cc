@@ -1903,6 +1903,57 @@ int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_TabletEvent
+ * \{ */
+
+void QT_tablet_event_donne_position(QT_TabletEvent *event, QT_Position *r_position)
+{
+    auto qevent = vers_qt(event);
+    if (r_position) {
+        r_position->x = int(qevent->position().x());
+        r_position->y = int(qevent->position().y());
+    }
+}
+
+double QT_tablet_event_pressure(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->pressure();
+}
+
+double QT_tablet_event_rotation(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->rotation();
+}
+
+double QT_tablet_event_tangential_pressure(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->tangentialPressure();
+}
+
+double QT_tablet_event_xtilt(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->xTilt();
+}
+
+double QT_tablet_event_ytilt(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->yTilt();
+}
+
+double QT_tablet_event_z(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->z();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_KeyEvent
  * \{ */
 

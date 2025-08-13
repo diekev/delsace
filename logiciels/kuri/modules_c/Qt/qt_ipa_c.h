@@ -427,7 +427,8 @@ union QT_Generic_Layout {
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
     O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
-    O(QCloseEvent, QT_CloseEvent, close_event)
+    O(QCloseEvent, QT_CloseEvent, close_event)                                                    \
+    O(QTabletEvent, QT_TabletEvent, tablet_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -1841,6 +1842,20 @@ enum QT_MouseEventSource QT_mouse_event_source(struct QT_MouseEvent *event);
 
 void QT_wheel_event_donne_position(struct QT_WheelEvent *event, struct QT_Position *r_position);
 int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TabletEvent
+ * \{ */
+
+void QT_tablet_event_donne_position(struct QT_TabletEvent *event, struct QT_Position *r_position);
+double QT_tablet_event_pressure(struct QT_TabletEvent *event);
+double QT_tablet_event_rotation(struct QT_TabletEvent *event);
+double QT_tablet_event_tangential_pressure(struct QT_TabletEvent *event);
+double QT_tablet_event_xtilt(struct QT_TabletEvent *event);
+double QT_tablet_event_ytilt(struct QT_TabletEvent *event);
+double QT_tablet_event_z(struct QT_TabletEvent *event);
 
 /** \} */
 
