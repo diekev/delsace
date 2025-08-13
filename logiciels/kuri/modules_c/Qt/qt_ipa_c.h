@@ -1808,6 +1808,22 @@ void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
 enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MouseEventSource
+ * \{ */
+
+/* À FAIRE : implémente tous les cas. */
+#define ENUMERE_MOUSE_EVENT_SOURCE(O)                                                             \
+    O(QT_MOUSEEVENTSOURCE_NOT_SYNTHESIZED, Qt::MouseEventNotSynthesized)                          \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_SYSTEM, Qt::MouseEventSynthesizedBySystem)               \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_QT, Qt::MouseEventSynthesizedByQt)                       \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_APPLICATION, Qt::MouseEventSynthesizedByApplication)
+
+enum QT_MouseEventSource { ENUMERE_MOUSE_EVENT_SOURCE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \name QT_MouseEvent
  * \{ */
@@ -1815,6 +1831,7 @@ enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 void QT_mouse_event_donne_position(struct QT_MouseEvent *event, struct QT_Position *r_position);
 enum QT_MouseButton QT_mouse_event_donne_bouton(struct QT_MouseEvent *event);
 enum QT_MouseButton QT_mouse_event_donne_boutons(struct QT_MouseEvent *event);
+enum QT_MouseEventSource QT_mouse_event_source(struct QT_MouseEvent *event);
 
 /** \} */
 

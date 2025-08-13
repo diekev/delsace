@@ -1867,6 +1867,18 @@ QT_MouseButton QT_mouse_event_donne_boutons(QT_MouseEvent *event)
     }
 }
 
+enum QT_MouseEventSource QT_mouse_event_source(struct QT_MouseEvent *event)
+{
+    auto qevent = vers_qt(event);
+    switch (qevent->source()) {
+        ENUMERE_MOUSE_EVENT_SOURCE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+        default:
+        {
+            return QT_MOUSEEVENTSOURCE_NOT_SYNTHESIZED;
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
