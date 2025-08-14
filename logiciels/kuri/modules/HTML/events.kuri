@@ -317,27 +317,6 @@ table_virtuelle_mouse_event := TableVirtuellePlatformObject(
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Callbacks
- * https://webidl.spec.whatwg.org/#idl-callback-interface
- * \{ */
-
-CallbackType :: struct {
-    empl cellule: JS.Cellule
-
-    object: *JS.Object
-    callback_context: *EnvironmentSettings
-}
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#incumbent-settings-object */
-donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
-{
-    // À FAIRE
-    retourne nul
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom EventListener
  * https://dom.spec.whatwg.org/#callbackdef-eventlistener
  * \{ */
@@ -1078,25 +1057,6 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 
     // 3. Return found.
     retourne found
-}
-
-/* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
-call_a_user_object_operation :: fonc (value: JS.Valeur, args: []JS.Valeur, this_arg: JS.Valeur) -> JS.Valeur
-{
-    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-
-    target := JS.donne_objet(this_arg) comme *EventTarget
-
-    realm := target.realm
-    settings := JS.donne_données(realm.host_defined, EnvironmentSettings)
-
-    prepare_to_run_script(settings)
-
-    evaluation_status := JS.call(JS.donne_mv(realm), value, this_arg, args)
-
-    cleanup_after_running_script(settings)
-
-    retourne evaluation_status
 }
 
 /** \} */

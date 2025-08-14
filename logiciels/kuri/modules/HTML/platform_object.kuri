@@ -1,60 +1,5 @@
 
 /* ------------------------------------------------------------------------- */
-/** \nom PlatformObject
- * https://webidl.spec.whatwg.org/#dfn-platform-object
- * https://webidl.spec.whatwg.org/#es-platform-objects
- * \{ */
-
-#portée_module
-
-TableVirtuellePlatformObject :: struct {
-    empl object: JS.TableVirtuelleObject
-
-    sur_destruction = platform_object_sur_destruction
-}
-
-platform_object_sur_destruction :: fonc (base: *JS.Cellule)
-{
-    JS.sur_destruction_objet(base)
-}
-
-#portée_export
-
-PlatformObject :: struct {
-    empl objet: JS.Object
-    realm: *JS.Realm
-}
-
-donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
-{
-    retourne JS.donne_tas_de_mémoire(object)
-}
-
-crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
-{
-    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
-}
-
-crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
-{
-    résultat := JS.alloue(tas_de_mémoire, T)
-    résultat.realm = realm
-    définis_prototype(résultat, T)
-    retourne résultat
-}
-
-/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
-is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
-{
-    // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
-    current := donne_current_settings_object(object)
-    relevant := donne_relevant_settings_object(object)
-    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin())
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom 8.1.3.3.3 Current
  * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
  * \{ */
@@ -199,6 +144,13 @@ donne_cross_origin_isolated_capability :: fonc (environment: *EnvironmentSetting
 donne_time_origin :: fonc (environment: *EnvironmentSettings) -> r64
 {
     retourne environment.sur_donne_time_origin(environment)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#incumbent-settings-object */
+donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
+{
+    // À FAIRE
+    retourne nul
 }
 
 /** \} */
