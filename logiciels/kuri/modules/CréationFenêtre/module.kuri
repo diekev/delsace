@@ -3,9 +3,9 @@ importe MIME
 importe OpenGL
 importe Périphériques
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0) -> TypeFenêtre
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai) -> TypeFenêtre
 {
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran)
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
 }
 
 ajourne_évènements_fenêtre :: fonc () -> []Évènement
@@ -47,6 +47,51 @@ donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
     retourne fenêtre.rappels_window.window
 }
 
+active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+}
+
+possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    retourne qt_possède_barre_de_titre_et_bordures(fenêtre)
+}
+
+minimise :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_minimise(fenêtre)
+}
+
+maximise :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_maximise(fenêtre)
+}
+
+ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    qt_fenêtre_ferme(fenêtre)
+}
+
+est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    retourne qt_fenêtre_est_visible(fenêtre)
+}
+
+définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    qt_fenêtre_définis_visible(fenêtre, oui_non)
+}
+
+donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+{
+    retourne qt_fenêtre_donne_opacité(fenêtre)
+}
+
+définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+{
+    qt_fenêtre_définis_opacité(fenêtre, opacité)
+}
+
 TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -62,7 +107,7 @@ __application_qt: *QT_Application
 __taille_arguments_qt: z32 = ---
 __rappels_window: RappelsWindow = ---
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool, index_écran: z32) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
 {
     assert(__application_qt == nul)
 
@@ -78,6 +123,8 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
     si titre {
         QT_window_set_title(window, vers_qt(titre))
     }
+
+    active_barre_de_titre_et_bordures(window, avec_barre_de_titre_et_bordures)
 
     si index_écran > 0 && index_écran < QT_application_screen_count() {
         rect: QT_Rect
@@ -144,6 +191,80 @@ qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystèm
     assert(fenêtre.rappels_window != nul)
     assert(fenêtre.rappels_window.window != nul)
     QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
+}
+
+qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    active_barre_de_titre_et_bordures(fenêtre.rappels_window.window, flags)
+}
+
+active_barre_de_titre_et_bordures :: fonc (window: *QT_Window, oui_non: bool)
+{
+    flags := QT_window_flags(window)
+
+    si oui_non {
+        flags &= ~QT_Window_Flags.FramelessWindowHint
+    }
+    sinon {
+        flags |= QT_Window_Flags.FramelessWindowHint
+    }
+
+    QT_window_set_flags(window, flags)
+}
+
+qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    flags := QT_window_flags(fenêtre.rappels_window.window)
+    retourne (flags & QT_Window_Flags.FramelessWindowHint) == (0 comme QT_Window_Flags)
+}
+
+qt_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_show_minimized(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_show_maximized(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    QT_window_close(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne QT_window_is_visible(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+{
+    QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
+}
+
+qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+    retourne QT_window_opacity(fenêtre.rappels_window.window)
+}
+
+qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+{
+    QT_window_set_opacity(fenêtre.rappels_window.window, opacité)
 }
 
 RappelsWindow :: struct {
