@@ -324,12 +324,17 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
     body := function_object.corps
 
     si body.type == FunctionBody {
+        function_body := body comme *FunctionBody
+        assert(!function_body.async)
+        assert(!function_body.generator)
         // FunctionBody : FunctionStatementList
         // 1. Return ? EvaluateFunctionBody of FunctionBody with arguments functionObject and argumentsList.
         retourne evaluate_function_body(interpréteuse, function_object, arguments_list)
     }
 
     si body.type == ConciseBody {
+        concise_body := body comme *ConciseBody
+        assert(!concise_body.async)
         // ConciseBody : ExpressionBody
         // 1. Return ? EvaluateConciseBody of ConciseBody with arguments functionObject and argumentsList.
         retourne evaluate_concise_body(interpréteuse, function_object, arguments_list)

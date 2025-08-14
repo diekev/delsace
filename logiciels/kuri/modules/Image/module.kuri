@@ -941,6 +941,22 @@ RépétitionImage :: struct {
     y: GenreRépétitionImage
 }
 
+GenreÉchantillonnageImage :: énum n8 {
+    Linéaire
+    Prochain
+}
+
+/* Définis la manière d'échantillonner une image pour la minification ou la magnification. */
+ÉchantillonnageImage :: struct {
+    pour_minification: GenreÉchantillonnageImage
+    pour_magnification: GenreÉchantillonnageImage
+}
+
+ParamètresRenduImage :: struct {
+    répétition: RépétitionImage
+    échantillonnage: ÉchantillonnageImage
+}
+
 /** \} */
 
 /*

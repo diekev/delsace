@@ -37,6 +37,7 @@ charge "parsage_format_url"
 charge "pilote_client"
 charge "pré_exécutable"
 charge "routage"
+charge "simple_serveuse"
 charge "types"
 
 ServeuseHTTP :: struct {

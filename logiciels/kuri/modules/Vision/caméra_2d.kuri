@@ -141,7 +141,9 @@ centre_sur_image :: fonc (empl caméra: *Caméra2D, largeur_image: z32, hauteur_
     centre_y_caméra := (hauteur / 2) comme r32
 
     si zoom != 0.0 {
-        définis_position(caméra, centre_x_image - centre_x_caméra / zoom, centre_y_image - centre_y_caméra / zoom)
+        dx := centre_x_image - centre_x_caméra / zoom
+        dy := centre_y_image - centre_y_caméra / zoom
+        définis_position(caméra, dx, dy)
     }
 }
 

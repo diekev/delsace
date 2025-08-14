@@ -25,3 +25,12 @@ test("template-literal avec substitution", function () {
     const s = `Quinze est ${a + b} et non ${2 * a + b}.`
     vérifie_égalité(s, "Quinze est 15 et non 20.");
 });
+
+test("template-literal avec objet", function () {
+    function passeObjet(o) {
+        return o.value.toString();
+    }
+
+    const s = `${passeObjet({ value: 53 })}%`;
+    vérifie_égalité(s, "53%");
+});

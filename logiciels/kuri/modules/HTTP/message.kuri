@@ -278,6 +278,7 @@ crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuH
     message.version = "HTTP/1.1"
     message.contenu = contenu.contenu
     ajoute_entête(*message, "Content-Type", contenu.type)
+    ajoute_entête(*message, "Content-Length", imprime_chaine("%", contenu.contenu.taille))
     message.code_état = code_état
 
     retourne message

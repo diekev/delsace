@@ -63,6 +63,8 @@ ajoute_entête :: fonc (données_message: &DonnéesMessage, nom: PositionChaine,
 // ----------------------------------------------------
 
 RésultatParsage :: énum {
+    /* Nous n'avons pas commencé à parser les données. */
+    NON_COMMENCÉ
     /* Le message put être parsé, en incluant son corps. */
     TERMINÉ
     /* L'état de parsage courant à réussi. */

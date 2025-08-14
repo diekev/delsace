@@ -1445,6 +1445,11 @@ void QT_window_create(struct QT_Window *window)
     CONVERTIS_ET_APPEL(window, create);
 }
 
+void QT_window_close(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, close);
+}
+
 void QT_window_destroy(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, destroy);
@@ -1468,6 +1473,17 @@ void QT_window_show_maximized(struct QT_Window *window)
 void QT_window_show_minimized(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, showMinimized);
+}
+
+bool QT_window_is_visible(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->isVisible();
+}
+
+void QT_window_set_visible(struct QT_Window *window, bool oui_non)
+{
+    CONVERTIS_ET_APPEL(window, setVisible, oui_non);
 }
 
 void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type)
@@ -1508,6 +1524,51 @@ void QT_window_set_position(struct QT_Window *window, int x, int y)
 {
     VERS_QT(window);
     qwindow->setPosition(x, y);
+}
+
+static QT_Window_Flags donne_window_flags_depuis_qt(Qt::WindowFlags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_WINDOW_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_QT_VERS_IPA)
+    return QT_Window_Flags(résultat);
+}
+
+static Qt::WindowFlags donne_window_flags_depuis_ipa(QT_Window_Flags drapeaux)
+{
+    int résultat = 0;
+    ENUMERE_WINDOW_FLAGS(ENUMERE_TRANSLATION_ENUM_DRAPEAU_IPA_VERS_QT)
+    return Qt::WindowFlags(résultat);
+}
+
+enum QT_Window_Flags QT_window_flags(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return donne_window_flags_depuis_qt(qwindow->flags());
+}
+
+void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags)
+{
+    VERS_QT(window);
+    qwindow->setFlags(donne_window_flags_depuis_ipa(flags));
+}
+
+void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon)
+{
+    VERS_QT(window);
+    VERS_QT(icon);
+    qwindow->setIcon(*qicon);
+}
+
+double QT_window_opacity(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return qwindow->opacity();
+}
+
+void QT_window_set_opacity(struct QT_Window *window, double opacity)
+{
+    VERS_QT(window);
+    qwindow->setOpacity(opacity);
 }
 
 /** \} */
@@ -1867,6 +1928,18 @@ QT_MouseButton QT_mouse_event_donne_boutons(QT_MouseEvent *event)
     }
 }
 
+enum QT_MouseEventSource QT_mouse_event_source(struct QT_MouseEvent *event)
+{
+    auto qevent = vers_qt(event);
+    switch (qevent->source()) {
+        ENUMERE_MOUSE_EVENT_SOURCE(ENUMERE_TRANSLATION_ENUM_QT_VERS_IPA)
+        default:
+        {
+            return QT_MOUSEEVENTSOURCE_NOT_SYNTHESIZED;
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1886,6 +1959,57 @@ int QT_wheel_event_donne_delta(QT_WheelEvent *event)
 {
     auto qevent = vers_qt(event);
     return qevent->angleDelta().y();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TabletEvent
+ * \{ */
+
+void QT_tablet_event_donne_position(QT_TabletEvent *event, QT_Position *r_position)
+{
+    auto qevent = vers_qt(event);
+    if (r_position) {
+        r_position->x = int(qevent->position().x());
+        r_position->y = int(qevent->position().y());
+    }
+}
+
+double QT_tablet_event_pressure(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->pressure();
+}
+
+double QT_tablet_event_rotation(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->rotation();
+}
+
+double QT_tablet_event_tangential_pressure(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->tangentialPressure();
+}
+
+double QT_tablet_event_xtilt(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->xTilt();
+}
+
+double QT_tablet_event_ytilt(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->yTilt();
+}
+
+double QT_tablet_event_z(QT_TabletEvent *event)
+{
+    VERS_QT(event);
+    return qevent->z();
 }
 
 /** \} */

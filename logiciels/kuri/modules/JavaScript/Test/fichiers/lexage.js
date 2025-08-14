@@ -29,3 +29,11 @@ test("lexage de /*/*/ (/ commenté)", function () {
     const code = 47/*/*/;
     vérifie_égalité(code, 47);
 });
+
+test("lexage de -->", function () {
+    var x = 0;
+    for (var u=10;u-->0;) {
+        x += u
+    }
+    vérifie_égalité(x, 45);
+});

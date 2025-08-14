@@ -156,21 +156,21 @@ CommandeDessineImage :: struct {
 
     image_data: NouvelleImage
     rect_image: RectanglePosDim(r32)
-    répétition: RépétitionImage
+    paramètres: ParamètresRenduImage
 }
 
 dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32))
 {
-    dessine_image(commandes, image_data, rect_image, rect_image, RépétitionImage())
+    dessine_image(commandes, image_data, rect_image, rect_image, ParamètresRenduImage())
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), répétition: RépétitionImage)
+dessine_image :: fonc (commandes: *CommandesDeRendu, image_data: NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage)
 {
     résultat := crée_commande(commandes, CommandeDessineImage)
     résultat.image_data = image_data
     résultat.rect_image = rect_image
     résultat.rect = rect
-    résultat.répétition = répétition
+    résultat.paramètres = paramètres
 }
 
 CommandeDessineImageTampon :: struct {
@@ -1095,9 +1095,9 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
 
     background_repeat := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).donne_background_repeat()
     // imprime("background_repeat : %\n", background_repeat)
-    répétition: RépétitionImage
-    répétition.x = convertis_genre_répétition_image(background_repeat.horizontal)
-    répétition.y = convertis_genre_répétition_image(background_repeat.vertical)
+    paramètres: ParamètresRenduImage
+    paramètres.répétition.x = convertis_genre_répétition_image(background_repeat.horizontal)
+    paramètres.répétition.y = convertis_genre_répétition_image(background_repeat.vertical)
 
     image_data := opt_image_data.Quelque
     /* À FAIRE : background-clip */
@@ -1119,7 +1119,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
 
     rect = ctx.donne_rectangle_corrigé(rect)
     rect_image = ctx.donne_rectangle_corrigé(rect_image)
-    commandes.dessine_image(image_data, rect_image, rect, répétition)
+    commandes.dessine_image(image_data, rect_image, rect, paramètres)
 }
 
 dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, box: *Box)
