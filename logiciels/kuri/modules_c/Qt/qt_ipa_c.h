@@ -427,7 +427,8 @@ union QT_Generic_Layout {
     O(QMouseEvent, QT_MouseEvent, mouse_event)                                                    \
     O(QResizeEvent, QT_ResizeEvent, resize_event)                                                 \
     O(QWheelEvent, QT_WheelEvent, wheel_event)                                                    \
-    O(QCloseEvent, QT_CloseEvent, close_event)
+    O(QCloseEvent, QT_CloseEvent, close_event)                                                    \
+    O(QTabletEvent, QT_TabletEvent, tablet_event)
 
 #define PRODECLARE_TYPES_EVENTS(nom_qt, nom_classe, nom_union) struct nom_classe;
 ENUMERE_TYPES_EVENTS(PRODECLARE_TYPES_EVENTS)
@@ -1399,6 +1400,58 @@ void QT_condition_notify_all(struct QT_WaitCondition *cond);
 
 enum QT_Surface_Type { ENUMERE_SURFACE_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
 
+#define ENUMERE_WINDOW_FLAGS(O)                                                                   \
+    O(QT_WINDOW_FLAGS_Widget, Qt::Widget, 0x00000000)                                             \
+    O(QT_WINDOW_FLAGS_Window, Qt::Window, 0x00000001)                                             \
+    O(QT_WINDOW_FLAGS_Dialog, Qt::Dialog, 0x00000002 | QT_WINDOW_FLAGS_Window)                    \
+    O(QT_WINDOW_FLAGS_Sheet, Qt::Sheet, 0x00000004 | QT_WINDOW_FLAGS_Window)                      \
+    O(QT_WINDOW_FLAGS_Drawer, Qt::Drawer, QT_WINDOW_FLAGS_Sheet | QT_WINDOW_FLAGS_Dialog)         \
+    O(QT_WINDOW_FLAGS_Popup, Qt::Popup, 0x00000008 | QT_WINDOW_FLAGS_Window)                      \
+    O(QT_WINDOW_FLAGS_Tool, Qt::Tool, QT_WINDOW_FLAGS_Popup | QT_WINDOW_FLAGS_Dialog)             \
+    O(QT_WINDOW_FLAGS_ToolTip, Qt::ToolTip, QT_WINDOW_FLAGS_Popup | QT_WINDOW_FLAGS_Sheet)        \
+    O(QT_WINDOW_FLAGS_SplashScreen,                                                               \
+      Qt::SplashScreen,                                                                           \
+      QT_WINDOW_FLAGS_ToolTip | QT_WINDOW_FLAGS_Dialog)                                           \
+    O(QT_WINDOW_FLAGS_Desktop, Qt::Desktop, 0x00000010 | QT_WINDOW_FLAGS_Window)                  \
+    O(QT_WINDOW_FLAGS_SubWindow, Qt::SubWindow, 0x00000012)                                       \
+    O(QT_WINDOW_FLAGS_ForeignWindow, Qt::ForeignWindow, 0x00000020 | QT_WINDOW_FLAGS_Window)      \
+    O(QT_WINDOW_FLAGS_CoverWindow, Qt::CoverWindow, 0x00000040 | QT_WINDOW_FLAGS_Window)          \
+    O(QT_WINDOW_FLAGS_WindowType_Mask, Qt::WindowType_Mask, 0x000000ff)                           \
+    O(QT_WINDOW_FLAGS_MSWindowsFixedSizeDialogHint, Qt::MSWindowsFixedSizeDialogHint, 0x00000100) \
+    O(QT_WINDOW_FLAGS_MSWindowsOwnDC, Qt::MSWindowsOwnDC, 0x00000200)                             \
+    O(QT_WINDOW_FLAGS_BypassWindowManagerHint, Qt::BypassWindowManagerHint, 0x00000400)           \
+    O(QT_WINDOW_FLAGS_X11BypassWindowManagerHint,                                                 \
+      Qt::X11BypassWindowManagerHint,                                                             \
+      QT_WINDOW_FLAGS_BypassWindowManagerHint)                                                    \
+    O(QT_WINDOW_FLAGS_FramelessWindowHint, Qt::FramelessWindowHint, 0x00000800)                   \
+    O(QT_WINDOW_FLAGS_WindowTitleHint, Qt::WindowTitleHint, 0x00001000)                           \
+    O(QT_WINDOW_FLAGS_WindowSystemMenuHint, Qt::WindowSystemMenuHint, 0x00002000)                 \
+    O(QT_WINDOW_FLAGS_WindowMinimizeButtonHint, Qt::WindowMinimizeButtonHint, 0x00004000)         \
+    O(QT_WINDOW_FLAGS_WindowMaximizeButtonHint, Qt::WindowMaximizeButtonHint, 0x00008000)         \
+    O(QT_WINDOW_FLAGS_WindowMinMaxButtonsHint,                                                    \
+      Qt::WindowMinMaxButtonsHint,                                                                \
+      QT_WINDOW_FLAGS_WindowMinimizeButtonHint | QT_WINDOW_FLAGS_WindowMaximizeButtonHint)        \
+    O(QT_WINDOW_FLAGS_WindowContextHelpButtonHint, Qt::WindowContextHelpButtonHint, 0x00010000)   \
+    O(QT_WINDOW_FLAGS_WindowShadeButtonHint, Qt::WindowShadeButtonHint, 0x00020000)               \
+    O(QT_WINDOW_FLAGS_WindowStaysOnTopHint, Qt::WindowStaysOnTopHint, 0x00040000)                 \
+    O(QT_WINDOW_FLAGS_WindowTransparentForInput, Qt::WindowTransparentForInput, 0x00080000)       \
+    O(QT_WINDOW_FLAGS_WindowOverridesSystemGestures,                                              \
+      Qt::WindowOverridesSystemGestures,                                                          \
+      0x00100000)                                                                                 \
+    O(QT_WINDOW_FLAGS_WindowDoesNotAcceptFocus, Qt::WindowDoesNotAcceptFocus, 0x00200000)         \
+    O(QT_WINDOW_FLAGS_MaximizeUsingFullscreenGeometryHint,                                        \
+      Qt::MaximizeUsingFullscreenGeometryHint,                                                    \
+      0x00400000)                                                                                 \
+    O(QT_WINDOW_FLAGS_CustomizeWindowHint, Qt::CustomizeWindowHint, 0x02000000)                   \
+    O(QT_WINDOW_FLAGS_WindowStaysOnBottomHint, Qt::WindowStaysOnBottomHint, 0x04000000)           \
+    O(QT_WINDOW_FLAGS_WindowCloseButtonHint, Qt::WindowCloseButtonHint, 0x08000000)               \
+    O(QT_WINDOW_FLAGS_MacWindowToolBarButtonHint, Qt::MacWindowToolBarButtonHint, 0x10000000)     \
+    O(QT_WINDOW_FLAGS_BypassGraphicsProxyWidget, Qt::BypassGraphicsProxyWidget, 0x20000000)       \
+    O(QT_WINDOW_FLAGS_NoDropShadowWindowHint, Qt::NoDropShadowWindowHint, 0x40000000)             \
+    O(QT_WINDOW_FLAGS_WindowFullscreenButtonHint, Qt::WindowFullscreenButtonHint, 0x80000000)
+
+enum QT_Window_Flags { ENUMERE_WINDOW_FLAGS(ENUMERE_DECLARATION_ENUM_DRAPEAU_IPA) };
+
 struct QT_Rappels_Window {
     void (*sur_creation)(struct QT_Rappels_Window *);
     bool (*sur_evenement)(struct QT_Rappels_Window *, union QT_Generic_Event);
@@ -1413,11 +1466,14 @@ void QT_window_detruit(struct QT_Window *window);
 struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
 
 void QT_window_create(struct QT_Window *window);
+void QT_window_close(struct QT_Window *window);
 void QT_window_destroy(struct QT_Window *window);
 void QT_window_request_update(struct QT_Window *window);
 void QT_window_show(struct QT_Window *window);
 void QT_window_show_maximized(struct QT_Window *window);
 void QT_window_show_minimized(struct QT_Window *window);
+bool QT_window_is_visible(struct QT_Window *window);
+void QT_window_set_visible(struct QT_Window *window, bool oui_non);
 void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type);
 void QT_window_set_title(struct QT_Window *window, struct QT_Chaine title);
 void QT_window_resize(struct QT_Window *window, int width, int height);
@@ -1425,6 +1481,11 @@ int QT_window_height(struct QT_Window *window);
 int QT_window_width(struct QT_Window *window);
 bool QT_window_is_exposed(struct QT_Window *window);
 void QT_window_set_position(struct QT_Window *window, int x, int y);
+enum QT_Window_Flags QT_window_flags(struct QT_Window *window);
+void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags);
+void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon);
+double QT_window_opacity(struct QT_Window *window);
+void QT_window_set_opacity(struct QT_Window *window, double opacity);
 
 /** \} */
 
@@ -1808,6 +1869,22 @@ void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
 enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_MouseEventSource
+ * \{ */
+
+/* À FAIRE : implémente tous les cas. */
+#define ENUMERE_MOUSE_EVENT_SOURCE(O)                                                             \
+    O(QT_MOUSEEVENTSOURCE_NOT_SYNTHESIZED, Qt::MouseEventNotSynthesized)                          \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_SYSTEM, Qt::MouseEventSynthesizedBySystem)               \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_QT, Qt::MouseEventSynthesizedByQt)                       \
+    O(QT_MOUSEEVENTSOURCE_SYNTHESIZED_BY_APPLICATION, Qt::MouseEventSynthesizedByApplication)
+
+enum QT_MouseEventSource { ENUMERE_MOUSE_EVENT_SOURCE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \name QT_MouseEvent
  * \{ */
@@ -1815,6 +1892,7 @@ enum QT_MouseButton { ENUMERE_BOUTON_SOURIS(ENUMERE_DECLARATION_ENUM_IPA) };
 void QT_mouse_event_donne_position(struct QT_MouseEvent *event, struct QT_Position *r_position);
 enum QT_MouseButton QT_mouse_event_donne_bouton(struct QT_MouseEvent *event);
 enum QT_MouseButton QT_mouse_event_donne_boutons(struct QT_MouseEvent *event);
+enum QT_MouseEventSource QT_mouse_event_source(struct QT_MouseEvent *event);
 
 /** \} */
 
@@ -1824,6 +1902,20 @@ enum QT_MouseButton QT_mouse_event_donne_boutons(struct QT_MouseEvent *event);
 
 void QT_wheel_event_donne_position(struct QT_WheelEvent *event, struct QT_Position *r_position);
 int QT_wheel_event_donne_delta(struct QT_WheelEvent *event);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_TabletEvent
+ * \{ */
+
+void QT_tablet_event_donne_position(struct QT_TabletEvent *event, struct QT_Position *r_position);
+double QT_tablet_event_pressure(struct QT_TabletEvent *event);
+double QT_tablet_event_rotation(struct QT_TabletEvent *event);
+double QT_tablet_event_tangential_pressure(struct QT_TabletEvent *event);
+double QT_tablet_event_xtilt(struct QT_TabletEvent *event);
+double QT_tablet_event_ytilt(struct QT_TabletEvent *event);
+double QT_tablet_event_z(struct QT_TabletEvent *event);
 
 /** \} */
 
