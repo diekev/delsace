@@ -670,6 +670,7 @@ fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF
     retourne fragment
 }
 
+// https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml
 donne_inner_html :: fonc (élément: *Élément) -> ChaineUTF16
 {
     retourne fragment_serializing_algorithm_steps(élément, vrai)
