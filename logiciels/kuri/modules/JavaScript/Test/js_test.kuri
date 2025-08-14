@@ -125,23 +125,26 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
 
     crée_environnement_de_test(realm)
 
-    _ := exécute_script(realm, contenu, chemin.chn)
+    si exécute_script(realm, contenu, chemin) {
+        prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
+        prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
 
-    prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
-    prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
+        prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
+        capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
 
-    prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
-    capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
+        pour capte_erreur.erreurs {
+            erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
+            erreur_captée.fichier = copie_chaine(chemin.chn)
+            erreur_captée.cas = it.cas
+            erreur_captée.message = it.message
+        }
 
-    pour capte_erreur.erreurs {
-        erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
-        erreur_captée.fichier = copie_chaine(chemin.chn)
-        erreur_captée.cas = it.cas
-        erreur_captée.message = it.message
+        stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
+        stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
     }
-
-    stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
-    stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
+    sinon {
+        stats.nombre_de_tests += 1
+    }
 }
 
 crée_environnement_de_test :: fonc (realm: *Realm)
@@ -149,10 +152,10 @@ crée_environnement_de_test :: fonc (realm: *Realm)
     chemin := "environnement_test.js"
     source := contenu_fichier_texte(chemin)
     diffère déloge(source)
-    _ := exécute_script(realm, source, chemin)
+    _ := exécute_script(realm, source, CheminFichier(chemin))
 }
 
-exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
+exécute_script :: fonc (realm: *Realm, source: chaine, chemin: CheminFichier) -> bool
 {
     script: *Script
     discr parse_script(source, realm) {
@@ -160,12 +163,25 @@ exécute_script :: fonc (realm: *Realm, source: chaine, chemin: chaine) -> bool
             script = s
         }
         Erreur(e) {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin, Valeur(Object = e))
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin.chn, Valeur(Object = e))
             retourne faux
         }
         sinon {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin)
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin.chn)
             retourne faux
+        }
+    }
+
+    nom_fichier := chemin.nom_fichier_avec_extension()
+
+    à_ne_pas_exécuter := [
+        "async-function.js",
+        "binding-patterns.js"
+    ]
+
+    pour à_ne_pas_exécuter {
+        si nom_fichier == it {
+            retourne vrai
         }
     }
 

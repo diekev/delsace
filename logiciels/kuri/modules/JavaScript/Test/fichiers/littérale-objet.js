@@ -83,3 +83,10 @@ test("nous pouvons définir des rubriques depuis des références", function () 
     vérifie_égalité(o.x, 789);
 });
 
+test("nous pouvons définir des rubriques avec nom calculé", function () {
+    var x = 789;
+    const o = { [x]: x, ["y"]: 456, ["" + "z"]: 123 };
+    vérifie_égalité(o[789], 789);
+    vérifie_égalité(o.y, 456);
+    vérifie_égalité(o.z, 123);
+});
