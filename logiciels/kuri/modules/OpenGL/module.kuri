@@ -230,7 +230,7 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     vérifie_erreur("définis_texture_2d : glBindTexture 0")
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, répétition: RépétitionImage) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.desc.largeur comme z32
@@ -267,11 +267,12 @@ donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, répétitio
     }
 
     // résultat.format = GL_RG
-    définis_répétition(*résultat, répétition)
+    définis_répétition(*résultat, paramètres.répétition)
+    définis_échantillonnage(*résultat, paramètres.échantillonnage)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, répétition: RépétitionImage) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -280,11 +281,12 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, rép�
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RED
-    définis_répétition(*résultat, répétition)
+    définis_répétition(*résultat, paramètres.répétition)
+    définis_échantillonnage(*résultat, paramètres.échantillonnage)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit, répétition: RépétitionImage) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -293,11 +295,12 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit, répé
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
     résultat.format = GL_RGBA
-    définis_répétition(*résultat, répétition)
+    définis_répétition(*résultat, paramètres.répétition)
+    définis_échantillonnage(*résultat, paramètres.échantillonnage)
     retourne résultat
 }
 
-donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit, répétition: RépétitionImage) -> ParamètresTexture2D
+donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
     résultat: ParamètresTexture2D
     résultat.largeur = image.largeur
@@ -306,7 +309,8 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit, rép�
     résultat.bordure = 0
     résultat.type = GL_FLOAT
     résultat.format = GL_RGBA
-    définis_répétition(*résultat, répétition)
+    définis_répétition(*résultat, paramètres.répétition)
+    définis_échantillonnage(*résultat, paramètres.échantillonnage)
     retourne résultat
 }
 
@@ -323,6 +327,21 @@ convertis_répétition :: fonc (répétition: GenreRépétitionImage) -> GLenum
     }
 
     retourne GL_CLAMP
+}
+
+définis_échantillonnage :: fonc (params: *ParamètresTexture2D, échantillonnage: ÉchantillonnageImage)
+{
+    params.min_filter = convertis_échantillonnage(échantillonnage.pour_minification)
+    params.mag_filter = convertis_échantillonnage(échantillonnage.pour_magnification)
+}
+
+convertis_échantillonnage :: fonc (genre: GenreÉchantillonnageImage) -> GLenum
+{
+    si genre == GenreÉchantillonnageImage.Linéaire {
+        retourne GL_LINEAR
+    }
+    assert(genre == GenreÉchantillonnageImage.Prochain)
+    retourne GL_NEAREST
 }
 
 /** \} */
