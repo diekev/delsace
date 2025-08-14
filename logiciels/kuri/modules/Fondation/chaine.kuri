@@ -331,6 +331,16 @@ sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enli
     retourne chaine(*chn[pos_début], pos_fin - pos_début)
 }
 
+est_sous_chaine :: fonc (a: chaine, b: chaine) -> bool
+{
+    début_a := a.pointeur
+    fin_a := début_a + a.taille
+    début_b := b.pointeur
+    fin_b := début_b + b.taille
+
+    retourne début_a <= début_b <= fin_a && début_a <= fin_b <= fin_a
+}
+
 distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
 {
     m := chn1.taille

@@ -1,0 +1,215 @@
+importe POSIX
+
+/* ------------------------------------------------------------------------- */
+/** \nom SimpleServeuse
+ * SimpleServeuse permet de créer une serveuse HTTP en quelques lignes.
+ *
+ * Utilisation :
+ * 
+ *  succès, serveuse := crée_simple_serveuse("localhost:8080")
+ *  saufsi succès {
+ *      exit(1)
+ *  }
+ *
+ *  pour serveuse.requêtes() {
+ *      réponse := crée_réponse_depuis_chaine("ok")
+ *      répond(*it, *réponse)
+ *  }
+ * \{ */
+
+SimpleServeuse :: struct {
+    prise: z32 = -1
+}
+
+crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *SimpleServeuse)
+{
+    copie_adresse := copie_chaine(adresse)
+    diffère déloge(copie_adresse)
+
+    si trouve_motif_dans_chaine(copie_adresse, "://") < 0 {
+        déloge(copie_adresse)
+        copie_adresse = enchaine("http://", adresse)
+    }
+
+    uri := tente parse_uri_standard(copie_adresse) piège err {
+        imprimeln("Impossible de parser l'adresse de la serveuse : %", err)
+        retourne faux, nul
+    }
+
+    // À FAIRE(uri) : le parsage de "localhost:8080" échoue : localhost devient le schéma, 8080 le chemin
+    si uri.hôte == "" || uri.port == "" {
+        imprimeln("Hôte ou port nul")
+        retourne faux, nul
+    }
+
+    // À FAIRE : utilise hôte
+
+    port := extrait_nombre_entier(uri.port) comme n16
+
+    prise := socket(AF_INET, SOCK_STREAM, 0)
+    si prise == -1 {
+        imprimeln("erreur lors de la création de la prise")
+        retourne faux, nul
+    }
+
+    mon_addresse: sockaddr_in
+    mon_addresse.sin_family = AF_INET comme n16
+    mon_addresse.sin_port = htons(port)
+    // trouve notre propre addresse
+    mon_addresse.sin_addr.s_addr = 0
+    mon_addresse.sin_zero[0] = 0
+    mon_addresse.sin_zero[1] = 0
+    mon_addresse.sin_zero[2] = 0
+    mon_addresse.sin_zero[3] = 0
+    mon_addresse.sin_zero[4] = 0
+    mon_addresse.sin_zero[5] = 0
+    mon_addresse.sin_zero[6] = 0
+    mon_addresse.sin_zero[7] = 0
+
+    err := bind(prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64)
+    si err == -1 {
+        perror(ChaineC("bind".pointeur))
+        imprimeln("erreur lors de la liaison")
+        retourne faux, nul
+    }
+
+    CONNEXIONS_MAX :: 1000
+    err = listen(prise, CONNEXIONS_MAX)
+    si err == -1 {
+        imprimeln("erreur lors de l'écoute")
+        retourne faux, nul
+    }
+
+    imprimeln("Écoute sur %...", adresse)
+
+    résultat := loge(SimpleServeuse)
+    résultat.prise = prise
+    retourne vrai, résultat
+}
+
+requêtes :: fonc (serveuse: *SimpleServeuse) -> RequêtesEntrantes
+{
+    retourne RequêtesEntrantes(serveuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Requête
+ * \{ */
+
+Requête :: struct {
+    message: MessageClienteHTTP
+    prise: z32
+}
+
+répond :: fonc (requête: *Requête, réponse: *Réponse)
+{
+    entête_connection := cherche_entête(réponse.message.entêtes, "Connection")
+    saufsi entête_connection {
+        ajoute_entête(*réponse.message, "Connection", "close")
+    }
+
+    entête_server := cherche_entête(réponse.message.entêtes, "Server")
+    saufsi entête_server {
+        ajoute_entête(*réponse.message, "Server", "SimpleServeuse")
+    }
+
+    chaine_message := chaine_pour_message_serveuse(réponse.message)
+    imprimeln("%", chaine_message)
+
+    si send(requête.prise, chaine_message.pointeur, chaine_message.taille comme n64, 0) == -1 {
+        perror(ChaineC("send".pointeur))
+    }
+
+    déloge(chaine_message)
+
+    _ := close(requête.prise)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Réponse
+ * \{ */
+
+Réponse :: struct {
+    message: MessageServeuseHTTP
+}
+
+crée_réponse_depuis_chaine :: fonc (texte: chaine) -> Réponse
+{
+    résultat: Réponse
+    résultat.message = crée_message_avec_contenu(CodeÉtatHTTP.OK, ContenuHTTP("text/plain", texte))
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RequêtesEntrantes
+ * \{ */
+
+RequêtesEntrantes :: struct {
+    serveuse: *SimpleServeuse
+}
+
+charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilisée) -> chaine
+{
+    //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
+    //imprime("serveur: Reçu connexion de ", ip, '\n')
+    fichier := Fichier(TypePoignéeFichier(prise))
+
+    requête := tente lis_tout(*fichier) piège err {
+        imprime("Erreur lors de la lecture de la prise : %\n", err)
+        retourne ""
+    }
+
+    retourne requête
+}
+
+// À FAIRE(langage) : empl pour les opérateurs
+opérateur pour :: fonc (requêtes: RequêtesEntrantes) -> Requête
+{
+    serveuse := requêtes.serveuse
+
+    si requêtes.serveuse == nul || requêtes.serveuse.prise == -1 {
+        imprimeln("Aucune serveuse pour écouter des requêtes")
+        exit(1)
+    }
+
+    index_requête: z64
+
+    parseuse: ParseuseMessageClienteHTTP
+
+    mon_addresse: sockaddr_in // Adresse du connecté
+    sin_size := taille_de(sockaddr_in)
+
+    boucle {
+        prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size)
+        si prise == -1 {
+            perror(ChaineC("accept".pointeur))
+            continue
+        }
+
+        tantque !message_prêt_pour_finalisation(*parseuse) {
+            requete := charge_donnees_requete(prise, mon_addresse)
+            ajourne_données(*parseuse, requete)
+            déloge(requete)
+        }
+
+        requête: Requête
+        requête.message = finalise_message(*parseuse)
+        requête.prise = prise
+
+        `it = requête
+        `index_it = index_requête
+        index_requête += 1
+
+        #corps_boucle
+
+        réinitialise(*parseuse)
+    }
+}
+
+/** \} */
