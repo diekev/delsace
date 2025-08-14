@@ -62,6 +62,9 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
     si noeud.type == FunctionExpression {
         retourne (noeud comme *FunctionExpression).id != nul
     }
+    si noeud.type == ClassExpression {
+        retourne (noeud comme *ClassExpression).identifier != nul
+    }
     retourne faux
 }
 
@@ -70,7 +73,7 @@ has_name :: fonc (noeud: *NoeudSyntaxique) -> bool
 is_function_definition :: fonc (noeud: *NoeudSyntaxique) -> bool
 {
     // À FAIRE : implémente tous les cas
-    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction
+    retourne noeud.type == FunctionExpression || noeud.type == ArrowFunction || noeud.type == ClassExpression
 }
 
 /* 8.4.3 Static Semantics: IsAnonymousFunctionDefinition
@@ -113,6 +116,27 @@ named_evaluation :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxiq
         // 1. Return InstantiateArrowFunctionExpression of ArrowFunction with argument name.
         résultat := instantiate_arrow_function_expression(interpréteuse, noeud comme *ArrowFunction, *name)
         retourne normal_completion(Valeur(Function = résultat))
+    }
+
+    si noeud.type == ClassExpression {
+        // ClassExpression : class ClassTail
+        class_expression := noeud comme *ClassExpression
+        assert(class_expression.identifier == nul)
+        assert(interpréteuse.type == InterprèteArbre)
+        interprète := interpréteuse comme *InterprèteArbre
+
+        // 1. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments undefined and name.
+        class_binding: Optionnel(ECMAString)
+        value := class_definition_evaluation(interprète, class_expression.héritage, class_expression.body, class_binding, name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
+        définis_source_text(value, donne_texte_source(class_expression))
+
+        // 3. Return value.
+        retourne normal_completion(Valeur(Function = value))
     }
 
     panique("name_evaluation non-implémenté")
@@ -355,22 +379,25 @@ FunctionDeclaration :: struct {
     code_binaire: *FluxDInstructions
 
     generator := faux
-    expression := faux
     async := faux
 }
 
-crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionDeclaration
+crée_function_déclaration :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionDeclaration
 {
     résultat := parseuse.crée_noeud(lexème, FunctionDeclaration)
     résultat.sur_génération_code_binaire = function_declaration_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
-sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+sur_exécution_function_declaration :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
 {
+    fonction := base comme *FunctionDeclaration
+    assert(!fonction.async)
     // 1. Return empty.
     retourne normal_completion(js_undefined)
 }
@@ -391,17 +418,18 @@ FunctionExpression :: struct {
     corps: *FunctionBody
 
     generator := faux
-    expression := faux
     async := faux
 }
 
-crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody) -> *FunctionExpression
+crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *Identifier, params: [..]*Expression, corps: *FunctionBody, async: bool, generator: bool) -> *FunctionExpression
 {
     résultat := parseuse.crée_noeud(lexème, FunctionExpression)
     résultat.sur_génération_code_binaire = function_expression_sur_code_binaire
     résultat.id = id
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -409,6 +437,7 @@ crée_function_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, id: *
 sur_exécution_function_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *FunctionExpression
+    assert(!expression.async)
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_ordinary_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
@@ -425,12 +454,16 @@ FunctionBody :: struct {
     type = #type_de_cette_structure
 
     statement: *Statement
+    async: bool
+    generator: bool
 }
 
-crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *FunctionBody
+crée_function_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool, generator: bool) -> *FunctionBody
 {
     résultat := parseuse.crée_noeud(nul, FunctionBody)
     résultat.statement = statement
+    résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -447,14 +480,16 @@ ArrowFunction :: struct {
 
     params: [..]*Expression
     corps: *ConciseBody
+    async: bool
 }
 
-crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody) -> *ArrowFunction
+crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [..]*Expression, corps: *ConciseBody, async: bool) -> *ArrowFunction
 {
     résultat := parseuse.crée_noeud(lexème, ArrowFunction)
     résultat.sur_génération_code_binaire = arrow_function_sur_code_binaire
     résultat.corps = corps
     résultat.params = params
+    résultat.async = async
     retourne résultat
 }
 
@@ -462,6 +497,7 @@ crée_arrow_function :: fonc (parseuse: *Parseuse, lexème: *Lexème, params: [.
 sur_exécution_arrow_function :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
     expression := base comme *ArrowFunction
+    assert(!expression.async)
     /* 1. Return InstantiateOrdinaryFunctionExpression of FunctionExpression. */
     closure := instantiate_arrow_function_expression(interpréteuse, expression)
     retourne normal_completion(Valeur(Function = closure))
@@ -480,13 +516,15 @@ ConciseBody :: struct {
 
     statement: *Statement
     code_binaire: *FluxDInstructions
+    async: bool
 }
 
-crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement) -> *ConciseBody
+crée_concise_body :: fonc (parseuse: *Parseuse, statement: *Statement, async: bool) -> *ConciseBody
 {
     résultat := parseuse.crée_noeud(nul, ConciseBody)
     résultat.sur_génération_code_binaire = concise_body_sur_code_binaire
     résultat.statement = statement
+    résultat.async = async
     retourne résultat
 }
 
@@ -653,6 +691,26 @@ crée_private_identifier :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *Pr
 {
     résultat := parseuse.crée_noeud(lexème, PrivateIdentifier)
     résultat.nom = crée_chaine_utf16_unique(lexème.texte)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ComputedPropertyName
+ * \{ */
+
+ComputedPropertyName :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    expression: *Expression    
+}
+
+crée_computed_property_name :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ComputedPropertyName
+{
+    résultat := parseuse.crée_noeud(lexème, ComputedPropertyName)
+    résultat.expression = expression
     retourne résultat
 }
 
@@ -2762,7 +2820,10 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
         property_definition := it comme *PropertyDefinition
 
         // 1. Let propKey be ? Evaluation of PropertyName.
-        prop_key := évalue_property_name(interpréteuse.donne_realm(), property_definition.property_name)
+        prop_key := évalue_property_name(interpréteuse, property_definition.property_name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
 
         // À FAIRE : complète
         is_proto_setter := faux
@@ -2810,21 +2871,47 @@ property_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, prope
     retourne normal_completion(js_undefined)
 }
 
-évalue_property_name :: fonc (realm: *Realm, prop_name: *Expression) -> PropertyKey
+/* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-object-initializer-runtime-semantics-evaluation */
+évalue_property_name :: fonc (interpréteuse: *Interpréteuse, expression: *Expression) -> PropertyKey
 {
-    si prop_name.type == StringLiteral {
-        string := prop_name comme *StringLiteral
+    si expression.type == StringLiteral {
+        string := expression comme *StringLiteral
         retourne string.valeur
     }
 
-    si prop_name.type == NumericLiteral {
-        number := prop_name comme *NumericLiteral
+    si expression.type == NumericLiteral {
+        number := expression comme *NumericLiteral
         valeur := Valeur(Number = number.valeur)
+        realm := interpréteuse.donne_realm()
         retourne to_string(realm, valeur).texte
     }
 
-    assert(prop_name.type == Identifier)
-    ident := prop_name comme *Identifier
+    si expression.type == ComputedPropertyName {
+        computed_property_name := expression comme *ComputedPropertyName
+
+        // 1. Let exprValue be ? Evaluation of AssignmentExpression.
+        assert(interpréteuse.type == InterprèteArbre)
+        completion := exécute_noeud(computed_property_name.expression, interpréteuse comme *InterprèteArbre)
+        saufsi completion.est_normal() {
+            interpréteuse.définis_exception(completion)
+            résultat: PropertyKey
+            retourne résultat
+        }
+        expr_value := completion.valeur
+
+        // 2. Let propName be ? GetValue(exprValue).
+        prop_name := get_value(interpréteuse, expr_value)
+        si interpréteuse.possède_exception() {
+            résultat: PropertyKey
+            retourne résultat
+        }
+
+        // 3. Return ? ToPropertyKey(propName).
+        retourne to_property_key(interpréteuse, prop_name)
+    }
+
+    assert(expression.type == Identifier)
+    ident := expression comme *Identifier
     retourne ident.nom
 }
 
@@ -4863,10 +4950,12 @@ ObjectMethod :: struct {
     body: *FunctionBody
 
     est_méthode: bool
+    async: bool
+    generator: bool
     kind: MethodKind
 }
 
-crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind) -> *ObjectMethod
+crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_element_name: *Expression, paramètres: [..]*Expression, body: *FunctionBody, kind: MethodKind, async: bool, generator: bool) -> *ObjectMethod
 {
     résultat := parseuse.crée_noeud(lexème, ObjectMethod)
     résultat.class_element_name = class_element_name
@@ -4874,6 +4963,8 @@ crée_object_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, class_eleme
     résultat.body = body
     résultat.est_méthode = kind == MethodKind.Method
     résultat.kind = kind
+    résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -5272,7 +5363,7 @@ is_static :: fonc (syntax: *NoeudSyntaxique) -> bool
         retourne private_name
     }
 
-    property_key := évalue_property_name(interpréteuse.donne_realm(), class_element_name)
+    property_key := évalue_property_name(interpréteuse, class_element_name)
     si interpréteuse.possède_exception() {
         résultat: FieldName
         retourne résultat
@@ -5918,6 +6009,71 @@ initialize_bound_name :: fonc (interpréteuse: *Interpréteuse, name: ECMAString
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom ClassExpression
+ * \{ */
+
+ClassExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_class_expression
+
+    identifier: *Identifier
+    héritage: *Expression
+    body: *ClassBody
+}
+
+crée_class_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, héritage: *Expression, identifier: *Identifier, body: *ClassBody) -> *ClassExpression
+{
+    résultat := parseuse.crée_noeud(lexème, ClassExpression)
+    résultat.héritage = héritage
+    résultat.identifier = identifier
+    résultat.body = body
+    retourne résultat
+}
+
+/* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#sec-class-definitions-runtime-semantics-evaluation */
+sur_exécution_class_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
+{
+    class_expression := base comme *ClassExpression
+
+    // ClassExpression : class ClassTail
+    saufsi class_expression.identifier {
+        // 1. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments undefined and "".
+        class_binding: Optionnel(ECMAString)
+        class_name : FieldName = crée_chaine_utf16_unique_vide()
+        value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_binding, class_name)
+        si interpréteuse.possède_exception() {
+            retourne throw_completion(interpréteuse.donne_exception())
+        }
+
+        // 2. Set value.[[SourceText]] to the source text matched by ClassExpression.
+        définis_source_text(value, donne_texte_source(class_expression))
+
+        // 3. Return value.
+        retourne normal_completion(Valeur(Function = value))
+    }
+
+    // ClassExpression : class BindingIdentifier ClassTail
+
+    // 1. Let className be the StringValue of BindingIdentifier.
+    class_name := class_expression.identifier.nom
+
+    // 2. Let value be ? ClassDefinitionEvaluation of ClassTail with arguments className and className.
+    value := class_definition_evaluation(interpréteuse, class_expression.héritage, class_expression.body, class_name, class_name)
+    si interpréteuse.possède_exception() {
+        retourne throw_completion(interpréteuse.donne_exception())
+    }
+
+    // 3. Set value.[[SourceText]] to the source text matched by ClassExpression.
+    définis_source_text(value, donne_texte_source(class_expression))
+
+    // 4. Return value.
+    retourne normal_completion(Valeur(Function = value))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom ClassBody
  * \{ */
 
@@ -5948,7 +6104,7 @@ ClassMethod :: struct {
     static: bool
 }
 
-crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind) -> *ClassMethod
+crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expression, arguments: [..]*Expression, body: *FunctionBody, method_kind: MethodKind, async: bool, generator: bool) -> *ClassMethod
 {
     résultat := parseuse.crée_noeud(lexème, ClassMethod)
     résultat.class_element_name = key
@@ -5956,6 +6112,8 @@ crée_class_method :: fonc (parseuse: *Parseuse, lexème: *Lexème, key: *Expres
     résultat.body = body
     résultat.kind = method_kind
     résultat.est_méthode = method_kind == MethodKind.Method
+    résultat.async = async
+    résultat.generator = generator
     retourne résultat
 }
 
@@ -6205,6 +6363,167 @@ make_super_property_reference :: fonc (interpréteuse: *Interpréteuse, actual_t
 
     // 5. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: propertyKey, [[Strict]]: strict, [[ThisValue]]: actualThis }.
     retourne ReferenceRecord(Valeur(Object = base_value), property_key, strict, actual_this)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ObjectBindingPattern
+ * \{ */
+
+ObjectBindingPattern :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    properties: [..]*Expression
+}
+
+crée_object_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, properties: [..]*Expression) -> *ObjectBindingPattern
+{
+    résultat := parseuse.crée_noeud(lexème, ObjectBindingPattern)
+    résultat.properties = properties
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BindingProperty
+ * \{ */
+
+BindingProperty :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    property_name: *Expression
+    binding_element: *Expression
+}
+
+crée_binding_property :: fonc (parseuse: *Parseuse, lexème: *Lexème, property_name: *Expression, binding_element: *Expression) -> *BindingProperty
+{
+    résultat := parseuse.crée_noeud(lexème, BindingProperty)
+    résultat.property_name = property_name
+    résultat.binding_element = binding_element
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BindingElement
+ * \{ */
+
+BindingElement :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    expression: *Expression
+    initializer: *Expression
+}
+
+crée_binding_element :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression, initializer: *Expression) -> *BindingElement
+{
+    résultat := parseuse.crée_noeud(lexème, BindingElement)
+    résultat.expression = expression
+    résultat.initializer = initializer
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArrayBindingPattern
+ * \{ */
+
+ArrayBindingPattern :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    elements: [..]*Expression
+}
+
+crée_array_binding_pattern :: fonc (parseuse: *Parseuse, lexème: *Lexème, elements: [..]*Expression) -> *ArrayBindingPattern
+{
+    résultat := parseuse.crée_noeud(lexème, ArrayBindingPattern)
+    résultat.elements = elements
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom AwaitExpression
+ * \{ */
+
+AwaitExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_await_expression
+
+    expression: *Expression
+}
+
+crée_await_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *AwaitExpression
+{
+    résultat := parseuse.crée_noeud(lexème, AwaitExpression)
+    résultat.expression = expression
+    retourne résultat
+}
+
+sur_exécution_await_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution await non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NewTarget
+ * \{ */
+
+NewTarget :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_new_target
+}
+
+crée_new_target :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *NewTarget
+{
+    résultat := parseuse.crée_noeud(lexème, NewTarget)
+    retourne résultat
+}
+
+sur_exécution_new_target :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution new.target non-implémenté")
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom YieldExpression
+ * \{ */
+
+YieldExpression :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+    sur_exécution = sur_exécution_yield_expression
+
+    expression: *Expression
+    est_star: bool
+}
+
+crée_yield_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression, est_star: bool) -> *YieldExpression
+{
+    résultat := parseuse.crée_noeud(lexème, YieldExpression)
+    résultat.expression = expression
+    résultat.est_star = est_star
+    retourne résultat
+}
+
+sur_exécution_yield_expression :: fonc (base: *NoeudSyntaxique @inutilisée, interpréteuse: *InterprèteArbre @inutilisée) -> CompletionRecord
+{
+    panique("exécution yield non-implémenté")
 }
 
 /** \} */
