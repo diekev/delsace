@@ -295,7 +295,7 @@ RembourrageVert :: fonc (valeur: r32) -> Rembourrage
     retourne RembourrageDifforme(0.0, valeur)
 }
 
-ConfigurationDiposition :: struct {
+ConfigurationDisposition :: struct {
     cotation: Cotation
     rembourrage: Rembourrage
     séparation_enfant: r32
@@ -344,7 +344,7 @@ dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), conf
 définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
 {
     assert(__boite_courante != nul)
-    __boite_courante.disposition = ConfigurationDiposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
+    __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
 }
 
 ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
@@ -499,7 +499,7 @@ BoiteFlexible :: struct {
     id: n64
     type: Type
 
-    disposition: ConfigurationDiposition
+    disposition: ConfigurationDisposition
     rectangle: ConfigurationRectangle
     défilage: ConfigurationDéfilage
     config_texte: ConfigurationTexte
