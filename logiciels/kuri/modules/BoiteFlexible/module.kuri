@@ -1392,6 +1392,10 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
     }
     sinon {
         cotation += boite.donne_rembourrage(direction)
+        /* Inclus le rembourrage dans la taille minimale afin de ne pas souscoter
+         * des boites qui ne contiennent que du texte.
+         * (Ou alors il faudra noter que le texte doit être élidée). */
+        boite.taille_min[direction] += boite.donne_rembourrage(direction)
 
         si boite.disposition.direction == direction {
             cotation += (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant
