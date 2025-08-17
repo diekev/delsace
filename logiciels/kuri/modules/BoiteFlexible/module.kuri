@@ -750,12 +750,14 @@ BoiteDisposée :: struct {
     rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
 }
 
-appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris)
+appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris) -> bool
 {
     rappel := boite.rappels[type]
     si rappel.rappel {
         rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.index_utilisateur)
+        retourne vrai
     }
+    retourne faux
 }
 
 ÉditriceTextePourId :: struct {
@@ -1106,12 +1108,18 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     définis_position_souris(emboiteuse, souris)
 
     boite := donne_boite_sous_souris(emboiteuse)
-    saufsi boite {
-        retourne
-    }
+    tantque boite {
+        si appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, souris) {
+            emboiteuse.id_pressé = boite.id
+            arrête
+        }
 
-    appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, souris)
-    emboiteuse.id_pressé = boite.id
+        si boite.parent == -1 {
+            arrête
+        }
+
+        boite = *emboiteuse.boites_disposées[boite.parent]
+    }
 }
 
 sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
@@ -1119,14 +1127,19 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     définis_position_souris(emboiteuse, souris)
 
     boite := donne_boite_sous_souris(emboiteuse)
-    saufsi boite {
-        retourne
-    }
+    tantque boite {
+        si appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris, souris) {
+            si emboiteuse.id_pressé == boite.id {
+                _ := appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris, souris)
+            }
+            arrête
+        }
 
-    appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris, souris)
+        si boite.parent == -1 {
+            arrête
+        }
 
-    si emboiteuse.id_pressé == boite.id {
-        appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris, souris)
+        boite = *emboiteuse.boites_disposées[boite.parent]
     }
 
     emboiteuse.id_pressé = 0
@@ -1138,11 +1151,18 @@ sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     applique_défilage_vertical(emboiteuse, emboiteuse.souris_x, emboiteuse.souris_y, souris.delta)
 
     boite := donne_boite_sous_souris(emboiteuse)
-    saufsi boite {
-        retourne
-    }
+    tantque boite {
+        si appel_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, souris) {
+            emboiteuse.id_pressé = boite.id
+            arrête
+        }
 
-    appel_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, souris)
+        si boite.parent == -1 {
+            arrête
+        }
+
+        boite = *emboiteuse.boites_disposées[boite.parent]
+    }
 }
 
 applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
@@ -1250,10 +1270,21 @@ est_survolée :: fonc () -> bool
 {
     assert(__boite_courante != nul)
     boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
-    saufsi boite_disposée {
-        retourne faux
+    boite_courante := boite_disposée
+
+    tantque boite_courante != nul {
+        si boite_courante.id == __boite_courante.id {
+            retourne vrai
+        }
+
+        si boite_courante.parent == -1 {
+            arrête
+        }
+
+        boite_courante = *__boite_courante.emboiteuse.boites_disposées[boite_courante.parent]
     }
-    retourne boite_disposée.id == __boite_courante.id
+
+    retourne faux
 }
 
 fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
