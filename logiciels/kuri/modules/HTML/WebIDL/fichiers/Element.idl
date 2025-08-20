@@ -1,3 +1,4 @@
+// https://dom.spec.whatwg.org/#interface-element
 interface Element : Node {
     undefined setAttribute(DOMString qualifiedName, DOMString value);
 
@@ -6,5 +7,8 @@ interface Element : Node {
 
     [Reflect] attribute DOMString id;
     [Reflect=class] attribute DOMString className;
+    
+    // https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-parsing-and-serialization
+    // [CEReactions] attribute (TrustedHTML or [LegacyNullToEmptyString] DOMString) innerHTML;
     attribute DOMString innerHTML;
 };

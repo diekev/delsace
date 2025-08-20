@@ -1,4 +1,4 @@
-importe Introspection // pour définis_membre_actif, donne_index_membre_actif
+importe Introspection // pour définis_membre_actif, donne_indice_membre_actif
 
 /* Calculs des largeurs, hauteurs, et marges des boxes. */
 
@@ -1613,7 +1613,7 @@ AvailableSize :: union {
 
 est_valide :: fonc (size: AvailableSize) -> bool
 {
-    retourne donne_index_membre_actif(size) != 0
+    retourne donne_indice_membre_actif(size) != 0
 }
 
 crée_definite_size :: fonc (pixels: r64) -> AvailableSize
