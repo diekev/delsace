@@ -46,3 +46,91 @@ throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine)
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Callbacks
+ * https://webidl.spec.whatwg.org/#idl-callback-interface
+ * \{ */
+
+CallbackType :: struct {
+    empl cellule: JS.Cellule
+
+    object: *JS.Object
+    callback_context: *EnvironmentSettings
+}
+
+/* https://webidl.spec.whatwg.org/#call-a-user-objects-operation */
+call_a_user_object_operation :: fonc (value: JS.Valeur, args: []JS.Valeur, this_arg: JS.Valeur) -> JS.Valeur
+{
+    // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    target := JS.donne_objet(this_arg) comme *PlatformObject
+
+    realm := target.realm
+    settings := JS.donne_données(realm.host_defined, EnvironmentSettings)
+
+    prepare_to_run_script(settings)
+
+    evaluation_status := JS.call(JS.donne_mv(realm), value, this_arg, args)
+
+    cleanup_after_running_script(settings)
+
+    retourne evaluation_status
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PlatformObject
+ * https://webidl.spec.whatwg.org/#dfn-platform-object
+ * https://webidl.spec.whatwg.org/#es-platform-objects
+ * \{ */
+
+#portée_module
+
+TableVirtuellePlatformObject :: struct {
+    empl object: JS.TableVirtuelleObject
+
+    sur_destruction = platform_object_sur_destruction
+}
+
+platform_object_sur_destruction :: fonc (base: *JS.Cellule)
+{
+    JS.sur_destruction_objet(base)
+}
+
+#portée_export
+
+PlatformObject :: struct {
+    empl objet: JS.Object
+    realm: *JS.Realm
+}
+
+donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
+{
+    retourne JS.donne_tas_de_mémoire(object)
+}
+
+crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
+{
+    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
+}
+
+crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
+{
+    résultat := JS.alloue(tas_de_mémoire, T)
+    résultat.realm = realm
+    définis_prototype(résultat, T)
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
+is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
+{
+    // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
+    current := donne_current_settings_object(object)
+    relevant := donne_relevant_settings_object(object)
+    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin())
+}
+
+/** \} */

@@ -13,11 +13,11 @@ ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
 
 ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
-    index_d_insertion := ensemble_ajoute_retourne_index(ensemble, donnée)
-    retourne *ensemble.pointeur[index_d_insertion]
+    indice_d_insertion := ensemble_ajoute_retourne_indice(ensemble, donnée)
+    retourne *ensemble.pointeur[indice_d_insertion]
 }
 
-ensemble_ajoute_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
+ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
         tableau_ajoute(ensemble, donnée)
@@ -35,7 +35,7 @@ ensemble_ajoute_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
         }
     }
 
-    index_d_insertion := distance(début, limite)
+    indice_d_insertion := distance(début, limite)
 
     taille := ensemble.taille
 
@@ -45,16 +45,16 @@ ensemble_ajoute_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 
     i := taille
 
-    tantque i > index_d_insertion {
+    tantque i > indice_d_insertion {
         tmp[i] = tmp[i - 1]
         i -= 1
     }
 
-    tmp[index_d_insertion] = donnée
+    tmp[indice_d_insertion] = donnée
 
     mémoire(ensemble) = tmp
 
-    retourne index_d_insertion
+    retourne indice_d_insertion
 }
 
 ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool
@@ -77,7 +77,7 @@ ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool
     retourne faux
 }
 
-ensemble_possède_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
+ensemble_possède_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
         retourne -1
@@ -98,17 +98,17 @@ ensemble_possède_retourne_index :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 }
 
 RésultatRecherche :: struct {
-    index: z64
+    indice: z64
     partiel := faux
     trouvé := faux
 }
 
 /*
  * Recherche dans l'ensemble une valeur donnée, et retourne des informations sur la recherche.
- * Si la donnée fut trouvée exactement, le résultat retourné possèdera l'index où se trouve la donnée,
+ * Si la donnée fut trouvée exactement, le résultat retourné possèdera l'indice où se trouve la donnée,
  * et le drapeau trouvé sera activé.
- * Si la donnée ne fut pas trouvée, mais que la valeur à l'index courrant est valide, rappel sera appelé,
- * et s'il retourne vrai, le résultat retourné possèdera l'index courrant, et ses drapeaux trouvé et partiel
+ * Si la donnée ne fut pas trouvée, mais que la valeur à l'indice courrant est valide, rappel sera appelé,
+ * et s'il retourne vrai, le résultat retourné possèdera l'indice courrant, et ses drapeaux trouvé et partiel
  * seront activés.
  * Autrement, le résultat retourné n'aura aucun drapeau activé.
  */
@@ -130,14 +130,14 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rap
         si mémoire(limite) == donnée {
             résultat.trouvé = vrai
             résultat.partiel = faux
-            résultat.index = distance(début, limite)
+            résultat.indice = distance(début, limite)
             retourne résultat
         }
 
         si rappel(mémoire(limite), donnée) {
             résultat.trouvé = vrai
             résultat.partiel = vrai
-            résultat.index = distance(début, limite)
+            résultat.indice = distance(début, limite)
             retourne résultat
         }
     }
@@ -161,3 +161,26 @@ ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
     }
 }
 */
+
+TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
+    clés: [..]Clé
+    valeurs: [..]Valeur
+}
+
+détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
+{
+    déloge(table.clés)
+    déloge(table.valeurs)
+}
+
+table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur) -> (existait: bool, valeur_insérée: Valeur)
+{
+    indice := ensemble_possède_retourne_indice(*table.clés, clé)
+    si indice == -1 {
+        indice = ensemble_ajoute_retourne_indice(*table.clés, clé)
+        tableau_insère_indice(*table.valeurs, valeur, indice)
+        retourne faux, valeur
+    }
+
+    retourne vrai, table.valeurs[indice]
+}
