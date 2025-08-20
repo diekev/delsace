@@ -33,105 +33,17 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom Élément
- * https://dom.spec.whatwg.org/#element
+/** \nom Element
  * \{ */
 
-#portée_module
-
-TableVirtuelleÉlément :: struct {
-    empl base: TableVirtuelleNoeud
-
-    /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
-    sur_dépilement: fonc(*Élément)(rien)
-
-    /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
-     * La fonction doit retourner si oui ou non l'attribut fut géré. */
-    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = élément_sur_changement_attribut
-
-    /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
-}
-
-#portée_export
-
-Élément :: struct {
-    empl base_noeud: Noeud
-    table = *table_virtuelle_élément
-
-    id: DOMString
-
-    /* Uniquement utilisé lors du parsage. */
-    est_sur_pile_éléments_ouvert: bool
-    fut_créé_par_parseuse: bool
-
-    espace_de_nom: chaine // DOMString @namespaceURI
-    local_name: DOMString
-    cryptographic_nonce: DOMString
-
-    état_élément_custom: chaine
-    définition_élément_custom: *rien
-
-    shadow_root: *ShadowRoot
-
-    pseudo_classes: CSS.PseudoClasses
-
-    /* CSS */
-    box: *CSS.Box
-    /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
-    style: *CSS.CSSStyleDeclaration
-
-    /* Cache */
-    liste_classes: [..]DOMString
-}
-
-#portée_fichier
-
-table_virtuelle_élément := TableVirtuelleÉlément(
-    classe = Élément,
-    sur_destruction = élément_sur_destruction,
-    sur_changement_attribut = élément_sur_changement_attribut
-)
-
-élément_détruit_données :: fonc (élément: *Élément)
-{
-    noeud_sur_destruction(élément)
-    CSS.détruit_style_declaration(élément.style)
-    si élément.box {
-        élément.box.noeud = nul
-    }
-    déloge(élément.liste_classes)
-}
-
-élément_sur_destruction :: fonc (base: *JS.Cellule)
-{
-    élément := base comme *Élément
-    élément_détruit_données(élément)
-}
-
-élément_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+html_element_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     /* Nous devons faire ça même si l'ancienne et la nouvelle valeur sont les mêmes. */
     si gère_changement_attribut_event_handler(élément, local_name, valeur, espace_de_nom) {
         retourne vrai
     }
 
-    si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
-        retourne vrai
-    }
-
-    /* https://dom.spec.whatwg.org/#concept-id */
-    si local_name == ATTR_id && !espace_de_nom.possède_valeur() {
-        // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
-        si valeur == nul || mémoire(valeur).est_vide() {
-            élément.id = crée_chaine_utf16_unique_vide()
-        }
-        // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
-        sinon {
-            élément.id = mémoire(valeur)
-        }
-
-        élément.document.invalide_style_pour_id(élément, vieille_valeur, valeur)
+    si element_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -148,12 +60,6 @@ table_virtuelle_élément := TableVirtuelleÉlément(
         }
 
         élément.document.invalide_style_depuis_élément(élément)
-        retourne vrai
-    }
-
-    si local_name == ATTR_class {
-        déloge(élément.liste_classes)
-        // À FAIRE : invalide le style pour les classes
         retourne vrai
     }
 
@@ -261,73 +167,6 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
 
 #portée_export
 
-/* https://dom.spec.whatwg.org/#concept-element-attributes-append */
-ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
-{
-    // 1. Append attribute to element’s attribute list.
-    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
-
-    // 2. Set attribute’s element to element.
-    attribut.élément = élément
-
-    // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
-    gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
-}
-
-/* https://dom.spec.whatwg.org/#concept-element-attributes-change */
-change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
-{
-    // 1. Let oldValue be attribute’s value.
-    vieille_valeur := attribut.valeur
-
-    // 2. Set attribute’s value to value.
-    attribut.valeur = valeur
-
-    // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
-    gère_changement_attribute(attribut, attribut.élément, *vieille_valeur, *valeur)
-}
-
-/* https://dom.spec.whatwg.org/#handle-attribute-changes */
-gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
-{
-    // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
-    //    attribute’s namespace, oldValue, « », « », null, and null.
-
-    // À FAIRE 2. If element is custom, then enqueue a custom element callback reaction with element,
-    //    callback name "attributeChangedCallback", and an argument list containing attribute’s
-    //    local name, oldValue, newValue, and attribute’s namespace.
-
-    // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
-    //    and attribute’s namespace.
-    table := élément.table comme *TableVirtuelleÉlément
-    si table && table.sur_changement_attribut {
-        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
-    }
-
-    élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
-}
-
-/* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
-get_an_attribute_value :: fonc (élément: *Élément, nom: DOMString) -> DOMString
-{
-    // À FAIRE : standardise
-    retourne donne_attribut_ou_chaine_vide(élément, nom)
-}
-
-/* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
-set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: DOMString)
-{
-    // À FAIRE : standardise
-    attribut := cherche_attribut(élément, nom)
-    saufsi attribut {
-        attribut_lexé := AttributLexé(nom, valeur)
-        ajoute_attribut(élément, attribut_lexé)
-        retourne
-    }
-
-    change_attribut(attribut, valeur)
-}
-
 initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
 {
     élément.genre = GenreNoeud.Élément
@@ -427,7 +266,7 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
         élément = crée_platform_object(document, HTMLVideoElement)
     }
     sinon {
-        élément = crée_platform_object(document, Élément)
+        élément = crée_platform_object(document, HTMLElement)
     }
 
     initialise_élément(élément, document, tag)
@@ -473,90 +312,6 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
             retourne vrai
         }
     }
-}
-
-/* https://dom.spec.whatwg.org/#dom-element-setattribute */
-set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: DOMString)
-{
-    // À FAIRE 1. If qualifiedName does not match the Name production in XML,
-    //   then throw an "InvalidCharacterError" DOMException.
-
-    // À FAIRE 2. If this is in the HTML namespace and its node document is an HTML document,
-    //    then set qualifiedName to qualifiedName in ASCII lowercase.
-
-    // 3. Let attribute be the first attribute in this’s attribute list whose qualified name,
-    //    is qualifiedName and null otherwise.
-    attribute := cherche_attribut(élément, qualified_name)
-
-    // 4. If attribute is null, create an attribute whose local name is qualifiedName, value
-    //    is value, and node document is this’s node document, then append this attribute to this,
-    //    and then return.
-    si attribute == nul {
-        // À FAIRE : révise l'IPA
-        ajoute_attribut(élément, AttributLexé(qualified_name, value))
-        retourne
-    }
-
-    // 5. Change attribute to value.
-    change_attribut(attribute, value)
-}
-
-/* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
-get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
-{
-    // 1. Let classes be the result of running the ordered set parser on classNames.
-    classes := run_ordered_set_parser(class_names)
-
-    // 2. If classes is the empty set, return an empty HTMLCollection.
-    si classes.taille == 0 {
-        retourne crée_html_collection(élément)
-    }
-
-    // 3. Return an HTMLCollection rooted at root, whose filter matches
-    //    descendant elements that have all their classes in classes.
-    //    The comparisons for the classes must be done in an ASCII
-    //    case-insensitive manner if root’s node document’s mode is "quirks";
-    //    otherwise in an identical to manner.
-    résultat := crée_html_collection(élément)
-    résultat.root = élément
-    résultat.filter = crée_filtre_pour_class_name(classes)
-    initialise_collection_pour_filtre(résultat)
-    retourne résultat
-}
-
-/* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
-get_elements_by_tag_name :: fonc (noeud: *Noeud, qualified_name: DOMString) -> *HTMLCollection
-{
-    assert(noeud.est_élément() || noeud.est_document())
-
-    résultat := crée_html_collection(noeud)
-    résultat.root = noeud
-
-    // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
-
-    // 2. Otherwise, if root’s node document is an HTML document, return an  rooted at root, whose filter matches the following descendant elements:
-
-    //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
-
-    //     Whose namespace is not the HTML namespace and whose qualified name is qualifiedName.
-
-    // 3. Otherwise, return an HTMLCollection rooted at root, whose filter matches descendant elements whose qualified name is qualifiedName. 
-    résultat.filter = crée_filtre_pour_tag_name(qualified_name)
-
-    initialise_collection_pour_filtre(résultat)
-    retourne résultat
-}
-
-donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
-{
-    saufsi élément.liste_classes {
-        valeur := donne_attribut(élément, ATTR_class)
-        si valeur.possède_valeur() {
-            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque)
-        }
-    }
-
-    retourne élément.liste_classes
 }
 
 donne_referrerpolicy_content_attribute_state :: fonc (élément: *Élément) -> ReferrerPolicy
@@ -915,6 +670,7 @@ fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF
     retourne fragment
 }
 
+// https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml
 donne_inner_html :: fonc (élément: *Élément) -> ChaineUTF16
 {
     retourne fragment_serializing_algorithm_steps(élément, vrai)
@@ -949,9 +705,19 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
  * https://html.spec.whatwg.org/multipage/dom.html#htmlelement
  * \{ */
 
+#portée_export
+
 HTMLElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_html_element
 }
+
+#portée_fichier
+
+table_virtuelle_html_element := TableVirtuelleÉlément(
+    classe = HTMLElement,
+    sur_changement_attribut = html_element_sur_changement_attribut
+)
 
 /** \} */
 
@@ -989,7 +755,7 @@ table_virtuelle_anchor_element := TableVirtuelleÉlément(
 
 anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -1282,6 +1048,7 @@ HTMLBodyElement :: struct {
 table_virtuelle_body_element := TableVirtuelleÉlément(
     classe = HTMLBodyElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
 
@@ -1410,13 +1177,13 @@ HTMLButtonElement :: struct {
 table_virtuelle_button_element := TableVirtuelleÉlément(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
-    sur_changement_attribut = button_element_sur_changement_attribut,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
 )
 
 button_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -1616,6 +1383,7 @@ HTMLFontElement :: struct {
 table_virtuelle_font_element := TableVirtuelleÉlément(
     classe = HTMLFontElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
 
@@ -1740,7 +1508,8 @@ HTMLFormElement :: struct {
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
     classe = HTMLFormElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
@@ -2189,7 +1958,8 @@ HTMLHeadElement :: struct {
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
     classe = HTMLHeadElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2211,7 +1981,8 @@ HTMLHeadingElement :: struct {
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
     classe = HTMLHeadingElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2233,7 +2004,8 @@ HTMLHRElement :: struct {
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
     classe = HTMLHRElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2248,14 +2020,15 @@ table_virtuelle_hr_element := TableVirtuelleÉlément(
 
 HTMLHtmlElement :: struct {
     empl html_element: HTMLElement
-    table = *table_virtuelle_html_element
+    table = *table_virtuelle_html_html_element
 }
 
 #portée_fichier
 
-table_virtuelle_html_element := TableVirtuelleÉlément(
+table_virtuelle_html_html_element := TableVirtuelleÉlément(
     classe = HTMLHtmlElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2280,7 +2053,8 @@ HTMLIFrameElement :: struct {
 
 table_virtuelle_iframe_element := TableVirtuelleÉlément(
     classe = HTMLIFrameElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2362,7 +2136,7 @@ table_virtuelle_image_element := TableVirtuelleÉlément(
 
 image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -2849,7 +2623,7 @@ input_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
 
 input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -3123,7 +2897,8 @@ is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -
 
 table_virtuelle_label_element := TableVirtuelleÉlément(
     classe = HTMLLabelElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3164,7 +2939,7 @@ table_virtuelle_link_element := TableVirtuelleÉlément(
 
 link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
-    si élément_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -3473,8 +3248,8 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
         si compare_ascii_insensible_à_la_casse(it, potential_destination) {
             // 3. Return potentialDestination.
             // À FAIRE(langage) : erreur de compilation
-            // retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
-            résultat := donne_eini_valeur_énum_index(info_destination_type, index_it)
+            // retourne donne_eini_valeur_énum_indice(info_destination_type, index_it) comme Request.DestinationType
+            résultat := donne_eini_valeur_énum_indice(info_destination_type, index_it)
             retourne mémoire(résultat.pointeur comme *Request.DestinationType)
         }
     }
@@ -3634,7 +3409,8 @@ HTMLVideoElement :: struct {
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
     classe = HTMLVideoElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3712,7 +3488,7 @@ object_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
 {
     object := base comme *HTMLObjectElement
 
-    si élément_sur_changement_attribut(object, local_name, vieille_valeur, valeur, espace_de_nom) {
+    si html_element_sur_changement_attribut(object, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
     }
 
@@ -3963,7 +3739,8 @@ HTMLOptionElement :: struct {
 
 table_virtuelle_option_element := TableVirtuelleÉlément(
     classe = HTMLOptionElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3985,7 +3762,8 @@ HTMLOptGroupElement :: struct {
 
 table_virtuelle_optgroup_element := TableVirtuelleÉlément(
     classe = HTMLOptGroupElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -4035,7 +3813,8 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
     classe = HTMLScriptElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 #portée_export
@@ -4297,7 +4076,7 @@ prépare :: fonc (el: *HTMLScriptElement)
                 scripts := *script.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
                 pour mémoire(scripts) {
                     si it == script {
-                        tableau_supprime_index(scripts, index_it)
+                        tableau_supprime_indice(scripts, index_it)
                         arrête
                     }
                 }
@@ -4634,7 +4413,8 @@ HTMLSelectElement :: struct {
 
 table_virtuelle_select_element := TableVirtuelleÉlément(
     classe = HTMLSelectElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -4656,7 +4436,8 @@ HTMLSpanElement :: struct {
 
 table_virtuelle_span_element := TableVirtuelleÉlément(
     classe = HTMLSpanElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -4803,6 +4584,7 @@ HTMLTableElement :: struct {
 table_virtuelle_table_element := TableVirtuelleÉlément(
     classe = HTMLTableElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
 
@@ -4873,6 +4655,7 @@ HTMLTableCellElement :: struct {
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
     classe = HTMLTableCellElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
 
@@ -4921,6 +4704,7 @@ HTMLTableRowElement :: struct {
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
     classe = HTMLTableRowElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
 
@@ -4950,6 +4734,7 @@ HTMLTableSectionElement :: struct {
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
     classe = HTMLTableSectionElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
 
@@ -4987,6 +4772,7 @@ donne_template_contents :: fonc (template: *HTMLTemplateElement) -> *DocumentFra
 table_virtuelle_template_element := TableVirtuelleÉlément(
     classe = HTMLTemplateElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
 )
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
@@ -5084,6 +4870,7 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 table_virtuelle_textarea_element := TableVirtuelleÉlément(
     classe = HTMLTextAreaElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = textarea_element_sur_applique_presentational_hints
 )
 
