@@ -315,7 +315,7 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
         retourne vrai
     }
 
-    // trouve l'index le plus petit du n-ième unité de code différent entre les chaines
+    // trouve l'indice le plus petit du n-ième unité de code différent entre les chaines
     n := 0
 
     boucle {
@@ -1060,7 +1060,7 @@ opérateur > :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 
 donne_chaine_utf16 :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16
 {
-    retourne donne_chaine_pour_index(__table_chaines_utf16_uniques, chn.valeur)
+    retourne donne_chaine_pour_indice(__table_chaines_utf16_uniques, chn.valeur)
 }
 
 imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16Unique)
@@ -1169,7 +1169,7 @@ TableChainesUTF16Unique :: struct {
 
     EntréeCache :: struct {
         chn: ChaineUTF16
-        index: n32
+        indice: n32
     }
 
     ensemble: [..]EntréeCache
@@ -1195,10 +1195,10 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
     entrée: TableChainesUTF16Unique.EntréeCache
     entrée.chn = chn
 
-    entrée_existante := ensemble_possède_retourne_index(*table.ensemble, entrée)
+    entrée_existante := ensemble_possède_retourne_indice(*table.ensemble, entrée)
     si entrée_existante != -1 {
         entrée = table.ensemble[entrée_existante]
-        retourne ChaineUTF16Unique(entrée.index)
+        retourne ChaineUTF16Unique(entrée.indice)
     }
 
     ctx := contexte()
@@ -1219,21 +1219,21 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
             tableau_ajoute(*table.chaines, chn_vide)
         }
 
-        index := table.chaines.taille comme n32
-        entrée.index = index
+        indice := table.chaines.taille comme n32
+        entrée.indice = indice
         entrée.chn = copie_chaine(chn)
 
         ensemble_ajoute(*table.ensemble, entrée)
 
         tableau_ajoute(*table.chaines, entrée.chn)
 
-        retourne ChaineUTF16Unique(index)
+        retourne ChaineUTF16Unique(indice)
     }
 }
 
-donne_chaine_pour_index :: fonc (table: &TableChainesUTF16Unique, index: n32) -> ChaineUTF16
+donne_chaine_pour_indice :: fonc (table: &TableChainesUTF16Unique, indice: n32) -> ChaineUTF16
 {
-    retourne table.chaines[index comme z64]
+    retourne table.chaines[indice comme z64]
 }
 
 __table_chaines_utf16_uniques: TableChainesUTF16Unique

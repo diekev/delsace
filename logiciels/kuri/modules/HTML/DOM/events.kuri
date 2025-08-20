@@ -510,7 +510,7 @@ add_an_event_listener :: fonc (target: *EventTarget, listener: EventTarget.Event
 }
 
 /* https://dom.spec.whatwg.org/#remove-an-event-listener */
-remove_an_event_listener :: fonc (target: *EventTarget, event_listener: EventTarget.EventListenerEntry, index: z64)
+remove_an_event_listener :: fonc (target: *EventTarget, event_listener: EventTarget.EventListenerEntry, indice: z64)
 {
     // À FAIRE 1. If eventTarget is a ServiceWorkerGlobalScope object and its service
     //    worker’s set of event types to handle contains listener’s type, then
@@ -519,7 +519,7 @@ remove_an_event_listener :: fonc (target: *EventTarget, event_listener: EventTar
 
     // 2. Set listener’s removed to true and remove listener from eventTarget’s event listener list.
     event_listener.removed = vrai
-    tableau_supprime_index(*target.listeners, index)
+    tableau_supprime_indice(*target.listeners, indice)
 }
 
 /* https://dom.spec.whatwg.org/#remove-all-event-listeners */
@@ -869,18 +869,18 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 invoke :: fonc (struct_: *Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul)
 {
     // 1. Set event’s target to the shadow-adjusted target of the last struct in event’s path, that is either struct or preceding struct, whose shadow-adjusted target is non-null.
-    index_struct := (struct_ - event.path.pointeur)
-    assert(index_struct >= 0)
-    assert(index_struct < event.path.taille)
+    indice_struct := (struct_ - event.path.pointeur)
+    assert(indice_struct >= 0)
+    assert(indice_struct < event.path.taille)
 
-    tantque index_struct >= 0 {
-        segment := event.path[index_struct]
+    tantque indice_struct >= 0 {
+        segment := event.path[indice_struct]
         si segment.shadow_adjusted_target != nul {
             event.target = segment.shadow_adjusted_target
             arrête
         }
 
-        index_struct -= 1
+        indice_struct -= 1
     }
 
     // 2. Set event’s relatedTarget to struct’s relatedTarget.

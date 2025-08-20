@@ -219,25 +219,25 @@ initialise_host_intrinsics :: fonc (realm: *JS.Realm)
 
 #portée_module
 
-donne_prototype :: fonc (realm: *JS.Realm, index: z64) -> *JS.Object
+donne_prototype :: fonc (realm: *JS.Realm, indice: z64) -> *JS.Object
 {
     saufsi realm {
         retourne nul
     }
-    retourne realm.intrinsics.host_intrinsics[index]
+    retourne realm.intrinsics.host_intrinsics[indice]
 }
 
-/* Table pour mapper le type d'un objet Kuri à l'index de son prototype dans realm.intrinsics.host_intrinsics. */
+/* Table pour mapper le type d'un objet Kuri à l'indice de son prototype dans realm.intrinsics.host_intrinsics. */
 IndexPrototype :: struct {
     type: type_de_données
-    index: z64
+    indice: z64
 }
 
 __table_indexage_prototypes: [..]IndexPrototype
 
-détermine_index_prototype :: fonc (type: type_de_données) -> z64
+détermine_indice_prototype :: fonc (type: type_de_données) -> z64
 {
-    résultat := donne_index_prototype(type)
+    résultat := donne_indice_prototype(type)
     si résultat != -1 {
         retourne résultat
     }
@@ -252,7 +252,7 @@ détermine_index_prototype :: fonc (type: type_de_données) -> z64
             continue
         }
 
-        résultat = donne_index_prototype(it)
+        résultat = donne_indice_prototype(it)
         si résultat != -1 {
             retourne résultat
         }
@@ -261,11 +261,11 @@ détermine_index_prototype :: fonc (type: type_de_données) -> z64
     retourne -1
 }
 
-donne_index_prototype :: fonc (type: type_de_données) -> z64
+donne_indice_prototype :: fonc (type: type_de_données) -> z64
 {
     pour __table_indexage_prototypes {
         si it.type == type {
-            retourne it.index
+            retourne it.indice
         }
     }
     retourne -1
@@ -273,11 +273,11 @@ donne_index_prototype :: fonc (type: type_de_données) -> z64
 
 définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
 {
-    index := détermine_index_prototype(type)
-    si index == -1 {
+    indice := détermine_indice_prototype(type)
+    si indice == -1 {
         retourne
     }
-    object.prototype = donne_prototype(object.realm, index)
+    object.prototype = donne_prototype(object.realm, indice)
 }
 
 donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> *Type
@@ -297,7 +297,7 @@ donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Val
 }
 
 InfoConstructor :: struct {
-    index: z64
+    indice: z64
     nom: DOMString
 }
 
@@ -306,7 +306,7 @@ __table_constructors: [..]InfoConstructor
 initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
 {
     pour __table_constructors {
-        constructor := realm.intrinsics.host_intrinsics[it.index]
+        constructor := realm.intrinsics.host_intrinsics[it.indice]
 
         desc: JS.PropertyDescriptor
         JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro)

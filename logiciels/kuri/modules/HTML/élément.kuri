@@ -3229,8 +3229,8 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
         si compare_ascii_insensible_à_la_casse(it, potential_destination) {
             // 3. Return potentialDestination.
             // À FAIRE(langage) : erreur de compilation
-            // retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
-            résultat := donne_eini_valeur_énum_index(info_destination_type, index_it)
+            // retourne donne_eini_valeur_énum_indice(info_destination_type, index_it) comme Request.DestinationType
+            résultat := donne_eini_valeur_énum_indice(info_destination_type, index_it)
             retourne mémoire(résultat.pointeur comme *Request.DestinationType)
         }
     }
@@ -4053,7 +4053,7 @@ prépare :: fonc (el: *HTMLScriptElement)
                 scripts := *script.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
                 pour mémoire(scripts) {
                     si it == script {
-                        tableau_supprime_index(scripts, index_it)
+                        tableau_supprime_indice(scripts, index_it)
                         arrête
                     }
                 }

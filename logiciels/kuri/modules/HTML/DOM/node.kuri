@@ -498,7 +498,7 @@ pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
     // À FAIRE : 2. Remove child.
     pour parent.enfants {
         si it == child {
-            tableau_supprime_index(*parent.enfants, index_it)
+            tableau_supprime_indice(*parent.enfants, index_it)
             arrête
         }
     }
@@ -557,7 +557,7 @@ donne_node_name :: fonc (noeud: *Noeud) -> DOMString
 /** \nom Hiérarchie
  * \{ */
 
-donne_index_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent :: fonc (élément: *Élément) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -579,7 +579,7 @@ donne_index_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_index_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -601,7 +601,7 @@ donne_index_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_index_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -628,7 +628,7 @@ donne_index_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -658,9 +658,9 @@ donne_index_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Éléme
 est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
 {
     si a.parent == b.parent {
-        index_a := donne_index_dans_parent(a)
-        index_b := donne_index_dans_parent(b)
-        retourne index_a < index_b
+        indice_a := donne_indice_dans_parent(a)
+        indice_b := donne_indice_dans_parent(b)
+        retourne indice_a < indice_b
     }
 
     traversée: [..]*Noeud

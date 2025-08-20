@@ -710,14 +710,14 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
         config_texte_commentaire := ConfigurationTexte(fonte, thème.texte_commentaire)
 
         pour anonyme.éditeur.lignes {
-            index_ligne := it + anonyme.éditeur.décalage_ligne
+            indice_ligne := it + anonyme.éditeur.décalage_ligne
 
-            si index_ligne >= anonyme.éditeur.lignes_texte.taille {
+            si indice_ligne >= anonyme.éditeur.lignes_texte.taille {
                 dispose_texte("", config_texte)
             }
             sinon si anonyme.éditeur.texte_possède_lexeuse {
                 // XXX - @Vitesse
-                texte := converti_vers_chaine(anonyme.éditeur.lignes_rendu[index_ligne])
+                texte := converti_vers_chaine(anonyme.éditeur.lignes_rendu[indice_ligne])
                 tableau_ajoute(*anonyme.textes_alloués_par_image, texte)
 
                 définis_texte_courant(*anonyme.éditeur.lexeuse, texte)
@@ -749,18 +749,18 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
                 termine_rectangle()
             }
             sinon {
-                dispose_texte(anonyme.éditeur.lignes_rendu[index_ligne], config_texte)
+                dispose_texte(anonyme.éditeur.lignes_rendu[indice_ligne], config_texte)
             }
 
             /* Curseur. */
-            si anonyme.éditeur.cy == index_ligne {
+            si anonyme.éditeur.cy == indice_ligne {
                 dispose_rectangle()
                 {
                     définis_arrière_plan(thème.texte)
                     définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
 
-                    si index_ligne < anonyme.éditeur.lignes_texte.taille {
-                        texte_ligne := anonyme.éditeur.lignes_rendu[index_ligne]
+                    si indice_ligne < anonyme.éditeur.lignes_texte.taille {
+                        texte_ligne := anonyme.éditeur.lignes_rendu[indice_ligne]
                         texte_avant_curseur := texte_ligne
                         texte_avant_curseur.points_de_code.taille = anonyme.éditeur.cx
 
@@ -785,7 +785,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     termine_rectangle()
 }
 
-déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, index_chaine: z32 @inutilisée)
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, indice_chaine: z32 @inutilisée)
 {
     rect := donne_rect(*emboiteuse, id)
 

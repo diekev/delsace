@@ -122,7 +122,7 @@ marque_modifié :: fonc (éditeur: *Éditeur)
         tableau_ajoute(*éditeur.lignes_texte, ligne)
     }
     sinon {
-        tableau_insère_index(*éditeur.lignes_texte, ligne, où)
+        tableau_insère_indice(*éditeur.lignes_texte, ligne, où)
     }
 
     éditeur.marque_modifié()
@@ -239,22 +239,22 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     retourne nligne
 }
 
-éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, index_ligne: z64, index_caractère: z64, caractère: n32)
+éditeur_insère_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, indice_ligne: z64, indice_caractère: z64, caractère: n32)
 {
-    tableau_insère_index(*ligne.points_de_code, caractère, index_caractère)
-    éditeur.lignes_texte[index_ligne] = ligne
+    tableau_insère_indice(*ligne.points_de_code, caractère, indice_caractère)
+    éditeur.lignes_texte[indice_ligne] = ligne
 
     éditeur.marque_modifié()
 }
 
-éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, index_ligne: z64, index_caractère: z64) -> rien
+éditeur_supprime_caractère_ligne :: fonc (éditeur: *Éditeur, ligne: ChaineUTF32, indice_ligne: z64, indice_caractère: z64) -> rien
 {
-    si index_caractère < 0 || index_caractère >= ligne.taille() {
+    si indice_caractère < 0 || indice_caractère >= ligne.taille() {
         retourne
     }
 
-    tableau_supprime_index(*ligne.points_de_code, index_caractère)
-    éditeur.lignes_texte[index_ligne] = ligne
+    tableau_supprime_indice(*ligne.points_de_code, indice_caractère)
+    éditeur.lignes_texte[indice_ligne] = ligne
     éditeur.marque_modifié()
 }
 
@@ -304,20 +304,20 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     éditeur.griffonier.points_de_code.taille = 0
 }
 
-éditeur_supprime_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64) -> rien
+éditeur_supprime_ligne :: fonc (éditeur: *Éditeur, indice_ligne: z64) -> rien
 {
-    si index_ligne < 0 || index_ligne >= éditeur.lignes_texte.taille {
+    si indice_ligne < 0 || indice_ligne >= éditeur.lignes_texte.taille {
         retourne
     }
 
-    détruit_chaine(éditeur.lignes_texte[index_ligne])
-    tableau_supprime_index(*éditeur.lignes_texte, index_ligne)
+    détruit_chaine(éditeur.lignes_texte[indice_ligne])
+    tableau_supprime_indice(*éditeur.lignes_texte, indice_ligne)
     éditeur.marque_modifié()
 }
 
-éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, index_ligne: z64, texte: ChaineUTF32) -> rien
+éditeur_adjoint_ligne :: fonc (éditeur: *Éditeur, indice_ligne: z64, texte: ChaineUTF32) -> rien
 {
-    ligne := éditeur.lignes_texte[index_ligne]
+    ligne := éditeur.lignes_texte[indice_ligne]
     ancienne_taille := ligne.taille()
     nouvelle_taille := ancienne_taille + texte.taille()
 
@@ -326,7 +326,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     }
 
     tableau_ajoute(*ligne.points_de_code, ...texte.points_de_code)
-    éditeur.lignes_texte[index_ligne] = ligne
+    éditeur.lignes_texte[indice_ligne] = ligne
 
     éditeur_ajourne_message_status(éditeur, ligne)
     éditeur.marque_modifié()
