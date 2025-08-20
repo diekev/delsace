@@ -295,14 +295,14 @@ imprime_connexion_graphviz :: fonc (enchaineuse: *Enchaineuse, connexion: *Conne
 
     id_dot_pour_noeud(enchaineuse, sortie.noeud_parent)
     ajoute_au_tampon(enchaineuse, ":")
-    id_dot_pour_prise(enchaineuse, sortie, sortie.donne_index() + sortie.noeud_parent.entrées.taille)
+    id_dot_pour_prise(enchaineuse, sortie, sortie.donne_indice() + sortie.noeud_parent.entrées.taille)
     ajoute_au_tampon(enchaineuse, ":s")
 
     ajoute_au_tampon(enchaineuse, "->")
 
     id_dot_pour_noeud(enchaineuse, entrée.noeud_parent)
     ajoute_au_tampon(enchaineuse, ":")
-    id_dot_pour_prise(enchaineuse, entrée, entrée.donne_index())
+    id_dot_pour_prise(enchaineuse, entrée, entrée.donne_indice())
     ajoute_au_tampon(enchaineuse, ":n")
 
     ajoute_au_tampon(enchaineuse, "[")

@@ -558,12 +558,7 @@ lis_cache_utilisateur :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
         taille_données := lectrice.lis_valeur_typée(z64)
         tableau_redimensionne(entrée.valeur, taille_données)
 
-        src := lectrice.curseur
-        dst := entrée.valeur.pointeur
-
-        copie_mem_nonsur(src = src, dst = dst, taille = taille_données)
-
-        lectrice.curseur += taille_données
+        lis_octets(lectrice, entrée.valeur)
     }
 }
 

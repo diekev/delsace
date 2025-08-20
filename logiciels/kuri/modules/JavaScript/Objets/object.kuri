@@ -9,12 +9,12 @@ ParamètresObjectCall :: struct {
     arguments: []Valeur
 }
 
-donne_argument :: fonc (params: *ParamètresObjectCall, index: z64) -> Valeur
+donne_argument :: fonc (params: *ParamètresObjectCall, indice: z64) -> Valeur
 {
-    si index < 0 || index >= params.arguments.taille {
+    si indice < 0 || indice >= params.arguments.taille {
         retourne js_undefined
     }
-    retourne params.arguments[index]
+    retourne params.arguments[indice]
 }
 
 TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(Valeur)
@@ -26,12 +26,12 @@ ParamètresObjectConstruct :: struct {
     arguments: []Valeur
 }
 
-donne_argument :: fonc (params: *ParamètresObjectConstruct, index: z64) -> Valeur
+donne_argument :: fonc (params: *ParamètresObjectConstruct, indice: z64) -> Valeur
 {
-    si index < 0 || index >= params.arguments.taille {
+    si indice < 0 || indice >= params.arguments.taille {
         retourne js_undefined
     }
-    retourne params.arguments[index]
+    retourne params.arguments[indice]
 }
 
 TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(Valeur)
@@ -72,7 +72,7 @@ Writable :: DrapeauxPropriété.WRITABLE
 
 IndexPropriété :: struct {
     empreinte: n64
-    index: z64
+    indice: z64
 }
 
 opérateur == :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
@@ -105,7 +105,7 @@ Object :: struct {
 
     /* Ceci stocke les valeurs indexées par des chaines. */
     propriétés: [..]Propriété
-    index_propriétés: [..]IndexPropriété
+    indice_propriétés: [..]IndexPropriété
     /* Ceci stocke les valeurs indexées par des nombres. */
     éléments_indexés: [..]Propriété
 
@@ -115,11 +115,11 @@ Object :: struct {
     extensible := vrai
 }
 
-garantis_taille_tableau_élément_pour_index :: fonc (object: *Object, index: n32)
+garantis_taille_tableau_élément_pour_indice :: fonc (object: *Object, indice: n32)
 {
-    si index comme z64 >= object.éléments_indexés.taille {
+    si indice comme z64 >= object.éléments_indexés.taille {
         ancienne_taille := object.éléments_indexés.taille
-        tableau_redimensionne(object.éléments_indexés, index comme z64 + 1)
+        tableau_redimensionne(object.éléments_indexés, indice comme z64 + 1)
 
         pour ancienne_taille ... object.éléments_indexés.taille - 1 {
             init_de(Object.Propriété)(*object.éléments_indexés[it])
@@ -128,7 +128,7 @@ garantis_taille_tableau_élément_pour_index :: fonc (object: *Object, index: n3
 
         si object.donne_classe() == ArrayObject {
             array := object comme *ArrayObject
-            array_set_length(array, index + 1)
+            array_set_length(array, indice + 1)
         }
     }
 }
@@ -165,7 +165,7 @@ sur_destruction_objet :: fonc (base: *Cellule)
 {
     objet := base.vérifie_comme(Object)
     déloge(objet.propriétés)
-    déloge(objet.index_propriétés)
+    déloge(objet.indice_propriétés)
     déloge(objet.éléments_indexés)
     déloge(objet.private_elements)
 }
@@ -174,11 +174,11 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, dr
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 
-    index: IndexPropriété
-    index.empreinte = donne_empreinte(nom)
-    index.index = objet.propriétés.taille - 1
+    indice: IndexPropriété
+    indice.empreinte = donne_empreinte(nom)
+    indice.indice = objet.propriétés.taille - 1
 
-    ensemble_ajoute(*objet.index_propriétés, index)
+    ensemble_ajoute(*objet.indice_propriétés, indice)
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
@@ -199,18 +199,18 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: *Object, set:
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux))
 
-    index: IndexPropriété
-    index.empreinte = donne_empreinte(nom)
-    index.index = objet.propriétés.taille - 1
+    indice: IndexPropriété
+    indice.empreinte = donne_empreinte(nom)
+    indice.indice = objet.propriétés.taille - 1
 
-    ensemble_ajoute(*objet.index_propriétés, index)
+    ensemble_ajoute(*objet.indice_propriétés, indice)
 }
 
 supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
 {
     pour object.propriétés {
         si it.nom == nom {
-            tableau_supprime_index(*object.propriétés, index_it)
+            tableau_supprime_indice(*object.propriétés, index_it)
             retourne
         }
     }
@@ -268,17 +268,17 @@ internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
 internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
 {
     si is_array_index(property_key) {
-        index := to_uint32(property_key)
-        retourne internal_define_own_property_by_index(object, index, desc)
+        indice := to_uint32(property_key)
+        retourne internal_define_own_property_by_index(object, indice, desc)
     }
 
     retourne object.donne_table().sur_define_own_property(object, property_key, desc)
 }
 
-internal_define_own_property_by_index :: fonc (object: *Object, index: n32, desc: &PropertyDescriptor) -> bool
+internal_define_own_property_by_index :: fonc (object: *Object, indice: n32, desc: &PropertyDescriptor) -> bool
 {
-    garantis_taille_tableau_élément_pour_index(object, index)
-    object.éléments_indexés[index comme z64].valeur = desc.value
+    garantis_taille_tableau_élément_pour_indice(object, indice)
+    object.éléments_indexés[indice comme z64].valeur = desc.value
     retourne vrai
 }
 
@@ -306,13 +306,13 @@ internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     retourne object.donne_table().sur_get(object, property_key, receiver)
 }
 
-internal_get_by_index :: fonc (object: *Object, index: n32, receiver: Valeur @inutilisée) -> Valeur
+internal_get_by_index :: fonc (object: *Object, indice: n32, receiver: Valeur @inutilisée) -> Valeur
 {
-    si index comme z64 >= object.éléments_indexés.taille {
+    si indice comme z64 >= object.éléments_indexés.taille {
         retourne js_undefined
     }
 
-    retourne object.éléments_indexés[index comme z64].valeur
+    retourne object.éléments_indexés[indice comme z64].valeur
 }
 
 /* [[Set]] */
@@ -321,10 +321,10 @@ internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur
     retourne object.donne_table().sur_set(object, property_key, valeur, receiver)
 }
 
-internal_set_by_index :: fonc (object: *Object, index: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> bool
+internal_set_by_index :: fonc (object: *Object, indice: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> bool
 {
-    garantis_taille_tableau_élément_pour_index(object, index)
-    object.éléments_indexés[index comme z64].valeur = valeur
+    garantis_taille_tableau_élément_pour_indice(object, indice)
+    object.éléments_indexés[indice comme z64].valeur = valeur
     retourne vrai
 }
 
@@ -352,14 +352,14 @@ internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, ar
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
-    index: IndexPropriété
-    index.empreinte = donne_empreinte(nom)
+    indice: IndexPropriété
+    indice.empreinte = donne_empreinte(nom)
 
-    index_prop := ensemble_possède_retourne_index(*objet.index_propriétés, index)
-    si index_prop == -1 {
+    indice_prop := ensemble_possède_retourne_indice(*objet.indice_propriétés, indice)
+    si indice_prop == -1 {
         retourne nul
     }
-    retourne *objet.propriétés[objet.index_propriétés[index_prop].index]
+    retourne *objet.propriétés[objet.indice_propriétés[indice_prop].indice]
 }
 
 /** \} */
