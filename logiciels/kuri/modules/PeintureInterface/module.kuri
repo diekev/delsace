@@ -105,7 +105,9 @@ Peintre :: struct {
 
 détruit_peintre :: fonc (peintre: *Peintre)
 {
-    peintre.rappel_destruction(peintre)
+    si peintre && peintre.rappel_destruction {
+        peintre.rappel_destruction(peintre)
+    }
 }
 
 définis_taille_cannevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne

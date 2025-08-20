@@ -90,7 +90,7 @@ TamponID :: struct {
     fut_dessiné: bool
 }
 
-donne_index_pour_position :: fonc (tampon: *TamponID, x: z32, y: z32) -> Optionnel(n32)
+donne_indice_pour_position :: fonc (tampon: *TamponID, x: z32, y: z32) -> Optionnel(n32)
 {
     saufsi tampon.fut_dessiné {
         retourne
@@ -101,9 +101,9 @@ donne_index_pour_position :: fonc (tampon: *TamponID, x: z32, y: z32) -> Optionn
     }
 
     /* OpenGL est de bas en haut, donc inverse l'axe des y. */
-    index := (tampon.hauteur - y - 1) * tampon.largeur + x
+    indice := (tampon.hauteur - y - 1) * tampon.largeur + x
 
-    retourne tampon.données[index]
+    retourne tampon.données[indice]
 }
 
 ArbreDeDisposition :: struct {
@@ -279,12 +279,12 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
 
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
 {
-    index := donne_index_pour_position(*arbre.tampon_id, x, y)
-    saufsi index.possède_valeur() {
+    indice := donne_indice_pour_position(*arbre.tampon_id, x, y)
+    saufsi indice.possède_valeur() {
         retourne nul
     }
 
-    box := arbre.boxes[index.Quelque]
+    box := arbre.boxes[indice.Quelque]
     saufsi box {
         retourne nul
     }
@@ -400,11 +400,11 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation)
         nom_classe := it.box.donne_nom_classe_sans_suffixe()
-        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.index_début, it.index_fin, it.x, it.y, it.largeur, it.hauteur)
+        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur)
 
         si it.box.table_virtuelle.type == TextBox {
             text_box := it.box comme *TextBox
-            fragment_texte := text_box.fragments[it.index_début]
+            fragment_texte := text_box.fragments[it.indice_début]
             ajoute_au_tampon(enchaineuse, "\n", indentation_texte, "\"", fragment_texte.texte, "\"")
         }
 
@@ -420,8 +420,8 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32
 
 RègleAppariée :: struct {
     règle: *CSSStyleRule
-    index_feuille_de_style: z64
-    index_règle: z64
+    indice_feuille_de_style: z64
+    indice_règle: z64
     origine: OrigineCascade
 }
 
@@ -529,13 +529,13 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     ctx.largeur = résolveuse.largeur_écran
     ctx.taille_fonte = résolveuse.globales.taille_fonte_défaut
 
-    pour feuille, index_feuille dans résolveuse.feuilles_de_style {
-        index_règle : z64 = 0
+    pour feuille, indice_feuille dans résolveuse.feuilles_de_style {
+        indice_règle : z64 = 0
         pour règle dans feuille.rules {
             si règle.type == CSSRuleType.Style {
                 règle_de_style := règle comme *CSSStyleRule
-                ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
-                index_règle += 1
+                ajoute_règle_aux_caches(résolveuse, règle_de_style, indice_feuille, indice_règle)
+                indice_règle += 1
                 continue
             }
 
@@ -548,8 +548,8 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
                 pour règle_média dans règle_de_media.css_rules {
                     si règle_média.type == CSSRuleType.Style {
                         règle_de_style := règle_média comme *CSSStyleRule
-                        ajoute_règle_aux_caches(résolveuse, règle_de_style, index_feuille, index_règle)
-                        index_règle += 1
+                        ajoute_règle_aux_caches(résolveuse, règle_de_style, indice_feuille, indice_règle)
+                        indice_règle += 1
                     }
                 }
 
@@ -574,14 +574,14 @@ initialise_cache :: fonc (résolveuse: *RésolveuseStyle)
     retourne vrai
 }
 
-ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_style: *CSSStyleRule, index_feuille: z64, index_règle: z64)
+ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_style: *CSSStyleRule, indice_feuille: z64, indice_règle: z64)
 {
     règle_ajoutée := faux
 
     règle_appariée: RègleAppariée
     règle_appariée.règle = règle_de_style
-    règle_appariée.index_feuille_de_style = index_feuille
-    règle_appariée.index_règle = index_règle
+    règle_appariée.indice_feuille_de_style = indice_feuille
+    règle_appariée.indice_règle = indice_règle
 
     pour complex dans règle_de_style.selector_list.complex_selectors {
         dernière_classe: Optionnel(CSSOMString)
@@ -620,9 +620,9 @@ ajoute_règle_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOM
     règle_par_identifiant: RèglesParIdentifiant
     règle_par_identifiant.ident = classe.valeur
 
-    index := ensemble_possède_retourne_index(*résolveuse.règles_par_classe, règle_par_identifiant)
-    si index != -1 {
-        règles_par_identifant := *résolveuse.règles_par_classe[index]
+    indice := ensemble_possède_retourne_indice(*résolveuse.règles_par_classe, règle_par_identifiant)
+    si indice != -1 {
+        règles_par_identifant := *résolveuse.règles_par_classe[indice]
         tableau_ajoute(*règles_par_identifant.règles, règle)
         retourne
     }
@@ -636,9 +636,9 @@ donne_règles_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOM
     règle_par_identifiant: RèglesParIdentifiant
     règle_par_identifiant.ident = classe.valeur
 
-    index := ensemble_possède_retourne_index(*résolveuse.règles_par_classe, règle_par_identifiant)
-    si index != -1 {
-        retourne résolveuse.règles_par_classe[index].règles
+    indice := ensemble_possède_retourne_indice(*résolveuse.règles_par_classe, règle_par_identifiant)
+    si indice != -1 {
+        retourne résolveuse.règles_par_classe[indice].règles
     }
 
     résultat: [..]RègleAppariée
@@ -814,11 +814,11 @@ résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élémen
         origine := donne_origine_cascade(règle)
 
         position: PositionDéclaration
-        position.index_feuille = it.règle.index_feuille_de_style
-        position.index_règle = it.règle.index_règle
+        position.indice_feuille = it.règle.indice_feuille_de_style
+        position.indice_règle = it.règle.indice_règle
 
-        pour déclaration, index_déclaration dans déclarations {
-            position.index_déclaration = index_déclaration
+        pour déclaration, indice_déclaration dans déclarations {
+            position.indice_déclaration = indice_déclaration
             tableau_ajoute(*résolveuse.déclarations_cascade, DéclarationCascadée(déclaration, spécificité, origine, position))
         }
     }
@@ -976,30 +976,30 @@ OrigineCascade :: énum {
 }
 
 PositionDéclaration :: struct {
-    index_feuille: z64
-    index_règle: z64
-    index_déclaration: z64
+    indice_feuille: z64
+    indice_règle: z64
+    indice_déclaration: z64
 }
 
 opérateur < :: fonc (a: PositionDéclaration, b: PositionDéclaration) -> bool
 {
-    si a.index_feuille < b.index_feuille {
+    si a.indice_feuille < b.indice_feuille {
         retourne vrai
     }
 
-    si a.index_feuille > b.index_feuille {
+    si a.indice_feuille > b.indice_feuille {
         retourne faux
     }
 
-    si a.index_règle < b.index_règle {
+    si a.indice_règle < b.indice_règle {
         retourne vrai
     }
 
-    si a.index_règle > b.index_règle {
+    si a.indice_règle > b.indice_règle {
         retourne faux
     }
 
-    retourne a.index_déclaration < b.index_déclaration
+    retourne a.indice_déclaration < b.indice_déclaration
 }
 
 DéclarationCascadée :: struct {
@@ -1321,12 +1321,12 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     saufsi document.feuille_de_style_agent {
         document.feuille_de_style_agent = HTML.donne_feuille_de_style_défaut()
-        tableau_insère_index(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
+        tableau_insère_indice(*document.feuilles_de_style, document.feuille_de_style_agent, 0)
 
-        tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_presentational_hints(), 1)
+        tableau_insère_indice(*document.feuilles_de_style, HTML.donne_feuille_de_style_presentational_hints(), 1)
 
         si HTML.est_en_mode_quirks(document) {
-            tableau_insère_index(*document.feuilles_de_style, HTML.donne_feuille_de_style_quirks(), 2)
+            tableau_insère_indice(*document.feuilles_de_style, HTML.donne_feuille_de_style_quirks(), 2)
         }
     }
 
@@ -2536,8 +2536,8 @@ Fragment :: struct {
     }
 
     box: *Box
-    index_début: z64
-    index_fin: z64
+    indice_début: z64
+    indice_fin: z64
     type: Type
 
     x: r32
@@ -2673,9 +2673,9 @@ donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, 
     retourne résultat
 }
 
-donne_baseline :: fonc (lignes_tenante: *LignesTenante, index: z64) -> InfoLigneDeBase
+donne_baseline :: fonc (lignes_tenante: *LignesTenante, indice: z64) -> InfoLigneDeBase
 {
-    ligne := lignes_tenante.lignes[index]
+    ligne := lignes_tenante.lignes[indice]
     // À FAIRE : baseline de la fonte
     résultat : InfoLigneDeBase = ---
     résultat.origine = ligne.position_y
@@ -2737,7 +2737,7 @@ peut_ajouter_fragment :: fonc (empl enligneuse: *Enligneuse, largeur: r32) -> bo
     retourne faux
 }
 
-ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, index_début: z64, index_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
+ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, indice_début: z64, indice_fin: z64, hauteur: r32, largeur: r32, type := Fragment.Type.Normal) -> z64
 {
     lignes_tenante := enligneuse.bloc_contenant.lignes_tenante
 
@@ -2748,8 +2748,8 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, index_début: 
 
     fragment: Fragment
     fragment.box = box
-    fragment.index_début = index_début
-    fragment.index_fin = index_fin
+    fragment.indice_début = indice_début
+    fragment.indice_fin = indice_fin
     fragment.hauteur = hauteur
     fragment.largeur = largeur
     fragment.x = ligne_courante.position_x + ligne_courante.largeur_courante
@@ -3054,8 +3054,8 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
             retourne donne_ligne_de_base_marge(bloc.modèle_de_boite)
         }
 
-        index_ligne := bloc.lignes_tenante.lignes.taille - 1
-        retourne bloc.lignes_tenante.donne_baseline(index_ligne)
+        indice_ligne := bloc.lignes_tenante.lignes.taille - 1
+        retourne bloc.lignes_tenante.donne_baseline(indice_ligne)
     }
 
     si bloc.lignes_tenante {
@@ -3159,8 +3159,8 @@ inline_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mo
         hauteur = max(fragment.hauteur, hauteur)
     }
 
-    index_fragments := [fragment_marge_début, fragment_rembourrage_début, fragment_rembourrage_fin, fragment_marge_fin]
-    pour index_fragments {
+    indice_fragments := [fragment_marge_début, fragment_rembourrage_début, fragment_rembourrage_fin, fragment_marge_fin]
+    pour indice_fragments {
         fragment := *lignes_tenante.fragments[it]
         fragment.hauteur = hauteur
     }
@@ -4153,13 +4153,13 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
 
     pile.empile(itératrice.racine)
 
-    index: z64
+    indice: z64
 
     tantque !pile.est_vide() {
         enfant := pile.dépile()
 
         `it = enfant
-        `index_it = index
+        `index_it = indice
 
         #corps_boucle
 
@@ -4167,7 +4167,7 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
             pile.empile(it)
         }
 
-        index += 1
+        indice += 1
     }
 }
 
