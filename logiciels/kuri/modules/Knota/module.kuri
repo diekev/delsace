@@ -105,10 +105,10 @@ PriseEntrée :: struct {
     connexion: *Connexion @accessible
 }
 
-/* Retourne l'index de la prise la liste de prises d'entrées du noeud parent. */
-donne_index :: fonc (prise: *PriseEntrée) -> z64
+/* Retourne l'indice de la prise la liste de prises d'entrées du noeud parent. */
+donne_indice :: fonc (prise: *PriseEntrée) -> z64
 {
-    retourne tableau_donne_index(prise.noeud_parent.entrées, prise)
+    retourne tableau_donne_indice(prise.noeud_parent.entrées, prise)
 }
 
 déloge_prise_entrée :: fonc (prise: *PriseEntrée)
@@ -126,10 +126,10 @@ PriseSortie :: struct {
     connexions: [..]*Connexion @accessible
 }
 
-/* Retourne l'index de la prise la liste de prises de sorties du noeud parent. */
-donne_index :: fonc (prise: *PriseSortie) -> z64
+/* Retourne l'indice de la prise la liste de prises de sorties du noeud parent. */
+donne_indice :: fonc (prise: *PriseSortie) -> z64
 {
-    retourne tableau_donne_index(prise.noeud_parent.sorties, prise)
+    retourne tableau_donne_indice(prise.noeud_parent.sorties, prise)
 }
 
 déloge_prise_sortie :: fonc (prise: *PriseSortie)
@@ -151,7 +151,7 @@ déconnecte :: fonc (prise: *PriseEntrée) -> *Connexion
 
     pour prise_sortie.connexions {
         si it.prise_entrée == prise {
-            tableau_supprime_index(*prise_sortie.connexions, index_it)
+            tableau_supprime_indice(*prise_sortie.connexions, index_it)
             arrête
         }
     }
@@ -632,8 +632,8 @@ prise_sortie :: fonc (noeud: *Noeud, nom: chaine) -> *PriseSortie
 
 marque_amont_prise_modifié :: fonc (noeud: *Noeud, prise: *PriseEntrée)
 {
-    index_prise := prise.donne_index()
-    noeud.mémoire_vive.amont_prise_modifié |= 1 << (index_prise comme n32)
+    indice_prise := prise.donne_indice()
+    noeud.mémoire_vive.amont_prise_modifié |= 1 << (indice_prise comme n32)
     noeud.marque_nécessite_exécution()
 }
 
@@ -652,9 +652,9 @@ notifie_aval_modifié :: fonc (noeud: *Noeud)
     }
 }
 
-amont_prise_est_modifié :: fonc (noeud: *Noeud, index: z32)
+amont_prise_est_modifié :: fonc (noeud: *Noeud, indice: z32)
 {
-    bit := 1 << (index comme n32)
+    bit := 1 << (indice comme n32)
     retourne (noeud.mémoire_vive.amont_prise_modifié & bit) == bit
 }
 
@@ -736,13 +736,13 @@ enfants :: fonc (noeud_parent: *Noeud) -> []*Noeud
     retourne résultat
 } @Python "méthode"
 
-connecte_entrée :: fonc (noeud_parent: *Noeud, index_entrée: z32, noeud: *Noeud, index_sortie: z32)
+connecte_entrée :: fonc (noeud_parent: *Noeud, indice_entrée: z32, noeud: *Noeud, indice_sortie: z32)
 {
-    si index_entrée > noeud_parent.entrées.taille {
+    si indice_entrée > noeud_parent.entrées.taille {
         retourne
     }
 
-    si index_entrée > noeud.sorties.taille {
+    si indice_entrée > noeud.sorties.taille {
         retourne
     }
 
@@ -750,8 +750,8 @@ connecte_entrée :: fonc (noeud_parent: *Noeud, index_entrée: z32, noeud: *Noeu
         retourne
     }
 
-    entrée := noeud_parent.entrées[index_entrée]
-    sortie := noeud.sorties[index_sortie]
+    entrée := noeud_parent.entrées[indice_entrée]
+    sortie := noeud.sorties[indice_sortie]
     graphe := noeud_parent.graphe_parent
     graphe.crée_connexion(entrée, sortie)
 } @Python "méthode"
@@ -1009,13 +1009,13 @@ définis_noeud_rendu :: fonc (graphe: *Graphe, noeud: *Noeud)
 
 // --------------------------------------------------------------
 
-noeud_parent_connecté_à_prise_entrée :: fonc (noeud: *Noeud, index: z32) -> *Noeud
+noeud_parent_connecté_à_prise_entrée :: fonc (noeud: *Noeud, indice: z32) -> *Noeud
 {
-    si index < 0 || index >= noeud.entrées.taille {
+    si indice < 0 || indice >= noeud.entrées.taille {
         retourne nul
     }
 
-    prise := noeud.entrées[index]
+    prise := noeud.entrées[indice]
 
     saufsi prise.connexion {
         retourne nul
@@ -1106,10 +1106,10 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
         retourne adaptrice.graphe.items.taille
     }
 
-    donne_rectangle :: fonc (base: *AdaptriceÉléments, index: z64) -> RectanglePosDim(r32)
+    donne_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64) -> RectanglePosDim(r32)
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds
-        item := adaptrice.graphe.items[index]
+        item := adaptrice.graphe.items[indice]
 
         saufsi item.type_item == Noeud {
             résultat: RectanglePosDim(r32)
@@ -1120,10 +1120,10 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
         retourne noeud.rectangle()
     }
 
-    intersecte_rectangle :: fonc (base: *AdaptriceÉléments, index: z64, rect: RectanglePosDim(r32)) -> bool
+    intersecte_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds
-        item := adaptrice.graphe.items[index]
+        item := adaptrice.graphe.items[indice]
 
         saufsi item.type_item == Noeud {
             retourne faux
@@ -1175,7 +1175,7 @@ sur_rafraichissement_sélection_graphe :: fonc (base: *RappelRafraichissementSé
     graphe := rappel.graphe
 
     pour état_sélection_éléments {
-        graphe.items[it.index].est_dans_la_sélection = it.est_sélectionné
+        graphe.items[it.indice].est_dans_la_sélection = it.est_sélectionné
     }
 }
 
@@ -1369,12 +1369,12 @@ supprime_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     assert(graphe != nul)
     assert(graphe == noeud.graphe_parent)
 
-    pour n, index_noeud dans graphe.items {
+    pour n, indice_noeud dans graphe.items {
         saufsi n == noeud {
             continue
         }
 
-        tableau_supprime_index(*graphe.items, index_noeud)
+        tableau_supprime_indice(*graphe.items, indice_noeud)
         arrête
     }
     sansarrêt {
@@ -1403,7 +1403,7 @@ ItératriceNoeud :: struct {
 opérateur pour :: fonc (itératrice: ItératriceNoeud) -> *Noeud
 {
     graphe := itératrice.graphe
-    index_noeud: z64
+    indice_noeud: z64
 
     pour graphe.items {
         si it.type_item != Noeud {
@@ -1413,11 +1413,11 @@ opérateur pour :: fonc (itératrice: ItératriceNoeud) -> *Noeud
         noeud := it comme *Noeud
 
         `it = noeud
-        `index_it = index_noeud
+        `index_it = indice_noeud
 
         #corps_boucle
 
-        index_noeud += 1
+        indice_noeud += 1
     }
 }
 
