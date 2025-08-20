@@ -48,7 +48,7 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
 
     // écris le fichier
     chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
-    _ := écris_fichier_entier(chemin_fichier, )
+    _ := écris_fichier_entier(chemin_fichier, chaine_reponse)
     déloge(chaine_reponse)
 }
 
