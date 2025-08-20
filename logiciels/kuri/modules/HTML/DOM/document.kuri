@@ -404,7 +404,7 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
             }
 
             si est_avant_noeud_dans_l_arbre(feuille_de_style.owner_node, it.owner_node) {
-                tableau_insère_index(*document.feuilles_de_style, feuille_de_style, index_it)
+                tableau_insère_indice(*document.feuilles_de_style, feuille_de_style, index_it)
                 retourne
             }
         }
@@ -420,7 +420,7 @@ supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *É
             continue
         }
 
-        tableau_supprime_index(*document.feuilles_de_style, index_it)
+        tableau_supprime_indice(*document.feuilles_de_style, index_it)
         CSS.détruit_feuille_de_style(it)
         arrête
     }

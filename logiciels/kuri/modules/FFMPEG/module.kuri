@@ -26,8 +26,8 @@ FluxVidéo :: struct {
 
     file_images: [TAILLE_CACHE_IMAGE]ImageVidéo
     taille_file_image: z32
-    index_écriture_file: z32
-    index_lecture_file: z32
+    indice_écriture_file: z32
+    indice_lecture_file: z32
     cache_image_initialisé: bool
 
     sur_paquet_vidéo := flux_vidéo_sur_paquet_vidéo_défaut
@@ -268,16 +268,16 @@ flux_vidéo_sur_paquet_vidéo_défaut :: fonc (flux_vidéo: *FluxVidéo, paquet:
     si image_reçu {
         // imprime("Frame : %\n", codec_ctx.frame_number)
 
-        image_vidéo := *file_images[index_écriture_file]
+        image_vidéo := *file_images[indice_écriture_file]
 
         // Convert the image from its native format to RGB
         _ := sws_scale(sws_ctx, *frame.data[0],
                 *frame.linesize[0], 0, codec_ctx.height,
                 *image_vidéo.frame_rgb.data[0], *image_vidéo.frame_rgb.linesize[0])
 
-        index_écriture_file += 1
-        si index_écriture_file >= TAILLE_CACHE_IMAGE {
-            index_écriture_file = 0
+        indice_écriture_file += 1
+        si indice_écriture_file >= TAILLE_CACHE_IMAGE {
+            indice_écriture_file = 0
         }
     }
 
