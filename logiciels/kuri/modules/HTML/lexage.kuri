@@ -1939,13 +1939,13 @@ reconsomme_dans_état :: fonc (lexeuse: *Lexeuse, état_cible: ÉtatLexage)
 apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
 {
     pour chn {
-        index := lexeuse.curseur + index_it
+        indice := lexeuse.curseur + index_it
 
-        si index >= lexeuse.document.taille() {
+        si indice >= lexeuse.document.taille() {
             retourne faux
         }
 
-        c := lexeuse.document.points_de_code[index]
+        c := lexeuse.document.points_de_code[indice]
 
         si A_MINUSCULE <= c <= Z_MINUSCULE {
             c -= 0x20
@@ -2035,7 +2035,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
     réinitialise(lexeuse.tampon_temporaire)
 
-    points_de_code := points_de_code_entités[dernier_résultat.index]
+    points_de_code := points_de_code_entités[dernier_résultat.indice]
 
     chaine_ajoute(*lexeuse.tampon_temporaire, points_de_code[0] comme n32)
 

@@ -185,12 +185,12 @@ imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: 
         virgule = ", "
     }
 
-    pour prop, index_prop dans objet.éléments_indexés {
+    pour prop, indice_prop dans objet.éléments_indexés {
         si prop.valeur.est_undefined() {
             continue
         }
 
-        ajoute_au_tampon(enchaineuse, virgule, index_prop, ": ")
+        ajoute_au_tampon(enchaineuse, virgule, indice_prop, ": ")
         imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur)
         si interpréteuse.possède_exception() {
             retourne
@@ -222,7 +222,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
 {
     résultat := js_undefined
 
-    index_chronomètre : z64 = -1
+    indice_chronomètre : z64 = -1
 
     pour console.chronomètres {
         si it.nom != nom {
@@ -243,7 +243,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         si interpréteuse.possède_exception() {
             retourne js_undefined
         }
-        index_chronomètre = index_it
+        indice_chronomètre = index_it
 
         déloge(chn_temps)
         arrête
@@ -252,7 +252,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         retourne résultat
     }
 
-    tableau_supprime_index(*console.chronomètres, index_chronomètre)
+    tableau_supprime_indice(*console.chronomètres, indice_chronomètre)
     retourne résultat
 }
 
