@@ -131,7 +131,7 @@ donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
 
 NomEtIndex :: struct {
     nom: chaine
-    index: z64
+    indice: z64
 }
 
 opérateur < :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
@@ -151,7 +151,7 @@ NOMBRE_DE_TYPES_MAX :: 256
 Interfaces :: struct {
     interfaces: [..]Interface
     contenus_fichiers: [..]chaine
-    noms_et_index_parents: [..]NomEtIndex
+    noms_et_indice_parents: [..]NomEtIndex
     types : [NOMBRE_DE_TYPES_MAX]Type = ---
     nombre_de_types: z32
 }
@@ -184,12 +184,12 @@ crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
     résultat := tableau_ajoute_élément(*interfaces.interfaces)
     résultat.nom = nom
 
-    nom_et_index_parent: NomEtIndex
-    nom_et_index_parent.nom = résultat.nom
+    nom_et_indice_parent: NomEtIndex
+    nom_et_indice_parent.nom = résultat.nom
 
-    saufsi ensemble_possède(*interfaces.noms_et_index_parents, nom_et_index_parent) {
-        nom_et_index_parent.index = interfaces.interfaces.taille - 1
-        ensemble_ajoute(*interfaces.noms_et_index_parents, nom_et_index_parent)
+    saufsi ensemble_possède(*interfaces.noms_et_indice_parents, nom_et_indice_parent) {
+        nom_et_indice_parent.indice = interfaces.interfaces.taille - 1
+        ensemble_ajoute(*interfaces.noms_et_indice_parents, nom_et_indice_parent)
     }
 
     retourne résultat
@@ -221,7 +221,7 @@ détruit_données_interfaces :: fonc (interfaces: *Interfaces)
     }
     déloge_tableau_et_ses_éléments(interfaces.contenus_fichiers)
     déloge(interfaces.interfaces)
-    déloge(interfaces.noms_et_index_parents)
+    déloge(interfaces.noms_et_indice_parents)
 }
 
 ajoute_mixins_aux_interfaces :: fonc (interfaces: *Interfaces)
@@ -310,7 +310,7 @@ compile_interfaces_idl :: fonc () -> chaine
         si it.est_mixin {
             continue
         }
-        génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_index_parents)
+        génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_indice_parents)
     }
 
     griffonier: Griffonier
@@ -348,29 +348,29 @@ compile_interfaces_idl :: fonc () -> chaine
         ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
     }
 
-    index_intrinsèque := interfaces.interfaces.taille
+    indice_intrinsèque := interfaces.interfaces.taille
     pour interfaces.interfaces {
         saufsi it.constructors {
             continue
         }
 
-        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_intrinsèque, "] = ", it.nom, "_constructor\n")
-        index_intrinsèque += 1
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", indice_intrinsèque, "] = ", it.nom, "_constructor\n")
+        indice_intrinsèque += 1
     }
 
-    nombre_de_constructros := index_intrinsèque - interfaces.interfaces.taille
-    index_intrinsèque = interfaces.interfaces.taille
+    nombre_de_constructros := indice_intrinsèque - interfaces.interfaces.taille
+    indice_intrinsèque = interfaces.interfaces.taille
 
     ajoute_au_tampon(*enchaineuse, "    si __table_constructors.taille == 0 {\n")
     ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_constructors, ", nombre_de_constructros, ")\n")
-    index_constructor := 0
+    indice_constructor := 0
     pour interfaces.interfaces {
         saufsi it.constructors {
             continue
         }
 
-        ajoute_au_tampon(*enchaineuse, "        __table_constructors[", index_constructor, "] = InfoConstructor(", index_intrinsèque, ", crée_chaine_utf16_unique(\"", it.nom, "\"))\n")
-        index_intrinsèque += 1
+        ajoute_au_tampon(*enchaineuse, "        __table_constructors[", indice_constructor, "] = InfoConstructor(", indice_intrinsèque, ", crée_chaine_utf16_unique(\"", it.nom, "\"))\n")
+        indice_intrinsèque += 1
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
@@ -379,7 +379,7 @@ compile_interfaces_idl :: fonc () -> chaine
 
 #portée_fichier
 
-génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_index_parents: *[..]NomEtIndex)
+génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_indice_parents: *[..]NomEtIndex)
 {
     si interface.création_générée {
         retourne
@@ -388,15 +388,15 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []I
     interface.création_générée = vrai
 
     si interface.parent {
-        nom_et_index_parent: NomEtIndex
-        nom_et_index_parent.nom = interface.parent
+        nom_et_indice_parent: NomEtIndex
+        nom_et_indice_parent.nom = interface.parent
 
-        adresse_nom_et_index_parent := ensemble_possède_retourne_index(noms_et_index_parents, nom_et_index_parent)
-        assert(adresse_nom_et_index_parent != -1)
+        adresse_nom_et_indice_parent := ensemble_possède_retourne_indice(noms_et_indice_parents, nom_et_indice_parent)
+        assert(adresse_nom_et_indice_parent != -1)
 
-        parent := *interfaces[noms_et_index_parents.pointeur[adresse_nom_et_index_parent].index]
+        parent := *interfaces[noms_et_indice_parents.pointeur[adresse_nom_et_indice_parent].indice]
 
-        génère_création_prototype(enchaineuse, interfaces, parent, noms_et_index_parents)
+        génère_création_prototype(enchaineuse, interfaces, parent, noms_et_indice_parents)
     }
 
     ajoute_au_tampon(enchaineuse, "    ", interface.nom, "_prototype := crée_prototype_", interface.nom, "(tas_de_mémoire, ")
@@ -439,7 +439,7 @@ Fonction :: struct {
     premier_paramètre: z64
     dernier_paramètre: z64
 
-    /* Voir index properties et named properties https://webidl.spec.whatwg.org/#dfn-supported-property-indices */
+    /* Voir indice properties et named properties https://webidl.spec.whatwg.org/#dfn-supported-property-indices */
     est_getter := faux
     est_setter := faux
 }
@@ -599,13 +599,13 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     ajoute_au_tampon(enchaineuse, "}\n")
 }
  
-génère_appel_fonction :: fonc (enchaineuse: *Enchaineuse, fonction: *Fonction, paramètres: []Paramètre, index_rubrique_union: z64, griffonier: *Griffonier)
+génère_appel_fonction :: fonc (enchaineuse: *Enchaineuse, fonction: *Fonction, paramètres: []Paramètre, indice_rubrique_union: z64, griffonier: *Griffonier)
 {
     // Conversion des paramètres
     pour paramètres {
         type := it.type
         si type.est_union {
-            type = type.types_rubriques_union[index_rubrique_union]
+            type = type.types_rubriques_union[indice_rubrique_union]
         }
 
         génère_code_conversion_argument(enchaineuse, it.nom, index_it, type)
@@ -815,7 +815,7 @@ génère_code_conversion_this :: fonc (enchaineuse: *Enchaineuse, interface: *In
     ajoute_au_tampon(enchaineuse, "    si JS.possède_exception(interpréteuse) {\n        retourne JS.js_undefined;\n    }\n")
 }
 
-génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, index: z64, type: *Type)
+génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chaine, indice: z64, type: *Type)
 {
     si type.est_énum {
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_chaine(valeur_", nom, ") {\n        retourne JS.lance_type_error(interpréteuse,  \"argument is not a string\");\n    }\n")
@@ -853,13 +853,13 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
     }
     sinon si type.nom == "EventListener" {
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", indice, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_listener(JS.donne_objet(valeur_", nom, "))\n")
     }
     sinon si type.nom == "EventHandler" {
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_object(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, "        retourne JS.lance_type_error(interpréteuse, \"argument ", indice, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, "    }\n")
         ajoute_au_tampon(enchaineuse, "    ", nom, ":= crée_event_handler(JS.donne_objet(valeur_", nom, "))\n")
     }
@@ -871,7 +871,7 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
         }
 
         ajoute_au_tampon(enchaineuse, indentation, "    saufsi JS.is_callable(valeur_", nom, ") {\n")
-        ajoute_au_tampon(enchaineuse, indentation, "        retourne JS.lance_type_error(interpréteuse, \"argument ", index, " is not callable\")\n")
+        ajoute_au_tampon(enchaineuse, indentation, "        retourne JS.lance_type_error(interpréteuse, \"argument ", indice, " is not callable\")\n")
         ajoute_au_tampon(enchaineuse, indentation, "    }\n")
         ajoute_au_tampon(enchaineuse, indentation, "    ", nom, " := JS.donne_objet(valeur_", nom, ")\n")
 
@@ -1183,15 +1183,15 @@ rapporte_erreur :: fonc (parseuse: *ParseuseInterface, message: chaine, lexème_
     message_erreur := imprime_chaine("%, obtenu '%'\n", message, lexème_obtenu)
     info := donne_info_erreur_pour_lexème(parseuse, lexème_obtenu)
     espace := compilatrice_espace_courant()
-    compilatrice_rapporte_erreur_externe(espace, message_erreur, parseuse.chemin.chn, info.texte_ligne, info.numéro_ligne, info.index_colonne, info.index_colonne_début, info.index_colonne_fin)
+    compilatrice_rapporte_erreur_externe(espace, message_erreur, parseuse.chemin.chn, info.texte_ligne, info.numéro_ligne, info.indice_colonne, info.indice_colonne_début, info.indice_colonne_fin)
 }
 
 InfoErreur :: struct {
     texte_ligne := ""
     numéro_ligne := 0
-    index_colonne := -1
-    index_colonne_début := -1
-    index_colonne_fin := -1
+    indice_colonne := -1
+    indice_colonne_début := -1
+    indice_colonne_fin := -1
 }
 
 donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: chaine) -> InfoErreur
@@ -1222,9 +1222,9 @@ donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: c
     }
 
     résultat.texte_ligne = chaine(pos_dernière_ligne, it - pos_dernière_ligne)
-    résultat.index_colonne = (début_lexème - pos_dernière_ligne) comme z32
-    résultat.index_colonne_début = résultat.index_colonne
-    résultat.index_colonne_fin = résultat.index_colonne + lexème.taille comme z32
+    résultat.indice_colonne = (début_lexème - pos_dernière_ligne) comme z32
+    résultat.indice_colonne_début = résultat.indice_colonne
+    résultat.indice_colonne_fin = résultat.indice_colonne + lexème.taille comme z32
 
     retourne résultat
 }

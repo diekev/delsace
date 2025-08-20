@@ -259,7 +259,7 @@ efface :: fonc (curseur: *CurseurTexte)
             retourne
         }
 
-        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début - 1)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début - 1)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
     }
     sinon {
@@ -277,7 +277,7 @@ supprime :: fonc (curseur: *CurseurTexte)
             retourne
         }
 
-        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début)
     }
     sinon {
         tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
@@ -290,7 +290,7 @@ supprime :: fonc (curseur: *CurseurTexte)
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
 {
     si curseur.début == curseur.fin {
-        tableau_insère_index(*curseur.texte.points_de_code, point_de_code, curseur.début)
+        tableau_insère_indice(*curseur.texte.points_de_code, point_de_code, curseur.début)
     }
     sinon {
         curseur.texte.points_de_code[curseur.début] = point_de_code
@@ -382,8 +382,8 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
         retourne
     }
 
-    index := donne_position_curseur_pour_souris(panneau, souris)
-    déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, index)
+    indice := donne_position_curseur_pour_souris(panneau, souris)
+    déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, indice)
 }
 
 guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
@@ -484,10 +484,10 @@ définis_position_curseur_pour_clic :: fonc (panneau: *PanneauÉditionTexte, sou
 donne_position_curseur_pour_souris :: fonc (panneau: *PanneauÉditionTexte, souris: ÉtatSouris) -> z64
 {
     position_relative := souris.où.x - panneau.rect_texte.x
-    index := donne_index_caractère_pour_position(panneau.contexte.fonte, panneau.texte, position_relative comme r32)
+    indice := donne_indice_caractère_pour_position(panneau.contexte.fonte, panneau.texte, position_relative comme r32)
 
-    si index != -1 {
-        retourne index
+    si indice != -1 {
+        retourne indice
     }
 
     retourne panneau.texte.taille()
