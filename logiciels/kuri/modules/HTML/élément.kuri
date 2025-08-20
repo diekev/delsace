@@ -266,7 +266,7 @@ crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élé
         élément = crée_platform_object(document, HTMLVideoElement)
     }
     sinon {
-        élément = crée_platform_object(document, Élément)
+        élément = crée_platform_object(document, HTMLElement)
     }
 
     initialise_élément(élément, document, tag)
@@ -705,9 +705,19 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
  * https://html.spec.whatwg.org/multipage/dom.html#htmlelement
  * \{ */
 
+#portée_export
+
 HTMLElement :: struct {
     empl base_élément: Élément
+    table = *table_virtuelle_html_element
 }
+
+#portée_fichier
+
+table_virtuelle_html_element := TableVirtuelleÉlément(
+    classe = HTMLElement,
+    sur_changement_attribut = html_element_sur_changement_attribut
+)
 
 /** \} */
 
@@ -1038,6 +1048,7 @@ HTMLBodyElement :: struct {
 table_virtuelle_body_element := TableVirtuelleÉlément(
     classe = HTMLBodyElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = body_element_sur_applique_presentational_hints
 )
 
@@ -1166,7 +1177,7 @@ HTMLButtonElement :: struct {
 table_virtuelle_button_element := TableVirtuelleÉlément(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
-    sur_changement_attribut = button_element_sur_changement_attribut,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
 )
 
@@ -1372,6 +1383,7 @@ HTMLFontElement :: struct {
 table_virtuelle_font_element := TableVirtuelleÉlément(
     classe = HTMLFontElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = font_element_sur_applique_presentational_hints
 )
 
@@ -1496,7 +1508,8 @@ HTMLFormElement :: struct {
 
 table_virtuelle_form_element := TableVirtuelleÉlément(
     classe = HTMLFormElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
@@ -1945,7 +1958,8 @@ HTMLHeadElement :: struct {
 
 table_virtuelle_head_element := TableVirtuelleÉlément(
     classe = HTMLHeadElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -1967,7 +1981,8 @@ HTMLHeadingElement :: struct {
 
 table_virtuelle_heading_element := TableVirtuelleÉlément(
     classe = HTMLHeadingElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -1989,7 +2004,8 @@ HTMLHRElement :: struct {
 
 table_virtuelle_hr_element := TableVirtuelleÉlément(
     classe = HTMLHRElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2004,14 +2020,15 @@ table_virtuelle_hr_element := TableVirtuelleÉlément(
 
 HTMLHtmlElement :: struct {
     empl html_element: HTMLElement
-    table = *table_virtuelle_html_element
+    table = *table_virtuelle_html_html_element
 }
 
 #portée_fichier
 
-table_virtuelle_html_element := TableVirtuelleÉlément(
+table_virtuelle_html_html_element := TableVirtuelleÉlément(
     classe = HTMLHtmlElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2036,7 +2053,8 @@ HTMLIFrameElement :: struct {
 
 table_virtuelle_iframe_element := TableVirtuelleÉlément(
     classe = HTMLIFrameElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -2879,7 +2897,8 @@ is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -
 
 table_virtuelle_label_element := TableVirtuelleÉlément(
     classe = HTMLLabelElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3390,7 +3409,8 @@ HTMLVideoElement :: struct {
 
 table_virtuelle_video_element := TableVirtuelleÉlément(
     classe = HTMLVideoElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3719,7 +3739,8 @@ HTMLOptionElement :: struct {
 
 table_virtuelle_option_element := TableVirtuelleÉlément(
     classe = HTMLOptionElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3741,7 +3762,8 @@ HTMLOptGroupElement :: struct {
 
 table_virtuelle_optgroup_element := TableVirtuelleÉlément(
     classe = HTMLOptGroupElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -3791,7 +3813,8 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 
 table_virtuelle_script_element := TableVirtuelleÉlément(
     classe = HTMLScriptElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 #portée_export
@@ -4390,7 +4413,8 @@ HTMLSelectElement :: struct {
 
 table_virtuelle_select_element := TableVirtuelleÉlément(
     classe = HTMLSelectElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -4412,7 +4436,8 @@ HTMLSpanElement :: struct {
 
 table_virtuelle_span_element := TableVirtuelleÉlément(
     classe = HTMLSpanElement,
-    sur_destruction = élément_sur_destruction
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /** \} */
@@ -4559,6 +4584,7 @@ HTMLTableElement :: struct {
 table_virtuelle_table_element := TableVirtuelleÉlément(
     classe = HTMLTableElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
 
@@ -4629,6 +4655,7 @@ HTMLTableCellElement :: struct {
 table_virtuelle_table_cell_element := TableVirtuelleÉlément(
     classe = HTMLTableCellElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
 
@@ -4677,6 +4704,7 @@ HTMLTableRowElement :: struct {
 table_virtuelle_table_row_element := TableVirtuelleÉlément(
     classe = HTMLTableRowElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
 
@@ -4706,6 +4734,7 @@ HTMLTableSectionElement :: struct {
 table_virtuelle_table_section_element := TableVirtuelleÉlément(
     classe = HTMLTableSectionElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
 
@@ -4743,6 +4772,7 @@ donne_template_contents :: fonc (template: *HTMLTemplateElement) -> *DocumentFra
 table_virtuelle_template_element := TableVirtuelleÉlément(
     classe = HTMLTemplateElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
 )
 
 /* https://html.spec.whatwg.org/multipage/scripting.html#template-contents */
@@ -4840,6 +4870,7 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 table_virtuelle_textarea_element := TableVirtuelleÉlément(
     classe = HTMLTextAreaElement,
     sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = textarea_element_sur_applique_presentational_hints
 )
 
