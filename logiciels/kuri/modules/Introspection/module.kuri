@@ -38,7 +38,7 @@ définis_membre_actif :: fonc (u: *$TypeUnion, index: z32)
     mémoire(adresse_index) = index + 1
 }
 
-donne_index_membre_actif :: fonc (u: $TypeUnion) -> z32
+donne_indice_membre_actif :: fonc (u: $TypeUnion) -> z32
 {
     #assert info_de(TypeUnion).id == GenreInfoType.UNION
     #assert info_de(TypeUnion).est_sûre == vrai

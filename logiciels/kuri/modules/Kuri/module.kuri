@@ -378,14 +378,14 @@ nombre_de_trace :: fonc (racine: *TraceAppel) -> z64
 copie_trace_appel :: fonc (racine: *TraceAppel, tableau: [..]TraceAppel)
 {
     trace := racine
-    index := 0
+    indice := 0
 
     tantque trace != nul {
         copie: TraceAppel
         copie.info_appel = trace.info_appel
         copie.info_fonction = trace.info_fonction
-        tableau.pointeur[index] = copie
-        index += 1
+        tableau.pointeur[indice] = copie
+        indice += 1
         trace = trace.précédente
     }
 }
@@ -559,7 +559,7 @@ définis_marque_stockage_temporaire :: fonc (marque: z32) -> rien
             params.ancien_pointeur = it.adresse
             params.ancienne_taille = it.taille
             _ := allocatrice_défaut(params, nul)
-            tableau_supprime_index(*__contexte_fil_principal.stockage_temporaire.mémoire_débordante, index_it)
+            tableau_supprime_indice(*__contexte_fil_principal.stockage_temporaire.mémoire_débordante, index_it)
             it.marque = -1
             it.adresse = nul
             it.taille = 0
@@ -655,7 +655,7 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
 
                 pour alloc.mémoire_débordante {
                     si it.adresse == ancien_pointeur {
-                        tableau_supprime_index(*alloc.mémoire_débordante, index_it)
+                        tableau_supprime_indice(*alloc.mémoire_débordante, index_it)
                         arrête
                     }
                 }
