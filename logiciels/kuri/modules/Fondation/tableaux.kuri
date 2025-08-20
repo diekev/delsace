@@ -84,14 +84,14 @@ tableau_ajoute_élément :: fonc (tableau: *[..]$T) -> *T
     retourne *tableau.pointeur[tableau.taille - 1]
 }
 
-élément_tableau_index_relatif :: fonc (tabl: [..]$T, index: z64) -> *T
+élément_tableau_indice_relatif :: fonc (tabl: [..]$T, indice: z64) -> *T
 {
-    si index >= 0 {
-        retourne *tabl[index]
+    si indice >= 0 {
+        retourne *tabl[indice]
     }
 
-    index = tabl.taille + index
-    retourne *tabl[index]
+    indice = tabl.taille + indice
+    retourne *tabl[indice]
 }
 
 tableau_réserve :: fonc (tabl: *[..]$T, taille: z64) -> rien
@@ -180,7 +180,7 @@ tableau_copie :: fonc (tabl: [..]$T, fonction_de_copie: fonc(T)(T)) -> [..]T
     retourne résultat
 }
 
-tableau_insère_index :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
+tableau_insère_indice :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
 {
     tmp := mémoire(tabl)
 
@@ -196,9 +196,9 @@ tableau_insère_index :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime :: fonc (tabl: *[..]$T, index: z32) -> rien
+tableau_supprime :: fonc (tabl: *[..]$T, indice: z32) -> rien
 {
-    si index < 0 || index >= tabl.taille {
+    si indice < 0 || indice >= tabl.taille {
         retourne
     }
 
@@ -206,7 +206,7 @@ tableau_supprime :: fonc (tabl: *[..]$T, index: z32) -> rien
 
     taille := tabl.taille
 
-    pour i dans index comme z64 ... taille - 2 {
+    pour i dans indice comme z64 ... taille - 2 {
         tmp[i] = tmp[i + 1]
     }
 
@@ -215,11 +215,11 @@ tableau_supprime :: fonc (tabl: *[..]$T, index: z32) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime_index :: fonc (tabl: *[..]$T, index: z64) -> rien
+tableau_supprime_indice :: fonc (tabl: *[..]$T, indice: z64) -> rien
 {
     tmp := mémoire(tabl)
 
-    pour i dans index ... tmp.taille - 2 {
+    pour i dans indice ... tmp.taille - 2 {
         tmp[i] = tmp[i + 1]
     }
 
@@ -228,22 +228,22 @@ tableau_supprime_index :: fonc (tabl: *[..]$T, index: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime_entre :: fonc (tableau: *[..]$T, index_début: z64, index_fin: z64)
+tableau_supprime_entre :: fonc (tableau: *[..]$T, indice_début: z64, indice_fin: z64)
 {
-    si index_début >= index_fin {
+    si indice_début >= indice_fin {
         retourne
     }
 
-    si index_début < 0 {
-        index_début = 0
+    si indice_début < 0 {
+        indice_début = 0
     }
 
-    si index_fin > tableau.taille {
-        index_fin = tableau.taille
+    si indice_fin > tableau.taille {
+        indice_fin = tableau.taille
     }
 
-    pointeur_début := tableau.pointeur + index_début
-    pointeur_fin := tableau.pointeur + index_fin
+    pointeur_début := tableau.pointeur + indice_début
+    pointeur_fin := tableau.pointeur + indice_fin
     fin := tableau.pointeur + tableau.taille
 
     tantque pointeur_fin < fin {
@@ -281,7 +281,7 @@ tableau_supprime_valeur :: fonc (tabl: *[..]$T, valeur: T)
 
     pour tmp {
         si it == valeur {
-            tableau_supprime_index(tabl, index_it)
+            tableau_supprime_indice(tabl, index_it)
             arrête
         }
     }
@@ -338,7 +338,7 @@ est_adresse_élément_bornes_excluses :: fonc (tableau: [..]$T, adresse: *T) -> 
     retourne premier < adresse < dernier
 }
 
-index_élement :: fonc (tableau: [..]$T, adresse: *T) -> z64 #enligne
+indice_élement :: fonc (tableau: [..]$T, adresse: *T) -> z64 #enligne
 {
     retourne (adresse - tableau.pointeur)
 }
@@ -389,7 +389,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
-tableau_trouve_index_élément :: fonc (tableau: [..]$T, valeur: T) -> Optionnel(z64)
+tableau_trouve_indice_élément :: fonc (tableau: [..]$T, valeur: T) -> Optionnel(z64)
 {
     pour tableau {
         si it == valeur {
@@ -486,7 +486,7 @@ tableau_avance :: fonc (tableau: []$T) -> []T
     retourne tableau
 }
 
-tableau_donne_index :: fonc (tableau: []$T, valeur: T) -> z64
+tableau_donne_indice :: fonc (tableau: []$T, valeur: T) -> z64
 {
     pour tableau {
         si it == valeur {

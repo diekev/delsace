@@ -633,7 +633,7 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
         pour nom, index_nom dans type_énum.noms {
             ajoute_au_tampon(enchaineuse, "    ", nom, " = ")
-            eini_valeur := donne_eini_valeur_énum_index(type_énum, index_nom)
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, index_nom)
             imprime_valeur(enchaineuse, eini_valeur, faux)
             ajoute_au_tampon(enchaineuse, ",\n")
         }
@@ -1167,7 +1167,7 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
 
         pour type_énum.noms {
             ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "_", it, " = ")
-            eini_valeur := donne_eini_valeur_énum_index(type_énum, index_it)
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, index_it)
             imprime_valeur(enchaineuse, eini_valeur, faux)
             ajoute_au_tampon(enchaineuse, ",\n")
         }

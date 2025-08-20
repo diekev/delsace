@@ -22,7 +22,7 @@ enfile :: fonc (file: &File(T = $T), valeur: T) #enligne
 défile :: fonc (file: &File(T = $T)) -> T
 {
     élément := file.données[0]
-    tableau_supprime_index(*file.données, 0)
+    tableau_supprime_indice(*file.données, 0)
     file.taille -= 1
     retourne élément
 }

@@ -112,7 +112,7 @@ Allocation :: struct {
     adresse: z64
     taille: z64
 
-    // index dans ÉtatMémoire.messages
+    // indice dans ÉtatMémoire.messages
     messages: [..]z64
 
     traces: [..]*InfoTraceAllocation
@@ -196,7 +196,7 @@ supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
             déloge(it.id)
             déloge(it.messages)
             déloge(it.traces)
-            tableau_supprime_index(*état.allocations, index_it)
+            tableau_supprime_indice(*état.allocations, index_it)
             si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
                 état.allocation_sélectionnée = -1
             }
@@ -221,14 +221,14 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
 {
     condensat := donne_condensat(message)
 
-    index := ensemble_possède_retourne_index(*état.condensats_traces, condensat)
-    si index != -1 {
+    indice := ensemble_possède_retourne_indice(*état.condensats_traces, condensat)
+    si indice != -1 {
         détruit_données(*condensat)
         déloge(message.traces)
-        retourne état.traces[index]
+        retourne état.traces[indice]
     }
 
-    index = ensemble_ajoute_retourne_index(*état.condensats_traces, condensat)
+    indice = ensemble_ajoute_retourne_indice(*état.condensats_traces, condensat)
 
     résultat := loge(InfoTraceAllocation)
 
@@ -243,7 +243,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
         it.fichier = copie_chaine(it.fichier)
     }
 
-    tableau_insère_index(*état.traces, résultat, index)
+    tableau_insère_indice(*état.traces, résultat, indice)
 
     pour état.traces {
         it.id = index_it
@@ -456,7 +456,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
                 si index_it >= 20 {
                     arrête
                 }
-                index_effectif := index_it comme z32
+                indice_effectif := index_it comme z32
 
                 condensat := serveuse.état_mémoire.condensats_traces[it.id]
 
@@ -465,7 +465,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
                     définis_arrière_plan(PEAU1)
                     définis_disposition(rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0)
 
-                    sur_clic_souris(définis_trace_sélectionnée, serveuse, index_effectif)
+                    sur_clic_souris(définis_trace_sélectionnée, serveuse, indice_effectif)
 
                     texte := imprime_chaine_temp("% allocations dans '%'", it.utilisateurs, it.traces[0].nom)
                     dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
@@ -517,40 +517,40 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
     termine_rectangle()   
 }
 
-dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: fonc(*rien, ClicSouris, n64, z32)(rien), index: z32)
+dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: fonc(*rien, ClicSouris, n64, z32)(rien), indice: z32)
 {
     dispose_rectangle(id = texte)
     {
         définis_arrière_plan(PEAU2)
         définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageUniforme(8.0), alignement_horizontal = AlignementEnfant.Milieu)
-        sur_pression_souris(rappel_sur_clic, serveuse, index)
+        sur_pression_souris(rappel_sur_clic, serveuse, indice)
         dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
     }
     termine_rectangle()
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
+sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
 {
-    si index == 0 {
+    si indice == 0 {
         serveuse.dessine_allocations = vrai
     }
-    sinon si index == 1 {
+    sinon si indice == 1 {
         serveuse.dessine_allocations = faux
     }
 }
 
-définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
 {
-    assert(index >= 0)
-    assert(index < serveuse.état_mémoire.allocations.taille)
+    assert(indice >= 0)
+    assert(indice < serveuse.état_mémoire.allocations.taille)
 
-    serveuse.état_mémoire.allocation_sélectionnée = index
+    serveuse.état_mémoire.allocation_sélectionnée = indice
 }
 
-définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, index: z32)
+définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
 {
-    assert(index >= 0)
-    assert(index < serveuse.état_mémoire.traces_triées.taille)
+    assert(indice >= 0)
+    assert(indice < serveuse.état_mémoire.traces_triées.taille)
 
-    serveuse.état_mémoire.trace_sélectionnée = index
+    serveuse.état_mémoire.trace_sélectionnée = indice
 }

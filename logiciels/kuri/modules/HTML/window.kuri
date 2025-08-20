@@ -171,7 +171,7 @@ clear_timeout :: fonc (window: *Window, id: z32)
             si it.algorithm.sur_destruction {
                 it.algorithm.sur_destruction(it.algorithm)
             }
-            tableau_supprime_index(*window.chronomètres, index_it)
+            tableau_supprime_indice(*window.chronomètres, index_it)
             retourne
         }
     }
@@ -210,7 +210,7 @@ clear_animation_frame :: fonc (window: *Window, id: z32)
 {
     pour window.animation_frames {
         si it.id == id {
-            tableau_supprime_index(*window.animation_frames, index_it)
+            tableau_supprime_indice(*window.animation_frames, index_it)
             retourne
         }
     }
@@ -319,19 +319,19 @@ window_proxy_sur_get_own_property :: fonc (object: *JS.Object, property_key: JS.
     // 1. Let W be the value of the [[Window]] internal slot of this.
     w := proxy.window
 
-    // À FAIRE 2. If P is an array index property name, then:
+    // À FAIRE 2. If P is an array indice property name, then:
 
-        // 1. Let index be ! ToUint32(P).
+        // 1. Let indice be ! ToUint32(P).
 
         // 2. Let children be the document-tree child navigables of W's associated Document.
 
         // 3. Let value be undefined.
 
-        // 4. If index is less than children's size, then:
+        // 4. If indice is less than children's size, then:
 
             // 1. Sort children in ascending order, with navigableA being less than navigableB if navigableA's container was inserted into W's associated Document earlier than navigableB's container was.
 
-            // 2. Set value to children[index]'s active WindowProxy.
+            // 2. Set value to children[indice]'s active WindowProxy.
 
         // 5. If value is undefined, then:
 

@@ -387,11 +387,11 @@ RappelsTab :: struct {
 
     fenêtre: *QT_Fenetre_Principale
 
-    sur_changement_page = rappels_widget_page_sur_changement_index
+    sur_changement_page = rappels_widget_page_sur_changement_indice
     sur_destruction = rappels_widget_page_sur_destruction
 }
 
-rappels_widget_page_sur_changement_index :: fonc (base: *QT_Rappels_TabWidget, index: z32 @inutilisée)
+rappels_widget_page_sur_changement_indice :: fonc (base: *QT_Rappels_TabWidget, indice: z32 @inutilisée)
 {
     rappels := base comme *RappelsTab
     fenêtre := rappels.fenêtre
@@ -1398,7 +1398,7 @@ rappels_interface_sur_tâche_parallèle :: fonc (base: *RappelsInterface, algori
 rappels_interface_sur_tâche_traversable :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
 {
     rappels := base comme *RappelsInterfaceQt
-    file := rappels.files_parallèle_pour_traversable[traversable.index_file_parallèle]
+    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
     QT_application_poste_evenement_et_donnees(file.filtre_évènement, évènement_sur_tâche_traversable, algorithm)
 }
 
@@ -1417,11 +1417,11 @@ rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, docum
     page_web := rappels_fenêtre.page_web
     traversable := page_web.navigable
 
-    index_courant := traversable.current_session_history_entry_step comme z64
-    index_max := traversable.session_history_entries.taille - 1
+    indice_courant := traversable.current_session_history_entry_step comme z64
+    indice_max := traversable.session_history_entries.taille - 1
 
-    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_avant, index_courant < index_max)
-    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_arrière, index_courant > 0)
+    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_avant, indice_courant < indice_max)
+    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_arrière, indice_courant > 0)
 
     QT_widget_ajourne(rappels_fenêtre.widget_rendu)
 
@@ -1441,7 +1441,7 @@ rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterfa
 rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable) -> bool
 {
     rappels := base comme *RappelsInterfaceQt
-    file := rappels.files_parallèle_pour_traversable[traversable.index_file_parallèle]
+    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
     retourne QT_thread_courant() == file.thread
 }
 
@@ -1514,7 +1514,7 @@ rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: 
     pour rappels.timers {
         si it.id == id {
             QT_timer_arrete(it.timer)
-            tableau_supprime_index(*rappels.timers, index_it)
+            tableau_supprime_indice(*rappels.timers, index_it)
             retourne
         }
     }

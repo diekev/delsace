@@ -666,7 +666,7 @@ text_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_te
 
     rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle())
 
-    texte := box.fragments[fragment.index_début].texte
+    texte := box.fragments[fragment.indice_début].texte
 
     commandes.dessine_texte(fonte, texte, rect, couleur, *effets)
 }

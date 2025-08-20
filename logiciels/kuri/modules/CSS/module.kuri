@@ -270,7 +270,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := HTML.donne_index_dans_parent(élément)
+                    index_dans_parent := HTML.donne_indice_dans_parent(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -278,7 +278,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := HTML.donne_index_de_même_type_dans_parent(élément)
+                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -286,7 +286,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := HTML.donne_index_dans_parent_depuis_la_fin(élément)
+                    index_dans_parent := HTML.donne_indice_dans_parent_depuis_la_fin(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 
@@ -294,7 +294,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élé
                     saufsi élément.parent {
                         retourne faux
                     }
-                    index_dans_parent := HTML.donne_index_de_même_type_dans_parent_depuis_la_fin(élément)
+                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent_depuis_la_fin(élément)
                     retourne apparie_nth_child(simple.nth_child, index_dans_parent)
                 }
 

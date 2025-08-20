@@ -193,7 +193,7 @@ efface :: fonc (curseur: *CurseurTexte)
             retourne
         }
 
-        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début - 1)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début - 1)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
     }
     sinon {
@@ -211,7 +211,7 @@ supprime :: fonc (curseur: *CurseurTexte)
             retourne
         }
 
-        tableau_supprime_index(*curseur.texte.points_de_code, curseur.début)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début)
     }
     sinon {
         tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
@@ -224,7 +224,7 @@ supprime :: fonc (curseur: *CurseurTexte)
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
 {
     si curseur.début == curseur.fin {
-        tableau_insère_index(*curseur.texte.points_de_code, point_de_code, curseur.début)
+        tableau_insère_indice(*curseur.texte.points_de_code, point_de_code, curseur.début)
     }
     sinon {
         curseur.texte.points_de_code[curseur.début] = point_de_code

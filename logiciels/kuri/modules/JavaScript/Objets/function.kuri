@@ -806,7 +806,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // À FAIRE : test 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
 
                 // 3. Insert d as the first element of functionsToInitialize.
-                tableau_insère_index(*functions_to_initialize, d, 0)
+                tableau_insère_indice(*functions_to_initialize, d, 0)
             }
         }
     }
@@ -1019,12 +1019,12 @@ ParamètresCallOrConstruct :: struct {
     new_target: Valeur
 }
 
-donne_argument :: fonc (params: *ParamètresCallOrConstruct, index: z64) -> Valeur
+donne_argument :: fonc (params: *ParamètresCallOrConstruct, indice: z64) -> Valeur
 {
-    si index < 0 || index >= params.arguments.taille {
+    si indice < 0 || indice >= params.arguments.taille {
         retourne js_undefined
     }
-    retourne params.arguments[index]
+    retourne params.arguments[indice]
 }
 
 TableVirtuelleBuiltinFunction :: struct {

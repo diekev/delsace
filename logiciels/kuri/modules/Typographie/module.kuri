@@ -95,7 +95,7 @@ donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z3
     retourne résultat comme z32
 }
 
-donne_index_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
+donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
 {
     utilise_crénage := fonte.font.kerning
     dernier_glyphe: *texture_glyph_t
@@ -553,7 +553,7 @@ texture_font_init :: fonc (self: *texture_font_t) -> bool
 {
     assert(self.atlas != nul)
     assert(self.taille > 0)
-    assert(donne_index_membre_actif(self.fileinfo) != 0)
+    assert(donne_indice_membre_actif(self.fileinfo) != 0)
 
     // FT_LCD_FILTER_LIGHT   is (0x00, 0x55, 0x56, 0x55, 0x00)
     // FT_LCD_FILTER_DEFAULT is (0x10, 0x40, 0x70, 0x40, 0x10)
@@ -742,21 +742,21 @@ texture_font_generate_kerning :: fonc (self: *texture_font_t, face: *FT_Face)
     kerning: FT_Vector
 
     /* For each glyph couple combination, check if kerning is necessary */
-    /* Starts at index 1 since 0 is for the special backgroudn glyph */
+    /* Starts at indice 1 since 0 is for the special backgroudn glyph */
     pour i dans 1 ... self.glyphs.taille - 1 {
         glyph := *self.glyphs[i];
-        glyph_index := FT_Get_Char_Index(mémoire(face), glyph.codepoint)
+        glyph_indice := FT_Get_Char_Index(mémoire(face), glyph.codepoint)
         glyph.kerning.taille = 0
 
         pour j dans 1 ... self.glyphs.taille - 1 {
             prev_glyph := self.glyphs[j]
-            prev_index := FT_Get_Char_Index(mémoire(face), prev_glyph.codepoint)
+            prev_indice := FT_Get_Char_Index(mémoire(face), prev_glyph.codepoint)
 
             // FT_KERNING_UNFITTED returns FT_F26Dot6 values.
-            _ := FT_Get_Kerning(mémoire(face), prev_index, glyph_index, FT_Kerning_Mode.FT_KERNING_UNFITTED comme n32, *kerning)
+            _ := FT_Get_Kerning(mémoire(face), prev_indice, glyph_indice, FT_Kerning_Mode.FT_KERNING_UNFITTED comme n32, *kerning)
             // printf("%c(%d)-%c(%d): %ld\n",
             //       prev_glyph.codepoint, prev_glyph.codepoint,
-            //       glyph_index, glyph_index, kerning.x);
+            //       glyph_indice, glyph_indice, kerning.x);
 
             si (kerning.x) {
                 k := kerning_t(prev_glyph.codepoint, F26Dot6_vers_r32(kerning.x) / HRESF);
@@ -822,7 +822,7 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
     flags : FT_Int32 = 0
     ft_glyph_top := 0;
     ft_glyph_left := 0;
-    glyph_index := FT_Get_Char_Index(face, codepoint comme FT_ULong)
+    glyph_indice := FT_Get_Char_Index(face, codepoint comme FT_ULong)
     // WARNING: We use texture-atlas depth to guess if user wants
     //          LCD subpixel rendering
 
@@ -860,7 +860,7 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
         flags |= FT_LOAD_TARGET_LIGHT()
     }
 
-    error := FT_Load_Glyph(face, glyph_index, flags)
+    error := FT_Load_Glyph(face, glyph_indice, flags)
     si error {
         imprime_erreur_freetype(error)
         retourne faux
@@ -1000,7 +1000,7 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
     glyph.t1 = (y + glyph.height comme z32) comme r32 / self.atlas.height comme r32
 
     // Discard hinting to get advance
-    _ := FT_Load_Glyph(face, glyph_index, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
+    _ := FT_Load_Glyph(face, glyph_indice, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
     slot := face.glyph;
     glyph.advance_x = F26Dot6_vers_r32(slot.advance.x);
     glyph.advance_y = F26Dot6_vers_r32(slot.advance.y);
@@ -1021,7 +1021,7 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
 texture_font_get_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
 {
     assert(self != nul)
-    assert(donne_index_membre_actif(self.fileinfo) != 0)
+    assert(donne_indice_membre_actif(self.fileinfo) != 0)
     assert(self.atlas != nul)
 
     /* Check if codepoint has been already loaded */
@@ -1251,13 +1251,13 @@ texture_atlas_get_distance_double_buffer :: fonc (self: *texture_atlas_t, width:
 }
 
 texture_atlas_fit :: fonc (self: *texture_atlas_t,
-                           index: n64,
+                           indice: n64,
                            width: n64,
                            height: n64) -> z32
 {
     assert(self != nul);
 
-    node := self.nodes[index]
+    node := self.nodes[indice]
     x := node.x;
     y := node.y;
     width_left := width comme z64
@@ -1267,7 +1267,7 @@ texture_atlas_fit :: fonc (self: *texture_atlas_t,
     }
 
     y = node.y;
-    i := index;
+    i := indice;
     tantque width_left > 0 {
         node = self.nodes[i]
         si node.y > y {
@@ -1291,7 +1291,7 @@ texture_atlas_merge :: fonc (self: *texture_atlas_t)
         next := *self.nodes[it + 1]
         si node.y == next.y {
             node.z += next.z;
-            tableau_supprime_index(*self.nodes, it + 1)
+            tableau_supprime_indice(*self.nodes, it + 1)
             reprends it
         }
     }
@@ -1311,7 +1311,7 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
     region := ivec4(0, 0, width comme z32, height comme z32)
 
     best_height : n64 = 0xffffffff
-    best_index : z64 = -1
+    best_indice : z64 = -1
     best_width : n64 = 0xffffffff
     pour self.nodes {
         y := texture_atlas_fit(self, index_it comme n64, width, height);
@@ -1319,7 +1319,7 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
             si ((y comme n64 + height) < best_height ||
                 (((y comme n64 + height) == best_height) && (it.z > 0 && it.z comme n64 < best_width))) {
                 best_height = y comme n64 + height
-                best_index = index_it
+                best_indice = index_it
                 best_width = it.z comme n64
                 region.x = it.x
                 region.y = y
@@ -1327,7 +1327,7 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
         }
     }
 
-    si best_index == -1 {
+    si best_indice == -1 {
         region.x = -1
         region.y = -1
         region.z = 0
@@ -1336,9 +1336,9 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
     }
 
     tmp_node := ivec3(x = region.x, y = region.y + height comme z32, z = width comme z32)
-    tableau_insère_index(*self.nodes, tmp_node, best_index)
+    tableau_insère_indice(*self.nodes, tmp_node, best_indice)
 
-    pour i dans best_index + 1 ... self.nodes.taille - 1 {
+    pour i dans best_indice + 1 ... self.nodes.taille - 1 {
         node := *self.nodes[i]
         prev := *self.nodes[i - 1]
 
@@ -1347,7 +1347,7 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
             node.x += shrink;
             node.z -= shrink;
             si node.z <= 0 {
-                tableau_supprime_index(*self.nodes, i)
+                tableau_supprime_indice(*self.nodes, i)
                 reprends i
             }
 

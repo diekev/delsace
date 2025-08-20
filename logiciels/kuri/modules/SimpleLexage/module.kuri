@@ -41,7 +41,7 @@
  * Permettra d'avoir '$' et '?' dans les symboles.
  *
  *
- * À FAIRE : retourne les index des mots-clés
+ * À FAIRE : retourne les indice des mots-clés
  * À FAIRE : permet de spécifier les limites des chaines littérales
  * À FAIRE : séparateur dans les valeurs numériques
  * À FAIRE : échappements (caractères unicode etc.)
@@ -169,7 +169,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
     si lexeuse.lexèmes_extras {
         résultat := lexeuse.lexèmes_extras[0]
-        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        tableau_supprime_indice(*lexeuse.lexèmes_extras, 0)
         retourne résultat
     }
 
@@ -181,7 +181,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         parse_commentaire_multiligne(lexeuse, lexeuse.début)
         assert(lexeuse.lexèmes_extras.taille == 1)
         résultat := lexeuse.lexèmes_extras[0]
-        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        tableau_supprime_indice(*lexeuse.lexèmes_extras, 0)
         retourne résultat
     }
 
@@ -189,7 +189,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     si lexeuse.lexèmes_extras {
         résultat := lexeuse.lexèmes_extras[0]
-        tableau_supprime_index(*lexeuse.lexèmes_extras, 0)
+        tableau_supprime_indice(*lexeuse.lexèmes_extras, 0)
         retourne résultat
     }
 

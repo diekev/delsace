@@ -265,7 +265,7 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
                 ensemble_ajoute(*declared_function_names, fn)
 
                 // 4. Insert d as the first element of functionsToInitialize.
-                tableau_insère_index(*functions_to_initialize, d, 0)
+                tableau_insère_indice(*functions_to_initialize, d, 0)
             }
         }
     }
@@ -370,22 +370,22 @@ crée_erreur_de_compilation :: fonc (realm: *Realm, message: chaine, position: P
     }
     ajoute_au_tampon(*enchaineuse, "|")
 
-    index_colonne := ligne_pour_erreur.index_colonne
-    tantque index_colonne < position.colonne {
-        nombre_octets := nombre_octets_utf8(*ligne[index_colonne])
+    indice_colonne := ligne_pour_erreur.indice_colonne
+    tantque indice_colonne < position.colonne {
+        nombre_octets := nombre_octets_utf8(*ligne[indice_colonne])
         si nombre_octets == 0 {
             // À FAIRE : déplace ceci dans la lexeuse
             nombre_octets = 1
         }
 
-        si ligne[index_colonne] == '\t' {
+        si ligne[indice_colonne] == '\t' {
             ajoute_au_tampon(*enchaineuse, "\t")
         }
         sinon {
             ajoute_au_tampon(*enchaineuse, " ")
         }
 
-        index_colonne += nombre_octets
+        indice_colonne += nombre_octets
     }
     ajoute_au_tampon(*enchaineuse, "^\n\n")
 
@@ -403,7 +403,7 @@ TroncageLigne :: énum {
 
 LignePourErreur :: struct {
     texte: chaine
-    index_colonne: z64
+    indice_colonne: z64
     troncage: TroncageLigne
 }
 
@@ -442,13 +442,13 @@ donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
         }
 
         /* Enlève 5 pour le " ... " au début de l'impression. */
-        index_colonne := colonne - décalage - 5
+        indice_colonne := colonne - décalage - 5
         ligne_coupée: chaine
         ligne_coupée.pointeur = texte.pointeur + colonne - décalage
         ligne_coupée.taille = décalage * 2
 
         résultat.texte = ligne_coupée
-        résultat.index_colonne = index_colonne
+        résultat.indice_colonne = indice_colonne
         résultat.troncage = TroncageLigne.AUTOUR
         retourne résultat
     }

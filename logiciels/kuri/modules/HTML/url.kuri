@@ -1250,9 +1250,9 @@ basic_url_parser_authority :: fonc (parser: *BasicURLParser) -> RésultatParsage
 
         // 2. If atSignSeen is true, then prepend "%40" to buffer.
         si parser.at_sign_seen {
-            tableau_insère_index(*parser.buffer.unités, 0x00, 0)
-            tableau_insère_index(*parser.buffer.unités, 0x04, 0)
-            tableau_insère_index(*parser.buffer.unités, 0x25, 0)
+            tableau_insère_indice(*parser.buffer.unités, 0x00, 0)
+            tableau_insère_indice(*parser.buffer.unités, 0x04, 0)
+            tableau_insère_indice(*parser.buffer.unités, 0x25, 0)
         }
 
         // 3. Set atSignSeen to true.

@@ -447,6 +447,12 @@ détruit_sauvegardeuse :: fonc (sauvegardeuse: *Sauvegardeuse, préserve_fichier
     sérialise(*sauvegardeuse.sérialiseuse, valeur)
 }
 
+écris_octets_préfixés_par_taille :: fonc (sauvegardeuse: *Sauvegardeuse, octets: []octet)
+{
+    écris_valeur(sauvegardeuse, octets.taille)
+    sérialise(*sauvegardeuse.sérialiseuse, octets)
+}
+
 marque_position_écriture_table_des_chaines :: fonc (sauvegardeuse: *Sauvegardeuse)
 {
     /* Nous écrivons d'abord une valeur par défaut, nous ajournerons le pointeur
@@ -542,6 +548,18 @@ lis_chaine :: fonc (lectrice: *Lectrice) -> chaine
 {
     index := lis_valeur_typée(lectrice, z64)
     retourne lectrice.table_des_chaines.chaines[index]
+}
+
+lis_octets :: fonc (lectrice: *Lectrice, dest: []octet)
+{
+    assert(lectrice.curseur + dest.taille <= lectrice.données_fichier.pointeur + lectrice.données_fichier.taille)
+
+    src := lectrice.curseur
+    dst := dest.pointeur
+
+    copie_mem_nonsur(src = src, dst = dst, taille = dest.taille)
+
+    lectrice.curseur += dest.taille
 }
 
 /** \} */

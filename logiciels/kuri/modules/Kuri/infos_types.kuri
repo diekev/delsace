@@ -177,7 +177,7 @@ donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> eini,
 {
     pour info.noms {
         si it == nom {
-            retourne donne_eini_valeur_énum_index(info, index_it), vrai
+            retourne donne_eini_valeur_énum_indice(info, index_it), vrai
         }
     }
 
@@ -233,7 +233,7 @@ donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
     retourne ""
 }
 
-donne_eini_valeur_énum_index :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
+donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
 {
     résultat : eini = ---
     résultat.pointeur = *info.valeurs[index * info.taille_en_octet comme z64]

@@ -72,7 +72,7 @@ supprime_observatrice :: fonc (observable: *Observable, observatrice: *Observatr
 {
     pour observable.observatrices {
         si it == observatrice {
-            tableau_supprime_index(*observable.observatrices, index_it)
+            tableau_supprime_indice(*observable.observatrices, index_it)
             it.supprime_observable(observable)
             retourne
         }
@@ -144,7 +144,7 @@ supprime_observable :: fonc (observatrice: *Observatrice, observable: *Observabl
 {
     pour observatrice.observables {
         si it == observable {
-            tableau_supprime_index(*observatrice.observables, index_it)
+            tableau_supprime_indice(*observatrice.observables, index_it)
             retourne
         }
     }

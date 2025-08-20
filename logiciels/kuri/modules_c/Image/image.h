@@ -65,7 +65,9 @@ struct ImageIOProxy *IMG_cree_proxy_memoire(void *buf, uint64_t size);
 
 void IMG_detruit_proxy(struct ImageIOProxy *proxy);
 
-enum ResultatOperation IMG_ouvre_image(const char *chemin, struct ImageIO *image, enum ImageIO_DataType format);
+enum ResultatOperation IMG_ouvre_image(const char *chemin,
+                                       struct ImageIO *image,
+                                       enum ImageIO_DataType format);
 enum ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
                                                   struct ImageIO *image,
                                                   struct ImageIOProxy *proxy,
@@ -232,6 +234,8 @@ enum ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                       struct ImageIO_RappelsProgression *rappels);
 
 struct ImageIO_Chaine IMG_donne_filtre_extensions();
+
+struct ImageIO_Chaine IMG_donne_liste_extensions(void);
 
 // ----------------------------------------------------------------------------
 // Simumlation de grain sur image

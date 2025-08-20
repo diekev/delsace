@@ -50,8 +50,8 @@ donne_fin_active :: fonc (chemin: *CheminSélection) -> Optionnel(Point2D(r32))
 /* Structure passée à RappelRafraichissementSélection à raison d'une instance
  * pour chaque élément nouvellement sélectionné ou désélectionné. */
 ÉtatSélectionÉlément :: struct {
-    /* L'index de l'élément. */
-    index: z32
+    /* L'indice de l'élément. */
+    indice: z32
     /* Vrai si l'élément vient d'être sélectionné. Faux s'il vient d'être
      * désélectionné. */
     est_sélectionné: bool
@@ -160,7 +160,7 @@ ajourne_état_sélection_éléments :: fonc (empl sélection: *ÉtatSélection, 
 
     pour domaine {
         état_élément := tableau_ajoute_élément(*état_sélection_éléments)
-        état_élément.index = it
+        état_élément.indice = it
         état_élément.est_sélectionné = vrai
     }
 
@@ -169,7 +169,7 @@ ajourne_état_sélection_éléments :: fonc (empl sélection: *ÉtatSélection, 
             continue
         }
         état_élément := tableau_ajoute_élément(*état_sélection_éléments)
-        état_élément.index = it
+        état_élément.indice = it
         état_élément.est_sélectionné = faux
     }
 }
@@ -179,9 +179,9 @@ donne_chemin_sélection :: fonc (sélection: *ÉtatSélection) -> *CheminSélect
     retourne *sélection.chemin
 }
 
-est_sélectionné :: fonc (sélection: *ÉtatSélection, index: z32) -> bool
+est_sélectionné :: fonc (sélection: *ÉtatSélection, indice: z32) -> bool
 {
-    retourne ensemble_possède(*sélection.sélection_courante, index)
+    retourne ensemble_possède(*sélection.sélection_courante, indice)
 }
 
 donne_éléments_sélectionnés :: fonc (sélection: *ÉtatSélection) -> [..]z32
@@ -256,11 +256,11 @@ détruit_géométrie :: fonc (géométrie: *GéométrieSélection)
 AdaptriceÉléments :: struct {
     /* Doit retourner le nombre d'éléments sélectionnable. */
     donne_nombre_éléments: fonc(*AdaptriceÉléments)(z64)
-    /* Doit retourner le rectangle de sélection de l'élément à l'index donné.
-     * L'index est dans [0, donne_nombre_élément() - 1] */
+    /* Doit retourner le rectangle de sélection de l'élément à l'indice donné.
+     * L'indice est dans [0, donne_nombre_élément() - 1] */
     donne_rectangle: fonc(*AdaptriceÉléments, z64)(RectanglePosDim(r32))
-    /* Doit retourner si l'éléème à l'index donné intersecte le rectangle.
-     * L'index est dans [0, donne_nombre_élément() - 1] */
+    /* Doit retourner si l'éléème à l'indice donné intersecte le rectangle.
+     * L'indice est dans [0, donne_nombre_élément() - 1] */
     intersecte_rectangle: fonc(*AdaptriceÉléments, z64, RectanglePosDim(r32))(bool)
 }
 
