@@ -1,0 +1,263 @@
+
+/* ------------------------------------------------------------------------- */
+/** \nom Élément
+ * https://dom.spec.whatwg.org/#element
+ * \{ */
+
+#portée_module
+
+TableVirtuelleÉlément :: struct {
+    empl base: TableVirtuelleNoeud
+
+    /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
+    sur_dépilement: fonc(*Élément)(rien)
+
+    /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
+     * La fonction doit retourner si oui ou non l'attribut fut géré. */
+    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = element_sur_changement_attribut
+
+    /* Appelé lors de la résolution des propriétés de style pour l'élément. */
+    sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
+}
+
+#portée_export
+
+Élément :: struct {
+    empl base_noeud: Noeud
+    table = *table_virtuelle_élément
+
+    id: DOMString
+
+    /* Uniquement utilisé lors du parsage. */
+    est_sur_pile_éléments_ouvert: bool
+    fut_créé_par_parseuse: bool
+
+    espace_de_nom: chaine // DOMString @namespaceURI
+    local_name: DOMString
+    cryptographic_nonce: DOMString
+
+    état_élément_custom: chaine
+    définition_élément_custom: *rien
+
+    shadow_root: *ShadowRoot
+
+    pseudo_classes: CSS.PseudoClasses
+
+    /* CSS */
+    box: *CSS.Box
+    /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
+    style: *CSS.CSSStyleDeclaration
+
+    /* Cache */
+    liste_classes: [..]DOMString
+}
+
+#portée_module
+
+table_virtuelle_élément := TableVirtuelleÉlément(
+    classe = Élément,
+    sur_destruction = élément_sur_destruction,
+    sur_changement_attribut = element_sur_changement_attribut
+)
+
+élément_détruit_données :: fonc (élément: *Élément)
+{
+    noeud_sur_destruction(élément)
+    CSS.détruit_style_declaration(élément.style)
+    si élément.box {
+        élément.box.noeud = nul
+    }
+    déloge(élément.liste_classes)
+}
+
+élément_sur_destruction :: fonc (base: *JS.Cellule)
+{
+    élément := base comme *Élément
+    élément_détruit_données(élément)
+}
+
+element_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+{
+    si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
+        retourne vrai
+    }
+
+    /* https://dom.spec.whatwg.org/#concept-id */
+    si local_name == ATTR_id && !espace_de_nom.possède_valeur() {
+        // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
+        si valeur == nul || mémoire(valeur).est_vide() {
+            élément.id = crée_chaine_utf16_unique_vide()
+        }
+        // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
+        sinon {
+            élément.id = mémoire(valeur)
+        }
+
+        élément.document.invalide_style_pour_id(élément, vieille_valeur, valeur)
+        retourne vrai
+    }
+
+    si local_name == ATTR_class {
+        déloge(élément.liste_classes)
+        // À FAIRE : invalide le style pour les classes
+        /* Retournons faux pour laisser les objets dérivés gérer décider quoi faire. */
+        retourne faux
+    }
+
+    retourne faux
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-append */
+ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
+{
+    // 1. Append attribute to element’s attribute list.
+    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
+
+    // 2. Set attribute’s element to element.
+    attribut.élément = élément
+
+    // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
+    gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-change */
+change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
+{
+    // 1. Let oldValue be attribute’s value.
+    vieille_valeur := attribut.valeur
+
+    // 2. Set attribute’s value to value.
+    attribut.valeur = valeur
+
+    // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
+    gère_changement_attribute(attribut, attribut.élément, *vieille_valeur, *valeur)
+}
+
+/* https://dom.spec.whatwg.org/#handle-attribute-changes */
+gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+{
+    // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
+    //    attribute’s namespace, oldValue, « », « », null, and null.
+
+    // À FAIRE 2. If element is custom, then enqueue a custom element callback reaction with element,
+    //    callback name "attributeChangedCallback", and an argument list containing attribute’s
+    //    local name, oldValue, newValue, and attribute’s namespace.
+
+    // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
+    //    and attribute’s namespace.
+    table := élément.table comme *TableVirtuelleÉlément
+    si table && table.sur_changement_attribut {
+        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
+    }
+
+    élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
+get_an_attribute_value :: fonc (élément: *Élément, nom: DOMString) -> DOMString
+{
+    // À FAIRE : standardise
+    retourne donne_attribut_ou_chaine_vide(élément, nom)
+}
+
+/* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
+set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: DOMString)
+{
+    // À FAIRE : standardise
+    attribut := cherche_attribut(élément, nom)
+    saufsi attribut {
+        attribut_lexé := AttributLexé(nom, valeur)
+        ajoute_attribut(élément, attribut_lexé)
+        retourne
+    }
+
+    change_attribut(attribut, valeur)
+}
+
+/* https://dom.spec.whatwg.org/#dom-element-setattribute */
+set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: DOMString)
+{
+    // À FAIRE 1. If qualifiedName does not match the Name production in XML,
+    //   then throw an "InvalidCharacterError" DOMException.
+
+    // À FAIRE 2. If this is in the HTML namespace and its node document is an HTML document,
+    //    then set qualifiedName to qualifiedName in ASCII lowercase.
+
+    // 3. Let attribute be the first attribute in this’s attribute list whose qualified name,
+    //    is qualifiedName and null otherwise.
+    attribute := cherche_attribut(élément, qualified_name)
+
+    // 4. If attribute is null, create an attribute whose local name is qualifiedName, value
+    //    is value, and node document is this’s node document, then append this attribute to this,
+    //    and then return.
+    si attribute == nul {
+        // À FAIRE : révise l'IPA
+        ajoute_attribut(élément, AttributLexé(qualified_name, value))
+        retourne
+    }
+
+    // 5. Change attribute to value.
+    change_attribut(attribute, value)
+}
+
+/* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
+get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
+{
+    // 1. Let classes be the result of running the ordered set parser on classNames.
+    classes := run_ordered_set_parser(class_names)
+
+    // 2. If classes is the empty set, return an empty HTMLCollection.
+    si classes.taille == 0 {
+        retourne crée_html_collection(élément)
+    }
+
+    // 3. Return an HTMLCollection rooted at root, whose filter matches
+    //    descendant elements that have all their classes in classes.
+    //    The comparisons for the classes must be done in an ASCII
+    //    case-insensitive manner if root’s node document’s mode is "quirks";
+    //    otherwise in an identical to manner.
+    résultat := crée_html_collection(élément)
+    résultat.root = élément
+    résultat.filter = crée_filtre_pour_class_name(classes)
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
+/* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
+get_elements_by_tag_name :: fonc (noeud: *Noeud, qualified_name: DOMString) -> *HTMLCollection
+{
+    assert(noeud.est_élément() || noeud.est_document())
+
+    résultat := crée_html_collection(noeud)
+    résultat.root = noeud
+
+    // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
+
+    // 2. Otherwise, if root’s node document is an HTML document, return an  rooted at root, whose filter matches the following descendant elements:
+
+    //     Whose namespace is the HTML namespace and whose qualified name is qualifiedName, in ASCII lowercase.
+
+    //     Whose namespace is not the HTML namespace and whose qualified name is qualifiedName.
+
+    // 3. Otherwise, return an HTMLCollection rooted at root, whose filter matches descendant elements whose qualified name is qualifiedName. 
+    résultat.filter = crée_filtre_pour_tag_name(qualified_name)
+
+    initialise_collection_pour_filtre(résultat)
+    retourne résultat
+}
+
+#portée_export
+
+donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
+{
+    saufsi élément.liste_classes {
+        valeur := donne_attribut(élément, ATTR_class)
+        si valeur.possède_valeur() {
+            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque)
+        }
+    }
+
+    retourne élément.liste_classes
+}
+
+/** \} */

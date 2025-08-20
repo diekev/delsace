@@ -1,60 +1,5 @@
 
 /* ------------------------------------------------------------------------- */
-/** \nom PlatformObject
- * https://webidl.spec.whatwg.org/#dfn-platform-object
- * https://webidl.spec.whatwg.org/#es-platform-objects
- * \{ */
-
-#portée_module
-
-TableVirtuellePlatformObject :: struct {
-    empl object: JS.TableVirtuelleObject
-
-    sur_destruction = platform_object_sur_destruction
-}
-
-platform_object_sur_destruction :: fonc (base: *JS.Cellule)
-{
-    JS.sur_destruction_objet(base)
-}
-
-#portée_export
-
-PlatformObject :: struct {
-    empl objet: JS.Object
-    realm: *JS.Realm
-}
-
-donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
-{
-    retourne JS.donne_tas_de_mémoire(object)
-}
-
-crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
-{
-    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
-}
-
-crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
-{
-    résultat := JS.alloue(tas_de_mémoire, T)
-    résultat.realm = realm
-    définis_prototype(résultat, T)
-    retourne résultat
-}
-
-/* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
-is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
-{
-    // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
-    current := donne_current_settings_object(object)
-    relevant := donne_relevant_settings_object(object)
-    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin())
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom 8.1.3.3.3 Current
  * https://html.spec.whatwg.org/multipage/webappapis.html#relevant
  * \{ */
@@ -201,6 +146,13 @@ donne_time_origin :: fonc (environment: *EnvironmentSettings) -> r64
     retourne environment.sur_donne_time_origin(environment)
 }
 
+/* https://html.spec.whatwg.org/multipage/webappapis.html#incumbent-settings-object */
+donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
+{
+    // À FAIRE
+    retourne nul
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -267,25 +219,25 @@ initialise_host_intrinsics :: fonc (realm: *JS.Realm)
 
 #portée_module
 
-donne_prototype :: fonc (realm: *JS.Realm, index: z64) -> *JS.Object
+donne_prototype :: fonc (realm: *JS.Realm, indice: z64) -> *JS.Object
 {
     saufsi realm {
         retourne nul
     }
-    retourne realm.intrinsics.host_intrinsics[index]
+    retourne realm.intrinsics.host_intrinsics[indice]
 }
 
-/* Table pour mapper le type d'un objet Kuri à l'index de son prototype dans realm.intrinsics.host_intrinsics. */
+/* Table pour mapper le type d'un objet Kuri à l'indice de son prototype dans realm.intrinsics.host_intrinsics. */
 IndexPrototype :: struct {
     type: type_de_données
-    index: z64
+    indice: z64
 }
 
 __table_indexage_prototypes: [..]IndexPrototype
 
-détermine_index_prototype :: fonc (type: type_de_données) -> z64
+détermine_indice_prototype :: fonc (type: type_de_données) -> z64
 {
-    résultat := donne_index_prototype(type)
+    résultat := donne_indice_prototype(type)
     si résultat != -1 {
         retourne résultat
     }
@@ -300,7 +252,7 @@ détermine_index_prototype :: fonc (type: type_de_données) -> z64
             continue
         }
 
-        résultat = donne_index_prototype(it)
+        résultat = donne_indice_prototype(it)
         si résultat != -1 {
             retourne résultat
         }
@@ -309,11 +261,11 @@ détermine_index_prototype :: fonc (type: type_de_données) -> z64
     retourne -1
 }
 
-donne_index_prototype :: fonc (type: type_de_données) -> z64
+donne_indice_prototype :: fonc (type: type_de_données) -> z64
 {
     pour __table_indexage_prototypes {
         si it.type == type {
-            retourne it.index
+            retourne it.indice
         }
     }
     retourne -1
@@ -321,11 +273,11 @@ donne_index_prototype :: fonc (type: type_de_données) -> z64
 
 définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
 {
-    index := détermine_index_prototype(type)
-    si index == -1 {
+    indice := détermine_indice_prototype(type)
+    si indice == -1 {
         retourne
     }
-    object.prototype = donne_prototype(object.realm, index)
+    object.prototype = donne_prototype(object.realm, indice)
 }
 
 donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> *Type
@@ -345,7 +297,7 @@ donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Val
 }
 
 InfoConstructor :: struct {
-    index: z64
+    indice: z64
     nom: DOMString
 }
 
@@ -354,7 +306,7 @@ __table_constructors: [..]InfoConstructor
 initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
 {
     pour __table_constructors {
-        constructor := realm.intrinsics.host_intrinsics[it.index]
+        constructor := realm.intrinsics.host_intrinsics[it.indice]
 
         desc: JS.PropertyDescriptor
         JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro)

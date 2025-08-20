@@ -953,10 +953,10 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         si lexème.nom == TAG_li {
             parseuse.frameset_ok = vrai
 
-            index := taille(*parseuse.pile_éléments_ouvert) - 1
+            indice := taille(*parseuse.pile_éléments_ouvert) - 1
 
             boucle {
-                noeud := parseuse.pile_éléments_ouvert.éléments[index]
+                noeud := parseuse.pile_éléments_ouvert.éléments[indice]
 
                 si noeud.local_name == TAG_li {
                     parseuse.génère_tags_fin_implicites_autres_que(TAG_li)
@@ -980,8 +980,8 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     arrête
                 }
 
-                noeud = parseuse.pile_éléments_ouvert.éléments[index]
-                index -= 1
+                noeud = parseuse.pile_éléments_ouvert.éléments[indice]
+                indice -= 1
             }
 
             si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
@@ -1029,10 +1029,10 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si fait_partie_de(lexème.nom, TAG_dd, TAG_dt) {
             parseuse.frameset_ok = faux
-            index := parseuse.pile_éléments_ouvert.éléments.taille - 1
+            indice := parseuse.pile_éléments_ouvert.éléments.taille - 1
 
             boucle {
-                noeud := parseuse.pile_éléments_ouvert.éléments[index]
+                noeud := parseuse.pile_éléments_ouvert.éléments[indice]
 
                 si noeud.local_name == TAG_dd {
                     parseuse.génère_tags_fin_implicites_autres_que(TAG_dd)
@@ -1058,7 +1058,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                     arrête
                 }
 
-                index -= 1
+                indice -= 1
             }
 
             si possède_dans_portée_button(*parseuse.pile_éléments_ouvert, TAG_p) {
@@ -2272,41 +2272,41 @@ insère_mode_AprèsAprèsFrameSet :: fonc (parseuse: *Parseuse, lexème: Lexème
 }
 
 // NOTE : les trois fonctions suivantes sont des labels dans l'algorithme
-__rewind :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, index: z64)
+__rewind :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, indice: z64)
 {
-    si index == 0 {
-        __create(parseuse, entrée, index)
+    si indice == 0 {
+        __create(parseuse, entrée, indice)
         retourne
     }
 
-    index -= 1
+    indice -= 1
 
-    entrée = parseuse.liste_éléments_actifs_formattage.entrées[index]
+    entrée = parseuse.liste_éléments_actifs_formattage.entrées[indice]
 
     si entrée.élément != nul || !possède(*parseuse.pile_éléments_ouvert, entrée.élément) {
-        __rewind(parseuse, entrée, index)
+        __rewind(parseuse, entrée, indice)
         retourne
     }
 
-    __advance(parseuse, entrée, index)
+    __advance(parseuse, entrée, indice)
 }
 
-__create :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, index: z64)
+__create :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, indice: z64)
 {
     nouvel_élément := insère_élément_html(parseuse, entrée.lexème)
-    parseuse.liste_éléments_actifs_formattage.entrées[index].élément = nouvel_élément
-    entrée = parseuse.liste_éléments_actifs_formattage.entrées[index]
+    parseuse.liste_éléments_actifs_formattage.entrées[indice].élément = nouvel_élément
+    entrée = parseuse.liste_éléments_actifs_formattage.entrées[indice]
 
-    si index != parseuse.liste_éléments_actifs_formattage.entrées.taille - 1 {
-        __advance(parseuse, entrée, index)
+    si indice != parseuse.liste_éléments_actifs_formattage.entrées.taille - 1 {
+        __advance(parseuse, entrée, indice)
     }
 }
 
-__advance :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, index: z64)
+__advance :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, indice: z64)
 {
-    index += 1
-    entrée = parseuse.liste_éléments_actifs_formattage.entrées[index]
-    __create(parseuse, entrée, index)
+    indice += 1
+    entrée = parseuse.liste_éléments_actifs_formattage.entrées[indice]
+    __create(parseuse, entrée, indice)
 }
 
 reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseuse)
@@ -2315,15 +2315,15 @@ reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseu
         retourne
     }
 
-    index := parseuse.liste_éléments_actifs_formattage.entrées.taille - 1
+    indice := parseuse.liste_éléments_actifs_formattage.entrées.taille - 1
 
-    entrée := parseuse.liste_éléments_actifs_formattage.entrées[index]
+    entrée := parseuse.liste_éléments_actifs_formattage.entrées[indice]
 
     si entrée.élément == nul || possède(*parseuse.pile_éléments_ouvert, entrée.élément) {
         retourne
     }
 
-    __rewind(parseuse, entrée, index)
+    __rewind(parseuse, entrée, indice)
 }
 
 génère_tags_fin_implicites :: fonc (parseuse: *Parseuse)
@@ -2419,7 +2419,7 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         // common_ancestor := élément_précédent(*parseuse.pile_éléments_ouvert, élément_formattage)
 
-        // bookmark := index_élément_formattage(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
+        // bookmark := indice_élément_formattage(*parseuse.liste_éléments_actifs_formattage, élément_formattage)
 
         noeud = furthest_block
         dernier_noeud := furthest_block
@@ -2456,10 +2456,10 @@ lance_algorithme_adoption :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
 tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 {
-    index := taille(*parseuse.pile_éléments_ouvert) - 1
+    indice := taille(*parseuse.pile_éléments_ouvert) - 1
 
     boucle {
-        élément := parseuse.pile_éléments_ouvert.éléments[index]
+        élément := parseuse.pile_éléments_ouvert.éléments[indice]
 
         // À FAIRE : vérifier si nous avons un élément HTML, la spec suggère que nous pourrions avoir autre chose
         si élément.local_name == lexème.nom {
@@ -2482,8 +2482,8 @@ tout_autre_tag_fin_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        élément = parseuse.pile_éléments_ouvert.éléments[index]
-        index -= 1
+        élément = parseuse.pile_éléments_ouvert.éléments[indice]
+        indice -= 1
     }
 }
 
@@ -2559,14 +2559,14 @@ reset_the_insertion_mode_appropriately :: fonc (parseuse: *Parseuse)
     last := faux
 
     // 2. Let node be the last node in the stack of open elements.
-    node_index := parseuse.pile_éléments_ouvert.éléments.taille - 1
+    node_indice := parseuse.pile_éléments_ouvert.éléments.taille - 1
 
     boucle {
         // 3. Loop: If node is the first node in the stack of open elements,
         //    then set last to true, and, if the parser was created as part of the HTML fragment parsing algorithm (fragment case),
         //    set node to the context element passed to that algorithm.
-        node := parseuse.pile_éléments_ouvert.éléments[node_index]
-        si node_index == 0 {
+        node := parseuse.pile_éléments_ouvert.éléments[node_indice]
+        si node_indice == 0 {
             last = vrai
 
             si parseuse.crée_par_html_fragment_parsing {
@@ -2657,7 +2657,7 @@ reset_the_insertion_mode_appropriately :: fonc (parseuse: *Parseuse)
         }
 
         // 16. Let node now be the node before node in the stack of open elements.
-        node_index -= 1
+        node_indice -= 1
 
         // 17. Return to the step labeled loop.
     }
@@ -2725,7 +2725,7 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
 
         // 3. Remove the first script element from the list of scripts that will execute when the document has
         //    finished parsing (i.e. shift out the first entry in the list).
-        tableau_supprime_index(*document.scripts_that_will_execute_when_the_document_has_finished_parsing, 0)
+        tableau_supprime_indice(*document.scripts_that_will_execute_when_the_document_has_finished_parsing, 0)
     }
 
     // 6. Queue a global task on the DOM manipulation task source given the Document's relevant global object
@@ -3183,10 +3183,10 @@ taille :: fonc (pile: *PileÉlémentsOuverts) -> z64 #enligne
 
 possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMString, liste: ...DOMString) -> bool
 {
-    index := pile.éléments.taille - 1
+    indice := pile.éléments.taille - 1
 
     boucle {
-        noeud := pile.éléments[index]
+        noeud := pile.éléments[indice]
 
         si noeud.local_name == nom_tag {
             retourne vrai
@@ -3196,7 +3196,7 @@ possède_dans_portée_ex :: fonc (pile: *PileÉlémentsOuverts, nom_tag: DOMStri
             retourne faux
         }
 
-        index -= 1
+        indice -= 1
     }
 
     retourne faux
@@ -3284,16 +3284,16 @@ possède_élément_de_type :: fonc (pile: *PileÉlémentsOuverts, tag: DOMString
 
 supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément)
 {
-    index : z64 = 0
+    indice : z64 = 0
 
     pour pile.éléments {
         si it == élément {
-            index = index_it
+            indice = index_it
             arrête
         }
     }
 
-    tableau_supprime_index(*pile.éléments, index)
+    tableau_supprime_indice(*pile.éléments, indice)
 }
 
 élément_précédent :: fonc (pile: *PileÉlémentsOuverts, élément: *Élément) -> *Élément
@@ -3388,30 +3388,30 @@ remplace :: fonc (liste: *ListeÉlémentsActifsFormattage, entrée: EntréeForma
 
 entrée_précédente :: fonc (liste: *ListeÉlémentsActifsFormattage, entrée: EntréeFormattage) -> EntréeFormattage
 {
-    index := 0
+    indice := 0
     pour liste.entrées {
         si it.élément == entrée.élément {
             arrête
         }
 
-        index += 1
+        indice += 1
     }
 
-    retourne liste.entrées[index]
+    retourne liste.entrées[indice]
 }
 
 entrée_suivante :: fonc (liste: *ListeÉlémentsActifsFormattage, entrée: EntréeFormattage) -> EntréeFormattage
 {
-    index := 0
+    indice := 0
     pour liste.entrées {
-        index += 1
+        indice += 1
 
         si it.élément == entrée.élément {
             arrête
         }
     }
 
-    retourne liste.entrées[index]
+    retourne liste.entrées[indice]
 }
 
 ajoute :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément, lexème: Lexème)
@@ -3464,20 +3464,20 @@ possède :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément
 
 supprime_élément :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément)
 {
-    index : z64 = 0
+    indice : z64 = 0
 
     pour liste.entrées {
         si it.élément == élément {
             détruit_lexème(*it.lexème)
-            index = index_it
+            indice = index_it
             arrête
         }
     }
 
-    tableau_supprime_index(*liste.entrées, index)
+    tableau_supprime_indice(*liste.entrées, indice)
 }
 
-index_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément) -> z64
+indice_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: *Élément) -> z64
 {
     pour liste.entrées {
         si it.élément == élément {
