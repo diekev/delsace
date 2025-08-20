@@ -98,7 +98,7 @@ génére_image_noire :: fonc () -> Image
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon)
 
     debut := maintenant_précis()
-    saufsi écris_fichier_entier(chemin, *enchaineuse) piège err {
+    saufsi écris_fichier_entier(chemin, *enchaineuse) {
         retourne
     }
 
