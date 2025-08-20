@@ -995,7 +995,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &Modu
     /* Déclaration de la globale pour la définition du module. */
     enchaineuse.ajoute_au_tampon("définition_module := PyModuleDef(\n")
 
-    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\"),\n", module.nom)
+    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\".pointeur),\n", module.nom)
     enchaineuse.ajoute_au_tampon("    m_doc = ChaineC(nul),\n")
     enchaineuse.ajoute_au_tampon("    m_size = -1,\n")
     enchaineuse.ajoute_au_tampon("    m_methods = *méthodes_du_module[0],\n")
