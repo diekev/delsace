@@ -171,12 +171,12 @@ marque_modifié :: fonc (éditeur: *Éditeur)
     texte := éditeur_chaine_depuis_ligne(éditeur)
     diffère déloge(texte)
 
-    saufsi écris_fichier_entier(éditeur.chemin, texte) {
+    saufsi écris_fichier_entier(éditeur.chemin_fichier, texte) {
         éditeur_ajourne_message_status(éditeur, "impossible de sauvegarder le fichier (voir la console pour le détail)")
         retourne
     }
 
-    éditeur_ajourne_message_status(éditeur, "fichier sauvegardé, écrit : ", octets_écris, " octets")
+    éditeur_ajourne_message_status(éditeur, "fichier sauvegardé, écrit : ", texte.taille, " octets")
     éditeur.modifié = 0
 }
 

@@ -2,6 +2,7 @@ importe BoiteFlexible
 importe Chaine
 importe CréationFenêtre
 importe Couleur
+importe ÉditionTexte
 importe Fondation
 importe Math
 importe Numérique
