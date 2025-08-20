@@ -161,3 +161,26 @@ ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
     }
 }
 */
+
+TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
+    clés: [..]Clé
+    valeurs: [..]Valeur
+}
+
+détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
+{
+    déloge(table.clés)
+    déloge(table.valeurs)
+}
+
+table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur) -> (existait: bool, valeur_insérée: Valeur)
+{
+    indice := ensemble_possède_retourne_index(*table.clés, clé)
+    si indice == -1 {
+        indice = ensemble_ajoute_retourne_index(*table.clés, clé)
+        tableau_insère_index(*table.valeurs, valeur, indice)
+        retourne faux, valeur
+    }
+
+    retourne vrai, table.valeurs[indice]
+}
