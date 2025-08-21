@@ -69,10 +69,10 @@ void TableRéférences::invalide_référence(NoeudExpressionRéférence *noeud)
     }
 }
 
-NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème const *lexème,
-                                                                     NoeudExpression *gauche)
+NoeudExpressionMembre *TableRéférences::trouve_référence_rubrique_pour(Lexème const *lexème,
+                                                                       NoeudExpression *gauche)
 {
-    POUR (m_références_membres.donne_tous_les_tableaux()) {
+    POUR (m_références_rubriques.donne_tous_les_tableaux()) {
         if (it->accédée != gauche) {
             continue;
         }
@@ -88,9 +88,9 @@ NoeudExpressionMembre *TableRéférences::trouve_référence_membre_pour(Lexème
     return nullptr;
 }
 
-void TableRéférences::ajoute_référence_membre(NoeudExpressionMembre *noeud)
+void TableRéférences::ajoute_référence_rubrique(NoeudExpressionMembre *noeud)
 {
-    m_références_membres.ajoute_au_tableau_courant(noeud);
+    m_références_rubriques.ajoute_au_tableau_courant(noeud);
 }
 
 NoeudExpressionLittéraleChaine *TableRéférences::trouve_littérale_chaine_pour(
@@ -674,8 +674,8 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite)
                 lexème_courant(), nullptr, TypeBloc::MODULE);
 
             if (module->nom() != ID::Kuri) {
-                /* Crée un membre pour l'import implicite du module Kuri afin de pouvoir accéder
-                 * aux fonctions de ce module via une expression de référence de membre :
+                /* Crée un rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
+                 * aux fonctions de ce module via une expression de référence de rubrique :
                  * « Kuri.fonction(...) ». */
                 static Lexème lexème_ident_kuri = {};
                 lexème_ident_kuri.genre = GenreLexème::CHAINE_CARACTERE;
@@ -687,7 +687,7 @@ Syntaxeuse::Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite)
                 noeud_module->module = m_compilatrice.module_kuri;
                 noeud_module->ident = ID::Kuri;
                 noeud_module->bloc_parent = module->bloc;
-                noeud_module->bloc_parent->ajoute_membre(noeud_module);
+                noeud_module->bloc_parent->ajoute_rubrique(noeud_module);
                 noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             }
 
@@ -746,7 +746,7 @@ void Syntaxeuse::quand_commence()
         m_tacheronne.assembleuse->bloc_courant(bloc_parent);
 
         type_structure->bloc = analyse_bloc(TypeBloc::TYPE, false);
-        type_structure->bloc->fusionne_membres(type_structure->bloc_constantes);
+        type_structure->bloc->fusionne_rubriques(type_structure->bloc_constantes);
         type_structure->est_corps_texte = false;
     }
 
@@ -838,7 +838,7 @@ void Syntaxeuse::analyse_une_chose()
                 assert_rappel(noeud->bloc_parent, [&]() {
                     dbg() << erreur::imprime_site(*m_unité->espace, noeud) << "\n" << noeud->genre;
                 });
-                noeud->bloc_parent->ajoute_membre(noeud->comme_base_déclaration_variable());
+                noeud->bloc_parent->ajoute_rubrique(noeud->comme_base_déclaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
                     m_compilatrice.globale_contexte_programme =
                         noeud->comme_déclaration_variable();
@@ -1359,7 +1359,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                     rapporte_erreur("redéfinition du type polymorphique");
                 }
 
-                bloc_constantes->ajoute_membre(noeud_decl_param);
+                bloc_constantes->ajoute_rubrique(noeud_decl_param);
             }
             else if (!m_est_déclaration_type_opaque) {
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
@@ -1550,7 +1550,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         noeud->expression_type = analyse_expression(données_précédence,
                                                                     lexème_final);
                         m_est_déclaration_type_opaque = false;
-                        noeud->bloc_parent->ajoute_membre(noeud);
+                        noeud->bloc_parent->ajoute_rubrique(noeud);
                         recycle_référence(gauche->comme_référence_déclaration());
                         return noeud;
                     }
@@ -1823,7 +1823,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             lexème = lexème_courant();
             consomme();
 
-            return crée_référence_membre(lexème, gauche);
+            return crée_référence_rubrique(lexème, gauche);
         }
         case GenreLexème::TROIS_POINTS:
         {
@@ -2303,7 +2303,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         noeud_it->ident = ID::it;
 
         auto noeud_index = m_tacheronne.assembleuse->crée_référence_déclaration(noeud->lexème);
-        noeud_index->ident = ID::index_it;
+        noeud_index->ident = ID::indice_it;
 
         static Lexème lexème_virgule = {",", {}, GenreLexème::VIRGULE, 0, 0, 0};
         auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);
@@ -2784,7 +2784,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
             expressions.ajoute(noeud);
         }
         else {
-            rapporte_erreur("Expression inattendu dans la déclaration des membres de l'énum");
+            rapporte_erreur("Expression inattendu dans la déclaration des rubriques de l'énum");
         }
     }
 
@@ -2800,8 +2800,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
 
     dépile_état();
 
-    /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
-    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
+    /* Attend d'avoir toutes les informations avant d'ajouter aux rubriques. */
+    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
     return noeud_decl;
 }
 
@@ -2933,7 +2933,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     }
 
     auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-    if (bloc_constantes->nombre_de_membres() != 0) {
+    if (bloc_constantes->nombre_de_rubriques() != 0) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
 
@@ -3003,8 +3003,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         m_compilatrice.fonction_point_de_sortie_dynamique = noeud;
     }
 
-    /* Attend d'avoir toutes les informations avant d'ajouter aux membres. */
-    noeud->bloc_parent->ajoute_membre(noeud);
+    /* Attend d'avoir toutes les informations avant d'ajouter aux rubriques. */
+    noeud->bloc_parent->ajoute_rubrique(noeud);
 
     return noeud;
 }
@@ -3064,7 +3064,7 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
             directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::interface) {
-            m_compilatrice.interface_kuri->mute_membre(noeud);
+            m_compilatrice.interface_kuri->mute_rubrique(noeud);
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);
@@ -3565,7 +3565,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(Lexème const *lexè
 
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
     analyse_directives_structure(noeud_decl);
-    analyse_membres_structure_ou_union(noeud_decl);
+    analyse_rubriques_structure_ou_union(noeud_decl);
     analyse_annotations(noeud_decl->annotations);
 
     if (noeud_decl->bloc_constantes) {
@@ -3576,7 +3576,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(Lexème const *lexè
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
-    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
 
     return noeud_decl;
 }
@@ -3601,7 +3601,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(Lexème const *lexème_n
 
     analyse_paramètres_polymorphiques_structure_ou_union(noeud_decl);
     analyse_directives_union(noeud_decl);
-    analyse_membres_structure_ou_union(noeud_decl);
+    analyse_rubriques_structure_ou_union(noeud_decl);
     analyse_annotations(noeud_decl->annotations);
 
     if (noeud_decl->bloc_constantes) {
@@ -3612,7 +3612,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(Lexème const *lexème_n
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
-    noeud_decl->bloc_parent->ajoute_membre(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
 
     return noeud_decl;
 }
@@ -3630,7 +3630,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
             if (noeud->ident == ID::InfoType) {
-                TypeBase::EINI->comme_type_composé()->membres[1].type =
+                TypeBase::EINI->comme_type_composé()->rubriques[1].type =
                     m_compilatrice.typeuse.type_pointeur_pour(noeud);
             }
             auto noeud_directive = m_tacheronne.assembleuse->crée_directive_fonction(
@@ -3730,7 +3730,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     SUR_SORTIE_PORTEE {
         auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->nombre_de_membres() != 0) {
+        if (bloc_constantes->nombre_de_rubriques() != 0) {
             noeud->est_polymorphe = true;
         }
     };
@@ -3756,7 +3756,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
     consomme();
 }
 
-void Syntaxeuse::analyse_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct)
+void Syntaxeuse::analyse_rubriques_structure_ou_union(NoeudDéclarationClasse *decl_struct)
 {
     if (decl_struct->est_externe && ignore_point_virgule_implicite()) {
         decl_struct->drapeaux_type |= DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION;
@@ -3771,7 +3771,7 @@ void Syntaxeuse::analyse_membres_structure_ou_union(NoeudDéclarationClasse *dec
         bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
     }
     else {
-        bloc = analyse_bloc_membres_structure_ou_union(decl_struct);
+        bloc = analyse_bloc_rubriques_structure_ou_union(decl_struct);
     }
 
     bloc->appartiens_à_type = decl_struct;
@@ -3792,7 +3792,8 @@ static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
            noeud->est_référence_déclaration();
 }
 
-NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclarationClasse *decl_struct)
+NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
+    NoeudDéclarationClasse *decl_struct)
 {
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), nullptr, TypeBloc::TYPE);
     consomme(GenreLexème::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");
@@ -3833,18 +3834,18 @@ NoeudBloc *Syntaxeuse::analyse_bloc_membres_structure_ou_union(NoeudDéclaration
                     noeud, "Seules les unions sûres peuvent avoir des déclarations sans type");
             }
 
-            auto decl_membre = m_tacheronne.assembleuse->crée_déclaration_variable(
+            auto decl_rubrique = m_tacheronne.assembleuse->crée_déclaration_variable(
                 noeud->comme_référence_déclaration());
             recycle_référence(noeud->comme_référence_déclaration());
-            noeud = decl_membre;
+            noeud = decl_rubrique;
 
             static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
             auto type_declare = m_tacheronne.assembleuse->crée_référence_type(&lexème_rien);
-            decl_membre->expression_type = type_declare;
+            decl_rubrique->expression_type = type_declare;
         }
 
         if (noeud->est_déclaration_variable()) {
-            noeud->drapeaux |= DrapeauxNoeud::EST_MEMBRE_STRUCTURE;
+            noeud->drapeaux |= DrapeauxNoeud::EST_RUBRIQUE_STRUCTURE;
         }
 
         expressions.ajoute(noeud);
@@ -4011,7 +4012,7 @@ NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
                                  ->comme_déclaration_module();
     noeud_déclaration->ident = noeud->ident;
     noeud_déclaration->bloc_parent->ajoute_expression(noeud_déclaration);
-    noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+    noeud_déclaration->bloc_parent->ajoute_rubrique(noeud_déclaration);
     requiers_typage(noeud_déclaration);
 
     noeud->noeud_déclaration = noeud_déclaration;
@@ -4062,25 +4063,25 @@ NoeudExpressionRéférence *Syntaxeuse::crée_référence_déclaration(Lexème c
 #endif
 }
 
-NoeudExpressionMembre *Syntaxeuse::crée_référence_membre(Lexème const *lexème,
-                                                         NoeudExpression *gauche)
+NoeudExpressionMembre *Syntaxeuse::crée_référence_rubrique(Lexème const *lexème,
+                                                           NoeudExpression *gauche)
 {
 #ifndef DEDUPLIQUE_NOEUDS
-    return m_tacheronne.assembleuse->crée_référence_membre(lexème, gauche);
+    return m_tacheronne.assembleuse->crée_référence_rubrique(lexème, gauche);
 #else
     if (!m_pile_tables_références.est_vide()) {
         auto table = m_pile_tables_références.haut();
-        auto résultat = table->trouve_référence_membre_pour(lexème, gauche);
+        auto résultat = table->trouve_référence_rubrique_pour(lexème, gauche);
         if (résultat) {
             return résultat;
         }
     }
 
-    auto noeud = m_tacheronne.assembleuse->crée_référence_membre(lexème, gauche);
+    auto noeud = m_tacheronne.assembleuse->crée_référence_rubrique(lexème, gauche);
 
     if (!m_pile_tables_références.est_vide()) {
         auto table = m_pile_tables_références.haut();
-        table->ajoute_référence_membre(noeud);
+        table->ajoute_référence_rubrique(noeud);
     }
     return noeud;
 #endif

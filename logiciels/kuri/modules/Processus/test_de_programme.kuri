@@ -322,10 +322,10 @@ lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest,
     }
 
     pour résultat {
-        si it != cas.résultat[index_it] {
+        si it != cas.résultat[indice_it] {
             imprime("Échec !\n")
             imprime("Requiers : %\n", it)
-            imprime("Obtenu : %\n", cas.résultat[index_it])
+            imprime("Obtenu : %\n", cas.résultat[indice_it])
             retourne faux
         }
     }

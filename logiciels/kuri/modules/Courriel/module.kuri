@@ -451,7 +451,7 @@ encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
     pour encodé_base_64 {
         ajoute_au_tampon(enchaineuse, it)
 
-        si (index_it + 1) % 76 == 0 {
+        si (indice_it + 1) % 76 == 0 {
             ajoute_au_tampon(enchaineuse, "\r\n")
         }
     }

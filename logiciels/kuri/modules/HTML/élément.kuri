@@ -36,7 +36,7 @@ est_tag_auto_fermant :: fonc (tag: DOMString) -> bool
 /** \nom Element
  * \{ */
 
-html_element_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+html_element_sur_changement_attribut :: fonc (élément: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     /* Nous devons faire ça même si l'ancienne et la nouvelle valeur sont les mêmes. */
     si gère_changement_attribut_event_handler(élément, local_name, valeur, espace_de_nom) {
@@ -96,7 +96,7 @@ html_element_sur_changement_attribut :: fonc (élément: *Élément, local_name:
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-content-attributes */
-gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+gère_changement_attribut_event_handler :: fonc (élément: *Element, local_name: DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     user_agent := donne_user_agent(élément.document)
     saufsi user_agent {
@@ -148,7 +148,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Élément, local_na
     retourne vrai
 }
 
-rendu_css_est_requis :: fonc (élément: *Élément) -> bool
+rendu_css_est_requis :: fonc (élément: *Element) -> bool
 {
     document := élément.document
     saufsi document {
@@ -167,131 +167,26 @@ rendu_css_est_requis :: fonc (élément: *Élément) -> bool
 
 #portée_export
 
-initialise_élément :: fonc (élément: *Élément, document: *Document, texte: DOMString) -> rien
+initialise_élément :: fonc (élément: *Element, document: *Document, texte: DOMString) -> rien
 {
-    élément.genre = GenreNoeud.Élément
+    élément.genre = GenreNoeud.Element
     élément.document = document
     élément.local_name = texte
 }
 
-crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
-{
-    // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
-    élément: *Élément
-    si tag == TAG_a {
-        élément = crée_platform_object(document, HTMLAnchorElement)
-    }
-    sinon si tag == TAG_body {
-        élément = crée_platform_object(document, HTMLBodyElement)
-    }
-    sinon si tag == TAG_button {
-        élément = crée_platform_object(document, HTMLButtonElement)
-    }
-    sinon si tag == TAG_canvas {
-        élément = crée_platform_object(document, HTMLCanvasElement)
-    }
-    sinon si tag == TAG_font {
-        élément = crée_platform_object(document, HTMLFontElement)
-    }
-    sinon si tag == TAG_form {
-        élément = crée_platform_object(document, HTMLFormElement)
-    }
-    sinon si tag == TAG_head {
-        élément = crée_platform_object(document, HTMLHeadElement)
-    }
-    sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = crée_platform_object(document, HTMLHeadingElement)
-    }
-    sinon si tag == TAG_hr {
-        élément = crée_platform_object(document, HTMLHRElement)
-    }
-    sinon si tag == TAG_html {
-        élément = crée_platform_object(document, HTMLHtmlElement)
-    }
-    sinon si tag == TAG_iframe {
-        élément = crée_platform_object(document, HTMLIFrameElement)
-    }
-    sinon si tag == TAG_img {
-        élément = crée_platform_object(document, HTMLImageElement)
-    }
-    sinon si tag == TAG_input {
-        élément = crée_platform_object(document, HTMLInputElement)
-    }
-    sinon si tag == TAG_label {
-        élément = crée_platform_object(document, HTMLLabelElement)
-    }
-    sinon si tag == TAG_link {
-        élément = crée_platform_object(document, HTMLLinkElement)
-    }
-    sinon si tag == TAG_object {
-        élément = crée_platform_object(document, HTMLObjectElement)
-    }
-    sinon si tag == TAG_option {
-        élément = crée_platform_object(document, HTMLOptionElement)
-    }
-    sinon si tag == TAG_optgroup {
-        élément = crée_platform_object(document, HTMLOptGroupElement)
-    }
-    sinon si tag == TAG_script {
-        élément = crée_platform_object(document, HTMLScriptElement)
-    }
-    sinon si tag == TAG_select {
-        élément = crée_platform_object(document, HTMLSelectElement)
-    }
-    sinon si tag == TAG_span {
-        élément = crée_platform_object(document, HTMLSpanElement)
-    }
-    sinon si tag == TAG_style {
-        élément = crée_platform_object(document, HTMLStyleElement)
-    }
-    sinon si tag == TAG_table {
-        élément = crée_platform_object(document, HTMLTableElement)
-    }
-    sinon si tag == TAG_td || tag == TAG_th {
-        élément = crée_platform_object(document, HTMLTableCellElement)
-    }
-    sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = crée_platform_object(document, HTMLTableSectionElement)
-    }
-    sinon si tag == TAG_tr {
-        élément = crée_platform_object(document, HTMLTableRowElement)
-    }
-    sinon si tag == TAG_template {
-        élément = crée_platform_object(document, HTMLTemplateElement)
-    }
-    sinon si tag == TAG_textarea {
-        élément = crée_platform_object(document, HTMLTextAreaElement)
-    }
-    sinon si tag == TAG_video {
-        élément = crée_platform_object(document, HTMLVideoElement)
-    }
-    sinon {
-        élément = crée_platform_object(document, HTMLElement)
-    }
-
-    initialise_élément(élément, document, tag)
-
-    si tag == TAG_template {
-        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
-        template_element_sur_création(élément comme *HTMLTemplateElement)
-    }
-
-    retourne élément
-}
-
-élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Élément)
+élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Element)
 {
     saufsi élément.table {
         retourne
     }
 
-    table_virtuelle := élément.table comme *TableVirtuelleÉlément    
+    table_virtuelle := élément.table comme *TableVirtuelleElement    
     si table_virtuelle.sur_dépilement  {
         table_virtuelle.sur_dépilement(élément)
     }
 }
 
-est_compatible_html5 :: fonc (élément: *Élément) -> bool
+est_compatible_html5 :: fonc (élément: *Element) -> bool
 {
     discr élément.local_name {
         TAG_acronym,
@@ -314,7 +209,7 @@ est_compatible_html5 :: fonc (élément: *Élément) -> bool
     }
 }
 
-donne_referrerpolicy_content_attribute_state :: fonc (élément: *Élément) -> ReferrerPolicy
+donne_referrerpolicy_content_attribute_state :: fonc (élément: *Element) -> ReferrerPolicy
 {
     referrer_policy := élément.donne_attribut_ou_chaine_vide(ATTR_referrerpolicy)
     chn_referrer_policy := converti_vers_chaine(referrer_policy.donne_chaine_utf16())
@@ -362,7 +257,7 @@ CORSAttributeState :: énum n8 {
     UseCredentials
 }
 
-donne_cross_origin_content_attribute_state :: fonc (élément: *Élément) -> CORSAttributeState
+donne_cross_origin_content_attribute_state :: fonc (élément: *Element) -> CORSAttributeState
 {
     crossorigin := élément.donne_attribut_ou_chaine_vide(ATTR_crossorigin)
     si crossorigin.est_vide() {
@@ -389,7 +284,7 @@ FetchPriorityState :: énum n8 {
     Low
 }
 
-donne_fetch_priority_content_attribute_state :: fonc (élément: *Élément) -> FetchPriorityState
+donne_fetch_priority_content_attribute_state :: fonc (élément: *Element) -> FetchPriorityState
 {
     fetchpriority := élément.donne_attribut_ou_chaine_vide(ATTR_fetchpriority)
     si fetchpriority.est_vide() {
@@ -458,14 +353,14 @@ fait_partie_de_catégorie_spécial :: fonc (nom: DOMString) -> bool
                             TAG_foreignObject, TAG_desc, TAG_title)
 }
 
-enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) -> *Élément
+enfant_directe_avec_balise :: fonc (élément: *Element, balise: DOMString) -> *Element
 {
     pour élément.enfants {
-        saufsi it.genre == GenreNoeud.Élément {
+        saufsi it.genre == GenreNoeud.Element {
             continue
         }
 
-        élément_enfant := (it comme *Élément)
+        élément_enfant := (it comme *Element)
         si élément_enfant.local_name == balise {
             retourne élément_enfant
         }
@@ -478,7 +373,7 @@ enfant_directe_avec_balise :: fonc (élément: *Élément, balise: DOMString) ->
 /** \nom CSS
  * \{ */
 
-ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+ajoute_pseudo_classe :: fonc (élément: *Element, pseudo_classe: CSS.PseudoClasses)
 {
     si (élément.pseudo_classes & pseudo_classe) == pseudo_classe {
         retourne
@@ -489,7 +384,7 @@ ajoute_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoCl
     élément.document.invalide_style(élément, pseudo_classe)
 }
 
-enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+enlève_pseudo_classe :: fonc (élément: *Element, pseudo_classe: CSS.PseudoClasses)
 {
     si (élément.pseudo_classes & pseudo_classe) != pseudo_classe {
         retourne
@@ -500,7 +395,7 @@ enlève_pseudo_classe :: fonc (élément: *Élément, pseudo_classe: CSS.PseudoC
     élément.document.invalide_style(élément, pseudo_classe)
 }
 
-est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
+est_en_train_d_être_activé :: fonc (élément: *Element, ouinon: bool)
 {
     /* À FAIRE : gère tous les cas/différencie les niveaux d'activation ?
      * https://html.spec.whatwg.org/multipage/semantics-other.html#concept-selector-active */
@@ -512,9 +407,9 @@ est_en_train_d_être_activé :: fonc (élément: *Élément, ouinon: bool)
     }
 }
 
-applique_presentational_hints :: fonc (élément: *Élément, résolveuse: *CSS.RésolveuseStyle)
+applique_presentational_hints :: fonc (élément: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
-    table := élément.table comme *TableVirtuelleÉlément
+    table := élément.table comme *TableVirtuelleElement
     saufsi table {
         retourne
     }
@@ -550,13 +445,13 @@ is_render_blocked :: fonc (document: *Document) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#render-blocking */
-is_render_blocking :: fonc (el: *Élément) -> bool
+is_render_blocking :: fonc (el: *Element) -> bool
 {
     retourne is_render_blocked(el.document) || tableau_possède_élément(el.document.render_blocking_elements, el)
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#block-rendering */
-block_rendering_on :: fonc (el: *Élément)
+block_rendering_on :: fonc (el: *Element)
 {
     // 1. Let document be el's node document.
     document := el.document
@@ -569,7 +464,7 @@ block_rendering_on :: fonc (el: *Élément)
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#unblock-rendering */
-unblock_rendering_on :: fonc (el: *Élément)
+unblock_rendering_on :: fonc (el: *Element)
 {
     // 1. Let document be el's node document.
     document := el.document
@@ -587,14 +482,14 @@ unblock_rendering_on :: fonc (el: *Élément)
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
-is_potentially_render_blocking :: fonc (el: *Élément) -> bool
+is_potentially_render_blocking :: fonc (el: *Element) -> bool
 {
     // À FAIRE : if its blocking tokens set contains "render"
     retourne is_implicitly_potentially_render_blocking(el)
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#implicitly-potentially-render-blocking */
-is_implicitly_potentially_render_blocking :: fonc (el: *Élément) -> bool
+is_implicitly_potentially_render_blocking :: fonc (el: *Element) -> bool
 {
     si el.table.classe == HTMLLinkElement {
         link := el comme *HTMLLinkElement
@@ -610,7 +505,7 @@ is_implicitly_potentially_render_blocking :: fonc (el: *Élément) -> bool
     retourne faux
 }
 
-block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
+block_rendering_if_potentially_render_blocking :: fonc (el: *Element)
 {
     saufsi is_potentially_render_blocking(el) {
         retourne
@@ -632,9 +527,9 @@ block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps */
-fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @inutilisée) -> ChaineUTF16
+fragment_serializing_algorithm_steps :: fonc (node: *Node, well_formed: bool @inutilisée) -> ChaineUTF16
 {
-    // À FAIRE assert : Document, DocumentFragment, Element
+    assert(fait_partie_de(node.genre, GenreNoeud.Document, GenreNoeud.DocumentFragment, GenreNoeud.Element))
 
     // 1. Let context document be node's node document.
     context_document := node.document
@@ -649,7 +544,7 @@ fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @i
 }
 
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-parsing-algorithm-steps */
-fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF16) -> *DocumentFragment
+fragment_parsing_algorithm_steps :: fonc (context: *Element, markup: ChaineUTF16) -> *DocumentFragment
 {
     // À FAIRE(XML) : 1. Let algorithm be the HTML fragment parsing algorithm.
 
@@ -671,28 +566,29 @@ fragment_parsing_algorithm_steps :: fonc (context: *Élément, markup: ChaineUTF
 }
 
 // https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml
-donne_inner_html :: fonc (élément: *Élément) -> ChaineUTF16
+donne_inner_html :: fonc (élément: *Element) -> ChaineUTF16
 {
     retourne fragment_serializing_algorithm_steps(élément, vrai)
 }
 
-définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
+définis_inner_html :: fonc (élément: *Element, texte: DOMString)
 {
     // À FAIRE : 1. Let compliantString be the result of invoking the Get Trusted Type compliant string algorithm with TrustedHTML, this's relevant global object, the given value, "Element innerHTML", and "script".
     compliant_string := texte.donne_chaine_utf16()
 
     // 2. Let context be this.
-    context := élément
+    context : *Node = élément
 
     // 3. Let fragment be the result of invoking the fragment parsing algorithm steps with context and compliantString.
-    fragment := fragment_parsing_algorithm_steps(context, compliant_string)
+    fragment := fragment_parsing_algorithm_steps(élément, compliant_string)
 
-    // À FAIRE : 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+    // 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+    si context.table.classe == HTMLTemplateElement {
+        context = (context comme *HTMLTemplateElement).content
+    }
 
-    // À FAIRE : 5. Replace all with fragment within context.
-    enfants := context.enfants
-    context.enfants = fragment.enfants
-    fragment.enfants = enfants
+    // 5. Replace all with fragment within context.
+    replace_all(fragment, context)
 
     // À FAIRE : reconstruction partielle de l'arbre
     élément.document.invalide_style()
@@ -708,16 +604,206 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
 #portée_export
 
 HTMLElement :: struct {
-    empl base_élément: Élément
+    empl base_élément: Element
     table = *table_virtuelle_html_element
 }
 
 #portée_fichier
 
-table_virtuelle_html_element := TableVirtuelleÉlément(
+table_virtuelle_html_element := TableVirtuelleElement(
     classe = HTMLElement,
     sur_changement_attribut = html_element_sur_changement_attribut
 )
+
+#portée_export
+
+create_element_with_interface :: fonc (document: *Document, tag: DOMString, namespace: EspaceDeNom) -> *Element
+{
+    résultat: *Element
+    
+    si namespace == EspaceDeNom_HTML {
+        résultat = create_html_element_with_interface(document, tag)
+    }
+    sinon {
+        /* https://dom.spec.whatwg.org/#concept-element-interface */
+        résultat = crée_platform_object(document, Element)
+    }
+
+    initialise_élément(résultat, document, tag)
+    résultat.espace_de_nom = namespace
+
+    si tag == TAG_template {
+        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
+        template_element_sur_création(résultat comme *HTMLTemplateElement)
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#elements-in-the-dom:element-interface */
+create_html_element_with_interface :: fonc (document: *Document, name: DOMString) -> *Element
+{
+    // 1. If name is applet, bgsound, blink, isindex, keygen, multicol, nextid, or spacer, then return HTMLUnknownElement.
+    unknown_names := [TAG_applet, TAG_bgsound, TAG_blink, TAG_isindex, TAG_keygen, TAG_multicol, TAG_nextid, TAG_spacer]
+    si fait_partie_de(name, ...unknown_names) {
+        retourne crée_platform_object(document, HTMLUnknownElement)
+    }
+
+    // 2. If name is acronym, basefont, big, center, nobr, noembed, noframes, plaintext, rb, rtc, strike, or tt, then return HTMLElement.
+    element_names := [TAG_acronym, TAG_basefont, TAG_big, TAG_center, TAG_nobr, TAG_noembed, TAG_noframes, TAG_plaintext, TAG_rb, TAG_rtc, TAG_strike, TAG_tt]
+    si fait_partie_de(name, ...element_names) {
+        retourne crée_platform_object(document, HTMLElement)
+    }
+
+    // À FAIRE : 3. If name is listing or xmp, then return HTMLPreElement.
+
+    // 4. Otherwise, if this specification defines an interface appropriate for the element type corresponding to the local name name, then return that interface.
+    // 5. If other applicable specifications define an appropriate interface for name, then return the interface they define.
+    si name == TAG_a {
+        retourne crée_platform_object(document, HTMLAnchorElement)
+    }
+    si name == TAG_body {
+        retourne crée_platform_object(document, HTMLBodyElement)
+    }
+    si name == TAG_button {
+        retourne crée_platform_object(document, HTMLButtonElement)
+    }
+    si name == TAG_canvas {
+        retourne crée_platform_object(document, HTMLCanvasElement)
+    }
+    si name == TAG_font {
+        retourne crée_platform_object(document, HTMLFontElement)
+    }
+    si name == TAG_form {
+        retourne crée_platform_object(document, HTMLFormElement)
+    }
+    si name == TAG_head {
+        retourne crée_platform_object(document, HTMLHeadElement)
+    }
+    si name == TAG_h1 || name == TAG_h2 || name == TAG_h3 || name == TAG_h4 || name == TAG_h5 || name == TAG_h6 {
+        retourne crée_platform_object(document, HTMLHeadingElement)
+    }
+    si name == TAG_hr {
+        retourne crée_platform_object(document, HTMLHRElement)
+    }
+    si name == TAG_html {
+        retourne crée_platform_object(document, HTMLHtmlElement)
+    }
+    si name == TAG_iframe {
+        retourne crée_platform_object(document, HTMLIFrameElement)
+    }
+    si name == TAG_img {
+        retourne crée_platform_object(document, HTMLImageElement)
+    }
+    si name == TAG_input {
+        retourne crée_platform_object(document, HTMLInputElement)
+    }
+    si name == TAG_label {
+        retourne crée_platform_object(document, HTMLLabelElement)
+    }
+    si name == TAG_link {
+        retourne crée_platform_object(document, HTMLLinkElement)
+    }
+    si name == TAG_object {
+        retourne crée_platform_object(document, HTMLObjectElement)
+    }
+    si name == TAG_option {
+        retourne crée_platform_object(document, HTMLOptionElement)
+    }
+    si name == TAG_optgroup {
+        retourne crée_platform_object(document, HTMLOptGroupElement)
+    }
+    si name == TAG_script {
+        retourne crée_platform_object(document, HTMLScriptElement)
+    }
+    si name == TAG_select {
+        retourne crée_platform_object(document, HTMLSelectElement)
+    }
+    si name == TAG_span {
+        retourne crée_platform_object(document, HTMLSpanElement)
+    }
+    si name == TAG_style {
+        retourne crée_platform_object(document, HTMLStyleElement)
+    }
+    si name == TAG_table {
+        retourne crée_platform_object(document, HTMLTableElement)
+    }
+    si name == TAG_td || name == TAG_th {
+        retourne crée_platform_object(document, HTMLTableCellElement)
+    }
+    si name == TAG_thead || name == TAG_tbody || name == TAG_tfoot {
+        retourne crée_platform_object(document, HTMLTableSectionElement)
+    }
+    si name == TAG_tr {
+        retourne crée_platform_object(document, HTMLTableRowElement)
+    }
+    si name == TAG_template {
+        retourne crée_platform_object(document, HTMLTemplateElement)
+    }
+    si name == TAG_textarea {
+        retourne crée_platform_object(document, HTMLTextAreaElement)
+    }
+    si name == TAG_video {
+        retourne crée_platform_object(document, HTMLVideoElement)
+    }
+
+    // 6. If name is a valid custom element name, then return HTMLElement.
+    si is_valid_custom_element_name(name) {
+        retourne crée_platform_object(document, HTMLElement)
+    }
+
+    // 7. Return HTMLUnknownElement.
+    retourne crée_platform_object(document, HTMLUnknownElement)
+}
+
+/* https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name */
+is_valid_custom_element_name :: fonc (name: DOMString) -> bool
+{
+    // name is a valid element local name;
+    saufsi is_valid_element_local_name(name) {
+        retourne faux
+    }
+
+    chn := name.donne_chaine_utf16()
+    assert(chn.taille() != 0)
+
+    // name's 0th code point is an ASCII lower alpha;
+    saufsi est_lettre_minuscule_ascii(chn.unités[0]) {
+        retourne faux
+    }
+
+    // name does not contain any ASCII upper alphas;
+    // name contains a U+002D (-); and
+    possède_tiret: bool
+    pour chn.unités {
+        si est_lettre_majuscule_ascii(it) {
+            retourne faux
+        }
+        si it == 0x2D {
+            possède_tiret = vrai
+        }
+    }
+
+    saufsi possède_tiret {
+        retourne faux
+    }
+
+    // name is not one of the following:
+    // "annotation-xml"
+    // "color-profile"
+    // "font-face"
+    // "font-face-src"
+    // "font-face-uri"
+    // "font-face-format"
+    // "font-face-name"
+    // "missing-glyph"
+    tag_spéciaux := [TAG_annotation_xml, TAG_color_profile, TAG_font_face, TAG_font_face_src, TAG_font_face_uri, TAG_font_face_format, TAG_font_face_name, TAG_missing_glyph]
+    si fait_partie_de(name, ...tag_spéciaux) {
+        retourne faux
+    }
+
+    retourne vrai
+}
 
 /** \} */
 
@@ -746,14 +832,14 @@ donne_href :: fonc (anchor: *HTMLAnchorElement) -> DOMString
 
 #portée_fichier
 
-table_virtuelle_anchor_element := TableVirtuelleÉlément(
+table_virtuelle_anchor_element := TableVirtuelleElement(
     classe = HTMLAnchorElement,
     sur_destruction = élément_sur_destruction,
     sur_activation_behavior = anchor_element_sur_activation_behavior,
     sur_changement_attribut = anchor_element_sur_changement_attribut
 )
 
-anchor_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+anchor_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
@@ -837,7 +923,7 @@ donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvol
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
-cannot_navigate :: fonc (element: *Élément) -> bool
+cannot_navigate :: fonc (element: *Element) -> bool
 {
     // element's node document is not fully active; or
     saufsi element.document.est_fully_active() {
@@ -853,7 +939,7 @@ cannot_navigate :: fonc (element: *Élément) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/links.html#get-an-element's-noopener */
-get_an_element_s_noopener :: fonc (element: *Élément, target: DOMString) -> bool
+get_an_element_s_noopener :: fonc (element: *Element, target: DOMString) -> bool
 {
     assert(element.local_name == TAG_a || element.local_name == TAG_area || element.local_name == TAG_form)
 
@@ -876,7 +962,7 @@ get_an_element_s_noopener :: fonc (element: *Élément, target: DOMString) -> bo
 }
 
 /* https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks-2 */
-follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_chaine_utf16_unique_vide(), user_involvement := UserNavigationInvolvement.None)
+follow_the_hyperlink :: fonc (subject: *Element, hyperlink_suffix := crée_chaine_utf16_unique_vide(), user_involvement := UserNavigationInvolvement.None)
 {
     // 1. If subject cannot navigate, then return.
     si cannot_navigate(subject) {
@@ -948,7 +1034,7 @@ follow_the_hyperlink :: fonc (subject: *Élément, hyperlink_suffix := crée_cha
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#get-an-element's-target */
-get_an_element_s_target :: fonc (element: *Élément, target := crée_chaine_utf16_unique_vide()) -> DOMString
+get_an_element_s_target :: fonc (element: *Element, target := crée_chaine_utf16_unique_vide()) -> DOMString
 {
     // 1. If target is null, then:
     si target.est_vide() {
@@ -1012,7 +1098,7 @@ encoding_parse_a_url :: fonc (user_agent: *UserAgent, url: DOMString, base_url: 
  * https://html.spec.whatwg.org/multipage/links.html#linkTypes
  * \{ */
 
-donne_link_types :: fonc (element: *Élément) -> [..]DOMString
+donne_link_types :: fonc (element: *Element) -> [..]DOMString
 {
     rel := element.donne_attribut_ou_chaine_vide(ATTR_rel)
     retourne run_ordered_set_parser(rel)
@@ -1045,7 +1131,7 @@ HTMLBodyElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_body_element := TableVirtuelleÉlément(
+table_virtuelle_body_element := TableVirtuelleElement(
     classe = HTMLBodyElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
@@ -1053,7 +1139,7 @@ table_virtuelle_body_element := TableVirtuelleÉlément(
 )
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-page */
-body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+body_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_text, CSS.PROP_color)
@@ -1065,7 +1151,7 @@ body_element_sur_applique_presentational_hints :: fonc (base: *Élément, résol
     ajoute_propriété_pour_nombre(résolveuse, CSS.PROP_margin_right, 8.0)
 }
 
-ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
     si opt_attribut.possède_valeur() {
@@ -1088,7 +1174,7 @@ ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, no
     CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_mot_clé(mot_clé))
 }
 
-ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
     si opt_attribut.possède_valeur() {
@@ -1099,7 +1185,7 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, �
     }
 }
 
-ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
     si opt_attribut.possède_valeur() {
@@ -1110,7 +1196,7 @@ ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle
     }
 }
 
-ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
+ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
     opt_attribut := élément.donne_attribut(nom_attribut)
     si opt_attribut.possède_valeur() {
@@ -1174,14 +1260,14 @@ HTMLButtonElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_button_element := TableVirtuelleÉlément(
+table_virtuelle_button_element := TableVirtuelleElement(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
 )
 
-button_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+button_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
@@ -1203,7 +1289,7 @@ button_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DO
     retourne faux
 }
 
-button_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+button_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     /* NOTE : la stylisation ne se retrouve dans aucun standard. Elle reprend le style par défaut de firefox. */
 
@@ -1265,7 +1351,7 @@ HTMLCanvasElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_canvas_element := TableVirtuelleÉlément(
+table_virtuelle_canvas_element := TableVirtuelleElement(
     classe = HTMLCanvasElement,
     sur_destruction = canvas_element_sur_destruction
 )
@@ -1380,7 +1466,7 @@ HTMLFontElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_font_element := TableVirtuelleÉlément(
+table_virtuelle_font_element := TableVirtuelleElement(
     classe = HTMLFontElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
@@ -1388,7 +1474,7 @@ table_virtuelle_font_element := TableVirtuelleÉlément(
 )
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#phrasing-content-3 */
-font_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+font_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     font := base comme *HTMLFontElement
 
@@ -1506,14 +1592,14 @@ HTMLFormElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_form_element := TableVirtuelleÉlément(
+table_virtuelle_form_element := TableVirtuelleElement(
     classe = HTMLFormElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
 )
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
-submit :: fonc (form: *HTMLFormElement, submitter: *Élément, submitted_from_submit_method := faux, user_involvement := UserNavigationInvolvement.None)
+submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_submit_method := faux, user_involvement := UserNavigationInvolvement.None)
 {
     // 1. If form cannot navigate, then return.
     si cannot_navigate(form) {
@@ -1693,7 +1779,7 @@ détruit_entry_list :: fonc (entry_list: *EntryList)
 #portée_fichier
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-the-form-data-set */
-construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Élément = nul @inutilisée) -> *EntryList
+construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element = nul @inutilisée) -> *EntryList
 {
     // 1. If form's constructing entry list is true, then return null.
     si form.constructing_entry_list {
@@ -1801,11 +1887,11 @@ construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Élément
     retourne entry_list
 }
 
-donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Élément
+donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Element
 {
-    résultat: [..]*Élément
+    résultat: [..]*Element
 
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     pour > form.enfants {
@@ -1816,8 +1902,8 @@ donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Élément
         noeud := traversée[traversée.taille - 1]
         traversée.taille -= 1
 
-        si noeud.est_élément() && is_submittable_element(noeud comme *Élément) {
-            élément := noeud comme *Élément
+        si noeud.est_élément() && is_submittable_element(noeud comme *Element) {
+            élément := noeud comme *Element
             form_owner := donne_form_owner(élément)
             si form_owner == form {
                 tableau_ajoute(*résultat, élément)
@@ -1833,7 +1919,7 @@ donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-action */
-donne_action :: fonc (élément: *Élément) -> DOMString
+donne_action :: fonc (élément: *Element) -> DOMString
 {
     résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formaction)
     si résultat.est_vide() {
@@ -1845,7 +1931,7 @@ donne_action :: fonc (élément: *Élément) -> DOMString
 }
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-method */
-donne_method :: fonc (élément: *Élément) -> DOMString
+donne_method :: fonc (élément: *Element) -> DOMString
 {
     résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formmethod)
     si résultat.est_vide() {
@@ -1956,7 +2042,7 @@ HTMLHeadElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_head_element := TableVirtuelleÉlément(
+table_virtuelle_head_element := TableVirtuelleElement(
     classe = HTMLHeadElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -1979,7 +2065,7 @@ HTMLHeadingElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_heading_element := TableVirtuelleÉlément(
+table_virtuelle_heading_element := TableVirtuelleElement(
     classe = HTMLHeadingElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -2002,7 +2088,7 @@ HTMLHRElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_hr_element := TableVirtuelleÉlément(
+table_virtuelle_hr_element := TableVirtuelleElement(
     classe = HTMLHRElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -2025,7 +2111,7 @@ HTMLHtmlElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_html_html_element := TableVirtuelleÉlément(
+table_virtuelle_html_html_element := TableVirtuelleElement(
     classe = HTMLHtmlElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -2051,7 +2137,7 @@ HTMLIFrameElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_iframe_element := TableVirtuelleÉlément(
+table_virtuelle_iframe_element := TableVirtuelleElement(
     classe = HTMLIFrameElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -2127,14 +2213,14 @@ donne_représentation_image :: fonc (img: *HTMLImageElement) -> ReprésentationI
 
 #portée_fichier
 
-table_virtuelle_image_element := TableVirtuelleÉlément(
+table_virtuelle_image_element := TableVirtuelleElement(
     classe = HTMLImageElement,
     sur_destruction = image_element_sur_destruction,
     sur_changement_attribut = image_element_sur_changement_attribut,
     sur_applique_presentational_hints = image_element_sur_applique_presentational_hints
 )
 
-image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+image_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
@@ -2150,7 +2236,7 @@ image_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOM
     retourne faux
 }
 
-image_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+image_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
@@ -2478,7 +2564,7 @@ définis_checkedness :: fonc (input: *HTMLInputElement, valeur: bool)
  * https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
 réinitialise_checkedness_radio_button_group :: fonc (racine: *HTMLInputElement)
 {
-    traverse_document_pour_radio_button_group :: fonc (noeud: *Noeud, input: *HTMLInputElement) -> DécisionTraversée
+    traverse_document_pour_radio_button_group :: fonc (noeud: *Node, input: *HTMLInputElement) -> DécisionTraversée
     {
         si noeud != input && noeud.table.classe == HTMLInputElement {
             noeud_input := noeud comme *HTMLInputElement
@@ -2527,7 +2613,7 @@ sont_dans_même_radio_button_group :: fonc (a: *HTMLInputElement, b: *HTMLInputE
 }
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#form-owner */
-donne_form_owner :: fonc (élément: *Élément) -> *HTMLFormElement
+donne_form_owner :: fonc (élément: *Element) -> *HTMLFormElement
 {
     // À FAIRE : respecte le standard
 
@@ -2593,7 +2679,7 @@ crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
 
 #portée_fichier
 
-table_virtuelle_input_element := TableVirtuelleÉlément(
+table_virtuelle_input_element := TableVirtuelleElement(
     classe = HTMLInputElement,
     sur_destruction = input_element_sur_destruction,
     sur_changement_attribut = input_element_sur_changement_attribut,
@@ -2608,7 +2694,7 @@ input_element_sur_destruction :: fonc (base: *JS.Cellule)
     détruit_chaine(élément.texte_mot_de_passe)
 }
 
-input_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+input_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     si is_button_widget(base comme *HTMLInputElement) {
         button_element_sur_applique_presentational_hints(base, résolveuse)
@@ -2621,7 +2707,7 @@ input_element_sur_applique_presentational_hints :: fonc (base: *Élément, réso
     ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
 }
 
-input_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+input_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
@@ -2753,13 +2839,13 @@ run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
 
 #portée_export
 
-donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *NoeudTexte
+donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *Text
 {
     assert(input.shadow_root != nul)
     assert(input.shadow_root.enfants.taille == 1)
     enfant := input.shadow_root.enfants[0]
     assert(enfant.genre == GenreNoeud.Texte)
-    retourne enfant comme *NoeudTexte
+    retourne enfant comme *Text
 }
 
 /** \} */
@@ -2795,15 +2881,15 @@ donne_form :: fonc (label: *HTMLLabelElement) -> *HTMLFormElement
 }
 
 /* https://html.spec.whatwg.org/multipage/forms.html#dom-label-control */
-donne_control :: fonc (label: *HTMLLabelElement) -> *Élément
+donne_control :: fonc (label: *HTMLLabelElement) -> *Element
 {
     retourne donne_labeled_control(label)
 }
 
 /* https://html.spec.whatwg.org/multipage/forms.html#labeled-control */
-donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
+donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Element
 {
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     for := label.donne_attribut_ou_chaine_vide(ATTR_for)
@@ -2815,7 +2901,7 @@ donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
             traversée.taille -= 1
 
             si noeud.est_élément() {
-                élément := noeud comme *Élément
+                élément := noeud comme *Element
                 si is_labelable_element(élément) && élément.id == for {
                     retourne élément
                 }
@@ -2837,8 +2923,8 @@ donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
         noeud := traversée[traversée.taille - 1]
         traversée.taille -= 1
 
-        si noeud.est_élément() && is_labelable_element(noeud comme *Élément) {
-            retourne noeud comme *Élément
+        si noeud.est_élément() && is_labelable_element(noeud comme *Element) {
+            retourne noeud comme *Element
         }
 
         pour > noeud.enfants {
@@ -2850,7 +2936,7 @@ donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/forms.html#form-associated-element */
-is_form_associated_element :: fonc (élément: *Élément) -> bool
+is_form_associated_element :: fonc (élément: *Element) -> bool
 {
     si fait_partie_de(élément.local_name, TAG_button, TAG_fieldset, TAG_input, TAG_object, TAG_output, TAG_select, TAG_textarea, TAG_img) {
         retourne vrai
@@ -2860,7 +2946,7 @@ is_form_associated_element :: fonc (élément: *Élément) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/forms.html#category-label */
-is_labelable_element :: fonc (élément: *Élément) -> bool
+is_labelable_element :: fonc (élément: *Element) -> bool
 {
     tags := [TAG_button, TAG_meter, TAG_output, TAG_progress, TAG_select, TAG_textarea]
     si fait_partie_de(élément.local_name, ...tags) {
@@ -2876,7 +2962,7 @@ is_labelable_element :: fonc (élément: *Élément) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/forms.html#category-submit */
-is_submittable_element :: fonc (élément: *Élément) -> bool
+is_submittable_element :: fonc (élément: *Element) -> bool
 {
     tags := [TAG_button, TAG_input, TAG_select, TAG_textarea]
     si fait_partie_de(élément.local_name, ...tags) {
@@ -2887,7 +2973,7 @@ is_submittable_element :: fonc (élément: *Élément) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-element */
-is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -> bool
+is_form_associated_custom_element :: fonc (élément: *Element @inutilisée) -> bool
 {
     // À FAIRE
     retourne faux
@@ -2895,7 +2981,7 @@ is_form_associated_custom_element :: fonc (élément: *Élément @inutilisée) -
 
 #portée_fichier
 
-table_virtuelle_label_element := TableVirtuelleÉlément(
+table_virtuelle_label_element := TableVirtuelleElement(
     classe = HTMLLabelElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -2931,13 +3017,13 @@ donne_rel :: fonc (link: *HTMLLinkElement) -> DOMString
 
 #portée_fichier
 
-table_virtuelle_link_element := TableVirtuelleÉlément(
+table_virtuelle_link_element := TableVirtuelleElement(
     classe = HTMLLinkElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = link_element_sur_changement_attribut
 )
 
-link_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+link_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si html_element_sur_changement_attribut(base, local_name, vieille_valeur, valeur, espace_de_nom) {
         retourne vrai
@@ -3248,8 +3334,8 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
         si compare_ascii_insensible_à_la_casse(it, potential_destination) {
             // 3. Return potentialDestination.
             // À FAIRE(langage) : erreur de compilation
-            // retourne donne_eini_valeur_énum_indice(info_destination_type, index_it) comme Request.DestinationType
-            résultat := donne_eini_valeur_énum_indice(info_destination_type, index_it)
+            // retourne donne_eini_valeur_énum_indice(info_destination_type, indice_it) comme Request.DestinationType
+            résultat := donne_eini_valeur_énum_indice(info_destination_type, indice_it)
             retourne mémoire(résultat.pointeur comme *Request.DestinationType)
         }
     }
@@ -3279,7 +3365,10 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
         retourne faux
     }
 
-    // À FAIRE 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
+    // 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
+    si contributes_a_script_blocking_style_sheet(el) {
+        tableau_ajoute(*el.document.script_blocking_style_sheet_set, el)
+    }
 
     // À FAIRE(media) 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
     si el.is_potentially_render_blocking() {
@@ -3310,9 +3399,14 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         success = faux
     }
 
-    // À FAIRE : 2. If el no longer creates an external resource link that contributes to the styling processing model, or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+    // 2. If el no longer creates an external resource link that contributes to the styling processing model,
+    // À FAIRE : or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+    saufsi contributes_a_script_blocking_style_sheet(el) {
         // 1. Remove el from el's node document's script-blocking style sheet set.
+        tableau_supprime_valeur(*el.document.script_blocking_style_sheet_set, el)
         // 2. Return.
+        retourne
+    }
 
     // 3. If el has an associated CSS style sheet, remove the CSS style sheet.
     el.document.supprime_feuille_de_style_associée(el)
@@ -3363,9 +3457,13 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         _ := fire_an_event(el, EventType.error)
     }
 
-    // À FAIRE 6. If el contributes a script-blocking style sheet, then:
-    // Assert: el's node document's script-blocking style sheet set contains el.
-    // Remove el from its node document's script-blocking style sheet set.
+    // 6. If el contributes a script-blocking style sheet, then:
+    si contributes_a_script_blocking_style_sheet(el) {
+        // Assert: el's node document's script-blocking style sheet set contains el.
+        assert(tableau_donne_indice(el.document.script_blocking_style_sheet_set, el) != -1)
+        // Remove el from its node document's script-blocking style sheet set.
+        tableau_supprime_valeur(*el.document.script_blocking_style_sheet_set, el)
+    }
 
     // 7. Unblock rendering on el.
     unblock_rendering_on(el)
@@ -3407,7 +3505,7 @@ HTMLVideoElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_video_element := TableVirtuelleÉlément(
+table_virtuelle_video_element := TableVirtuelleElement(
     classe = HTMLVideoElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -3459,7 +3557,7 @@ donne_ratio_intrinsèque :: fonc (object: *HTMLObjectElement) -> r32 #enligne
 
 #portée_fichier
 
-table_virtuelle_object_element := TableVirtuelleÉlément(
+table_virtuelle_object_element := TableVirtuelleElement(
     classe = HTMLObjectElement,
     sur_destruction = object_element_sur_destruction,
     sur_document_fully_active = object_element_sur_document_fully_active,
@@ -3474,17 +3572,17 @@ object_element_sur_destruction :: fonc (base: *JS.Cellule)
     détruit_données_image(*élément.image_data)
 }
 
-object_element_sur_document_fully_active :: fonc (base: *Noeud)
+object_element_sur_document_fully_active :: fonc (base: *Node)
 {
     object_element_ajourne(base comme *HTMLObjectElement)
 }
 
-object_element_sur_dépilement :: fonc (base: *Élément)
+object_element_sur_dépilement :: fonc (base: *Element)
 {
     object_element_ajourne(base comme *HTMLObjectElement)
 }
 
-object_element_sur_changement_attribut :: fonc (base: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+object_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     object := base comme *HTMLObjectElement
 
@@ -3737,7 +3835,7 @@ HTMLOptionElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_option_element := TableVirtuelleÉlément(
+table_virtuelle_option_element := TableVirtuelleElement(
     classe = HTMLOptionElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -3760,7 +3858,7 @@ HTMLOptGroupElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_optgroup_element := TableVirtuelleÉlément(
+table_virtuelle_optgroup_element := TableVirtuelleElement(
     classe = HTMLOptGroupElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -3811,7 +3909,7 @@ donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
 
 #portée_fichier
 
-table_virtuelle_script_element := TableVirtuelleÉlément(
+table_virtuelle_script_element := TableVirtuelleElement(
     classe = HTMLScriptElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -4076,7 +4174,7 @@ prépare :: fonc (el: *HTMLScriptElement)
                 scripts := *script.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible
                 pour mémoire(scripts) {
                     si it == script {
-                        tableau_supprime_indice(scripts, index_it)
+                        tableau_supprime_indice(scripts, indice_it)
                         arrête
                     }
                 }
@@ -4411,7 +4509,7 @@ HTMLSelectElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_select_element := TableVirtuelleÉlément(
+table_virtuelle_select_element := TableVirtuelleElement(
     classe = HTMLSelectElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -4434,7 +4532,7 @@ HTMLSpanElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_span_element := TableVirtuelleÉlément(
+table_virtuelle_span_element := TableVirtuelleElement(
     classe = HTMLSpanElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut
@@ -4457,7 +4555,7 @@ HTMLStyleElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_style_element := TableVirtuelleÉlément(
+table_virtuelle_style_element := TableVirtuelleElement(
     classe = HTMLStyleElement,
     sur_destruction = élément_sur_destruction,
     sur_connexion = style_element_sur_connexion_ou_déconnexion,
@@ -4466,7 +4564,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
     sur_changement_enfants = style_element_sur_changement_enfants
 )
 
-style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
+style_element_sur_connexion_ou_déconnexion :: fonc (base: *Node)
 {
     style := base comme *HTMLStyleElement
     saufsi style.est_sur_pile_éléments_ouvert {
@@ -4474,13 +4572,13 @@ style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
     }
 }
 
-style_element_sur_dépilement :: fonc (base: *Élément)
+style_element_sur_dépilement :: fonc (base: *Element)
 {
     style := base comme *HTMLStyleElement
     ajourne_style_block(style)
 }
 
-style_element_sur_changement_enfants :: fonc (base: *Noeud)
+style_element_sur_changement_enfants :: fonc (base: *Node)
 {
     style := base comme *HTMLStyleElement
     ajourne_style_block(style)
@@ -4548,8 +4646,11 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     feuille_de_style.parent_style_sheet = nul
     feuille_de_style.owner_rule = nul
 
-    //  À FAIRE : 7. If element contributes a script-blocking style sheet, append element
+    //  7. If element contributes a script-blocking style sheet, append element
     //    to its node document's script-blocking style sheet set.
+    si contributes_a_script_blocking_style_sheet(element) {
+        tableau_ajoute(*element.document.script_blocking_style_sheet_set, element)
+    }
 
     // À FAIRE : 8. If element's media attribute's value matches the environment and
     //    element is potentially render-blocking, then block rendering on element.
@@ -4581,14 +4682,14 @@ HTMLTableElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_table_element := TableVirtuelleÉlément(
+table_virtuelle_table_element := TableVirtuelleElement(
     classe = HTMLTableElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_element_sur_applique_presentational_hints
 )
 
-table_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+table_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
@@ -4652,14 +4753,14 @@ HTMLTableCellElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_table_cell_element := TableVirtuelleÉlément(
+table_virtuelle_table_cell_element := TableVirtuelleElement(
     classe = HTMLTableCellElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_cell_element_sur_applique_presentational_hints
 )
 
-table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+table_cell_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_non_zero_dimension(résolveuse, base, ATTR_width, CSS.PROP_width)
@@ -4669,7 +4770,7 @@ table_cell_element_sur_applique_presentational_hints :: fonc (base: *Élément, 
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/tables.html#attr-tdth-colspan */
-donne_colspan :: fonc (élément: *Élément) -> n32
+donne_colspan :: fonc (élément: *Element) -> n32
 {
     attr := donne_attribut_ou_chaine_vide(élément, ATTR_colspan)
     si attr.est_vide() {
@@ -4701,14 +4802,14 @@ HTMLTableRowElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_table_row_element := TableVirtuelleÉlément(
+table_virtuelle_table_row_element := TableVirtuelleElement(
     classe = HTMLTableRowElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_row_element_sur_applique_presentational_hints
 )
 
-table_row_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+table_row_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
@@ -4731,14 +4832,14 @@ HTMLTableSectionElement :: struct {
 
 #portée_fichier
 
-table_virtuelle_table_section_element := TableVirtuelleÉlément(
+table_virtuelle_table_section_element := TableVirtuelleElement(
     classe = HTMLTableSectionElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = table_section_element_sur_applique_presentational_hints
 )
 
-table_section_element_sur_applique_presentational_hints :: fonc (base: *Élément, résolveuse: *CSS.RésolveuseStyle)
+table_section_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
 {
     ajoute_propriété_pour_legacy_colour_value(résolveuse, base, ATTR_bgcolor, CSS.PROP_background_color)
     ajoute_propriété_pour_dimension(résolveuse, base, ATTR_height, CSS.PROP_height)
@@ -4769,7 +4870,7 @@ donne_template_contents :: fonc (template: *HTMLTemplateElement) -> *DocumentFra
 
 #portée_fichier
 
-table_virtuelle_template_element := TableVirtuelleÉlément(
+table_virtuelle_template_element := TableVirtuelleElement(
     classe = HTMLTemplateElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
@@ -4867,19 +4968,40 @@ donne_character_height :: fonc (textarea: *HTMLTextAreaElement) -> n32
 
 #portée_fichier
 
-table_virtuelle_textarea_element := TableVirtuelleÉlément(
+table_virtuelle_textarea_element := TableVirtuelleElement(
     classe = HTMLTextAreaElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
     sur_applique_presentational_hints = textarea_element_sur_applique_presentational_hints
 )
 
-textarea_element_sur_applique_presentational_hints :: fonc (base: *Élément @inutilisée, résolveuse: *CSS.RésolveuseStyle)
+textarea_element_sur_applique_presentational_hints :: fonc (base: *Element @inutilisée, résolveuse: *CSS.RésolveuseStyle)
 {
     couleur_bordure := CouleurRVBAN8(143, 143, 157, 255)
     style_bordure := CSS.PROP_solid
     largeur_bordure := DimensionValue(Length = 1.0)
     ajoute_presentational_hints_pour_bordure(résolveuse, couleur_bordure, largeur_bordure, style_bordure)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLUnknownElement
+ * https://html.spec.whatwg.org/multipage/dom.html#htmlunknownelement
+ * \{ */
+
+#portée_export
+
+HTMLUnknownElement :: struct {
+    empl base_élément: Element
+    table = *table_virtuelle_html_unknown_element
+}
+
+#portée_fichier
+
+table_virtuelle_html_unknown_element := TableVirtuelleElement(
+    classe = HTMLUnknownElement,
+    sur_changement_attribut = html_element_sur_changement_attribut
+)
 
 /** \} */

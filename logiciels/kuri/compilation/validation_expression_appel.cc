@@ -328,11 +328,11 @@ struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
     kuri::tablet<NoeudExpression *, 10> m_slots{};
-    /* Les index sont utilisés pour les membres de structures. L'expression de construction de
-     * structure doit avoir le même nombre de paramètres résolus que le nombre de membres de la
+    /* Les index sont utilisés pour les rubriques de structures. L'expression de construction de
+     * structure doit avoir le même nombre de paramètres résolus que le nombre de rubriques de la
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
-     * nous stockons les index des membres pour chaque slot afin que l'appariement puisse savoir à
-     * quel membre réel le slot appartient. */
+     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir à
+     * quel rubrique réel le slot appartient. */
     kuri::tablet<int, 10> m_index_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
@@ -508,7 +508,7 @@ struct ApparieuseParams {
 
 enum {
     CANDIDATE_EST_DÉCLARATION,
-    CANDIDATE_EST_ACCÈS_MEMBRE,
+    CANDIDATE_EST_ACCÈS_RUBRIQUE,
     CANDIDATE_EST_INIT_DE,
     CANDIDATE_EST_EXPRESSION_QUELCONQUE,
     CANDIDATE_EST_TYPE_CHAINE,
@@ -780,10 +780,10 @@ static RésultatAppariement apparie_appel_pointeur(
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     auto type = decl_pointeur_fonction->type;
-    // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme membre
-    //    membre :: fonc()(rien)
+    // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme rubrique
+    //    rubrique :: fonc()(rien)
     // au lieu de
-    //    membre : fonc()(rien)
+    //    rubrique : fonc()(rien)
     // il faudra un système plus robuste
     if (!type->est_type_fonction()) {
         return ErreurAppariement::type_non_fonction(b->expression, type);
@@ -1247,14 +1247,14 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     NoeudDéclarationType const *déclaration_type_composé,
     NoeudBloc const *params_polymorphiques)
 {
-    if (expr->paramètres.taille() != params_polymorphiques->nombre_de_membres()) {
+    if (expr->paramètres.taille() != params_polymorphiques->nombre_de_rubriques()) {
         return ErreurAppariement::mécomptage_arguments(
-            expr, params_polymorphiques->nombre_de_membres(), expr->paramètres.taille());
+            expr, params_polymorphiques->nombre_de_rubriques(), expr->paramètres.taille());
     }
 
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
-    POUR (*params_polymorphiques->membres.verrou_lecture()) {
+    POUR (*params_polymorphiques->rubriques.verrou_lecture()) {
         apparieuse_params.ajoute_param(it->ident, nullptr, false);
     }
 
@@ -1278,7 +1278,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     // détecte les arguments polymorphiques dans les fonctions polymorphiques
     auto est_type_argument_polymorphique = false;
     POUR (apparieuse_params.slots()) {
-        auto param = params_polymorphiques->membre_pour_index(index_param);
+        auto param = params_polymorphiques->rubrique_pour_index(index_param);
         index_param += 1;
 
         if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -1345,15 +1345,15 @@ static RésultatAppariement apparie_construction_type_composé(
 {
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
-    POUR_INDEX (type_compose->membres) {
-        /* Ignore les membres employés pour le moment. */
-        if (it.possède_drapeau(MembreTypeComposé::EST_CONSTANT |
-                               MembreTypeComposé::EST_UN_EMPLOI)) {
-            apparieuse_params.ajoute_param(nullptr, nullptr, false, index_it);
+    POUR_INDEX (type_compose->rubriques) {
+        /* Ignore les rubriques employés pour le moment. */
+        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANT |
+                               RubriqueTypeComposé::EST_UN_EMPLOI)) {
+            apparieuse_params.ajoute_param(nullptr, nullptr, false, indice_it);
             continue;
         }
 
-        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, index_it);
+        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, indice_it);
     }
 
     POUR (arguments) {
@@ -1363,7 +1363,7 @@ static RésultatAppariement apparie_construction_type_composé(
         }
     }
 
-    auto transformations = kuri::tableau<TransformationType, int>(type_compose->membres.taille());
+    auto transformations = kuri::tableau<TransformationType, int>(type_compose->rubriques.taille());
     auto poids_appariement = 1.0;
 
     POUR_INDEX (apparieuse_params.slots()) {
@@ -1371,15 +1371,15 @@ static RésultatAppariement apparie_construction_type_composé(
             continue;
         }
 
-        auto const index_membre = apparieuse_params.index_pour_slot(index_it);
-        if (index_membre == -1) {
+        auto const index_rubrique = apparieuse_params.index_pour_slot(indice_it);
+        if (index_rubrique == -1) {
             /* À FAIRE : meilleure erreur, ceci peut arriver pour les constructions invalides. */
             return ErreurAppariement::mécomptage_arguments(
-                it, type_compose->membres.taille(), apparieuse_params.slots().taille());
+                it, type_compose->rubriques.taille(), apparieuse_params.slots().taille());
         }
-        auto &membre = type_compose->membres[index_membre];
+        auto &rubrique = type_compose->rubriques[index_rubrique];
 
-        auto résultat = vérifie_compatibilité(membre.type, it->type, it);
+        auto résultat = vérifie_compatibilité(rubrique.type, it->type, it);
 
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -1391,10 +1391,10 @@ static RésultatAppariement apparie_construction_type_composé(
 
         if (poids_xform.transformation.type == TypeTransformation::IMPOSSIBLE ||
             poids_appariement == 0.0) {
-            return ErreurAppariement::métypage_argument(it, membre.type, it->type);
+            return ErreurAppariement::métypage_argument(it, rubrique.type, it->type);
         }
 
-        transformations[index_it] = poids_xform.transformation;
+        transformations[indice_it] = poids_xform.transformation;
     }
 
     return CandidateAppariement::initialisation_structure(poids_appariement,
@@ -1598,8 +1598,8 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         return CodeRetourValidation::Erreur;
     }
 
-    if (appelée->genre == GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE) {
-        auto accès = appelée->comme_référence_membre();
+    if (appelée->genre == GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE) {
+        auto accès = appelée->comme_référence_rubrique();
 
         if (accès->aide_génération_code == PEUT_ÊTRE_APPEL_UNIFORME) {
             auto référence = NoeudExpression();
@@ -1625,7 +1625,7 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        candidates.ajoute({CANDIDATE_EST_ACCÈS_MEMBRE, accès});
+        candidates.ajoute({CANDIDATE_EST_ACCÈS_RUBRIQUE, accès});
         return CodeRetourValidation::OK;
     }
 
@@ -1652,7 +1652,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
     état->résultats.efface();
 
     POUR (état->liste_candidates) {
-        if (it.quoi == CANDIDATE_EST_ACCÈS_MEMBRE ||
+        if (it.quoi == CANDIDATE_EST_ACCÈS_RUBRIQUE ||
             it.quoi == CANDIDATE_EST_EXPRESSION_QUELCONQUE) {
             état->résultats.ajoute(apparie_appel_pointeur(contexte, expr, it.decl, état->args));
         }
@@ -1850,7 +1850,7 @@ static std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoi
     if (nouveau_params.taille() != entête->params.taille()) {
         POUR_INDEX (nouveau_params) {
             static_cast<void>(it);
-            entête->params[index_it] = nouveau_params[index_it];
+            entête->params[indice_it] = nouveau_params[indice_it];
         }
         entête->params.redimensionne(int(nouveau_params.taille()));
     }
@@ -2323,7 +2323,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                            decl_fonction_appelée,
                                            decl_fonction_appelée->bloc_parent,
                                            OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
-                                               OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES);
+                                               OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_RUBRIQUES);
 
             auto entête_copie_macro = copie_macro->comme_entête_fonction();
             decl_fonction_appelée = entête_copie_macro;
@@ -2401,7 +2401,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
-         * paramètre d'une fonction de rappel qui est membre de la structure */
+         * paramètre d'une fonction de rappel qui est rubrique de la structure */
         if (!copie->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) &&
             copie != contexte.union_ou_structure_courante()) {
             // saute l'expression pour ne plus revenir
