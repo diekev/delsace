@@ -6,8 +6,8 @@
     @type uint8_t
     // définis le type qui sera discriminé
     @discr NoeudExpression
-    // les membre de l'énumération sont enlignés dans le type discriminé
-    // c'est une erreur que de déclarer des membres ici
+    // les rubrique de l'énumération sont enlignées dans le type discriminé
+    // c'est une erreur que de déclarer des rubriques ici
     @horslignée
 }
 
@@ -344,7 +344,7 @@ struct NoeudDéclarationVariable : BaseDéclarationVariable {
     @genre_valeur INVALIDE
 
     NoeudDéclarationSymbole *déclaration_vient_d_un_emploi
-    int index_membre_employé
+    int index_rubrique_employée
 }
 
 /* a, b := ... */
@@ -520,10 +520,10 @@ struct NoeudExpressionPlage : NoeudExpression {
     NoeudExpression *fin [code enfant construction]
 }
 
-struct NoeudExpressionMembre : NoeudExpression {
-    @genre EXPRESSION_RÉFÉRENCE_MEMBRE
-    @comme référence_membre
-    @code  NoeudCodeRéférenceMembre
+struct NoeudExpressionRubrique : NoeudExpression {
+    @genre EXPRESSION_RÉFÉRENCE_RUBRIQUE
+    @comme référence_rubrique
+    @code  NoeudCodeRéférenceRubrique
     @genre_valeur TRANSCENDANTALE
 
     NoeudExpression *accédée [code enfant construction]
@@ -531,13 +531,13 @@ struct NoeudExpressionMembre : NoeudExpression {
     /* Pour l'accès à des modules. */
     NoeudDéclaration *déclaration_référée
     /* Pour l'accès à des structures. */
-    int index_membre [copie]
+    int index_rubrique [copie]
 }
 
-struct NoeudExpressionMembreUnion : NoeudExpressionMembre {
-    @genre EXPRESSION_RÉFÉRENCE_MEMBRE_UNION
-    @comme référence_membre_union
-    @code  NoeudCodeRéférenceMembreUnion
+struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
+    @genre EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION
+    @comme référence_rubrique_union
+    @code  NoeudCodeRéférenceRubriqueUnion
     @genre_valeur INVALIDE
 }
 
@@ -585,7 +585,7 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
 
     /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
      * identifiant. Ceci n'est mis en place que pour le premier symbole
-     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+     * du bloc à y être ajoutée comme rubrique, ce qui est dans l'ordre
      * lexical si ajoutée lors du syntaxage. */
     NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 
@@ -672,7 +672,7 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
 
     /* Tous les symboles dans le bloc parent de celui-ci qui ont le même
      * identifiant. Ceci n'est mis en place que pour le premier symbole
-     * du bloc à y être ajoutée comme membre, ce qui est dans l'ordre
+     * du bloc à y être ajoutée comme rubrique, ce qui est dans l'ordre
      * lexical si ajoutée lors du syntaxage. */
     NoeudDéclarationSymbole * [synchrone] ensemble_de_surchages
 }
@@ -681,7 +681,7 @@ struct NoeudDéclarationTypeComposé : NoeudDéclarationType {
     @comme type_composé
     @code NoeudCodeDéclarationTypeComposé
 
-    MembreTypeComposé [] membres
+    RubriqueTypeComposé [] rubriques
 
     /* Le nom final, contenant les informations de portée (p.e. ModuleStructure, pour Structure ::
      * struct dans le module Module). */
@@ -693,7 +693,7 @@ struct NoeudDéclarationTypeComposé : NoeudDéclarationType {
      * type parent. */
     chaine nom_hiérarchique_
 
-    int nombre_de_membres_réels = 0
+    int nombre_de_rubriques_réelles = 0
 }
 
 struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
@@ -731,8 +731,8 @@ struct NoeudStruct : NoeudDéclarationClasse {
     uint32_t alignement_desire
     bool est_compacte [copie]
 
-    /* Stocke les membres pour avoir accès à leurs décalages. */
-    MembreTypeComposé * [] types_employés
+    /* Stocke les rubriques pour avoir accès à leurs décalages. */
+    RubriqueTypeComposé * [] types_employés
 
     NoeudUnion * union_originelle
 }
@@ -1036,11 +1036,11 @@ struct NoeudPour : NoeudExpression {
     bool prend_pointeur [copie]
     GenreLexème lexème_op = .INFERIEUR [copie]
 
-    /* Sauvegarde des déclarations pour « it » et « index_it », afin de ne pas
+    /* Sauvegarde des déclarations pour « it » et « indice_it », afin de ne pas
      * se soucier si ces variables sont implicites, et donc nommées
-     * « it/index_it », ou non. */
+     * « it/indice_it », ou non. */
     NoeudDéclarationVariable *decl_it;
-    NoeudDéclarationVariable *decl_index_it;
+    NoeudDéclarationVariable *decl_indice_it;
 
     /* Le code du corps de l'opérateur surchargé « pour », utilisé lors de la
      * simplification de l'arbre. */
@@ -1102,7 +1102,7 @@ struct NoeudBloc : NoeudExpression {
     /* Si le bloc est un bloc appartenant à une fonction (bloc constantes, paramètres, etc.). */
     NoeudDéclarationEntêteFonction *appartiens_à_fonction [copie]
     NoeudDéclarationType *appartiens_à_type [copie]
-    NoeudDéclaration * [synchrone] membres [code]
+    NoeudDéclaration * [synchrone] rubriques [code]
     NoeudExpression * [synchrone]  expressions [code enfant]
     bool est_nonsur
     TypeBloc type_bloc [copie]

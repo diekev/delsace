@@ -223,12 +223,12 @@ encode_format_url :: fonc (valeur: eini) -> chaine
 
     flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse)
     requiers_esperluette := faux
-    itératrice := crée_itératrice_membre(valeur)
+    itératrice := crée_itératrice_rubrique(valeur)
 
     boucle {
-        membre, nom := itératrice.membre_suivant()
+        rubrique, nom := itératrice.rubrique_suivante()
 
-        saufsi membre.est_valide() {
+        saufsi rubrique.est_valide() {
             arrête
         }
 
@@ -239,7 +239,7 @@ encode_format_url :: fonc (valeur: eini) -> chaine
         flux.écris(nom)
         flux.écris_sans_encodage("=")
 
-        encode_valeur(flux, membre)
+        encode_valeur(flux, rubrique)
 
         requiers_esperluette = vrai
     }

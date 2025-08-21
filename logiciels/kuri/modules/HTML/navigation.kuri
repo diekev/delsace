@@ -1136,7 +1136,7 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         current_step_indice : n32 = 0
         pour all_steps {
             si it == traversable.current_session_history_entry_step {
-                current_step_indice = index_it comme n32
+                current_step_indice = indice_it comme n32
                 arrête
             }
         }
@@ -2899,7 +2899,7 @@ scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-indicated-part-of-the-document */
-donne_indicated_part :: fonc (document: *Document) -> *Élément
+donne_indicated_part :: fonc (document: *Document) -> *Element
 {
     assert(document.type == "html")
     retourne select_the_indicated_part(document, document.url)
@@ -2907,14 +2907,14 @@ donne_indicated_part :: fonc (document: *Document) -> *Élément
 
 #portée_module
 
-__top_of_the_document: Élément = ---
-donne_special_value_top_of_the_document :: fonc () -> *Élément
+__top_of_the_document: Element = ---
+donne_special_value_top_of_the_document :: fonc () -> *Element
 {
     retourne *__top_of_the_document
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#select-the-indicated-part */
-select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
+select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Element
 {
     // 1. If document's URL does not equal url with exclude fragments set to true, then return null.
     saufsi equals(document.url, url, vrai) {
@@ -2952,9 +2952,9 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#find-a-potential-indicated-element */
-find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Élément
+find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Element
 {
-    pile: Pile(*Noeud)
+    pile: Pile(*Node)
     diffère détruit(pile)
 
     pile.empile(document)
@@ -2963,7 +2963,7 @@ find_a_potential_indicated_element :: fonc (document: *Document, fragment: chain
         noeud := pile.dépile()
 
         si noeud.est_élément() {
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
 
             // 1. If there is an element in the document tree whose root is document and
             //    that has an ID equal to fragment, then return the first such element in tree order.
@@ -3190,13 +3190,13 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
 populate_with_html_head_body :: fonc (document: *Document)
 {
     // 1. Let html be the result of creating an element given document, html, and the HTML namespace.
-    html := crée_élément_avec_tag(document, TAG_html)
+    html := crée_un_élément(nul, document, TAG_html, EspaceDeNom_HTML)
 
     // 2. Let head be the result of creating an element given document, head, and the HTML namespace.
-    head := crée_élément_avec_tag(document, TAG_head)
+    head := crée_un_élément(nul, document, TAG_head, EspaceDeNom_HTML)
 
     // 3. Let body be the result of creating an element given document, body, and the HTML namespace.
-    body := crée_élément_avec_tag(document, TAG_body)
+    body := crée_un_élément(nul, document, TAG_body, EspaceDeNom_HTML)
 
     // 4. Append html to document.
     document.ajoute_enfant(html)
@@ -3264,7 +3264,7 @@ load_a_text_document :: fonc (user_agent: *UserAgent, navigation_params: *Naviga
 
     body := donne_élément_body(document)
 
-    pre := crée_élément_avec_tag(document, TAG_pre)
+    pre := crée_un_élément(nul, document, TAG_pre, EspaceDeNom_HTML)
     body.ajoute_enfant(pre)
 
     noeud_texte := crée_noeud_texte(document)

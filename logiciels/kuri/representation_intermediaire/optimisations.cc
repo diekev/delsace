@@ -24,7 +24,7 @@
   - enlignage ascendant (considère la fonction enlignée d'abord) ou descendant (considère la
   fonction où enligner d'abord)
   - problème avec l'enlignage : il semblerait que les pointeurs ne soit pas correctement « enlignés
-  » pour les accès de membres
+  » pour les accès de rubriques
   - change la métriques pour être sur le nombre de lignes, et non le nombre d'instructions
 
   Autres
@@ -160,12 +160,12 @@ struct CopieuseInstruction {
                 auto index = copie_atome(accès->index);
                 return constructrice.crée_accès_index(inst->site, accedé, index);
             }
-            case GenreInstruction::ACCEDE_MEMBRE:
+            case GenreInstruction::ACCEDE_RUBRIQUE:
             {
-                auto accès = inst->comme_acces_membre();
+                auto accès = inst->comme_acces_rubrique();
                 auto accedé = copie_atome(accès->accédé);
                 auto index = accès->index;
-                return constructrice.crée_référence_membre(inst->site, inst->type, accedé, index);
+                return constructrice.crée_référence_rubrique(inst->site, inst->type, accedé, index);
             }
             case GenreInstruction::TRANSTYPE:
             {
@@ -409,9 +409,9 @@ struct Substitutrice {
 
                 return retour;
             }
-            case GenreInstruction::ACCEDE_MEMBRE:
+            case GenreInstruction::ACCEDE_RUBRIQUE:
             {
-                auto accès = instruction->comme_acces_membre();
+                auto accès = instruction->comme_acces_rubrique();
                 accès->accédé = valeur_substituée(accès->accédé);
                 return accès;
             }

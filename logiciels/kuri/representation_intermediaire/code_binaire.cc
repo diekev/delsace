@@ -402,22 +402,22 @@ void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
     émets_notifie_empilage(site, 8); /* adresse */
 }
 
-void Chunk::émets_référence_membre(NoeudExpression const *site, unsigned décalage)
+void Chunk::émets_référence_rubrique(NoeudExpression const *site, unsigned décalage)
 {
     émets_notifie_dépilage(site, 8); /* adresse */
-    émets_entête_op(OP_REFERENCE_MEMBRE, site);
+    émets_entête_op(OP_REFERENCE_RUBRIQUE, site);
     émets(décalage);
-    émets_notifie_empilage(site, 8); /* adresse membre */
+    émets_notifie_empilage(site, 8); /* adresse rubrique */
 }
 
-void Chunk::émets_référence_membre_locale(const NoeudExpression *site,
-                                          int pointeur,
-                                          uint32_t décalage)
+void Chunk::émets_référence_rubrique_locale(const NoeudExpression *site,
+                                            int pointeur,
+                                            uint32_t décalage)
 {
-    émets_entête_op(OP_RÉFÉRENCE_MEMBRE_LOCALE, site);
+    émets_entête_op(OP_RÉFÉRENCE_RUBRIQUE_LOCALE, site);
     émets(pointeur);
     émets(décalage);
-    émets_notifie_empilage(site, 8); /* adresse membre */
+    émets_notifie_empilage(site, 8); /* adresse rubrique */
 }
 
 void Chunk::émets_appel(NoeudExpression const *site,
@@ -969,7 +969,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_CHARGE:
         case OP_REFERENCE_GLOBALE:
         case OP_RÉFÉRENCE_LOCALE:
-        case OP_REFERENCE_MEMBRE:
+        case OP_REFERENCE_RUBRIQUE:
         case OP_ACCEDE_INDEX:
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
@@ -1001,7 +1001,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_CHARGE_LOCALE:
         case OP_BRANCHE_CONDITION:
         case OP_INCRÉMENTE_LOCALE:
-        case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+        case OP_RÉFÉRENCE_RUBRIQUE_LOCALE:
         case OP_INIT_LOCALE_ZÉRO:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
@@ -1665,20 +1665,20 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_accès_index(index->site, type_pointeur->type_pointé);
             break;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto membre = instruction->comme_acces_membre();
-            auto accès_fusionné = fusionne_accès_membres(membre);
+            auto rubrique = instruction->comme_acces_rubrique();
+            auto accès_fusionné = fusionne_accès_rubriques(rubrique);
 
             if (est_allocation(accès_fusionné.accédé)) {
                 auto alloc = accès_fusionné.accédé->comme_instruction()->comme_alloc();
-                chunk.émets_référence_membre_locale(
-                    membre->site, donne_index_locale(alloc), accès_fusionné.décalage);
+                chunk.émets_référence_rubrique_locale(
+                    rubrique->site, donne_index_locale(alloc), accès_fusionné.décalage);
                 break;
             }
 
             génère_code_pour_atome(accès_fusionné.accédé, chunk);
-            chunk.émets_référence_membre(membre->site, accès_fusionné.décalage);
+            chunk.émets_référence_rubrique(rubrique->site, accès_fusionné.décalage);
             break;
         }
         case GenreInstruction::OPERATION_UNAIRE:
@@ -1861,7 +1861,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             auto structure = atome->comme_constante_structure();
             auto type = atome->type;
-            auto tableau_valeur = structure->donne_atomes_membres();
+            auto tableau_valeur = structure->donne_atomes_rubriques();
 
             auto décalage = chunk.émets_structure_constante(type->taille_octet);
             auto destination = chunk.code + décalage;
@@ -1871,14 +1871,14 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
 
-            POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
-                auto destination_membre = destination + it.decalage;
-                auto décalage_membre = décalage + int(it.decalage);
+            POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
+                auto destination_rubrique = destination + it.decalage;
+                auto décalage_rubrique = décalage + int(it.decalage);
 
-                génère_code_atome_constant(tableau_valeur[index_it],
+                génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
-                                           destination_membre,
-                                           décalage_membre);
+                                           destination_rubrique,
+                                           décalage_rubrique);
             }
 
             break;
@@ -1896,13 +1896,13 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
 
-            auto destination_membre = destination;
-            auto décalage_membre = décalage;
+            auto destination_rubrique = destination;
+            auto décalage_rubrique = décalage;
             POUR (éléments) {
                 génère_code_atome_constant(
-                    it, adressage_destination, destination_membre, décalage_membre);
-                destination_membre += type_élément->taille_octet;
-                décalage_membre += int(type_élément->taille_octet);
+                    it, adressage_destination, destination_rubrique, décalage_rubrique);
+                destination_rubrique += type_élément->taille_octet;
+                décalage_rubrique += int(type_élément->taille_octet);
             }
 
             break;
@@ -2129,16 +2129,16 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto structure = atome->comme_constante_structure();
             auto type = atome->type;
-            auto tableau_valeur = structure->donne_atomes_membres();
+            auto tableau_valeur = structure->donne_atomes_rubriques();
             auto type_composé = type->comme_type_composé();
 
-            POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
-                auto destination_membre = destination + it.decalage;
-                auto décalage_membre = décalage + int(it.decalage);
-                génère_code_atome_constant(tableau_valeur[index_it],
+            POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
+                auto destination_rubrique = destination + it.decalage;
+                auto décalage_rubrique = décalage + int(it.decalage);
+                génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
-                                           destination_membre,
-                                           décalage_membre);
+                                           destination_rubrique,
+                                           décalage_rubrique);
             }
 
             break;

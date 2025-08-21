@@ -99,8 +99,8 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     retenue: n8
 
     pour taille {
-        c0 := n0.chiffre_pour_index(index_it)
-        c1 := n1.chiffre_pour_index(index_it)
+        c0 := n0.chiffre_pour_index(indice_it)
+        c1 := n1.chiffre_pour_index(indice_it)
 
         tmp := c0 + c1 + retenue
 
@@ -185,15 +185,15 @@ opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     emprunt: n8
 
     pour taille {
-        c0 := n0.chiffre_pour_index(index_it)
-        c1 := n1.chiffre_pour_index(index_it)
+        c0 := n0.chiffre_pour_index(indice_it)
+        c1 := n1.chiffre_pour_index(indice_it)
 
         tmp := 10 + c0 - c1 - emprunt
 
         si tmp < 10 {
             emprunt = 1
 
-            si index_it == 0 {
+            si indice_it == 0 {
                 // nous avons une opération de type : 1 - 2, puisque nous ne supportons
                 // pas les nombre négatifs, met l'emprunt à zéro, et n'ajoute pas de chiffres
                 // au résultat afin de pouvoir de renvoier un résultat de 0
@@ -274,7 +274,7 @@ opérateur * :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     pour n1.chiffres {
         tmp := n0 * it
 
-        si index_it > 0 {
+        si indice_it > 0 {
             tableau_ajoute(*résultat.chiffres, 0)
         }
 

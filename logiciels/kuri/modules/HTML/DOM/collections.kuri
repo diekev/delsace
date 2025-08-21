@@ -43,15 +43,15 @@ NodeList :: struct {
     empl platform_object: PlatformObject
     table = *table_virtuelle_node_list
 
-    noeuds: [..]*Noeud
+    noeuds: [..]*Node
 }
 
-crée_node_list :: fonc (noeud: *Noeud) -> *NodeList
+crée_node_list :: fonc (noeud: *Node) -> *NodeList
 {
     retourne crée_platform_object(noeud, NodeList)
 }
 
-ajoute_noeud :: fonc (node_list: *NodeList, noeud: *Noeud)
+ajoute_noeud :: fonc (node_list: *NodeList, noeud: *Node)
 {
     tableau_ajoute(*node_list.noeuds, noeud)
 }
@@ -61,7 +61,7 @@ donne_length :: fonc (node_list: *NodeList) -> n32
     retourne node_list.noeuds.taille comme n32
 }
 
-donne_item :: fonc (node_list: *NodeList, index: n32) -> *Noeud
+donne_item :: fonc (node_list: *NodeList, index: n32) -> *Node
 {
     retourne node_list.noeuds[index]
 }
@@ -74,7 +74,7 @@ donne_item :: fonc (node_list: *NodeList, index: n32) -> *Noeud
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
+    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Element)(bool)
     sur_destruction: fonc(*HTMLCollectionFilter)(rien)
 }
 
@@ -85,7 +85,7 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
         classes: [..]DOMString
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Élément) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool
     {
         si élément == collection.root {
             retourne faux
@@ -140,7 +140,7 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
         tag_name: DOMString
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Élément) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool
     {
         filtre := base comme *TagNameFilter
         // À FAIRE : qualified name
@@ -160,7 +160,7 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
     retourne résultat
 }
 
-crée_html_collection_pour_filtrer_les_éléments :: fonc (root: *Noeud, tag: DOMString) -> *HTMLCollection
+crée_html_collection_pour_filtrer_les_éléments :: fonc (root: *Node, tag: DOMString) -> *HTMLCollection
 {
     résultat := crée_html_collection(root)
     résultat.root = root
@@ -197,18 +197,18 @@ HTMLCollection :: struct {
     table = *table_virtuelle_html_collection
 
     // À FAIRE : la collection est vivante
-    root: *Noeud
+    root: *Node
     filter: *HTMLCollectionFilter
 
-    éléments: [..]*Élément
+    éléments: [..]*Element
 }
 
-crée_html_collection :: fonc (noeud: *Noeud) -> *HTMLCollection
+crée_html_collection :: fonc (noeud: *Node) -> *HTMLCollection
 {
     retourne crée_platform_object(noeud, HTMLCollection)
 }
 
-ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Élément)
+ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Element)
 {
     tableau_ajoute(*collection.éléments, élément)
 }
@@ -219,10 +219,10 @@ initialise_collection_pour_filtre :: fonc (collection: *HTMLCollection)
     initialise_collection_pour_filtre_récursif(collection.root, collection)
 }
 
-initialise_collection_pour_filtre_récursif :: fonc (racine: *Noeud, collection: *HTMLCollection)
+initialise_collection_pour_filtre_récursif :: fonc (racine: *Node, collection: *HTMLCollection)
 {
     si racine.est_élément() {
-        élément := racine comme *Élément
+        élément := racine comme *Element
 
         si collection.filter.sur_filtre(collection.filter, collection, élément) {
             ajoute_élément(collection, élément)
@@ -248,7 +248,7 @@ donne_length :: fonc (collection: *HTMLCollection) -> n32
     retourne collection.éléments.taille comme n32
 }
 
-donne_item :: fonc (collection: *HTMLCollection, index: n32) -> *Élément
+donne_item :: fonc (collection: *HTMLCollection, index: n32) -> *Element
 {
     retourne collection.éléments[index]
 }

@@ -18,7 +18,7 @@ NoeudExpression *Copieuse::trouve_copie(const NoeudExpression *racine)
     return nullptr;
 }
 
-void Copieuse::copie_membres_de_bases_et_insère(const NoeudExpression *racine,
+void Copieuse::copie_rubriques_de_bases_et_insère(const NoeudExpression *racine,
                                                 NoeudExpression *nracine)
 {
     insere_copie(racine, nracine);

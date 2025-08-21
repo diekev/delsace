@@ -4,7 +4,7 @@
  * ceci duplique imprime_log de Fondation, là où le bug a été trouvé
  * !!! ne pas oublier de modifier la fonction quand ce bug sera réglé
  *
- * Catégorie : [génération code, appel pointeur, membre structure]
+ * Catégorie : [génération code, appel pointeur, rubrique structure]
  */
 
 importe Fondation

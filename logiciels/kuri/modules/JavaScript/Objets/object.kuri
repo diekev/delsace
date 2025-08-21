@@ -210,7 +210,7 @@ supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
 {
     pour object.propriétés {
         si it.nom == nom {
-            tableau_supprime_indice(*object.propriétés, index_it)
+            tableau_supprime_indice(*object.propriétés, indice_it)
             retourne
         }
     }
@@ -230,7 +230,7 @@ possède_slot :: fonc (object: *Object, nom: chaine) -> bool
         infos = traversée[traversée.taille - 1]
         traversée.taille -= 1
 
-        pour infos.membres {
+        pour infos.rubriques {
             annotation := trouve_annotation(it, "slot")
             si annotation && annotation.valeur == nom {
                 retourne vrai

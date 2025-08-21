@@ -1,4 +1,4 @@
-/* Aucune erreur si un membre non-constant d'un type de donnée est accédé.
+/* Aucune erreur si une rubrique non-constant d'un type de donnée est accédé.
  * Catégorie : [validation sémantique]
  */
 

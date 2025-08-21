@@ -1,6 +1,6 @@
 /* Valeurs tirées de confname.h */
 
-/* Valeurs pour l'appel à sysconf, les noms des membres correspondent à ceux des énumérations/définitions C sans le préfixe « _SC_ » */
+/* Valeurs pour l'appel à sysconf, les noms des rubriques correspondent à ceux des énumérations/définitions C sans le préfixe « _SC_ » */
 SysConf :: énum z32 {
     ARG_MAX
     CHILD_MAX

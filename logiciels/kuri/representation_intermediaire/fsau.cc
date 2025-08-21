@@ -83,7 +83,7 @@ struct TableDesRelations {
     O(LOCALE, ValeurLocale, locale)                                                               \
     O(ADRESSE_DE, ValeurAdresseDe, adresse_de)                                                    \
     O(APPEL, ValeurAppel, appel)                                                                  \
-    O(ACCÈS_MEMBRE, ValeurAccèdeMembre, accès_membre)                                             \
+    O(ACCÈS_RUBRIQUE, ValeurAccèdeRubrique, accès_rubrique)                                             \
     O(ACCÈS_INDEX, ValeurAccèdeIndex, accès_index)                                                \
     O(ÉCRIS_INDEX, ValeurÉcrisIndex, écris_index)                                                 \
     O(OPÉRATEUR_BINAIRE, ValeurOpérateurBinaire, opérateur_binaire)                               \
@@ -121,7 +121,7 @@ static std::ostream &operator<<(std::ostream &os, GenreValeur genre)
 ENUMERE_GENRE_VALEUR_SSA(PRODECLARE_VALEURS)
 #undef PRODECLARE_VALEURS
 
-#define MEMBRE_VALEUR(nom)                                                                        \
+#define RUBRIQUE_VALEUR(nom)                                                                        \
   private:                                                                                        \
     Valeur *nom = nullptr;                                                                        \
                                                                                                   \
@@ -170,7 +170,7 @@ enum class DrapeauxValeur : uint8_t {
     ZÉRO,
     EST_UTILISÉE = (1u << 0),
     PARTICIPE_AU_FLOT_DU_PROGRAMME = (1u << 1),
-    /* Pour les accès index ou membre qui ne crée pas de nouvelle valeur mais qui modifie
+    /* Pour les accès index ou rubrique qui ne crée pas de nouvelle valeur mais qui modifie
      * simplement leurs accédés. */
     NE_PRODUIS_PAS_DE_VALEUR = (1u << 2),
     ÉCRIS_INDEX_EST_SURÉCRIS = (1u << 3),
@@ -304,14 +304,14 @@ struct ValeurLocale : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurLocale, LOCALE);
 
     InstructionAllocation const *alloc = nullptr;
-    MEMBRE_VALEUR(valeur)
+    RUBRIQUE_VALEUR(valeur)
 };
 
 struct ValeurAdresseDe : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurAdresseDe, ADRESSE_DE);
 
     Atome const *de = nullptr;
-    MEMBRE_VALEUR(valeur);
+    RUBRIQUE_VALEUR(valeur);
 };
 
 struct ValeurBranche : public Valeur {
@@ -323,14 +323,14 @@ struct ValeurBranche : public Valeur {
 struct ValeurBrancheCond : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurBrancheCond, BRANCHE_COND);
 
-    MEMBRE_VALEUR(condition)
+    RUBRIQUE_VALEUR(condition)
     InstructionBrancheCondition const *inst = nullptr;
 };
 
 struct ValeurRetour : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurRetour, RETOUR);
 
-    MEMBRE_VALEUR(valeur)
+    RUBRIQUE_VALEUR(valeur)
 };
 
 struct ValeurConstante : public Valeur {
@@ -354,52 +354,52 @@ struct ValeurGlobale : public Valeur {
 struct ValeurOpérateurBinaire : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurOpérateurBinaire, OPÉRATEUR_BINAIRE);
 
-    MEMBRE_VALEUR(gauche)
-    MEMBRE_VALEUR(droite)
+    RUBRIQUE_VALEUR(gauche)
+    RUBRIQUE_VALEUR(droite)
     InstructionOpBinaire const *inst = nullptr;
 };
 
 struct ValeurOpérateurUnaire : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurOpérateurUnaire, OPÉRATEUR_UNAIRE);
 
-    MEMBRE_VALEUR(droite)
+    RUBRIQUE_VALEUR(droite)
 };
 
-struct ValeurAccèdeMembre : public Valeur {
-    CONSTRUCTEUR_VALEUR(ValeurAccèdeMembre, ACCÈS_MEMBRE);
+struct ValeurAccèdeRubrique : public Valeur {
+    CONSTRUCTEUR_VALEUR(ValeurAccèdeRubrique, ACCÈS_RUBRIQUE);
 
-    MEMBRE_VALEUR(accédée)
+    RUBRIQUE_VALEUR(accédée)
     int32_t index = 0;
 
-    InstructionAccèdeMembre const *inst = nullptr;
+    InstructionAccèdeRubrique const *inst = nullptr;
 };
 
 struct ValeurAccèdeIndex : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurAccèdeIndex, ACCÈS_INDEX);
 
-    MEMBRE_VALEUR(accédée)
-    MEMBRE_VALEUR(index)
+    RUBRIQUE_VALEUR(accédée)
+    RUBRIQUE_VALEUR(index)
 };
 
 struct ValeurÉcrisIndex : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurÉcrisIndex, ÉCRIS_INDEX);
 
-    MEMBRE_VALEUR(accédée)
-    MEMBRE_VALEUR(index)
-    MEMBRE_VALEUR(valeur);
+    RUBRIQUE_VALEUR(accédée)
+    RUBRIQUE_VALEUR(index)
+    RUBRIQUE_VALEUR(valeur);
 };
 
 struct ValeurTranstypage : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurTranstypage, TRANSTYPAGE);
 
-    MEMBRE_VALEUR(valeur);
+    RUBRIQUE_VALEUR(valeur);
     InstructionTranstype const *inst = nullptr;
 };
 
 struct ValeurAppel : public Valeur {
     CONSTRUCTEUR_VALEUR(ValeurAppel, APPEL);
 
-    MEMBRE_VALEUR(valeur_appelée)
+    RUBRIQUE_VALEUR(valeur_appelée)
 
   private:
     kuri::tableau<Valeur *> arguments{};
@@ -540,11 +540,11 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
             adresse_de->définis_valeur(table, par);
             break;
         }
-        case GenreValeur::ACCÈS_MEMBRE:
+        case GenreValeur::ACCÈS_RUBRIQUE:
         {
-            auto accès_membre = utilisateur->comme_accès_membre();
-            assert(accès_membre->donne_accédée() == this);
-            accès_membre->définis_accédée(table, par);
+            auto accès_rubrique = utilisateur->comme_accès_rubrique();
+            assert(accès_rubrique->donne_accédée() == this);
+            accès_rubrique->définis_accédée(table, par);
             break;
         }
         case GenreValeur::ACCÈS_INDEX:
@@ -580,7 +580,7 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
             }
             POUR_INDEX (appel->donne_arguments()) {
                 if (it == this) {
-                    appel->définis_argument(table, index_it, par);
+                    appel->définis_argument(table, indice_it, par);
                 }
             }
             break;
@@ -610,7 +610,7 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
 
             POUR_INDEX (phi->opérandes) {
                 if (it == this) {
-                    phi->définis_opérande(table, index_it, par);
+                    phi->définis_opérande(table, indice_it, par);
                 }
             }
             break;
@@ -672,10 +672,10 @@ static void visite_valeur(Valeur *valeur,
             visite_valeur(adresse_de->donne_valeur(), visitées, rappel);
             break;
         }
-        case GenreValeur::ACCÈS_MEMBRE:
+        case GenreValeur::ACCÈS_RUBRIQUE:
         {
-            auto accès_membre = valeur->comme_accès_membre();
-            visite_valeur(accès_membre->donne_accédée(), visitées, rappel);
+            auto accès_rubrique = valeur->comme_accès_rubrique();
+            visite_valeur(accès_rubrique->donne_accédée(), visitées, rappel);
             break;
         }
         case GenreValeur::ACCÈS_INDEX:
@@ -767,10 +767,10 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
             rappel(adresse_de->donne_valeur());
             break;
         }
-        case GenreValeur::ACCÈS_MEMBRE:
+        case GenreValeur::ACCÈS_RUBRIQUE:
         {
-            auto accès_membre = valeur->comme_accès_membre();
-            rappel(accès_membre->donne_accédée());
+            auto accès_rubrique = valeur->comme_accès_rubrique();
+            rappel(accès_rubrique->donne_accédée());
             break;
         }
         case GenreValeur::ACCÈS_INDEX:
@@ -928,11 +928,11 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
             }
             break;
         }
-        case GenreValeur::ACCÈS_MEMBRE:
+        case GenreValeur::ACCÈS_RUBRIQUE:
         {
-            auto accès_membre = valeur->comme_accès_membre();
-            sortie << "membre ";
-            imprime_nom_valeur(accès_membre->donne_accédée(), sortie);
+            auto accès_rubrique = valeur->comme_accès_rubrique();
+            sortie << "rubrique ";
+            imprime_nom_valeur(accès_rubrique->donne_accédée(), sortie);
             break;
         }
         case GenreValeur::ACCÈS_INDEX:
@@ -1523,7 +1523,7 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             if (source->est_instruction()) {
                 auto inst_stockée = source->comme_instruction();
                 if (inst_stockée->est_alloc() || inst_stockée->est_acces_index() ||
-                    inst_stockée->est_acces_membre()) {
+                    inst_stockée->est_acces_rubrique()) {
                     auto adresse_de = m_adresse_de.ajoute_élément();
                     adresse_de->définis_valeur(m_table_relations, valeur_source);
                     ajoute_valeur_au_bloc(adresse_de, bloc);
@@ -1558,14 +1558,14 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             bloc->valeurs.ajoute(valeur);
             return nullptr;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto inst_accès = inst->comme_acces_membre();
+            auto inst_accès = inst->comme_acces_rubrique();
             auto valeur_accédée = donne_valeur_pour_atome(bloc, inst_accès->accédé, utilisation);
 
             DEBOGUE_UTILISATION_INSTRUCTION
 
-            auto valeur_accès = m_accès_membre.ajoute_élément();
+            auto valeur_accès = m_accès_rubrique.ajoute_élément();
             valeur_accès->définis_accédée(m_table_relations, valeur_accédée);
             valeur_accès->index = inst_accès->index;
             valeur_accès->inst = inst_accès;
@@ -2553,9 +2553,9 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
             // auto adresse_de = valeur->comme_adresse_de();
             break;
         }
-        case GenreValeur::ACCÈS_MEMBRE:
+        case GenreValeur::ACCÈS_RUBRIQUE:
         {
-            // auto accès_membre = valeur->comme_accès_membre();
+            // auto accès_rubrique = valeur->comme_accès_rubrique();
             break;
         }
         case GenreValeur::ACCÈS_INDEX:

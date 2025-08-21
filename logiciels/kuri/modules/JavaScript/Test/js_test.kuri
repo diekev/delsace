@@ -17,7 +17,7 @@ parse_arguments :: fonc () -> Optionnel(Arguments)
     résultat: Arguments
 
     pour args {
-        si index_it == 0 {
+        si indice_it == 0 {
             continue
         }
 
@@ -25,7 +25,7 @@ parse_arguments :: fonc () -> Optionnel(Arguments)
             résultat.utilise_code_binaire = vrai
         }
         sinon {
-            si index_it != args.taille - 1 {
+            si indice_it != args.taille - 1 {
                 imprime("Mauvaise ligne de commande\n")
                 imprime("Utilisation : % [-b] [FICHIER]\n", args[0])
                 retourne

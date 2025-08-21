@@ -249,7 +249,7 @@ TypeChaineRecherchée :: énum {
 }
 
 // À FAIRE : déduplique avec les fonctions du métaprogramme
-détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeMembreStructure, param: *TableParamètres.Paramètre, annotation: *Annotation, type: TypeChaineRecherchée)
+détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeRubriqueStructure, param: *TableParamètres.Paramètre, annotation: *Annotation, type: TypeChaineRecherchée)
 {
     si infos.id != info_de(chaine) {
         // compilatrice_rapporte_erreur("ChercheCanal sur un type n'étant pas une chaine")
@@ -272,7 +272,7 @@ détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeMembreStructur
     param.index_prise_pour_recherche_chaine = index comme z32
 }
 
-parse_annotations_paramètres :: fonc (infos: *InfoTypeMembreStructure, param: *TableParamètres.Paramètre)
+parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param: *TableParamètres.Paramètre)
 {
     chaine_min := ""
     chaine_max := ""
@@ -391,7 +391,7 @@ TableParamètres :: struct {
         identifiant: chaine @accessible
         nom: chaine @accessible
         type: TypeParamètre @accessible
-        /* Pointeur vers le membre de struct_paramètres qui correspond à ce paramètre. */
+        /* Pointeur vers la rubrique de struct_paramètres qui correspond à ce paramètre. */
         valeur: eini
         valeur_défaut: ValeurDéfautParamètre
         bit_pour_param: n64
@@ -435,7 +435,7 @@ crée_table_paramètres :: fonc (paramètres: *ParamètresNoeud, infos: *InfoTyp
     valeur_struct.pointeur = paramètres
     valeur_struct.info = infos
 
-    pour infos.membres {
+    pour infos.rubriques {
         si it.nom == "_état_params" || it.nom == "_fut_modifié" || it.nom == "rappel_ajourne_état_paramètres" {
             continue
         }
@@ -459,15 +459,15 @@ crée_table_paramètres :: fonc (paramètres: *ParamètresNoeud, infos: *InfoTyp
 
         info_création_paramètre := opt_info_création_paramètre.Quelque
 
-        valeur_membre := eini_depuis_info_membre(valeur_struct, it)
+        valeur_rubrique := eini_depuis_info_rubrique(valeur_struct, it)
 
         paramètre := loge(TableParamètres.Paramètre)
         paramètre.type = info_création_paramètre.type
         paramètre.identifiant = it.nom
         paramètre.nom = it.nom
         paramètre.struct_paramètres = paramètres
-        paramètre.valeur = valeur_membre
-        paramètre.valeur_défaut = info_création_paramètre.rappel_valeur_défault(valeur_membre)
+        paramètre.valeur = valeur_rubrique
+        paramètre.valeur_défaut = info_création_paramètre.rappel_valeur_défault(valeur_rubrique)
         paramètre.bit_pour_param = résultat.paramètres.taille comme n64
 
         parse_annotations_paramètres(it, paramètre)
@@ -1056,20 +1056,20 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
     /* À FAIRE : erreur. */
 }
 
-détermine_limites_paramètres :: fonc (param: *TableParamètres.Paramètre, membre: *InfoTypeMembreStructure)
+détermine_limites_paramètres :: fonc (param: *TableParamètres.Paramètre, rubrique: *InfoTypeRubriqueStructure)
 {
     si param.limites.possède_valeur() {
         /* Nous avons déjà renseignés les limites lors du parsage des annotations. */
         retourne
     }
 
-    si membre.id.id == GenreInfoType.ENTIER {
-        param.limites = LimitesValeurParamètres(limites_pour_nombre_entier(membre.id comme *InfoTypeEntier))
+    si rubrique.id.id == GenreInfoType.ENTIER {
+        param.limites = LimitesValeurParamètres(limites_pour_nombre_entier(rubrique.id comme *InfoTypeEntier))
         retourne
     }
 
-    si membre.id.id == GenreInfoType.RÉEL || membre.id == info_de(Vec2) || membre.id == info_de(Vec3) || membre.id == info_de(CouleurRVBA) {
-        param.limites = LimitesValeurParamètres(Réel = limites_pour_nombre_réel(membre.id))
+    si rubrique.id.id == GenreInfoType.RÉEL || rubrique.id == info_de(Vec2) || rubrique.id == info_de(Vec3) || rubrique.id == info_de(CouleurRVBA) {
+        param.limites = LimitesValeurParamètres(Réel = limites_pour_nombre_réel(rubrique.id))
         retourne
     }
 }

@@ -140,7 +140,7 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
     résultat.nom_enveloppe = imprime_chaine("enveloppe_python_%%", entête.nom, entête)
 
     pour entête.params {
-        si index_it == 0 && ignore_premier_paramètre {
+        si indice_it == 0 && ignore_premier_paramètre {
             si it.type.id == GenreInfoType.POINTEUR {
                 résultat.param_self_est_pointeur = vrai
             }
@@ -275,11 +275,11 @@ init_fonctions_type_énum :: fonc (fonctions: &FonctionsTypePython, nom: chaine,
 // ---------------------------------------------------
 
 ConfidentialitéType :: énum {
-    /* Les membres du type peuvent être accédés. */
+    /* Les rubriques du type peuvent être accédées. */
     ACCESSIBLE
-    /* Les membres du type peuvent être mutés, ceci implique qu'ils sont également ACCESSIBLE. */
+    /* Les rubriques du type peuvent être mutées, ceci implique qu'elles sont également ACCESSIBLE. */
     MUTABLE
-    /* Les membres du type ne sont pas ni accessible, ni mutable. */
+    /* Les rubriques du type ne sont pas ni accessible, ni mutable. */
     OPAQUE
 }
 
@@ -299,11 +299,11 @@ confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> Confide
         }
     }
 
-    /* Par défaut, les membres sont opaques. */
+    /* Par défaut, les rubriques sont opaques. */
     retourne ConfidentialitéType.OPAQUE
 }
 
-MembreType :: struct {
+RubriqueType :: struct {
     nom: chaine
     confidentialité: ConfidentialitéType
     type: *TypePython
@@ -314,7 +314,7 @@ DrapeauxType :: énum_drapeau {
     TYPE_EST_ÉNUM
     TYPE_EST_TABLEAU
     TYPE_EST_ITÉRATEUR
-    /* Indique qu'un pointeur est stocké dans le membre "notre_instance" du type Python. */
+    /* Indique qu'un pointeur est stocké dans la rubrique "notre_instance" du type Python. */
     TOUJOURS_COMME_POINTEUR
     /* Pour les types composés, le programme devra définir une fonction de rafinage
      * appelée « rafine_type_{nom_du_type}. */
@@ -326,7 +326,7 @@ DrapeauxType :: énum_drapeau {
 }
 
 TypePython :: struct {
-    /* Le nom, à être utilisé dans le code Kuri généré pour les paramètres, membres, etc. */
+    /* Le nom, à être utilisé dans le code Kuri généré pour les paramètres, rubriques, etc. */
     nom: chaine
     /* Le nom mais sans les points, à être utilisé pour les fonctions, ou nom de structures. */
     nom_sauf: chaine
@@ -343,7 +343,7 @@ TypePython :: struct {
 
     confidentialité: ConfidentialitéType
 
-    membres: [..]MembreType
+    rubriques: [..]RubriqueType
 
     méthodes: [..]MéthodePython
 
@@ -389,7 +389,7 @@ détruit :: fonc (type: *TypePython)
     déloge(type.fonctions.pour_discrimination)
     déloge(type.fonctions.pour_construction)
     déloge(type.fonctions.pour_extraction_valeur)
-    déloge(type.membres)
+    déloge(type.rubriques)
     pour type.méthodes {
         détruit(it)
     }

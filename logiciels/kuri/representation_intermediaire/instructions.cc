@@ -96,7 +96,7 @@ int AtomeFonction::nombre_d_instructions_avec_entrées_sorties() const
     auto résultat = params_entrée.taille() + instructions.taille() + 1;
     auto type_sortie = param_sortie->donne_type_alloué();
     if (type_sortie->est_type_tuple()) {
-        résultat += type_sortie->comme_type_tuple()->membres.taille();
+        résultat += type_sortie->comme_type_tuple()->rubriques.taille();
     }
     return résultat;
 }
@@ -250,18 +250,18 @@ InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *
     this->label_si_faux = label_si_faux_;
 }
 
-InstructionAccèdeMembre::InstructionAccèdeMembre(NoeudExpression const *site_,
+InstructionAccèdeRubrique::InstructionAccèdeRubrique(NoeudExpression const *site_,
                                                  Type const *type_,
                                                  Atome *accede_,
                                                  int index_)
-    : InstructionAccèdeMembre(site_)
+    : InstructionAccèdeRubrique(site_)
 {
     this->type = type_;
     this->accédé = accede_;
     this->index = index_;
 }
 
-const Type *InstructionAccèdeMembre::donne_type_accédé() const
+const Type *InstructionAccèdeRubrique::donne_type_accédé() const
 {
     auto type_accédé = accédé->type;
     if (type_accédé->est_type_référence()) {
@@ -270,7 +270,7 @@ const Type *InstructionAccèdeMembre::donne_type_accédé() const
     return type_accédé->comme_type_pointeur()->type_pointé;
 }
 
-const MembreTypeComposé &InstructionAccèdeMembre::donne_membre_accédé() const
+const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé() const
 {
     auto type_adressé = donne_type_accédé();
     if (type_adressé->est_type_opaque()) {
@@ -278,13 +278,13 @@ const MembreTypeComposé &InstructionAccèdeMembre::donne_membre_accédé() cons
     }
 
     auto type_composé = type_adressé->comme_type_composé();
-    /* Pour les unions, l'accès de membre se fait via le type structure qui est valeur unie
+    /* Pour les unions, l'accès de rubrique se fait via le type structure qui est valeur unie
      * + index. */
     if (type_composé->est_type_union()) {
         type_composé = type_composé->comme_type_union()->type_structure;
     }
 
-    return type_composé->membres[index];
+    return type_composé->rubriques[index];
 }
 
 InstructionAccèdeIndex::InstructionAccèdeIndex(NoeudExpression const *site_,
@@ -396,10 +396,10 @@ bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
     return stockage->destination == inst1;
 }
 
-bool est_accès_membre_ou_index(Instruction const *inst0, Instruction const *inst1)
+bool est_accès_rubrique_ou_index(Instruction const *inst0, Instruction const *inst1)
 {
-    if (inst0->est_acces_membre()) {
-        auto accès = inst0->comme_acces_membre();
+    if (inst0->est_acces_rubrique()) {
+        auto accès = inst0->comme_acces_rubrique();
         return accès->accédé == inst1;
     }
 
@@ -598,26 +598,26 @@ bool est_instruction_comparaison(Atome const *atome)
     return est_opérateur_comparaison(op_binaire->op);
 }
 
-AccèsMembreFusionné fusionne_accès_membres(InstructionAccèdeMembre const *accès_membre)
+AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique)
 {
-    AccèsMembreFusionné résultat;
+    AccèsRubriqueFusionné résultat;
 
     while (true) {
-        auto const &membre = accès_membre->donne_membre_accédé();
+        auto const &rubrique = accès_rubrique->donne_rubrique_accédé();
 
-        résultat.accédé = accès_membre->accédé;
-        résultat.décalage += membre.decalage;
+        résultat.accédé = accès_rubrique->accédé;
+        résultat.décalage += rubrique.decalage;
 
-        if (!accès_membre->accédé->est_instruction()) {
+        if (!accès_rubrique->accédé->est_instruction()) {
             break;
         }
 
-        auto inst = accès_membre->accédé->comme_instruction();
-        if (!inst->est_acces_membre()) {
+        auto inst = accès_rubrique->accédé->comme_instruction();
+        if (!inst->est_acces_rubrique()) {
             break;
         }
 
-        accès_membre = inst->comme_acces_membre();
+        accès_rubrique = inst->comme_acces_rubrique();
     }
 
     return résultat;
@@ -691,7 +691,7 @@ void VisiteuseAtome::visite_atome(Atome *racine,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto structure_const = racine->comme_constante_structure();
-            POUR (structure_const->donne_atomes_membres()) {
+            POUR (structure_const->donne_atomes_rubriques()) {
                 visite_atome(it, rappel);
             }
             break;
@@ -773,9 +773,9 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                     visite_atome(acces->accédé, rappel);
                     break;
                 }
-                case GenreInstruction::ACCEDE_MEMBRE:
+                case GenreInstruction::ACCEDE_RUBRIQUE:
                 {
-                    auto acces = inst->comme_acces_membre();
+                    auto acces = inst->comme_acces_rubrique();
                     visite_atome(acces->accédé, rappel);
                     break;
                 }

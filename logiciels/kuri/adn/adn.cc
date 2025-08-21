@@ -117,11 +117,11 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 
         os << "\tPOINTEUR_NUL(" << m_nom << ")\n";
 
-        if (!m_membres.est_vide()) {
+        if (!m_rubriques.est_vide()) {
             os << "\n";
         }
 
-        POUR (m_membres) {
+        POUR (m_rubriques) {
             os << "\t";
 
             if (it.est_mutable) {
@@ -196,13 +196,13 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         else if (m_nom.nom() == "NoeudBloc") {
             os << "\tmutable int nombre_recherches = 0;\n";
             os << "\tkuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *> "
-                  "table_membres{\"membres_bloc\"};\n";
-            os << "\tint nombre_de_membres() const;\n";
-            os << "\tvoid réserve_membres(int nombre);\n";
-            os << "\tvoid ajoute_membre(NoeudDéclaration *decl);\n";
-            os << "\tvoid ajoute_membre_au_debut(NoeudDéclaration *decl);\n";
-            os << "\tvoid fusionne_membres(NoeudBloc *de);\n";
-            os << "\tNoeudDéclaration *membre_pour_index(int index) const;\n";
+                  "table_rubriques{\"rubriques_bloc\"};\n";
+            os << "\tint nombre_de_rubriques() const;\n";
+            os << "\tvoid réserve_rubriques(int nombre);\n";
+            os << "\tvoid ajoute_rubrique(NoeudDéclaration *decl);\n";
+            os << "\tvoid ajoute_rubrique_au_debut(NoeudDéclaration *decl);\n";
+            os << "\tvoid fusionne_rubriques(NoeudBloc *de);\n";
+            os << "\tNoeudDéclaration *rubrique_pour_index(int index) const;\n";
             os << "\tNoeudDéclaration *declaration_pour_ident(IdentifiantCode const "
                   "*ident_recherche) const;\n";
             os << "\tNoeudDéclaration *declaration_avec_meme_ident_que(NoeudExpression const "
@@ -220,8 +220,8 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
             os << "\t}\n";
         }
         else if (m_nom.nom() == "NoeudDéclarationTypeComposé") {
-            os << "\tkuri::tableau_statique<const MembreTypeComposé> "
-                  "donne_membres_pour_code_machine() "
+            os << "\tkuri::tableau_statique<const RubriqueTypeComposé> "
+                  "donne_rubriques_pour_code_machine() "
                   "const;\n";
         }
 
@@ -242,14 +242,14 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 
     if (!pour_entête) {
-        os << "static void imprime_membres(std::ostream &os, " << m_nom << " const &valeur)\n";
+        os << "static void imprime_rubriques(std::ostream &os, " << m_nom << " const &valeur)\n";
         os << "{\n";
 
         if (m_mere) {
-            os << "\timprime_membres(os, static_cast<" << m_mere->nom() << " const &>(valeur));\n";
+            os << "\timprime_rubriques(os, static_cast<" << m_mere->nom() << " const &>(valeur));\n";
         }
 
-        POUR (m_membres) {
+        POUR (m_rubriques) {
             if (it.type->est_tableau()) {
                 os << "\tos << \"\\t" << it.nom << " : \" << valeur." << it.nom;
                 const auto type_tableau = it.type->comme_tableau();
@@ -278,7 +278,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "\n";
         os << "{\n";
         os << "\tos << \"" << m_nom << " : {\\n\";" << '\n';
-        os << "\timprime_membres(os, valeur);\n";
+        os << "\timprime_rubriques(os, valeur);\n";
         os << "\tos << \"}\\n\";\n";
         os << "\treturn os;\n";
         os << "}\n\n";
@@ -300,7 +300,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
             os << "\t}\n";
         }
 
-        pour_chaque_membre_recursif([&os](Membre const &it) {
+        pour_chaque_rubrique_recursif([&os](Rubrique const &it) {
             if (it.type->est_nominal() && it.type->comme_nominal()->est_protéine &&
                 it.type->comme_nominal()->est_protéine->comme_enum()) {
                 os << "\tif (!est_valeur_legale(valeur." << it.nom << ")) {\n";
@@ -344,13 +344,13 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
         os << ": " << m_mere->nom() << "\n";
     }
 
-    if (!membres().est_vide() || !m_mere) {
+    if (!rubriques().est_vide() || !m_mere) {
         os << "\n";
     }
 
     const auto est_chaine_litterale = m_nom_code.nom() == "NoeudCodeLittéraleChaine";
 
-    POUR (m_membres) {
+    POUR (m_rubriques) {
         if (it.type->est_pointeur() &&
             it.type->comme_pointeur()->type_pointe->est_nominal("Lexème")) {
             os << "\tchemin_fichier: chaine\n";
@@ -401,58 +401,58 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
     os << "}\n\n";
 }
 
-void ProtéineStruct::ajoute_membre(const Membre membre)
+void ProtéineStruct::ajoute_rubrique(const Rubrique rubrique)
 {
-    if (membre.est_a_copier) {
-        m_possède_membre_a_copier = true;
+    if (rubrique.est_a_copier) {
+        m_possède_rubrique_a_copier = true;
     }
 
-    if (membre.est_enfant) {
+    if (rubrique.est_enfant) {
         m_possède_enfant = true;
     }
 
-    m_possède_tableaux |= membre.type->est_tableau();
+    m_possède_tableaux |= rubrique.type->est_tableau();
 
-    if (membre.est_code && m_paire) {
-        m_paire->m_possède_enfant = membre.est_enfant;
-        m_paire->m_possède_membre_a_copier = membre.est_a_copier;
-        m_paire->m_membres.ajoute(membre);
+    if (rubrique.est_code && m_paire) {
+        m_paire->m_possède_enfant = rubrique.est_enfant;
+        m_paire->m_possède_rubrique_a_copier = rubrique.est_a_copier;
+        m_paire->m_rubriques.ajoute(rubrique);
     }
 
-    m_membres.ajoute(membre);
+    m_rubriques.ajoute(rubrique);
 }
 
-void ProtéineStruct::pour_chaque_membre_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_rubrique_recursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
-        m_mere->pour_chaque_membre_recursif(rappel);
+        m_mere->pour_chaque_rubrique_recursif(rappel);
     }
 
-    POUR (m_membres) {
+    POUR (m_rubriques) {
         rappel(it);
     }
 }
 
-void ProtéineStruct::pour_chaque_copie_extra_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_copie_extra_recursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
         m_mere->pour_chaque_copie_extra_recursif(rappel);
     }
 
-    POUR (m_membres) {
+    POUR (m_rubriques) {
         if (it.est_a_copier) {
             rappel(it);
         }
     }
 }
 
-void ProtéineStruct::pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel)
+void ProtéineStruct::pour_chaque_enfant_recursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
         m_mere->pour_chaque_enfant_recursif(rappel);
     }
 
-    POUR (m_membres) {
+    POUR (m_rubriques) {
         if (it.est_enfant) {
             rappel(it);
         }
@@ -471,15 +471,15 @@ void ProtéineStruct::pour_chaque_derivee_recursif(
     }
 }
 
-kuri::tableau<Membre> ProtéineStruct::donne_membres_pour_construction()
+kuri::tableau<Rubrique> ProtéineStruct::donne_rubriques_pour_construction()
 {
-    kuri::tableau<Membre> résultat;
-    pour_chaque_membre_recursif([&](const Membre &membre) {
-        if (!membre.est_requis_pour_construction) {
+    kuri::tableau<Rubrique> résultat;
+    pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+        if (!rubrique.est_requis_pour_construction) {
             return;
         }
 
-        résultat.ajoute(membre);
+        résultat.ajoute(rubrique);
     });
     return résultat;
 }
@@ -493,7 +493,7 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     if (pour_entête) {
         os << "enum class " << m_nom << " : " << *m_type << " {\n";
 
-        POUR (m_membres) {
+        POUR (m_rubriques) {
             os << "\t" << it.nom << ",\n";
         }
 
@@ -501,10 +501,10 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 
     if (!pour_entête) {
-        os << "static kuri::chaine_statique chaines_membres_" << m_nom << "[" << m_membres.taille()
+        os << "static kuri::chaine_statique chaines_rubriques_" << m_nom << "[" << m_rubriques.taille()
            << "] = {\n";
 
-        POUR (m_membres) {
+        POUR (m_rubriques) {
             os << "\t\"" << it.nom << "\",\n";
         }
 
@@ -519,7 +519,7 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     else {
         os << "\n";
         os << "{\n";
-        os << "\treturn os << chaines_membres_" << m_nom << "[static_cast<int>(valeur)];\n";
+        os << "\treturn os << chaines_rubriques_" << m_nom << "[static_cast<int>(valeur)];\n";
         os << "}\n\n";
     }
 
@@ -529,13 +529,13 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << ";\n\n";
     }
     else {
-        const auto &premier_membre = m_membres[0];
-        const auto &dernier_membre = m_membres.dernier_élément();
+        const auto &premier_rubrique = m_rubriques[0];
+        const auto &dernier_rubrique = m_rubriques.dernier_élément();
 
         os << "\n";
         os << "{\n";
-        os << "\treturn valeur >= " << m_nom << "::" << premier_membre.nom
-           << " && valeur <= " << m_nom << "::" << dernier_membre.nom << ";\n";
+        os << "\treturn valeur >= " << m_nom << "::" << premier_rubrique.nom
+           << " && valeur <= " << m_nom << "::" << dernier_rubrique.nom << ";\n";
         os << "}\n\n";
     }
 }
@@ -543,15 +543,15 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 void ProtéineEnum::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: énum " << *m_type << " {\n";
-    POUR (m_membres) {
+    POUR (m_rubriques) {
         os << "\t" << it.nom << "\n";
     }
     os << "}\n\n";
 }
 
-void ProtéineEnum::ajoute_membre(const Membre membre)
+void ProtéineEnum::ajoute_rubrique(const Rubrique rubrique)
 {
-    m_membres.ajoute(membre);
+    m_rubriques.ajoute(rubrique);
 }
 
 ProtéineFonction::ProtéineFonction(IdentifiantADN nom) : Protéine(nom)
@@ -738,9 +738,9 @@ void SyntaxeuseADN::parse_fonction()
                 break;
             }
 
-            auto membre = Membre();
-            membre.nom = lexème_courant()->chaine;
-            énum_discriminate->ajoute_membre(membre);
+            auto rubrique = Rubrique();
+            rubrique.nom = lexème_courant()->chaine;
+            énum_discriminate->ajoute_rubrique(rubrique);
             consomme();
         }
         else if (apparie("exclus_métaprogramme")) {
@@ -824,13 +824,13 @@ void SyntaxeuseADN::parse_enum()
         }
 
         if (protéine->est_horslignee()) {
-            rapporte_erreur("Déclaration d'un membre pour une énumération horslignée");
+            rapporte_erreur("Déclaration d'un rubrique pour une énumération horslignée");
         }
 
-        auto membre = Membre{};
-        membre.nom = lexème_courant()->chaine;
+        auto rubrique = Rubrique{};
+        rubrique.nom = lexème_courant()->chaine;
 
-        protéine->ajoute_membre(membre);
+        protéine->ajoute_rubrique(rubrique);
 
         consomme();
 
@@ -934,9 +934,9 @@ void SyntaxeuseADN::parse_struct()
                     "Aucune énumération discriminante pour le noeud déclarant un genre");
             }
             else {
-                auto membre = Membre();
-                membre.nom = lexème_courant()->chaine;
-                enum_discriminante->ajoute_membre(membre);
+                auto rubrique = Rubrique();
+                rubrique.nom = lexème_courant()->chaine;
+                enum_discriminante->ajoute_rubrique(rubrique);
             }
 
             consomme();
@@ -981,25 +981,25 @@ void SyntaxeuseADN::parse_struct()
     }
 
     while (!apparie(GenreLexème::ACCOLADE_FERMANTE)) {
-        auto membre = Membre{};
-        membre.type = parse_type();
+        auto rubrique = Rubrique{};
+        rubrique.type = parse_type();
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu le nom du membre après son type !");
+            rapporte_erreur("Attendu le nom du rubrique après son type !");
         }
 
-        membre.nom = lexème_courant()->chaine;
+        rubrique.nom = lexème_courant()->chaine;
         consomme();
 
         if (apparie(GenreLexème::EGAL)) {
             consomme();
 
             if (apparie(GenreLexème::POINT)) {
-                membre.valeur_defaut_est_acces = true;
+                rubrique.valeur_defaut_est_acces = true;
                 consomme();
             }
 
-            membre.valeur_defaut = lexème_courant()->chaine;
+            rubrique.valeur_defaut = lexème_courant()->chaine;
             consomme();
         }
 
@@ -1008,19 +1008,19 @@ void SyntaxeuseADN::parse_struct()
 
             while (apparie(GenreLexème::CHAINE_CARACTERE)) {
                 if (apparie("code")) {
-                    membre.est_code = true;
+                    rubrique.est_code = true;
                 }
                 else if (apparie("enfant")) {
-                    membre.est_enfant = true;
+                    rubrique.est_enfant = true;
                 }
                 else if (apparie("copie")) {
-                    membre.est_a_copier = true;
+                    rubrique.est_a_copier = true;
                 }
                 else if (apparie("mutable")) {
-                    membre.est_mutable = true;
+                    rubrique.est_mutable = true;
                 }
                 else if (apparie("construction")) {
-                    membre.est_requis_pour_construction = true;
+                    rubrique.est_requis_pour_construction = true;
                 }
                 else {
                     rapporte_erreur("attribut inconnu");
@@ -1030,14 +1030,14 @@ void SyntaxeuseADN::parse_struct()
             }
 
             consomme(GenreLexème::CROCHET_FERMANT,
-                     "Attendu un crochet fermant à la fin de la liste des attributs du membres");
+                     "Attendu un crochet fermant à la fin de la liste des attributs du rubriques");
         }
 
         if (apparie(GenreLexème::POINT_VIRGULE)) {
             consomme();
         }
 
-        protéine->ajoute_membre(membre);
+        protéine->ajoute_rubrique(rubrique);
     }
 
     consomme(GenreLexème::ACCOLADE_FERMANTE,
@@ -1193,8 +1193,8 @@ void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &pro
         else if (it->comme_enum() && it->comme_enum()->nom().nom() == "GenreIntrinsèque") {
             auto protéine_enum = it->comme_enum();
 
-            for (auto const &membre : protéine_enum->donne_membres()) {
-                identifiants.insère(membre.nom.nom());
+            for (auto const &rubrique : protéine_enum->donne_rubriques()) {
+                identifiants.insère(rubrique.nom.nom());
             }
         }
     }

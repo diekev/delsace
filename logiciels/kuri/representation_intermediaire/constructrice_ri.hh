@@ -202,16 +202,16 @@ struct ConstructriceRI {
     InstructionAccèdeIndex *crée_accès_index(NoeudExpression const *site_,
                                              Atome *accédé,
                                              Atome *index);
-    InstructionAccèdeMembre *crée_référence_membre(NoeudExpression const *site_,
+    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                    Type const *type,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    InstructionAccèdeMembre *crée_référence_membre(NoeudExpression const *site_,
+    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index,
                                                    bool crée_seulement = false);
-    Instruction *crée_reference_membre_et_charge(NoeudExpression const *site_,
+    Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
                                                  Atome *accédé,
                                                  int index);
 
@@ -326,7 +326,7 @@ struct CompilatriceRI {
 
     AtomeFonction *m_fonction_courante = nullptr;
 
-    /* Globale pour les annotations vides des membres des infos-type.
+    /* Globale pour les annotations vides des rubriques des infos-type.
      * Nous n'en créons qu'une seule dans ce cas afin d'économiser de la mémoire.
      */
     AtomeConstante *m_globale_annotations_vides = nullptr;
@@ -435,8 +435,8 @@ struct CompilatriceRI {
     void génère_ri_transformee_pour_noeud(NoeudExpression const *noeud,
                                           Atome *place,
                                           TransformationType const &transformation);
-    void génère_ri_pour_accès_membre(NoeudExpressionMembre const *noeud);
-    void génère_ri_pour_accès_membre_union(NoeudExpressionMembre const *noeud);
+    void génère_ri_pour_accès_rubrique(NoeudExpressionRubrique const *noeud);
+    void génère_ri_pour_accès_rubrique_union(NoeudExpressionRubrique const *noeud);
     void génère_ri_pour_condition(NoeudExpression const *condition,
                                   InstructionLabel *label_si_vrai,
                                   InstructionLabel *label_si_faux);
@@ -458,7 +458,7 @@ struct CompilatriceRI {
                         NoeudExpression *expression,
                         TransformationType const &transformation);
 
-    void ajourne_index_membre_union(NoeudExpression *expression);
+    void ajourne_index_rubrique_union(NoeudExpression *expression);
 
     Atome *donne_atome_pour_locale(NoeudExpression *expression);
 
@@ -473,7 +473,7 @@ struct CompilatriceRI {
                            Atome *place);
 
     AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType index, Type const *pour_type);
-    void remplis_membres_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
+    void remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                             GenreInfoType index,
                                             Type const *pour_type);
     AtomeGlobale *crée_info_type_défaut(GenreInfoType index, Type const *pour_type);
@@ -481,7 +481,7 @@ struct CompilatriceRI {
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
                                          kuri::tableau<AtomeConstante *> &&valeurs);
-    AtomeGlobale *crée_info_type_membre_structure(MembreTypeComposé const &membre,
+    AtomeGlobale *crée_info_type_rubrique_structure(RubriqueTypeComposé const &rubrique,
                                                   NoeudExpression const *site);
 
     AtomeConstante *donne_tableau_pour_structs_employées(TypeStructure const *type_structure,
@@ -509,7 +509,7 @@ struct CompilatriceRI {
     void empile_valeur(Atome *valeur, NoeudExpression const *site);
     Atome *depile_valeur();
 
-    AtomeConstante *crée_tableau_annotations_pour_info_membre(
+    AtomeConstante *crée_tableau_annotations_pour_info_rubrique(
         const kuri::tableau<Annotation, int> &annotations);
 
     Atome *crée_transtype_entre_base_et_dérivé(NoeudExpression const *noeud,

@@ -335,16 +335,16 @@ FluxSortieCPP &operator<<(FluxSortieCPP &os, Type const &type);
 
 FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type);
 
-struct Membre {
+struct Rubrique {
     IdentifiantADN nom{};
     Type *type = nullptr;
 
     bool est_code = false;
     bool est_enfant = false;
     bool est_a_copier = false;
-    /* Si vrai, ajoute "mutable" à la déclaration du membre dans le code C++. */
+    /* Si vrai, ajoute "mutable" à la déclaration du rubrique dans le code C++. */
     bool est_mutable = false;
-    /* Si vrai, ajoute un paramètre pour le membre à la fonction de création. */
+    /* Si vrai, ajoute un paramètre pour le rubrique à la fonction de création. */
     bool est_requis_pour_construction = false;
 
     bool valeur_defaut_est_acces = false;
@@ -398,7 +398,7 @@ class Protéine {
 };
 
 class ProtéineStruct final : public Protéine {
-    kuri::tableau<Membre> m_membres{};
+    kuri::tableau<Rubrique> m_rubriques{};
 
     ProtéineStruct *m_mere = nullptr;
 
@@ -410,7 +410,7 @@ class ProtéineStruct final : public Protéine {
     kuri::tableau<ProtéineStruct *> m_protéines_derivees{};
 
     bool m_possède_enfant = false;
-    bool m_possède_membre_a_copier = false;
+    bool m_possède_rubrique_a_copier = false;
     bool m_possède_tableaux = false;
 
     ProtéineStruct *m_paire = nullptr;
@@ -429,14 +429,14 @@ class ProtéineStruct final : public Protéine {
 
     void génère_code_kuri(FluxSortieKuri &os) override;
 
-    void ajoute_membre(Membre const membre);
+    void ajoute_rubrique(Rubrique const rubrique);
 
     void descend_de(ProtéineStruct *protéine)
     {
         m_mere = protéine;
         m_possède_tableaux |= m_mere->m_possède_tableaux;
         m_possède_enfant |= m_mere->m_possède_enfant;
-        m_possède_membre_a_copier |= m_mere->m_possède_membre_a_copier;
+        m_possède_rubrique_a_copier |= m_mere->m_possède_rubrique_a_copier;
         m_mere->m_protéines_derivees.ajoute(this);
     }
 
@@ -531,9 +531,9 @@ class ProtéineStruct final : public Protéine {
         return m_possède_enfant;
     }
 
-    bool possède_membre_a_copier() const
+    bool possède_rubrique_a_copier() const
     {
-        return m_possède_membre_a_copier;
+        return m_possède_rubrique_a_copier;
     }
 
     const kuri::tableau<ProtéineStruct *> &derivees() const
@@ -541,9 +541,9 @@ class ProtéineStruct final : public Protéine {
         return m_protéines_derivees;
     }
 
-    const kuri::tableau<Membre> &membres() const
+    const kuri::tableau<Rubrique> &rubriques() const
     {
-        return m_membres;
+        return m_rubriques;
     }
 
     bool possède_tableau() const
@@ -569,19 +569,19 @@ class ProtéineStruct final : public Protéine {
         return nullptr;
     }
 
-    void pour_chaque_membre_recursif(std::function<void(Membre const &)> rappel);
+    void pour_chaque_rubrique_recursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_copie_extra_recursif(std::function<void(Membre const &)> rappel);
+    void pour_chaque_copie_extra_recursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_enfant_recursif(std::function<void(const Membre &)> rappel);
+    void pour_chaque_enfant_recursif(std::function<void(const Rubrique &)> rappel);
 
     void pour_chaque_derivee_recursif(std::function<void(const ProtéineStruct &)> rappel);
 
-    kuri::tableau<Membre> donne_membres_pour_construction();
+    kuri::tableau<Rubrique> donne_rubriques_pour_construction();
 };
 
 class ProtéineEnum final : public Protéine {
-    kuri::tableau<Membre> m_membres{};
+    kuri::tableau<Rubrique> m_rubriques{};
 
     Type *m_type = nullptr;
 
@@ -598,7 +598,7 @@ class ProtéineEnum final : public Protéine {
 
     void génère_code_kuri(FluxSortieKuri &os) override;
 
-    void ajoute_membre(Membre const membre);
+    void ajoute_rubrique(Rubrique const rubrique);
 
     ProtéineEnum *comme_enum() override
     {
@@ -630,9 +630,9 @@ class ProtéineEnum final : public Protéine {
         return m_type_discrimine;
     }
 
-    kuri::tableau_statique<Membre> donne_membres() const
+    kuri::tableau_statique<Rubrique> donne_rubriques() const
     {
-        return m_membres;
+        return m_rubriques;
     }
 };
 

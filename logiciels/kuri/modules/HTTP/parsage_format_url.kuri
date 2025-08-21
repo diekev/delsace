@@ -14,7 +14,7 @@ importe Introspection
 
 /* structure auxilliaire pour l'algorithme de parsage */
 InfoDonnées :: struct {
-    info: *InfoTypeMembreStructure
+    info: *InfoTypeRubriqueStructure
     ptr_résultat: *z8
     ptr_données: *bool
 }
@@ -35,11 +35,11 @@ RésultatParsageFormatURL :: énum {
     /* Tout c'est bien passé, le texte put être parsé avec succès. */
     Succès
 
-    /* Le texte contient un champs dont le nom ne correspond à ancun membre de la structure
+    /* Le texte contient un champs dont le nom ne correspond à ancune rubrique de la structure
      * cible. */
-    MembreInconnu
+    RubriqueInconnue
 
-    /* Aucune fonction de parsage n'existe pour le type du membre de la structure cible. */
+    /* Aucune fonction de parsage n'existe pour le type de la rubrique de la structure cible. */
     FonctionParsageInexistante
 
     /* Une valeur ne put être parsée. */
@@ -48,17 +48,17 @@ RésultatParsageFormatURL :: énum {
     /* Texte malformé, une valeur peut manqué, ou le texte contient un caractère '&' final. */
     TexteMalformé
 
-    /* Redéfinition d'un membre. */
+    /* Redéfinition d'une rubrique. */
     RenommageParamètre
 }
 
 /* Parse une chaine au format URL pour le type T précisé et retourne une structure de ce type
  * contenant les valeurs trouvées dans le texte, ainsi qu'une DonnéesRésultat pour le type T
- * contenant des renseignements sur quels membres ont été trouvés dans le texte. La fonction
+ * contenant des renseignements sur quelles rubriques ont été trouvés dans le texte. La fonction
  * retourne également un drapeau pour définir si une erreur est survenue.
  *
  * Les erreurs peuvent exister si le texte est malformé, ou si une valeur ne peut être parser,
- * ou encore si un nom dans le texte ne correspond pas à un membre du type T.
+ * ou encore si un nom dans le texte ne correspond pas à une rubrique du type T.
  *
  * Tout échappement URL du texte d'entrée est résolu avant le parsage.
  *
@@ -81,7 +81,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
     pointeurs: [..]InfoDonnées
     diffère déloge(pointeurs)
 
-    pour info.membres {
+    pour info.rubriques {
         id : InfoDonnées = ---
         id.info = it
         id.ptr_résultat = (*résultat comme *z8 + it.décalage)
@@ -90,7 +90,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
     }
 
     info_données := info_de(type_de(données))
-    pour info_données.membres {
+    pour info_données.rubriques {
         id := trouve_info_données(pointeurs, it.nom)
 
         si id {
@@ -128,10 +128,10 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
         id := trouve_info_données(pointeurs, nom)
 
         saufsi id {
-            retourne RésultatParsageFormatURL.MembreInconnu, données, résultat
+            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat
         }
 
-        // Vérifions que nous n'avons pas encore parsé ce membre.
+        // Vérifions que nous n'avons pas encore parsé cette rubrique.
         si mémoire(id.ptr_données) {
             retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat
         }
@@ -160,12 +160,12 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
 /* DonnéesRésultat
  *
  * Cette structure polymorphique est monomorphée à partir du type passé en paramètre
- * et possède un membre correspond pour chaque membre de ce dernier.
+ * et possède une rubrique correspond pour chaque rubrique de ce dernier.
  *
- * Les membres sont de types bool et leurs valeurs sont ajournées lors du parsage du
- * texte : si le texte possède une valeur dont le nom est celui d'un membre, celui-ci
+ * Les rubriques sont de types bool et leurs valeurs sont ajournées lors du parsage du
+ * texte : si le texte possède une valeur dont le nom est celui d'une rubrique, celui-ci
  * aura pour valeur « vrai » dans le résultat du parsage ; si le texte ne possède pas
- * un tel nom, ou si la valeur ne peut être parsée, le membre aura pour valeur « faux ».
+ * un tel nom, ou si la valeur ne peut être parsée, la rubrique aura pour valeur « faux ».
  */
 DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
     info := info_de(T)
@@ -173,16 +173,16 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    si info.membres.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans membre : ")
+    si info.rubriques.taille == 0 {
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ")
         imprime_type(*enchaineuse, info)
-        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des membres afin de pouvoir générer le corps.")
+        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.")
 
         message := chaine_depuis_enchaineuse(*enchaineuse)
         compilatrice_rapporte_erreur(message)
     }
 
-    pour info.membres {
+    pour info.rubriques {
         ajoute_au_tampon(*enchaineuse, it.nom)
         ajoute_au_tampon(*enchaineuse, ":= faux\n")
     }
@@ -197,7 +197,7 @@ tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bo
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    pour info.membres {
+    pour info.rubriques {
         ajoute_au_tampon(*enchaineuse, "si !données.", it.nom, "{\n")
         ajoute_au_tampon(*enchaineuse, "retourne faux\n")
         ajoute_au_tampon(*enchaineuse, "}\n")
@@ -288,7 +288,7 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
 
     // Une accolade ouvrante est ajoutée dans le second "de". Dans le parseur PHP, ceci était supprimé, car il n'y a pas d'accolade ouvrante.
     // Notre parseur le rejettera, car le nom ne sera pas présent dans la structure.
-    // Ce test est inclus pour se prémunir de tout problème dans le future, si nous acceptons d'avoir des tableaux comme membre.
+    // Ce test est inclus pour se prémunir de tout problème dans le future, si nous acceptons d'avoir des tableaux comme rubrique.
     si est_transfert_correcte("de=kévin&à=magdalena&montant=1000&d[e=magdalena&à=kévin") {
         compilatrice_rapporte_erreur("Erreur, ce transfert n'est pas sensé être correcte !\n")
     }

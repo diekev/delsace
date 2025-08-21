@@ -436,9 +436,9 @@ génère_code_fonction_c :: fonc (enchaineuse: *Enchaineuse, système: *Système
 
     virgule := "("
     pour fonction.entrées {
-        /* Pour les accès membre le type doit être un pointeur. */
+        /* Pour les accès rubrique le type doit être un pointeur. */
         pointeur := ""
-        si fonction.est_accès_membre && index_it == 0 {
+        si fonction.est_accès_rubrique && indice_it == 0 {
             pointeur = "*"
         }
 
@@ -704,7 +704,7 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
     }
 
     saufsi type.type_base {
-        /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de membres. */
+        /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de rubriques. */
         ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, chaine_pointeur, " m_poignee;\n\n")
     }
 
@@ -791,10 +791,10 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     type_c := trouve_type(système, type.infos)
 
     ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, " {\n")
-    /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de membres. */
+    /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de rubriques. */
     ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, " m_poignee;\n\n")
 
-    /* Pour chaque rappel membre, ajout d'un fonction statique qui appelera la fonction virtuelle. */
+    /* Pour chaque rappel rubrique, ajout d'un fonction statique qui appelera la fonction virtuelle. */
     définis_rappel_fonction_virtuelle_classe_abstraite(enchaineuse, type, génératrice, vrai)
 
     /* Constructeur. */
@@ -808,7 +808,7 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     nom_type := avance(type_c.nom_type_c, taille_espace_de_nom)
 
     /* Renseigne les rappels. */
-    pour type.membres {
+    pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
             continue
         }
@@ -832,8 +832,8 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
     ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() { return this->m_poignee; }\n\n")
     ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() const { return this->m_poignee; }\n\n")
 
-    /* Fonctions virtuelles pour chaque membre. */
-    pour type.membres {
+    /* Fonctions virtuelles pour chaque rubrique. */
+    pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
             continue
         }
@@ -877,7 +877,7 @@ définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Encha
         indentation = "    "
     }
 
-    pour type.membres {
+    pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
             continue
         }
@@ -990,7 +990,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
 
     génère_liste_paramètres_pour_fonction_cpp(enchaineuse, système, *fonction, est_méthode_classe != nul)
 
-    si fonction.est_accès_membre && fonction.entrées.taille == 1 {
+    si fonction.est_accès_rubrique && fonction.entrées.taille == 1 {
         ajoute_au_tampon(enchaineuse, " const")
     }
 
@@ -1013,10 +1013,10 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
 
     virgule := "("
     pour fonction.entrées {
-        si est_méthode_classe && index_it == 0 {
-            /* Pour les accès membre le type doit être un pointeur. */
+        si est_méthode_classe && indice_it == 0 {
+            /* Pour les accès rubrique le type doit être un pointeur. */
             prise_adresse := ""
-            si (fonction.est_accès_membre && est_méthode_classe.drapeaux.TOUJOURS_COMME_POINTEUR == faux) || (it.type_ipa.drapeaux.TYPE_EST_POINTEUR && !type_est_toujours_pointeur(it.type_ipa)) {
+            si (fonction.est_accès_rubrique && est_méthode_classe.drapeaux.TOUJOURS_COMME_POINTEUR == faux) || (it.type_ipa.drapeaux.TYPE_EST_POINTEUR && !type_est_toujours_pointeur(it.type_ipa)) {
                 prise_adresse = "&"
             }
             ajoute_au_tampon(enchaineuse, virgule, prise_adresse, "poignee()")
@@ -1061,7 +1061,7 @@ génère_liste_paramètres_pour_fonction_cpp :: fonc (enchaineuse: *Enchaineuse,
     virgule := "("
     nombre_params := 0
     pour fonction.entrées {
-        si saute_premier_param && index_it == 0 {
+        si saute_premier_param && indice_it == 0 {
             continue
         }
 
@@ -1167,7 +1167,7 @@ génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA,
 
         pour type_énum.noms {
             ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "_", it, " = ")
-            eini_valeur := donne_eini_valeur_énum_indice(type_énum, index_it)
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_it)
             imprime_valeur(enchaineuse, eini_valeur, faux)
             ajoute_au_tampon(enchaineuse, ",\n")
         }
@@ -1198,7 +1198,7 @@ construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
     tri_par_sélection(ipa.types, compare_types_par_nom_sélection)
     /* Ajourne les index. À FAIRE(langage) : table des types */
     pour ipa.types {
-        it.infos.index_dans_table_des_types = (index_it comme n32) + 1
+        it.infos.index_dans_table_des_types = (indice_it comme n32) + 1
     }
 
     /* Rappel pour chaque fonction des types. */
@@ -1309,9 +1309,9 @@ génère_rappel_fonction :: fonc (enchaineuse: *Enchaineuse, système_type: *Sys
     ajoute_au_tampon(enchaineuse, "(*", fonction.nom_rappel_pour_table, ")")
     virgule := "("
     pour fonction.entrées {
-        /* Pour les accès membre le type doit être un pointeur. */
+        /* Pour les accès rubrique le type doit être un pointeur. */
         pointeur := ""
-        si fonction.est_accès_membre && index_it == 0 {
+        si fonction.est_accès_rubrique && indice_it == 0 {
             pointeur = "*"
         }
         type_c := trouve_type(système_type, it.type)
@@ -1504,9 +1504,9 @@ génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_ty
 
     virgule := "("
     pour fonction.entrées {
-        /* Pour les accès membre le type doit être un pointeur. */
+        /* Pour les accès rubrique le type doit être un pointeur. */
         pointeur := ""
-        si fonction.est_accès_membre && index_it == 0 {
+        si fonction.est_accès_rubrique && indice_it == 0 {
             pointeur = "*"
         }
         type_c := trouve_type(système_type, it.type)
@@ -1536,7 +1536,7 @@ génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_ty
 
     pour fonction.entrées {
         type_c := trouve_type(système_type, it.type)
-        convertis_variable_type_c_vers_type_kuri(enchaineuse, it.type, type_c, it.nom, fonction.est_accès_membre)
+        convertis_variable_type_c_vers_type_kuri(enchaineuse, it.type, type_c, it.nom, fonction.est_accès_rubrique)
     }
 
     ajoute_au_tampon(enchaineuse, "    ")
@@ -1546,8 +1546,8 @@ génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_ty
     }
 
     /* Appel la fonction. */
-    si fonction.est_accès_membre {
-        ajoute_au_tampon(enchaineuse, "moi_kuri.", fonction.est_accès_membre.nom)
+    si fonction.est_accès_rubrique {
+        ajoute_au_tampon(enchaineuse, "moi_kuri.", fonction.est_accès_rubrique.nom)
         si fonction.entrées.taille == 2 {
             /* Modification de la valeur. */
             ajoute_au_tampon(enchaineuse, " = valeur_kuri")
@@ -1635,7 +1635,7 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
 }
 
 /* Génère le code de conversion d'une variable de type de l'IPA C vers une variable du type Kuri correspondant. */
-convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_kuri: *InfoType, type_c: *InfoTypeC, nom_variable: chaine, est_accès_membre: *MembreTypeIPA)
+convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_kuri: *InfoType, type_c: *InfoTypeC, nom_variable: chaine, est_accès_rubrique: *RubriqueTypeIPA)
 {
     discr type_kuri.id {
         ENTIER,
@@ -1658,10 +1658,10 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
             si type_c.type_kuri_requiers_conversion_tableau {
                 type_struct := type_kuri comme *InfoTypeStructure
                 /* Copie structure Kuri vers les octets du tableau d'octets.
-                 * Pour les accès de membre, la structure accédée est déjà un
+                 * Pour les accès de rubrique, la structure accédée est déjà un
                  * pointeur, donc nous ne copions pas les octets, vers
                  * simplement transtypons le type du pointeur. */
-                si est_accès_membre && type_kuri != est_accès_membre.type_ipa.infos {
+                si est_accès_rubrique && type_kuri != est_accès_rubrique.type_ipa.infos {
                     /* Type accédé. */
                     ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := (", nom_variable, " comme *", type_struct.nom, ")\n")
                 }

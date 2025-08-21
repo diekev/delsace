@@ -250,7 +250,7 @@ DescriptionAtome PrésyntaxeuseRI::crée_référence_instruction(const LexèmesT
 }
 
 DescriptionAtome PrésyntaxeuseRI::crée_construction_structure(
-    const LexèmesType &type, kuri::tableau_statique<InfoInitMembreStructure> membres)
+    const LexèmesType &type, kuri::tableau_statique<InfoInitRubriqueStructure> rubriques)
 {
     return {Atome::Genre::CONSTANTE_STRUCTURE, nullptr, type};
 }
@@ -332,12 +332,12 @@ void PrésyntaxeuseRI::crée_déclaration_type_structure(const DonnéesTypeCompo
 
     auto virgule = "{ ";
 
-    POUR (données.membres) {
+    POUR (données.rubriques) {
         std::cerr << virgule << it.nom->ident->nom << " " << chaine_type(it.type);
         virgule = ", ";
     }
 
-    if (données.membres.est_vide()) {
+    if (données.rubriques.est_vide()) {
         std::cerr << "{";
     }
 
@@ -355,12 +355,12 @@ void PrésyntaxeuseRI::crée_déclaration_type_union(const DonnéesTypeComposé 
 
     auto virgule = "{ ";
 
-    POUR (données.membres) {
+    POUR (données.rubriques) {
         std::cerr << virgule << it.nom->ident->nom << " " << chaine_type(it.type);
         virgule = ", ";
     }
 
-    if (données.membres.est_vide()) {
+    if (données.rubriques.est_vide()) {
         std::cerr << "{";
     }
 
@@ -483,12 +483,12 @@ void PrésyntaxeuseRI::crée_label(uint64_t index)
 #endif
 }
 
-void PrésyntaxeuseRI::crée_membre(const DescriptionAtome &valeur, uint64_t index)
+void PrésyntaxeuseRI::crée_rubrique(const DescriptionAtome &valeur, uint64_t index)
 {
     numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
-    std::cerr << "membre " << valeur << ", " << index << '\n';
+    std::cerr << "rubrique " << valeur << ", " << index << '\n';
 #endif
 }
 
@@ -709,14 +709,14 @@ Type *SyntaxeuseRI::crée_type_fonction(const Lexème *lexème,
 
 Type *SyntaxeuseRI::crée_type_tuple(const Lexème *lexème, kuri::tableau_statique<Type *> types)
 {
-    kuri::tablet<MembreTypeComposé, 6> membres;
-    membres.réserve(types.taille());
+    kuri::tablet<RubriqueTypeComposé, 6> rubriques;
+    rubriques.réserve(types.taille());
 
     POUR (types) {
-        membres.ajoute({nullptr, it});
+        rubriques.ajoute({nullptr, it});
     }
 
-    return m_typeuse.crée_tuple(membres);
+    return m_typeuse.crée_tuple(rubriques);
 }
 
 Atome *SyntaxeuseRI::crée_atome_nul() const
@@ -773,12 +773,12 @@ void SyntaxeuseRI::crée_globale(const Lexème *lexème, Type *type, Atome *init
 }
 
 Atome *SyntaxeuseRI::crée_construction_structure(
-    Type *type, kuri::tableau_statique<InfoInitMembreStructure> membres)
+    Type *type, kuri::tableau_statique<InfoInitRubriqueStructure> rubriques)
 {
     kuri::tableau<AtomeConstante *> valeurs;
-    valeurs.réserve(membres.taille());
+    valeurs.réserve(rubriques.taille());
 
-    POUR (membres) {
+    POUR (rubriques) {
         /* À FAIRE : validation. */
         valeurs.ajoute(static_cast<AtomeConstante *>(it.atome));
     }
@@ -899,18 +899,18 @@ void SyntaxeuseRI::crée_déclaration_type_structure(const DonnéesTypeComposé 
 
     auto structure = déclaration->comme_type_structure();
 
-    POUR (données.membres) {
-        auto membre_type = MembreTypeCompose{};
-        membre_type.nom = it.nom->ident;
-        membre_type.type = it.type;
-        structure->membres.ajoute(membre_type);
+    POUR (données.rubriques) {
+        auto rubrique_type = RubriqueTypeCompose{};
+        rubrique_type.nom = it.nom->ident;
+        rubrique_type.type = it.type;
+        structure->rubriques.ajoute(rubrique_type);
     }
 
-    structure->nombre_de_membres_réels = int32_t(données.membres.taille());
+    structure->nombre_de_rubriques_réelles = int32_t(données.rubriques.taille());
 
     if (structure->ident == ID::InfoType) {
         m_typeuse.type_info_type_ = structure;
-        TypeBase::EINI->comme_type_composé()->membres[1].type = m_typeuse.type_pointeur_pour(
+        TypeBase::EINI->comme_type_composé()->rubriques[1].type = m_typeuse.type_pointeur_pour(
             structure);
     }
 }
@@ -927,14 +927,14 @@ void SyntaxeuseRI::crée_déclaration_type_union(const DonnéesTypeComposé &don
 
     auto structure = déclaration->comme_type_union();
 
-    POUR (données.membres) {
-        auto membre_type = MembreTypeCompose{};
-        membre_type.nom = it.nom->ident;
-        membre_type.type = it.type;
-        structure->membres.ajoute(membre_type);
+    POUR (données.rubriques) {
+        auto rubrique_type = RubriqueTypeCompose{};
+        rubrique_type.nom = it.nom->ident;
+        rubrique_type.type = it.type;
+        structure->rubriques.ajoute(rubrique_type);
     }
 
-    structure->nombre_de_membres_réels = int32_t(données.membres.taille());
+    structure->nombre_de_rubriques_réelles = int32_t(données.rubriques.taille());
     structure->est_nonsure = est_nonsûre;
 
     /* À FAIRE : taille des types. */
@@ -1116,10 +1116,10 @@ void SyntaxeuseRI::crée_label(uint64_t index)
     rapporte_erreur("Erreur interne (crée_label) : label inconnu");
 }
 
-void SyntaxeuseRI::crée_membre(Atome *valeur, uint64_t index)
+void SyntaxeuseRI::crée_rubrique(Atome *valeur, uint64_t index)
 {
     dbg() << chaine_type(valeur->type) << " " << index;
-    m_constructrice.crée_référence_membre(nullptr, valeur, int32_t(index));
+    m_constructrice.crée_référence_rubrique(nullptr, valeur, int32_t(index));
 }
 
 void SyntaxeuseRI::crée_retourne(Atome *valeur)

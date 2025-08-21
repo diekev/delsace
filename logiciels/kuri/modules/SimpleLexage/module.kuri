@@ -574,11 +574,11 @@ imprime_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
                 continue
             }
 
-            si index_it >= 127 {
+            si indice_it >= 127 {
                 continue
             }
 
-            caractère := index_it comme z8
+            caractère := indice_it comme z8
             imprimeln("% : %", chaine(*caractère, 1), it)
         }
     }

@@ -53,7 +53,7 @@ initialise_file_globale :: fonc ()
     _ := sem_init(*__file_globale.sémaphore, 0, 0)
 
     pour * __fils_exécutions {
-        it.index_logique = index_it comme z32
+        it.index_logique = indice_it comme z32
         it.file = *__file_globale
 
         _ := pthread_create(*it.index_natif, nul, fonction_fil, it)

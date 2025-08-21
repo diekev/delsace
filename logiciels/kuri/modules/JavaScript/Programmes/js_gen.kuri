@@ -676,7 +676,7 @@ imprime_instruction :: fonc (génératrice: *GénératriceCode, base: *Instructi
                     génératrice.ajoute_nouvelle_ligne()
                 }
                 imprime_instruction(génératrice, it)
-                si index_it < bloc.instructions.taille - 1 {
+                si indice_it < bloc.instructions.taille - 1 {
                     génératrice.ajoute_nouvelle_ligne()
                 }
             }

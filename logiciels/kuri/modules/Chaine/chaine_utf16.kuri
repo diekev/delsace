@@ -132,38 +132,12 @@ taille :: fonc (chn: ChaineUTF16) -> z64 #enligne
     retourne chn.unités.taille
 }
 
-taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64 #enligne
+taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64
 {
     résultat : z64 = 0
-    curseur := 0
-    tantque curseur < chn.taille() {
-        unité := chn.unités[curseur]
-
-        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
-            curseur += 1
-            résultat += 1
-            continue
-        }
-
-        si est_leading_surrogate(unité) && curseur == chn.taille() - 1 {
-            curseur += 1
-            résultat += 1
-            continue
-        }
-
-        unité_suivante := chn.unités[curseur + 1]
-        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
-            curseur += 2
-            résultat += 1
-            continue
-        }
-
-        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
-         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
-        curseur += 1
+    pour itératrice_points_de_code(chn) {
         résultat += 1
     }
-
     retourne résultat
 }
 
@@ -356,7 +330,7 @@ donne_position_premier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
             continue
         }
 
-        retourne index_it
+        retourne indice_it
     }
 
     retourne chn.taille()
@@ -369,7 +343,7 @@ donne_position_dernier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
             continue
         }
 
-        retourne chn.taille() - index_it - 1
+        retourne chn.taille() - indice_it - 1
     }
 
     retourne 0
@@ -546,7 +520,7 @@ commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_m
     }
 
     pour chn.unités {
-        si index_it >= occurences_max {
+        si indice_it >= occurences_max {
             arrête
         }
 
@@ -562,34 +536,8 @@ transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transform
 {
     tableau_réserve(*résultat.unités, chn.taille())
 
-    curseur := 0
-    tantque curseur < chn.unités.taille {
-        unité := chn.unités[curseur]
-
-        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
-            chaine_ajoute(résultat, transformation(unité))
-            curseur += 1
-            continue
-        }
-
-        si est_leading_surrogate(unité) && curseur == chn.taille() - 1 {
-            chaine_ajoute(résultat, unité)
-            curseur += 1
-            continue
-        }
-
-        unité_suivante := chn.unités[curseur + 1]
-        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
-            point_de_code := utf16_décode_paire_surrogate(unité, unité_suivante)
-            chaine_ajoute(résultat, transformation(point_de_code))
-            curseur += 2
-            continue
-        }
-
-        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
-         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
-        chaine_ajoute(résultat, unité)
-        curseur += 1
+    pour itératrice_points_de_code(chn) {
+        chaine_ajoute(résultat, transformation(it))
     }
 }
 
@@ -896,36 +844,8 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
 
 formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: &FluxSortie)
 {
-    taille_chaine := chn.unités.taille
-
-    curseur := 0
-    tantque curseur < taille_chaine {
-        unité := chn.unités[curseur]
-
-        saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
-            flux_sortie.ajoute(flux_sortie, unité comme n32)
-            curseur += 1
-            continue
-        }
-
-        si est_leading_surrogate(unité) && curseur == taille_chaine - 1 {
-            flux_sortie.ajoute(flux_sortie, unité comme n32)
-            curseur += 1
-            continue
-        }
-
-        unité_suivante := chn.unités[curseur + 1]
-        si est_leading_surrogate(unité) && est_trailling_surrogate(unité_suivante) {
-            curseur += 2
-            point_de_code := utf16_décode_paire_surrogate(unité, unité_suivante)
-            flux_sortie.ajoute(flux_sortie, point_de_code)
-            continue
-        }
-
-        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
-         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
-        curseur += 1
-        flux_sortie.ajoute(flux_sortie, unité comme n32)
+    pour itératrice_points_de_code(mémoire(chn)) {
+        flux_sortie.ajoute(flux_sortie, it)
     }
 }
 
@@ -937,6 +857,65 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
     flux_sortie := crée_flux_sortie(enchaineuse)
     formatte_chaine_utf16(chn, flux_sortie)
 } @FormattageImpression
+
+/* ------------------------------------------------------------------------- */
+/** \nom ItératricePointsDeCodeChaineUTF16
+ * \{ */
+
+ItératricePointsDeCodeChaineUTF16 :: struct {
+    chn: ChaineUTF16
+    curseur := 0
+}
+
+opérateur pour :: fonc (itératrice: ItératricePointsDeCodeChaineUTF16) -> n32
+{
+    taille_chaine := itératrice.chn.unités.taille
+
+    index_point_de_code := 0
+    tantque itératrice.curseur < taille_chaine {
+        `it = point_de_code_suivant(*itératrice)
+        `indice_it = index_point_de_code
+
+        #corps_boucle
+
+        index_point_de_code += 1
+    }
+}
+
+itératrice_points_de_code :: fonc (chn: ChaineUTF16) -> ItératricePointsDeCodeChaineUTF16
+{
+    retourne ItératricePointsDeCodeChaineUTF16(chn)
+}
+
+point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaineUTF16) -> n32
+{
+    unité := chn.unités[curseur]
+
+    point_de_code: n32
+
+    saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
+        point_de_code = unité comme n32
+        curseur += 1
+    }
+    sinon si est_leading_surrogate(unité) && curseur == chn.unités.taille - 1 {
+        point_de_code = unité comme n32
+        curseur += 1
+    }
+    sinon si est_leading_surrogate(unité) && est_trailling_surrogate(chn.unités[curseur + 1]) {
+        point_de_code = utf16_décode_paire_surrogate(unité, chn.unités[curseur + 1])
+        curseur += 2
+    }
+    sinon {
+        /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
+        * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
+        point_de_code = unité comme n32
+        curseur += 1
+    }
+
+    retourne point_de_code
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ChaineUTF16Unique

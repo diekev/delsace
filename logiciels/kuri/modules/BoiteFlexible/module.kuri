@@ -1048,7 +1048,7 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_te
         }
 
         si éditrice_texte == nul {
-            tableau_supprime_indice(*emboiteuse.éditrices_textes, index_it)
+            tableau_supprime_indice(*emboiteuse.éditrices_textes, indice_it)
             retourne
         }
 
@@ -1211,7 +1211,7 @@ donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *Boi
 
     pour * emboiteuse.boites_disposées {
         si it.id == id {
-            retourne *emboiteuse.boites_disposées[index_it]
+            retourne *emboiteuse.boites_disposées[indice_it]
         }
     }
 
@@ -1570,7 +1570,7 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
             espace_libre -= (it.donne_taille(direction) - taille_initiale_enfant)
 
             si supprime_décroissable {
-                tableau_supprime_indice(*décroissables, index_it)
+                tableau_supprime_indice(*décroissables, indice_it)
                 reprends it
             }
         }

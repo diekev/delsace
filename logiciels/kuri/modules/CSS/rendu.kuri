@@ -1180,7 +1180,7 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, box: *Box)
 
         nombre_de_cotés += 1
 
-        coté := index_it comme z32 comme BorderEdge
+        coté := indice_it comme z32 comme BorderEdge
 
         couleur: CouleurRVBAN8
 

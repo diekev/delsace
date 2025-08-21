@@ -76,7 +76,7 @@ test_mises_en_pages :: fonc () -> bool
         impression := donne_texte_pour_sortie(it)
         diffère déloge(impression)
 
-        chemin_sortie := chemins_sorties[index_it]
+        chemin_sortie := chemins_sorties[indice_it]
 
         sortie := contenu_fichier_texte(chemin_sortie)
         diffère déloge(sortie)
@@ -122,7 +122,7 @@ ajourne_fichiers :: fonc ()
         impression := donne_texte_pour_sortie(it)
         diffère déloge(impression)
 
-        chemin_sortie := chemins_sorties[index_it]
+        chemin_sortie := chemins_sorties[indice_it]
 
         original := contenu_fichier_texte(chemin_sortie)
         diffère déloge(original)
@@ -157,7 +157,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
         impression := donne_texte_pour_sortie(it)
         // diffère déloge(impression)
 
-        chemin_sortie := chemins_sorties[index_it]
+        chemin_sortie := chemins_sorties[indice_it]
 
         original := contenu_fichier_texte(chemin_sortie)
         // diffère déloge(original)
@@ -172,7 +172,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
         commande := imprime_chaine("% %", chemin_navigateur, chm_abs)
         // diffère déloge(commande)
 
-        imprime("\x1b[32m[% / %] Exécution de %\x1b[37m\n", index_it + 1, chemins_sources.taille, commande)
+        imprime("\x1b[32m[% / %] Exécution de %\x1b[37m\n", indice_it + 1, chemins_sources.taille, commande)
 
         saufsi exécute_commande_externe(commande) {
             imprime("Erreur lors de l'exécution de la commande\n")

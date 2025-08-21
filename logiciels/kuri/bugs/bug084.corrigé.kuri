@@ -1,4 +1,4 @@
-/* Crash quand nous discriminons une union en se basant sur les types des membres.
+/* Crash quand nous discriminons une union en se basant sur les types des rubriques.
  * Catégorie : [crash, discr, type union]
  */
 

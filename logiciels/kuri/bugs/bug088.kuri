@@ -1,5 +1,5 @@
 /* Erreur de compilation interne sur bloc vide si une discrimination est
- * exhaustive sur tous les membres d'une énumération.
+ * exhaustive sur toutes les rubriques d'une énumération.
  * Voir cherche_aiguille dans Fondation.
  * Catégorie : [génération code, discr]
  */

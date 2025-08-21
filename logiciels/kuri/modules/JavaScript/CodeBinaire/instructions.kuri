@@ -13,7 +13,7 @@ imprime_instructions :: fonc (flux: *FluxDInstructions)
     imprime("Instructions : (% octets)\n", flux.instructions.taille)
 
     pour ItéractriceInstruction(flux) {
-        imprime_instruction(it, index_it)
+        imprime_instruction(it, indice_it)
     }
 }
 
@@ -34,7 +34,7 @@ opérateur pour :: fonc (itératrice: ItéractriceInstruction) -> *Instruction
         instruction := début comme *Instruction
 
         `it = instruction
-        `index_it = index
+        `indice_it = index
 
         #corps_boucle
 
@@ -88,38 +88,38 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
 
     imprime("[%] %", index, nom)
 
-    pointeur_membre := instruction comme *octet
+    pointeur_rubrique := instruction comme *octet
 
-    _ := imprime_membres_instructions(pointeur_membre, infos, " ")
+    _ := imprime_rubriques_instructions(pointeur_rubrique, infos, " ")
 
     imprime("\n")
 }
 
-imprime_membres_instructions :: fonc (pointeur_membre: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
+imprime_rubriques_instructions :: fonc (pointeur_rubrique: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
 {
-    pour infos.membres {
+    pour infos.rubriques {
         si it.id == info_de(ECMAString) {
-            valeur := (pointeur_membre + it.décalage) comme *ECMAString
+            valeur := (pointeur_rubrique + it.décalage) comme *ECMAString
             imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Registre) {
-            valeur := (pointeur_membre + it.décalage) comme *Registre
+            valeur := (pointeur_rubrique + it.décalage) comme *Registre
             imprime("%r:%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Valeur) {
-            valeur := (pointeur_membre + it.décalage) comme *Valeur
+            valeur := (pointeur_rubrique + it.décalage) comme *Valeur
             imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(DécalageBranche) {
-            valeur := (pointeur_membre + it.décalage) comme *DécalageBranche
+            valeur := (pointeur_rubrique + it.décalage) comme *DécalageBranche
             imprime("%@%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(Instruction)) {
-            virgule = imprime_membres_instructions(pointeur_membre, it.id comme *InfoTypeStructure, virgule)
+            virgule = imprime_rubriques_instructions(pointeur_rubrique, it.id comme *InfoTypeStructure, virgule)
         }
     }
 
@@ -323,7 +323,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionDéfinisLocale, realm: 
     si instruction.index_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == instruction.nom {
-                instruction.index_chaine_en_cache = index_it comme z32
+                instruction.index_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
@@ -350,7 +350,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *R
     si instruction.index_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == instruction.nom {
-                instruction.index_chaine_en_cache = index_it comme z32
+                instruction.index_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
@@ -371,7 +371,7 @@ InstructionInitialiseRéférence :: struct {
     nom: ECMAString
 }
 
-InstructionDéfinisMembre :: struct {
+InstructionDéfinisMember :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -379,7 +379,7 @@ InstructionDéfinisMembre :: struct {
     src: Registre
 }
 
-InstructionChargeMembre :: struct {
+InstructionChargeMember :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -1083,34 +1083,34 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 lhs := resolve_binding(interprète, realm.crée_chaine(init.nom))
                 initialize_reference_binding(lhs, valeur)
             }
-            InstructionDéfinisMembre {
-                membre := it comme *InstructionDéfinisMembre
+            InstructionDéfinisMember {
+                member := it comme *InstructionDéfinisMember
                 realm := donne_realm(interprète)
 
-                referenced_name := crée_chaine(realm, membre.nom)
+                referenced_name := crée_chaine(realm, member.nom)
 
                 référence: ReferenceRecord
                 référence.base = interprète.donne_accumulateur()
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
-                valeur := donne_registre(registres, membre.src)
+                valeur := donne_registre(registres, member.src)
                 completion_assignment := put_value(interprète, référence, valeur)
                 interprète.définis_exception(completion_assignment)
             }
-            InstructionChargeMembre {
-                membre := it comme *InstructionChargeMembre
+            InstructionChargeMember {
+                member := it comme *InstructionChargeMember
                 realm := donne_realm(interprète)
 
-                referenced_name := crée_chaine(realm, membre.nom)
+                referenced_name := crée_chaine(realm, member.nom)
 
                 référence: ReferenceRecord
 
-                si membre.obj comme n32 == 0 {
+                si member.obj comme n32 == 0 {
                     référence.base = interprète.donne_accumulateur()
                 }
                 sinon {
-                    référence.base = donne_registre(registres, membre.obj)
+                    référence.base = donne_registre(registres, member.obj)
                 }
 
                 référence.referenced_name = Valeur(String = referenced_name)
@@ -1514,7 +1514,7 @@ imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
     imprime("Registres :\n")
 
     pour interprète.registres {
-        imprime("- [%] %\n", index_it, it)
+        imprime("- [%] %\n", indice_it, it)
     }
 }
 

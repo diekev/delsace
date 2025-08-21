@@ -69,11 +69,11 @@ annotation_pour_python :: fonc (entête: *NoeudCodeEntêteFonction) -> Annotatio
 }
 
 ConfidentialitéTypeIPA :: énum {
-    /* Les membres du type peuvent être accédés. */
+    /* Les rubriques du type peuvent être accédées. */
     ACCESSIBLE
-    /* Les membres du type peuvent être mutés, ceci implique qu'ils sont également ACCESSIBLE. */
+    /* Les rubriques du type peuvent être mutées, ceci implique qu'elles sont également ACCESSIBLE. */
     MUTABLE
-    /* Les membres du type ne sont pas ni accessible, ni mutable. */
+    /* Les rubriques du type ne sont pas ni accessible, ni mutable. */
     OPAQUE
 }
 
@@ -93,17 +93,17 @@ confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> Confide
         }
     }
 
-    /* Par défaut, les membres sont opaques. */
+    /* Par défaut, les rubriques sont opaques. */
     retourne ConfidentialitéTypeIPA.OPAQUE
 }
 
-MembreTypeIPA :: struct {
+RubriqueTypeIPA :: struct {
     nom: chaine
     confidentialité: ConfidentialitéTypeIPA
     type: *InfoType
     type_ipa: *TypeIPA
 
-    /* Index des fonctions de lecture et d'écriture du membre dans la liste des
+    /* Index des fonctions de lecture et d'écriture de la rubrique dans la liste des
      * méthodes du type parent. */
     index_fonction_écriture : z64 = -1
     index_fonction_lecture : z64 = -1
@@ -144,7 +144,7 @@ TypeIPA :: struct {
     /* Pour les pointeurs, le type pointé. */
     type_pointé: *TypeIPA
 
-    membres: [..]MembreTypeIPA
+    rubriques: [..]RubriqueTypeIPA
 
     /* Type de base. */
     type_base: *TypeIPA
@@ -156,7 +156,7 @@ TypeIPA :: struct {
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
 {
-    déloge(type.membres)
+    déloge(type.rubriques)
     déloge(type.types_entrée)
     déloge(type.types_sortie)
     déloge_tableau_et_ses_éléments(type.fonctions, détruit_données_méthode_ipa)
@@ -180,7 +180,7 @@ MéthodeIPA :: struct {
     }
 
     noeud_code: *NoeudCodeEntêteFonction
-    est_accès_membre: *MembreTypeIPA
+    est_accès_rubrique: *RubriqueTypeIPA
 
     nom: chaine
     nom_pour_fonction_c: chaine
@@ -198,7 +198,7 @@ détruit_données_méthode_ipa :: fonc (méthode: MéthodeIPA)
     déloge(méthode.nom_pour_fonction_c)
     déloge(méthode.nom_rappel_pour_table)
 
-    si méthode.est_accès_membre {
+    si méthode.est_accès_rubrique {
         déloge(méthode.nom)
     }
 }
@@ -356,18 +356,18 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
             info_struct := type comme *InfoTypeStructure
             résultat.nom = info_struct.nom
 
-            pour info_struct.membres {
+            pour info_struct.rubriques {
                 confidentialité := confidentialité_pour_annotation(it.annotations)
 
                 si confidentialité == ConfidentialitéTypeIPA.OPAQUE {
                     continue
                 }
 
-                membre := tableau_ajoute_élément(*résultat.membres)
-                membre.nom = it.nom
-                membre.confidentialité = confidentialité
-                membre.type = it.id
-                membre.type_ipa = ipa.convertis_vers_type_ipa(it.id)
+                rubrique := tableau_ajoute_élément(*résultat.rubriques)
+                rubrique.nom = it.nom
+                rubrique.confidentialité = confidentialité
+                rubrique.type = it.id
+                rubrique.type_ipa = ipa.convertis_vers_type_ipa(it.id)
             }
         }
         UNION {
@@ -488,16 +488,16 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
     }
 }
 
-ajoute_fonction_accès_membre :: fonc (type: *TypeIPA, membre: *MembreTypeIPA, pour_lecture: bool) -> *MéthodeIPA
+ajoute_fonction_accès_rubrique :: fonc (type: *TypeIPA, rubrique: *RubriqueTypeIPA, pour_lecture: bool) -> *MéthodeIPA
 {
     fonction := tableau_ajoute_élément(*type.fonctions)
     si pour_lecture {
-        fonction.nom = enchaine("donne_", membre.nom)
+        fonction.nom = enchaine("donne_", rubrique.nom)
     }
     sinon {
-        fonction.nom = enchaine("définis_", membre.nom)
+        fonction.nom = enchaine("définis_", rubrique.nom)
     }
-    fonction.est_accès_membre = membre
+    fonction.est_accès_rubrique = rubrique
     retourne fonction
 }
 
@@ -517,7 +517,7 @@ ajoute_sortie :: fonc (fonction: *MéthodeIPA, nom: chaine, type: *InfoType, typ
     sortie.type_ipa = type_ipa
 }
 
-ajoute_méthodes_pour_membres_types :: fonc (ipa: &IPA)
+ajoute_méthodes_pour_rubriques_types :: fonc (ipa: &IPA)
 {
     pour ipa.types {
         nom_type := copie_chaine(it.nom)
@@ -525,30 +525,30 @@ ajoute_méthodes_pour_membres_types :: fonc (ipa: &IPA)
 
         supprime_points_et_parenthèses(*nom_type)
 
-        pour * membre dans it.membres {
+        pour * rubrique dans it.rubriques {
             /* Fonction lecture. */
-            fonction := ajoute_fonction_accès_membre(it, membre, vrai)
-            membre.index_fonction_lecture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_donne_", membre.nom)
+            fonction := ajoute_fonction_accès_rubrique(it, rubrique, vrai)
+            rubrique.index_fonction_lecture = it.fonctions.taille - 1
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_donne_", rubrique.nom)
             fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
 
             ajoute_entrée(fonction, "moi", it.infos, it)
-            ajoute_sortie(fonction, "résultat", membre.type, membre.type_ipa)
+            ajoute_sortie(fonction, "résultat", rubrique.type, rubrique.type_ipa)
 
             assainie_nom_fonction_interface(fonction)
 
-            saufsi membre.confidentialité == ConfidentialitéTypeIPA.MUTABLE {
+            saufsi rubrique.confidentialité == ConfidentialitéTypeIPA.MUTABLE {
                 continue
             }
 
             /* Fonction écriture. */
-            fonction = ajoute_fonction_accès_membre(it, membre, faux)
-            membre.index_fonction_écriture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_definis_", membre.nom)
+            fonction = ajoute_fonction_accès_rubrique(it, rubrique, faux)
+            rubrique.index_fonction_écriture = it.fonctions.taille - 1
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_definis_", rubrique.nom)
             fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
 
             ajoute_entrée(fonction, "moi", it.infos, it)
-            ajoute_entrée(fonction, "valeur", membre.type, membre.type_ipa)
+            ajoute_entrée(fonction, "valeur", rubrique.type, rubrique.type_ipa)
             ajoute_sortie(fonction, "résultat", info_de(rien), ipa.convertis_vers_type_ipa(info_de(rien)))
 
             assainie_nom_fonction_interface(fonction)
@@ -558,7 +558,7 @@ ajoute_méthodes_pour_membres_types :: fonc (ipa: &IPA)
 
 finalise_informations_types :: fonc (ipa: &IPA)
 {
-    ajoute_méthodes_pour_membres_types(ipa)
+    ajoute_méthodes_pour_rubriques_types(ipa)
 
     pour ipa.types {
         infos := it.infos

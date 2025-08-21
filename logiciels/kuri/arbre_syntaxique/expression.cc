@@ -267,9 +267,9 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 if (decl->type->est_type_énum()) {
                     auto type_enum = static_cast<TypeEnum *>(decl->type);
 
-                    auto info_membre = donne_membre_pour_nom(type_enum, decl->ident);
-                    if (info_membre.has_value()) {
-                        return ValeurExpression(info_membre->membre.valeur);
+                    auto info_rubrique = donne_rubrique_pour_nom(type_enum, decl->ident);
+                    if (info_rubrique.has_value()) {
+                        return ValeurExpression(info_rubrique->rubrique.valeur);
                     }
                 }
 
@@ -529,17 +529,17 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto inst = b->comme_comme();
             return évalue_expression(compilatrice, bloc, inst->expression);
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
         {
-            auto ref_membre = b->comme_référence_membre();
+            auto ref_rubrique = b->comme_référence_rubrique();
 
-            if (ref_membre->déclaration_référée) {
-                auto accédée = ref_membre->accédée->comme_référence_déclaration();
+            if (ref_rubrique->déclaration_référée) {
+                auto accédée = ref_rubrique->accédée->comme_référence_déclaration();
                 auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
                 auto module = déclaration_module->module;
-                auto fichier = compilatrice.fichier(ref_membre->lexème->fichier);
+                auto fichier = compilatrice.fichier(ref_rubrique->lexème->fichier);
                 auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
-                trouve_déclarations_dans_module(déclarations, module, ref_membre->ident, fichier);
+                trouve_déclarations_dans_module(déclarations, module, ref_rubrique->ident, fichier);
 
                 assert(déclarations.taille() > 0);
 
@@ -552,28 +552,28 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 return évalue_expression(compilatrice, module->bloc, déclarations[0]);
             }
 
-            auto type_accede = ref_membre->accédée->type;
+            auto type_accede = ref_rubrique->accédée->type;
             type_accede = donne_type_accédé_effectif(type_accede);
 
             if (type_accede->est_type_type_de_données()) {
                 type_accede = type_accede->comme_type_type_de_données()->type_connu;
                 if (!type_accede) {
                     return erreur_évaluation(b,
-                                             "L'expression de référence de membre n'est pas une "
+                                             "L'expression de référence de rubrique n'est pas une "
                                              "référence d'un type de données connu.");
                 }
             }
 
             if (!type_accede->est_type_composé()) {
                 return erreur_évaluation(
-                    b, "L'expression ne référence pas le membre d'un type composé.");
+                    b, "L'expression ne référence pas le rubrique d'un type composé.");
             }
 
             auto type_composé = type_accede->comme_type_composé();
-            auto &membre = type_composé->membres[ref_membre->index_membre];
+            auto &rubrique = type_composé->rubriques[ref_rubrique->index_rubrique];
 
-            if (membre.est_constant()) {
-                return ValeurExpression(type_composé->membres[ref_membre->index_membre].valeur);
+            if (rubrique.est_constant()) {
+                return ValeurExpression(type_composé->rubriques[ref_rubrique->index_rubrique].valeur);
             }
 
             return erreur_évaluation(

@@ -115,7 +115,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         STRUCTURE {
             type_structure := type comme *InfoTypeStructure
 
-            pour type_structure.membres {
+            pour type_structure.rubriques {
                 si it.id.id == GenreInfoType.FONCTION {
                     ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
                 }
@@ -286,12 +286,6 @@ vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *Noeu
             pour virgule.expressions {
                 vérifie_bloc_fonction(vérificatrice, it)
             }
-        }
-        EXPRESSION_REFERENCE_MEMBRE {
-            membre := code comme *NoeudCodeOpérationBinaire
-
-            vérifie_bloc_fonction(vérificatrice, membre.opérande_gauche)
-            vérifie_bloc_fonction(vérificatrice, membre.opérande_droite)
         }
         */
         sinon {

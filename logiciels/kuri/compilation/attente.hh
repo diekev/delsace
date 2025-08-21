@@ -110,7 +110,7 @@ struct SymboleAttendu {
 };
 
 /* Comme AttenteSurDéclaration, mais seul le type (NoeudExpression.type) est attendu, pas les
- * membres ou autre chose. */
+ * rubriques ou autre chose. */
 struct TypeDéclaration {
     NoeudDéclaration *déclaration = nullptr;
 };

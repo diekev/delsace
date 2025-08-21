@@ -162,7 +162,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
 
                 couleurs_peintre: [4]CouleurPeintre = ---
                 pour commande.couleurs {
-                    couleurs_peintre[index_it] = it
+                    couleurs_peintre[indice_it] = it
                 }
 
                 peintre.dessine_bordure(commande.rect, commande.largeurs, couleurs_peintre)

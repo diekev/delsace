@@ -54,7 +54,7 @@ activate_an_event_handler :: fonc (event_target: *EventTarget, nom: DOMString)
     // 7. Set eventHandler's listener to listener.
     pour event_target.listeners {
         si it.callback == callback {
-            event_handler.listener = index_it
+            event_handler.listener = indice_it
             arrête
         }
     }

@@ -386,7 +386,7 @@ PyBUF_WRITE :: 0x200
 
 // ---------------------------------------------------
 // Fonctions pour générer les itérateurs pour infos types.
-// Ces itérateurs retournent les noms des membres accessibles
+// Ces itérateurs retournent les noms des rubriques accessibles
 // via Python.
 
 /* Objet Python pour un itérateur sur InfoType */
@@ -409,15 +409,15 @@ PyTypeItérateurPourInfoType := PyTypeObject(
     tp_hash = PyObject_HashNotImplemented
 )
 
-/* Retourne vrai si le membre est accessible via Python, et donc dont le nom
+/* Retourne vrai si la rubrique est accessible via Python, et donc dont le nom
  * peut être retourné via l'itérateur. */
-membre_est_accessible_via_itération :: fonc (membre: *InfoTypeMembreStructure) -> bool
+rubrique_est_accessible_via_itération :: fonc (rubrique: *InfoTypeRubriqueStructure) -> bool
 {
-    si possède_annotation(membre, "accessible") {
+    si possède_annotation(rubrique, "accessible") {
         retourne vrai
     }
 
-    si possède_annotation(membre, "mutable") {
+    si possède_annotation(rubrique, "mutable") {
         retourne vrai
     }
 
@@ -435,7 +435,7 @@ iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
     retourne self
 }
 
-/* Retourne le nom du prochain membre de la structure, ou nul si l'itérateur est
+/* Retourne le nom du prochain rubrique de la structure, ou nul si l'itérateur est
  * exhausté.
  * Cette fonction correspond à PyTypeObject.tp_iternext.
  * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iternext */
@@ -446,13 +446,13 @@ iternext_pour_itérateur_infos_type :: fonc (self: *PyObject) -> *PyObject
     index_courant := py_self.index_courant
     infos := py_self.infos
 
-    pour index_courant ... infos.membres.taille - 1 {
-        info_membre := infos.membres[it]
-        saufsi membre_est_accessible_via_itération(info_membre) {
+    pour index_courant ... infos.rubriques.taille - 1 {
+        info_rubrique := infos.rubriques[it]
+        saufsi rubrique_est_accessible_via_itération(info_rubrique) {
             continue
         }
         py_self.index_courant = it + 1
-        retourne PyUnicode_FromChaine(info_membre.nom)
+        retourne PyUnicode_FromChaine(info_rubrique.nom)
     }
 
     retourne nul
@@ -552,20 +552,20 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
         STRUCTURE {
             info_struct := info comme *InfoTypeStructure
 
-            si info_struct.membres.taille == 0 {
+            si info_struct.rubriques.taille == 0 {
                 retourne "b\0"
             }
 
-            type_premier_membre := info_struct.membres[0].id
-            pour info_struct.membres {
-                si type_premier_membre != it.id {
+            type_premier_rubrique := info_struct.rubriques[0].id
+            pour info_struct.rubriques {
+                si type_premier_rubrique != it.id {
                     arrête
                 }
             }
             sansarrêt {
-                /* Si tous les membres ont le même type (p.e. nous avons un vecteur),
-                 * utilisons le format du type partagé par tous les membres. */
-                retourne format_tampon_pour_info_type(type_premier_membre)
+                /* Si toutes les rubriques ont le même type (p.e. nous avons un vecteur),
+                 * utilisons le format du type partagé par toutes les rubriques. */
+                retourne format_tampon_pour_info_type(type_premier_rubrique)
             }
 
             /* Sinon, retourne le formattage pour des octets. */
@@ -890,7 +890,7 @@ PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) 
     retourne -1
 }
 
-/* Erreur si un objet n'a pas de membre du nom de la clé, pour l'accès via o[clé]. */
+/* Erreur si un objet n'a pas de rubrique du nom de la clé, pour l'accès via o[clé]. */
 PyErr_CléInconnue :: fonc (objet: *PyObject, clé: chaine) -> *PyObject
 {
     chn_type := PyType_ChaineNom(objet)

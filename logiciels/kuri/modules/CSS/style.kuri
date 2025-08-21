@@ -203,7 +203,7 @@ opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsli
     }
 
     pour calc1.valeurs {
-        saufsi calc2.valeurs[index_it] == it {
+        saufsi calc2.valeurs[indice_it] == it {
             retourne faux
         }
     }
@@ -700,7 +700,7 @@ sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool
             }
 
             pour liste_a {
-                saufsi sont_mêmes_valeurs(it, liste_b[index_it]) {
+                saufsi sont_mêmes_valeurs(it, liste_b[indice_it]) {
                     retourne faux
                 }
             }
@@ -1188,7 +1188,7 @@ ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *
 {
     pour propriétés.déclarations {
         si it.property_name == déclaration.property_name {
-            propriétés.déclarations[index_it] = déclaration
+            propriétés.déclarations[indice_it] = déclaration
             retourne
         }
     }

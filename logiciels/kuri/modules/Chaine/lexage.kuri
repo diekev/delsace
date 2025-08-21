@@ -31,7 +31,7 @@ divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
                 tableau_ajoute(*mots, mot)
             }
 
-            début_mot = index_it + 1
+            début_mot = indice_it + 1
             taille_mot = 0
             continue
         }

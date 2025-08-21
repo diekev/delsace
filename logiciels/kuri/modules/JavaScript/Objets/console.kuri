@@ -243,7 +243,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         si interpréteuse.possède_exception() {
             retourne js_undefined
         }
-        indice_chronomètre = index_it
+        indice_chronomètre = indice_it
 
         déloge(chn_temps)
         arrête

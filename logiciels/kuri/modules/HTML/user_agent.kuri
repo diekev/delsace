@@ -186,7 +186,7 @@ RappelsInterface :: struct {
     sur_édition_text_input_requise: fonc(*RappelsInterface, *HTMLInputElement)(rien)
     sur_rapporte_exception: fonc (*RappelsInterface, *Document, chaine)(rien)
     sur_rapporte_log: fonc (*RappelsInterface, *Document, chaine)(rien)
-    sur_affiche_menu_contextuel_pour: fonc(*RappelsInterface, *Élément, *ClicSouris)(rien)
+    sur_affiche_menu_contextuel_pour: fonc(*RappelsInterface, *Element, *ClicSouris)(rien)
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
@@ -425,7 +425,7 @@ rapporte_log :: fonc (user_agent: *UserAgent, document: *Document, message: chai
     rappels.sur_rapporte_log(rappels, document, message)
 }
 
-affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Élément, clic: *ClicSouris)
+affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Element, clic: *ClicSouris)
 {
     rappels := user_agent.rappels_interface
     saufsi rappels && rappels.sur_affiche_menu_contextuel_pour {
@@ -496,13 +496,13 @@ crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler
     retourne tâche
 }
 
-enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *UserAgent, élément: *Élément, nom: EventType)
+enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *UserAgent, élément: *Element, nom: EventType)
 {
     Tâche :: struct {
         empl base: Algorithm
 
         user_agent: *UserAgent
-        élément: *Élément
+        élément: *Element
         nom: EventType
     }
 
@@ -520,7 +520,7 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
     user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, élément, tâche)
 }
 
-queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Élément)
+queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Element)
 {
     enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error)
 }
@@ -567,7 +567,7 @@ queue_a_globask_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, gl
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-an-element-task */
-queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, élément: *Élément, steps: *Algorithm)
+queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, élément: *Element, steps: *Algorithm)
 {
     // 1. Let global be element's relevant global object.
     global := donne_relevant_global_object(élément)

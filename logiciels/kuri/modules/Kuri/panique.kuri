@@ -85,9 +85,9 @@ panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #s
     panique("dépassement des limites de la chaine, la taille est de % mais l'index est de %", taille, index)
 }
 
-panique_membre_union :: fonc () -> rien #sanstrace #interface #sansretour
+panique_rubrique_union :: fonc () -> rien #sanstrace #interface #sansretour
 {
-    panique("utilisation du membre non-actif d'une union")
+    panique("utilisation de la rubrique non-active d'une union")
 }
 
 panique_hors_mémoire :: fonc () -> rien #sanstrace #interface #sansretour

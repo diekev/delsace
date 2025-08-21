@@ -3,12 +3,12 @@
 /* Comparaisons spécifiques pour les mêmes genres de noeuds. Les attributs ne sont pas
  * vérifiés. */
 
-noeuds_éléments_sont_égaux :: fonc (élément1: *Élément, élément2: *Élément) -> bool
+noeuds_éléments_sont_égaux :: fonc (élément1: *Element, élément2: *Element) -> bool
 {
     retourne élément1.local_name == élément2.local_name
 }
 
-noeuds_textes_sont_égaux :: fonc (texte1: *NoeudTexte, texte2: *NoeudTexte) -> bool
+noeuds_textes_sont_égaux :: fonc (texte1: *Text, texte2: *Text) -> bool
 {
     si texte1.données != texte2.données {
         retourne faux
@@ -23,7 +23,7 @@ noeuds_documents_sont_égaux :: fonc (document1: *Document, document2: *Document
     retourne vrai
 }
 
-noeuds_doctypes_sont_égaux :: fonc (document1: *NoeudTypeDocument, document2: *NoeudTypeDocument) -> bool
+noeuds_doctypes_sont_égaux :: fonc (document1: *DocumentType, document2: *DocumentType) -> bool
 {
     /* Pour le moment les doctypes sont toujours égaux, ils n'ont pas de propriétés. */
     retourne vrai
@@ -38,7 +38,7 @@ noeuds_commentaires_sont_égaux :: fonc (commentaire1: *NoeudCommentaire, commen
  * Ceci ne compare pas les enfants des noeuds, pour cela, utilisez
  * `arbres_sont_égaux`.
  */
-noeuds_sont_égaux :: fonc (noeud1: *Noeud, noeud2: *Noeud) -> bool
+noeuds_sont_égaux :: fonc (noeud1: *Node, noeud2: *Node) -> bool
 {
     si noeud1.genre != noeud2.genre {
         retourne faux
@@ -58,18 +58,18 @@ noeuds_sont_égaux :: fonc (noeud1: *Noeud, noeud2: *Noeud) -> bool
                 retourne faux
             }
         }
-        Élément {
-            si !noeuds_éléments_sont_égaux(noeud1 comme *Élément, noeud2 comme *Élément) {
+        Element {
+            si !noeuds_éléments_sont_égaux(noeud1 comme *Element, noeud2 comme *Element) {
                 retourne faux
             }
         }
         Texte {
-            si !noeuds_textes_sont_égaux(noeud1 comme *NoeudTexte, noeud2 comme *NoeudTexte) {
+            si !noeuds_textes_sont_égaux(noeud1 comme *Text, noeud2 comme *Text) {
                 retourne faux
             }
         }
-        TypeDocument {
-            si !noeuds_doctypes_sont_égaux(noeud1 comme *NoeudTypeDocument, noeud2 comme *NoeudTypeDocument) {
+        DocumentType {
+            si !noeuds_doctypes_sont_égaux(noeud1 comme *DocumentType, noeud2 comme *DocumentType) {
                 retourne faux
             }
         }
@@ -94,7 +94,7 @@ noeuds_sont_égaux :: fonc (noeud1: *Noeud, noeud2: *Noeud) -> bool
 /* Retourne vrai si les deux arbres ont les mêmes enfants, c'est-à-dire de mêmes
  * genres et de mêmes valeurs.
  */
-arbres_sont_égaux :: fonc (arbre1: *Noeud, arbre2: *Noeud) -> bool
+arbres_sont_égaux :: fonc (arbre1: *Node, arbre2: *Node) -> bool
 {
     saufsi arbre1 && arbre2 {
         retourne faux

@@ -6,6 +6,7 @@ importe Compilatrice
 TAG_vide : DOMString = ---
 
 TAG_a : DOMString = ---
+TAG_acronym : DOMString = ---
 TAG_address : DOMString = ---
 TAG_annotation_xml : DOMString = ---
 TAG_applet : DOMString = ---
@@ -29,6 +30,7 @@ TAG_center : DOMString = ---
 TAG_code : DOMString = ---
 TAG_col : DOMString = ---
 TAG_colgroup : DOMString = ---
+TAG_color_profile : DOMString = ---
 TAG_datalist : DOMString = ---
 TAG_dd : DOMString = ---
 TAG_desc : DOMString = ---
@@ -44,6 +46,11 @@ TAG_fieldset : DOMString = ---
 TAG_figcaption : DOMString = ---
 TAG_figure : DOMString = ---
 TAG_font : DOMString = ---
+TAG_font_face : DOMString = ---
+TAG_font_face_src : DOMString = ---
+TAG_font_face_uri : DOMString = ---
+TAG_font_face_format : DOMString = ---
+TAG_font_face_name : DOMString = ---
 TAG_footer : DOMString = ---
 TAG_foreignObject : DOMString = ---
 TAG_form : DOMString = ---
@@ -66,6 +73,7 @@ TAG_image : DOMString = ---
 TAG_img : DOMString = ---
 TAG_input : DOMString = ---
 TAG_ins : DOMString = ---
+TAG_isindex : DOMString = ---
 TAG_keygen : DOMString = ---
 TAG_legend : DOMString = ---
 TAG_label : DOMString = ---
@@ -79,11 +87,14 @@ TAG_menu : DOMString = ---
 TAG_meta : DOMString = ---
 TAG_meter : DOMString = ---
 TAG_mi : DOMString = ---
+TAG_missing_glyph : DOMString = ---
 TAG_mo : DOMString = ---
 TAG_mn : DOMString = ---
 TAG_ms : DOMString = ---
 TAG_mtext : DOMString = ---
+TAG_multicol : DOMString = ---
 TAG_nav : DOMString = ---
+TAG_nextid : DOMString = ---
 TAG_nobr : DOMString = ---
 TAG_noembed : DOMString = ---
 TAG_noframes : DOMString = ---
@@ -109,6 +120,7 @@ TAG_script : DOMString = ---
 TAG_section : DOMString = ---
 TAG_select : DOMString = ---
 TAG_small : DOMString = ---
+TAG_spacer : DOMString = ---
 TAG_source : DOMString = ---
 TAG_strike : DOMString = ---
 TAG_strong : DOMString = ---
@@ -380,6 +392,27 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             nom_tag = it.texte.avance(4)
             si nom_tag == "annotation_xml" {
                 nom_tag = "annotation-xml"
+            }
+            sinon si nom_tag == "color_profile" {
+                nom_tag = "color-profile"
+            }
+            sinon si nom_tag == "font_face" {
+                nom_tag = "font-face"
+            }
+            sinon si nom_tag == "font_face_src" {
+                nom_tag = "font-face-src"
+            }
+            sinon si nom_tag == "font_face_uri" {
+                nom_tag = "font-face-uri"
+            }
+            sinon si nom_tag == "font_face_format" {
+                nom_tag = "font-face-format"
+            }
+            sinon si nom_tag == "font_face_name" {
+                nom_tag = "font-face-name"
+            }
+            sinon si nom_tag == "missing_glyph" {
+                nom_tag = "missing-glyph"
             }
         }
         sinon si it.texte.commence_par("ATTR_") {

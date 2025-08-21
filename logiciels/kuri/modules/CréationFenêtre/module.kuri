@@ -402,8 +402,8 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
         pointeur_données := données.pointeur
         pour tailles.taille / 2 {
-            taille_type_mime := tailles[index_it * 2 + 0]
-            taille_données_mime := tailles[index_it * 2 + 1]
+            taille_type_mime := tailles[indice_it * 2 + 0]
+            taille_données_mime := tailles[indice_it * 2 + 1]
 
             mime := tableau_ajoute_élément(*mimes)
 

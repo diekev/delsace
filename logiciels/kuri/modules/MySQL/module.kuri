@@ -288,25 +288,25 @@ TableMySQL :: struct {
     pilote: *PiloteMySQL
 }
 
-trouve_info_membres_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> [..]*InfoTypeMembreStructure
+trouve_info_rubriques_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> [..]*InfoTypeRubriqueStructure
 {
-    infos_membres: [..]*InfoTypeMembreStructure
+    infos_rubriques: [..]*InfoTypeRubriqueStructure
 
     /* vérifie que le type possède les noms des colonnes */
     pour colonnes {
-        pour membre dans info.membres {
-            si membre.nom == it {
-                tableau_ajoute(*infos_membres, membre)
+        pour rubrique dans info.rubriques {
+            si rubrique.nom == it {
+                tableau_ajoute(*infos_rubriques, rubrique)
                 arrête
             }
         }
         sansarrêt {
-            déloge(infos_membres)
+            déloge(infos_rubriques)
             panique("Colonne '%' introuvable dans le type !", it)
         }
     }
 
-    retourne infos_membres
+    retourne infos_rubriques
 }
 
 sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
@@ -318,14 +318,14 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
 
-    infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
 
-    saufsi infos_membres {
+    saufsi infos_rubriques {
         imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
         retourne résultat
     }
 
-    diffère déloge(infos_membres)
+    diffère déloge(infos_rubriques)
 
     /* construit la chaine de la requête */
     enchaineuse: Enchaineuse
@@ -364,13 +364,13 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
         eini_valeur : eini = valeur
 
         pour i dans 0 ... curseur.nombre_colonne - 1 {
-            membre := infos_membres[i]
+            rubrique := infos_rubriques[i]
 
-            valeur_membre : eini = ---
-            valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
-            valeur_membre.info = membre.id
+            valeur_rubrique : eini = ---
+            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage
+            valeur_rubrique.info = rubrique.id
 
-            fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, membre.id)
+            fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, rubrique.id)
 
             saufsi fonction {
                 déloge(résultat)
@@ -380,8 +380,8 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
             chn := colonne_suivante(*curseur)
 
             tampon: []octet
-            tampon.pointeur = valeur_membre.pointeur comme *z8
-            tampon.taille = membre.id.taille_en_octet comme z64
+            tampon.pointeur = valeur_rubrique.pointeur comme *z8
+            tampon.taille = rubrique.id.taille_en_octet comme z64
 
             saufsi fonction.rappel(chn, tampon) {
                 déloge(résultat)
@@ -403,14 +403,14 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
 
-    infos_membres := trouve_info_membres_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
 
-    saufsi infos_membres {
+    saufsi infos_rubriques {
         imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
         retourne faux
     }
 
-    diffère déloge(infos_membres)
+    diffère déloge(infos_rubriques)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -426,13 +426,13 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, ") VALUES ")
 
     virgule = " ("
-    pour membre dans infos_membres {
-        valeur_membre : eini = ---
-        valeur_membre.pointeur = *valeur comme *z8 + membre.décalage
-        valeur_membre.info = membre.id
+    pour rubrique dans infos_rubriques {
+        valeur_rubrique : eini = ---
+        valeur_rubrique.pointeur = *valeur comme *z8 + rubrique.décalage
+        valeur_rubrique.info = rubrique.id
 
         ajoute_au_tampon(*enchaineuse, virgule)
-        imprime_valeur(*enchaineuse, valeur_membre, vrai)
+        imprime_valeur(*enchaineuse, valeur_rubrique, vrai)
         virgule = ", "
     }
 
@@ -463,8 +463,8 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     info := info_de(T)
     résultat: [..]T
 
-    infos_membres := trouve_info_membres_pour_colonnes("[MySQL]", info, ...colonnes)
-    diffère déloge(infos_membres)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL]", info, ...colonnes)
+    diffère déloge(infos_rubriques)
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(pilote) piège _ {
@@ -488,13 +488,13 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
         eini_valeur : eini = valeur
 
         pour i dans 0 ... curseur.nombre_colonne - 1 {
-            membre := infos_membres[i]
+            rubrique := infos_rubriques[i]
 
-            valeur_membre : eini = ---
-            valeur_membre.pointeur = eini_valeur.pointeur + membre.décalage
-            valeur_membre.info = membre.id
+            valeur_rubrique : eini = ---
+            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage
+            valeur_rubrique.info = rubrique.id
 
-            fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
+            fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id)
 
             saufsi fonction {
                 déloge(résultat)
@@ -504,8 +504,8 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
             chn := colonne_suivante(*curseur)
 
             tampon: []octet
-            tampon.pointeur = valeur_membre.pointeur comme *z8
-            tampon.taille = membre.id.taille_en_octet comme z64
+            tampon.pointeur = valeur_rubrique.pointeur comme *z8
+            tampon.taille = rubrique.id.taille_en_octet comme z64
 
             saufsi fonction.rappel(chn, tampon) {
                 déloge(résultat)
@@ -521,14 +521,14 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
 
 fonctions_parsages_mysql: [..]FonctionParsage
 
-parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel(T)
+parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, rubriques: ...chaine) -> Optionnel(T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
-    infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques)
 
-    saufsi infos_membres {
+    saufsi infos_rubriques {
         retourne
     }
 
@@ -538,21 +538,21 @@ parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membr
 
     valeur: T
 
-    saufsi parse_valeur(curseur, valeur, infos_membres) {
+    saufsi parse_valeur(curseur, valeur, infos_rubriques) {
         retourne
     }
 
     retourne valeur
 }
 
-parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, membres: ...chaine) -> Optionnel([..]T)
+parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, rubriques: ...chaine) -> Optionnel([..]T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
     infos := info_de(T)
-    infos_membres := trouve_info_membres_pour_colonnes("", infos, ...membres)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques)
 
-    saufsi infos_membres {
+    saufsi infos_rubriques {
         retourne
     }
 
@@ -565,7 +565,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     répète {
         valeur: T
 
-        saufsi parse_valeur(curseur, valeur, infos_membres) {
+        saufsi parse_valeur(curseur, valeur, infos_rubriques) {
             déloge(liste)
             retourne
         }
@@ -576,10 +576,10 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     retourne liste
 }
 
-parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [..]*InfoTypeMembreStructure) -> bool
+parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: [..]*InfoTypeRubriqueStructure) -> bool
 {
-    pour infos_membres {
-        membre := it
+    pour infos_rubriques {
+        rubrique := it
         chn := colonne_suivante(curseur)
 
         /* La valeur peut être nulle (NULL) donc nous devons éviter de tenter de la parser,
@@ -589,14 +589,14 @@ parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_membres: [
             continue
         }
 
-        fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, membre.id)
+        fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id)
 
         saufsi fonction_de_parsage {
             retourne faux
         }
 
-        valeur_membre := eini_depuis_info_membre(valeur, membre)
-        tampon := tampon_pour_eini(valeur_membre)
+        valeur_rubrique := eini_depuis_info_rubrique(valeur, rubrique)
+        tampon := tampon_pour_eini(valeur_rubrique)
 
         saufsi fonction_de_parsage.rappel(chn, tampon) {
             retourne faux

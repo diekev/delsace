@@ -82,18 +82,18 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
         kuri::tableau<DonnéesLabel> labels{};
     };
 
-    struct DonnéesMembreTypeComposé {
+    struct DonnéesRubriqueTypeComposé {
         Lexème *nom = nullptr;
         TypeType type{};
     };
 
     struct DonnéesTypeComposé {
         LexèmesType données_types_nominal{};
-        kuri::tablet<DonnéesMembreTypeComposé, 6> membres{};
+        kuri::tablet<DonnéesRubriqueTypeComposé, 6> rubriques{};
         TypeType type_sous_jacent{};
     };
 
-    struct InfoInitMembreStructure {
+    struct InfoInitRubriqueStructure {
         Lexème const *nom = nullptr;
         TypeAtome atome{};
     };
@@ -136,7 +136,7 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
     void analyse_charge(NomInstruction nom);
     void analyse_index(NomInstruction nom);
     void analyse_label();
-    void analyse_membre(NomInstruction nom);
+    void analyse_rubrique(NomInstruction nom);
     void analyse_retourne();
     void analyse_si();
     void analyse_stocke();
@@ -307,25 +307,25 @@ void BaseSyntaxeuseRI<Impl>::analyse_structure()
 
     CONSOMME_LEXEME(EGAL, "Attendu « = » après le nom de la structure.");
     CONSOMME_LEXEME(ACCOLADE_OUVRANTE,
-                    "Attendu « { » pour commencer la liste des membres de la structure.");
+                    "Attendu « { » pour commencer la liste des rubriques de la structure.");
 
-    kuri::tablet<DonnéesMembreTypeComposé, 6> membres;
+    kuri::tablet<DonnéesRubriqueTypeComposé, 6> rubriques;
     while (!fini()) {
         if (apparie(GenreLexème::ACCOLADE_FERMANTE)) {
             break;
         }
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu une chaine de caractère pour le nom du membre.");
+            rapporte_erreur("Attendu une chaine de caractère pour le nom du rubrique.");
             return;
         }
 
-        auto nom_membre = lexème_courant();
+        auto nom_rubrique = lexème_courant();
         consomme();
 
-        auto type_membre = analyse_type();
+        auto type_rubrique = analyse_type();
 
-        membres.ajoute(DonnéesMembreTypeComposé{nom_membre, type_membre});
+        rubriques.ajoute(DonnéesRubriqueTypeComposé{nom_rubrique, type_rubrique});
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
         }
@@ -334,11 +334,11 @@ void BaseSyntaxeuseRI<Impl>::analyse_structure()
     }
 
     CONSOMME_LEXEME(ACCOLADE_FERMANTE,
-                    "Attendu « } » pour commencer la liste des membres de la structure.");
+                    "Attendu « } » pour commencer la liste des rubriques de la structure.");
 
     DonnéesTypeComposé données_type;
     données_type.données_types_nominal = données;
-    données_type.membres = membres;
+    données_type.rubriques = rubriques;
     impl()->crée_déclaration_type_structure(données_type);
 }
 
@@ -368,25 +368,25 @@ void BaseSyntaxeuseRI<Impl>::analyse_union(bool est_nonsûre)
 
     CONSOMME_LEXEME(EGAL, "Attendu « = » après le nom de l'union.");
     CONSOMME_LEXEME(ACCOLADE_OUVRANTE,
-                    "Attendu « { » pour commencer la liste des membres de la structure.");
+                    "Attendu « { » pour commencer la liste des rubriques de la structure.");
 
-    kuri::tablet<DonnéesMembreTypeComposé, 6> membres;
+    kuri::tablet<DonnéesRubriqueTypeComposé, 6> rubriques;
     while (!fini()) {
         if (apparie(GenreLexème::ACCOLADE_FERMANTE)) {
             break;
         }
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE) && !apparie(GenreLexème::NOMBRE_ENTIER)) {
-            rapporte_erreur("Attendu une chaine de caractère pour le nom du membre.");
+            rapporte_erreur("Attendu une chaine de caractère pour le nom du rubrique.");
             return;
         }
 
-        auto nom_membre = lexème_courant();
+        auto nom_rubrique = lexème_courant();
         consomme();
 
-        auto type_membre = analyse_type();
+        auto type_rubrique = analyse_type();
 
-        membres.ajoute(DonnéesMembreTypeComposé{nom_membre, type_membre});
+        rubriques.ajoute(DonnéesRubriqueTypeComposé{nom_rubrique, type_rubrique});
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
         }
@@ -395,11 +395,11 @@ void BaseSyntaxeuseRI<Impl>::analyse_union(bool est_nonsûre)
     }
 
     CONSOMME_LEXEME(ACCOLADE_FERMANTE,
-                    "Attendu « } » pour commencer la liste des membres de l'union.");
+                    "Attendu « } » pour commencer la liste des rubriques de l'union.");
 
     DonnéesTypeComposé données_type;
     données_type.données_types_nominal = données;
-    données_type.membres = membres;
+    données_type.rubriques = rubriques;
     impl()->crée_déclaration_type_union(données_type, est_nonsûre);
 }
 
@@ -561,7 +561,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_instruction()
     ANALYSE_INSTRUCTION_NOMMEE(alloue);
     ANALYSE_INSTRUCTION_NOMMEE(appel);
     ANALYSE_INSTRUCTION_NOMMEE(charge);
-    ANALYSE_INSTRUCTION_NOMMEE(membre);
+    ANALYSE_INSTRUCTION_NOMMEE(rubrique);
     ANALYSE_INSTRUCTION_NOMMEE(index);
     ANALYSE_INSTRUCTION_TRANSTYPE(augmente_naturel);
     ANALYSE_INSTRUCTION_TRANSTYPE(augmente_naturel_vers_relatif);
@@ -880,7 +880,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
     if (apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
         consomme();
 
-        kuri::tablet<InfoInitMembreStructure, 6> membres;
+        kuri::tablet<InfoInitRubriqueStructure, 6> rubriques;
 
         while (!fini()) {
             if (apparie(GenreLexème::ACCOLADE_FERMANTE)) {
@@ -888,13 +888,13 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             }
 
             CONSOMME_IDENTIFIANT(
-                nom_membre, "Attendu une chaine de caractère pour le nom du membre", {});
+                nom_rubrique, "Attendu une chaine de caractère pour le nom du rubrique", {});
 
-            CONSOMME_LEXEME(EGAL, "Attendu « = » pour la valeur du membre.", {});
+            CONSOMME_LEXEME(EGAL, "Attendu « = » pour la valeur du rubrique.", {});
 
-            auto atome_membre = analyse_atome_typé();
+            auto atome_rubrique = analyse_atome_typé();
 
-            membres.ajoute({lexème_nom_membre, atome_membre});
+            rubriques.ajoute({lexème_nom_rubrique, atome_rubrique});
 
             if (!apparie(GenreLexème::VIRGULE)) {
                 break;
@@ -907,7 +907,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
                         "Attendu une accolade fermante pour terminer la structure constante.",
                         {});
 
-        return impl()->crée_construction_structure(type, membres);
+        return impl()->crée_construction_structure(type, rubriques);
     }
 
     if (apparie(GenreLexème::NOMBRE_ENTIER)) {
@@ -1130,17 +1130,17 @@ void BaseSyntaxeuseRI<Impl>::analyse_index(NomInstruction nom)
 }
 
 template <typename Impl>
-void BaseSyntaxeuseRI<Impl>::analyse_membre(NomInstruction nom)
+void BaseSyntaxeuseRI<Impl>::analyse_rubrique(NomInstruction nom)
 {
     consomme();
-    auto const atome_membre = analyse_atome_typé();
-    CONSOMME_LEXEME(VIRGULE, "attendu une virgule après l'atome de « membre »");
-    REQUIERS_NOMBRE_ENTIER("attendu un nombre entier pour l'index du membre");
-    auto const index_membre = lexème_courant()->valeur_entiere;
+    auto const atome_rubrique = analyse_atome_typé();
+    CONSOMME_LEXEME(VIRGULE, "attendu une virgule après l'atome de « rubrique »");
+    REQUIERS_NOMBRE_ENTIER("attendu un nombre entier pour l'index du rubrique");
+    auto const index_rubrique = lexème_courant()->valeur_entiere;
     consomme();
     CONSOMME_POINT_VIRGULE;
 
-    impl()->crée_membre(atome_membre, index_membre);
+    impl()->crée_rubrique(atome_rubrique, index_rubrique);
 }
 
 template <typename Impl>
@@ -1345,7 +1345,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
     DescriptionAtome crée_référence_instruction(LexèmesType const &type, Lexème const *lexème);
 
     DescriptionAtome crée_construction_structure(
-        LexèmesType const &type, kuri::tableau_statique<InfoInitMembreStructure> membres);
+        LexèmesType const &type, kuri::tableau_statique<InfoInitRubriqueStructure> rubriques);
 
     DescriptionAtome crée_constante_entière(LexèmesType const &type, Lexème const *lexème);
 
@@ -1399,7 +1399,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     void crée_label(uint64_t index);
 
-    void crée_membre(DescriptionAtome const &valeur, uint64_t index);
+    void crée_rubrique(DescriptionAtome const &valeur, uint64_t index);
 
     void crée_retourne(DescriptionAtome const &valeur);
 
@@ -1526,7 +1526,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     void crée_globale(Lexème const *lexème, Type *type, Atome *initialisateur);
 
     Atome *crée_construction_structure(Type *type,
-                                       kuri::tableau_statique<InfoInitMembreStructure> membres);
+                                       kuri::tableau_statique<InfoInitRubriqueStructure> rubriques);
 
     Atome *crée_constante_entière(Type *type, Lexème const *lexème);
 
@@ -1580,7 +1580,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
     void crée_label(uint64_t index);
 
-    void crée_membre(Atome *valeur, uint64_t index);
+    void crée_rubrique(Atome *valeur, uint64_t index);
 
     void crée_retourne(Atome *valeur);
 

@@ -141,7 +141,7 @@ détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
     params.pos = PositionCodeSource()
 
     pour allocatrice.racines {
-        taille_bloc := (1 comme z64) << index_it
+        taille_bloc := (1 comme z64) << indice_it
         bloc := it
         tantque bloc != nul {
             bloc_suivant := bloc.suivant

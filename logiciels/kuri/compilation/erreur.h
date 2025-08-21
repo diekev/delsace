@@ -42,9 +42,9 @@ namespace erreur {
     ENUMERE_GENRE_ERREUR_EX(TYPE_DIFFERENTS)                                                      \
     ENUMERE_GENRE_ERREUR_EX(STRUCTURE_INCONNUE)                                                   \
     ENUMERE_GENRE_ERREUR_EX(STRUCTURE_REDEFINIE)                                                  \
-    ENUMERE_GENRE_ERREUR_EX(MEMBRE_INCONNU)                                                       \
-    ENUMERE_GENRE_ERREUR_EX(MEMBRE_INACTIF)                                                       \
-    ENUMERE_GENRE_ERREUR_EX(MEMBRE_REDEFINI)                                                      \
+    ENUMERE_GENRE_ERREUR_EX(RUBRIQUE_INCONNUE)                                                    \
+    ENUMERE_GENRE_ERREUR_EX(RUBRIQUE_INACTIVE)                                                    \
+    ENUMERE_GENRE_ERREUR_EX(RUBRIQUE_REDEFINIE)                                                   \
     ENUMERE_GENRE_ERREUR_EX(ASSIGNATION_INVALIDE)                                                 \
     ENUMERE_GENRE_ERREUR_EX(ASSIGNATION_MAUVAIS_TYPE)                                             \
     ENUMERE_GENRE_ERREUR_EX(CONTROLE_INVALIDE)                                                    \
@@ -109,10 +109,10 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      Type const *type_tableau,
                                      int64_t index_acces);
 
-void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression const *acces,
-                    NoeudExpression const *membre,
-                    TypeCompose const *type);
+void rubrique_inconnu(EspaceDeTravail const &espace,
+                      NoeudExpression const *acces,
+                      NoeudExpression const *rubrique,
+                      TypeCompose const *type);
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,

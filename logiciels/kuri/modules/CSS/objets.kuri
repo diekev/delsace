@@ -22,7 +22,7 @@ StyleSheet :: struct {
 CSSStyleSheet :: struct {
     empl base: StyleSheet
 
-    owner_node: *HTML.Élément
+    owner_node: *HTML.Element
     parent_style_sheet: *CSSStyleSheet
     owner_rule: *CSSRule
     rules: [..]*CSSRule
@@ -151,7 +151,7 @@ CSSStyleDeclaration :: struct {
     /* The CSS rule that the CSS declaration block is associated with, if any, or null otherwise. */
     parent_css_rule: *CSSRule
     /* The Element that the CSS declaration block is associated with, if any, or null otherwise. */
-    owner_node: *HTML.Élément
+    owner_node: *HTML.Element
     /* Set if the object is a computed style declaration, rather than a specified style. */
     computed: bool
     /* Set when the CSS declaration block is updating the owner node’s style attribute. */

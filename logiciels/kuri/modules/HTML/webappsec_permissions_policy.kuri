@@ -7,7 +7,7 @@ PermissionsPolicy :: struct {
 }
 
 /* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
-crée_permisions_policy_pour_navigable :: fonc (container: *Élément @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
+crée_permisions_policy_pour_navigable :: fonc (container: *Element @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne PermissionsPolicy()

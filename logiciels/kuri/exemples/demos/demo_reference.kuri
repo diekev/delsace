@@ -32,7 +32,7 @@ FOO :: struct {
     a := 123
 }
 
-assigne_membre_de_référence :: fonc (f: &FOO) -> rien
+assigne_rubrique_de_référence :: fonc (f: &FOO) -> rien
 {
     f.a = 987
 }
@@ -63,7 +63,7 @@ principale :: fonc ()
 
     imprime("%\n", foo)
 
-    assigne_membre_de_référence(foo)
+    assigne_rubrique_de_référence(foo)
     imprime("%\n", foo)
 
     /* ------------------------------------------------------------------------- */

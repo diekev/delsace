@@ -31,13 +31,13 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             ajoute_au_tampon(enchaineuse, "{")
             idx := 0
 
-            pour membre dans info_arg.membres {
-                si membre.drapeaux.EST_CONSTANT {
+            pour rubrique dans info_arg.rubriques {
+                si rubrique.drapeaux.EST_CONSTANTE {
                     continue
                 }
 
-                nom := membre.nom
-                décalage := membre.décalage
+                nom := rubrique.nom
+                décalage := rubrique.décalage
 
                 si idx != 0 {
                     ajoute_au_tampon(enchaineuse, ',')
@@ -45,11 +45,11 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
 
                 ajoute_au_tampon(enchaineuse, "\"", nom, "\":")
 
-                valeur_membre : eini = ---
-                valeur_membre.pointeur = valeur.pointeur + décalage
-                valeur_membre.info = membre.id
+                valeur_rubrique : eini = ---
+                valeur_rubrique.pointeur = valeur.pointeur + décalage
+                valeur_rubrique.info = rubrique.id
 
-                imprime_valeur_json(enchaineuse, valeur_membre)
+                imprime_valeur_json(enchaineuse, valeur_rubrique)
 
                 idx += 1
             }

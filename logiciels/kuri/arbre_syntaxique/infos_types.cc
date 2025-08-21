@@ -80,22 +80,22 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
     }
 }
 
-static void remplis_membre_info_type(AllocatriceInfosType &allocatrice_infos_types,
-                                     InfoTypeMembreStructure *info_type_membre,
-                                     MembreTypeComposé const &membre)
+static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_types,
+                                     InfoTypeRubriqueStructure *info_type_rubrique,
+                                     RubriqueTypeComposé const &rubrique)
 {
-    info_type_membre->décalage = int32_t(membre.decalage);
-    info_type_membre->nom = membre.nom->nom;
-    info_type_membre->drapeaux = membre.drapeaux;
+    info_type_rubrique->décalage = int32_t(rubrique.decalage);
+    info_type_rubrique->nom = rubrique.nom->nom;
+    info_type_rubrique->drapeaux = rubrique.drapeaux;
 
     auto annotations = kuri::tablet<const Annotation *, 6>();
 
-    if (membre.decl) {
-        if (membre.decl->est_base_déclaration_variable()) {
-            copie_annotations(membre.decl->comme_base_déclaration_variable()->annotations,
+    if (rubrique.decl) {
+        if (rubrique.decl->est_base_déclaration_variable()) {
+            copie_annotations(rubrique.decl->comme_base_déclaration_variable()->annotations,
                               annotations);
         }
-        info_type_membre->annotations = allocatrice_infos_types.donne_tranche(annotations);
+        info_type_rubrique->annotations = allocatrice_infos_types.donne_tranche(annotations);
     }
 }
 
@@ -113,7 +113,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
     // À FAIRE : il est possible que les types ne soient pas encore validé quand nous générons des
     // messages pour les entêtes de fonctions
     if (type == nullptr) {
-        /* Nous pouvons être ici pour les membres nulles des classes polymorphiques. */
+        /* Nous pouvons être ici pour les rubriques nulles des classes polymorphiques. */
         return nullptr;
     }
 
@@ -291,26 +291,26 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                     crée_info_type_pour(typeuse, polymorphe));
             }
 
-            auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
-            membres.réserve(type_struct->membres.taille());
+            auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
+            rubriques.réserve(type_struct->rubriques.taille());
 
-            POUR (type_struct->membres) {
+            POUR (type_struct->rubriques) {
                 if (it.nom == ID::chaine_vide) {
                     continue;
                 }
 
-                if (it.possède_drapeau(MembreTypeComposé::PROVIENT_D_UN_EMPOI)) {
+                if (it.possède_drapeau(RubriqueTypeComposé::PROVIENT_D_UN_EMPOI)) {
                     continue;
                 }
 
-                auto info_type_membre =
-                    allocatrice_infos_types.infos_types_membres_structures.ajoute_élément();
-                info_type_membre->info = crée_info_type_pour(typeuse, it.type);
-                remplis_membre_info_type(allocatrice_infos_types, info_type_membre, it);
-                membres.ajoute(info_type_membre);
+                auto info_type_rubrique =
+                    allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
+                info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
+                remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
+                rubriques.ajoute(info_type_rubrique);
             }
 
-            info_type->membres = allocatrice_infos_types.donne_tranche(membres);
+            info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
 
             auto annotations = kuri::tablet<const Annotation *, 6>();
             copie_annotations(type_struct->annotations, annotations);
@@ -348,18 +348,18 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                     crée_info_type_pour(typeuse, polymorphe));
             }
 
-            auto membres = kuri::tablet<InfoTypeMembreStructure *, 6>();
-            membres.réserve(type_union->membres.taille());
+            auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
+            rubriques.réserve(type_union->rubriques.taille());
 
-            POUR (type_union->membres) {
-                auto info_type_membre =
-                    allocatrice_infos_types.infos_types_membres_structures.ajoute_élément();
-                info_type_membre->info = crée_info_type_pour(typeuse, it.type);
-                remplis_membre_info_type(allocatrice_infos_types, info_type_membre, it);
-                membres.ajoute(info_type_membre);
+            POUR (type_union->rubriques) {
+                auto info_type_rubrique =
+                    allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
+                info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
+                remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
+                rubriques.ajoute(info_type_rubrique);
             }
 
-            info_type->membres = allocatrice_infos_types.donne_tranche(membres);
+            info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
 
             auto annotations = kuri::tablet<const Annotation *, 6>();
             copie_annotations(type_union->annotations, annotations);
@@ -383,9 +383,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 crée_info_type_pour(typeuse, type_enum->type_sous_jacent));
 
             auto noms = kuri::tablet<kuri::chaine_statique, 6>();
-            noms.réserve(type_enum->membres.taille());
+            noms.réserve(type_enum->rubriques.taille());
 
-            POUR (type_enum->membres) {
+            POUR (type_enum->rubriques) {
                 if (it.est_implicite()) {
                     continue;
                 }
@@ -421,9 +421,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             if (type_sortie->est_type_tuple()) {
                 auto tuple = type_sortie->comme_type_tuple();
-                types_sortie.réserve(tuple->membres.taille());
+                types_sortie.réserve(tuple->rubriques.taille());
 
-                POUR (tuple->membres) {
+                POUR (tuple->rubriques) {
                     types_sortie.ajoute(crée_info_type_pour(typeuse, it.type));
                 }
             }

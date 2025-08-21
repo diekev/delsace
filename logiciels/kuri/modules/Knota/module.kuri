@@ -151,7 +151,7 @@ déconnecte :: fonc (prise: *PriseEntrée) -> *Connexion
 
     pour prise_sortie.connexions {
         si it.prise_entrée == prise {
-            tableau_supprime_indice(*prise_sortie.connexions, index_it)
+            tableau_supprime_indice(*prise_sortie.connexions, indice_it)
             arrête
         }
     }
@@ -1413,7 +1413,7 @@ opérateur pour :: fonc (itératrice: ItératriceNoeud) -> *Noeud
         noeud := it comme *Noeud
 
         `it = noeud
-        `index_it = indice_noeud
+        `indice_it = indice_noeud
 
         #corps_boucle
 

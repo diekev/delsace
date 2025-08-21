@@ -326,7 +326,7 @@ apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
     }
 
     pour points_de_code {
-        si lexeuse.contenu.points_de_code[lexeuse.curseur + index_it] != it {
+        si lexeuse.contenu.points_de_code[lexeuse.curseur + indice_it] != it {
             retourne faux
         }
     }

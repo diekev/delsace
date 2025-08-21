@@ -1,7 +1,7 @@
 importe Fondation
 
 TEST :: struct {
-    m := "Membre de la structure"
+    m := "Rubrique de la structure"
     tabl: [2]z32
     mat4x4: [4][4]z32
 }

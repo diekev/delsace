@@ -40,7 +40,7 @@ nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
     retourne gna.uniforme(0.0, 10.0) comme z32
 }
 
-génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Élément)
+génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Element)
 {
     si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
         retourne
@@ -59,7 +59,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
 
     nombre_enfants := nombre_enfants_possibles(gna, parent.local_name)
     pour 0 ... nombre_enfants - 1 {
-        enfant := crée_élément_avec_tag(ctx_entropie.document, tag_enfant_possible(gna, parent.local_name))
+        enfant := create_element(ctx_entropie.document, tag_enfant_possible(gna, parent.local_name))
         ctx_entropie.éléments_créés += 1
         ajoute_enfant(parent, enfant)
     }
@@ -70,7 +70,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
             continue
         }
 
-        élément_enfant := it comme *Élément
+        élément_enfant := it comme *Element
 
         saufsi !est_tag_auto_fermant(élément_enfant.local_name) {
             continue
@@ -145,9 +145,9 @@ crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *J
 
     doctype := crée_noeud_doctype(document)
 
-    html := crée_élément_avec_tag(document, TAG_html)
-    head := crée_élément_avec_tag(document, TAG_head)
-    body := crée_élément_avec_tag(document, TAG_body)
+    html := create_element(document, TAG_html)
+    head := create_element(document, TAG_head)
+    body := create_element(document, TAG_body)
 
     ajoute_enfant(document, doctype)
     ajoute_enfant(document, html)

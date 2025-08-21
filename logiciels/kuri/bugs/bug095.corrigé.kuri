@@ -1,6 +1,6 @@
-/* L'initialisation de membre de type chaine ne se fait pas avec la valeur par
+/* L'initialisation de rubrique de type chaine ne se fait pas avec la valeur par
  * défaut assignée dans la structure.
- * Catégorie : [génération code, structure, expression membre]
+ * Catégorie : [génération code, structure, expression rubrique]
  */
 
 StructureDeBase :: struct {

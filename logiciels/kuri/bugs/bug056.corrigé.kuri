@@ -1,4 +1,4 @@
-/* Exception en point flottant quand une structure n'a pas de membre, autre
+/* Exception en point flottant quand une structure n'a pas de rubrique, autre
  * que d'autres structures
  * Catégorie : [crash, taille structure, structure vide]
  */

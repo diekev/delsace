@@ -548,7 +548,7 @@ possède_informations_identité :: fonc (uri: &URI) -> bool
 
 /* Crée un chemin URL avec des paramètres provenant d'une structure :
  *
- * /mon/chemin/?membre1=valeur1&membre2=valeur2
+ * /mon/chemin/?rubrique1=valeur1&rubrique2=valeur2
  */
 chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chaine
 {
@@ -565,12 +565,12 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
         ajoute_au_tampon(*enchaineuse, "/")
     }
 
-    itératrice := crée_itératrice_membre(paramètres)
+    itératrice := crée_itératrice_rubrique(paramètres)
 
     séparateur := "?"
 
     boucle {
-        valeur, nom := itératrice.membre_suivant()
+        valeur, nom := itératrice.rubrique_suivante()
 
         saufsi valeur.est_valide() {
             arrête

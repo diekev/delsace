@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------- */
-/** \nom Noeud
+/** \nom Node
  * https://dom.spec.whatwg.org/#node
  * \{ */
 
@@ -11,15 +11,15 @@ TableVirtuelleNoeud :: struct {
     sur_get_the_parent = node_sur_get_the_parent
 
     /* Appelé quand le noeud est insérer dans un noeud parent. */
-    sur_insertion: fonc(*Noeud)(rien)
+    sur_insertion: fonc(*Node)(rien)
     /* Appelé quand le noeud devinent connecté. */
-    sur_connexion: fonc(*Noeud)(rien)
+    sur_connexion: fonc(*Node)(rien)
     /* Appelé quand le noeud devinent déconnecté. */
-    sur_déconnexion: fonc(*Noeud)(rien)
+    sur_déconnexion: fonc(*Node)(rien)
     /* Appelé quand les enfants sont changés. */
-    sur_changement_enfants: fonc(*Noeud)(rien)
+    sur_changement_enfants: fonc(*Node)(rien)
     /* Appelé quand le document est devenu fully active. */
-    sur_document_fully_active: fonc(*Noeud)(rien)
+    sur_document_fully_active: fonc(*Node)(rien)
 }
 
 #portée_export
@@ -39,25 +39,25 @@ DOCUMENT_FRAGMENT_NODE : n16 : 11
 NOTATION_NODE : n16 : 12 // legacy
 
 GenreNoeud :: énum n16 {
-    Élément :: ELEMENT_NODE
+    Element :: ELEMENT_NODE
     Attr :: ATTRIBUTE_NODE
     Texte :: TEXT_NODE
     Section_CDATA :: CDATA_SECTION_NODE
     ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
     Commentaire :: COMMENT_NODE
     Document :: DOCUMENT_NODE
-    TypeDocument :: DOCUMENT_TYPE_NODE
-    FragmentDocument :: DOCUMENT_FRAGMENT_NODE
+    DocumentType :: DOCUMENT_TYPE_NODE
+    DocumentFragment :: DOCUMENT_FRAGMENT_NODE
     ShadowRoot
 }
 
-Noeud :: struct {
+Node :: struct {
     empl event_target: EventTarget
 
     genre: GenreNoeud
 
-    parent: *Noeud
-    enfants: [..]*Noeud
+    parent: *Node
+    enfants: [..]*Node
 
     attributs: [..]*Attr
 
@@ -69,11 +69,11 @@ Noeud :: struct {
 noeud_sur_destruction :: fonc (base: *JS.Cellule)
 {
     event_target_sur_destruction(base)
-    noeud := base comme *Noeud
+    noeud := base comme *Node
     noeud_détruit_données(noeud)
 }
 
-noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Noeud) -> DécisionTraversée
+noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Node) -> DécisionTraversée
 {
     table := noeud.table comme *TableVirtuelleNoeud
     si table && table.sur_document_fully_active {
@@ -84,7 +84,7 @@ noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Noeud) -> DécisionT
 
 node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée) -> *EventTarget
 {
-    noeud := base comme *Noeud
+    noeud := base comme *Node
     // A node’s get the parent algorithm, given an event, returns the node’s assigned slot,
     // if node is assigned; otherwise node’s parent.
     // À FAIRE : assigned slot
@@ -93,29 +93,29 @@ node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée)
 
 #portée_export
 
-noeud_détruit_données :: fonc (noeud: *Noeud)
+noeud_détruit_données :: fonc (noeud: *Node)
 {
     déloge(noeud.attributs)
     déloge(noeud.enfants)
 }
 
-est_document :: fonc (noeud: *Noeud) -> bool
+est_document :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.Document
 }
 
-est_élément :: fonc (noeud: *Noeud) -> bool
+est_élément :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Élément
+    retourne noeud.genre == GenreNoeud.Element
 }
 
-est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
+est_élément_type :: fonc (noeud: *Node, type: chaine) -> *Element
 {
     saufsi est_élément(noeud) {
         retourne nul
     }
 
-    élément := noeud comme *Élément
+    élément := noeud comme *Element
 
     si élément.local_name == type {
         retourne élément
@@ -124,13 +124,13 @@ est_élément_type :: fonc (noeud: *Noeud, type: chaine) -> *Élément
     retourne nul
 }
 
-est_élément_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
+est_élément_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     saufsi est_élément(noeud) {
         retourne nul
     }
 
-    élément := noeud comme *Élément
+    élément := noeud comme *Element
 
     si élément.local_name == tag {
         retourne élément
@@ -139,44 +139,38 @@ est_élément_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
     retourne nul
 }
 
-est_élément_script :: fonc (noeud: *Noeud) -> bool
+est_élément_script :: fonc (noeud: *Node) -> bool
 {
     retourne est_élément_type(noeud, TAG_script) != nul
 }
 
-est_doctype :: fonc (noeud: *Noeud) -> bool
-{
-    retourne noeud.genre == GenreNoeud.TypeDocument
-}
-
-est_texte :: fonc (noeud: *Noeud) -> bool
+est_texte :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA
 }
 
 /* https://dom.spec.whatwg.org/#exclusive-text-node */
-est_texte_exclusif :: fonc (noeud: *Noeud) -> bool
+est_texte_exclusif :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.Texte
 }
 
-est_commentaire :: fonc (noeud: *Noeud) -> bool
+est_commentaire :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.Commentaire
 }
 
-possède_enfants :: fonc (noeud: *Noeud) -> bool
+possède_enfants :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.enfants.taille != 0
 }
 
-dernier_enfant :: fonc (noeud: *Noeud) -> *Noeud
+dernier_enfant :: fonc (noeud: *Node) -> *Node
 {
     retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
-/* À FAIRE : implémente proprement https://dom.spec.whatwg.org/#concept-node-insert */
-ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
+ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
 {
     enfant.parent = parent
     tableau_ajoute(*parent.enfants, enfant)
@@ -189,7 +183,7 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
                 continue
             }
 
-            élément := it comme *Élément
+            élément := it comme *Element
             saufsi premier_élément_rencontré {
                 premier_élément_rencontré = vrai
                 élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild)
@@ -201,7 +195,7 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
             élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild)
         }
 
-        élément := enfant comme *Élément
+        élément := enfant comme *Element
         élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild)
     }
 
@@ -222,23 +216,23 @@ ajoute_enfant :: fonc (parent: *Noeud, enfant: *Noeud)
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-parentnode */
-donne_parent_node :: fonc (noeud: *Noeud) -> *Noeud
+donne_parent_node :: fonc (noeud: *Node) -> *Node
 {
     retourne noeud.parent
 }
 
 /* https://dom.spec.whatwg.org/#get-text-content */
-donne_text_content :: fonc (noeud: *Noeud @inutilisée) -> DOMString
+donne_text_content :: fonc (noeud: *Node @inutilisée) -> DOMString
 {
     // À FAIRE : implémente
     retourne crée_chaine_utf16_unique_vide()
 }
 
 /* https://dom.spec.whatwg.org/#set-text-content */
-définis_text_content :: fonc (noeud: *Noeud, valeur: DOMString)
+définis_text_content :: fonc (noeud: *Node, valeur: DOMString)
 {
     // À FAIRE : standardise
-    assert(noeud.genre == GenreNoeud.Élément)
+    assert(noeud.genre == GenreNoeud.Element)
 
     résultat := create_text_node(noeud.document, valeur)
 
@@ -247,35 +241,35 @@ définis_text_content :: fonc (noeud: *Noeud, valeur: DOMString)
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-appendchild */
-append_child :: fonc (noeud: *Noeud, enfant: *Noeud) -> *Noeud
+append_child :: fonc (noeud: *Node, enfant: *Node) -> *Node
 {
     retourne append(noeud, enfant)
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-removechild */
-remove_child :: fonc (node: *Noeud, child: *Noeud) -> *Noeud
+remove_child :: fonc (node: *Node, child: *Node) -> *Node
 {
     retourne pre_remove(node, child)
 }
 
-ajoute_attribut :: fonc (noeud: *Noeud, nom: DOMString, valeur: DOMString) -> *Attr
+ajoute_attribut :: fonc (noeud: *Node, nom: DOMString, valeur: DOMString) -> *Attr
 {
     résultat := crée_noeud_attr(noeud.document, nom, valeur)
     tableau_ajoute(*noeud.attributs, résultat)
     retourne résultat
 }
 
-possède_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> bool
+possède_attribut :: fonc (noeud: *Node, nom: DOMString) -> bool
 {
     retourne cherche_attribut(noeud.attributs, nom) != nul
 }
 
-cherche_attribut :: fonc (noeud: *Noeud, nom: DOMString) -> *Attr
+cherche_attribut :: fonc (noeud: *Node, nom: DOMString) -> *Attr
 {
     retourne cherche_attribut(noeud.attributs, nom)
 }
 
-donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DOMString)
+donne_attribut :: fonc (noeud: *Node, nom_qualifié: DOMString) -> Optionnel(DOMString)
 {
     attribut := cherche_attribut(noeud, nom_qualifié)
     saufsi attribut {
@@ -284,7 +278,7 @@ donne_attribut :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> Optionnel(DO
     retourne attribut.valeur
 }
 
-donne_attribut_ou_chaine_vide :: fonc (noeud: *Noeud, nom_qualifié: DOMString) -> DOMString
+donne_attribut_ou_chaine_vide :: fonc (noeud: *Node, nom_qualifié: DOMString) -> DOMString
 {
     attribut := cherche_attribut(noeud, nom_qualifié)
     saufsi attribut {
@@ -294,14 +288,14 @@ donne_attribut_ou_chaine_vide :: fonc (noeud: *Noeud, nom_qualifié: DOMString) 
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-document */
-donne_node_document :: fonc (noeud: *Noeud) -> *Document #enligne
+donne_node_document :: fonc (noeud: *Node) -> *Document #enligne
 {
     retourne noeud.document
 }
 
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
  * d'enfants ou aucun enfant du tag donné. */
-donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: DOMString) -> *Noeud
+donne_premier_enfant_taggé :: fonc (noeud: *Node, tag: DOMString) -> *Node
 {
     saufsi noeud {
         retourne nul
@@ -317,13 +311,13 @@ donne_premier_enfant_taggé :: fonc (noeud: *Noeud, tag: DOMString) -> *Noeud
 }
 
 /* https://dom.spec.whatwg.org/#connected */
-est_connecté :: fonc (noeud: *Noeud) -> bool
+est_connecté :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.donne_racine_shadow_including().est_document()
 }
 
 /* https://dom.spec.whatwg.org/#concept-tree-root */
-donne_racine :: fonc (noeud: *Noeud) -> *Noeud
+donne_racine :: fonc (noeud: *Node) -> *Node
 {
     résultat := noeud
     tantque résultat.parent != nul {
@@ -332,11 +326,11 @@ donne_racine :: fonc (noeud: *Noeud) -> *Noeud
     retourne résultat
 }
 
-rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
+rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc(*Text, eini)(rien), données: eini)
 {
     pour noeud.enfants {
         si it.est_texte() {
-            texte := it comme *NoeudTexte
+            texte := it comme *Text
             rappel_pour_texte(texte, données)
         }
         sinon {
@@ -346,13 +340,13 @@ rassemble_texte_noeud :: fonc (noeud: *Noeud, rappel_pour_texte: fonc(*NoeudText
 }
 
 /* Fonction auxillaire pour extraire le texte d'un noeud et de ses enfants. */
-extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
+extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
 {
     ExtractriceTexte :: struct {
         texte: ChaineUTF16
     }
 
-    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini)
     {
         extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
 
@@ -372,7 +366,7 @@ extrait_texte_noeud :: fonc (noeud: *Noeud) -> chaine
 }
 
 /* https://dom.spec.whatwg.org/#concept-child-text-content */
-donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
+donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
@@ -383,7 +377,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
             continue
         }
 
-        texte := noeud comme *NoeudTexte
+        texte := noeud comme *Text
         ajoute(enchaineuse, texte.données)
     }
 
@@ -391,12 +385,12 @@ donne_contenu_texte_enfant :: fonc (noeud: *Noeud) -> ChaineUTF16
 }
 
 /* https://dom.spec.whatwg.org/#concept-descendant-text-content */
-donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
+donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Noeud, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
     {
         si noeud.est_texte() {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *Text
             ajoute(enchaineuse, texte.données)
         }
 
@@ -413,10 +407,10 @@ donne_contenu_texte_descandants :: fonc (noeud: *Noeud) -> ChaineUTF16
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-length */
-donne_longueur :: fonc (noeud: *Noeud) -> z64
+donne_longueur :: fonc (noeud: *Node) -> z64
 {
     discr noeud.genre {
-        TypeDocument {
+        DocumentType {
             retourne 0
         }
         Commentaire,
@@ -432,23 +426,23 @@ donne_longueur :: fonc (noeud: *Noeud) -> z64
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-empty */
-est_vide :: fonc (noeud: *Noeud) -> bool
+est_vide :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.donne_longueur() == 0
 }
 
 /* https://dom.spec.whatwg.org/#ref-for-dom-nonelementparentnode-getelementbyid%E2%91%A1 */
-get_element_by_id :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+get_element_by_id :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
     retourne get_element_by_id_recursive(noeud, chn)
 }
 
-get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élément
+get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
     si noeud.est_élément() {
         valeur := noeud.donne_attribut(ATTR_id)
         si valeur.possède_valeur() && valeur.Quelque == chn {
-            retourne noeud comme *Élément
+            retourne noeud comme *Element
         }
     }
 
@@ -462,14 +456,122 @@ get_element_by_id_recursive :: fonc (noeud: *Noeud, chn: DOMString) -> *Élémen
     retourne nul
 }
 
-/* https://dom.spec.whatwg.org/#concept-node-append */
-append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
-{
-    // À FAIRE : standardise
-    node.parent = parent
-    tableau_ajoute(*parent.enfants, node)
+/** \} */
 
-    pile: [..]*Noeud
+/* ------------------------------------------------------------------------- */
+/** \nom 4.2.3. Mutation algorithms
+ * https://dom.spec.whatwg.org/#mutation-algorithms
+ * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-node-ensure-pre-insertion-validity */
+ensure_pre_insertion_validity :: fonc (node: *Node, parent: *Node, child: *Node) -> bool
+{
+    // 1. If parent is not a Document, DocumentFragment, or Element node, then throw a "HierarchyRequestError" DOMException.
+    saufsi fait_partie_de(parent.genre, GenreNoeud.Document, GenreNoeud.DocumentFragment, GenreNoeud.Element) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Parent is not a Document, DocumentFragment, or Element node.")
+        retourne faux
+    }
+
+    // 2. If node is a host-including inclusive ancestor of parent, then throw a "HierarchyRequestError" DOMException.
+    si is_host_including_inclusive_ancestor(node, parent) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is a host-including inclusive ancestor of parent.")
+        retourne faux
+    }
+
+    // 3. If child is non-null and its parent is not parent, then throw a "NotFoundError" DOMException.
+    si child && child.parent != parent {
+        throw_dom_exception(parent, "NotFoundError", "Child's parent is not parent")
+        retourne faux
+    }
+
+    // 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData node, then throw a "HierarchyRequestError" DOMException.
+    saufsi fait_partie_de(node.genre, GenreNoeud.DocumentFragment, GenreNoeud.DocumentType, GenreNoeud.Element, GenreNoeud.ProcessingInstruction, GenreNoeud.Commentaire, GenreNoeud.Texte) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is not a DocumentFragment, DocumentType, Element, or CharacterData node.")
+        retourne faux
+    }
+
+    // 5. If either node is a Text node and parent is a document, or node is a doctype and parent is not a document, then throw a "HierarchyRequestError" DOMException.
+    si (node.genre == GenreNoeud.Texte && parent.genre == GenreNoeud.Document) || (node.genre == GenreNoeud.DocumentType && parent.genre != GenreNoeud.Document) {
+        throw_dom_exception(parent, "HierarchyRequestError", "")
+        retourne faux
+    }
+
+    // 6. If parent is a document, and any of the statements below, switched on the interface node implements, are true, then throw a "HierarchyRequestError" DOMException.
+    si parent.genre == GenreNoeud.Document {
+        nombre_enfants_element_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
+        nombre_enfants_element_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
+        nombre_enfants_text_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Texte)
+
+        // DocumentFragment
+        si node.genre == GenreNoeud.DocumentFragment {
+            // If node has more than one element child or has a Text node child.
+            si nombre_enfants_element_de_node > 1 || nombre_enfants_text_de_node != 0 {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+
+            // Otherwise, if node has one element child and either parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
+            si nombre_enfants_element_de_node == 1 && (nombre_enfants_element_de_parent >= 1 || (child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+        // Element
+        sinon si node.genre == GenreNoeud.Element {
+            // parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
+            si nombre_enfants_element_de_parent >= 1 && ((child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+        // DocumentType
+        sinon si node.genre == GenreNoeud.DocumentType {
+            nombre_enfants_doctype_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.DocumentType)
+
+            // parent has a doctype child, child is non-null and an element is preceding child, or child is null and parent has an element child.
+            si nombre_enfants_doctype_de_parent && ((child != nul && possède_ainé_de_genre(child, GenreNoeud.Element)) || (child != nul && nombre_enfants_element_de_parent)) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+    }
+
+    retourne vrai
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-pre-insert */
+pre_insert :: fonc (node: *Node, parent: *Node, child: *Node) -> *Node
+{
+    // 1. Ensure pre-insert validity of node into parent before child.
+    saufsi ensure_pre_insertion_validity(node, parent, child) {
+        retourne node
+    }
+
+    // 2. Let referenceChild be child.
+    reference_child := child
+
+    // 3. If referenceChild is node, then set referenceChild to node’s next sibling.
+    si reference_child == node {
+        reference_child = donne_next_sibling(node)
+    }
+
+    // 4. Insert node into parent before referenceChild.
+    insert(node, parent, reference_child)
+
+    // 5. Return node.
+    retourne node
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-insert */
+insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, suppress_observers := faux @inutilisée)
+{
+    /* À FAIRE : standardise */
+    node.parent = parent
+
+    ajoute_enfant(parent, node)
+
+    // adopt
+    pile: [..]*Node
     diffère déloge(pile)
 
     tableau_ajoute(*pile, node)
@@ -482,12 +584,49 @@ append :: fonc (parent: *Noeud, node: *Noeud) -> *Noeud
             tableau_ajoute(*pile, it)
         }
     }
+}
 
-    retourne node
+/* https://dom.spec.whatwg.org/#concept-node-append */
+append :: fonc (parent: *Node, node: *Node) -> *Node
+{
+    // To append a node to a parent, pre-insert node into parent before null.
+    retourne pre_insert(node, parent, nul)
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-replace-all */
+replace_all :: fonc (node: *Node, parent: *Node)
+{
+    // 1. Let removedNodes be parent’s children.
+    // removed_nodes := parent.enfants
+
+    // 2. Let addedNodes be the empty set.
+    added_nodes: []*Node
+
+    // 3. If node is a DocumentFragment node, then set addedNodes to node’s children.
+    si node != nul && node.table.classe == DocumentFragment {
+        added_nodes = node.enfants
+    }
+    // 4. Otherwise, if node is non-null, set addedNodes to « node ».
+    sinon si node != nul {
+        added_nodes.pointeur = *node
+        added_nodes.taille = 1
+    }
+
+    // 5. Remove all parent’s children, in tree order, with the suppress observers flag set.
+    pour parent.enfants {
+        remove(it, vrai)
+    }
+
+    // 6. If node is non-null, then insert node into parent before null with the suppress observers flag set.
+    si node {
+        insert(node, parent, nul, vrai)
+    }
+
+    // À FAIRE : 7. If either addedNodes or removedNodes is not empty, then queue a tree mutation record for parent with addedNodes, removedNodes, null, and null.
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-pre-remove */
-pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
+pre_remove :: fonc (parent: *Node, child: *Node) -> *Node
 {
     // 1. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
     si child.parent != parent {
@@ -495,16 +634,67 @@ pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
         retourne nul
     }
 
-    // À FAIRE : 2. Remove child.
+    // 2. Remove child.
+    remove(child)
+
+    // 3. Return child.
+    retourne child
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-remove */
+remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
+{
+    // À FAIRE : complète
+
+    // 1. Let parent be node’s parent.
+    parent := node.parent
+
+    // 2. Assert: parent is non-null.
+    assert(parent != nul)
+
+    // 3. Run the live range pre-remove steps, given node.
+
+    // 4. For each NodeIterator object iterator whose root’s node document is node’s node document, run the NodeIterator pre-remove steps given node and iterator.
+
+    // 5. Let oldPreviousSibling be node’s previous sibling.
+
+    // 6. Let oldNextSibling be node’s next sibling.
+
+    // 7. Remove node from its parent’s children.
     pour parent.enfants {
-        si it == child {
-            tableau_supprime_indice(*parent.enfants, index_it)
+        si it == node {
+            tableau_supprime_indice(*parent.enfants, indice_it)
             arrête
         }
     }
 
-    // 3. Return child.
-    retourne child
+    // 8. If node is assigned, then run assign slottables for node’s assigned slot.
+
+    // 9. If parent’s root is a shadow root, and parent is a slot whose assigned nodes is the empty list, then run signal a slot change for parent.
+
+    // 10. If node has an inclusive descendant that is a slot:
+
+        // 1. Run assign slottables for a tree with parent’s root.
+
+        // 2. Run assign slottables for a tree with node.
+
+    // 11. Run the removing steps with node and parent.
+
+    // 12. Let isParentConnected be parent’s connected.
+
+    // 13. If node is custom and isParentConnected is true, then enqueue a custom element callback reaction with node, callback name "disconnectedCallback", and « ».
+
+    // 14. For each shadow-including descendant descendant of node, in shadow-including tree order:
+
+        // 1. Run the removing steps with descendant and null.
+
+        // 2. If descendant is custom and isParentConnected is true, then enqueue a custom element callback reaction with descendant, callback name "disconnectedCallback", and « ».
+
+    // 15. For each inclusive ancestor inclusiveAncestor of parent, and then for each registered of inclusiveAncestor’s registered observer list, if registered’s options["subtree"] is true, then append a new transient registered observer whose observer is registered’s observer, options is registered’s options, and source is registered to node’s registered observer list.
+
+    // 16. If suppress observers flag is unset, then queue a tree mutation record for parent with « », « node », oldPreviousSibling, and oldNextSibling.
+
+    // 17. Run the children changed steps for parent.
 }
 
 /** \} */
@@ -514,12 +704,12 @@ pre_remove :: fonc (parent: *Noeud, child: *Noeud) -> *Noeud
  * \{ */
 
 /* https://dom.spec.whatwg.org/#dom-node-nodename */
-donne_node_name :: fonc (noeud: *Noeud) -> DOMString
+donne_node_name :: fonc (noeud: *Node) -> DOMString
 {
     discr noeud.genre {
-        Élément {
+        Element {
             // À FAIRE : Its HTML-uppercased qualified name.
-            retourne (noeud comme *Élément).local_name
+            retourne (noeud comme *Element).local_name
         }
         Attr {
             // À FAIRE : Its qualified name.
@@ -540,10 +730,10 @@ donne_node_name :: fonc (noeud: *Noeud) -> DOMString
         Document {
             retourne crée_chaine_utf16_unique("#document")
         }
-        TypeDocument {
-            retourne (noeud comme *NoeudTypeDocument).nom
+        DocumentType {
+            retourne (noeud comme *DocumentType).nom
         }
-        FragmentDocument {  
+        DocumentFragment {  
             retourne crée_chaine_utf16_unique("#document-fragment")
         }
     }
@@ -557,7 +747,7 @@ donne_node_name :: fonc (noeud: *Noeud) -> DOMString
 /** \nom Hiérarchie
  * \{ */
 
-donne_indice_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -579,7 +769,7 @@ donne_indice_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -601,7 +791,7 @@ donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -613,7 +803,7 @@ donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
             continue
         }
 
-        adelphe := it comme *Élément
+        adelphe := it comme *Element
         saufsi adelphe.local_name == élément.local_name {
             continue
         }
@@ -628,7 +818,7 @@ donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -640,7 +830,7 @@ donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élém
             continue
         }
 
-        adelphe := it comme *Élément
+        adelphe := it comme *Element
         saufsi adelphe.local_name == élément.local_name {
             continue
         }
@@ -655,7 +845,7 @@ donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élém
     retourne résultat
 }
 
-est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
+est_avant_noeud_dans_l_arbre :: fonc (a: *Element, b: *Element) -> bool
 {
     si a.parent == b.parent {
         indice_a := donne_indice_dans_parent(a)
@@ -663,7 +853,7 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
         retourne indice_a < indice_b
     }
 
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     pour > a.document.enfants {
@@ -690,6 +880,55 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
     retourne faux
 }
 
+donne_nombre_enfants_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> z32
+{
+    résultat: z32
+    pour node.enfants {
+        si it.genre == genre {
+            résultat += 1
+        }
+    }
+    retourne résultat
+}
+
+possède_ainé_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
+{
+    parent := node.parent
+    saufsi parent {
+        retourne faux
+    }
+    pour parent.enfants {
+        si it == node {
+            retourne faux
+        }
+
+        si it.genre == genre {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
+{
+    parent := node.parent
+    saufsi parent {
+        retourne faux
+    }
+    node_trouvé := faux
+    pour parent.enfants {
+        si node_trouvé && it.genre == genre {
+            retourne vrai
+        }
+        si it == node {
+            node_trouvé == vrai
+        }
+    }
+
+    retourne faux
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -698,7 +937,7 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
  * \{ */
 
 /* https://dom.spec.whatwg.org/#in-a-document-tree */
-is_in_a_document_tree :: fonc (node: *Noeud) -> bool
+is_in_a_document_tree :: fonc (node: *Node) -> bool
 {
     root := node.donne_racine()
     si root {
@@ -715,14 +954,14 @@ is_in_a_document_tree :: fonc (node: *Noeud) -> bool
  * \{ */
 
 Attr :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_attr
 
     namespace: Optionnel(DOMString)
     namespace_prefix: Optionnel(DOMString)
     local_name: DOMString
     valeur: DOMString
-    élément: *Élément
+    élément: *Element
 }
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr

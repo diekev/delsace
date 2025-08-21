@@ -81,9 +81,9 @@ trouve_annotation :: fonc (annotations: []*Annotation, nom: chaine) -> *Annotati
     retourne nul
 }
 
-InfoTypeMembreStructure :: struct #interface {
+InfoTypeRubriqueStructure :: struct #interface {
     Drapeaux :: énum_drapeau {
-        EST_CONSTANT
+        EST_CONSTANTE
         EST_IMPLICITE
         EST_UN_EMPLOI
     }
@@ -95,12 +95,12 @@ InfoTypeMembreStructure :: struct #interface {
     annotations: []*Annotation
 }
 
-possède_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> bool
+possède_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> bool
 {
     retourne possède_annotation(info.annotations, nom)
 }
 
-trouve_annotation :: fonc (info: *InfoTypeMembreStructure, nom: chaine) -> *Annotation
+trouve_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> *Annotation
 {
     retourne trouve_annotation(info.annotations, nom)
 }
@@ -110,7 +110,7 @@ InfoTypeStructure :: struct #interface {
 
     est_polymorphique: bool
     nom: chaine
-    membres: []*InfoTypeMembreStructure
+    rubriques: []*InfoTypeRubriqueStructure
     structs_employées: []*InfoTypeStructure
     annotations: []*Annotation
     polymorphe_de_base: *InfoTypeStructure
@@ -132,7 +132,7 @@ InfoTypeUnion :: struct #interface {
     est_sûre: bool
     est_polymorphique: bool
     nom: chaine
-    membres: []*InfoTypeMembreStructure
+    rubriques: []*InfoTypeRubriqueStructure
     type_le_plus_grand: *InfoType
     décalage_index: z64
     annotations: []*Annotation
@@ -177,7 +177,7 @@ donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> eini,
 {
     pour info.noms {
         si it == nom {
-            retourne donne_eini_valeur_énum_indice(info, index_it), vrai
+            retourne donne_eini_valeur_énum_indice(info, indice_it), vrai
         }
     }
 
@@ -226,7 +226,7 @@ donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
 {
     pour info.donne_valeurs_typées(T) {
         si it == valeur {
-            retourne info.noms[index_it]
+            retourne info.noms[indice_it]
         }
     }
 

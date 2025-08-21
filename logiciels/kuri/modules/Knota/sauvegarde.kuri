@@ -737,7 +737,7 @@ lis_fichier_copie :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe, souris: *
         déloge(nom)
 
         /* Sélectionne */
-        si index_it == 0 {
+        si indice_it == 0 {
             sélection.clic(it.position)
         }
         sinon {

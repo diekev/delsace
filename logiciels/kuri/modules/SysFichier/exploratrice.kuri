@@ -138,7 +138,7 @@ opérateur pour :: fonc (exploratrice: ExploratriceFichier) -> CheminFichier
         }
 
         `it = chemin
-        `index_it = index
+        `indice_it = index
 
         index += 1
         diffère détruit_chemin(chemin)

@@ -141,7 +141,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     }
 
     pour morceaux_nombre {
-        chaines[index_it] = it
+        chaines[indice_it] = it
     }
 
     si possède_raccourci {
@@ -158,7 +158,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
         }
 
         pour morceaux_nombre {
-            chaines[index_début + index_it] = it
+            chaines[index_début + indice_it] = it
         }
     }
 
@@ -173,7 +173,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
             continue
         }
 
-        ipv6[index_it] = tente parse_hexadécimal_n16(it) piège _ {
+        ipv6[indice_it] = tente parse_hexadécimal_n16(it) piège _ {
             // À FAIRE : erreur pour les dépassements de limites
             retourne ErreurParsageIP.CaractèreInvalide
         }
@@ -219,14 +219,14 @@ détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> [4]SéquenceDeZé
     pour ipv6 {
         si it == 0 {
             si nombre_zéros == 0 {
-                séquence.index_début = index_it
+                séquence.index_début = indice_it
             }
 
             nombre_zéros += 1
         }
         sinon si nombre_zéros != 0 {
             séquence.nombre_zéros = nombre_zéros
-            séquence.index_fin = index_it
+            séquence.index_fin = indice_it
 
             séquences[nombre_de_séquences] = séquence
             nombre_de_séquences += 1
@@ -416,7 +416,7 @@ parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
             retourne ErreurParsageIP.CaractèreInvalide
         }
 
-        données[index_it] = valeur
+        données[indice_it] = valeur
     }
 
     retourne AdresseIPv4(données = données)
@@ -456,7 +456,7 @@ formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
 
         ajoute_au_tampon(tampon, (d + 0x30) comme z8)
 
-        si index_it < 3 {
+        si indice_it < 3 {
             ajoute_au_tampon(tampon, '.')
         }
     }

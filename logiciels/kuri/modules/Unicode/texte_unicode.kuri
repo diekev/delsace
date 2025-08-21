@@ -361,7 +361,7 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
         pour i dans 0 ... texte.chn.taille - 1 {
 
             `it = rune_depus_pointeur(ptr)
-            `index_it += 1
+            `indice_it += 1
 
             #insert_corps
 

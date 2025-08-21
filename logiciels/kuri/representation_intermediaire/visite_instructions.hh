@@ -56,9 +56,9 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
             rappel(acces->accédé);
             break;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto acces = inst->comme_acces_membre();
+            auto acces = inst->comme_acces_rubrique();
             rappel(acces->accédé);
             break;
         }

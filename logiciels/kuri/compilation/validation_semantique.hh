@@ -178,7 +178,7 @@ struct Sémanticienne {
 
   private:
     RésultatValidation valide_sémantique_noeud(NoeudExpression *);
-    RésultatValidation valide_accès_membre(NoeudExpressionMembre *expression_membre);
+    RésultatValidation valide_accès_rubrique(NoeudExpressionRubrique *expression_rubrique);
 
     RésultatValidation valide_entête_fonction(NoeudDéclarationEntêteFonction *);
     RésultatValidation valide_entête_opérateur(NoeudDéclarationEntêteFonction *);
@@ -251,8 +251,8 @@ struct Sémanticienne {
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
                                             int64_t index_acces);
-    void rapporte_erreur_membre_inconnu(NoeudExpression *acces,
-                                        NoeudExpression *membre,
+    void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
+                                        NoeudExpression *rubrique,
                                         TypeCompose *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,

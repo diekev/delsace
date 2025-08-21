@@ -175,7 +175,7 @@ initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléato
             initialise_dernière_ligne(*constructrice)
         }
 
-        copie_ligne_vers_labyrinthe(*constructrice, index_it)
+        copie_ligne_vers_labyrinthe(*constructrice, indice_it)
         avance_ligne_suivante(*constructrice)
     }
 }
@@ -340,10 +340,10 @@ initialise_première_ligne :: fonc (empl constructrice: *ConstructriceMéthodeEl
         it.groupe = constructrice.crée_groupe()
         tableau_ajoute(*it.groupe.cellules, it)
 
-        si index_it == 0 {
+        si indice_it == 0 {
             it.position_mur.GAUCHE = vrai
         }
-        sinon si index_it == taille_x - 1 {
+        sinon si indice_it == taille_x - 1 {
             it.position_mur.DROITE = vrai
         }
 
@@ -387,10 +387,10 @@ avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
 
         it.position_mur = ConstructriceMéthodeEller.PositionMur.zéro
 
-        si index_it == 0 {
+        si indice_it == 0 {
             it.position_mur.GAUCHE = vrai
         }
-        sinon si index_it == taille_x - 1 {
+        sinon si indice_it == taille_x - 1 {
             it.position_mur.DROITE = vrai
         }
     }
@@ -473,7 +473,7 @@ copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeE
 
     pour ligne_courante {
         /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
-        index_sortie := (index_it * 2) + 1
+        index_sortie := (indice_it * 2) + 1
 
         si it.position_mur.GAUCHE == vrai {
             données_sortie[index_sortie - 1] = vrai

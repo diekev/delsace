@@ -90,7 +90,7 @@ opérateur pour :: fonc (chn: ChaineUTF32) -> n32
 {
     pour chn.points_de_code {
         `it = it
-        `index_it = index_it
+        `indice_it = indice_it
         #corps_boucle
     }
 }
@@ -102,7 +102,7 @@ opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
     }
 
     pour a.points_de_code {
-        si it != b.points_de_code[index_it] {
+        si it != b.points_de_code[indice_it] {
             retourne faux
         }
     }

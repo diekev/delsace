@@ -337,10 +337,10 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         auto interface = compilatrice->interface_kuri;
 
         if (transformation.type == TypeTransformation::EXTRAIT_UNION) {
-            assert(interface->decl_panique_membre_union);
+            assert(interface->decl_panique_rubrique_union);
             auto type_union = type->comme_type_union();
             if (!type_union->est_nonsure) {
-                ajoute_fonction(interface->decl_panique_membre_union);
+                ajoute_fonction(interface->decl_panique_rubrique_union);
             }
         }
         else if (transformation.type == TypeTransformation::R16_VERS_R32) {
@@ -525,10 +525,10 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     ajoute_fonction(interface->decl_panique_erreur);
                 }
             }
-            else if (noeud->est_référence_membre_union()) {
+            else if (noeud->est_référence_rubrique_union()) {
                 auto interface = compilatrice->interface_kuri;
-                assert(interface->decl_panique_membre_union);
-                ajoute_fonction(interface->decl_panique_membre_union);
+                assert(interface->decl_panique_rubrique_union);
+                ajoute_fonction(interface->decl_panique_rubrique_union);
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
@@ -701,7 +701,7 @@ void GestionnaireCode::garantie_typage_des_dépendances(
                 auto unité = crée_unité(espace, RaisonDÊtre::CALCULE_TAILLE_TYPE, true);
                 unité->type = type_tuple;
 
-                POUR (type_tuple->membres) {
+                POUR (type_tuple->rubriques) {
                     if (!it.type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                         auto attente = Attente::sur_type(it.type);
                         ajoute_requêtes_pour_attente(espace, attente);
@@ -1039,8 +1039,8 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
 
             // préserve les constantes polymorphiques
             if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-                POUR (*entête->bloc_constantes->membres.verrou_lecture()) {
-                    fonction->bloc_constantes->ajoute_membre(it);
+                POUR (*entête->bloc_constantes->rubriques.verrou_lecture()) {
+                    fonction->bloc_constantes->ajoute_rubrique(it);
                 }
             }
 
@@ -1073,10 +1073,10 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             métaprogramme->corps_texte_pour_structure = decl;
 
             if (decl->est_monomorphisation) {
-                decl->bloc_constantes->membres.avec_verrou_ecriture(
-                    [fonction](kuri::tableau<NoeudDéclaration *, int> &membres) {
-                        POUR (membres) {
-                            fonction->bloc_constantes->ajoute_membre(it);
+                decl->bloc_constantes->rubriques.avec_verrou_ecriture(
+                    [fonction](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
+                        POUR (rubriques) {
+                            fonction->bloc_constantes->ajoute_rubrique(it);
                         }
                     });
             }
@@ -1148,7 +1148,7 @@ void GestionnaireCode::ajoute_attentes_pour_noeud_code(NoeudExpression *noeud,
         if (racine->est_entête_fonction()) {
             auto entete = racine->comme_entête_fonction();
 
-            POUR ((*entete->bloc_constantes->membres.verrou_ecriture())) {
+            POUR ((*entete->bloc_constantes->rubriques.verrou_ecriture())) {
                 if (it->type) {
                     types_utilisés.insère(it->type);
                 }
@@ -1729,7 +1729,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         auto noeud_déclaration = inst->noeud_déclaration;
         if (noeud_déclaration->ident == nullptr) {
             noeud_déclaration->ident = module->nom();
-            noeud_déclaration->bloc_parent->ajoute_membre(noeud_déclaration);
+            noeud_déclaration->bloc_parent->ajoute_rubrique(noeud_déclaration);
         }
         noeud_déclaration->module = module;
 
@@ -1894,8 +1894,8 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
         auto fichier = m_compilatrice->fichier(si_statique->lexème->fichier);
 
         if (bloc) {
-            POUR (*bloc->membres.verrou_ecriture()) {
-                bloc_parent->ajoute_membre(it);
+            POUR (*bloc->rubriques.verrou_ecriture()) {
+                bloc_parent->ajoute_rubrique(it);
             }
             POUR (*bloc->expressions.verrou_ecriture()) {
                 ajoute_noeud_de_haut_niveau(it, espace, fichier);

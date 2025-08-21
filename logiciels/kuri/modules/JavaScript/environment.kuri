@@ -276,7 +276,7 @@ donne_binding :: fonc (env: *DeclarativeEnvironment, nom: ECMAString, index : *z
     pour * env.bindings {
         si it.nom == nom {
             si index {
-                mémoire(index) = index_it comme z32
+                mémoire(index) = indice_it comme z32
             }
             retourne it
         }

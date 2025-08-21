@@ -37,21 +37,21 @@ principale :: fonc ()
     x: Tablet(N = 5, T = z32)
 
     pour & x.valeurs {
-        it = index_it comme z32
+        it = indice_it comme z32
     }
 
     pour x.valeurs {
-        imprime("x[%] = %\n", index_it, it)
+        imprime("x[%] = %\n", indice_it, it)
     }
 
     y: Tablet(N = 10, T = z32)
 
     pour & y.valeurs {
-        it = index_it comme z32
+        it = indice_it comme z32
     }
 
     pour y.valeurs {
-        imprime("y[%] = %\n", index_it, it)
+        imprime("y[%] = %\n", indice_it, it)
     }
 
     o: Option(T0 = z32, T1 = r32)

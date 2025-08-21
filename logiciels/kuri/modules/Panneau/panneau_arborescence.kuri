@@ -164,7 +164,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
 
         nombre_de_lignes := divise_avec_surarrondis(panneau_arborescence.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64)
         pour nombre_de_lignes {
-            couleur_ligne := si index_it % 2 == 0 {
+            couleur_ligne := si indice_it % 2 == 0 {
                 thème.couleur_table_ligne_paire
             }
             sinon {

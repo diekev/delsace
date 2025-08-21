@@ -633,33 +633,33 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             info_arg := valeur.info comme *InfoTypeStructure
 
             indentation := donne_chaine_indentation(profondeur)
-            indentation_membres := donne_chaine_indentation(profondeur + 1)
+            indentation_rubriques := donne_chaine_indentation(profondeur + 1)
 
             ajoute_au_tampon(enchaineuse, info_arg.nom)
 
             virgule := " {\n"
             virgule_insérée := faux
 
-            pour membre dans info_arg.membres {
-                ajoute_au_tampon(enchaineuse, virgule, indentation_membres)
+            pour rubrique dans info_arg.rubriques {
+                ajoute_au_tampon(enchaineuse, virgule, indentation_rubriques)
                 virgule = ",\n"
                 virgule_insérée = vrai
 
-                nom := membre.nom
+                nom := rubrique.nom
                 ajoute_au_tampon(enchaineuse, nom, " = ")
 
-                si membre.drapeaux.EST_CONSTANT {
-                    imprime_type(enchaineuse, membre.id)
+                si rubrique.drapeaux.EST_CONSTANTE {
+                    imprime_type(enchaineuse, rubrique.id)
                     continue
                 }
 
-                décalage := membre.décalage
+                décalage := rubrique.décalage
 
-                valeur_membre : eini = ---
-                valeur_membre.pointeur = valeur.pointeur + décalage
-                valeur_membre.info = membre.id
+                valeur_rubrique : eini = ---
+                valeur_rubrique.pointeur = valeur.pointeur + décalage
+                valeur_rubrique.info = rubrique.id
 
-                imprime_valeur(enchaineuse, valeur_membre, vrai, profondeur + 1)
+                imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1)
             }
 
             si virgule_insérée {
@@ -734,21 +734,21 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                 pointeur_index := (valeur.pointeur + info_arg.décalage_index) comme *z32
                 index := mémoire(pointeur_index)
 
-                // note le membre_actif est l'index du membre + 1, 0 étant une valeur montrant que l'union est invalide
+                // note la rubrique_active est l'index de la rubrique + 1, 0 étant une valeur montrant que l'union est invalide
                 si index == 0 {
                     ajoute_au_tampon(enchaineuse, "union invalide")
                 }
                 sinon {
-                    membre := info_arg.membres[index - 1]
+                    rubrique := info_arg.rubriques[index - 1]
 
-                    ajoute_au_tampon(enchaineuse, membre.nom)
+                    ajoute_au_tampon(enchaineuse, rubrique.nom)
                     ajoute_au_tampon(enchaineuse, " = ")
 
-                    valeur_membre : eini = ---
-                    valeur_membre.pointeur = valeur.pointeur
-                    valeur_membre.info = membre.id
+                    valeur_rubrique : eini = ---
+                    valeur_rubrique.pointeur = valeur.pointeur
+                    valeur_rubrique.info = rubrique.id
 
-                    imprime_valeur(enchaineuse, valeur_membre, vrai, profondeur + 1)
+                    imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1)
                 }
             }
             sinon {
@@ -816,7 +816,7 @@ imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *In
             ajoute_au_tampon(enchaineuse, " | ")
         }
 
-        ajoute_au_tampon(enchaineuse, noms[index_it])
+        ajoute_au_tampon(enchaineuse, noms[indice_it])
         valeur_trouvée = vrai
     }
 

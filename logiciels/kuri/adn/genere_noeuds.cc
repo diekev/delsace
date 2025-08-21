@@ -21,33 +21,33 @@
 #include "adn.hh"
 #include "outils_dependants_sur_lexemes.hh"
 
-/* À FAIRE : nous ne pouvons copier les membres des blocs (de constantes ou autres) car la copie
- * des membres des blocs peut créer des doublons lorsque le noeud sera validé car la validation
- * sémantique ajoute les membres pour les déclarations de variables. */
+/* À FAIRE : nous ne pouvons copier les rubriques des blocs (de constantes ou autres) car la copie
+ * des rubriques des blocs peut créer des doublons lorsque le noeud sera validé car la validation
+ * sémantique ajoute les rubriques pour les déclarations de variables. */
 static const char *copie_extra_entete_fonction = R"(
             /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
-             * sont placés par la Syntaxeuse directement dans les membres. */
-            POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                auto copie_membre = copie_noeud(it);
-                copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
+             * sont placés par la Syntaxeuse directement dans les rubriques. */
+            POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+                auto copie_rubrique = copie_noeud(it);
+                copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
             }
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
             )";
 
 static const char *copie_extra_entête_opérateur_pour = R"(
-            if ((m_options & OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES) != OptionsCopieNoeud(0)) {
+            if ((m_options & OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_RUBRIQUES) != OptionsCopieNoeud(0)) {
                 for (int64_t i = 0; i < copie->params.taille(); i++) {
-                    copie->bloc_paramètres->membres->ajoute(copie->parametre_entree(i));
+                    copie->bloc_paramètres->rubriques->ajoute(copie->parametre_entree(i));
                 }
-                copie->bloc_paramètres->membres->ajoute(copie->param_sortie->comme_base_déclaration_variable());
+                copie->bloc_paramètres->rubriques->ajoute(copie->param_sortie->comme_base_déclaration_variable());
             }
             )";
 
 static const char *copie_extra_bloc = R"(
-            copie->réserve_membres(orig->nombre_de_membres());
+            copie->réserve_rubriques(orig->nombre_de_rubriques());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_déclaration_type() || it->est_entête_fonction()) {
-                    copie->ajoute_membre(it->comme_déclaration());
+                    copie->ajoute_rubrique(it->comme_déclaration());
                 }
             })";
 
@@ -55,10 +55,10 @@ static const char *copie_extra_structure = R"(
             nracine->type = nullptr;
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
-                 * sont placés par la Syntaxeuse directement dans les membres. */
-                POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                    auto copie_membre = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
+                 * sont placés par la Syntaxeuse directement dans les rubriques. */
+                POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+                    auto copie_rubrique = copie_noeud(it);
+                    copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
                 }
             }
 )";
@@ -67,10 +67,10 @@ static const char *copie_extra_union = R"(
             nracine->type = nullptr;
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
-                 * sont placés par la Syntaxeuse directement dans les membres. */
-                POUR (*orig->bloc_constantes->membres.verrou_ecriture()) {
-                    auto copie_membre = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_membre(copie_membre->comme_déclaration_constante());
+                 * sont placés par la Syntaxeuse directement dans les rubriques. */
+                POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+                    auto copie_rubrique = copie_noeud(it);
+                    copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
                 }
             }
 )";
@@ -95,14 +95,14 @@ static const char *copie_déclaration_référée = R"(
             }
 )";
 
-static const IdentifiantADN &type_nominal_membre_pour_noeud_code(Type *type)
+static const IdentifiantADN &type_nominal_rubrique_pour_noeud_code(Type *type)
 {
     if (type->est_tableau()) {
-        return type_nominal_membre_pour_noeud_code(type->comme_tableau()->type_pointe);
+        return type_nominal_rubrique_pour_noeud_code(type->comme_tableau()->type_pointe);
     }
 
     if (type->est_pointeur()) {
-        return type_nominal_membre_pour_noeud_code(type->comme_pointeur()->type_pointe);
+        return type_nominal_rubrique_pour_noeud_code(type->comme_pointeur()->type_pointe);
     }
 
     auto type_nominal = type->comme_nominal();
@@ -203,13 +203,13 @@ struct GeneratriceCodeCPP {
                 continue;
             }
 
-            protéine->pour_chaque_membre_recursif(
-                [&noms_struct, &ensemble_noms](Membre const &membre) {
-                    if (!membre.type->est_pointeur()) {
+            protéine->pour_chaque_rubrique_recursif(
+                [&noms_struct, &ensemble_noms](Rubrique const &rubrique) {
+                    if (!rubrique.type->est_pointeur()) {
                         return;
                     }
 
-                    const auto type_pointe = membre.type->comme_pointeur()->type_pointe;
+                    const auto type_pointe = rubrique.type->comme_pointeur()->type_pointe;
 
                     if (!type_pointe->est_nominal()) {
                         return;
@@ -340,21 +340,21 @@ struct GeneratriceCodeCPP {
                 os << "/>\\n\";\n";
             }
 
-            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Membre const &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto type_tableau = membre.type->comme_tableau();
+            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Rubrique const &rubrique) {
+                if (rubrique.type->est_tableau()) {
+                    const auto type_tableau = rubrique.type->comme_tableau();
                     if (type_tableau->est_synchrone) {
-                        os << "\t\t\tPOUR ((*racine_typee->" << membre.nom
+                        os << "\t\t\tPOUR ((*racine_typee->" << rubrique.nom
                            << ".verrou_lecture())) {\n";
                     }
                     else {
-                        os << "\t\t\tPOUR (racine_typee->" << membre.nom << ") {\n";
+                        os << "\t\t\tPOUR (racine_typee->" << rubrique.nom << ") {\n";
                     }
                     os << "\t\t\t\timprime_arbre(it, os, profondeur + 1, substitution);\n";
                     os << "\t\t\t}\n";
                 }
                 else {
-                    os << "\t\t\timprime_arbre(racine_typee->" << membre.nom
+                    os << "\t\t\timprime_arbre(racine_typee->" << rubrique.nom
                        << ", os, profondeur + 1, substitution);\n";
                 }
             });
@@ -441,28 +441,28 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             génère_code_pour_enfant(
-                os, it, false, [&os, &it](ProtéineStruct &, Membre const &membre) {
-                    if (membre.type->est_tableau()) {
-                        auto nom_membre = membre.nom.nom();
+                os, it, false, [&os, &it](ProtéineStruct &, Rubrique const &rubrique) {
+                    if (rubrique.type->est_tableau()) {
+                        auto nom_rubrique = rubrique.nom.nom();
                         if (it->accede_nom_genre().nom() == "EXPRESSION_APPEL" &&
-                            nom_membre == "paramètres") {
-                            nom_membre = "paramètres_résolus";
+                            nom_rubrique == "paramètres") {
+                            nom_rubrique = "paramètres_résolus";
                         }
 
-                        const auto type_tableau = membre.type->comme_tableau();
+                        const auto type_tableau = rubrique.type->comme_tableau();
                         if (type_tableau->est_synchrone) {
-                            os << "\t\t\tPOUR ((*racine_typee->" << nom_membre
+                            os << "\t\t\tPOUR ((*racine_typee->" << nom_rubrique
                                << ".verrou_lecture())) {\n";
                         }
                         else {
-                            os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
+                            os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
                         }
                         os << "\t\t\t\tvisite_noeud(it, preference, "
                               "ignore_blocs_non_traversables_des_si_statiques, rappel);\n";
                         os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tvisite_noeud(racine_typee->" << membre.nom
+                        os << "\t\t\tvisite_noeud(racine_typee->" << rubrique.nom
                            << ", preference, ignore_blocs_non_traversables_des_si_statiques, "
                               "rappel);\n";
                     }
@@ -526,9 +526,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                    << ">(racine->lexème);\n";
             }
 
-            os << "\t\t\tcopie_membres_de_bases_et_insère(racine, nracine);\n";
+            os << "\t\t\tcopie_rubriques_de_bases_et_insère(racine, nracine);\n";
 
-            if (!it->possède_enfants() && !it->possède_membre_a_copier()) {
+            if (!it->possède_enfants() && !it->possède_rubrique_a_copier()) {
                 os << "\t\t\tbreak;\n";
                 os << "\t\t}\n";
                 continue;
@@ -536,7 +536,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             os << "\t\t\tconst auto copie = nracine->comme_" << nom_comme << "();\n";
 
-            auto copie_noeud = [&](const Membre &enfant) {
+            auto copie_noeud = [&](const Rubrique &enfant) {
                 const auto nom_enfant = enfant.nom;
 
                 if (it->accede_nom_genre().nom() == "EXPRESSION_RÉFÉRENCE_DÉCLARATION") {
@@ -598,7 +598,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             it->pour_chaque_enfant_recursif(copie_noeud);
 
-            it->pour_chaque_copie_extra_recursif([&](const Membre &enfant) {
+            it->pour_chaque_copie_extra_recursif([&](const Rubrique &enfant) {
                 if (est_type_noeud(enfant.type)) {
                     copie_noeud(enfant);
                     return;
@@ -725,18 +725,18 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 os << "\n";
             }
 
-            for (auto &membre : it->membres()) {
-                if (!membre.est_code) {
+            for (auto &rubrique : it->rubriques()) {
+                if (!rubrique.est_code) {
                     continue;
                 }
-                const auto nom_membre = membre.nom;
+                const auto nom_rubrique = rubrique.nom;
 
-                if (nom_membre.nom() == "type") {
+                if (nom_rubrique.nom() == "type") {
                     os << "\tInfoType *type = nullptr;\n";
                     continue;
                 }
 
-                if (nom_membre.nom() == "lexème") {
+                if (nom_rubrique.nom() == "lexème") {
                     os << "\tkuri::chaine_statique chemin_fichier{};\n";
                     os << "\tkuri::chaine_statique nom_fichier{};\n";
                     os << "\tint numero_ligne = 0;\n";
@@ -744,37 +744,37 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     continue;
                 }
 
-                if (nom_membre.nom() == "ident") {
+                if (nom_rubrique.nom() == "ident") {
                     os << "\tkuri::chaine_statique nom{};\n";
                     continue;
                 }
 
-                if (nom_membre.nom() == "valeur" && nom_code.nom() == "NoeudCodeLittéraleChaine") {
+                if (nom_rubrique.nom() == "valeur" && nom_code.nom() == "NoeudCodeLittéraleChaine") {
                     os << "\tkuri::chaine_statique valeur{};\n";
                     continue;
                 }
 
                 os << "\t";
 
-                if (membre.type->est_tableau()) {
+                if (rubrique.type->est_tableau()) {
                     os << "kuri::tableau<";
                 }
 
-                const auto ident_type = type_nominal_membre_pour_noeud_code(membre.type);
-                const auto type_membre = ident_type.nom();
-                os << type_membre;
+                const auto ident_type = type_nominal_rubrique_pour_noeud_code(rubrique.type);
+                const auto type_rubrique = ident_type.nom();
+                os << type_rubrique;
 
-                if (membre.type->est_pointeur() ||
-                    (membre.type->est_tableau() &&
-                     membre.type->comme_tableau()->type_pointe->est_pointeur())) {
+                if (rubrique.type->est_pointeur() ||
+                    (rubrique.type->est_tableau() &&
+                     rubrique.type->comme_tableau()->type_pointe->est_pointeur())) {
                     os << " *";
                 }
 
-                if (membre.type->est_tableau()) {
+                if (rubrique.type->est_tableau()) {
                     os << '>';
                 }
 
-                os << ' ' << membre.nom << " = " << membre.type->valeur_defaut();
+                os << ' ' << rubrique.nom << " = " << rubrique.type->valeur_defaut();
                 os << ";\n";
             }
 
@@ -910,26 +910,26 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             os << "\t\t\tracine->noeud_code = n;\n";
 
             génère_code_pour_enfant(
-                os, it, true, [&os, it, this](ProtéineStruct &, Membre const &membre) {
-                    const auto nom_membre = membre.nom;
+                os, it, true, [&os, it, this](ProtéineStruct &, Rubrique const &rubrique) {
+                    const auto nom_rubrique = rubrique.nom;
 
-                    if (nom_membre.nom() == "type") {
+                    if (nom_rubrique.nom() == "type") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "lexème") {
+                    if (nom_rubrique.nom() == "lexème") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "ident") {
+                    if (nom_rubrique.nom() == "ident") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "genre") {
+                    if (nom_rubrique.nom() == "genre") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "annotations") {
+                    if (nom_rubrique.nom() == "annotations") {
                         os << "\t\t\t\tn->annotations.réserve(racine_typee->annotations.taille());"
                               "\n";
                         os << "\t\t\tPOUR (racine_typee->annotations) {\n";
@@ -938,46 +938,46 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         return;
                     }
 
-                    const auto desc_type = table_desc.valeur_ou(membre.type->accede_nom().nom(),
+                    const auto desc_type = table_desc.valeur_ou(rubrique.type->accede_nom().nom(),
                                                                 nullptr);
 
                     if (!desc_type) {
-                        if (membre.type->est_tableau()) {
-                            const auto type_tableau = membre.type->comme_tableau();
+                        if (rubrique.type->est_tableau()) {
+                            const auto type_tableau = rubrique.type->comme_tableau();
                             if (type_tableau->est_synchrone) {
-                                os << "\t\t\tPOUR (*racine_typee->" << nom_membre
+                                os << "\t\t\tPOUR (*racine_typee->" << nom_rubrique
                                    << ".verrou_lecture()) {\n";
                             }
                             else {
-                                os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
+                                os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
                             }
-                            os << "\t\t\t\tn->" << nom_membre << ".ajoute(it);\n";
+                            os << "\t\t\t\tn->" << nom_rubrique << ".ajoute(it);\n";
                             os << "\t\t\t}\n";
                         }
                         else {
-                            if (nom_membre.nom() == "valeur" &&
+                            if (nom_rubrique.nom() == "valeur" &&
                                 it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
                                 os << "\t\t\tn->valeur = racine_typee->lexème->chaine;\n";
                             }
                             else {
-                                os << "\t\t\tn->" << nom_membre << " = racine_typee->"
-                                   << nom_membre << ";\n";
+                                os << "\t\t\tn->" << nom_rubrique << " = racine_typee->"
+                                   << nom_rubrique << ";\n";
                             }
                         }
 
                         return;
                     }
 
-                    if (membre.type->est_tableau()) {
-                        const auto type_tableau = membre.type->comme_tableau();
+                    if (rubrique.type->est_tableau()) {
+                        const auto type_tableau = rubrique.type->comme_tableau();
                         if (type_tableau->est_synchrone) {
-                            os << "\t\t\tPOUR (*racine_typee->" << nom_membre
+                            os << "\t\t\tPOUR (*racine_typee->" << nom_rubrique
                                << ".verrou_lecture()) {\n";
                         }
                         else {
-                            os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
+                            os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
                         }
-                        os << "\t\t\t\tn->" << nom_membre
+                        os << "\t\t\t\tn->" << nom_rubrique
                            << ".ajoute(convertis_noeud_syntaxique(espace, it)";
 
                         if (desc_type->accede_nom_code().nom() != "NoeudCode" &&
@@ -989,9 +989,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tif (racine_typee->" << nom_membre << ") {\n";
-                        os << "\t\t\t\tn->" << nom_membre
-                           << " = convertis_noeud_syntaxique(espace, racine_typee->" << nom_membre
+                        os << "\t\t\tif (racine_typee->" << nom_rubrique << ") {\n";
+                        os << "\t\t\t\tn->" << nom_rubrique
+                           << " = convertis_noeud_syntaxique(espace, racine_typee->" << nom_rubrique
                            << ")";
                         if (desc_type->accede_nom_code().nom() != "NoeudCode" &&
                             desc_type->accede_nom_code().nom() != "") {
@@ -1059,26 +1059,26 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                << ".ajoute_élément();\n";
 
             génère_code_pour_enfant(
-                os, it, true, [&os, it, this](ProtéineStruct &, Membre const &membre) {
-                    const auto nom_membre = membre.nom;
+                os, it, true, [&os, it, this](ProtéineStruct &, Rubrique const &rubrique) {
+                    const auto nom_rubrique = rubrique.nom;
 
-                    if (nom_membre.nom() == "type") {
+                    if (nom_rubrique.nom() == "type") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "lexème") {
+                    if (nom_rubrique.nom() == "lexème") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "ident") {
+                    if (nom_rubrique.nom() == "ident") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "genre") {
+                    if (nom_rubrique.nom() == "genre") {
                         return;
                     }
 
-                    if (nom_membre.nom() == "annotations") {
+                    if (nom_rubrique.nom() == "annotations") {
                         os << "\t\t\t\tn->annotations.réserve(static_cast<int>(racine_typee->"
                               "annotations.taille()));"
                               "\n";
@@ -1088,34 +1088,34 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         return;
                     }
 
-                    const auto desc_type = table_desc.valeur_ou(membre.type->accede_nom().nom(),
+                    const auto desc_type = table_desc.valeur_ou(rubrique.type->accede_nom().nom(),
                                                                 nullptr);
 
                     if (!desc_type) {
-                        if (membre.type->est_tableau()) {
-                            os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
-                            os << "\t\t\t\tn->" << nom_membre << membre.type->accesseur()
+                        if (rubrique.type->est_tableau()) {
+                            os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
+                            os << "\t\t\t\tn->" << nom_rubrique << rubrique.type->accesseur()
                                << "ajoute(it);\n";
                             os << "\t\t\t}\n";
                         }
                         else {
-                            if (nom_membre.nom() == "valeur" &&
+                            if (nom_rubrique.nom() == "valeur" &&
                                 it->accede_nom_code().nom() == "NoeudCodeLittéraleChaine") {
                                 os << "\t\tn->valeur = "
                                       "gérante_chaine.ajoute_chaine(racine_typee->valeur);\n";
                             }
                             else {
-                                os << "\t\t\tn->" << nom_membre << " = racine_typee->"
-                                   << nom_membre << ";\n";
+                                os << "\t\t\tn->" << nom_rubrique << " = racine_typee->"
+                                   << nom_rubrique << ";\n";
                             }
                         }
 
                         return;
                     }
 
-                    if (membre.type->est_tableau()) {
-                        os << "\t\t\tPOUR (racine_typee->" << nom_membre << ") {\n";
-                        os << "\t\t\t\tn->" << nom_membre << membre.type->accesseur();
+                    if (rubrique.type->est_tableau()) {
+                        os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
+                        os << "\t\t\t\tn->" << nom_rubrique << rubrique.type->accesseur();
                         os << "ajoute(convertis_noeud_code(espace, gérante_chaine, it)";
 
                         if (desc_type->accede_nom_code().nom() != "NoeudCode") {
@@ -1126,10 +1126,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tif (racine_typee->" << nom_membre << ") {\n";
-                        os << "\t\t\t\tn->" << nom_membre
+                        os << "\t\t\tif (racine_typee->" << nom_rubrique << ") {\n";
+                        os << "\t\t\t\tn->" << nom_rubrique
                            << " = convertis_noeud_code(espace, gérante_chaine, racine_typee->"
-                           << nom_membre << ")";
+                           << nom_rubrique << ")";
 
                         if (desc_type->accede_nom_code().nom() != "NoeudCode") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
@@ -1183,7 +1183,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
     void génère_code_pour_enfant(FluxSortieCPP &os,
                                  ProtéineStruct *racine,
                                  bool inclus_code,
-                                 std::function<void(ProtéineStruct &, const Membre &)> rappel)
+                                 std::function<void(ProtéineStruct &, const Rubrique &)> rappel)
     {
         auto possède_enfants = false;
         auto noeud_courant = racine;
@@ -1195,8 +1195,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             }
 
             if (inclus_code && !possède_enfants) {
-                for (const auto &membre : noeud_courant->membres()) {
-                    if (membre.est_code) {
+                for (const auto &rubrique : noeud_courant->rubriques()) {
+                    if (rubrique.est_code) {
                         possède_enfants = true;
                         break;
                     }
@@ -1215,9 +1215,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         noeud_courant = racine;
 
         while (noeud_courant) {
-            for (const auto &membre : noeud_courant->membres()) {
-                if (membre.est_enfant || (inclus_code && membre.est_code)) {
-                    rappel(*noeud_courant, membre);
+            for (const auto &rubrique : noeud_courant->rubriques()) {
+                if (rubrique.est_enfant || (inclus_code && rubrique.est_code)) {
+                    rappel(*noeud_courant, rubrique);
                 }
             }
 
@@ -1263,9 +1263,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             os << it->nom() << " *AssembleuseArbre::crée_" << it->accede_nom_comme()
                << "(const Lexème *lexeme";
 
-            auto membres_construction = it->donne_membres_pour_construction();
-            POUR_NOMME (membre, membres_construction) {
-                os << ", " << *membre.type << " " << membre.nom;
+            auto rubriques_construction = it->donne_rubriques_pour_construction();
+            POUR_NOMME (rubrique, rubriques_construction) {
+                os << ", " << *rubrique.type << " " << rubrique.nom;
             }
 
             os << ")\n{\n";
@@ -1274,7 +1274,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                 os << recycle_référence;
             }
 
-            if (membres_construction.est_vide()) {
+            if (rubriques_construction.est_vide()) {
                 os << "\treturn crée_noeud<GenreNoeud::" << nom_genre << ">(lexeme)->comme_"
                    << it->accede_nom_comme() << "();\n";
             }
@@ -1282,8 +1282,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                 os << "\tauto résultat = crée_noeud<GenreNoeud::" << nom_genre
                    << ">(lexeme)->comme_" << it->accede_nom_comme() << "();\n";
 
-                POUR_NOMME (membre, membres_construction) {
-                    os << "\trésultat->" << membre.nom << " = " << membre.nom << ";\n";
+                POUR_NOMME (rubrique, rubriques_construction) {
+                    os << "\trésultat->" << rubrique.nom << " = " << rubrique.nom << ";\n";
                 }
 
                 os << "\treturn résultat;\n";
@@ -1385,9 +1385,9 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             os << "\t" << it->nom() << " *crée_" << it->accede_nom_comme()
                << "(const Lexème *lexeme";
 
-            auto membres_construction = it->donne_membres_pour_construction();
-            POUR_NOMME (membre, membres_construction) {
-                os << ", " << *membre.type << " " << membre.nom;
+            auto rubriques_construction = it->donne_rubriques_pour_construction();
+            POUR_NOMME (rubrique, rubriques_construction) {
+                os << ", " << *rubrique.type << " " << rubrique.nom;
             }
 
             os << ");\n";
@@ -1408,7 +1408,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
     NoeudExpressionAppel *crée_appel(const Lexème *lexeme, NoeudExpression *appelee, Type *type);
     NoeudExpressionBinaire *crée_indexage(const Lexème *lexeme, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
     NoeudExpressionBinaire *crée_expression_binaire(const Lexème *lexeme, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-    NoeudExpressionMembre *crée_référence_membre(const Lexème *lexeme, NoeudExpression *accede, Type *type, int index);
+    NoeudExpressionRubrique *crée_référence_rubrique(const Lexème *lexeme, NoeudExpression *accede, Type *type, int index);
     NoeudExpressionRéférence *crée_référence_déclaration(const Lexème *lexeme, NoeudDéclaration *decl);
     NoeudExpressionAppel *crée_construction_structure(const Lexème *lexeme, TypeCompose *type);
 )";
@@ -1458,8 +1458,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         auto noms_tableaux = kuri::ensemble<kuri::chaine>();
 
         auto crée_nom_tableau = [](kuri::chaine_statique nom_comme,
-                                   kuri::chaine_statique nom_membre) -> kuri::chaine {
-            return enchaine("taille_max_", nom_comme, "_", nom_membre);
+                                   kuri::chaine_statique nom_rubrique) -> kuri::chaine {
+            return enchaine("taille_max_", nom_comme, "_", nom_rubrique);
         };
 
         POUR (protéines_struct) {
@@ -1471,10 +1471,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                 continue;
             }
 
-            it->pour_chaque_membre_recursif([&](const Membre &membre) {
-                if (membre.type->est_tableau() || membre.nom.nom() == "monomorphisations") {
+            it->pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+                if (rubrique.type->est_tableau() || rubrique.nom.nom() == "monomorphisations") {
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
-                                                              membre.nom.nom());
+                                                              rubrique.nom.nom());
                     os << "auto " << nom_tableau << " = 0;\n";
                     noms_tableaux.insère(nom_tableau);
                 }
@@ -1497,22 +1497,22 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             os << "auto memoire_" << nom_comme << " = int64_t(0);\n";
             os << "pour_chaque_élément(m_noeuds_" << nom_comme << ", [&](";
             os << it->nom() << " const &noeud) {\n";
-            it->pour_chaque_membre_recursif([&](const Membre &membre) {
-                if (membre.type->est_tableau()) {
-                    const auto nom_membre = membre.nom;
+            it->pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+                if (rubrique.type->est_tableau()) {
+                    const auto nom_rubrique = rubrique.nom;
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
-                                                              nom_membre.nom());
-                    os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_membre;
-                    os << membre.type->accesseur() << "taille());\n";
-                    os << "memoire_" << nom_comme << " += noeud." << nom_membre;
-                    os << membre.type->accesseur() << "taille_mémoire();\n";
+                                                              nom_rubrique.nom());
+                    os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_rubrique;
+                    os << rubrique.type->accesseur() << "taille());\n";
+                    os << "memoire_" << nom_comme << " += noeud." << nom_rubrique;
+                    os << rubrique.type->accesseur() << "taille_mémoire();\n";
                     os << "mémoire_gaspillée"
-                       << " += noeud." << nom_membre;
-                    os << membre.type->accesseur() << "gaspillage_mémoire();\n";
+                       << " += noeud." << nom_rubrique;
+                    os << rubrique.type->accesseur() << "gaspillage_mémoire();\n";
                 }
-                else if (membre.nom.nom() == "monomorphisations") {
+                else if (rubrique.nom.nom() == "monomorphisations") {
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
-                                                              membre.nom.nom());
+                                                              rubrique.nom.nom());
 
                     os << "if (noeud.monomorphisations) {\n";
                     os << "memoire_" << nom_comme

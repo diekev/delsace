@@ -39,7 +39,7 @@ erreur_de_génération :: fonc (données_génération: *DonnéesGénération, ch
 
 trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 {
-    valeur := trouve_valeur_membre(données.valeur, nom)
+    valeur := trouve_valeur_rubrique(données.valeur, nom)
 
     si valeur.est_valide() {
         retourne valeur
@@ -177,7 +177,7 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
 
             retourne aucune_erreur()
         }
-        ACCÈS_MEMBRE {
+        ACCÈS_RUBRIQUE {
             valeur := trouve_valeur_pour_expression(données, noeud)
 
             saufsi valeur.est_valide() {
@@ -218,9 +218,9 @@ trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *
             variable := noeud.données.chn
             résultat = trouve_variable(données, variable)
         }
-        ACCÈS_MEMBRE {
+        ACCÈS_RUBRIQUE {
             accédé := noeud.enfants[0]
-            membre := noeud.enfants[1].données.chn
+            rubrique := noeud.enfants[1].données.chn
 
             valeur_accédée := trouve_valeur_pour_expression(données, accédé)
 
@@ -228,7 +228,7 @@ trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *
                 retourne résultat
             }
 
-            résultat = trouve_valeur_membre(valeur_accédée, membre)
+            résultat = trouve_valeur_rubrique(valeur_accédée, rubrique)
         }
         sinon {
             // mauvais type de neoud

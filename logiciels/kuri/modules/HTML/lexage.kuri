@@ -1939,7 +1939,7 @@ reconsomme_dans_état :: fonc (lexeuse: *Lexeuse, état_cible: ÉtatLexage)
 apparie :: fonc (lexeuse: *Lexeuse, chn: chaine) -> bool
 {
     pour chn {
-        indice := lexeuse.curseur + index_it
+        indice := lexeuse.curseur + indice_it
 
         si indice >= lexeuse.document.taille() {
             retourne faux

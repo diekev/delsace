@@ -25,7 +25,7 @@ struct GrapheDépendance;
 struct IdentifiantCode;
 struct InfoType;
 struct RegistreDesOpérateurs;
-struct MembreTypeComposé;
+struct RubriqueTypeComposé;
 struct Statistiques;
 
 using Type = NoeudDéclarationType;
@@ -224,7 +224,7 @@ struct Typeuse {
     Type *type_info_type_ = nullptr;
     Type *type_info_type_structure = nullptr;
     Type *type_info_type_union = nullptr;
-    Type *type_info_type_membre_structure = nullptr;
+    Type *type_info_type_rubrique_structure = nullptr;
     Type *type_info_type_entier = nullptr;
     Type *type_info_type_tableau = nullptr;
     Type *type_info_type_tableau_fixe = nullptr;
@@ -309,14 +309,14 @@ struct Typeuse {
 
     TypeUnion *union_anonyme(Lexème const *lexeme,
                              NoeudBloc *bloc_parent,
-                             const kuri::tablet<MembreTypeComposé, 6> &membres);
+                             const kuri::tablet<RubriqueTypeComposé, 6> &rubriques);
 
     TypePolymorphique *crée_polymorphique(IdentifiantCode *ident);
 
     TypeOpaque *monomorphe_opaque(NoeudDéclarationTypeOpaque const *decl,
                                   Type *type_monomorphique);
 
-    TypeTuple *crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres);
+    TypeTuple *crée_tuple(const kuri::tablet<RubriqueTypeComposé, 6> &rubriques);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
@@ -363,8 +363,8 @@ bool est_type_pointeur_nul(Type const *type);
  * en a une de 3. */
 int donne_profondeur_type(Type const *type);
 
-/* Retourne vrai la variable est d'un type pouvant être le membre d'une structure. */
-bool est_type_valide_pour_membre(Type const *membre_type);
+/* Retourne vrai la variable est d'un type pouvant être le rubrique d'une structure. */
+bool est_type_valide_pour_rubrique(Type const *rubrique_type);
 
 bool peut_construire_union_via_rien(TypeUnion const *type_union);
 
@@ -388,16 +388,16 @@ bool est_type_fondamental(Type const *type);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name Accès aux membres des types composés.
+/** \name Accès aux rubriques des types composés.
  * \{ */
 
-struct InformationMembreTypeCompose;
+struct InformationRubriqueTypeCompose;
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose const *type_composé,
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(TypeCompose const *type_composé,
                                                                    Type const *type);
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
-    TypeCompose const *type_composé, IdentifiantCode const *nom_membre);
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
+    TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique);
 
 template <typename T, int tag>
 struct ValeurOpaqueTaguee {
@@ -405,18 +405,18 @@ struct ValeurOpaqueTaguee {
 };
 
 enum {
-    INDEX_MEMBRE = 0,
+    INDEX_RUBRIQUE = 0,
     AUCUN_TROUVE = 1,
     PLUSIEURS_TROUVES = 2,
 };
 
-using IndexMembre = ValeurOpaqueTaguee<int, INDEX_MEMBRE>;
-using PlusieursMembres = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
-using AucunMembre = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+using IndexRubrique = ValeurOpaqueTaguee<int, INDEX_RUBRIQUE>;
+using PlusieursRubriques = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
+using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 
-using ResultatRechercheMembre = std::variant<IndexMembre, PlusieursMembres, AucunMembre>;
+using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
-ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose const *type,
+ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
                                                                    Type const *type_a_tester);
 
 /** \} */
@@ -456,7 +456,7 @@ void marque_polymorphique(TypeCompose *type);
 /** \name Fonctions pour les unions.
  * \{ */
 
-void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif);
+void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_rubrique_active);
 
 /** \} */
 
@@ -479,13 +479,13 @@ enum class OptionsImpressionType : uint32_t {
     NORMALISE_PARENTHÈSE_FONCTION = (1u << 4),
     NORMALISE_SPÉCIFIANT_TYPE = (1u << 5),
     INCLUS_HIÉRARCHIE = (1u << 6),
-    NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES = (1u << 7),
+    NORMALISE_SÉPARATEUR_RUBRIQUES_ANONYMES = (1u << 7),
 
     /* Options pour le nom des fonctions d'initialisation. */
     POUR_FONCTION_INITIALISATION = (INCLUS_HIÉRARCHIE | NORMALISE_PARENTHÈSE_PARAMÈTRE |
                                     NORMALISE_SÉPARATEUR_HIÉRARCHIE |
                                     NORMALISE_PARENTHÈSE_FONCTION | NORMALISE_SPÉCIFIANT_TYPE |
-                                    NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES),
+                                    NORMALISE_SÉPARATEUR_RUBRIQUES_ANONYMES),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsImpressionType)
 

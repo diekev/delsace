@@ -113,14 +113,14 @@ apparie_paramètres_à_la_structure :: fonc (règles: [..]RègleRoutage, infos: 
 
         nombre_paramètres += 1
 
-        si !possède_membre(info_structure, it.chn) {
+        si !possède_rubrique(info_structure, it.chn) {
             retourne faux
         }
 
         // À FAIRE : typage
     }
 
-    si nombre_paramètres != donne_nombre_de_membres_effectif(info_structure) {
+    si nombre_paramètres != donne_nombre_de_rubriques_effectif(info_structure) {
         retourne faux
     }
 
@@ -284,7 +284,7 @@ ActionRègleRoutage :: énum {
      * /accueil/ devra apparier "accueil". */
     ApparieChaineLittérale
     /* Apparie un paramètre du nom données entre les chevrons, par exemple /<id>/
-     * devra apparier un membre de la structure associée nommée "id". */
+     * devra apparier une rubrique de la structure associée nommée "id". */
     ApparieParamètre
 }
 

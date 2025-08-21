@@ -186,20 +186,20 @@ static void broye_nom_hiérarchique(Enchaineuse &enchaineuse, HiérarchieDeNoms 
 
 static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
 {
-    if (!bloc || bloc->membres->est_vide()) {
+    if (!bloc || bloc->rubriques->est_vide()) {
         return;
     }
 
-    enchaineuse << "_P" << bloc->membres->taille();
+    enchaineuse << "_P" << bloc->rubriques->taille();
 
-    POUR (*bloc->membres.verrou_lecture()) {
+    POUR (*bloc->rubriques.verrou_lecture()) {
         auto constante = it->comme_déclaration_constante();
-        auto type_membre = constante->type;
-        if (type_membre->est_type_type_de_données()) {
+        auto type_rubrique = constante->type;
+        if (type_rubrique->est_type_type_de_données()) {
             /* Préfixe pour un type. */
             enchaineuse << "_T";
-            type_membre = type_membre->comme_type_type_de_données()->type_connu;
-            broye_nom_type(enchaineuse, type_membre, false);
+            type_rubrique = type_rubrique->comme_type_type_de_données()->type_connu;
+            broye_nom_type(enchaineuse, type_rubrique, false);
         }
         else {
             /* Préfixe pour une valeur. */
@@ -222,7 +222,7 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
                 // valeur ne contient que des caractères légaux.
             }
 
-            broye_nom_type(enchaineuse, type_membre, false);
+            broye_nom_type(enchaineuse, type_rubrique, false);
         }
     }
 }
@@ -585,9 +585,9 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
         return chaine_finale_pour_stockage_temp();
     }
 
-    decl->bloc_constantes->membres.avec_verrou_lecture(
-        [&](kuri::tableau<NoeudDéclaration *, int> const &membres) {
-            POUR (membres) {
+    decl->bloc_constantes->rubriques.avec_verrou_lecture(
+        [&](kuri::tableau<NoeudDéclaration *, int> const &rubriques) {
+            POUR (rubriques) {
                 broye_nom_simple(it->ident);
 
                 auto type = it->type;

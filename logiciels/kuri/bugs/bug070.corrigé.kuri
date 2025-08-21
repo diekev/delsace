@@ -37,7 +37,7 @@ principale :: fonc ()
     ]
 
     pour gradient {
-        si it != gradient_locale[index_it] {
+        si it != gradient_locale[indice_it] {
             exit(1)
         }
     }

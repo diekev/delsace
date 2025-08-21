@@ -387,7 +387,7 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
     }
     parseuse.avance()
 
-    parseuse.parse_spécification_membre(données_parsage_classe)
+    parseuse.parse_spécification_rubrique(données_parsage_classe)
 
     saufsi parseuse.apparie('}') {
         parseuse.rapporte_erreur("Attendu '}'")
@@ -544,10 +544,10 @@ parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Spécification des membres des classes.
+/** \nom Spécification des rubriques des classes.
  * \{ */
 
-parse_spécification_membre :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse)
+parse_spécification_rubrique :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse)
 {
     accès_courant := données_parsage_classe.spécification_accès_défaut
 
@@ -663,15 +663,15 @@ parse_constructeur :: fonc (parseuse: &Parseuse)
 
         tantque !fini(parseuse) {
             saufsi parseuse.apparie(GenreLexème.IDENTIFIANT) {
-                parseuse.rapporte_erreur("Attendu un identifiant pour le membre")
+                parseuse.rapporte_erreur("Attendu un identifiant pour la rubrique")
                 retourne
             }
 
-            /* Nom du membre */
+            /* Nom de la rubrique */
             _ := parseuse.consomme_ident()
 
             saufsi parseuse.apparie('(') {
-                parseuse.rapporte_erreur("Attendu un '(' après le nom du membre")
+                parseuse.rapporte_erreur("Attendu un '(' après le nom de la rubrique")
             }
 
             parseuse.avance()
@@ -751,7 +751,7 @@ parse_enum :: fonc (parseuse: &Parseuse)
     si apparie(parseuse, '{') {
         parseuse.avance()
 
-        // À FAIRE : parse membres
+        // À FAIRE : parse rubriques
 
         tantque !fini(parseuse) {
             si parseuse.apparie('}') {

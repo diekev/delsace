@@ -60,13 +60,13 @@ compile :: fonc ()
 
             d: DonnéesDocument
             d.est_commentaire = vrai
-            d.index_début = index_it
+            d.index_début = indice_it
 
             tableau_ajoute(*données, d)
         }
         sinon {
             si taille_code == 0 {
-                index_début = index_it
+                index_début = indice_it
             }
 
             taille_code += 1

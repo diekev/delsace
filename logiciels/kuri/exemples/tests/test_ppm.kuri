@@ -87,7 +87,7 @@ génére_image_noire :: fonc () -> Image
     diffère déloge(tampon)
 
     pour image.tampon {
-        tampon[index_it] = si it == 0 {
+        tampon[indice_it] = si it == 0 {
             '1'
         }
         sinon {

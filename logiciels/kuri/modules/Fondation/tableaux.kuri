@@ -149,7 +149,7 @@ tableau_copie :: fonc (tabl: [..]$T) -> [..]T
     //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
 
     pour tabl {
-        tmp.pointeur[index_it] = it
+        tmp.pointeur[indice_it] = it
     }
 
     tmp.taille = tabl.taille
@@ -161,7 +161,7 @@ tableau_copie :: fonc (tabl: []$T) -> [..]T
     tmp := loge_tableau(T, tabl.taille)
 
     pour tabl {
-        tmp.pointeur[index_it] = it
+        tmp.pointeur[indice_it] = it
     }
 
     tmp.taille = tabl.taille
@@ -281,7 +281,7 @@ tableau_supprime_valeur :: fonc (tabl: *[..]$T, valeur: T)
 
     pour tmp {
         si it == valeur {
-            tableau_supprime_indice(tabl, index_it)
+            tableau_supprime_indice(tabl, indice_it)
             arrête
         }
     }
@@ -393,7 +393,7 @@ tableau_trouve_indice_élément :: fonc (tableau: [..]$T, valeur: T) -> Optionne
 {
     pour tableau {
         si it == valeur {
-            retourne index_it
+            retourne indice_it
         }
     }
 }
@@ -405,7 +405,7 @@ tableaux_sont_égaux :: fonc (tableau1: [..]$T, tableau2: [..]T) -> bool
     }
 
     pour tableau1 {
-        si tableau2[index_it] != it {
+        si tableau2[indice_it] != it {
             retourne faux
         }
     }
@@ -490,7 +490,7 @@ tableau_donne_indice :: fonc (tableau: []$T, valeur: T) -> z64
 {
     pour tableau {
         si it == valeur {
-            retourne index_it
+            retourne indice_it
         }
     }
     retourne -1
@@ -510,7 +510,7 @@ tableau_remplace :: fonc (tableau: *[..]$T, valeur: T, nouvelle_valeur: T)
         si it != valeur {
             continue
         }
-        tmp.pointeur[index_it] = nouvelle_valeur
+        tmp.pointeur[indice_it] = nouvelle_valeur
     }
 }
 

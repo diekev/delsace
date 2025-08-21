@@ -42,7 +42,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
 
     SI_DRAPEAU_UTILISE(EMPLOYE)
     SI_DRAPEAU_UTILISE(EST_EXTERNE)
-    SI_DRAPEAU_UTILISE(EST_MEMBRE_STRUCTURE)
+    SI_DRAPEAU_UTILISE(EST_RUBRIQUE_STRUCTURE)
     SI_DRAPEAU_UTILISE(EST_ASSIGNATION_COMPOSEE)
     SI_DRAPEAU_UTILISE(EST_VARIADIQUE)
     SI_DRAPEAU_UTILISE(EST_IMPLICITE)
@@ -397,7 +397,7 @@ static void aplatis_entête_fonction(NoeudDéclarationEntêteFonction *entête,
                                     kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
 {
     /* aplatis_arbre pour les bloc n'aplatis que les expressions. */
-    POUR (*entête->bloc_constantes->membres.verrou_lecture()) {
+    POUR (*entête->bloc_constantes->rubriques.verrou_lecture()) {
         if (!it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
         }
@@ -664,14 +664,14 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(logique);
             break;
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
-            auto expr = racine->comme_référence_membre();
+            auto expr = racine->comme_référence_rubrique();
             expr->position |= position;
 
             aplatis_arbre(expr->accédée, arbre_aplatis, position);
-            // n'ajoute pas le membre, car la validation sémantique le considérera
+            // n'ajoute pas le rubrique, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation
             arbre_aplatis.ajoute(expr);
@@ -1094,7 +1094,7 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
 
         if (arbre_aplatis->noeuds.taille() == 0) {
             if (structure->est_polymorphe) {
-                POUR (*structure->bloc_constantes->membres.verrou_lecture()) {
+                POUR (*structure->bloc_constantes->rubriques.verrou_lecture()) {
                     aplatis_arbre(it, arbre_aplatis->noeuds, {});
                 }
             }
@@ -1191,7 +1191,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 {
     if (!expression) {
         /* Nous pouvons avoir des sous-expressions nulles (par exemple dans la construction de
-         * structures dont certains membres ne sont pas initialisés). */
+         * structures dont certains rubriques ne sont pas initialisés). */
         return nullptr;
     }
 
@@ -1240,10 +1240,10 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 
             return référence_déclaration;
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
         {
-            auto référence_membre = expression->comme_référence_membre();
-            auto accédé = référence_membre->accédée;
+            auto référence_rubrique = expression->comme_référence_rubrique();
+            auto accédé = référence_rubrique->accédée;
             if (auto expr_variable = trouve_expression_non_constante(accédé)) {
                 return expr_variable;
             }
@@ -1251,8 +1251,8 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             if (accédé->est_référence_déclaration()) {
                 if (accédé->comme_référence_déclaration()
                         ->déclaration_référée->est_déclaration_module()) {
-                    assert(référence_membre->déclaration_référée);
-                    return trouve_expression_non_constante(référence_membre->déclaration_référée);
+                    assert(référence_rubrique->déclaration_référée);
+                    return trouve_expression_non_constante(référence_rubrique->déclaration_référée);
                 }
             }
 
@@ -1264,7 +1264,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             auto type_accédé = donne_type_accédé_effectif(accédé->type);
 
             if (type_accédé->est_type_type_de_données()) {
-                if (référence_membre->genre_valeur == GenreValeur::DROITE) {
+                if (référence_rubrique->genre_valeur == GenreValeur::DROITE) {
                     /* Nous accédons à une valeur constante. */
                     return nullptr;
                 }
@@ -1283,13 +1283,13 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
             auto type_compose = type_accédé->comme_type_composé();
-            auto &membre = type_compose->membres[référence_membre->index_membre];
+            auto &rubrique = type_compose->rubriques[référence_rubrique->index_rubrique];
 
-            if (membre.drapeaux == MembreTypeComposé::EST_CONSTANT) {
+            if (rubrique.drapeaux == RubriqueTypeComposé::EST_CONSTANT) {
                 return nullptr;
             }
 
-            return référence_membre;
+            return référence_rubrique;
         }
         case GenreNoeud::EXPRESSION_PARENTHÈSE:
         {
@@ -1388,7 +1388,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression const *expression)
 {
     if (!expression) {
-        /* Membre non définis d'une construction de structure. */
+        /* Rubrique non définis d'une construction de structure. */
         return true;
     }
 
@@ -1591,42 +1591,42 @@ Type *NoeudDéclarationEntêteFonction::type_initialisé() const
     return params[0]->type->comme_type_pointeur()->type_pointé;
 }
 
-int NoeudBloc::nombre_de_membres() const
+int NoeudBloc::nombre_de_rubriques() const
 {
-    return membres->taille();
+    return rubriques->taille();
 }
 
-void NoeudBloc::réserve_membres(int nombre)
+void NoeudBloc::réserve_rubriques(int nombre)
 {
-    membres->réserve(nombre);
+    rubriques->réserve(nombre);
 }
 
-static constexpr auto TAILLE_MAX_TABLEAU_MEMBRES = 16;
+static constexpr auto TAILLE_MAX_TABLEAU_RUBRIQUES = 16;
 
 template <typename T>
 using PointeurTableauVerrouille = typename kuri::tableau_synchrone<T>::PointeurVerrouille;
 
-using TableMembres = kuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *>;
+using TableRubriques = kuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *>;
 
-static void ajoute_membre(TableMembres &table_membres, NoeudDéclaration *decl)
+static void ajoute_rubrique(TableRubriques &table_rubriques, NoeudDéclaration *decl)
 {
-    /* Nous devons faire en sorte que seul le premier membre du nom est ajouté, afin que l'ensemble
-     * de surcharge lui soit réservé, et que c'est ce membre qui est retourné. */
-    if (table_membres.possède(decl->ident)) {
+    /* Nous devons faire en sorte que seul le premier rubrique du nom est ajouté, afin que l'ensemble
+     * de surcharge lui soit réservé, et que c'est ce rubrique qui est retourné. */
+    if (table_rubriques.possède(decl->ident)) {
         return;
     }
-    table_membres.insère(decl->ident, decl);
+    table_rubriques.insère(decl->ident, decl);
 }
 
-static void init_table_hachage_membres(PointeurTableauVerrouille<NoeudDéclaration *> &membres,
-                                       TableMembres &table_membres)
+static void init_table_hachage_rubriques(PointeurTableauVerrouille<NoeudDéclaration *> &rubriques,
+                                       TableRubriques &table_rubriques)
 {
-    if (table_membres.taille() != 0) {
+    if (table_rubriques.taille() != 0) {
         return;
     }
 
-    POUR (*membres) {
-        ajoute_membre(table_membres, it);
+    POUR (*rubriques) {
+        ajoute_rubrique(table_rubriques, it);
     }
 }
 
@@ -1660,11 +1660,11 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDéclaration *decl, NoeudDécla
     });
 }
 
-void NoeudBloc::ajoute_membre(NoeudDéclaration *decl)
+void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
 {
     if (decl->ident == ID::_ || decl->ident == nullptr) {
         /* Inutile d'avoir les variables ignorées ou les temporaires créées lors de la
-         * canonicalisation ou la génération des initialisations des types comme membres du bloc.
+         * canonicalisation ou la génération des initialisations des types comme rubriques du bloc.
          */
         return;
     }
@@ -1676,53 +1676,53 @@ void NoeudBloc::ajoute_membre(NoeudDéclaration *decl)
         }
     }
 
-    auto membres_ = membres.verrou_ecriture();
-    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
-        init_table_hachage_membres(membres_, table_membres);
-        ::ajoute_membre(table_membres, decl);
+    auto rubriques_ = rubriques.verrou_ecriture();
+    if (rubriques_->taille() >= TAILLE_MAX_TABLEAU_RUBRIQUES) {
+        init_table_hachage_rubriques(rubriques_, table_rubriques);
+        ::ajoute_rubrique(table_rubriques, decl);
     }
 
-    membres_->ajoute(decl);
+    rubriques_->ajoute(decl);
 }
 
-void NoeudBloc::ajoute_membre_au_debut(NoeudDéclaration *decl)
+void NoeudBloc::ajoute_rubrique_au_debut(NoeudDéclaration *decl)
 {
-    auto membres_ = membres.verrou_ecriture();
-    if (membres_->taille() >= TAILLE_MAX_TABLEAU_MEMBRES) {
-        init_table_hachage_membres(membres_, table_membres);
-        ::ajoute_membre(table_membres, decl);
+    auto rubriques_ = rubriques.verrou_ecriture();
+    if (rubriques_->taille() >= TAILLE_MAX_TABLEAU_RUBRIQUES) {
+        init_table_hachage_rubriques(rubriques_, table_rubriques);
+        ::ajoute_rubrique(table_rubriques, decl);
     }
 
-    membres_->ajoute_au_début(decl);
+    rubriques_->ajoute_au_début(decl);
 }
 
-void NoeudBloc::fusionne_membres(NoeudBloc *de)
+void NoeudBloc::fusionne_rubriques(NoeudBloc *de)
 {
     if (!de) {
         /* Permet de passer un bloc nul. */
         return;
     }
 
-    POUR ((*de->membres.verrou_lecture())) {
-        ajoute_membre(it);
+    POUR ((*de->rubriques.verrou_lecture())) {
+        ajoute_rubrique(it);
     }
 }
 
-NoeudDéclaration *NoeudBloc::membre_pour_index(int index) const
+NoeudDéclaration *NoeudBloc::rubrique_pour_index(int index) const
 {
-    return membres->a(index);
+    return rubriques->a(index);
 }
 
 NoeudDéclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
 {
-    auto membres_ = membres.verrou_lecture();
+    auto rubriques_ = rubriques.verrou_lecture();
     nombre_recherches += 1;
 
-    if (table_membres.taille() != 0) {
-        return table_membres.valeur_ou(ident_recherche, nullptr);
+    if (table_rubriques.taille() != 0) {
+        return table_rubriques.valeur_ou(ident_recherche, nullptr);
     }
 
-    POUR (*membres_) {
+    POUR (*rubriques_) {
         if (it->ident == ident_recherche) {
             return it;
         }
@@ -1732,18 +1732,18 @@ NoeudDéclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *iden
 
 NoeudDéclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
 {
-    auto membres_ = membres.verrou_lecture();
+    auto rubriques_ = rubriques.verrou_lecture();
     nombre_recherches += 1;
 
-    if (table_membres.taille() != 0) {
-        auto résultat = table_membres.valeur_ou(expr->ident, nullptr);
+    if (table_rubriques.taille() != 0) {
+        auto résultat = table_rubriques.valeur_ou(expr->ident, nullptr);
         if (résultat != expr) {
             return résultat;
         }
         return nullptr;
     }
 
-    POUR (*membres_) {
+    POUR (*rubriques_) {
         if (it != expr && it->ident == expr->ident) {
             return it;
         }
@@ -1756,10 +1756,10 @@ void NoeudBloc::ajoute_expression(NoeudExpression *expr)
     expressions->ajoute(expr);
 }
 
-kuri::tableau_statique<const MembreTypeComposé> NoeudDéclarationTypeComposé::
-    donne_membres_pour_code_machine() const
+kuri::tableau_statique<const RubriqueTypeComposé> NoeudDéclarationTypeComposé::
+    donne_rubriques_pour_code_machine() const
 {
-    return {membres.begin(), nombre_de_membres_réels};
+    return {rubriques.begin(), nombre_de_rubriques_réelles};
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1831,20 +1831,20 @@ NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
     return decl;
 }
 
-NoeudExpressionMembre *AssembleuseArbre::crée_référence_membre(const Lexème *lexeme,
+NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lexème *lexeme,
                                                                NoeudExpression *accede,
                                                                Type *type,
                                                                int index)
 {
-    auto acces = crée_référence_membre(lexeme, accede);
+    auto acces = crée_référence_rubrique(lexeme, accede);
     auto type_accédé = donne_type_accédé_effectif(accede->type);
     if (type_accédé->est_type_composé()) {
         auto type_composé = type_accédé->comme_type_composé();
-        auto membre = type_composé->membres[index];
-        acces->ident = membre.nom;
+        auto rubrique = type_composé->rubriques[index];
+        acces->ident = rubrique.nom;
     }
     acces->type = type;
-    acces->index_membre = index;
+    acces->index_rubrique = index;
     return acces;
 }
 
@@ -1886,7 +1886,7 @@ NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexè
 {
     auto structure = crée_appel(lexeme, type);
     structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
-    structure->paramètres_résolus.réserve(type->membres.taille());
+    structure->paramètres_résolus.réserve(type->rubriques.taille());
     structure->noeud_fonction_appelée = type;
     structure->type = type;
     return structure;
@@ -2028,7 +2028,7 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
        << entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE) << '\n';
     if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
         os << "-- Paramètres de monomorphisation :\n";
-        POUR ((*entête->bloc_constantes->membres.verrou_lecture())) {
+        POUR ((*entête->bloc_constantes->rubriques.verrou_lecture())) {
             os << "     " << it->ident->nom << " : " << chaine_type(it->type) << '\n';
         }
     }
@@ -2332,8 +2332,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
-            pour->decl_index_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, TypeBase::Z64, ID::index_it, nullptr);
+            pour->decl_indice_it = assembleuse->crée_déclaration_variable(
+                &lexème_sentinel, TypeBase::Z64, ID::indice_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
                 type_élément, assembleuse, typeuse);
@@ -2530,7 +2530,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 }
             }
 
-            POUR_INDEX (type_composé->membres) {
+            POUR_INDEX (type_composé->rubriques) {
                 if (it.ne_doit_pas_être_dans_code_machine() &&
                     !it.expression_initialisation_est_spéciale()) {
                     continue;
@@ -2541,10 +2541,10 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                     continue;
                 }
 
-                auto ref_membre = assembleuse->crée_référence_membre(
-                    &lexème_sentinel, ref_param, it.type, index_it);
+                auto ref_rubrique = assembleuse->crée_référence_rubrique(
+                    &lexème_sentinel, ref_param, it.type, indice_it);
                 crée_initialisation_defaut_pour_type(
-                    it.type, assembleuse, ref_membre, it.expression_valeur_defaut, typeuse);
+                    it.type, assembleuse, ref_rubrique, it.expression_valeur_defaut, typeuse);
             }
 
             break;
@@ -2553,17 +2553,17 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
         {
             auto const type_union = type->comme_type_union();
 
-            MembreTypeComposé membre;
+            RubriqueTypeComposé rubrique;
             if (type_union->type_le_plus_grand) {
-                auto const info_membre = donne_membre_pour_type(type_union,
+                auto const info_rubrique = donne_rubrique_pour_type(type_union,
                                                                 type_union->type_le_plus_grand);
-                assert(info_membre.has_value());
-                membre = info_membre->membre;
+                assert(info_rubrique.has_value());
+                rubrique = info_rubrique->rubrique;
             }
-            else if (type_union->membres.taille()) {
-                /* Si l'union ne contient que des membres de type « rien », utilise le premier
-                 * membre. */
-                membre = type_union->membres[0];
+            else if (type_union->rubriques.taille()) {
+                /* Si l'union ne contient que des rubriques de type « rien », utilise le premier
+                 * rubrique. */
+                rubrique = type_union->rubriques[0];
             }
             else {
                 break;
@@ -2575,26 +2575,26 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 auto transtype = assembleuse->crée_comme(&lexème_sentinel, ref_param, nullptr);
                 transtype->transformation = TransformationType{
                     TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
-                    typeuse.type_pointeur_pour(membre.type)};
+                    typeuse.type_pointeur_pour(rubrique.type)};
                 transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
                 auto deref = assembleuse->crée_mémoire(&lexème_sentinel, transtype);
-                deref->type = membre.type;
+                deref->type = rubrique.type;
 
                 crée_initialisation_defaut_pour_type(
-                    membre.type, assembleuse, deref, membre.expression_valeur_defaut, typeuse);
+                    rubrique.type, assembleuse, deref, rubrique.expression_valeur_defaut, typeuse);
             }
             else {
                 /* Transtype l'argument vers le type de la structure.
                  *
-                 * Nous ne pouvons pas utiliser une expression de référence de membre d'union ici
+                 * Nous ne pouvons pas utiliser une expression de référence de rubrique d'union ici
                  * car la RI se base sur le fait qu'une telle expression se fait sur le type
                  * d'union et convertira vers le type structure dans ce cas.
                  *
-                 * Nous ne pouvons pas utiliser une expression de référence de membre de structure
+                 * Nous ne pouvons pas utiliser une expression de référence de rubrique de structure
                  * en utilisant le type union comme type d'accès, car sinon l'accès se ferait sur
-                 * les membres de l'union alors que nous voulons que l'accès se fasse sur les
-                 * membres de la structure de l'union (membre le plus grand + index).
+                 * les rubriques de l'union alors que nous voulons que l'accès se fasse sur les
+                 * rubriques de la structure de l'union (rubrique le plus grand + index).
                  */
                 auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
                     type_union->type_structure, false);
@@ -2605,37 +2605,37 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 param_comme_structure->transformation = TransformationType{
                     TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
 
-                if (membre.type->est_type_rien()) {
+                if (rubrique.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
-                     * comme types des membres). */
-                    auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                     * comme types des rubriques). */
+                    auto ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                          param_comme_structure);
-                    ref_membre->index_membre = 0;
-                    ref_membre->type = TypeBase::Z32;
-                    ref_membre->aide_génération_code = IGNORE_VERIFICATION;
+                    ref_rubrique->index_rubrique = 0;
+                    ref_rubrique->type = TypeBase::Z32;
+                    ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                     crée_initialisation_defaut_pour_type(
-                        TypeBase::Z32, assembleuse, ref_membre, nullptr, typeuse);
+                        TypeBase::Z32, assembleuse, ref_rubrique, nullptr, typeuse);
                     break;
                 }
 
-                auto ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                auto ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                      param_comme_structure);
-                ref_membre->index_membre = 0;
-                ref_membre->type = membre.type;
-                ref_membre->aide_génération_code = IGNORE_VERIFICATION;
-                crée_initialisation_defaut_pour_type(membre.type,
+                ref_rubrique->index_rubrique = 0;
+                ref_rubrique->type = rubrique.type;
+                ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
+                crée_initialisation_defaut_pour_type(rubrique.type,
                                                      assembleuse,
-                                                     ref_membre,
-                                                     membre.expression_valeur_defaut,
+                                                     ref_rubrique,
+                                                     rubrique.expression_valeur_defaut,
                                                      typeuse);
 
-                ref_membre = assembleuse->crée_référence_membre(&lexème_sentinel,
+                ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                 param_comme_structure);
-                ref_membre->index_membre = 1;
-                ref_membre->type = TypeBase::Z32;
-                ref_membre->aide_génération_code = IGNORE_VERIFICATION;
+                ref_rubrique->index_rubrique = 1;
+                ref_rubrique->type = TypeBase::Z32;
+                ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                 crée_initialisation_defaut_pour_type(
-                    TypeBase::Z32, assembleuse, ref_membre, nullptr, typeuse);
+                    TypeBase::Z32, assembleuse, ref_rubrique, nullptr, typeuse);
             }
 
             break;
@@ -2726,7 +2726,7 @@ static bool les_invariants_de_la_fonction_sont_respectés(
 }
 #endif
 
-void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
+void imprime_rubriques_blocs_récursifs(NoeudBloc const *bloc)
 {
     Indentation indentation;
 
@@ -2734,7 +2734,7 @@ void imprime_membres_blocs_récursifs(NoeudBloc const *bloc)
         dbg() << indentation << "bloc " << bloc;
         indentation.incrémente();
 
-        POUR (*bloc->membres.verrou_lecture()) {
+        POUR (*bloc->rubriques.verrou_lecture()) {
             dbg() << indentation << it->ident->nom << " (" << it->ident << ")";
         }
         bloc = bloc->bloc_parent;
@@ -2806,7 +2806,7 @@ static void remplis_tableau_valeurs_énum(NoeudEnum const &noeud, kuri::tableau<
 {
     auto pointeur_tampon = reinterpret_cast<T *>(&résultat[0]);
 
-    POUR (noeud.membres) {
+    POUR (noeud.rubriques) {
         if (it.est_implicite()) {
             continue;
         }
@@ -2817,16 +2817,16 @@ static void remplis_tableau_valeurs_énum(NoeudEnum const &noeud, kuri::tableau<
 
 kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
 {
-    int nombre_de_membres_non_implicite = 0;
-    POUR (noeud.membres) {
+    int nombre_de_rubriques_non_implicite = 0;
+    POUR (noeud.rubriques) {
         if (it.est_implicite()) {
             continue;
         }
 
-        nombre_de_membres_non_implicite += 1;
+        nombre_de_rubriques_non_implicite += 1;
     }
 
-    kuri::tableau<char> résultat(nombre_de_membres_non_implicite * int32_t(noeud.taille_octet));
+    kuri::tableau<char> résultat(nombre_de_rubriques_non_implicite * int32_t(noeud.taille_octet));
 
     if (noeud.type_sous_jacent == nullptr) {
         /* À FAIRE : les métaprogrammes peuvent recevoir des infos-types nuls. */

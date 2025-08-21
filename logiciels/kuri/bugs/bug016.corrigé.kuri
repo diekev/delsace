@@ -1,6 +1,6 @@
 /* Bug corrigé par le commit : 5944eedf38a52386acbd450467dc8b1fa52c7a3b
- * Crash lors de l'accès à un membre inconnu d'un tableau
- * Catégorie : [crash, validation sémantique, membre inconnu, type tableau]
+ * Crash lors de l'accès à une rubrique inconnu d'un tableau
+ * Catégorie : [crash, validation sémantique, rubrique inconnu, type tableau]
  */
 
 principale :: fonc ()

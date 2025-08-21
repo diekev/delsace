@@ -1,6 +1,6 @@
-/* Impossible de construire un type opaque depuis la liste des membres du type
+/* Impossible de construire un type opaque depuis la liste des rubriques du type
  * opacifié, ou sans nommer les arguments.
- * Voir note « construction d'opaque depuis la liste des membres... » dans Calculatrice.
+ * Voir note « construction d'opaque depuis la liste des rubriques... » dans Calculatrice.
  * Catégorie : [validation sémantique, construction type, type opaque]
  */
 

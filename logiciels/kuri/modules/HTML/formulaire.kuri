@@ -12,7 +12,7 @@ EntréeFormulaire :: struct {
     hidden: bool
 }
 
-formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
+formulaire_depuis_élément :: fonc (élément: *Element) -> Formulaire
 {
     formulaire: Formulaire
     // À FAIRE : l'action par défaut est la page courante
@@ -32,7 +32,7 @@ formulaire_depuis_élément :: fonc (élément: *Élément) -> Formulaire
     retourne formulaire
 }
 
-ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Élément)
+ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
 {
     entrée: EntréeFormulaire
     entrée.nom = chaine_ou_défaut(cherche_attribut(input, ATTR_name))
@@ -78,7 +78,7 @@ génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 }
 
 /* Idée pour générer des requêtes depuis des formulaires. */
-rappel_recherche_formulaire :: fonc (noeud: *Noeud, données: eini @inutilisée)
+rappel_recherche_formulaire :: fonc (noeud: *Node, données: eini @inutilisée)
 {
     élément := est_élément_type(noeud, TAG_form)
     saufsi élément {

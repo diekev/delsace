@@ -22,7 +22,7 @@ importe Ensemble
  *    - un type de paramètre de routage (dérivant de ParamètreRoutage)
  *
  * Si un paramètre de type ParamètreRoutage est présent, le chemin devra avoir des
- * paramètres dont les noms correspondent aux membres du type.
+ * paramètres dont les noms correspondent aux rubriques du type.
  *
  * Pour pouvoir extraire des données depuis les prises de chaque connexion, l'application
  * devra fournir un type de connexion, et deux interfaces pour transférer les données
@@ -241,31 +241,31 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     // À FAIRE : ce serait bien d'extraire ceci dans une fonction commune, mais les types résultat peuvent être uniques à cause des gabarits
     enchaineuse.imprime_dans_enchaineuse("\tdiscr résultat {\n")
 
-    pour données.type_résultat.membres {
-        si it.drapeaux.EST_CONSTANT {
+    pour données.type_résultat.rubriques {
+        si it.drapeaux.EST_CONSTANTE {
             continue
         }
 
-        type_membre := it.id
+        type_rubrique := it.id
 
         enchaineuse.imprime_dans_enchaineuse("\t\t% {\n", it.nom)
         enchaineuse.imprime_dans_enchaineuse("\t\t\t__valeur := résultat.%\n", it.nom)
 
-        si type_membre == info_de(Redirection) {
+        si type_rubrique == info_de(Redirection) {
             // crée une redirection
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection)\n")
         }
-        sinon si est_type_rendu_page(paramètres, type_membre) {
+        sinon si est_type_rendu_page(paramètres, type_rubrique) {
             // rends les données pour une page HTML
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
         }
-        sinon si type_membre == info_de(ErreurHTTP) {
+        sinon si type_rubrique == info_de(ErreurHTTP) {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_erreur_http(__valeur)\n")
         }
-        sinon si type_membre == info_de(CodeEtContenuHTPP) {
+        sinon si type_rubrique == info_de(CodeEtContenuHTPP) {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu)\n")
         }
-        sinon si type_membre == info_de(ChangementProtocole) {
+        sinon si type_rubrique == info_de(ChangementProtocole) {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_changement_protocole(__valeur)\n")
         }
 
@@ -374,7 +374,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.serveuse.type = info_struct
-                infos_paramètres.serveuse.index = index_it
+                infos_paramètres.serveuse.index = indice_it
             }
             EST_TYPE_CONNEXION {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -384,7 +384,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.connexion.type = info_struct
-                infos_paramètres.connexion.index = index_it
+                infos_paramètres.connexion.index = indice_it
             }
             EST_TYPE_PARAMÈTRE_ROUTAGE {
                 info_struct := it comme *InfoTypeStructure
@@ -394,7 +394,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
-                infos_paramètres.paramètres_route.index = index_it
+                infos_paramètres.paramètres_route.index = indice_it
             }
             EST_TYPE_PARAMÈTRE_REQUÊTE {
                 info_struct := it comme *InfoTypeStructure
@@ -404,7 +404,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_requête.type = info_struct
-                infos_paramètres.paramètres_requête.index = index_it
+                infos_paramètres.paramètres_requête.index = indice_it
             }
             EST_TYPE_FORMULAIRE {
                 info_struct := it comme *InfoTypeStructure
@@ -414,7 +414,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.formulaire.type = info_struct
-                infos_paramètres.formulaire.index = index_it
+                infos_paramètres.formulaire.index = indice_it
             }
         }
     }
@@ -447,7 +447,7 @@ valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_
         }
 
         si !apparie_paramètres_à_la_structure(règles, type_paramètres) {
-            compilatrice_rapporte_erreur(fonction, "Les paramètres de la route ne correspondent pas aux membres de la structure")
+            compilatrice_rapporte_erreur(fonction, "Les paramètres de la route ne correspondent pas aux rubriques de la structure")
         }
     }
     sinon si type_paramètres != nul {
@@ -529,35 +529,35 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
         retourne faux
     }
 
-    /* Vérifie que les types de tous les membres sont connus. */
-    pour type_union.membres {
-        si it.drapeaux.EST_CONSTANT {
+    /* Vérifie que les types de toutes les rubriques sont connus. */
+    pour type_union.rubriques {
+        si it.drapeaux.EST_CONSTANTE {
             continue
         }
 
-        type_membre := it.id
+        type_rubrique := it.id
 
-        si type_membre == info_de(Redirection) {
+        si type_rubrique == info_de(Redirection) {
             continue
         }
 
-        si est_type_rendu_page(paramètres, type_membre) {
+        si est_type_rendu_page(paramètres, type_rubrique) {
             continue
         }
 
-        si type_membre == info_de(CodeEtContenuHTPP) {
+        si type_rubrique == info_de(CodeEtContenuHTPP) {
             continue
         }
 
-        si type_membre == info_de(ErreurHTTP) {
+        si type_rubrique == info_de(ErreurHTTP) {
             continue
         }
 
-        si type_membre == info_de(ChangementProtocole) {
+        si type_rubrique == info_de(ChangementProtocole) {
             continue
         }
 
-        compilatrice_rapporte_erreur(fonction, "Type membre du résultat inconnu !\n")
+        compilatrice_rapporte_erreur(fonction, "Type rubrique du résultat inconnu !\n")
     }
 
     retourne vrai
@@ -674,10 +674,10 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
 
     pour règles {
         si it.action == ActionRègleRoutage.ApparieChaineLittérale {
-            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments[%] == \"%\" { retourne faux, paramètres }\n", index_it, it.chn)
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments[%] == \"%\" { retourne faux, paramètres }\n", indice_it, it.chn)
         }
         sinon {
-            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi parse_paramètre_routage_pour_type(éléments[%], paramètres.%) { retourne faux, paramètres }\n", index_it, it.chn)
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi parse_paramètre_routage_pour_type(éléments[%], paramètres.%) { retourne faux, paramètres }\n", indice_it, it.chn)
         }
     }
 
@@ -809,7 +809,7 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
     ajoute_au_tampon(enchaineuse, chn_type, " :: struct {\n")
     déloge(chn_type)
 
-    pour infos.membres {
+    pour infos.rubriques {
         chn_type = chaine_pour_type(it.id)
         ajoute_au_tampon(enchaineuse, "    ", it.nom, ": ", chn_type, "\n")
         déloge(chn_type)

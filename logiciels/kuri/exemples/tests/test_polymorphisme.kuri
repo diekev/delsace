@@ -36,7 +36,7 @@ imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
     imprime("%\n", message)
     imprime("a = %\n", a)
     pour args {
-        imprime("arg %: %\n", index_it, it)
+        imprime("arg %: %\n", indice_it, it)
     }
 }
 

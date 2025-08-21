@@ -11,7 +11,7 @@ TypeChaineInternée :: union {
 }
 
 // À FAIRE(langage) : les discriminations sur des types pointeurs échoues
-// À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type membre, pour éviter les paniques en cas de membre non-actif
+// À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type rubrique, pour éviter les paniques en cas de rubrique non-active
 
 détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {
@@ -253,7 +253,7 @@ Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données) {
 
 alloue :: fonc (table: *Table($TypeClé, $TypeValeur), taille: z64)
 {
-    // À FAIRE: allocatrice comme membre de la table
+    // À FAIRE: allocatrice comme rubrique de la table
     table.capacité = taille
 
     table.clés = loge_tableau(TypeClé, taille)
@@ -298,7 +298,7 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 
     pour vieilles_occupés {
         si it {
-            insère(table, vieilles_clés[index_it], vieilles_valeurs[index_it])
+            insère(table, vieilles_clés[indice_it], vieilles_valeurs[indice_it])
         }
     }
 

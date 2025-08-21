@@ -54,7 +54,7 @@ parse_a_selector :: fonc (chn: chaine) -> Optionnel(CSS.SelectorList)
     retourne CSS.parse_according_to_a_css_grammar(chn, CSS.parse_selector_list)
 }
 
-apparie_sélecteur :: fonc (selector_list: CSS.SelectorList, élément: *Élément) -> bool
+apparie_sélecteur :: fonc (selector_list: CSS.SelectorList, élément: *Element) -> bool
 {
     pour complex dans selector_list.complex_selectors {
         saufsi CSS.apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
@@ -95,10 +95,10 @@ principale :: fonc ()
     parsat := parse_document_depuis_chemin(args.fichier)
     diffère détruit(parsat)
 
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
-    éléments: [..]*Élément
+    éléments: [..]*Element
     diffère déloge(éléments)
 
     tableau_ajoute(*traversée, parsat.document)
@@ -107,7 +107,7 @@ principale :: fonc ()
         noeud := enlève_dernier_élément(*traversée)
 
         si noeud.est_élément() {
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
             si apparie_sélecteur(sélecteur, élément) {
                 tableau_ajoute(*éléments, élément)
             }
@@ -126,7 +126,7 @@ principale :: fonc ()
     imprimeln("Trouvé % élément(s)", éléments.taille)
 
     /* Rassemble les noeuds à garder. */
-    noeuds_à_garder: [..]*Noeud
+    noeuds_à_garder: [..]*Node
     diffère déloge(noeuds_à_garder)
 
     pour parsat.document.enfants {
@@ -145,7 +145,7 @@ principale :: fonc ()
     }
 
     pour éléments {
-        parent := it comme *Noeud
+        parent := it comme *Node
 
         tantque parent != nul {
             ensemble_ajoute(*noeuds_à_garder, parent)
@@ -171,7 +171,7 @@ principale :: fonc ()
             noeud := enlève_dernier_élément(*traversée)
 
             si noeud.est_élément() {
-                élément := noeud comme *Élément
+                élément := noeud comme *Element
                 saufsi élément.local_name == TAG_link || élément.local_name == TAG_style || élément.local_name == TAG_title || élément.local_name == TAG_head {
                     continue
                 }

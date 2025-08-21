@@ -16,20 +16,20 @@
 
 // --------------------------------------------
 
-static RésultatValidation valide_présence_membre(
+static RésultatValidation valide_présence_rubrique(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
     TypeCompose *type,
-    kuri::ensemblon<IdentifiantCode const *, 16> const &membres_rencontrés)
+    kuri::ensemblon<IdentifiantCode const *, 16> const &rubriques_rencontrés)
 {
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
 
-    POUR (type->membres) {
+    POUR (type->rubriques) {
         if (!it.est_utilisable_pour_discrimination()) {
             continue;
         }
 
-        if (membres_rencontrés.possède(it.nom)) {
+        if (rubriques_rencontrés.possède(it.nom)) {
             continue;
         }
 
@@ -52,7 +52,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
     auto type_énum = static_cast<TypeEnum *>(type);
     inst->op = type_énum->table_opérateurs->opérateur_egt;
 
-    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto rubriques_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_ÉNUM;
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
@@ -68,34 +68,34 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
                 return CodeRetourValidation::Erreur;
             }
 
-            auto info_membre = donne_membre_pour_nom(type_énum, f->ident);
+            auto info_rubrique = donne_rubrique_pour_nom(type_énum, f->ident);
 
-            if (!info_membre) {
-                rapporte_erreur_membre_inconnu(inst, f, type_énum);
+            if (!info_rubrique) {
+                rapporte_erreur_rubrique_inconnu(inst, f, type_énum);
                 return CodeRetourValidation::Erreur;
             }
 
-            auto membre = info_membre->membre;
+            auto rubrique = info_rubrique->rubrique;
 
-            if (membre.est_implicite()) {
+            if (rubrique.est_implicite()) {
                 m_espace->rapporte_erreur(
                     f,
-                    "Les membres implicites des énumérations ne peuvent être "
+                    "Les rubriques implicites des énumérations ne peuvent être "
                     "utilisés comme expression de discrimination");
                 return CodeRetourValidation::Erreur;
             }
 
-            if (membres_rencontrés.possède(membre.nom)) {
+            if (rubriques_rencontrés.possède(rubrique.nom)) {
                 rapporte_erreur("Redéfinition de l'expression", f);
                 return CodeRetourValidation::Erreur;
             }
 
-            membres_rencontrés.insère(membre.nom);
+            rubriques_rencontrés.insère(rubrique.nom);
         }
     }
 
     if (inst->bloc_sinon == nullptr) {
-        return valide_présence_membre(m_espace, expression, type_énum, membres_rencontrés);
+        return valide_présence_rubrique(m_espace, expression, type_énum, rubriques_rencontrés);
     }
 
     return CodeRetourValidation::OK;
@@ -157,7 +157,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
-                                               InformationMembreTypeCompose const &info_membre,
+                                               InformationRubriqueTypeCompose const &info_rubrique,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
@@ -181,37 +181,37 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     if (déclaration_existante != nullptr) {
         espace->rapporte_erreur(param,
-                                "Ne peut pas utiliser implicitement le membre car une "
+                                "Ne peut pas utiliser implicitement le rubrique car une "
                                 "variable de ce nom existe déjà");
         return false;
     }
 
     /* À FAIRE(discr) : ceci n'est que pour la visite des noeuds dans le GestionnaireCode.
      */
-    auto type_membre = info_membre.membre.type;
-    param->type = type_membre;
-    appel->type = type_membre;
+    auto type_rubrique = info_rubrique.rubrique.type;
+    param->type = type_rubrique;
+    appel->type = type_rubrique;
 
     auto bloc_insertion = paire_discr->bloc;
 
     /* L'initialisation est une extraction de la valeur de l'union. */
     auto initialisation_déclaration = assembleuse->crée_comme(param->lexème, expression, nullptr);
-    initialisation_déclaration->type = type_membre;
+    initialisation_déclaration->type = type_rubrique;
     initialisation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION,
-        type_membre,
-        info_membre.index_membre};
+        type_rubrique,
+        info_rubrique.index_rubrique};
 
     auto déclaration_pour_expression = assembleuse->crée_déclaration_variable(
         param->comme_référence_déclaration(), initialisation_déclaration);
     déclaration_pour_expression->bloc_parent = bloc_insertion;
-    déclaration_pour_expression->type = type_membre;
+    déclaration_pour_expression->type = type_rubrique;
     déclaration_pour_expression->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
                                               DrapeauxNoeud::EST_IMPLICITE);
     déclaration_pour_expression->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
     bloc_insertion->expressions->ajoute_au_début(déclaration_pour_expression);
-    bloc_insertion->ajoute_membre(déclaration_pour_expression);
+    bloc_insertion->ajoute_rubrique(déclaration_pour_expression);
 
     paire_discr->variable_capturée = déclaration_pour_expression;
 
@@ -229,7 +229,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         return CodeRetourValidation::Erreur;
     }
 
-    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto rubriques_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
@@ -253,44 +253,44 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
             return CodeRetourValidation::Erreur;
         }
 
-        auto info_membre = donne_membre_pour_nom(type_union, expression_valide->ident);
+        auto info_rubrique = donne_rubrique_pour_nom(type_union, expression_valide->ident);
 
-        if (!info_membre) {
-            rapporte_erreur_membre_inconnu(inst, feuille, type_union);
+        if (!info_rubrique) {
+            rapporte_erreur_rubrique_inconnu(inst, feuille, type_union);
             return CodeRetourValidation::Erreur;
         }
 
-        auto membre = info_membre->membre;
+        auto rubrique = info_rubrique->rubrique;
 
-        if (membre.est_implicite()) {
+        if (rubrique.est_implicite()) {
             m_espace->rapporte_erreur(feuille,
-                                      "Les membres implicites des unions ne peuvent être "
+                                      "Les rubriques implicites des unions ne peuvent être "
                                       "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membre.est_constant()) {
+        if (rubrique.est_constant()) {
             m_espace->rapporte_erreur(feuille,
-                                      "Les membres constants des unions ne peuvent être "
+                                      "Les rubriques constants des unions ne peuvent être "
                                       "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontrés.possède(membre.nom)) {
+        if (rubriques_rencontrés.possède(rubrique.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
 
         /* À FAIRE(discr) : ceci n'est que pour la simplification du code. */
-        feuille->ident = membre.nom;
+        feuille->ident = rubrique.nom;
 
-        membres_rencontrés.insère(membre.nom);
+        rubriques_rencontrés.insère(rubrique.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
-            if (membre.type->est_type_rien()) {
+            if (rubrique.type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis un membre "
+                                          "Impossible de capturer une variable depuis un rubrique "
                                           "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
@@ -300,7 +300,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
                                                type_union,
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
-                                               info_membre.value(),
+                                               info_rubrique.value(),
                                                expression_valide->est_expression_appel,
                                                fonction_courante()->bloc_constantes);
         }
@@ -323,7 +323,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
     inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
-    auto membres_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
+    auto rubriques_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
 
     for (int i = 0; i < inst->paires_discr.taille(); ++i) {
         auto expr_paire = inst->paires_discr[i]->expression;
@@ -339,7 +339,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
 
         auto expression_valide = expression_valide_discrimination(feuille, false);
         if (!expression_valide.has_value()) {
-            m_espace->rapporte_erreur(feuille, "Attendu une référence à un membre de l'union")
+            m_espace->rapporte_erreur(feuille, "Attendu une référence à un rubrique de l'union")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
             return CodeRetourValidation::Erreur;
         }
@@ -354,44 +354,44 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
 
         expr_paire->type = type_expr;
 
-        auto info_membre = donne_membre_pour_type(type_union, type_expr);
-        if (!info_membre) {
-            rapporte_erreur("Le type n'est pas membre de l'union", feuille);
+        auto info_rubrique = donne_rubrique_pour_type(type_union, type_expr);
+        if (!info_rubrique) {
+            rapporte_erreur("Le type n'est pas rubrique de l'union", feuille);
             return CodeRetourValidation::Erreur;
         }
 
-        auto membre = info_membre->membre;
+        auto rubrique = info_rubrique->rubrique;
 
-        if (membre.est_implicite()) {
+        if (rubrique.est_implicite()) {
             m_espace->rapporte_erreur(feuille,
-                                      "Les membres implicites des unions ne peuvent être "
+                                      "Les rubriques implicites des unions ne peuvent être "
                                       "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membre.est_constant()) {
+        if (rubrique.est_constant()) {
             m_espace->rapporte_erreur(feuille,
-                                      "Les membres constants des unions ne peuvent être "
+                                      "Les rubriques constants des unions ne peuvent être "
                                       "utilisés comme expression de discrimination");
             return CodeRetourValidation::Erreur;
         }
 
-        if (membres_rencontrés.possède(membre.nom)) {
+        if (rubriques_rencontrés.possède(rubrique.nom)) {
             rapporte_erreur("Redéfinition de l'expression", feuille);
             return CodeRetourValidation::Erreur;
         }
 
         /* À FAIRE(discr) : meilleure structure pour stocker les informations de chaque expression,
          * ceci n'est que pour la simplification du code. */
-        feuille->ident = membre.nom;
+        feuille->ident = rubrique.nom;
 
-        membres_rencontrés.insère(membre.nom);
+        rubriques_rencontrés.insère(rubrique.nom);
 
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
             if (référence_type->type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis un membre "
+                                          "Impossible de capturer une variable depuis un rubrique "
                                           "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
@@ -401,7 +401,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
                                                type_union,
                                                inst->bloc_parent,
                                                inst->paires_discr[i],
-                                               info_membre.value(),
+                                               info_rubrique.value(),
                                                expression_valide->est_expression_appel,
                                                fonction_courante()->bloc_constantes);
         }

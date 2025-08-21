@@ -292,7 +292,7 @@ encode_par_différence :: fonc (données: []$T) -> [..]T
     précédent: T
 
     pour données {
-        résultat[index_it] = it - précédent
+        résultat[indice_it] = it - précédent
         précédent = it
     }
 
@@ -323,7 +323,7 @@ décode_par_différence :: fonc (données: []$T) -> [..]T
 
     pour données {
         temp := it + précédent
-        résultat[index_it] = temp
+        résultat[indice_it] = temp
         précédent = temp
     }
 
