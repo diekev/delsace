@@ -577,12 +577,15 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
     compliant_string := texte.donne_chaine_utf16()
 
     // 2. Let context be this.
-    context := élément
+    context : *Noeud = élément
 
     // 3. Let fragment be the result of invoking the fragment parsing algorithm steps with context and compliantString.
-    fragment := fragment_parsing_algorithm_steps(context, compliant_string)
+    fragment := fragment_parsing_algorithm_steps(élément, compliant_string)
 
-    // À FAIRE : 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+    // 4. If context is a template element, then set context to the template element's template contents (a DocumentFragment).
+    si context.table.classe == HTMLTemplateElement {
+        context = (context comme *HTMLTemplateElement).content
+    }
 
     // À FAIRE : 5. Replace all with fragment within context.
     enfants := context.enfants
