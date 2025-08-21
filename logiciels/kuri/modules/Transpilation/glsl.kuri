@@ -253,13 +253,6 @@ converti_code_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse,
                 }
             }
         }
-        EXPRESSION_RÉFÉRENCE_MEMBRE {
-            membre := code comme *NoeudCodeOpérationBinaire
-
-            converti_code_glsl(espace, enchaineuse, membre.opérande_gauche, profondeur)
-            ajoute_au_tampon(enchaineuse, ".")
-            converti_code_glsl(espace, enchaineuse, membre.opérande_droite, profondeur)
-        }
         */
         sinon {
 
