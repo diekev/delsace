@@ -260,11 +260,7 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(*enchaineuse, "JS :: importe JavaScript\n")
 
-    // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")
-    ajoute_au_tampon(*enchaineuse, "Node :: Noeud\n")
-    ajoute_au_tampon(*enchaineuse, "Element :: Élément\n")
-    ajoute_au_tampon(*enchaineuse, "Text :: NoeudTexte\n")
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier)
     chemin_parent := chemin_fichier.chemin_parent()
@@ -328,7 +324,7 @@ compile_interfaces_idl :: fonc () -> chaine
         si it.est_mixin {
             continue
         }
-        ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", index_it, "] = IndexPrototype(", it.nom, ", ", index_it, ")\n")
+        ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", indice_it, "] = IndexPrototype(", it.nom, ", ", indice_it, ")\n")
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
@@ -345,7 +341,7 @@ compile_interfaces_idl :: fonc () -> chaine
         si it.est_mixin {
             continue
         }
-        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", index_it, "] = ", it.nom, "_prototype\n")
+        ajoute_au_tampon(*enchaineuse, "    realm.intrinsics.host_intrinsics[", indice_it, "] = ", it.nom, "_prototype\n")
     }
 
     indice_intrinsèque := interfaces.interfaces.taille
@@ -421,7 +417,7 @@ Attribut :: struct {
     nom: chaine
     lecture_seule: bool
     reflect: bool
-    est_membre: bool
+    est_rubrique: bool
     est_idl_event_handler: bool
     /* 'nom' de [Reflect=nom] */
     attribut_réfléchis: chaine
@@ -579,7 +575,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
     }
 
     pour paramètres {
-        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", indice_it, ")\n")
     }
 
     si type_union {
@@ -587,7 +583,7 @@ génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *In
             ajoute_au_tampon(enchaineuse, "si ")
             génère_comparaison_type_pour_rubrique_union(enchaineuse, nom_param_union, it)
             ajoute_au_tampon(enchaineuse, " {\n")
-            génère_appel_fonction(enchaineuse, fonction, paramètres, index_it, griffonier)
+            génère_appel_fonction(enchaineuse, fonction, paramètres, indice_it, griffonier)
             ajoute_au_tampon(enchaineuse, "}\n")
         }
         ajoute_au_tampon(enchaineuse, "    retourne JS.lance_type_error(interpréteuse, \"Invalid type for argument ", nom_param_union, "\")\n")
@@ -608,7 +604,7 @@ génère_appel_fonction :: fonc (enchaineuse: *Enchaineuse, fonction: *Fonction,
             type = type.types_rubriques_union[indice_rubrique_union]
         }
 
-        génère_code_conversion_argument(enchaineuse, it.nom, index_it, type)
+        génère_code_conversion_argument(enchaineuse, it.nom, indice_it, type)
     }
 
     // Appel de la fonction.
@@ -715,8 +711,8 @@ table_virtuelle_\\(1)_constructor := JS.TableVirtuelleBuiltinFunction(classe = \
     // Conversion des paramètres
     paramètres := interface.donne_paramètres(constructor)
     pour paramètres {
-        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", index_it, ")\n")
-        génère_code_conversion_argument(enchaineuse, it.nom, index_it, it.type)
+        ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", indice_it, ")\n")
+        génère_code_conversion_argument(enchaineuse, it.nom, indice_it, it.type)
     }
 
     ajoute_au_tampon(enchaineuse, "    retourne ", nom_snake_case, "_construct")
@@ -751,7 +747,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
         }
         ajoute_au_tampon(enchaineuse, "    résultat := get_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ")\n")
     }
-    sinon si attribut.est_membre {
+    sinon si attribut.est_rubrique {
         ajoute_au_tampon(enchaineuse, "    résultat := object_this.", nom_snake_case, "\n")
     }
     sinon si attribut.est_idl_event_handler {
@@ -787,7 +783,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
         }
         ajoute_au_tampon(enchaineuse, "    set_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ", ", attribut.nom, ")\n")
     }
-    sinon si attribut.est_membre {
+    sinon si attribut.est_rubrique {
         ajoute_au_tampon(enchaineuse, "    object_this.", nom_snake_case, " =", attribut.nom, "\n")
     }
     sinon si attribut.est_idl_event_handler {
@@ -1098,7 +1094,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
             résultat.reflect = vrai
         }
         sinon si lexème == "Member" {
-            résultat.est_membre = vrai
+            résultat.est_rubrique = vrai
         }
         sinon si lexème == "IDLEventHandler" {
             résultat.est_idl_event_handler = vrai

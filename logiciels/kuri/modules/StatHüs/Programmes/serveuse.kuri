@@ -196,11 +196,11 @@ supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
             déloge(it.id)
             déloge(it.messages)
             déloge(it.traces)
-            tableau_supprime_indice(*état.allocations, index_it)
-            si état.allocations.taille == 0 || index_it == état.allocation_sélectionnée {
+            tableau_supprime_indice(*état.allocations, indice_it)
+            si état.allocations.taille == 0 || indice_it == état.allocation_sélectionnée {
                 état.allocation_sélectionnée = -1
             }
-            sinon si état.allocation_sélectionnée > index_it {
+            sinon si état.allocation_sélectionnée > indice_it {
                 état.allocation_sélectionnée -= 1
             }
             arrête
@@ -246,7 +246,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
     tableau_insère_indice(*état.traces, résultat, indice)
 
     pour état.traces {
-        it.id = index_it
+        it.id = indice_it
     }
 
     retourne résultat
@@ -427,7 +427,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
 
         si serveuse.dessine_allocations {
             pour > * serveuse.état_mémoire.allocations {
-                si index_it >= 20 {
+                si indice_it >= 20 {
                     arrête
                 }
 
@@ -438,7 +438,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
 
                     trace := it.traces[0]
 
-                    sur_clic_souris(définis_allocation_sélectionnée, serveuse, (serveuse.état_mémoire.allocations.taille - index_it) comme z32 - 1)
+                    sur_clic_souris(définis_allocation_sélectionnée, serveuse, (serveuse.état_mémoire.allocations.taille - indice_it) comme z32 - 1)
 
                     texte := imprime_chaine_temp("% octets dans '%'", it.taille, trace.traces[0].nom)
                     dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE))
@@ -453,10 +453,10 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
             }
 
             pour * serveuse.état_mémoire.traces_triées {
-                si index_it >= 20 {
+                si indice_it >= 20 {
                     arrête
                 }
-                indice_effectif := index_it comme z32
+                indice_effectif := indice_it comme z32
 
                 condensat := serveuse.état_mémoire.condensats_traces[it.id]
 

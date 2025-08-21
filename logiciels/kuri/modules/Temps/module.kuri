@@ -428,7 +428,7 @@ parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
     }
 
     pour format {
-        c := chaine_date[index_it]
+        c := chaine_date[indice_it]
 
         discr it {
             'A' {

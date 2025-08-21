@@ -203,7 +203,7 @@ opérateur pour :: fonc (requêtes: RequêtesEntrantes) -> Requête
         requête.prise = prise
 
         `it = requête
-        `index_it = index_requête
+        `indice_it = index_requête
         index_requête += 1
 
         #corps_boucle

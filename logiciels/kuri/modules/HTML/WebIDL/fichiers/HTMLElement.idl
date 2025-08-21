@@ -3,3 +3,8 @@ interface HTMLElement : Element {
 };
 
 HTMLElement includes GlobalEventHandlers;
+
+// [Exposed=Window]
+interface HTMLUnknownElement : HTMLElement {
+  // Note: intentionally no [HTMLConstructor]
+};
