@@ -69,7 +69,7 @@ données_cgi :: fonc () -> DonnéesCGI
 
     infos := info_de(ParamètresCGI)
     pour infos.noms {
-        résultat.valeur[index_it] = chaine_environnement(it)
+        résultat.valeur[indice_it] = chaine_environnement(it)
     }
 
     retourne données

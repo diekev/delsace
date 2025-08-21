@@ -1,4 +1,4 @@
-/* Les discriminations d'unions anonymes avec des membres de types monomorphés
+/* Les discriminations d'unions anonymes avec des rubriques de types monomorphés
  * ne fonctionnent pas.
  * Catégorie : [génération code, discrimination, union anomymes, type polymorphique]
  */

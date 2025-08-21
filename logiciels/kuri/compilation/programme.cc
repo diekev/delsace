@@ -583,23 +583,23 @@ void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std:
 
 bool operator==(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatCompilation const &diag2)
 {
-#define COMPARE_MEMBRE(x)                                                                         \
+#define COMPARE_RUBRIQUE(x)                                                                         \
     if ((diag1.x) != (diag2.x)) {                                                                 \
         return false;                                                                             \
     }
 
-    COMPARE_MEMBRE(tous_les_fichiers_sont_chargés)
-    COMPARE_MEMBRE(tous_les_fichiers_sont_lexés)
-    COMPARE_MEMBRE(tous_les_fichiers_sont_parsés)
-    COMPARE_MEMBRE(toutes_les_déclarations_à_typer_le_sont)
-    COMPARE_MEMBRE(toutes_les_ri_sont_generees)
-    COMPARE_MEMBRE(type_à_valider)
-    COMPARE_MEMBRE(déclaration_à_valider)
-    COMPARE_MEMBRE(ri_type_à_générer)
-    COMPARE_MEMBRE(fonction_initialisation_type_à_créer)
-    COMPARE_MEMBRE(ri_déclaration_à_générer)
+    COMPARE_RUBRIQUE(tous_les_fichiers_sont_chargés)
+    COMPARE_RUBRIQUE(tous_les_fichiers_sont_lexés)
+    COMPARE_RUBRIQUE(tous_les_fichiers_sont_parsés)
+    COMPARE_RUBRIQUE(toutes_les_déclarations_à_typer_le_sont)
+    COMPARE_RUBRIQUE(toutes_les_ri_sont_generees)
+    COMPARE_RUBRIQUE(type_à_valider)
+    COMPARE_RUBRIQUE(déclaration_à_valider)
+    COMPARE_RUBRIQUE(ri_type_à_générer)
+    COMPARE_RUBRIQUE(fonction_initialisation_type_à_créer)
+    COMPARE_RUBRIQUE(ri_déclaration_à_générer)
 
-#undef COMPARE_MEMBRE
+#undef COMPARE_RUBRIQUE
     return true;
 }
 
@@ -1064,8 +1064,8 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         *ident, type_pointeur_info_type, std::move(table_des_types), true);
 
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
-    auto membres_init = initialisateur->donne_atomes_membres();
-    auto atome_accès = membres_init[0]->comme_accès_index_constant();
+    auto rubriques_init = initialisateur->donne_atomes_rubriques();
+    auto atome_accès = rubriques_init[0]->comme_accès_index_constant();
     m_résultat.globales.ajoute(atome_accès->accédé->comme_globale());
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
@@ -1356,7 +1356,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
             return;
         }
 
-        POUR (*module.bloc->membres.verrou_lecture()) {
+        POUR (*module.bloc->rubriques.verrou_lecture()) {
             if (!it->est_entête_fonction()) {
                 continue;
             }
@@ -1688,24 +1688,24 @@ static void imprime_déclaration_type_ri(TypeCompose const *type_structure,
     auto virgule = "{ ";
     auto virgule_placée = false;
 
-    auto const membres = type_structure->donne_membres_pour_code_machine();
-    POUR_NOMME (membre, membres) {
-        if (membre.nom == ID::chaine_vide) {
+    auto const rubriques = type_structure->donne_rubriques_pour_code_machine();
+    POUR_NOMME (rubrique, rubriques) {
+        if (rubrique.nom == ID::chaine_vide) {
             continue;
         }
 
         os << virgule;
 
-        if (membre.nom) {
-            os << membre.nom->nom << " ";
+        if (rubrique.nom) {
+            os << rubrique.nom->nom << " ";
         }
 
-        os << chaine_type(membre.type, options);
+        os << chaine_type(rubrique.type, options);
         virgule = ", ";
         virgule_placée = true;
     }
 
-    if (!virgule_placée || membres.taille() == 0) {
+    if (!virgule_placée || rubriques.taille() == 0) {
         os << "{ ";
     }
     os << " }\n";

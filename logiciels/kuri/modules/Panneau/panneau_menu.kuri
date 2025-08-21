@@ -103,7 +103,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
         élément.décalage = décalage_élément
         élément.largeur = donne_largeur_texte(fonte, it.texte)
 
-        éléments[index_it] = élément
+        éléments[indice_it] = élément
 
         décalage_élément += (élément.largeur + décalage_élément_x * 2)
     }
@@ -123,16 +123,16 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
     pour * éléments {
         saufsi animation_est_fini(it.animation) {
             ajourne_animation(*it.animation)
-            rect_pour_animation := donne_rect_élément_pour_clic(panneau, index_it comme z32)
+            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32)
             valeur := it.animation.temps comme n8
 
             poids := 1.0 - (valeur comme r32 / 64.0)
             couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan)
             remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
         }
-        sinon si index_it == état.élément_pressé {
+        sinon si indice_it == état.élément_pressé {
             couleur := thème.couleur_menu_pressé
-            rect_pour_animation := donne_rect_élément_pour_clic(panneau, index_it comme z32)
+            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32)
             remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
         }
 
@@ -140,7 +140,7 @@ dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
         rect_élément.y = rect.y + décalage_élément_y
         rect_élément.largeur = it.largeur
 
-        menu := barre_de_menu.menus[index_it]
+        menu := barre_de_menu.menus[indice_it]
         dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, thème.couleur_texte)
     }
 
@@ -174,12 +174,12 @@ observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ClicSouris) -> 
 donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris) -> z64
 {
     pour éléments {
-        rect_élément := donne_rect_élément_pour_clic(panneau, index_it)
+        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it)
         saufsi rect_élément.contient(souris.où) {
             continue
         }
 
-        retourne index_it
+        retourne indice_it
     }
 
     retourne -1
@@ -512,7 +512,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
             largeur_max_élément = élément.largeur
         }
 
-        éléments[index_it] = élément
+        éléments[indice_it] = élément
     }
 
     largeur_panneau := largeur_max_élément + décalage_élément_x * 2
@@ -522,7 +522,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     décalage_élément := hauteur_panneau
 
     pour menu.éléments {
-        élément := *éléments[index_it]
+        élément := *éléments[indice_it]
 
         discr it.données {
             Action {
@@ -590,7 +590,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
             continue
         }
 
-        texte := menu.éléments[index_it].texte
+        texte := menu.éléments[indice_it].texte
         rect_texte := rect_élément
 
         si it.est_coche {
@@ -599,7 +599,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
             rect_coche.largeur = rect_coche.hauteur
             dessine_rectangle(ctx.peintre, rect_coche, thème.couleur_texte)
 
-            élément_coche := menu.éléments[index_it].données.Cochage
+            élément_coche := menu.éléments[indice_it].données.Cochage
 
             si élément_coche.est_coché() {
                 rect_coche.réduis(2)
@@ -633,12 +633,12 @@ observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
     }
 
     pour éléments {
-        rect_élément := donne_rect_élément_pour_clic(panneau, index_it)
+        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it)
         saufsi rect_élément.contient(souris.où) {
             continue
         }
 
-        définis_index_élément_survolé(panneau, index_it comme z32)
+        définis_index_élément_survolé(panneau, indice_it comme z32)
         arrête
     }
 }
