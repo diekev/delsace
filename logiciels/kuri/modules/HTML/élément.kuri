@@ -529,7 +529,7 @@ block_rendering_if_potentially_render_blocking :: fonc (el: *Element)
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps */
 fragment_serializing_algorithm_steps :: fonc (node: *Node, well_formed: bool @inutilisée) -> ChaineUTF16
 {
-    // À FAIRE assert : Document, DocumentFragment, Element
+    assert(fait_partie_de(node.genre, GenreNoeud.Document, GenreNoeud.DocumentFragment, GenreNoeud.Element))
 
     // 1. Let context document be node's node document.
     context_document := node.document
