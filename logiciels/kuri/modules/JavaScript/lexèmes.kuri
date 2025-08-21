@@ -404,7 +404,7 @@ infos_lexèmes_pour_parsage: [GenreLexème.nombre_éléments]InfosLexèmePourPar
 initialise_infos_lexèmes_pour_parsage :: fonc ()
 {
     pour & infos_lexèmes_pour_parsage {
-        genre_lexème := (index_it comme z32) comme GenreLexème
+        genre_lexème := (indice_it comme z32) comme GenreLexème
 
         it.drapeaux.EstExpression = est_lexème_expression(genre_lexème)
         it.drapeaux.EstExpressionUnaire = est_lexème_expression_unaire(genre_lexème)

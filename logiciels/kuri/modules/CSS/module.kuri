@@ -54,7 +54,7 @@ prétraite :: fonc (chn: &ChaineUTF32)
     }
 }
 
-apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément: *HTML.Élément, pseudo_element: *PseudoElement) -> bool
+apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
 {
     compound := selector[index]
 
@@ -76,7 +76,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
         NEXT_SIBLING {
             parent := élément.parent
 
-            ainé: *HTML.Élément
+            ainé: *HTML.Element
             pour parent.enfants {
                 saufsi HTML.est_élément(it) {
                     continue
@@ -86,7 +86,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
                     arrête
                 }
 
-                ainé = it comme *HTML.Élément
+                ainé = it comme *HTML.Element
             }
 
             saufsi ainé {
@@ -101,7 +101,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
                 retourne faux
             }
 
-            retourne apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément, nul)
+            retourne apparie_sélecteur(selector, index - 1, parent comme *HTML.Element, nul)
         }
         DESCENDANT {
             parent := élément.parent
@@ -111,7 +111,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
                     arrête
                 }
 
-                si apparie_sélecteur(selector, index - 1, parent comme *HTML.Élément, nul) {
+                si apparie_sélecteur(selector, index - 1, parent comme *HTML.Element, nul) {
                     retourne vrai
                 }
 
@@ -135,7 +135,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
                     arrête
                 }
 
-                si apparie_sélecteur(selector, index - 1, it comme *HTML.Élément, nul) {
+                si apparie_sélecteur(selector, index - 1, it comme *HTML.Element, nul) {
                     retourne vrai
                 }
             }
@@ -147,7 +147,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, index: z64, élément:
     retourne faux
 }
 
-apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Élément, pseudo_element: *PseudoElement) -> bool
+apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
 {
     discr simple.type {
         Attrib {
@@ -349,7 +349,7 @@ apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, index: n32) -> bo
     retourne (nth_child.A * n + nth_child.B) == index comme z32
 }
 
-apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
+apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
 {
     pour complex dans selector_list.complex_selectors {
         si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
@@ -360,16 +360,16 @@ apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *H
     retourne faux
 }
 
-apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Élément) -> bool
+apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
 {
     // À FAIRE : combinateur
 
-    traversée: [..]*HTML.Élément
+    traversée: [..]*HTML.Element
     diffère déloge(traversée)
 
     pour > élément.enfants {
         si HTML.est_élément(it) {
-            tableau_ajoute(*traversée, it comme *HTML.Élément)
+            tableau_ajoute(*traversée, it comme *HTML.Element)
         }
     }
 
@@ -382,7 +382,7 @@ apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Él
 
         pour > élément.enfants {
             si HTML.est_élément(it) {
-                tableau_ajoute(*traversée, it comme *HTML.Élément)
+                tableau_ajoute(*traversée, it comme *HTML.Element)
             }
         }
     }
@@ -938,7 +938,7 @@ imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *Select
     }
 
     pour * selector_list.complex_selectors {
-        si index_it > 0 {
+        si indice_it > 0 {
             ajoute_au_tampon(enchaineuse, ", ")
         }
 
@@ -977,7 +977,7 @@ imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: 
     }
 
     pour * complex_selectors.compound_selectors {
-        si index_it > 0 {
+        si indice_it > 0 {
             discr it.combinateur {
                 DESCENDANT {
                     ajoute_au_tampon(enchaineuse, " ")

@@ -53,7 +53,7 @@ enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                              // decl var
     EST_EXTERNE = (1 << 1),                          // decl var
-    EST_MEMBRE_STRUCTURE = (1 << 2),                 // decl structure, decl union
+    EST_RUBRIQUE_STRUCTURE = (1 << 2),                 // decl structure, decl union
     EST_ASSIGNATION_COMPOSEE = (1 << 3),             // operateur binaire
     EST_VARIADIQUE = (1 << 4),                       // decl var
     EST_IMPLICITE = (1 << 5),                        // controle boucle
@@ -67,7 +67,7 @@ enum class DrapeauxNoeud : uint32_t {
     EST_PARAMETRE = (1 << 13),                       // decl var
     EST_VALEUR_POLYMORPHIQUE = (1 << 14),            // decl var
     POUR_CUISSON = (1 << 15),                        // appel
-    ACCES_EST_ENUM_DRAPEAU = (1 << 16),              // accès membre
+    ACCES_EST_ENUM_DRAPEAU = (1 << 16),              // accès rubrique
     EST_UTILISEE = (1 << 17),                        // decl var
     EST_MARQUÉE_INUTILISÉE = (1 << 18),              // decl var
     /* DISPONIBLE = (1 << 19), */
@@ -170,7 +170,7 @@ enum class TypeBloc : uint8_t {
     IMPÉRATIF = 0,
     /* Le bloc est le bloc global d'un module. */
     MODULE = 1,
-    /* Le bloc est le bloc définissant les membres d'une structure ou d'une énumération. */
+    /* Le bloc est le bloc définissant les rubriques d'une structure ou d'une énumération. */
     TYPE = 2,
     /* Le bloc est le bloc de constantes d'une fonction ou d'un type. */
     CONSTANTES = 3,
@@ -307,7 +307,7 @@ enum {
     CONSTRUIT_CHAINE,
 
     /* pour ne pas avoir à générer des conditions de vérification pour par
-     * exemple les accès à des membres d'unions */
+     * exemple les accès à des rubriques d'unions */
     IGNORE_VERIFICATION,
 
     /* instruction 'retourne' */
@@ -315,7 +315,7 @@ enum {
     RETOURNE_UNE_UNION_VIA_RIEN,
     REQUIERS_RETOUR_UNION_VIA_RIEN,
 
-    /* Référence membre. */
+    /* Référence rubrique. */
     PEUT_ÊTRE_APPEL_UNIFORME,
 };
 
@@ -323,7 +323,7 @@ enum {
  *
  * Une valeur gauche est une valeur qui peut être assignée, donc à
  * gauche de '=', et comprend :
- * - les variables et accès de membres de structures
+ * - les variables et accès de rubriques de structures
  * - les déréférencements (via mémoire(...))
  * - les opérateurs []
  *
@@ -331,7 +331,7 @@ enum {
  * assignation, donc à droite de '=', et comprend :
  * - les valeurs littéralles (0, 1.5, "chaine", 'a', vrai)
  * - les énumérations
- * - les variables et accès de membres de structures
+ * - les variables et accès de rubriques de structures
  * - les pointeurs de fonctions
  * - les déréférencements (via mémoire(...))
  * - les opérateurs []
@@ -454,7 +454,7 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
 
 /**
- * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de membre.
+ * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de rubrique.
  * Ceci supprime les pointeurs et références, ainsi que les opacifications.
  */
 Type *donne_type_accédé_effectif(Type *type_accédé);
@@ -462,7 +462,7 @@ Type *donne_type_accédé_effectif(Type *type_accédé);
 /* ------------------------------------------------------------------------- */
 /** \name HiérarchieDeNoms
  * Représente la hiérarchie des symboles vers un autre symbole.
- * Par exemple : Module.Struct1.Struct2 pour Struct2 étant membre de Struct1 membre de Module.
+ * Par exemple : Module.Struct1.Struct2 pour Struct2 étant rubrique de Struct1 rubrique de Module.
  * \{ */
 
 struct HiérarchieDeNoms {
@@ -503,29 +503,29 @@ bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_stat
 
 bool est_déclaration_polymorphique(NoeudDéclaration const *decl);
 
-void imprime_membres_blocs_récursifs(NoeudBloc const *bloc);
+void imprime_rubriques_blocs_récursifs(NoeudBloc const *bloc);
 
 UniteCompilation **donne_adresse_unité(NoeudExpression *noeud);
 
 struct IdentifiantCode;
 
-struct MembreTypeComposé {
+struct RubriqueTypeComposé {
     enum {
-        // si le membre est une constante (par exemple, la définition d'une énumération, ou une
+        // si le rubrique est une constante (par exemple, la définition d'une énumération, ou une
         // simple valeur)
         EST_CONSTANT = (1 << 0),
-        // si le membre est défini par la compilatrice (par exemple, « nombre_éléments » des
+        // si le rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
-        // si le membre est employé
+        // si le rubrique est employé
         EST_UN_EMPLOI = (1 << 2),
-        // si le membre provient d'une instruction empl
+        // si le rubrique provient d'une instruction empl
         PROVIENT_D_UN_EMPOI = (1 << 3),
-        // si l'expression du membre est sur-écrite dans la définition de la structure (x = y,
+        // si l'expression du rubrique est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)
         POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
 
-        MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
+        RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
     };
 
     BaseDéclarationVariable *decl = nullptr;
@@ -533,7 +533,7 @@ struct MembreTypeComposé {
     IdentifiantCode *nom = nullptr;
     unsigned decalage = 0;
     uint64_t valeur = 0;                                  // pour les énumérations
-    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les membres des structures
+    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les rubriques des structures
     int drapeaux = 0;
     uint32_t rembourrage = 0;
 
@@ -559,7 +559,7 @@ struct MembreTypeComposé {
 
     inline bool ne_doit_pas_être_dans_code_machine() const
     {
-        return possède_drapeau(MEMBRE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
+        return possède_drapeau(RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE);
     }
 
     inline bool expression_initialisation_est_spéciale() const
@@ -573,11 +573,11 @@ struct MembreTypeComposé {
     }
 };
 
-using MembreTypeCompose = MembreTypeComposé;
+using RubriqueTypeCompose = RubriqueTypeComposé;
 
-struct InformationMembreTypeCompose {
-    MembreTypeComposé membre{};
-    int index_membre = -1;
+struct InformationRubriqueTypeCompose {
+    RubriqueTypeComposé rubrique{};
+    int index_rubrique = -1;
 };
 
 kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);

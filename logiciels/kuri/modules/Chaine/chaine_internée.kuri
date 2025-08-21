@@ -13,7 +13,7 @@ TypeChaineInternée :: union {
 }
 
 // À FAIRE(langage) : les discriminations sur des types pointeurs échoues
-// À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type membre, pour éviter les paniques en cas de membre non-actif
+// À FAIRE(langage) : trouve une solution pour les opérateurs prenant une union et un type rubrique, pour éviter les paniques en cas de rubrique non-active
 
 détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {

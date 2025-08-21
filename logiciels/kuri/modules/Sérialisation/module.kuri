@@ -384,7 +384,7 @@ ajoute_chaine :: fonc (table: *TableDeChaine, chn: chaine) -> z64
 {
     pour table.chaines {
         si it == chn {
-            retourne index_it
+            retourne indice_it
         }
     }
 
@@ -524,7 +524,7 @@ lis_nombre_magique :: fonc (lectrice: *Lectrice, nombre_magique: [4]z8) -> bool
     valeur := lectrice.lis_valeur_typée([4]z8)
 
     pour nombre_magique {
-        si it != valeur[index_it] {
+        si it != valeur[indice_it] {
             retourne faux
         }
     }
@@ -588,7 +588,7 @@ lis_table_des_chaines :: fonc (lectrice: *Lectrice)
     lectrice.curseur += (nombre_de_chaines + 1) * taille_de(z64) comme z64
 
     pour nombre_de_chaines {
-        taille_chaine := table.index[index_it + 1] - table.index[index_it]
+        taille_chaine := table.index[indice_it + 1] - table.index[indice_it]
 
         chn: chaine
         chn.taille = taille_chaine
