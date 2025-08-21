@@ -708,8 +708,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         append_event_path(event, target, target_override, related_target, touch_targets, faux)
 
         // 4. Let isActivationEvent be true, if event is a MouseEvent object and event’s type attribute is "click"; otherwise false.
-        // À FAIRE : vérifie si MouseEvent
-        is_activation_event := event.type == EventType.click
+        is_activation_event := event.table.classe == MouseEvent && event.type == EventType.click
 
         // 5. If isActivationEvent is true and target has activation behavior, then set activationTarget to target.
         si is_activation_event && target.possède_activation_behavior() {
