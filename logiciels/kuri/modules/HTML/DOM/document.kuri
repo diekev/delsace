@@ -710,7 +710,7 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
  * À FAIRE : standardise */
 create_element :: fonc (document: *Document, local_name: DOMString) -> *Élément
 {
-    retourne crée_élément_avec_tag(document, local_name)
+    retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML)
 }
 
 create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte

@@ -260,4 +260,46 @@ donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
     retourne élément.liste_classes
 }
 
+/* https://dom.spec.whatwg.org/#valid-element-local-name */
+is_valid_element_local_name :: fonc (name: DOMString) -> bool
+{
+    chn := name.donne_chaine_utf16()
+
+    // 1. If name’s length is 0, then return false.
+    si chn.taille() == 0 {
+        retourne faux
+    }
+
+    // 2. If name’s 0th code point is an ASCII alpha, then:
+    points_de_code := chn.itératrice_points_de_code()
+    point_de_code := point_de_code_suivant(*points_de_code)
+
+    si est_lettre_ascii(point_de_code) {
+        // 1. If name contains ASCII whitespace, U+0000 NULL, U+002F (/), or U+003E (>), then return false.
+        pour points_de_code {
+            si est_ascii_espace_blanche(it) || it == 0x00 || it == 0x2F || it == 0x3E {
+                retourne faux
+            }
+        }
+
+        // 2. Return true.
+        retourne vrai
+    }
+
+    // 3. If name’s 0th code point is not U+003A (:), U+005F (_), or in the range U+0080 to U+10FFFF, inclusive, then return false.
+    si point_de_code != 0x3A && point_de_code != 0x5F && !(0x80 <= point_de_code <= 0x10FFFF) {
+        retourne faux
+    }
+
+    // 4. If name’s subsequent code points, if any, are not ASCII alphas, ASCII digits, U+002D (-), U+002E (.), U+003A (:), U+005F (_), or in the range U+0080 to U+10FFFF, inclusive, then return false.
+    pour points_de_code {
+        saufsi est_ascii_alphanumérique(it) || it == 0x2D || it == 0x2E || it == 0x3A || it == 0x5F || (0x80 <= it <= 0x10FFFF) {
+            retourne faux
+        }
+    }
+
+    // 5. Return true.
+    retourne vrai
+}
+
 /** \} */

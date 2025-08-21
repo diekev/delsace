@@ -236,7 +236,7 @@ crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, esp
 }
 
 /* https://dom.spec.whatwg.org/#concept-create-element */
-crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Document, nom_local: DOMString, espace_de_nom: EspaceDeNom) -> *Élément
+crée_un_élément :: fonc (parseuse: *Parseuse, document: *Document, nom_local: DOMString, espace_de_nom: EspaceDeNom) -> *Élément
 {
     /* INCOMPLET : optional prefix, is, and synchronous custom elements flag */
     résultat : *Élément = nul
@@ -244,9 +244,8 @@ crée_un_élément :: fonc (parseuse: *Parseuse @inutilisée, document: *Documen
     /* INCOMPLET : 4. 5. 6. & 7.1 */
 
     /* 7.2. */
-    résultat = crée_élément_avec_tag(document, nom_local)
-    résultat.fut_créé_par_parseuse = vrai
-    résultat.espace_de_nom = espace_de_nom
+    résultat = create_element_with_interface(document, nom_local, espace_de_nom)
+    résultat.fut_créé_par_parseuse = parseuse != nul
     résultat.état_élément_custom = "uncustomized"
     résultat.définition_élément_custom = nul
 
@@ -512,8 +511,7 @@ insère_mode_AvantHtml :: fonc (parseuse: *Parseuse, lexème: Lexème)
     }
 
     /* Create an html element whose node document is the Document object. */
-    élément := crée_élément_avec_tag(parseuse.document, TAG_html)
-    élément.fut_créé_par_parseuse = vrai
+    élément := crée_un_élément(parseuse, parseuse.document, TAG_html, EspaceDeNom_HTML)
     /* Append it to the Document object. */
     parseuse.document.ajoute_enfant(élément)
     /* Put this element in the stack of open elements. */

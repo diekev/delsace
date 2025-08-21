@@ -174,111 +174,6 @@ initialise_élément :: fonc (élément: *Élément, document: *Document, texte:
     élément.local_name = texte
 }
 
-crée_élément_avec_tag :: fonc (document: *Document, tag: DOMString) -> *Élément
-{
-    // les éléments pour les balises SVG ne sont pas présents, espace de noms ?
-    élément: *Élément
-    si tag == TAG_a {
-        élément = crée_platform_object(document, HTMLAnchorElement)
-    }
-    sinon si tag == TAG_body {
-        élément = crée_platform_object(document, HTMLBodyElement)
-    }
-    sinon si tag == TAG_button {
-        élément = crée_platform_object(document, HTMLButtonElement)
-    }
-    sinon si tag == TAG_canvas {
-        élément = crée_platform_object(document, HTMLCanvasElement)
-    }
-    sinon si tag == TAG_font {
-        élément = crée_platform_object(document, HTMLFontElement)
-    }
-    sinon si tag == TAG_form {
-        élément = crée_platform_object(document, HTMLFormElement)
-    }
-    sinon si tag == TAG_head {
-        élément = crée_platform_object(document, HTMLHeadElement)
-    }
-    sinon si tag == TAG_h1 || tag == TAG_h2 || tag == TAG_h3 || tag == TAG_h4 || tag == TAG_h5 || tag == TAG_h6 {
-        élément = crée_platform_object(document, HTMLHeadingElement)
-    }
-    sinon si tag == TAG_hr {
-        élément = crée_platform_object(document, HTMLHRElement)
-    }
-    sinon si tag == TAG_html {
-        élément = crée_platform_object(document, HTMLHtmlElement)
-    }
-    sinon si tag == TAG_iframe {
-        élément = crée_platform_object(document, HTMLIFrameElement)
-    }
-    sinon si tag == TAG_img {
-        élément = crée_platform_object(document, HTMLImageElement)
-    }
-    sinon si tag == TAG_input {
-        élément = crée_platform_object(document, HTMLInputElement)
-    }
-    sinon si tag == TAG_label {
-        élément = crée_platform_object(document, HTMLLabelElement)
-    }
-    sinon si tag == TAG_link {
-        élément = crée_platform_object(document, HTMLLinkElement)
-    }
-    sinon si tag == TAG_object {
-        élément = crée_platform_object(document, HTMLObjectElement)
-    }
-    sinon si tag == TAG_option {
-        élément = crée_platform_object(document, HTMLOptionElement)
-    }
-    sinon si tag == TAG_optgroup {
-        élément = crée_platform_object(document, HTMLOptGroupElement)
-    }
-    sinon si tag == TAG_script {
-        élément = crée_platform_object(document, HTMLScriptElement)
-    }
-    sinon si tag == TAG_select {
-        élément = crée_platform_object(document, HTMLSelectElement)
-    }
-    sinon si tag == TAG_span {
-        élément = crée_platform_object(document, HTMLSpanElement)
-    }
-    sinon si tag == TAG_style {
-        élément = crée_platform_object(document, HTMLStyleElement)
-    }
-    sinon si tag == TAG_table {
-        élément = crée_platform_object(document, HTMLTableElement)
-    }
-    sinon si tag == TAG_td || tag == TAG_th {
-        élément = crée_platform_object(document, HTMLTableCellElement)
-    }
-    sinon si tag == TAG_thead || tag == TAG_tbody || tag == TAG_tfoot {
-        élément = crée_platform_object(document, HTMLTableSectionElement)
-    }
-    sinon si tag == TAG_tr {
-        élément = crée_platform_object(document, HTMLTableRowElement)
-    }
-    sinon si tag == TAG_template {
-        élément = crée_platform_object(document, HTMLTemplateElement)
-    }
-    sinon si tag == TAG_textarea {
-        élément = crée_platform_object(document, HTMLTextAreaElement)
-    }
-    sinon si tag == TAG_video {
-        élément = crée_platform_object(document, HTMLVideoElement)
-    }
-    sinon {
-        élément = crée_platform_object(document, HTMLElement)
-    }
-
-    initialise_élément(élément, document, tag)
-
-    si tag == TAG_template {
-        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
-        template_element_sur_création(élément comme *HTMLTemplateElement)
-    }
-
-    retourne élément
-}
-
 élément_fut_dépilé_de_la_pile_des_éléments_ouverts :: fonc (élément: *Élément)
 {
     saufsi élément.table {
@@ -718,6 +613,196 @@ table_virtuelle_html_element := TableVirtuelleÉlément(
     classe = HTMLElement,
     sur_changement_attribut = html_element_sur_changement_attribut
 )
+
+#portée_export
+
+create_element_with_interface :: fonc (document: *Document, tag: DOMString, namespace: EspaceDeNom) -> *Élément
+{
+    résultat: *Élément
+    
+    si namespace == EspaceDeNom_HTML {
+        résultat = create_html_element_with_interface(document, tag)
+    }
+    sinon {
+        /* https://dom.spec.whatwg.org/#concept-element-interface */
+        résultat = crée_platform_object(document, Élément)
+    }
+
+    initialise_élément(résultat, document, tag)
+    résultat.espace_de_nom = namespace
+
+    si tag == TAG_template {
+        // À FAIRE : généralise et utilise un rappel dans TableVirtuelle ?
+        template_element_sur_création(résultat comme *HTMLTemplateElement)
+    }
+
+    retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/dom.html#elements-in-the-dom:element-interface */
+create_html_element_with_interface :: fonc (document: *Document, name: DOMString) -> *Élément
+{
+    // 1. If name is applet, bgsound, blink, isindex, keygen, multicol, nextid, or spacer, then return HTMLUnknownElement.
+    unknown_names := [TAG_applet, TAG_bgsound, TAG_blink, TAG_isindex, TAG_keygen, TAG_multicol, TAG_nextid, TAG_spacer]
+    si fait_partie_de(name, ...unknown_names) {
+        retourne crée_platform_object(document, HTMLUnknownElement)
+    }
+
+    // 2. If name is acronym, basefont, big, center, nobr, noembed, noframes, plaintext, rb, rtc, strike, or tt, then return HTMLElement.
+    element_names := [TAG_acronym, TAG_basefont, TAG_big, TAG_center, TAG_nobr, TAG_noembed, TAG_noframes, TAG_plaintext, TAG_rb, TAG_rtc, TAG_strike, TAG_tt]
+    si fait_partie_de(name, ...element_names) {
+        retourne crée_platform_object(document, HTMLElement)
+    }
+
+    // À FAIRE : 3. If name is listing or xmp, then return HTMLPreElement.
+
+    // 4. Otherwise, if this specification defines an interface appropriate for the element type corresponding to the local name name, then return that interface.
+    // 5. If other applicable specifications define an appropriate interface for name, then return the interface they define.
+    si name == TAG_a {
+        retourne crée_platform_object(document, HTMLAnchorElement)
+    }
+    si name == TAG_body {
+        retourne crée_platform_object(document, HTMLBodyElement)
+    }
+    si name == TAG_button {
+        retourne crée_platform_object(document, HTMLButtonElement)
+    }
+    si name == TAG_canvas {
+        retourne crée_platform_object(document, HTMLCanvasElement)
+    }
+    si name == TAG_font {
+        retourne crée_platform_object(document, HTMLFontElement)
+    }
+    si name == TAG_form {
+        retourne crée_platform_object(document, HTMLFormElement)
+    }
+    si name == TAG_head {
+        retourne crée_platform_object(document, HTMLHeadElement)
+    }
+    si name == TAG_h1 || name == TAG_h2 || name == TAG_h3 || name == TAG_h4 || name == TAG_h5 || name == TAG_h6 {
+        retourne crée_platform_object(document, HTMLHeadingElement)
+    }
+    si name == TAG_hr {
+        retourne crée_platform_object(document, HTMLHRElement)
+    }
+    si name == TAG_html {
+        retourne crée_platform_object(document, HTMLHtmlElement)
+    }
+    si name == TAG_iframe {
+        retourne crée_platform_object(document, HTMLIFrameElement)
+    }
+    si name == TAG_img {
+        retourne crée_platform_object(document, HTMLImageElement)
+    }
+    si name == TAG_input {
+        retourne crée_platform_object(document, HTMLInputElement)
+    }
+    si name == TAG_label {
+        retourne crée_platform_object(document, HTMLLabelElement)
+    }
+    si name == TAG_link {
+        retourne crée_platform_object(document, HTMLLinkElement)
+    }
+    si name == TAG_object {
+        retourne crée_platform_object(document, HTMLObjectElement)
+    }
+    si name == TAG_option {
+        retourne crée_platform_object(document, HTMLOptionElement)
+    }
+    si name == TAG_optgroup {
+        retourne crée_platform_object(document, HTMLOptGroupElement)
+    }
+    si name == TAG_script {
+        retourne crée_platform_object(document, HTMLScriptElement)
+    }
+    si name == TAG_select {
+        retourne crée_platform_object(document, HTMLSelectElement)
+    }
+    si name == TAG_span {
+        retourne crée_platform_object(document, HTMLSpanElement)
+    }
+    si name == TAG_style {
+        retourne crée_platform_object(document, HTMLStyleElement)
+    }
+    si name == TAG_table {
+        retourne crée_platform_object(document, HTMLTableElement)
+    }
+    si name == TAG_td || name == TAG_th {
+        retourne crée_platform_object(document, HTMLTableCellElement)
+    }
+    si name == TAG_thead || name == TAG_tbody || name == TAG_tfoot {
+        retourne crée_platform_object(document, HTMLTableSectionElement)
+    }
+    si name == TAG_tr {
+        retourne crée_platform_object(document, HTMLTableRowElement)
+    }
+    si name == TAG_template {
+        retourne crée_platform_object(document, HTMLTemplateElement)
+    }
+    si name == TAG_textarea {
+        retourne crée_platform_object(document, HTMLTextAreaElement)
+    }
+    si name == TAG_video {
+        retourne crée_platform_object(document, HTMLVideoElement)
+    }
+
+    // 6. If name is a valid custom element name, then return HTMLElement.
+    si is_valid_custom_element_name(name) {
+        retourne crée_platform_object(document, HTMLElement)
+    }
+
+    // 7. Return HTMLUnknownElement.
+    retourne crée_platform_object(document, HTMLUnknownElement)
+}
+
+/* https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name */
+is_valid_custom_element_name :: fonc (name: DOMString) -> bool
+{
+    // name is a valid element local name;
+    saufsi is_valid_element_local_name(name) {
+        retourne faux
+    }
+
+    chn := name.donne_chaine_utf16()
+    assert(chn.taille() != 0)
+
+    // name's 0th code point is an ASCII lower alpha;
+    saufsi est_lettre_minuscule_ascii(chn.unités[0]) {
+        retourne faux
+    }
+
+    // name does not contain any ASCII upper alphas;
+    // name contains a U+002D (-); and
+    possède_tiret: bool
+    pour chn.unités {
+        si est_lettre_majuscule_ascii(it) {
+            retourne faux
+        }
+        si it == 0x2D {
+            possède_tiret = vrai
+        }
+    }
+
+    saufsi possède_tiret {
+        retourne faux
+    }
+
+    // name is not one of the following:
+    // "annotation-xml"
+    // "color-profile"
+    // "font-face"
+    // "font-face-src"
+    // "font-face-uri"
+    // "font-face-format"
+    // "font-face-name"
+    // "missing-glyph"
+    tag_spéciaux := [TAG_annotation_xml, TAG_color_profile, TAG_font_face, TAG_font_face_src, TAG_font_face_uri, TAG_font_face_format, TAG_font_face_name, TAG_missing_glyph]
+    si fait_partie_de(name, ...tag_spéciaux) {
+        retourne faux
+    }
+
+    retourne vrai
+}
 
 /** \} */
 
