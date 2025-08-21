@@ -587,10 +587,8 @@ définis_inner_html :: fonc (élément: *Element, texte: DOMString)
         context = (context comme *HTMLTemplateElement).content
     }
 
-    // À FAIRE : 5. Replace all with fragment within context.
-    enfants := context.enfants
-    context.enfants = fragment.enfants
-    fragment.enfants = enfants
+    // 5. Replace all with fragment within context.
+    replace_all(fragment, context)
 
     // À FAIRE : reconstruction partielle de l'arbre
     élément.document.invalide_style()

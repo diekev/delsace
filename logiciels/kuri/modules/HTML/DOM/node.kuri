@@ -175,7 +175,13 @@ dernier_enfant :: fonc (noeud: *Node) -> *Node
     retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
-/* À FAIRE : implémente proprement https://dom.spec.whatwg.org/#concept-node-insert */
+/* https://dom.spec.whatwg.org/#concept-node-insert */
+insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, suppress_observers := faux @inutilisée)
+{
+    /* À FAIRE : standardise */
+    ajoute_enfant(parent, node)
+}
+
 ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
 {
     enfant.parent = parent
@@ -486,6 +492,38 @@ append :: fonc (parent: *Node, node: *Node) -> *Node
     retourne node
 }
 
+/* https://dom.spec.whatwg.org/#concept-node-replace-all */
+replace_all :: fonc (node: *Node, parent: *Node)
+{
+    // 1. Let removedNodes be parent’s children.
+    // removed_nodes := parent.enfants
+
+    // 2. Let addedNodes be the empty set.
+    added_nodes: []*Node
+
+    // 3. If node is a DocumentFragment node, then set addedNodes to node’s children.
+    si node != nul && node.table.classe == DocumentFragment {
+        added_nodes = node.enfants
+    }
+    // 4. Otherwise, if node is non-null, set addedNodes to « node ».
+    sinon si node != nul {
+        added_nodes.pointeur = *node
+        added_nodes.taille = 1
+    }
+
+    // 5. Remove all parent’s children, in tree order, with the suppress observers flag set.
+    pour parent.enfants {
+        remove(it, vrai)
+    }
+
+    // 6. If node is non-null, then insert node into parent before null with the suppress observers flag set.
+    si node {
+        insert(node, parent, nul, vrai)
+    }
+
+    // À FAIRE : 7. If either addedNodes or removedNodes is not empty, then queue a tree mutation record for parent with addedNodes, removedNodes, null, and null.
+}
+
 /* https://dom.spec.whatwg.org/#concept-node-pre-remove */
 pre_remove :: fonc (parent: *Node, child: *Node) -> *Node
 {
@@ -495,16 +533,67 @@ pre_remove :: fonc (parent: *Node, child: *Node) -> *Node
         retourne nul
     }
 
-    // À FAIRE : 2. Remove child.
+    // 2. Remove child.
+    remove(child)
+
+    // 3. Return child.
+    retourne child
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-remove */
+remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
+{
+    // À FAIRE : complète
+
+    // 1. Let parent be node’s parent.
+    parent := node.parent
+
+    // 2. Assert: parent is non-null.
+    assert(parent != nul)
+
+    // 3. Run the live range pre-remove steps, given node.
+
+    // 4. For each NodeIterator object iterator whose root’s node document is node’s node document, run the NodeIterator pre-remove steps given node and iterator.
+
+    // 5. Let oldPreviousSibling be node’s previous sibling.
+
+    // 6. Let oldNextSibling be node’s next sibling.
+
+    // 7. Remove node from its parent’s children.
     pour parent.enfants {
-        si it == child {
+        si it == node {
             tableau_supprime_indice(*parent.enfants, index_it)
             arrête
         }
     }
 
-    // 3. Return child.
-    retourne child
+    // 8. If node is assigned, then run assign slottables for node’s assigned slot.
+
+    // 9. If parent’s root is a shadow root, and parent is a slot whose assigned nodes is the empty list, then run signal a slot change for parent.
+
+    // 10. If node has an inclusive descendant that is a slot:
+
+        // 1. Run assign slottables for a tree with parent’s root.
+
+        // 2. Run assign slottables for a tree with node.
+
+    // 11. Run the removing steps with node and parent.
+
+    // 12. Let isParentConnected be parent’s connected.
+
+    // 13. If node is custom and isParentConnected is true, then enqueue a custom element callback reaction with node, callback name "disconnectedCallback", and « ».
+
+    // 14. For each shadow-including descendant descendant of node, in shadow-including tree order:
+
+        // 1. Run the removing steps with descendant and null.
+
+        // 2. If descendant is custom and isParentConnected is true, then enqueue a custom element callback reaction with descendant, callback name "disconnectedCallback", and « ».
+
+    // 15. For each inclusive ancestor inclusiveAncestor of parent, and then for each registered of inclusiveAncestor’s registered observer list, if registered’s options["subtree"] is true, then append a new transient registered observer whose observer is registered’s observer, options is registered’s options, and source is registered to node’s registered observer list.
+
+    // 16. If suppress observers flag is unset, then queue a tree mutation record for parent with « », « node », oldPreviousSibling, and oldNextSibling.
+
+    // 17. Run the children changed steps for parent.
 }
 
 /** \} */
