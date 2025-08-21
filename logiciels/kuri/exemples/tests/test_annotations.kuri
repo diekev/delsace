@@ -57,7 +57,7 @@ métaprogramme :: fonc ()
                     continue
                 }
 
-                pour bloc.membres {
+                pour bloc.rubriques {
                     saufsi it.genre == GenreNoeud.DÉCLARATION_VARIABLE {
                         continue
                     }

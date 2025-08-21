@@ -4,10 +4,10 @@ importe Compilatrice
 importe Fondation
 importe Numérique
 
-/** Retourne vrai si le type du membre actif de l'union correspond au type donné.
+/** Retourne vrai si le type de la rubrique active de l'union correspond au type donné.
  * Sinon, retourne faux.
- * Cette fonction retourne également faux si l'union n'a aucun membre actif. */
-est_membre_actif :: fonc (u: $TypeUnion, $TypeMembre: type_de_données) -> bool
+ * Cette fonction retourne également faux si l'union n'a aucune rubrique active. */
+est_rubrique_active :: fonc (u: $TypeUnion, $TypeRubrique: type_de_données) -> bool
 {
     #assert info_de(TypeUnion).id == GenreInfoType.UNION
     #assert info_de(TypeUnion).est_sûre == vrai
@@ -21,24 +21,24 @@ est_membre_actif :: fonc (u: $TypeUnion, $TypeMembre: type_de_données) -> bool
         retourne faux
     }
 
-    membre := info_union.membres[index - 1]
-    retourne membre.id == info_de(TypeMembre)
+    rubrique := info_union.rubriques[index - 1]
+    retourne rubrique.id == info_de(TypeRubrique)
 }
 
-définis_membre_actif :: fonc (u: *$TypeUnion, index: z32)
+définis_rubrique_active :: fonc (u: *$TypeUnion, index: z32)
 {
     #assert info_de(TypeUnion).id == GenreInfoType.UNION
     #assert info_de(TypeUnion).est_sûre == vrai
 
     info_union := info_de(TypeUnion)
 
-    assert(index >= 0 && index < info_union.membres.taille)
+    assert(index >= 0 && index < info_union.rubriques.taille)
 
     adresse_index := (u comme *octet + info_union.décalage_index) comme *z32
     mémoire(adresse_index) = index + 1
 }
 
-donne_indice_membre_actif :: fonc (u: $TypeUnion) -> z32
+donne_indice_rubrique_active :: fonc (u: $TypeUnion) -> z32
 {
     #assert info_de(TypeUnion).id == GenreInfoType.UNION
     #assert info_de(TypeUnion).est_sûre == vrai
@@ -366,27 +366,27 @@ comme_r64 :: fonc (valeur: eini) -> r64
     retourne mémoire(valeur.pointeur comme *r64)
 }
 
-/* Enquête sur les membres d'un eini pour une structure quelconque. */
+/* Enquête sur les rubriques d'un eini pour une structure quelconque. */
 
-possède_membre :: fonc (valeur: eini, nom: chaine) -> bool
+possède_rubrique :: fonc (valeur: eini, nom: chaine) -> bool
 {
     saufsi valeur.est_structure() {
         retourne faux
     }
 
-    retourne possède_membre(valeur.info comme *InfoTypeStructure, nom)
+    retourne possède_rubrique(valeur.info comme *InfoTypeStructure, nom)
 }
 
-possède_membre :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
+possède_rubrique :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-    retourne trouve_info_membre(info, nom) != nul
+    retourne trouve_info_rubrique(info, nom) != nul
 }
 
-eini_depuis_info_membre :: fonc (structure: eini, info_membre: *InfoTypeMembreStructure) -> eini
+eini_depuis_info_rubrique :: fonc (structure: eini, info_rubrique: *InfoTypeRubriqueStructure) -> eini
 {
     e: eini
-    e.pointeur = structure.pointeur + info_membre.décalage
-    e.info = info_membre.id
+    e.pointeur = structure.pointeur + info_rubrique.décalage
+    e.info = info_rubrique.id
 
     retourne e
 }
@@ -399,64 +399,64 @@ tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
     retourne tampon
 }
 
-trouve_info_membre :: fonc (info: *InfoTypeStructure, nom_membre: chaine) -> *InfoTypeMembreStructure
+trouve_info_rubrique :: fonc (info: *InfoTypeStructure, nom_rubrique: chaine) -> *InfoTypeRubriqueStructure
 {
-    pour info.membres {
-        si it.nom == nom_membre {
+    pour info.rubriques {
+        si it.nom == nom_rubrique {
             retourne it
         }
     }
 
     pour info.structs_employées {
-        info_membre := trouve_info_membre(it, nom_membre)
-        si info_membre {
-            retourne info_membre
+        info_rubrique := trouve_info_rubrique(it, nom_rubrique)
+        si info_rubrique {
+            retourne info_rubrique
         }
     }
 
     retourne nul
 }
 
-trouve_info_membre :: fonc (valeur: eini, nom_membre: chaine) -> *InfoTypeMembreStructure
+trouve_info_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> *InfoTypeRubriqueStructure
 {
     saufsi valeur.est_structure() {
         retourne nul
     }
 
-    retourne trouve_info_membre(valeur.info comme *InfoTypeStructure, nom_membre)
+    retourne trouve_info_rubrique(valeur.info comme *InfoTypeStructure, nom_rubrique)
 }
 
-/* Retourne le nombre de membres de la structure en remplaçant les structures
- * employées par leurs membres et ce de manière récursive. */
-donne_nombre_de_membres_effectif :: fonc (info: *InfoTypeStructure) -> z64
+/* Retourne le nombre de rubriques de la structure en remplaçant les structures
+ * employées par leurs rubriques et ce de manière récursive. */
+donne_nombre_de_rubriques_effectif :: fonc (info: *InfoTypeStructure) -> z64
 {
-    résultat := info.membres.taille - info.structs_employées.taille
+    résultat := info.rubriques.taille - info.structs_employées.taille
 
     pour info.structs_employées {
-        résultat += donne_nombre_de_membres_effectif(it)
+        résultat += donne_nombre_de_rubriques_effectif(it)
     }
 
     retourne résultat
 }
 
-/* Trouve la valeur eini d'un membre d'une structure ou d'une chaine.
- * Pour un type chaine, seul le membre "taille" renvoie une valeur pour le moment.
+/* Trouve la valeur eini d'une rubrique d'une structure ou d'une chaine.
+ * Pour un type chaine, seul la rubrique "taille" renvoie une valeur pour le moment.
  */
-trouve_valeur_membre :: fonc (valeur: eini, nom_membre: chaine) -> eini
+trouve_valeur_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> eini
 {
     résultat: eini
 
     si valeur.est_chaine() {
-        si nom_membre == "taille" {
+        si nom_rubrique == "taille" {
             résultat.pointeur = valeur.pointeur + 8
             résultat.info = info_de(z64)
             retourne résultat
         }
     }
 
-    membre := trouve_info_membre(valeur, nom_membre)
-    si membre {
-        retourne eini_depuis_info_membre(valeur, membre)
+    rubrique := trouve_info_rubrique(valeur, nom_rubrique)
+    si rubrique {
+        retourne eini_depuis_info_rubrique(valeur, rubrique)
     }
 
     retourne résultat
@@ -555,8 +555,8 @@ valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
     retourne résultat
 }
 
-/* Itératrice sur les membres d'un eini provenant d'une structure. */
-ItératriceMembreStructure :: struct {
+/* Itératrice sur les rubriques d'un eini provenant d'une structure. */
+ItératriceRubriqueStructure :: struct {
     valeur: eini
 
     pointeur: *z8
@@ -564,12 +564,12 @@ ItératriceMembreStructure :: struct {
 
     position: z64
 
-    ignore_membres_constants: bool
+    ignore_rubriques_constantes: bool
 }
 
-crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := vrai) -> ItératriceMembreStructure
+crée_itératrice_rubrique :: fonc (structure: eini, ignore_rubriques_constantes := vrai) -> ItératriceRubriqueStructure
 {
-    itératrice: ItératriceMembreStructure
+    itératrice: ItératriceRubriqueStructure
 
     si !structure.est_structure() {
         retourne itératrice
@@ -578,13 +578,13 @@ crée_itératrice_membre :: fonc (structure: eini, ignore_membres_constants := v
     info := structure.info comme *InfoTypeStructure
 
     itératrice.valeur = structure
-    itératrice.taille = info.membres.taille
-    itératrice.ignore_membres_constants = ignore_membres_constants
+    itératrice.taille = info.rubriques.taille
+    itératrice.ignore_rubriques_constantes = ignore_rubriques_constantes
 
     retourne itératrice
 }
 
-membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chaine
+rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> eini, chaine
 {
     résultat: eini
     nom: chaine
@@ -592,17 +592,17 @@ membre_suivant :: fonc (itératrice: &ItératriceMembreStructure) -> eini, chain
     info := itératrice.valeur.info comme *InfoTypeStructure
 
     tantque itératrice.position < itératrice.taille {
-        membre := info.membres[itératrice.position]
+        rubrique := info.rubriques[itératrice.position]
 
-        si membre.drapeaux.EST_CONSTANT && itératrice.ignore_membres_constants {
+        si rubrique.drapeaux.EST_CONSTANTE && itératrice.ignore_rubriques_constantes {
             itératrice.position += 1
             continue
         }
 
-        résultat.pointeur = itératrice.valeur.pointeur + membre.décalage
-        résultat.info = membre.id
+        résultat.pointeur = itératrice.valeur.pointeur + rubrique.décalage
+        résultat.info = rubrique.id
 
-        nom = membre.nom
+        nom = rubrique.nom
 
         itératrice.position += 1
         arrête
@@ -1041,7 +1041,7 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
 // structure.
 //
 // Les arguments doivent avoir la forme "--nom valeur" ou "-nom valeur" où nom est le nom d'un
-// membre de la structure.
+// rubrique de la structure.
 //
 // Par exemple pour une structure :
 //
@@ -1059,15 +1059,15 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
 // 
 // ./programme -o une_chaine -n 2
 //
-// Toutefois ceci ne fonctionnera que si une seule rubrique commence par cette lettre.
+// Toutefois ceci ne fonctionnera que si une seula rubrique commence par cette lettre.
 // 
 // Il est possible de renseigner une fonction pour décrire les options via le paramètre "rapporte_aide".
 // Si un argument nommé "aide" est rencontré, cette fonction est appelée et le programme se terminera.
 // Si cette fonction n'est pas renseignée (nul est passé), nous tenterons de parser un argument nommé "aide".
 //
-// Optionnellement, un et un seul membre de la structure peut être « anonyme » :
-// il n'y a pas besoin d'avoir le nom du membre comme argument.
-// L'anonymat se fait via une annotation "@anonyme" sur le membre.
+// Optionnellement, un et un seul rubrique de la structure peut être « anonyme » :
+// il n'y a pas besoin d'avoir le nom de la rubrique comme argument.
+// L'anonymat se fait via une annotation "@anonyme" sur la rubrique.
 //
 // Par exemple pour une structure :
 //
@@ -1091,8 +1091,8 @@ ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
     initialise_enchaineuse(*enchaineuse)
 
     infos := info_de(T)
-    pour infos.membres {
-        si it.drapeaux.EST_CONSTANT {
+    pour infos.rubriques {
+        si it.drapeaux.EST_CONSTANTE {
             continue
         }
 
@@ -1110,51 +1110,51 @@ consomme :: fonc (tableau: *[..]$T) -> T
     retourne résultat
 }
 
-parse_valeur :: fonc (valeur: chaine, valeur_membre: eini) -> bool
+parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
 {
-    discr valeur_membre.info.id {
+    discr valeur_rubrique.info.id {
         ENTIER {
-            si valeur_membre.est_n8() {
-                retourne parse_n8(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_n8() {
+                retourne parse_n8(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_n16() {
-                retourne parse_n16(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_n16() {
+                retourne parse_n16(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_n32() {
-                retourne parse_n32(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_n32() {
+                retourne parse_n32(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_n64() {
-                retourne parse_n64(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_n64() {
+                retourne parse_n64(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_z8() {
-                retourne parse_z8(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_z8() {
+                retourne parse_z8(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_z16() {
-                retourne parse_z16(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_z16() {
+                retourne parse_z16(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_z32() {
-                retourne parse_z32(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_z32() {
+                retourne parse_z32(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_z64() {
-                retourne parse_z64(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_z64() {
+                retourne parse_z64(valeur, valeur_rubrique.tampon_pour_eini())
             }
         }
         RÉEL {
-            si valeur_membre.est_r16() {
-                retourne parse_r16(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_r16() {
+                retourne parse_r16(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_r32() {
-                retourne parse_r32(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_r32() {
+                retourne parse_r32(valeur, valeur_rubrique.tampon_pour_eini())
             }
-            si valeur_membre.est_r64() {
-                retourne parse_r64(valeur, valeur_membre.tampon_pour_eini())
+            si valeur_rubrique.est_r64() {
+                retourne parse_r64(valeur, valeur_rubrique.tampon_pour_eini())
             }
         }
         BOOLÉEN {
-            retourne parse_bool(valeur, valeur_membre.tampon_pour_eini())
+            retourne parse_bool(valeur, valeur_rubrique.tampon_pour_eini())
         }
         CHAINE {
-            valeur_membre.assigne_chaine(valeur)
+            valeur_rubrique.assigne_chaine(valeur)
             retourne vrai
         }
         OPAQUE,
@@ -1203,33 +1203,33 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, 
         arg := consomme(*args)
 
         saufsi arg.commence_par("-") {
-            membre_anonyme: *InfoTypeMembreStructure
-            pour infos.membres {
+            rubrique_anonyme: *InfoTypeRubriqueStructure
+            pour infos.rubriques {
                 saufsi it.possède_annotation("anonyme") {
                     continue
                 }
 
-                si membre_anonyme {
-                    retourne imprime_chaine("Plusieurs membres anonymes détectés pour la valeur '%' !", arg)
+                si rubrique_anonyme {
+                    retourne imprime_chaine("Plusieurs rubriques anonymes détectées pour la valeur '%' !", arg)
                 }
 
-                membre_anonyme = it
+                rubrique_anonyme = it
             }
 
-            saufsi membre_anonyme {
-                retourne imprime_chaine("Aucun membre anonyme pour recevoir la valeur '%'\n", arg)
+            saufsi rubrique_anonyme {
+                retourne imprime_chaine("Aucune rubrique anonyme pour recevoir la valeur '%'\n", arg)
             }
 
-            valeur_membre := eini_depuis_info_membre(résultat, membre_anonyme)
+            valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique_anonyme)
 
-            valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, membre_anonyme.nom))
+            valeur_renseignée := eini_depuis_info_rubrique(valeur_est_renseignée, trouve_info_rubrique(infos_renseignements, rubrique_anonyme.nom))
 
             si valeur_renseignée.comme_bool() {
-                retourne imprime_chaine("Argument dupliqué pour le membre anonyme '%'", membre_anonyme.nom)
+                retourne imprime_chaine("Argument dupliqué pour la rubrique anonyme '%'", rubrique_anonyme.nom)
             }
 
-            saufsi parse_valeur(arg, valeur_membre) {
-                retourne imprime_chaine("Impossible de parser la valeur pour le membre anonyme '%'", membre_anonyme.nom)
+            saufsi parse_valeur(arg, valeur_rubrique) {
+                retourne imprime_chaine("Impossible de parser la valeur pour la rubrique anonyme '%'", rubrique_anonyme.nom)
             }
 
             valeur_renseignée.assigne_bool(vrai)
@@ -1251,30 +1251,30 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, 
             }
         }
 
-        membre := trouve_info_membre(infos, arg)
-        saufsi membre {
+        rubrique := trouve_info_rubrique(infos, arg)
+        saufsi rubrique {
             si arg.taille == 1 {
-                pour infos.membres {
-                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                pour infos.rubriques {
+                    si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
                         continue
                     }
 
                     si it.nom[0] == arg[0] {
-                        si membre {
-                            membre = nul
+                        si rubrique {
+                            rubrique = nul
                             arrête
                         }
-                        membre = it
+                        rubrique = it
                     }
                 }
             }
 
-            saufsi membre {
+            saufsi rubrique {
                 retourne imprime_chaine("Argument '%' inconnu", arg)
             }
         }
 
-        valeur_renseignée := eini_depuis_info_membre(valeur_est_renseignée, trouve_info_membre(infos_renseignements, membre.nom))
+        valeur_renseignée := eini_depuis_info_rubrique(valeur_est_renseignée, trouve_info_rubrique(infos_renseignements, rubrique.nom))
 
         si valeur_renseignée.comme_bool() {
             retourne imprime_chaine("Argument dupliqué pour '%'", arg)
@@ -1285,9 +1285,9 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, 
         }
 
         valeur_arg := consomme(*args)
-        valeur_membre := eini_depuis_info_membre(résultat, membre)
+        valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique)
 
-        saufsi parse_valeur(valeur_arg, valeur_membre) {
+        saufsi parse_valeur(valeur_arg, valeur_rubrique) {
             retourne imprime_chaine("Impossible de parser la valeur de '%'", arg)
         }
 
@@ -1366,7 +1366,7 @@ parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fo
  * Pour que cela fonctionne le type des noeuds doit se trouver dans une rubrique
  * appelée "type" de type "type_de_données".
  *
- * On peut définir les membres à ne pas visiter avec l'annotation @NeVisitePas
+ * On peut définir les rubriques à ne pas visiter avec l'annotation @NeVisitePas
  * \{ */
 
 VisiteEnfants :: énum {
@@ -1438,10 +1438,10 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
 {
     info := valeur_eini.info comme *InfoTypeStructure
 
-    pour > info.membres {
+    pour > info.rubriques {
         si est_type_adresse_noeud_syntaxique(it.id, info_de(T)) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
-            noeud := mémoire(membre.pointeur comme **T)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
+            noeud := mémoire(rubrique.pointeur comme **T)
             si noeud == nul {
                 continue
             }
@@ -1457,9 +1457,9 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
         }
 
         si est_type_adresse_tableau_noeud_syntaxique(it.id, info_de(T)) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
 
-            tableau := mémoire(membre.pointeur comme *[..]*T)
+            tableau := mémoire(rubrique.pointeur comme *[..]*T)
 
             saufsi possède_annotation(it, "NeVisitePas") {
                 pour > noeud dans tableau {
@@ -1477,8 +1477,8 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
         }
 
         si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(T)) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
-            traverse_structure(visiteuse, membre, traversée)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
+            traverse_structure(visiteuse, rubrique, traversée)
             continue
         }
     }

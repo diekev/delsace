@@ -18,7 +18,7 @@ using Type = NoeudDéclarationType;
     O(type_info_type_enum, ID::InfoTypeEnum)                                                      \
     O(type_info_type_structure, ID::InfoTypeStructure)                                            \
     O(type_info_type_union, ID::InfoTypeUnion)                                                    \
-    O(type_info_type_membre_structure, ID::InfoTypeMembreStructure)                               \
+    O(type_info_type_rubrique_structure, ID::InfoTypeRubriqueStructure)                               \
     O(type_info_type_entier, ID::InfoTypeEntier)                                                  \
     O(type_info_type_tableau, ID::InfoTypeTableau)                                                \
     O(type_info_type_tableau_fixe, ID::InfoTypeTableauFixe)                                       \
@@ -40,8 +40,8 @@ using Type = NoeudDéclarationType;
     Op(decl_panique, ID::panique) Op(decl_panique_memoire, ID::panique_hors_memoire)              \
         Op(decl_panique_tableau, ID::panique_depassement_limites_tableau)                         \
             Op(decl_panique_chaine, ID::panique_depassement_limites_chaine) Op(                   \
-                decl_panique_membre_union,                                                        \
-                ID::panique_membre_union) Op(decl_panique_erreur, ID::panique_erreur_non_geree)   \
+                decl_panique_rubrique_union,                                                        \
+                ID::panique_rubrique_union) Op(decl_panique_erreur, ID::panique_erreur_non_geree)   \
                 Op(decl_rappel_panique_defaut, ID::__rappel_panique_defaut) Op(                   \
                     decl_dls_vers_r32, ID::DLS_vers_r32) Op(decl_dls_vers_r64, ID::DLS_vers_r64)  \
                     Op(decl_dls_depuis_r32, ID::DLS_depuis_r32)                                   \
@@ -54,15 +54,15 @@ using Type = NoeudDéclarationType;
                                                ID::vérifie_typage_extraction_eini)
 
 struct InterfaceKuri {
-#define DECLARATION_MEMBRE(nom_membre, id) NoeudDéclarationEntêteFonction *nom_membre = nullptr;
+#define DECLARATION_RUBRIQUE(nom_rubrique, id) NoeudDéclarationEntêteFonction *nom_rubrique = nullptr;
 
-    ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(DECLARATION_MEMBRE)
+    ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(DECLARATION_RUBRIQUE)
 
-#undef DECLARATION_MEMBRE
+#undef DECLARATION_RUBRIQUE
 
     NoeudDéclarationEntêteFonction *declaration_pour_ident(const IdentifiantCode *ident);
 
-    void mute_membre(NoeudDéclarationEntêteFonction *noeud);
+    void mute_rubrique(NoeudDéclarationEntêteFonction *noeud);
 };
 
 void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type);

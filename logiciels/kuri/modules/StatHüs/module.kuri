@@ -363,11 +363,11 @@ ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
             }
             STRUCTURE {
                 info_structure := info_type comme *InfoTypeStructure
-                pour > info_structure.membres {
-                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                pour > info_structure.rubriques {
+                    si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
                         continue
                     }
-                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                    tableau_ajoute(*traversée, eini_depuis_info_rubrique(valeur_courante, it))
                 }
             }
             TABLEAU,
@@ -458,11 +458,11 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
             }
             STRUCTURE {
                 info_structure := info_type comme *InfoTypeStructure
-                pour > info_structure.membres {
-                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                pour > info_structure.rubriques {
+                    si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
                         continue
                     }
-                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                    tableau_ajoute(*traversée, eini_depuis_info_rubrique(valeur_courante, it))
                 }
             }
             TABLEAU,
@@ -549,11 +549,11 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
             }
             STRUCTURE {
                 info_structure := info_type comme *InfoTypeStructure
-                pour > info_structure.membres {
-                    si it.drapeaux.EST_CONSTANT || it.drapeaux.EST_IMPLICITE {
+                pour > info_structure.rubriques {
+                    si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
                         continue
                     }
-                    tableau_ajoute(*traversée, eini_depuis_info_membre(valeur_courante, it))
+                    tableau_ajoute(*traversée, eini_depuis_info_rubrique(valeur_courante, it))
                 }
             }
             TABLEAU {

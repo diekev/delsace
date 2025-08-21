@@ -284,7 +284,7 @@ bool Symbole::charge(EspaceDeTravail *espace,
         {
             /* Si nous avons une adresse pour l'exécution, il est inutile d'essayer de charger le
              * symbole. NOTE : puisque adresse_exécution est une union, nous pouvons tester
-             * n'importe quel membre. */
+             * n'importe quel rubrique. */
             if (adresse_exécution.fonction || état_recherche == ÉtatRechercheSymbole::TROUVÉ) {
                 return true;
             }

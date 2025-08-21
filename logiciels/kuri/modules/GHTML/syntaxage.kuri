@@ -377,7 +377,7 @@ analyse_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse, gauche: *NoeudSy
     si lexème == TypeLexème.POINT {
         syntaxeuse.avance()
 
-        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCÈS_MEMBRE, syntaxeuse.données())
+        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCÈS_RUBRIQUE, syntaxeuse.données())
         droite := syntaxeuse.analyse_expression(1)
 
         noeud.ajoute_noeud(gauche)

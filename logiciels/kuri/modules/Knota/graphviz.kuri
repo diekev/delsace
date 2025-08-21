@@ -62,7 +62,7 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 
             // À FAIRE(items)
             pour graphe.itère_noeuds() {
-                données := données_position_noeuds[index_it]
+                données := données_position_noeuds[indice_it]
                 assert(it.nom == données.nom)
                 it.définis_position(données.x, données.y)
             }
@@ -225,7 +225,7 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
 
     ajoute_au_tampon(enchaineuse, "<TR>")
     pour nombre_de_colonnes {
-        index_prise := donne_index_prise_pour_assignation(assignation_entrée, index_it)
+        index_prise := donne_index_prise_pour_assignation(assignation_entrée, indice_it)
         si index_prise < 0 {
             ajoute_au_tampon(enchaineuse, "<TD WIDTH=\"", taille_prise , "\" HEIGHT=\"", hauteur_prise , "\" FIXEDSIZE=\"true\"></TD>")
             continue
@@ -252,7 +252,7 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
 
     ajoute_au_tampon(enchaineuse, "<TR>")
     pour nombre_de_colonnes {
-        index_prise := donne_index_prise_pour_assignation(assignation_sortie, index_it)
+        index_prise := donne_index_prise_pour_assignation(assignation_sortie, indice_it)
         si index_prise < 0 {
             ajoute_au_tampon(enchaineuse, "<TD WIDTH=\"", taille_prise , "\" HEIGHT=\"", hauteur_prise , "\" FIXEDSIZE=\"true\"></TD>")
             continue

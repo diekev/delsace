@@ -314,16 +314,16 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
 
         pour adaptrice.donne_nombre_éléments(adaptrice) {
             si adaptrice.intersecte_rectangle {
-                si adaptrice.intersecte_rectangle(adaptrice, index_it, rect_chemin) {
-                    ensemble_ajoute(*résultat, index_it comme z32)
+                si adaptrice.intersecte_rectangle(adaptrice, indice_it, rect_chemin) {
+                    ensemble_ajoute(*résultat, indice_it comme z32)
                 }
                 continue
             }
 
-            rect := adaptrice.donne_rectangle(adaptrice, index_it)
+            rect := adaptrice.donne_rectangle(adaptrice, indice_it)
 
             si rect_chemin.intersecte(rect) {
-                ensemble_ajoute(*résultat, index_it comme z32)
+                ensemble_ajoute(*résultat, indice_it comme z32)
             }
         }
 
