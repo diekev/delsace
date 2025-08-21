@@ -13,10 +13,10 @@ struct AssembleuseArbre;
 enum class OptionsCopieNoeud : uint32_t {
     AUCUNE = 0u,
     PRÉSERVE_DRAPEAUX_VALIDATION = (1u << 0),
-    /* Par défaut, les paramètres ne sont pas copiés dans les membres du blocs de paramètres (car
+    /* Par défaut, les paramètres ne sont pas copiés dans les rubriques du blocs de paramètres (car
      * ceci est fait lors de la validation sémanantique), mais nous les voulons pour les copies des
      * macros. */
-    COPIE_PARAMÈTRES_DANS_MEMBRES = (1u << 1),
+    COPIE_PARAMÈTRES_DANS_RUBRIQUES = (1u << 1),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsCopieNoeud)
 
@@ -39,7 +39,7 @@ struct Copieuse {
   private:
     NoeudExpression *trouve_copie(const NoeudExpression *racine);
 
-    void copie_membres_de_bases_et_insère(const NoeudExpression *racine, NoeudExpression *nracine);
+    void copie_rubriques_de_bases_et_insère(const NoeudExpression *racine, NoeudExpression *nracine);
 };
 
 NoeudExpression *copie_noeud(AssembleuseArbre *assem,

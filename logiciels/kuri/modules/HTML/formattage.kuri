@@ -166,7 +166,7 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
     diffère détruit_tampons(enchaineuse)
 
     pour classes {
-        si index_it > 0 {
+        si indice_it > 0 {
             enchaineuse.ajoute(' ')
         }
         enchaineuse.ajoute(it.donne_chaine_utf16())
@@ -205,12 +205,12 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
     retourne résultat
 }
 
-formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud, enchaineuse: *Enchaineuse)
+formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, enchaineuse: *Enchaineuse)
 {
     flux_sortie := crée_flux_sortie(enchaineuse)
 
     discr noeud.genre {
-        FragmentDocument,
+        DocumentFragment,
         ProcessingInstruction,
         Section_CDATA,
         Attr {
@@ -233,20 +233,20 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Noeud,
                 formatte_noeud(contexte_formattage, it, enchaineuse)
             }
         }
-        TypeDocument {
+        DocumentType {
             enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
             nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
         }
         Texte {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *Text
             données := formatte_texte(contexte_formattage, texte.données)
             formatte_chaine_utf16(*données, flux_sortie)
             //enchaineuse.ajoute_au_tampon(données)
         }
-        Élément {
+        Element {
             tabulation_au_besoin(contexte_formattage, enchaineuse)
 
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
 
             garde_tag_sur_la_même_ligne := faux
             si élément.local_name == TAG_a || élément.local_name == TAG_p || élément.local_name == TAG_span || élément.local_name == TAG_br {

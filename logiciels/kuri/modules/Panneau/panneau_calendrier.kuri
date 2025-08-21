@@ -24,7 +24,7 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
     hauteur_par_ligne := rect.hauteur comme r32 / 32.0
 
     pour 33 {
-        y := rect.y + (hauteur_par_ligne * index_it comme r32) comme z32
+        y := rect.y + (hauteur_par_ligne * indice_it comme r32) comme z32
 
         ligne: Ligne(z32)
         ligne.p0.x = rect.x
@@ -39,7 +39,7 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
     largeur_par_colonne := rect.largeur comme r32 / 12.0
 
     pour 13 {
-        x := rect.x + (index_it comme r32 * largeur_par_colonne) comme z32
+        x := rect.x + (indice_it comme r32 * largeur_par_colonne) comme z32
 
         ligne: Ligne(z32)
         ligne.p0.x = x
@@ -57,7 +57,7 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
 
     pour mois {
         rect_texte: RectanglePosDim(z32)
-        rect_texte.x = (index_it comme r32 * largeur_par_colonne) comme z32 + 5
+        rect_texte.x = (indice_it comme r32 * largeur_par_colonne) comme z32 + 5
         rect_texte.hauteur = hauteur_par_ligne comme z32
         rect_texte.y = rect.y + rect.hauteur - rect_texte.hauteur + 5
         rect_texte.largeur = largeur_par_colonne comme z32
@@ -72,7 +72,7 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
         rect_texte: RectanglePosDim(z32)
         rect_texte.hauteur = hauteur_par_ligne comme z32
         rect_texte.largeur = largeur_par_colonne comme z32
-        rect_texte.y = rect.y + rect.hauteur - (hauteur_par_ligne * (index_it + 2) comme r32) comme z32 + 5
+        rect_texte.y = rect.y + rect.hauteur - (hauteur_par_ligne * (indice_it + 2) comme r32) comme z32 + 5
 
         pour index_mois dans 12 {
             si it >= nombre_de_jours_dans_mois(index_mois + 1, 2013) {

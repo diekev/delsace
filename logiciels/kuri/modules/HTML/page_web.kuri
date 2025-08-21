@@ -361,7 +361,7 @@ défile_vers_fragment :: fonc (page: *PageWeb)
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
-envoie_un_clic :: fonc (élément: *Élément, bouton: BoutonSouris, position_x: z32, position_y: z32)
+envoie_un_clic :: fonc (élément: *Element, bouton: BoutonSouris, position_x: z32, position_y: z32)
 {
     /* À FAIRE : standardise. */
     évènement := crée_platform_object(élément, MouseEvent)
@@ -401,7 +401,7 @@ envoie_un_clic :: fonc (élément: *Élément, bouton: BoutonSouris, position_x:
             arrête
         }
 
-        élément = élément.parent comme *Élément
+        élément = élément.parent comme *Element
     }
 }
 
@@ -434,7 +434,7 @@ input_element_sur_clic :: fonc (input: *HTMLInputElement)
 
 #portée_export
 
-envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+envoie_mousedown :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
     évènement := crée_platform_object(élément, MouseEvent)
     évènement.type = EventType.mousedown
@@ -466,11 +466,11 @@ envoie_mousedown :: fonc (élément: *Élément, position_x: z32, position_y: z3
             arrête
         }
 
-        élément = élément.parent comme *Élément
+        élément = élément.parent comme *Element
     }
 }
 
-envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+envoie_mousemove :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
     évènement := crée_platform_object(élément, MouseEvent)
     évènement.type = EventType.mousemove
@@ -485,7 +485,7 @@ envoie_mousemove :: fonc (élément: *Élément, position_x: z32, position_y: z3
     _ := dispatch(évènement, élément)
 }
 
-envoie_mouseup :: fonc (élément: *Élément, position_x: z32, position_y: z32)
+envoie_mouseup :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
     évènement := crée_platform_object(élément, MouseEvent)
     évènement.type = EventType.mouseup

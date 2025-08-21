@@ -1,5 +1,5 @@
 /* Crash si nous accédons à une variable globale non constante d'un module
- * importé depuis une expression de référence de membre.
+ * importé depuis une expression de référence de rubrique.
  * Catégorie : [crash]
  */
 

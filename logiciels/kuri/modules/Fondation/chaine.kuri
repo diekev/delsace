@@ -436,7 +436,7 @@ trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
 {
     pour chn {
         si it == c {
-            retourne index_it
+            retourne indice_it
         }
     }
     retourne -1
@@ -453,7 +453,7 @@ trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
 {
     pour > chn {
         si it == c {
-            retourne chn.taille - index_it - 1
+            retourne chn.taille - indice_it - 1
         }
     }
     retourne -1
@@ -663,7 +663,7 @@ apparie_un_de :: fonc (parseuse: *ParseuseChaine, chns: ...chaine) -> z64
     chn := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
     pour chns {
         si commence_par(chn, it) {
-            retourne index_it
+            retourne indice_it
         }
     }
 

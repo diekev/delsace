@@ -58,8 +58,8 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: chaine, chn2: chaine) -> boo
     }
 
     pour chn1.taille {
-        c1 := chn1[index_it]
-        c2 := chn2[index_it]
+        c1 := chn1[indice_it]
+        c2 := chn2[indice_it]
 
         saufsi compare_ascii_insensible_à_la_casse(c1, c2) {
             retourne faux
@@ -183,7 +183,7 @@ opérateur pour :: fonc (itératrice: ItératriceUTF32) -> rune32
         }
 
         `it = converti_utf8_utf32(*ptr_source[curseur]) comme n32
-        `index_it = index
+        `indice_it = index
 
         #corps_boucle
 

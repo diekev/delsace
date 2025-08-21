@@ -31,9 +31,9 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
 
     info := valeur.info comme *InfoTypeStructure
 
-    pour membre dans info.membres {
-        valeur_membre := eini_depuis_info_membre(valeur, membre)
-        ajoute_tag_pour_valeur(*enchaineuse, valeur_membre, membre.nom)
+    pour rubrique dans info.rubriques {
+        valeur_rubrique := eini_depuis_info_rubrique(valeur, rubrique)
+        ajoute_tag_pour_valeur(*enchaineuse, valeur_rubrique, rubrique.nom)
     }
 
     imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
@@ -46,7 +46,7 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
 
 ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: chaine)
 {
-    // imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", membre.nom)
+    // imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", rubrique.nom)
 
     ajoute_au_tampon(enchaineuse, "<div>\n")
     ajoute_au_tampon(enchaineuse, "<label for='", nom, "'>")

@@ -1,6 +1,6 @@
-/* Crash si l'expression par défaut d'un membre d'une structure référence un
- * membre de celle-ci.
- * Catégorie : [crash, type structure, expression membre]
+/* Crash si l'expression par défaut d'une rubrique d'une structure référence un
+ * rubrique de celle-ci.
+ * Catégorie : [crash, type structure, expression rubrique]
  */
 
 MaStructure :: struct {

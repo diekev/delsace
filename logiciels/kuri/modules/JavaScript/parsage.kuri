@@ -1273,7 +1273,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                     tableau_ajoute(*properties, spread)
                 }
                 sinon {
-                    nom_membre: *Expression
+                    field_name: *Expression
                     method_kind := MethodKind.Method
 
                     async := faux
@@ -1286,7 +1286,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
                         saufsi class_element_name {
                             rapporte_erreur(parseuse, "expected a class element name")
                         }
-                        nom_membre = class_element_name
+                        field_name = class_element_name
                     }
                     sinon si apparie(parseuse, GenreLexème.Get) {
                         sauvegarde := parseuse.position
@@ -1294,7 +1294,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         class_element_name := apparie_class_element_name(parseuse)
                         si class_element_name {
-                            nom_membre = class_element_name
+                            field_name = class_element_name
                             method_kind = MethodKind.Get
                         }
                         sinon {
@@ -1307,7 +1307,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         class_element_name := apparie_class_element_name(parseuse)
                         si class_element_name {
-                            nom_membre = class_element_name
+                            field_name = class_element_name
                             method_kind = MethodKind.Set
                         }
                         sinon {
@@ -1320,7 +1320,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         class_element_name := apparie_class_element_name(parseuse)
                         si class_element_name {
-                            nom_membre = class_element_name
+                            field_name = class_element_name
                             async = vrai
                         }
                         sinon {
@@ -1330,8 +1330,8 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                     // À FAIRE : ClassElementName, pour les méthodes
                     // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
-                    saufsi nom_membre {
-                        nom_membre = parse_property_name(parseuse)
+                    saufsi field_name {
+                        field_name = parse_property_name(parseuse)
                     }
 
                     si async || generator || apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
@@ -1349,7 +1349,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         body := parse_function_body(parseuse, async, generator)
 
-                        méthode := crée_object_method(parseuse, lexème_déf, nom_membre, paramètres, body, method_kind, async, generator)
+                        méthode := crée_object_method(parseuse, lexème_déf, field_name, paramètres, body, method_kind, async, generator)
                         tableau_ajoute(*properties, méthode)
                     }
                     sinon si parseuse.apparie(GenreLexème.DoublePoint) {
@@ -1358,11 +1358,11 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 
                         expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
 
-                        property := crée_property_definition(parseuse, lexème_déf, nom_membre, expression)
+                        property := crée_property_definition(parseuse, lexème_déf, field_name, expression)
                         tableau_ajoute(*properties, property)
                     }
-                    sinon si nom_membre != nul && nom_membre.type == Identifier {
-                        tableau_ajoute(*properties, nom_membre)
+                    sinon si field_name != nul && field_name.type == Identifier {
+                        tableau_ajoute(*properties, field_name)
                     }
                     sinon {
                         rapporte_erreur(parseuse, "expected a property definition")
