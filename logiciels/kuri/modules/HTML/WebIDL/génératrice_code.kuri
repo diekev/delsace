@@ -417,7 +417,7 @@ Attribut :: struct {
     nom: chaine
     lecture_seule: bool
     reflect: bool
-    est_membre: bool
+    est_rubrique: bool
     est_idl_event_handler: bool
     /* 'nom' de [Reflect=nom] */
     attribut_réfléchis: chaine
@@ -747,7 +747,7 @@ génère_enveloppe_javascript_getter :: fonc (enchaineuse: *Enchaineuse, interfa
         }
         ajoute_au_tampon(enchaineuse, "    résultat := get_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ")\n")
     }
-    sinon si attribut.est_membre {
+    sinon si attribut.est_rubrique {
         ajoute_au_tampon(enchaineuse, "    résultat := object_this.", nom_snake_case, "\n")
     }
     sinon si attribut.est_idl_event_handler {
@@ -783,7 +783,7 @@ génère_enveloppe_javascript_setter :: fonc (enchaineuse: *Enchaineuse, interfa
         }
         ajoute_au_tampon(enchaineuse, "    set_an_attribute_value(object_this, ATTR_", attribut_réfléchis, ", ", attribut.nom, ")\n")
     }
-    sinon si attribut.est_membre {
+    sinon si attribut.est_rubrique {
         ajoute_au_tampon(enchaineuse, "    object_this.", nom_snake_case, " =", attribut.nom, "\n")
     }
     sinon si attribut.est_idl_event_handler {
@@ -1094,7 +1094,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
             résultat.reflect = vrai
         }
         sinon si lexème == "Member" {
-            résultat.est_membre = vrai
+            résultat.est_rubrique = vrai
         }
         sinon si lexème == "IDLEventHandler" {
             résultat.est_idl_event_handler = vrai

@@ -43,23 +43,23 @@ test_boucle_tablet :: fonc ()
 
 /* ------------------------------------------------------------------- */
 
-DonnéesMembreStructure :: struct {
+DonnéesRubriqueStructure :: struct {
     valeur: eini
     nom: chaine
 }
 
-opérateur pour :: fonc (itératrice: ItératriceMembreStructure) -> DonnéesMembreStructure
+opérateur pour :: fonc (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriqueStructure
 {
     index := 0
 
     boucle {
-        membre, nom := itératrice.membre_suivant()
+        rubrique, nom := itératrice.rubrique_suivante()
 
-        saufsi membre.est_valide() {
+        saufsi rubrique.est_valide() {
             arrête
         }
 
-        données := DonnéesMembreStructure(membre, nom)
+        données := DonnéesRubriqueStructure(rubrique, nom)
 
         `it = données
         `indice_it = index
@@ -76,11 +76,11 @@ test_boucle_introspection :: fonc ()
 
     valeur := Vec3(1.0, 2.0, 3.0)
 
-    pour crée_itératrice_membre(valeur) {
+    pour crée_itératrice_rubrique(valeur) {
         imprime("% : %\n", it.nom, it.valeur)
 
         /* Les boucles avec opérateur dans les boucles avec opérateurs fonctionnent. */
-        pour données dans crée_itératrice_membre(valeur) {
+        pour données dans crée_itératrice_rubrique(valeur) {
             imprime("-- % : %\n", données.nom, données.valeur)
         }
     }

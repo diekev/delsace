@@ -88,38 +88,38 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
 
     imprime("[%] %", index, nom)
 
-    pointeur_membre := instruction comme *octet
+    pointeur_rubrique := instruction comme *octet
 
-    _ := imprime_membres_instructions(pointeur_membre, infos, " ")
+    _ := imprime_rubriques_instructions(pointeur_rubrique, infos, " ")
 
     imprime("\n")
 }
 
-imprime_membres_instructions :: fonc (pointeur_membre: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
+imprime_rubriques_instructions :: fonc (pointeur_rubrique: *octet, infos: *InfoTypeStructure, virgule: chaine) -> chaine
 {
-    pour infos.membres {
+    pour infos.rubriques {
         si it.id == info_de(ECMAString) {
-            valeur := (pointeur_membre + it.décalage) comme *ECMAString
+            valeur := (pointeur_rubrique + it.décalage) comme *ECMAString
             imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Registre) {
-            valeur := (pointeur_membre + it.décalage) comme *Registre
+            valeur := (pointeur_rubrique + it.décalage) comme *Registre
             imprime("%r:%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(Valeur) {
-            valeur := (pointeur_membre + it.décalage) comme *Valeur
+            valeur := (pointeur_rubrique + it.décalage) comme *Valeur
             imprime("%%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id == info_de(DécalageBranche) {
-            valeur := (pointeur_membre + it.décalage) comme *DécalageBranche
+            valeur := (pointeur_rubrique + it.décalage) comme *DécalageBranche
             imprime("%@%", virgule, mémoire(valeur))
             virgule = ", "
         }
         sinon si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(Instruction)) {
-            virgule = imprime_membres_instructions(pointeur_membre, it.id comme *InfoTypeStructure, virgule)
+            virgule = imprime_rubriques_instructions(pointeur_rubrique, it.id comme *InfoTypeStructure, virgule)
         }
     }
 

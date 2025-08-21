@@ -55,7 +55,7 @@ inline bool est_adresse_locale(Atome const *atome)
 
     auto inst = atome->comme_instruction();
 
-    if (inst->est_alloc() || inst->est_acces_membre() || inst->est_acces_index()) {
+    if (inst->est_alloc() || inst->est_acces_rubrique() || inst->est_acces_index()) {
         return true;
     }
 
@@ -350,7 +350,7 @@ void ConstructriceHuitoctets::construit_huitoctets_récursif(Type const *type)
 
             auto décalage = uint32_t(0);
 
-            POUR (type_composé->donne_membres_pour_code_machine()) {
+            POUR (type_composé->donne_rubriques_pour_code_machine()) {
                 if (it.decalage != décalage) {
                     auto rembourrage = it.decalage - décalage;
                     ajoute_rembourrage(rembourrage);
@@ -2289,7 +2289,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         {
             auto structure = initialisateur->comme_constante_structure();
             auto type = structure->type->comme_type_composé();
-            auto tableau_valeur = structure->donne_atomes_membres();
+            auto tableau_valeur = structure->donne_atomes_rubriques();
             auto nom_structure = broyeuse.nom_broyé_type(const_cast<TypeCompose *>(type));
 
             if (type->est_type_tranche()) {
@@ -2305,7 +2305,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto décalage = uint32_t(0);
             auto nombre_rembourrage = 0;
 
-            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
                 if (it.decalage != décalage) {
                     auto rembourrage = it.decalage - décalage;
                     enchaineuse << chaine_indentations_espace(profondeur + 1) << "at "
@@ -2327,7 +2327,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
                             << ".";
 
                 if (it.nom == ID::chaine_vide) {
-                    enchaineuse << "membre_invisible";
+                    enchaineuse << "rubrique_invisible";
                 }
                 else {
                     enchaineuse << broyeuse.broye_nom_simple(it.nom);
@@ -2548,19 +2548,19 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_accès_index(inst->comme_acces_index(), assembleuse);
             break;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto const accès = inst->comme_acces_membre();
+            auto const accès = inst->comme_acces_rubrique();
             auto const accédé = accès->accédé;
             // À FAIRE : accès fusionné
 
             génère_code_pour_atome(accédé, assembleuse, UtilisationAtome::AUCUNE);
 
-            auto const &membre = accès->donne_membre_accédé();
-            if (membre.decalage != 0) {
+            auto const &rubrique = accès->donne_rubrique_accédé();
+            if (rubrique.decalage != 0) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
-                assembleuse.add(registre, AssembleuseASM::Immédiate64{membre.decalage}, 8);
+                assembleuse.add(registre, AssembleuseASM::Immédiate64{rubrique.decalage}, 8);
                 assembleuse.push(registre, 8);
                 registres.marque_registre_inoccupé(registre);
             }
@@ -4242,8 +4242,8 @@ static void déclare_structure(TypeCompose const *type,
     auto décalage = uint32_t(0);
     auto nombre_rembourrage = 0;
 
-    POUR (type->donne_membres_pour_code_machine()) {
-        auto nom_membre = broyeuse.broye_nom_simple(it.nom);
+    POUR (type->donne_rubriques_pour_code_machine()) {
+        auto nom_rubrique = broyeuse.broye_nom_simple(it.nom);
 
         if (it.decalage != décalage) {
             auto rembourrage = it.decalage - décalage;
@@ -4255,7 +4255,7 @@ static void déclare_structure(TypeCompose const *type,
             nombre_rembourrage++;
         }
 
-        enchaineuse << TABULATION << "." << nom_membre << " resb " << it.type->taille_octet
+        enchaineuse << TABULATION << "." << nom_rubrique << " resb " << it.type->taille_octet
                     << NOUVELLE_LIGNE;
 
         décalage += it.type->taille_octet;

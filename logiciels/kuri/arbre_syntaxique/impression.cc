@@ -438,7 +438,7 @@ static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const
 
     auto virgule = " (";
 
-    POUR (*bloc_constantes->membres.verrou_lecture()) {
+    POUR (*bloc_constantes->rubriques.verrou_lecture()) {
         enchaineuse << virgule;
         imprime_arbre(enchaineuse, {}, it);
         virgule = ", ";
@@ -1011,11 +1011,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             }
             break;
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
-            auto membre = noeud->comme_référence_membre();
-            imprime_arbre(enchaineuse, état, membre->accédée);
+            auto rubrique = noeud->comme_référence_rubrique();
+            imprime_arbre(enchaineuse, état, rubrique->accédée);
             enchaineuse << ".";
             imprime_ident(enchaineuse, noeud->ident);
             break;

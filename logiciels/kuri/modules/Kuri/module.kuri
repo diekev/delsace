@@ -30,7 +30,7 @@ valeur_nulle :: fonc ($T: type_de_données) -> T
 // --------------------------
 
 // Position dans le code source. Quand cette structure est instantiée, le
-// compilateur remplis les membres de cette structure avec les valeurs
+// compilateur remplis les rubriques de cette structure avec les valeurs
 // correspondantes de la position du lexème dans le fichier où se fait ladite
 // construction.
 PositionCodeSource :: struct #interface {
@@ -904,7 +904,7 @@ __point_d_entree_systeme :: fonc (argc: z32, argv: **z8) -> z32 #sanstrace #sans
     début_pile: n64
     __init_début_pile(*début_pile)
 
-    // initalise les autres membres du contexte
+    // initalise les autres rubriques du contexte
     info_trace_appel := InfoFonctionTraceAppel(nom = "__point_d_entree_systeme", fichier = #chemin_de_ce_fichier, adresse = nul)
     trace_appel := TraceAppel(info_fonction = *info_trace_appel)
 

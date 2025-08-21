@@ -553,7 +553,7 @@ texture_font_init :: fonc (self: *texture_font_t) -> bool
 {
     assert(self.atlas != nul)
     assert(self.taille > 0)
-    assert(donne_indice_membre_actif(self.fileinfo) != 0)
+    assert(donne_indice_rubrique_active(self.fileinfo) != 0)
 
     // FT_LCD_FILTER_LIGHT   is (0x00, 0x55, 0x56, 0x55, 0x00)
     // FT_LCD_FILTER_DEFAULT is (0x10, 0x40, 0x70, 0x40, 0x10)
@@ -1021,7 +1021,7 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
 texture_font_get_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
 {
     assert(self != nul)
-    assert(donne_indice_membre_actif(self.fileinfo) != 0)
+    assert(donne_indice_rubrique_active(self.fileinfo) != 0)
     assert(self.atlas != nul)
 
     /* Check if codepoint has been already loaded */

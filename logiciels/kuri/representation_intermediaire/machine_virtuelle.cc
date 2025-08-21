@@ -361,7 +361,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
         case GenreNoeud::TUPLE:
         {
             auto type_tuple = type->comme_type_tuple();
-            POUR (type_tuple->membres) {
+            POUR (type_tuple->rubriques) {
                 lis_valeur(pointeur + it.decalage, it.type, os);
             }
             break;
@@ -431,12 +431,12 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
 
             auto virgule = "{ ";
 
-            POUR (type_structure->membres) {
+            POUR (type_structure->rubriques) {
                 os << virgule;
                 os << it.nom << " = ";
 
-                auto pointeur_membre = pointeur + it.decalage;
-                lis_valeur(pointeur_membre, it.type, os);
+                auto pointeur_rubrique = pointeur + it.decalage;
+                lis_valeur(pointeur_rubrique, it.type, os);
 
                 virgule = ", ";
             }
@@ -1893,7 +1893,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(adresse);
                 break;
             }
-            case OP_REFERENCE_MEMBRE:
+            case OP_REFERENCE_RUBRIQUE:
             {
                 auto decalage = LIS_4_OCTETS();
                 auto adresse_de = dépile<char *>();
@@ -1901,13 +1901,13 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 // dbg() << "adresse_de : " << static_cast<void *>(adresse_de);
                 break;
             }
-            case OP_RÉFÉRENCE_MEMBRE_LOCALE:
+            case OP_RÉFÉRENCE_RUBRIQUE_LOCALE:
             {
                 auto pointeur = LIS_4_OCTETS();
                 auto décalage = LIS_4_OCTETS();
                 auto adresse_base = donne_adresse_locale(frame, pointeur);
-                auto adresse_membre = static_cast<char *>(adresse_base) + décalage;
-                empile(adresse_membre);
+                auto adresse_rubrique = static_cast<char *>(adresse_base) + décalage;
+                empile(adresse_rubrique);
                 break;
             }
             case OP_ACCEDE_INDEX:

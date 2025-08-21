@@ -50,7 +50,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type)
  * exemple des unités de mesure (p.e. de centimètre (cm) vers pieds (ft)) sans
  * devoir explicitement avoir cette conversion dans le code tant que types se
  * trouvent entre les deux (p.e. cm -> dm -> m -> ft). Ou encore automatiquement
- * construire des unions depuis une valeur d'un type membre.
+ * construire des unions depuis une valeur d'un type rubrique.
  *
  * Cette méthode est limitée, mais largement plus rapide que celle utilisant un
  * graphe, qui sera sans doute révisée plus tard.
@@ -170,13 +170,13 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
             REQUIERS_TYPE_VALIDE(type_vers);
 
-            auto résultat = trouve_index_membre_unique_type_compatible(type_union, type_de);
+            auto résultat = trouve_index_rubrique_unique_type_compatible(type_union, type_de);
 
-            /* Nous pouvons construire une union depuis nul si un seul membre est un pointeur. */
-            if (std::holds_alternative<IndexMembre>(résultat)) {
+            /* Nous pouvons construire une union depuis nul si un seul rubrique est un pointeur. */
+            if (std::holds_alternative<IndexRubrique>(résultat)) {
                 return TransformationType{TypeTransformation::CONSTRUIT_UNION,
                                           type_vers,
-                                          std::get<IndexMembre>(résultat).valeur};
+                                          std::get<IndexRubrique>(résultat).valeur};
             }
             break;
         }
@@ -492,7 +492,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
              *    Base :: struct {}
              *
              *    Dérivée :: struct {
-             *        // Pas d'autres membres avant !
+             *        // Pas d'autres rubriques avant !
              *        empl base: Base
              *        ...
              *    }
@@ -546,8 +546,8 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 /* À FAIRE : nous devons requérir que les types sont validés !
                  * Mais ceci empêcherai la compilation pour les types ayant des assignations de
                  * pointeurs de fonction dans leurs blocs. Il faudra séparer la validation des
-                 * membres de la validation des expressions par défaut de remplacement pour les
-                 * membres existants. */
+                 * rubriques de la validation des expressions par défaut de remplacement pour les
+                 * rubriques existants. */
                 auto décalage_type_base = est_type_de_base(ts_de, ts_vers);
                 if (!décalage_type_base.has_value() || décalage_type_base.value() != 0) {
                     return TransformationType(TypeTransformation::IMPOSSIBLE);
@@ -610,7 +610,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         REQUIERS_TYPE_VALIDE(type_union);
 
-        POUR_INDEX (type_union->donne_membres_pour_code_machine()) {
+        POUR_INDEX (type_union->donne_rubriques_pour_code_machine()) {
             if (it.type != type_vers || type_union->est_nonsure) {
                 continue;
             }

@@ -230,7 +230,7 @@ possède_slot :: fonc (object: *Object, nom: chaine) -> bool
         infos = traversée[traversée.taille - 1]
         traversée.taille -= 1
 
-        pour infos.membres {
+        pour infos.rubriques {
             annotation := trouve_annotation(it, "slot")
             si annotation && annotation.valeur == nom {
                 retourne vrai

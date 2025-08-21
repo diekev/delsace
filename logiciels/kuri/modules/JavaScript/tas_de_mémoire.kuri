@@ -118,7 +118,7 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
 
         ajoute_au_tampon(*enchaineuse, "\n", infos_courante.nom, "_visite_cellule :: fonc (v: *VisiteuseCellule, c: *", infos_courante.nom, ")\n{\n")
 
-        pour infos_courante.membres {
+        pour infos_courante.rubriques {
             si it.id == info_de(Cellule) {
                 continue
             }
@@ -134,7 +134,7 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
             }
 
             types_en_visite.taille = 0
-            génère_visite_membre(*enchaineuse, it, *types_en_visite, *traversée)
+            génère_visite_rubrique(*enchaineuse, it, *types_en_visite, *traversée)
         }
 
         ajoute_au_tampon(*enchaineuse, "}\n")
@@ -148,7 +148,7 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
     // ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), chn)
 }
 
-génère_visite_membre :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoTypeMembreStructure, types_en_visite: *[..]*InfoType, traversée: *[..]*InfoTypeStructure)
+génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoTypeRubriqueStructure, types_en_visite: *[..]*InfoType, traversée: *[..]*InfoTypeStructure)
 {
     discr rubrique.id.id {
         ENTIER,
@@ -265,7 +265,7 @@ type_possède_une_cellule :: fonc (info: *InfoType, types_en_visite: *[..]*InfoT
                 retourne vrai
             }
 
-            pour structure.membres {
+            pour structure.rubriques {
                 si type_possède_une_cellule(it.id, types_en_visite) {
                     retourne vrai
                 }
@@ -747,7 +747,7 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 
 InfoValeurÀVisiter :: struct {
     structure: *InfoTypeStructure
-    membre: chaine
+    rubrique: chaine
     valeur: eini
 }
 
@@ -813,15 +813,15 @@ visite_cellule_générique :: fonc (visiteuse: *VisiteuseCellule, racine: *Cellu
 visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
 {
     info := structure.info comme *InfoTypeStructure
-    pour info.membres {
+    pour info.rubriques {
         saufsi type_est_intéressant_pour_visite(it.id, faux) {
             continue
         }
-        membre := eini_depuis_info_membre(structure, it)
+        rubrique := eini_depuis_info_rubrique(structure, it)
         si possède_annotation(it, "NeVisitePas") {
             continue
         }
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, InfoValeurÀVisiter(info, it.nom, membre))
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, InfoValeurÀVisiter(info, it.nom, rubrique))
     }
 }
 
@@ -833,8 +833,8 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
     // chaine_type := chaine_pour_type(info)
     // diffère déloge(chaine_type)
 
-    // si valeur_à_visiter.membre {
-    //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.membre, chaine_type, valeur.pointeur)
+    // si valeur_à_visiter.rubrique {
+    //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.rubrique, chaine_type, valeur.pointeur)
     // }
     // sinon {
     //     imprime("[%] %: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, chaine_type, valeur.pointeur)

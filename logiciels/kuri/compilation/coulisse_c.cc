@@ -29,7 +29,7 @@
 
 #include "representation_intermediaire/impression.hh"
 
-/* Défini si les structures doivent avoir des membres explicites. Sinon, le code généré utilisera
+/* Défini si les structures doivent avoir des rubriques explicites. Sinon, le code généré utilisera
  * des tableaux d'octets pour toutes les structures. */
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
@@ -259,7 +259,7 @@ struct GénératriceCodeC {
 
     kuri::chaine_statique donne_nom_pour_type(Type const *type);
 
-    kuri::chaine_statique donne_nom_pour_rubrique(MembreTypeComposé const &rubrique,
+    kuri::chaine_statique donne_nom_pour_rubrique(RubriqueTypeComposé const &rubrique,
                                                   int64_t index);
 
     bool préserve_symboles() const;
@@ -328,7 +328,7 @@ struct ConvertisseuseTypeC {
      * KT3KPKsz32).
      *
      * Pour les structures (ou unions) nous devons également nous assurer que le code des
-     * structures utilisées par valeur pour leurs membres ont leurs codes générés avant celui de la
+     * structures utilisées par valeur pour leurs rubriques ont leurs codes générés avant celui de la
      * structure parent.
      */
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
@@ -527,7 +527,7 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
-            POUR (type_union->membres) {
+            POUR (type_union->rubriques) {
                 génère_typedef(it.type, enchaineuse);
             }
 
@@ -673,8 +673,8 @@ void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
                                                            Enchaineuse &enchaineuse)
 {
     if (type_composé->est_type_tableau_dynamique() || type_composé->est_type_tranche()) {
-        /* Le type du membre des éléments peut manquer. */
-        POUR (type_composé->membres) {
+        /* Le type du rubrique des éléments peut manquer. */
+        POUR (type_composé->rubriques) {
             génère_typedef(it.type, enchaineuse);
         }
     }
@@ -745,7 +745,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
             enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
 #endif
 
-            POUR (type_composé->membres) {
+            POUR (type_composé->rubriques) {
                 if (it.type->est_type_pointeur()) {
                     continue;
                 }
@@ -768,7 +768,7 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 #ifdef IMPRIME_COMMENTAIRE
             enchaineuse << "// " << __func__ << " : " << chaine_type(type) << "\n";
 #endif
-            POUR (type_union->membres) {
+            POUR (type_union->rubriques) {
                 génère_code_pour_type(it.type, enchaineuse);
             }
             génère_code_pour_type(type_union->type_structure, enchaineuse);
@@ -861,7 +861,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
     if (type_composé->est_type_structure()) {
         auto type_structure = type_composé->comme_type_structure();
-        if (type_structure->est_externe && type_structure->membres.taille() == 0) {
+        if (type_structure->est_externe && type_structure->rubriques.taille() == 0) {
             enchaineuse << "typedef struct " << nom_type << " " << nom_type_broyé << ";\n\n";
             return;
         }
@@ -876,7 +876,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     enchaineuse << "    struct {\n";
 #endif
 
-    POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
+    POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
         enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, indice_it) << ";\n";
     }
@@ -1313,15 +1313,15 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         {
             auto structure = atome->comme_constante_structure();
             auto type = structure->type->comme_type_composé();
-            auto tableau_valeur = structure->donne_atomes_membres();
+            auto tableau_valeur = structure->donne_atomes_rubriques();
             auto résultat = Enchaineuse();
 
             auto virgule = "{{ ";
-            // ceci car il peut n'y avoir qu'un seul membre de type tableau qui
+            // ceci car il peut n'y avoir qu'un seul rubrique de type tableau qui
             // n'est pas initialisé
             auto virgule_placee = false;
 
-            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
                 résultat << virgule;
                 virgule_placee = true;
 
@@ -1538,7 +1538,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
                  * code généré, accédées via '.', nous devons déréférencer la variable ici, mais
                  * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
-                 * membre de la structure qui est le tableau, et sert également à proprement
+                 * rubrique de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
                         charge->type->comme_type_pointeur()->type_pointé)) {
@@ -1671,9 +1671,9 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = valeur;
             break;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto inst_accès = inst->comme_acces_membre();
+            auto inst_accès = inst->comme_acces_rubrique();
 
             auto accédée = inst_accès->accédé;
             auto valeur_accédée = broyeuse.broye_nom_simple(
@@ -1688,21 +1688,21 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine("&", valeur_accédée, "->");
             }
 
-            auto const &membre = inst_accès->donne_membre_accédé();
+            auto const &rubrique = inst_accès->donne_rubrique_accédé();
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
-            auto nom_type = donne_nom_pour_type(membre.type);
+            auto nom_type = donne_nom_pour_type(rubrique.type);
             valeur_accédée = enchaine("&(*(",
                                       nom_type,
                                       " *)",
                                       valeur_accédée,
                                       nom_variable_tableau_fixe,
                                       "[",
-                                      membre.decalage,
+                                      rubrique.decalage,
                                       "])");
 #else
             valeur_accédée = enchaine(valeur_accédée,
-                                      donne_nom_pour_rubrique(membre, index_membre));
+                                      donne_nom_pour_rubrique(rubrique, index_rubrique));
 #endif
 
             table_valeurs[inst->numero] = valeur_accédée;
@@ -1944,7 +1944,7 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
         table_valeurs[param->numero] = enchaine("&", donne_nom_pour_instruction(param));
     }
 
-    /* Générons le code pour les accès de membres des retours multiples. */
+    /* Générons le code pour les accès de rubriques des retours multiples. */
     if (atome_fonc->decl && atome_fonc->decl->params_sorties.taille() > 1) {
         for (auto &param : atome_fonc->decl->params_sorties) {
             auto inst = param->comme_déclaration_variable()->atome->comme_instruction();
@@ -2056,7 +2056,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     return nom;
 }
 
-kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(MembreTypeComposé const &rubrique,
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(RubriqueTypeComposé const &rubrique,
                                                                 int64_t index)
 {
     /* Cas pour les structures vides. */

@@ -532,7 +532,7 @@ test_union_nonsûr :: fonc () -> bool
     }
 
     // À FAIRE(langage) : transtypage des unions nonsûres
-    // assignation d'un type, sans accès membre
+    // assignation d'un type, sans accès rubrique
     // e = 5
 
     // si e comme z32 != 5 {
@@ -545,7 +545,7 @@ test_union_nonsûr :: fonc () -> bool
     //     retourne faux
     // }
 
-    // assignation d'un type, ave accès membre
+    // assignation d'un type, ave accès rubrique
     e.e = 5
 
     si e.e != 5 {
@@ -592,7 +592,7 @@ test_union_sûr :: fonc () -> bool
     //     retourne faux
     // }
 
-    // assignation d'un type, sans accès membre
+    // assignation d'un type, sans accès rubrique
     // À FAIRE(langage) : ne permet pas de conversion vers r32 depuis un entier_constant dans ce cas.
     e = 5 comme z32
 
@@ -606,7 +606,7 @@ test_union_sûr :: fonc () -> bool
         retourne faux
     }
 
-    // assignation d'un type, avec accès membre
+    // assignation d'un type, avec accès rubrique
     e.e = 5
 
     si e.e != 5 {
@@ -650,7 +650,7 @@ test_union_sûr_anonyme :: fonc () -> bool
     //     retourne faux
     // }
 
-    // // assignation d'un type, sans accès membre
+    // // assignation d'un type, sans accès rubrique
     e = 5 comme z32
 
     si e != 5 comme z32 {
@@ -663,7 +663,7 @@ test_union_sûr_anonyme :: fonc () -> bool
         retourne faux
     }
 
-    // assignation d'un type, ave accès membre
+    // assignation d'un type, ave accès rubrique
     // À FAIRE
     // e.0 = 5
 
@@ -996,13 +996,13 @@ test_info_de_structure :: fonc () -> bool
         retourne faux
     }
 
-    si infos.membres.taille != 3 {
+    si infos.rubriques.taille != 3 {
         retourne faux
     }
 
     infos_entier := info_de(z32)
 
-    pour infos.membres {
+    pour infos.rubriques {
         si it.id != infos_entier {
             retourne faux
         }

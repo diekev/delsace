@@ -6590,10 +6590,10 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
 {
     info := valeur_eini.info comme *InfoTypeStructure
 
-    pour info.membres {
+    pour info.rubriques {
         si est_type_adresse_noeud_syntaxique(it.id) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
-            expression := mémoire(membre.pointeur comme **NoeudSyntaxique)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
+            expression := mémoire(rubrique.pointeur comme **NoeudSyntaxique)
             si expression == nul {
                 continue
             }
@@ -6609,9 +6609,9 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
         }
 
         si est_type_adresse_tableau_noeud_syntaxique(it.id) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
 
-            tableau := mémoire(membre.pointeur comme *[..]*NoeudSyntaxique)
+            tableau := mémoire(rubrique.pointeur comme *[..]*NoeudSyntaxique)
 
             pour noeud dans tableau {
                 visiteuse.profondeur += 1
@@ -6629,8 +6629,8 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
         }
 
         si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(NoeudSyntaxique)) {
-            membre := eini_depuis_info_membre(valeur_eini, it)
-            visite_structure(visiteuse, membre)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
+            visite_structure(visiteuse, rubrique)
             continue
         }
     }
@@ -6756,7 +6756,7 @@ crée_visiteuse_pour_mémoire :: fonc (résultat: *VisteuseMémoire, noeud: *Noe
         visiteuse := base comme *VisteuseMémoire
         visiteuse.total += info.taille_en_octet comme z64
 
-        pour info.membres {
+        pour info.rubriques {
             si est_type_adresse_noeud_syntaxique(it.id) {
                 visiteuse.total_compressé += 4
             }

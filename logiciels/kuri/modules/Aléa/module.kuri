@@ -92,7 +92,7 @@ génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAlé
 
     info := info_de(T)
 
-    pour info.membres {
+    pour info.rubriques {
         fonction_parsage := trouve_fonction_génération_données_aléatoires(it.id)
 
         saufsi fonction_parsage {

@@ -239,13 +239,13 @@ static void initialise_type_fonction(TypeFonction *résultat,
 static void initialise_type_tableau_fixe(TypeTableauFixe *résultat,
                                          Type *type_pointe_,
                                          int taille_,
-                                         kuri::tableau<MembreTypeComposé, int> &&membres_)
+                                         kuri::tableau<RubriqueTypeComposé, int> &&rubriques_)
 {
     assert(type_pointe_);
     assert(taille_ > 0);
 
-    résultat->membres = std::move(membres_);
-    résultat->nombre_de_membres_réels = 0;
+    résultat->rubriques = std::move(rubriques_);
+    résultat->nombre_de_rubriques_réelles = 0;
     résultat->type_pointé = type_pointe_;
     résultat->taille = taille_;
     résultat->alignement = type_pointe_->alignement;
@@ -261,12 +261,12 @@ static void initialise_type_tableau_fixe(TypeTableauFixe *résultat,
 
 static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
                                               Type *type_pointe_,
-                                              kuri::tableau<MembreTypeComposé, int> &&membres_)
+                                              kuri::tableau<RubriqueTypeComposé, int> &&rubriques_)
 {
     assert(type_pointe_);
 
-    résultat->membres = std::move(membres_);
-    résultat->nombre_de_membres_réels = résultat->membres.taille();
+    résultat->rubriques = std::move(rubriques_);
+    résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
     résultat->type_pointé = type_pointe_;
     résultat->taille_octet = 24;
     résultat->alignement = 8;
@@ -281,12 +281,12 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
 
 static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
                                     Type *type_élément,
-                                    kuri::tableau<MembreTypeComposé, int> &&membres_)
+                                    kuri::tableau<RubriqueTypeComposé, int> &&rubriques_)
 {
     assert(type_élément);
 
-    résultat->membres = std::move(membres_);
-    résultat->nombre_de_membres_réels = résultat->membres.taille();
+    résultat->rubriques = std::move(rubriques_);
+    résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
     résultat->type_élément = type_élément;
     résultat->taille_octet = 16;
     résultat->alignement = 8;
@@ -301,7 +301,7 @@ static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
 
 static void initialise_type_variadique(TypeVariadique *résultat,
                                        Type *type_pointe_,
-                                       kuri::tableau<MembreTypeComposé, int> &&membres_)
+                                       kuri::tableau<RubriqueTypeComposé, int> &&rubriques_)
 {
     résultat->type_pointé = type_pointe_;
 
@@ -309,8 +309,8 @@ static void initialise_type_variadique(TypeVariadique *résultat,
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
-    résultat->membres = std::move(membres_);
-    résultat->nombre_de_membres_réels = résultat->membres.taille();
+    résultat->rubriques = std::move(rubriques_);
+    résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
     résultat->taille_octet = 16;
     résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -492,21 +492,21 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
         *donnees.ptr_type = type;
     }
 
-    auto membres_eini = kuri::tableau<MembreTypeComposé, int>();
-    membres_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
+    auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
-    membres_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
+    rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
     auto type_eini = TypeBase::EINI->comme_type_composé();
-    type_eini->membres = std::move(membres_eini);
-    type_eini->nombre_de_membres_réels = type_eini->membres.taille();
+    type_eini->rubriques = std::move(rubriques_eini);
+    type_eini->nombre_de_rubriques_réelles = type_eini->rubriques.taille();
     type_eini->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
     auto type_chaine = TypeBase::CHAINE->comme_type_composé();
-    auto membres_chaine = kuri::tableau<MembreTypeComposé, int>();
-    membres_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
-    membres_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
-    type_chaine->membres = std::move(membres_chaine);
-    type_chaine->nombre_de_membres_réels = type_chaine->membres.taille();
+    auto rubriques_chaine = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
+    rubriques_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    type_chaine->rubriques = std::move(rubriques_chaine);
+    type_chaine->nombre_de_rubriques_réelles = type_chaine->rubriques.taille();
     type_chaine->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 }
 
@@ -693,17 +693,17 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     }
 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
-    auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute({nullptr,
+    auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques.ajoute({nullptr,
                     TypeBase::Z64,
                     ID::taille,
                     0,
                     uint64_t(taille),
                     nullptr,
-                    MembreTypeComposé::EST_CONSTANT});
+                    RubriqueTypeComposé::EST_CONSTANT});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
-    initialise_type_tableau_fixe(type, type_pointe, taille, std::move(membres));
+    initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
@@ -748,13 +748,13 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
         }
     }
 
-    auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
+    auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
 
     auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
-    initialise_type_tableau_dynamique(type, type_pointe, std::move(membres));
+    initialise_type_tableau_dynamique(type, type_pointe, std::move(rubriques));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
@@ -779,12 +779,12 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
         }
     }
 
-    auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
+    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
 
     auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
-    initialise_type_tranche(type, type_élément, std::move(membres));
+    initialise_type_tranche(type, type_élément, std::move(rubriques));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
@@ -806,12 +806,12 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         }
     }
 
-    auto membres = kuri::tableau<MembreTypeComposé, int>();
-    membres.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    membres.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
+    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();
-    initialise_type_variadique(type, type_pointe, std::move(membres));
+    initialise_type_variadique(type, type_pointe, std::move(rubriques));
 
     if (type_pointe != nullptr) {
         /* Crée une tranche correspondante pour la génération de code. */
@@ -912,7 +912,7 @@ TypeStructure *Typeuse::réserve_type_structure()
 
 TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
                                   NoeudBloc *bloc_parent,
-                                  const kuri::tablet<MembreTypeComposé, 6> &membres)
+                                  const kuri::tablet<RubriqueTypeComposé, 6> &rubriques)
 {
     VERROUILLE(types_unions);
 
@@ -921,14 +921,14 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
             continue;
         }
 
-        if (it.membres.taille() != membres.taille()) {
+        if (it.rubriques.taille() != rubriques.taille()) {
             continue;
         }
 
         auto type_apparie = true;
 
-        for (auto i = 0; i < it.membres.taille(); ++i) {
-            if (it.membres[i].type != membres[i].type) {
+        for (auto i = 0; i < it.rubriques.taille(); ++i) {
+            if (it.rubriques[i].type != rubriques[i].type) {
                 type_apparie = false;
                 break;
             }
@@ -944,11 +944,11 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
     type->lexème = lexeme;
     type->bloc_parent = bloc_parent;
 
-    type->membres.réserve(static_cast<int>(membres.taille()));
-    POUR (membres) {
-        type->membres.ajoute(it);
+    type->rubriques.réserve(static_cast<int>(rubriques.taille()));
+    POUR (rubriques) {
+        type->rubriques.ajoute(it);
     }
-    type->nombre_de_membres_réels = type->membres.taille();
+    type->nombre_de_rubriques_réelles = type->rubriques.taille();
 
     type->est_anonyme = true;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -1009,19 +1009,19 @@ TypeOpaque *Typeuse::monomorphe_opaque(NoeudDéclarationTypeOpaque const *decl,
     return type;
 }
 
-TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membres)
+TypeTuple *Typeuse::crée_tuple(const kuri::tablet<RubriqueTypeComposé, 6> &rubriques)
 {
     VERROUILLE(types_tuples);
 
     POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tuple) {
-        if (it.membres.taille() != membres.taille()) {
+        if (it.rubriques.taille() != rubriques.taille()) {
             continue;
         }
 
         auto trouve = true;
 
-        for (auto i = 0; i < membres.taille(); ++i) {
-            if (it.membres[i].type != membres[i].type) {
+        for (auto i = 0; i < rubriques.taille(); ++i) {
+            if (it.rubriques[i].type != rubriques[i].type) {
                 trouve = false;
                 break;
             }
@@ -1033,13 +1033,13 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<MembreTypeComposé, 6> &membr
     }
 
     auto type = alloc->m_noeuds_type_tuple.ajoute_élément();
-    type->membres.réserve(static_cast<int>(membres.taille()));
+    type->rubriques.réserve(static_cast<int>(rubriques.taille()));
 
-    POUR (membres) {
-        type->membres.ajoute(it);
+    POUR (rubriques) {
+        type->rubriques.ajoute(it);
         graphe_->connecte_type_type(type, it.type);
     }
-    type->nombre_de_membres_réels = type->membres.taille();
+    type->nombre_de_rubriques_réelles = type->rubriques.taille();
 
     marque_polymorphique(type);
 
@@ -1136,27 +1136,27 @@ bool requiers_création_fonction_initialisation(Type const *type)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name Accès aux membres des types composés.
+/** \name Accès aux rubriques des types composés.
  * \{ */
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose const *type_composé,
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(TypeCompose const *type_composé,
                                                                    Type const *type)
 {
-    POUR_INDEX (type_composé->membres) {
+    POUR_INDEX (type_composé->rubriques) {
         if (it.type == type) {
-            return InformationMembreTypeCompose{it, indice_it};
+            return InformationRubriqueTypeCompose{it, indice_it};
         }
     }
 
     return {};
 }
 
-std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
-    TypeCompose const *type_composé, IdentifiantCode const *nom_membre)
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
+    TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique)
 {
-    POUR_INDEX (type_composé->membres) {
-        if (it.nom == nom_membre) {
-            return InformationMembreTypeCompose{it, indice_it};
+    POUR_INDEX (type_composé->rubriques) {
+        if (it.nom == nom_rubrique) {
+            return InformationRubriqueTypeCompose{it, indice_it};
         }
     }
 
@@ -1298,7 +1298,7 @@ void marque_polymorphique(TypeFonction *type)
 
 void marque_polymorphique(TypeCompose *type)
 {
-    POUR (type->membres) {
+    POUR (type->rubriques) {
         if (it.type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
             return;
@@ -1312,7 +1312,7 @@ void marque_polymorphique(TypeCompose *type)
 /** \name Fonctions pour les unions.
  * \{ */
 
-void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_membre_actif)
+void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement_rubrique_active)
 {
     assert(!type->est_nonsure);
 
@@ -1322,17 +1322,17 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
      * Il faudra remplacer le type_le_plus_grand par une union et transtyper proprement dans les
      * accès. */
     if (type->type_le_plus_grand) {
-        auto membres_ = kuri::tableau<MembreTypeComposé, int>(2);
-        membres_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
-        membres_[1] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
-        type->type_structure->membres = std::move(membres_);
-        type->type_structure->nombre_de_membres_réels = type->type_structure->membres.taille();
+        auto rubriques_ = kuri::tableau<RubriqueTypeComposé, int>(2);
+        rubriques_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
+        rubriques_[1] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
+        type->type_structure->rubriques = std::move(rubriques_);
+        type->type_structure->nombre_de_rubriques_réelles = type->type_structure->rubriques.taille();
     }
     else {
-        auto membres_ = kuri::tableau<MembreTypeComposé, int>(1);
-        membres_[0] = {nullptr, TypeBase::Z32, ID::membre_actif, alignement_membre_actif};
-        type->type_structure->membres = std::move(membres_);
-        type->type_structure->nombre_de_membres_réels = type->type_structure->membres.taille();
+        auto rubriques_ = kuri::tableau<RubriqueTypeComposé, int>(1);
+        rubriques_[0] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
+        type->type_structure->rubriques = std::move(rubriques_);
+        type->type_structure->nombre_de_rubriques_réelles = type->type_structure->rubriques.taille();
     }
 
     type->type_structure->bloc_parent = type->bloc_parent;
@@ -1389,10 +1389,10 @@ static kuri::chaine_statique donne_séparateur_paramètres_fonction(
     return ", ";
 }
 
-static kuri::chaine_statique donne_séparateur_membres_union_anonyme(
+static kuri::chaine_statique donne_séparateur_rubriques_union_anonyme(
     OptionsImpressionType const options)
 {
-    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_MEMBRES_ANONYMES)) {
+    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_RUBRIQUES_ANONYMES)) {
         return "_";
     }
     return " | ";
@@ -1487,7 +1487,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
 
     auto virgule = parenthèses.début;
     if (decl->est_monomorphisation) {
-        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+        POUR ((*decl->bloc_constantes->rubriques.verrou_lecture())) {
             enchaineuse << virgule;
 
             if (drapeau_est_actif(options,
@@ -1516,7 +1516,7 @@ static void chaine_type_structure(Enchaineuse &enchaineuse,
         enchaineuse << parenthèses.fin;
     }
     else if (decl->est_polymorphe) {
-        POUR ((*decl->bloc_constantes->membres.verrou_lecture())) {
+        POUR ((*decl->bloc_constantes->rubriques.verrou_lecture())) {
             enchaineuse << virgule;
             enchaineuse << '$' << it->ident->nom;
             virgule = donne_séparateur_paramètres(options);
@@ -1580,9 +1580,9 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
             auto type_union = static_cast<TypeUnion const *>(type);
 
             if (type_union->est_anonyme) {
-                auto séparateur = donne_séparateur_membres_union_anonyme(options);
+                auto séparateur = donne_séparateur_rubriques_union_anonyme(options);
                 auto virgule = kuri::chaine_statique("");
-                POUR (type_union->donne_membres_pour_code_machine()) {
+                POUR (type_union->donne_rubriques_pour_code_machine()) {
                     enchaineuse << virgule << chaine_type(it.type, options);
                     virgule = séparateur;
                 }
@@ -1721,7 +1721,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         {
             auto type_tuple = static_cast<TypeTuple const *>(type);
             auto virgule = "(";
-            POUR (type_tuple->membres) {
+            POUR (type_tuple->rubriques) {
                 enchaineuse << virgule;
                 chaine_type(enchaineuse, it.type, options);
                 virgule = ", ";
@@ -1821,13 +1821,13 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     auto decalage = 0u;
     auto alignement_max = 0u;
 
-    POUR (type->donne_membres_pour_code_machine()) {
+    POUR (type->donne_rubriques_pour_code_machine()) {
         assert_rappel(it.type->taille_octet != 0, [&] {
             dbg() << "Taille octet de 0 pour le type « " << chaine_type(it.type) << " »";
         });
 
         if (!COMPACTE) {
-            /* Ajout de rembourrage entre les membres si le type n'est pas compacte. */
+            /* Ajout de rembourrage entre les rubriques si le type n'est pas compacte. */
             auto alignement_type = it.type->alignement;
 
             assert_rappel(it.type->alignement != 0, [&] {
@@ -1836,11 +1836,11 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 
             alignement_max = std::max(alignement_type, alignement_max);
             auto rembourrage = marge_pour_alignement(alignement_type, decalage);
-            const_cast<MembreTypeComposé &>(it).rembourrage = rembourrage;
+            const_cast<RubriqueTypeComposé &>(it).rembourrage = rembourrage;
             decalage += rembourrage;
         }
 
-        const_cast<MembreTypeComposé &>(it).decalage = decalage;
+        const_cast<RubriqueTypeComposé &>(it).decalage = decalage;
         decalage += it.type->taille_octet;
     }
 
@@ -1872,16 +1872,16 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
         auto taille_union = 0u;
         auto type_le_plus_grand = Type::nul();
 
-        POUR (type->donne_membres_pour_code_machine()) {
-            auto type_membre = it.type;
-            auto taille = type_membre->taille_octet;
+        POUR (type->donne_rubriques_pour_code_machine()) {
+            auto type_rubrique = it.type;
+            auto taille = type_rubrique->taille_octet;
 
-            /* Ignore les membres qui n'ont pas de type. */
-            if (type_membre->est_type_rien()) {
+            /* Ignore les rubriques qui n'ont pas de type. */
+            if (type_rubrique->est_type_rien()) {
                 continue;
             }
 
-            max_alignement = std::max(type_membre->alignement, max_alignement);
+            max_alignement = std::max(type_rubrique->alignement, max_alignement);
 
             assert_rappel(it.type->alignement != 0, [&] {
                 dbg() << "Dans le calcul de la taille du type : " << chaine_type(type) << '\n'
@@ -1893,16 +1893,16 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
             });
 
             if (taille > taille_union) {
-                type_le_plus_grand = type_membre;
+                type_le_plus_grand = type_rubrique;
                 taille_union = taille;
             }
         }
 
         /* Pour les unions sûres, il nous faut prendre en compte le
-         * membre supplémentaire. */
+         * rubrique supplémentaire. */
         if (!type_union->est_nonsure) {
-            /* Il est possible que tous les membres soit de type « rien » ou que l'union soit
-             * déclarée sans membre. */
+            /* Il est possible que tous les rubriques soit de type « rien » ou que l'union soit
+             * déclarée sans rubrique. */
             if (taille_union != 0) {
                 /* ajoute une marge d'alignement */
                 taille_union += marge_pour_alignement(max_alignement, taille_union);
@@ -1910,7 +1910,7 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
 
             type_union->décalage_index = taille_union;
 
-            /* ajoute la taille du membre actif */
+            /* ajoute la taille du rubrique actif */
             taille_union += static_cast<unsigned>(taille_de(int));
             max_alignement = std::max(static_cast<unsigned>(taille_de(int)), max_alignement);
 
@@ -2069,57 +2069,57 @@ bool est_type_pointeur_nul(Type const *type)
     return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé == nullptr;
 }
 
-ResultatRechercheMembre trouve_index_membre_unique_type_compatible(TypeCompose const *type,
+ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
                                                                    Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
-    int index_membre = -1;
+    int index_rubrique = -1;
     int index_courant = 0;
-    POUR (type->membres) {
+    POUR (type->rubriques) {
         if (it.type == type_a_tester) {
-            if (index_membre != -1) {
-                return PlusieursMembres{-1};
+            if (index_rubrique != -1) {
+                return PlusieursRubriques{-1};
             }
 
-            index_membre = index_courant;
+            index_rubrique = index_courant;
         }
         else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
             if (pointeur_nul) {
-                if (index_membre != -1) {
-                    return PlusieursMembres{-1};
+                if (index_rubrique != -1) {
+                    return PlusieursRubriques{-1};
                 }
 
-                index_membre = index_courant;
+                index_rubrique = index_courant;
             }
             else {
                 auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointé;
                 auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointé;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
-                    if (index_membre != -1) {
-                        return PlusieursMembres{-1};
+                    if (index_rubrique != -1) {
+                        return PlusieursRubriques{-1};
                     }
 
-                    index_membre = index_courant;
+                    index_rubrique = index_courant;
                 }
             }
         }
         else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
-            if (index_membre != -1) {
-                return PlusieursMembres{-1};
+            if (index_rubrique != -1) {
+                return PlusieursRubriques{-1};
             }
 
-            index_membre = index_courant;
+            index_rubrique = index_courant;
         }
 
         index_courant += 1;
     }
 
-    if (index_membre == -1) {
-        return AucunMembre{-1};
+    if (index_rubrique == -1) {
+        return AucunRubrique{-1};
     }
 
-    return IndexMembre{index_membre};
+    return IndexRubrique{index_rubrique};
 }
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
@@ -2137,13 +2137,13 @@ int donne_profondeur_type(Type const *type)
     return profondeur_type;
 }
 
-bool est_type_valide_pour_membre(Type const *membre_type)
+bool est_type_valide_pour_rubrique(Type const *rubrique_type)
 {
-    if (membre_type->est_type_rien()) {
+    if (rubrique_type->est_type_rien()) {
         return false;
     }
 
-    if (membre_type->est_type_variadique()) {
+    if (rubrique_type->est_type_variadique()) {
         return false;
     }
 
@@ -2152,7 +2152,7 @@ bool est_type_valide_pour_membre(Type const *membre_type)
 
 bool peut_construire_union_via_rien(TypeUnion const *type_union)
 {
-    POUR (type_union->membres) {
+    POUR (type_union->rubriques) {
         if (it.type->est_type_rien()) {
             return true;
         }
@@ -2209,7 +2209,7 @@ bool peut_etre_type_constante(Type const *type)
         /* Sémantiquement, les variadiques ne peuvent être utilisées que pour les paramètres de
          * fonctions. */
         case GenreNoeud::VARIADIQUE:
-        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un membre
+        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un rubrique
          * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
          * lieu d'utilisation. */
         case GenreNoeud::DÉCLARATION_UNION:
@@ -2349,7 +2349,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
             case GenreNoeud::DÉCLARATION_STRUCTURE:
             {
                 auto type_compose = type_courant->comme_type_composé();
-                POUR (type_compose->donne_membres_pour_code_machine()) {
+                POUR (type_compose->donne_rubriques_pour_code_machine()) {
                     pile.empile(it.type);
                 }
                 break;
@@ -2571,7 +2571,7 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
-            POUR (type_union->membres) {
+            POUR (type_union->rubriques) {
                 visite_type(it.type, rappel);
             }
             break;
@@ -2579,7 +2579,7 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
-            POUR (type_structure->membres) {
+            POUR (type_structure->rubriques) {
                 visite_type(it.type, rappel);
             }
             break;
@@ -2642,7 +2642,7 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::TUPLE:
         {
             auto type_tuple = type->comme_type_tuple();
-            POUR (type_tuple->membres) {
+            POUR (type_tuple->rubriques) {
                 visite_type(it.type, rappel);
             }
             break;

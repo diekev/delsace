@@ -115,7 +115,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         STRUCTURE {
             type_structure := type comme *InfoTypeStructure
 
-            pour type_structure.membres {
+            pour type_structure.rubriques {
                 si it.id.id == GenreInfoType.FONCTION {
                     ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
                 }
