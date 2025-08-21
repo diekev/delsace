@@ -66,7 +66,7 @@ importe Unicode
     diffère déloge(lignes)
 
     pour lignes {
-        éditeur_ajoute_ligne(éditeur, crée_chaine_utf32(it), index_it)
+        éditeur_ajoute_ligne(éditeur, crée_chaine_utf32(it), indice_it)
     }
 
     éditeur.chemin_fichier = chemin
@@ -379,7 +379,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
     rx := 0
 
     pour ligne {
-        si index_it == cx {
+        si indice_it == cx {
             arrête
         }
 
@@ -405,7 +405,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
         rx_courant += 1
 
         si rx_courant > rx {
-            retourne index_it comme z32
+            retourne indice_it comme z32
         }
     }
 

@@ -47,23 +47,23 @@ test :: fonc () -> rien
 
     nom := "x"
 
-    ok := possède_membre(vec1, nom)
+    ok := possède_rubrique(vec1, nom)
 
     si ok {
-        imprime("Le vecteur possède le membre 'x' !\n")
+        imprime("Le vecteur possède la rubrique 'x' !\n")
     }
     sinon {
-        imprime("Le vecteur ne possède pas le membre 'x' !\n")
+        imprime("Le vecteur ne possède pas la rubrique 'x' !\n")
     }
 
     nom = "non"
-    ok = possède_membre(vec1, nom)
+    ok = possède_rubrique(vec1, nom)
 
     si ok {
-        imprime("Le vecteur possède le membre 'non' !\n")
+        imprime("Le vecteur possède la rubrique 'non' !\n")
     }
     sinon {
-        imprime("Le vecteur ne possède pas le membre 'non' !\n")
+        imprime("Le vecteur ne possède pas la rubrique 'non' !\n")
     }
 }
 

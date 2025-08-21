@@ -211,7 +211,7 @@ donne_active_window :: fonc (navigable: *Navigable) -> *Window
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container */
-donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Élément
+donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Element
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne nul
@@ -429,7 +429,7 @@ crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_na
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#node-navigable */
-donne_node_navigable :: fonc (noeud: *Noeud) -> *Navigable
+donne_node_navigable :: fonc (noeud: *Node) -> *Navigable
 {
     document := noeud.document
     saufsi document {
@@ -481,7 +481,7 @@ SandboxingFlags :: énum_drapeau n16 {
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
-détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *Élément) -> SandboxingFlags
+détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *Element) -> SandboxingFlags
 {
     résultat: SandboxingFlags
         
@@ -718,7 +718,7 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
-crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Élément, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
+crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Element, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
 {
     // 1. Let browsingContext be a new browsing context.
     browsing_context := loge(BrowsingContext)

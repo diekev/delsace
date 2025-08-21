@@ -213,7 +213,7 @@ opérateur * :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
     pour > p2.chiffres {
         tmp := p1 * it
 
-        divise_par_dix_n_fois(*tmp, position - index_it)
+        divise_par_dix_n_fois(*tmp, position - indice_it)
 
         résultat += tmp
     }
