@@ -4,7 +4,7 @@
  * L'exception survient lors du calcul de l'alignement des structures où
  * un modulo 0 est performé
  * La solution est soit de permettre la compilation de structures vides en y
- * ajoutant un membre implicit (comme C++), soit de se plaindre à la fin
+ * ajoutant une rubrique implicit (comme C++), soit de se plaindre à la fin
  * de la compilation si une structure est vide et que plus rien n'est à compiler
  *
  * Catégorie : [crash, taille structure, structure vide]

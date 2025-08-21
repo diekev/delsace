@@ -8,7 +8,7 @@
 //
 // Le scanner suit le standard tel que défini sur https://www.json.org/json-en.html
 //
-// À FAIRE : rapport des membres remplis
+// À FAIRE : rapport des rubriques remplis
 // À FAIRE : le scanner ne gère pas les espaces blancs Unicode
 
 importe Math
@@ -473,12 +473,12 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
         nom := scanner.chaine_caractère
 
-        valeur_membre := trouve_valeur_membre(scanner.object_courant(), nom)
+        valeur_rubrique := trouve_valeur_rubrique(scanner.object_courant(), nom)
 
-        saufsi valeur_membre.est_valide() {
+        saufsi valeur_rubrique.est_valide() {
             ancienne_position := scanner.position
             scanner.position = position_nom
-            scanner.rapporte_erreur_parsage("Impossible de trouver le membre '%'", nom)
+            scanner.rapporte_erreur_parsage("Impossible de trouver la rubrique '%'", nom)
             scanner.position = ancienne_position
             retourne LexèmeJSON.INVALIDE
         }
@@ -495,7 +495,7 @@ lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 
         scanner.lis()
 
-        lexème_valeur := scanner.lis_valeur(valeur_membre)
+        lexème_valeur := scanner.lis_valeur(valeur_rubrique)
 
         si lexème_valeur != LexèmeJSON.FIN_VALEUR {
             scanner.rapporte_erreur_parsage("Erreur lors de la lecture de la valeur")
@@ -525,7 +525,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 
     si scanner.lexème == LexèmeJSON.TRUE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -533,7 +533,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -560,7 +560,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
         sinon {
             /* Aucune fonction de parsage connue, tente d'assigner une chaine de caractère. */
             saufsi valeur.est_chaine() {
-                scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour le membre de la structure")
+                scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour la rubrique de la structure")
                 retourne LexèmeJSON.INVALIDE
             }
 
@@ -569,7 +569,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
         saufsi valeur.est_entier() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur entière pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu une valeur entière pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -622,7 +622,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_RÉEL {
         saufsi valeur.est_réel() {
-            scanner.rapporte_erreur_parsage("Attendu un nombre réel pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu un nombre réel pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -638,7 +638,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.NULL {
         saufsi valeur.est_pointeur() {
-            scanner.rapporte_erreur_parsage("Attendu un pointeur pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu un pointeur pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 
@@ -657,7 +657,7 @@ lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
     }
     sinon si scanner.lexème == LexèmeJSON.CROCHET_OUVRANT {
         saufsi valeur.est_tableau() {
-            scanner.rapporte_erreur_parsage("Attendu un type tableau pour le membre de la structure")
+            scanner.rapporte_erreur_parsage("Attendu un type tableau pour la rubrique de la structure")
             retourne LexèmeJSON.INVALIDE
         }
 

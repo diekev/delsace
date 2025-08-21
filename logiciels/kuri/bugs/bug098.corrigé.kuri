@@ -1,4 +1,4 @@
-/* Les sous-structures ne sont pas membres des structures polymorphiques monomorphées.
+/* Les sous-structures ne sont pas rubriques des structures polymorphiques monomorphées.
  * Catégorie : [validation sémantique, portée, structure polymorphique]
  */
 
