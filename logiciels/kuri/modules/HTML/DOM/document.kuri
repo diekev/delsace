@@ -1090,7 +1090,7 @@ NoeudProcessingInstruction :: struct {
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
     résultat := crée_platform_object(document, NoeudCommentaire)
-    résultat.genre = GenreNoeud.Commentaire
+    résultat.genre = GenreNoeud.ProcessingInstruction
     résultat.document = document
     résultat.données = copie_chaine(données)
 
