@@ -526,7 +526,7 @@ remove_an_event_listener :: fonc (target: *EventTarget, event_listener: EventTar
 remove_all_listeners :: fonc (target: *EventTarget)
 {
     pour > target.event_listener {
-        remove_an_event_listener(target, it, index_it)
+        remove_an_event_listener(target, it, indice_it)
     }
 }
 
@@ -623,7 +623,7 @@ remove_event_listener :: fonc (target: *EventTarget, type: EventType, callback: 
             continue
         }
 
-        remove_an_event_listener(target, it, index_it)
+        remove_an_event_listener(target, it, indice_it)
         arrête
     }
 }

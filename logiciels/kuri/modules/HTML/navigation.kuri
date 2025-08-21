@@ -1136,7 +1136,7 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         current_step_indice : n32 = 0
         pour all_steps {
             si it == traversable.current_session_history_entry_step {
-                current_step_indice = index_it comme n32
+                current_step_indice = indice_it comme n32
                 arrête
             }
         }

@@ -938,7 +938,7 @@ imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *Select
     }
 
     pour * selector_list.complex_selectors {
-        si index_it > 0 {
+        si indice_it > 0 {
             ajoute_au_tampon(enchaineuse, ", ")
         }
 
@@ -977,7 +977,7 @@ imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: 
     }
 
     pour * complex_selectors.compound_selectors {
-        si index_it > 0 {
+        si indice_it > 0 {
             discr it.combinateur {
                 DESCENDANT {
                     ajoute_au_tampon(enchaineuse, " ")

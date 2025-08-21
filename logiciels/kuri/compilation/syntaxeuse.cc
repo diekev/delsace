@@ -2075,7 +2075,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         noeud_it->ident = ID::it;
 
         auto noeud_index = m_tacheronne.assembleuse->crée_référence_déclaration(noeud->lexème);
-        noeud_index->ident = ID::index_it;
+        noeud_index->ident = ID::indice_it;
 
         static Lexème lexème_virgule = {",", {}, GenreLexème::VIRGULE, 0, 0, 0};
         auto noeud_virgule = m_tacheronne.assembleuse->crée_virgule(&lexème_virgule);

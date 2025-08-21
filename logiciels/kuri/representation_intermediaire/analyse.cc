@@ -248,7 +248,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
         }
 
         /* Les variables d'indexion des boucles pour peuvent ne pas être utilisées. */
-        if (it->ident == ID::it || it->ident == ID::index_it) {
+        if (it->ident == ID::it || it->ident == ID::indice_it) {
             it->nombre_utilisations += 1;
             continue;
         }

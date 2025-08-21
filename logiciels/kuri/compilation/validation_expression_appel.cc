@@ -1349,11 +1349,11 @@ static RésultatAppariement apparie_construction_type_composé(
         /* Ignore les membres employés pour le moment. */
         if (it.possède_drapeau(MembreTypeComposé::EST_CONSTANT |
                                MembreTypeComposé::EST_UN_EMPLOI)) {
-            apparieuse_params.ajoute_param(nullptr, nullptr, false, index_it);
+            apparieuse_params.ajoute_param(nullptr, nullptr, false, indice_it);
             continue;
         }
 
-        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, index_it);
+        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, indice_it);
     }
 
     POUR (arguments) {
@@ -1371,7 +1371,7 @@ static RésultatAppariement apparie_construction_type_composé(
             continue;
         }
 
-        auto const index_membre = apparieuse_params.index_pour_slot(index_it);
+        auto const index_membre = apparieuse_params.index_pour_slot(indice_it);
         if (index_membre == -1) {
             /* À FAIRE : meilleure erreur, ceci peut arriver pour les constructions invalides. */
             return ErreurAppariement::mécomptage_arguments(
@@ -1394,7 +1394,7 @@ static RésultatAppariement apparie_construction_type_composé(
             return ErreurAppariement::métypage_argument(it, membre.type, it->type);
         }
 
-        transformations[index_it] = poids_xform.transformation;
+        transformations[indice_it] = poids_xform.transformation;
     }
 
     return CandidateAppariement::initialisation_structure(poids_appariement,
@@ -1850,7 +1850,7 @@ static std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoi
     if (nouveau_params.taille() != entête->params.taille()) {
         POUR_INDEX (nouveau_params) {
             static_cast<void>(it);
-            entête->params[index_it] = nouveau_params[index_it];
+            entête->params[indice_it] = nouveau_params[indice_it];
         }
         entête->params.redimensionne(int(nouveau_params.taille()));
     }

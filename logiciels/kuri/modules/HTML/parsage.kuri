@@ -3286,7 +3286,7 @@ supprime_élément :: fonc (pile: *PileÉlémentsOuverts, élément: *Element)
 
     pour pile.éléments {
         si it == élément {
-            indice = index_it
+            indice = indice_it
             arrête
         }
     }
@@ -3467,7 +3467,7 @@ supprime_élément :: fonc (liste: *ListeÉlémentsActifsFormattage, élément: 
     pour liste.entrées {
         si it.élément == élément {
             détruit_lexème(*it.lexème)
-            indice = index_it
+            indice = indice_it
             arrête
         }
     }
@@ -3479,7 +3479,7 @@ indice_élément_formattage :: fonc (liste: *ListeÉlémentsActifsFormattage, é
 {
     pour liste.entrées {
         si it.élément == élément {
-            retourne index_it
+            retourne indice_it
         }
     }
 

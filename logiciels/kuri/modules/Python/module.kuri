@@ -140,7 +140,7 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
     résultat.nom_enveloppe = imprime_chaine("enveloppe_python_%%", entête.nom, entête)
 
     pour entête.params {
-        si index_it == 0 && ignore_premier_paramètre {
+        si indice_it == 0 && ignore_premier_paramètre {
             si it.type.id == GenreInfoType.POINTEUR {
                 résultat.param_self_est_pointeur = vrai
             }

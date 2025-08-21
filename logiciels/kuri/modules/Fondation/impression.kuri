@@ -816,7 +816,7 @@ imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *In
             ajoute_au_tampon(enchaineuse, " | ")
         }
 
-        ajoute_au_tampon(enchaineuse, noms[index_it])
+        ajoute_au_tampon(enchaineuse, noms[indice_it])
         valeur_trouvée = vrai
     }
 

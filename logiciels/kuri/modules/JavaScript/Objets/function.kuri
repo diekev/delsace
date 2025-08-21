@@ -876,11 +876,11 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 26. Else,
         // a. Perform ? IteratorBindingInitialization of formals with arguments iteratorRecord and env.
     pour parameter_names {
-        valeur := si index_it >= arguments_list.taille {
+        valeur := si indice_it >= arguments_list.taille {
             js_undefined
         }
         sinon {
-            arguments_list[index_it]
+            arguments_list[indice_it]
         }
 
         env.initialize_binding(it, valeur)

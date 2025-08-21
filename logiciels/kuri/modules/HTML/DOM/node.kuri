@@ -663,7 +663,7 @@ remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
     // 7. Remove node from its parent’s children.
     pour parent.enfants {
         si it == node {
-            tableau_supprime_indice(*parent.enfants, index_it)
+            tableau_supprime_indice(*parent.enfants, indice_it)
             arrête
         }
     }

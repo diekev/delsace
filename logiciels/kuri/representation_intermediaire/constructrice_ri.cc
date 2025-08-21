@@ -241,7 +241,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     if (decl->params_sorties.taille() > 1) {
         POUR_INDEX (decl->params_sorties) {
             it->comme_déclaration_variable()->atome = m_constructrice->crée_référence_membre(
-                it, atome_param_sortie, index_it, true);
+                it, atome_param_sortie, indice_it, true);
         }
     }
 
@@ -753,9 +753,9 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
     }
 
     POUR_INDEX (type_fonction->types_entrées) {
-        assert_rappel(sont_types_compatibles_pour_param_appel(it, args[index_it]->type), [&]() {
+        assert_rappel(sont_types_compatibles_pour_param_appel(it, args[indice_it]->type), [&]() {
             dbg() << "Espéré " << chaine_type(it);
-            dbg() << "Obtenu " << chaine_type(args[index_it]->type);
+            dbg() << "Obtenu " << chaine_type(args[indice_it]->type);
             dbg() << imprime_site(site_);
             if (appelé->est_fonction()) {
                 auto fonction_appelé = appelé->comme_fonction();

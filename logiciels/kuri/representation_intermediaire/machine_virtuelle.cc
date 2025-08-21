@@ -469,7 +469,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
     auto type_fonction = fonction->type->comme_type_fonction();
     auto pointeur_lecture_retour = pointeur_debut_entree;
     POUR_INDEX (type_fonction->types_entrées) {
-        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << index_it << " ("
+        logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << indice_it << " ("
                  << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, logueuse);
         logueuse << '\n';

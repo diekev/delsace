@@ -1076,7 +1076,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     }
 
     auto it = inst->decl_it;
-    auto index_it = inst->decl_index_it;
+    auto indice_it = inst->decl_indice_it;
     auto expression_iteree = inst->expression;
     auto bloc_sans_arrêt = inst->bloc_sansarrêt;
     auto bloc_sinon = inst->bloc_sinon;
@@ -1088,15 +1088,15 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
     boucle->bloc_sansarrêt = bloc_sans_arrêt;
     boucle->bloc_sinon = bloc_sinon;
 
-    auto type_index_it = index_it->type;
-    auto zero = assem->crée_littérale_entier(index_it->lexème, type_index_it, 0);
+    auto type_indice_it = indice_it->type;
+    auto zero = assem->crée_littérale_entier(indice_it->lexème, type_indice_it, 0);
 
     auto ref_it = assem->crée_référence_déclaration(it->lexème, it);
-    auto ref_index = assem->crée_référence_déclaration(it->lexème, index_it);
+    auto ref_index = assem->crée_référence_déclaration(it->lexème, indice_it);
 
     /* Ajoute les déclarations de ces variables dans le bloc précédent. */
     ajoute_expression(it);
-    ajoute_expression(index_it);
+    ajoute_expression(indice_it);
 
     auto bloc_inc = assem->crée_bloc_seul(nullptr, boucle->bloc_parent);
 
@@ -1124,7 +1124,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
               }
 
               it := 0
-              index_it := 0
+              indice_it := 0
               itérations := (10 - 0) + 1
 
               boucle {
@@ -1137,7 +1137,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
                 incrémente:
                     it = it + 1
-                    index_it = index_it + 1
+                    indice_it = indice_it + 1
                     itérations -= 1
               }
 
@@ -1191,7 +1191,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             /* Initialise la variable d'itération. */
             it->expression = expr_debut;
 
-            auto op_comp = index_it->type->table_opérateurs->opérateur_seg;
+            auto op_comp = indice_it->type->table_opérateurs->opérateur_seg;
             condition->condition = assem->crée_expression_binaire(
                 inst->lexème, op_comp, ref_index, nombre_iterations);
             boucle->bloc->expressions->ajoute_au_début(condition);
@@ -1219,19 +1219,19 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
                 corps
               }
 
-              index_it := 0
+              indice_it := 0
               boucle {
-                si index_it >= chn.taille {
+                si indice_it >= chn.taille {
                     arrête
                 }
 
-                it := chn.pointeur[index_it]
+                it := chn.pointeur[indice_it]
 
                 corps:
                   ...
 
                 incrémente:
-                    index_it = index_it + 1
+                    indice_it = indice_it + 1
               }
 
              */
@@ -1337,7 +1337,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *in
     /* Ajoute les déclarations des variables d'itération dans le corps du bloc pour que la RI les
      * trouve avant de générer le code des références. */
     bloc_substitution->ajoute_expression(inst->decl_it);
-    bloc_substitution->ajoute_expression(inst->decl_index_it);
+    bloc_substitution->ajoute_expression(inst->decl_indice_it);
     bloc_substitution->ajoute_expression(corps_opérateur_pour->bloc);
 
     /* Substitutions manuelles. */
@@ -2090,7 +2090,7 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
     ajoute_expression(déclaration);
 
     POUR_INDEX (construction->paramètres_résolus) {
-        const auto &membre = type_struct->membres[index_it];
+        const auto &membre = type_struct->membres[indice_it];
 
         if ((membre.drapeaux & MembreTypeComposé::EST_CONSTANT) != 0) {
             continue;
@@ -2112,7 +2112,7 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
         }
 
         auto type_membre = membre.type;
-        auto ref_membre = assem->crée_référence_membre(lexème, référence, type_membre, index_it);
+        auto ref_membre = assem->crée_référence_membre(lexème, référence, type_membre, indice_it);
 
         if (it != nullptr) {
             auto assign = assem->crée_assignation_variable(lexème, ref_membre, it);

@@ -661,7 +661,7 @@ donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *Prim
     si identifier.index_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == identifier.nom {
-                identifier.index_chaine_en_cache = index_it comme z32
+                identifier.index_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
@@ -5823,7 +5823,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
                 }
 
                 // 4. Replace pe in container with combined.
-                container.pointeur[index_it] = combined
+                container.pointeur[indice_it] = combined
 
                 arrête
             }

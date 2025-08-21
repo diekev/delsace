@@ -210,7 +210,7 @@ supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
 {
     pour object.propriétés {
         si it.nom == nom {
-            tableau_supprime_indice(*object.propriétés, index_it)
+            tableau_supprime_indice(*object.propriétés, indice_it)
             retourne
         }
     }

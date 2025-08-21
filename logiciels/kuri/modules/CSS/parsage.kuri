@@ -2626,12 +2626,12 @@ donne_info_type_pour_nom :: fonc (nom: CSSOMString) -> *InfoTypePropriété
 
     pour infos_types_propriétés_shorthand {
         si it.nom == nom {
-            retourne *infos_types_propriétés_shorthand[index_it]
+            retourne *infos_types_propriétés_shorthand[indice_it]
         }
     }
     pour infos_types_propriétés {
         si it.nom == nom {
-            retourne *infos_types_propriétés[index_it]
+            retourne *infos_types_propriétés[indice_it]
         }
     }
     retourne nul
@@ -2797,7 +2797,7 @@ initialise_tables_infos_propriétés :: fonc ()
             continue
         }
 
-        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés[index_it]
+        infos_types_propriétés_pour_id[it.id] = *infos_types_propriétés[indice_it]
     }
 }
 

@@ -370,8 +370,8 @@ static void imprime_tableau_expression(Enchaineuse &enchaineuse,
 
         imprime_arbre(enchaineuse, état, it);
 
-        if (index_it < expressions.taille() - 1) {
-            auto expression_suivante = expressions[index_it + 1];
+        if (indice_it < expressions.taille() - 1) {
+            auto expression_suivante = expressions[indice_it + 1];
             if (expression_suivante->est_commentaire() &&
                 expression_suivante->lexème->ligne == it->lexème->ligne) {
                 enchaineuse << ", ";
@@ -536,8 +536,8 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
 
         /* Vérifie si l'expression suivante est un commentaire en fin de ligne. */
         auto commentaire_sur_même_ligne = false;
-        if (index_it < expressions->taille() - 1) {
-            auto expression_suivante = (*expressions)[index_it + 1];
+        if (indice_it < expressions->taille() - 1) {
+            auto expression_suivante = (*expressions)[indice_it + 1];
             if (expression_suivante->est_commentaire()) {
                 if (expression_suivante->lexème->ligne == it->lexème->ligne) {
                     commentaire_sur_même_ligne = true;

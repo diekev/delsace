@@ -12,7 +12,7 @@ crée_tablet :: fonc () -> Tablet
 {
     résultat: Tablet
     pour & résultat.données {
-        it = (index_it * 3) comme z32
+        it = (indice_it * 3) comme z32
     }
     retourne résultat
 }
@@ -21,7 +21,7 @@ opérateur pour :: fonc (tablet: Tablet) -> z32
 {
     pour donnée, index dans tablet.données {
         `it = donnée
-        `index_it = index
+        `indice_it = index
 
         #corps_boucle
     }
@@ -37,7 +37,7 @@ test_boucle_tablet :: fonc ()
             continue
         }
 
-        imprime("% %\n", it, index_it)
+        imprime("% %\n", it, indice_it)
     }
 }
 
@@ -62,7 +62,7 @@ opérateur pour :: fonc (itératrice: ItératriceMembreStructure) -> DonnéesMem
         données := DonnéesMembreStructure(membre, nom)
 
         `it = données
-        `index_it = index
+        `indice_it = index
 
         index += 1
 

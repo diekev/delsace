@@ -580,7 +580,7 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
             }
             POUR_INDEX (appel->donne_arguments()) {
                 if (it == this) {
-                    appel->définis_argument(table, index_it, par);
+                    appel->définis_argument(table, indice_it, par);
                 }
             }
             break;
@@ -610,7 +610,7 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
 
             POUR_INDEX (phi->opérandes) {
                 if (it == this) {
-                    phi->définis_opérande(table, index_it, par);
+                    phi->définis_opérande(table, indice_it, par);
                 }
             }
             break;

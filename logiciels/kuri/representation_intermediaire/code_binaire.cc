@@ -1875,7 +1875,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
 
-                génère_code_atome_constant(tableau_valeur[index_it],
+                génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
                                            destination_membre,
                                            décalage_membre);
@@ -2135,7 +2135,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
                 auto destination_membre = destination + it.decalage;
                 auto décalage_membre = décalage + int(it.decalage);
-                génère_code_atome_constant(tableau_valeur[index_it],
+                génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
                                            destination_membre,
                                            décalage_membre);

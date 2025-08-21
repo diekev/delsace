@@ -878,7 +878,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
     POUR_INDEX (type_composé->donne_membres_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
-        enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, index_it) << ";\n";
+        enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, indice_it) << ";\n";
     }
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
@@ -1325,9 +1325,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 résultat << virgule;
                 virgule_placee = true;
 
-                résultat << "." << donne_nom_pour_rubrique(it, index_it);
+                résultat << "." << donne_nom_pour_rubrique(it, indice_it);
                 résultat << " = ";
-                résultat << génère_code_pour_atome(tableau_valeur[index_it], os, pour_globale);
+                résultat << génère_code_pour_atome(tableau_valeur[indice_it], os, pour_globale);
 
                 virgule = ", ";
             }
@@ -1842,13 +1842,13 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     auto virgule = "(";
 
     POUR_INDEX (atome_fonc->params_entrée) {
-        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, index_it);
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, indice_it);
 
         os << virgule;
 
         auto type_pointeur = it->type->comme_type_pointeur();
         auto type_param = type_pointeur->type_pointé;
-        auto type_opt = type_paramètre_pour_fonction_clé(atome_fonc->decl, index_it);
+        auto type_opt = type_paramètre_pour_fonction_clé(atome_fonc->decl, indice_it);
         if (type_opt.has_value()) {
             os << type_opt.value();
         }
@@ -2173,11 +2173,11 @@ void GénératriceCodeC::génère_code_pour_appel_impl(Enchaineuse &os, Instruct
 
     POUR_INDEX (arguments) {
         os << virgule;
-        if (est_init_contexte && index_it == 1) {
+        if (est_init_contexte && indice_it == 1) {
             os << "(signed char **)";
         }
         else {
-            auto type = type_paramètre_pour_fonction_clé(appel->appelé, index_it);
+            auto type = type_paramètre_pour_fonction_clé(appel->appelé, indice_it);
             if (type.has_value()) {
                 os << "(" << *type << ")";
             }
@@ -2392,7 +2392,7 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaine
     auto arguments = kuri::tablet<kuri::chaine, 10>();
 
     POUR_INDEX (appel->args) {
-        if (index_it == index_ordre_mémoire || index_it == index_ordre_mémoire2) {
+        if (indice_it == index_ordre_mémoire || indice_it == index_ordre_mémoire2) {
             arguments.ajoute(donne_valeur_pour_ordre_mémoire(os, it));
         }
         else {
@@ -2747,13 +2747,13 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
     POUR_INDEX (fonctions) {
         nombre_instructions += it->instructions.taille();
         if (nombre_instructions <= nombre_instructions_max_par_fichier &&
-            index_it != fonctions.taille() - 1) {
+            indice_it != fonctions.taille() - 1) {
             nombre_fonctions++;
             continue;
         }
 
         auto pointeur_fonction = fonctions.begin() + index_première_fonction;
-        auto taille = index_it - index_première_fonction + 1;
+        auto taille = indice_it - index_première_fonction + 1;
 
         nombre_fonctions += 1;
 
@@ -2764,7 +2764,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
         fichier.fonctions = fonctions_du_fichier;
 
         nombre_instructions = 0;
-        index_première_fonction = index_it + 1;
+        index_première_fonction = indice_it + 1;
     }
 }
 

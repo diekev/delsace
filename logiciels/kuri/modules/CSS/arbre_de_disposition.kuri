@@ -400,7 +400,7 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation)
         nom_classe := it.box.donne_nom_classe_sans_suffixe()
-        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur)
+        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", indice_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur)
 
         si it.box.table_virtuelle.type == TextBox {
             text_box := it.box comme *TextBox
@@ -940,7 +940,7 @@ donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés:
     }
 
     pour nouvelle.value {
-        si sont_mêmes_valeurs(ancienne.value[index_it], it) {
+        si sont_mêmes_valeurs(ancienne.value[indice_it], it) {
             continue
         }
 
@@ -1168,7 +1168,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
     pour propriétés.style.valeurs {
-        propriétés.style_utilisée.valeurs[index_it] = copie_valeur(it)
+        propriétés.style_utilisée.valeurs[indice_it] = copie_valeur(it)
     }
 
     saufsi propriétés_parent {
@@ -3364,11 +3364,11 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
             ToutesLesBrisuresDeLigne {
                 saufsi it.est_espace_blanche {
-                    _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                    _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
                 }
 
                 ligne := enligneuse.ajoute_ligne()
@@ -3379,7 +3379,7 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }
     }
@@ -4159,7 +4159,7 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
         enfant := pile.dépile()
 
         `it = enfant
-        `index_it = indice
+        `indice_it = indice
 
         #corps_boucle
 
@@ -4324,15 +4324,15 @@ remove_irrelevant_boxes :: fonc (box: *Box)
                 continue
             }
 
-            si index_it > 0 {
-                précédent := box.enfants[index_it - 1]
+            si indice_it > 0 {
+                précédent := box.enfants[indice_it - 1]
                 saufsi est_proper_table_descendant(box, précédent) {
                     continue
                 }
             }
 
-            si index_it < box.enfants.taille - 1 {
-                suivant := box.enfants[index_it + 1]
+            si indice_it < box.enfants.taille - 1 {
+                suivant := box.enfants[indice_it + 1]
                 saufsi est_proper_table_descendant(box, suivant) {
                     continue
                 }
@@ -4444,7 +4444,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
                 table_row_box.est_pseudo_element = it.est_pseudo_element
                 ajoute_enfant(table_row_box, it)
 
-                table_row_group.enfants[index_it] = table_row_box
+                table_row_group.enfants[indice_it] = table_row_box
             }
         }
     }

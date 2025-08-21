@@ -166,7 +166,7 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
     diffère détruit_tampons(enchaineuse)
 
     pour classes {
-        si index_it > 0 {
+        si indice_it > 0 {
             enchaineuse.ajoute(' ')
         }
         enchaineuse.ajoute(it.donne_chaine_utf16())

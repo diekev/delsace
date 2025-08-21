@@ -113,7 +113,7 @@ donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32
         position -= glyph.advance_x
 
         si position <= 0.0 {
-            retourne index_it
+            retourne indice_it
         }
     }
 
@@ -1314,12 +1314,12 @@ texture_atlas_get_region :: fonc (self: *texture_atlas_t, width: n64, height: n6
     best_indice : z64 = -1
     best_width : n64 = 0xffffffff
     pour self.nodes {
-        y := texture_atlas_fit(self, index_it comme n64, width, height);
+        y := texture_atlas_fit(self, indice_it comme n64, width, height);
         si y >= 0 {
             si ((y comme n64 + height) < best_height ||
                 (((y comme n64 + height) == best_height) && (it.z > 0 && it.z comme n64 < best_width))) {
                 best_height = y comme n64 + height
-                best_indice = index_it
+                best_indice = indice_it
                 best_width = it.z comme n64
                 region.x = it.x
                 region.y = y

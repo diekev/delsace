@@ -330,7 +330,7 @@ donne_position_premier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
             continue
         }
 
-        retourne index_it
+        retourne indice_it
     }
 
     retourne chn.taille()
@@ -343,7 +343,7 @@ donne_position_dernier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
             continue
         }
 
-        retourne chn.taille() - index_it - 1
+        retourne chn.taille() - indice_it - 1
     }
 
     retourne 0
@@ -520,7 +520,7 @@ commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_m
     }
 
     pour chn.unités {
-        si index_it >= occurences_max {
+        si indice_it >= occurences_max {
             arrête
         }
 
@@ -874,7 +874,7 @@ opérateur pour :: fonc (itératrice: ItératricePointsDeCodeChaineUTF16) -> n32
     index_point_de_code := 0
     tantque itératrice.curseur < taille_chaine {
         `it = point_de_code_suivant(*itératrice)
-        `index_it = index_point_de_code
+        `indice_it = index_point_de_code
 
         #corps_boucle
 

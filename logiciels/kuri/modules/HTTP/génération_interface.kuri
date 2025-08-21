@@ -374,7 +374,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.serveuse.type = info_struct
-                infos_paramètres.serveuse.index = index_it
+                infos_paramètres.serveuse.index = indice_it
             }
             EST_TYPE_CONNEXION {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -384,7 +384,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.connexion.type = info_struct
-                infos_paramètres.connexion.index = index_it
+                infos_paramètres.connexion.index = indice_it
             }
             EST_TYPE_PARAMÈTRE_ROUTAGE {
                 info_struct := it comme *InfoTypeStructure
@@ -394,7 +394,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
-                infos_paramètres.paramètres_route.index = index_it
+                infos_paramètres.paramètres_route.index = indice_it
             }
             EST_TYPE_PARAMÈTRE_REQUÊTE {
                 info_struct := it comme *InfoTypeStructure
@@ -404,7 +404,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_requête.type = info_struct
-                infos_paramètres.paramètres_requête.index = index_it
+                infos_paramètres.paramètres_requête.index = indice_it
             }
             EST_TYPE_FORMULAIRE {
                 info_struct := it comme *InfoTypeStructure
@@ -414,7 +414,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.formulaire.type = info_struct
-                infos_paramètres.formulaire.index = index_it
+                infos_paramètres.formulaire.index = indice_it
             }
         }
     }
@@ -674,10 +674,10 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
 
     pour règles {
         si it.action == ActionRègleRoutage.ApparieChaineLittérale {
-            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments[%] == \"%\" { retourne faux, paramètres }\n", index_it, it.chn)
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi éléments[%] == \"%\" { retourne faux, paramètres }\n", indice_it, it.chn)
         }
         sinon {
-            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi parse_paramètre_routage_pour_type(éléments[%], paramètres.%) { retourne faux, paramètres }\n", index_it, it.chn)
+            imprime_dans_enchaineuse(enchaineuse, "\tsaufsi parse_paramètre_routage_pour_type(éléments[%], paramètres.%) { retourne faux, paramètres }\n", indice_it, it.chn)
         }
     }
 

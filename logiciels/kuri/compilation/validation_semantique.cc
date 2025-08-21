@@ -2958,7 +2958,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
 
         auto const noeud_pour = corps_operateur_pour->est_macro_boucle_pour;
 
-        /* « it » et « index_it » peuvent être nommés par le programme, donc les variables
+        /* « it » et « indice_it » peuvent être nommés par le programme, donc les variables
          * correspondantes en dehors du macro peuvent avoir un nom différent. Renseigne directement
          * les déclaration référées. */
         if (expr->ident == ID::it) {
@@ -2968,9 +2968,9 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
             return CodeRetourValidation::OK;
         }
 
-        if (expr->ident == ID::index_it) {
-            expr->déclaration_référée = noeud_pour->decl_index_it;
-            expr->type = noeud_pour->decl_index_it->type;
+        if (expr->ident == ID::indice_it) {
+            expr->déclaration_référée = noeud_pour->decl_indice_it;
+            expr->type = noeud_pour->decl_indice_it->type;
             expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return CodeRetourValidation::OK;
         }
@@ -3246,7 +3246,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                      }
 
                      /* Ignore les variables implicites des boucles « pour ». */
-                     if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                     if (noeud->ident == ID::it || noeud->ident == ID::indice_it) {
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
@@ -5712,7 +5712,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
                 auto type_membre = it->type;
                 auto type_de_données = type_membre->comme_type_type_de_données();
                 auto type_connu = type_de_données->type_connu;
-                membres[index_it] = {nullptr, type_connu, noms_membres[index_it]};
+                membres[indice_it] = {nullptr, type_connu, noms_membres[indice_it]};
             }
 
             auto type_union = m_compilatrice.typeuse.union_anonyme(
@@ -5967,14 +5967,14 @@ struct TypageItérandeBouclePour {
     int genre_de_boucle = -1;
     /* Type à utiliser pour « it ». */
     Type *type_variable = nullptr;
-    /* Type à utiliser pour « index_it ». */
+    /* Type à utiliser pour « indice_it ». */
     Type *type_index = nullptr;
 };
 
 using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente>;
 
 /**
- * Détermine le genre de boucle et le type de « it » et « index_it » selon le noeud itéré.
+ * Détermine le genre de boucle et le type de « it » et « indice_it » selon le noeud itéré.
  *
  * Retourne soit :
  * - une attente si nous itérons un type utilisant un opérateur pour
@@ -6175,20 +6175,20 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     bloc->ajoute_membre(inst->decl_it);
 
     if (possède_index) {
-        inst->decl_index_it = crée_déclaration_pour_variable(
+        inst->decl_indice_it = crée_déclaration_pour_variable(
             m_assembleuse, variables->expressions[1], typage_itérande.type_index, false);
-        variables->expressions[1] = inst->decl_index_it;
-        bloc->ajoute_membre(inst->decl_index_it);
+        variables->expressions[1] = inst->decl_indice_it;
+        bloc->ajoute_membre(inst->decl_indice_it);
     }
     else {
-        /* Crée une déclaration pour « index_it » si ni le programme, ni la syntaxeuse n'en
+        /* Crée une déclaration pour « indice_it » si ni le programme, ni la syntaxeuse n'en
          * a défini une. Ceci est requis pour la simplification du code.
          * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
         auto ref = m_assembleuse->crée_référence_déclaration(inst->lexème);
-        ref->ident = ID::index_it;
-        inst->decl_index_it = crée_déclaration_pour_variable(
+        ref->ident = ID::indice_it;
+        inst->decl_indice_it = crée_déclaration_pour_variable(
             m_assembleuse, ref, typage_itérande.type_index, false);
     }
     m_assembleuse->dépile_bloc();
@@ -6960,7 +6960,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         decl_membre->bloc_parent = bloc_parent;
         decl_membre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl_membre->déclaration_vient_d_un_emploi = decl;
-        decl_membre->index_membre_employé = index_it;
+        decl_membre->index_membre_employé = indice_it;
         decl_membre->expression = it.expression_valeur_defaut;
         decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
 

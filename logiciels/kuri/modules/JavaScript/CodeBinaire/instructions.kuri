@@ -13,7 +13,7 @@ imprime_instructions :: fonc (flux: *FluxDInstructions)
     imprime("Instructions : (% octets)\n", flux.instructions.taille)
 
     pour ItéractriceInstruction(flux) {
-        imprime_instruction(it, index_it)
+        imprime_instruction(it, indice_it)
     }
 }
 
@@ -34,7 +34,7 @@ opérateur pour :: fonc (itératrice: ItéractriceInstruction) -> *Instruction
         instruction := début comme *Instruction
 
         `it = instruction
-        `index_it = index
+        `indice_it = index
 
         #corps_boucle
 
@@ -323,7 +323,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionDéfinisLocale, realm: 
     si instruction.index_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == instruction.nom {
-                instruction.index_chaine_en_cache = index_it comme z32
+                instruction.index_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
@@ -350,7 +350,7 @@ donne_chaine_primitive :: fonc (instruction: *InstructionChargeLocale, realm: *R
     si instruction.index_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == instruction.nom {
-                instruction.index_chaine_en_cache = index_it comme z32
+                instruction.index_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
@@ -1514,7 +1514,7 @@ imprime_registres :: fonc (interprète: *InterprèteCodeBinaire)
     imprime("Registres :\n")
 
     pour interprète.registres {
-        imprime("- [%] %\n", index_it, it)
+        imprime("- [%] %\n", indice_it, it)
     }
 }
 

@@ -51,7 +51,7 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
 
     /* Dessine les onglets. */
     pour éléments {
-        couleur := si index_it == onglet_actif {
+        couleur := si indice_it == onglet_actif {
             thème.couleur_arrière_plan
         }
         sinon {
@@ -61,7 +61,7 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
         remplis_rectangle(peintre, it.rect, couleur)
         dessine_texte(peintre, fonte, it.texte, it.rect_texte, thème.couleur_texte)
 
-        si index_it != onglet_actif {
+        si indice_it != onglet_actif {
             dessine_rectangle(peintre, it.rect, thème.couleur_contour)
         }
         sinon {
@@ -107,11 +107,11 @@ sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: Cl
             continue
         }
 
-        si index_it == onglet_actif {
+        si indice_it == onglet_actif {
             retourne vrai
         }
 
-        onglet_actif = index_it comme z32
+        onglet_actif = indice_it comme z32
         arrête
     }
     sansarrêt {

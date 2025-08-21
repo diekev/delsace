@@ -436,7 +436,7 @@ void ConstructriceHuitoctets::assigne_classes_huitoctets()
             classe1 = classe_huitoctet;
         }
 
-        résultat[index_it].classe = classe_huitoctet;
+        résultat[indice_it].classe = classe_huitoctet;
     }
 }
 
@@ -1812,7 +1812,7 @@ struct GestionnaireRegistres {
     {
         std::array<bool, NOMBRE_REGISTRES> résultat;
         POUR_INDEX (registres) {
-            résultat[size_t(index_it)] = it;
+            résultat[size_t(indice_it)] = it;
         }
         return résultat;
     }
@@ -1820,7 +1820,7 @@ struct GestionnaireRegistres {
     void restaure_état(std::array<bool, NOMBRE_REGISTRES> sauvegarde)
     {
         POUR_INDEX (sauvegarde) {
-            registres[index_it] = it;
+            registres[indice_it] = it;
         }
     }
 
@@ -2335,7 +2335,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
 
                 enchaineuse << NOUVELLE_LIGNE;
                 génère_code_pour_initialisation_globale(
-                    tableau_valeur[index_it], enchaineuse, profondeur + 2);
+                    tableau_valeur[indice_it], enchaineuse, profondeur + 2);
 
                 décalage += it.type->taille_octet;
             }
@@ -2605,7 +2605,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     auto adresse_retour = m_adresses_locales[appel->numero];
 
     POUR_INDEX (appel->args) {
-        auto classement_arg = classement.arguments[index_it];
+        auto classement_arg = classement.arguments[indice_it];
         if (classement_arg.est_en_mémoire) {
             continue;
         }
@@ -2709,7 +2709,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     auto taille_requise = 0u;
 
     POUR_INDEX (appel->args) {
-        auto classement_arg = classement.arguments[index_it];
+        auto classement_arg = classement.arguments[indice_it];
         if (!classement_arg.est_en_mémoire) {
             continue;
         }
@@ -4413,7 +4413,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
             continue;
         }
 
-        dbg() << "[" << index_it << " / " << fonctions_à_compiler.taille() << "] "
+        dbg() << "[" << indice_it << " / " << fonctions_à_compiler.taille() << "] "
               << "Compilation de " << it->nom;
         génère_code_pour_fonction(it, assembleuse, os);
     }
@@ -4467,7 +4467,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     auto décalage_argument_mémoire = 8 * 8;
 
     POUR_INDEX (fonction->params_entrée) {
-        auto classement_arg = classement.arguments[index_it];
+        auto classement_arg = classement.arguments[indice_it];
         auto type_alloué = it->donne_type_alloué();
 
         if (classement_arg.est_en_mémoire) {
@@ -4548,7 +4548,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
     }
 
     POUR_INDEX (m_constantes_fonction_courante) {
-        os << TABULATION << ".C" << index_it << ":" << NOUVELLE_LIGNE;
+        os << TABULATION << ".C" << indice_it << ":" << NOUVELLE_LIGNE;
         génère_code_pour_initialisation_globale(it, os, 1);
     }
 

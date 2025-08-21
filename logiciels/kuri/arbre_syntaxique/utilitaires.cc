@@ -2332,8 +2332,8 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
-            pour->decl_index_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, TypeBase::Z64, ID::index_it, nullptr);
+            pour->decl_indice_it = assembleuse->crée_déclaration_variable(
+                &lexème_sentinel, TypeBase::Z64, ID::indice_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
                 type_élément, assembleuse, typeuse);
@@ -2542,7 +2542,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 }
 
                 auto ref_membre = assembleuse->crée_référence_membre(
-                    &lexème_sentinel, ref_param, it.type, index_it);
+                    &lexème_sentinel, ref_param, it.type, indice_it);
                 crée_initialisation_defaut_pour_type(
                     it.type, assembleuse, ref_membre, it.expression_valeur_defaut, typeuse);
             }

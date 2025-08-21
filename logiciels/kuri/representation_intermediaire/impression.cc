@@ -187,7 +187,7 @@ static void imprime_atome_ex(Atome const *atome,
             POUR_INDEX (type->donne_membres_pour_code_machine()) {
                 os << virgule;
                 os << it.nom->nom << " = ";
-                imprime_atome_ex(atomes_membres[index_it], os, options, true);
+                imprime_atome_ex(atomes_membres[indice_it], os, options, true);
                 virgule = ", ";
             }
 

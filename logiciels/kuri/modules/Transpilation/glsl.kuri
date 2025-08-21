@@ -244,7 +244,7 @@ converti_code_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse,
             pour virgule.expressions {
                 converti_code_glsl(espace, enchaineuse, it, profondeur)
 
-                si index_it != virgule.expressions.taille - 1 {
+                si indice_it != virgule.expressions.taille - 1 {
                     ajoute_au_tampon(enchaineuse, ";\n")
 
                     pour i dans 0 ... profondeur - 1 {

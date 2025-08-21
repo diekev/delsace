@@ -1514,7 +1514,7 @@ rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: 
     pour rappels.timers {
         si it.id == id {
             QT_timer_arrete(it.timer)
-            tableau_supprime_indice(*rappels.timers, index_it)
+            tableau_supprime_indice(*rappels.timers, indice_it)
             retourne
         }
     }

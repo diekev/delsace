@@ -559,11 +559,11 @@ initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
         liste := it comme *BlocDeMémoire.EntréeListeLibre
         liste.vivante = faux
 
-        si index_it comme n64 == bloc.nombre_de_cellules() - 1 {
+        si indice_it comme n64 == bloc.nombre_de_cellules() - 1 {
             liste.suivante = nul
         }
         sinon {
-            liste.suivante = bloc.donne_cellule(index_it comme n64 + 1) comme *BlocDeMémoire.EntréeListeLibre
+            liste.suivante = bloc.donne_cellule(indice_it comme n64 + 1) comme *BlocDeMémoire.EntréeListeLibre
         }
     }
 
@@ -645,10 +645,10 @@ désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
 opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
 {
     pour bloc.nombre_de_cellules() {
-        cellule := bloc.donne_cellule(index_it)
+        cellule := bloc.donne_cellule(indice_it)
 
         `it = cellule
-        `index_it = index_it comme z64
+        `indice_it = indice_it comme z64
 
         #corps_boucle
     }

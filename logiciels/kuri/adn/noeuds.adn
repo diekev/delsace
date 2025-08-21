@@ -1036,11 +1036,11 @@ struct NoeudPour : NoeudExpression {
     bool prend_pointeur [copie]
     GenreLexème lexème_op = .INFERIEUR [copie]
 
-    /* Sauvegarde des déclarations pour « it » et « index_it », afin de ne pas
+    /* Sauvegarde des déclarations pour « it » et « indice_it », afin de ne pas
      * se soucier si ces variables sont implicites, et donc nommées
-     * « it/index_it », ou non. */
+     * « it/indice_it », ou non. */
     NoeudDéclarationVariable *decl_it;
-    NoeudDéclarationVariable *decl_index_it;
+    NoeudDéclarationVariable *decl_indice_it;
 
     /* Le code du corps de l'opérateur surchargé « pour », utilisé lors de la
      * simplification de l'arbre. */

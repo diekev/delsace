@@ -298,7 +298,7 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 
     pour vieilles_occupés {
         si it {
-            insère(table, vieilles_clés[index_it], vieilles_valeurs[index_it])
+            insère(table, vieilles_clés[indice_it], vieilles_valeurs[indice_it])
         }
     }
 

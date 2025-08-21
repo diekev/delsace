@@ -1144,7 +1144,7 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_type(TypeCompose c
 {
     POUR_INDEX (type_composé->membres) {
         if (it.type == type) {
-            return InformationMembreTypeCompose{it, index_it};
+            return InformationMembreTypeCompose{it, indice_it};
         }
     }
 
@@ -1156,7 +1156,7 @@ std::optional<InformationMembreTypeCompose> donne_membre_pour_nom(
 {
     POUR_INDEX (type_composé->membres) {
         if (it.nom == nom_membre) {
-            return InformationMembreTypeCompose{it, index_it};
+            return InformationMembreTypeCompose{it, indice_it};
         }
     }
 

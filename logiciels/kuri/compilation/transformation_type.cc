@@ -613,7 +613,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 continue;
             }
 
-            return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, index_it};
+            return TransformationType{TypeTransformation::EXTRAIT_UNION, type_vers, indice_it};
         }
     }
 
