@@ -227,11 +227,11 @@ donne_base_url :: fonc (document: *Document) -> *URL
     retourne document.url
 }
 
-donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
+donne_doctype :: fonc (document: *Document) -> *DocumentType
 {
     pour document.enfants {
-        si it.genre == GenreNoeud.TypeDocument {
-            retourne it comme *NoeudTypeDocument
+        si it.genre == GenreNoeud.DocumentType {
+            retourne it comme *DocumentType
         }
     }
     retourne nul
@@ -766,11 +766,11 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Nou
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudTypeDocument.
+/** \nom DocumentType.
  * https://dom.spec.whatwg.org/#documenttype
  * \{ */
 
-NoeudTypeDocument :: struct {
+DocumentType :: struct {
     empl base_noeud: Node
     table = *table_virtuelle_type_document
 
@@ -779,10 +779,10 @@ NoeudTypeDocument :: struct {
     system_id: DOMString
 }
 
-crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
+crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 {
-    doctype := crée_platform_object(document, NoeudTypeDocument)
-    doctype.genre = GenreNoeud.TypeDocument
+    doctype := crée_platform_object(document, DocumentType)
+    doctype.genre = GenreNoeud.DocumentType
     doctype.document = document
 
     retourne doctype
@@ -790,13 +790,13 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
 
 est_document_type :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.TypeDocument
+    retourne noeud.genre == GenreNoeud.DocumentType
 }
 
 #portée_fichier
 
 table_virtuelle_type_document := TableVirtuelleNoeud(
-    classe = NoeudTypeDocument,
+    classe = DocumentType,
     sur_destruction = noeud_sur_destruction
 )
 

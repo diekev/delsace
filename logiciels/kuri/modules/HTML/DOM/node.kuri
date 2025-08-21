@@ -46,7 +46,7 @@ GenreNoeud :: énum n16 {
     ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
     Commentaire :: COMMENT_NODE
     Document :: DOCUMENT_NODE
-    TypeDocument :: DOCUMENT_TYPE_NODE
+    DocumentType :: DOCUMENT_TYPE_NODE
     DocumentFragment :: DOCUMENT_FRAGMENT_NODE
     ShadowRoot
 }
@@ -146,7 +146,7 @@ est_élément_script :: fonc (noeud: *Node) -> bool
 
 est_doctype :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.TypeDocument
+    retourne noeud.genre == GenreNoeud.DocumentType
 }
 
 est_texte :: fonc (noeud: *Node) -> bool
@@ -422,7 +422,7 @@ donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 donne_longueur :: fonc (noeud: *Node) -> z64
 {
     discr noeud.genre {
-        TypeDocument {
+        DocumentType {
             retourne 0
         }
         Commentaire,
@@ -629,8 +629,8 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
         Document {
             retourne crée_chaine_utf16_unique("#document")
         }
-        TypeDocument {
-            retourne (noeud comme *NoeudTypeDocument).nom
+        DocumentType {
+            retourne (noeud comme *DocumentType).nom
         }
         DocumentFragment {  
             retourne crée_chaine_utf16_unique("#document-fragment")

@@ -23,7 +23,7 @@ noeuds_documents_sont_égaux :: fonc (document1: *Document, document2: *Document
     retourne vrai
 }
 
-noeuds_doctypes_sont_égaux :: fonc (document1: *NoeudTypeDocument, document2: *NoeudTypeDocument) -> bool
+noeuds_doctypes_sont_égaux :: fonc (document1: *DocumentType, document2: *DocumentType) -> bool
 {
     /* Pour le moment les doctypes sont toujours égaux, ils n'ont pas de propriétés. */
     retourne vrai
@@ -68,8 +68,8 @@ noeuds_sont_égaux :: fonc (noeud1: *Node, noeud2: *Node) -> bool
                 retourne faux
             }
         }
-        TypeDocument {
-            si !noeuds_doctypes_sont_égaux(noeud1 comme *NoeudTypeDocument, noeud2 comme *NoeudTypeDocument) {
+        DocumentType {
+            si !noeuds_doctypes_sont_égaux(noeud1 comme *DocumentType, noeud2 comme *DocumentType) {
                 retourne faux
             }
         }

@@ -233,7 +233,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, 
                 formatte_noeud(contexte_formattage, it, enchaineuse)
             }
         }
-        TypeDocument {
+        DocumentType {
             enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
             nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
         }
