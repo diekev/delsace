@@ -2841,13 +2841,13 @@ run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
 
 #portée_export
 
-donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *NoeudTexte
+donne_noeud_texte_value :: fonc (input: *HTMLInputElement) -> *Text
 {
     assert(input.shadow_root != nul)
     assert(input.shadow_root.enfants.taille == 1)
     enfant := input.shadow_root.enfants[0]
     assert(enfant.genre == GenreNoeud.Texte)
-    retourne enfant comme *NoeudTexte
+    retourne enfant comme *Text
 }
 
 /** \} */

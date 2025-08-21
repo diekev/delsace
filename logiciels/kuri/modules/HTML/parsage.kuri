@@ -263,10 +263,10 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
         retourne
     }
 
-    noeud_texte : *NoeudTexte = nul
+    noeud_texte : *Text = nul
 
     si position_ajustée_d_insertion.possède_enfants() && position_ajustée_d_insertion.dernier_enfant().est_texte() {
-        noeud_texte = position_ajustée_d_insertion.dernier_enfant() comme *NoeudTexte
+        noeud_texte = position_ajustée_d_insertion.dernier_enfant() comme *Text
     }
     sinon {
         noeud_texte = crée_noeud_texte(position_ajustée_d_insertion.document)
@@ -3003,7 +3003,7 @@ sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Node, serializ
 
     // If current node is a Text node
     si current_node.est_texte() {
-        texte := noeud comme *NoeudTexte
+        texte := noeud comme *Text
         ajoute(enchaineuse, texte.données)
 
         // À FAIRE : If the parent of current node is a style, script, xmp, iframe, noembed, noframes, or plaintext element, or if the parent of current node is a noscript element and scripting is enabled for the node, then append the value of current node's data literally.

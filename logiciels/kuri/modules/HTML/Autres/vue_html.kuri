@@ -719,7 +719,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
     }
     sinon {
         si noeud.est_texte() {
-            noeud_texte := noeud comme *NoeudTexte
+            noeud_texte := noeud comme *Text
             si est_espace_blanche_entre_élément(noeud_texte) {
                 retourne
             }

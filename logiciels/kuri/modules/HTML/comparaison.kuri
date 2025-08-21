@@ -8,7 +8,7 @@ noeuds_éléments_sont_égaux :: fonc (élément1: *Élément, élément2: *Él�
     retourne élément1.local_name == élément2.local_name
 }
 
-noeuds_textes_sont_égaux :: fonc (texte1: *NoeudTexte, texte2: *NoeudTexte) -> bool
+noeuds_textes_sont_égaux :: fonc (texte1: *Text, texte2: *Text) -> bool
 {
     si texte1.données != texte2.données {
         retourne faux
@@ -64,7 +64,7 @@ noeuds_sont_égaux :: fonc (noeud1: *Node, noeud2: *Node) -> bool
             }
         }
         Texte {
-            si !noeuds_textes_sont_égaux(noeud1 comme *NoeudTexte, noeud2 comme *NoeudTexte) {
+            si !noeuds_textes_sont_égaux(noeud1 comme *Text, noeud2 comme *Text) {
                 retourne faux
             }
         }

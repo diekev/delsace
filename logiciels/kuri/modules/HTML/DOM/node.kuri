@@ -332,11 +332,11 @@ donne_racine :: fonc (noeud: *Node) -> *Node
     retourne résultat
 }
 
-rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc(*NoeudTexte, eini)(rien), données: eini)
+rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc(*Text, eini)(rien), données: eini)
 {
     pour noeud.enfants {
         si it.est_texte() {
-            texte := it comme *NoeudTexte
+            texte := it comme *Text
             rappel_pour_texte(texte, données)
         }
         sinon {
@@ -352,7 +352,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
         texte: ChaineUTF16
     }
 
-    rappel_pour_extraction_texte :: fonc (noeud_texte: *NoeudTexte, données: eini)
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini)
     {
         extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
 
@@ -383,7 +383,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
             continue
         }
 
-        texte := noeud comme *NoeudTexte
+        texte := noeud comme *Text
         ajoute(enchaineuse, texte.données)
     }
 
@@ -396,7 +396,7 @@ donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
     rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
     {
         si noeud.est_texte() {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *Text
             ajoute(enchaineuse, texte.données)
         }
 

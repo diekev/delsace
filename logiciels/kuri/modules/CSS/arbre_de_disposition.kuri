@@ -141,7 +141,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
         sinon si it.noeud {
             assert(HTML.est_texte(it.noeud))
-            noeud_texte := it.noeud comme *HTML.NoeudTexte
+            noeud_texte := it.noeud comme *HTML.Text
             noeud_texte.box = nul
         }
 
@@ -1474,7 +1474,7 @@ CréatriceArbre :: struct {
 crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Node)
 {
     si HTML.est_texte(noeud) {
-        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.Text).données, noeud comme *HTML.Text)
         retourne
     }
 
@@ -1604,7 +1604,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
     corrige_hiérarchie(résultat, créatrice)
 }
 
-crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.NoeudTexte)
+crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.Text)
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
     résultat := arbre.crée_box(InlineBox)

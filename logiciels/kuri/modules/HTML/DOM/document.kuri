@@ -713,7 +713,7 @@ create_element :: fonc (document: *Document, local_name: DOMString) -> *Élémen
     retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML)
 }
 
-create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte
+create_text_node :: fonc (document: *Document, data: DOMString) -> *Text
 {
     résultat := crée_noeud_texte(document)
     src := data.donne_chaine_utf16()
@@ -953,20 +953,20 @@ est_données_caractères :: fonc (noeud: Node)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudTexte.
+/** \nom Text.
  * https://dom.spec.whatwg.org/#text
  * \{ */
 
-NoeudTexte :: struct {
+Text :: struct {
     empl base_données: NoeudDonnéesCaractères
     table = *table_virtuelle_texte
 
     box: *CSS.Box
 }
 
-crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
+crée_noeud_texte :: fonc (document: *Document) -> *Text
 {
-    texte := crée_platform_object(document, NoeudTexte)
+    texte := crée_platform_object(document, Text)
     texte.genre = GenreNoeud.Texte
     texte.document = document
 
@@ -974,7 +974,7 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#inter-element-whitespace */
-est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
+est_espace_blanche_entre_élément :: fonc (texte: *Text) -> bool
 {
     retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
 }
@@ -982,14 +982,14 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 #portée_fichier
 
 table_virtuelle_texte := TableVirtuelleNoeud(
-    classe = NoeudTexte,
+    classe = Text,
     sur_destruction = texte_sur_destruction
 )
 
 texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
-    texte := base comme *NoeudTexte
+    texte := base comme *Text
     si texte.box {
         texte.box.noeud = nul
     }
@@ -1006,11 +1006,11 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
  * \{ */
 
 NoeudSectionCDATA :: struct {
-    empl base_texte: NoeudTexte
+    empl base_texte: Text
     table = *table_virtuelle_section_cdata
 }
 
-crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
+crée_noeud_section_cdata :: fonc (document: *Document) -> *Text
 {
     texte := crée_platform_object(document, NoeudSectionCDATA)
     texte.genre = GenreNoeud.Section_CDATA

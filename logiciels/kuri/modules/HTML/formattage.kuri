@@ -238,7 +238,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, 
             nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
         }
         Texte {
-            texte := noeud comme *NoeudTexte
+            texte := noeud comme *Text
             données := formatte_texte(contexte_formattage, texte.données)
             formatte_chaine_utf16(*données, flux_sortie)
             //enchaineuse.ajoute_au_tampon(données)
