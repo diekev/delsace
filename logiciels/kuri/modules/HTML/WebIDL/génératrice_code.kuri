@@ -262,7 +262,6 @@ compile_interfaces_idl :: fonc () -> chaine
 
     // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")
-    ajoute_au_tampon(*enchaineuse, "Node :: Noeud\n")
     ajoute_au_tampon(*enchaineuse, "Element :: Élément\n")
     ajoute_au_tampon(*enchaineuse, "Text :: NoeudTexte\n")
 

@@ -1471,7 +1471,7 @@ CréatriceArbre :: struct {
     arbre: *ArbreDeDisposition
 }
 
-crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Noeud)
+crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Node)
 {
     si HTML.est_texte(noeud) {
         crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
@@ -1969,7 +1969,7 @@ Box :: struct {
     parent: *Box
     enfants: [..]*Box
 
-    noeud: *HTML.Noeud
+    noeud: *HTML.Node
 
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool

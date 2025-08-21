@@ -185,7 +185,7 @@ scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *Environ
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
-scripting_est_activé :: fonc (noeud: *Noeud) -> bool
+scripting_est_activé :: fonc (noeud: *Node) -> bool
 {
     node_document := noeud.donne_node_document()
     saufsi node_document {
@@ -201,7 +201,7 @@ scripting_est_activé :: fonc (noeud: *Noeud) -> bool
     retourne scripting_est_activé(node_document.donne_user_agent(), settings)
 }
 
-scripting_est_désactivé :: fonc (noeud: *Noeud) -> bool
+scripting_est_désactivé :: fonc (noeud: *Node) -> bool
 {
     retourne scripting_est_activé(noeud) == faux
 }
@@ -242,7 +242,7 @@ détermine_indice_prototype :: fonc (type: type_de_données) -> z64
         retourne résultat
     }
 
-    types_à_essayer := type_de_données.[HTMLElement, Élément, Noeud, EventTarget]
+    types_à_essayer := type_de_données.[HTMLElement, Élément, Node, EventTarget]
 
     infos := __table_des_types[type] comme *InfoTypeStructure
 

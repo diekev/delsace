@@ -92,7 +92,7 @@ gère_lexème_pour_mode :: fonc (parseuse: *Parseuse, mode: TypeFonctionModeInse
     mode(parseuse, lexème)
 }
 
-est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...DOMString) -> bool
+est_un_élément_parmis :: fonc (noeud: *Node, tags: ...DOMString) -> bool
 {
     saufsi noeud.est_élément() {
         retourne faux
@@ -103,7 +103,7 @@ est_un_élément_parmis :: fonc (noeud: *Noeud, tags: ...DOMString) -> bool
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node */
-trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Noeud = nul) -> *Noeud
+trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_override : *Node = nul) -> *Node
 {
     // 1. If there was an override target specified, then let target be the override target.
     cible := si cible_override {
@@ -115,7 +115,7 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
     }
 
     // 2. Determine the adjusted insertion location using the first matching steps from the following list:
-    position_ajustée_d_insertion: *Noeud
+    position_ajustée_d_insertion: *Node
 
     si parseuse.adoption_activée && est_un_élément_parmis(cible, TAG_table, TAG_tbody, TAG_thead, TAG_tfoot, TAG_tr) {
         // If foster parenting is enabled and target is a table, tbody, tfoot, thead, or tr element
@@ -192,7 +192,7 @@ insert_an_element_at_the_adjusted_insertion_location :: fonc (parseuse: *Parseus
     // À FAIRE : 5. If the parser was not created as part of the HTML fragment parsing algorithm, then pop the element queue from element's relevant agent's custom element reactions stack, and invoke custom element reactions in that queue.    
 }
 
-peut_insérer_élément :: fonc (noeud: *Noeud, élément: *Élément @inutilisée) -> bool
+peut_insérer_élément :: fonc (noeud: *Node, élément: *Élément @inutilisée) -> bool
 {
     // À FAIRE : utilise les modèle de contenu
     // https://html.spec.whatwg.org/multipage/dom.html#content-models
@@ -211,7 +211,7 @@ peut_insérer_élément :: fonc (noeud: *Noeud, élément: *Élément @inutilis�
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#create-an-element-for-the-token */
-crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, parent_prévu: *Noeud) -> *Élément
+crée_élément_pour_lexème :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, parent_prévu: *Node) -> *Élément
 {
     /* INCOMPLET : 1. if the active speculative parser... */
     /* INCOMPLET : 2. optionally create a speculative mock element... */
@@ -276,7 +276,7 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
     chaine_ajoute(*noeud_texte.données, point_de_code)
 }
 
-insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *Noeud = nul)
+insère_commentaire :: fonc (parseuse: *Parseuse, lexème: Lexème, position : *Node = nul)
 {
     position_ajustée_d_insertion := position
 
@@ -2869,7 +2869,7 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#html-fragment-serialisation-algorithm */
-HTML_fragment_serialization :: fonc (node: *Noeud, serializable_shadow_roots: bool) -> ChaineUTF16
+HTML_fragment_serialization :: fonc (node: *Node, serializable_shadow_roots: bool) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
@@ -2882,7 +2882,7 @@ HTML_fragment_serialization :: fonc (node: *Noeud, serializable_shadow_roots: bo
 
 #portée_fichier
 
-HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, node: *Noeud, serializable_shadow_roots: bool)
+HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, node: *Node, serializable_shadow_roots: bool)
 {
     // À FAIRE : 1. If the node serializes as void, then return the empty string.
 
@@ -2930,7 +2930,7 @@ HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, n
     // Nous sommes récursif
 }
 
-sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Noeud, serializable_shadow_roots: bool)
+sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Node, serializable_shadow_roots: bool)
 {
     // À FAIRE : complète
     // 1. Let current node be the child node being processed.
@@ -3039,7 +3039,7 @@ sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Noeud, seriali
 
 #portée_module
 
-HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_declarative_shadow_roots := faux) -> [..]*Noeud
+HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_declarative_shadow_roots := faux) -> [..]*Node
 {
     // 1. Create a new Document node, and mark it as being an HTML document.
     document := crée_noeud_document(context.donne_tas_de_mémoire(), context.realm)
@@ -3116,7 +3116,7 @@ HTML_fragment_parsing :: fonc (input: ChaineUTF16, context: *Élément, allow_de
     reset_the_insertion_mode_appropriately(*parseuse)
 
     // 12. Set the parser's form element pointer to the nearest node to the context element that is a form element (going straight up the ancestor chain, and including the element itself, if it is a form element), if any. (If there is no such form element, the form element pointer keeps its initial value, null.)
-    parent : *Noeud = context
+    parent : *Node = context
     tantque parent != nul && parent.est_élément() {
         élément_parent := parent comme *Élément
         si élément_parent.local_name == TAG_form {

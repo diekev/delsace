@@ -23,7 +23,7 @@ TableVirtuelleÉlément :: struct {
 #portée_export
 
 Élément :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_élément
 
     id: DOMString
@@ -224,7 +224,7 @@ get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMStrin
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
-get_elements_by_tag_name :: fonc (noeud: *Noeud, qualified_name: DOMString) -> *HTMLCollection
+get_elements_by_tag_name :: fonc (noeud: *Node, qualified_name: DOMString) -> *HTMLCollection
 {
     assert(noeud.est_élément() || noeud.est_document())
 

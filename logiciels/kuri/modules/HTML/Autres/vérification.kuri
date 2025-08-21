@@ -118,7 +118,7 @@ finalise_diagnostiques :: fonc (contexte_vérification: &ContexteVérification)
     }
 }
 
-vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Noeud)
+vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Node)
 {
     si noeud.genre == HTML.GenreNoeud.Texte {
         // RÀF pour le moment

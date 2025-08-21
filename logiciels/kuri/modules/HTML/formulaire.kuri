@@ -78,7 +78,7 @@ génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 }
 
 /* Idée pour générer des requêtes depuis des formulaires. */
-rappel_recherche_formulaire :: fonc (noeud: *Noeud, données: eini @inutilisée)
+rappel_recherche_formulaire :: fonc (noeud: *Node, données: eini @inutilisée)
 {
     élément := est_élément_type(noeud, TAG_form)
     saufsi élément {

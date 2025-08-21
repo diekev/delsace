@@ -68,7 +68,7 @@ ImageDisponible :: struct {
 }
 
 Document :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_document
 
     type_contenu: chaine
@@ -262,7 +262,7 @@ donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-document-getelementsbyname-dev */
 get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
 {
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     tableau_ajoute(*traversée, document)
@@ -289,7 +289,7 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
     retourne résultat
 }
 
-donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
+donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Élément
 {
     si noeud.est_élément_type(tag) {
         retourne noeud comme *Élément
@@ -771,7 +771,7 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Nou
  * \{ */
 
 NoeudTypeDocument :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_type_document
 
     nom: DOMString
@@ -788,7 +788,7 @@ crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     retourne doctype
 }
 
-est_document_type :: fonc (noeud: *Noeud) -> bool
+est_document_type :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.TypeDocument
 }
@@ -810,7 +810,7 @@ table_virtuelle_type_document := TableVirtuelleNoeud(
  * \{ */
 
 DocumentFragment :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_fragment_document
 
     host: *Élément
@@ -878,7 +878,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
      * path’s first struct’s invocation target; otherwise shadow root’s host. */
     invocation_target := event.path[0].invocation_target
     
-    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Noeud) == shadow_root {
+    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Node) == shadow_root {
         retourne nul
     }
 
@@ -888,7 +888,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
 #portée_export
 
 /* https://dom.spec.whatwg.org/#concept-shadow-including-root */
-donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
+donne_racine_shadow_including :: fonc (noeud: *Node) -> *Node
 {
     racine := noeud.donne_racine()
 
@@ -900,7 +900,7 @@ donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
     retourne racine
 }
 
-racine_est_shadow_root :: fonc (noeud: *Noeud) -> bool
+racine_est_shadow_root :: fonc (noeud: *Node) -> bool
 {
     racine := donne_racine(noeud)
     retourne racine.genre == GenreNoeud.ShadowRoot
@@ -931,12 +931,12 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
  * \{ */
 
 NoeudDonnéesCaractères :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
 
     données: ChaineUTF16
 }
 
-est_données_caractères :: fonc (noeud: Noeud)
+est_données_caractères :: fonc (noeud: Node)
 {
     discr noeud.genre {
         Commentaire,

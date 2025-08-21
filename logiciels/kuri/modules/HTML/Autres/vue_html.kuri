@@ -695,7 +695,7 @@ ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
     }
 }
 
-ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
 {
     texte := ""
     diffère déloge(texte)

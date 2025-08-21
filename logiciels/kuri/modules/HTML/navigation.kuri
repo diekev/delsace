@@ -2954,7 +2954,7 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#find-a-potential-indicated-element */
 find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Élément
 {
-    pile: Pile(*Noeud)
+    pile: Pile(*Node)
     diffère détruit(pile)
 
     pile.empile(document)

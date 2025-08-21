@@ -251,7 +251,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
     invocation_target_in_shadow_tree := faux
 
     // 2. If invocationTarget is a node and its root is a shadow root, then set invocationTargetInShadowTree to true.
-    si invocation_target.est_node() && racine_est_shadow_root(invocation_target comme *Noeud) {
+    si invocation_target.est_node() && racine_est_shadow_root(invocation_target comme *Node) {
         invocation_target_in_shadow_tree = vrai
     }
 
@@ -259,7 +259,7 @@ append_event_path :: fonc (event: *Event, invocation_target: *EventTarget, shado
     root_of_closed_tree := faux
 
     // 4. If invocationTarget is a shadow root whose mode is "closed", then set root-of-closed-tree to true.
-    si invocation_target.est_node() && (invocation_target comme *Noeud).genre == GenreNoeud.ShadowRoot {
+    si invocation_target.est_node() && (invocation_target comme *Node).genre == GenreNoeud.ShadowRoot {
         shadow_root := invocation_target comme *ShadowRoot
         root_of_closed_tree = shadow_root.mode == ShadowRootMode.closed
     }
@@ -1079,7 +1079,7 @@ est_élément :: fonc (event_target: *EventTarget) -> *Élément
     retourne event_target comme *Élément
 }
 
-est_node :: fonc (event_target: *EventTarget) -> *Noeud
+est_node :: fonc (event_target: *EventTarget) -> *Node
 {
     table := event_target.table
     saufsi table {
@@ -1087,11 +1087,11 @@ est_node :: fonc (event_target: *EventTarget) -> *Noeud
     }
 
     infos := __table_des_types[table.classe] comme *InfoTypeStructure
-    saufsi est_struct_ou_employeuse_de(infos, info_de(Noeud)) {
+    saufsi est_struct_ou_employeuse_de(infos, info_de(Node)) {
         retourne nul
     }
 
-    retourne event_target comme *Noeud
+    retourne event_target comme *Node
 }
 
 /* À FAIRE(langage) : erreur de compilation si cela s'appèle donne_node_document :

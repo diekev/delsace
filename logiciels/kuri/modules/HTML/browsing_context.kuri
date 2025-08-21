@@ -429,7 +429,7 @@ crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_na
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#node-navigable */
-donne_node_navigable :: fonc (noeud: *Noeud) -> *Navigable
+donne_node_navigable :: fonc (noeud: *Node) -> *Navigable
 {
     document := noeud.document
     saufsi document {

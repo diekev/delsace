@@ -527,7 +527,7 @@ block_rendering_if_potentially_render_blocking :: fonc (el: *Élément)
 #portée_export
 
 /* https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#fragment-serializing-algorithm-steps */
-fragment_serializing_algorithm_steps :: fonc (node: *Noeud, well_formed: bool @inutilisée) -> ChaineUTF16
+fragment_serializing_algorithm_steps :: fonc (node: *Node, well_formed: bool @inutilisée) -> ChaineUTF16
 {
     // À FAIRE assert : Document, DocumentFragment, Element
 
@@ -577,7 +577,7 @@ définis_inner_html :: fonc (élément: *Élément, texte: DOMString)
     compliant_string := texte.donne_chaine_utf16()
 
     // 2. Let context be this.
-    context : *Noeud = élément
+    context : *Node = élément
 
     // 3. Let fragment be the result of invoking the fragment parsing algorithm steps with context and compliantString.
     fragment := fragment_parsing_algorithm_steps(élément, compliant_string)
@@ -1893,7 +1893,7 @@ donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Élément
 {
     résultat: [..]*Élément
 
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     pour > form.enfants {
@@ -2566,7 +2566,7 @@ définis_checkedness :: fonc (input: *HTMLInputElement, valeur: bool)
  * https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
 réinitialise_checkedness_radio_button_group :: fonc (racine: *HTMLInputElement)
 {
-    traverse_document_pour_radio_button_group :: fonc (noeud: *Noeud, input: *HTMLInputElement) -> DécisionTraversée
+    traverse_document_pour_radio_button_group :: fonc (noeud: *Node, input: *HTMLInputElement) -> DécisionTraversée
     {
         si noeud != input && noeud.table.classe == HTMLInputElement {
             noeud_input := noeud comme *HTMLInputElement
@@ -2891,7 +2891,7 @@ donne_control :: fonc (label: *HTMLLabelElement) -> *Élément
 /* https://html.spec.whatwg.org/multipage/forms.html#labeled-control */
 donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Élément
 {
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     for := label.donne_attribut_ou_chaine_vide(ATTR_for)
@@ -3562,7 +3562,7 @@ object_element_sur_destruction :: fonc (base: *JS.Cellule)
     détruit_données_image(*élément.image_data)
 }
 
-object_element_sur_document_fully_active :: fonc (base: *Noeud)
+object_element_sur_document_fully_active :: fonc (base: *Node)
 {
     object_element_ajourne(base comme *HTMLObjectElement)
 }
@@ -4554,7 +4554,7 @@ table_virtuelle_style_element := TableVirtuelleÉlément(
     sur_changement_enfants = style_element_sur_changement_enfants
 )
 
-style_element_sur_connexion_ou_déconnexion :: fonc (base: *Noeud)
+style_element_sur_connexion_ou_déconnexion :: fonc (base: *Node)
 {
     style := base comme *HTMLStyleElement
     saufsi style.est_sur_pile_éléments_ouvert {
@@ -4568,7 +4568,7 @@ style_element_sur_dépilement :: fonc (base: *Élément)
     ajourne_style_block(style)
 }
 
-style_element_sur_changement_enfants :: fonc (base: *Noeud)
+style_element_sur_changement_enfants :: fonc (base: *Node)
 {
     style := base comme *HTMLStyleElement
     ajourne_style_block(style)
