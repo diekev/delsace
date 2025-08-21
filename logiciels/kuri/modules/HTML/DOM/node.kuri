@@ -144,11 +144,6 @@ est_élément_script :: fonc (noeud: *Node) -> bool
     retourne est_élément_type(noeud, TAG_script) != nul
 }
 
-est_doctype :: fonc (noeud: *Node) -> bool
-{
-    retourne noeud.genre == GenreNoeud.DocumentType
-}
-
 est_texte :: fonc (noeud: *Node) -> bool
 {
     retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA
