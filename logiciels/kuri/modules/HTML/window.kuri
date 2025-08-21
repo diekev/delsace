@@ -171,7 +171,7 @@ clear_timeout :: fonc (window: *Window, id: z32)
             si it.algorithm.sur_destruction {
                 it.algorithm.sur_destruction(it.algorithm)
             }
-            tableau_supprime_indice(*window.chronomètres, index_it)
+            tableau_supprime_indice(*window.chronomètres, indice_it)
             retourne
         }
     }
@@ -210,7 +210,7 @@ clear_animation_frame :: fonc (window: *Window, id: z32)
 {
     pour window.animation_frames {
         si it.id == id {
-            tableau_supprime_indice(*window.animation_frames, index_it)
+            tableau_supprime_indice(*window.animation_frames, indice_it)
             retourne
         }
     }

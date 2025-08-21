@@ -176,7 +176,7 @@ static void imprime_atome_ex(Atome const *atome,
         {
             auto structure_const = atome->comme_constante_structure();
             auto type = atome->type->comme_type_composé();
-            auto atomes_membres = structure_const->donne_atomes_membres();
+            auto atomes_rubriques = structure_const->donne_atomes_rubriques();
 
             if (pour_operande) {
                 os << chaine_type(atome->type, options) << ' ';
@@ -184,10 +184,10 @@ static void imprime_atome_ex(Atome const *atome,
 
             auto virgule = "{ ";
 
-            POUR_INDEX (type->donne_membres_pour_code_machine()) {
+            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
                 os << virgule;
                 os << it.nom->nom << " = ";
-                imprime_atome_ex(atomes_membres[index_it], os, options, true);
+                imprime_atome_ex(atomes_rubriques[indice_it], os, options, true);
                 virgule = ", ";
             }
 
@@ -413,10 +413,10 @@ static void imprime_instruction_ex(Instruction const *inst,
             imprime_atome_ex(inst_acces->index, os, options, true);
             break;
         }
-        case GenreInstruction::ACCEDE_MEMBRE:
+        case GenreInstruction::ACCEDE_RUBRIQUE:
         {
-            auto inst_acces = inst->comme_acces_membre();
-            os << "membre ";
+            auto inst_acces = inst->comme_acces_rubrique();
+            os << "rubrique ";
             imprime_atome_ex(inst_acces->accédé, os, options, true);
             os << ", " << inst_acces->index;
             break;
@@ -579,8 +579,8 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 [[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst)
 {
     Enchaineuse sortie;
-    if (inst->est_acces_membre()) {
-        auto inst_acces = inst->comme_acces_membre();
+    if (inst->est_acces_rubrique()) {
+        auto inst_acces = inst->comme_acces_rubrique();
         sortie << "Nous accédons à ";
         if (inst_acces->accédé->est_instruction()) {
             sortie << inst_acces->accédé->comme_instruction()->genre << '\n';

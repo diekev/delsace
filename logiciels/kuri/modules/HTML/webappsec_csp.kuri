@@ -10,7 +10,7 @@ ContentSecurityPolicy :: struct {
 /** \} */
 
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
-should_element_s_inline_behavior_be_blocked :: fonc (élément: *Élément, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
+should_element_s_inline_behavior_be_blocked :: fonc (élément: *Element, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
 {
     assert(élément != nul)
 

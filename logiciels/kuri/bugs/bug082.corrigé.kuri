@@ -1,4 +1,4 @@
-/* Pas d'erreur de compilation si nous tentons de déconstruire un membre de « rien » d'une union.
+/* Pas d'erreur de compilation si nous tentons de déconstruire une rubrique de « rien » d'une union.
  * Catégorie : [validation sémantique, type union, type rien]
  */
 

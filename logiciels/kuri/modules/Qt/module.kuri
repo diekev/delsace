@@ -362,7 +362,7 @@ donne_qt_key :: fonc (touche: ToucheClavier) -> QT_Key
 {
     pour table_conversion_clé {
         si it == touche {
-            retourne index_it comme z32 comme n32 comme QT_Key
+            retourne indice_it comme z32 comme n32 comme QT_Key
         }
     }
 

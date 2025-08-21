@@ -121,7 +121,7 @@ struct Simplificatrice {
     NoeudExpressionRéférence *génère_simplification_construction_structure(
         NoeudExpressionAppel *construction, TypeStructure *type_struct);
     NoeudExpression *simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
-    NoeudExpression *simplifie_référence_membre(NoeudExpressionMembre *ref_membre);
+    NoeudExpression *simplifie_référence_rubrique(NoeudExpressionRubrique *ref_rubrique);
 
     NoeudExpression *simplifie_assignation_énum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
