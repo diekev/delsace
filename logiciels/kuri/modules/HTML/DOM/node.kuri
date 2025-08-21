@@ -47,7 +47,7 @@ GenreNoeud :: énum n16 {
     Commentaire :: COMMENT_NODE
     Document :: DOCUMENT_NODE
     TypeDocument :: DOCUMENT_TYPE_NODE
-    FragmentDocument :: DOCUMENT_FRAGMENT_NODE
+    DocumentFragment :: DOCUMENT_FRAGMENT_NODE
     ShadowRoot
 }
 
@@ -632,7 +632,7 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
         TypeDocument {
             retourne (noeud comme *NoeudTypeDocument).nom
         }
-        FragmentDocument {  
+        DocumentFragment {  
             retourne crée_chaine_utf16_unique("#document-fragment")
         }
     }

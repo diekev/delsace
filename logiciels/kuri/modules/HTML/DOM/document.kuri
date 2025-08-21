@@ -819,7 +819,7 @@ DocumentFragment :: struct {
 crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
 {
     doctype := crée_platform_object(document, DocumentFragment)
-    doctype.genre = GenreNoeud.FragmentDocument
+    doctype.genre = GenreNoeud.DocumentFragment
     doctype.document = document
 
     retourne doctype

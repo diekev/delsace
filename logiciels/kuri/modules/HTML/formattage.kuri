@@ -210,7 +210,7 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, 
     flux_sortie := crée_flux_sortie(enchaineuse)
 
     discr noeud.genre {
-        FragmentDocument,
+        DocumentFragment,
         ProcessingInstruction,
         Section_CDATA,
         Attr {
