@@ -695,13 +695,13 @@ ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
     }
 }
 
-ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
+ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
 {
     texte := ""
     diffère déloge(texte)
 
     si noeud.est_élément() {
-        élément := noeud comme *Élément
+        élément := noeud comme *Element
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
@@ -719,7 +719,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Noeud)
     }
     sinon {
         si noeud.est_texte() {
-            noeud_texte := noeud comme *NoeudTexte
+            noeud_texte := noeud comme *Text
             si est_espace_blanche_entre_élément(noeud_texte) {
                 retourne
             }
@@ -1514,7 +1514,7 @@ rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: 
     pour rappels.timers {
         si it.id == id {
             QT_timer_arrete(it.timer)
-            tableau_supprime_indice(*rappels.timers, index_it)
+            tableau_supprime_indice(*rappels.timers, indice_it)
             retourne
         }
     }

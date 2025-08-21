@@ -118,13 +118,13 @@ finalise_diagnostiques :: fonc (contexte_vérification: &ContexteVérification)
     }
 }
 
-vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Noeud)
+vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *Node)
 {
     si noeud.genre == HTML.GenreNoeud.Texte {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == HTML.GenreNoeud.Élément {
-        élément := noeud comme *Élément
+    sinon si noeud.genre == HTML.GenreNoeud.Element {
+        élément := noeud comme *Element
 
         contexte_vérification.nombre_éléments += 1
 
@@ -312,7 +312,7 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         }
         contexte_vérification.profondeur -= 1
     }
-    sinon si noeud.genre == HTML.GenreNoeud.TypeDocument {
+    sinon si noeud.genre == HTML.GenreNoeud.DocumentType {
         // RÀF pour le moment
     }
     sinon si noeud.genre == HTML.GenreNoeud.Document {

@@ -1,5 +1,5 @@
 /* Erreur de compilation si nous tentons de construire une union depuis un
- * pointeur vers un type employant un type membre.
+ * pointeur vers un type employant un type rubrique.
  * Catégorie : [validation sémantique, construction type, type employé, type union]
  */
 

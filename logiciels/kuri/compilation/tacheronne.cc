@@ -706,14 +706,14 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto tuple = type->comme_type_tuple();
             auto virgule = assembleuse->crée_virgule(lexeme);
 
-            POUR (tuple->membres) {
-                auto pointeur_membre = pointeur + it.decalage;
+            POUR (tuple->rubriques) {
+                auto pointeur_rubrique = pointeur + it.decalage;
                 virgule->expressions.ajoute(
                     noeud_syntaxique_depuis_résultat(espace,
                                                      directive,
                                                      lexeme,
                                                      it.type,
-                                                     pointeur_membre,
+                                                     pointeur_rubrique,
                                                      détectrice_fuites_de_mémoire));
             }
 
@@ -790,15 +790,15 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto construction_structure = assembleuse->crée_construction_structure(lexeme,
                                                                                    type_structure);
 
-            POUR (type_structure->donne_membres_pour_code_machine()) {
-                auto pointeur_membre = pointeur + it.decalage;
-                auto noeud_membre = noeud_syntaxique_depuis_résultat(espace,
+            POUR (type_structure->donne_rubriques_pour_code_machine()) {
+                auto pointeur_rubrique = pointeur + it.decalage;
+                auto noeud_rubrique = noeud_syntaxique_depuis_résultat(espace,
                                                                      directive,
                                                                      lexeme,
                                                                      it.type,
-                                                                     pointeur_membre,
+                                                                     pointeur_rubrique,
                                                                      détectrice_fuites_de_mémoire);
-                construction_structure->paramètres_résolus.ajoute(noeud_membre);
+                construction_structure->paramètres_résolus.ajoute(noeud_rubrique);
             }
 
             return construction_structure;
@@ -821,11 +821,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 auto pointeur_donnees = pointeur;
                 auto pointeur_discriminant = *reinterpret_cast<int *>(pointeur +
                                                                       type_union->décalage_index);
-                auto index_membre = pointeur_discriminant - 1;
+                auto index_rubrique = pointeur_discriminant - 1;
 
-                auto type_donnees = type_union->membres[index_membre].type;
+                auto type_donnees = type_union->rubriques[index_rubrique].type;
 
-                for (auto i = 0; i < index_membre; ++i) {
+                for (auto i = 0; i < index_rubrique; ++i) {
                     construction_union->paramètres_résolus.ajoute(nullptr);
                 }
 

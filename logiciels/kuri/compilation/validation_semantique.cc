@@ -257,7 +257,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     if (type_expression->est_type_tuple()) {
         auto tuple = type_expression->comme_type_tuple();
 
-        POUR (tuple->membres) {
+        POUR (tuple->rubriques) {
             auto decl_sortie = m_assembleuse->crée_déclaration_variable(
                 directive->lexème, nullptr, nullptr);
             decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
@@ -534,7 +534,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
                     *m_unité->espace, noeud, noeud->ident, lexème_nom_bibliothèque->chaine);
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            noeud->bloc_parent->ajoute_membre(noeud->comme_déclaration_bibliothèque());
+            noeud->bloc_parent->ajoute_rubrique(noeud->comme_déclaration_bibliothèque());
             break;
         }
         case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
@@ -695,11 +695,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             noeud->type = type_type;
             break;
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
-            auto inst = noeud->comme_référence_membre();
-            return valide_accès_membre(inst);
+            auto inst = noeud->comme_référence_rubrique();
+            return valide_accès_rubrique(inst);
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
@@ -1546,7 +1546,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
                 auto possède_type_erreur = false;
 
-                POUR (type_union->membres) {
+                POUR (type_union->rubriques) {
                     if (it.type->est_type_erreur()) {
                         possède_type_erreur = true;
                     }
@@ -1559,21 +1559,21 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (type_union->membres.taille() == 2) {
-                    if (type_union->membres[0].type->est_type_erreur()) {
-                        type_de_l_erreur = type_union->membres[0].type;
-                        inst->type = type_union->membres[1].type;
+                if (type_union->rubriques.taille() == 2) {
+                    if (type_union->rubriques[0].type->est_type_erreur()) {
+                        type_de_l_erreur = type_union->rubriques[0].type;
+                        inst->type = type_union->rubriques[1].type;
                     }
                     else {
-                        inst->type = type_union->membres[0].type;
-                        type_de_l_erreur = type_union->membres[1].type;
+                        inst->type = type_union->rubriques[0].type;
+                        type_de_l_erreur = type_union->rubriques[1].type;
                     }
                 }
                 else {
                     m_espace
                         ->rapporte_erreur(inst,
                                           "Les instructions tentes ne sont pas encore définies "
-                                          "pour les unions n'ayant pas 2 membres uniquement.")
+                                          "pour les unions n'ayant pas 2 rubriques uniquement.")
                         .ajoute_message("Le type du l'union est ")
                         .ajoute_message(chaine_type(type_union))
                         .ajoute_message("\n");
@@ -1622,7 +1622,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 decl_var_piege;
 
             // ne l'ajoute pas aux expressions, car nous devons l'initialiser manuellement
-            inst->bloc->ajoute_membre_au_debut(decl_var_piege);
+            inst->bloc->ajoute_rubrique_au_debut(decl_var_piege);
             break;
         }
         case GenreNoeud::INSTRUCTION_EMPL:
@@ -1698,9 +1698,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
     return CodeRetourValidation::OK;
 }
 
-RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *expression_membre)
+RésultatValidation Sémanticienne::valide_accès_rubrique(NoeudExpressionRubrique *expression_rubrique)
 {
-    auto structure = expression_membre->accédée;
+    auto structure = expression_rubrique->accédée;
 
     if (structure->est_référence_déclaration()) {
         auto decl = structure->comme_référence_déclaration()->déclaration_référée;
@@ -1713,15 +1713,15 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
             }
 
             auto contexte_recherche_symbole = ContexteRechecheSymbole{};
-            contexte_recherche_symbole.bloc_racine = expression_membre->bloc_parent;
+            contexte_recherche_symbole.bloc_racine = expression_rubrique->bloc_parent;
             contexte_recherche_symbole.fichier = m_compilatrice.fichier(
-                expression_membre->lexème->fichier);
+                expression_rubrique->lexème->fichier);
             contexte_recherche_symbole.fonction_courante = fonction_courante();
 
             auto déclaration_référée = trouve_dans_module(
-                contexte_recherche_symbole, module_ref, expression_membre->ident);
+                contexte_recherche_symbole, module_ref, expression_rubrique->ident);
             if (!déclaration_référée) {
-                return Attente::sur_symbole(expression_membre);
+                return Attente::sur_symbole(expression_rubrique);
             }
 
             /* À FAIRE : crée un type pour les fonctions polymorphiques (et voir assertion dans la
@@ -1733,13 +1733,13 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
                 return Attente::sur_type_déclaration(déclaration_référée);
             }
 
-            expression_membre->genre_valeur = déclaration_référée->genre_valeur;
+            expression_rubrique->genre_valeur = déclaration_référée->genre_valeur;
             if (déclaration_référée->est_déclaration_variable()) {
-                expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
+                expression_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
             }
 
-            expression_membre->déclaration_référée = déclaration_référée;
-            expression_membre->type = déclaration_référée->type;
+            expression_rubrique->déclaration_référée = déclaration_référée;
+            expression_rubrique->type = déclaration_référée->type;
             return CodeRetourValidation::OK;
         }
     }
@@ -1763,29 +1763,29 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
         }
 
         auto type_compose = type->comme_type_composé();
-        auto info_membre = donne_membre_pour_nom(type_compose, expression_membre->ident);
-        if (!info_membre.has_value()) {
-            if (expression_membre->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
+        auto info_rubrique = donne_rubrique_pour_nom(type_compose, expression_rubrique->ident);
+        if (!info_rubrique.has_value()) {
+            if (expression_rubrique->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
                 /* Laisse la validation d'appel gérer ce cas. */
-                expression_membre->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
+                expression_rubrique->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
                 return CodeRetourValidation::OK;
             }
 
-            rapporte_erreur_membre_inconnu(expression_membre, expression_membre, type_compose);
+            rapporte_erreur_rubrique_inconnu(expression_rubrique, expression_rubrique, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
-        auto const index_membre = info_membre->index_membre;
-        auto const membre_est_constant = info_membre->membre.drapeaux &
-                                         MembreTypeComposé::EST_CONSTANT;
-        auto const membre_est_implicite = info_membre->membre.drapeaux &
-                                          MembreTypeComposé::EST_IMPLICITE;
+        auto const index_rubrique = info_rubrique->index_rubrique;
+        auto const rubrique_est_constant = info_rubrique->rubrique.drapeaux &
+                                         RubriqueTypeComposé::EST_CONSTANT;
+        auto const rubrique_est_implicite = info_rubrique->rubrique.drapeaux &
+                                          RubriqueTypeComposé::EST_IMPLICITE;
 
-        expression_membre->type = info_membre->membre.type;
-        expression_membre->index_membre = index_membre;
+        expression_rubrique->type = info_rubrique->rubrique.type;
+        expression_rubrique->index_rubrique = index_rubrique;
 
         if (type->est_type_énum() || type->est_type_erreur()) {
-            expression_membre->genre_valeur = GenreValeur::DROITE;
+            expression_rubrique->genre_valeur = GenreValeur::DROITE;
 
             /* Nous voulons détecter les accès à des constantes d'énumérations via une variable,
              * mais nous devons également prendre en compte le fait que la variable peut-être une
@@ -1798,31 +1798,31 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
              */
             if (type->est_type_énum() && structure->genre_valeur != GenreValeur::DROITE) {
                 if (type->est_type_enum_drapeau()) {
-                    if (!membre_est_implicite) {
-                        expression_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
-                        expression_membre->drapeaux |= DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU;
+                    if (!rubrique_est_implicite) {
+                        expression_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
+                        expression_rubrique->drapeaux |= DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU;
                     }
                 }
                 else {
                     m_espace->rapporte_erreur(
-                        expression_membre,
+                        expression_rubrique,
                         "Impossible d'accéder à une variable de type énumération");
                     return CodeRetourValidation::Erreur;
                 }
             }
         }
         else {
-            if (membre_est_constant) {
-                expression_membre->genre_valeur = GenreValeur::DROITE;
+            if (rubrique_est_constant) {
+                expression_rubrique->genre_valeur = GenreValeur::DROITE;
             }
             else if (type->est_type_union()) {
-                expression_membre->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION;
+                expression_rubrique->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION;
             }
 
-            if (est_accès_type_de_données && !membre_est_constant) {
+            if (est_accès_type_de_données && !rubrique_est_constant) {
                 m_espace->rapporte_erreur(
-                    expression_membre,
-                    "Ne peut pas accéder à un membre non-constant d'un type de données.");
+                    expression_rubrique,
+                    "Ne peut pas accéder à un rubrique non-constant d'un type de données.");
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -1830,15 +1830,15 @@ RésultatValidation Sémanticienne::valide_accès_membre(NoeudExpressionMembre *
         return CodeRetourValidation::OK;
     }
 
-    if (expression_membre->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
+    if (expression_rubrique->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
         /* Laisse la validation d'appel gérer ce cas. */
-        expression_membre->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
+        expression_rubrique->aide_génération_code = PEUT_ÊTRE_APPEL_UNIFORME;
         return CodeRetourValidation::OK;
     }
 
     m_espace
         ->rapporte_erreur(structure,
-                          "Impossible de référencer un membre d'un type n'étant pas une structure")
+                          "Impossible de référencer un rubrique d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
     return CodeRetourValidation::Erreur;
 }
@@ -2071,7 +2071,7 @@ void Sémanticienne::valide_paramètres_constants_fonction(NoeudDéclarationEnt�
         return;
     }
 
-    POUR (*decl->bloc_constantes->membres.verrou_ecriture()) {
+    POUR (*decl->bloc_constantes->rubriques.verrou_ecriture()) {
         if (it->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             /* Les valeurs polymorphiques typées explicitement sont dans les paramètres, et seront
              * donc validées avec les paramètres. */
@@ -2181,8 +2181,8 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
         }
     }
     else {
-        kuri::tablet<MembreTypeComposé, 6> membres;
-        membres.réserve(decl->params_sorties.taille());
+        kuri::tablet<RubriqueTypeComposé, 6> rubriques;
+        rubriques.réserve(decl->params_sorties.taille());
 
         for (auto &expr : decl->params_sorties) {
             auto type_declare = expr->comme_déclaration_variable();
@@ -2191,10 +2191,10 @@ RésultatValidation Sémanticienne::valide_types_paramètres_fonction(
                 return CodeRetourValidation::Erreur;
             }
 
-            membres.ajoute({nullptr, type_sortie});
+            rubriques.ajoute({nullptr, type_sortie});
         }
 
-        type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
+        type_sortie = m_compilatrice.typeuse.crée_tuple(rubriques);
     }
 
     decl->param_sortie->type = type_sortie;
@@ -2495,7 +2495,7 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
         inst->type = TypeBase::RIEN;
 
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
-         * du type ayant le membre « rien » actif. */
+         * du type ayant le rubrique « rien » actif. */
         if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
             if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 inst->aide_génération_code = RETOURNE_UNE_UNION_VIA_RIEN;
@@ -2732,13 +2732,13 @@ RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
 
             donnees.multiple_retour = true;
 
-            for (auto &membre : type_tuple->membres) {
+            for (auto &rubrique : type_tuple->rubriques) {
                 if (variables.est_vide()) {
                     m_espace->rapporte_erreur(it, "Trop d'expressions de retour");
                     return CodeRetourValidation::Erreur;
                 }
 
-                TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, membre.type));
+                TENTE(valide_typage_et_ajoute(donnees, variables.defile(), it, rubrique.type));
             }
         }
         else {
@@ -2891,7 +2891,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
     assert_rappel(bloc_recherche != nullptr,
                   [&]() { dbg() << erreur::imprime_site(*m_espace, expr); });
 
-    /* Les membres des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
+    /* Les rubriques des énums sont des déclarations mais n'ont pas de type, et ne sont pas validées.
      * Pour de telles déclarations, la logique ici nous forcerait à attendre sur ces déclarations
      * jusqu'à leur validation, mais étant déclarées sans types, ceci résulterait en une erreur de
      * compilation. Ce drapeau sers à quitter la fonction dès que possible pour éviter d'attendre
@@ -2959,7 +2959,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
 
         auto const noeud_pour = corps_operateur_pour->est_macro_boucle_pour;
 
-        /* « it » et « index_it » peuvent être nommés par le programme, donc les variables
+        /* « it » et « indice_it » peuvent être nommés par le programme, donc les variables
          * correspondantes en dehors du macro peuvent avoir un nom différent. Renseigne directement
          * les déclaration référées. */
         if (expr->ident == ID::it) {
@@ -2969,9 +2969,9 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
             return CodeRetourValidation::OK;
         }
 
-        if (expr->ident == ID::index_it) {
-            expr->déclaration_référée = noeud_pour->decl_index_it;
-            expr->type = noeud_pour->decl_index_it->type;
+        if (expr->ident == ID::indice_it) {
+            expr->déclaration_référée = noeud_pour->decl_indice_it;
+            expr->type = noeud_pour->decl_indice_it->type;
             expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
             return CodeRetourValidation::OK;
         }
@@ -3071,7 +3071,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
             // À FAIRE : curseur := curseur.curseurs[0] -> il faut pouvoir déterminer si la
             // référence est celle de la variable que l'on valide, ceci ne fonctionnera pas pour
             // les déclarations multiples, ou les types étant référencés dans les expressions de
-            // leurs membres
+            // leurs rubriques
             if (decl == m_unité->noeud) {
                 m_espace->rapporte_erreur(expr,
                                           "Utilisation d'une variable dans sa définition !\n");
@@ -3247,7 +3247,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                      }
 
                      /* Ignore les variables implicites des boucles « pour ». */
-                     if (noeud->ident == ID::it || noeud->ident == ID::index_it) {
+                     if (noeud->ident == ID::it || noeud->ident == ID::indice_it) {
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
@@ -3265,7 +3265,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
 
                      if (noeud->est_déclaration_variable_multiple()) {
                          /* Les déclarations multiples comme « a, b := ... » ont les déclarations
-                          * ajoutées séparément aux membres du bloc. */
+                          * ajoutées séparément aux rubriques du bloc. */
                          return DecisionVisiteNoeud::CONTINUE;
                      }
 
@@ -3482,9 +3482,9 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
     auto derniere_valeur = ValeurExpression();
     assert(!derniere_valeur.est_valide());
 
-    auto &membres = decl->membres;
-    membres.réserve(decl->bloc->expressions->taille());
-    decl->bloc->réserve_membres(decl->bloc->expressions->taille());
+    auto &rubriques = decl->rubriques;
+    rubriques.réserve(decl->bloc->expressions->taille());
+    decl->bloc->réserve_rubriques(decl->bloc->expressions->taille());
 
     int64_t valeur_enum_min = std::numeric_limits<int64_t>::max();
     int64_t valeur_enum_max = std::numeric_limits<int64_t>::min();
@@ -3499,7 +3499,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
         auto decl_expr = it->comme_déclaration_constante();
         decl_expr->type = decl;
 
-        decl->bloc->ajoute_membre(decl_expr);
+        decl->bloc->ajoute_rubrique(decl_expr);
 
         if (decl_expr->expression_type != nullptr) {
             rapporte_erreur("Expression d'énumération déclarée avec un type", it);
@@ -3507,7 +3507,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
         }
 
         if (noms_rencontres.possède(decl_expr->ident)) {
-            rapporte_erreur("Redéfinition du membre", decl_expr);
+            rapporte_erreur("Redéfinition du rubrique", decl_expr);
             return CodeRetourValidation::Erreur;
         }
 
@@ -3588,61 +3588,61 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
             valeurs_legales |= valeur.entière();
         }
 
-        membres.ajoute({nullptr,
+        rubriques.ajoute({nullptr,
                         decl,
                         it->ident,
                         0,
                         uint64_t(valeur.entière()),
                         nullptr,
-                        MembreTypeComposé::EST_CONSTANT});
+                        RubriqueTypeComposé::EST_CONSTANT});
 
         derniere_valeur = valeur;
     }
 
-    membres.ajoute({nullptr,
+    rubriques.ajoute({nullptr,
                     TypeBase::Z32,
                     ID::nombre_elements,
                     0,
-                    uint64_t(membres.taille()),
+                    uint64_t(rubriques.taille()),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
-    membres.ajoute({nullptr,
+                    RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+    rubriques.ajoute({nullptr,
                     decl,
                     ID::min,
                     0,
                     uint64_t(valeur_enum_min),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
-    membres.ajoute({nullptr,
+                    RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+    rubriques.ajoute({nullptr,
                     decl,
                     ID::max,
                     0,
                     uint64_t(valeur_enum_max),
                     nullptr,
-                    MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
+                    RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
-        membres.ajoute({nullptr,
+        rubriques.ajoute({nullptr,
                         decl,
                         ID::valeurs_legales,
                         0,
                         uint64_t(valeurs_legales),
                         nullptr,
-                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
-        membres.ajoute({nullptr,
+                        RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+        rubriques.ajoute({nullptr,
                         decl,
                         ID::valeurs_illegales,
                         0,
                         uint64_t(~valeurs_legales),
                         nullptr,
-                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
-        membres.ajoute({nullptr,
+                        RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+        rubriques.ajoute({nullptr,
                         decl,
                         ID::zero,
                         0,
                         0,
                         nullptr,
-                        MembreTypeComposé::EST_IMPLICITE | MembreTypeComposé::EST_CONSTANT});
+                        RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -3712,34 +3712,34 @@ RésultatValidation Sémanticienne::valide_énum(NoeudEnum *decl)
 /** \name Validation des déclarations de structures et d'unions.
  * \{ */
 
-/* Structure auxiliaire pour créer la liste des membres d'une structure ou d'une union.
+/* Structure auxiliaire pour créer la liste des rubriques d'une structure ou d'une union.
  * Elle tient également compte du nombre de memrbes non-constants de la structure.
  * Cette structure ne performe aucune validation, ne se contentant que d'ajouter les
- * membres à la liste.
+ * rubriques à la liste.
  */
-struct ConstructriceMembresTypeComposé {
+struct ConstructriceRubriquesTypeComposé {
   private:
     TypeCompose &m_type_composé;
-    int m_membres_non_constant = 0;
+    int m_rubriques_non_constant = 0;
 
-    /* Les membres n'apparaissant pas dans le code machine sont ajoutés à la fin. */
-    kuri::tablet<MembreTypeComposé, 6> m_membres_extras{};
+    /* Les rubriques n'apparaissant pas dans le code machine sont ajoutés à la fin. */
+    kuri::tablet<RubriqueTypeComposé, 6> m_rubriques_extras{};
 
   public:
-    ConstructriceMembresTypeComposé(TypeCompose &type_composé, NoeudBloc const *bloc)
+    ConstructriceRubriquesTypeComposé(TypeCompose &type_composé, NoeudBloc const *bloc)
         : m_type_composé(type_composé)
     {
         // @réinitialise en cas d'erreurs passées
-        type_composé.membres.efface();
-        type_composé.membres.réserve(bloc->nombre_de_membres());
+        type_composé.rubriques.efface();
+        type_composé.rubriques.réserve(bloc->nombre_de_rubriques());
     }
 
     void finalise()
     {
-        m_type_composé.nombre_de_membres_réels = m_type_composé.membres.taille();
+        m_type_composé.nombre_de_rubriques_réelles = m_type_composé.rubriques.taille();
 
-        POUR (m_membres_extras) {
-            m_type_composé.membres.ajoute(it);
+        POUR (m_rubriques_extras) {
+            m_type_composé.rubriques.ajoute(it);
         }
     }
 
@@ -3747,110 +3747,110 @@ struct ConstructriceMembresTypeComposé {
     {
         // utilisation d'un type de données afin de pouvoir automatiquement déterminer un type
         assert(déclaration->type->est_type_type_de_données());
-        m_membres_extras.ajoute({nullptr,
+        m_rubriques_extras.ajoute({nullptr,
                                  déclaration->type,
                                  déclaration->ident,
                                  0,
                                  0,
                                  nullptr,
-                                 MembreTypeComposé::EST_CONSTANT});
+                                 RubriqueTypeComposé::EST_CONSTANT});
     }
 
     void ajoute_constante(NoeudDéclarationConstante *déclaration)
     {
-        m_membres_extras.ajoute({déclaration,
+        m_rubriques_extras.ajoute({déclaration,
                                  déclaration->type,
                                  déclaration->ident,
                                  0,
                                  0,
                                  déclaration->expression,
-                                 MembreTypeComposé::EST_CONSTANT});
+                                 RubriqueTypeComposé::EST_CONSTANT});
     }
 
-    void ajoute_membre_employé(NoeudDéclaration *déclaration)
+    void ajoute_rubrique_employé(NoeudDéclaration *déclaration)
     {
-        m_membres_non_constant += 1;
-        m_type_composé.membres.ajoute({déclaration->comme_déclaration_variable(),
+        m_rubriques_non_constant += 1;
+        m_type_composé.rubriques.ajoute({déclaration->comme_déclaration_variable(),
                                        déclaration->type,
                                        déclaration->ident,
                                        0,
                                        0,
                                        nullptr,
-                                       MembreTypeComposé::EST_UN_EMPLOI});
+                                       RubriqueTypeComposé::EST_UN_EMPLOI});
     }
 
-    void ajoute_membre_provenant_d_un_emploi(NoeudDéclarationVariable *déclaration)
+    void ajoute_rubrique_provenant_d_un_emploi(NoeudDéclarationVariable *déclaration)
     {
-        m_membres_non_constant += 1;
-        m_membres_extras.ajoute({déclaration,
+        m_rubriques_non_constant += 1;
+        m_rubriques_extras.ajoute({déclaration,
                                  déclaration->type,
                                  déclaration->ident,
                                  0,
                                  0,
                                  déclaration->expression,
-                                 MembreTypeComposé::PROVIENT_D_UN_EMPOI});
+                                 RubriqueTypeComposé::PROVIENT_D_UN_EMPOI});
     }
 
-    void ajoute_membre_simple(NoeudExpression *membre, NoeudExpression *initialisateur)
+    void ajoute_rubrique_simple(NoeudExpression *rubrique, NoeudExpression *initialisateur)
     {
-        m_membres_non_constant += 1;
-        auto decl_var_membre = NoeudDéclarationVariable::nul();
-        if (membre->est_déclaration_variable()) {
-            decl_var_membre = membre->comme_déclaration_variable();
+        m_rubriques_non_constant += 1;
+        auto decl_var_rubrique = NoeudDéclarationVariable::nul();
+        if (rubrique->est_déclaration_variable()) {
+            decl_var_rubrique = rubrique->comme_déclaration_variable();
         }
-        else if (membre->est_référence_déclaration()) {
-            auto ref = membre->comme_référence_déclaration();
+        else if (rubrique->est_référence_déclaration()) {
+            auto ref = rubrique->comme_référence_déclaration();
             if (ref->déclaration_référée->est_déclaration_variable()) {
-                decl_var_membre = ref->déclaration_référée->comme_déclaration_variable();
+                decl_var_rubrique = ref->déclaration_référée->comme_déclaration_variable();
             }
         }
 
-        m_type_composé.membres.ajoute(
-            {decl_var_membre, membre->type, membre->ident, 0, 0, initialisateur, 0});
+        m_type_composé.rubriques.ajoute(
+            {decl_var_rubrique, rubrique->type, rubrique->ident, 0, 0, initialisateur, 0});
     }
 
-    void ajoute_membre_invisible()
+    void ajoute_rubrique_invisible()
     {
-        m_membres_non_constant += 1;
-        /* Ajoute un membre, d'un octet de taille. */
-        m_type_composé.membres.ajoute({nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
+        m_rubriques_non_constant += 1;
+        /* Ajoute un rubrique, d'un octet de taille. */
+        m_type_composé.rubriques.ajoute({nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
     }
 
-    int donne_compte_membres_non_constant() const
+    int donne_compte_rubriques_non_constant() const
     {
-        return m_membres_non_constant;
+        return m_rubriques_non_constant;
     }
 };
 
-static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
-                                                   NoeudDéclarationType *type_membre)
+static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+                                                   NoeudDéclarationType *type_rubrique)
 {
-    if (type_composé == type_membre) {
+    if (type_composé == type_rubrique) {
         return true;
     }
 
-    if (type_membre->est_type_tableau_fixe()) {
-        auto type_tableau = type_membre->comme_type_tableau_fixe();
-        return le_membre_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
+    if (type_rubrique->est_type_tableau_fixe()) {
+        auto type_tableau = type_rubrique->comme_type_tableau_fixe();
+        return le_rubrique_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
     }
 
-    if (type_membre->est_type_opaque()) {
-        auto type_opaque = type_membre->comme_type_opaque();
-        return le_membre_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
+    if (type_rubrique->est_type_opaque()) {
+        auto type_opaque = type_rubrique->comme_type_opaque();
+        return le_rubrique_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
     }
 
     return false;
 }
 
-static bool le_membre_référence_le_type_par_valeur(TypeCompose const *type_composé,
-                                                   NoeudExpression *expression_membre)
+static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+                                                   NoeudExpression *expression_rubrique)
 {
-    return le_membre_référence_le_type_par_valeur(type_composé, expression_membre->type);
+    return le_rubrique_référence_le_type_par_valeur(type_composé, expression_rubrique->type);
 }
 
-static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
+static void rapporte_erreur_type_rubrique_invalide(EspaceDeTravail *espace,
                                                  TypeCompose const *type_composé,
-                                                 NoeudExpression *membre)
+                                                 NoeudExpression *rubrique)
 {
     auto nom_classe = kuri::chaine_statique();
 
@@ -3863,32 +3863,32 @@ static void rapporte_erreur_type_membre_invalide(EspaceDeTravail *espace,
     }
 
     auto message = enchaine("Impossible d'utiliser le type « ",
-                            chaine_type(membre->type),
-                            " » comme membre de ",
+                            chaine_type(rubrique->type),
+                            " » comme rubrique de ",
                             nom_classe);
 
-    espace->rapporte_erreur(membre, message);
+    espace->rapporte_erreur(rubrique, message);
 }
 
 static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
                                                      TypeCompose const *type_composé,
-                                                     NoeudExpression *expression_membre)
+                                                     NoeudExpression *expression_rubrique)
 {
     auto message = kuri::chaine_statique();
     if (type_composé->est_type_structure()) {
-        message = "Utilisation du type de la structure comme type d'un membre par valeur.";
+        message = "Utilisation du type de la structure comme type d'un rubrique par valeur.";
     }
     else {
         assert(type_composé->est_type_union());
-        message = "Utilisation du type de l'union comme type d'un membre par valeur.";
+        message = "Utilisation du type de l'union comme type d'un rubrique par valeur.";
     }
 
-    auto e = espace->rapporte_erreur(expression_membre, message);
+    auto e = espace->rapporte_erreur(expression_rubrique, message);
 
-    if (expression_membre->est_déclaration_variable()) {
-        auto déclaration_variable = expression_membre->comme_déclaration_variable();
+    if (expression_rubrique->est_déclaration_variable()) {
+        auto déclaration_variable = expression_rubrique->comme_déclaration_variable();
         if (déclaration_variable->déclaration_vient_d_un_emploi) {
-            e.ajoute_message("Le membre fut inclus via l'emploi suivant :\n")
+            e.ajoute_message("Le rubrique fut inclus via l'emploi suivant :\n")
                 .ajoute_site(déclaration_variable->déclaration_vient_d_un_emploi);
         }
     }
@@ -3897,7 +3897,7 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
 static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail *espace,
                                                                 TypeCompose const *type_composé)
 {
-    POUR (type_composé->membres) {
+    POUR (type_composé->rubriques) {
         if (it.type->est_type_rien()) {
             continue;
         }
@@ -3929,7 +3929,7 @@ static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail
  *	  empl base: BaseExterne
  * }
  *
- * Ici nous n'aurons aucun membre.
+ * Ici nous n'aurons aucun rubrique.
  *
  * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
  * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
@@ -3969,7 +3969,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
         }
 
-        // nous validerons les membres lors de la monomorphisation
+        // nous validerons les rubriques lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -3983,15 +3983,15 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     auto type_compose = decl->comme_type_composé();
 
-    ConstructriceMembresTypeComposé constructrice(*type_compose, decl->bloc);
+    ConstructriceRubriquesTypeComposé constructrice(*type_compose, decl->bloc);
 
     if (decl->est_monomorphisation) {
-        POUR (*decl->bloc_constantes->membres.verrou_lecture()) {
+        POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
             constructrice.ajoute_constante(it->comme_déclaration_constante());
         }
     }
 
-    POUR (*decl->bloc->membres.verrou_lecture()) {
+    POUR (*decl->bloc->rubriques.verrou_lecture()) {
         if (it->est_déclaration_type()) {
             constructrice.ajoute_type_de_données(it->comme_déclaration_type(),
                                                  m_compilatrice.typeuse);
@@ -4005,7 +4005,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            constructrice.ajoute_membre_employé(it);
+            constructrice.ajoute_rubrique_employé(it);
             continue;
         }
 
@@ -4019,26 +4019,26 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
 
-                constructrice.ajoute_membre_provenant_d_un_emploi(decl_var);
+                constructrice.ajoute_rubrique_provenant_d_un_emploi(decl_var);
                 continue;
             }
 
-            if (!est_type_valide_pour_membre(decl_var->type)) {
-                rapporte_erreur_type_membre_invalide(m_espace, type_compose, decl_var);
+            if (!est_type_valide_pour_rubrique(decl_var->type)) {
+                rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            constructrice.ajoute_membre_simple(decl_var, decl_var->expression);
+            constructrice.ajoute_rubrique_simple(decl_var, decl_var->expression);
             continue;
         }
 
@@ -4052,18 +4052,18 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
             for (auto i = 0; i < donnees.variables.taille(); ++i) {
                 auto var = donnees.variables[i];
 
-                if (!est_type_valide_pour_membre(var->type)) {
-                    rapporte_erreur_type_membre_invalide(m_espace, type_compose, var);
+                if (!est_type_valide_pour_rubrique(var->type)) {
+                    rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
                 if (var->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
                     rapporte_erreur(
-                        "Expression invalide dans la déclaration du membre de la structure", var);
+                        "Expression invalide dans la déclaration du rubrique de la structure", var);
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_membre_référence_le_type_par_valeur(type_compose, var)) {
+                if (le_rubrique_référence_le_type_par_valeur(type_compose, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4074,14 +4074,14 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 auto expression = donnees.expression;
                 crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
-                constructrice.ajoute_membre_simple(var, expression);
+                constructrice.ajoute_rubrique_simple(var, expression);
             }
         }
     }
 
-    if (constructrice.donne_compte_membres_non_constant() == 0) {
+    if (constructrice.donne_compte_rubriques_non_constant() == 0) {
         if (!decl->est_externe) {
-            constructrice.ajoute_membre_invisible();
+            constructrice.ajoute_rubrique_invisible();
         }
     }
 
@@ -4095,27 +4095,27 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         auto expr_assign = it->comme_assignation_variable();
         auto variable = expr_assign->assignée;
 
-        for (auto &membre : type_compose->membres) {
-            if (membre.nom != variable->ident) {
+        for (auto &rubrique : type_compose->rubriques) {
+            if (rubrique.nom != variable->ident) {
                 continue;
             }
 
-            membre.drapeaux |= MembreTypeComposé::POSSÈDE_EXPRESSION_SPÉCIALE;
-            membre.expression_valeur_defaut = expr_assign->expression;
+            rubrique.drapeaux |= RubriqueTypeComposé::POSSÈDE_EXPRESSION_SPÉCIALE;
+            rubrique.expression_valeur_defaut = expr_assign->expression;
             break;
         }
     }
 
-    for (auto &membre : type_compose->membres) {
-        if (membre.expression_valeur_defaut) {
-            membre.expression_valeur_defaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
+    for (auto &rubrique : type_compose->rubriques) {
+        if (rubrique.expression_valeur_defaut) {
+            rubrique.expression_valeur_defaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
         }
     }
 
     /* Valide les types avant le calcul de la taille des types. */
     TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
 
-    if (constructrice.donne_compte_membres_non_constant() == 0) {
+    if (constructrice.donne_compte_rubriques_non_constant() == 0) {
         assert(decl->est_externe);
     }
     else {
@@ -4130,15 +4130,15 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 #ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
     auto rembourrage_total = 0u;
 #endif
-    POUR (type_struct->membres) {
-        if (it.possède_drapeau(MembreTypeComposé::EST_UN_EMPLOI)) {
+    POUR (type_struct->rubriques) {
+        if (it.possède_drapeau(RubriqueTypeComposé::EST_UN_EMPLOI)) {
             type_struct->types_employés.ajoute(&it);
         }
 
 #ifdef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
         auto reste_décalage = it.decalage % 64;
         if (reste_décalage && (reste_décalage + it.type->taille_octet) > 64) {
-            espace->rapporte_avertissement(it.decl, "Le membre franchis une ligne de cache");
+            espace->rapporte_avertissement(it.decl, "Le rubrique franchis une ligne de cache");
         }
 #endif
 
@@ -4146,7 +4146,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         /* Revise cette logique ? */
         if (it.rembourrage && it.type->taille_octet < rembourrage_total) {
             espace->rapporte_avertissement(
-                it.decl, "Le membre pourrait être stocké dans du rembourrage existant");
+                it.decl, "Le rubrique pourrait être stocké dans du rembourrage existant");
         }
 
         rembourrage_total += it.rembourrage;
@@ -4181,7 +4181,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 m_tacheronne->allocatrice_noeud.crée_monomorphisations_union();
         }
 
-        // nous validerons les membres lors de la monomorphisation
+        // nous validerons les rubriques lors de la monomorphisation
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -4206,12 +4206,12 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     }
 
     auto type_compose = decl->comme_type_composé();
-    auto constructrice = ConstructriceMembresTypeComposé(*type_compose, decl->bloc);
+    auto constructrice = ConstructriceRubriquesTypeComposé(*type_compose, decl->bloc);
 
     auto type_union = decl;
     type_union->est_nonsure = decl->est_nonsure;
 
-    POUR (*decl->bloc->membres.verrou_ecriture()) {
+    POUR (*decl->bloc->rubriques.verrou_ecriture()) {
         if (it->est_déclaration_type()) {
             constructrice.ajoute_type_de_données(it->comme_déclaration_type(),
                                                  m_compilatrice.typeuse);
@@ -4228,12 +4228,12 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
 
-                constructrice.ajoute_membre_provenant_d_un_emploi(decl_var);
+                constructrice.ajoute_rubrique_provenant_d_un_emploi(decl_var);
                 continue;
             }
 
@@ -4245,16 +4245,16 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
             }
 
             if (decl_var->type->est_type_variadique()) {
-                rapporte_erreur_type_membre_invalide(m_espace, type_compose, decl_var);
+                rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_membre_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            constructrice.ajoute_membre_simple(decl_var, decl_var->expression);
+            constructrice.ajoute_rubrique_simple(decl_var, decl_var->expression);
             continue;
         }
 
@@ -4277,17 +4277,17 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 }
 
                 if (var->type->est_type_variadique()) {
-                    rapporte_erreur_type_membre_invalide(m_espace, type_compose, var);
+                    rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
 
                 if (var->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
-                    rapporte_erreur("Expression invalide dans la déclaration du membre de l'union",
+                    rapporte_erreur("Expression invalide dans la déclaration du rubrique de l'union",
                                     var);
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_membre_référence_le_type_par_valeur(type_union, var)) {
+                if (le_rubrique_référence_le_type_par_valeur(type_union, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4298,7 +4298,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 auto expression = donnees.expression;
                 crée_transtypage_implicite_au_besoin(expression, donnees.transformations[i]);
 
-                constructrice.ajoute_membre_simple(var, expression);
+                constructrice.ajoute_rubrique_simple(var, expression);
             }
         }
     }
@@ -4351,7 +4351,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
         }
         if (decl->type && decl->type->est_type_rien() &&
             !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE |
-                                   DrapeauxNoeud::EST_MEMBRE_STRUCTURE)) {
+                                   DrapeauxNoeud::EST_RUBRIQUE_STRUCTURE)) {
             m_espace->rapporte_erreur(decl,
                                       "Impossible de déclarer une variable de type « rien »");
             return CodeRetourValidation::Erreur;
@@ -4432,7 +4432,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
              * syntaxeuse. */
             if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                 auto bloc_parent = decl->bloc_parent;
-                bloc_parent->ajoute_membre(decl);
+                bloc_parent->ajoute_rubrique(decl);
             }
         }
 
@@ -4641,12 +4641,12 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
                 donnees.multiple_retour = true;
 
-                for (auto &membre : type_tuple->membres) {
+                for (auto &rubrique : type_tuple->rubriques) {
                     if (variables.est_vide()) {
                         break;
                     }
 
-                    TENTE(ajoute_variable(donnees, variables.defile(), it, membre.type));
+                    TENTE(ajoute_variable(donnees, variables.defile(), it, rubrique.type));
                 }
             }
             else if (it->type->est_type_rien()) {
@@ -4706,7 +4706,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                  * syntaxeuse. */
                 if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                     auto bloc_parent = decl_var->bloc_parent;
-                    bloc_parent->ajoute_membre(decl_var);
+                    bloc_parent->ajoute_rubrique(decl_var);
                 }
             }
 
@@ -4830,7 +4830,7 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     if (!decl->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
-        decl->bloc_parent->ajoute_membre(decl);
+        decl->bloc_parent->ajoute_rubrique(decl);
     }
 
     return CodeRetourValidation::OK;
@@ -5129,12 +5129,12 @@ RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignation
 
             donnees.multiple_retour = true;
 
-            for (auto &membre : type_tuple->membres) {
+            for (auto &rubrique : type_tuple->rubriques) {
                 if (variables.est_vide()) {
                     break;
                 }
 
-                TENTE(ajoute_variable(donnees, variables.defile(), it, membre.type));
+                TENTE(ajoute_variable(donnees, variables.defile(), it, rubrique.type));
             }
         }
         else {
@@ -5280,11 +5280,11 @@ void Sémanticienne::rapporte_erreur_accès_hors_limites(NoeudExpression *b,
         *m_espace, b, type_tableau->taille, type_tableau, index_acces);
 }
 
-void Sémanticienne::rapporte_erreur_membre_inconnu(NoeudExpression *acces,
-                                                   NoeudExpression *membre,
+void Sémanticienne::rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
+                                                   NoeudExpression *rubrique,
                                                    TypeCompose *type)
 {
-    erreur::membre_inconnu(*m_espace, acces, membre, type);
+    erreur::rubrique_inconnu(*m_espace, acces, rubrique, type);
 }
 
 void Sémanticienne::rapporte_erreur_valeur_manquante_discr(
@@ -5664,20 +5664,20 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
         {
             kuri::ensemblon<NoeudDéclarationType *, 6> types_rencontrés;
 
-            /* Nous transformons les expressions de types « x | y | z » en unions de trois membres,
-             * au lieu de les transformations en unions de deux membres « x » et « y | z ». Puisque
+            /* Nous transformons les expressions de types « x | y | z » en unions de trois rubriques,
+             * au lieu de les transformations en unions de deux rubriques « x » et « y | z ». Puisque
              * l'arbre est aplatis, ceci créera des unions anonymes à tous les niveaux; ce qui
              * gâche un peu de mémoire et de temps. */
-            auto expressions_membres = extrait_types_feuilles_opérateur_binaire(expr);
-            POUR (expressions_membres) {
-                auto type_membre = it->type;
-                if (!type_membre->est_type_type_de_données()) {
+            auto expressions_rubriques = extrait_types_feuilles_opérateur_binaire(expr);
+            POUR (expressions_rubriques) {
+                auto type_rubrique = it->type;
+                if (!type_rubrique->est_type_type_de_données()) {
                     rapporte_erreur(
                         "Impossible de créer une union anonyme entre un type et autre chose", it);
                     return CodeRetourValidation::Erreur;
                 }
 
-                auto type_de_données = type_membre->comme_type_type_de_données();
+                auto type_de_données = type_rubrique->comme_type_type_de_données();
                 auto type_connu = type_de_données->type_connu;
                 if (type_connu == nullptr) {
                     rapporte_erreur(
@@ -5697,27 +5697,27 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
                 types_rencontrés.insère(type_connu);
             }
 
-            auto noms_membres = kuri::tablet<IdentifiantCode *, 6>();
-            noms_membres.ajoute(ID::_0);
-            noms_membres.ajoute(ID::_1);
+            auto noms_rubriques = kuri::tablet<IdentifiantCode *, 6>();
+            noms_rubriques.ajoute(ID::_0);
+            noms_rubriques.ajoute(ID::_1);
 
             auto &table_identifiants = m_compilatrice.table_identifiants;
 
-            for (auto i = 2; i < expressions_membres.taille(); i++) {
+            for (auto i = 2; i < expressions_rubriques.taille(); i++) {
                 auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(enchaine(i));
-                noms_membres.ajoute(ident);
+                noms_rubriques.ajoute(ident);
             }
 
-            auto membres = kuri::tablet<MembreTypeComposé, 6>(expressions_membres.taille());
-            POUR_INDEX (expressions_membres) {
-                auto type_membre = it->type;
-                auto type_de_données = type_membre->comme_type_type_de_données();
+            auto rubriques = kuri::tablet<RubriqueTypeComposé, 6>(expressions_rubriques.taille());
+            POUR_INDEX (expressions_rubriques) {
+                auto type_rubrique = it->type;
+                auto type_de_données = type_rubrique->comme_type_type_de_données();
                 auto type_connu = type_de_données->type_connu;
-                membres[index_it] = {nullptr, type_connu, noms_membres[index_it]};
+                rubriques[indice_it] = {nullptr, type_connu, noms_rubriques[indice_it]};
             }
 
             auto type_union = m_compilatrice.typeuse.union_anonyme(
-                expr->lexème, expr->bloc_parent, membres);
+                expr->lexème, expr->bloc_parent, rubriques);
             expr->type = m_compilatrice.typeuse.type_type_de_donnees(type_union);
 
             return CodeRetourValidation::OK;
@@ -5836,7 +5836,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     return CodeRetourValidation::OK;
 }
 
-/* Note : l'expr_acces_enum n'est pas un NoeudExpressionMembre car nous pouvons avoir des
+/* Note : l'expr_acces_enum n'est pas un NoeudExpressionRubrique car nous pouvons avoir des
  * parenthèses. */
 RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
     NoeudExpressionBinaire *expr,
@@ -5968,14 +5968,14 @@ struct TypageItérandeBouclePour {
     int genre_de_boucle = -1;
     /* Type à utiliser pour « it ». */
     Type *type_variable = nullptr;
-    /* Type à utiliser pour « index_it ». */
+    /* Type à utiliser pour « indice_it ». */
     Type *type_index = nullptr;
 };
 
 using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente>;
 
 /**
- * Détermine le genre de boucle et le type de « it » et « index_it » selon le noeud itéré.
+ * Détermine le genre de boucle et le type de « it » et « indice_it » selon le noeud itéré.
  *
  * Retourne soit :
  * - une attente si nous itérons un type utilisant un opérateur pour
@@ -6151,7 +6151,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     }
 
     auto bloc = inst->bloc;
-    bloc->réserve_membres(nombre_de_variables);
+    bloc->réserve_rubriques(nombre_de_variables);
 
     auto const possède_index = nombre_de_variables == 2;
 
@@ -6173,23 +6173,23 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     inst->decl_it = crée_déclaration_pour_variable(m_assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
-    bloc->ajoute_membre(inst->decl_it);
+    bloc->ajoute_rubrique(inst->decl_it);
 
     if (possède_index) {
-        inst->decl_index_it = crée_déclaration_pour_variable(
+        inst->decl_indice_it = crée_déclaration_pour_variable(
             m_assembleuse, variables->expressions[1], typage_itérande.type_index, false);
-        variables->expressions[1] = inst->decl_index_it;
-        bloc->ajoute_membre(inst->decl_index_it);
+        variables->expressions[1] = inst->decl_indice_it;
+        bloc->ajoute_rubrique(inst->decl_indice_it);
     }
     else {
-        /* Crée une déclaration pour « index_it » si ni le programme, ni la syntaxeuse n'en
+        /* Crée une déclaration pour « indice_it » si ni le programme, ni la syntaxeuse n'en
          * a défini une. Ceci est requis pour la simplification du code.
-         * Nous ne l'ajoutons pas aux membres du bloc pour éviter de potentiels conflits
+         * Nous ne l'ajoutons pas aux rubriques du bloc pour éviter de potentiels conflits
          * avec des boucles externes, préservant ainsi le comportement des scripts
          * existants. À FAIRE : ajoute toujours ceci aux blocs ? */
         auto ref = m_assembleuse->crée_référence_déclaration(inst->lexème);
-        ref->ident = ID::index_it;
-        inst->decl_index_it = crée_déclaration_pour_variable(
+        ref->ident = ID::indice_it;
+        inst->decl_indice_it = crée_déclaration_pour_variable(
             m_assembleuse, ref, typage_itérande.type_index, false);
     }
     m_assembleuse->dépile_bloc();
@@ -6214,7 +6214,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
                                    opérateur_pour,
                                    opérateur_pour->bloc_parent,
                                    OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
-                                       OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_MEMBRES);
+                                       OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_RUBRIQUES);
 
     auto entête_copie_macro = copie_macro->comme_opérateur_pour();
     auto corps_copie_macro = entête_copie_macro->corps;
@@ -6726,18 +6726,18 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
         }
     }
     else {
-        kuri::tablet<MembreTypeComposé, 6> membres;
-        membres.réserve(expr->types_sortie.taille());
+        kuri::tablet<RubriqueTypeComposé, 6> rubriques;
+        rubriques.réserve(expr->types_sortie.taille());
 
         for (auto &type_declare : expr->types_sortie) {
             if (résoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
                 return CodeRetourValidation::Erreur;
             }
 
-            membres.ajoute({nullptr, type_sortie});
+            rubriques.ajoute({nullptr, type_sortie});
         }
 
-        type_sortie = m_compilatrice.typeuse.crée_tuple(membres);
+        type_sortie = m_compilatrice.typeuse.crée_tuple(rubriques);
     }
 
     auto type_fonction = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
@@ -6851,12 +6851,12 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         return CodeRetourValidation::Erreur;
     }
 
-    POUR (type_employé->membres) {
-        if (it.drapeaux & MembreTypeComposé::EST_IMPLICITE) {
+    POUR (type_employé->rubriques) {
+        if (it.drapeaux & RubriqueTypeComposé::EST_IMPLICITE) {
             continue;
         }
 
-        if (est_structure && (it.drapeaux & MembreTypeComposé::EST_CONSTANT) == 0) {
+        if (est_structure && (it.drapeaux & RubriqueTypeComposé::EST_CONSTANT) == 0) {
             continue;
         }
 
@@ -6867,11 +6867,11 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
             m_espace
                 ->rapporte_erreur(type_employé,
                                   "Impossible d'employer la déclaration car une "
-                                  "déclaration avec le même nom qu'un de ses membres "
+                                  "déclaration avec le même nom qu'un de ses rubriques "
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le membre en conflit est :\n")
+                .ajoute_message("Le rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
@@ -6890,7 +6890,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         decl->valeur_expression = valeur_expression;
         decl->genre_valeur = GenreValeur::DROITE;
 
-        bloc_parent->ajoute_membre(decl);
+        bloc_parent->ajoute_rubrique(decl);
     }
 
     return CodeRetourValidation::OK;
@@ -6933,8 +6933,8 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         bloc_parent = fonction_courante()->corps->bloc;
     }
 
-    POUR_INDEX (type_structure->membres) {
-        if (it.drapeaux & MembreTypeComposé::EST_CONSTANT) {
+    POUR_INDEX (type_structure->rubriques) {
+        if (it.drapeaux & RubriqueTypeComposé::EST_CONSTANT) {
             continue;
         }
 
@@ -6945,27 +6945,27 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
             m_espace
                 ->rapporte_erreur(empl,
                                   "Impossible d'employer la déclaration car une "
-                                  "déclaration avec le même nom qu'un de ses membres "
+                                  "déclaration avec le même nom qu'un de ses rubriques "
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le membre en conflit est :\n")
+                .ajoute_message("Le rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
 
-        auto decl_membre = m_assembleuse->crée_déclaration_variable(
+        auto decl_rubrique = m_assembleuse->crée_déclaration_variable(
             decl->lexème, nullptr, nullptr);
-        decl_membre->ident = it.nom;
-        decl_membre->type = it.type;
-        decl_membre->bloc_parent = bloc_parent;
-        decl_membre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        decl_membre->déclaration_vient_d_un_emploi = decl;
-        decl_membre->index_membre_employé = index_it;
-        decl_membre->expression = it.expression_valeur_defaut;
-        decl_membre->genre_valeur = GenreValeur::TRANSCENDANTALE;
+        decl_rubrique->ident = it.nom;
+        decl_rubrique->type = it.type;
+        decl_rubrique->bloc_parent = bloc_parent;
+        decl_rubrique->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+        decl_rubrique->déclaration_vient_d_un_emploi = decl;
+        decl_rubrique->index_rubrique_employée = indice_it;
+        decl_rubrique->expression = it.expression_valeur_defaut;
+        decl_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-        bloc_parent->ajoute_membre(decl_membre);
+        bloc_parent->ajoute_rubrique(decl_rubrique);
     }
 
     return CodeRetourValidation::OK;

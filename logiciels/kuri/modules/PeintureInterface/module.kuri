@@ -590,11 +590,11 @@ donne_largeurs_bordure_pour_dessin :: fonc (largeurs: [4]r32) -> [4]n32
     résultat: [4]n32
     pour largeurs {
         si it != 0.0 && it < 1.0 {
-            résultat[index_it] = 1
+            résultat[indice_it] = 1
             continue
         }
 
-        résultat[index_it] = (it + 0.5) comme n32
+        résultat[indice_it] = (it + 0.5) comme n32
     }
     retourne résultat
 }

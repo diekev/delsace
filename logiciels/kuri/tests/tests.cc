@@ -77,7 +77,7 @@ static Test tests_unitaires[] = {
     {"", "fichiers/test_fonction_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
     {"", "fichiers/test_fonction_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
     {"", "fichiers/test_structure_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
-    {"", "fichiers/test_structure_membre_inconnu.kuri", erreur::Genre::MEMBRE_INCONNU},
+    {"", "fichiers/test_structure_rubrique_inconnu.kuri", erreur::Genre::RUBRIQUE_INCONNUE},
     {
         "",
         "fichiers/test_structure_redefinie.kuri",
@@ -87,7 +87,7 @@ static Test tests_unitaires[] = {
     {"", "fichiers/test_type_inconnu.kuri", erreur::Genre::TYPE_INCONNU},
     {"", "fichiers/test_structure_variable_inconnue.kuri", erreur::Genre::VARIABLE_INCONNUE},
     {"", "fichiers/test_structure_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
-    {"", "fichiers/test_structure_membre_redefini.kuri", erreur::Genre::MEMBRE_REDEFINI},
+    {"", "fichiers/test_structure_rubrique_redefini.kuri", erreur::Genre::RUBRIQUE_REDEFINIE},
     {"", "fichiers/test_tableau_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
     {"", "fichiers/test_tableau_type_argument.kuri", erreur::Genre::TYPE_ARGUMENT},
     {"", "fichiers/test_transtypage_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
