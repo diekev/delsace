@@ -1209,7 +1209,7 @@ AVStream :: struct #externe {
 
     codecpar: *AVCodecParameters
 
-    // Des membres sensés être privés viennent après.
+    // Des rubriques sensées être privées viennent après.
 }
 
 AVProgram :: struct #externe;

@@ -67,8 +67,8 @@ struct InfoTypeTranche : public InfoType {
     InfoType *type_élément = nullptr;
 };
 
-struct InfoTypeMembreStructure {
-    // Les Drapeaux sont définis dans MembreTypeComposé
+struct InfoTypeRubriqueStructure {
+    // Les Drapeaux sont définis dans RubriqueTypeComposé
 
     kuri::chaine_statique nom{};
     InfoType *info = nullptr;
@@ -80,7 +80,7 @@ struct InfoTypeMembreStructure {
 struct InfoTypeStructure : public InfoType {
     bool est_polymorphique = false;
     kuri::chaine_statique nom{};
-    kuri::tranche<InfoTypeMembreStructure *> membres{};
+    kuri::tranche<InfoTypeRubriqueStructure *> rubriques{};
     kuri::tranche<InfoTypeStructure *> structs_employées{};
     kuri::tranche<const Annotation *> annotations{};
     InfoTypeStructure *polymorphe_de_base = nullptr;
@@ -90,7 +90,7 @@ struct InfoTypeUnion : public InfoType {
     bool est_sûre = false;
     bool est_polymorphique = false;
     kuri::chaine_statique nom{};
-    kuri::tranche<InfoTypeMembreStructure *> membres{};
+    kuri::tranche<InfoTypeRubriqueStructure *> rubriques{};
     InfoType *type_le_plus_grand = nullptr;
     int64_t décalage_index = 0;
     kuri::tranche<const Annotation *> annotations{};
@@ -124,7 +124,7 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeEntier, infos_types_entiers)                                                        \
     O(InfoTypeÉnum, infos_types_énums)                                                            \
     O(InfoTypeFonction, infos_types_fonctions)                                                    \
-    O(InfoTypeMembreStructure, infos_types_membres_structures)                                    \
+    O(InfoTypeRubriqueStructure, infos_types_rubriques_structures)                                    \
     O(InfoTypeStructure, infos_types_structures)                                                  \
     O(InfoTypePointeur, infos_types_pointeurs)                                                    \
     O(InfoTypeTableau, infos_types_tableaux)                                                      \
@@ -138,7 +138,7 @@ struct InfoTypeVariadique : public InfoType {
     O(Annotation const *, annotations)                                                            \
     O(char, valeurs_énums)                                                                        \
     O(kuri::chaine_statique, noms_énums)                                                          \
-    O(InfoTypeMembreStructure *, membres)                                                         \
+    O(InfoTypeRubriqueStructure *, rubriques)                                                         \
     O(InfoType *, tableau_info_type)                                                              \
     O(InfoTypeStructure *, structs_employées)
 

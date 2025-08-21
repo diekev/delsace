@@ -1,4 +1,4 @@
-/* Crash si une union ne comporte que des membres de type « rien ».
+/* Crash si une union ne comporte que des rubriques de type « rien ».
  * Catégorie : [crash, type union, type rien]
  */
 

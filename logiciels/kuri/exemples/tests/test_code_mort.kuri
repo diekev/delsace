@@ -56,7 +56,7 @@ enlignage_fonction_initialisation :: fonc ()
     v: Vecteur3
 }
 
-/* optimisations assez correctes, la propagation des valeurs des membres ne
+/* optimisations assez correctes, la propagation des valeurs des rubriques ne
  * se fait pas s'il y une temporaire */
 principale :: fonc ()
 {

@@ -479,7 +479,7 @@ parse_opaque_host :: fonc (input: ChaineUTF16) -> Optionnel(Host)
             continue
         }
         
-        restant := sous_chaine(input, index_it + 1, input.taille() - 1)
+        restant := sous_chaine(input, indice_it + 1, input.taille() - 1)
         si !commence_par(restant, est_chiffre_hexadecimal_ascii, 2) {
             rapporte_erreur_url(ErreurDeParsage.InvalidURLUnit)
         }

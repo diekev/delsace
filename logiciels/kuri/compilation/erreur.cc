@@ -160,19 +160,19 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
                 if (decl_struct->est_polymorphe) {
                     e.ajoute_message("\tLes paramètres de la structure sont : \n");
 
-                    POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
+                    POUR (*decl_struct->bloc_constantes->rubriques.verrou_lecture()) {
                         e.ajoute_message("\t\t", it->ident->nom, '\n');
                     }
                 }
                 else {
-                    e.ajoute_message("\tLes membres de la structure sont : \n");
+                    e.ajoute_message("\tLes rubriques de la structure sont : \n");
 
-                    POUR (decl_struct->membres) {
+                    POUR (decl_struct->rubriques) {
                         e.ajoute_message("\t\t- ", it.nom->nom, '\n');
                     }
                 }
 
-                e.genre_erreur(erreur::Genre::MEMBRE_INCONNU);
+                e.genre_erreur(erreur::Genre::RUBRIQUE_INCONNUE);
             }
             break;
         }
@@ -211,13 +211,14 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         }
         case RaisonErreurAppariement::TROP_D_EXPRESSION_POUR_UNION:
         {
-            e.ajoute_message("\tOn ne peut initialiser qu'un seul membre d'une union à la fois\n");
+            e.ajoute_message(
+                "\tOn ne peut initialiser qu'un seul rubrique d'une union à la fois\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
         case RaisonErreurAppariement::EXPRESSION_MANQUANTE_POUR_UNION:
         {
-            e.ajoute_message("\tOn doit initialiser au moins un membre de l'union\n");
+            e.ajoute_message("\tOn doit initialiser au moins un rubrique de l'union\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
@@ -366,21 +367,21 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                         ").\n");
 }
 
-struct CandidatMembre {
+struct CandidatRubrique {
     int64_t distance = 0;
     kuri::chaine_statique chaine = "";
 };
 
-static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres,
+static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriques,
                             kuri::chaine_statique const &nom_donne)
 {
-    auto candidat = CandidatMembre{};
+    auto candidat = CandidatRubrique{};
     candidat.distance = 1000;
 
-    membres.pour_chaque_element([&](kuri::chaine_statique nom_membre) {
-        auto candidat_possible = CandidatMembre();
-        candidat_possible.distance = distance_levenshtein(nom_donne, nom_membre);
-        candidat_possible.chaine = nom_membre;
+    rubriques.pour_chaque_element([&](kuri::chaine_statique nom_rubrique) {
+        auto candidat_possible = CandidatRubrique();
+        candidat_possible.distance = distance_levenshtein(nom_donne, nom_rubrique);
+        candidat_possible.chaine = nom_rubrique;
 
         if (candidat_possible.distance < candidat.distance) {
             candidat = candidat_possible;
@@ -392,15 +393,15 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &membres
     return candidat;
 }
 
-void membre_inconnu(EspaceDeTravail const &espace,
-                    NoeudExpression const *acces,
-                    NoeudExpression const *membre,
-                    TypeCompose const *type)
+void rubrique_inconnu(EspaceDeTravail const &espace,
+                      NoeudExpression const *acces,
+                      NoeudExpression const *rubrique,
+                      TypeCompose const *type)
 {
-    auto membres = kuri::ensemble<kuri::chaine_statique>();
+    auto rubriques = kuri::ensemble<kuri::chaine_statique>();
 
-    POUR (type->membres) {
-        membres.insère(it.nom->nom);
+    POUR (type->rubriques) {
+        rubriques.insère(it.nom->nom);
     }
 
     const char *message;
@@ -419,30 +420,30 @@ void membre_inconnu(EspaceDeTravail const &espace,
     }
 
     /* Les discriminations sur des unions peuvent avoir des expressions d'appel pour capturer le
-     * membre. */
-    if (membre->est_appel()) {
-        membre = membre->comme_appel()->expression;
+     * rubrique. */
+    if (rubrique->est_appel()) {
+        rubrique = rubrique->comme_appel()->expression;
     }
 
-    auto candidat = trouve_candidat(membres, membre->ident->nom);
+    auto candidat = trouve_candidat(rubriques, rubrique->ident->nom);
 
     auto e = espace.rapporte_erreur(
-        acces, "Dans l'expression d'accès de membre", Genre::MEMBRE_INCONNU);
-    e.ajoute_message("Le membre « ", membre->ident->nom, " » est inconnu !\n\n");
+        acces, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
+    e.ajoute_message("Le rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
 
-    if (membres.taille() == 0) {
-        e.ajoute_message("Aucun membre connu !\n");
+    if (rubriques.taille() == 0) {
+        e.ajoute_message("Aucun rubrique connu !\n");
     }
     else {
-        if (membres.taille() <= 32) {
-            e.ajoute_message("Les membres ", message, " sont :\n");
+        if (rubriques.taille() <= 32) {
+            e.ajoute_message("Les rubriques ", message, " sont :\n");
 
-            membres.pour_chaque_element(
+            rubriques.pour_chaque_element(
                 [&](kuri::chaine_statique it) { e.ajoute_message("\t", it, "\n"); });
         }
         else {
             /* Évitons de spammer la sortie. */
-            e.ajoute_message("Note : la structure possède un nombre de membres trop important "
+            e.ajoute_message("Note : la structure possède un nombre de rubriques trop important "
                              "pour tous les afficher.\n");
         }
 

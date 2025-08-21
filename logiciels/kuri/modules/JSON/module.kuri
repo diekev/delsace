@@ -28,7 +28,7 @@ imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
     imprime("%\n", ligne.texte)
 
     pour ligne.position_curseur {
-        si ligne.texte[index_it] == '\t' {
+        si ligne.texte[indice_it] == '\t' {
             imprime("\t")
         }
         sinon {
