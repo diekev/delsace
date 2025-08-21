@@ -89,7 +89,7 @@ Document :: struct {
     scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
     scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement
 
-    render_blocking_elements: [..]*Élément
+    render_blocking_elements: [..]*Element
 
     la_parseuse_ne_peut_changer_le_mode: bool
     ready_for_post_load_tasks: bool
@@ -118,7 +118,7 @@ Document :: struct {
     things_that_delay_the_load_event: n32
 
     /* Pour les navigation de fragments. */
-    target_element: *Élément
+    target_element: *Element
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
@@ -130,9 +130,9 @@ Document :: struct {
      * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
     ajournement_arbre := CSS.AjournementArbre.Construction
 
-    noeud_survolé: *Élément
+    noeud_survolé: *Element
     /* L'élément sous la souris lors des pressions et relâchement. */
-    élément_en_cours_d_activation: *Élément
+    élément_en_cours_d_activation: *Element
 
     images_disponibles: [..]ImageDisponible @NeVisitePas
 
@@ -237,17 +237,17 @@ donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
     retourne nul
 }
 
-donne_title_element :: fonc (document: *Document) -> *Élément
+donne_title_element :: fonc (document: *Document) -> *Element
 {
     retourne donne_premier_élément_de_type(document, TAG_title)
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
-donne_document_element :: fonc (document: *Document) -> *Élément
+donne_document_element :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si est_élément(it) {
-            retourne it comme *Élément
+            retourne it comme *Element
         }
     }
     retourne nul
@@ -274,7 +274,7 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
         traversée.taille -= 1
 
         si noeud.est_élément() {
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
             name := élément.donne_attribut_ou_chaine_vide(ATTR_name)
             si name == element_name {
                 résultat.ajoute_noeud(élément)
@@ -289,10 +289,10 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
     retourne résultat
 }
 
-donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Élément
+donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     si noeud.est_élément_type(tag) {
-        retourne noeud comme *Élément
+        retourne noeud comme *Element
     }
 
     pour noeud.enfants {
@@ -306,11 +306,11 @@ donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Élé
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
-donne_élément_document :: fonc (document: *Document) -> *Élément
+donne_élément_document :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si it.est_élément() {
-            retourne it comme *Élément
+            retourne it comme *Element
         }
     }
     retourne nul
@@ -327,13 +327,13 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
-donne_head :: fonc (document: *Document) -> *Élément
+donne_head :: fonc (document: *Document) -> *Element
 {
     élément_html := document.donne_élément_html()
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_head) {
-                retourne it comme *Élément
+                retourne it comme *Element
             }
         }
     }
@@ -341,13 +341,13 @@ donne_head :: fonc (document: *Document) -> *Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
-donne_élément_body :: fonc (document: *Document) -> *Élément
+donne_élément_body :: fonc (document: *Document) -> *Element
 {
     élément_html := document.donne_élément_html()
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
-                retourne it comme *Élément
+                retourne it comme *Element
             }
         }
     }
@@ -413,7 +413,7 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 
-supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Élément)
+supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Element)
 {
     pour document.feuilles_de_style {
         si it.owner_node != élément {
@@ -426,7 +426,7 @@ supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *É
     }
 }
 
-définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
+définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
 {
     si document.noeud_survolé == noeud {
         retourne
@@ -442,7 +442,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
             saufsi parent.est_élément() {
                 arrête
             }
-            noeud_courant = parent comme *Élément
+            noeud_courant = parent comme *Element
         }
     }
 
@@ -456,7 +456,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
             saufsi parent.est_élément() {
                 arrête
             }
-            noeud_courant = parent comme *Élément
+            noeud_courant = parent comme *Element
         }
     }
 
@@ -487,13 +487,13 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
             retourne nul
         }
 
-        noeud = parent comme *Élément
+        noeud = parent comme *Element
     }
 
     retourne nul
 }
 
-donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
+donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
 {
     si a == nul {
         retourne b
@@ -503,7 +503,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         retourne a
     }
 
-    ancêtres_de_a: [..]*Élément
+    ancêtres_de_a: [..]*Element
     diffère déloge(ancêtres_de_a)
 
     noeud := a
@@ -512,7 +512,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         saufsi noeud.parent.est_élément() {
             arrête
         }
-        noeud = noeud.parent comme *Élément
+        noeud = noeud.parent comme *Element
     }
 
     noeud = b
@@ -525,7 +525,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         saufsi noeud.parent.est_élément() {
             arrête
         }
-        noeud = noeud.parent comme *Élément
+        noeud = noeud.parent comme *Element
     }
 
     retourne nul
@@ -538,7 +538,7 @@ invalide_style :: fonc (document: *Document)
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
-invalide_style :: fonc (document: *Document, élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+invalide_style :: fonc (document: *Document, élément: *Element, pseudo_classe: CSS.PseudoClasses)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -563,7 +563,7 @@ invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut "id". */
-invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, vieil_id: *DOMString, nouvel_id: *DOMString)
+invalide_style_pour_id :: fonc (document: *Document, élément: *Element, vieil_id: *DOMString, nouvel_id: *DOMString)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -587,7 +587,7 @@ invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, viei
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut spécifié. */
-invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément, attribut: DOMString)
+invalide_style_pour_attribut :: fonc (document: *Document, élément: *Element, attribut: DOMString)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -601,7 +601,7 @@ invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément
     invalide_style_depuis_élément(document, élément)
 }
 
-invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
+invalide_style_depuis_élément :: fonc (document: *Document, élément: *Element)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -627,7 +627,7 @@ requiers_redessin :: fonc (document: *Document)
     document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
 }
 
-donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
+donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element) -> CSS.AjournementArbre
 {
     résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
 
@@ -641,7 +641,7 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
             continue
         }
 
-        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Élément)
+        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Element)
     }
 
     retourne résultat
@@ -708,7 +708,7 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
 
 /* https://dom.spec.whatwg.org/#dom-document-createelement
  * À FAIRE : standardise */
-create_element :: fonc (document: *Document, local_name: DOMString) -> *Élément
+create_element :: fonc (document: *Document, local_name: DOMString) -> *Element
 {
     retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML)
 }
@@ -813,7 +813,7 @@ DocumentFragment :: struct {
     empl base_noeud: Node
     table = *table_virtuelle_fragment_document
 
-    host: *Élément
+    host: *Element
 }
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment

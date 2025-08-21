@@ -123,8 +123,8 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
     si noeud.genre == HTML.GenreNoeud.Texte {
         // RÀF pour le moment
     }
-    sinon si noeud.genre == HTML.GenreNoeud.Élément {
-        élément := noeud comme *Élément
+    sinon si noeud.genre == HTML.GenreNoeud.Element {
+        élément := noeud comme *Element
 
         contexte_vérification.nombre_éléments += 1
 

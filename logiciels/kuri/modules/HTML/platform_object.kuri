@@ -242,7 +242,7 @@ détermine_indice_prototype :: fonc (type: type_de_données) -> z64
         retourne résultat
     }
 
-    types_à_essayer := type_de_données.[HTMLElement, Élément, Node, EventTarget]
+    types_à_essayer := type_de_données.[HTMLElement, Element, Node, EventTarget]
 
     infos := __table_des_types[type] comme *InfoTypeStructure
 

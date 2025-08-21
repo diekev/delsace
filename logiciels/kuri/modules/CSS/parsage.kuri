@@ -506,7 +506,7 @@ parse_a_comma_separated_list_of_component_values :: fonc (input: []ComponentValu
  * \{ */
 
 /* https://drafts.csswg.org/css-color/#parse-a-css-color-value */
-parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Élément @inutilisée) -> Optionnel(CouleurRVBAN8)
+parse_a_css_color :: fonc (input: CSSOMString, context: *HTML.Element @inutilisée) -> Optionnel(CouleurRVBAN8)
 {
     // 1. Parse input as a <color>. If the result is failure, return failure; otherwise, let color be the result.
     opt_color := parse_according_to_a_css_grammar(input, parse_propriété_color)

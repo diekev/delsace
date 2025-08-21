@@ -74,7 +74,7 @@ donne_item :: fonc (node_list: *NodeList, index: n32) -> *Node
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Élément)(bool)
+    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Element)(bool)
     sur_destruction: fonc(*HTMLCollectionFilter)(rien)
 }
 
@@ -85,7 +85,7 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
         classes: [..]DOMString
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Élément) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool
     {
         si élément == collection.root {
             retourne faux
@@ -140,7 +140,7 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
         tag_name: DOMString
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Élément) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool
     {
         filtre := base comme *TagNameFilter
         // À FAIRE : qualified name
@@ -200,7 +200,7 @@ HTMLCollection :: struct {
     root: *Node
     filter: *HTMLCollectionFilter
 
-    éléments: [..]*Élément
+    éléments: [..]*Element
 }
 
 crée_html_collection :: fonc (noeud: *Node) -> *HTMLCollection
@@ -208,7 +208,7 @@ crée_html_collection :: fonc (noeud: *Node) -> *HTMLCollection
     retourne crée_platform_object(noeud, HTMLCollection)
 }
 
-ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Élément)
+ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Element)
 {
     tableau_ajoute(*collection.éléments, élément)
 }
@@ -222,7 +222,7 @@ initialise_collection_pour_filtre :: fonc (collection: *HTMLCollection)
 initialise_collection_pour_filtre_récursif :: fonc (racine: *Node, collection: *HTMLCollection)
 {
     si racine.est_élément() {
-        élément := racine comme *Élément
+        élément := racine comme *Element
 
         si collection.filter.sur_filtre(collection.filter, collection, élément) {
             ajoute_élément(collection, élément)
@@ -248,7 +248,7 @@ donne_length :: fonc (collection: *HTMLCollection) -> n32
     retourne collection.éléments.taille comme n32
 }
 
-donne_item :: fonc (collection: *HTMLCollection, index: n32) -> *Élément
+donne_item :: fonc (collection: *HTMLCollection, index: n32) -> *Element
 {
     retourne collection.éléments[index]
 }

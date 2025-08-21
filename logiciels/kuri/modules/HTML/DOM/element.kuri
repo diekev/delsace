@@ -1,28 +1,28 @@
 
 /* ------------------------------------------------------------------------- */
-/** \nom Élément
+/** \nom Element
  * https://dom.spec.whatwg.org/#element
  * \{ */
 
 #portée_module
 
-TableVirtuelleÉlément :: struct {
+TableVirtuelleElement :: struct {
     empl base: TableVirtuelleNoeud
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
-    sur_dépilement: fonc(*Élément)(rien)
+    sur_dépilement: fonc(*Element)(rien)
 
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
      * La fonction doit retourner si oui ou non l'attribut fut géré. */
-    sur_changement_attribut: fonc(*Élément, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = element_sur_changement_attribut
+    sur_changement_attribut: fonc(*Element, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = element_sur_changement_attribut
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc(*Élément, *CSS.RésolveuseStyle)(rien)
+    sur_applique_presentational_hints: fonc(*Element, *CSS.RésolveuseStyle)(rien)
 }
 
 #portée_export
 
-Élément :: struct {
+Element :: struct {
     empl base_noeud: Node
     table = *table_virtuelle_élément
 
@@ -54,13 +54,13 @@ TableVirtuelleÉlément :: struct {
 
 #portée_module
 
-table_virtuelle_élément := TableVirtuelleÉlément(
-    classe = Élément,
+table_virtuelle_élément := TableVirtuelleElement(
+    classe = Element,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = element_sur_changement_attribut
 )
 
-élément_détruit_données :: fonc (élément: *Élément)
+élément_détruit_données :: fonc (élément: *Element)
 {
     noeud_sur_destruction(élément)
     CSS.détruit_style_declaration(élément.style)
@@ -72,11 +72,11 @@ table_virtuelle_élément := TableVirtuelleÉlément(
 
 élément_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    élément := base comme *Élément
+    élément := base comme *Element
     élément_détruit_données(élément)
 }
 
-element_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
+element_sur_changement_attribut :: fonc (élément: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
         retourne vrai
@@ -108,7 +108,7 @@ element_sur_changement_attribut :: fonc (élément: *Élément, local_name: DOMS
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
-ajoute_attribut :: fonc (élément: *Élément, attribut_lexé: AttributLexé)
+ajoute_attribut :: fonc (élément: *Element, attribut_lexé: AttributLexé)
 {
     // 1. Append attribute to element’s attribute list.
     attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
@@ -134,7 +134,7 @@ change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
 }
 
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
-gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
+gère_changement_attribute :: fonc (attribut: *Attr, élément: *Element, vieille_valeur: *DOMString, nouvelle_valeur: *DOMString)
 {
     // À FAIRE 1. Queue a mutation record of "attributes" for element with attribute’s local name,
     //    attribute’s namespace, oldValue, « », « », null, and null.
@@ -145,7 +145,7 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, viei
 
     // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
     //    and attribute’s namespace.
-    table := élément.table comme *TableVirtuelleÉlément
+    table := élément.table comme *TableVirtuelleElement
     si table && table.sur_changement_attribut {
         _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
     }
@@ -154,14 +154,14 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Élément, viei
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
-get_an_attribute_value :: fonc (élément: *Élément, nom: DOMString) -> DOMString
+get_an_attribute_value :: fonc (élément: *Element, nom: DOMString) -> DOMString
 {
     // À FAIRE : standardise
     retourne donne_attribut_ou_chaine_vide(élément, nom)
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
-set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: DOMString)
+set_an_attribute_value :: fonc (élément: *Element, nom: DOMString, valeur: DOMString)
 {
     // À FAIRE : standardise
     attribut := cherche_attribut(élément, nom)
@@ -175,7 +175,7 @@ set_an_attribute_value :: fonc (élément: *Élément, nom: DOMString, valeur: D
 }
 
 /* https://dom.spec.whatwg.org/#dom-element-setattribute */
-set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: DOMString)
+set_attribute :: fonc (élément: *Element, qualified_name: DOMString, value: DOMString)
 {
     // À FAIRE 1. If qualifiedName does not match the Name production in XML,
     //   then throw an "InvalidCharacterError" DOMException.
@@ -201,7 +201,7 @@ set_attribute :: fonc (élément: *Élément, qualified_name: DOMString, value: 
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
-get_elements_by_class_name :: fonc (élément: *Élément, class_names: DOMString) -> *HTMLCollection
+get_elements_by_class_name :: fonc (élément: *Element, class_names: DOMString) -> *HTMLCollection
 {
     // 1. Let classes be the result of running the ordered set parser on classNames.
     classes := run_ordered_set_parser(class_names)
@@ -248,7 +248,7 @@ get_elements_by_tag_name :: fonc (noeud: *Node, qualified_name: DOMString) -> *H
 
 #portée_export
 
-donne_liste_classe :: fonc (élément: *Élément) -> []DOMString
+donne_liste_classe :: fonc (élément: *Element) -> []DOMString
 {
     saufsi élément.liste_classes {
         valeur := donne_attribut(élément, ATTR_class)

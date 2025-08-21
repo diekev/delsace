@@ -3,7 +3,7 @@
 /* Comparaisons spécifiques pour les mêmes genres de noeuds. Les attributs ne sont pas
  * vérifiés. */
 
-noeuds_éléments_sont_égaux :: fonc (élément1: *Élément, élément2: *Élément) -> bool
+noeuds_éléments_sont_égaux :: fonc (élément1: *Element, élément2: *Element) -> bool
 {
     retourne élément1.local_name == élément2.local_name
 }
@@ -58,8 +58,8 @@ noeuds_sont_égaux :: fonc (noeud1: *Node, noeud2: *Node) -> bool
                 retourne faux
             }
         }
-        Élément {
-            si !noeuds_éléments_sont_égaux(noeud1 comme *Élément, noeud2 comme *Élément) {
+        Element {
+            si !noeuds_éléments_sont_égaux(noeud1 comme *Element, noeud2 comme *Element) {
                 retourne faux
             }
         }

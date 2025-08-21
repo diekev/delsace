@@ -40,7 +40,7 @@ nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
     retourne gna.uniforme(0.0, 10.0) comme z32
 }
 
-génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Élément)
+génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Element)
 {
     si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
         retourne
@@ -70,7 +70,7 @@ génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent
             continue
         }
 
-        élément_enfant := it comme *Élément
+        élément_enfant := it comme *Element
 
         saufsi !est_tag_auto_fermant(élément_enfant.local_name) {
             continue

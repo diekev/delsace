@@ -260,9 +260,7 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(*enchaineuse, "JS :: importe JavaScript\n")
 
-    // À FAIRE : renomme nos types
     ajoute_au_tampon(*enchaineuse, "#portée_module\n")
-    ajoute_au_tampon(*enchaineuse, "Element :: Élément\n")
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier)
     chemin_parent := chemin_fichier.chemin_parent()

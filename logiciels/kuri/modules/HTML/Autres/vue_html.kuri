@@ -701,7 +701,7 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
     diffère déloge(texte)
 
     si noeud.est_élément() {
-        élément := noeud comme *Élément
+        élément := noeud comme *Element
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)

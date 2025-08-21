@@ -2899,7 +2899,7 @@ scroll_to_the_fragment :: fonc (user_agent: *UserAgent, document: *Document)
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-indicated-part-of-the-document */
-donne_indicated_part :: fonc (document: *Document) -> *Élément
+donne_indicated_part :: fonc (document: *Document) -> *Element
 {
     assert(document.type == "html")
     retourne select_the_indicated_part(document, document.url)
@@ -2907,14 +2907,14 @@ donne_indicated_part :: fonc (document: *Document) -> *Élément
 
 #portée_module
 
-__top_of_the_document: Élément = ---
-donne_special_value_top_of_the_document :: fonc () -> *Élément
+__top_of_the_document: Element = ---
+donne_special_value_top_of_the_document :: fonc () -> *Element
 {
     retourne *__top_of_the_document
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#select-the-indicated-part */
-select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
+select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Element
 {
     // 1. If document's URL does not equal url with exclude fragments set to true, then return null.
     saufsi equals(document.url, url, vrai) {
@@ -2952,7 +2952,7 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#find-a-potential-indicated-element */
-find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Élément
+find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Element
 {
     pile: Pile(*Node)
     diffère détruit(pile)
@@ -2963,7 +2963,7 @@ find_a_potential_indicated_element :: fonc (document: *Document, fragment: chain
         noeud := pile.dépile()
 
         si noeud.est_élément() {
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
 
             // 1. If there is an element in the document tree whose root is document and
             //    that has an ID equal to fragment, then return the first such element in tree order.

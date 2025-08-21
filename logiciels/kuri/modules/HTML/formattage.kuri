@@ -243,10 +243,10 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, 
             formatte_chaine_utf16(*données, flux_sortie)
             //enchaineuse.ajoute_au_tampon(données)
         }
-        Élément {
+        Element {
             tabulation_au_besoin(contexte_formattage, enchaineuse)
 
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
 
             garde_tag_sur_la_même_ligne := faux
             si élément.local_name == TAG_a || élément.local_name == TAG_p || élément.local_name == TAG_span || élément.local_name == TAG_br {

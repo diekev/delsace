@@ -1064,7 +1064,7 @@ donne_event_handler :: fonc (event_target: *EventTarget, nom: DOMString) -> *Eve
     retourne résultat
 }
 
-est_élément :: fonc (event_target: *EventTarget) -> *Élément
+est_élément :: fonc (event_target: *EventTarget) -> *Element
 {
     table := event_target.table
     saufsi table {
@@ -1072,11 +1072,11 @@ est_élément :: fonc (event_target: *EventTarget) -> *Élément
     }
 
     infos := __table_des_types[table.classe] comme *InfoTypeStructure
-    saufsi est_struct_ou_employeuse_de(infos, info_de(Élément)) {
+    saufsi est_struct_ou_employeuse_de(infos, info_de(Element)) {
         retourne nul
     }
 
-    retourne event_target comme *Élément
+    retourne event_target comme *Element
 }
 
 est_node :: fonc (event_target: *EventTarget) -> *Node

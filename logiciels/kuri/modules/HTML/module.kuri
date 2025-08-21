@@ -134,7 +134,7 @@ imprime_noeud :: fonc (noeud: *Node, tab: z32) -> rien
         imprime("%\n", texte.données)
     }
     sinon si noeud.est_élément() {
-        élément := noeud comme *Élément
+        élément := noeud comme *Element
         imprime("<%", élément.local_name)
 
         pour élément.attributs {

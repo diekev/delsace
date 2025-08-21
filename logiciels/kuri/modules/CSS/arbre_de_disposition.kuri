@@ -277,7 +277,7 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
     retourne résultat
 }
 
-donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
+donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Element
 {
     indice := donne_indice_pour_position(*arbre.tampon_id, x, y)
     saufsi indice.possède_valeur() {
@@ -740,7 +740,7 @@ RègleEtSpécificité :: struct {
     spécificité: Spécificité
 }
 
-collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
 {
     temp: [..]RègleAppariée
     diffère déloge(temp)
@@ -767,7 +767,7 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
     retourne résultat
 }
 
-apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élément, pseudo_element: *PseudoElement, résultat: *[..]RègleEtSpécificité)
+apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Element, pseudo_element: *PseudoElement, résultat: *[..]RègleEtSpécificité)
 {
     règle_appariée := faux
     spécificité: Spécificité
@@ -790,7 +790,7 @@ apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élé
     }
 }
 
-résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
+résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
     règles := collecte_les_règles_appropriées(résolveuse, élément, pseudo_element)
     diffère déloge(règles)
@@ -861,7 +861,7 @@ AjournementArbre :: énum_drapeau {
     StackingContext
 }
 
-donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
+donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element) -> AjournementArbre
 {
     box := élément.box
     anciennes_propriétés: *PropriétésDeStyle
@@ -1482,7 +1482,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
         retourne
     }
 
-    élément := noeud comme *HTML.Élément
+    élément := noeud comme *HTML.Element
 
     propriétés_parent: *PropriétésDeStyle
     si parent {
@@ -1621,7 +1621,7 @@ crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockB
     résultat.ajoute_enfant(texte)
 }
 
-crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *Box
+crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Element) -> *Box
 {
     si display.inner_type == Display.Type.Table {
         wrapper_box := arbre.crée_box(TableWrapperBox)
@@ -1689,7 +1689,7 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
     retourne inline
 }
 
-crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, élément: *HTML.Élément, ident_pseudo_element: CSSOMString)
+crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, élément: *HTML.Element, ident_pseudo_element: CSSOMString)
 {
     pseudo_element := PseudoElement(ident_pseudo_element)
     propriétés_pseudo := résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
@@ -2216,7 +2216,7 @@ donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
     retourne donne_ligne_de_base_marge(box.modèle_de_boite)
 }
 
-donne_élément :: fonc (box: *Box) -> *HTML.Élément
+donne_élément :: fonc (box: *Box) -> *HTML.Element
 {
     si box.noeud == nul {
         retourne nul
@@ -2227,10 +2227,10 @@ donne_élément :: fonc (box: *Box) -> *HTML.Élément
         retourne nul
     }
 
-    retourne noeud comme *HTML.Élément
+    retourne noeud comme *HTML.Element
 }
 
-donne_élément_récursif :: fonc (box: *Box) -> *HTML.Élément
+donne_élément_récursif :: fonc (box: *Box) -> *HTML.Element
 {
     box_courant := box
 
@@ -2919,7 +2919,7 @@ formatte_intérieur :: fonc (box: *BlockBox, ctx: *ContexteDeFormattage, mode: M
     }
 }
 
-est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élément) -> bool
+est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Element) -> bool
 {
     tags := [HTML.TAG_div, HTML.TAG_thead, HTML.TAG_tbody, HTML.TAG_tfoot, HTML.TAG_tr, HTML.TAG_td, HTML.TAG_th]
 
@@ -4117,7 +4117,7 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
             continue
         }
 
-        élément := it comme *HTML.Élément
+        élément := it comme *HTML.Element
         si élément.local_name != HTML.TAG_option {
             continue
         }

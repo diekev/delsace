@@ -39,7 +39,7 @@ DOCUMENT_FRAGMENT_NODE : n16 : 11
 NOTATION_NODE : n16 : 12 // legacy
 
 GenreNoeud :: énum n16 {
-    Élément :: ELEMENT_NODE
+    Element :: ELEMENT_NODE
     Attr :: ATTRIBUTE_NODE
     Texte :: TEXT_NODE
     Section_CDATA :: CDATA_SECTION_NODE
@@ -106,16 +106,16 @@ est_document :: fonc (noeud: *Node) -> bool
 
 est_élément :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Élément
+    retourne noeud.genre == GenreNoeud.Element
 }
 
-est_élément_type :: fonc (noeud: *Node, type: chaine) -> *Élément
+est_élément_type :: fonc (noeud: *Node, type: chaine) -> *Element
 {
     saufsi est_élément(noeud) {
         retourne nul
     }
 
-    élément := noeud comme *Élément
+    élément := noeud comme *Element
 
     si élément.local_name == type {
         retourne élément
@@ -124,13 +124,13 @@ est_élément_type :: fonc (noeud: *Node, type: chaine) -> *Élément
     retourne nul
 }
 
-est_élément_type :: fonc (noeud: *Node, tag: DOMString) -> *Élément
+est_élément_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     saufsi est_élément(noeud) {
         retourne nul
     }
 
-    élément := noeud comme *Élément
+    élément := noeud comme *Element
 
     si élément.local_name == tag {
         retourne élément
@@ -189,7 +189,7 @@ ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
                 continue
             }
 
-            élément := it comme *Élément
+            élément := it comme *Element
             saufsi premier_élément_rencontré {
                 premier_élément_rencontré = vrai
                 élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild)
@@ -201,7 +201,7 @@ ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
             élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild)
         }
 
-        élément := enfant comme *Élément
+        élément := enfant comme *Element
         élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild)
     }
 
@@ -238,7 +238,7 @@ donne_text_content :: fonc (noeud: *Node @inutilisée) -> DOMString
 définis_text_content :: fonc (noeud: *Node, valeur: DOMString)
 {
     // À FAIRE : standardise
-    assert(noeud.genre == GenreNoeud.Élément)
+    assert(noeud.genre == GenreNoeud.Element)
 
     résultat := create_text_node(noeud.document, valeur)
 
@@ -438,17 +438,17 @@ est_vide :: fonc (noeud: *Node) -> bool
 }
 
 /* https://dom.spec.whatwg.org/#ref-for-dom-nonelementparentnode-getelementbyid%E2%91%A1 */
-get_element_by_id :: fonc (noeud: *Node, chn: DOMString) -> *Élément
+get_element_by_id :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
     retourne get_element_by_id_recursive(noeud, chn)
 }
 
-get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Élément
+get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
     si noeud.est_élément() {
         valeur := noeud.donne_attribut(ATTR_id)
         si valeur.possède_valeur() && valeur.Quelque == chn {
-            retourne noeud comme *Élément
+            retourne noeud comme *Element
         }
     }
 
@@ -517,9 +517,9 @@ pre_remove :: fonc (parent: *Node, child: *Node) -> *Node
 donne_node_name :: fonc (noeud: *Node) -> DOMString
 {
     discr noeud.genre {
-        Élément {
+        Element {
             // À FAIRE : Its HTML-uppercased qualified name.
-            retourne (noeud comme *Élément).local_name
+            retourne (noeud comme *Element).local_name
         }
         Attr {
             // À FAIRE : Its qualified name.
@@ -557,7 +557,7 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
 /** \nom Hiérarchie
  * \{ */
 
-donne_indice_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -579,7 +579,7 @@ donne_indice_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -601,7 +601,7 @@ donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -613,7 +613,7 @@ donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
             continue
         }
 
-        adelphe := it comme *Élément
+        adelphe := it comme *Element
         saufsi adelphe.local_name == élément.local_name {
             continue
         }
@@ -628,7 +628,7 @@ donne_indice_de_même_type_dans_parent :: fonc (élément: *Élément) -> n32
     retourne résultat
 }
 
-donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élément) -> n32
+donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
     parent := élément.parent
     assert(parent != nul)
@@ -640,7 +640,7 @@ donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élém
             continue
         }
 
-        adelphe := it comme *Élément
+        adelphe := it comme *Element
         saufsi adelphe.local_name == élément.local_name {
             continue
         }
@@ -655,7 +655,7 @@ donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Élém
     retourne résultat
 }
 
-est_avant_noeud_dans_l_arbre :: fonc (a: *Élément, b: *Élément) -> bool
+est_avant_noeud_dans_l_arbre :: fonc (a: *Element, b: *Element) -> bool
 {
     si a.parent == b.parent {
         indice_a := donne_indice_dans_parent(a)
@@ -722,7 +722,7 @@ Attr :: struct {
     namespace_prefix: Optionnel(DOMString)
     local_name: DOMString
     valeur: DOMString
-    élément: *Élément
+    élément: *Element
 }
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
