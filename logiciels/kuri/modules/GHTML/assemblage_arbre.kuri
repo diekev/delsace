@@ -6,7 +6,7 @@ TypeNoeud :: énum z32 {
     BLOC
     POUR
     SI
-    ACCÈS_MEMBRE
+    ACCÈS_RUBRIQUE
 }
 
 NoeudSyntaxique :: struct {

@@ -103,8 +103,8 @@ static Atome const *déréférence_instruction(Instruction const *inst)
         return acces->accédé;
     }
 
-    if (inst->est_acces_membre()) {
-        auto acces = inst->comme_acces_membre();
+    if (inst->est_acces_rubrique()) {
+        auto acces = inst->comme_acces_rubrique();
         return acces->accédé;
     }
 
@@ -248,7 +248,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
         }
 
         /* Les variables d'indexion des boucles pour peuvent ne pas être utilisées. */
-        if (it->ident == ID::it || it->ident == ID::index_it) {
+        if (it->ident == ID::it || it->ident == ID::indice_it) {
             it->nombre_utilisations += 1;
             continue;
         }
@@ -835,8 +835,8 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
             continue;
         }
 
-        if (it->est_acces_membre()) {
-            auto accès = it->comme_acces_membre();
+        if (it->est_acces_rubrique()) {
+            auto accès = it->comme_acces_rubrique();
             auto accede = accès->accédé;
 
             auto source = détermine_source_adresse_atome(fonction, *accede, sources);
@@ -848,18 +848,18 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
             if (accede->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) {
                 auto param = accede->comme_instruction()->comme_alloc();
                 auto type_param = param->donne_type_alloué()->comme_type_composé();
-                auto membre = type_param->membres[accès->index];
-                auto source_pour_membre = donne_source_adresse_pour_type_param(membre.type);
+                auto rubrique = type_param->rubriques[accès->index];
+                auto source_pour_rubrique = donne_source_adresse_pour_type_param(rubrique.type);
 
-                if (source != source_pour_membre) {
+                if (source != source_pour_rubrique) {
                     if (fonction.nom == nom_fonction_à_étudier) {
-                        dbg() << "--> " << source << " vs " << source_pour_membre;
+                        dbg() << "--> " << source << " vs " << source_pour_rubrique;
                     }
                 }
 
-                source_pour_charge = source_pour_membre;
+                source_pour_charge = source_pour_rubrique;
                 if (fonction.nom == nom_fonction_à_étudier) {
-                    dbg() << "--> " << source_pour_membre;
+                    dbg() << "--> " << source_pour_rubrique;
                 }
             }
 
@@ -1155,9 +1155,9 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
         auto transtype = utilisatrice->comme_transtype();
         ASSIGNE_SI_EGAUX(transtype->valeur, à_remplacer, nouvelle_valeur)
     }
-    else if (utilisatrice->est_acces_membre()) {
-        auto membre = utilisatrice->comme_acces_membre();
-        ASSIGNE_SI_EGAUX(membre->accédé, à_remplacer, nouvelle_valeur)
+    else if (utilisatrice->est_acces_rubrique()) {
+        auto rubrique = utilisatrice->comme_acces_rubrique();
+        ASSIGNE_SI_EGAUX(rubrique->accédé, à_remplacer, nouvelle_valeur)
     }
     else if (utilisatrice->est_acces_index()) {
         auto index = utilisatrice->comme_acces_index();
@@ -1243,7 +1243,7 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
             return i - (decalage - 1);
         }
 
-        if (est_accès_membre_ou_index(bloc->instructions[i], alloc)) {
+        if (est_accès_rubrique_ou_index(bloc->instructions[i], alloc)) {
             return {};
         }
 
@@ -1830,7 +1830,7 @@ struct DuréeDeVie {
     int dernière_utilisation = 0;
 };
 
-/* À CONSIDÉRER : prise adresse, référence membre, tableaux. */
+/* À CONSIDÉRER : prise adresse, référence rubrique, tableaux. */
 static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
 {
     kuri::tableau<DuréeDeVie> durées_de_vie;
@@ -1881,7 +1881,7 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
  * spéciaux.
  *
  * À FAIRE(analyse_ri) :
- * - membre actifs des unions
+ * - rubrique actifs des unions
  */
 void ContexteAnalyseRI::analyse_ri(EspaceDeTravail &espace,
                                    ConstructriceRI &constructrice,

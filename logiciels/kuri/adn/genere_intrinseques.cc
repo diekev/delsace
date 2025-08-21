@@ -144,9 +144,9 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
           "donne_genre_intrinsèque_pour_identifiant(IdentifiantCode const *ident)\n";
     os << "{\n";
 
-    for (auto const &membre : enum_genre_intrinsèque->donne_membres()) {
-        os << "    if (ident == ID::" << membre.nom.nom() << ") {\n";
-        os << "        return GenreIntrinsèque::" << membre.nom.nom() << ";\n";
+    for (auto const &rubrique : enum_genre_intrinsèque->donne_rubriques()) {
+        os << "    if (ident == ID::" << rubrique.nom.nom() << ") {\n";
+        os << "        return GenreIntrinsèque::" << rubrique.nom.nom() << ";\n";
         os << "    }\n";
     }
 
