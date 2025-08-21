@@ -4883,3 +4883,24 @@ textarea_element_sur_applique_presentational_hints :: fonc (base: *Élément @in
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom HTMLUnknownElement
+ * https://html.spec.whatwg.org/multipage/dom.html#htmlunknownelement
+ * \{ */
+
+#portée_export
+
+HTMLUnknownElement :: struct {
+    empl base_élément: Élément
+    table = *table_virtuelle_html_unknown_element
+}
+
+#portée_fichier
+
+table_virtuelle_html_unknown_element := TableVirtuelleÉlément(
+    classe = HTMLUnknownElement,
+    sur_changement_attribut = html_element_sur_changement_attribut
+)
+
+/** \} */
