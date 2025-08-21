@@ -57,7 +57,7 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(BRANCHE, InstructionBranche, branche)                                                       \
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
     O(RETOUR, InstructionRetour, retour)                                                          \
-    O(ACCEDE_MEMBRE, InstructionAccèdeMembre, acces_membre)                                       \
+    O(ACCEDE_RUBRIQUE, InstructionAccèdeRubrique, acces_rubrique)                                       \
     O(ACCEDE_INDEX, InstructionAccèdeIndex, acces_index)                                          \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
     O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
@@ -195,7 +195,7 @@ struct AtomeConstanteStructure : public AtomeConstante {
 
     ~AtomeConstanteStructure();
 
-    kuri::tableau_statique<AtomeConstante *> donne_atomes_membres() const
+    kuri::tableau_statique<AtomeConstante *> donne_atomes_rubriques() const
     {
         return {données.pointeur, données.taille};
     }
@@ -337,7 +337,7 @@ struct AtomeGlobale : public AtomeConstante {
     bool est_externe = false;
     bool est_constante = false;
     bool est_chaine = false;
-    /* Pour les InfoTypes, les InfoTypeMembreStructures, leurs tableaux, etc. */
+    /* Pour les InfoTypes, les InfoTypeRubriqueStructures, leurs tableaux, etc. */
     bool est_part_info_type = false;
 
     // index de la globale pour le code binaire
@@ -674,28 +674,28 @@ struct InstructionBrancheCondition : public Instruction {
                                 InstructionLabel *label_si_faux_);
 };
 
-struct InstructionAccèdeMembre : public Instruction {
-    explicit InstructionAccèdeMembre(NoeudExpression const *site_)
+struct InstructionAccèdeRubrique : public Instruction {
+    explicit InstructionAccèdeRubrique(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::ACCEDE_MEMBRE;
+        genre = GenreInstruction::ACCEDE_RUBRIQUE;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     Atome *accédé = nullptr;
-    /* Index du membre accédé dans le type structurel accédé. */
+    /* Index du rubrique accédé dans le type structurel accédé. */
     int index = 0;
 
-    EMPECHE_COPIE(InstructionAccèdeMembre);
+    EMPECHE_COPIE(InstructionAccèdeRubrique);
 
-    InstructionAccèdeMembre(NoeudExpression const *site_,
+    InstructionAccèdeRubrique(NoeudExpression const *site_,
                             Type const *type_,
                             Atome *accede_,
                             int index_);
 
     const Type *donne_type_accédé() const;
 
-    const MembreTypeComposé &donne_membre_accédé() const;
+    const RubriqueTypeComposé &donne_rubrique_accédé() const;
 };
 
 struct InstructionAccèdeIndex : public Instruction {
@@ -801,7 +801,7 @@ bool est_locale_ou_globale(Atome const *atome);
  */
 bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1);
 
-bool est_accès_membre_ou_index(Instruction const *inst0, Instruction const *inst1);
+bool est_accès_rubrique_ou_index(Instruction const *inst0, Instruction const *inst1);
 
 /**
  * Retourne vrai si \a inst0 est un transtypage de \a inst1.
@@ -848,14 +848,14 @@ Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
  */
 bool est_instruction_comparaison(Atome const *atome);
 
-struct AccèsMembreFusionné {
+struct AccèsRubriqueFusionné {
     Atome *accédé = nullptr;
     uint32_t décalage = 0;
 };
 
-/* "Fusionne" les accès de membre consécutifs (x.y.z).
+/* "Fusionne" les accès de rubrique consécutifs (x.y.z).
  * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-AccèsMembreFusionné fusionne_accès_membres(InstructionAccèdeMembre const *accès_membre);
+AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);

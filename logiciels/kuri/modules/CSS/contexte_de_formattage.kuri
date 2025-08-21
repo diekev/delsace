@@ -595,7 +595,7 @@ donne_index_marge :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDProp
 {
     pour ctx.marges {
         si it.box == box && it.id_propriété == id {
-            retourne index_it
+            retourne indice_it
         }
     }
 
@@ -766,8 +766,8 @@ dispose_les_boites_absolues :: fonc (ctx: *ContexteDeFormattage, containing_bloc
 
         tableau_ajoute(*boites_à_disposer, it)
 
-        si index_it < ctx.boites_absolues.boites.taille - 1 {
-            ctx.boites_absolues.boites[index_it] = ctx.boites_absolues.boites[ctx.boites_absolues.boites.taille - 1]
+        si indice_it < ctx.boites_absolues.boites.taille - 1 {
+            ctx.boites_absolues.boites[indice_it] = ctx.boites_absolues.boites[ctx.boites_absolues.boites.taille - 1]
             ctx.boites_absolues.boites.taille -= 1
             reprends it
         }
@@ -1136,7 +1136,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
         pour * fragment, index_fragment dans fragments {
             décalage_fragment_x := 0.0
             si alignement == AlignementTexte.Justifié {
-                si index_fragment != 0 && index_it != (lignes_tenante.lignes.taille - 1) {
+                si index_fragment != 0 && indice_it != (lignes_tenante.lignes.taille - 1) {
                     décalage_fragment_x += décalage_pour_alignement * (index_fragment comme r32)
                 }
             }
@@ -1185,8 +1185,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
 
     pour lignes_tenante.fragments {
         info_boite := donne_info_boite_enlignée(ctx, it.box)
-        info_boite.premier_fragment = min(info_boite.premier_fragment, index_it)
-        info_boite.dernier_fragment = max(info_boite.dernier_fragment, index_it + 1)
+        info_boite.premier_fragment = min(info_boite.premier_fragment, indice_it)
+        info_boite.dernier_fragment = max(info_boite.dernier_fragment, indice_it + 1)
     }
 
     pour ctx.boites_enlignées {
@@ -2109,7 +2109,7 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 
         si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes)
-            ligne_courante.items.pointeur = ctx.items.pointeur + index_it
+            ligne_courante.items.pointeur = ctx.items.pointeur + indice_it
         }
 
         ligne_courante.main_size += main_size

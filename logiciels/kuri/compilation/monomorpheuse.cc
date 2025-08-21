@@ -158,7 +158,7 @@ Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
                              const NoeudDéclarationEntêteFonction *entete)
     : espace(ref_espace), polymorphe(entete)
 {
-    POUR (*entete->bloc_constantes->membres.verrou_lecture()) {
+    POUR (*entete->bloc_constantes->rubriques.verrou_lecture()) {
         ajoute_item_pour_constante(it->comme_déclaration_constante());
     }
 
@@ -363,7 +363,7 @@ void Monomorpheuse::ajoute_candidats_depuis_type_fonction(
         auto const tuple = type_sortie_fonction_reçu->comme_type_tuple();
         for (auto i = 0; i < decl_type_fonction->types_sortie.taille(); i++) {
             auto const param = decl_type_fonction->types_sortie[i];
-            parse_candidats(param, site, tuple->membres[i].type);
+            parse_candidats(param, site, tuple->rubriques[i].type);
         }
     }
 }
@@ -386,7 +386,7 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
         return;
     }
 
-    POUR (*decl_struct->bloc_constantes->membres.verrou_lecture()) {
+    POUR (*decl_struct->bloc_constantes->rubriques.verrou_lecture()) {
         auto param_poly = trouve_dans_bloc(structure->bloc_constantes, it->ident);
 
         if (param_poly->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -404,14 +404,14 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
     }
 }
 
-static NoeudDéclaration *membre_pour_ident_ou_index(NoeudBloc *bloc,
+static NoeudDéclaration *rubrique_pour_ident_ou_index(NoeudBloc *bloc,
                                                     const IdentifiantCode *ident,
                                                     int index)
 {
     if (ident) {
         return trouve_dans_bloc(bloc, ident);
     }
-    return bloc->membre_pour_index(index);
+    return bloc->rubrique_pour_index(index);
 }
 
 void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
@@ -456,7 +456,7 @@ void Monomorpheuse::ajoute_candidats_depuis_construction_structure(
             continue;
         }
 
-        auto param_poly = membre_pour_ident_ou_index(
+        auto param_poly = rubrique_pour_ident_ou_index(
             decl_struct_type->bloc_constantes, ident_param, i);
 
         if (param_poly->type->est_type_type_de_données()) {
@@ -645,8 +645,8 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         auto expansion = expression_polymorphique->comme_expansion_variadique();
         ajoute_candidats_depuis_expansion_variadique(expansion, site, type_reçu);
     }
-    else if (expression_polymorphique->est_référence_membre()) {
-        erreur_interne(site, "les références de membre ne sont pas encore implémentées");
+    else if (expression_polymorphique->est_référence_rubrique()) {
+        erreur_interne(site, "les références de rubrique ne sont pas encore implémentées");
     }
     else if (expression_polymorphique->est_référence_type()) {
         /* Rien à faire. */
@@ -740,9 +740,9 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         auto expansion = expression_polymorphique->comme_expansion_variadique();
         return résoud_type_final_pour_expansion_variadique(expansion);
     }
-    else if (expression_polymorphique->est_référence_membre()) {
+    else if (expression_polymorphique->est_référence_rubrique()) {
         erreur_interne(expression_polymorphique,
-                       "les références de membre ne sont pas encore implémentées");
+                       "les références de rubrique ne sont pas encore implémentées");
     }
     else if (expression_polymorphique->est_référence_type()) {
         return expression_polymorphique->type->comme_type_type_de_données()->type_connu;
@@ -875,16 +875,16 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
     }
 
     if (decl_type_fonction->types_sortie.taille() > 1) {
-        kuri::tablet<MembreTypeComposé, 6> types_sorties;
+        kuri::tablet<RubriqueTypeComposé, 6> types_sorties;
 
         for (auto i = 0; i < decl_type_fonction->types_sortie.taille(); i++) {
             auto type = résoud_type_final_impl(decl_type_fonction->types_sortie[i]);
             if (!type) {
                 return nullptr;
             }
-            MembreTypeComposé membre;
-            membre.type = type;
-            types_sorties.ajoute(membre);
+            RubriqueTypeComposé rubrique;
+            rubrique.type = type;
+            types_sorties.ajoute(rubrique);
         }
 
         type_sortie = typeuse().crée_tuple(types_sorties);
@@ -914,7 +914,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
     }
 
     kuri::tablet<ItemMonomorphisation, 6> items_structure;
-    POUR (*structure_construite->bloc_constantes->membres.verrou_lecture()) {
+    POUR (*structure_construite->bloc_constantes->rubriques.verrou_lecture()) {
         items_structure.ajoute({it->ident, nullptr, {}, GenreItem::TYPE_DE_DONNÉES});
     }
 

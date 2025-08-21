@@ -46,18 +46,18 @@ principale :: fonc ()
     tabl: [10]z32
 
     pour 0 ... 9 {
-        tabl[index_it] = it
+        tabl[indice_it] = it
     }
 
     imprime("proitération :\n")
 
     pour tabl {
-        imprime("% : %\n", index_it, it)
+        imprime("% : %\n", indice_it, it)
     }
 
     imprime("rétroitération :\n")
 
     pour > tabl {
-        imprime("% : %\n", index_it, it)
+        imprime("% : %\n", indice_it, it)
     }
 }
