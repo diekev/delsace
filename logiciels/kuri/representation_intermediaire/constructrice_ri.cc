@@ -17,6 +17,7 @@
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
 
+#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
