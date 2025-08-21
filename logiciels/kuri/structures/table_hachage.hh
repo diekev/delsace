@@ -286,7 +286,7 @@ struct table_hachage {
                 continue;
             }
 
-            auto const &valeur = valeurs[index_it];
+            auto const &valeur = valeurs[indice_it];
             fonction(valeur);
         }
     }

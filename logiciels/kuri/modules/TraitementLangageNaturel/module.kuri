@@ -60,8 +60,8 @@ convertis_séquence_paire_chaine :: fonc (séquence: *PyObject) -> Optionnel([..
 
     résultat: [..]PaireChaines
 
-    pour index_item dans nombre_éléments {
-        item := PySequence_GetItem(séquence, index_item)
+    pour indice_item dans nombre_éléments {
+        item := PySequence_GetItem(séquence, indice_item)
         // imprime_object("%\n", item)
 
         saufsi PyTuple_Check(item) {
@@ -222,7 +222,7 @@ convertis_chaine_étiquette_penn_treebank :: fonc (chn: chaine) -> ÉtiquettePen
 {
     pour donne_table_conversion_chaine_étiquette_penn_treebank() {
         si chn == it {
-            retourne (index_it comme z32) comme ÉtiquettePennTreebank
+            retourne (indice_it comme z32) comme ÉtiquettePennTreebank
         }
     }
 
@@ -279,7 +279,7 @@ convertis_chaine_étiquette_universelle :: fonc (chn: chaine) -> ÉtiquetteUnive
 {
     pour donne_table_conversion_chaine_étiquette_universelle() {
         si chn == it {
-            retourne (index_it comme z32) comme ÉtiquetteUniverselle
+            retourne (indice_it comme z32) comme ÉtiquetteUniverselle
         }
     }
 
@@ -542,7 +542,7 @@ convertis_liste_mots :: fonc (mots: []chaine) -> *PyObject
 
     pour mots {
         item := PyUnicode_FromChaine(it)
-        si PyList_SetItem(résultat, index_it, item) == -1 {
+        si PyList_SetItem(résultat, indice_it, item) == -1 {
             imprime("Impossible d'insérer une item\n")
             PyErr_Print()
             Py_DECREF(résultat)

@@ -29,7 +29,7 @@ valeur_nulle :: fonc ($T: type_de_données) -> T
 // --------------------------
 
 // Position dans le code source. Quand cette structure est instantiée, le
-// compilateur remplis les membres de cette structure avec les valeurs
+// compilateur remplis les rubriques de cette structure avec les valeurs
 // correspondantes de la position du lexème dans le fichier où se fait ladite
 // construction.
 PositionCodeSource :: struct #interface {
