@@ -1,4 +1,4 @@
-/* Crash si « nul » est retourné pour une union qui possède un membre de type pointeur.
+/* Crash si « nul » est retourné pour une union qui possède une rubrique de type pointeur.
  * Catégorie : [crash, validation sémantique, type union]
  */
 

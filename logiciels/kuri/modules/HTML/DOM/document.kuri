@@ -68,7 +68,7 @@ ImageDisponible :: struct {
 }
 
 Document :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_document
 
     type_contenu: chaine
@@ -89,7 +89,7 @@ Document :: struct {
     scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
     scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement
 
-    render_blocking_elements: [..]*Élément
+    render_blocking_elements: [..]*Element
 
     la_parseuse_ne_peut_changer_le_mode: bool
     ready_for_post_load_tasks: bool
@@ -118,7 +118,7 @@ Document :: struct {
     things_that_delay_the_load_event: n32
 
     /* Pour les navigation de fragments. */
-    target_element: *Élément
+    target_element: *Element
 
     /* CSS. */
     feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
@@ -130,13 +130,13 @@ Document :: struct {
      * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
     ajournement_arbre := CSS.AjournementArbre.Construction
 
-    noeud_survolé: *Élément
+    noeud_survolé: *Element
     /* L'élément sous la souris lors des pressions et relâchement. */
-    élément_en_cours_d_activation: *Élément
+    élément_en_cours_d_activation: *Element
 
     images_disponibles: [..]ImageDisponible @NeVisitePas
 
-    script_blocking_style_sheet_set: [..]*CSS.CSSStyleSheet @NeVisitePas
+    script_blocking_style_sheet_set: [..]*Element @NeVisitePas
 }
 
 #portée_fichier
@@ -227,27 +227,27 @@ donne_base_url :: fonc (document: *Document) -> *URL
     retourne document.url
 }
 
-donne_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
+donne_doctype :: fonc (document: *Document) -> *DocumentType
 {
     pour document.enfants {
-        si it.genre == GenreNoeud.TypeDocument {
-            retourne it comme *NoeudTypeDocument
+        si it.genre == GenreNoeud.DocumentType {
+            retourne it comme *DocumentType
         }
     }
     retourne nul
 }
 
-donne_title_element :: fonc (document: *Document) -> *Élément
+donne_title_element :: fonc (document: *Document) -> *Element
 {
     retourne donne_premier_élément_de_type(document, TAG_title)
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
-donne_document_element :: fonc (document: *Document) -> *Élément
+donne_document_element :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si est_élément(it) {
-            retourne it comme *Élément
+            retourne it comme *Element
         }
     }
     retourne nul
@@ -262,7 +262,7 @@ donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-document-getelementsbyname-dev */
 get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
 {
-    traversée: [..]*Noeud
+    traversée: [..]*Node
     diffère déloge(traversée)
 
     tableau_ajoute(*traversée, document)
@@ -274,7 +274,7 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
         traversée.taille -= 1
 
         si noeud.est_élément() {
-            élément := noeud comme *Élément
+            élément := noeud comme *Element
             name := élément.donne_attribut_ou_chaine_vide(ATTR_name)
             si name == element_name {
                 résultat.ajoute_noeud(élément)
@@ -289,10 +289,10 @@ get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *
     retourne résultat
 }
 
-donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Élément
+donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     si noeud.est_élément_type(tag) {
-        retourne noeud comme *Élément
+        retourne noeud comme *Element
     }
 
     pour noeud.enfants {
@@ -306,11 +306,11 @@ donne_premier_élément_de_type :: fonc (noeud: *Noeud, tag: DOMString) -> *Él�
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
-donne_élément_document :: fonc (document: *Document) -> *Élément
+donne_élément_document :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si it.est_élément() {
-            retourne it comme *Élément
+            retourne it comme *Element
         }
     }
     retourne nul
@@ -327,13 +327,13 @@ donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
-donne_head :: fonc (document: *Document) -> *Élément
+donne_head :: fonc (document: *Document) -> *Element
 {
     élément_html := document.donne_élément_html()
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_head) {
-                retourne it comme *Élément
+                retourne it comme *Element
             }
         }
     }
@@ -341,13 +341,13 @@ donne_head :: fonc (document: *Document) -> *Élément
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
-donne_élément_body :: fonc (document: *Document) -> *Élément
+donne_élément_body :: fonc (document: *Document) -> *Element
 {
     élément_html := document.donne_élément_html()
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
-                retourne it comme *Élément
+                retourne it comme *Element
             }
         }
     }
@@ -404,7 +404,7 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
             }
 
             si est_avant_noeud_dans_l_arbre(feuille_de_style.owner_node, it.owner_node) {
-                tableau_insère_indice(*document.feuilles_de_style, feuille_de_style, index_it)
+                tableau_insère_indice(*document.feuilles_de_style, feuille_de_style, indice_it)
                 retourne
             }
         }
@@ -413,20 +413,20 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
     tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
 }
 
-supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Élément)
+supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Element)
 {
     pour document.feuilles_de_style {
         si it.owner_node != élément {
             continue
         }
 
-        tableau_supprime_indice(*document.feuilles_de_style, index_it)
+        tableau_supprime_indice(*document.feuilles_de_style, indice_it)
         CSS.détruit_feuille_de_style(it)
         arrête
     }
 }
 
-définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
+définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
 {
     si document.noeud_survolé == noeud {
         retourne
@@ -442,7 +442,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
             saufsi parent.est_élément() {
                 arrête
             }
-            noeud_courant = parent comme *Élément
+            noeud_courant = parent comme *Element
         }
     }
 
@@ -456,7 +456,7 @@ définis_noeud_survolé :: fonc (document: *Document, noeud: *Élément)
             saufsi parent.est_élément() {
                 arrête
             }
-            noeud_courant = parent comme *Élément
+            noeud_courant = parent comme *Element
         }
     }
 
@@ -487,13 +487,13 @@ donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
             retourne nul
         }
 
-        noeud = parent comme *Élément
+        noeud = parent comme *Element
     }
 
     retourne nul
 }
 
-donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élément
+donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
 {
     si a == nul {
         retourne b
@@ -503,7 +503,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         retourne a
     }
 
-    ancêtres_de_a: [..]*Élément
+    ancêtres_de_a: [..]*Element
     diffère déloge(ancêtres_de_a)
 
     noeud := a
@@ -512,7 +512,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         saufsi noeud.parent.est_élément() {
             arrête
         }
-        noeud = noeud.parent comme *Élément
+        noeud = noeud.parent comme *Element
     }
 
     noeud = b
@@ -525,7 +525,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Élément, b: *Élément) -> *Élé
         saufsi noeud.parent.est_élément() {
             arrête
         }
-        noeud = noeud.parent comme *Élément
+        noeud = noeud.parent comme *Element
     }
 
     retourne nul
@@ -538,7 +538,7 @@ invalide_style :: fonc (document: *Document)
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
-invalide_style :: fonc (document: *Document, élément: *Élément, pseudo_classe: CSS.PseudoClasses)
+invalide_style :: fonc (document: *Document, élément: *Element, pseudo_classe: CSS.PseudoClasses)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -563,7 +563,7 @@ invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut "id". */
-invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, vieil_id: *DOMString, nouvel_id: *DOMString)
+invalide_style_pour_id :: fonc (document: *Document, élément: *Element, vieil_id: *DOMString, nouvel_id: *DOMString)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -587,7 +587,7 @@ invalide_style_pour_id :: fonc (document: *Document, élément: *Élément, viei
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut spécifié. */
-invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément, attribut: DOMString)
+invalide_style_pour_attribut :: fonc (document: *Document, élément: *Element, attribut: DOMString)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -601,7 +601,7 @@ invalide_style_pour_attribut :: fonc (document: *Document, élément: *Élément
     invalide_style_depuis_élément(document, élément)
 }
 
-invalide_style_depuis_élément :: fonc (document: *Document, élément: *Élément)
+invalide_style_depuis_élément :: fonc (document: *Document, élément: *Element)
 {
     saufsi document.résolveuse_style {
         retourne
@@ -627,7 +627,7 @@ requiers_redessin :: fonc (document: *Document)
     document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
 }
 
-donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Élément) -> CSS.AjournementArbre
+donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element) -> CSS.AjournementArbre
 {
     résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
 
@@ -641,10 +641,33 @@ donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, 
             continue
         }
 
-        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Élément)
+        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Element)
     }
 
     retourne résultat
+}
+
+/* https://html.spec.whatwg.org/multipage/semantics.html#contributes-a-script-blocking-style-sheet */
+contributes_a_script_blocking_style_sheet :: fonc (el: *Element) -> bool
+{
+    // À FAIRE : implémente
+    // An element el in the context of a Document of an HTML parser or XML parser contributes a script-blocking style sheet if all of the following are true:
+
+    // el was created by that Document's parser.
+    saufsi el.fut_créé_par_parseuse {
+        retourne faux
+    }
+
+    // el is either a style element or a link element that was an external resource link that contributes to the styling processing model when the el was created by the parser.
+
+    // el's media attribute's value matches the environment.
+
+    // el's style sheet was enabled when the element was created by the parser.
+
+    // The last time the event loop reached step 1, el's root was that Document.
+
+    // The user agent hasn't given up on loading that particular style sheet yet. A user agent may give up on loading a style sheet at any time.
+    retourne faux
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#has-a-style-sheet-that-is-blocking-scripts */
@@ -708,12 +731,12 @@ donne_user_agent :: fonc (document: *Document) -> *UserAgent
 
 /* https://dom.spec.whatwg.org/#dom-document-createelement
  * À FAIRE : standardise */
-create_element :: fonc (document: *Document, local_name: DOMString) -> *Élément
+create_element :: fonc (document: *Document, local_name: DOMString) -> *Element
 {
-    retourne crée_élément_avec_tag(document, local_name)
+    retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML)
 }
 
-create_text_node :: fonc (document: *Document, data: DOMString) -> *NoeudTexte
+create_text_node :: fonc (document: *Document, data: DOMString) -> *Text
 {
     résultat := crée_noeud_texte(document)
     src := data.donne_chaine_utf16()
@@ -766,12 +789,12 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Nou
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudTypeDocument.
+/** \nom DocumentType.
  * https://dom.spec.whatwg.org/#documenttype
  * \{ */
 
-NoeudTypeDocument :: struct {
-    empl base_noeud: Noeud
+DocumentType :: struct {
+    empl base_noeud: Node
     table = *table_virtuelle_type_document
 
     nom: DOMString
@@ -779,24 +802,24 @@ NoeudTypeDocument :: struct {
     system_id: DOMString
 }
 
-crée_noeud_doctype :: fonc (document: *Document) -> *NoeudTypeDocument
+crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 {
-    doctype := crée_platform_object(document, NoeudTypeDocument)
-    doctype.genre = GenreNoeud.TypeDocument
+    doctype := crée_platform_object(document, DocumentType)
+    doctype.genre = GenreNoeud.DocumentType
     doctype.document = document
 
     retourne doctype
 }
 
-est_document_type :: fonc (noeud: *Noeud) -> bool
+est_document_type :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.TypeDocument
+    retourne noeud.genre == GenreNoeud.DocumentType
 }
 
 #portée_fichier
 
 table_virtuelle_type_document := TableVirtuelleNoeud(
-    classe = NoeudTypeDocument,
+    classe = DocumentType,
     sur_destruction = noeud_sur_destruction
 )
 
@@ -810,19 +833,29 @@ table_virtuelle_type_document := TableVirtuelleNoeud(
  * \{ */
 
 DocumentFragment :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
     table = *table_virtuelle_fragment_document
 
-    host: *Élément
+    host: *Element
 }
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
 {
     doctype := crée_platform_object(document, DocumentFragment)
-    doctype.genre = GenreNoeud.FragmentDocument
+    doctype.genre = GenreNoeud.DocumentFragment
     doctype.document = document
 
     retourne doctype
+}
+
+/* https://dom.spec.whatwg.org/#concept-documentfragment-host */
+donne_host :: fonc (node: *Node) -> *Element
+{
+    si node.genre != GenreNoeud.DocumentFragment {
+        retourne nul
+    }
+
+    retourne (node comme *DocumentFragment).host
 }
 
 #portée_fichier
@@ -834,7 +867,72 @@ table_virtuelle_fragment_document := TableVirtuelleNoeud(
 
 #portée_export
 
+/* https://dom.spec.whatwg.org/#concept-tree-host-including-inclusive-ancestor */
+is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
+{
+    // An object A is a host-including inclusive ancestor of an object B,
+    // if either A is an inclusive ancestor of B,
+    si is_inclusive_ancestor(A, B) {
+        retourne vrai
+    }
+
+    // or if B’s root has a non-null host and A is a host-including inclusive ancestor of B’s root’s host.
+    root := donne_racine(B)
+    root_host := donne_host(root)
+
+    si root_host && is_host_including_inclusive_ancestor(A, root_host) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 11 Trees
+ * https://dom.spec.whatwg.org/#trees
+ * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor */
+is_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
+{
+    // An inclusive ancestor is an object or one of its ancestors.
+    parent := B
+    tantque parent != nul {
+        si A == parent {
+            retourne vrai
+        }
+
+        parent = parent.parent
+    }
+
+    retourne faux
+}
+
+/* https://dom.spec.whatwg.org/#concept-tree-next-sibling */
+donne_next_sibling :: fonc (node: *Node) -> *Node
+{
+    // The next sibling of an object is its first following sibling or null if it has no following sibling.
+    parent := node.parent
+    saufsi parent {
+        retourne nul
+    }
+
+    node_trouvé := faux    
+    pour parent.enfants {
+        si node_trouvé {
+            retourne it
+        }
+        si it == node {
+            node_trouvé = vrai
+        }
+    }
+
+    retourne nul
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ShadowRoot.
@@ -878,7 +976,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
      * path’s first struct’s invocation target; otherwise shadow root’s host. */
     invocation_target := event.path[0].invocation_target
     
-    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Noeud) == shadow_root {
+    si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Node) == shadow_root {
         retourne nul
     }
 
@@ -888,7 +986,7 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
 #portée_export
 
 /* https://dom.spec.whatwg.org/#concept-shadow-including-root */
-donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
+donne_racine_shadow_including :: fonc (noeud: *Node) -> *Node
 {
     racine := noeud.donne_racine()
 
@@ -900,7 +998,7 @@ donne_racine_shadow_including :: fonc (noeud: *Noeud) -> *Noeud
     retourne racine
 }
 
-racine_est_shadow_root :: fonc (noeud: *Noeud) -> bool
+racine_est_shadow_root :: fonc (noeud: *Node) -> bool
 {
     racine := donne_racine(noeud)
     retourne racine.genre == GenreNoeud.ShadowRoot
@@ -931,12 +1029,12 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
  * \{ */
 
 NoeudDonnéesCaractères :: struct {
-    empl base_noeud: Noeud
+    empl base_noeud: Node
 
     données: ChaineUTF16
 }
 
-est_données_caractères :: fonc (noeud: Noeud)
+est_données_caractères :: fonc (noeud: Node)
 {
     discr noeud.genre {
         Commentaire,
@@ -953,20 +1051,20 @@ est_données_caractères :: fonc (noeud: Noeud)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudTexte.
+/** \nom Text.
  * https://dom.spec.whatwg.org/#text
  * \{ */
 
-NoeudTexte :: struct {
+Text :: struct {
     empl base_données: NoeudDonnéesCaractères
     table = *table_virtuelle_texte
 
     box: *CSS.Box
 }
 
-crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
+crée_noeud_texte :: fonc (document: *Document) -> *Text
 {
-    texte := crée_platform_object(document, NoeudTexte)
+    texte := crée_platform_object(document, Text)
     texte.genre = GenreNoeud.Texte
     texte.document = document
 
@@ -974,7 +1072,7 @@ crée_noeud_texte :: fonc (document: *Document) -> *NoeudTexte
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#inter-element-whitespace */
-est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
+est_espace_blanche_entre_élément :: fonc (texte: *Text) -> bool
 {
     retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
 }
@@ -982,14 +1080,14 @@ est_espace_blanche_entre_élément :: fonc (texte: *NoeudTexte) -> bool
 #portée_fichier
 
 table_virtuelle_texte := TableVirtuelleNoeud(
-    classe = NoeudTexte,
+    classe = Text,
     sur_destruction = texte_sur_destruction
 )
 
 texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base)
-    texte := base comme *NoeudTexte
+    texte := base comme *Text
     si texte.box {
         texte.box.noeud = nul
     }
@@ -1006,11 +1104,11 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
  * \{ */
 
 NoeudSectionCDATA :: struct {
-    empl base_texte: NoeudTexte
+    empl base_texte: Text
     table = *table_virtuelle_section_cdata
 }
 
-crée_noeud_section_cdata :: fonc (document: *Document) -> *NoeudTexte
+crée_noeud_section_cdata :: fonc (document: *Document) -> *Text
 {
     texte := crée_platform_object(document, NoeudSectionCDATA)
     texte.genre = GenreNoeud.Section_CDATA
@@ -1090,7 +1188,7 @@ NoeudProcessingInstruction :: struct {
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
     résultat := crée_platform_object(document, NoeudCommentaire)
-    résultat.genre = GenreNoeud.Commentaire
+    résultat.genre = GenreNoeud.ProcessingInstruction
     résultat.document = document
     résultat.données = copie_chaine(données)
 

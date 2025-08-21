@@ -869,7 +869,7 @@ contenu_est_utf8_valide :: fonc (données: []octet, est_frame_finale: bool) -> b
                 assert(séquence.taille < 4)
                 séquence_test: [4]octet
                 pour séquence {
-                    séquence_test[index_it] = it
+                    séquence_test[indice_it] = it
                 }
 
                 erreur_utf8, taille = est_séquence_utf8_valide(séquence_test)
@@ -976,7 +976,7 @@ applique_masque :: fonc (données: []octet, masque: z32)
 {
     ptr_masque := *masque comme *octet
     pour & données {
-        it = it ^ ptr_masque[index_it % 4]
+        it = it ^ ptr_masque[indice_it % 4]
     }
 }
 

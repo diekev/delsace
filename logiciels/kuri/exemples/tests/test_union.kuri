@@ -34,14 +34,14 @@ imprime_union_anonyme :: fonc (anonyme: z32 | r32)
 }
 
 // ----------------------------------------------------------------------------
-// Déclaration d'un membre de type « rien » dans une union.
+// Déclaration d'une rubrique de type « rien » dans une union.
 
 Result :: union ($T: type_de_données) {
     Quelque: T
     Aucun
 }
 
-// Permet la construction d'une union ayant un membre de type « rien » via
+// Permet la construction d'une union ayant une rubrique de type « rien » via
 // une instruction « retourne » qui ne renvoie rien, ou d'un manque
 // d'instruction
 

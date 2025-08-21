@@ -304,7 +304,7 @@ int64_t SystèmeModule::mémoire_utilisée() const
     POUR_TABLEAU_PAGE (modules) {
         résultat += it.chemin().taille();
         résultat += it.fichiers.taille_mémoire();
-        // les autres membres sont gérés dans rassemble_statistiques()
+        // les autres rubriques sont gérés dans rassemble_statistiques()
         if (!it.modules_importés.est_stocké_dans_classe()) {
             résultat += it.modules_importés.mémoire_utilisée();
         }

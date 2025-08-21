@@ -135,7 +135,7 @@ class GestionnaireCode {
     kuri::file<Programme *> programmes_en_cours{};
 
     /* Les dépendances d'une déclaration qui sont rassemblées après la fin du typage, nous ne
-     * stockons pas définitivement cette information, ce membre ne sers qu'à réutiliser la mémoire
+     * stockons pas définitivement cette information, ce rubrique ne sers qu'à réutiliser la mémoire
      * allouée précédemment afin de ne pas trop faire d'allocations dynamiques. */
     DonnéesRésolutionDépendances dépendances{};
 
