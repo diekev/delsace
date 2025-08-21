@@ -170,13 +170,6 @@ dernier_enfant :: fonc (noeud: *Node) -> *Node
     retourne noeud.enfants[noeud.enfants.taille - 1]
 }
 
-/* https://dom.spec.whatwg.org/#concept-node-insert */
-insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, suppress_observers := faux @inutilisée)
-{
-    /* À FAIRE : standardise */
-    ajoute_enfant(parent, node)
-}
-
 ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
 {
     enfant.parent = parent
@@ -463,13 +456,121 @@ get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
     retourne nul
 }
 
-/* https://dom.spec.whatwg.org/#concept-node-append */
-append :: fonc (parent: *Node, node: *Node) -> *Node
-{
-    // À FAIRE : standardise
-    node.parent = parent
-    tableau_ajoute(*parent.enfants, node)
+/** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom 4.2.3. Mutation algorithms
+ * https://dom.spec.whatwg.org/#mutation-algorithms
+ * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-node-ensure-pre-insertion-validity */
+ensure_pre_insertion_validity :: fonc (node: *Node, parent: *Node, child: *Node) -> bool
+{
+    // 1. If parent is not a Document, DocumentFragment, or Element node, then throw a "HierarchyRequestError" DOMException.
+    saufsi fait_partie_de(parent.genre, GenreNoeud.Document, GenreNoeud.DocumentFragment, GenreNoeud.Element) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Parent is not a Document, DocumentFragment, or Element node.")
+        retourne faux
+    }
+
+    // 2. If node is a host-including inclusive ancestor of parent, then throw a "HierarchyRequestError" DOMException.
+    si is_host_including_inclusive_ancestor(node, parent) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is a host-including inclusive ancestor of parent.")
+        retourne faux
+    }
+
+    // 3. If child is non-null and its parent is not parent, then throw a "NotFoundError" DOMException.
+    si child && child.parent != parent {
+        throw_dom_exception(parent, "NotFoundError", "Child's parent is not parent")
+        retourne faux
+    }
+
+    // 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData node, then throw a "HierarchyRequestError" DOMException.
+    saufsi fait_partie_de(node.genre, GenreNoeud.DocumentFragment, GenreNoeud.DocumentType, GenreNoeud.Element, GenreNoeud.ProcessingInstruction, GenreNoeud.Commentaire, GenreNoeud.Texte) {
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is not a DocumentFragment, DocumentType, Element, or CharacterData node.")
+        retourne faux
+    }
+
+    // 5. If either node is a Text node and parent is a document, or node is a doctype and parent is not a document, then throw a "HierarchyRequestError" DOMException.
+    si (node.genre == GenreNoeud.Texte && parent.genre == GenreNoeud.Document) || (node.genre == GenreNoeud.DocumentType && parent.genre != GenreNoeud.Document) {
+        throw_dom_exception(parent, "HierarchyRequestError", "")
+        retourne faux
+    }
+
+    // 6. If parent is a document, and any of the statements below, switched on the interface node implements, are true, then throw a "HierarchyRequestError" DOMException.
+    si parent.genre == GenreNoeud.Document {
+        nombre_enfants_element_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
+        nombre_enfants_element_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
+        nombre_enfants_text_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Texte)
+
+        // DocumentFragment
+        si node.genre == GenreNoeud.DocumentFragment {
+            // If node has more than one element child or has a Text node child.
+            si nombre_enfants_element_de_node > 1 || nombre_enfants_text_de_node != 0 {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+
+            // Otherwise, if node has one element child and either parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
+            si nombre_enfants_element_de_node == 1 && (nombre_enfants_element_de_parent >= 1 || (child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+        // Element
+        sinon si node.genre == GenreNoeud.Element {
+            // parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
+            si nombre_enfants_element_de_parent >= 1 && ((child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+        // DocumentType
+        sinon si node.genre == GenreNoeud.DocumentType {
+            nombre_enfants_doctype_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.DocumentType)
+
+            // parent has a doctype child, child is non-null and an element is preceding child, or child is null and parent has an element child.
+            si nombre_enfants_doctype_de_parent && ((child != nul && possède_ainé_de_genre(child, GenreNoeud.Element)) || (child != nul && nombre_enfants_element_de_parent)) {
+                throw_dom_exception(parent, "HierarchyRequestError", "")
+                retourne faux
+            }
+        }
+    }
+
+    retourne vrai
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-pre-insert */
+pre_insert :: fonc (node: *Node, parent: *Node, child: *Node) -> *Node
+{
+    // 1. Ensure pre-insert validity of node into parent before child.
+    saufsi ensure_pre_insertion_validity(node, parent, child) {
+        retourne node
+    }
+
+    // 2. Let referenceChild be child.
+    reference_child := child
+
+    // 3. If referenceChild is node, then set referenceChild to node’s next sibling.
+    si reference_child == node {
+        reference_child = donne_next_sibling(node)
+    }
+
+    // 4. Insert node into parent before referenceChild.
+    insert(node, parent, reference_child)
+
+    // 5. Return node.
+    retourne node
+}
+
+/* https://dom.spec.whatwg.org/#concept-node-insert */
+insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, suppress_observers := faux @inutilisée)
+{
+    /* À FAIRE : standardise */
+    node.parent = parent
+
+    ajoute_enfant(parent, node)
+
+    // adopt
     pile: [..]*Node
     diffère déloge(pile)
 
@@ -483,8 +584,13 @@ append :: fonc (parent: *Node, node: *Node) -> *Node
             tableau_ajoute(*pile, it)
         }
     }
+}
 
-    retourne node
+/* https://dom.spec.whatwg.org/#concept-node-append */
+append :: fonc (parent: *Node, node: *Node) -> *Node
+{
+    // To append a node to a parent, pre-insert node into parent before null.
+    retourne pre_insert(node, parent, nul)
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-replace-all */
@@ -768,6 +874,55 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Element, b: *Element) -> bool
 
         pour > noeud.enfants {
             tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne faux
+}
+
+donne_nombre_enfants_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> z32
+{
+    résultat: z32
+    pour node.enfants {
+        si it.genre == genre {
+            résultat += 1
+        }
+    }
+    retourne résultat
+}
+
+possède_ainé_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
+{
+    parent := node.parent
+    saufsi parent {
+        retourne faux
+    }
+    pour parent.enfants {
+        si it == node {
+            retourne faux
+        }
+
+        si it.genre == genre {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
+{
+    parent := node.parent
+    saufsi parent {
+        retourne faux
+    }
+    node_trouvé := faux
+    pour parent.enfants {
+        si node_trouvé && it.genre == genre {
+            retourne vrai
+        }
+        si it == node {
+            node_trouvé == vrai
         }
     }
 

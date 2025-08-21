@@ -825,6 +825,16 @@ crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
     retourne doctype
 }
 
+/* https://dom.spec.whatwg.org/#concept-documentfragment-host */
+donne_host :: fonc (node: *Node) -> *Element
+{
+    si node.genre != GenreNoeud.DocumentFragment {
+        retourne nul
+    }
+
+    retourne (node comme *DocumentFragment).host
+}
+
 #portée_fichier
 
 table_virtuelle_fragment_document := TableVirtuelleNoeud(
@@ -834,7 +844,72 @@ table_virtuelle_fragment_document := TableVirtuelleNoeud(
 
 #portée_export
 
+/* https://dom.spec.whatwg.org/#concept-tree-host-including-inclusive-ancestor */
+is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
+{
+    // An object A is a host-including inclusive ancestor of an object B,
+    // if either A is an inclusive ancestor of B,
+    si is_inclusive_ancestor(A, B) {
+        retourne vrai
+    }
+
+    // or if B’s root has a non-null host and A is a host-including inclusive ancestor of B’s root’s host.
+    root := donne_racine(B)
+    root_host := donne_host(root)
+
+    si root_host && is_host_including_inclusive_ancestor(A, root_host) {
+        retourne vrai
+    }
+
+    retourne faux
+}
+
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 11 Trees
+ * https://dom.spec.whatwg.org/#trees
+ * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor */
+is_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
+{
+    // An inclusive ancestor is an object or one of its ancestors.
+    parent := B
+    tantque parent != nul {
+        si A == parent {
+            retourne vrai
+        }
+
+        parent = parent.parent
+    }
+
+    retourne faux
+}
+
+/* https://dom.spec.whatwg.org/#concept-tree-next-sibling */
+donne_next_sibling :: fonc (node: *Node) -> *Node
+{
+    // The next sibling of an object is its first following sibling or null if it has no following sibling.
+    parent := node.parent
+    saufsi parent {
+        retourne nul
+    }
+
+    node_trouvé := faux    
+    pour parent.enfants {
+        si node_trouvé {
+            retourne it
+        }
+        si it == node {
+            node_trouvé = vrai
+        }
+    }
+
+    retourne nul
+}
+
+/** } */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ShadowRoot.
