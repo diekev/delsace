@@ -1,5 +1,5 @@
-/* Impossible d'accéder aux membres constants d'une structure monomorphisée.
- * Catégorie : [validation sémantique, polymorphisme, accès membre]
+/* Impossible d'accéder aux rubriques constantes d'une structure monomorphisée.
+ * Catégorie : [validation sémantique, polymorphisme, accès rubrique]
  */
 
 SélecteurType :: struct ($N: z32) {

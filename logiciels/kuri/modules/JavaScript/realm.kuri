@@ -202,12 +202,12 @@ est_intrinsics :: fonc (realm: *Realm, object: *Object) -> bool
     info := info_de(Intrinsics)
     base := *realm.intrinsics comme *octet
 
-    pour info.membres {
+    pour info.rubriques {
         saufsi it.id.id == GenreInfoType.POINTEUR {
             continue
         }
 
-        /* Charge le membre. */
+        /* Charge la rubrique. */
         adresse := mémoire((base + it.décalage) comme **rien)
         si object == adresse {
             retourne vrai

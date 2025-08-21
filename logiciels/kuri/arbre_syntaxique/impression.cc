@@ -370,8 +370,8 @@ static void imprime_tableau_expression(Enchaineuse &enchaineuse,
 
         imprime_arbre(enchaineuse, état, it);
 
-        if (index_it < expressions.taille() - 1) {
-            auto expression_suivante = expressions[index_it + 1];
+        if (indice_it < expressions.taille() - 1) {
+            auto expression_suivante = expressions[indice_it + 1];
             if (expression_suivante->est_commentaire() &&
                 expression_suivante->lexème->ligne == it->lexème->ligne) {
                 enchaineuse << ", ";
@@ -438,7 +438,7 @@ static void imprime_paramètres_classe(Enchaineuse &enchaineuse, NoeudBloc const
 
     auto virgule = " (";
 
-    POUR (*bloc_constantes->membres.verrou_lecture()) {
+    POUR (*bloc_constantes->rubriques.verrou_lecture()) {
         enchaineuse << virgule;
         imprime_arbre(enchaineuse, {}, it);
         virgule = ", ";
@@ -536,8 +536,8 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
 
         /* Vérifie si l'expression suivante est un commentaire en fin de ligne. */
         auto commentaire_sur_même_ligne = false;
-        if (index_it < expressions->taille() - 1) {
-            auto expression_suivante = (*expressions)[index_it + 1];
+        if (indice_it < expressions->taille() - 1) {
+            auto expression_suivante = (*expressions)[indice_it + 1];
             if (expression_suivante->est_commentaire()) {
                 if (expression_suivante->lexème->ligne == it->lexème->ligne) {
                     commentaire_sur_même_ligne = true;
@@ -1011,11 +1011,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             }
             break;
         }
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE:
-        case GenreNoeud::EXPRESSION_RÉFÉRENCE_MEMBRE_UNION:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
-            auto membre = noeud->comme_référence_membre();
-            imprime_arbre(enchaineuse, état, membre->accédée);
+            auto rubrique = noeud->comme_référence_rubrique();
+            imprime_arbre(enchaineuse, état, rubrique->accédée);
             enchaineuse << ".";
             imprime_ident(enchaineuse, noeud->ident);
             break;
