@@ -3044,7 +3044,7 @@ MemberExpression :: struct {
 crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: *Expression, propriété: *Expression, calculé: bool) -> *MemberExpression
 {
     résultat := parseuse.crée_noeud(lexème, MemberExpression)
-    résultat.sur_génération_code_binaire = membre_expression_sur_code_binaire
+    résultat.sur_génération_code_binaire = member_expression_sur_code_binaire
     résultat.objet = objet
     résultat.propriété = propriété
     résultat.calculé = calculé
@@ -3054,13 +3054,13 @@ crée_member_expression :: fonc (parseuse: *Parseuse, lexème: *Lexème, objet: 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors-runtime-semantics-evaluation */
 sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
 {
-    membre := base comme *MemberExpression
+    member := base comme *MemberExpression
 
-    si membre.propriété.type == PrivateIdentifier {
-        private_identifier := membre.propriété comme *PrivateIdentifier
+    si member.propriété.type == PrivateIdentifier {
+        private_identifier := member.propriété comme *PrivateIdentifier
 
         // 1. Let baseReference be ? Evaluation of MemberExpression.
-        completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
+        completion_base_reference := exécute_noeud(member.objet, interpréteuse)
         saufsi completion_base_reference.est_normal() {
             retourne completion_base_reference
         }
@@ -3081,7 +3081,7 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     }
 
     // 1. Let baseReference be ? Evaluation of MemberExpression.
-    completion_base_reference := exécute_noeud(membre.objet, interpréteuse)
+    completion_base_reference := exécute_noeud(member.objet, interpréteuse)
     saufsi completion_base_reference.est_normal() {
         retourne completion_base_reference
     }
@@ -3094,16 +3094,16 @@ sur_exécution_member_expression :: fonc (base: *NoeudSyntaxique, interpréteuse
     }
 
     // 3. Let strict be IsStrict(this MemberExpression).
-    strict := is_strict(membre)
+    strict := is_strict(member)
 
-    si membre.calculé {
+    si member.calculé {
         // MemberExpression : MemberExpression [ Expression ]
-        retourne evaluate_property_access_with_expression_key(interpréteuse, base_value, membre.propriété, strict)
+        retourne evaluate_property_access_with_expression_key(interpréteuse, base_value, member.propriété, strict)
     }
 
     // MemberExpression : MemberExpression . IdentifierName
-    assert(membre.propriété.type == Identifier)
-    identifier := membre.propriété comme *Identifier
+    assert(member.propriété.type == Identifier)
+    identifier := member.propriété comme *Identifier
 
     retourne evaluate_property_access_with_identifier_key(interpréteuse, base_value, identifier, strict)
 }

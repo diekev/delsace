@@ -371,7 +371,7 @@ InstructionInitialiseRéférence :: struct {
     nom: ECMAString
 }
 
-InstructionDéfinisMembre :: struct {
+InstructionDéfinisMember :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -379,7 +379,7 @@ InstructionDéfinisMembre :: struct {
     src: Registre
 }
 
-InstructionChargeMembre :: struct {
+InstructionChargeMember :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -1083,34 +1083,34 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 lhs := resolve_binding(interprète, realm.crée_chaine(init.nom))
                 initialize_reference_binding(lhs, valeur)
             }
-            InstructionDéfinisMembre {
-                membre := it comme *InstructionDéfinisMembre
+            InstructionDéfinisMember {
+                member := it comme *InstructionDéfinisMember
                 realm := donne_realm(interprète)
 
-                referenced_name := crée_chaine(realm, membre.nom)
+                referenced_name := crée_chaine(realm, member.nom)
 
                 référence: ReferenceRecord
                 référence.base = interprète.donne_accumulateur()
                 référence.referenced_name = Valeur(String = referenced_name)
                 // À FAIRE : résultat.strict = strict
 
-                valeur := donne_registre(registres, membre.src)
+                valeur := donne_registre(registres, member.src)
                 completion_assignment := put_value(interprète, référence, valeur)
                 interprète.définis_exception(completion_assignment)
             }
-            InstructionChargeMembre {
-                membre := it comme *InstructionChargeMembre
+            InstructionChargeMember {
+                member := it comme *InstructionChargeMember
                 realm := donne_realm(interprète)
 
-                referenced_name := crée_chaine(realm, membre.nom)
+                referenced_name := crée_chaine(realm, member.nom)
 
                 référence: ReferenceRecord
 
-                si membre.obj comme n32 == 0 {
+                si member.obj comme n32 == 0 {
                     référence.base = interprète.donne_accumulateur()
                 }
                 sinon {
-                    référence.base = donne_registre(registres, membre.obj)
+                    référence.base = donne_registre(registres, member.obj)
                 }
 
                 référence.referenced_name = Valeur(String = referenced_name)
