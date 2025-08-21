@@ -805,7 +805,7 @@ est_production_mois :: fonc (token: chaine) -> z32
     token.taille = 3
     pour mois {
         si compare_ascii_insensible_à_la_casse(it, token) {
-            retourne index_it comme z32
+            retourne indice_it comme z32
         }
     }
 

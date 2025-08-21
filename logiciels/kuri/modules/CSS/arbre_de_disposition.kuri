@@ -141,7 +141,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
         sinon si it.noeud {
             assert(HTML.est_texte(it.noeud))
-            noeud_texte := it.noeud comme *HTML.NoeudTexte
+            noeud_texte := it.noeud comme *HTML.Text
             noeud_texte.box = nul
         }
 
@@ -277,7 +277,7 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
     retourne résultat
 }
 
-donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Élément
+donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Element
 {
     indice := donne_indice_pour_position(*arbre.tampon_id, x, y)
     saufsi indice.possède_valeur() {
@@ -400,7 +400,7 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation)
         nom_classe := it.box.donne_nom_classe_sans_suffixe()
-        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", index_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur)
+        imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", indice_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur)
 
         si it.box.table_virtuelle.type == TextBox {
             text_box := it.box comme *TextBox
@@ -740,7 +740,7 @@ RègleEtSpécificité :: struct {
     spécificité: Spécificité
 }
 
-collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
+collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
 {
     temp: [..]RègleAppariée
     diffère déloge(temp)
@@ -767,7 +767,7 @@ collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élé
     retourne résultat
 }
 
-apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élément, pseudo_element: *PseudoElement, résultat: *[..]RègleEtSpécificité)
+apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Element, pseudo_element: *PseudoElement, résultat: *[..]RègleEtSpécificité)
 {
     règle_appariée := faux
     spécificité: Spécificité
@@ -790,7 +790,7 @@ apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Élé
     }
 }
 
-résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
+résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
     règles := collecte_les_règles_appropriées(résolveuse, élément, pseudo_element)
     diffère déloge(règles)
@@ -861,7 +861,7 @@ AjournementArbre :: énum_drapeau {
     StackingContext
 }
 
-donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Élément) -> AjournementArbre
+donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element) -> AjournementArbre
 {
     box := élément.box
     anciennes_propriétés: *PropriétésDeStyle
@@ -940,7 +940,7 @@ donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés:
     }
 
     pour nouvelle.value {
-        si sont_mêmes_valeurs(ancienne.value[index_it], it) {
+        si sont_mêmes_valeurs(ancienne.value[indice_it], it) {
             continue
         }
 
@@ -1168,7 +1168,7 @@ calcule_style :: fonc (résolveuse: *RésolveuseStyle, propriétés: *Propriét�
 
     /* Transfert les valeurs calculées aux valeurs utilisées. */
     pour propriétés.style.valeurs {
-        propriétés.style_utilisée.valeurs[index_it] = copie_valeur(it)
+        propriétés.style_utilisée.valeurs[indice_it] = copie_valeur(it)
     }
 
     saufsi propriétés_parent {
@@ -1471,10 +1471,10 @@ CréatriceArbre :: struct {
     arbre: *ArbreDeDisposition
 }
 
-crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Noeud)
+crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, noeud: *HTML.Node)
 {
     si HTML.est_texte(noeud) {
-        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.NoeudTexte).données, noeud comme *HTML.NoeudTexte)
+        crée_box_pour_texte(créatrice, parent comme *BlockBox, (noeud comme *HTML.Text).données, noeud comme *HTML.Text)
         retourne
     }
 
@@ -1482,7 +1482,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
         retourne
     }
 
-    élément := noeud comme *HTML.Élément
+    élément := noeud comme *HTML.Element
 
     propriétés_parent: *PropriétésDeStyle
     si parent {
@@ -1604,7 +1604,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
     corrige_hiérarchie(résultat, créatrice)
 }
 
-crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.NoeudTexte)
+crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.Text)
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
     résultat := arbre.crée_box(InlineBox)
@@ -1621,7 +1621,7 @@ crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockB
     résultat.ajoute_enfant(texte)
 }
 
-crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Élément) -> *Box
+crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Element) -> *Box
 {
     si display.inner_type == Display.Type.Table {
         wrapper_box := arbre.crée_box(TableWrapperBox)
@@ -1689,7 +1689,7 @@ crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, é
     retourne inline
 }
 
-crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, élément: *HTML.Élément, ident_pseudo_element: CSSOMString)
+crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Box, élément: *HTML.Element, ident_pseudo_element: CSSOMString)
 {
     pseudo_element := PseudoElement(ident_pseudo_element)
     propriétés_pseudo := résoud_style(résolveuse, élément, *pseudo_element, parent.propriétés)
@@ -1969,7 +1969,7 @@ Box :: struct {
     parent: *Box
     enfants: [..]*Box
 
-    noeud: *HTML.Noeud
+    noeud: *HTML.Node
 
     modèle_de_boite: ModèleDeBoite
     traite_comme_display_none: bool
@@ -2216,7 +2216,7 @@ donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
     retourne donne_ligne_de_base_marge(box.modèle_de_boite)
 }
 
-donne_élément :: fonc (box: *Box) -> *HTML.Élément
+donne_élément :: fonc (box: *Box) -> *HTML.Element
 {
     si box.noeud == nul {
         retourne nul
@@ -2227,10 +2227,10 @@ donne_élément :: fonc (box: *Box) -> *HTML.Élément
         retourne nul
     }
 
-    retourne noeud comme *HTML.Élément
+    retourne noeud comme *HTML.Element
 }
 
-donne_élément_récursif :: fonc (box: *Box) -> *HTML.Élément
+donne_élément_récursif :: fonc (box: *Box) -> *HTML.Element
 {
     box_courant := box
 
@@ -2919,7 +2919,7 @@ formatte_intérieur :: fonc (box: *BlockBox, ctx: *ContexteDeFormattage, mode: M
     }
 }
 
-est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Élément) -> bool
+est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Element) -> bool
 {
     tags := [HTML.TAG_div, HTML.TAG_thead, HTML.TAG_tbody, HTML.TAG_tfoot, HTML.TAG_tr, HTML.TAG_td, HTML.TAG_th]
 
@@ -3364,11 +3364,11 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
             ToutesLesBrisuresDeLigne {
                 saufsi it.est_espace_blanche {
-                    _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                    _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
                 }
 
                 ligne := enligneuse.ajoute_ligne()
@@ -3379,7 +3379,7 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, index_it, index_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
             }
         }
     }
@@ -4117,7 +4117,7 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
             continue
         }
 
-        élément := it comme *HTML.Élément
+        élément := it comme *HTML.Element
         si élément.local_name != HTML.TAG_option {
             continue
         }
@@ -4159,7 +4159,7 @@ opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
         enfant := pile.dépile()
 
         `it = enfant
-        `index_it = indice
+        `indice_it = indice
 
         #corps_boucle
 
@@ -4324,15 +4324,15 @@ remove_irrelevant_boxes :: fonc (box: *Box)
                 continue
             }
 
-            si index_it > 0 {
-                précédent := box.enfants[index_it - 1]
+            si indice_it > 0 {
+                précédent := box.enfants[indice_it - 1]
                 saufsi est_proper_table_descendant(box, précédent) {
                     continue
                 }
             }
 
-            si index_it < box.enfants.taille - 1 {
-                suivant := box.enfants[index_it + 1]
+            si indice_it < box.enfants.taille - 1 {
+                suivant := box.enfants[indice_it + 1]
                 saufsi est_proper_table_descendant(box, suivant) {
                     continue
                 }
@@ -4444,7 +4444,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
                 table_row_box.est_pseudo_element = it.est_pseudo_element
                 ajoute_enfant(table_row_box, it)
 
-                table_row_group.enfants[index_it] = table_row_box
+                table_row_group.enfants[indice_it] = table_row_box
             }
         }
     }

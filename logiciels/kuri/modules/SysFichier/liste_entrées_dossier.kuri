@@ -126,7 +126,7 @@ ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[..]En
             }
         }
 
-        si index_it == 0 || premier_numéro == -1 {
+        si indice_it == 0 || premier_numéro == -1 {
             premier_numéro = it.numéro
             dernier_numéro = it.numéro
         }

@@ -320,16 +320,16 @@ crée_initialise_référence :: fonc (génératrice: &GénératriceCodeBinaire, 
     résultat.nom = nom
 }
 
-crée_définis_membre :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre)
+crée_définis_member :: fonc (génératrice: &GénératriceCodeBinaire, nom: ECMAString, src: Registre)
 {
-    résultat := génératrice.crée_instruction(InstructionDéfinisMembre)
+    résultat := génératrice.crée_instruction(InstructionDéfinisMember)
     résultat.nom = nom
     résultat.src = src
 }
 
-crée_charge_membre :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString) -> Registre
+crée_charge_member :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre, nom: ECMAString) -> Registre
 {
-    résultat := génératrice.crée_instruction(InstructionChargeMembre)
+    résultat := génératrice.crée_instruction(InstructionChargeMember)
     résultat.obj = reg_objet
     résultat.nom = nom
     retourne Registre(0)
@@ -569,7 +569,7 @@ array_literal_sur_code_binaire :: fonc (noeud: *ArrayLiteral, génératrice: &G�
 
     pour noeud.éléments {
         _ := génératrice.génère_code_binaire(it)
-        génératrice.crée_propriété_array(reg_array, index_it comme z32)
+        génératrice.crée_propriété_array(reg_array, indice_it comme z32)
     }
 
     _ := génératrice.crée_charge(Valeur(Number = noeud.éléments.taille comme r64))
@@ -578,7 +578,7 @@ array_literal_sur_code_binaire :: fonc (noeud: *ArrayLiteral, génératrice: &G�
 
     // À FAIRE : appèle set directement
     // 2. Perform ? Set(array, "length", 𝔽(len), true).
-    génératrice.crée_définis_membre(STR_length, opt_reg)
+    génératrice.crée_définis_member(STR_length, opt_reg)
 
     retourne Registre(0)
 }
@@ -742,22 +742,22 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
         génératrice.crée_définis_locale(nom)
     }
     sinon si noeud.gauche.type == MemberExpression {
-        membre := noeud.gauche comme *MemberExpression
+        member := noeud.gauche comme *MemberExpression
 
         opt_reg = génératrice.crée_stocke()
 
-        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
+        opt_reg_objet := génératrice.génère_code_binaire(member.objet)
         assert(opt_reg_objet.possède_valeur())
 
-        saufsi membre.calculé {
-            assert(membre.propriété.type == Identifier)
-            identifier := membre.propriété comme *Identifier
+        saufsi member.calculé {
+            assert(member.propriété.type == Identifier)
+            identifier := member.propriété comme *Identifier
 
-            génératrice.crée_définis_membre(identifier.nom, opt_reg.Quelque)
+            génératrice.crée_définis_member(identifier.nom, opt_reg.Quelque)
         }
         sinon {
             opt_reg_objet = génératrice.crée_stocke()
-            _ := génératrice.génère_code_binaire(membre.propriété)
+            _ := génératrice.génère_code_binaire(member.propriété)
             génératrice.crée_définis_index(opt_reg_objet.Quelque, opt_reg.Quelque)
         }
 
@@ -1133,7 +1133,7 @@ logical_or_sur_code_binaire :: fonc (noeud: *LogicalAnd, génératrice: &Génér
     retourne résultat
 }
 
-membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
+member_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 {
     opt_reg_objet := génératrice.génère_code_binaire(noeud.objet)
 
@@ -1141,7 +1141,7 @@ membre_expression_sur_code_binaire :: fonc (noeud: *MemberExpression, génératr
         assert(noeud.propriété.type == Identifier)
         identifier := noeud.propriété comme *Identifier
 
-        retourne génératrice.crée_charge_membre(opt_reg_objet.Quelque, identifier.nom)
+        retourne génératrice.crée_charge_member(opt_reg_objet.Quelque, identifier.nom)
     }
 
     opt_reg_objet = génératrice.crée_stocke()
@@ -1337,7 +1337,7 @@ switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératri
 
         /* Génère le code pour les tests. */
         pour switch.cases {
-            si index_it == switch.index_default_clause {
+            si indice_it == switch.index_default_clause {
                 tableau_ajoute(*index_branches_pour_cas, IndexBranche(-1))
                 continue
             }
@@ -1356,7 +1356,7 @@ switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératri
         }
 
         pour switch.cases {
-            génératrice.définis_décalage_branche(index_branches_pour_cas[index_it])
+            génératrice.définis_décalage_branche(index_branches_pour_cas[indice_it])
 
             si it.consequent == nul {
                 continue
@@ -1452,18 +1452,18 @@ update_expression_sur_code_binaire :: fonc (update: *UpdateExpression, générat
         génératrice.crée_définis_locale(identifier.nom)
     }
     sinon si argument.type == MemberExpression {
-        membre := argument comme *MemberExpression
-        assert(!membre.calculé)
+        member := argument comme *MemberExpression
+        assert(!member.calculé)
 
         sauvegarde := génératrice.crée_stocke()
 
-        opt_reg_objet := génératrice.génère_code_binaire(membre.objet)
+        opt_reg_objet := génératrice.génère_code_binaire(member.objet)
         assert(opt_reg_objet.possède_valeur())
 
-        assert(membre.propriété.type == Identifier)
-        identifier := membre.propriété comme *Identifier
+        assert(member.propriété.type == Identifier)
+        identifier := member.propriété comme *Identifier
 
-        génératrice.crée_définis_membre(identifier.nom, sauvegarde)
+        génératrice.crée_définis_member(identifier.nom, sauvegarde)
 
         si update.operation == UpdateOperation.PrefixIncrement || update.operation == UpdateOperation.PrefixDecrement {
             résultat = sauvegarde

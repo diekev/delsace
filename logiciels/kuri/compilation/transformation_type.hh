@@ -57,7 +57,7 @@ struct TransformationType {
     TypeTransformation type{};
     /* Pour les transformations entre type base et type dérivé. */
     uint32_t décalage_type_base = uint32_t(-1);
-    int64_t index_membre = 0;
+    int64_t index_rubrique = 0;
     Type const *type_cible = nullptr;
 
     TransformationType() = default;
@@ -66,8 +66,8 @@ struct TransformationType {
     {
     }
 
-    TransformationType(TypeTransformation type_, Type const *type_cible_, int64_t index_membre_)
-        : type(type_), index_membre(index_membre_), type_cible(type_cible_)
+    TransformationType(TypeTransformation type_, Type const *type_cible_, int64_t index_rubrique_)
+        : type(type_), index_rubrique(index_rubrique_), type_cible(type_cible_)
     {
     }
 
@@ -112,7 +112,7 @@ struct TransformationType {
             return false;
         }
 
-        if (index_membre != autre.index_membre) {
+        if (index_rubrique != autre.index_rubrique) {
             return false;
         }
 
