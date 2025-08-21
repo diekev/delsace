@@ -126,7 +126,7 @@ imprime_rubriques_instructions :: fonc (pointeur_rubrique: *octet, infos: *InfoT
     retourne virgule
 }
 
-IndexBranche :: #opaque z64
+IndiceBranche :: #opaque z64
 DécalageBranche :: #opaque z64
 
 InstructionBranche :: struct {
@@ -387,7 +387,7 @@ InstructionChargeMember :: struct {
     nom: ECMAString
 }
 
-InstructionDéfinisIndex :: struct {
+InstructionDéfinisIndice :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -395,7 +395,7 @@ InstructionDéfinisIndex :: struct {
     src: Registre
 }
 
-InstructionChargeIndex :: struct {
+InstructionChargeIndice :: struct {
     empl inst: Instruction
     type = #type_de_cette_structure
 
@@ -1119,8 +1119,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 rval := get_value(interprète, référence)
                 interprète.définis_accumulateur(rval)
             }
-            InstructionDéfinisIndex {
-                inst := it comme *InstructionDéfinisIndex
+            InstructionDéfinisIndice {
+                inst := it comme *InstructionDéfinisIndice
     
                 base_value := donne_registre(registres, inst.obj)
                 property_name_value := interprète.donne_accumulateur()
@@ -1134,8 +1134,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 completion_rval := put_value(interprète, référence, valeur)
                 interprète.définis_exception(completion_rval)
             }
-            InstructionChargeIndex {
-                inst := it comme *InstructionChargeIndex
+            InstructionChargeIndice {
+                inst := it comme *InstructionChargeIndice
 
                 base_value := donne_registre(registres, inst.obj)
                 property_name_value := interprète.donne_accumulateur()

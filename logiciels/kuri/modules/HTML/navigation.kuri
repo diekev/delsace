@@ -900,8 +900,8 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
 
     // 8. Let history be navigable's active document's history object.
 
-    // 9. Let scriptHistoryIndex be history's indice.
-    script_history_indice: n32
+    // 9. Let scriptHistoryIndex be history's index.
+    script_history_index: n32
 
     // 10. Let scriptHistoryLength be history's length.
     script_history_length: n32
@@ -927,7 +927,7 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
     update_params.document = document
     update_params.entry = history_entry
     update_params.do_not_reactivate = vrai
-    update_params.script_history_indice = script_history_indice
+    update_params.script_history_index = script_history_index
     update_params.script_history_length = script_history_length
 
     update_document_for_history_step_application(*update_params)
@@ -1132,25 +1132,25 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         // 1. Let allSteps be the result of getting all used history steps for traversable.
         all_steps := get_all_used_history_steps(user_agent, traversable)
 
-        // 2. Let currentStepIndex be the indice of traversable's current session history step within allSteps.
-        current_step_indice : n32 = 0
+        // 2. Let currentStepIndex be the index of traversable's current session history step within allSteps.
+        current_step_index : n32 = 0
         pour all_steps {
             si it == traversable.current_session_history_entry_step {
-                current_step_indice = indice_it comme n32
+                current_step_index = indice_it comme n32
                 arrête
             }
         }
 
         // 3. Let targetStepIndex be currentStepIndex plus delta.
-        target_step_indice := (current_step_indice comme z32 + tâche.delta)
+        target_step_index := (current_step_index comme z32 + tâche.delta)
 
         // 4. If allSteps[targetStepIndex] does not exist, then abort these steps.
-        si target_step_indice < 0 || target_step_indice >= all_steps.taille {
+        si target_step_index < 0 || target_step_index >= all_steps.taille {
             retourne
         }
 
         // 5. Apply the traverse history step allSteps[targetStepIndex] to traversable, given sourceSnapshotParams, initiatorToCheck, and userInvolvement.
-        _ := apply_the_traverse_history_step(user_agent, all_steps[target_step_indice], traversable, tâche.source_snapshot_params, tâche.initiator_to_check, tâche.user_involvement)
+        _ := apply_the_traverse_history_step(user_agent, all_steps[target_step_index], traversable, tâche.source_snapshot_params, tâche.initiator_to_check, tâche.user_involvement)
 
         document := tâche.traversable.active_session_history_entry.donne_document()
         tâche.user_agent.document_est_prêt(document)
@@ -1926,8 +1926,8 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     changing_navigables := get_all_navigables_whose_current_session_history_entry_will_change_or_reload(user_agent, traversable, target_step)
     diffère déloge(changing_navigables)
 
-    // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/indice update given traversable and targetStep.
-    nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_indice_update(user_agent, traversable, target_step)
+    // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
+    nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_index_update(user_agent, traversable, target_step)
     diffère déloge(nonchanging_navigables_that_still_need_updates)
 
     // 8. For each navigable of changingNavigables:
@@ -1998,9 +1998,9 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         // 6. Let navigable be changingNavigableContinuation's navigable.
         navigable := changing_navigable_continuation.navigable
 
-        // À FAIRE 7. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and indice given traversable and targetStep.
+        // À FAIRE 7. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and index given traversable and targetStep.
         script_history_length : n32 = 0
-        script_history_indice : n32 = 0
+        script_history_index : n32 = 0
 
         // 8. Append navigable to navigablesThatMustWaitBeforeHandlingSyncNavigation.
         tableau_ajoute(*navigables_that_must_wait_before_handling_sync_navigation, navigable)
@@ -2018,7 +2018,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
         after_potential_unloads_params.changing_navigable_continuation = changing_navigable_continuation
         after_potential_unloads_params.completed_change_jobs = *completed_change_jobs
         after_potential_unloads_params.script_history_length = script_history_length
-        after_potential_unloads_params.script_history_indice = script_history_indice
+        after_potential_unloads_params.script_history_index = script_history_index
         si navigation_type {
             after_potential_unloads_params.navigation_type = mémoire(navigation_type)
         }
@@ -2054,14 +2054,14 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 16. Let completedNonchangingJobs be 0.
     completed_non_changing_jobs := 0
 
-    // À FAIRE : 17. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and indice given traversable and targetStep.
+    // À FAIRE : 17. Let (scriptHistoryLength, scriptHistoryIndex) be the result of getting the history object length and index given traversable and targetStep.
 
     // 18. For each navigable of nonchangingNavigablesThatStillNeedUpdates, queue a global task on the navigation and traversal task source given navigable's active window to run the steps:
     // À FAIRE : crée une tâche
     pour /* navigable dans */ nonchanging_navigables_that_still_need_updates {
         // 1. Let document be navigable's active document.
 
-        // 2. Set document's history object's indice to scriptHistoryIndex.
+        // 2. Set document's history object's index to scriptHistoryIndex.
 
         // 3. Set document's history object's length to scriptHistoryLength.
 
@@ -2091,7 +2091,7 @@ AfterPotentialUnloadsParams :: struct {
     changing_navigable_continuation: ChangingNavigableContinuationState
     completed_change_jobs: *z32
     script_history_length: n32
-    script_history_indice: n32
+    script_history_index: n32
     navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     displayed_entry: *SessionHistoryEntry
@@ -2120,7 +2120,7 @@ after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
     document_update_params.entry = target_entry
     document_update_params.do_not_reactivate = params.changing_navigable_continuation.update_only
     document_update_params.script_history_length = params.script_history_length
-    document_update_params.script_history_indice = params.script_history_indice
+    document_update_params.script_history_index = params.script_history_index
     document_update_params.navigation_type = params.navigation_type
     document_update_params.entries_for_navigation_api = params.entries_for_navigation_api
     document_update_params.previous_entry_for_activation = params.displayed_entry
@@ -2518,8 +2518,8 @@ get_all_navigables_whose_current_session_history_entry_will_change_or_reload :: 
     retourne results
 }
 
-/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-only-need-history-object-length/indice-update */
-get_all_navigables_that_only_need_history_object_length_indice_update :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-all-navigables-that-only-need-history-object-length/index-update */
+get_all_navigables_that_only_need_history_object_length_index_update :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, target_step: n32) -> [..]*Navigable
 {
     // 1. Let results be an empty list.
     results: [..]*Navigable
@@ -2726,7 +2726,7 @@ DocumentUpdateParams :: struct {
     entry: *SessionHistoryEntry
     do_not_reactivate: bool
     script_history_length: n32
-    script_history_indice: n32
+    script_history_index: n32
     navigation_type: Optionnel(NavigationType)
     entries_for_navigation_api: []*SessionHistoryEntry
     previous_entry_for_activation: Optionnel(*SessionHistoryEntry)
@@ -2741,7 +2741,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     // 2. Let documentsEntryChanged be true if document's latest entry is not entry; otherwise false.
     documents_entry_changed := document.latest_entry != entry
 
-    // À FAIRE 3. Set document's history object's indice to scriptHistoryIndex.
+    // À FAIRE 3. Set document's history object's index to scriptHistoryIndex.
 
     // À FAIRE 4. Set document's history object's length to scriptHistoryLength.
 
@@ -2794,7 +2794,7 @@ update_document_for_history_step_application :: fonc (empl params: *DocumentUpda
     si previous_entry_for_activation.possède_valeur() && navigation_type.possède_valeur() && (navigation_type.Quelque == NavigationType.reload || donne_document(previous_entry_for_activation.Quelque) != document) {
         // À FAIRE : 1. If navigation's activation is null, then set navigation's activation to a new NavigationActivation object in navigation's relevant realm.
 
-        // 2. Let previousEntryIndex be the result of getting the navigation API entry indice of previousEntryForActivation within navigation.
+        // 2. Let previousEntryIndex be the result of getting the navigation API entry index of previousEntryForActivation within navigation.
 
         // 3. If previousEntryIndex is non-negative, then set activation's old entry to navigation's entry list[previousEntryIndex].
 

@@ -70,22 +70,22 @@ Configurable :: DrapeauxPropriété.CONFIGURABLE
 Enumerable :: DrapeauxPropriété.ENUMERABLE
 Writable :: DrapeauxPropriété.WRITABLE
 
-IndexPropriété :: struct {
+IndicePropriété :: struct {
     empreinte: n64
     indice: z64
 }
 
-opérateur == :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+opérateur == :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte == b.empreinte
 }
 
-opérateur != :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+opérateur != :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte != b.empreinte
 }
 
-opérateur < :: fonc (a: IndexPropriété, b: IndexPropriété) -> bool
+opérateur < :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte < b.empreinte
 }
@@ -105,7 +105,7 @@ Object :: struct {
 
     /* Ceci stocke les valeurs indexées par des chaines. */
     propriétés: [..]Propriété
-    indice_propriétés: [..]IndexPropriété
+    indice_propriétés: [..]IndicePropriété
     /* Ceci stocke les valeurs indexées par des nombres. */
     éléments_indexés: [..]Propriété
 
@@ -174,7 +174,7 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, dr
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
 
-    indice: IndexPropriété
+    indice: IndicePropriété
     indice.empreinte = donne_empreinte(nom)
     indice.indice = objet.propriétés.taille - 1
 
@@ -199,7 +199,7 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: *Object, set:
 {
     tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux))
 
-    indice: IndexPropriété
+    indice: IndicePropriété
     indice.empreinte = donne_empreinte(nom)
     indice.indice = objet.propriétés.taille - 1
 
@@ -352,7 +352,7 @@ internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, ar
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
-    indice: IndexPropriété
+    indice: IndicePropriété
     indice.empreinte = donne_empreinte(nom)
 
     indice_prop := ensemble_possède_retourne_indice(*objet.indice_propriétés, indice)
