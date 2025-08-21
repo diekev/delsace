@@ -3365,7 +3365,10 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
         retourne faux
     }
 
-    // À FAIRE 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
+    // 2. If el contributes a script-blocking style sheet, append el to its node document's script-blocking style sheet set.
+    si contributes_a_script_blocking_style_sheet(el) {
+        tableau_ajoute(*el.document.script_blocking_style_sheet_set, el)
+    }
 
     // À FAIRE(media) 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
     si el.is_potentially_render_blocking() {
@@ -3396,9 +3399,14 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         success = faux
     }
 
-    // À FAIRE : 2. If el no longer creates an external resource link that contributes to the styling processing model, or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+    // 2. If el no longer creates an external resource link that contributes to the styling processing model,
+    // À FAIRE : or if, since the resource in question was fetched, it has become appropriate to fetch it again, then:
+    saufsi contributes_a_script_blocking_style_sheet(el) {
         // 1. Remove el from el's node document's script-blocking style sheet set.
+        tableau_supprime_valeur(*el.document.script_blocking_style_sheet_set, el)
         // 2. Return.
+        retourne
+    }
 
     // 3. If el has an associated CSS style sheet, remove the CSS style sheet.
     el.document.supprime_feuille_de_style_associée(el)
@@ -3449,9 +3457,13 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         _ := fire_an_event(el, EventType.error)
     }
 
-    // À FAIRE 6. If el contributes a script-blocking style sheet, then:
-    // Assert: el's node document's script-blocking style sheet set contains el.
-    // Remove el from its node document's script-blocking style sheet set.
+    // 6. If el contributes a script-blocking style sheet, then:
+    si contributes_a_script_blocking_style_sheet(el) {
+        // Assert: el's node document's script-blocking style sheet set contains el.
+        assert(tableau_donne_indice(el.document.script_blocking_style_sheet_set, el) != -1)
+        // Remove el from its node document's script-blocking style sheet set.
+        tableau_supprime_valeur(*el.document.script_blocking_style_sheet_set, el)
+    }
 
     // 7. Unblock rendering on el.
     unblock_rendering_on(el)
@@ -4634,8 +4646,11 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     feuille_de_style.parent_style_sheet = nul
     feuille_de_style.owner_rule = nul
 
-    //  À FAIRE : 7. If element contributes a script-blocking style sheet, append element
+    //  7. If element contributes a script-blocking style sheet, append element
     //    to its node document's script-blocking style sheet set.
+    si contributes_a_script_blocking_style_sheet(element) {
+        tableau_ajoute(*element.document.script_blocking_style_sheet_set, element)
+    }
 
     // À FAIRE : 8. If element's media attribute's value matches the environment and
     //    element is potentially render-blocking, then block rendering on element.
