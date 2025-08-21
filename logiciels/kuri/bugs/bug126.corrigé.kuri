@@ -13,9 +13,9 @@ Structure :: struct {
 
 opérateur pour :: fonc (structure: Structure) -> z32
 {
-    pour index, index_itération dans structure.itérations {
+    pour index, indice_itération dans structure.itérations {
         `it = index
-        `index_it = index_itération
+        `indice_it = indice_itération
 
         #corps_boucle
     }

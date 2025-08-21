@@ -45,6 +45,12 @@ throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine)
     JS.définis_exception(realm, exception)
 }
 
+throw_dom_exception :: fonc (object: *PlatformObject, name: chaine, message: chaine)
+{
+    exception := crée_dom_exception(object.realm, name, message)
+    JS.définis_exception(object.realm, exception)
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

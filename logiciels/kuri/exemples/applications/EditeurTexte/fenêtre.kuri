@@ -675,7 +675,7 @@ dessine_indicateurs_lignes :: fonc (anonyme: *Anonyme, hauteur: z32)
         pour nombre_de_lignes {
             txt := imprime_chaine_temp(" % ", it + anonyme.éditeur.décalage_ligne + 1)
 
-            couleur := si index_it == (anonyme.éditeur.cy - anonyme.éditeur.décalage_ligne) {
+            couleur := si indice_it == (anonyme.éditeur.cy - anonyme.éditeur.décalage_ligne) {
                 thème.indicateur_ligne_courante
             }
             sinon {
@@ -907,11 +907,11 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
         fichiers := donne_fichiers_pour_sélecteur(anonyme)
 
         pour fichiers {
-            si index_it >= 50 {
+            si indice_it >= 50 {
                 arrête
             }
 
-            si index_it == fichier_sélectionné {
+            si indice_it == fichier_sélectionné {
                 dispose_texte(it.chemin, config_texte_sélectionné)
             }
             sinon {

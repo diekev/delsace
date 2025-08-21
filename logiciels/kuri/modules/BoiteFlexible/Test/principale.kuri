@@ -244,7 +244,7 @@ dessine_barre_latérale :: fonc (app: *App)
         dispose_rectangle(id = it.nom, config = ConfigurationRectangle(rayon_coin = 5.0))
         {
             définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageDifforme(16.0, 8.0))
-            arrière_plan := si index_it == app.document_courant {
+            arrière_plan := si indice_it == app.document_courant {
                 CouleurRVBA(0.649, 0.649, 0.649, 0.5)
             }
             sinon si est_survolée() {
@@ -255,7 +255,7 @@ dessine_barre_latérale :: fonc (app: *App)
             }
             définis_arrière_plan(arrière_plan)
 
-            sur_clic_souris(définis_document_courant, app, index_it comme z32)
+            sur_clic_souris(définis_document_courant, app, indice_it comme z32)
 
             dispose_texte(it.nom, ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
         }
@@ -270,7 +270,7 @@ dessine_interface_défilable_verticale :: fonc (app: *App)
         {
             définis_arrière_plan(BLEU_CLAIR)
             définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(100)))
-            dispose_texte(imprime_chaine_temp("%", index_it), ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte(imprime_chaine_temp("%", indice_it), ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
         }
         termine_rectangle()
     }
