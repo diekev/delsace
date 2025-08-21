@@ -159,17 +159,17 @@ insère_élément_html :: fonc (parseuse: *Parseuse, lexème: Lexème) -> *HTMLE
 /* https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element */
 insère_élément_étranger :: fonc (parseuse: *Parseuse, lexème: Lexème, espace_de_nom: EspaceDeNom, ajoute_seulement_à_pile_élément: bool) -> *Élément
 {
-    /* 1. */
+    /* 1. Let the adjustedInsertionLocation be the appropriate place for inserting a node. */
     position_ajustée_d_insertion := trouve_position_appropriée_pour_insertion(parseuse)
-    /* 2. */
+    /* 2. Let element be the result of creating an element for the token given token, namespace, and the element in which the adjustedInsertionLocation finds itself. */
     élément := parseuse.crée_élément_pour_lexème(lexème, espace_de_nom, position_ajustée_d_insertion)
-    /* 3. */
+    /* 3. If onlyAddToElementStack is false, then run insert an element at the adjusted insertion location with element. */
     saufsi ajoute_seulement_à_pile_élément {
         insert_an_element_at_the_adjusted_insertion_location(parseuse, élément)
     }
-    /* 4. */
+    /* 4. Push element onto the stack of open elements so that it is the new current node. */
     empile(*parseuse.pile_éléments_ouvert, élément)
-    /* 5.  */
+    /* 5. Return element. */
     retourne élément
 }
 
