@@ -1,5 +1,35 @@
 /* Module de représentation de formes géométriques. */
 
+infinité_négative :: fonc ($T: type_de_données) -> T
+{
+    #si T == r32 {
+        R32_INFINITÉ_NÉGATIVE :: 0rff800000
+        retourne R32_INFINITÉ_NÉGATIVE
+    }
+    sinon si T == r64 {
+        R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000
+        retourne R64_INFINITÉ_NÉGATIVE
+    }
+    sinon {
+        panique("infinité_négative non-implémentée")
+    }
+}
+
+infinité_positive :: fonc ($T: type_de_données) -> T
+{
+    #si T == r32 {
+        R32_INFINITÉ :: 0r7f800000
+        retourne R32_INFINITÉ
+    }
+    sinon si T == r64 {
+        R64_INFINITÉ :: 0r7ff0000000000000
+        retourne R64_INFINITÉ
+    }
+    sinon {
+        panique("infinité_positive non-implémentée")
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Point2D
  * \{ */
@@ -22,6 +52,32 @@ opérateur == :: fonc (p0: Point2D(r32), p1: Point2D(r32)) -> bool
 donne_point_2d_réel :: fonc (point: Point2D(z32)) -> Point2D(r32)
 {
     retourne Point2D(r32)(point.x comme r32, point.y comme r32)
+}
+
+donne_boite_englobante :: fonc (points: ...Point2D($T)) -> RectanglePosDim(T)
+{
+    rectangle_pur : RectanglePur(T) = ---
+    rectangle_pur.gauche = infinité_positive(T)
+    rectangle_pur.droite = -infinité_positive(T)
+    rectangle_pur.haut = -infinité_positive(T)
+    rectangle_pur.bas = infinité_positive(T)
+
+    pour points {
+        si it.x < rectangle_pur.gauche {
+            rectangle_pur.gauche = it.x
+        }
+        si it.x > rectangle_pur.droite {
+            rectangle_pur.droite = it.x
+        }
+        si it.y < rectangle_pur.bas {
+            rectangle_pur.bas = it.y
+        }
+        si it.y > rectangle_pur.haut {
+            rectangle_pur.haut = it.y
+        }
+    }
+
+    retourne donne_rectangle_pos_dim(rectangle_pur)
 }
 
 /** \} */
@@ -216,6 +272,14 @@ crée_rectangle_pos_dim :: fonc (a: Point2D($T), b: Point2D(T)) -> RectanglePosD
     }
 
     retourne RectanglePosDim(T)(x, y, hauteur, largeur)
+}
+
+agrandis :: fonc (rect: &RectanglePosDim($T), taille: T)
+{
+    rect.x -= taille
+    rect.y -= taille
+    rect.hauteur += taille * 2
+    rect.largeur += taille * 2
 }
 
 réduis :: fonc (rect: &RectanglePosDim($T), taille: T)
