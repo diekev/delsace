@@ -80,6 +80,13 @@ donne_boite_englobante :: fonc (points: ...Point2D($T)) -> RectanglePosDim(T)
     retourne donne_rectangle_pos_dim(rectangle_pur)
 }
 
+donne_distance_carrée :: fonc (p0: Point2D($T), p1: Point2D(T)) -> T
+{
+    dx := p1.x - p0.x
+    dy := p1.y - p0.y
+    retourne dx * dx + dy * dy
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
