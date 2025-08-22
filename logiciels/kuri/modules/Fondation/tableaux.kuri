@@ -523,3 +523,18 @@ tableau_possède_élément :: fonc (tableau: []$T, valeur: T) -> bool
     }
     retourne faux
 }
+
+tableaux_ont_mêmes_valeurs :: fonc (a: []$T, b: []T) -> bool
+{
+    si a.taille != b.taille {
+        retourne faux
+    }
+
+    pour a {
+        saufsi tableau_possède_élément(b, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
