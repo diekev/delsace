@@ -756,7 +756,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     origin := détermine_origin(donne_about_blank_url(), sandbox_flags, creator_origin)
 
     // 8. Let permissionsPolicy be the result of creating a permissions policy given embedder and origin. [PERMISSIONSPOLICY]
-    permissions_policy := crée_permisions_policy_pour_navigable(embedder, origin)
+    permissions_policy := create_a_permissions_policy_for_a_navigable(embedder, origin)
 
     // 9. Let agent be the result of obtaining a similar-origin window agent given origin, group, and false.
     agent := obtain_similar_origin_window_agent(origin, group, faux)
