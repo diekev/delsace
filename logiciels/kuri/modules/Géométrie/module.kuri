@@ -281,14 +281,6 @@ crée_rectangle_pos_dim :: fonc (a: Point2D($T), b: Point2D(T)) -> RectanglePosD
     retourne RectanglePosDim(T)(x, y, hauteur, largeur)
 }
 
-agrandis :: fonc (rect: &RectanglePosDim($T), taille: T)
-{
-    rect.x -= taille
-    rect.y -= taille
-    rect.hauteur += taille * 2
-    rect.largeur += taille * 2
-}
-
 réduis :: fonc (rect: &RectanglePosDim($T), taille: T)
 {
     rect.x += taille
