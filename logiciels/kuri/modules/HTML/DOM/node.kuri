@@ -62,6 +62,12 @@ Node :: struct {
     attributs: [..]*Attr
 
     document: *Document
+
+    /* Slottable. */
+    /* https://dom.spec.whatwg.org/#slotable-name */
+    name: DOMString
+    /* https://dom.spec.whatwg.org/#slotable-assigned-slot */
+    assigned_slot: *Element
 }
 
 #portée_module
@@ -87,7 +93,9 @@ node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée)
     noeud := base comme *Node
     // A node’s get the parent algorithm, given an event, returns the node’s assigned slot,
     // if node is assigned; otherwise node’s parent.
-    // À FAIRE : assigned slot
+    si noeud.assigned_slot {
+        retourne noeud.assigned_slot
+    }
     retourne noeud.parent
 }
 
@@ -310,12 +318,6 @@ donne_premier_enfant_taggé :: fonc (noeud: *Node, tag: DOMString) -> *Node
     retourne nul
 }
 
-/* https://dom.spec.whatwg.org/#connected */
-est_connecté :: fonc (noeud: *Node) -> bool
-{
-    retourne noeud.donne_racine_shadow_including().est_document()
-}
-
 /* https://dom.spec.whatwg.org/#concept-tree-root */
 donne_racine :: fonc (noeud: *Node) -> *Node
 {
@@ -454,6 +456,338 @@ get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
     }
 
     retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.2.2 Shadow Tree
+ * https://dom.spec.whatwg.org/#shadow-trees
+ * \{ */
+
+is_shadow_tree :: fonc (node: *Node) -> bool
+{
+    /* A shadow tree is a node tree whose root is a shadow root. */
+    retourne racine_est_shadow_root(node)
+}
+
+/* https://dom.spec.whatwg.org/#connected */
+est_connecté :: fonc (noeud: *Node) -> bool
+{
+    retourne noeud.donne_racine_shadow_including().est_document()
+}
+
+/* 4.2.2.1. Slots
+ * https://dom.spec.whatwg.org/#shadow-tree-slots */
+
+/* https://dom.spec.whatwg.org/#concept-slot */
+is_slot :: fonc (node: *Node) -> bool
+{
+    retourne (node.genre == GenreNoeud.Element) && is_slot(node comme *Element)
+}
+
+is_slot :: fonc (element: *Element) -> bool
+{
+    /* A shadow tree contains zero or more elements that are slots. */
+    retourne is_shadow_tree(element)
+}
+
+/* https://dom.spec.whatwg.org/#shadow-tree-slots */
+slot_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, old_value: *DOMString, value: *DOMString, namespace: Optionnel(DOMString)) -> bool
+{
+    // 1. If element is a slot, localName is name, and namespace is null:
+    si is_slot(element) && local_name == ATTR_name && !namespace.possède_valeur() {
+        // 1. If value is oldValue, then return.
+        si old_value && value && mémoire(old_value) == mémoire(value) {
+            retourne vrai
+        }
+
+        // 2. If value is null and oldValue is the empty string, then return.
+        si value == nul && mémoire(old_value).est_vide() {
+            retourne vrai
+        }
+
+        // 3. If value is the empty string and oldValue is null, then return.
+        si value && mémoire(value).est_vide() && old_value == nul {
+            retourne vrai
+        }
+
+        // 4. If value is null or the empty string, then set element’s name to the empty string.
+        si value == nul || mémoire(value).est_vide() {
+            element.name = crée_chaine_utf16_unique_vide()
+        }
+        // 5. Otherwise, set element’s name to value.
+        sinon {
+            element.name = mémoire(value)
+        }
+
+        // 6. Run assign slottables for a tree with element’s root.
+        root := donne_racine(element)
+        assign_slottables_for_a_tree(root)
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* 4.2.2.2. Slottables
+ * https://dom.spec.whatwg.org/#light-tree-slotables */
+
+/* https://dom.spec.whatwg.org/#concept-slotable */
+is_slottable :: fonc (node: *Node) -> bool
+{
+    /* Element and Text nodes are slottables. */
+    retourne node.genre == GenreNoeud.Element || node.genre == GenreNoeud.Texte
+}
+
+/* https://dom.spec.whatwg.org/#slotable-assigned */
+is_assigned :: fonc (node: *Node) -> bool
+{
+    /* A slottable is assigned if its assigned slot is non-null. */
+    retourne node.assigned_slot != nul
+}
+
+/* https://dom.spec.whatwg.org/#light-tree-slotables */
+/* https://dom.spec.whatwg.org/#shadow-tree-slots */
+slottable_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, old_value: *DOMString, value: *DOMString, namespace: Optionnel(DOMString)) -> bool
+{
+    // 1. If localName is slot and namespace is null:
+    si local_name == ATTR_slot && !namespace.possède_valeur() {
+        // 1. If value is oldValue, then return.
+        si old_value && value && mémoire(old_value) == mémoire(value) {
+            retourne vrai
+        }
+
+        // 2. If value is null and oldValue is the empty string, then return.
+        si value == nul && mémoire(old_value).est_vide() {
+            retourne vrai
+        }
+
+        // 3. If value is the empty string and oldValue is null, then return.
+        si value && mémoire(value).est_vide() && old_value == nul {
+            retourne vrai
+        }
+
+        // 4. If value is null or the empty string, then set element’s name to the empty string.
+        si value == nul || mémoire(value).est_vide() {
+            element.name = crée_chaine_utf16_unique_vide()
+        }
+        // 5. Otherwise, set element’s name to value.
+        sinon {
+            element.name = mémoire(value)
+        }
+
+        // 6. If element is assigned, then run assign slottables for element’s assigned slot.
+        si is_assigned(element) {
+            assign_slottables(element.assigned_slot)
+        }
+
+        // 7. Run assign a slot for element.
+        assign_a_slot(element)
+
+        retourne vrai
+    }
+
+    retourne faux
+}
+
+/* 4.2.2.3. Finding slots and slottables
+ * https://dom.spec.whatwg.org/#finding-slots-and-slotables */
+
+/* https://dom.spec.whatwg.org/#find-a-slot */
+find_a_slot :: fonc (slottable: *Node, open := faux) -> *Element
+{
+    // 1. If slottable’s parent is null, then return null.
+    si slottable.parent == nul {
+        retourne nul
+    }
+
+    // 2. Let shadow be slottable’s parent’s shadow root.
+    shadow: *ShadowRoot
+    si slottable.parent.genre == GenreNoeud.Element {
+        shadow = (slottable.parent comme *Element).shadow_root
+    }
+
+    // 3. If shadow is null, then return null.
+    saufsi shadow {
+        retourne nul
+    }
+
+    // 4. If open is true and shadow’s mode is not "open", then return null.
+    si open == vrai && shadow.mode != ShadowRootMode.open {
+        retourne nul
+    }
+
+    traversée: [..]*Node
+    diffère déloge(traversée)
+
+    pour > shadow.enfants {
+        tableau_ajoute(*traversée, it)
+    }
+
+    // 5. If shadow’s slot assignment is "manual", then return the slot in shadow’s descendants
+    //    whose manually assigned nodes contains slottable, if any; otherwise null.
+    si shadow.slot_assignment == SlotAssignment.manual {
+        tantque traversée.taille != 0 {
+            noeud := traversée[traversée.taille - 1]
+            traversée.taille -= 1
+
+            si noeud.genre == GenreNoeud.Element {
+                /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
+                slot := noeud comme *Element
+                si tableau_possède_élément(slot.manually_assigned_nodes, slottable) {
+                    retourne slot
+                }
+            }
+
+            pour > noeud.enfants {
+                tableau_ajoute(*traversée, it)
+            }
+        }
+
+        retourne nul
+    }
+
+    // 6. Return the first slot in tree order in shadow’s descendants whose name is slottable’s
+    // name, if any; otherwise null.
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.genre == GenreNoeud.Element {
+            /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
+            slot := noeud comme *Element
+
+            si slot.name == slottable.name {
+                retourne slot
+            }
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+
+    retourne nul
+}
+
+/* https://dom.spec.whatwg.org/#find-slotables */
+find_slottables :: fonc (slot: *Element) -> [..]*Node
+{
+    // 1. Let result be « ».
+    result: [..]*Node
+
+    // 2. Let root be slot’s root.
+    root := donne_racine(slot) comme *ShadowRoot
+
+    // 3. If root is not a shadow root, then return result.
+    saufsi root.genre == GenreNoeud.ShadowRoot {
+        retourne result
+    }
+
+    // 4. Let host be root’s host.
+    host := root.host
+
+    // 5. If root’s slot assignment is "manual":
+    si root.slot_assignment == SlotAssignment.manual {
+        // 1. For each slottable slottable of slot’s manually assigned nodes, if slottable’s parent is host, append slottable to result.
+        pour slottable dans slot.manually_assigned_nodes {
+            si slottable.parent == host {
+                tableau_ajoute(*result, slottable)
+            }
+        }
+    }
+    // 6. Otherwise, for each slottable child slottable of host, in tree order:
+    sinon pour slottable dans host.enfants {
+        saufsi is_slottable(slottable) {
+            continue
+        }
+
+        // 1. Let foundSlot be the result of finding a slot given slottable.
+        found_slot := find_a_slot(slottable)
+
+        // 2. If foundSlot is slot, then append slottable to result.
+        si found_slot == slot {
+            tableau_ajoute(*result, slottable)
+        }
+    }
+
+    // 7. Return result.
+    retourne result
+}
+
+/* 4.2.2.4. Assigning slottables and slots
+ * https://dom.spec.whatwg.org/#assigning-slotables-and-slots */
+
+/* https://dom.spec.whatwg.org/#assign-slotables */
+assign_slottables :: fonc (slot: *Element)
+{
+    // 1. Let slottables be the result of finding slottables for slot.
+    slottables := find_slottables(slot)
+
+    // 2. If slottables and slot’s assigned nodes are not identical, then run signal a slot change for slot.
+    saufsi tableaux_ont_mêmes_valeurs(slottables, slot.assigned_nodes) {
+        signal_a_slot_change(slot)
+    }
+
+    // 3. Set slot’s assigned nodes to slottables.
+    déloge(slot.assigned_nodes)
+    slot.assigned_nodes = slottables
+
+    // 4. For each slottable of slottables, set slottable’s assigned slot to slot.
+    pour slottable dans slottables {
+        slottable.assigned_slot = slot
+    }
+}
+
+/* https://dom.spec.whatwg.org/#assign-slotables-for-a-tree */
+assign_slottables_for_a_tree :: fonc (root: *Node)
+{
+    assert(root.genre == GenreNoeud.ShadowRoot)
+
+    /* To assign slottables for a tree, given a node root, run 
+     * assign slottables for each slot of root’s inclusive descendants, in tree order. */
+
+    traversée: [..]*Node
+    diffère déloge(traversée)
+    tableau_ajoute(*traversée, root)
+
+    tantque traversée.taille != 0 {
+        noeud := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        si noeud.genre == GenreNoeud.Element {
+            /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
+            assign_slottables(noeud comme *Element)
+        }
+
+        pour > noeud.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+}
+
+/* https://dom.spec.whatwg.org/#assign-a-slot */
+assign_a_slot :: fonc (slottable: *Node)
+{
+    // 1. Let slot be the result of finding a slot with slottable.
+    slot := find_a_slot(slottable)
+
+    // If slot is non-null, then run assign slottables for slot.
+    si slot {
+        assign_slottables(slot)
+    }
+}
+
+/* 4.2.2.5. Signaling slot change
+ * https://dom.spec.whatwg.org/#signaling-slot-change */
+
+/* https://dom.spec.whatwg.org/#signal-a-slot-change */
+signal_a_slot_change :: fonc (slot: *Element @inutilisée)
+{
+    // 1. Append slot to slot’s relevant agent’s signal slots.
+    // 2. Queue a mutation observer microtask.
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
 }
 
 /** \} */
@@ -669,14 +1003,33 @@ remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
     }
 
     // 8. If node is assigned, then run assign slottables for node’s assigned slot.
+    si is_assigned(node) {
+        assign_slottables(node.assigned_slot)
+    }
 
-    // 9. If parent’s root is a shadow root, and parent is a slot whose assigned nodes is the empty list, then run signal a slot change for parent.
+    // 9. If parent’s root is a shadow root, and parent is a slot whose assigned nodes is the empty list,
+    //    then run signal a slot change for parent.
+    parent_root := donne_racine(parent)
+    si parent_root.genre == GenreNoeud.ShadowRoot && is_slot(parent) && (parent comme *Element).assigned_nodes.taille == 0 {
+        signal_a_slot_change(parent comme *Element)
+    }
 
     // 10. If node has an inclusive descendant that is a slot:
+    has_a_slot_descendant: bool
+    pour InclusiveDescendants(node) {
+        si is_slot(it) {
+            has_a_slot_descendant = vrai
+            arrête
+        }
+    }
 
+    si has_a_slot_descendant {
         // 1. Run assign slottables for a tree with parent’s root.
+        assign_slottables_for_a_tree(parent_root)
 
         // 2. Run assign slottables for a tree with node.
+        assign_slottables_for_a_tree(node)
+    }
 
     // 11. Run the removing steps with node and parent.
 
