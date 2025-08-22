@@ -1857,25 +1857,6 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
     return false;
 }
 
-static NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
-{
-    if (si_statique->condition_est_vraie) {
-        return si_statique->bloc_si_vrai;
-    }
-
-    if (si_statique->bloc_si_faux) {
-        if (si_statique->bloc_si_faux->est_bloc()) {
-            return si_statique->bloc_si_faux->comme_bloc();
-        }
-
-        if (si_statique->bloc_si_faux->est_si_statique()) {
-            return donne_bloc_à_fusionner(si_statique->bloc_si_faux->comme_si_statique());
-        }
-    }
-
-    return nullptr;
-}
-
 void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 {
     DÉBUTE_STAT(TYPAGE_TERMINÉ);
