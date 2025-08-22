@@ -3023,7 +3023,10 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // 2. Set browsingContext to the result of the obtaining a browsing context to use for a navigation response given browsingContext, navigationParams's final sandboxing flag set, navigationParams's cross-origin opener policy, and navigationParams's COOP enforcement result.
     browsing_context = obtain_a_browsing_context_for_a_navigation_response(user_agent, browsing_context, navigation_params.final_sandboxing_flag, navigation_params.cross_origin_opener_policy, navigation_params.COOP_enforcement_result)
 
-    // À FAIRE 3. Let permissionsPolicy be the result of creating a permissions policy from a response given navigationParams's navigable's container, navigationParams's origin, and navigationParams's response. [PERMISSIONSPOLICY]
+    // 3. Let permissionsPolicy be the result of creating a permissions policy from a response
+    // given navigationParams's navigable's container, navigationParams's origin, and navigationParams's response. [PERMISSIONSPOLICY]
+    container := donne_container(navigation_params.navigable)
+    permissions_policy := create_a_permissions_policy_for_a_navigable_from_respone(container, navigation_params.origin, navigation_params.response)
 
     // 4. Let creationURL be navigationParams's response's URL.
     creation_url := navigation_params.response.donne_url()
@@ -3095,13 +3098,17 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
         // 8. Let topLevelOrigin be navigationParams's origin.
         top_level_origin := navigation_params.origin
 
-        // À FAIRE : 9. If navigable's container is not null, then:
-
+        // 9. If navigable's container is not null, then:
+        si container {
             // 1. Let parentEnvironment be navigable's container's relevant settings object.
+            parent_environment := donne_relevant_settings_object(container)
 
             // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
+            top_level_creation_url = parent_environment.top_level_creation_url
 
             // 3. Set topLevelOrigin to parentEnvironment's top-level origin.
+            top_level_origin = parent_environment.top_level_origin
+        }
 
         // 10. Set up a window environment settings object with creationURL, realmExecutionContext, navigationParams's reserved environment, topLevelCreationURL, and topLevelOrigin.
         set_up_window_environnement_context(creation_url, realm_execution_context, navigation_params.reserved_environment, top_level_creation_url, top_level_origin)
@@ -3110,36 +3117,33 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // À FAIRE 9. Let loadTimingInfo be a new document load timing info with its navigation start time set to navigationParams's response's timing info's start time.
 
     // 10. Let document be a new Document, with
-    //     type type
-    //     content type contentType
-    //     origin navigationParams's origin
-    //     browsing context browsingContext
-    //     policy container navigationParams's policy container
-    //     permissions policy permissionsPolicy
-    //     active sandboxing flag set navigationParams's final sandboxing flag set
-    //     cross-origin opener policy navigationParams's cross-origin opener policy
-    //     load timing info loadTimingInfo
-    //     was created via cross-origin redirects navigationParams's response's has cross-origin redirects
-    //     during-loading navigation ID for WebDriver BiDi navigationParams's id
-    //     URL creationURL
-    //     current document readiness "loading"
-    //     about base URL navigationParams's about base URL
-    //     allow declarative shadow roots true
     document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), window.realm)
+    // type type
     document.type = type
+    // content type contentType
     document.type_contenu = content_type
+    // origin navigationParams's origin
     document.origin = navigation_params.origin
+    // browsing context browsingContext
     document.browsing_context = browsing_context
+    // policy container navigationParams's policy container
     document.policy_container = navigation_params.policy_container
-    //     permissions policy permissionsPolicy
+    // permissions policy permissionsPolicy
+    document.permissions_policy = permissions_policy
+    // active sandboxing flag set navigationParams's final sandboxing flag set
     document.active_sandboxing_flags = navigation_params.final_sandboxing_flag
+    // cross-origin opener policy navigationParams's cross-origin opener policy
     document.cross_origin_opener_policy = navigation_params.cross_origin_opener_policy
-    //     load timing info loadTimingInfo
-    //     was created via cross-origin redirects navigationParams's response's has cross-origin redirects
-    //     during-loading navigation ID for WebDriver BiDi navigationParams's id
+    // load timing info loadTimingInfo
+    // was created via cross-origin redirects navigationParams's response's has cross-origin redirects
+    // during-loading navigation ID for WebDriver BiDi navigationParams's id
+    // URL creationURL
     document.url = copie_url(creation_url)
-    //     current document readiness "loading"
+    // current document readiness "loading"
+    document.current_document_readiness = "loading"
+    // about base URL navigationParams's about base URL
     document.about_base_url = navigation_params.about_base_url
+    // allow declarative shadow roots true
     document.permets_racines_shadow_déclaratives = vrai
 
     // 11. Set window's associated Document to document.
