@@ -948,19 +948,19 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     vue_rendu_page := base comme *VueRenduPage
 
-    taille_cannevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
+    taille_canevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
 
     saufsi vue_rendu_page.peintre {
-        vue_rendu_page.peintre = crée_peintre_igumi(taille_cannevas)
-        // vue_rendu_page.peintre = crée_peintre_module_dessin(taille_cannevas)
+        vue_rendu_page.peintre = crée_peintre_igumi(taille_canevas)
+        // vue_rendu_page.peintre = crée_peintre_module_dessin(taille_canevas)
     }
 
     saufsi vue_rendu_page.peintre_id {
-        vue_rendu_page.peintre_id = crée_peintre_igumi(taille_cannevas)
+        vue_rendu_page.peintre_id = crée_peintre_igumi(taille_canevas)
     }
 
     peintre := vue_rendu_page.peintre
-    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.définis_taille_canevas(taille_canevas)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glClearColor(1.0, 1.0, 1.0, 1.0)

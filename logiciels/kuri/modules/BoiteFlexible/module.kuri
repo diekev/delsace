@@ -1936,7 +1936,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
     début := commandes.commandes.pointeur
     fin := début + commandes.commandes.taille
 
-    hauteur_vue := peintre.donne_taille_cannevas().hauteur comme z32 comme r32
+    hauteur_vue := peintre.donne_taille_canevas().hauteur comme z32 comme r32
 
     tantque début < fin {
         base := début comme *BaseCommande

@@ -116,13 +116,13 @@ dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
         hauteur_courante -= 5
     }
 
-    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
 
     saufsi peintre {
-        peintre = crée_peintre_igumi(taille_cannevas)
+        peintre = crée_peintre_igumi(taille_canevas)
     }
 
-    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.définis_taille_canevas(taille_canevas)
     peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 
     commandes := crée_interface(app, largeur, hauteur)

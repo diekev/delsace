@@ -29,19 +29,19 @@ issitialise_igumi :: fonc ()
 définis_fenêtre :: fonc (largeur: z32, hauteur: z32)
 {
     glViewport(0, 0, largeur, hauteur)
-    __ctx_courant.largeur_cannevas = largeur
-    __ctx_courant.hauteur_cannevas = hauteur
+    __ctx_courant.largeur_canevas = largeur
+    __ctx_courant.hauteur_canevas = hauteur
     __ctx_courant.projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
 }
 
-donne_largeur_cannevas :: fonc () -> z32
+donne_largeur_canevas :: fonc () -> z32
 {
-    retourne __ctx_courant.largeur_cannevas
+    retourne __ctx_courant.largeur_canevas
 }
 
-donne_hauteur_cannevas :: fonc () -> z32
+donne_hauteur_canevas :: fonc () -> z32
 {
-    retourne __ctx_courant.hauteur_cannevas
+    retourne __ctx_courant.hauteur_canevas
 }
 
 efface_cible_rendu :: fonc (couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0))
@@ -67,7 +67,7 @@ termine_2d :: fonc ()
     assert(__ctx_courant.caméra_2d != nul)
     __ctx_courant.caméra_2d = nul
 
-    glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
+    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas)
 }
 
 commence_3d :: fonc (caméra: *Caméra3D)
@@ -88,7 +88,7 @@ termine_3d :: fonc ()
     assert(__ctx_courant.caméra_3d != nul)
     __ctx_courant.caméra_3d = nul
 
-    glViewport(0, 0, __ctx_courant.largeur_cannevas, __ctx_courant.hauteur_cannevas)
+    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas)
 }
 
 /** \} */
@@ -260,8 +260,8 @@ DonnéesContexteGL :: struct {
     utilisateurs := 0
 
     projection: Mat4r
-    largeur_cannevas: z32
-    hauteur_cannevas: z32
+    largeur_canevas: z32
+    hauteur_canevas: z32
 
     caméra_2d: *Caméra2D
     caméra_3d: *Caméra3D
@@ -1117,8 +1117,8 @@ commence_frame_buffer :: fonc ()
     termine_immédiat()
     réinitialise_données()
 
-    hauteur_cannevas := donne_hauteur_cannevas()
-    largeur_cannevas := donne_largeur_cannevas()
+    hauteur_canevas := donne_hauteur_canevas()
+    largeur_canevas := donne_largeur_canevas()
 
     fb: FrameBuffer
 
@@ -1129,13 +1129,13 @@ commence_frame_buffer :: fonc ()
     glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo)
 
     glBindTexture(GL_TEXTURE_2D, fb.texture)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_cannevas, hauteur_cannevas, 0, GL_RGBA, GL_FLOAT, nul)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_canevas, hauteur_canevas, 0, GL_RGBA, GL_FLOAT, nul)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
 
     glBindRenderbuffer(GL_RENDERBUFFER, fb.buffer)
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, largeur_cannevas, hauteur_cannevas)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, largeur_canevas, hauteur_canevas)
     glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fb.buffer)
     vérifie_erreur(#nom_de_cette_fonction)
 
@@ -1166,19 +1166,19 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     // glEnable(GL_BLEND)
 
-    // image := alloc_image(hauteur_cannevas, largeur_cannevas, 4)
+    // image := alloc_image(hauteur_canevas, largeur_canevas, 4)
     // diffère détruit_image(image)
 
     // glReadBuffer(GL_COLOR_ATTACHMENT0)
-    // glReadPixels(0, 0, largeur_cannevas, hauteur_cannevas, GL_RGBA, GL_FLOAT, image.donnees)
+    // glReadPixels(0, 0, largeur_canevas, hauteur_canevas, GL_RGBA, GL_FLOAT, image.donnees)
 
     // glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
 
     // glBindRenderbuffer(GL_RENDERBUFFER, prev_render_buffer)
 
     // rect: RectanglePosDim(r32)
-    // rect.largeur = largeur_cannevas comme r32
-    // rect.hauteur = hauteur_cannevas comme r32
+    // rect.largeur = largeur_canevas comme r32
+    // rect.hauteur = hauteur_canevas comme r32
 
     // image_immédiat(image, rect, rect, ParamètresRenduImage())
 
@@ -1194,8 +1194,8 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
 
     x := 0.0
     y := 0.0
-    largeur := largeur_cannevas comme r32
-    hauteur := hauteur_cannevas comme r32
+    largeur := largeur_canevas comme r32
+    hauteur := hauteur_canevas comme r32
 
     p0 := Vec3(x = x, y = y)
     p1 := Vec3(x = largeur, y = y)

@@ -77,12 +77,12 @@ dessine_fenêtre :: fonc (empl serveuse: *Serveuse, largeur: z32, hauteur: z32)
     marque := donne_marque_stockage_temporaire()
     diffère définis_marque_stockage_temporaire(marque)
 
-    taille_cannevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
     saufsi peintre {
-        peintre = crée_peintre_igumi(taille_cannevas)
+        peintre = crée_peintre_igumi(taille_canevas)
     }
 
-    peintre.définis_taille_cannevas(taille_cannevas)
+    peintre.définis_taille_canevas(taille_canevas)
     peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 
     commandes := crée_interface(serveuse, largeur, hauteur)
