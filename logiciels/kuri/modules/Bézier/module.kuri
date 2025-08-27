@@ -1,0 +1,256 @@
+/* Module de définitions de types pour représenter, et de travail sur, des courbes de Bézier. */
+
+importe Fondation
+importe Géométrie
+importe Math
+
+/* ------------------------------------------------------------------------- */
+/** \nom Échantillonnage de courbe de Bézier.
+ * \{ */
+
+échantillonne_courbe_bézier :: fonc (p0: Point2D(r32), p1: Point2D(r32), p2: Point2D(r32), p3: Point2D(r32), échantillons: []Point2D(r32))
+{
+    si échantillons.taille == 0 {
+        retourne
+    }
+
+    début := échantillons.pointeur comme *r32
+
+    échantillonne_courbe_bézier(p0.x, p1.x, p2.x, p3.x, début, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
+    échantillonne_courbe_bézier(p0.y, p1.y, p2.y, p3.y, début + 1, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
+}
+
+échantillonne_courbe_bézier :: fonc (point_a: r32, point_b: r32, point_c: r32, point_d: r32, décalage: r32) -> r32
+{
+    u := 1.0 - t
+    u² := u * u
+    u³ := u² * u
+
+    t² := t * t
+    t³ := d² * t
+
+    a := u³ * point_a
+    b := 3.0 * u² * t * point_b
+    c := 3.0 * u * u² * point_c
+    d := t³ * point_d
+    retourne a + b + c + d
+}
+
+décale_pointeur :: fonc (ptr: *rien, stride: z32) -> *rien #enligne
+{
+    a := ptr comme *octet
+    a += stride
+    retourne a
+}
+
+/* Code adapté de Blender.
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+échantillonne_courbe_bézier :: fonc (q0: r32, q1: r32, q2: r32, q3: r32, p: *r32, i: z32, stride: z32)
+{
+    f := i comme r32
+    rt0 := q0
+    rt1 := 3.0 * (q1 - q0) / f
+    f *= f
+    rt2 := 3.0 * (q0 - 2.0 * q1 + q2) / f
+    f *= i comme r32
+    rt3 := (q3 - q0 + 3.0 * (q1 - q2)) / f
+
+    q0 = rt0
+    q1 = rt1 + rt2 + rt3
+    q2 = 2.0 * rt2 + 6.0 * rt3
+    q3 = 6.0 * rt3
+
+    pour i + 1 {
+        mémoire(p) = q0
+        p = décale_pointeur(p, stride) comme *r32
+        q0 += q1
+        q1 += q2
+        q2 += q3
+    }
+}
+
+calcule_point_sur_courbe :: fonc (point_a: Vec2, point_b: Vec2, décalage: r32, point_c: Vec2, point_d: Vec2) -> Vec2
+{
+    complément_décalage := 1.0 - décalage
+    cd² := complément_décalage * complément_décalage
+    cd³ := cd² * complément_décalage
+
+    d² := décalage * décalage
+    d³ := d² * décalage
+
+    a := cd³ * point_a
+    b := 3.0 * cd² * décalage * point_b
+    c := 3.0 * complément_décalage * d² * point_c
+    d := d³ * point_d
+    retourne a + b + c + d
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Un Chemin sers à représenter un ensemble de courbes de Bézier, par
+ * exemple, des courbes provenant d'un fichier SVG.
+ * Un chemin est composé de sous-chemins : ceci permet de représenter des formes
+ * complexes.
+ * Les sous-chemins peuvent être fermés ou non;
+ * \{ */
+
+Chemin :: struct {
+    sous_chemins: [..]SousChemin
+}
+
+détruit_données :: fonc (chemin: *Chemin)
+{
+    pour chemin.sous_chemins {
+        déloge(it.noeuds)
+    }
+    déloge(chemin.sous_chemins)
+}
+
+SousChemin :: struct {
+    Noeud :: struct {
+        Drapeaux :: énum_drapeau {
+            ANCRE_VISIBLE
+            ANCRE_SÉCELCTIONNÉE
+            CONTROLE_AVANT_VISIBLE
+            CONTROLE_ARRIÈRE_VISIBLE
+            CONTROLES_LIÉS
+            AUTOMATIQUE
+
+            DRAPEAUX_DÉFAUT :: ANCRE_VISIBLE
+            SÉLECTION_CONTOLES :: CONTROLE_AVANT_VISIBLE | CONTROLE_ARRIÈRE_VISIBLE
+            SÉLECTION :: ANCRE_SÉCELCTIONNÉE | SÉLECTION_CONTOLES
+        }
+
+        controle_arrière: Point2D(r32)
+        ancre: Point2D(r32)
+        controle_avant: Point2D(r32)
+
+        drapeaux := Drapeaux.DRAPEAUX_DÉFAUT
+    }
+
+    noeuds: [..]Noeud
+    est_fermé: bool
+}
+
+échantillonne_courbe_bézier :: fonc (noeud1: SousChemin.Noeud, noeud2: SousChemin.Noeud, échantillons: []Point2D(r32))
+{
+    échantillonne_courbe_bézier(noeud1.ancre, noeud1.controle_avant, noeud2.controle_arrière, noeud2.ancre, échantillons)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom CréatriceChemin
+ * \{ */
+
+CréatriceChemin :: struct {
+    noeuds: [..]SousChemin.Noeud
+    chemin: Chemin
+    dernier_point: Point2D(r32)
+    sous_chemin_est_fermé: bool
+}
+
+détruit_données :: fonc (créatrice: *CréatriceChemin)
+{
+    déloge(créatrice.noeuds)
+    détruit_données(*créatrice.chemin)
+    init_de(CréatriceChemin)(créatrice)
+}
+
+/* Termine le sous-chemin courant et retourne-le. La créatrice est réinitialisée et ne possède alors plus le chemin. */
+donne_chemin :: fonc (créatrice: *CréatriceChemin) -> Chemin
+{
+    termine_sous_chemin_courant(créatrice)
+    déloge(créatrice.noeuds)
+    résultat := créatrice.chemin
+    init_de(Chemin)(*créatrice.chemin)
+    retourne résultat
+}
+
+va_vers :: fonc (créatrice: *CréatriceChemin, point: Point2D(r32))
+{
+    termine_sous_chemin_courant(créatrice)
+
+    noeud := tableau_ajoute_élément(*créatrice.noeuds)
+    noeud.ancre = point
+    noeud.controle_arrière = point
+    noeud.controle_avant = point
+
+    créatrice.dernier_point = point
+}
+
+ligne_vers :: fonc (créatrice: *CréatriceChemin, point: Point2D(r32))
+{
+    cubique_vers(créatrice, créatrice.dernier_point, point, point, faux)
+}
+
+conique_vers :: fonc (créatrice: *CréatriceChemin, controle: Point2D(r32), point: Point2D(r32), controles_liés: bool)
+{
+    cubique_vers(créatrice, controle, controle, point, controles_liés)
+}
+
+cubique_vers :: fonc (créatrice: *CréatriceChemin, controle1: Point2D(r32), controle2: Point2D(r32), point: Point2D(r32), controles_liés: bool)
+{
+    assert(créatrice.noeuds.taille != 0)
+
+    dernier_noeud := dernier_élément(créatrice.noeuds)
+    dernier_noeud.controle_avant = controle1
+    
+    noeud := tableau_ajoute_élément(*créatrice.noeuds)
+    noeud.controle_arrière = controle2
+    noeud.ancre = point
+    noeud.controle_avant.x = noeud.ancre.x + (noeud.ancre.x - noeud.controle_arrière.x)
+    noeud.controle_avant.y = noeud.ancre.y + (noeud.ancre.y - noeud.controle_arrière.y)
+
+    noeud.drapeaux.CONTROLES_LIÉS = controles_liés
+
+    créatrice.dernier_point = point
+}
+
+ferme_chemin_si_chemin_en_cours :: fonc (créatrice: *CréatriceChemin)
+{
+    si créatrice.noeuds {
+        ferme_chemin(créatrice)
+    }
+}
+
+ferme_chemin :: fonc (créatrice: *CréatriceChemin)
+{
+    assert(créatrice.noeuds.taille != 0)
+
+    créatrice.sous_chemin_est_fermé = vrai
+
+    si créatrice.noeuds.taille > 1 {
+        premier_noeud := *créatrice.noeuds[0]
+        dernier_noeud := dernier_élément(créatrice.noeuds)
+
+        si premier_noeud.ancre == dernier_noeud.ancre {
+            // Combinons les deux derniers neouds si le dernier mouvement ferma le chemin.
+            créatrice.noeuds.taille -= 1
+
+            premier_noeud.controle_arrière = dernier_noeud.controle_arrière
+            premier_noeud.drapeaux.CONTROLES_LIÉS = dernier_noeud.drapeaux.CONTROLES_LIÉS == vrai
+        }
+        sinon {
+            // Crée une ligne_vers du dernier_noeud vers le premier si le dernier
+            // mouvement ne ferma pas le chemin.
+            // Ceci implique que le premier controle du dernier noeud doit être le
+            // même que son ancre.
+            dernier_noeud.controle_avant = dernier_noeud.ancre
+        }
+    }
+}
+
+termine_sous_chemin_courant :: fonc (créatrice: *CréatriceChemin)
+{
+    si créatrice.noeuds {
+        sous_chemin := tableau_ajoute_élément(*créatrice.chemin.sous_chemins)
+        sous_chemin.noeuds = tableau_copie(créatrice.noeuds)
+        sous_chemin.est_fermé = créatrice.sous_chemin_est_fermé
+        créatrice.sous_chemin_est_fermé = faux
+        créatrice.noeuds.taille = 0
+    }
+}
+
+/** \} */

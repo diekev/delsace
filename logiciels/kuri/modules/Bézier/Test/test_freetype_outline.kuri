@@ -1,0 +1,274 @@
+importe CréationFenêtre
+importe Fondation
+importe FreeType
+importe Géométrie
+importe PeintureInterface
+importe Périphériques
+importe Couleur
+importe Unicode
+
+importe Bézier
+
+importe Temps
+
+principale :: fonc ()
+{
+    chemin_fonte := "/home/kevin/Documents/fontes/Alegreya-Regular.ttf"
+    codepoint: n32 = 'A' comme n32
+
+    chemin: Chemin
+    _ := charge_chemin_depuis_caractètre(chemin_fonte, codepoint, *chemin)
+
+    fenêtre := crée_fenêtre(800, 600, "Outline FreeType", vrai)
+
+    doit_fermer := faux
+
+    peintre: *Peintre
+
+    échantillons: [32]Point2D(r32)
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre()
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si it.type == TypeÉvènement.Clavier && it.touche_pressée && it.texte {
+                n := nombre_octets_utf8_rapide(it.texte.pointeur)
+                point_de_code := converti_utf8_utf32(it.texte.pointeur, n) comme n32
+                _ := charge_chemin_depuis_caractètre(chemin_fonte, point_de_code, *chemin)
+            }
+        }
+
+        taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+        saufsi peintre {
+            peintre = crée_peintre_igumi(taille_canevas)
+            peintre.définis_taille_canevas(taille_canevas)
+        }
+
+        peintre.efface_cible_rendu(CouleurRVBA(0.0, 0.0, 0.0, 1.0))
+        couleurs := [CouleurRVBA(0.1, 0.1, 1.0, 1.0), CouleurRVBA(0.1, 1.0, 0.1, 1.0)]
+
+        RAYON_NOEUD :: 5.0
+
+        pour chemin.sous_chemins {
+            couleur := couleurs[indice_it % couleurs.taille]
+
+            pour noeud, indice_noeud dans it.noeuds {
+                ligne: Ligne(r32)
+                // {
+                //     ligne = Ligne(r32)(noeud.controle_arrière, noeud.ancre)
+                //     peintre.dessine_segment(ligne, couleur)
+
+                //     ligne = Ligne(r32)(noeud.ancre, noeud.controle_avant)
+                //     peintre.dessine_segment(ligne, couleur)
+
+                //     rect: RectanglePosDim(r32)
+                //     rect.x = noeud.ancre.x - RAYON_NOEUD
+                //     rect.y = noeud.ancre.y - RAYON_NOEUD
+                //     rect.largeur = 2.0 * RAYON_NOEUD
+                //     rect.hauteur = 2.0 * RAYON_NOEUD
+                //     peintre.remplis_rectangle(rect, couleur)
+
+                //     cercle: Cercle(r32)
+                //     cercle.centre_x = noeud.controle_arrière.x
+                //     cercle.centre_y = noeud.controle_arrière.y
+                //     cercle.rayon = RAYON_NOEUD
+                //     peintre.dessine_cercle(cercle, couleur)
+
+                //     cercle.centre_x = noeud.controle_avant.x
+                //     cercle.centre_y = noeud.controle_avant.y
+                //     cercle.rayon = RAYON_NOEUD
+                //     peintre.dessine_cercle(cercle, couleur)
+                // }
+
+                // si indice_noeud == 0 {
+                //     dernier_point := dernier_élément(it.noeuds)
+
+                //     ligne = Ligne(r32)(dernier_point.controle_avant, noeud.controle_arrière)
+                //     peintre.dessine_segment(ligne, couleur)
+                // }
+
+                // ligne = Ligne(r32)(noeud.controle_arrière, noeud.ancre)
+                // peintre.dessine_segment(ligne, couleur)
+
+                // ligne = Ligne(r32)(noeud.ancre, noeud.controle_avant)
+                // peintre.dessine_segment(ligne, couleur)
+
+                // si indice_noeud < it.noeuds.taille - 1 {
+                //     noeud_suivant := it.noeuds[indice_noeud + 1]
+
+                //     ligne = Ligne(r32)(noeud.controle_avant, noeud_suivant.controle_arrière)
+                //     peintre.dessine_segment(ligne, couleur)
+                // }
+
+                // --------------
+                noeud_suivant: SousChemin.Noeud
+
+                si indice_noeud < it.noeuds.taille - 1 {
+                    noeud_suivant = it.noeuds[indice_noeud + 1]
+                }
+                sinon si it.est_fermé {
+                    noeud_suivant = it.noeuds[0]
+                }
+                sinon {
+                    continue
+                }
+
+                p0 := noeud.ancre
+                p1 := noeud_suivant.ancre
+                
+                échantillonne_courbe_bézier(noeud, noeud_suivant, échantillons)
+
+                ligne = Ligne(r32)(p0, échantillons[0])
+                peintre.dessine_segment(ligne, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+                pour i dans échantillons.taille - 1 {
+                    ligne = Ligne(r32)(échantillons[i], échantillons[i + 1])
+                    peintre.dessine_segment(ligne, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+                }
+
+                ligne = Ligne(r32)(échantillons[échantillons.taille - 1], p1)
+                peintre.dessine_segment(ligne, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+            }
+        }
+
+        peintre.termine_dessin()
+        permute_tampons_fenêtre(fenêtre)
+    }
+}
+
+vers_point2d :: fonc (v: *FT_Vector, $T: type_de_données) -> Point2D(T)
+{
+    résultat: Point2D(T) = ---
+    résultat.x = v.x comme T
+    résultat.y = v.y comme T
+    retourne résultat
+}
+
+charge_chemin_depuis_caractètre :: fonc (chemin_fonte: chaine, point_de_code: n32, chemin: *Chemin) -> bool
+{
+    library: FT_Library
+
+    error := FT_Init_FreeType(*library)
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+    diffère _ := FT_Done_FreeType(library)
+
+    face: FT_Face
+    error = FT_New_Face(library, chemin_fonte.pointeur, 0, *face);
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+    diffère _ := FT_Done_Face(face)
+
+    taille := 12.0
+    error = FT_Set_Char_Size(face, r32_vers_F26Dot6(taille), 0, 72, 72)
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+
+    indice_glyphe := FT_Get_Char_Index(face, point_de_code comme FT_ULong)
+
+    load_flags := FT_LOAD_DEFAULT;
+    error = FT_Load_Glyph(face, indice_glyphe, load_flags)
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+
+    glyph: FT_Glyph
+    error = FT_Get_Glyph(face.glyph, *glyph);
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+
+    si glyph.format != FT_Glyph_Format.OUTLINE {
+        imprimeln("le glyph est dans le format %", glyph.format)
+        exit(1)
+    }
+
+    outline_glyph := glyph comme FT_OutlineGlyph
+    outline := outline_glyph.outline
+
+    // début : z16 = 0
+    // point := outline.points
+    // tag := outline.tags
+    // pour indice_contour dans outline.n_contours {
+    //     imprimeln("Contour :")
+    //     fin := outline.contours[indice_contour]
+
+    //     pour début ... fin {
+    //         imprimeln("    % % (%)", point.x, point.y, mémoire(tag))
+    //         point += 1
+    //         tag += 1
+    //     }
+
+    //     début = fin + 1
+    // }
+
+    move_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32
+    {
+        // imprimeln("[%] -> % %", #nom_de_cette_fonction, point.x, point.y)
+        ferme_chemin_si_chemin_en_cours(créatrice)
+        va_vers(créatrice, vers_point2d(point, r32))
+        retourne 0
+    }
+
+    line_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32
+    {
+        // imprimeln("[%] -> % %", #nom_de_cette_fonction, point.x, point.y)
+        ligne_vers(créatrice, vers_point2d(point, r32))
+        retourne 0
+    }
+
+    conic_to :: fonc (control: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32
+    {
+        // imprimeln("[%] -> % % to % %", #nom_de_cette_fonction, control.x, control.y, to.x, to.y)
+        conique_vers(créatrice, vers_point2d(control, r32), vers_point2d(to, r32), faux)
+        retourne 0
+    }
+
+    cubic_to :: fonc (control1: *FT_Vector, control2: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32
+    {
+        // imprimeln("[%] -> % %, % % to % %", #nom_de_cette_fonction, control1.x, control1.y, control2.x, control2.y, to.x, to.y)
+        cubique_vers(créatrice, vers_point2d(control1, r32), vers_point2d(control2, r32), vers_point2d(to, r32), faux)
+        retourne 0
+    }
+
+    rappels_outline: FT_Outline_Funcs
+    rappels_outline.move_to = move_to
+    rappels_outline.line_to = line_to
+    rappels_outline.conic_to = conic_to
+    rappels_outline.cubic_to = cubic_to
+
+    créatrice: CréatriceChemin
+
+    error = FT_Outline_Decompose(*outline, *rappels_outline, *créatrice)
+    si error {
+        imprime_erreur_freetype(error)
+        exit(1)
+    }
+
+    ferme_chemin_si_chemin_en_cours(*créatrice)
+
+    détruit_données(chemin)
+    mémoire(chemin) = donne_chemin(*créatrice)
+
+    // imprimeln("% sous-chemins", chemin.sous_chemins.taille)
+    // pour chemin.sous_chemins {
+    //     imprimeln("   % noeuds", it.noeuds.taille)
+    // }
+
+    retourne vrai
+}
