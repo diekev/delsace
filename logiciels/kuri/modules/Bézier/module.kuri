@@ -258,13 +258,90 @@ termine_sous_chemin_courant :: fonc (créatrice: *CréatriceChemin)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom InfoToucheTracé
+ * Structure représentant ce qui se trouve à proximité d'un point.
+ * \{ */
+
+NatureToucheTracé :: énum {
+    CONTROLE_ARRIÈRE :: 0
+    ANCRE :: 1
+    CONTROLE_AVANT :: 2
+
+    RIEN :: -1
+    SEGMENT :: -2
+    INTÉRIEUR :: -3
+}
+
+IndiceSousChemin :: struct {
+    sous_chemin: z64
+    noeud: z64
+}
+
+InfoToucheTracé :: struct {
+    tracé: *Chemin
+    indice_sous_chemin: IndiceSousChemin
+    quoi: NatureToucheTracé
+    où: Point2D(r32)
+}
+
+donne_touche_tracé :: fonc (tracé: *Chemin, x: r32, y: r32) -> InfoToucheTracé
+{
+    résultat: InfoToucheTracé
+    résultat.tracé = tracé
+    résultat.quoi = NatureToucheTracé.RIEN
+
+    distance_min := infinité_positive(r32)
+
+    point := Point2D(r32)(x, y)
+
+    // À FAIRE : touche sur un segment
+    pour tracé.sous_chemins {
+        pour noeud, indice_noeud dans it.noeuds {
+            distance_test := donne_distance_carrée(point, noeud.ancre)
+            si distance_test < distance_min && distance_test < (RAYON_NOEUD * RAYON_NOEUD) {
+                distance_min = distance_test
+
+                résultat.indice_sous_chemin.sous_chemin = indice_it
+                résultat.indice_sous_chemin.noeud = indice_noeud
+                résultat.où = point
+                résultat.quoi = NatureToucheTracé.ANCRE
+            }
+
+            distance_test = donne_distance_carrée(point, noeud.controle_avant)
+            si distance_test < distance_min && distance_test < (RAYON_NOEUD * RAYON_NOEUD) {
+                distance_min = distance_test
+
+                résultat.indice_sous_chemin.sous_chemin = indice_it
+                résultat.indice_sous_chemin.noeud = indice_noeud
+                résultat.où = point
+                résultat.quoi = NatureToucheTracé.CONTROLE_AVANT
+            }
+
+            distance_test = donne_distance_carrée(point, noeud.controle_arrière)
+            si distance_test < distance_min && distance_test < (RAYON_NOEUD * RAYON_NOEUD) {
+                distance_min = distance_test
+
+                résultat.indice_sous_chemin.sous_chemin = indice_it
+                résultat.indice_sous_chemin.noeud = indice_noeud
+                résultat.où = point
+                résultat.quoi = NatureToucheTracé.CONTROLE_ARRIÈRE
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Dessin d'un chemin avec le Peintre de PeintureInterface
  * \{ */
 
+RAYON_NOEUD :: 5.0
+
 dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 {
-    RAYON_NOEUD :: 5.0
-
     échantillons: [32]Point2D(r32)
 
     pour chemin.sous_chemins {
