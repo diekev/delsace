@@ -140,6 +140,67 @@ SousChemin :: struct {
     échantillonne_courbe_bézier(noeud1.ancre, noeud1.controle_avant, noeud2.controle_arrière, noeud2.ancre, échantillons)
 }
 
+/* Traite les ancres des noeuds du sous-chemin comme un polygone et interpole les positions des controles
+ * de telle sorte que nous obtenions une courbe lisse passant par tout les points.
+ * La méthode est tirée de : https://agg.sourceforge.net/antigrain.com/research/bezier_interpolation/index.html#PAGE_BEZIER_INTERPOLATION */
+interpole_courbe_depuis_polygone :: fonc (sous_chemin: SousChemin)
+{
+    si sous_chemin.noeuds.taille < 3 {
+        retourne
+    }
+
+    nombre_de_noeuds := sous_chemin.noeuds.taille - 2
+    si sous_chemin.est_fermé {
+        nombre_de_noeuds = sous_chemin.noeuds.taille
+    }
+
+    pour indice_noeud dans nombre_de_noeuds {
+        noeud0 := *sous_chemin.noeuds[(indice_noeud + 0) % sous_chemin.noeuds.taille]
+        noeud1 := *sous_chemin.noeuds[(indice_noeud + 1) % sous_chemin.noeuds.taille]
+        noeud2 := *sous_chemin.noeuds[(indice_noeud + 2) % sous_chemin.noeuds.taille]
+
+        avant, arrière := interpole_position_controles_polygone(noeud0.ancre, noeud1.ancre, noeud2.ancre)
+
+        noeud1.controle_avant = avant
+        noeud1.controle_arrière = arrière
+    }
+}
+
+interpole_position_controles_polygone :: fonc (p0: Point2D(r32), p1: Point2D(r32), p2: Point2D(r32)) -> (avant: Point2D(r32), arrière: Point2D(r32))
+{
+    x0 := p0.x comme r64
+    y0 := p0.y comme r64
+    x1 := p1.x comme r64
+    y1 := p1.y comme r64
+    x2 := p2.x comme r64
+    y2 := p2.y comme r64
+
+    centre0_x := (x0 + x1) * 0.5
+    centre0_y := (y0 + y1) * 0.5
+
+    centre1_x := (x1 + x2) * 0.5
+    centre1_y := (y1 + y2) * 0.5
+
+    len01 := racine_carrée(donne_distance_carrée(p0, p1))
+    len12 := racine_carrée(donne_distance_carrée(p1, p2))
+
+    len := len01 / (len01 + len12)
+
+    centre2_x := centre0_x + (centre1_x - centre0_x) * len
+    centre2_y := centre0_y + (centre1_y - centre0_y) * len
+
+    dx := x1 - centre2_x
+    dy := y1 - centre2_y
+
+    arrière.x = (centre0_x + dx) comme r32
+    arrière.y = (centre0_y + dy) comme r32
+
+    avant.x = (centre1_x + dx) comme r32
+    avant.y = (centre1_y + dy) comme r32
+
+    retourne avant, arrière
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
