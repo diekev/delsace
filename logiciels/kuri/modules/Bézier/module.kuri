@@ -1,8 +1,10 @@
 /* Module de définitions de types pour représenter, et de travail sur, des courbes de Bézier. */
 
+importe Couleur
 importe Fondation
 importe Géométrie
 importe Math
+importe PeintureInterface
 
 /* ------------------------------------------------------------------------- */
 /** \nom Échantillonnage de courbe de Bézier.
@@ -250,6 +252,78 @@ termine_sous_chemin_courant :: fonc (créatrice: *CréatriceChemin)
         sous_chemin.est_fermé = créatrice.sous_chemin_est_fermé
         créatrice.sous_chemin_est_fermé = faux
         créatrice.noeuds.taille = 0
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Dessin d'un chemin avec le Peintre de PeintureInterface
+ * \{ */
+
+dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+{
+    RAYON_NOEUD :: 5.0
+
+    échantillons: [32]Point2D(r32)
+
+    pour chemin.sous_chemins {
+        pour noeud, indice_noeud dans it.noeuds {
+            ligne: Ligne(r32)
+            {
+                ligne = Ligne(r32)(noeud.controle_arrière, noeud.ancre)
+                peintre.dessine_segment(ligne, couleur)
+
+                ligne = Ligne(r32)(noeud.ancre, noeud.controle_avant)
+                peintre.dessine_segment(ligne, couleur)
+
+                rect: RectanglePosDim(r32)
+                rect.x = noeud.ancre.x - RAYON_NOEUD
+                rect.y = noeud.ancre.y - RAYON_NOEUD
+                rect.largeur = 2.0 * RAYON_NOEUD
+                rect.hauteur = 2.0 * RAYON_NOEUD
+                peintre.remplis_rectangle(rect, couleur)
+
+                cercle: Cercle(r32)
+                cercle.centre_x = noeud.controle_arrière.x
+                cercle.centre_y = noeud.controle_arrière.y
+                cercle.rayon = RAYON_NOEUD
+                peintre.dessine_cercle(cercle, couleur)
+
+                cercle.centre_x = noeud.controle_avant.x
+                cercle.centre_y = noeud.controle_avant.y
+                cercle.rayon = RAYON_NOEUD
+                peintre.dessine_cercle(cercle, couleur)
+            }
+
+            noeud_suivant: SousChemin.Noeud
+
+            si indice_noeud < it.noeuds.taille - 1 {
+                noeud_suivant = it.noeuds[indice_noeud + 1]
+            }
+            sinon si it.est_fermé {
+                noeud_suivant = it.noeuds[0]
+            }
+            sinon {
+                continue
+            }
+
+            p0 := noeud.ancre
+            p1 := noeud_suivant.ancre
+            
+            échantillonne_courbe_bézier(noeud, noeud_suivant, échantillons)
+
+            ligne = Ligne(r32)(p0, échantillons[0])
+            peintre.dessine_segment(ligne, couleur)
+
+            pour i dans échantillons.taille - 1 {
+                ligne = Ligne(r32)(échantillons[i], échantillons[i + 1])
+                peintre.dessine_segment(ligne, couleur)
+            }
+
+            ligne = Ligne(r32)(échantillons[échantillons.taille - 1], p1)
+            peintre.dessine_segment(ligne, couleur)
+        }
     }
 }
 
