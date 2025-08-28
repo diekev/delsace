@@ -1158,6 +1158,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 if (atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
                     return "intrinseque_est_adresse_donnees_constantes";
                 }
+                if (atome_fonc->decl->ident == ID::intrinsèque_lis_compteur_temporel) {
+                    return "intrinseque_lis_compteur_temporel";
+                }
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
 
@@ -2232,6 +2235,7 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
         case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
         case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
+        case GenreIntrinsèque::LIS_COMPTEUR_TEMPOREL:
         {
             génère_code_pour_appel_impl(os, appel);
             break;
@@ -2495,6 +2499,13 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         os << "    const uint8_t *ptr_base = &DC[0];\n";
         os << "    return ptr_base <= ptr_type && ptr_type < (ptr_base + "
            << données_constantes->taille_données_tableaux_constants << ");\n";
+        os << "}\n";
+
+        os << "static inline uint64_t intrinseque_lis_compteur_temporel()\n";
+        os << "{\n";
+        os << "    unsigned int lo, hi;\n";
+        os << "    __asm__ __volatile__ (\"rdtsc\" : \"=a\" (lo), \"=d\" (hi));\n";
+        os << "    return (uint64_t)hi << 32 | (uint64_t)lo;\n";
         os << "}\n";
         return;
     }
