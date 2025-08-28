@@ -2414,7 +2414,7 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaine
 
     auto virgule = "(";
 
-    POUR_INDEX (arguments) {
+    POUR (arguments) {
         os << virgule << it;
         virgule = ", ";
     }
@@ -2743,20 +2743,16 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
     int nombre_instructions = 0;
     int index_première_fonction = 0;
     auto fonctions = repr_inter.donne_fonctions_horslignées();
-    int nombre_fonctions = 0;
 
     POUR_INDEX (fonctions) {
         nombre_instructions += it->instructions.taille();
         if (nombre_instructions <= nombre_instructions_max_par_fichier &&
             indice_it != fonctions.taille() - 1) {
-            nombre_fonctions++;
             continue;
         }
 
         auto pointeur_fonction = fonctions.begin() + index_première_fonction;
         auto taille = indice_it - index_première_fonction + 1;
-
-        nombre_fonctions += 1;
 
         auto fonctions_du_fichier = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
                                                                             taille);
