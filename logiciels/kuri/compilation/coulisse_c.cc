@@ -328,8 +328,8 @@ struct ConvertisseuseTypeC {
      * KT3KPKsz32).
      *
      * Pour les structures (ou unions) nous devons également nous assurer que le code des
-     * structures utilisées par valeur pour leurs rubriques ont leurs codes générés avant celui de la
-     * structure parent.
+     * structures utilisées par valeur pour leurs rubriques ont leurs codes générés avant celui de
+     * la structure parent.
      */
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
@@ -1842,7 +1842,8 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     auto virgule = "(";
 
     POUR_INDEX (atome_fonc->params_entrée) {
-        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, indice_it);
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc,
+                                                                             indice_it);
 
         os << virgule;
 
@@ -2056,8 +2057,8 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     return nom;
 }
 
-kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(RubriqueTypeComposé const &rubrique,
-                                                                int64_t index)
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(
+    RubriqueTypeComposé const &rubrique, int64_t index)
 {
     /* Cas pour les structures vides. */
     if (rubrique.nom == ID::chaine_vide) {
