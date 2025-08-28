@@ -7,6 +7,7 @@ importe SysFichier
  * \{ */
 
 FluxOctets :: struct {
+    sur_positionne: fonc(*FluxOctets, PositionFichier)(rien)
     sur_lis: fonc(*FluxOctets, []octet)(z64)
     sur_ferme: fonc(*FluxOctets)(rien)
 }
@@ -18,9 +19,22 @@ ferme :: fonc (flux: *FluxOctets)
     }
 }
 
+positionne :: fonc (flux: *FluxOctets, position: PositionFichier)
+{
+    si flux.sur_positionne {
+        flux.sur_positionne(flux, position)
+    }
+}
+
 lis :: fonc (flux: *FluxOctets, tampon: []octet) -> z64
 {
     retourne flux.sur_lis(flux, tampon)
+}
+
+lis :: fonc (flux: *FluxOctets, position: PositionFichier, tampon: []octet) -> z64
+{
+    positionne(flux, position)
+    retourne lis(flux, tampon)
 }
 
 lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
@@ -31,11 +45,23 @@ lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
     retourne résultat, taille_lue
 }
 
+lis_grand_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> T, z64
+{
+    positionne(flux, position)
+    retourne lis_grand_boutisme(flux, T)
+}
+
 lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
 {
     résultat: T
     taille_lue := flux.lis(résultat)
     retourne résultat, taille_lue
+}
+
+lis_petit_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> T, z64
+{
+    positionne(flux, position)
+    retourne lis_petit_boutisme(flux, T)
 }
 
 /** \} */
@@ -55,9 +81,31 @@ crée_flux_octets_mémoire :: fonc (octets: []octet) -> FluxOctetsMémoire
 {
     résultat: FluxOctetsMémoire
     résultat.sur_lis = flux_octets_mémoire_lis
+    résultat.sur_positionne = flux_octets_mémoire_positionne
     résultat.octets = octets
     résultat.curseur = octets
     retourne résultat
+}
+
+flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: PositionFichier)
+{
+    discr position {
+        Début(pos) {
+            flux.curseur = avance(flux.octets, pos comme z64)
+        }
+        Fin(pos) {
+            flux.curseur = avance(flux.octets, flux.octest.taille + pos comme z64)
+        }
+        Décalage(pos) {
+            flux.curseur = avance(flux.curseur, pos comme z64)
+        }
+        sinon {}
+    }
+
+    si flux.curseur.taille <= 0 {
+        flux.curseur.pointeur = nul
+        flux.curseur.taille = 0
+    }
 }
 
 flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
@@ -98,6 +146,7 @@ crée_flux_octets_fichier :: fonc (chemin: CheminFichier) -> FluxOctetsFichier
     résultat: FluxOctetsFichier
     résultat.sur_lis = flux_octets_fichier_lis
     résultat.sur_ferme = flux_octets_fichier_ferme
+    résultat.sur_positionne = flux_octets_fichier_positionne
 
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
@@ -117,6 +166,13 @@ flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
     }
 
     retourne octets_lus comme z64
+}
+
+flux_octets_fichier_positionne :: fonc (flux: *FluxOctetsFichier, position: PositionFichier)
+{
+    _ := tente positionne_fichier(*flux.fichier, position) piège _ {
+        panique("Impossible de chercher le point dans le fichier !")
+    }
 }
 
 flux_octets_fichier_ferme :: fonc (base: *FluxOctets)
