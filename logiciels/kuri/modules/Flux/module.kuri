@@ -10,6 +10,7 @@ FluxOctets :: struct {
     sur_positionne: fonc(*FluxOctets, PositionFichier)(rien)
     sur_lis: fonc(*FluxOctets, []octet)(z64)
     sur_ferme: fonc(*FluxOctets)(rien)
+    sur_est_à_la_fin: fonc(*FluxOctets)(bool)
 }
 
 ferme :: fonc (flux: *FluxOctets)
@@ -17,6 +18,16 @@ ferme :: fonc (flux: *FluxOctets)
     si flux.sur_ferme {
         flux.sur_ferme(flux)
     }
+}
+
+est_valide :: fonc (flux: *FluxOctets) -> bool
+{
+    retourne flux.sur_est_à_la_fin(flux) == faux
+}
+
+est_à_la_fin :: fonc (flux: *FluxOctets) -> bool
+{
+    retourne flux.sur_est_à_la_fin(flux)
 }
 
 positionne :: fonc (flux: *FluxOctets, position: PositionFichier)
@@ -82,9 +93,15 @@ crée_flux_octets_mémoire :: fonc (octets: []octet) -> FluxOctetsMémoire
     résultat: FluxOctetsMémoire
     résultat.sur_lis = flux_octets_mémoire_lis
     résultat.sur_positionne = flux_octets_mémoire_positionne
+    résultat.sur_est_à_la_fin = flux_octets_mémoire_est_à_la_fin
     résultat.octets = octets
     résultat.curseur = octets
     retourne résultat
+}
+
+flux_octets_mémoire_est_à_la_fin :: fonc (flux: *FluxOctetsMémoire) -> bool
+{
+    retourne flux.curseur.taille == 0
 }
 
 flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: PositionFichier)
@@ -134,6 +151,8 @@ FluxOctetsFichier :: struct {
     empl base: FluxOctets
 
     fichier: Fichier
+    taille_fichier: z64
+    curseur: z64
 }
 
 crée_flux_octets_fichier :: fonc (chemin: chaine) -> FluxOctetsFichier
@@ -147,11 +166,14 @@ crée_flux_octets_fichier :: fonc (chemin: CheminFichier) -> FluxOctetsFichier
     résultat.sur_lis = flux_octets_fichier_lis
     résultat.sur_ferme = flux_octets_fichier_ferme
     résultat.sur_positionne = flux_octets_fichier_positionne
+    résultat.sur_est_à_la_fin = flux_octets_fichier_est_à_la_fin
 
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
         retourne résultat
     }
+
+    résultat.taille_fichier = détermine_taille_fichier(*résultat.fichier)
 
     retourne résultat
 }
@@ -165,12 +187,14 @@ flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
         retourne 0
     }
 
+    flux.curseur += octets_lus
+
     retourne octets_lus comme z64
 }
 
 flux_octets_fichier_positionne :: fonc (flux: *FluxOctetsFichier, position: PositionFichier)
 {
-    _ := tente positionne_fichier(*flux.fichier, position) piège _ {
+    flux.curseur = tente positionne_fichier(*flux.fichier, position) piège _ {
         panique("Impossible de chercher le point dans le fichier !")
     }
 }
@@ -179,6 +203,11 @@ flux_octets_fichier_ferme :: fonc (base: *FluxOctets)
 {
     flux := base comme *FluxOctetsFichier
     _ := ferme(*flux.fichier)
+}
+
+flux_octets_fichier_est_à_la_fin :: fonc (flux: *FluxOctetsFichier) -> bool
+{
+    retourne flux.curseur >= flux.taille_fichier
 }
 
 /** \} */
