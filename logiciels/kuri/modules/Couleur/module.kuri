@@ -119,22 +119,7 @@ couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
 
 interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -> CouleurRVBAN8 #enligne
 {
-    r_c0 := (c0.r comme r32) / 255.0
-    v_c0 := (c0.v comme r32) / 255.0
-    b_c0 := (c0.b comme r32) / 255.0
-
-    r_c1 := (c1.r comme r32) / 255.0
-    v_c1 := (c1.v comme r32) / 255.0
-    b_c1 := (c1.b comme r32) / 255.0
-
-    alpha := poids
-
-    r := (((1.0 - alpha) * r_c0 + alpha * r_c1) * 255.0) comme n8
-    v := (((1.0 - alpha) * v_c0 + alpha * v_c1) * 255.0) comme n8
-    b := (((1.0 - alpha) * b_c0 + alpha * b_c1) * 255.0) comme n8
-    a := c0.a
-
-    retourne CouleurRVBAN8(r, v, b, a)
+    retourne mélange_couleurs(c0, c1, poids)
 }
 
 vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
@@ -145,6 +130,37 @@ vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
     retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+}
+
+mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
+{
+    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8)
+}
+
+mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> CouleurRVBAN8
+{
+    r0 := c0.r comme n32
+    v0 := c0.v comme n32
+    b0 := c0.b comme n32
+
+    r1 := c1.r comme n32
+    v1 := c1.v comme n32
+    b1 := c1.b comme n32
+
+    complément_alpha := 255 - alpha
+
+    r2 := (r0 * complément_alpha + r1 * alpha) / 255
+    v2 := (v0 * complément_alpha + v1 * alpha) / 255
+    b2 := (b0 * complément_alpha + b1 * alpha) / 255
+
+    résultat: CouleurRVBAN8 = ---
+
+    résultat.r = min(r2, 255) comme n8
+    résultat.v = min(v2, 255) comme n8
+    résultat.b = min(b2, 255) comme n8
+
+    résultat.a = c0.a
+    retourne résultat
 }
 
 /** \} */
