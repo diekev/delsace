@@ -539,7 +539,8 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 auto module = déclaration_module->module;
                 auto fichier = compilatrice.fichier(ref_rubrique->lexème->fichier);
                 auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
-                trouve_déclarations_dans_module(déclarations, module, ref_rubrique->ident, fichier);
+                trouve_déclarations_dans_module(
+                    déclarations, module, ref_rubrique->ident, fichier);
 
                 assert(déclarations.taille() > 0);
 
@@ -573,7 +574,8 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto &rubrique = type_composé->rubriques[ref_rubrique->index_rubrique];
 
             if (rubrique.est_constant()) {
-                return ValeurExpression(type_composé->rubriques[ref_rubrique->index_rubrique].valeur);
+                return ValeurExpression(
+                    type_composé->rubriques[ref_rubrique->index_rubrique].valeur);
             }
 
             return erreur_évaluation(
