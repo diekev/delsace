@@ -95,6 +95,14 @@ opérateur >= :: fonc (i0: Instantané, i1: Instantané) -> bool
     retourne i0 > i1 || i0 == i1
 }
 
+opérateur - :: fonc (i0: Instantané, i1: Instantané) -> Instantané
+{
+    résultat: Instantané = ---
+    résultat.seconde = i0.seconde - i1.seconde
+    résultat.nanoseconde = i0.nanoseconde - i1.nanoseconde
+    retourne résultat
+}
+
 // ----------------------------------------------------------------------------
 
 TempsSystème :: struct {
