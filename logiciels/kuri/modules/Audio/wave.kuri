@@ -21,25 +21,42 @@ ID_CHUNK_LIST_GB : n32 : 0x4C_49_53_54 // "LIST"
 ID_CHUNK_IDVX_GB : n32 : 0x49_44_56_58 // "IDVX"
 
 /* ------------------------------------------------------------------------- */
+/** \nom Entête Chunk
+ * \{ */
+
+EntêteChunk :: struct {
+    id: n32
+    taille: n32
+}
+
+écris :: fonc (autrice: *AutriceFichierWave, entête: EntêteChunk)
+{
+    autrice.écris(entête.id)
+    autrice.écris(entête.taille)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Entête Wave
  * \{ */
 
 EntêteWave :: struct {
-    id_groupe := ID_CHUNK_RIFF_PB
-    taille_fichier := 0
+    empl chunk: EntêteChunk
+    id = ID_CHUNK_RIFF_PB
+
     type_riff := ID_CHUNK_WAVE_PB
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
 {
-    autrice.écris(entête.id_groupe)
-    autrice.écris(entête.taille_fichier)
+    autrice.écris(entête.chunk)
     autrice.écris(entête.type_riff)
 }
 
 valide_entête_wave :: fonc (entête: EntêteWave) -> bool
 {
-    si entête.id_groupe != ID_CHUNK_RIFF_PB {
+    si entête.id != ID_CHUNK_RIFF_PB {
         retourne faux
     }
 
@@ -57,8 +74,9 @@ valide_entête_wave :: fonc (entête: EntêteWave) -> bool
  * \{ */
 
 ChunkFormatWave :: struct {
-    id_chunk := ID_CHUNK_FMT_PB
-    taille_chunk: n32
+    empl chunk: EntêteChunk
+    id = ID_CHUNK_FMT_PB
+
     tag_format: n16
     nombre_cannaux: n16
     échantillons_secondes: n32
@@ -69,11 +87,11 @@ ChunkFormatWave :: struct {
 
 valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
 {
-    si fmt.id_chunk != ID_CHUNK_FMT_PB {
+    si fmt.id != ID_CHUNK_FMT_PB {
         retourne faux
     }
 
-    si fmt.taille_chunk != 16 {
+    si fmt.taille != 16 {
         // peut-être 18 ou 40, mais non-supportés pour le moment
         retourne faux
     }
@@ -102,8 +120,8 @@ valide_chunk_format_wave :: fonc (fmt: ChunkFormatWave) -> bool
 initialise_format_chunk_wave :: fonc () -> ChunkFormatWave
 {
     résultat: ChunkFormatWave
-    résultat.id_chunk = ID_CHUNK_FMT_PB
-    résultat.taille_chunk = 16
+    résultat.id = ID_CHUNK_FMT_PB
+    résultat.taille = 16
     résultat.tag_format = 1
     résultat.nombre_cannaux = 2
     résultat.échantillons_secondes = 44100
@@ -132,8 +150,7 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
 
 écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
 {
-    autrice.écris(chunk.id_chunk)
-    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.chunk)
     autrice.écris(chunk.tag_format)
     autrice.écris(chunk.nombre_cannaux)
     autrice.écris(chunk.échantillons_secondes)
@@ -149,15 +166,15 @@ donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée
  * \{ */
 
 ChunkDonnéesWave :: struct {
-    id_chunk := ID_CHUNK_DATA_PB
-    taille_chunk : n32 = 0
+    empl chunk: EntêteChunk
+    id = ID_CHUNK_DATA_PB
+
     données: []z16
 }
 
 écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
 {
-    autrice.écris(chunk.id_chunk)
-    autrice.écris(chunk.taille_chunk)
+    autrice.écris(chunk.chunk)
     autrice.écris(chunk.données)
 }
 
