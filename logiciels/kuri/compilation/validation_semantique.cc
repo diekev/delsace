@@ -4822,7 +4822,11 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
         auto res_exec = évalue_expression(m_compilatrice, decl->bloc_parent, expression);
 
         if (res_exec.est_erroné) {
-            rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
+            m_espace
+                ->rapporte_erreur(res_exec.noeud_erreur,
+                                  "Je ne peux pas évaluer l'expression de la valeur constante "
+                                  "pour la raison suivante :\n")
+                .ajoute_message(res_exec.message_erreur);
             return CodeRetourValidation::Erreur;
         }
 
@@ -6615,7 +6619,11 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
         m_compilatrice, expression_taille->bloc_parent, expression_taille);
 
     if (res.est_erroné) {
-        rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+        m_espace
+            ->rapporte_erreur(res.noeud_erreur,
+                              "Je ne peux pas déterminer le nombre d'éléments du tableau "
+                              "pour la raison suivante :\n")
+            .ajoute_message(res.message_erreur);
         return CodeRetourValidation::Erreur;
     }
 
