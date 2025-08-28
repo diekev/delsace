@@ -525,9 +525,51 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         }
         case GenreNoeud::EXPRESSION_COMME:
         {
-            /* À FAIRE : transtypage de l'expression constante */
             auto inst = b->comme_comme();
-            return évalue_expression(compilatrice, bloc, inst->expression);
+            auto résultat = évalue_expression(compilatrice, bloc, inst->expression);
+
+            if (!inst->type) {
+                // À FAIRE : les expressions 'comme' (et les autres) ne sont pas validées dans les
+                // énumérations... (voir aussi commentaire en haut du fichier).
+                return résultat;
+            }
+
+            if (est_type_entier(inst->type) || inst->type->est_type_pointeur()) {
+                if (résultat.valeur.est_entière()) {
+                    /* OK. */
+                }
+                else if (résultat.valeur.est_booléenne()) {
+                    résultat.valeur = ValeurExpression(int(résultat.valeur.booléenne()));
+                }
+                else if (résultat.valeur.est_réelle()) {
+                    résultat.valeur = ValeurExpression(int64_t(résultat.valeur.réelle()));
+                }
+                else {
+                    return erreur_évaluation(
+                        inst, "Impossible de convertir la valeur vers le type cible.");
+                }
+            }
+            else if (inst->type->est_type_réel()) {
+                if (résultat.valeur.est_entière()) {
+                    résultat.valeur = ValeurExpression(double(résultat.valeur.entière()));
+                }
+                else if (résultat.valeur.est_booléenne()) {
+                    résultat.valeur = ValeurExpression(double(résultat.valeur.booléenne()));
+                }
+                else if (résultat.valeur.est_réelle()) {
+                    /* OK. */
+                }
+                else {
+                    return erreur_évaluation(
+                        inst, "Impossible de convertir la valeur vers le type cible.");
+                }
+            }
+            else {
+                return erreur_évaluation(inst,
+                                         "Impossible de convertir la valeur vers le type cible.");
+            }
+
+            return résultat;
         }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:
         {
