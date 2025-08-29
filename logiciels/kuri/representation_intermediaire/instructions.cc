@@ -251,9 +251,9 @@ InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *
 }
 
 InstructionAccèdeRubrique::InstructionAccèdeRubrique(NoeudExpression const *site_,
-                                                 Type const *type_,
-                                                 Atome *accede_,
-                                                 int index_)
+                                                     Type const *type_,
+                                                     Atome *accede_,
+                                                     int index_)
     : InstructionAccèdeRubrique(site_)
 {
     this->type = type_;
