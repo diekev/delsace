@@ -331,8 +331,8 @@ struct ApparieuseParams {
     /* Les index sont utilisés pour les rubriques de structures. L'expression de construction de
      * structure doit avoir le même nombre de paramètres résolus que le nombre de rubriques de la
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
-     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir à
-     * quel rubrique réel le slot appartient. */
+     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir
+     * à quel rubrique réel le slot appartient. */
     kuri::tablet<int, 10> m_index_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
@@ -1363,7 +1363,8 @@ static RésultatAppariement apparie_construction_type_composé(
         }
     }
 
-    auto transformations = kuri::tableau<TransformationType, int>(type_compose->rubriques.taille());
+    auto transformations = kuri::tableau<TransformationType, int>(
+        type_compose->rubriques.taille());
     auto poids_appariement = 1.0;
 
     POUR_INDEX (apparieuse_params.slots()) {
