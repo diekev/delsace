@@ -1275,7 +1275,7 @@ possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
             retourne vrai
         }
         si it == node {
-            node_trouvé == vrai
+            node_trouvé = vrai
         }
     }
 
