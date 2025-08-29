@@ -50,8 +50,8 @@
     case GenreNoeud::EXPRESSION_PRISE_ADRESSE:                                                    \
     case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:                                                  \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:                                            \
-    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:                                                 \
-    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:                                           \
+    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:                                               \
+    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:                                         \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:                                                   \
     case GenreNoeud::EXPRESSION_SÉLECTION:                                                        \
     case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:                                         \

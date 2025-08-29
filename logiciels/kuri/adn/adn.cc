@@ -246,7 +246,8 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "{\n";
 
         if (m_mere) {
-            os << "\timprime_rubriques(os, static_cast<" << m_mere->nom() << " const &>(valeur));\n";
+            os << "\timprime_rubriques(os, static_cast<" << m_mere->nom()
+               << " const &>(valeur));\n";
         }
 
         POUR (m_rubriques) {
@@ -501,8 +502,8 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 
     if (!pour_entête) {
-        os << "static kuri::chaine_statique chaines_rubriques_" << m_nom << "[" << m_rubriques.taille()
-           << "] = {\n";
+        os << "static kuri::chaine_statique chaines_rubriques_" << m_nom << "["
+           << m_rubriques.taille() << "] = {\n";
 
         POUR (m_rubriques) {
             os << "\t\"" << it.nom << "\",\n";
