@@ -281,7 +281,46 @@ RAPPEL_POUR_COMMENTAIRE(opérateur)
 RAPPEL_POUR_EST_RÉSOLUE(opérateur)
 {
     auto p = espace->phase_courante();
-    return p < PhaseCompilation::PARSAGE_TERMINÉ;
+    if (p < PhaseCompilation::PARSAGE_TERMINÉ || espace->des_exécutions_sont_prévues()) {
+        return true;
+    }
+
+    auto opérateur_attendu = attente.opérateur();
+    if (opérateur_attendu->est_expression_binaire() || opérateur_attendu->est_indexage()) {
+        auto expression_operation = opérateur_attendu->comme_expression_binaire();
+        auto type1 = expression_operation->opérande_gauche->type;
+        auto type2 = expression_operation->opérande_droite->type;
+
+        if (!type1->table_opérateurs || !type2->table_opérateurs) {
+            return false;
+        }
+
+        auto &opérateurs1 = type1->table_opérateurs->opérateurs(opérateur_attendu->lexème->genre);
+        if (opérateurs1.taille() == 0) {
+            return false;
+        }
+
+        auto &opérateurs2 = type1->table_opérateurs->opérateurs(opérateur_attendu->lexème->genre);
+        if (opérateurs2.taille() == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    auto expression_operation = opérateur_attendu->comme_expression_unaire();
+    auto type_operande = expression_operation->opérande->type;
+    if (!type_operande->table_opérateurs) {
+        return false;
+    }
+
+    auto &opérateurs = type_operande->table_opérateurs->opérateurs(
+        opérateur_attendu->lexème->genre);
+    if (opérateurs.taille() == 0) {
+        return false;
+    }
+
+    return true;
 }
 
 static void imprime_operateurs_pour(Erreur &e,
