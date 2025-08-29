@@ -273,9 +273,7 @@ const Type *InstructionAccèdeRubrique::donne_type_accédé() const
 const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé() const
 {
     auto type_adressé = donne_type_accédé();
-    if (type_adressé->est_type_opaque()) {
-        type_adressé = type_adressé->comme_type_opaque()->type_opacifié;
-    }
+    type_adressé = donne_type_primitif(type_adressé);
 
     auto type_composé = type_adressé->comme_type_composé();
     /* Pour les unions, l'accès de rubrique se fait via le type structure qui est valeur unie

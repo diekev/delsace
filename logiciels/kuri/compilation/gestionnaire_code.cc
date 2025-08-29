@@ -453,10 +453,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
-                auto type_indexe = indexage->opérande_gauche->type;
-                if (type_indexe->est_type_opaque()) {
-                    type_indexe = type_indexe->comme_type_opaque()->type_opacifié;
-                }
+                auto type_indexe = donne_type_primitif(indexage->opérande_gauche->type);
 
                 switch (type_indexe->genre) {
                     case GenreNoeud::VARIADIQUE:

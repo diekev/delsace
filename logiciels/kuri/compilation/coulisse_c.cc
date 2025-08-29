@@ -1084,9 +1084,9 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
 
     auto const type_tableau = constante->type->comme_type_tableau_fixe();
     auto const taille_tableau = type_tableau->taille;
-    auto const type_élément = type_tableau->type_pointé;
+    auto const type_élément = donne_type_primitif(type_tableau->type_pointé);
 
-    if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
+    if (type_élément->est_type_entier_relatif()) {
         if (type_élément->taille_octet == 1) {
             auto données = donne_tableau_typé<int8_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
@@ -1095,7 +1095,7 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
             auto données = donne_tableau_typé<int16_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
-        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+        else if (type_élément->taille_octet == 4) {
             auto données = donne_tableau_typé<int32_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
@@ -1113,7 +1113,7 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
             auto données = donne_tableau_typé<uint16_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
-        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+        else if (type_élément->taille_octet == 4) {
             auto données = donne_tableau_typé<uint32_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }

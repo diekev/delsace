@@ -300,10 +300,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                auto type = déclaration->type;
-                if (type->est_type_opaque()) {
-                    type = type->comme_type_opaque()->type_opacifié;
-                }
+                auto type = donne_type_primitif(déclaration->type);
 
                 if (type->est_type_réel()) {
                     référence->substitution = assem->crée_littérale_réel(
@@ -321,8 +318,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                if (est_type_entier(type) || type->est_type_entier_constant() ||
-                    type->est_type_énum() || type->est_type_erreur()) {
+                if (est_type_entier(type)) {
                     référence->substitution = assem->crée_littérale_entier(
                         référence->lexème,
                         déclaration->type,
@@ -339,12 +335,12 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
 
                 /* À FAIRE : test que les opaques fonctionnent ici. */
-                if (déclaration->type->est_type_chaine()) {
+                if (type->est_type_chaine()) {
                     référence->substitution = decl_const->expression;
                     return référence->substitution;
                 }
 
-                if (déclaration->type->est_type_tableau_fixe()) {
+                if (type->est_type_tableau_fixe()) {
                     référence->substitution = decl_const->expression;
                     return référence->substitution;
                 }
@@ -1689,18 +1685,16 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     NoeudExpression *expression)
 {
     auto type_condition = expression->type;
-    if (type_condition->est_type_opaque()) {
-        type_condition = type_condition->comme_type_opaque()->type_opacifié;
-    }
+    auto type_primitif = donne_type_primitif(type_condition);
 
-    switch (type_condition->genre) {
+    switch (type_primitif->genre) {
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::ENTIER_CONSTANT:
         {
             /* x -> x != 0 */
             auto zéro = assem->crée_littérale_entier(expression->lexème, type_condition, 0);
-            auto op = type_condition->table_opérateurs->opérateur_dif;
+            auto op = type_primitif->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }
         case GenreNoeud::ENUM_DRAPEAU:
@@ -1718,7 +1712,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             auto &registre = espace->compilatrice().opérateurs;
             registre->ajoute_opérateurs_basiques_au_besoin(type_condition);
 
-            auto op = type_condition->table_opérateurs->opérateur_dif;
+            auto op = type_primitif->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }
         case GenreNoeud::EINI:

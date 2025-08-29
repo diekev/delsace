@@ -345,6 +345,10 @@ bool requiers_création_fonction_initialisation(Type const *type);
  * (p.e. les énumérations). Retourne nul sinon. */
 Type const *type_entier_sous_jacent(Type const *type);
 
+/* Retourne le type primitif du type donné. Par exemple, pour un type énumération, son type
+ * sous-jacent. */
+Type const *donne_type_primitif(Type const *type);
+
 /** Si \a type_base_potentiel est un type employé par \a type_dérivé, ou employé par un type
  * employé par \a type_dérivé, retourne le décalage absolu en octet dans la structure de \a
  * type_dérivé du \a type_base_potentiel. Ceci prend en compte le décalage des emplois

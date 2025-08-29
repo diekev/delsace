@@ -1958,9 +1958,8 @@ bool est_type_polymorphique(Type const *type)
 
 bool est_type_tableau_fixe(Type const *type)
 {
-    return type->est_type_tableau_fixe() ||
-           (type->est_type_opaque() &&
-            type->comme_type_opaque()->type_opacifié->est_type_tableau_fixe());
+    auto type_primitif = donne_type_primitif(type);
+    return type_primitif->est_type_tableau_fixe();
 }
 
 bool est_pointeur_vers_tableau_fixe(Type const *type)
@@ -2036,6 +2035,44 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     return nullptr;
+}
+
+Type const *donne_type_primitif(Type const *type)
+{
+    while (true) {
+        if (type->est_type_entier_constant()) {
+            return TypeBase::Z32;
+        }
+
+        if (type->est_type_énum()) {
+            return type->comme_type_énum()->type_sous_jacent;
+        }
+
+        if (type->est_type_erreur()) {
+            return type->comme_type_erreur()->type_sous_jacent;
+        }
+
+        if (type->est_type_type_de_données()) {
+            return TypeBase::Z64;
+        }
+
+        if (type->est_type_octet()) {
+            return TypeBase::N8;
+        }
+
+        if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
+            return type;
+        }
+
+        if (type->est_type_opaque()) {
+            type = type->comme_type_opaque()->type_opacifié;
+            continue;
+        }
+
+        break;
+    }
+
+    return type;
 }
 
 std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
