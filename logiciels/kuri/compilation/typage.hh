@@ -393,8 +393,8 @@ bool est_type_fondamental(Type const *type);
 
 struct InformationRubriqueTypeCompose;
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(TypeCompose const *type_composé,
-                                                                   Type const *type);
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
+    TypeCompose const *type_composé, Type const *type);
 
 std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique);
@@ -417,7 +417,7 @@ using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
 ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                   Type const *type_a_tester);
+                                                                       Type const *type_a_tester);
 
 /** \} */
 
