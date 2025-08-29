@@ -3599,10 +3599,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
 
 /** \} */
 
-void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
+void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur, const Lexème *lexème)
 {
     m_unité->espace->rapporte_erreur(
-        SiteSource::cree(m_fichier, lexème_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
+        SiteSource::cree(m_fichier, lexème), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }

@@ -1127,7 +1127,8 @@ ProtéineEnum *SyntaxeuseADN::donne_énum_pour_nom(kuri::chaine_statique nom) co
     return nullptr;
 }
 
-void SyntaxeuseADN::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
+void SyntaxeuseADN::gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                                          const Lexème * /*lexème*/)
 {
     std::cerr << message_erreur << "\n";
 }
