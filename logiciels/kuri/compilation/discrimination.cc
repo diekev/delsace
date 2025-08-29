@@ -434,8 +434,12 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
-    auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexème::EGALITE);
+    auto résultat = trouve_opérateur_pour_expression(*m_espace,
+                                                     *this,
+                                                     nullptr,
+                                                     type_pour_la_recherche,
+                                                     type_pour_la_recherche,
+                                                     GenreLexème::EGALITE);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);

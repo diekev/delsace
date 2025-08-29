@@ -357,7 +357,7 @@ RAPPEL_POUR_ERREUR(opérateur)
 
         auto candidats = kuri::tablet<OpérateurCandidat, 10>();
         auto résultat = cherche_candidats_opérateurs(
-            *espace, type1, type2, operateur_attendu->lexème->genre, candidats);
+            *espace, expression_operation, type1, type2, operateur_attendu->lexème->genre, candidats);
 
         Erreur e = espace->rapporte_erreur(operateur_attendu,
                                            "Je ne peux pas continuer la compilation car je "

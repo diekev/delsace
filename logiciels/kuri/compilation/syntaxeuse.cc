@@ -3103,6 +3103,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         noeud->bloc_paramètres = m_tacheronne.assembleuse->empile_bloc(
             lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
 
+        bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+
         /* analyse les paramètres de la fonction */
         auto params = kuri::tablet<NoeudExpression *, 16>();
 
@@ -3127,6 +3129,11 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         }
 
         copie_tablet_tableau(params, noeud->params);
+
+        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        if (bloc_constantes->nombre_de_rubriques() != 0) {
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
+        }
 
         if (noeud->params.taille() > 2) {
             rapporte_erreur_avec_site(

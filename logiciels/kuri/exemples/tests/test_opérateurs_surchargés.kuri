@@ -29,6 +29,12 @@ importe Fondation
  *  opérateur []
  */
 
+principale :: fonc ()
+{
+    test_opérateur_surchargé_simple()
+    test_opérateur_surchargé_polymorphe()
+}
+
 /* Définition d'une surcharge pour l'opérateur+ pour un nouveau type. */
 MonType :: struct {
     x: z32
@@ -41,7 +47,7 @@ opérateur + :: (mon_type: MonType, valeur: z32) -> MonType
     retourne résultat
 }
 
-principale :: fonc ()
+test_opérateur_surchargé_simple :: fonc ()
 {
     mon_type: MonType
 
@@ -59,4 +65,22 @@ principale :: fonc ()
     pointeur_opérateur := opérateur+(MonType, z32)
     mon_type = pointeur_opérateur(mon_type, 4)
     assert(mon_type.x == 10)
+}
+
+Polymorphe :: struct ($T: type_de_données) {
+    donnée: T
+}
+
+opérateur + :: (polymorphe: Polymorphe($T), donnée: T) -> Polymorphe(T)
+{
+    résultat := polymorphe
+    résultat.donnée += donnée
+    retourne résultat
+}
+
+test_opérateur_surchargé_polymorphe :: fonc ()
+{
+    polymorphe: Polymorphe(z32)
+    polymorphe += 5
+    assert(polymorphe.donnée == 5)
 }

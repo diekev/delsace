@@ -960,8 +960,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
                 default:
                 {
-                    auto résultat = trouve_opérateur_pour_expression(
-                        *m_espace, expr, type_gauche, type_droite, GenreLexème::CROCHET_OUVRANT);
+                    auto résultat = trouve_opérateur_pour_expression(*m_espace,
+                                                                     *this,
+                                                                     expr,
+                                                                     type_gauche,
+                                                                     type_droite,
+                                                                     GenreLexème::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -1710,7 +1714,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             expr.opérande_droite = droite;
 
             auto résultat = trouve_opérateur_pour_expression(
-                *m_espace, &expr, type_gauche, type_droite, type_op);
+                *m_espace, *this, &expr, type_gauche, type_droite, type_op);
 
             if (std::holds_alternative<Attente>(résultat)) {
                 return std::get<Attente>(résultat);
@@ -2065,6 +2069,8 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
     }
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+
+    valide_paramètres_constants_fonction(decl);
 
     {
         CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
@@ -5606,7 +5612,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_chaine(NoeudExpres
     auto const type_droite = expression_comparée->type;
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_gauche, type_droite, type_op);
+        *m_espace, *this, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5851,7 +5857,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_gauche, type_droite, type_op);
+        *m_espace, *this, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5933,7 +5939,7 @@ RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_bool, type_bool, type_op);
+        *m_espace, *this, expr, type_bool, type_bool, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -6447,7 +6453,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
             return CodeRetourValidation::Erreur;
         }
 
-        auto const résultat_compatibilité = vérifie_compatibilité(type_inféré, expr->type);
+        auto const résultat_compatibilité = vérifie_compatibilité(type_inféré, expr->type, false);
 
         if (std::holds_alternative<Attente>(résultat_compatibilité)) {
             return std::get<Attente>(résultat_compatibilité);

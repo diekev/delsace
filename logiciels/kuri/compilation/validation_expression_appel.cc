@@ -665,7 +665,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
         }
     }
 
-    return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot);
+    return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot, false);
 }
 
 static void crée_tableau_args_variadiques(Sémanticienne &contexte,
@@ -1380,7 +1380,7 @@ static RésultatAppariement apparie_construction_type_composé(
         }
         auto &rubrique = type_compose->rubriques[index_rubrique];
 
-        auto résultat = vérifie_compatibilité(rubrique.type, it->type, it);
+        auto résultat = vérifie_compatibilité(rubrique.type, it->type, it, false);
 
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -1523,7 +1523,7 @@ static RésultatAppariement apparie_construction_opaque(
     }
 
     auto arg = arguments[0].expr;
-    auto résultat = vérifie_compatibilité(type_opacifié, arg->type);
+    auto résultat = vérifie_compatibilité(type_opacifié, arg->type, false);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
