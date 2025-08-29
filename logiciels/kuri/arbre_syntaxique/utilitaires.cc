@@ -1065,6 +1065,21 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(sélection);
             break;
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = racine->comme_référence_opérateur_binaire();
+            arbre_aplatis.ajoute(référence->opérande_gauche);
+            arbre_aplatis.ajoute(référence->opérande_droite);
+            arbre_aplatis.ajoute(référence);
+            break;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = racine->comme_référence_opérateur_unaire();
+            arbre_aplatis.ajoute(référence->opérande);
+            arbre_aplatis.ajoute(référence);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,

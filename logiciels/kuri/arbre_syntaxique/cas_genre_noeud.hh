@@ -88,7 +88,9 @@
     case GenreNoeud::INSTRUCTION_TENTE:                                                           \
     case GenreNoeud::OPÉRATEUR_BINAIRE:                                                           \
     case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:                                               \
-    case GenreNoeud::OPÉRATEUR_UNAIRE
+    case GenreNoeud::OPÉRATEUR_UNAIRE:                                                            \
+    case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:                                                 \
+    case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE
 
 #define CAS_POUR_NOEUDS_TYPES_PERSONALISABLES                                                     \
     case GenreNoeud::DÉCLARATION_ÉNUM:                                                            \

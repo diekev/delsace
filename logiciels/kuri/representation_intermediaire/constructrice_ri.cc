@@ -1931,6 +1931,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
         case GenreNoeud::INSTRUCTION_TENTE:
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"

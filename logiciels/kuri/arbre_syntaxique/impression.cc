@@ -760,6 +760,33 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             enchaineuse << "\n";
             break;
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_binaire();
+            enchaineuse << "opérateur";
+            if (référence->lexème->genre == GenreLexème::CROCHET_OUVRANT) {
+                enchaineuse << "[]";
+            }
+            else {
+                imprime_lexème_mot_clé(enchaineuse, référence, false);
+            }
+            enchaineuse << "(";
+            imprime_arbre(enchaineuse, état, référence->opérande_gauche);
+            enchaineuse << ", ";
+            imprime_arbre(enchaineuse, état, référence->opérande_droite);
+            enchaineuse << ")";
+            break;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_unaire();
+            enchaineuse << "opérateur";
+            imprime_lexème_mot_clé(enchaineuse, référence, false);
+            enchaineuse << "(";
+            imprime_arbre(enchaineuse, état, référence->opérande);
+            enchaineuse << ")";
+            break;
+        }
         case GenreNoeud::DIRECTIVE_FONCTION:
         {
             auto directive = noeud->comme_directive_fonction();

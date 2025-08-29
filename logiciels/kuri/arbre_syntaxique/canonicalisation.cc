@@ -989,6 +989,20 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             }
             return exécute->substitution;
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_binaire();
+            référence->substitution = assem->crée_référence_déclaration(référence->lexème,
+                                                                        référence->op->decl);
+            return référence->substitution;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_unaire();
+            référence->substitution = assem->crée_référence_déclaration(
+                référence->lexème, référence->op->déclaration);
+            return référence->substitution;
+        }
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:

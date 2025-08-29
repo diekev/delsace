@@ -53,4 +53,10 @@ principale :: fonc ()
      * composée (-=, *=, /=, etc.) */
     mon_type += 5
     assert(mon_type.x == 6)
+
+    /* Nous pouvons obtenir l'adresse de la fonction d'opérateur afin de l'appeler
+     * manuellement : */
+    pointeur_opérateur := opérateur+(MonType, z32)
+    mon_type = pointeur_opérateur(mon_type, 4)
+    assert(mon_type.x == 10)
 }

@@ -1686,6 +1686,79 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             return valide_expression_type_fonction(noeud->comme_expression_type_fonction());
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_binaire();
+            auto type_op = référence->lexème->genre;
+            auto gauche = référence->opérande_gauche;
+            auto droite = référence->opérande_droite;
+            auto type_gauche = gauche->type;
+            auto type_droite = droite->type;
+
+            if (résoud_type_final(gauche, type_gauche) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (résoud_type_final(droite, type_droite) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            // À FAIRE : supprime l'expression binaire
+            NoeudExpressionBinaire expr;
+            expr.lexème = référence->lexème;
+            expr.opérande_gauche = gauche;
+            expr.opérande_droite = droite;
+
+            auto résultat = trouve_opérateur_pour_expression(
+                *m_espace, &expr, type_gauche, type_droite, type_op);
+
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
+            }
+
+            auto candidat = std::get<OpérateurCandidat>(résultat);
+
+            if (candidat.op->est_basique) {
+                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (candidat.permute_opérandes) {
+                rapporte_erreur("Aucun opérateur trouvé pour l'expression", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            référence->op = candidat.op;
+            référence->type = candidat.op->decl->type;
+
+            return CodeRetourValidation::OK;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_unaire();
+            auto droite = référence->opérande;
+            auto type_droite = droite->type;
+
+            if (résoud_type_final(droite, type_droite) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto opérateurs = m_compilatrice.opérateurs.verrou_lecture();
+            auto op = cherche_opérateur_unaire(*opérateurs, type_droite, référence->lexème->genre);
+
+            if (op == nullptr) {
+                return Attente::sur_opérateur(noeud);
+            }
+
+            if (op->est_basique) {
+                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            référence->op = op;
+            référence->type = op->déclaration->type;
+            return CodeRetourValidation::OK;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
