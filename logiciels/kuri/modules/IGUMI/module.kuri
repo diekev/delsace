@@ -3,7 +3,6 @@ importe Chaine
 importe Couleur
 importe Fondation
 importe Image
-importe Géométrie
 importe Math
 importe OpenGL
 importe Structures

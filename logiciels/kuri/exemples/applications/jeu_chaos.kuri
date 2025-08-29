@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------------- */
 // https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
 
-importe Géométrie
+importe Math
 
 MondeVersEcran :: struct {
     A := 0.0

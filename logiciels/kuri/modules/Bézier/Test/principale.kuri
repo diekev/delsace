@@ -2,7 +2,6 @@ importe Bézier
 importe Couleur
 importe CréationFenêtre
 importe Fondation
-importe Géométrie
 importe IGUMI
 importe Math
 importe Périphériques

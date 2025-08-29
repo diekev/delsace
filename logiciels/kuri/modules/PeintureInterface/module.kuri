@@ -7,7 +7,6 @@ importe Chaine
 importe Couleur
 importe Dessin
 importe Fondation
-importe Géométrie
 importe IGUMI
 importe Image
 importe Math

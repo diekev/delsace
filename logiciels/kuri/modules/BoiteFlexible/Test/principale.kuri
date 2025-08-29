@@ -4,9 +4,9 @@ importe Chaine
 importe Couleur
 importe ÉditionTexte
 importe Fondation
-importe Géométrie
 importe Guettage
 importe Image
+importe Math
 importe PeintureInterface
 importe Périphériques
 importe SysFichier

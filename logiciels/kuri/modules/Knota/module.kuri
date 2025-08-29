@@ -2,7 +2,6 @@ importe Allocatrices
 importe Ensemble
 importe Fondation
 importe Fràtzala
-importe Géométrie
 importe Observation
 importe Structures
 importe SysFichier

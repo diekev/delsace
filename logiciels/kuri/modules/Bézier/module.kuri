@@ -2,7 +2,6 @@
 
 importe Couleur
 importe Fondation
-importe Géométrie
 importe Math
 importe PeintureInterface
 

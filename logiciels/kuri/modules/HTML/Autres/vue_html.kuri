@@ -5,11 +5,11 @@ importe Compilatrice
 importe Couleur
 CSS :: importe CSS
 importe Fondation
-importe Géométrie
 importe HTML
 importe HTTP
 JS :: importe JavaScript
 importe OpenGL
+importe Math
 importe PeintureInterface
 importe Périphériques
 importe Qt

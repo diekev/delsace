@@ -1,7 +1,7 @@
 importe CréationFenêtre
 importe Fondation
 importe FreeType
-importe Géométrie
+importe Math
 importe PeintureInterface
 importe Périphériques
 importe Couleur

@@ -5,9 +5,9 @@ importe Chaine
 importe Couleur
 importe Ensemble
 importe Fondation
-importe Géométrie
 importe Image
 importe Krypto
+importe Math
 importe OpenGL
 importe PeintureInterface
 importe Périphériques

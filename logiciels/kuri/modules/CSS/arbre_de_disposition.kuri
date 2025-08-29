@@ -1,6 +1,5 @@
 importe Ensemble
 importe EnsembleDeBits
-importe Géométrie
 importe Image
 importe Math
 importe MIME

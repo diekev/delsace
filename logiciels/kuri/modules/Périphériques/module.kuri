@@ -1,7 +1,7 @@
 /* Module servant à définir des types et routines pour les périphériques
  * de l'ordinateur (souris, clavier, etc.). */
 
-importe Géométrie
+importe Math
 importe MIME
 
 /* ------------------------------------------------------------------------- */
