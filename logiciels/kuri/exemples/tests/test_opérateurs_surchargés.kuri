@@ -1,0 +1,56 @@
+importe Fondation
+
+/* La surcharge d'opérateur permet d'avoir un sucrage syntaxique pour opérer sur des
+ * variables comme si elles étaient des variables de types basiques.
+ *
+ * Les opérateurs suivants sont surchargeables :
+ *
+ *  opérateur +
+ *  opérateur -
+ *  opérateur *
+ *  opérateur /
+ *  opérateur %
+ *
+ *  opérateur ==
+ *  opérateur !=
+ *  opérateur <
+ *  opérateur <=
+ *  opérateur >
+ *  opérateur >=
+ *
+ *  opérateur <<
+ *  opérateur >>
+ *  opérateur &
+ *  opérateur |
+ *  opérateur ~
+ *  opérateur ^
+ *  opérateur !
+ *
+ *  opérateur []
+ */
+
+/* Définition d'une surcharge pour l'opérateur+ pour un nouveau type. */
+MonType :: struct {
+    x: z32
+}
+
+opérateur + :: (mon_type: MonType, valeur: z32) -> MonType
+{
+    résultat := mon_type
+    résultat.x += valeur
+    retourne résultat
+}
+
+principale :: fonc ()
+{
+    mon_type: MonType
+
+    mon_type = mon_type + 1
+    assert(mon_type.x == 1)
+
+    /* Si opérateur+ est spécifié, l'opérateur += est automatiquement disponible.
+     * De même pour tous les opérateurs pouvant apparaitre dans une assignation
+     * composée (-=, *=, /=, etc.) */
+    mon_type += 5
+    assert(mon_type.x == 6)
+}
