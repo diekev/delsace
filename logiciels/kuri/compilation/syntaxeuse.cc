@@ -3086,9 +3086,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
                  "Attendu ']' après '[' pour la déclaration de l'opérateur");
     }
 
-    // :: fonc
     consomme(GenreLexème::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
-    consomme(GenreLexème::FONC, "Attendu fonc après ::");
 
     auto noeud = (genre_opérateur == GenreLexème::POUR) ?
                      m_tacheronne.assembleuse->crée_opérateur_pour(lexème) :
@@ -3529,7 +3527,8 @@ static bool expression_est_valide_pour_bloc_structure(NoeudExpression *noeud)
            noeud->est_référence_déclaration();
 }
 
-NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(NoeudDéclarationClasse *decl_struct)
+NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
+    NoeudDéclarationClasse *decl_struct)
 {
     auto bloc = m_tacheronne.assembleuse->empile_bloc(lexème_courant(), nullptr, TypeBloc::TYPE);
     consomme(GenreLexème::ACCOLADE_OUVRANTE, "Attendu '{' après le nom de la structure");

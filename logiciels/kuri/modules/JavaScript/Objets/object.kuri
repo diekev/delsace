@@ -75,17 +75,17 @@ IndicePropriété :: struct {
     indice: z64
 }
 
-opérateur == :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
+opérateur == :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte == b.empreinte
 }
 
-opérateur != :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
+opérateur != :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte != b.empreinte
 }
 
-opérateur < :: fonc (a: IndicePropriété, b: IndicePropriété) -> bool
+opérateur < :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte < b.empreinte
 }

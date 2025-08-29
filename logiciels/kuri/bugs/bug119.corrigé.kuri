@@ -8,7 +8,7 @@ importe Fondation
 TypePersonnalisé :: struct {
 }
 
-opérateur pour :: fonc (type: TypePersonnalisé) -> z32
+opérateur pour :: (type: TypePersonnalisé) -> z32
 {
     pour 1 {
         `it = 0

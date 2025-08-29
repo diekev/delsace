@@ -11,27 +11,27 @@ crée_point :: fonc (x: r64, y: r64) -> Point2D
     retourne Point2D(x = x, y = y)
 }
 
-opérateur + :: fonc (p0: Point2D, p1: Point2D) -> Point2D
+opérateur + :: (p0: Point2D, p1: Point2D) -> Point2D
 {
     retourne Point2D(p0.x + p1.x, p0.y + p1.y)
 }
 
-opérateur + :: fonc (p0: Point2D, v: Vec2) -> Point2D
+opérateur + :: (p0: Point2D, v: Vec2) -> Point2D
 {
     retourne Point2D(p0.x + v.x, p0.y + v.y)
 }
 
-opérateur - :: fonc (p0: Point2D, p1: Point2D) -> Vec2
+opérateur - :: (p0: Point2D, p1: Point2D) -> Vec2
 {
     retourne Vec2(p0.x - p1.x, p0.y - p1.y)
 }
 
-opérateur * :: fonc (p0: Point2D, r: r32) -> Point2D
+opérateur * :: (p0: Point2D, r: r32) -> Point2D
 {
     retourne Point2D(p0.x * r, p0.y * r)
 }
 
-opérateur / :: fonc (p0: Point2D, r: r32) -> Point2D
+opérateur / :: (p0: Point2D, r: r32) -> Point2D
 {
     retourne Point2D(p0.x / r, p0.y / r)
 }
@@ -45,7 +45,7 @@ Point3D :: struct {
     z: r32 @accessible
 } @Python
 
-opérateur - :: fonc (a: Point3D, b: Point3D) -> Vec3
+opérateur - :: (a: Point3D, b: Point3D) -> Vec3
 {
     résultat : Vec3 = ---
     résultat.x = a.x - b.x

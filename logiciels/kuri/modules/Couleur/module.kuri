@@ -21,7 +21,7 @@ init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
     retourne vrai
 } @Python "new"
 
-opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     si couleur1.r != couleur2.r {
         retourne faux
@@ -42,7 +42,7 @@ opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+opérateur != :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     retourne !(couleur1 == couleur2)
 }
@@ -85,7 +85,7 @@ CouleurRVBN8 :: struct {
     b: n8
 }
 
-opérateur == :: fonc (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
+opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
 {
     retourne a.r == b.r && a.v == b.v && a.b == b.b
 }
@@ -103,7 +103,7 @@ CouleurRVBAN8 :: struct {
     a: n8
 }
 
-opérateur == :: fonc (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
+opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
 {
     retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a
 }
@@ -391,17 +391,17 @@ spectre_vers_couleur_tsv :: fonc (spectre: Spectre) -> CouleurTSV
     retourne CouleurTSV(spectre.x, spectre.y, spectre.z)
 }
 
-opérateur + :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+opérateur + :: (s1: Spectre, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1.x + s2.x, s1.y + s2.y, s1.z + s2.z)
 }
 
-opérateur * :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+opérateur * :: (s1: Spectre, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1.x * s2.x, s1.y * s2.y, s1.z * s2.z)
 }
 
-opérateur * :: fonc (s1: r32, s2: Spectre) -> Spectre
+opérateur * :: (s1: r32, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z)
 }

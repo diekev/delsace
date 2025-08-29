@@ -915,7 +915,7 @@ InclusiveDescendants :: struct {
     node: *Node
 }
 
-opérateur pour :: fonc (inclusive_descendants: InclusiveDescendants) -> *Node
+opérateur pour :: (inclusive_descendants: InclusiveDescendants) -> *Node
 {
     assert(inclusive_descendants.node != nul)
 

@@ -110,7 +110,7 @@ RaccourcisClavier :: struct {
     modificateur: ModificateurClavier
 }
 
-opérateur == :: fonc (a: RaccourcisClavier, b: RaccourcisClavier) -> bool
+opérateur == :: (a: RaccourcisClavier, b: RaccourcisClavier) -> bool
 {
     retourne a.clé == b.clé && a.modificateur == b.modificateur
 }

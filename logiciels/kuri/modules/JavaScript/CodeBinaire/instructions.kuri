@@ -21,7 +21,7 @@ ItéractriceInstruction :: struct {
     flux: *FluxDInstructions
 }
 
-opérateur pour :: fonc (itératrice: ItéractriceInstruction) -> *Instruction
+opérateur pour :: (itératrice: ItéractriceInstruction) -> *Instruction
 {
     assert(itératrice.flux != nul)
 

@@ -715,7 +715,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto entête = noeud->comme_entête_fonction();
 
             if (entête->est_opérateur_pour()) {
-                enchaineuse << "opérateur pour";
+                enchaineuse << "opérateur pour :: ";
             }
             else if (entête->est_opérateur) {
                 enchaineuse << "opérateur ";
@@ -725,11 +725,12 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 else {
                     imprime_lexème_mot_clé(enchaineuse, entête, false);
                 }
+                enchaineuse << " :: ";
             }
             else {
                 imprime_ident(enchaineuse, entête->ident);
+                enchaineuse << " :: fonc ";
             }
-            enchaineuse << " :: fonc ";
 
             imprime_tableau_expression(enchaineuse, état, entête->params, "(", ")");
 

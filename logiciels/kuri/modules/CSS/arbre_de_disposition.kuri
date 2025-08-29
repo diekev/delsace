@@ -425,17 +425,17 @@ RègleAppariée :: struct {
     origine: OrigineCascade
 }
 
-opérateur == :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+opérateur == :: (a: RègleAppariée, b: RègleAppariée) -> bool
 {
     retourne a.règle == b.règle
 }
 
-opérateur != :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+opérateur != :: (a: RègleAppariée, b: RègleAppariée) -> bool
 {
     retourne a.règle != b.règle
 }
 
-opérateur < :: fonc (a: RègleAppariée, b: RègleAppariée) -> bool
+opérateur < :: (a: RègleAppariée, b: RègleAppariée) -> bool
 {
     retourne a.règle < b.règle
 }
@@ -445,17 +445,17 @@ RèglesParIdentifiant :: struct {
     règles: [..]RègleAppariée
 }
 
-opérateur == :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+opérateur == :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
 {
     retourne a.ident == b.ident
 }
 
-opérateur != :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+opérateur != :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
 {
     retourne a.ident != b.ident
 }
 
-opérateur < :: fonc (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
+opérateur < :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
 {
     retourne a.ident < b.ident
 }
@@ -981,7 +981,7 @@ PositionDéclaration :: struct {
     indice_déclaration: z64
 }
 
-opérateur < :: fonc (a: PositionDéclaration, b: PositionDéclaration) -> bool
+opérateur < :: (a: PositionDéclaration, b: PositionDéclaration) -> bool
 {
     si a.indice_feuille < b.indice_feuille {
         retourne vrai
@@ -4146,7 +4146,7 @@ ItératriceArbre :: struct {
     racine: *Box
 }
 
-opérateur pour :: fonc (itératrice: ItératriceArbre) -> *Box
+opérateur pour :: (itératrice: ItératriceArbre) -> *Box
 {
     pile: Pile(*Box)
     diffère détruit(pile)

@@ -134,12 +134,12 @@ NomEtIndice :: struct {
     indice: z64
 }
 
-opérateur < :: fonc (a: NomEtIndice, b: NomEtIndice) -> bool
+opérateur < :: (a: NomEtIndice, b: NomEtIndice) -> bool
 {
     retourne a.nom < b.nom
 }
 
-opérateur == :: fonc (a: NomEtIndice, b: NomEtIndice) -> bool
+opérateur == :: (a: NomEtIndice, b: NomEtIndice) -> bool
 {
     retourne a.nom == b.nom
 }

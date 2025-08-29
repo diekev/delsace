@@ -54,7 +54,7 @@ est_nul :: fonc (ongoing: OngoingNavigationType) -> bool
     retourne vrai
 }
 
-opérateur == :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+opérateur == :: (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
 {
     discr a {
         NavigationID(id) {
@@ -69,12 +69,12 @@ opérateur == :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bo
     }
 }
 
-opérateur != :: fonc (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
+opérateur != :: (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
 {
     retourne !(a == b)
 }
 
-opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+opérateur == :: (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
 {
     discr ongoing {
         NavigationID(id) {
@@ -86,12 +86,12 @@ opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: Navigation
     }
 }
 
-opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
+opérateur != :: (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
 {
     retourne !(ongoing == navigation_id)
 }
 
-opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+opérateur == :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
 {
     discr ongoing {
         NavigationID(id) {
@@ -112,12 +112,12 @@ opérateur == :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(
     }
 }
 
-opérateur != :: fonc (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
+opérateur != :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
 {
     retourne !(ongoing == navigation_id)
 }
 
-opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+opérateur == :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
 {
     discr ongoing {
         Chaine(c) {
@@ -129,7 +129,7 @@ opérateur == :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
     }
 }
 
-opérateur != :: fonc (ongoing: OngoingNavigationType, chn: chaine) -> bool
+opérateur != :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
 {
     retourne !(ongoing == chn)
 }

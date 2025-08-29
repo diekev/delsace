@@ -39,12 +39,12 @@ Point2D :: struct ($T: type_de_données) {
     y: T @mutable
 }
 
-opérateur == :: fonc (p0: Point2D(z32), p1: Point2D(z32)) -> bool
+opérateur == :: (p0: Point2D(z32), p1: Point2D(z32)) -> bool
 {
     retourne p0.x == p1.x && p0.y == p1.y
 }
 
-opérateur == :: fonc (p0: Point2D(r32), p1: Point2D(r32)) -> bool
+opérateur == :: (p0: Point2D(r32), p1: Point2D(r32)) -> bool
 {
     retourne p0.x == p1.x && p0.y == p1.y
 }

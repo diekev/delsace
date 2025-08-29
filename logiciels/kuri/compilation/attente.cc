@@ -368,7 +368,7 @@ RAPPEL_POUR_ERREUR(opérateur)
                          "la syntaxe suivante :\n\n");
         e.ajoute_message("opérateur ",
                          operateur_attendu->lexème->chaine,
-                         " :: fonc (a: ",
+                         " :: (a: ",
                          chaine_type(type1),
                          ", b: ",
                          chaine_type(type2),
@@ -392,7 +392,7 @@ RAPPEL_POUR_ERREUR(opérateur)
                             "la syntaxe suivante :\n\n")
             .ajoute_message("opérateur ",
                             operateur_attendu->lexème->chaine,
-                            " :: fonc (a: ",
+                            " :: (a: ",
                             chaine_type(type_operande),
                             ")")
             .ajoute_message(" -> TypeRetour\n")
