@@ -1117,6 +1117,24 @@ imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, n: z32)
 
 // --------------------------
 
+imprime_tableau :: fonc (tableau: []$T, message := "", séparation := ", ")
+{
+    si message {
+        imprime("% : ", message)
+    }
+    virgule := "[ "
+    pour tableau {
+        imprime("%%", virgule, it)
+        virgule = séparation
+    }
+    saufsi tableau {
+        imprime("[")
+    }
+    imprime(" ]\n")
+}
+
+// --------------------------
+
 assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
 {
     si expr {
