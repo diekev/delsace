@@ -156,12 +156,22 @@ accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
 
 accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 {
+    retourne accumule(tableau.pointeur, tableau.pointeur + tableau.taille, valeur_initiale)
+}
+
+accumule :: fonc (premier: *$T, dernier: *T) -> T
+{
+    valeur_initiale: T
+    retourne accumule(premier, dernier, valeur_initiale)
+}
+
+accumule :: fonc (premier: *$T, dernier: *T, valeur_initiale: T) -> T
+{
     résultat := valeur_initiale
-
-    pour tableau {
-        résultat += it
+    tantque premier < dernier {
+        résultat += mémoire(premier)
+        premier += 1
     }
-
     retourne résultat
 }
 
