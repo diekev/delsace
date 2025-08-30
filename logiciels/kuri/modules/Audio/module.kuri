@@ -183,17 +183,16 @@ remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_
     période := ((taux_échantillon comme r64) / fréquence) comme n64
 
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
-    tonalité_haute := (facteur_amplitude * 32768) comme z16
-    tonalité_basse := (facteur_amplitude * 32768) comme z16
+    tonalité := (facteur_amplitude * 32768) comme z16
 
     échantillon := données.pointeur
 
     pour nombre_échantillons_par_canal {
         valeur := si (décalage_échantillon / période) % 2 == 0 {
-            tonalité_haute
+            tonalité
         }
         sinon {
-            -tonalité_basse
+            -tonalité
         }
 
         décalage_échantillon += 1
