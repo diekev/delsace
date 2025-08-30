@@ -211,6 +211,7 @@ ATTR_reset : DOMString = ---
 ATTR_rows : DOMString = ---
 ATTR_search : DOMString = ---
 ATTR_size : DOMString = ---
+ATTR_slot : DOMString = ---
 ATTR_src : DOMString = ---
 ATTR_submit : DOMString = ---
 ATTR_stylesheet : DOMString = ---
