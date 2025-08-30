@@ -21,7 +21,7 @@ init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
     retourne vrai
 } @Python "new"
 
-opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     si couleur1.r != couleur2.r {
         retourne faux
@@ -42,7 +42,7 @@ opérateur == :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
+opérateur != :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     retourne !(couleur1 == couleur2)
 }
@@ -85,7 +85,7 @@ CouleurRVBN8 :: struct {
     b: n8
 }
 
-opérateur == :: fonc (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
+opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
 {
     retourne a.r == b.r && a.v == b.v && a.b == b.b
 }
@@ -103,7 +103,7 @@ CouleurRVBAN8 :: struct {
     a: n8
 }
 
-opérateur == :: fonc (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
+opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
 {
     retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a
 }
@@ -119,22 +119,7 @@ couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
 
 interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -> CouleurRVBAN8 #enligne
 {
-    r_c0 := (c0.r comme r32) / 255.0
-    v_c0 := (c0.v comme r32) / 255.0
-    b_c0 := (c0.b comme r32) / 255.0
-
-    r_c1 := (c1.r comme r32) / 255.0
-    v_c1 := (c1.v comme r32) / 255.0
-    b_c1 := (c1.b comme r32) / 255.0
-
-    alpha := poids
-
-    r := (((1.0 - alpha) * r_c0 + alpha * r_c1) * 255.0) comme n8
-    v := (((1.0 - alpha) * v_c0 + alpha * v_c1) * 255.0) comme n8
-    b := (((1.0 - alpha) * b_c0 + alpha * b_c1) * 255.0) comme n8
-    a := c0.a
-
-    retourne CouleurRVBAN8(r, v, b, a)
+    retourne mélange_couleurs(c0, c1, poids)
 }
 
 vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
@@ -145,6 +130,37 @@ vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
     retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+}
+
+mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
+{
+    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8)
+}
+
+mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> CouleurRVBAN8
+{
+    r0 := c0.r comme n32
+    v0 := c0.v comme n32
+    b0 := c0.b comme n32
+
+    r1 := c1.r comme n32
+    v1 := c1.v comme n32
+    b1 := c1.b comme n32
+
+    complément_alpha := 255 - alpha
+
+    r2 := (r0 * complément_alpha + r1 * alpha) / 255
+    v2 := (v0 * complément_alpha + v1 * alpha) / 255
+    b2 := (b0 * complément_alpha + b1 * alpha) / 255
+
+    résultat: CouleurRVBAN8 = ---
+
+    résultat.r = min(r2, 255) comme n8
+    résultat.v = min(v2, 255) comme n8
+    résultat.b = min(b2, 255) comme n8
+
+    résultat.a = c0.a
+    retourne résultat
 }
 
 /** \} */
@@ -375,17 +391,17 @@ spectre_vers_couleur_tsv :: fonc (spectre: Spectre) -> CouleurTSV
     retourne CouleurTSV(spectre.x, spectre.y, spectre.z)
 }
 
-opérateur + :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+opérateur + :: (s1: Spectre, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1.x + s2.x, s1.y + s2.y, s1.z + s2.z)
 }
 
-opérateur * :: fonc (s1: Spectre, s2: Spectre) -> Spectre
+opérateur * :: (s1: Spectre, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1.x * s2.x, s1.y * s2.y, s1.z * s2.z)
 }
 
-opérateur * :: fonc (s1: r32, s2: Spectre) -> Spectre
+opérateur * :: (s1: r32, s2: Spectre) -> Spectre
 {
     retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z)
 }

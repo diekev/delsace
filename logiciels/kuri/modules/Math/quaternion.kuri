@@ -41,7 +41,7 @@ quaternion_depuis_axe_et_angle_normalisé :: fonc (axe: Vec3, angle: r32) -> Qua
 /**
  * Retourne le quaternion résultant de l'addition des deux quaternions spécifiés.
  */
-opérateur + :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+opérateur + :: (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
 {
     a := q comme [4]r32
     b := autre comme [4]r32
@@ -55,7 +55,7 @@ opérateur + :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
 /**
  * Retourne le quaternion résultant de la soustraction des deux quaternions spécifiés.
  */
-opérateur - :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+opérateur - :: (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
 {
     a := q comme [4]r32
     b := autre comme [4]r32
@@ -70,7 +70,7 @@ opérateur - :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
  * Retourne le quaternion résultant de la multiplication des deux quaternions
  * spécifiés.
  */
-opérateur * :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
+opérateur * :: (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
 {
     a := q comme [4]r32
     b := autre comme [4]r32
@@ -90,7 +90,7 @@ opérateur * :: fonc (q: Quaternion, autre: Quaternion) -> Quaternion #enligne
  * Retourne le quaternion résultant de la multiplication du quaternion par la
  * valeur spécifiée.
  */
-opérateur * :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
+opérateur * :: (q: Quaternion, valeur: r32) -> Quaternion #enligne
 {
     a := q comme [4]r32
     a[0] *= valeur
@@ -104,7 +104,7 @@ opérateur * :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
  * Retourne le quaternion résultant de la division du quaternion par la valeur
  * spécifiée.
  */
-opérateur / :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
+opérateur / :: (q: Quaternion, valeur: r32) -> Quaternion #enligne
 {
     a := q comme [4]r32
     a[0] /= valeur
@@ -118,7 +118,7 @@ opérateur / :: fonc (q: Quaternion, valeur: r32) -> Quaternion #enligne
  * Retourne le quaternion résultant de la réciproque du quaternion par la valeur
  * spécifiée.
  */
-opérateur / :: fonc (valeur: r32, q: Quaternion) -> Quaternion #enligne
+opérateur / :: (valeur: r32, q: Quaternion) -> Quaternion #enligne
 {
     a := q comme [4]r32
     a[0] = valeur / a[0]
@@ -133,7 +133,7 @@ opérateur / :: fonc (valeur: r32, q: Quaternion) -> Quaternion #enligne
 /**
  * Retourne le quaternion résultant de la négation du quaternion spécifié.
  */
-opérateur - :: fonc (a: Quaternion) -> Quaternion #enligne
+opérateur - :: (a: Quaternion) -> Quaternion #enligne
 {
     a := q comme [4]r32
     a[0] = -a[0]
@@ -148,7 +148,7 @@ opérateur - :: fonc (a: Quaternion) -> Quaternion #enligne
 /**
  * Retourne vrai si les valeurs des deux quaternions sont égales entre elles.
  */
-opérateur == :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
+opérateur == :: (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
 {
     a := cote_gauche comme [4]r32
     b := cote_droit comme [4]r32
@@ -163,7 +163,7 @@ opérateur == :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool 
 /**
  * Retourne vrai si les valeurs des deux quaternions sont différentes.
  */
-opérateur != :: fonc (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
+opérateur != :: (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
 {
     retourne !(cote_gauche == cote_droit)
 }

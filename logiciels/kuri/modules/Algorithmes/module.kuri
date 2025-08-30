@@ -2,20 +2,11 @@ importe Math
 
 charge "tableaux"
 
-// Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
-// de comparaisons, et sont résistant aux dépassement de bornes.
-
-// Retourne le nombre d'éléments se situant entre deux pointeurs.
-distance :: fonc (ptr1: *$T, ptr2: *T) -> z64 #enligne
-{
-    retourne ptr2 - ptr1
-}
-
-// Retourne le pointeur se situant à n éléments après celui donné.
-suivant :: fonc (ptr: *$T, n: z64) -> *T #enligne
-{
-    retourne ptr + n
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Recherche binaire
+ * Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
+ * de comparaisons, et sont résistant aux dépassement de bornes.
+ * \{ */
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
@@ -95,7 +86,31 @@ limite_haute :: fonc (f: *$T, l: *T, v: T) -> *T
     retourne fl
 }
 
-tous_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arithmétique de pointeurs
+ * \{ */
+
+// Retourne le nombre d'éléments se situant entre deux pointeurs.
+distance :: fonc (ptr1: *$T, ptr2: *T) -> z64 #enligne
+{
+    retourne ptr2 - ptr1
+}
+
+// Retourne le pointeur se situant à n éléments après celui donné.
+suivant :: fonc (ptr: *$T, n: z64) -> *T #enligne
+{
+    retourne ptr + n
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Test de valeurs
+ * \{ */
+
+tous_de :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> bool
 {
     pour tableau {
         saufsi prédicat(it) {
@@ -106,7 +121,7 @@ tous_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
     retourne vrai
 }
 
-aucun_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
+aucun_de :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> bool
 {
     pour tableau {
         si prédicat(it) {
@@ -117,33 +132,13 @@ aucun_de :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> bool
     retourne vrai
 }
 
-copie_si :: fonc (tableau: [..]$T, prédicat: fonc(T)(bool)) -> [..]T
-{
-    résultat: [..]T
-    tableau_réserve(*résultat, tableau.taille)
+/** \} */
 
-    pour tableau {
-        si prédicat(it) {
-            tableau_ajoute(*résultat, copie(it))
-        }
-    }
+/* ------------------------------------------------------------------------- */
+/** \nom Accumulation
+ * \{ */
 
-    retourne résultat
-}
-
-copie :: fonc (tableau: [..]$T) -> [..]T
-{
-    résultat: [..]T
-    tableau_réserve(*résultat, tableau.taille)
-
-    pour tableau {
-        tableau_ajoute(*résultat, copie(it))
-    }
-
-    retourne résultat
-}
-
-accumule :: fonc (tableau: [..]$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
+accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
 {
     résultat := valeur_initiale
 
@@ -154,14 +149,24 @@ accumule :: fonc (tableau: [..]$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
     retourne résultat
 }
 
-accumule :: fonc (tableau: [..]$T, valeur_initiale: T) -> T
+accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
+{
+    retourne accumule(tableau.pointeur, tableau.pointeur + tableau.taille, valeur_initiale)
+}
+
+accumule :: fonc (premier: *$T, dernier: *T) -> T
+{
+    valeur_initiale: T
+    retourne accumule(premier, dernier, valeur_initiale)
+}
+
+accumule :: fonc (premier: *$T, dernier: *T, valeur_initiale: T) -> T
 {
     résultat := valeur_initiale
-
-    pour tableau {
-        résultat += it
+    tantque premier < dernier {
+        résultat += mémoire(premier)
+        premier += 1
     }
-
     retourne résultat
 }
 
@@ -169,7 +174,7 @@ accumule :: fonc (tableau: [..]$T, valeur_initiale: T) -> T
  * Ceci accumule moins d'erreur en point flottant.
  * https://en.wikipedia.org/wiki/Kahan_summation_algorithm
  */
-accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: [..]r32) -> r32
+accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: []r32) -> r32
 {
     saufsi tableau {
         retourne 0.0
@@ -194,6 +199,8 @@ accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: [..]r32) -> r32
 
     retourne résultat + err
 }
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Permutation de valeur.
@@ -317,9 +324,9 @@ partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
 
     milieu := suivant(premier, taille / 2)
 
-    retourne pivote(partitionne_stable(premier, milieu, p),
+    retourne pivote(partition_stable(premier, milieu, p),
                     milieu,
-                    partitionne_stable(milieu, dernier, p))
+                    partition_stable(milieu, dernier, p))
 }
 
 /** \} */
@@ -348,6 +355,359 @@ copie_si :: fonc (début_src: *$T, fin_src: *T, début_dst: *T, p: fonc(T)(bool)
     }
 
     retourne début_dst
+}
+
+copie_si :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> [..]T
+{
+    résultat: [..]T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        si prédicat(it) {
+            tableau_ajoute(*résultat, copie(it))
+        }
+    }
+
+    retourne résultat
+}
+
+copie :: fonc (tableau: []$T) -> [..]T
+{
+    résultat: [..]T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        tableau_ajoute(*résultat, copie(it))
+    }
+
+    retourne résultat
+}
+
+copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
+{
+    tantque premier != dernier {
+        dernier -= 1
+        résultat -= 1
+        mémoire(résultat) = mémoire(dernier)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Énième élément.
+ *
+ * Performe un tri partiel des données de sort que l'énième élément se retrouve
+ * à la position où il aurait été si le tri fut complet. Tous les éléments
+ * précédents l'éniènme seront plus petit, les suivants plus grands, mais désordonnées.
+ * \{ */
+
+énième_élément :: fonc (tableau: []$T, index: z64) -> T
+{
+    // À FAIRE(langage) : référence d'opérateurs basiques
+    comp :: fonc (a: T, b: T) -> bool 
+    {
+        retourne a < b
+    }
+
+    retourne énième_élément(tableau, comp)
+}
+
+énième_élément :: fonc (tableau: []$T, index: z64, comp: fonc(T, T)(bool)) -> T
+{
+    début := tableau.pointeur
+    élément := début + index
+    fin := début + tableau.taille
+
+    énième_élément(début, élément, fin, comp)
+
+    retourne mémoire(élément)
+}
+
+énième_élément :: fonc (premier: *$T, énième: *T, dernier: *T)
+{
+    // À FAIRE(langage) : référence d'opérateurs basiques
+    comp :: fonc (a: T, b: T) -> bool 
+    {
+        retourne a < b
+    }
+
+    énième_élément(premier, énième, dernier, comp)
+}
+
+énième_élément :: fonc (premier: *$T, énième: *T, dernier: *T, comp: fonc(T, T)(bool))
+{
+    assert(premier <= énième <= dernier)
+
+    si premier == dernier || énième == dernier {
+        retourne
+    }
+
+    sélection_introspective(premier, énième, dernier, log_base_2(dernier - premier) * 2, comp)
+}
+
+log_base_2 :: fonc (n: z64) -> z64
+{
+    BIS_PAR_OCTET :: 8
+    retourne (taille_de(z64) comme z32) * BIS_PAR_OCTET - 1 - intrinsèque_compte_zéros_en_tête(n comme n64)
+}
+
+#test {
+    v := [5, 10, 6, 4, 3, 2, 6, 7, 9, 3]
+    imprime_tableau(v)
+ 
+    m := *v[0] + v.taille / 2
+
+    début := *v[0]
+    énième_élément(début, m, début + v.taille)
+
+    assert(v[v.taille / 2] == 6)
+    imprimeln("La médiane est %", v[v.taille / 2])
+
+    // Conséquence de l'inégalité des éléments avant/après l'énième :
+    assert(accumule(début, m) < accumule(m, début + v.taille))
+    assert(tableaux_sont_égaux(v, [3, 2, 3, 4, 5, 6, 10, 7, 9, 6]))
+    imprime_tableau(v);
+ 
+    // Note: changement de la fonction de comparaison
+    est_plus_grand :: fonc (a: z32, b: z32) -> bool
+    {
+        retourne a > b
+    }
+    énième_élément(début, début + 1, début + v.taille, est_plus_grand)
+
+    imprimeln("Le deuxième grandissime élément est %", v[1])
+    assert(v[1] == 9)
+    imprimeln("Le grandissime élément est %", v[0])
+    assert(v[0] == 10)
+
+    assert(tableaux_sont_égaux(v, [10, 9, 6, 7, 6, 3, 5, 4, 3, 2]))
+    imprime_tableau(v)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sélection introspective.
+ *
+ * https://en.wikipedia.org/wiki/Introselect
+ * \{ */
+
+sélection_introspective :: fonc (premier: *$T, énième: *T, dernier: *T, limite_profondeur: z64, comp: fonc(T, T)(bool))
+{
+    tantque (dernier - premier) > 3 {
+        si limite_profondeur == 0 {
+            sélectionne_tas(premier, énième + 1, dernier, comp);
+            // Positionne le énième grandissime élément à sa place finale.
+            permute(premier, énième);
+            retourne
+        }
+
+        limite_profondeur -= 1
+        coupe := partition_sans_garde_pivot(premier, dernier, comp)
+
+        si coupe <= énième {
+            premier = coupe
+        }
+        sinon {
+            dernier = coupe
+        }
+    }
+
+    tri_par_insertion(premier, dernier, comp);
+}
+
+partition_sans_garde_pivot :: fonc (premier: *$T, dernier: *T, comp: fonc(T, T)(bool)) -> *T
+{
+    milieu := premier + (dernier - premier) / 2
+    déplace_médiane_au_début(premier, premier + 1, milieu, dernier - 1, comp)
+    retourne partition_sans_garde(premier + 1, dernier, premier, comp)
+}
+
+partition_sans_garde :: fonc (premier: *$T, dernier: *T, pivot: *T, comp: fonc(T, T)(bool)) -> *T
+{
+    boucle {
+        tantque comp(mémoire(premier), mémoire(pivot)) {
+            premier += 1
+        }
+
+        dernier -= 1
+    
+        tantque comp(mémoire(pivot), mémoire(dernier)) {
+            dernier -= 1
+        }
+
+        saufsi (premier < dernier) {
+            retourne premier
+        }
+
+        permute(premier, dernier);
+        premier += 1
+
+        // À FAIRE(langage) : compilation infinie premier += dernier
+    }
+
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tas.
+ * https://fr.wikipedia.org/wiki/Tas_(informatique)
+ * \{ */
+
+sélectionne_tas :: fonc (premier: *$T, milieu: *T, dernier: *T, comp: fonc(T, T)(bool))
+{
+    cére_tas(premier, milieu, comp)
+
+    it := milieu
+    // pour milieu ... dernier - 1 {
+    tantque it < dernier {
+        si comp(mémoire(it), mémoire(premier)) {
+            défile_tas(premier, milieu, it, comp)
+        }
+        it += 1
+    }
+}
+
+cére_tas :: fonc (premier: *$T, dernier: *T, comp: fonc(T, T)(bool))
+{
+    si (dernier - premier) < 2 {
+        retourne
+    }
+
+    TypeDistance :: z64
+
+    longueur := (dernier - premier) comme TypeDistance
+    parent := (longueur - 2) / 2
+
+    boucle {
+        value := mémoire(premier + parent)
+        ajuste_tas(premier, parent, longueur, value, comp);
+        saufsi parent {
+            retourne
+        }
+        parent -= 1
+    }
+}
+
+ajuste_tas :: fonc (premier: *$T, indice_trou: z64, longueur: z64, value: T, comp: fonc(T, T)(bool))
+{
+    indice_tête := indice_trou
+    deuxième_enfant := indice_trou
+
+    tantque (deuxième_enfant < (longueur - 1) / 2) {
+        deuxième_enfant = 2 * (deuxième_enfant + 1)
+
+        si comp(mémoire(premier + deuxième_enfant), mémoire(premier + (deuxième_enfant - 1))) {
+            deuxième_enfant -= 1
+        }
+
+        // À FAIRE(langage) : erreur de compilation
+        // mémoire(premier + indice_trou) = mémoire(premier + deuxième_enfant)
+        premier[indice_trou] = premier[deuxième_enfant]
+        indice_trou = deuxième_enfant
+    }
+
+    si ((longueur & 1) == 0 && deuxième_enfant == (longueur - 2) / 2) {
+        deuxième_enfant = 2 * (deuxième_enfant + 1)
+        // À FAIRE(langage) : erreur de compilation
+        // mémoire(premier + indice_trou) = mémoire(premier + (deuxième_enfant - 1))
+        premier[indice_trou] = premier[deuxième_enfant - 1]
+        indice_trou = deuxième_enfant - 1;
+    }
+
+    enfile_tas(premier, indice_trou, indice_tête, value, comp);
+}
+
+enfile_tas :: fonc (premier: *$T, indice_trou: z64, indice_tête: z64, value: T, comp: fonc(T, T)(bool))
+{
+    parent := (indice_trou - 1) / 2;
+    tantque (indice_trou > indice_tête && comp(mémoire(premier + parent), value)) {
+        // À FAIRE(langage) : erreur de compilation
+        // mémoire(premier + indice_trou) = mémoire(premier + parent)
+        premier[indice_trou] = premier[parent]
+        indice_trou = parent;
+        parent = (indice_trou - 1) / 2
+    }
+    // À FAIRE(langage) : erreur de compilation
+    // mémoire(premier + indice_trou) = value
+    premier[indice_trou] = value
+}
+
+défile_tas :: fonc (premier: *$T, dernier: *T, résultat: *T, comp: fonc(T, T)(bool))
+{
+    value := mémoire(résultat)
+    mémoire(résultat) = mémoire(premier)
+    ajuste_tas(premier, 0, (dernier - premier) comme z64, value, comp);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions auxilliaires
+ * \{ */
+
+déplace_médiane_au_début :: fonc (résultat: *$T, a: *T, b: *T, c: *T, comp: fonc(T, T)(bool))
+{
+    si comp(mémoire(a), mémoire(b)) {
+        si (comp(mémoire(b), mémoire(c))) {
+            permute(résultat, b)
+        }
+        sinon si comp(mémoire(a), mémoire(c)) {
+            permute(résultat, c)
+        }
+        sinon {
+            permute(résultat, a)
+        }
+    }
+    sinon si comp(mémoire(a), mémoire(c)) {
+        permute(résultat, a)
+    }
+    sinon si comp(mémoire(b), mémoire(c)) {
+        permute(résultat, c)
+    }
+    sinon {
+        permute(résultat, b)
+    }
+}
+
+tri_par_insertion :: fonc (premier: *$T, dernier: *T, comp: fonc(T, T)(bool))
+{
+    si premier == dernier {
+      retourne
+    }
+
+    it := premier + 1
+    // pour premier + 1 ... dernier - 1
+    tantque it != dernier {
+        si comp(mémoire(it), mémoire(premier)) {
+            valeur := mémoire(it)
+            copie_depuis_la_fin(premier, it, it + 1);
+            mémoire(premier) = valeur
+        }
+        sinon {
+            insertion_linéaire_sans_garde(it, comp);
+        }
+
+        it += 1
+    }
+}
+
+insertion_linéaire_sans_garde :: fonc (dernier: *$T, comp: fonc(T, T)(bool))
+{
+    valeur := mémoire(dernier)
+    suivant := dernier;
+    suivant -= 1
+
+    tantque comp(valeur, mémoire(suivant)) {
+        mémoire(dernier) = mémoire(suivant)
+        dernier = suivant
+        suivant -= 1
+    }
+
+    mémoire(dernier) = valeur
 }
 
 /** \} */
