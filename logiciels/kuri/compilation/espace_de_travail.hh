@@ -86,6 +86,8 @@ struct EspaceDeTravail {
     bool peut_generer_code_final() const;
     bool parsage_termine() const;
 
+    bool des_exécutions_sont_prévues() const;
+
     Message *change_de_phase(kuri::Synchrone<Messagère> &messagère,
                              PhaseCompilation nouvelle_phase);
 

@@ -9,6 +9,7 @@
 
 #include "compilatrice.hh"
 #include "espace_de_travail.hh"
+#include "monomorpheuse.hh"
 #include "typage.hh"
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
@@ -619,6 +620,14 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_au_besoin(Type *type)
     type->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
 }
 
+static bool est_polymorphique(OpérateurBinaire const *opérateur)
+{
+    if (!opérateur->decl) {
+        return false;
+    }
+    return opérateur->decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
+}
+
 static void rassemble_opérateurs_pour_type(Type const &type,
                                            GenreLexème const type_op,
                                            kuri::tablet<OpérateurBinaire const *, 10> &résultat)
@@ -632,7 +641,18 @@ static void rassemble_opérateurs_pour_type(Type const &type,
     }
 }
 
+static NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type)
+{
+    if (!type->est_déclaration_classe()) {
+        return nullptr;
+    }
+
+    auto classe = type->comme_déclaration_classe();
+    return classe->polymorphe_de_base;
+}
+
 std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
+                                                    NoeudExpressionBinaire *expression_binaire,
                                                     Type *type1,
                                                     Type *type2,
                                                     GenreLexème type_op,
@@ -649,6 +669,11 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
         rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
     }
 
+    auto polymorphe_type1 = donne_polymorphe_de_base(type1);
+    if (polymorphe_type1) {
+        rassemble_opérateurs_pour_type(*polymorphe_type1, type_op, op_candidats);
+    }
+
     if (type1 != type2) {
         rassemble_opérateurs_pour_type(*type2, type_op, op_candidats);
 
@@ -656,10 +681,92 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
             auto type_opacifié = type2->comme_type_opaque()->type_opacifié;
             rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
         }
+
+        auto polymorphe_type2 = donne_polymorphe_de_base(type2);
+        if (polymorphe_type2) {
+            rassemble_opérateurs_pour_type(*polymorphe_type2, type_op, op_candidats);
+        }
     }
 
     for (auto const op : op_candidats) {
-        auto poids1_ou_attente = vérifie_compatibilité(op->type1, type1);
+        if (est_polymorphique(op)) {
+            Monomorpheuse monomorpheuse(espace, op->decl);
+
+            kuri::tablet<NoeudExpression *, 2> slots{};
+            slots.ajoute(expression_binaire->opérande_gauche);
+            slots.ajoute(expression_binaire->opérande_droite);
+
+            auto résultat_monomorphisation = détermine_monomorphisation(
+                monomorpheuse, op->decl, slots);
+            if (std::holds_alternative<Attente>(résultat_monomorphisation)) {
+                return std::get<Attente>(résultat_monomorphisation);
+            }
+            if (std::holds_alternative<ErreurMonomorphisation>(résultat_monomorphisation)) {
+                continue;
+            }
+
+            auto arg_gauche = op->decl->parametre_entree(0);
+            auto arg_droite = op->decl->parametre_entree(1);
+
+            static constexpr double POIDS_POUR_ARGUMENT_POLYMORPHIQUE = 0.95;
+            auto poids1 = 0.0;
+            auto poids2 = 0.0;
+            TransformationType transformation_type1{};
+            TransformationType transformation_type2{};
+
+            if (arg_gauche->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+                auto résultat_type = monomorpheuse.résoud_type_final(arg_gauche->expression_type);
+                if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
+                    continue;
+                }
+
+                auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+                poids1 = type_apparié_pesé.poids_appariement * POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
+            }
+            else {
+                auto poids1_ou_attente = vérifie_compatibilité(op->type1, type1, true);
+                if (std::holds_alternative<Attente>(poids1_ou_attente)) {
+                    return std::get<Attente>(poids1_ou_attente);
+                }
+                auto info_poids = std::get<PoidsTransformation>(poids1_ou_attente);
+                poids1 = info_poids.poids;
+                transformation_type1 = info_poids.transformation;
+            }
+
+            if (arg_droite->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+                auto résultat_type = monomorpheuse.résoud_type_final(arg_droite->expression_type);
+                if (std::holds_alternative<ErreurMonomorphisation>(résultat_type)) {
+                    continue;
+                }
+
+                auto type_apparié_pesé = std::get<TypeAppariéPesé>(résultat_type);
+                poids2 = type_apparié_pesé.poids_appariement * POIDS_POUR_ARGUMENT_POLYMORPHIQUE;
+            }
+            else {
+                auto poids2_ou_attente = vérifie_compatibilité(op->type2, type2, true);
+                if (std::holds_alternative<Attente>(poids2_ou_attente)) {
+                    return std::get<Attente>(poids2_ou_attente);
+                }
+                auto info_poids = std::get<PoidsTransformation>(poids2_ou_attente);
+                poids2 = info_poids.poids;
+                transformation_type2 = info_poids.transformation;
+            }
+
+            /* Nous ajoutons également les opérateurs ayant un poids de 0 afin de pouvoir donner
+             * des détails dans les messages d'erreurs. */
+            auto candidat = OpérateurCandidat{};
+            candidat.op = op;
+            candidat.poids = poids1 * poids2;
+            candidat.transformation_type1 = transformation_type1;
+            candidat.transformation_type2 = transformation_type2;
+            copie_tablet_tableau(monomorpheuse.résultat_pour_monomorphisation(),
+                                 candidat.items_monomorphisation);
+
+            candidats.ajoute(candidat);
+            continue;
+        }
+
+        auto poids1_ou_attente = vérifie_compatibilité(op->type1, type1, true);
 
         if (std::holds_alternative<Attente>(poids1_ou_attente)) {
             return std::get<Attente>(poids1_ou_attente);
@@ -667,7 +774,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
 
         auto poids1 = std::get<PoidsTransformation>(poids1_ou_attente);
 
-        auto poids2_ou_attente = vérifie_compatibilité(op->type2, type2);
+        auto poids2_ou_attente = vérifie_compatibilité(op->type2, type2, true);
 
         if (std::holds_alternative<Attente>(poids2_ou_attente)) {
             return std::get<Attente>(poids2_ou_attente);
@@ -688,7 +795,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
         candidats.ajoute(candidat);
 
         if (op->est_commutatif && poids != 1.0) {
-            auto poids3_ou_attente = vérifie_compatibilité(op->type1, type2);
+            auto poids3_ou_attente = vérifie_compatibilité(op->type1, type2, true);
 
             if (std::holds_alternative<Attente>(poids3_ou_attente)) {
                 return std::get<Attente>(poids3_ou_attente);
@@ -696,7 +803,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
 
             auto poids3 = std::get<PoidsTransformation>(poids3_ou_attente);
 
-            auto poids4_ou_attente = vérifie_compatibilité(op->type2, type1);
+            auto poids4_ou_attente = vérifie_compatibilité(op->type2, type1, true);
 
             if (std::holds_alternative<Attente>(poids4_ou_attente)) {
                 return std::get<Attente>(poids4_ou_attente);
@@ -750,6 +857,7 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
 }
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
+                                                            Sémanticienne &sémanticienne,
                                                             NoeudExpressionBinaire *site,
                                                             Type *type1,
                                                             Type *type2,
@@ -761,15 +869,15 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
     auto candidats = kuri::tablet<OpérateurCandidat, 10>();
     auto attente_potentielle = cherche_candidats_opérateurs(
-        espace, type1, type2, type_op, candidats);
+        espace, site, type1, type2, type_op, candidats);
     if (attente_potentielle.has_value()) {
         return attente_potentielle.value();
     }
 
-    auto meilleur_candidat = OpérateurCandidat::nul_const();
+    auto meilleur_candidat = OpérateurCandidat::nul();
     auto poids = 0.0;
 
-    for (auto const &candidat : candidats) {
+    for (auto &candidat : candidats) {
         if (candidat.poids > poids) {
             poids = candidat.poids;
             meilleur_candidat = &candidat;
@@ -783,6 +891,21 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
         /* Pour les erreurs dans les discriminations... */
         return false;
+    }
+
+    if (est_polymorphique(meilleur_candidat->op)) {
+        auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
+            sémanticienne,
+            espace.compilatrice(),
+            espace,
+            meilleur_candidat->op->decl,
+            site,
+            std::move(meilleur_candidat->items_monomorphisation));
+
+        if (doit_monomorpher ||
+            !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+            return Attente::sur_déclaration(noeud_decl);
+        }
     }
 
     return *meilleur_candidat;

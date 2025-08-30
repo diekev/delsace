@@ -18,6 +18,8 @@
 
 enum class GenreLexème : uint32_t;
 struct EspaceDeTravail;
+struct ItemMonomorphisation;
+struct Sémanticienne;
 struct Statistiques;
 struct Typeuse;
 
@@ -250,11 +252,14 @@ struct OpérateurCandidat {
     double poids = 0.0;
     bool permute_opérandes = false;
 
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation{};
+
     POINTEUR_NUL(OpérateurCandidat)
 };
 
 std::optional<Attente> cherche_candidats_opérateurs(
     EspaceDeTravail &espace,
+    NoeudExpressionBinaire *expression_binaire,
     Type *type1,
     Type *type2,
     GenreLexème type_op,
@@ -263,6 +268,7 @@ std::optional<Attente> cherche_candidats_opérateurs(
 using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, bool>;
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
+                                                            Sémanticienne &sémanticienne,
                                                             NoeudExpressionBinaire *site,
                                                             Type *type1,
                                                             Type *type2,
