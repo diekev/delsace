@@ -142,7 +142,7 @@ remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fr
     assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
 
     format: ChunkFormatWave
-    format.taille_chunk = 16
+    format.taille = 16
     format.tag_format = 1
     format.nombre_cannaux = tampon.format.nombre_de_canaux comme n16
     format.échantillons_secondes = tampon.format.échantillons_par_seconde comme n32
@@ -155,7 +155,7 @@ remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fr
     données.taille = tampon.données.taille / 2
 
     chunk_données: ChunkDonnéesWave
-    chunk_données.taille_chunk = tampon.données.taille comme n32
+    chunk_données.taille = tampon.données.taille comme n32
     chunk_données.données = données
 
     écris_données(format, chunk_données, CheminFichier(chemin))
