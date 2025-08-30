@@ -2,7 +2,6 @@ importe Aléa
 importe CréationFenêtre
 importe Couleur
 importe Fondation
-importe Géométrie
 importe IGUMI
 importe Math
 importe OpenGL

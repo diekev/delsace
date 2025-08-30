@@ -40,17 +40,17 @@ est_dans_l_intervalle :: fonc (intervalle: Intervalle, valeur: r32) -> bool
 // Références :
 // https://fr.wikipedia.org/wiki/Arithm%C3%A9tique_d%27intervalles
 
-opérateur + :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+opérateur + :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
     retourne Intervalle(intervalle0.min + intervalle1.min, intervalle0.max + intervalle1.max)
 }
 
-opérateur - :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+opérateur - :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
     retourne Intervalle(intervalle0.min - intervalle1.max, intervalle0.max - intervalle1.min)
 }
 
-opérateur * :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+opérateur * :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
     x1y1 := intervalle0.min * intervalle1.min
     x1y2 := intervalle0.min * intervalle1.max
@@ -63,18 +63,18 @@ opérateur * :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Inter
     retourne Intervalle(min_val, max_val)
 }
 
-opérateur * :: fonc (intervalle0: Intervalle, échelle: r32) -> Intervalle
+opérateur * :: (intervalle0: Intervalle, échelle: r32) -> Intervalle
 {
     retourne Intervalle(intervalle0.min * échelle, intervalle0.max * échelle)
 }
 
-opérateur / :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
+opérateur / :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
     inverse_intervalle1 := Intervalle(1.0 / intervalle1.max, 1.0 / intervalle1.min)
     retourne intervalle0 * inverse_intervalle1
 }
 
-opérateur / :: fonc (intervalle0: Intervalle, échelle: r32) -> Intervalle
+opérateur / :: (intervalle0: Intervalle, échelle: r32) -> Intervalle
 {
     retourne Intervalle(intervalle0.min / échelle, intervalle0.max / échelle)
 }

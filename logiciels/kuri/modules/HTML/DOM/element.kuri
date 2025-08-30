@@ -43,6 +43,11 @@ Element :: struct {
 
     pseudo_classes: CSS.PseudoClasses
 
+    /* Slot. À FAIRE (HTMLSlotElement) */
+    assigned_nodes: [..]*Node
+    /* https://html.spec.whatwg.org/multipage/scripting.html#manually-assigned-nodes */
+    manually_assigned_nodes: [..]*Node
+
     /* CSS */
     box: *CSS.Box
     /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
@@ -68,6 +73,7 @@ table_virtuelle_élément := TableVirtuelleElement(
         élément.box.noeud = nul
     }
     déloge(élément.liste_classes)
+    déloge(élément.assigned_nodes)
 }
 
 élément_sur_destruction :: fonc (base: *JS.Cellule)
@@ -81,6 +87,9 @@ element_sur_changement_attribut :: fonc (élément: *Element, local_name: DOMStr
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
         retourne vrai
     }
+
+    _ := slot_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom)
+    _ := slottable_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom)
 
     /* https://dom.spec.whatwg.org/#concept-id */
     si local_name == ATTR_id && !espace_de_nom.possède_valeur() {
