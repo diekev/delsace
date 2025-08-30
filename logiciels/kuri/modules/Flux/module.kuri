@@ -12,6 +12,7 @@ FluxOctets :: struct {
     sur_ferme: fonc(*FluxOctets)(rien)
     sur_est_à_la_fin: fonc(*FluxOctets)(bool)
     sur_destruction: fonc(*FluxOctets)(rien)
+    sur_donne_position: fonc(*FluxOctets)(PositionFichier)
 }
 
 détruit :: fonc (flux: *FluxOctets)
@@ -42,6 +43,11 @@ positionne :: fonc (flux: *FluxOctets, position: PositionFichier)
     si flux.sur_positionne {
         flux.sur_positionne(flux, position)
     }
+}
+
+donne_position :: fonc (flux: *FluxOctets) -> PositionFichier
+{
+    retourne flux.sur_donne_position(flux)
 }
 
 lis :: fonc (flux: *FluxOctets, tampon: []octet) -> z64
@@ -123,6 +129,7 @@ initialise_flux_octets_mémoire :: fonc (résultat: *FluxOctetsMémoire, octets:
     résultat.sur_positionne = flux_octets_mémoire_positionne
     résultat.sur_est_à_la_fin = flux_octets_mémoire_est_à_la_fin
     résultat.sur_destruction = flux_octets_mémoire_sur_destruction
+    résultat.sur_donne_position = flux_octets_mémoire_donne_position
     résultat.octets = octets
     résultat.curseur = octets
 }
@@ -156,6 +163,12 @@ flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: Po
         flux.curseur.pointeur = nul
         flux.curseur.taille = 0
     }
+}
+
+flux_octets_mémoire_donne_position :: fonc (flux: *FluxOctetsMémoire) -> PositionFichier
+{
+    delta := flux.curseur.pointeur - flux.octets.pointeur
+    retourne PositionDébut(delta)
 }
 
 flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
@@ -217,6 +230,7 @@ initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: C
     résultat.sur_positionne = flux_octets_fichier_positionne
     résultat.sur_est_à_la_fin = flux_octets_fichier_est_à_la_fin
     résultat.sur_destruction = flux_octets_mémoire_sur_destruction
+    résultat.sur_donne_position = flux_octets_fichier_donne_position
 
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
@@ -251,6 +265,11 @@ flux_octets_fichier_positionne :: fonc (flux: *FluxOctetsFichier, position: Posi
     flux.curseur = tente positionne_fichier(*flux.fichier, position) piège _ {
         panique("Impossible de chercher le point dans le fichier !")
     }
+}
+
+flux_octets_fichier_donne_position :: fonc (flux: *FluxOctetsFichier) -> PositionFichier
+{
+    retourne PositionDébut(flux.curseur)
 }
 
 flux_octets_fichier_ferme :: fonc (base: *FluxOctets)
