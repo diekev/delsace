@@ -143,19 +143,6 @@ tableau_redimensionne_défaut :: fonc (tabl: &[..]$T, taille: z64, défaut: T) -
     }
 }
 
-tableau_copie :: fonc (tabl: [..]$T) -> [..]T
-{
-    tmp := loge_tableau(T, tabl.taille)
-    //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
-
-    pour tabl {
-        tmp.pointeur[indice_it] = it
-    }
-
-    tmp.taille = tabl.taille
-    retourne tmp
-}
-
 tableau_copie :: fonc (tabl: []$T) -> [..]T
 {
     tmp := loge_tableau(T, tabl.taille)
