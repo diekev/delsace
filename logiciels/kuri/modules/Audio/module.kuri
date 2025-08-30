@@ -131,6 +131,25 @@ remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudioStatique, fréquence: r
     remplis_avec_son_sinusoïdal(données, format.nombre_de_canaux, fréquence, facteur_amplitude)
 }
 
+remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
+{
+    format := tampon.format
+
+    nombre_échantillons := tampon.données.taille
+    si nombre_échantillons == 0 {
+        retourne
+    }
+
+    assert((nombre_échantillons % format.nombre_de_canaux) == 0)
+    assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT)
+
+    données: []z16
+    données.pointeur = tampon.données.pointeur comme *z16
+    données.taille = tampon.données.taille / 2
+
+    remplis_avec_onde_carrée(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, décalage_échantillon, fréquence, facteur_amplitude)
+}
+
 #portée_fichier
 
 remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fréquence: r64, facteur_amplitude: r32)
@@ -147,6 +166,36 @@ remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fr
 
     pour nombre_échantillons_par_canal {
         valeur := (amplitude * sinus(t * (it comme r32))) comme z16
+
+        pour _ dans nombre_de_canaux {
+            mémoire(échantillon) = valeur
+            échantillon += 1
+        }
+    }
+}
+
+remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_échantillon: n64, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
+{
+    nombre_échantillons := données.taille
+    nombre_échantillons_par_canal := nombre_échantillons / nombre_de_canaux
+
+    période := ((taux_échantillon comme r64) / fréquence) comme n64
+
+    facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
+    tonalité_haute := (facteur_amplitude * 32768) comme z16
+    tonalité_basse := (facteur_amplitude * 32768) comme z16
+
+    échantillon := données.pointeur
+
+    pour nombre_échantillons_par_canal {
+        valeur := si (décalage_échantillon / période) % 2 == 0 {
+            tonalité_haute
+        }
+        sinon {
+            -tonalité_basse
+        }
+
+        décalage_échantillon += 1
 
         pour _ dans nombre_de_canaux {
             mémoire(échantillon) = valeur
