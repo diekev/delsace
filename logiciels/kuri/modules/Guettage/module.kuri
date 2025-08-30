@@ -1,6 +1,6 @@
 importe Chaine
 importe ÉditionTexte
-importe Géométrie
+importe Math
 importe Périphériques
 importe Typographie
 importe Unicode

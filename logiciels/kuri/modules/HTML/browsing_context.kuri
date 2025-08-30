@@ -756,7 +756,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     origin := détermine_origin(donne_about_blank_url(), sandbox_flags, creator_origin)
 
     // 8. Let permissionsPolicy be the result of creating a permissions policy given embedder and origin. [PERMISSIONSPOLICY]
-    permissions_policy := crée_permisions_policy_pour_navigable(embedder, origin)
+    permissions_policy := create_a_permissions_policy_for_a_navigable(embedder, origin)
 
     // 9. Let agent be the result of obtaining a similar-origin window agent given origin, group, and false.
     agent := obtain_similar_origin_window_agent(origin, group, faux)
@@ -824,28 +824,28 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, environment_settings.donne_cross_origin_isolated_capability())
 
     // 15. Let document be a new Document, with:
-    //     type "html"
-    //     content type = "text/html"
-    //     mode = "quirks"
-    //     origin = origin
-    //     browsing context = browsingContext
-    //     permissions policy = permissionsPolicy
-    //     active sandboxing flag set = sandboxFlags
-    //     load timing info = loadTimingInfo
-    //     is initial about:blank = true
-    //     about base URL = creatorBaseURL
-    //     allow declarative shadow roots = true
     document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm)
+    // type "html"
     document.type = "html"
+    // content type = "text/html"
     document.type_contenu = "text/html"
+    // mode = "quirks"
     document.mode = ModeDocument.QUIRKS
+    // origin = origin
     document.origin = origin
+    // browsing context = browsingContext
     document.browsing_context = browsing_context
+    // permissions policy = permissionsPolicy
     document.permissions_policy = permissions_policy
+    // active sandboxing flag set = sandboxFlags
     document.active_sandboxing_flags = sandbox_flags
+    // load timing info = loadTimingInfo
     document.load_timing_info = load_timing_info
+    // is initial about:blank = true
     document.is_initial_about_blank = vrai
+    // about base URL = creatorBaseURL
     document.about_base_url = creator_base_url
+    // allow declarative shadow roots = true
     document.permets_racines_shadow_déclaratives = vrai
 
     // À FAIRE : non-spécifié. load_an_html_document appelé plus tard à besoin que
