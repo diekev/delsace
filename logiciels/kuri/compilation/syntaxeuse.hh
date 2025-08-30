@@ -122,7 +122,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void analyse_annotations(kuri::tableau<Annotation, int> &annotations);
 
-    void gère_erreur_rapportée(kuri::chaine_statique message_erreur) override;
+    void gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                               Lexème const *lexème) override;
 
     void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
 
