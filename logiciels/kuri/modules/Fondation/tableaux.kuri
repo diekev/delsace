@@ -183,27 +183,12 @@ tableau_insère_indice :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime :: fonc (tabl: *[..]$T, indice: z32) -> rien
+tableau_supprime_indice :: fonc (tabl: *[..]$T, indice: z64) -> rien
 {
     si indice < 0 || indice >= tabl.taille {
         retourne
     }
 
-    tmp := mémoire(tabl)
-
-    taille := tabl.taille
-
-    pour i dans indice comme z64 ... taille - 2 {
-        tmp[i] = tmp[i + 1]
-    }
-
-    reloge_tableau(tmp, taille - 1)
-
-    mémoire(tabl) = tmp
-}
-
-tableau_supprime_indice :: fonc (tabl: *[..]$T, indice: z64) -> rien
-{
     tmp := mémoire(tabl)
 
     pour i dans indice ... tmp.taille - 2 {
