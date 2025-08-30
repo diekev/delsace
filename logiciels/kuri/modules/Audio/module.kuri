@@ -67,19 +67,37 @@ détruit_données :: fonc (tampon: *TamponAudio)
     init_de(FormatAudio)(*tampon.format)
 }
 
-donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde: z32) -> TamponAudio
+donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde: z32) -> TamponAudioStatique
 {
     assert(début_seconde < fin_seconde)
 
-    résultat := tampon
+    résultat := donne_tampon_statique(tampon)
 
     début := donne_taille_données_pour_une_seconde(résultat.format) * début_seconde
     fin   := donne_taille_données_pour_une_seconde(résultat.format) * fin_seconde
 
     résultat.données.pointeur += début
     résultat.données.taille = fin - début
-    résultat.données.capacité = 0
     retourne résultat
+}
+
+donne_tampon_statique :: fonc (tampon: TamponAudio) -> TamponAudioStatique
+{
+    résultat: TamponAudioStatique
+    résultat.format = tampon.format
+    résultat.données = tampon.données
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom TamponAudioStatique
+ * \{ */
+
+TamponAudioStatique :: struct {
+    format: FormatAudio
+    données: []octet
 }
 
 /** \} */
@@ -89,6 +107,11 @@ donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde
  * \{ */
 
 remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudio, fréquence: r64, facteur_amplitude: r32) -> rien
+{
+    remplis_avec_son_sinusoïdal(donne_tampon_statique(tampon), fréquence, facteur_amplitude)
+}
+
+remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudioStatique, fréquence: r64, facteur_amplitude: r32) -> rien
 {
     format := tampon.format
 
