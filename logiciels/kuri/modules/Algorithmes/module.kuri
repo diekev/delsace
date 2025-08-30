@@ -383,4 +383,13 @@ copie :: fonc (tableau: []$T) -> [..]T
     retourne résultat
 }
 
+copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
+{
+    tantque premier != dernier {
+        dernier -= 1
+        résultat -= 1
+        mémoire(résultat) = mémoire(dernier)
+    }
+}
+
 /** \} */
