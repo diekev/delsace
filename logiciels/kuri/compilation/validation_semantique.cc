@@ -3902,7 +3902,7 @@ struct ConstructriceRubriquesTypeComposé {
     }
 };
 
-static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+static bool la_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
                                                      NoeudDéclarationType *type_rubrique)
 {
     if (type_composé == type_rubrique) {
@@ -3911,21 +3911,21 @@ static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_c
 
     if (type_rubrique->est_type_tableau_fixe()) {
         auto type_tableau = type_rubrique->comme_type_tableau_fixe();
-        return le_rubrique_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
+        return la_rubrique_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
     }
 
     if (type_rubrique->est_type_opaque()) {
         auto type_opaque = type_rubrique->comme_type_opaque();
-        return le_rubrique_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
+        return la_rubrique_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
     }
 
     return false;
 }
 
-static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+static bool la_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
                                                      NoeudExpression *expression_rubrique)
 {
-    return le_rubrique_référence_le_type_par_valeur(type_composé, expression_rubrique->type);
+    return la_rubrique_référence_le_type_par_valeur(type_composé, expression_rubrique->type);
 }
 
 static void rapporte_erreur_type_rubrique_invalide(EspaceDeTravail *espace,
@@ -4099,7 +4099,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4113,7 +4113,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
@@ -4144,7 +4144,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4309,7 +4309,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4330,7 +4330,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
@@ -4368,7 +4368,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_rubrique_référence_le_type_par_valeur(type_union, var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_union, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
