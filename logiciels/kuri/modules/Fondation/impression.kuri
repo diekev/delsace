@@ -796,7 +796,10 @@ imprime_valeur_énum :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
             ajoute_au_tampon(enchaineuse, chaine_valeur)
         }
         sinon {
-            imprime_dans_enchaineuse(enchaineuse, "ERREUR VALEUR ÉNUM INCONNUE POUR '%'", info_arg.nom)
+            ajoute_au_tampon(enchaineuse, "VALEUR ÉNUM INCONNUE (")
+            valeur.info = type_sous_jacent
+            imprime_valeur(enchaineuse, valeur, faux)
+            ajoute_au_tampon(enchaineuse, ")")
         }
     }
 }
