@@ -53,7 +53,7 @@ enum class DrapeauxNoeud : uint32_t {
     AUCUN = 0,
     EMPLOYE = (1 << 0),                              // decl var
     EST_EXTERNE = (1 << 1),                          // decl var
-    EST_RUBRIQUE_STRUCTURE = (1 << 2),                 // decl structure, decl union
+    EST_RUBRIQUE_STRUCTURE = (1 << 2),               // decl structure, decl union
     EST_ASSIGNATION_COMPOSEE = (1 << 3),             // operateur binaire
     EST_VARIADIQUE = (1 << 4),                       // decl var
     EST_IMPLICITE = (1 << 5),                        // controle boucle
@@ -459,8 +459,8 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud);
 
 /**
- * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de rubrique.
- * Ceci supprime les pointeurs et références, ainsi que les opacifications.
+ * Utilisé pour déterminer le type effectivement accédé dans une expression de référence de
+ * rubrique. Ceci supprime les pointeurs et références, ainsi que les opacifications.
  */
 Type *donne_type_accédé_effectif(Type *type_accédé);
 
@@ -609,3 +609,5 @@ std::ostream &operator<<(std::ostream &os, MéthodeConstructionGlobale méthode)
 
 MéthodeConstructionGlobale détermine_méthode_construction_globale(
     NoeudExpression const *expression, TransformationType const &transformation);
+
+NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique);

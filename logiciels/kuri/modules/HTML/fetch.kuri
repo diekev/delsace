@@ -61,7 +61,7 @@ RequestPolicyContainer :: union {
     policy_container: *PolicyContainer
 }
 
-opérateur == :: fonc (policy_container: RequestPolicyContainer, chn: chaine) -> bool
+opérateur == :: (policy_container: RequestPolicyContainer, chn: chaine) -> bool
 {
     discr policy_container {
         chn(c) {

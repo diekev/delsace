@@ -52,3 +52,33 @@ normalise :: fonc (d: Degrés($T)) -> Degrés(T) #enligne
     _, fraction := part_entière_et_fraction(v)
     retourne Degrés(fraction * 360.0)
 }
+
+infinité_négative :: fonc ($T: type_de_données) -> T
+{
+    #si T == r32 {
+        R32_INFINITÉ_NÉGATIVE :: 0rff800000
+        retourne R32_INFINITÉ_NÉGATIVE
+    }
+    sinon si T == r64 {
+        R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000
+        retourne R64_INFINITÉ_NÉGATIVE
+    }
+    sinon {
+        panique("infinité_négative non-implémentée")
+    }
+}
+
+infinité_positive :: fonc ($T: type_de_données) -> T
+{
+    #si T == r32 {
+        R32_INFINITÉ :: 0r7f800000
+        retourne R32_INFINITÉ
+    }
+    sinon si T == r64 {
+        R64_INFINITÉ :: 0r7ff0000000000000
+        retourne R64_INFINITÉ
+    }
+    sinon {
+        panique("infinité_positive non-implémentée")
+    }
+}

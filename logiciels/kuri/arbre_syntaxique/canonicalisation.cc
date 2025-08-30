@@ -24,10 +24,10 @@
 static NoeudExpressionNonIntialisation non_initialisation{};
 
 static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbre *assem,
-                                                           Lexème const *lexeme,
-                                                           NoeudExpression *expression_accédée,
-                                                           TypeCompose *type_composé,
-                                                           RubriqueTypeComposé const &rubrique);
+                                                             Lexème const *lexeme,
+                                                             NoeudExpression *expression_accédée,
+                                                             TypeCompose *type_composé,
+                                                             RubriqueTypeComposé const &rubrique);
 
 /** \} */
 
@@ -300,10 +300,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                auto type = déclaration->type;
-                if (type->est_type_opaque()) {
-                    type = type->comme_type_opaque()->type_opacifié;
-                }
+                auto type = donne_type_primitif(déclaration->type);
 
                 if (type->est_type_réel()) {
                     référence->substitution = assem->crée_littérale_réel(
@@ -321,8 +318,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                if (est_type_entier(type) || type->est_type_entier_constant() ||
-                    type->est_type_énum() || type->est_type_erreur()) {
+                if (est_type_entier(type)) {
                     référence->substitution = assem->crée_littérale_entier(
                         référence->lexème,
                         déclaration->type,
@@ -339,12 +335,12 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 }
 
                 /* À FAIRE : test que les opaques fonctionnent ici. */
-                if (déclaration->type->est_type_chaine()) {
+                if (type->est_type_chaine()) {
                     référence->substitution = decl_const->expression;
                     return référence->substitution;
                 }
 
-                if (déclaration->type->est_type_tableau_fixe()) {
+                if (type->est_type_tableau_fixe()) {
                     référence->substitution = decl_const->expression;
                     return référence->substitution;
                 }
@@ -1008,6 +1004,20 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 simplifie(exécute->substitution);
             }
             return exécute->substitution;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_binaire();
+            référence->substitution = assem->crée_référence_déclaration(référence->lexème,
+                                                                        référence->op->decl);
+            return référence->substitution;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_unaire();
+            référence->substitution = assem->crée_référence_déclaration(
+                référence->lexème, référence->op->déclaration);
+            return référence->substitution;
         }
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ERREUR:
@@ -1705,18 +1715,16 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     NoeudExpression *expression)
 {
     auto type_condition = expression->type;
-    if (type_condition->est_type_opaque()) {
-        type_condition = type_condition->comme_type_opaque()->type_opacifié;
-    }
+    auto type_primitif = donne_type_primitif(type_condition);
 
-    switch (type_condition->genre) {
+    switch (type_primitif->genre) {
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::ENTIER_CONSTANT:
         {
             /* x -> x != 0 */
             auto zéro = assem->crée_littérale_entier(expression->lexème, type_condition, 0);
-            auto op = type_condition->table_opérateurs->opérateur_dif;
+            auto op = type_primitif->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }
         case GenreNoeud::ENUM_DRAPEAU:
@@ -1734,7 +1742,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             auto &registre = espace->compilatrice().opérateurs;
             registre->ajoute_opérateurs_basiques_au_besoin(type_condition);
 
-            auto op = type_condition->table_opérateurs->opérateur_dif;
+            auto op = type_primitif->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
         }
         case GenreNoeud::EINI:
@@ -1866,7 +1874,8 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
         auto index = assem->crée_littérale_entier(lexème, type_erreur, index_rubrique_erreur + 1);
         auto op = TypeBase::Z32->table_opérateurs->opérateur_egt;
         assert(op);
-        auto comparaison = assem->crée_expression_binaire(lexème, op, accès_rubrique_active, index);
+        auto comparaison = assem->crée_expression_binaire(
+            lexème, op, accès_rubrique_active, index);
 
         auto branche = assem->crée_si(lexème, comparaison);
         ajoute_expression(branche);
@@ -2074,8 +2083,10 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
         lexème, ref_position, TypeBase::CHAINE, 0);
     auto ref_rubrique_fonction = assem->crée_référence_rubrique(
         lexème, ref_position, TypeBase::CHAINE, 1);
-    auto ref_rubrique_ligne = assem->crée_référence_rubrique(lexème, ref_position, TypeBase::Z32, 2);
-    auto ref_rubrique_colonne = assem->crée_référence_rubrique(lexème, ref_position, TypeBase::Z32, 3);
+    auto ref_rubrique_ligne = assem->crée_référence_rubrique(
+        lexème, ref_position, TypeBase::Z32, 2);
+    auto ref_rubrique_colonne = assem->crée_référence_rubrique(
+        lexème, ref_position, TypeBase::Z32, 3);
 
     NoeudExpression *couples_ref_rubrique_expression[4][2] = {
         {ref_rubrique_fichier, valeur_chemin_fichier},
@@ -2115,8 +2126,8 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
         if (rubrique.drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) {
             if (it == nullptr || (!rubrique.expression_initialisation_est_spéciale() &&
                                   it == rubrique.expression_valeur_defaut)) {
-                /* Le rubrique de base ayant ajouté ce rubrique est également initialisé, il est donc
-                 * inutile ce rubrique s'il n'y a pas d'expression pour lui. */
+                /* Le rubrique de base ayant ajouté ce rubrique est également initialisé, il est
+                 * donc inutile ce rubrique s'il n'y a pas d'expression pour lui. */
                 continue;
             }
 
@@ -2128,7 +2139,8 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
         }
 
         auto type_rubrique = rubrique.type;
-        auto ref_rubrique = assem->crée_référence_rubrique(lexème, référence, type_rubrique, indice_it);
+        auto ref_rubrique = assem->crée_référence_rubrique(
+            lexème, référence, type_rubrique, indice_it);
 
         if (it != nullptr) {
             auto assign = assem->crée_assignation_variable(lexème, ref_rubrique, it);
@@ -2204,8 +2216,9 @@ static std::optional<InformationRubriqueTypeCompose> trouve_information_rubrique
 /**
  * Construit la hiérarchie des structures employées par \a type_composé jusqu'à la structure
  * employée ayant ajoutée \a rubrique à \a type_composé.
- * Le résultat contiendra une #InformationRubriqueTypeCompose pour chaque rubrique employé de chaque
- * structure rencontrée + le rubrique de la structure à l'origine du rubrique ajouté par emploi.
+ * Le résultat contiendra une #InformationRubriqueTypeCompose pour chaque rubrique employé de
+ * chaque structure rencontrée + le rubrique de la structure à l'origine du rubrique ajouté par
+ * emploi.
  *
  * Par exemple, pour :
  *
@@ -2243,14 +2256,14 @@ static kuri::tableau<InformationRubriqueTypeCompose, int> trouve_hiérarchie_emp
         auto decl_rubrique = rubrique_courant.decl->comme_déclaration_variable();
         auto decl_employée = decl_rubrique->déclaration_vient_d_un_emploi;
         auto info = trouve_information_rubrique_ayant_ajouté_decl(type_composé_courant,
-                                                                decl_employée);
+                                                                  decl_employée);
         assert(info.has_value());
 
         hiérarchie.ajoute(info.value());
 
         auto type_employé = info->rubrique.type->comme_type_composé();
         auto info_rubrique = trouve_information_rubrique_ajouté_par_emploi(type_employé,
-                                                                       rubrique_courant.nom);
+                                                                           rubrique_courant.nom);
         assert(info_rubrique.has_value());
 
         if ((info_rubrique->rubrique.drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) == 0) {
@@ -2267,10 +2280,10 @@ static kuri::tableau<InformationRubriqueTypeCompose, int> trouve_hiérarchie_emp
 }
 
 static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbre *assem,
-                                                           Lexème const *lexeme,
-                                                           NoeudExpression *expression_accédée,
-                                                           TypeCompose *type_composé,
-                                                           RubriqueTypeComposé const &rubrique)
+                                                             Lexème const *lexeme,
+                                                             NoeudExpression *expression_accédée,
+                                                             TypeCompose *type_composé,
+                                                             RubriqueTypeComposé const &rubrique)
 {
     auto hiérarchie = trouve_hiérarchie_emploi_rubrique(type_composé, rubrique);
     auto ref_rubrique_courant = expression_accédée;
@@ -2286,7 +2299,8 @@ static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbr
     return ref_rubrique_courant;
 }
 
-NoeudExpression *Simplificatrice::simplifie_référence_rubrique(NoeudExpressionRubrique *ref_rubrique)
+NoeudExpression *Simplificatrice::simplifie_référence_rubrique(
+    NoeudExpressionRubrique *ref_rubrique)
 {
     auto const lexème = ref_rubrique->lexème;
     auto accédée = ref_rubrique->accédée;
@@ -2361,7 +2375,7 @@ NoeudExpression *Simplificatrice::simplifie_référence_rubrique(NoeudExpression
             }
             else if (valeur.est_fonction()) {
                 ref_rubrique->substitution = assem->crée_référence_déclaration(lexème,
-                                                                             valeur.fonction());
+                                                                               valeur.fonction());
             }
             else if (valeur.est_réelle()) {
                 ref_rubrique->substitution = assem->crée_littérale_réel(

@@ -3334,43 +3334,133 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
                  "Attendu ']' après '[' pour la déclaration de l'opérateur");
     }
 
-    // :: fonc
-    consomme(GenreLexème::DECLARATION_CONSTANTE, "Attendu :: après la déclaration de l'opérateur");
-    consomme(GenreLexème::FONC, "Attendu fonc après ::");
+    if (apparie(GenreLexème::DECLARATION_CONSTANTE)) {
+        consomme();
 
-    auto noeud = (genre_opérateur == GenreLexème::POUR) ?
-                     m_tacheronne.assembleuse->crée_opérateur_pour(lexème) :
-                     m_tacheronne.assembleuse->crée_entête_fonction(lexème);
-    noeud->est_opérateur = true;
+        auto noeud = (genre_opérateur == GenreLexème::POUR) ?
+                         m_tacheronne.assembleuse->crée_opérateur_pour(lexème) :
+                         m_tacheronne.assembleuse->crée_entête_fonction(lexème);
+        noeud->est_opérateur = true;
 
-    empile_table_références();
-    SUR_SORTIE_PORTEE {
-        dépile_table_références();
-    };
+        empile_table_références();
+        SUR_SORTIE_PORTEE {
+            dépile_table_références();
+        };
 
-    auto lexème_bloc = lexème_courant();
-    consomme(GenreLexème::PARENTHESE_OUVRANTE,
-             "Attendu une parenthèse ouvrante après le nom de la fonction");
+        auto lexème_bloc = lexème_courant();
+        consomme(GenreLexème::PARENTHESE_OUVRANTE,
+                 "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::CONSTANTES);
-    noeud->bloc_paramètres = m_tacheronne.assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
+        noeud->bloc_constantes = m_tacheronne.assembleuse->empile_bloc(
+            lexème_bloc, noeud, TypeBloc::CONSTANTES);
+        noeud->bloc_paramètres = m_tacheronne.assembleuse->empile_bloc(
+            lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
 
-    /* analyse les paramètres de la fonction */
+        bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+
+        /* analyse les paramètres de la fonction */
+        auto params = kuri::tablet<NoeudExpression *, 16>();
+
+        while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
+            auto param = analyse_expression({}, GenreLexème::VIRGULE);
+
+            if (!param->est_déclaration_variable()) {
+                rapporte_erreur_avec_site(
+                    param,
+                    "Expression inattendue dans la déclaration des paramètres de l'opérateur");
+            }
+
+            auto decl_var = param->comme_déclaration_variable();
+            decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+            params.ajoute(decl_var);
+
+            if (!apparie(GenreLexème::VIRGULE)) {
+                break;
+            }
+
+            consomme();
+        }
+
+        copie_tablet_tableau(params, noeud->params);
+
+        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        if (bloc_constantes->nombre_de_rubriques() != 0) {
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
+        }
+
+        if (noeud->params.taille() > 2) {
+            rapporte_erreur_avec_site(
+                noeud, "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
+        }
+        else if (noeud->params.taille() == 1) {
+            if (genre_opérateur == GenreLexème::PLUS) {
+                lexème->genre = GenreLexème::PLUS_UNAIRE;
+            }
+            else if (genre_opérateur == GenreLexème::MOINS) {
+                lexème->genre = GenreLexème::MOINS_UNAIRE;
+            }
+            else if (!est_élément(genre_opérateur,
+                                  GenreLexème::TILDE,
+                                  GenreLexème::PLUS_UNAIRE,
+                                  GenreLexème::MOINS_UNAIRE,
+                                  GenreLexème::POUR)) {
+                rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
+                                "pour '+', '-', '~', ou 'pour'");
+                return nullptr;
+            }
+        }
+
+        consomme(GenreLexème::PARENTHESE_FERMANTE,
+                 "Attendu ')' à la fin des paramètres de la fonction");
+
+        /* analyse les types de retour de la fonction */
+        consomme(GenreLexème::RETOUR_TYPE, "Attendu un retour de type");
+
+        analyse_expression_retour_type(noeud, true);
+        analyse_directives_opérateur(noeud);
+
+        if (!noeud->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
+            noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
+        }
+
+        ignore_point_virgule_implicite();
+
+        fonctions_courantes.empile(noeud);
+        auto noeud_corps = noeud->corps;
+        noeud_corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
+
+        analyse_annotations(noeud->annotations);
+        fonctions_courantes.depile();
+
+        /* dépile le bloc des paramètres */
+        m_tacheronne.assembleuse->dépile_bloc();
+
+        /* dépile le bloc des constantes */
+        m_tacheronne.assembleuse->dépile_bloc();
+
+        dépile_état();
+
+        return noeud;
+    }
+
+    if (genre_opérateur == GenreLexème::POUR) {
+        rapporte_erreur("L'opérateur-pour ne peut pas être référencé");
+        return nullptr;
+    }
+
+    consomme(GenreLexème::PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante");
+
     auto params = kuri::tablet<NoeudExpression *, 16>();
 
     while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
         auto param = analyse_expression({}, GenreLexème::VIRGULE);
 
-        if (!param->est_déclaration_variable()) {
+        if (param->est_déclaration_variable()) {
             rapporte_erreur_avec_site(
                 param, "Expression inattendue dans la déclaration des paramètres de l'opérateur");
         }
 
-        auto decl_var = param->comme_déclaration_variable();
-        decl_var->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
-        params.ajoute(decl_var);
+        params.ajoute(param);
 
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
@@ -3379,13 +3469,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         consomme();
     }
 
-    copie_tablet_tableau(params, noeud->params);
+    consomme(GenreLexème::PARENTHESE_FERMANTE, "Attendu une parenthèse ouvrante");
 
-    if (noeud->params.taille() > 2) {
-        rapporte_erreur_avec_site(noeud,
-                                  "La surcharge d'opérateur ne peut prendre au plus 2 paramètres");
+    if (params.taille() > 2) {
+        rapporte_erreur("La surcharge d'opérateur ne peut prendre au plus 2 paramètres", lexème);
+        return nullptr;
     }
-    else if (noeud->params.taille() == 1) {
+
+    if (params.taille() == 1) {
         if (genre_opérateur == GenreLexème::PLUS) {
             lexème->genre = GenreLexème::PLUS_UNAIRE;
         }
@@ -3398,41 +3489,19 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
                               GenreLexème::MOINS_UNAIRE,
                               GenreLexème::POUR)) {
             rapporte_erreur("La surcharge d'opérateur unaire n'est possible que "
-                            "pour '+', '-', '~', ou 'pour'");
+                            "pour '+', '-', '~', ou 'pour'",
+                            lexème);
             return nullptr;
         }
+
+        auto noeud = m_tacheronne.assembleuse->crée_référence_opérateur_unaire(lexème, params[0]);
+        return noeud;
     }
 
-    consomme(GenreLexème::PARENTHESE_FERMANTE,
-             "Attendu ')' à la fin des paramètres de la fonction");
+    assert(params.taille() == 2);
 
-    /* analyse les types de retour de la fonction */
-    consomme(GenreLexème::RETOUR_TYPE, "Attendu un retour de type");
-
-    analyse_expression_retour_type(noeud, true);
-    analyse_directives_opérateur(noeud);
-
-    if (!noeud->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
-        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_ENLIGNE;
-    }
-
-    ignore_point_virgule_implicite();
-
-    fonctions_courantes.empile(noeud);
-    auto noeud_corps = noeud->corps;
-    noeud_corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
-
-    analyse_annotations(noeud->annotations);
-    fonctions_courantes.depile();
-
-    /* dépile le bloc des paramètres */
-    m_tacheronne.assembleuse->dépile_bloc();
-
-    /* dépile le bloc des constantes */
-    m_tacheronne.assembleuse->dépile_bloc();
-
-    dépile_état();
-
+    auto noeud = m_tacheronne.assembleuse->crée_référence_opérateur_binaire(
+        lexème, params[0], params[1]);
     return noeud;
 }
 
@@ -3864,10 +3933,10 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
 
 /** \} */
 
-void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
+void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur, const Lexème *lexème)
 {
     m_unité->espace->rapporte_erreur(
-        SiteSource::cree(m_fichier, lexème_courant()), message_erreur, erreur::Genre::SYNTAXAGE);
+        SiteSource::cree(m_fichier, lexème), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }

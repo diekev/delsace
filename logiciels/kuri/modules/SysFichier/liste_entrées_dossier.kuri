@@ -188,12 +188,12 @@ détruit_nom_fichier_numéroté_parsé :: fonc (empl nom: DonnéesNumérotageChe
     détruit_chemin(chemin)
 }
 
-opérateur < :: fonc (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
+opérateur < :: (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
 {
     retourne nom1.numéro < nom2.numéro
 }
 
-opérateur == :: fonc (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
+opérateur == :: (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
 {
     retourne nom1.numéro == nom2.numéro
 }
