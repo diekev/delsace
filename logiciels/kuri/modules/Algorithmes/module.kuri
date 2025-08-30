@@ -317,9 +317,9 @@ partition_stable :: fonc (premier: *$T, dernier: *T, p: fonc(T)(bool)) -> *T
 
     milieu := suivant(premier, taille / 2)
 
-    retourne pivote(partitionne_stable(premier, milieu, p),
+    retourne pivote(partition_stable(premier, milieu, p),
                     milieu,
-                    partitionne_stable(milieu, dernier, p))
+                    partition_stable(milieu, dernier, p))
 }
 
 /** \} */
