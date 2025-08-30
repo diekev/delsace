@@ -502,6 +502,27 @@ struct NoeudExpressionAssignationLogique : NoeudExpression {
     NoeudExpression *opérande_droite [code enfant construction]
 }
 
+struct NoeudExpressionRéférenceOpérateurBinaire : NoeudExpression {
+    @genre RÉFÉRENCE_OPÉRATEUR_BINAIRE
+    @comme référence_opérateur_binaire
+    @code  NoeudCodeRéférenceOpérateurBinaire
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande_gauche [code enfant construction]
+    NoeudExpression *opérande_droite [code enfant construction]
+    OpérateurBinaire const *op [copie]
+}
+
+struct NoeudExpressionRéférenceOpérateurUnaire : NoeudExpression {
+    @genre RÉFÉRENCE_OPÉRATEUR_UNAIRE
+    @comme référence_opérateur_unaire
+    @code  NoeudCodeRéférenceOpérateurUnaire
+    @genre_valeur DROITE
+
+    NoeudExpression *opérande [code enfant construction]
+    OpérateurUnaire const *op [copie]
+}
+
 struct NoeudExpressionParenthèse : NoeudExpression {
     @genre EXPRESSION_PARENTHÈSE
     @comme parenthèse
