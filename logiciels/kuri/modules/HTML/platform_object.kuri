@@ -228,12 +228,12 @@ donne_prototype :: fonc (realm: *JS.Realm, indice: z64) -> *JS.Object
 }
 
 /* Table pour mapper le type d'un objet Kuri à l'indice de son prototype dans realm.intrinsics.host_intrinsics. */
-IndexPrototype :: struct {
+IndicePrototype :: struct {
     type: type_de_données
     indice: z64
 }
 
-__table_indexage_prototypes: [..]IndexPrototype
+__table_indexage_prototypes: [..]IndicePrototype
 
 détermine_indice_prototype :: fonc (type: type_de_données) -> z64
 {

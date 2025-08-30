@@ -5,6 +5,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "typage.hh"
+
 bool est_hors_des_limites(int64_t valeur, Type *type)
 {
     if (type->est_type_entier_naturel()) {
@@ -109,11 +111,9 @@ uint64_t valeur_max(Type *type)
     return std::numeric_limits<int64_t>::max();
 }
 
-int nombre_de_bits_pour_type(Type *type)
+int nombre_de_bits_pour_type(Type const *type)
 {
-    while (type->est_type_opaque()) {
-        type = type->comme_type_opaque()->type_opacifié;
-    }
+    type = donne_type_primitif(type);
 
     /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
 
@@ -125,7 +125,7 @@ int nombre_de_bits_pour_type(Type *type)
         return std::numeric_limits<unsigned short>::digits;
     }
 
-    if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+    if (type->taille_octet == 4) {
         return std::numeric_limits<uint32_t>::digits;
     }
 
