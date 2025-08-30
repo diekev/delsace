@@ -2,7 +2,6 @@ importe Allocatrices
 importe Ensemble
 importe Fondation
 importe Fràtzala
-importe Géométrie
 importe Observation
 importe Structures
 importe SysFichier
@@ -1400,7 +1399,7 @@ ItératriceNoeud :: struct {
     graphe: *Graphe
 }
 
-opérateur pour :: fonc (itératrice: ItératriceNoeud) -> *Noeud
+opérateur pour :: (itératrice: ItératriceNoeud) -> *Noeud
 {
     graphe := itératrice.graphe
     indice_noeud: z64
@@ -1615,12 +1614,12 @@ CatégorieNoeud :: struct {
  * d'enregistrements dans un ensemble ordonné. Seul le nom est
  * considéré comme valide. */
 
-opérateur == :: fonc (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
+opérateur == :: (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
 {
     retourne a.nom == b.nom
 }
 
-opérateur < :: fonc (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
+opérateur < :: (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
 {
     retourne a.nom < b.nom
 }

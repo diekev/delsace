@@ -479,10 +479,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
-                auto type_indexe = indexage->opérande_gauche->type;
-                if (type_indexe->est_type_opaque()) {
-                    type_indexe = type_indexe->comme_type_opaque()->type_opacifié;
-                }
+                auto type_indexe = donne_type_primitif(indexage->opérande_gauche->type);
 
                 switch (type_indexe->genre) {
                     case GenreNoeud::VARIADIQUE:
@@ -1915,25 +1912,6 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
     }
 
     return false;
-}
-
-static NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
-{
-    if (si_statique->condition_est_vraie) {
-        return si_statique->bloc_si_vrai;
-    }
-
-    if (si_statique->bloc_si_faux) {
-        if (si_statique->bloc_si_faux->est_bloc()) {
-            return si_statique->bloc_si_faux->comme_bloc();
-        }
-
-        if (si_statique->bloc_si_faux->est_si_statique()) {
-            return donne_bloc_à_fusionner(si_statique->bloc_si_faux->comme_si_statique());
-        }
-    }
-
-    return nullptr;
 }
 
 void GestionnaireCode::typage_terminé(UniteCompilation *unité)
