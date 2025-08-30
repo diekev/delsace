@@ -7,6 +7,7 @@
 #include "structures/enchaineuse.hh"
 #include "structures/ensemble.hh"
 
+struct Compilatrice;
 struct ErreurAppariement;
 struct EspaceDeTravail;
 struct NoeudExpression;
@@ -60,6 +61,12 @@ enum class Genre : int {
 
 const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
+
+void imprime_site(Enchaineuse &enchaineuse,
+                  const Compilatrice &compilatrice,
+                  const NoeudExpression *site);
+[[nodiscard]] kuri::chaine imprime_site(const Compilatrice &compilatrice,
+                                        const NoeudExpression *site);
 
 void imprime_site(Enchaineuse &enchaineuse,
                   const EspaceDeTravail &espace,

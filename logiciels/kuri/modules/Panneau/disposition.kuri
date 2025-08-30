@@ -1,5 +1,4 @@
 importe Fondation
-importe Géométrie
 
 DirectionDisposition :: énum {
     HORIZONTAL

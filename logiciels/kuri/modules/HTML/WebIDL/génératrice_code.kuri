@@ -129,17 +129,17 @@ donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
     retourne chaine(*griffonier.données[0], griffonier.curseur)
 }
 
-NomEtIndex :: struct {
+NomEtIndice :: struct {
     nom: chaine
     indice: z64
 }
 
-opérateur < :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
+opérateur < :: (a: NomEtIndice, b: NomEtIndice) -> bool
 {
     retourne a.nom < b.nom
 }
 
-opérateur == :: fonc (a: NomEtIndex, b: NomEtIndex) -> bool
+opérateur == :: (a: NomEtIndice, b: NomEtIndice) -> bool
 {
     retourne a.nom == b.nom
 }
@@ -151,7 +151,7 @@ NOMBRE_DE_TYPES_MAX :: 256
 Interfaces :: struct {
     interfaces: [..]Interface
     contenus_fichiers: [..]chaine
-    noms_et_indice_parents: [..]NomEtIndex
+    noms_et_indice_parents: [..]NomEtIndice
     types : [NOMBRE_DE_TYPES_MAX]Type = ---
     nombre_de_types: z32
 }
@@ -184,7 +184,7 @@ crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
     résultat := tableau_ajoute_élément(*interfaces.interfaces)
     résultat.nom = nom
 
-    nom_et_indice_parent: NomEtIndex
+    nom_et_indice_parent: NomEtIndice
     nom_et_indice_parent.nom = résultat.nom
 
     saufsi ensemble_possède(*interfaces.noms_et_indice_parents, nom_et_indice_parent) {
@@ -324,7 +324,7 @@ compile_interfaces_idl :: fonc () -> chaine
         si it.est_mixin {
             continue
         }
-        ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", indice_it, "] = IndexPrototype(", it.nom, ", ", indice_it, ")\n")
+        ajoute_au_tampon(*enchaineuse, "        __table_indexage_prototypes[", indice_it, "] = IndicePrototype(", it.nom, ", ", indice_it, ")\n")
     }
     ajoute_au_tampon(*enchaineuse, "    }\n")
 
@@ -375,7 +375,7 @@ compile_interfaces_idl :: fonc () -> chaine
 
 #portée_fichier
 
-génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_indice_parents: *[..]NomEtIndex)
+génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_indice_parents: *[..]NomEtIndice)
 {
     si interface.création_générée {
         retourne
@@ -384,7 +384,7 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []I
     interface.création_générée = vrai
 
     si interface.parent {
-        nom_et_indice_parent: NomEtIndex
+        nom_et_indice_parent: NomEtIndice
         nom_et_indice_parent.nom = interface.parent
 
         adresse_nom_et_indice_parent := ensemble_possède_retourne_indice(noms_et_indice_parents, nom_et_indice_parent)
