@@ -26,7 +26,7 @@ BackgroundRepeat :: struct {
     vertical: CSSOMString
 }
 
-opérateur == :: fonc (a: BackgroundRepeat, b: BackgroundRepeat) -> bool
+opérateur == :: (a: BackgroundRepeat, b: BackgroundRepeat) -> bool
 {
     retourne a.horizontal == b.horizontal && a.vertical == b.vertical
 }
@@ -38,7 +38,7 @@ BackgroundPosition :: struct {
     décalage_vertical: *ValeurDeStyle
 }
 
-opérateur == :: fonc (a: BackgroundPosition, b: BackgroundPosition) -> bool
+opérateur == :: (a: BackgroundPosition, b: BackgroundPosition) -> bool
 {
     retourne a.horizontal == b.horizontal && a.vertical == b.vertical && sont_mêmes_valeurs(a.décalage_vertical, b.décalage_vertical) && sont_mêmes_valeurs(a.décalage_horizontal, b.décalage_horizontal)
 }
@@ -48,7 +48,7 @@ BackgroundSize :: struct {
     vertical: *ValeurDeStyle
 }
 
-opérateur == :: fonc (a: BackgroundSize, b: BackgroundSize) -> bool
+opérateur == :: (a: BackgroundSize, b: BackgroundSize) -> bool
 {
     retourne sont_mêmes_valeurs(a.horizontal, b.horizontal) && sont_mêmes_valeurs(a.vertical, b.vertical)
 }
@@ -58,7 +58,7 @@ Variable :: struct {
     fallback: [..]ComponentValue
 }
 
-opérateur == :: fonc (a: Variable, b: Variable) -> bool
+opérateur == :: (a: Variable, b: Variable) -> bool
 {
     retourne a.nom == b.nom
 }
@@ -168,7 +168,7 @@ NoeudDeCalcul :: struct {
     valeur: *ValeurDeStyle
 }
 
-opérateur == :: fonc (a: NoeudDeCalcul, b: NoeudDeCalcul) -> bool #horsligne
+opérateur == :: (a: NoeudDeCalcul, b: NoeudDeCalcul) -> bool #horsligne
 {
     si a.est_opérateur != b.est_opérateur {
         retourne faux
@@ -196,7 +196,7 @@ copie_calc :: fonc (src: CalcFunction) -> CalcFunction
 
 /* À FAIRE(langage) : erreur de compilation C, sur impossibilité d'enligné opérateur==(ValeurDeStyle, ValeurDeStyle)
  * si la boucle dans cette fonction est faite dans l'opérateur sus-mentionné, ou si #horsligne est manquant. */
-opérateur == :: fonc (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
+opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
 {
     si calc1.valeurs.taille != calc2.valeurs.taille {
         retourne faux
@@ -1310,7 +1310,7 @@ Longueur :: struct {
     unité: Unité
 }
 
-opérateur == :: fonc (a: Longueur, b: Longueur) -> bool
+opérateur == :: (a: Longueur, b: Longueur) -> bool
 {
     retourne a.valeur == b.valeur && a.unité == b.unité
 }
@@ -2338,7 +2338,7 @@ Display :: struct {
     est_list_item := faux
 }
 
-opérateur == :: fonc (a: Display, b: Display) -> bool
+opérateur == :: (a: Display, b: Display) -> bool
 {
     retourne a.inner_type == b.inner_type && a.outer_type == b.outer_type && a.est_list_item == b.est_list_item
 }

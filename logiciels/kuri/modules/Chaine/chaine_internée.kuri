@@ -28,7 +28,7 @@ détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
     }
 }
 
-opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: chaine) -> bool
+opérateur == :: (type_chaine: TypeChaineInternée, chn: chaine) -> bool
 {
     discr type_chaine {
         chn_native {
@@ -43,7 +43,7 @@ opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: chaine) -> bool
     retourne faux
 }
 
-opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bool
+opérateur == :: (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bool
 {
     discr type_chaine {
         chn_native {
@@ -58,7 +58,7 @@ opérateur == :: fonc (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bo
     retourne faux
 }
 
-opérateur == :: fonc (type_chaine_a: TypeChaineInternée, type_chaine_b: TypeChaineInternée) -> bool
+opérateur == :: (type_chaine_a: TypeChaineInternée, type_chaine_b: TypeChaineInternée) -> bool
 {
     discr type_chaine_a {
         chn_native {
@@ -77,7 +77,7 @@ ChaineInternée :: struct {
     chn: TypeChaineInternée
 }
 
-opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+opérateur == :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     si chaine_internée == nul {
         retourne chn == ""
@@ -86,12 +86,12 @@ opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
     retourne chaine_internée.chn == chn
 }
 
-opérateur != :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+opérateur != :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     retourne !(chaine_internée == chn)
 }
 
-opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
+opérateur == :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
 {
     si chaine_internée == nul {
         retourne chn.est_vide()
@@ -100,17 +100,17 @@ opérateur == :: fonc (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> 
     retourne chaine_internée.chn == chn
 }
 
-opérateur != :: fonc (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
+opérateur != :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
 {
     retourne !(chaine_internée == chn)
 }
 
-opérateur < :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+opérateur < :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     retourne chaine_internée.chn < chn
 }
 
-opérateur > :: fonc (chaine_internée: *ChaineInternée, chn: chaine) -> bool
+opérateur > :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     si chaine_internée == nul {
         retourne faux

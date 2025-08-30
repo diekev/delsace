@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------------- */
 // https://solarianprogrammer.com/2019/11/13/cpp-chaos-game-simulator/
 
-importe Géométrie
+importe Math
 
 MondeVersEcran :: struct {
     A := 0.0
@@ -40,7 +40,7 @@ mappage :: fonc (mve: &MondeVersEcran, p: &Point2D(r32)) -> Point2D(r32)
 /* ------------------------------------------------------------------------- */
 
 dessine_point_rayon :: fonc (
-    cannevas: [..]z8,
+    canevas: [..]z8,
     hauteur: z32,
     largeur: z32,
     p: &Point2D(r32),
@@ -67,10 +67,10 @@ dessine_bmp :: fonc (
     points: [..]Point2D(r32),
     rayon_point: z32) -> rien
 {
-    cannevas := loge_tableau(z8, hauteur * largeur * 4)
-    diffère déloge(cannevas)
+    canevas := loge_tableau(z8, hauteur * largeur * 4)
+    diffère déloge(canevas)
 
-    pour & v dans cannevas {
+    pour & v dans canevas {
         v = 255
     }
 
@@ -80,19 +80,19 @@ dessine_bmp :: fonc (
     si rayon_point == 0 {
         pour p dans points_ecran {
             idx := index_point(p.x, p.y)
-            cannevas[idx] = 0
-            cannevas[idx + 1] = 0
-            cannevas[idx + 2] = 0
-            cannevas[idx + 3] = 255
+            canevas[idx] = 0
+            canevas[idx + 1] = 0
+            canevas[idx + 2] = 0
+            canevas[idx + 3] = 255
         }
     }
     sinon {
         pour p dans points_ecran {
-            dessine_point_rayon(cannevas, hauteur, largeur, p, rayon_point)
+            dessine_point_rayon(canevas, hauteur, largeur, p, rayon_point)
         }
     }
 
-    écris_cannevas(chemin, cannevas)
+    écris_canevas(chemin, canevas)
 }
 
 /* ------------------------------------------------------------------------- */

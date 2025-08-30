@@ -715,8 +715,11 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
             activation_target = target
         }
 
-        // À FAIRE 6. Let slottable be target, if target is a slottable and is assigned, and null otherwise.
-        // slottable: *EventTarget
+        // 6. Let slottable be target, if target is a slottable and is assigned, and null otherwise.
+        slottable: *Node
+        si est_node(target) && is_slottable(target comme *Node) && is_assigned(target comme *Node) {
+            slottable = target comme *Node
+        }
 
         // 7. Let slot-in-closed-tree be false.
         slot_in_closed_tree := faux
@@ -727,14 +730,24 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         // 9. While parent is non-null:
         tantque parent != nul {
             // 1. If slottable is non-null:
-
+            si slottable {
                 // 1. Assert: parent is a slot.
+                assert(is_slot(parent comme *Element))
 
                 // 2. Set slottable to null.
+                slottable = nul
 
                 // 3. If parent’s root is a shadow root whose mode is "closed", then set slot-in-closed-tree to true.
+                parent_root := donne_racine(parent comme *Element)
+                si parent_root.genre == GenreNoeud.ShadowRoot && (parent_root comme *ShadowRoot).mode == ShadowRootMode.closed {
+                    slot_in_closed_tree = vrai
+                }
+            }
 
             // 2. If parent is a slottable and is assigned, then set slottable to parent.
+            si is_slottable(parent comme *Node) && is_assigned(parent comme *Node) {
+                slottable = parent comme *Node
+            }
 
             // 3. Let relatedTarget be the result of retargeting event’s relatedTarget against parent.
             related_target = retarget(related_target, parent)

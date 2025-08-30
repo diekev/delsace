@@ -761,7 +761,8 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
 
     ProtéineEnum *donne_énum_pour_nom(kuri::chaine_statique nom) const;
 
-    void gère_erreur_rapportée(kuri::chaine_statique message_erreur) override;
+    void gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                               Lexème const *lexème) override;
 };
 
 /* ------------------------------------------------------------------------- */
