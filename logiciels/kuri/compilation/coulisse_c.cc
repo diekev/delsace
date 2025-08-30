@@ -328,8 +328,8 @@ struct ConvertisseuseTypeC {
      * KT3KPKsz32).
      *
      * Pour les structures (ou unions) nous devons également nous assurer que le code des
-     * structures utilisées par valeur pour leurs rubriques ont leurs codes générés avant celui de la
-     * structure parent.
+     * structures utilisées par valeur pour leurs rubriques ont leurs codes générés avant celui de
+     * la structure parent.
      */
     void génère_code_pour_type(Type const *type, Enchaineuse &enchaineuse);
 
@@ -1101,9 +1101,9 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
 
     auto const type_tableau = constante->type->comme_type_tableau_fixe();
     auto const taille_tableau = type_tableau->taille;
-    auto const type_élément = type_tableau->type_pointé;
+    auto const type_élément = donne_type_primitif(type_tableau->type_pointé);
 
-    if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
+    if (type_élément->est_type_entier_relatif()) {
         if (type_élément->taille_octet == 1) {
             auto données = donne_tableau_typé<int8_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
@@ -1112,7 +1112,7 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
             auto données = donne_tableau_typé<int16_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
-        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+        else if (type_élément->taille_octet == 4) {
             auto données = donne_tableau_typé<int32_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
@@ -1130,7 +1130,7 @@ static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
             auto données = donne_tableau_typé<uint16_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
-        else if (type_élément->taille_octet == 4 || type_élément->est_type_entier_constant()) {
+        else if (type_élément->taille_octet == 4) {
             auto données = donne_tableau_typé<uint32_t>(constante, taille_tableau);
             imprime_tableau_données_constantes(enchaineuse, données);
         }
@@ -1174,6 +1174,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             if (atome_fonc->est_intrinsèque()) {
                 if (atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
                     return "intrinseque_est_adresse_donnees_constantes";
+                }
+                if (atome_fonc->decl->ident == ID::intrinsèque_lis_compteur_temporel) {
+                    return "intrinseque_lis_compteur_temporel";
                 }
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
@@ -1873,7 +1876,8 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
     auto virgule = "(";
 
     POUR_INDEX (atome_fonc->params_entrée) {
-        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc, indice_it);
+        auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc,
+                                                                             indice_it);
 
         os << virgule;
 
@@ -2087,8 +2091,8 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     return nom;
 }
 
-kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(RubriqueTypeComposé const &rubrique,
-                                                                int64_t index)
+kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(
+    RubriqueTypeComposé const &rubrique, int64_t index)
 {
     /* Cas pour les structures vides. */
     if (rubrique.nom == ID::chaine_vide) {
@@ -2262,6 +2266,7 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
         case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
         case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
+        case GenreIntrinsèque::LIS_COMPTEUR_TEMPOREL:
         {
             génère_code_pour_appel_impl(os, appel);
             break;
@@ -2444,7 +2449,7 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaine
 
     auto virgule = "(";
 
-    POUR_INDEX (arguments) {
+    POUR (arguments) {
         os << virgule << it;
         virgule = ", ";
     }
@@ -2525,6 +2530,13 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
         os << "    const uint8_t *ptr_base = &DC[0];\n";
         os << "    return ptr_base <= ptr_type && ptr_type < (ptr_base + "
            << données_constantes->taille_données_tableaux_constants << ");\n";
+        os << "}\n";
+
+        os << "static inline uint64_t intrinseque_lis_compteur_temporel()\n";
+        os << "{\n";
+        os << "    unsigned int lo, hi;\n";
+        os << "    __asm__ __volatile__ (\"rdtsc\" : \"=a\" (lo), \"=d\" (hi));\n";
+        os << "    return (uint64_t)hi << 32 | (uint64_t)lo;\n";
         os << "}\n";
         return;
     }
@@ -2773,20 +2785,16 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
     int nombre_instructions = 0;
     int index_première_fonction = 0;
     auto fonctions = repr_inter.donne_fonctions_horslignées();
-    int nombre_fonctions = 0;
 
     POUR_INDEX (fonctions) {
         nombre_instructions += it->instructions.taille();
         if (nombre_instructions <= nombre_instructions_max_par_fichier &&
             indice_it != fonctions.taille() - 1) {
-            nombre_fonctions++;
             continue;
         }
 
         auto pointeur_fonction = fonctions.begin() + index_première_fonction;
         auto taille = indice_it - index_première_fonction + 1;
-
-        nombre_fonctions += 1;
 
         auto fonctions_du_fichier = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
                                                                             taille);

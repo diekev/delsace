@@ -693,7 +693,7 @@ logement_temp :: fonc (taille: z64) -> *octet
 // -----------------------------
 
 // Fonctions de bases pour les opérateurs de comparaisons de chaines
-opérateur == :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur == :: (chn1: chaine, chn2: chaine) -> bool
 {
     si chn1.taille != chn2.taille {
         retourne faux
@@ -711,7 +711,7 @@ opérateur == :: fonc (chn1: chaine, chn2: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur != :: (chn1: chaine, chn2: chaine) -> bool
 {
     retourne !(chn1 == chn2)
 }
@@ -745,22 +745,22 @@ compare_chaine :: fonc (chn1: chaine, chn2: chaine) -> z32
     retourne 0
 }
 
-opérateur < :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur < :: (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) < 0
 }
 
-opérateur <= :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur <= :: (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) <= 0
 }
 
-opérateur > :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur > :: (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) > 0
 }
 
-opérateur >= :: fonc (chn1: chaine, chn2: chaine) -> bool
+opérateur >= :: (chn1: chaine, chn2: chaine) -> bool
 {
     retourne compare_chaine(chn1, chn2) >= 0
 }

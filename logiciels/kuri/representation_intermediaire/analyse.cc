@@ -1289,7 +1289,7 @@ struct Calculatrice {
     static uint64_t applique_opération_entier(AtomeConstanteEntière const *opérande_gauche,
                                               AtomeConstanteEntière const *opérande_droite)
     {
-        auto const type = opérande_gauche->type;
+        auto const type = donne_type_primitif(opérande_gauche->type);
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
                 return applique_opération_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
@@ -1316,7 +1316,7 @@ struct Calculatrice {
                 opérande_gauche->valeur, opérande_droite->valeur);
             return uint16_t(résultat);
         }
-        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        if (type->taille_octet == 4) {
             auto résultat = applique_opération_entier_ex<Opération, int32_t>(
                 opérande_gauche->valeur, opérande_droite->valeur);
             return uint32_t(résultat);
@@ -1332,12 +1332,12 @@ struct Calculatrice {
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = opérande_gauche->type;
+        auto const type = donne_type_primitif(opérande_gauche->type);
         if (type->taille_octet == 2) {
             /* À FAIRE(r16). */
             return 0.0;
         }
-        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        if (type->taille_octet == 4) {
             auto résultat = applique_opération_réel_ex<Opération, float>(opérande_gauche->valeur,
                                                                          opérande_droite->valeur);
             return double(résultat);
@@ -1353,7 +1353,7 @@ struct Calculatrice {
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = opérande_gauche->type;
+        auto const type = donne_type_primitif(opérande_gauche->type);
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
                 return applique_comparaison_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
@@ -1378,7 +1378,7 @@ struct Calculatrice {
             return applique_comparaison_entier_ex<Opération, int16_t>(opérande_gauche->valeur,
                                                                       opérande_droite->valeur);
         }
-        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        if (type->taille_octet == 4) {
             return applique_comparaison_entier_ex<Opération, int32_t>(opérande_gauche->valeur,
                                                                       opérande_droite->valeur);
         }
@@ -1392,12 +1392,12 @@ struct Calculatrice {
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = opérande_gauche->type;
+        auto const type = donne_type_primitif(opérande_gauche->type);
         if (type->taille_octet == 2) {
             /* À FAIRE(r16). */
             return 0.0;
         }
-        if (type->taille_octet == 4 || type->est_type_entier_constant()) {
+        if (type->taille_octet == 4) {
             return applique_comparaison_réel_ex<Opération, float>(opérande_gauche->valeur,
                                                                   opérande_droite->valeur);
         }

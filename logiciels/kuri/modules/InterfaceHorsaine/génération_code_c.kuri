@@ -817,7 +817,7 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
         type_fonction := it.type_ipa
         type_c_fonction := trouve_type(système, type_fonction.infos)
 
-        fonction_écriture := type.fonctions[it.index_fonction_écriture]
+        fonction_écriture := type.fonctions[it.indice_fonction_écriture]
         ajoute_au_tampon(enchaineuse, "        ", fonction_écriture.nom_pour_fonction_c, "(&m_poignee, ", type_c_fonction.transtype_cpp_vers_c, "rappel_", nom_fonction, ");\n")
     }
     /* Renseigne le pointeur de données. */

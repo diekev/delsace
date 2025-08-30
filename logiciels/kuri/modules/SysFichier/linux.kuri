@@ -8,7 +8,7 @@ système_poignée_fichier_invalide :: fonc () -> TypePoignéeFichier
     retourne TypePoignéeFichier(-1)
 }
 
-opérateur != :: fonc (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
+opérateur != :: (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
 {
     retourne (p0 comme z32) != (p1 comme z32)
 }

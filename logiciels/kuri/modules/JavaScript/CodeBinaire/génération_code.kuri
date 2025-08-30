@@ -14,7 +14,7 @@ LabelsBoucle :: struct {
 
 PatchLabelBranche :: struct {
     label: n32
-    branche: IndexBranche
+    branche: IndiceBranche
 }
 
 GénératriceCodeBinaire :: struct {
@@ -66,7 +66,7 @@ donne_labels_boucle_courante :: fonc (génératrice: &GénératriceCodeBinaire) 
     retourne génératrice.labels_boucle[génératrice.labels_boucle.taille - 1]
 }
 
-ajoute_patch_label_branche :: fonc (génératrice: &GénératriceCodeBinaire, label: n32, branche: IndexBranche)
+ajoute_patch_label_branche :: fonc (génératrice: &GénératriceCodeBinaire, label: n32, branche: IndiceBranche)
 {
     patch := tableau_ajoute_élément(*génératrice.patchs_labels_branches)
     patch.label = label
@@ -87,12 +87,12 @@ donne_décalage :: fonc (génératrice: &GénératriceCodeBinaire) -> DécalageB
     retourne DécalageBranche(flux.instructions.taille)
 }
 
-définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche)
+définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndiceBranche)
 {
     définis_décalage_branche(génératrice, branche, génératrice.donne_décalage())
 }
 
-définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndexBranche, décalage: DécalageBranche)
+définis_décalage_branche :: fonc (génératrice: &GénératriceCodeBinaire, branche: IndiceBranche, décalage: DécalageBranche)
 {
     flux := génératrice.flux
     instruction := *flux.instructions[branche comme z64] comme *InstructionBranche
@@ -116,32 +116,32 @@ crée_branche :: fonc (génératrice: &GénératriceCodeBinaire, décalage: Déc
     branche.décalage = décalage
 }
 
-crée_branche :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+crée_branche :: fonc (génératrice: &GénératriceCodeBinaire) -> IndiceBranche
 {
     résultat := génératrice.donne_décalage()
     _ := génératrice.crée_instruction(InstructionBranche)
-    retourne IndexBranche(résultat comme z64)
+    retourne IndiceBranche(résultat comme z64)
 }
 
-crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+crée_branche_si_faux :: fonc (génératrice: &GénératriceCodeBinaire) -> IndiceBranche
 {
     résultat := génératrice.donne_décalage()
     _ := génératrice.crée_instruction(InstructionBrancheSiFaux)
-    retourne IndexBranche(résultat comme z64)
+    retourne IndiceBranche(résultat comme z64)
 }
 
-crée_branche_si_vrai :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+crée_branche_si_vrai :: fonc (génératrice: &GénératriceCodeBinaire) -> IndiceBranche
 {
     résultat := génératrice.donne_décalage()
     _ := génératrice.crée_instruction(InstructionBrancheSiVrai)
-    retourne IndexBranche(résultat comme z64)
+    retourne IndiceBranche(résultat comme z64)
 }
 
-crée_branche_saufsi_null_ou_undefined :: fonc (génératrice: &GénératriceCodeBinaire) -> IndexBranche
+crée_branche_saufsi_null_ou_undefined :: fonc (génératrice: &GénératriceCodeBinaire) -> IndiceBranche
 {
     résultat := génératrice.donne_décalage()
     _ := génératrice.crée_instruction(InstructionBrancheSaufsiNullOuUndefined)
-    retourne IndexBranche(résultat comme z64)
+    retourne IndiceBranche(résultat comme z64)
 }
 
 crée_charge :: fonc (génératrice: &GénératriceCodeBinaire, valeur: Valeur) -> Registre
@@ -337,14 +337,14 @@ crée_charge_member :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet
 
 crée_définis_index :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, src: Registre)
 {
-    résultat := génératrice.crée_instruction(InstructionDéfinisIndex)
+    résultat := génératrice.crée_instruction(InstructionDéfinisIndice)
     résultat.obj = obj
     résultat.src = src
 }
 
 crée_charge_index :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet: Registre) -> Registre
 {
-    résultat := génératrice.crée_instruction(InstructionChargeIndex)
+    résultat := génératrice.crée_instruction(InstructionChargeIndice)
     résultat.obj = reg_objet
     retourne Registre(0)
 }
@@ -593,7 +593,7 @@ assignment_expression_sur_code_binaire :: fonc (noeud: *AssignmentExpression, g�
     opt_reg: Optionnel(Registre)
 
     doit_lier_branche: bool
-    branche: IndexBranche
+    branche: IndiceBranche
 
     discr noeud.opération {
         Assigne {
@@ -1045,7 +1045,7 @@ for_statement_sur_code_binaire :: fonc (for: *ForStatement, génératrice: &Gén
 
     génératrice.insère_label(label_boucle)
 
-    branche_test: IndexBranche
+    branche_test: IndiceBranche
     si for.test {
         _ := génératrice.génère_code_binaire(for.test)
         branche_test = génératrice.crée_branche_si_faux()
@@ -1327,7 +1327,7 @@ switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératri
     sinon {
         reg_valeur_discriminant := génératrice.crée_stocke()
 
-        index_branches_pour_cas: [..]IndexBranche
+        index_branches_pour_cas: [..]IndiceBranche
         diffère déloge(index_branches_pour_cas)
 
         label_pour_break := génératrice.crée_label()
@@ -1338,7 +1338,7 @@ switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératri
         /* Génère le code pour les tests. */
         pour switch.cases {
             si indice_it == switch.index_default_clause {
-                tableau_ajoute(*index_branches_pour_cas, IndexBranche(-1))
+                tableau_ajoute(*index_branches_pour_cas, IndiceBranche(-1))
                 continue
             }
 
