@@ -320,11 +320,6 @@ tableau_détruit :: fonc (tableau: &[..]$T)
     déloge(tableau)
 }
 
-mémoire_utilisée_tableau :: fonc (tableau: []$T) -> z64
-{
-    retourne tableau.taille * (taille_de(T) comme z64)
-}
-
 déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T)
 {
     /* À FAIRE(langage) : déréférencement automatique */
