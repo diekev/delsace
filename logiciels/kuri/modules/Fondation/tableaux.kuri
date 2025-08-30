@@ -361,15 +361,6 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
-tableau_trouve_indice_élément :: fonc (tableau: []$T, valeur: T) -> Optionnel(z64)
-{
-    pour tableau {
-        si it == valeur {
-            retourne indice_it
-        }
-    }
-}
-
 tableaux_sont_égaux :: fonc (tableau1: []$T, tableau2: []T) -> bool
 {
     saufsi tableau1.taille == tableau2.taille {
