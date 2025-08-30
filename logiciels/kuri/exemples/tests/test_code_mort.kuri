@@ -13,7 +13,7 @@ Vecteur3 :: struct {
 }
 
 /* tous les opérateurs sont implicitement enlignés, sauf si volontairement horslignés */
-opérateur + :: fonc (v0: Vecteur3, v1: Vecteur3) -> Vecteur3
+opérateur + :: (v0: Vecteur3, v1: Vecteur3) -> Vecteur3
 {
     résultat : Vecteur3 = ---
     résultat.x = v0.x + v1.x
@@ -22,7 +22,7 @@ opérateur + :: fonc (v0: Vecteur3, v1: Vecteur3) -> Vecteur3
     retourne résultat
 }
 
-opérateur == :: fonc (v0: Vecteur3, v1: Vecteur3) -> bool
+opérateur == :: (v0: Vecteur3, v1: Vecteur3) -> bool
 {
     retourne v0.x == v1.x && v0.y == v1.y && v0.z == v1.z
 }

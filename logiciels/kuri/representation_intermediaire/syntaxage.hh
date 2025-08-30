@@ -107,7 +107,8 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
   protected:
     void analyse_une_chose() override;
 
-    void gère_erreur_rapportée(kuri::chaine_statique message_erreur) override;
+    void gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                               Lexème const *lexème) override;
 
     void analyse_fonction();
     void analyse_globale();
@@ -192,7 +193,8 @@ void BaseSyntaxeuseRI<Impl>::analyse_une_chose()
 }
 
 template <typename Impl>
-void BaseSyntaxeuseRI<Impl>::gère_erreur_rapportée(kuri::chaine_statique message_erreur)
+void BaseSyntaxeuseRI<Impl>::gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                                                   Lexème const * /*lexème*/)
 {
     dbg() << message_erreur;
 }
@@ -1525,8 +1527,8 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
     void crée_globale(Lexème const *lexème, Type *type, Atome *initialisateur);
 
-    Atome *crée_construction_structure(Type *type,
-                                       kuri::tableau_statique<InfoInitRubriqueStructure> rubriques);
+    Atome *crée_construction_structure(
+        Type *type, kuri::tableau_statique<InfoInitRubriqueStructure> rubriques);
 
     Atome *crée_constante_entière(Type *type, Lexème const *lexème);
 

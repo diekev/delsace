@@ -299,7 +299,7 @@ crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
 }
 
 // À FAIRE : référence
-opérateur [] :: fonc (texte: TexteUnicode, index: z64) -> Rune
+opérateur [] :: (texte: TexteUnicode, index: z64) -> Rune
 {
     ptr := texte.chn.pointeur
 
