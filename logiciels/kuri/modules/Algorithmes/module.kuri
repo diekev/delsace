@@ -2,20 +2,11 @@ importe Math
 
 charge "tableaux"
 
-// Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
-// de comparaisons, et sont résistant aux dépassement de bornes.
-
-// Retourne le nombre d'éléments se situant entre deux pointeurs.
-distance :: fonc (ptr1: *$T, ptr2: *T) -> z64 #enligne
-{
-    retourne ptr2 - ptr1
-}
-
-// Retourne le pointeur se situant à n éléments après celui donné.
-suivant :: fonc (ptr: *$T, n: z64) -> *T #enligne
-{
-    retourne ptr + n
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Recherche binaire
+ * Différents algorithmes de recherche binaire. Ces algorithmes nous évitent de faire trop
+ * de comparaisons, et sont résistant aux dépassement de bornes.
+ * \{ */
 
 // Trouve une valeur entre deux pointeurs. Retourne le premier pointeur dont la valeur pointée
 // ést plus petite que la valeur recherchée. Sinon retourne le pointeur de fin.
@@ -95,6 +86,30 @@ limite_haute :: fonc (f: *$T, l: *T, v: T) -> *T
     retourne fl
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arithmétique de pointeurs
+ * \{ */
+
+// Retourne le nombre d'éléments se situant entre deux pointeurs.
+distance :: fonc (ptr1: *$T, ptr2: *T) -> z64 #enligne
+{
+    retourne ptr2 - ptr1
+}
+
+// Retourne le pointeur se situant à n éléments après celui donné.
+suivant :: fonc (ptr: *$T, n: z64) -> *T #enligne
+{
+    retourne ptr + n
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Test de valeurs
+ * \{ */
+
 tous_de :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> bool
 {
     pour tableau {
@@ -117,31 +132,11 @@ aucun_de :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> bool
     retourne vrai
 }
 
-copie_si :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> [..]T
-{
-    résultat: [..]T
-    tableau_réserve(*résultat, tableau.taille)
+/** \} */
 
-    pour tableau {
-        si prédicat(it) {
-            tableau_ajoute(*résultat, copie(it))
-        }
-    }
-
-    retourne résultat
-}
-
-copie :: fonc (tableau: []$T) -> [..]T
-{
-    résultat: [..]T
-    tableau_réserve(*résultat, tableau.taille)
-
-    pour tableau {
-        tableau_ajoute(*résultat, copie(it))
-    }
-
-    retourne résultat
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Accumulation
+ * \{ */
 
 accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc(T)(V)) -> V
 {
@@ -204,6 +199,8 @@ accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: []r32) -> r32
 
     retourne résultat + err
 }
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Permutation de valeur.
@@ -358,6 +355,32 @@ copie_si :: fonc (début_src: *$T, fin_src: *T, début_dst: *T, p: fonc(T)(bool)
     }
 
     retourne début_dst
+}
+
+copie_si :: fonc (tableau: []$T, prédicat: fonc(T)(bool)) -> [..]T
+{
+    résultat: [..]T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        si prédicat(it) {
+            tableau_ajoute(*résultat, copie(it))
+        }
+    }
+
+    retourne résultat
+}
+
+copie :: fonc (tableau: []$T) -> [..]T
+{
+    résultat: [..]T
+    tableau_réserve(*résultat, tableau.taille)
+
+    pour tableau {
+        tableau_ajoute(*résultat, copie(it))
+    }
+
+    retourne résultat
 }
 
 /** \} */
