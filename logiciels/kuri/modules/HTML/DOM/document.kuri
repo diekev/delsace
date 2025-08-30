@@ -143,7 +143,8 @@ Document :: struct {
 
 table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
-    sur_destruction = document_sur_destruction
+    sur_destruction = document_sur_destruction,
+    sur_get_the_parent = document_sur_get_the_parent
 )
 
 document_sur_destruction :: fonc (base: *JS.Cellule)
@@ -165,6 +166,20 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
     détruit_url(document.url)
     déloge(document.images_disponibles)
     déloge(document.render_blocking_elements)
+}
+
+document_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) -> *EventTarget
+{
+    document := base comme *Document
+
+    /* A document’s get the parent algorithm, given an event, returns null if event’s type attribute value is "load"
+     * or document does not have a browsing context; otherwise the document’s relevant global object. */
+    
+    si event.type == EventType.load || document.browsing_context == nul {
+        retourne nul
+    }
+
+    retourne JS.vérifie_comme(document.donne_relevant_global_object(), EventTarget)
 }
 
 #portée_export
@@ -890,9 +905,43 @@ is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 11 Trees
+/** \nom 1.1. Trees
  * https://dom.spec.whatwg.org/#trees
  * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
+ * An inclusive descendant is an object or one of its descendants. */
+InclusiveDescendants :: struct {
+    node: *Node
+}
+
+opérateur pour :: (inclusive_descendants: InclusiveDescendants) -> *Node
+{
+    assert(inclusive_descendants.node != nul)
+
+    traversée: [..]*Node
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, inclusive_descendants.node)
+    
+    indice_node := 0
+
+    tantque traversée {
+        node := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        `it = node
+        `indice_it = indice_node
+
+        #corps_boucle
+
+        indice_node += 1
+
+        pour > node.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+}
 
 /* https://dom.spec.whatwg.org/#concept-tree-inclusive-ancestor */
 is_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
@@ -944,11 +993,20 @@ ShadowRootMode :: énum {
     closed
 }
 
+SlotAssignment :: énum n8 {
+    manual
+    named
+}
+
 ShadowRoot :: struct {
     empl fragment: DocumentFragment
     table = *table_virtuelle_shadow_root
 
     mode: ShadowRootMode
+
+    /* https://dom.spec.whatwg.org/#shadowroot-slot-assignment
+     * Shadow roots have an associated slot assignment ("manual" or "named"). */
+    slot_assignment: SlotAssignment
 }
 
 crée_shadow_root :: fonc (document: *Document) -> *ShadowRoot

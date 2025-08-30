@@ -12,7 +12,7 @@ détruit_uuid :: fonc (uuid: UUID)
     déloge_si_logée(chn)
 }
 
-opérateur == :: fonc (u1: UUID, u2: UUID) -> bool
+opérateur == :: (u1: UUID, u2: UUID) -> bool
 {
     retourne (u1 comme chaine) == (u2 comme chaine)
 }

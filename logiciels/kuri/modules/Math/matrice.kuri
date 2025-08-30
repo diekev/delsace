@@ -186,7 +186,7 @@ multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
     retourne résultat
 }
 
-opérateur * :: fonc (m0: Mat4r, m1: Mat4r) -> Mat4r
+opérateur * :: (m0: Mat4r, m1: Mat4r) -> Mat4r
 {
     retourne multiplie(m0, m1)
 }

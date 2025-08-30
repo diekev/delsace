@@ -7,8 +7,28 @@ PermissionsPolicy :: struct {
 }
 
 /* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
-crée_permisions_policy_pour_navigable :: fonc (container: *Element @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
+create_a_permissions_policy_for_a_navigable :: fonc (container: *Element @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
     retourne PermissionsPolicy()
+}
+
+/* https://w3c.github.io/webappsec-permissions-policy/#create-from-response */
+create_a_permissions_policy_for_a_navigable_from_respone :: fonc (container: *Element, origin: Origin, response: *Response @inutilisée, report_only := faux @inutilisée) -> PermissionsPolicy
+{
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+
+    // 1. Let policy be the result of running Create a Permissions Policy for a navigable given container and origin.
+    policy := create_a_permissions_policy_for_a_navigable(container, origin)
+
+    // 2. Let d be the result of running Process response policy given response, origin and report-only.
+
+    // 3. For each feature → allowlist of d’s declarations:
+
+        // 1. If policy’s inherited policy[feature] is true, then set policy’s declared policy’s declarations[feature] to allowlist.
+
+    // 4. Set policy’s declared policy[feature]'s reporting configuration to d’s reporting configuration.
+
+    // 5. Return policy.
+    retourne policy
 }

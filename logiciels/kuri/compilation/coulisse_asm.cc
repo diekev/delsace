@@ -2926,14 +2926,10 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
 
 static bool est_type_compatible_registre_entier(Type const *type)
 {
-    if (type->est_type_opaque()) {
-        auto opaque = type->comme_type_opaque();
-        return est_type_compatible_registre_entier(opaque->type_opacifié);
-    }
-
-    return est_type_entier(type) || type->est_type_pointeur() || type->est_type_bool() ||
-           type->est_type_référence() || type->est_type_énum() ||
-           type->est_type_adresse_fonction() || type->est_type_fonction();
+    auto type_primitif = donne_type_primitif(type);
+    return est_type_entier(type_primitif) || type->est_type_pointeur() || type->est_type_bool() ||
+           type->est_type_référence() || type->est_type_adresse_fonction() ||
+           type->est_type_fonction();
 }
 
 /* Atome *atome est l'atome que nous chargeons, Atome *source est soit l'atome, soit son
@@ -4597,11 +4593,8 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(InstructionAllocation const *alloc)
 {
     auto type_alloué = alloc->donne_type_alloué();
-    // XXX - À FAIRE : normalise les entiers constants
-    if (type_alloué->est_type_entier_constant()) {
-        type_alloué = TypeBase::Z32;
-    }
-    return alloue_variable(type_alloué);
+    auto type_primitif = donne_type_primitif(type_alloué);
+    return alloue_variable(type_primitif);
 }
 
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(Type const *type_alloué)

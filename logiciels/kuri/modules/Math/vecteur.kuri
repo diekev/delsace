@@ -1,3 +1,5 @@
+importe Compilatrice
+
 // ------------------------------------
 // vecteurs de nombres réels
 
@@ -21,122 +23,6 @@ str_Vec2_pour_python :: fonc (v: *Vec2) -> chaine
 {
     retourne imprime_chaine("Vec2(%, %)", v.x, v.y)
 } @Python "str"
-
-opérateur - :: fonc (u: Vec2) -> Vec2
-{
-    retourne Vec2(-u.x, -u.y)
-}
-
-opérateur * :: fonc (v1: Vec2, v2: Vec2) -> Vec2
-{
-    résultat := v1
-    multiplie_vn_vn(*résultat.x, *v2.x, 2)
-    retourne résultat
-}
-
-opérateur * :: fonc (v1: Vec2, v: r32) -> Vec2
-{
-    résultat: Vec2
-    si v != 0.0 {
-        résultat = v1
-        multiplie_vn_s(*résultat.x, v, 2)
-    }
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec2, v2: Vec2) -> Vec2
-{
-    résultat : Vec2 = v1
-    divise_vn_vn(*résultat.x, *v2.x, 2)
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec2, v: r32) -> Vec2
-{
-    résultat : Vec2 = v1
-    divise_vn_s(*résultat.x, v, 2)
-    retourne résultat
-}
-
-opérateur / :: fonc (v: r32, v1: Vec2) -> Vec2
-{
-    résultat : Vec2 = v1
-    réciproque_vn_s(*résultat.x, v, 2)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec2, v2: Vec2) -> Vec2
-{
-    résultat : Vec2 = v1
-    ajoute_vn_vn(*résultat.x, *v2.x, 2)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec2, v: r32) -> Vec2
-{
-    résultat : Vec2 = v1
-    ajoute_vn_s(*résultat.x, v, 2)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec2, v2: Vec2) -> Vec2
-{
-    résultat : Vec2 = v1
-    soustrait_vn_vn(*résultat.x, *v2.x, 2)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec2, v: r32) -> Vec2
-{
-    résultat : Vec2 = v1
-    ajoute_vn_s(*résultat.x, -v, 2)
-    retourne résultat
-}
-
-opérateur == :: fonc (v1: Vec2, v2: Vec2) -> bool
-{
-    retourne sont_égaux_vn_vn(*v1.x, *v2.x, 2)
-}
-
-opérateur == :: fonc (v1: Vec2, s: r32) -> bool
-{
-    retourne sont_égaux_vn_s(*v1.x, s, 2)
-}
-
-opérateur != :: fonc (v0: Vec2, v1: Vec2) -> bool
-{
-    retourne !(v0 == v1)
-}
-
-opérateur < :: fonc (v1: Vec2, s: r32) -> bool
-{
-    retourne est_inférieur_vn_s(*v1.x, s, 2)
-}
-
-opérateur > :: fonc (v1: Vec2, s: r32) -> bool
-{
-    retourne est_supérieur_vn_s(*v1.x, s, 2)
-}
-
-opérateur < :: fonc (v1: Vec2, v2: Vec2) -> bool
-{
-    retourne est_inférieur_vn_vn(*v1.x, *v2.x, 2)
-}
-
-opérateur <= :: fonc (v1: Vec2, v2: Vec2) -> bool
-{
-    retourne est_inférieur_ou_égal_vn_vn(*v1.x, *v2.x, 2)
-}
-
-opérateur > :: fonc (v1: Vec2, v2: Vec2) -> bool
-{
-    retourne est_supérieur_vn_vn(*v1.x, *v2.x, 2)
-}
-
-opérateur >= :: fonc (v1: Vec2, v2: Vec2) -> bool
-{
-    retourne est_supérieur_ou_égal_vn_vn(*v1.x, *v2.x, 2)
-}
 
 produit_scalaire :: fonc (u: Vec2, v: Vec2) -> r32
 {
@@ -217,127 +103,6 @@ new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
     init_de(Vec3)(vec)
     retourne vrai
 } @Python "new"
-
-opérateur [] :: fonc (v: Vec3, index: z64) -> r32
-{
-    retourne (*v.x)[index]
-}
-
-opérateur - :: fonc (v: Vec3) -> Vec3
-{
-    retourne Vec3(x = -v.x, y = -v.y, z = -v.z)
-}
-
-opérateur * :: fonc (v1: Vec3, v2: Vec3) -> Vec3
-{
-    résultat := v1
-    multiplie_vn_vn(*résultat.x, *v2.x, 3)
-    retourne résultat
-}
-
-opérateur * :: fonc (v1: Vec3, v: r32) -> Vec3
-{
-    résultat: Vec3
-    si v != 0.0 {
-        résultat = v1
-        multiplie_vn_s(*résultat.x, v, 3)
-    }
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec3, v2: Vec3) -> Vec3
-{
-    résultat : Vec3 = v1
-    divise_vn_vn(*résultat.x, *v2.x, 3)
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec3, v: r32) -> Vec3
-{
-    résultat : Vec3 = v1
-    divise_vn_s(*résultat.x, v, 3)
-    retourne résultat
-}
-
-opérateur / :: fonc (v: r32, v1: Vec3) -> Vec3
-{
-    résultat : Vec3 = v1
-    réciproque_vn_s(*résultat.x, v, 3)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec3, v2: Vec3) -> Vec3
-{
-    résultat : Vec3 = v1
-    ajoute_vn_vn(*résultat.x, *v2.x, 3)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec3, v: r32) -> Vec3
-{
-    résultat : Vec3 = v1
-    ajoute_vn_s(*résultat.x, v, 3)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec3, v2: Vec3) -> Vec3
-{
-    résultat : Vec3 = v1
-    soustrait_vn_vn(*résultat.x, *v2.x, 3)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec3, v: r32) -> Vec3
-{
-    résultat : Vec3 = v1
-    ajoute_vn_s(*résultat.x, -v, 3)
-    retourne résultat
-}
-
-opérateur == :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne sont_égaux_vn_vn(*u.x, *v.x, 3)
-}
-
-opérateur == :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne sont_égaux_vn_s(*u.x, s, 3)
-}
-
-opérateur != :: fonc (v0: Vec3, v1: Vec3) -> bool
-{
-    retourne !(v0 == v1)
-}
-
-opérateur < :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne est_inférieur_vn_s(*u.x, s, 3)
-}
-
-opérateur > :: fonc (u: Vec3, s: r32) -> bool
-{
-    retourne est_supérieur_vn_s(*u.x, s, 3)
-}
-
-opérateur < :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne est_inférieur_vn_vn(*u.x, *v.x, 3)
-}
-
-opérateur <= :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne est_inférieur_ou_égal_vn_vn(*u.x, *v.x, 3)
-}
-
-opérateur > :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne est_supérieur_vn_vn(*u.x, *v.x, 3)
-}
-
-opérateur >= :: fonc (u: Vec3, v: Vec3) -> bool
-{
-    retourne est_supérieur_ou_égal_vn_vn(*u.x, *v.x, 3)
-}
 
 produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32 #enligne
 {
@@ -449,274 +214,6 @@ Vec4 :: struct {
     w := 0.0 @mutable
 }
 
-opérateur - :: fonc (u: Vec4) -> Vec4
-{
-    retourne Vec4(-u.x, -u.y, -u.z, -u.w)
-}
-
-opérateur * :: fonc (v1: Vec4, v2: Vec4) -> Vec4
-{
-    résultat := v1
-    multiplie_vn_vn(*résultat.x, *v2.x, 4)
-    retourne résultat
-}
-
-opérateur * :: fonc (v1: Vec4, v: r32) -> Vec4
-{
-    résultat : Vec4 = v1
-    si v != 0.0 {
-        résultat = v1
-        multiplie_vn_s(*résultat.x, v, 4)
-    }
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec4, v2: Vec4) -> Vec4
-{
-    résultat : Vec4 = v1
-    divise_vn_vn(*résultat.x, *v2.x, 4)
-    retourne résultat
-}
-
-opérateur / :: fonc (v1: Vec4, v: r32) -> Vec4
-{
-    résultat : Vec4 = v1
-    divise_vn_s(*résultat.x, v, 4)
-    retourne résultat
-}
-
-opérateur / :: fonc (v: r32, v1: Vec4) -> Vec4
-{
-    résultat : Vec4 = v1
-    réciproque_vn_s(*résultat.x, v, 4)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec4, v2: Vec4) -> Vec4
-{
-    résultat : Vec4 = v1
-    ajoute_vn_vn(*résultat.x, *v2.x, 4)
-    retourne résultat
-}
-
-opérateur + :: fonc (v1: Vec4, v: r32) -> Vec4
-{
-    résultat : Vec4 = v1
-    ajoute_vn_s(*résultat.x, v, 4)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec4, v2: Vec4) -> Vec4
-{
-    résultat : Vec4 = v1
-    soustrait_vn_vn(*résultat.x, *v2.x, 4)
-    retourne résultat
-}
-
-opérateur - :: fonc (v1: Vec4, v: r32) -> Vec4
-{
-    résultat : Vec4 = v1
-    ajoute_vn_s(*résultat.x, -v, 4)
-    retourne résultat
-}
-
-opérateur == :: fonc (u: Vec4, v: Vec4) -> bool
-{
-    retourne sont_égaux_vn_vn(*u.x, *v.x, 4)
-}
-
-opérateur == :: fonc (u: Vec4, s: r32) -> bool
-{
-    retourne sont_égaux_vn_s(*u.x, s, 4)
-}
-
-opérateur != :: fonc (v0: Vec4, v1: Vec4) -> bool
-{
-    retourne !(v0 == v1)
-}
-
-opérateur < :: fonc (u: Vec4, s: r32) -> bool
-{
-    retourne est_inférieur_vn_s(*u.x, s, 4)
-}
-
-opérateur > :: fonc (u: Vec4, s: r32) -> bool
-{
-    retourne est_supérieur_vn_s(*u.x, s, 4)
-}
-
-opérateur < :: fonc (u: Vec4, v: Vec4) -> bool
-{
-    retourne est_inférieur_vn_vn(*u.x, *v.x, 4)
-}
-
-opérateur <= :: fonc (u: Vec4, v: Vec4) -> bool
-{
-    retourne est_inférieur_ou_égal_vn_vn(*u.x, *v.x, 4)
-}
-
-opérateur > :: fonc (u: Vec4, v: Vec4) -> bool
-{
-    retourne est_supérieur_vn_vn(*u.x, *v.x, 4)
-}
-
-opérateur >= :: fonc (u: Vec4, v: Vec4) -> bool
-{
-    retourne est_supérieur_ou_égal_vn_vn(*u.x, *v.x, 4)
-}
-
-/* \} */
-
-/* ------------------------------------------------------------------------- */
-/* Utilitaires
- * \{ */
-
-ajoute_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
-{
-    pour n {
-        dst[it] += src[it]
-    }
-}
-
-ajoute_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
-{
-    pour n {
-        dst[it] += src
-    }
-}
-
-soustrait_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
-{
-    pour n {
-        dst[it] -= src[it]
-    }
-}
-
-multiplie_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
-{
-    pour n {
-        dst[it] *= src[it]
-    }
-}
-
-multiplie_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
-{
-    pour n {
-        dst[it] *= src
-    }
-}
-
-divise_vn_vn :: fonc (dst: *$T, src: *T, n: z32) #enligne
-{
-    pour n {
-        si src[it] != 0.0 {
-            dst[it] /= src[it]
-        }
-    }
-}
-
-divise_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
-{
-    si src == 0.0 {
-        retourne
-    }
-
-    pour n {
-        dst[it] /= src
-    }
-}
-
-réciproque_vn_s :: fonc (dst: *$T, src: T, n: z32) #enligne
-{
-    si src == 0.0 {
-        retourne
-    }
-
-    pour n {
-        dst[it] = src / dst[it]
-    }
-}
-
-sont_égaux_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] == v2[it] {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-sont_égaux_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] == s {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_inférieur_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] < s {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_supérieur_vn_s :: fonc (v1: *$T, s: T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] > s {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_inférieur_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] < v2[it] {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_inférieur_ou_égal_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] <= v2[it] {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_supérieur_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] > v2[it] {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
-est_supérieur_ou_égal_vn_vn :: fonc (v1: *$T, v2: *T, n: z32) -> bool #enligne
-{
-    pour n {
-        saufsi v1[it] >= v2[it] {
-            retourne faux
-        }
-    }
-    retourne vrai
-}
-
 /* \} */
 
 // ------------------------------------
@@ -751,5 +248,163 @@ position_sphérique :: fonc (u: r32, v: r32, r := 1.0) -> Vec3 #enligne
 {
     retourne Vec3(cosinus(u) * sinus(v) * r, cosinus(v) * r, sinus(u) * sinus(v) * r)
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Génération de code.
+ * \{ */
+
+#portée_fichier
+
+génère_opérateurs_vecteurs :: fonc ()
+{
+    opérateurs_arithmétiques := ["+", "-", "*", "/"]
+    opérateurs_logiques := ["==", "!=", "<", "<=", ">", ">="]
+
+    dimensions := [2, 3, 4]
+
+    ajoute_appel_opérateur :: fonc (enchaineuse: *Enchaineuse, op: chaine, rubrique: chaine, est_scalaire: bool)
+    {
+        si op == "/" {
+            si est_scalaire {
+                ajoute_au_tampon(enchaineuse, "    si s != 0 {\n    ")
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "    si v.", rubrique , " != 0 {\n    ")
+            }
+        }
+
+        si est_scalaire {
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " s\n")
+        }
+        sinon {
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " v.", rubrique ,"\n")
+        }
+
+        si op == "/" {
+            ajoute_au_tampon(enchaineuse, "    }\n")
+        }
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    pour dimension dans dimensions {
+        /* négation */
+        imprime_dans_enchaineuse(*enchaineuse, "opérateur - :: (u: Vec%) -> Vec%\n", dimension, dimension)
+        ajoute_au_tampon(*enchaineuse, "{\n")
+        imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec% = ---\n", dimension)
+        ajoute_au_tampon(*enchaineuse, "    résultat.x = -u.x\n")
+        ajoute_au_tampon(*enchaineuse, "    résultat.y = -u.y\n")
+        si dimension >= 3 {
+            ajoute_au_tampon(*enchaineuse, "    résultat.z = -u.z\n")
+        }
+        si dimension >= 4 {
+            ajoute_au_tampon(*enchaineuse, "    résultat.w = -u.w\n")
+        }
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+
+        pour op dans opérateurs_arithmétiques {
+            /* vecteur - vecteur */
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> Vec%\n", op, dimension, dimension, dimension)
+            ajoute_au_tampon(*enchaineuse, "{\n")
+
+            init := si op == "/" { "" } sinon { " = ---" }
+
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
+            ajoute_appel_opérateur(*enchaineuse, op, "x", faux)
+            ajoute_appel_opérateur(*enchaineuse, op, "y", faux)
+            si dimension >= 3 {
+                ajoute_appel_opérateur(*enchaineuse, op, "z", faux)
+            }
+            si dimension >= 4 {
+                ajoute_appel_opérateur(*enchaineuse, op, "w", faux)
+            }
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
+            ajoute_au_tampon(*enchaineuse, "}\n")
+
+            /* vecteur - scalaire */
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> Vec%\n", op, dimension, dimension)
+            ajoute_au_tampon(*enchaineuse, "{\n")
+
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
+            ajoute_appel_opérateur(*enchaineuse, op, "x", vrai)
+            ajoute_appel_opérateur(*enchaineuse, op, "y", vrai)
+            si dimension >= 3 {
+                ajoute_appel_opérateur(*enchaineuse, op, "z", vrai)
+            }
+            si dimension >= 4 {
+                ajoute_appel_opérateur(*enchaineuse, op, "w", vrai)
+            }
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
+            ajoute_au_tampon(*enchaineuse, "}\n")
+
+            si op == "/" {
+                /* réciproque */
+                imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (s: r32, v: Vec%) -> Vec%\n", op, dimension, dimension)
+                ajoute_au_tampon(*enchaineuse, "{\n")
+
+                imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
+                ajoute_au_tampon(*enchaineuse, "    si v.x != 0 { résultat.x = s / v.x }\n")
+                ajoute_au_tampon(*enchaineuse, "    si v.y != 0 { résultat.y = s / v.y }\n")
+                si dimension >= 3 {
+                    ajoute_au_tampon(*enchaineuse, "    si v.z != 0 { résultat.z = s / v.z }\n")
+                }
+                si dimension >= 4 {
+                    ajoute_au_tampon(*enchaineuse, "    si v.w != 0 { résultat.w = s / v.w }\n")
+                }
+                ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
+                ajoute_au_tampon(*enchaineuse, "}\n")
+            }
+        }
+
+        pour op dans opérateurs_logiques {
+            /* vecteur - vecteur */
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> bool\n", op, dimension, dimension, dimension)
+            ajoute_au_tampon(*enchaineuse, "{\n")
+            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " v.x")
+            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " v.y")
+            si dimension >= 3 {
+                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " v.z")
+            }
+            si dimension >= 4 {
+                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " v.w")
+            }
+            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n")
+            ajoute_au_tampon(*enchaineuse, "}\n")
+
+            /* vecteur - scalaire */
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> bool\n", op, dimension, dimension)
+            ajoute_au_tampon(*enchaineuse, "{\n")
+            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " s")
+            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " s")
+            si dimension >= 3 {
+                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " s")
+            }
+            si dimension >= 4 {
+                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " s")
+            }
+            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n")
+            ajoute_au_tampon(*enchaineuse, "}\n")
+        }
+
+        imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, index: z64) -> r32\n", dimension)
+        ajoute_au_tampon(*enchaineuse, "{\n")
+        imprime_dans_enchaineuse(*enchaineuse, "    assert(index >= 0 && index < %)\n", dimension)
+        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[index]\n")
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(résultat)
+
+    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), résultat)
+}
+
+#exécute génère_opérateurs_vecteurs()
 
 /** \} */

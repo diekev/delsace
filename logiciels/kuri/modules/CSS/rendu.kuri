@@ -1057,7 +1057,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
     si background_color.a != 0 {
         rect_box: RectanglePosDim(r32)
         si box.parent == nul {
-            /* L'arrière plan de l'élément racine doit s'appliquer au cannevas. */
+            /* L'arrière plan de l'élément racine doit s'appliquer au canevas. */
             rect_box.hauteur = ctx.hauteur_vue comme r32
             rect_box.largeur = ctx.largeur_vue comme r32
         }

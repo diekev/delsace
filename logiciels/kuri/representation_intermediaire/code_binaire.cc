@@ -207,13 +207,8 @@ void Chunk::émets_dépilage_paramètres_appel(NoeudExpression const *site,
     }
     auto nombre_d_arguments = inst->args.taille();
     for (auto i = nombre_d_arguments - 1; i >= 0; --i) {
-        auto type = inst->args[i]->type;
-        auto taille_type = type->taille_octet;
-        if (type->est_type_entier_constant()) {
-            taille_type = 4;
-        }
-
-        émets_notifie_dépilage(site, taille_type);
+        auto type = donne_type_primitif(inst->args[i]->type);
+        émets_notifie_dépilage(site, type->taille_octet);
     }
 }
 
@@ -247,12 +242,8 @@ void Chunk::émets_profile_termine_appel()
 int Chunk::ajoute_locale(InstructionAllocation const *alloc)
 {
     auto type_alloué = alloc->donne_type_alloué();
+    type_alloué = donne_type_primitif(type_alloué);
     auto taille_octet = type_alloué->taille_octet;
-
-    // XXX - À FAIRE : normalise les entiers constants
-    if (type_alloué->est_type_entier_constant()) {
-        taille_octet = 4;
-    }
     assert(taille_octet);
 
     auto index = locales.taille();
@@ -371,10 +362,8 @@ void Chunk::émets_charge(NoeudExpression const *site, Type const *type)
 
 void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type const *type)
 {
-    auto taille_octet = type->taille_octet;
-    if (type->est_type_entier_constant()) {
-        taille_octet = 4;
-    }
+    auto type_primitif = donne_type_primitif(type);
+    auto taille_octet = type_primitif->taille_octet;
     émets_entête_op(OP_CHARGE_LOCALE, site);
     émets(pointeur);
     émets(taille_octet);
@@ -593,11 +582,8 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
 {
-    auto taille_type = type->taille_octet;
-    if (type->est_type_entier_constant()) {
-        taille_type = 4;
-    }
-
+    auto type_primitif = donne_type_primitif(type);
+    auto taille_type = type_primitif->taille_octet;
     émets_notifie_dépilage(site, taille_type);
 
     if (op == OpérateurUnaire::Genre::Négation) {
@@ -692,11 +678,11 @@ void Chunk::émets_operation_binaire(NoeudExpression const *site,
                                     Type const *type_gauche,
                                     Type const *type_droite)
 {
-    auto taille_octet = std::max(type_gauche->taille_octet, type_droite->taille_octet);
-    if (taille_octet == 0) {
-        assert(type_gauche->est_type_entier_constant() && type_droite->est_type_entier_constant());
-        taille_octet = 4;
-    }
+    auto type_primitif_gauche = donne_type_primitif(type_gauche);
+    auto type_primitif_droite = donne_type_primitif(type_droite);
+    auto taille_octet = std::max(type_primitif_gauche->taille_octet,
+                                 type_primitif_droite->taille_octet);
+    assert(taille_octet != 0);
 
     émets_notifie_dépilage(site, taille_octet);
     émets_notifie_dépilage(site, taille_octet);
@@ -710,33 +696,24 @@ void Chunk::émets_operation_binaire(NoeudExpression const *site,
 
 void Chunk::émets_incrémente(const NoeudExpression *site, const Type *type)
 {
-    auto taille_octet = type->taille_octet;
-    if (type->est_type_entier_constant()) {
-        taille_octet = 4;
-    }
+    auto type_primitif = donne_type_primitif(type);
     émets_entête_op(OP_INCRÉMENTE, site);
-    émets(taille_octet);
+    émets(type_primitif->taille_octet);
 }
 
 void Chunk::émets_incrémente_locale(const NoeudExpression *site, const Type *type, int pointeur)
 {
-    auto taille_octet = type->taille_octet;
-    if (type->est_type_entier_constant()) {
-        taille_octet = 4;
-    }
+    auto type_primitif = donne_type_primitif(type);
     émets_entête_op(OP_INCRÉMENTE_LOCALE, site);
-    émets(taille_octet);
+    émets(type_primitif->taille_octet);
     émets(pointeur);
 }
 
 void Chunk::émets_décrémente(const NoeudExpression *site, const Type *type)
 {
-    auto taille_octet = type->taille_octet;
-    if (type->est_type_entier_constant()) {
-        taille_octet = 4;
-    }
+    auto type_primitif = donne_type_primitif(type);
     émets_entête_op(OP_DÉCRÉMENTE, site);
-    émets(taille_octet);
+    émets(type_primitif->taille_octet);
 }
 
 void Chunk::émets_transtype(const NoeudExpression *site,
@@ -1575,13 +1552,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             POUR (appel->args) {
                 génère_code_pour_atome(it, chunk);
-
-                if (it->type->est_type_entier_constant()) {
-                    taille_arguments += 4;
-                }
-                else {
-                    taille_arguments += it->type->taille_octet;
-                }
+                auto type_primitif = donne_type_primitif(it->type);
+                taille_arguments += type_primitif->taille_octet;
             }
 
             if (appelee->genre_atome == Atome::Genre::FONCTION) {

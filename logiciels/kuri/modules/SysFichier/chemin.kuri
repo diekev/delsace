@@ -266,52 +266,52 @@ est_chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: Chemi
     retourne fichier_existe(absolu)
 }
 
-opérateur == :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
+opérateur == :: (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
     retourne chemin1.chn == chemin2.chn
 }
 
-opérateur == :: fonc (chemin: CheminFichier, chn: chaine) -> bool
+opérateur == :: (chemin: CheminFichier, chn: chaine) -> bool
 {
     retourne chemin.chn == chn
 }
 
-opérateur != :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
+opérateur != :: (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
     retourne chemin1.chn != chemin2.chn
 }
 
-opérateur != :: fonc (chemin: CheminFichier, chn: chaine) -> bool
+opérateur != :: (chemin: CheminFichier, chn: chaine) -> bool
 {
     retourne chemin.chn != chn
 }
 
-opérateur / :: fonc (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+opérateur / :: (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     retourne crée_chemin_absolu(chemin_base, feuille)
 }
 
-opérateur / :: fonc (chemin_base: CheminFichier, feuille: chaine) -> CheminFichier
+opérateur / :: (chemin_base: CheminFichier, feuille: chaine) -> CheminFichier
 {
     retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille))
 }
 
-opérateur < :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+opérateur < :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
     retourne chm1.chn < chm2.chn
 }
 
-opérateur <= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+opérateur <= :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
     retourne chm1.chn <= chm2.chn
 }
 
-opérateur > :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+opérateur > :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
     retourne chm1.chn > chm2.chn
 }
 
-opérateur >= :: fonc (chm1: CheminFichier, chm2: CheminFichier) -> bool
+opérateur >= :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
     retourne chm1.chn >= chm2.chn
 }

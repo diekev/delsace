@@ -84,7 +84,7 @@ tableau_ajoute_élément :: fonc (tableau: *[..]$T) -> *T
     retourne *tableau.pointeur[tableau.taille - 1]
 }
 
-élément_tableau_indice_relatif :: fonc (tabl: [..]$T, indice: z64) -> *T
+élément_tableau_indice_relatif :: fonc (tabl: []$T, indice: z64) -> *T
 {
     si indice >= 0 {
         retourne *tabl[indice]
@@ -143,19 +143,6 @@ tableau_redimensionne_défaut :: fonc (tabl: &[..]$T, taille: z64, défaut: T) -
     }
 }
 
-tableau_copie :: fonc (tabl: [..]$T) -> [..]T
-{
-    tmp := loge_tableau(T, tabl.taille)
-    //copie_mem_nonsur(src = tabl.pointeur, dst = tabl.pointeur, taille = tabl.taille * taille_de(z64) comme z64)
-
-    pour tabl {
-        tmp.pointeur[indice_it] = it
-    }
-
-    tmp.taille = tabl.taille
-    retourne tmp
-}
-
 tableau_copie :: fonc (tabl: []$T) -> [..]T
 {
     tmp := loge_tableau(T, tabl.taille)
@@ -168,7 +155,7 @@ tableau_copie :: fonc (tabl: []$T) -> [..]T
     retourne tmp
 }
 
-tableau_copie :: fonc (tabl: [..]$T, fonction_de_copie: fonc(T)(T)) -> [..]T
+tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc(T)(T)) -> [..]T
 {
     résultat: [..]T
     tableau_réserve(*résultat, tabl.taille)
@@ -196,27 +183,12 @@ tableau_insère_indice :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
     mémoire(tabl) = tmp
 }
 
-tableau_supprime :: fonc (tabl: *[..]$T, indice: z32) -> rien
+tableau_supprime_indice :: fonc (tabl: *[..]$T, indice: z64) -> rien
 {
     si indice < 0 || indice >= tabl.taille {
         retourne
     }
 
-    tmp := mémoire(tabl)
-
-    taille := tabl.taille
-
-    pour i dans indice comme z64 ... taille - 2 {
-        tmp[i] = tmp[i + 1]
-    }
-
-    reloge_tableau(tmp, taille - 1)
-
-    mémoire(tabl) = tmp
-}
-
-tableau_supprime_indice :: fonc (tabl: *[..]$T, indice: z64) -> rien
-{
     tmp := mémoire(tabl)
 
     pour i dans indice ... tmp.taille - 2 {
@@ -300,14 +272,14 @@ tableau_vole_mémoire :: fonc (tableau: &[..]$T) -> [..]T
     retourne résultat
 }
 
-tableau_remplis_avec :: fonc (tableau: [..]$T, valeur: T)
+tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
 {
     pour & v dans tableau {
         v = valeur
     }
 }
 
-est_adresse_borne_tableau :: fonc (tableau: [..]$T, adresse: *T) -> bool #enligne
+est_adresse_borne_tableau :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
 {
     si adresse == tableau.pointeur {
         retourne vrai
@@ -322,7 +294,7 @@ est_adresse_borne_tableau :: fonc (tableau: [..]$T, adresse: *T) -> bool #enlign
 
 /* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
  * en incluant le premier et le dernier élément. */
-est_adresse_élément_bornes_incluses :: fonc (tableau: [..]$T, adresse: *T) -> bool #enligne
+est_adresse_élément_bornes_incluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
 {
     premier := tableau.pointeur
     dernier := premier + tableau.taille - 1
@@ -331,14 +303,14 @@ est_adresse_élément_bornes_incluses :: fonc (tableau: [..]$T, adresse: *T) -> 
 
 /* Retourne vrai si l'adresse est celle d'un élément se trouvant dans le tableau,
  * en excluant le premier et le dernier élément. */
-est_adresse_élément_bornes_excluses :: fonc (tableau: [..]$T, adresse: *T) -> bool #enligne
+est_adresse_élément_bornes_excluses :: fonc (tableau: []$T, adresse: *T) -> bool #enligne
 {
     premier := tableau.pointeur
     dernier := premier + tableau.taille
     retourne premier < adresse < dernier
 }
 
-indice_élement :: fonc (tableau: [..]$T, adresse: *T) -> z64 #enligne
+indice_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
 {
     retourne (adresse - tableau.pointeur)
 }
@@ -346,11 +318,6 @@ indice_élement :: fonc (tableau: [..]$T, adresse: *T) -> z64 #enligne
 tableau_détruit :: fonc (tableau: &[..]$T)
 {
     déloge(tableau)
-}
-
-mémoire_utilisée_tableau :: fonc (tableau: [..]$T) -> z64
-{
-    retourne tableau.taille * (taille_de(T) comme z64)
 }
 
 déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T)
@@ -389,16 +356,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
-tableau_trouve_indice_élément :: fonc (tableau: [..]$T, valeur: T) -> Optionnel(z64)
-{
-    pour tableau {
-        si it == valeur {
-            retourne indice_it
-        }
-    }
-}
-
-tableaux_sont_égaux :: fonc (tableau1: [..]$T, tableau2: [..]T) -> bool
+tableaux_sont_égaux :: fonc (tableau1: []$T, tableau2: []T) -> bool
 {
     saufsi tableau1.taille == tableau2.taille {
         retourne faux
@@ -411,28 +369,6 @@ tableaux_sont_égaux :: fonc (tableau1: [..]$T, tableau2: [..]T) -> bool
     }
 
     retourne vrai
-}
-
-tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> [..]T
-{
-    résultat: [..]T
-
-    si début > fin {
-        retourne résultat
-    }
-
-    si début >= tableau.taille {
-        retourne résultat
-    }
-
-    si fin >= tableau.taille {
-        retourne résultat
-    }
-
-    résultat.pointeur = *tableau.pointeur[début]
-    résultat.taille = fin - début + 1
-    résultat.capacité = résultat.taille
-    retourne résultat
 }
 
 tableau_donne_tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
@@ -456,7 +392,7 @@ tableau_donne_tranche :: fonc (tableau: []$T, début: z64, fin: z64) -> []T
     retourne résultat
 }
 
-dernier_élément :: fonc (tableau: [..]$T) -> *T
+dernier_élément :: fonc (tableau: []$T) -> *T
 {
     si tableau.taille == 0 {
         retourne nul
@@ -522,4 +458,19 @@ tableau_possède_élément :: fonc (tableau: []$T, valeur: T) -> bool
         }
     }
     retourne faux
+}
+
+tableaux_ont_mêmes_valeurs :: fonc (a: []$T, b: []T) -> bool
+{
+    si a.taille != b.taille {
+        retourne faux
+    }
+
+    pour a {
+        saufsi tableau_possède_élément(b, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
 }

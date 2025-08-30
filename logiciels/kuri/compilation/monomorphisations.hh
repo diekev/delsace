@@ -10,9 +10,11 @@
 
 #include "utilitaires/synchrone.hh"
 
+struct EspaceDeTravail;
 struct Enchaineuse;
 struct IdentifiantCode;
 struct NoeudDéclarationType;
+struct Sémanticienne;
 using Type = NoeudDéclarationType;
 
 namespace kuri {
@@ -89,3 +91,17 @@ struct Monomorphisations {
     void imprime(std::ostream &os) const;
     void imprime(Enchaineuse &os, int indentations = 0) const;
 };
+
+std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
+    Sémanticienne &contexte,
+    Compilatrice &compilatrice,
+    EspaceDeTravail &espace,
+    NoeudDéclarationEntêteFonction const *decl,
+    NoeudExpression *site,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);
+
+NoeudDéclarationClasse *monomorphise_au_besoin(
+    Sémanticienne &contexte,
+    EspaceDeTravail &espace,
+    NoeudDéclarationClasse const *decl_struct,
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);

@@ -120,7 +120,8 @@ struct BaseSyntaxeuse {
     }
 
     // Cette fonction est appelée quand une erreur est rapportée via rapporte_erreur
-    virtual void gère_erreur_rapportée(kuri::chaine_statique message_erreur) = 0;
+    virtual void gère_erreur_rapportée(kuri::chaine_statique message_erreur,
+                                       Lexème const *lexème) = 0;
 
     // Interface pour la consommation et l'appariement de lexèmes
 
@@ -194,6 +195,8 @@ struct BaseSyntaxeuse {
     kuri::chaine crée_message_erreur(kuri::chaine_statique message);
 
     void rapporte_erreur(kuri::chaine_statique message);
+
+    void rapporte_erreur(kuri::chaine_statique message, Lexème const *lexème);
 
     void sauvegarde_position_lexème();
     void annule_sauvegarde_position();

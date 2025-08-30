@@ -37,4 +37,4 @@ uint64_t valeur_max(Type *type);
 /**
  * Retourne le nombre de bits du type (8 * sa taille en octets).
  */
-int nombre_de_bits_pour_type(Type *type);
+int nombre_de_bits_pour_type(Type const *type);

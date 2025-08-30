@@ -434,8 +434,12 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
         type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
     }
 
-    auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, nullptr, type_pour_la_recherche, type_pour_la_recherche, GenreLexème::EGALITE);
+    auto résultat = trouve_opérateur_pour_expression(*m_espace,
+                                                     *this,
+                                                     nullptr,
+                                                     type_pour_la_recherche,
+                                                     type_pour_la_recherche,
+                                                     GenreLexème::EGALITE);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -454,7 +458,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
                             "type afin de pouvoir comparer les valeurs,"
                             " donc si vous voulez utiliser une discrimination sur un type "
                             "personnalisé, vous pouvez définir l'opérateur comme ceci :\n\n"
-                            "\topérateur == :: fonc (a: MonType, b: MonType) -> bool\n\t{\n\t\t "
+                            "\topérateur == :: (a: MonType, b: MonType) -> bool\n\t{\n\t\t "
                             "/* logique de comparaison */\n\t}\n");
         return CodeRetourValidation::Erreur;
     }

@@ -38,7 +38,7 @@ chaine_depuis_nombre_réel :: fonc (n: NombreRéel) -> chaine, mp_exp_t
     retourne convertis_chaine_c(chn_c), exposant
 }
 
-opérateur + :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+opérateur + :: (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
 {
     résultat : NombreRéel = ---
     __gmpf_init(résultat)
@@ -46,7 +46,7 @@ opérateur + :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-opérateur - :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+opérateur - :: (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
 {
     résultat : NombreRéel = ---
     __gmpf_init(résultat)
@@ -54,7 +54,7 @@ opérateur - :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-opérateur * :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+opérateur * :: (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
 {
     résultat : NombreRéel = ---
     __gmpf_init(résultat)
@@ -62,7 +62,7 @@ opérateur * :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-opérateur * :: fonc (n1: NombreRéel, n2: r64) -> NombreRéel
+opérateur * :: (n1: NombreRéel, n2: r64) -> NombreRéel
 {
     n2r := crée_nombre_réel(n2)
     diffère __gmpf_clear(n2r)
@@ -73,7 +73,7 @@ opérateur * :: fonc (n1: NombreRéel, n2: r64) -> NombreRéel
     retourne résultat
 }
 
-opérateur / :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
+opérateur / :: (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
 {
     résultat : NombreRéel = ---
     __gmpf_init(résultat)
@@ -81,7 +81,7 @@ opérateur / :: fonc (n1: NombreRéel, n2: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-opérateur / :: fonc (n1: r64, n2: NombreRéel) -> NombreRéel
+opérateur / :: (n1: r64, n2: NombreRéel) -> NombreRéel
 {
     n1r := crée_nombre_réel(n1)
     diffère __gmpf_clear(n1r)
@@ -92,7 +92,7 @@ opérateur / :: fonc (n1: r64, n2: NombreRéel) -> NombreRéel
     retourne résultat
 }
 
-opérateur / :: fonc (n1: NombreRéel, n2: r64) -> NombreRéel
+opérateur / :: (n1: NombreRéel, n2: r64) -> NombreRéel
 {
     n2r := crée_nombre_réel(n2)
     diffère __gmpf_clear(n2r)

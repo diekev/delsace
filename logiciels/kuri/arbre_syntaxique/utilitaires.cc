@@ -366,7 +366,10 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux)
 
 std::ostream &operator<<(std::ostream &os, ÉtatValidationEntête état_validation)
 {
-#define CAS(x) case ÉtatValidationEntête::x: os << #x; break
+#define CAS(x)                                                                                    \
+    case ÉtatValidationEntête::x:                                                                 \
+        os << #x;                                                                                 \
+        break
     switch (état_validation) {
         CAS(NON_COMMENCÉE);
         CAS(PARAMÈTRES_CONSTANTS);
@@ -1062,6 +1065,21 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(sélection);
             break;
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = racine->comme_référence_opérateur_binaire();
+            arbre_aplatis.ajoute(référence->opérande_gauche);
+            arbre_aplatis.ajoute(référence->opérande_droite);
+            arbre_aplatis.ajoute(référence);
+            break;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = racine->comme_référence_opérateur_unaire();
+            arbre_aplatis.ajoute(référence->opérande);
+            arbre_aplatis.ajoute(référence);
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
@@ -1252,7 +1270,8 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 if (accédé->comme_référence_déclaration()
                         ->déclaration_référée->est_déclaration_module()) {
                     assert(référence_rubrique->déclaration_référée);
-                    return trouve_expression_non_constante(référence_rubrique->déclaration_référée);
+                    return trouve_expression_non_constante(
+                        référence_rubrique->déclaration_référée);
                 }
             }
 
@@ -1610,8 +1629,8 @@ using TableRubriques = kuri::table_hachage<IdentifiantCode const *, NoeudDéclar
 
 static void ajoute_rubrique(TableRubriques &table_rubriques, NoeudDéclaration *decl)
 {
-    /* Nous devons faire en sorte que seul le premier rubrique du nom est ajouté, afin que l'ensemble
-     * de surcharge lui soit réservé, et que c'est ce rubrique qui est retourné. */
+    /* Nous devons faire en sorte que seul le premier rubrique du nom est ajouté, afin que
+     * l'ensemble de surcharge lui soit réservé, et que c'est ce rubrique qui est retourné. */
     if (table_rubriques.possède(decl->ident)) {
         return;
     }
@@ -1619,7 +1638,7 @@ static void ajoute_rubrique(TableRubriques &table_rubriques, NoeudDéclaration *
 }
 
 static void init_table_hachage_rubriques(PointeurTableauVerrouille<NoeudDéclaration *> &rubriques,
-                                       TableRubriques &table_rubriques)
+                                         TableRubriques &table_rubriques)
 {
     if (table_rubriques.taille() != 0) {
         return;
@@ -1832,9 +1851,9 @@ NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
 }
 
 NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lexème *lexeme,
-                                                               NoeudExpression *accede,
-                                                               Type *type,
-                                                               int index)
+                                                                   NoeudExpression *accede,
+                                                                   Type *type,
+                                                                   int index)
 {
     auto acces = crée_référence_rubrique(lexeme, accede);
     auto type_accédé = donne_type_accédé_effectif(accede->type);
@@ -2555,8 +2574,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 
             RubriqueTypeComposé rubrique;
             if (type_union->type_le_plus_grand) {
-                auto const info_rubrique = donne_rubrique_pour_type(type_union,
-                                                                type_union->type_le_plus_grand);
+                auto const info_rubrique = donne_rubrique_pour_type(
+                    type_union, type_union->type_le_plus_grand);
                 assert(info_rubrique.has_value());
                 rubrique = info_rubrique->rubrique;
             }
@@ -2591,10 +2610,10 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                  * car la RI se base sur le fait qu'une telle expression se fait sur le type
                  * d'union et convertira vers le type structure dans ce cas.
                  *
-                 * Nous ne pouvons pas utiliser une expression de référence de rubrique de structure
-                 * en utilisant le type union comme type d'accès, car sinon l'accès se ferait sur
-                 * les rubriques de l'union alors que nous voulons que l'accès se fasse sur les
-                 * rubriques de la structure de l'union (rubrique le plus grand + index).
+                 * Nous ne pouvons pas utiliser une expression de référence de rubrique de
+                 * structure en utilisant le type union comme type d'accès, car sinon l'accès se
+                 * ferait sur les rubriques de l'union alors que nous voulons que l'accès se fasse
+                 * sur les rubriques de la structure de l'union (rubrique le plus grand + index).
                  */
                 auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
                     type_union->type_structure, false);
@@ -2608,8 +2627,8 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 if (rubrique.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
                      * comme types des rubriques). */
-                    auto ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
-                                                                         param_comme_structure);
+                    auto ref_rubrique = assembleuse->crée_référence_rubrique(
+                        &lexème_sentinel, param_comme_structure);
                     ref_rubrique->index_rubrique = 0;
                     ref_rubrique->type = TypeBase::Z32;
                     ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
@@ -2619,7 +2638,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                 }
 
                 auto ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
-                                                                     param_comme_structure);
+                                                                         param_comme_structure);
                 ref_rubrique->index_rubrique = 0;
                 ref_rubrique->type = rubrique.type;
                 ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
@@ -2630,7 +2649,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                                      typeuse);
 
                 ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
-                                                                param_comme_structure);
+                                                                    param_comme_structure);
                 ref_rubrique->index_rubrique = 1;
                 ref_rubrique->type = TypeBase::Z32;
                 ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
@@ -2960,4 +2979,23 @@ MéthodeConstructionGlobale détermine_méthode_construction_globale(
     }
 
     return MéthodeConstructionGlobale::NORMALE;
+}
+
+NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
+{
+    if (si_statique->condition_est_vraie) {
+        return si_statique->bloc_si_vrai;
+    }
+
+    if (si_statique->bloc_si_faux) {
+        if (si_statique->bloc_si_faux->est_bloc()) {
+            return si_statique->bloc_si_faux->comme_bloc();
+        }
+
+        if (si_statique->bloc_si_faux->est_si_statique()) {
+            return donne_bloc_à_fusionner(si_statique->bloc_si_faux->comme_si_statique());
+        }
+    }
+
+    return nullptr;
 }

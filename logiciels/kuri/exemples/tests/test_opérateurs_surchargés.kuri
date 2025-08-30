@@ -1,0 +1,86 @@
+importe Fondation
+
+/* La surcharge d'opérateur permet d'avoir un sucrage syntaxique pour opérer sur des
+ * variables comme si elles étaient des variables de types basiques.
+ *
+ * Les opérateurs suivants sont surchargeables :
+ *
+ *  opérateur +
+ *  opérateur -
+ *  opérateur *
+ *  opérateur /
+ *  opérateur %
+ *
+ *  opérateur ==
+ *  opérateur !=
+ *  opérateur <
+ *  opérateur <=
+ *  opérateur >
+ *  opérateur >=
+ *
+ *  opérateur <<
+ *  opérateur >>
+ *  opérateur &
+ *  opérateur |
+ *  opérateur ~
+ *  opérateur ^
+ *  opérateur !
+ *
+ *  opérateur []
+ */
+
+principale :: fonc ()
+{
+    test_opérateur_surchargé_simple()
+    test_opérateur_surchargé_polymorphe()
+}
+
+/* Définition d'une surcharge pour l'opérateur+ pour un nouveau type. */
+MonType :: struct {
+    x: z32
+}
+
+opérateur + :: (mon_type: MonType, valeur: z32) -> MonType
+{
+    résultat := mon_type
+    résultat.x += valeur
+    retourne résultat
+}
+
+test_opérateur_surchargé_simple :: fonc ()
+{
+    mon_type: MonType
+
+    mon_type = mon_type + 1
+    assert(mon_type.x == 1)
+
+    /* Si opérateur+ est spécifié, l'opérateur += est automatiquement disponible.
+     * De même pour tous les opérateurs pouvant apparaitre dans une assignation
+     * composée (-=, *=, /=, etc.) */
+    mon_type += 5
+    assert(mon_type.x == 6)
+
+    /* Nous pouvons obtenir l'adresse de la fonction d'opérateur afin de l'appeler
+     * manuellement : */
+    pointeur_opérateur := opérateur+(MonType, z32)
+    mon_type = pointeur_opérateur(mon_type, 4)
+    assert(mon_type.x == 10)
+}
+
+Polymorphe :: struct ($T: type_de_données) {
+    donnée: T
+}
+
+opérateur + :: (polymorphe: Polymorphe($T), donnée: T) -> Polymorphe(T)
+{
+    résultat := polymorphe
+    résultat.donnée += donnée
+    retourne résultat
+}
+
+test_opérateur_surchargé_polymorphe :: fonc ()
+{
+    polymorphe: Polymorphe(z32)
+    polymorphe += 5
+    assert(polymorphe.donnée == 5)
+}

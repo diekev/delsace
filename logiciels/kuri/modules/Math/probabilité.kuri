@@ -110,7 +110,7 @@ complémente :: fonc (p: Probabilité) -> Probabilité
     retourne p0 - p
 }
 
-opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
+opérateur + :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
     résultat: Probabilité
 
@@ -154,7 +154,7 @@ opérateur + :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
     retourne résultat
 }
 
-opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
+opérateur - :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
     résultat: Probabilité
 
@@ -204,7 +204,7 @@ opérateur - :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
     retourne résultat
 }
 
-opérateur * :: fonc (p1: Probabilité, p2: Probabilité) -> Probabilité
+opérateur * :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
     résultat: Probabilité
 
@@ -242,7 +242,7 @@ divise_par_dix :: fonc (p: *Probabilité)
     tableau_inverse(p.chiffres)
 }
 
-opérateur * :: fonc (p1: Probabilité, n: n64) -> Probabilité
+opérateur * :: (p1: Probabilité, n: n64) -> Probabilité
 {
     résultat: Probabilité
 
@@ -335,7 +335,7 @@ arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
     retourne résultat
 }
 
-opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
+opérateur / :: (p: Probabilité, n: n64) -> Probabilité
 {
     résultat: Probabilité
 
@@ -382,7 +382,7 @@ opérateur / :: fonc (p: Probabilité, n: n64) -> Probabilité
     retourne résultat
 }
 
-opérateur / :: fonc (p0: Probabilité, p1: Probabilité) -> Probabilité
+opérateur / :: (p0: Probabilité, p1: Probabilité) -> Probabilité
 {
     résultat := p0 / p1.unité
 

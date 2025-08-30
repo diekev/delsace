@@ -1,7 +1,7 @@
 /* Module servant à définir des types et routines pour les périphériques
  * de l'ordinateur (souris, clavier, etc.). */
 
-importe Géométrie
+importe Math
 importe MIME
 
 /* ------------------------------------------------------------------------- */
@@ -110,7 +110,7 @@ RaccourcisClavier :: struct {
     modificateur: ModificateurClavier
 }
 
-opérateur == :: fonc (a: RaccourcisClavier, b: RaccourcisClavier) -> bool
+opérateur == :: (a: RaccourcisClavier, b: RaccourcisClavier) -> bool
 {
     retourne a.clé == b.clé && a.modificateur == b.modificateur
 }

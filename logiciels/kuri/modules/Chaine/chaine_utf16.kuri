@@ -92,7 +92,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: 
     retourne compare_ascii_insensible_à_la_casse(chn, chn2)
 }
 
-opérateur == :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
+opérateur == :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
     // À FAIRE : convertis proprement vers utf16
     si chn.taille() != chaine_native.taille {
@@ -111,7 +111,7 @@ opérateur == :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
+opérateur != :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
     retourne !(chn == chaine_native)
 }
@@ -259,7 +259,7 @@ est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
     retourne vrai
 }
 
-opérateur == :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+opérateur == :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     si a.taille() != b.taille() {
         retourne faux
@@ -274,12 +274,12 @@ opérateur == :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+opérateur != :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     retourne !(a == b)
 }
 
-opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+opérateur < :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     si b.est_préfixe_de(a) {
         retourne faux
@@ -303,7 +303,7 @@ opérateur < :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
     retourne a.unités[n] < b.unités[n]
 }
 
-opérateur > :: fonc (a: ChaineUTF16, b: ChaineUTF16) -> bool
+opérateur > :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     retourne !(a < b || a == b)
 }
@@ -867,7 +867,7 @@ ItératricePointsDeCodeChaineUTF16 :: struct {
     curseur := 0
 }
 
-opérateur pour :: fonc (itératrice: ItératricePointsDeCodeChaineUTF16) -> n32
+opérateur pour :: (itératrice: ItératricePointsDeCodeChaineUTF16) -> n32
 {
     taille_chaine := itératrice.chn.unités.taille
 
@@ -1000,22 +1000,22 @@ taille :: fonc (chn: ChaineUTF16Unique) -> z64 #enligne
     retourne chn.donne_chaine_utf16().taille()
 }
 
-opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     retourne chn1.valeur == chn2.valeur
 }
 
-opérateur == :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16) -> bool
+opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16) -> bool
 {
     retourne chn1.donne_chaine_utf16() == chn2
 }
 
-opérateur != :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+opérateur != :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     retourne chn1.valeur != chn2.valeur
 }
 
-opérateur < :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+opérateur < :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
         retourne chn1.valeur < chn2.valeur
@@ -1026,7 +1026,7 @@ opérateur < :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
     retourne c1 < c2
 }
 
-opérateur > :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
+opérateur > :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
         retourne chn1.valeur > chn2.valeur
@@ -1154,17 +1154,17 @@ TableChainesUTF16Unique :: struct {
     ensemble: [..]EntréeCache
 }
 
-opérateur == :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+opérateur == :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
     retourne entrée1.chn == entrée2.chn
 }
 
-opérateur != :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+opérateur != :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
     retourne entrée1.chn != entrée2.chn
 }
 
-opérateur < :: fonc (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
+opérateur < :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
     retourne entrée1.chn < entrée2.chn
 }

@@ -642,7 +642,7 @@ désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
     bloc.cellules_disponibles += 1
 }
 
-opérateur pour :: fonc (bloc: *BlocDeMémoire) -> *Cellule
+opérateur pour :: (bloc: *BlocDeMémoire) -> *Cellule
 {
     pour bloc.nombre_de_cellules() {
         cellule := bloc.donne_cellule(indice_it)

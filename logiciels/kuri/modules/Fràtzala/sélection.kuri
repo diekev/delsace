@@ -1,5 +1,4 @@
 importe Ensemble
-importe Géométrie
 
 /* Module de sélection d'élément, via la souris, basé sur
  * "One Way to Select Many", Järvi & Parent

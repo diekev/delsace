@@ -6,7 +6,7 @@ Complexe :: struct {
     imaginaire: r32
 }
 
-opérateur + :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+opérateur + :: (c1: Complexe, c2: Complexe) -> Complexe
 {
     r : Complexe = ---
     r.réel = c1.réel + c2.réel
@@ -14,7 +14,7 @@ opérateur + :: fonc (c1: Complexe, c2: Complexe) -> Complexe
     retourne r
 }
 
-opérateur - :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+opérateur - :: (c1: Complexe, c2: Complexe) -> Complexe
 {
     r : Complexe = ---
     r.réel = c1.réel - c2.réel
@@ -22,7 +22,7 @@ opérateur - :: fonc (c1: Complexe, c2: Complexe) -> Complexe
     retourne r
 }
 
-opérateur * :: fonc (c1: Complexe, c2: Complexe) -> Complexe
+opérateur * :: (c1: Complexe, c2: Complexe) -> Complexe
 {
     r : Complexe = ---
 
@@ -35,7 +35,7 @@ opérateur * :: fonc (c1: Complexe, c2: Complexe) -> Complexe
     retourne r
 }
 
-opérateur * :: fonc (c1: Complexe, s: r32) -> Complexe
+opérateur * :: (c1: Complexe, s: r32) -> Complexe
 {
     r : Complexe = ---
     r.réel = c1.réel * s
@@ -43,7 +43,7 @@ opérateur * :: fonc (c1: Complexe, s: r32) -> Complexe
     retourne r
 }
 
-opérateur / :: fonc (c1: Complexe, s: r32) -> Complexe
+opérateur / :: (c1: Complexe, s: r32) -> Complexe
 {
     r : Complexe = ---
     r.réel = c1.réel / s

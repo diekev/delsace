@@ -10,12 +10,12 @@ DLS_depuis_r64 :: fonc (v: r64) -> r16 #interface #externe libr16
 
 /* ************* opérateurs unaires ************* */
 
-opérateur + :: fonc (a: r16) -> r16
+opérateur + :: (a: r16) -> r16
 {
     retourne a
 }
 
-opérateur - :: fonc (a: r16) -> r16
+opérateur - :: (a: r16) -> r16
 {
     f := DLS_vers_r32(a)
     retourne DLS_depuis_r32(-f)
@@ -23,32 +23,32 @@ opérateur - :: fonc (a: r16) -> r16
 
 /* ************* addition ************* */
 
-opérateur + :: fonc (a: r16, b: r16) -> r16
+opérateur + :: (a: r16, b: r16) -> r16
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(f1 + f2)
 }
 
-opérateur + :: fonc (a: r16, b: r32) -> r16
+opérateur + :: (a: r16, b: r32) -> r16
 {
     f1 := DLS_vers_r32(a)
     retourne DLS_depuis_r32(f1 + b)
 }
 
-opérateur + :: fonc (a: r32, b: r16) -> r16
+opérateur + :: (a: r32, b: r16) -> r16
 {
     f1 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(a + f1)
 }
 
-opérateur + :: fonc (a: r16, b: r64) -> r16
+opérateur + :: (a: r16, b: r64) -> r16
 {
     f1 := DLS_vers_r64(a)
     retourne DLS_depuis_r64(f1 + b)
 }
 
-opérateur + :: fonc (a: r64, b: r16) -> r16
+opérateur + :: (a: r64, b: r16) -> r16
 {
     f1 := DLS_vers_r64(b)
     retourne DLS_depuis_r64(a + f1)
@@ -56,32 +56,32 @@ opérateur + :: fonc (a: r64, b: r16) -> r16
 
 /* ************* soustraction ************* */
 
-opérateur - :: fonc (a: r16, b: r16) -> r16
+opérateur - :: (a: r16, b: r16) -> r16
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(f1 - f2)
 }
 
-opérateur - :: fonc (a: r16, b: r32) -> r16
+opérateur - :: (a: r16, b: r32) -> r16
 {
     f1 := DLS_vers_r32(a)
     retourne DLS_depuis_r32(f1 - b)
 }
 
-opérateur - :: fonc (a: r32, b: r16) -> r16
+opérateur - :: (a: r32, b: r16) -> r16
 {
     f1 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(a - f1)
 }
 
-opérateur - :: fonc (a: r16, b: r64) -> r16
+opérateur - :: (a: r16, b: r64) -> r16
 {
     f1 := DLS_vers_r64(a)
     retourne DLS_depuis_r64(f1 - b)
 }
 
-opérateur - :: fonc (a: r64, b: r16) -> r16
+opérateur - :: (a: r64, b: r16) -> r16
 {
     f1 := DLS_vers_r64(b)
     retourne DLS_depuis_r64(a - f1)
@@ -89,32 +89,32 @@ opérateur - :: fonc (a: r64, b: r16) -> r16
 
 /* ************* multiplication ************* */
 
-opérateur * :: fonc (a: r16, b: r16) -> r16
+opérateur * :: (a: r16, b: r16) -> r16
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(f1 * f2)
 }
 
-opérateur * :: fonc (a: r16, b: r32) -> r16
+opérateur * :: (a: r16, b: r32) -> r16
 {
     f1 := DLS_vers_r32(a)
     retourne DLS_depuis_r32(f1 * b)
 }
 
-opérateur * :: fonc (a: r32, b: r16) -> r16
+opérateur * :: (a: r32, b: r16) -> r16
 {
     f1 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(a * f1)
 }
 
-opérateur * :: fonc (a: r16, b: r64) -> r16
+opérateur * :: (a: r16, b: r64) -> r16
 {
     f1 := DLS_vers_r64(a)
     retourne DLS_depuis_r64(f1 * b)
 }
 
-opérateur * :: fonc (a: r64, b: r16) -> r16
+opérateur * :: (a: r64, b: r16) -> r16
 {
     f1 := DLS_vers_r64(b)
     retourne DLS_depuis_r64(a * f1)
@@ -122,32 +122,32 @@ opérateur * :: fonc (a: r64, b: r16) -> r16
 
 /* ************* division ************* */
 
-opérateur / :: fonc (a: r16, b: r16) -> r16
+opérateur / :: (a: r16, b: r16) -> r16
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(f1 / f2)
 }
 
-opérateur / :: fonc (a: r16, b: r32) -> r16
+opérateur / :: (a: r16, b: r32) -> r16
 {
     f1 := DLS_vers_r32(a)
     retourne DLS_depuis_r32(f1 / b)
 }
 
-opérateur / :: fonc (a: r32, b: r16) -> r16
+opérateur / :: (a: r32, b: r16) -> r16
 {
     f1 := DLS_vers_r32(b)
     retourne DLS_depuis_r32(a / f1)
 }
 
-opérateur / :: fonc (a: r16, b: r64) -> r16
+opérateur / :: (a: r16, b: r64) -> r16
 {
     f1 := DLS_vers_r64(a)
     retourne DLS_depuis_r64(f1 / b)
 }
 
-opérateur / :: fonc (a: r64, b: r16) -> r16
+opérateur / :: (a: r64, b: r16) -> r16
 {
     f1 := DLS_vers_r64(b)
     retourne DLS_depuis_r64(a / f1)
@@ -155,187 +155,187 @@ opérateur / :: fonc (a: r64, b: r16) -> r16
 
 /* ************* comparaisons ************* */
 
-opérateur < :: fonc (a: r16, b: r16) -> bool
+opérateur < :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 < f2
 }
 
-opérateur < :: fonc (a: r16, b: r32) -> bool
+opérateur < :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 < b
 }
 
-opérateur < :: fonc (a: r32, b: r16) -> bool
+opérateur < :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a < f1
 }
 
-opérateur < :: fonc (a: r16, b: r64) -> bool
+opérateur < :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 < b
 }
 
-opérateur < :: fonc (a: r64, b: r16) -> bool
+opérateur < :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a < f1
 }
 
-opérateur <= :: fonc (a: r16, b: r16) -> bool
+opérateur <= :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 <= f2
 }
 
-opérateur <= :: fonc (a: r16, b: r32) -> bool
+opérateur <= :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 <= b
 }
 
-opérateur <= :: fonc (a: r32, b: r16) -> bool
+opérateur <= :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a <= f1
 }
 
-opérateur <= :: fonc (a: r16, b: r64) -> bool
+opérateur <= :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 <= b
 }
 
-opérateur <= :: fonc (a: r64, b: r16) -> bool
+opérateur <= :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a <= f1
 }
 
-opérateur > :: fonc (a: r16, b: r16) -> bool
+opérateur > :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 > f2
 }
 
-opérateur > :: fonc (a: r16, b: r32) -> bool
+opérateur > :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 > b
 }
 
-opérateur > :: fonc (a: r32, b: r16) -> bool
+opérateur > :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a > f1
 }
 
-opérateur > :: fonc (a: r16, b: r64) -> bool
+opérateur > :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 > b
 }
 
-opérateur > :: fonc (a: r64, b: r16) -> bool
+opérateur > :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a > f1
 }
 
-opérateur >= :: fonc (a: r16, b: r16) -> bool
+opérateur >= :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 >= f2
 }
 
-opérateur >= :: fonc (a: r16, b: r32) -> bool
+opérateur >= :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 >= b
 }
 
-opérateur >= :: fonc (a: r32, b: r16) -> bool
+opérateur >= :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a >= f1
 }
 
-opérateur >= :: fonc (a: r16, b: r64) -> bool
+opérateur >= :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 >= b
 }
 
-opérateur >= :: fonc (a: r64, b: r16) -> bool
+opérateur >= :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a >= f1
 }
 
-opérateur == :: fonc (a: r16, b: r16) -> bool
+opérateur == :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 == f2
 }
 
-opérateur == :: fonc (a: r16, b: r32) -> bool
+opérateur == :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 == b
 }
 
-opérateur == :: fonc (a: r32, b: r16) -> bool
+opérateur == :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a == f1
 }
 
-opérateur == :: fonc (a: r16, b: r64) -> bool
+opérateur == :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 == b
 }
 
-opérateur == :: fonc (a: r64, b: r16) -> bool
+opérateur == :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a == f1
 }
 
-opérateur != :: fonc (a: r16, b: r16) -> bool
+opérateur != :: (a: r16, b: r16) -> bool
 {
     f1 := DLS_vers_r32(a)
     f2 := DLS_vers_r32(b)
     retourne f1 != f2
 }
 
-opérateur != :: fonc (a: r16, b: r32) -> bool
+opérateur != :: (a: r16, b: r32) -> bool
 {
     f1 := DLS_vers_r32(a)
     retourne f1 != b
 }
 
-opérateur != :: fonc (a: r32, b: r16) -> bool
+opérateur != :: (a: r32, b: r16) -> bool
 {
     f1 := DLS_vers_r32(b)
     retourne a != f1
 }
 
-opérateur != :: fonc (a: r16, b: r64) -> bool
+opérateur != :: (a: r16, b: r64) -> bool
 {
     f1 := DLS_vers_r64(a)
     retourne f1 != b
 }
 
-opérateur != :: fonc (a: r64, b: r16) -> bool
+opérateur != :: (a: r64, b: r16) -> bool
 {
     f1 := DLS_vers_r64(b)
     retourne a != f1

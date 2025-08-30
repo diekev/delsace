@@ -212,6 +212,11 @@ bool EspaceDeTravail::parsage_termine() const
            NOMBRE_DE_TACHES(PARSAGE) == 0;
 }
 
+bool EspaceDeTravail::des_exécutions_sont_prévues() const
+{
+    return NOMBRE_DE_TACHES(EXECUTION) != 0;
+}
+
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 {
     for (int i = 0; i < int(GenreTâche::NOMBRE_ELEMENTS); i++) {

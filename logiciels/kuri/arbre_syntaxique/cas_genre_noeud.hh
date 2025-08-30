@@ -50,8 +50,8 @@
     case GenreNoeud::EXPRESSION_PRISE_ADRESSE:                                                    \
     case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:                                                  \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:                                            \
-    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:                                                 \
-    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:                                           \
+    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:                                               \
+    case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:                                         \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:                                                   \
     case GenreNoeud::EXPRESSION_SÉLECTION:                                                        \
     case GenreNoeud::EXPRESSION_TABLEAU_ARGS_VARIADIQUES:                                         \
@@ -88,7 +88,9 @@
     case GenreNoeud::INSTRUCTION_TENTE:                                                           \
     case GenreNoeud::OPÉRATEUR_BINAIRE:                                                           \
     case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:                                               \
-    case GenreNoeud::OPÉRATEUR_UNAIRE
+    case GenreNoeud::OPÉRATEUR_UNAIRE:                                                            \
+    case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:                                                 \
+    case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE
 
 #define CAS_POUR_NOEUDS_TYPES_PERSONALISABLES                                                     \
     case GenreNoeud::DÉCLARATION_ÉNUM:                                                            \

@@ -22,7 +22,7 @@ using Type = NoeudDéclarationType;
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION_SANS_VERIFICATION)                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_EINI)                                                \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TRANCHE_OCTET)                                          \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TRANCHE_OCTET)                                       \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_FIXE_VERS_TRANCHE)                            \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                       \
     ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE)                                               \
@@ -147,9 +147,12 @@ struct PoidsTransformation {
 using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de);
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+                                                  Type const *type_de,
+                                                  bool ignore_entier_constant);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
 ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
-                                                  NoeudExpression const *noeud);
+                                                  NoeudExpression const *noeud,
+                                                  bool ignore_entier_constant);

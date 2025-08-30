@@ -695,12 +695,12 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr,
-                    TypeBase::Z64,
-                    ID::taille,
-                    0,
-                    uint64_t(taille),
-                    nullptr,
-                    RubriqueTypeComposé::EST_CONSTANT});
+                      TypeBase::Z64,
+                      ID::taille,
+                      0,
+                      uint64_t(taille),
+                      nullptr,
+                      RubriqueTypeComposé::EST_CONSTANT});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));
@@ -1139,8 +1139,8 @@ bool requiers_création_fonction_initialisation(Type const *type)
 /** \name Accès aux rubriques des types composés.
  * \{ */
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(TypeCompose const *type_composé,
-                                                                   Type const *type)
+std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
+    TypeCompose const *type_composé, Type const *type)
 {
     POUR_INDEX (type_composé->rubriques) {
         if (it.type == type) {
@@ -1326,13 +1326,15 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
         rubriques_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
         rubriques_[1] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
         type->type_structure->rubriques = std::move(rubriques_);
-        type->type_structure->nombre_de_rubriques_réelles = type->type_structure->rubriques.taille();
+        type->type_structure->nombre_de_rubriques_réelles =
+            type->type_structure->rubriques.taille();
     }
     else {
         auto rubriques_ = kuri::tableau<RubriqueTypeComposé, int>(1);
         rubriques_[0] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
         type->type_structure->rubriques = std::move(rubriques_);
-        type->type_structure->nombre_de_rubriques_réelles = type->type_structure->rubriques.taille();
+        type->type_structure->nombre_de_rubriques_réelles =
+            type->type_structure->rubriques.taille();
     }
 
     type->type_structure->bloc_parent = type->bloc_parent;
@@ -1392,7 +1394,8 @@ static kuri::chaine_statique donne_séparateur_paramètres_fonction(
 static kuri::chaine_statique donne_séparateur_rubriques_union_anonyme(
     OptionsImpressionType const options)
 {
-    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SÉPARATEUR_RUBRIQUES_ANONYMES)) {
+    if (drapeau_est_actif(options,
+                          OptionsImpressionType::NORMALISE_SÉPARATEUR_RUBRIQUES_ANONYMES)) {
         return "_";
     }
     return " | ";
@@ -1955,9 +1958,8 @@ bool est_type_polymorphique(Type const *type)
 
 bool est_type_tableau_fixe(Type const *type)
 {
-    return type->est_type_tableau_fixe() ||
-           (type->est_type_opaque() &&
-            type->comme_type_opaque()->type_opacifié->est_type_tableau_fixe());
+    auto type_primitif = donne_type_primitif(type);
+    return type_primitif->est_type_tableau_fixe();
 }
 
 bool est_pointeur_vers_tableau_fixe(Type const *type)
@@ -2035,6 +2037,44 @@ Type const *type_entier_sous_jacent(Type const *type)
     return nullptr;
 }
 
+Type const *donne_type_primitif(Type const *type)
+{
+    while (true) {
+        if (type->est_type_entier_constant()) {
+            return TypeBase::Z32;
+        }
+
+        if (type->est_type_énum()) {
+            return type->comme_type_énum()->type_sous_jacent;
+        }
+
+        if (type->est_type_erreur()) {
+            return type->comme_type_erreur()->type_sous_jacent;
+        }
+
+        if (type->est_type_type_de_données()) {
+            return TypeBase::Z64;
+        }
+
+        if (type->est_type_octet()) {
+            return TypeBase::N8;
+        }
+
+        if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
+            return type;
+        }
+
+        if (type->est_type_opaque()) {
+            type = type->comme_type_opaque()->type_opacifié;
+            continue;
+        }
+
+        break;
+    }
+
+    return type;
+}
+
 std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
                                          TypeStructure const *type_base_potentiel)
 {
@@ -2070,7 +2110,7 @@ bool est_type_pointeur_nul(Type const *type)
 }
 
 ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                   Type const *type_a_tester)
+                                                                       Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
     int index_rubrique = -1;

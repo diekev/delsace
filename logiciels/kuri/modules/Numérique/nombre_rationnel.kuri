@@ -29,7 +29,7 @@ construit_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRati
     retourne r
 }
 
-opérateur + :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur + :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := a.N comme n64
@@ -87,7 +87,7 @@ opérateur + :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-opérateur - :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur - :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.s = !tmp.s
@@ -95,13 +95,13 @@ opérateur - :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne a + tmp
 }
 
-opérateur * :: fonc (a: NombreRationnel, b: z32) -> NombreRationnel
+opérateur * :: (a: NombreRationnel, b: z32) -> NombreRationnel
 {
     n := construit_nombre_rationnel(b)
     retourne a * n
 }
 
-opérateur * :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur * :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
     a_n := a.N comme n64
@@ -143,7 +143,7 @@ opérateur * :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne r
 }
 
-opérateur / :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
+opérateur / :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     tmp := b
     tmp.N = b.D
@@ -152,7 +152,7 @@ opérateur / :: fonc (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
     retourne a * tmp
 }
 
-opérateur / :: fonc (a: NombreRationnel, b: z32) -> NombreRationnel
+opérateur / :: (a: NombreRationnel, b: z32) -> NombreRationnel
 {
     positif := vrai
     si b < 0 {

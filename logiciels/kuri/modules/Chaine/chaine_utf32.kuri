@@ -86,7 +86,7 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
     résultat.points_de_code.taille = taille
 }
 
-opérateur pour :: fonc (chn: ChaineUTF32) -> n32
+opérateur pour :: (chn: ChaineUTF32) -> n32
 {
     pour chn.points_de_code {
         `it = it
@@ -95,7 +95,7 @@ opérateur pour :: fonc (chn: ChaineUTF32) -> n32
     }
 }
 
-opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
+opérateur == :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
 {
     si a.taille() != b.taille() {
         retourne faux
@@ -110,12 +110,12 @@ opérateur == :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (a: ChaineUTF32, b: ChaineUTF32) -> bool
+opérateur != :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
 {
     retourne !(a == b)
 }
 
-opérateur == :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
+opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
 {
     si chn_utf32.taille() > chn_native.taille {
         retourne faux
@@ -150,12 +150,12 @@ opérateur == :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
+opérateur != :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
 {
     retourne !(chn_utf32 == chn_native)
 }
 
-opérateur [] :: fonc (chn_utf32: ChaineUTF32, index: z64) -> n32
+opérateur [] :: (chn_utf32: ChaineUTF32, index: z64) -> n32
 {
     retourne chn_utf32.points_de_code[index]
 }

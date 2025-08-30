@@ -144,9 +144,9 @@ converti_péta_joule_kilo_watt_heure :: fonc (pj: r64) -> r64
         v: T
     }
 
-    opérateur / :: fonc (Mètre, Seconde) -> Par(Mètre, Seconde)
+    opérateur / :: (Mètre, Seconde) -> Par(Mètre, Seconde)
 
-    opérateur * :: fonc (MètreParSeconde, Seconde) -> Mètre
+    opérateur * :: (MètreParSeconde, Seconde) -> Mètre
 
  */
 

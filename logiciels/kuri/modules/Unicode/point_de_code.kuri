@@ -200,27 +200,27 @@ est_point_de_code_url :: fonc (point_de_code: n32) -> bool
     retourne !est_noncaractère(point_de_code)
 }
 
-opérateur - :: fonc (a: n32, b: z8) -> n32
+opérateur - :: (a: n32, b: z8) -> n32
 {
     retourne a - b comme n32
 }
 
-opérateur == :: fonc (a: n32, b: z8) -> bool
+opérateur == :: (a: n32, b: z8) -> bool
 {
     retourne a == b comme n32
 }
 
-opérateur != :: fonc (a: n32, b: z8) -> bool
+opérateur != :: (a: n32, b: z8) -> bool
 {
     retourne a != b comme n32
 }
 
-opérateur <= :: fonc (a: n32, b: z8) -> bool
+opérateur <= :: (a: n32, b: z8) -> bool
 {
     retourne a <= b comme n32
 }
 
-opérateur <= :: fonc (a: z8, b: n32) -> bool
+opérateur <= :: (a: z8, b: n32) -> bool
 {
     retourne a comme n32 <= b
 }

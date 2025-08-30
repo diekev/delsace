@@ -1,18 +1,6 @@
 importe Fondation
 importe Introspection
 
-imprime_tableau :: fonc (tabl: []r32) -> rien
-{
-    imprime("imprime_tableau...\n")
-    imprime("tabl.taille = %\n", tabl.taille)
-    imprime("tabl.pointeur = %\n", tabl.pointeur)
-
-    pour v, index dans tabl {
-        x := v
-        imprime("tabl[%] = %\n", index, x)
-    }
-}
-
 Vecteur :: struct {
     x: r32
     y: r32

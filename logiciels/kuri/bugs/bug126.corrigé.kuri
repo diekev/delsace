@@ -11,7 +11,7 @@ Structure :: struct {
     itérations: z32
 }
 
-opérateur pour :: fonc (structure: Structure) -> z32
+opérateur pour :: (structure: Structure) -> z32
 {
     pour index, indice_itération dans structure.itérations {
         `it = index

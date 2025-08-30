@@ -921,10 +921,8 @@ InstructionAccèdeRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExp
     assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_référence(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
-    auto type_élément = type_déréférencé_pour(accédé->type);
-    if (type_élément->est_type_opaque()) {
-        type_élément = type_élément->comme_type_opaque()->type_opacifié;
-    }
+    auto const *type_élément = type_déréférencé_pour(accédé->type);
+    type_élément = donne_type_primitif(type_élément);
 
     assert_rappel(type_élément->est_type_composé(), [&]() {
         dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
@@ -1933,6 +1931,8 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::DÉCLARATION_OPÉRATEUR_POUR:
         case GenreNoeud::EXPRESSION_ASSIGNATION_LOGIQUE:
         case GenreNoeud::INSTRUCTION_TENTE:
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -2310,11 +2310,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto expr_bin = noeud->comme_indexage();
-            auto type_gauche = expr_bin->opérande_gauche->type;
-
-            if (type_gauche->est_type_opaque()) {
-                type_gauche = type_gauche->comme_type_opaque()->type_opacifié;
-            }
+            auto type_gauche = donne_type_primitif(expr_bin->opérande_gauche->type);
 
             génère_ri_pour_noeud(expr_bin->opérande_gauche);
             auto pointeur = depile_valeur();
@@ -3058,31 +3054,12 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
     auto const dst_originale = dst;
 #endif
 
-    if (src->est_type_entier_constant()) {
-        /* Entier constant vers énum. */
-        src = TypeBase::Z32;
-    }
+    src = donne_type_primitif(src);
+    dst = donne_type_primitif(dst);
 
     if (src->taille_octet == dst->taille_octet) {
         /* Cas simple : les types ont les mêmes tailles, transtype la représentation binaire. */
         return TypeTranstypage::BITS;
-    }
-
-    if (src->est_type_énum()) {
-        auto type_énum = src->comme_type_énum();
-        src = type_énum->type_sous_jacent;
-    }
-
-    if (dst->est_type_énum()) {
-        auto type_énum = dst->comme_type_énum();
-        dst = type_énum->type_sous_jacent;
-    }
-
-    while (src->est_type_opaque()) {
-        src = src->comme_type_opaque()->type_opacifié;
-    }
-    while (dst->est_type_opaque()) {
-        dst = dst->comme_type_opaque()->type_opacifié;
     }
 
     if (src->est_type_entier_naturel()) {
@@ -3126,24 +3103,6 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
 
         if (dst->est_type_bool()) {
             return TypeTranstypage::DIMINUE_RELATIF;
-        }
-    }
-
-    if (src->est_type_octet()) {
-        if (dst->est_type_entier_relatif()) {
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF;
-            }
-
-            return TypeTranstypage::BITS;
-        }
-
-        if (dst->est_type_entier_naturel()) {
-            if (src->taille_octet < dst->taille_octet) {
-                return TypeTranstypage::AUGMENTE_RELATIF_VERS_NATUREL;
-            }
-
-            return TypeTranstypage::BITS;
         }
     }
 
@@ -3546,13 +3505,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         noeud, type_cible, valeur, TypeTranstypage::BITS);
                     valeur_pointeur = valeur;
 
-                    if (noeud->type->est_type_entier_constant()) {
-                        valeur_taille = m_constructrice.crée_z64(4);
-                    }
-                    else {
-                        valeur_taille = m_constructrice.crée_z64(noeud->type->taille_octet);
-                    }
-
+                    auto type_primitif = donne_type_primitif(noeud->type);
+                    valeur_taille = m_constructrice.crée_z64(type_primitif->taille_octet);
                     break;
                 }
                 case GenreNoeud::POINTEUR:
@@ -3949,12 +3903,9 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
                                                         InstructionLabel *label_si_vrai,
                                                         InstructionLabel *label_si_faux)
 {
-    auto type_condition = condition->type;
+    auto const *type_condition = condition->type;
+    type_condition = donne_type_primitif(type_condition);
     auto valeur = static_cast<Atome *>(nullptr);
-
-    if (type_condition->est_type_opaque()) {
-        type_condition = type_condition->comme_type_opaque()->type_opacifié;
-    }
 
     switch (type_condition->genre) {
         case GenreNoeud::ENTIER_NATUREL:

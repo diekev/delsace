@@ -1,5 +1,8 @@
 charge "interface"
 
+False :: 0
+True :: 1
+
 /* ------------------------------------------------------------------------- */
 /** \nom Définitions et macros définis par X.h
  * \{ */

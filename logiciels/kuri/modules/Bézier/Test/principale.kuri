@@ -1,0 +1,397 @@
+importe Bézier
+importe Couleur
+importe CréationFenêtre
+importe Fondation
+importe IGUMI
+importe Math
+importe Périphériques
+importe PeintureInterface
+
+LARGEUR_POINT :: 10.0
+
+principale :: fonc ()
+{
+    fenêtre := crée_fenêtre(1280, 720, "Bézier")
+
+    initialise_igumi()
+
+    tantque !doit_fermer {
+        // dessine_segment_bézier(fenêtre)
+        dessine_tracé(fenêtre)
+    }
+}
+
+points: [4]Vec2
+nombre_de_points: z32
+
+doit_fermer := faux
+mode_sélection_point := faux
+point_sélectionné := -1
+
+dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre)
+{
+    évènements := ajourne_évènements_fenêtre()
+
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    pour évènements {
+        si it.type == TypeÉvènement.Fermeture {
+            doit_fermer = vrai
+            arrête
+        }
+
+        si it.type == TypeÉvènement.Souris {
+            si it.bouton_souris == BoutonSouris.GAUCHE {
+                si it.action_souris == ActionSouris.PRESSÉE {
+                    souris_x := it.état_souris.où.x comme r32
+                    souris_y := (hauteur - it.état_souris.où.y) comme r32
+                    si nombre_de_points < 4 {
+
+                        si point_sélectionné == -1 {
+                            points[nombre_de_points].x = souris_x
+                            points[nombre_de_points].y = souris_y
+
+                            points[nombre_de_points + 1].x = souris_x
+                            points[nombre_de_points + 1].y = souris_y
+
+                            point_sélectionné = nombre_de_points + 1
+                            nombre_de_points += 2
+                        }
+                        sinon {
+                            points[point_sélectionné].x = souris_x
+                            points[point_sélectionné].y = souris_y
+                            point_sélectionné = -1
+                        }
+                    }
+                    sinon {
+                        mode_sélection_point = vrai
+                        point_sélectionné = -1
+                        pour p, index_point dans points {
+                            dx := p.x - souris_x
+                            dy := p.y - souris_y
+
+                            si (dx * dx + dy * dy) < (LARGEUR_POINT * LARGEUR_POINT) {
+                                point_sélectionné = index_point comme z32
+                            }
+                        }
+                    }
+                }
+                sinon si it.action_souris == ActionSouris.RELACHÉE {
+                    si mode_sélection_point {
+                        point_sélectionné = -1
+                        mode_sélection_point = faux
+                    }
+                }
+                sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                    si point_sélectionné != -1 {
+                        souris_x := it.état_souris.où.x comme r32
+                        souris_y := (hauteur - it.état_souris.où.y) comme r32
+                        points[point_sélectionné].x = souris_x
+                        points[point_sélectionné].y = souris_y
+                    }
+                }
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                si point_sélectionné != -1 {
+                    souris_x := it.état_souris.où.x comme r32
+                    souris_y := (hauteur - it.état_souris.où.y) comme r32
+                    points[point_sélectionné].x = souris_x
+                    points[point_sélectionné].y = souris_y
+                }
+            }
+        }
+    }
+
+    IGUMI.définis_fenêtre(largeur, hauteur)
+    IGUMI.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
+
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+
+    pour nombre_de_points {
+        x := points[it].x - LARGEUR_POINT * 0.5
+        y := points[it].y - LARGEUR_POINT * 0.5
+        IGUMI.quad_immédiat(x, y, LARGEUR_POINT, LARGEUR_POINT, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+    }
+
+    si nombre_de_points >= 2 {
+        IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+        IGUMI.segment_immédiat(points[0].x, points[0].y, points[1].x, points[1].y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        si nombre_de_points == 4 {
+            IGUMI.segment_immédiat(points[2].x, points[2].y, points[3].x, points[3].y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+            delta := 1.0 / 32.0
+            t := 0.0
+            pour 32 {
+                p0 := calcule_point_sur_courbe(points[0], points[1], t, points[2], points[3])
+                p1 := calcule_point_sur_courbe(points[0], points[1], t + delta, points[2], points[3])
+
+                IGUMI.segment_immédiat(p0.x, p0.y, p1.x, p1.y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+                t += delta
+            }
+        }
+    }
+
+    IGUMI.termine_immédiat()
+    permute_tampons_fenêtre(fenêtre)
+}
+
+chemin: Chemin
+peintre_: *Peintre
+un_noeud_vient_d_être_positionné := faux
+déplace_le_dernier_noeud := faux
+delta_déplacement_dernier_noeud: Vec2
+
+dessine_tracé :: fonc (fenêtre: TypeFenêtre)
+{
+    évènements := ajourne_évènements_fenêtre()
+
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    pour évènements {
+        si it.type == TypeÉvènement.Fermeture {
+            doit_fermer = vrai
+            arrête
+        }
+
+        // outil_plume(it, fenêtre)
+        outil_plume_de_courbure(it, fenêtre)
+    }
+
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi peintre_ {
+        peintre_ = crée_peintre_igumi(taille_canevas)
+        peintre_.définis_taille_canevas(taille_canevas)
+    }
+
+    peintre_.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
+    dessine_chemin(peintre_, chemin)
+
+    peintre_.termine_dessin()
+    permute_tampons_fenêtre(fenêtre)
+}
+
+outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+{
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                si chemin.sous_chemins.taille == 0 {
+                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
+                }
+
+                sous_chemin := dernier_élément(chemin.sous_chemins)
+
+                touche := donne_touche_tracé(*chemin, souris_x, souris_y)
+
+                si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
+                    /* Nous touchons le premier noeud -> fermeture du chemin. */
+                    sous_chemin.est_fermé = vrai
+                }
+                sinon {
+                    noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
+                    noeud.ancre.x = souris_x
+                    noeud.ancre.y = souris_y
+                    noeud.controle_avant = noeud.ancre
+                    noeud.controle_arrière = noeud.ancre
+
+                    // nous_pouvons_développer_les_ancres = vrai
+                    un_noeud_vient_d_être_positionné = vrai
+                }
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                // nous_pouvons_développer_les_ancres = faux
+                un_noeud_vient_d_être_positionné = faux
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                // nous_pouvons_développer_les_ancres
+                si un_noeud_vient_d_être_positionné {
+                    sous_chemin := dernier_élément(chemin.sous_chemins)
+                    noeud := dernier_élément(sous_chemin.noeuds)
+
+                    souris_x := it.état_souris.où.x comme r32
+                    souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                    noeud.controle_avant.x = souris_x
+                    noeud.controle_avant.y = souris_y
+
+                    noeud.controle_arrière.x = noeud.ancre.x + (noeud.ancre.x - noeud.controle_avant.x)
+                    noeud.controle_arrière.y = noeud.ancre.y + (noeud.ancre.y - noeud.controle_avant.y)
+                }
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            si déplace_le_dernier_noeud {
+                sous_chemin := dernier_élément(chemin.sous_chemins)
+                noeud := dernier_élément(sous_chemin.noeuds)
+
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
+                nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
+
+                dx := nouvelle_ancre_x - noeud.ancre.x
+                dy := nouvelle_ancre_y - noeud.ancre.y
+
+                noeud.ancre.x = nouvelle_ancre_x
+                noeud.ancre.y = nouvelle_ancre_y
+
+                noeud.controle_avant.x += dx
+                noeud.controle_avant.y += dy
+
+                noeud.controle_arrière.x += dx
+                noeud.controle_arrière.y += dy
+            }
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée {
+            si it.touche == ToucheClavier.ESPACE {
+                si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
+                    sous_chemin := dernier_élément(chemin.sous_chemins)
+                    noeud := dernier_élément(sous_chemin.noeuds)
+
+                    déplace_le_dernier_noeud = vrai
+                    dernière_souris := donne_état_souris(fenêtre)
+
+                    souris_x := dernière_souris.où.x comme r32
+                    souris_y := (hauteur - dernière_souris.où.y) comme r32
+
+                    delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
+                    delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
+                }
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                déplace_le_dernier_noeud = faux
+            }
+        }
+    }
+}
+
+outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+{
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                si chemin.sous_chemins.taille == 0 {
+                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
+                }
+
+                sous_chemin := dernier_élément(chemin.sous_chemins)
+
+                touche := donne_touche_tracé(*chemin, souris_x, souris_y)
+
+                si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
+                    /* Nous touchons le premier noeud -> fermeture du chemin. */
+                    sous_chemin.est_fermé = vrai
+                }
+                sinon {
+                    noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
+                    noeud.ancre.x = souris_x
+                    noeud.ancre.y = souris_y
+
+                    noeud.controle_avant = noeud.ancre
+                    noeud.controle_arrière = noeud.ancre
+                }
+
+                interpole_courbe_depuis_polygone(mémoire(sous_chemin))
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            si déplace_le_dernier_noeud {
+                sous_chemin := dernier_élément(chemin.sous_chemins)
+                noeud := dernier_élément(sous_chemin.noeuds)
+
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
+                nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
+
+                noeud.ancre.x = nouvelle_ancre_x
+                noeud.ancre.y = nouvelle_ancre_y
+
+                noeud.controle_avant = noeud.ancre
+                noeud.controle_arrière = noeud.ancre
+
+                interpole_courbe_depuis_polygone(mémoire(sous_chemin))
+            }
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée {
+            si it.touche == ToucheClavier.ESPACE {
+                si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
+                    sous_chemin := dernier_élément(chemin.sous_chemins)
+                    noeud := dernier_élément(sous_chemin.noeuds)
+
+                    déplace_le_dernier_noeud = vrai
+                    dernière_souris := donne_état_souris(fenêtre)
+
+                    souris_x := dernière_souris.où.x comme r32
+                    souris_y := (hauteur - dernière_souris.où.y) comme r32
+
+                    delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
+                    delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
+                }
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                déplace_le_dernier_noeud = faux
+            }
+        }
+    }
+}
+
+dessine_forme_sixième :: fonc (largeur: z32, hauteur: z32)
+{
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+
+    TAILLE_LIGNE :: 500.0
+
+    vx := (largeur comme r32) * 0.5
+    vy := (hauteur comme r32 - TAILLE_LIGNE) * 0.5
+
+    IGUMI.segment_immédiat(vx, vy, vx, vy + TAILLE_LIGNE, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+    hx := (largeur comme r32 - TAILLE_LIGNE) * 0.5
+    hy := (hauteur comme r32) * 0.5
+
+    IGUMI.segment_immédiat(hx, hy, hx + TAILLE_LIGNE, hy, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+    pour 25 {
+        p0 := Vec2(vx, vy + (it comme r32) * 10.0)
+        p1 := Vec2(vx + ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p1 = Vec2(vx - ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p0 = Vec2(vx, vy + TAILLE_LIGNE - (it comme r32) * 10.0)
+        p1 = Vec2(vx + ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p1 = Vec2(vx - ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+    }
+}
+
+segment_immédiat :: fonc (p0: Vec2, p1: Vec2, couleur: CouleurRVBA)
+{
+    IGUMI.segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur)
+}

@@ -854,17 +854,17 @@ donne_spécificité_max :: fonc () -> Spécificité
     retourne Spécificité(0xfffffff, 0xffffffff, 0xfffffffff)
 }
 
-opérateur == :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+opérateur == :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C
 }
 
-opérateur != :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+opérateur != :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     retourne !(s1 == s2)
 }
 
-opérateur < :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+opérateur < :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     si s1.A < s2.A {
         retourne vrai
@@ -883,7 +883,7 @@ opérateur < :: fonc (s1: Spécificité, s2: Spécificité) -> bool
     retourne s1.C < s2.C
 }
 
-opérateur > :: fonc (s1: Spécificité, s2: Spécificité) -> bool
+opérateur > :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     si s1.A > s2.A {
         retourne vrai

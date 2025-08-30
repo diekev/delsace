@@ -972,12 +972,12 @@ PrivateName :: struct {
     description: ECMAString // ou StringPrimitive?
 }
 
-opérateur == :: fonc (a: PrivateName, b: PrivateName) -> bool
+opérateur == :: (a: PrivateName, b: PrivateName) -> bool
 {
     retourne a.description == b.description
 }
 
-opérateur != :: fonc (a: PrivateName, b: PrivateName) -> bool
+opérateur != :: (a: PrivateName, b: PrivateName) -> bool
 {
     retourne a.description != b.description
 }
@@ -1056,7 +1056,7 @@ est_symbol :: fonc (key: PropertyKey) -> bool
     }
 }
 
-opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+opérateur == :: (p1: PropertyKey, p2: PropertyKey) -> bool
 {
     discr p1 {
         String(s1) {
@@ -1085,7 +1085,7 @@ opérateur == :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
     }
 }
 
-opérateur != :: fonc (p1: PropertyKey, p2: PropertyKey) -> bool
+opérateur != :: (p1: PropertyKey, p2: PropertyKey) -> bool
 {
     retourne !(p1 == p2)
 }
