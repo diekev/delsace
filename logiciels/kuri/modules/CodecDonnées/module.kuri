@@ -405,27 +405,12 @@ imprime_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32)
     imprime_tableau(sortie_reçue, message = "Sortie reçue")
 }
 
-compare_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32) -> bool
-{
-    si sortie_voulue.taille != sortie_reçue.taille {
-        retourne faux
-    }
-
-    pour sortie_voulue.taille {
-        si sortie_voulue[it] != sortie_reçue[it] {
-            retourne faux
-        }
-    }
-
-    retourne vrai
-}
-
 test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc([]z32)([..]z32)) -> bool
 {
     résultat := fonction_codec(entrée)
     diffère déloge(résultat)
 
-    saufsi compare_tableaux(sortie, résultat) {
+    saufsi tableaux_sont_égaux(sortie, résultat) {
         imprime_tableaux(sortie, résultat)
         retourne faux
     }
