@@ -128,7 +128,7 @@ remplis_avec_son_sinusoïdal :: fonc (tampon: TamponAudioStatique, fréquence: r
     données.pointeur = tampon.données.pointeur comme *z16
     données.taille = tampon.données.taille / 2
 
-    remplis_avec_son_sinusoïdal(données, format.nombre_de_canaux, fréquence, facteur_amplitude)
+    remplis_avec_son_sinusoïdal(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, fréquence, facteur_amplitude)
 }
 
 remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
@@ -152,12 +152,12 @@ remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échan
 
 #portée_fichier
 
-remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fréquence: r64, facteur_amplitude: r32)
+remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, taux_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
 {
     nombre_échantillons := données.taille
     nombre_échantillons_par_canal := nombre_échantillons / nombre_de_canaux
 
-    t := (Constantes(r32).TAU * fréquence comme r32) / (nombre_échantillons_par_canal comme r32)
+    t := (Constantes(r32).TAU * fréquence comme r32) / (taux_échantillon comme r32)
 
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
     amplitude := (facteur_amplitude * 32768)
