@@ -17,7 +17,7 @@ crée_tablet :: fonc () -> Tablet
     retourne résultat
 }
 
-opérateur pour :: fonc (tablet: Tablet) -> z32
+opérateur pour :: (tablet: Tablet) -> z32
 {
     pour donnée, index dans tablet.données {
         `it = donnée
@@ -48,7 +48,7 @@ DonnéesRubriqueStructure :: struct {
     nom: chaine
 }
 
-opérateur pour :: fonc (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriqueStructure
+opérateur pour :: (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriqueStructure
 {
     index := 0
 

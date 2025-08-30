@@ -960,8 +960,12 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
                 default:
                 {
-                    auto résultat = trouve_opérateur_pour_expression(
-                        *m_espace, expr, type_gauche, type_droite, GenreLexème::CROCHET_OUVRANT);
+                    auto résultat = trouve_opérateur_pour_expression(*m_espace,
+                                                                     *this,
+                                                                     expr,
+                                                                     type_gauche,
+                                                                     type_droite,
+                                                                     GenreLexème::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -1686,6 +1690,79 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             return valide_expression_type_fonction(noeud->comme_expression_type_fonction());
         }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_binaire();
+            auto type_op = référence->lexème->genre;
+            auto gauche = référence->opérande_gauche;
+            auto droite = référence->opérande_droite;
+            auto type_gauche = gauche->type;
+            auto type_droite = droite->type;
+
+            if (résoud_type_final(gauche, type_gauche) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (résoud_type_final(droite, type_droite) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            // À FAIRE : supprime l'expression binaire
+            NoeudExpressionBinaire expr;
+            expr.lexème = référence->lexème;
+            expr.opérande_gauche = gauche;
+            expr.opérande_droite = droite;
+
+            auto résultat = trouve_opérateur_pour_expression(
+                *m_espace, *this, &expr, type_gauche, type_droite, type_op);
+
+            if (std::holds_alternative<Attente>(résultat)) {
+                return std::get<Attente>(résultat);
+            }
+
+            auto candidat = std::get<OpérateurCandidat>(résultat);
+
+            if (candidat.op->est_basique) {
+                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (candidat.permute_opérandes) {
+                rapporte_erreur("Aucun opérateur trouvé pour l'expression", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            référence->op = candidat.op;
+            référence->type = candidat.op->decl->type;
+
+            return CodeRetourValidation::OK;
+        }
+        case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        {
+            auto référence = noeud->comme_référence_opérateur_unaire();
+            auto droite = référence->opérande;
+            auto type_droite = droite->type;
+
+            if (résoud_type_final(droite, type_droite) == CodeRetourValidation::Erreur) {
+                return CodeRetourValidation::Erreur;
+            }
+
+            auto opérateurs = m_compilatrice.opérateurs.verrou_lecture();
+            auto op = cherche_opérateur_unaire(*opérateurs, type_droite, référence->lexème->genre);
+
+            if (op == nullptr) {
+                return Attente::sur_opérateur(noeud);
+            }
+
+            if (op->est_basique) {
+                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
+                return CodeRetourValidation::Erreur;
+            }
+
+            référence->op = op;
+            référence->type = op->déclaration->type;
+            return CodeRetourValidation::OK;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             assert_rappel(false,
@@ -1992,6 +2069,8 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
     }
 
     CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ENTETE_FONCTION);
+
+    valide_paramètres_constants_fonction(decl);
 
     {
         CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
@@ -3823,7 +3902,7 @@ struct ConstructriceRubriquesTypeComposé {
     }
 };
 
-static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+static bool la_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
                                                      NoeudDéclarationType *type_rubrique)
 {
     if (type_composé == type_rubrique) {
@@ -3832,21 +3911,21 @@ static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_c
 
     if (type_rubrique->est_type_tableau_fixe()) {
         auto type_tableau = type_rubrique->comme_type_tableau_fixe();
-        return le_rubrique_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
+        return la_rubrique_référence_le_type_par_valeur(type_composé, type_tableau->type_pointé);
     }
 
     if (type_rubrique->est_type_opaque()) {
         auto type_opaque = type_rubrique->comme_type_opaque();
-        return le_rubrique_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
+        return la_rubrique_référence_le_type_par_valeur(type_composé, type_opaque->type_opacifié);
     }
 
     return false;
 }
 
-static bool le_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
+static bool la_rubrique_référence_le_type_par_valeur(TypeCompose const *type_composé,
                                                      NoeudExpression *expression_rubrique)
 {
-    return le_rubrique_référence_le_type_par_valeur(type_composé, expression_rubrique->type);
+    return la_rubrique_référence_le_type_par_valeur(type_composé, expression_rubrique->type);
 }
 
 static void rapporte_erreur_type_rubrique_invalide(EspaceDeTravail *espace,
@@ -4021,7 +4100,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4035,7 +4114,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
@@ -4066,7 +4145,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4236,7 +4315,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4257,7 +4336,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 return CodeRetourValidation::Erreur;
             }
 
-            if (le_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
+            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
                 rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
                 return CodeRetourValidation::Erreur;
             }
@@ -4295,7 +4374,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (le_rubrique_référence_le_type_par_valeur(type_union, var)) {
+                if (la_rubrique_référence_le_type_par_valeur(type_union, var)) {
                     rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4828,7 +4907,11 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
         auto res_exec = évalue_expression(m_compilatrice, decl->bloc_parent, expression);
 
         if (res_exec.est_erroné) {
-            rapporte_erreur("Impossible d'évaluer l'expression de la constante", expression);
+            m_espace
+                ->rapporte_erreur(res_exec.noeud_erreur,
+                                  "Je ne peux pas évaluer l'expression de la valeur constante "
+                                  "pour la raison suivante :\n")
+                .ajoute_message(res_exec.message_erreur);
             return CodeRetourValidation::Erreur;
         }
 
@@ -5535,7 +5618,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_chaine(NoeudExpres
     auto const type_droite = expression_comparée->type;
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_gauche, type_droite, type_op);
+        *m_espace, *this, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5780,7 +5863,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_gauche, type_droite, type_op);
+        *m_espace, *this, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5862,7 +5945,7 @@ RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, expr, type_bool, type_bool, type_op);
+        *m_espace, *this, expr, type_bool, type_bool, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -6376,7 +6459,7 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
             return CodeRetourValidation::Erreur;
         }
 
-        auto const résultat_compatibilité = vérifie_compatibilité(type_inféré, expr->type);
+        auto const résultat_compatibilité = vérifie_compatibilité(type_inféré, expr->type, false);
 
         if (std::holds_alternative<Attente>(résultat_compatibilité)) {
             return std::get<Attente>(résultat_compatibilité);
@@ -6621,7 +6704,11 @@ RésultatValidation Sémanticienne::valide_expression_type_tableau_fixe(
         m_compilatrice, expression_taille->bloc_parent, expression_taille);
 
     if (res.est_erroné) {
-        rapporte_erreur("Impossible d'évaluer la taille du tableau", expression_taille);
+        m_espace
+            ->rapporte_erreur(res.noeud_erreur,
+                              "Je ne peux pas déterminer le nombre d'éléments du tableau "
+                              "pour la raison suivante :\n")
+            .ajoute_message(res.message_erreur);
         return CodeRetourValidation::Erreur;
     }
 

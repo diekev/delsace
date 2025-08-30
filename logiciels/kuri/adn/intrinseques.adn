@@ -238,6 +238,17 @@ fonction intrinsèque_est_adresse_données_constantes(void *adresse) -> bool
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name Divers.
+* \{ */
+
+/** Équivalent à rdtsc en assembleur. */
+fonction intrinsèque_lis_compteur_temporel() -> n64
+@intrinsèque LIS_COMPTEUR_TEMPOREL
+@exclus_métaprogramme
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Atomiques.
  * Non-portés :
  * __atomic_*_fetch
