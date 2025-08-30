@@ -341,6 +341,15 @@ NoeudExpression *derniere_instruction(NoeudBloc const *b, bool accepte_appels)
         return derniere_instruction(inst->bloc_si_faux->comme_bloc(), accepte_appels);
     }
 
+    if (di->est_si_statique()) {
+        auto si_statique = di->comme_si_statique();
+        auto bloc_à_fusionner = donne_bloc_à_fusionner(si_statique);
+        if (!bloc_à_fusionner) {
+            return NoeudExpression::nul();
+        }
+        return derniere_instruction(bloc_à_fusionner, accepte_appels);
+    }
+
     if (di->est_pousse_contexte()) {
         auto inst = di->comme_pousse_contexte();
         return derniere_instruction(inst->bloc, accepte_appels);

@@ -169,7 +169,7 @@ charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilis
 }
 
 // À FAIRE(langage) : empl pour les opérateurs
-opérateur pour :: fonc (requêtes: RequêtesEntrantes) -> Requête
+opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
 {
     serveuse := requêtes.serveuse
 

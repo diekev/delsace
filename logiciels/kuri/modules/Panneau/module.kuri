@@ -17,7 +17,6 @@
 
 importe Couleur
 importe Fondation
-importe Géométrie
 importe Périphériques
 importe PeintureInterface
 importe Typographie

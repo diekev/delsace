@@ -39,6 +39,10 @@ convertis_chaine_c_statique :: fonc (chn: ChaineC) -> chaine
     taille := taille_chaine_c(chn)
     retourne chaine(chn comme *z8, taille)
 }
+convertis_chaine_c_statique :: fonc (chn: *z8) -> chaine
+{
+    retourne convertis_chaine_c_statique(ChaineC(chn))
+}
 
 détruit_chaine_c :: fonc (chn: &ChaineC)
 {
