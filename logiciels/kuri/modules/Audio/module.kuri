@@ -120,11 +120,14 @@ remplis_avec_son_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, fr
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
     amplitude := (facteur_amplitude * 32768)
 
+    échantillon := données.pointeur
+
     pour nombre_échantillons_par_canal {
         valeur := (amplitude * sinus(t * (it comme r32))) comme z16
 
-        pour c dans nombre_de_canaux {
-            données[it * 2 + c] = valeur
+        pour _ dans nombre_de_canaux {
+            mémoire(échantillon) = valeur
+            échantillon += 1
         }
     }
 }
