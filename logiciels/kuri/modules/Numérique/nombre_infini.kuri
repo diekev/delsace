@@ -79,7 +79,7 @@ chaine_depuis_nombre_infini :: fonc (n: NombreInfini) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
+opérateur + :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
     résultat: NombreInfini
 
@@ -124,7 +124,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     retourne résultat
 }
 
-opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
+opérateur + :: (n0: NombreInfini, n1: n64) -> NombreInfini
 {
     résultat: NombreInfini
 
@@ -164,7 +164,7 @@ opérateur + :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
     retourne résultat
 }
 
-opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
+opérateur - :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
     résultat: NombreInfini
 
@@ -216,7 +216,7 @@ opérateur - :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     retourne résultat
 }
 
-opérateur - :: fonc (n0: NombreInfini, n1: n64) -> NombreInfini
+opérateur - :: (n0: NombreInfini, n1: n64) -> NombreInfini
 {
     //  À FAIRE : nombre inférieur à 0
 
@@ -267,7 +267,7 @@ supprime_zéro_en_début :: fonc (n: *NombreInfini)
     }
 }
 
-opérateur * :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
+opérateur * :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
     résultat: NombreInfini
 
@@ -284,7 +284,7 @@ opérateur * :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
     retourne résultat
 }
 
-opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
+opérateur * :: (n0: NombreInfini, n2: n64) -> NombreInfini
 {
     résultat: NombreInfini
     résultat.chiffres = tableau_copie(n0.chiffres)
@@ -318,11 +318,11 @@ opérateur * :: fonc (n0: NombreInfini, n2: n64) -> NombreInfini
     retourne résultat
 }
 
-opérateur / :: fonc (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
+opérateur / :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
 }
 
-opérateur == :: fonc (n0: NombreInfini, n1: n64) -> bool
+opérateur == :: (n0: NombreInfini, n1: n64) -> bool
 {
     si n1 >= 10 {
         retourne faux
@@ -341,7 +341,7 @@ opérateur == :: fonc (n0: NombreInfini, n1: n64) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (n0: NombreInfini, n1: n64) -> bool
+opérateur != :: (n0: NombreInfini, n1: n64) -> bool
 {
     retourne !(n0 == n1)
 }

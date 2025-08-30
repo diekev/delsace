@@ -97,6 +97,12 @@ TypeFenêtre :: struct {
     rappels_window: *RappelsWindow
 }
 
+donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
+{
+    assert(fenêtre.rappels_window != nul)
+    retourne fenêtre.rappels_window.dernière_souris
+}
+
 #portée_fichier
 
 __évènements: [..]Évènement
@@ -276,6 +282,8 @@ RappelsWindow :: struct {
 
     sur_creation = rappels_window_sur_création
     sur_evenement = rappels_window_sur_évènement
+
+    dernière_souris: ÉtatSouris
 }
 
 rappels_window_sur_création :: fonc (base: *QT_Rappels_Window)
@@ -331,6 +339,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
+        rappels.dernière_souris = clic.état
         retourne vrai
     }
 
@@ -338,6 +347,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         clic := donne_clic_souris_depuis_évènement(event.wheel_event)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
+        rappels.dernière_souris = clic.état
         retourne vrai
     }
 
@@ -345,6 +355,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
+        rappels.dernière_souris = clic.état
         retourne vrai
     }
 
@@ -352,6 +363,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
         évènement := tableau_ajoute_élément(*__évènements)
         initialise_depuis_clic(évènement, clic)
+        rappels.dernière_souris = clic.état
         retourne vrai
     }
 

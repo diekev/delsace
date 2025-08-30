@@ -189,7 +189,7 @@ tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, dé
         retourne 0
     }
 
-    bloc := tranche(lignes, index_début_bloc, index_début_bloc + taille_bloc - 1)
+    bloc := tableau_donne_tranche(lignes, index_début_bloc, index_début_bloc + taille_bloc - 1)
     tri_rapide(bloc, compare_chaine)
     retourne taille_bloc
 }

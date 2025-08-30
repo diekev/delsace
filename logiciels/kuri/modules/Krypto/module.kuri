@@ -71,12 +71,12 @@ imprime_condensant :: fonc (enchaineuse: *Enchaineuse, condensat: *Condensat)
     encode_hexadécimal(enchaineuse, condensat.données)
 } @FormattageImpression
 
-opérateur < :: fonc (condensat1: Condensat, condensat2: Condensat) -> bool
+opérateur < :: (condensat1: Condensat, condensat2: Condensat) -> bool
 {
     retourne condensat1.donne_chaine() < condensat2.donne_chaine()
 }
 
-opérateur == :: fonc (condensat1: Condensat, condensat2: Condensat) -> bool
+opérateur == :: (condensat1: Condensat, condensat2: Condensat) -> bool
 {
     retourne condensat1.donne_chaine() == condensat2.donne_chaine()
 }

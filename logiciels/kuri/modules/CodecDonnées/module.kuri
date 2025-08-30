@@ -399,39 +399,10 @@ décode_par_plages :: fonc (données: []$T) -> [..]T
 /** \nom Test pour les codecs du dessus.
  * \{ */
 
-imprime_tableau :: fonc (message: chaine, tableau: []z32)
-{
-    imprime("% : ", message)
-    virgule := "[ "
-    pour tableau {
-        imprime("%%", virgule, it)
-        virgule = ", "
-    }
-    saufsi tableau {
-        imprime("[")
-    }
-    imprime(" ]\n")
-}
-
 imprime_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32)
 {
-    imprime_tableau("Sortie voulue", sortie_voulue)
-    imprime_tableau("Sortie reçue ", sortie_reçue)
-}
-
-compare_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32) -> bool
-{
-    si sortie_voulue.taille != sortie_reçue.taille {
-        retourne faux
-    }
-
-    pour sortie_voulue.taille {
-        si sortie_voulue[it] != sortie_reçue[it] {
-            retourne faux
-        }
-    }
-
-    retourne vrai
+    imprime_tableau(sortie_voulue, message = "Sortie voulue")
+    imprime_tableau(sortie_reçue, message = "Sortie reçue")
 }
 
 test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc([]z32)([..]z32)) -> bool
@@ -439,7 +410,7 @@ test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc
     résultat := fonction_codec(entrée)
     diffère déloge(résultat)
 
-    saufsi compare_tableaux(sortie, résultat) {
+    saufsi tableaux_sont_égaux(sortie, résultat) {
         imprime_tableaux(sortie, résultat)
         retourne faux
     }
