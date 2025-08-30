@@ -11,6 +11,13 @@ FluxOctets :: struct {
     sur_lis: fonc(*FluxOctets, []octet)(z64)
     sur_ferme: fonc(*FluxOctets)(rien)
     sur_est_à_la_fin: fonc(*FluxOctets)(bool)
+    sur_destruction: fonc(*FluxOctets)(rien)
+}
+
+détruit :: fonc (flux: *FluxOctets)
+{
+    ferme(flux)
+    flux.sur_destruction(flux)
 }
 
 ferme :: fonc (flux: *FluxOctets)
@@ -101,15 +108,26 @@ FluxOctetsMémoire :: struct {
     curseur: []octet
 }
 
-crée_flux_octets_mémoire :: fonc (octets: []octet) -> FluxOctetsMémoire
+crée_flux_octets :: fonc (octets: []octet) -> *FluxOctetsMémoire
 {
-    résultat: FluxOctetsMémoire
+    résultat := loge(FluxOctetsMémoire)
+    initialise_flux_octets_mémoire(résultat, octets)
+    retourne résultat
+}
+
+initialise_flux_octets_mémoire :: fonc (résultat: *FluxOctetsMémoire, octets: []octet)
+{
     résultat.sur_lis = flux_octets_mémoire_lis
     résultat.sur_positionne = flux_octets_mémoire_positionne
     résultat.sur_est_à_la_fin = flux_octets_mémoire_est_à_la_fin
+    résultat.sur_destruction = flux_octets_mémoire_sur_destruction
     résultat.octets = octets
     résultat.curseur = octets
-    retourne résultat
+}
+
+flux_octets_mémoire_sur_destruction :: fonc (flux: *FluxOctetsMémoire)
+{
+    déloge(flux)
 }
 
 flux_octets_mémoire_est_à_la_fin :: fonc (flux: *FluxOctetsMémoire) -> bool
@@ -168,27 +186,48 @@ FluxOctetsFichier :: struct {
     curseur: z64
 }
 
-crée_flux_octets_fichier :: fonc (chemin: chaine) -> FluxOctetsFichier
+crée_flux_octets :: fonc (chemin: chaine) -> *FluxOctetsFichier
 {
-    retourne crée_flux_octets_fichier(CheminFichier(chemin))
+    retourne crée_flux_octets(CheminFichier(chemin))
 }
 
-crée_flux_octets_fichier :: fonc (chemin: CheminFichier) -> FluxOctetsFichier
+crée_flux_octets :: fonc (chemin: CheminFichier) -> *FluxOctetsFichier
 {
-    résultat: FluxOctetsFichier
+    tmp: FluxOctetsFichier
+    saufsi initialise_flux_octets_fichier(*tmp, chemin) {
+        retourne nul
+    }
+
+    résultat := loge(FluxOctetsFichier)
+    mémoire(résultat) = tmp
+    retourne résultat
+}
+
+initialise_flux_octets_fichier :: fonc (flux: *FluxOctetsFichier, chemin: chaine) -> bool
+{
+    retourne initialise_flux_octets_fichier(flux, CheminFichier(chemin))
+}
+
+initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: CheminFichier) -> bool
+{
     résultat.sur_lis = flux_octets_fichier_lis
     résultat.sur_ferme = flux_octets_fichier_ferme
     résultat.sur_positionne = flux_octets_fichier_positionne
     résultat.sur_est_à_la_fin = flux_octets_fichier_est_à_la_fin
+    résultat.sur_destruction = flux_octets_mémoire_sur_destruction
 
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
-        retourne résultat
+        retourne faux
     }
 
     résultat.taille_fichier = détermine_taille_fichier(*résultat.fichier)
+    retourne vrai
+}
 
-    retourne résultat
+flux_octets_fichier_sur_destruction :: fonc (flux: *FluxOctetsFichier)
+{
+    déloge(flux)
 }
 
 flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
