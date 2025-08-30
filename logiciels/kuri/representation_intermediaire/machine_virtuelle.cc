@@ -965,18 +965,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         données_externe.types_entrées.réserve(nombre_arguments_totaux);
 
         POUR (inst_appel->args) {
-            auto type = converti_type_ffi(it->type);
-            données_externe.types_entrées.ajoute(type);
+            auto type_primitif = donne_type_primitif(it->type);
+            auto type_ffi = converti_type_ffi(type_primitif);
+            données_externe.types_entrées.ajoute(type_ffi);
 
             auto ptr = &pointeur_arguments[decalage_argument];
             pointeurs_arguments.ajoute(ptr);
 
-            if (it->type->est_type_entier_constant()) {
-                decalage_argument += 4;
-            }
-            else {
-                decalage_argument += it->type->taille_octet;
-            }
+            decalage_argument += type_primitif->taille_octet;
         }
 
         données_externe.types_entrées.ajoute(nullptr);

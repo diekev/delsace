@@ -669,7 +669,8 @@ ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_
     return cherche_transformation<true>(type_de, type_vers);
 }
 
-static double donne_poids_transformation(TypeTransformation transformation)
+static double donne_poids_transformation(TypeTransformation transformation,
+                                         bool ignore_entier_constant)
 {
     switch (transformation) {
         case TypeTransformation::INUTILE:
@@ -688,6 +689,13 @@ static double donne_poids_transformation(TypeTransformation transformation)
              * que vers []octet ou eini). */
             return 0.6;
         }
+        case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
+        {
+            if (ignore_entier_constant) {
+                return 1.0;
+            }
+            return 0.5;
+        }
         default:
         {
             /* nous savons que nous devons transformer la valeur (par ex. eini), donc
@@ -697,7 +705,9 @@ static double donne_poids_transformation(TypeTransformation transformation)
     }
 }
 
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type const *type_de)
+ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+                                                  Type const *type_de,
+                                                  bool ignore_entier_constant)
 {
     auto résultat = cherche_transformation<false>(type_de, type_vers);
 
@@ -707,7 +717,7 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type 
 
     auto transformation = std::get<TransformationType>(résultat);
 
-    auto poids = donne_poids_transformation(transformation.type);
+    auto poids = donne_poids_transformation(transformation.type, ignore_entier_constant);
 
     if (transformation.type == TypeTransformation::INUTILE) {
         /* ne convertissons pas implicitement vers *nul quand nous avons une opérande */
@@ -722,7 +732,8 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers, Type 
 
 ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
-                                                  NoeudExpression const *noeud)
+                                                  NoeudExpression const *noeud,
+                                                  bool ignore_entier_constant)
 {
     auto résultat = cherche_transformation<false>(type_de, type_vers);
 
@@ -732,7 +743,7 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
 
     auto transformation = std::get<TransformationType>(résultat);
 
-    auto poids = donne_poids_transformation(transformation.type);
+    auto poids = donne_poids_transformation(transformation.type, ignore_entier_constant);
 
     if (transformation.type == TypeTransformation::PREND_REFERENCE) {
         poids = est_valeur_gauche(noeud->genre_valeur) ? 1.0 : 0.0;

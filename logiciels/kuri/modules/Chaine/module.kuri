@@ -167,7 +167,7 @@ ItératriceUTF32 :: struct {
     chn: chaine
 }
 
-opérateur pour :: fonc (itératrice: ItératriceUTF32) -> rune32
+opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
 {
     ptr_source := itératrice.chn.pointeur
     curseur := 0

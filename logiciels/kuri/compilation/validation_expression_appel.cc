@@ -332,8 +332,8 @@ struct ApparieuseParams {
     /* Les index sont utilisés pour les rubriques de structures. L'expression de construction de
      * structure doit avoir le même nombre de paramètres résolus que le nombre de rubriques de la
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
-     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir à
-     * quel rubrique réel le slot appartient. */
+     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir
+     * à quel rubrique réel le slot appartient. */
     kuri::tablet<int, 10> m_index_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
@@ -666,7 +666,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
         }
     }
 
-    return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot);
+    return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot, false);
 }
 
 static void crée_tableau_args_variadiques(Sémanticienne &contexte,
@@ -1364,7 +1364,8 @@ static RésultatAppariement apparie_construction_type_composé(
         }
     }
 
-    auto transformations = kuri::tableau<TransformationType, int>(type_compose->rubriques.taille());
+    auto transformations = kuri::tableau<TransformationType, int>(
+        type_compose->rubriques.taille());
     auto poids_appariement = 1.0;
 
     POUR_INDEX (apparieuse_params.slots()) {
@@ -1380,7 +1381,7 @@ static RésultatAppariement apparie_construction_type_composé(
         }
         auto &rubrique = type_compose->rubriques[index_rubrique];
 
-        auto résultat = vérifie_compatibilité(rubrique.type, it->type, it);
+        auto résultat = vérifie_compatibilité(rubrique.type, it->type, it, false);
 
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -1523,7 +1524,7 @@ static RésultatAppariement apparie_construction_opaque(
     }
 
     auto arg = arguments[0].expr;
-    auto résultat = vérifie_compatibilité(type_opacifié, arg->type);
+    auto résultat = vérifie_compatibilité(type_opacifié, arg->type, false);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -1761,129 +1762,6 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
     }
 
     return {};
-}
-
-/* ************************************************************************** */
-
-static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
-{
-    if (noeud->est_entête_fonction()) {
-        return noeud->comme_entête_fonction()->bloc_constantes;
-    }
-    if (noeud->est_déclaration_classe()) {
-        return noeud->comme_déclaration_classe()->bloc_constantes;
-    }
-    assert_rappel(false, [&]() {
-        dbg() << "[bloc_constantes_pour] Obtenu un noeud de genre " << noeud->genre;
-    });
-    return nullptr;
-}
-
-static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
-    AssembleuseArbre *assembleuse,
-    NoeudExpression const *a_copier,
-    Monomorphisations *monomorphisations,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
-{
-    auto monomorphisation = monomorphisations->trouve_monomorphisation(items_monomorphisation);
-    if (monomorphisation) {
-        return {monomorphisation, false};
-    }
-
-    auto copie = copie_noeud(
-        assembleuse, a_copier, a_copier->bloc_parent, OptionsCopieNoeud::AUCUNE);
-    auto bloc_constantes = bloc_constantes_pour(copie);
-
-    /* Ajourne les constantes dans le bloc. */
-    POUR (items_monomorphisation) {
-        auto decl_constante =
-            trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_déclaration_constante();
-        decl_constante->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-        decl_constante->drapeaux &= ~(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
-                                      DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
-        decl_constante->type = const_cast<Type *>(it.type);
-
-        if (it.genre == GenreItem::VALEUR) {
-            decl_constante->valeur_expression = it.valeur;
-        }
-    }
-
-    monomorphisations->ajoute(items_monomorphisation, copie);
-    return {copie, true};
-}
-
-static std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    Compilatrice &compilatrice,
-    EspaceDeTravail &espace,
-    NoeudDéclarationEntêteFonction const *decl,
-    NoeudExpression *site,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
-{
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
-                                                          decl,
-                                                          decl->monomorphisations,
-                                                          std::move(items_monomorphisation));
-
-    auto entête = copie->comme_entête_fonction();
-
-    if (!copie_nouvelle) {
-        return {entête, false};
-    }
-
-    entête->drapeaux_fonction |= DrapeauxNoeudFonction::EST_MONOMORPHISATION;
-    entête->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
-    entête->site_monomorphisation = site;
-
-    /* Supprime les valeurs polymorphiques.
-     * À FAIRE : optimise en utilisant un drapeau sur l'entête pour dire que les paramètres
-     * contiennent une déclaration de valeur ou de type polymorphique. */
-    auto nouveau_params = kuri::tablet<NoeudExpression *, 6>();
-    POUR (entête->params) {
-        auto decl_constante = trouve_dans_bloc_seul(entête->bloc_constantes, it->ident);
-        if (decl_constante) {
-            continue;
-        }
-
-        nouveau_params.ajoute(it);
-    }
-
-    if (nouveau_params.taille() != entête->params.taille()) {
-        POUR_INDEX (nouveau_params) {
-            static_cast<void>(it);
-            entête->params[indice_it] = nouveau_params[indice_it];
-        }
-        entête->params.redimensionne(int(nouveau_params.taille()));
-    }
-
-    compilatrice.gestionnaire_code->requiers_typage(&espace, entête);
-    return {entête, true};
-}
-
-static NoeudDéclarationClasse *monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    EspaceDeTravail &espace,
-    NoeudDéclarationClasse const *decl_struct,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
-{
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
-                                                          decl_struct,
-                                                          decl_struct->monomorphisations,
-                                                          std::move(items_monomorphisation));
-
-    auto structure = copie->comme_déclaration_classe();
-
-    if (!copie_nouvelle) {
-        return structure;
-    }
-
-    structure->est_polymorphe = false;
-    structure->est_monomorphisation = true;
-    structure->polymorphe_de_base = decl_struct;
-
-    espace.compilatrice().gestionnaire_code->requiers_typage(&espace, structure);
-
-    return structure;
 }
 
 /* ************************************************************************** */

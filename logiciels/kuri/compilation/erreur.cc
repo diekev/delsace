@@ -478,7 +478,7 @@ void fonction_principale_manquante(EspaceDeTravail const &espace)
 }
 
 void imprime_site(Enchaineuse &enchaineuse,
-                  const EspaceDeTravail &espace,
+                  const Compilatrice &compilatrice,
                   const NoeudExpression *site)
 {
     if (site == nullptr) {
@@ -486,7 +486,7 @@ void imprime_site(Enchaineuse &enchaineuse,
     }
 
     auto lexeme = site->lexème;
-    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
+    auto fichier = compilatrice.fichier(lexeme->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {
         enchaineuse << fichier->chemin();
@@ -508,15 +508,27 @@ void imprime_site(Enchaineuse &enchaineuse,
     enchaineuse << '\n';
 }
 
-kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+kuri::chaine imprime_site(const Compilatrice &compilatrice, const NoeudExpression *site)
 {
     if (site == nullptr) {
         return "aucun site";
     }
 
     Enchaineuse enchaineuse;
-    imprime_site(enchaineuse, espace, site);
+    imprime_site(enchaineuse, compilatrice, site);
     return enchaineuse.chaine();
+}
+
+void imprime_site(Enchaineuse &enchaineuse,
+                  const EspaceDeTravail &espace,
+                  const NoeudExpression *site)
+{
+    imprime_site(enchaineuse, espace.compilatrice(), site);
+}
+
+kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
+{
+    return imprime_site(espace.compilatrice(), site);
 }
 
 }  // namespace erreur

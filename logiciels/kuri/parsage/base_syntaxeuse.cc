@@ -68,6 +68,11 @@ kuri::chaine BaseSyntaxeuse::crée_message_erreur(kuri::chaine_statique message)
 
 void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
 {
+    rapporte_erreur(message, lexème_courant());
+}
+
+void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message, Lexème const *lexème)
+{
     if (m_possède_erreur) {
         /* Avance pour ne pas être bloqué. */
         consomme();
@@ -75,7 +80,7 @@ void BaseSyntaxeuse::rapporte_erreur(kuri::chaine_statique message)
     }
 
     m_possède_erreur = true;
-    gère_erreur_rapportée(crée_message_erreur(message));
+    gère_erreur_rapportée(crée_message_erreur(message), lexème);
 }
 
 void BaseSyntaxeuse::sauvegarde_position_lexème()
