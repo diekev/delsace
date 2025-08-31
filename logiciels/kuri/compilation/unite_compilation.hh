@@ -60,7 +60,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être);
     O(ATTENTES_RÉSOLUES)                                                                          \
     O(ATTENTES_BLOQUÉES)                                                                          \
     O(ATTENTES_NON_RÉSOLUES)                                                                      \
-    O(UN_SYMBOLE_EST_ATTENDU)
+    O(UN_SYMBOLE_EST_ATTENDU)                                                                     \
+    O(UN_OPÉRATEUR_EST_ATTENDU)
 
 #undef ENREGISTRE_HISTORIQUE
 
@@ -120,6 +121,10 @@ struct UniteCompilation {
      * nous nous rappelons de l'attente sur symbole précédente et augmentons le cycle uniquement si
      * nous avons toujours la même attente avant de retenter la compilation. */
     NoeudExpression *m_attente_sur_symbole_précédente = nullptr;
+
+    /* Idem pour les opérateurs : mémorisons l'attente précédente et n'augmentons le cycle que si
+     * attendons toujours le même opérateur. */
+    NoeudExpression *m_attente_sur_opérateur_précédente = nullptr;
 
   public:
     EspaceDeTravail *espace = nullptr;
@@ -263,6 +268,9 @@ struct UniteCompilation {
   private:
     bool est_attente_sur_symbole_précédent(Attente attente) const;
     void marque_prête_pour_attente_sur_symbole();
+
+    bool est_attente_sur_opérateur_précédent(Attente attente) const;
+    void marque_prête_pour_attente_sur_opérateur(Attente attente);
 
     /* Retourne la première Attente qui semble ne pas pouvoir être résolue, ou nul si elles sont
      * toutes résolvables. */

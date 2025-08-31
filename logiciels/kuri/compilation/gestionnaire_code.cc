@@ -2165,6 +2165,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
             case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
+            case UniteCompilation::ÉtatAttentes::UN_OPÉRATEUR_EST_ATTENDU:
             {
                 it->définis_état(UniteCompilation::État::DONNÉE_À_ORDONNANCEUSE);
                 ordonnanceuse.crée_tâche_pour_unité(it);

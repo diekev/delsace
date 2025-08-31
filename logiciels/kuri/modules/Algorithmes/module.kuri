@@ -543,8 +543,6 @@ partition_sans_garde :: fonc (premier: *$T, dernier: *T, pivot: *T, comp: fonc(T
 
         permute(premier, dernier);
         premier += 1
-
-        // À FAIRE(langage) : compilation infinie premier += dernier
     }
 
     retourne nul
