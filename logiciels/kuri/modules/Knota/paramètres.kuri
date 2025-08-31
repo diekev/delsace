@@ -27,10 +27,7 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
             retourne ""
         }
         Image {
-            filtres := IMG_donne_filtre_extensions()
-            diffère IMG_detruit_chaine(*filtres)
-            résultat := copie_chaine(chaine(filtres.caractères, filtres.taille comme z64))
-            retourne résultat
+            retourne donne_chaine_filtre_extensions(vrai)
         }
         HTML {
             retourne "HTML (*.html)"
