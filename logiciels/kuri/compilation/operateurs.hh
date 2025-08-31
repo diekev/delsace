@@ -63,6 +63,8 @@ struct OpérateurUnaire {
 
 const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre);
 
+std::ostream &operator<<(std::ostream &os, OpérateurUnaire::Genre genre);
+
 /* Nom genre, chaine RI, code opération MV. */
 #define ENUMERE_OPERATEURS_BINAIRE                                                                \
     ENUMERE_GENRE_OPBINAIRE_EX(Invalide, invalide, octet_t(-1))                                   \
@@ -128,6 +130,8 @@ struct OpérateurBinaire {
 };
 
 const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre);
+
+std::ostream &operator<<(std::ostream &os, OpérateurBinaire::Genre genre);
 
 /* Structure stockant les opérateurs binaires pour un Type.
  * Le Type n'est pas stocké ici, mais chaque Type possède une telle table.

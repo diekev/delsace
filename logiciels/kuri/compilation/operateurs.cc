@@ -262,6 +262,12 @@ const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre)
     return "inconnu";
 }
 
+std::ostream &operator<<(std::ostream &os, OpérateurBinaire::Genre genre)
+{
+    os << chaine_pour_genre_op(genre);
+    return os;
+}
+
 const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre)
 {
 #define ENUMERE_GENRE_OPUNAIRE_EX(genre, nom)                                                     \
@@ -273,6 +279,12 @@ const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre)
 #undef ENUMERE_GENRE_OPUNAIRE_EX
 
     return "inconnu";
+}
+
+std::ostream &operator<<(std::ostream &os, OpérateurUnaire::Genre genre)
+{
+    os << chaine_pour_genre_op(genre);
+    return os;
 }
 
 inline int index_op_binaire(GenreLexème lexeme)
