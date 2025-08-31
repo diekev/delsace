@@ -8,8 +8,6 @@
 #include "structures/tableau.hh"
 #include "structures/tuples.hh"
 
-#include "utilitaires/synchrone.hh"
-
 struct EspaceDeTravail;
 struct Enchaineuse;
 struct IdentifiantCode;

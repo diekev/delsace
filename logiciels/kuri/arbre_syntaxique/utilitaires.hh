@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iosfwd>
-#include <optional>
 
 #include "prodeclaration.hh"
 

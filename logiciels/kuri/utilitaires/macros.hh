@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #define CONCATENE_IMPL(s1, s2) s1##s2
 #define CONCATENE(s1, s2) CONCATENE_IMPL(s1, s2)
 
