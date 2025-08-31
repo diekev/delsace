@@ -120,7 +120,7 @@
 #define POUR_NOMME(nom, x) for (auto &nom : (x))
 
 #define POUR_INDEX(variable)                                                                      \
-    if (auto indice_it = -1)                                                                       \
+    if (auto indice_it = -1)                                                                      \
         for (auto &it : (variable))                                                               \
             if (++indice_it, true)
 
