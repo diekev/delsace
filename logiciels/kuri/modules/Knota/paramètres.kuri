@@ -27,7 +27,7 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
             retourne ""
         }
         Image {
-            retourne donne_chaine_filtre_extensions(vrai)
+            retourne donne_chaine_filtre_extensions_images(vrai)
         }
         HTML {
             retourne "HTML (*.html)"

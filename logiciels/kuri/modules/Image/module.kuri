@@ -1286,7 +1286,7 @@ imprime_filtre_extensions :: fonc (enchaineuse: *Enchaineuse, infos: []InfoForma
     }
 }
 
-donne_chaine_filtre_extensions :: fonc (pour_lecture: bool) -> chaine
+donne_chaine_filtre_extensions_images :: fonc (pour_lecture: bool) -> chaine
 {
     infos := donne_infos_formats_images_supportés()
     diffère détruit_infos(infos)
