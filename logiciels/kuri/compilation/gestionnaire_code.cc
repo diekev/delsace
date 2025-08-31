@@ -649,7 +649,8 @@ void GestionnaireCode::garantie_typage_des_dépendances(
     kuri::pour_chaque_élément(données_dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
-                                       DrapeauxNoeudFonction::EST_EXTERNE)) {
+                                       DrapeauxNoeudFonction::EST_EXTERNE |
+                                       DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE)) {
             requiers_typage(espace, fonction->corps);
         }
         return kuri::DécisionItération::Continue;
@@ -1101,7 +1102,8 @@ void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression
                                                                  UniteCompilation *unité)
 {
     auto entête = donne_entête_fonction(noeud);
-    if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+    if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
+                                           DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE)) {
         return;
     }
 
@@ -1229,6 +1231,14 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     }
 
     type->drapeaux_type |= DrapeauxTypes::UNITE_POUR_INITIALISATION_FUT_CREE;
+}
+
+void GestionnaireCode::requiers_ri_pour_opérateur_synthétique(
+    EspaceDeTravail *espace, NoeudDéclarationEntêteFonction *entête)
+{
+    assert(entête->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
+    assert(entête->possède_drapeau(DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE));
+    requiers_génération_ri(espace, entête);
 }
 
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,

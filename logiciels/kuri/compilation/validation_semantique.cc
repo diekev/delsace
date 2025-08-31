@@ -1716,18 +1716,24 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             auto candidat = std::get<OpérateurCandidat>(résultat);
 
-            if (candidat.op->est_basique) {
-                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
-                return CodeRetourValidation::Erreur;
-            }
-
             if (candidat.permute_opérandes) {
                 rapporte_erreur("Aucun opérateur trouvé pour l'expression", référence);
                 return CodeRetourValidation::Erreur;
             }
 
             référence->op = candidat.op;
-            référence->type = candidat.op->decl->type;
+
+            if (candidat.op->est_basique) {
+                auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
+                    m_espace,
+                    const_cast<OpérateurBinaire *>(candidat.op),
+                    référence,
+                    m_assembleuse);
+                référence->type = déclaration_opérateur->type;
+            }
+            else {
+                référence->type = candidat.op->decl->type;
+            }
 
             return CodeRetourValidation::OK;
         }
@@ -1748,13 +1754,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return Attente::sur_opérateur(noeud);
             }
 
+            référence->op = op;
+
             if (op->est_basique) {
-                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
-                return CodeRetourValidation::Erreur;
+                auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
+                    m_espace, const_cast<OpérateurUnaire *>(op), référence, m_assembleuse);
+                référence->type = déclaration_opérateur->type;
+            }
+            else {
+                référence->type = op->déclaration->type;
             }
 
-            référence->op = op;
-            référence->type = op->déclaration->type;
             return CodeRetourValidation::OK;
         }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:

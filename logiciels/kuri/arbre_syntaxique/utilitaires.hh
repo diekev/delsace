@@ -23,6 +23,8 @@ struct Compilatrice;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
+struct OpérateurBinaire;
+struct OpérateurUnaire;
 struct Symbole;
 struct UniteCompilation;
 using Type = NoeudDéclarationType;
@@ -240,6 +242,9 @@ enum class DrapeauxNoeudFonction : uint32_t {
     /* N'ajoute pas des vérifications sur les rubriques des unions.
      * À FAIRE : macros. */
     SANS_VRU = (1 << 27),
+
+    /* La fonction fut créée pour une référence d'opérateur basique. */
+    EST_OPÉRATAUR_SYNTHÉTIQUE = (1 << 28),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
@@ -498,6 +503,15 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
 void crée_noeud_initialisation_type(EspaceDeTravail *espace,
                                     Type *type,
                                     AssembleuseArbre *assembleuse);
+
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+                                                                   OpérateurBinaire *destination,
+                                                                   NoeudExpression *site,
+                                                                   AssembleuseArbre *assembleuse);
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+                                                                   OpérateurUnaire *destination,
+                                                                   NoeudExpression *site,
+                                                                   AssembleuseArbre *assembleuse);
 
 bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_statique annotation);
 

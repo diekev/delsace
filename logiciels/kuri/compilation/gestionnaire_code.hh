@@ -216,6 +216,9 @@ class GestionnaireCode {
 
     void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
 
+    void requiers_ri_pour_opérateur_synthétique(EspaceDeTravail *espace,
+                                                NoeudDéclarationEntêteFonction *entête);
+
     UniteCompilation *crée_unité(EspaceDeTravail *espace, RaisonDÊtre raison, bool met_en_attente);
     UniteCompilation *crée_unité_pour_fichier(EspaceDeTravail *espace,
                                               Fichier *fichier,
