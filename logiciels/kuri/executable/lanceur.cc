@@ -208,7 +208,7 @@ static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments 
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
-static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseuse,
+static ActionParsageArgument gère_argument_avec_stats(ParseuseArguments &parseuse,
                                                       ArgumentsCompilatrice &résultat);
 
 static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments &parseuse,
@@ -277,11 +277,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Indique aux coulisses de préserver les symboles non-globaux",
      gère_argument_préserve_symbole},
-    {"--sans_stats",
+    {"--avec_stats",
      "",
      "",
-     "N'imprime pas les statistiques à la fin de la compilation",
-     gère_argument_sans_stats},
+     "Imprime les statistiques à la fin de la compilation",
+     gère_argument_avec_stats},
     {"--stats_détaillées",
      "",
      "",
@@ -465,10 +465,10 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
     return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
 }
 
-static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*parseuse*/,
+static ActionParsageArgument gère_argument_avec_stats(ParseuseArguments & /*parseuse*/,
                                                       ArgumentsCompilatrice &résultat)
 {
-    résultat.sans_stats = true;
+    résultat.avec_stats = true;
     return ActionParsageArgument::CONTINUE;
 }
 
@@ -705,11 +705,14 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     imprime_fichiers_utilises(compilatrice);
 
-    if (compilatrice.arguments.sans_stats == false) {
+    if (compilatrice.arguments.avec_stats) {
         auto stats = Statistiques();
         rassemble_statistiques(compilatrice, stats, tacheronnes);
 
         imprime_stats(compilatrice, stats, debut_compilation);
+    }
+    else {
+        info() << "\nDurée de la compilation " << debut_compilation.temps() << "s";
     }
 
     info() << "Nettoyage...";
