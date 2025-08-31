@@ -241,6 +241,9 @@ class GestionnaireCode {
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
+    void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
+                                           OpérateurBinaire *opérateur_binaire);
+
     void chargement_fichier_terminé(UniteCompilation *unite);
 
     void lexage_fichier_terminé(UniteCompilation *unite);
@@ -262,6 +265,8 @@ class GestionnaireCode {
     void conversion_noeud_code_terminée(UniteCompilation *unite);
 
     void fonction_initialisation_type_créée(UniteCompilation *unite);
+
+    void synthétisation_opérateur_terminée(UniteCompilation *unité);
 
     void optimisation_terminée(UniteCompilation *unite);
 

@@ -2684,15 +2684,12 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
 /** \name Fonctions pour les références à des opérateurs basiques.
  * \{ */
 
-NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
-                                                                   OpérateurBinaire *destination,
-                                                                   NoeudExpression *site,
-                                                                   AssembleuseArbre *assembleuse)
+static NoeudDéclarationEntêteFonction *crée_fonction_pour_opérateur_synthétique(
+    EspaceDeTravail *espace,
+    OpérateurBinaire *destination,
+    NoeudExpression *site,
+    AssembleuseArbre *assembleuse)
 {
-    if (destination->decl) {
-        return destination->decl;
-    }
-
     auto &typeuse = espace->compilatrice().typeuse;
 
     auto types_entrées = kuri::tablet<Type *, 6>();
@@ -2744,8 +2741,31 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
 
     corps->bloc = assembleuse->crée_bloc_seul(&lexème_sentinel, résultat->bloc_paramètres);
 
+    return résultat;
+}
+
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+                                                                   OpérateurBinaire *destination,
+                                                                   NoeudExpression *site,
+                                                                   AssembleuseArbre *assembleuse)
+{
+    if (destination->decl) {
+        return destination->decl;
+    }
+
+    auto &typeuse = espace->compilatrice().typeuse;
+
+    auto lexème = site->lexème;
+
+    auto résultat = crée_fonction_pour_opérateur_synthétique(
+        espace, destination, site, assembleuse);
+    auto corps = résultat->corps;
+
     assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
+
+    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
+    auto déclaration_opérande_droite = résultat->parametre_entree(1);
 
     auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
                                                                     déclaration_opérande_gauche);
@@ -2852,6 +2872,63 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
                                                                                      résultat);
 
     return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions pour les opérateurs synthétisés.
+ * \{ */
+
+void synthétise_opérateur(EspaceDeTravail *espace,
+                          OpérateurBinaire *opérateur,
+                          AssembleuseArbre *assembleuse,
+                          Tacheronne &tâcheronne)
+{
+    if (opérateur->decl) {
+        /* Peut-être que l'opérateur fut défini entre temps. */
+        return;
+    }
+
+    auto site = opérateur->doit_être_synthétisé_depuis->decl;
+    auto lexème = tâcheronne.lexèmes_extra.ajoute_élément();
+    *lexème = *site->lexème;
+    lexème->genre = donne_genre_lexème_pour_opérateur_symétrique(lexème->genre);
+    lexème->chaine = donne_chaine_lexème_pour_op_binaire(lexème->genre);
+
+    auto résultat = crée_fonction_pour_opérateur_synthétique(espace, opérateur, site, assembleuse);
+    résultat->lexème = lexème;
+    auto corps = résultat->corps;
+
+    assert(assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(corps->bloc);
+
+    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
+    auto déclaration_opérande_droite = résultat->parametre_entree(1);
+
+    auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_gauche);
+    auto référence_droite = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_droite);
+
+    auto expression_binaire = assembleuse->crée_expression_binaire(
+        lexème, opérateur->doit_être_synthétisé_depuis, référence_gauche, référence_droite);
+    expression_binaire->op = opérateur->doit_être_synthétisé_depuis;
+    expression_binaire->type = opérateur->doit_être_synthétisé_depuis->type_résultat;
+
+    auto négation = assembleuse->crée_négation_logique(lexème, expression_binaire);
+    négation->type = TypeBase::BOOL;
+
+    auto retour = assembleuse->crée_retourne(lexème, négation);
+    retour->type = TypeBase::BOOL;
+
+    corps->bloc->ajoute_expression(retour);
+
+    assembleuse->dépile_bloc();
+    simplifie_arbre(espace, assembleuse, espace->compilatrice().typeuse, résultat);
+    corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    opérateur->decl = résultat;
 }
 
 /** \} */

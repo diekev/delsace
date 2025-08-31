@@ -26,6 +26,7 @@ struct Lexème;
 struct OpérateurBinaire;
 struct OpérateurUnaire;
 struct Symbole;
+struct Tacheronne;
 struct UniteCompilation;
 using Type = NoeudDéclarationType;
 using TypePointeur = NoeudDéclarationTypePointeur;
@@ -512,6 +513,11 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
                                                                    OpérateurUnaire *destination,
                                                                    NoeudExpression *site,
                                                                    AssembleuseArbre *assembleuse);
+
+void synthétise_opérateur(EspaceDeTravail *espace,
+                          OpérateurBinaire *opérateur,
+                          AssembleuseArbre *assembleuse,
+                          Tacheronne &tâcheronne);
 
 bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_statique annotation);
 

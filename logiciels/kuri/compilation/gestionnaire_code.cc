@@ -1384,6 +1384,11 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
             requiers_lexage(espace, fichier);
         }
     }
+    else if (attente.est<AttenteSurSynthétisationOpérateur>()) {
+        auto opérateur_synthétisé = attente.synthétisation_opérateur();
+        requiers_synthétisation_opérateur(espace,
+                                          const_cast<OpérateurBinaire *>(opérateur_synthétisé));
+    }
 }
 
 void GestionnaireCode::imprime_état_parsage() const
@@ -1554,6 +1559,11 @@ void GestionnaireCode::tâche_unité_terminée(UniteCompilation *unité)
         case RaisonDÊtre::CALCULE_TAILLE_TYPE:
         {
             /* Rien à faire pour le moment. */
+            break;
+        }
+        case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
+        {
+            synthétisation_opérateur_terminée(unité);
             break;
         }
     }
@@ -2097,6 +2107,32 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     TACHE_AJOUTEE(GENERATION_RI);
     unité->noeud = fonction;
     fonction->unité = unité;
+    ajoute_unité_à_liste_attente(unité);
+}
+
+void GestionnaireCode::requiers_synthétisation_opérateur(EspaceDeTravail *espace,
+                                                         OpérateurBinaire *opérateur_binaire)
+{
+    auto unité = crée_unité(espace, RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR, true);
+    unité->opérateur_binaire = opérateur_binaire;
+}
+
+void GestionnaireCode::synthétisation_opérateur_terminée(UniteCompilation *unité)
+{
+    auto opérateur_binaire = unité->opérateur_binaire;
+    assert(opérateur_binaire->decl);
+    auto entête = opérateur_binaire->decl;
+    assert(entête->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
+    assert(entête->possède_drapeau(DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE));
+
+    détermine_dépendances(entête, unité->espace, nullptr, nullptr);
+    détermine_dépendances(entête->corps, unité->espace, nullptr, nullptr);
+
+    unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
+    auto espace = unité->espace;
+    TACHE_AJOUTEE(GENERATION_RI);
+    unité->noeud = entête;
+    entête->unité = unité;
     ajoute_unité_à_liste_attente(unité);
 }
 

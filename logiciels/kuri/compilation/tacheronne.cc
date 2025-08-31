@@ -91,6 +91,10 @@ static int file_pour_raison_d_être(RaisonDÊtre raison_d_être)
         {
             return OrdonnanceuseTache::FILE_CALCULE_TAILLE_TYPE;
         }
+        case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
+        {
+            return OrdonnanceuseTache::FILE_SYNTHÉTISATION_OPÉRATEUR;
+        }
         case RaisonDÊtre::AUCUNE:
         {
             return -1;
@@ -477,6 +481,14 @@ bool Tacheronne::gère_tâche()
                 auto type = unite->type;
                 assert(type);
                 calcule_taille_type_composé(type->comme_type_composé(), false, 0);
+                break;
+            }
+            case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
+            {
+                auto unité = tâche.unité;
+                synthétise_opérateur(
+                    unité->espace, unité->opérateur_binaire, this->assembleuse, *this);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 break;
             }
             case GenreTâche::NOMBRE_ELEMENTS:

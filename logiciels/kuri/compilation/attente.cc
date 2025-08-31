@@ -108,6 +108,7 @@ RAPPEL_POUR_ERREUR(type)
         case RaisonDÊtre::LIAISON_PROGRAMME:
         case RaisonDÊtre::GENERATION_CODE_MACHINE:
         case RaisonDÊtre::CALCULE_TAILLE_TYPE:
+        case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }
@@ -818,6 +819,61 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
     NOM_RAPPEL_POUR_COMMENTAIRE(initialisation_type),
     NOM_RAPPEL_POUR_EST_RÉSOLUE(initialisation_type),
     NOM_RAPPEL_POUR_ERREUR(initialisation_type)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurSynthétisationOpérateur
+ * \{ */
+
+static kuri::chaine nom_humainement_lisible(OpérateurBinaire const *opérateur_binaire)
+{
+    return enchaine("opérateur ",
+                    donne_chaine_lexème_pour_op_binaire(opérateur_binaire->genre),
+                    " :: (",
+                    chaine_type(opérateur_binaire->type1),
+                    ", ",
+                    chaine_type(opérateur_binaire->type2),
+                    ") -> ",
+                    chaine_type(opérateur_binaire->type_résultat));
+}
+
+RAPPEL_POUR_COMMENTAIRE(synthétisation_opérateur)
+{
+    auto opérateur = attente.synthétisation_opérateur();
+    return enchaine("synthétisation de l'opérateur ", nom_humainement_lisible(opérateur));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(synthétisation_opérateur)
+{
+    auto opérateur = attente.synthétisation_opérateur();
+    return opérateur->decl != nullptr;
+}
+
+RAPPEL_POUR_ERREUR(synthétisation_opérateur)
+{
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
+    auto opérateur = attente.synthétisation_opérateur();
+
+    auto message = enchaine(
+        "Je ne pas continuer la compilation car une unité attend indéfiniement sur la "
+        "synthétisation de l'opérateur « ",
+        nom_humainement_lisible(opérateur),
+        " ».");
+
+    espace->rapporte_erreur(noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
+}
+
+InfoTypeAttente info_type_attente_sur_synthétisation_opérateur = {
+    nullptr,
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(synthétisation_opérateur),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(synthétisation_opérateur),
+    NOM_RAPPEL_POUR_ERREUR(synthétisation_opérateur)};
 
 /** \} */
 

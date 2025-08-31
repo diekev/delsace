@@ -326,7 +326,21 @@ void TableOpérateurs::ajoute(GenreLexème lexème, OpérateurBinaire *opérateu
     opérateurs_[index_op_binaire(lexème)].ajoute(opérateur);
 }
 
-const TableOpérateurs::type_conteneur &TableOpérateurs::opérateurs(GenreLexème lexeme)
+OpérateurBinaire *TableOpérateurs::donne_opérateur(GenreLexème genre_lexème,
+                                                   Type *type_opérande_droite) const
+{
+    auto &liste = this->opérateurs(genre_lexème);
+
+    POUR (liste.plage()) {
+        if (it->type2 == type_opérande_droite) {
+            return it;
+        }
+    }
+
+    return nullptr;
+}
+
+const TableOpérateurs::type_conteneur &TableOpérateurs::opérateurs(GenreLexème lexeme) const
 {
     /* retourne un tableau vide si aucun opérateur n'a été ajouté */
     if (opérateurs_.est_vide()) {
@@ -413,6 +427,24 @@ OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexème id,
     return op;
 }
 
+OpérateurBinaire *RegistreDesOpérateurs::crée_opérateur_binaire(
+    GenreLexème id,
+    Type *type1,
+    Type *type2,
+    Type *type_résultat,
+    NoeudDéclarationEntêteFonction *decl)
+{
+    auto résultat = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
+    résultat->type1 = type1;
+    résultat->type2 = type2;
+    résultat->type_résultat = type_résultat;
+    résultat->est_commutatif = est_commutatif(id);
+    résultat->est_basique = false;
+    résultat->decl = decl;
+    résultat->genre = genre_op_binaire_pour_lexeme(id, IndiceTypeOp::ENTIER_NATUREL);
+    return résultat;
+}
+
 void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
                                          Type *type1,
                                          Type *type2,
@@ -420,14 +452,29 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
                                          NoeudDéclarationEntêteFonction *decl)
 {
     auto table = donne_ou_crée_table_opérateurs(type1);
-    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
-    op->type1 = type1;
-    op->type2 = type2;
-    op->type_résultat = type_résultat;
-    op->est_commutatif = est_commutatif(id);
-    op->est_basique = false;
-    op->decl = decl;
+    auto op = crée_opérateur_binaire(id, type1, type2, type_résultat, decl);
     table->ajoute(id, op);
+
+    auto genre_opérateur_symétrique = donne_genre_lexème_pour_opérateur_symétrique(id);
+    if (genre_opérateur_symétrique != GenreLexème::INCONNU) {
+        crée_opérateur_symétrique(
+            table, op, genre_opérateur_symétrique, type1, type2, type_résultat);
+    }
+}
+
+void RegistreDesOpérateurs::crée_opérateur_symétrique(TableOpérateurs *table,
+                                                      OpérateurBinaire *opérateur_source,
+                                                      GenreLexème id,
+                                                      Type *type1,
+                                                      Type *type2,
+                                                      Type *type_résultat)
+{
+    OpérateurBinaire *opérateur_symétrique = table->donne_opérateur(id, type2);
+    if (!opérateur_symétrique) {
+        opérateur_symétrique = crée_opérateur_binaire(id, type1, type2, type_résultat, nullptr);
+        opérateur_symétrique->doit_être_synthétisé_depuis = opérateur_source;
+        table->ajoute(id, opérateur_symétrique);
+    }
 }
 
 void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
@@ -932,6 +979,9 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
             return Attente::sur_déclaration(noeud_decl);
         }
     }
+    else if (meilleur_candidat->op->doit_être_synthétisé_depuis && !meilleur_candidat->op->decl) {
+        return Attente::sur_synthétisation_opérateur(meilleur_candidat->op);
+    }
 
     return *meilleur_candidat;
 }
@@ -1349,4 +1399,33 @@ OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
     }
 
     return OpérateurBinaire::Genre::Invalide;
+}
+
+GenreLexème donne_genre_lexème_pour_opérateur_symétrique(GenreLexème genre)
+{
+    if (genre == GenreLexème::INFERIEUR) {
+        return GenreLexème::SUPERIEUR_EGAL;
+    }
+    if (genre == GenreLexème::INFERIEUR_EGAL) {
+        return GenreLexème::SUPERIEUR;
+    }
+    else if (genre == GenreLexème::SUPERIEUR) {
+        return GenreLexème::INFERIEUR_EGAL;
+    }
+    else if (genre == GenreLexème::SUPERIEUR_EGAL) {
+        return GenreLexème::INFERIEUR;
+    }
+    if (genre == GenreLexème::EGALITE) {
+        return GenreLexème::DIFFÉRENCE;
+    }
+    if (genre == GenreLexème::DIFFÉRENCE) {
+        return GenreLexème::EGALITE;
+    }
+    return GenreLexème::INCONNU;
+}
+
+kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(GenreLexème genre)
+{
+    return donne_chaine_lexème_pour_op_binaire(
+        genre_op_binaire_pour_lexeme(genre, IndiceTypeOp::ENTIER_NATUREL));
 }

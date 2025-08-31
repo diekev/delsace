@@ -119,6 +119,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(GenreTâche genre_tach
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
         case GenreTâche::CALCULE_TAILLE_TYPE:
+        case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }
@@ -178,6 +179,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
         case GenreTâche::CALCULE_TAILLE_TYPE:
+        case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }

@@ -2388,18 +2388,25 @@ RésultatValidation Sémanticienne::valide_définition_unique_opérateur(
     auto type2 = type_fonc->types_entrées[1];
 
     if (type1->table_opérateurs) {
-        for (auto &op : type1->table_opérateurs->opérateurs(decl->lexème->genre).plage()) {
-            if (op->type2 == type2) {
-                if (op->est_basique) {
-                    rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                    .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                    .ajoute_site(op->decl);
+        auto opérateur_existant = type1->table_opérateurs->donne_opérateur(decl->lexème->genre,
+                                                                           type2);
+        if (opérateur_existant) {
+            if (opérateur_existant->est_basique) {
+                rapporte_erreur("redéfinition de l'opérateur basique", decl);
                 return CodeRetourValidation::Erreur;
             }
+
+            if (opérateur_existant->doit_être_synthétisé_depuis) {
+                assert(opérateur_existant->decl == nullptr);
+                opérateur_existant->decl = decl;
+                opérateur_existant->doit_être_synthétisé_depuis = nullptr;
+                return CodeRetourValidation::OK;
+            }
+
+            m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                .ajoute_site(opérateur_existant->decl);
+            return CodeRetourValidation::Erreur;
         }
     }
 
