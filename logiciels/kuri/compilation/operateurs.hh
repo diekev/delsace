@@ -258,7 +258,7 @@ struct OpérateurCandidat {
 
 std::optional<Attente> cherche_candidats_opérateurs(
     EspaceDeTravail &espace,
-    NoeudExpressionBinaire *expression_binaire,
+    NoeudExpression *expression_binaire,
     Type *type1,
     Type *type2,
     GenreLexème type_op,
@@ -268,7 +268,7 @@ using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, b
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
                                                             Sémanticienne &sémanticienne,
-                                                            NoeudExpressionBinaire *site,
+                                                            NoeudExpression *site,
                                                             Type *type1,
                                                             Type *type2,
                                                             GenreLexème type_op);

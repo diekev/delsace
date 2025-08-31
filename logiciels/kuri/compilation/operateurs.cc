@@ -649,7 +649,7 @@ static NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type)
 }
 
 std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
-                                                    NoeudExpressionBinaire *expression_binaire,
+                                                    NoeudExpression *expression,
                                                     Type *type1,
                                                     Type *type2,
                                                     GenreLexème type_op,
@@ -689,9 +689,27 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
         if (est_polymorphique(op)) {
             Monomorpheuse monomorpheuse(espace, op->decl);
 
+            if (!expression->est_référence_opérateur_binaire() &&
+                !expression->est_expression_binaire()) {
+                espace.rapporte_erreur(
+                    expression,
+                    "Erreur interne : le site de monomorphisation d'une expression binaire n'est "
+                    "pas une référence à un opérateur ou une expression binaire.");
+                break;
+            }
+
             kuri::tablet<NoeudExpression *, 2> slots{};
-            slots.ajoute(expression_binaire->opérande_gauche);
-            slots.ajoute(expression_binaire->opérande_droite);
+
+            if (expression->est_expression_binaire()) {
+                auto expression_binaire = expression->comme_expression_binaire();
+                slots.ajoute(expression_binaire->opérande_gauche);
+                slots.ajoute(expression_binaire->opérande_droite);
+            }
+            else {
+                auto expression_binaire = expression->comme_référence_opérateur_binaire();
+                slots.ajoute(expression_binaire->opérande_gauche);
+                slots.ajoute(expression_binaire->opérande_droite);
+            }
 
             auto résultat_monomorphisation = détermine_monomorphisation(
                 monomorpheuse, op->decl, slots);
@@ -824,7 +842,7 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
     return {};
 }
 
-static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
+static Attente attente_sur_opérateur_ou_type(NoeudExpression *noeud, Type *type1, Type *type2)
 {
     auto est_énum_ou_référence_énum = [](Type *t) -> TypeEnum * {
         if (t->est_type_énum()) {
@@ -838,13 +856,11 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
         return nullptr;
     };
 
-    auto type1 = noeud->opérande_gauche->type;
     auto type1_est_énum = est_énum_ou_référence_énum(type1);
     if (type1_est_énum &&
         !type1_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type1_est_énum);
     }
-    auto type2 = noeud->opérande_droite->type;
     auto type2_est_énum = est_énum_ou_référence_énum(type2);
     if (type2_est_énum &&
         !type2_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -855,7 +871,7 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpressionBinaire *noeud)
 
 RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
                                                             Sémanticienne &sémanticienne,
-                                                            NoeudExpressionBinaire *site,
+                                                            NoeudExpression *site,
                                                             Type *type1,
                                                             Type *type2,
                                                             GenreLexème type_op)
@@ -883,7 +899,7 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
     if (meilleur_candidat == nullptr) {
         if (site) {
-            return attente_sur_opérateur_ou_type(site);
+            return attente_sur_opérateur_ou_type(site, type1, type2);
         }
 
         /* Pour les erreurs dans les discriminations... */

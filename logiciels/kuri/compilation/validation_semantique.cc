@@ -1707,14 +1707,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            // À FAIRE : supprime l'expression binaire
-            NoeudExpressionBinaire expr;
-            expr.lexème = référence->lexème;
-            expr.opérande_gauche = gauche;
-            expr.opérande_droite = droite;
-
             auto résultat = trouve_opérateur_pour_expression(
-                *m_espace, *this, &expr, type_gauche, type_droite, type_op);
+                *m_espace, *this, référence, type_gauche, type_droite, type_op);
 
             if (std::holds_alternative<Attente>(résultat)) {
                 return std::get<Attente>(résultat);
