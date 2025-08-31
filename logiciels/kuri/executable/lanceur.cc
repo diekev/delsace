@@ -229,6 +229,9 @@ static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArgum
 static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_verbeux(ParseuseArguments &parseuse,
+                                                   ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--",
@@ -309,6 +312,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "un log standard de métaprogramme, dont la racine du nom est « code_binaire.txt ».",
      gère_argument_émission_code_binaire},
     {"", "-j", "-j", "Active la compilation en mode parallèle", gère_argument_mode_parallèle},
+    {"--verbeux",
+     "-v",
+     "-v",
+     "Imprime plus de détail quant au processus de compilation.",
+     gère_argument_verbeux},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -496,6 +504,13 @@ static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments & 
                                                           ArgumentsCompilatrice &résultat)
 {
     résultat.compile_en_mode_parallèle = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_verbeux(ParseuseArguments & /*parseuse*/,
+                                                   ArgumentsCompilatrice &résultat)
+{
+    résultat.verbeux = true;
     return ActionParsageArgument::CONTINUE;
 }
 
