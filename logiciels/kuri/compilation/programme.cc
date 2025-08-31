@@ -479,18 +479,40 @@ void imprime_contenu_programme(const Programme &programme, uint32_t quoi, std::o
 /** \name Diagnostique état compilation.
  * \{ */
 
+static void imprime_état_unité(Enchaineuse &enchaineuse, NoeudDéclaration *déclaration)
+{
+    if (déclaration->est_entête_fonction()) {
+        auto entête = déclaration->comme_entête_fonction();
+        enchaineuse << "-- état de l'unité de l'entête :\n";
+        imprime_état_unité(enchaineuse, entête->unité);
+        if (entête->corps->unité) {
+            enchaineuse << "-- état de l'unité du corps :\n";
+            imprime_état_unité(enchaineuse, entête->corps->unité);
+        }
+    }
+    else {
+        auto adresse_unité = donne_adresse_unité(déclaration);
+        if (*adresse_unité) {
+            enchaineuse << "-- état de l'unité :\n";
+            imprime_état_unité(enchaineuse, *adresse_unité);
+        }
+    }
+}
+
 static void imprime_détails_déclaration_à_valider(Enchaineuse &enchaineuse,
                                                   NoeudDéclaration *déclaration)
 {
     if (!déclaration->est_entête_fonction()) {
         enchaineuse << "-- validation non performée pour déclaration "
                     << nom_humainement_lisible(déclaration) << '\n';
+        imprime_état_unité(enchaineuse, déclaration);
         return;
     }
 
     if (!déclaration->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         enchaineuse << "-- validation non performée pour l'entête "
                     << nom_humainement_lisible(déclaration) << '\n';
+        imprime_état_unité(enchaineuse, déclaration);
         return;
     }
 
@@ -514,6 +536,7 @@ static void imprime_détails_déclaration_à_valider(Enchaineuse &enchaineuse,
 
     enchaineuse << "-- validation non performée pour le corps de "
                 << nom_humainement_lisible(déclaration) << "\n";
+    imprime_état_unité(enchaineuse, déclaration);
 #ifdef ENREGISTRE_HISTORIQUE
     POUR (unité_corps->donne_historique()) {
         enchaineuse << "-- " << it.état << " " << it.raison << " " << it.fonction << '\n';
@@ -537,22 +560,7 @@ static void imprime_détails_ri_à_générée(Enchaineuse &enchaineuse, NoeudDé
 
     enchaineuse << " " << nom_humainement_lisible(déclaration) << '\n';
 
-    if (déclaration->est_entête_fonction()) {
-        auto entête = déclaration->comme_entête_fonction();
-        enchaineuse << "-- état de l'unité de l'entête :\n";
-        imprime_état_unité(enchaineuse, entête->unité);
-        if (entête->corps->unité) {
-            enchaineuse << "-- état de l'unité du corps :\n";
-            imprime_état_unité(enchaineuse, entête->corps->unité);
-        }
-    }
-    else {
-        auto adresse_unité = donne_adresse_unité(déclaration);
-        if (*adresse_unité) {
-            enchaineuse << "-- état de l'unité :\n";
-            imprime_état_unité(enchaineuse, *adresse_unité);
-        }
-    }
+    imprime_état_unité(enchaineuse, déclaration);
 }
 
 void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique,
