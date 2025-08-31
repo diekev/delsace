@@ -715,8 +715,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         info() << "\nDurée de la compilation " << debut_compilation.temps() << "s";
     }
 
-    info() << "Nettoyage...";
-
     POUR (tacheronnes) {
         mémoire::deloge("Tacheronne", it);
     }
