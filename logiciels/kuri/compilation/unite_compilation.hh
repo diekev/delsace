@@ -14,6 +14,7 @@
 #include "attente.hh"
 
 struct ArbreAplatis;
+struct Enchaineuse;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
@@ -286,12 +287,12 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
-void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
 /** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
-void imprime_état_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
 void imprime_noeud_index_courant_unité(std::ostream &os, const UniteCompilation *unité);
 

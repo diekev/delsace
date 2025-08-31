@@ -359,26 +359,34 @@ kuri::ensemble<NoeudDéclaration *> &Programme::dépendances_manquantes()
     return m_dépendances_manquantes;
 }
 
-void Programme::imprime_diagnostique(std::ostream &os, bool ignore_doublon)
+kuri::chaine Programme::imprime_diagnostique(bool ignore_doublon)
 {
     auto diag = diagnostique_compilation();
 
+    kuri::chaine résultat = "";
+
     if (!m_dernier_diagnostique.has_value() ||
         (diag != m_dernier_diagnostique.value() || !ignore_doublon)) {
-        os << "==========================================================\n";
-        os << "Diagnostique pour programme de ";
+
+        auto enchaineuse = Enchaineuse();
+
+        enchaineuse << "==========================================================\n";
+        enchaineuse << "Diagnostique pour programme de ";
         if (pour_métaprogramme()) {
-            os << pour_métaprogramme()->donne_nom_pour_fichier_log();
+            enchaineuse << pour_métaprogramme()->donne_nom_pour_fichier_log();
         }
         else {
-            os << m_espace->nom;
+            enchaineuse << m_espace->nom;
         }
-        os << "\n";
+        enchaineuse << "\n";
 
-        ::imprime_diagnostique(diag, os);
+        ::imprime_diagnostique(diag, enchaineuse);
+
+        résultat = enchaineuse.chaine();
     }
 
     m_dernier_diagnostique = diag;
+    return résultat;
 }
 
 kuri::chemin_systeme Programme::donne_chemin_pour_fichier_ri() const
@@ -471,17 +479,18 @@ void imprime_contenu_programme(const Programme &programme, uint32_t quoi, std::o
 /** \name Diagnostique état compilation.
  * \{ */
 
-static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéclaration *déclaration)
+static void imprime_détails_déclaration_à_valider(Enchaineuse &enchaineuse,
+                                                  NoeudDéclaration *déclaration)
 {
     if (!déclaration->est_entête_fonction()) {
-        os << "-- validation non performée pour déclaration "
-           << nom_humainement_lisible(déclaration) << '\n';
+        enchaineuse << "-- validation non performée pour déclaration "
+                    << nom_humainement_lisible(déclaration) << '\n';
         return;
     }
 
     if (!déclaration->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-        os << "-- validation non performée pour l'entête " << nom_humainement_lisible(déclaration)
-           << '\n';
+        enchaineuse << "-- validation non performée pour l'entête "
+                    << nom_humainement_lisible(déclaration) << '\n';
         return;
     }
 
@@ -489,91 +498,93 @@ static void imprime_détails_déclaration_à_valider(std::ostream &os, NoeudDéc
     if (corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         /* NOTE : ceci peut-être un faux positif car un thread différent peut mettre en place le
          * drapeau... */
-        os << "-- erreur : le corps et l'entête de " << nom_humainement_lisible(déclaration)
-           << " sont marqués comme validés, mais le diagnostique considère le corps comme non "
-              "validé\n";
+        enchaineuse
+            << "-- erreur : le corps et l'entête de " << nom_humainement_lisible(déclaration)
+            << " sont marqués comme validés, mais le diagnostique considère le corps comme non "
+               "validé\n";
         return;
     }
 
     auto unité_corps = corps->unité;
     if (!unité_corps) {
-        os << "-- validation non performée car aucune unité pour le corps de "
-           << nom_humainement_lisible(déclaration) << "\n";
+        enchaineuse << "-- validation non performée car aucune unité pour le corps de "
+                    << nom_humainement_lisible(déclaration) << "\n";
         return;
     }
 
-    os << "-- validation non performée pour le corps de " << nom_humainement_lisible(déclaration)
-       << "\n";
+    enchaineuse << "-- validation non performée pour le corps de "
+                << nom_humainement_lisible(déclaration) << "\n";
 #ifdef ENREGISTRE_HISTORIQUE
     POUR (unité_corps->donne_historique()) {
-        os << "-- " << it.état << " " << it.raison << " " << it.fonction << '\n';
+        enchaineuse << "-- " << it.état << " " << it.raison << " " << it.fonction << '\n';
     }
 #endif
     POUR (unité_corps->donne_attentes()) {
-        os << "-- Attente : " << it.donne_commentaire() << '\n';
+        enchaineuse << "-- Attente : " << it.donne_commentaire() << '\n';
     }
 }
 
-static void imprime_détails_ri_à_générée(std::ostream &os, NoeudDéclaration *déclaration)
+static void imprime_détails_ri_à_générée(Enchaineuse &enchaineuse, NoeudDéclaration *déclaration)
 {
-    os << "-- RI non générée pour ";
+    enchaineuse << "-- RI non générée pour ";
 
     if (déclaration->est_entête_fonction()) {
-        os << "la fonction";
+        enchaineuse << "la fonction";
     }
     else {
-        os << "la déclaration de";
+        enchaineuse << "la déclaration de";
     }
 
-    os << " " << nom_humainement_lisible(déclaration) << '\n';
+    enchaineuse << " " << nom_humainement_lisible(déclaration) << '\n';
 
     if (déclaration->est_entête_fonction()) {
         auto entête = déclaration->comme_entête_fonction();
-        os << "-- état de l'unité de l'entête :\n";
-        imprime_état_unité(os, entête->unité);
+        enchaineuse << "-- état de l'unité de l'entête :\n";
+        imprime_état_unité(enchaineuse, entête->unité);
         if (entête->corps->unité) {
-            os << "-- état de l'unité du corps :\n";
-            imprime_état_unité(os, entête->corps->unité);
+            enchaineuse << "-- état de l'unité du corps :\n";
+            imprime_état_unité(enchaineuse, entête->corps->unité);
         }
     }
     else {
         auto adresse_unité = donne_adresse_unité(déclaration);
         if (*adresse_unité) {
-            os << "-- état de l'unité :\n";
-            imprime_état_unité(os, *adresse_unité);
+            enchaineuse << "-- état de l'unité :\n";
+            imprime_état_unité(enchaineuse, *adresse_unité);
         }
     }
 }
 
-void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique, std::ostream &os)
+void imprime_diagnostique(const DiagnostiqueÉtatCompilation &diagnostique,
+                          Enchaineuse &enchaineuse)
 {
     if (!diagnostique.toutes_les_déclarations_à_typer_le_sont) {
         if (diagnostique.type_à_valider) {
-            os << "-- validation non performée pour le type : "
-               << chaine_type(diagnostique.type_à_valider) << '\n';
+            enchaineuse << "-- validation non performée pour le type : "
+                        << chaine_type(diagnostique.type_à_valider) << '\n';
         }
         if (diagnostique.déclaration_à_valider) {
-            imprime_détails_déclaration_à_valider(os, diagnostique.déclaration_à_valider);
+            imprime_détails_déclaration_à_valider(enchaineuse, diagnostique.déclaration_à_valider);
         }
         return;
     }
 
     if (diagnostique.fonction_initialisation_type_à_créer) {
-        os << "-- fonction d'initialisation non-créée pour le type : "
-           << chaine_type(diagnostique.fonction_initialisation_type_à_créer) << '\n';
+        enchaineuse << "-- fonction d'initialisation non-créée pour le type : "
+                    << chaine_type(diagnostique.fonction_initialisation_type_à_créer) << '\n';
     }
     if (diagnostique.ri_type_à_générer) {
-        os << "-- RI non générée pour la fonction d'initialisation du type : "
-           << chaine_type(diagnostique.ri_type_à_générer) << '\n';
+        enchaineuse << "-- RI non générée pour la fonction d'initialisation du type : "
+                    << chaine_type(diagnostique.ri_type_à_générer) << '\n';
     }
     if (diagnostique.ri_déclaration_à_générer) {
-        imprime_détails_ri_à_générée(os, diagnostique.ri_déclaration_à_générer);
+        imprime_détails_ri_à_générée(enchaineuse, diagnostique.ri_déclaration_à_générer);
     }
 }
 
 bool operator==(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatCompilation const &diag2)
 {
-#define COMPARE_RUBRIQUE(x)                                                                         \
+#define COMPARE_RUBRIQUE(x)                                                                       \
     if ((diag1.x) != (diag2.x)) {                                                                 \
         return false;                                                                             \
     }

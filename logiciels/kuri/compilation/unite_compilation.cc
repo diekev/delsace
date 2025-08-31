@@ -356,35 +356,35 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
     auto historique = unité->donne_historique();
     POUR (historique) {
-        os << "---- " << it.fonction << " ; " << it.raison << " ; " << it.état << '\n';
+        enchaineuse << "---- " << it.fonction << " ; " << it.raison << " ; " << it.état << '\n';
     }
 }
 
-void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
     POUR (unité->donne_attentes()) {
         if (it.info && it.info->commentaire) {
-            os << "---- " << it.info->commentaire(it) << '\n';
+            enchaineuse << "---- " << it.info->commentaire(it) << '\n';
         }
         else {
-            os << "---- attente sans commentaire\n";
+            enchaineuse << "---- attente sans commentaire\n";
         }
     }
 }
 
-void imprime_état_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
-    os << "-- " << unité->donne_état() << '\n';
+    enchaineuse << "-- " << unité->donne_état() << '\n';
 #ifdef ENREGISTRE_HISTORIQUE
-    os << "-- historique :\n";
-    imprime_historique_unité(os, unité);
+    enchaineuse << "-- historique :\n";
+    imprime_historique_unité(enchaineuse, unité);
 #endif
-    os << "-- attentes :\n";
-    imprime_attentes_unité(os, unité);
+    enchaineuse << "-- attentes :\n";
+    imprime_attentes_unité(enchaineuse, unité);
 }
 
 void imprime_noeud_index_courant_unité(std::ostream &os, UniteCompilation const *unité)

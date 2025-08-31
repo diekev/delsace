@@ -2255,7 +2255,10 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             }
         }
         else {
-            // it->imprime_diagnostique(std::cerr, true);
+            // auto diagnostique = it->imprime_diagnostique(true);
+            // if (diagnostique.taille()) {
+            //     dbg() << diagnostique;
+            // }
 
             if (espace->phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE &&
                 it->ri_générées()) {
