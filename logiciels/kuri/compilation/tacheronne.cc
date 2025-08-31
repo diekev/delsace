@@ -779,12 +779,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             POUR (type_structure->donne_rubriques_pour_code_machine()) {
                 auto pointeur_rubrique = pointeur + it.decalage;
-                auto noeud_rubrique = noeud_syntaxique_depuis_résultat(espace,
-                                                                     directive,
-                                                                     lexeme,
-                                                                     it.type,
-                                                                     pointeur_rubrique,
-                                                                     détectrice_fuites_de_mémoire);
+                auto noeud_rubrique = noeud_syntaxique_depuis_résultat(
+                    espace,
+                    directive,
+                    lexeme,
+                    it.type,
+                    pointeur_rubrique,
+                    détectrice_fuites_de_mémoire);
                 construction_structure->paramètres_résolus.ajoute(noeud_rubrique);
             }
 
