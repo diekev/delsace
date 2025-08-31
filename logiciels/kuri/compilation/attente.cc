@@ -332,7 +332,7 @@ RAPPEL_POUR_ERREUR(opérateur)
         if (!résultat.has_value()) {
             POUR (candidats) {
                 auto op = it.op;
-                if (!op || !op->decl) {
+                if (!op || op->est_basique) {
                     continue;
                 }
 
