@@ -1541,7 +1541,6 @@ chemin_complet :: fonc (graphe: *Graphe) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     tantque !pile.est_vide() {
         nom := pile.dépile()

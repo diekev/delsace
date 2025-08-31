@@ -65,7 +65,6 @@ chaine_depuis_nombre_infini :: fonc (n: NombreInfini) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     si n.chiffres {
         pour n.chiffres {

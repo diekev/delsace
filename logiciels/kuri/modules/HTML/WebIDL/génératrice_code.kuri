@@ -255,7 +255,6 @@ compile_interfaces_idl :: fonc () -> chaine
     /* Interface pour réutiliser la mémoire entre les parsages. */
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(*enchaineuse, "JS :: importe JavaScript\n")
@@ -296,9 +295,6 @@ compile_interfaces_idl :: fonc () -> chaine
     source := chaine_depuis_enchaineuse(*enchaineuse)
     ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), source)
     déloge(source)
-
-    détruit_tampons(*enchaineuse)
-    initialise_enchaineuse(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)\n\n")
 

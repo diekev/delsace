@@ -99,7 +99,6 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     traversée: [..]*InfoTypeStructure
     diffère déloge(traversée)

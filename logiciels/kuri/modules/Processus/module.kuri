@@ -118,7 +118,6 @@ lis :: fonc (canal: &BaseCanal) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     boucle {
         tmp := tente lis_tout(*canal.lecteur) piège _ {

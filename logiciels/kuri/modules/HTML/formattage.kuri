@@ -163,7 +163,6 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     pour classes {
         si indice_it > 0 {
@@ -346,7 +345,6 @@ crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, docum
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     formatte_noeud(contexte_formattage, document, *enchaineuse)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

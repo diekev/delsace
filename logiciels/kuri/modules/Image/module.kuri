@@ -1293,7 +1293,6 @@ donne_chaine_filtre_extensions_images :: fonc (pour_lecture: bool) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_filtre_extensions(*enchaineuse, infos, pour_lecture)
 

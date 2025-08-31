@@ -346,7 +346,6 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
     // 2. Let R be the empty String.
     R: EnchaineuseUTF16
     initialise_enchaineuse(R)
-    diffère détruit_tampons(R)
 
     // 3. Let alwaysUnescaped be the string-concatenation of the ASCII word characters and "-.!~*'()".
     always_unescaped := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.!~*'()"

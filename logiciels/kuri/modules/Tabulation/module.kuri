@@ -103,7 +103,6 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_valeur(*enchaineuse, arg, faux)
     résultat := chaine_depuis_enchaineuse(*enchaineuse)

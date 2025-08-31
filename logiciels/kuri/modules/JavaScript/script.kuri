@@ -355,7 +355,6 @@ crée_erreur_de_compilation :: fonc (realm: *Realm, message: chaine, position: P
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ligne := position.texte_ligne
 

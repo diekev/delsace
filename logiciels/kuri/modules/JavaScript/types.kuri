@@ -1189,7 +1189,6 @@ concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *Pr
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     ajoute(enchaineuse, chn1)
     ajoute(enchaineuse, chn2)

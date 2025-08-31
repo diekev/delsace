@@ -84,7 +84,6 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     saufsi chemin.est_relatif() {
         ajoute_au_tampon(*enchaineuse, séparateur_chemin())
@@ -363,7 +362,6 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     c: z8
 
     boucle {

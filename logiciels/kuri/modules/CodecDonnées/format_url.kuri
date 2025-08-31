@@ -31,7 +31,6 @@ encode_format_url :: fonc (texte: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour texte {
         si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
@@ -80,7 +79,6 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     i := 0
 
@@ -200,7 +198,6 @@ encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
             /* À FAIRE : FluxEncodage pour les fonctions de formattage. */
             enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
-            diffère détruit_tampons(*enchaineuse)
 
             fonction_de_formattage.fonction(*enchaineuse, valeur)
 
@@ -219,7 +216,6 @@ encode_format_url :: fonc (valeur: eini) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse)
     requiers_esperluette := faux

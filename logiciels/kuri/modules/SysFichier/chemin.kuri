@@ -149,7 +149,6 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin on tous été supprimés, soit que le chemin fut celui de la racine
@@ -241,7 +240,6 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     tantque !pile_résultat.est_vide() {
         ajoute_au_tampon(*enchaineuse, pile_résultat.dépile())

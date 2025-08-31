@@ -948,7 +948,6 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     /* Création des imports. */
     diffère déloge(créatrice.modules_importés)

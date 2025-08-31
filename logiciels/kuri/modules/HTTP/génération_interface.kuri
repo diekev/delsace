@@ -597,7 +597,6 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     tableau_ajoute(*paramètres.données_fonctions, données)
 
     enchaineuse: Enchaineuse
-    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules
@@ -622,7 +621,6 @@ crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresG�
     }
 
     enchaineuse: Enchaineuse
-    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     // Il nous faut les modules

@@ -760,6 +760,8 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF1
 
     résultat.unités.taille = curseur
 
+    enchaineuse.détruit_tampons()
+
     retourne résultat
 }
 
@@ -767,7 +769,6 @@ crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
     enchaineuse.ajoute(chn)
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
@@ -785,7 +786,6 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     si nombre == 0 {
         enchaineuse.ajoute('0')
@@ -1107,7 +1107,6 @@ enchaine :: fonc (chns: ...ChaineUTF16Unique) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     pour chns {
         ajoute_au_tampon(*enchaineuse, it)
     }

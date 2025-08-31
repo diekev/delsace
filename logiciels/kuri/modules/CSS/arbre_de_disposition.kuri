@@ -321,7 +321,6 @@ donne_chaine_impression_arbre :: fonc (arbre: *ArbreDeDisposition) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_arbre(*enchaineuse, arbre.racine, 0)
 
