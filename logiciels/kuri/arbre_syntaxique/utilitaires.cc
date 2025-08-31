@@ -2712,7 +2712,7 @@ static NoeudDéclarationEntêteFonction *crée_fonction_pour_opérateur_synthét
     résultat->params.ajoute(déclaration_opérande_gauche);
 
     auto déclaration_opérande_droite = assembleuse->crée_déclaration_variable(
-        lexème, destination->type1, ID::droite, nullptr);
+        lexème, destination->type2, ID::droite, nullptr);
     déclaration_opérande_droite->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
                                              DrapeauxNoeud::EST_UTILISEE;
     résultat->params.ajoute(déclaration_opérande_droite);
