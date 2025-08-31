@@ -80,11 +80,6 @@ opérateur == :: (a: IndicePropriété, b: IndicePropriété) -> bool
     retourne a.empreinte == b.empreinte
 }
 
-opérateur != :: (a: IndicePropriété, b: IndicePropriété) -> bool
-{
-    retourne a.empreinte != b.empreinte
-}
-
 opérateur < :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
     retourne a.empreinte < b.empreinte

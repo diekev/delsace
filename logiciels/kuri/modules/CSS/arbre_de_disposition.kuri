@@ -429,11 +429,6 @@ opérateur == :: (a: RègleAppariée, b: RègleAppariée) -> bool
     retourne a.règle == b.règle
 }
 
-opérateur != :: (a: RègleAppariée, b: RègleAppariée) -> bool
-{
-    retourne a.règle != b.règle
-}
-
 opérateur < :: (a: RègleAppariée, b: RègleAppariée) -> bool
 {
     retourne a.règle < b.règle
@@ -447,11 +442,6 @@ RèglesParIdentifiant :: struct {
 opérateur == :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
 {
     retourne a.ident == b.ident
-}
-
-opérateur != :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool
-{
-    retourne a.ident != b.ident
 }
 
 opérateur < :: (a: RèglesParIdentifiant, b: RèglesParIdentifiant) -> bool

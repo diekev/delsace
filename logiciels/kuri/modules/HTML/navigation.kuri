@@ -69,11 +69,6 @@ opérateur == :: (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
     }
 }
 
-opérateur != :: (a: OngoingNavigationType, b: OngoingNavigationType) -> bool
-{
-    retourne !(a == b)
-}
-
 opérateur == :: (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
 {
     discr ongoing {
@@ -84,11 +79,6 @@ opérateur == :: (ongoing: OngoingNavigationType, navigation_id: NavigationID) -
             retourne faux
         }
     }
-}
-
-opérateur != :: (ongoing: OngoingNavigationType, navigation_id: NavigationID) -> bool
-{
-    retourne !(ongoing == navigation_id)
 }
 
 opérateur == :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
@@ -112,11 +102,6 @@ opérateur == :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(Navig
     }
 }
 
-opérateur != :: (ongoing: OngoingNavigationType, navigation_id: Optionnel(NavigationID)) -> bool
-{
-    retourne !(ongoing == navigation_id)
-}
-
 opérateur == :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
 {
     discr ongoing {
@@ -127,11 +112,6 @@ opérateur == :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
             retourne faux
         }
     }
-}
-
-opérateur != :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
-{
-    retourne !(ongoing == chn)
 }
 
 /* must be an algorithm accepting a Document */

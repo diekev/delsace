@@ -341,11 +341,6 @@ opérateur == :: (n0: NombreInfini, n1: n64) -> bool
     retourne vrai
 }
 
-opérateur != :: (n0: NombreInfini, n1: n64) -> bool
-{
-    retourne !(n0 == n1)
-}
-
 // À FAIRE: p et c doivent être des NombreInfini
 trouve_y :: fonc (p: n32, c: n32) -> n32, n32
 {

@@ -276,16 +276,6 @@ opérateur == :: (chemin: CheminFichier, chn: chaine) -> bool
     retourne chemin.chn == chn
 }
 
-opérateur != :: (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
-{
-    retourne chemin1.chn != chemin2.chn
-}
-
-opérateur != :: (chemin: CheminFichier, chn: chaine) -> bool
-{
-    retourne chemin.chn != chn
-}
-
 opérateur / :: (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     retourne crée_chemin_absolu(chemin_base, feuille)
