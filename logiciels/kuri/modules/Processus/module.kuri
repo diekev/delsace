@@ -293,6 +293,20 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     commande := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(commande)
 
+    retourne exécute_commande_externe(commande)
+}
+
+exécute_commande_externe :: fonc (commande: chaine) -> bool
+{
+    saufsi commande {
+        retourne faux
+    }
+
+    si commande[commande.taille - 1] != 0 {
+        imprimeln("La commande doit être nul-terminée")
+        retourne faux
+    }
+
     si system(ChaineC(commande.pointeur)) != 0 {
         retourne faux
     }
