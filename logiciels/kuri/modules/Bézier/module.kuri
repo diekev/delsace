@@ -1,9 +1,11 @@
 /* Module de définitions de types pour représenter, et de travail sur, des courbes de Bézier. */
 
 importe Couleur
+importe CurveFit
 importe Fondation
 importe Math
 importe PeintureInterface
+importe POSIX
 
 /* ------------------------------------------------------------------------- */
 /** \nom Échantillonnage de courbe de Bézier.
@@ -198,6 +200,49 @@ interpole_position_controles_polygone :: fonc (p0: Point2D(r32), p1: Point2D(r32
     avant.y = (centre1_y + dy) comme r32
 
     retourne avant, arrière
+}
+
+/* Ceci recrée le sous-chemin à partir des points données.
+ * Nous considérons que le chemin est en pixels, donc la valeur défaut de seuil_erreur_max est en pixels. */
+adpate_sous_chemin_aux_points :: fonc (sous_chemin: *SousChemin, points: []Point2D(r32), seuil_erreur_max := 5.0) -> bool
+{
+    si points.taille == 0 {
+        sous_chemin.noeuds.taille = 0
+        retourne vrai
+    }
+
+    points_résultants: *r32
+    nombre_points_résultants: n32
+
+    points_entrée: *r32 = points.pointeur comme *r32
+    résultat := curve_fit_cubic_to_points_fl(points_entrée, points.taille comme n32, 2,
+                                             seuil_erreur_max,
+                                             Curve_Fit_Calc.HIGH_QUALIY,
+                                             nul, 0,
+                                             *points_résultants, *nombre_points_résultants, 
+                                             nul, nul, nul)
+
+    si résultat != 0 {
+        retourne faux
+    }
+
+    points_calculés := points_résultants comme *Point2D(r32)
+
+    sous_chemin.noeuds.taille = 0
+
+    pour nombre_points_résultants {
+        noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
+        noeud.controle_arrière = mémoire(points_calculés)
+        points_calculés += 1
+        noeud.ancre = mémoire(points_calculés)
+        points_calculés += 1
+        noeud.controle_avant = mémoire(points_calculés)
+        points_calculés += 1
+    }
+
+    free(points_résultants)
+
+    retourne vrai
 }
 
 /** \} */
