@@ -953,7 +953,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
 
     rayon_double := rayon * 2.0
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-        position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+        position := rectangle.position_interne(0.5, 0.5)
         cercle_immédiat(position.x, position.y, rayon, couleur, faux)
         retourne
     }
@@ -970,7 +970,7 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
 
     // rayon_double := rayon * 2.0
     // si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-    //     position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+    //     position := rectangle.position_interne(0.5, 0.5)
     //     cercle_immédiat(position.x, position.y, rayon, couleur, vrai)
     //     retourne
     // }
