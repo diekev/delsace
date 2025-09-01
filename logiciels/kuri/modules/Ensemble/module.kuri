@@ -139,15 +139,6 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel
     retourne résultat
 }
 
-/*
-ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
-{
-    pour donnée dans ensemble {
-        imprime("%\n", donnée)
-    }
-}
-*/
-
 TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
     clés: [..]Clé
     valeurs: [..]Valeur
