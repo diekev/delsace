@@ -189,9 +189,9 @@ dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: Couleu
     peintre.rappel_dessine_segment(peintre, ligne, couleur)
 }
 
-dessine_segments :: fonc (peintre: *Peintre, ligne: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_segments(peintre, ligne, couleur)
+    peintre.rappel_dessine_segments(peintre, lignes, couleur)
 }
 
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
