@@ -1153,7 +1153,7 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
     entrée: TableChainesUTF16Unique.EntréeCache
     entrée.chn = chn
 
-    entrée_existante := ensemble_possède_retourne_indice(*table.ensemble, entrée)
+    entrée_existante := ensemble_possède_retourne_indice(table.ensemble, entrée)
     si entrée_existante != -1 {
         entrée = table.ensemble[entrée_existante]
         retourne ChaineUTF16Unique(entrée.indice)

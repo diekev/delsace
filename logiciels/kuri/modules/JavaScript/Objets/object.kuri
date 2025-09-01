@@ -350,7 +350,7 @@ trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propri�
     indice: IndicePropriété
     indice.empreinte = donne_empreinte(nom)
 
-    indice_prop := ensemble_possède_retourne_indice(*objet.indice_propriétés, indice)
+    indice_prop := ensemble_possède_retourne_indice(objet.indice_propriétés, indice)
     si indice_prop == -1 {
         retourne nul
     }

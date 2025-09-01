@@ -110,10 +110,9 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
 
     tantque traversée {
         infos_courante := enlève_dernier_élément(*traversée)
-        si ensemble_possède(*__structures_connues, infos_courante) {
+        si ensemble_ne_fut_pas_ajouté(*__structures_connues, infos_courante) {
             continue
         }
-        ensemble_ajoute(*__structures_connues, infos_courante)
 
         ajoute_au_tampon(*enchaineuse, "\n", infos_courante.nom, "_visite_cellule :: fonc (v: *VisiteuseCellule, c: *", infos_courante.nom, ")\n{\n")
 
@@ -226,10 +225,9 @@ génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoType
 
 type_possède_une_cellule :: fonc (info: *InfoType, types_en_visite: *[..]*InfoType) -> bool
 {
-    si ensemble_possède(types_en_visite, info) {
+    si ensemble_ne_fut_pas_ajouté(types_en_visite, info) {
         retourne faux
     }
-    ensemble_ajoute(types_en_visite, info)
 
     discr info.id {
         ENTIER,
@@ -869,11 +867,9 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
                 retourne
             }
 
-            si ensemble_possède(*visiteuse.objets_visités, adresse) {
+            si ensemble_ne_fut_pas_ajouté(*visiteuse.objets_visités, adresse) {
                 retourne
             }
-
-            ensemble_ajoute(*visiteuse.objets_visités, adresse)
 
             valeur_à_visiter.valeur.pointeur = adresse
             valeur_à_visiter.valeur.info = type_élément

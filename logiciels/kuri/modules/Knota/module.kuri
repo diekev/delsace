@@ -1722,7 +1722,7 @@ dépile_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> *Noeud
 
 a_visité_noeud :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud) -> bool
 {
-    retourne ensemble_possède(*noeuds_visités, noeud)
+    retourne ensemble_possède(noeuds_visités, noeud)
 }
 
 marque_noeud_visité :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)

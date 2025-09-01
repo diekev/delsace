@@ -187,7 +187,7 @@ crée_interface :: fonc (interfaces: *Interfaces, nom: chaine) -> *Interface
     nom_et_indice_parent: NomEtIndice
     nom_et_indice_parent.nom = résultat.nom
 
-    saufsi ensemble_possède(*interfaces.noms_et_indice_parents, nom_et_indice_parent) {
+    saufsi ensemble_possède(interfaces.noms_et_indice_parents, nom_et_indice_parent) {
         nom_et_indice_parent.indice = interfaces.interfaces.taille - 1
         ensemble_ajoute(*interfaces.noms_et_indice_parents, nom_et_indice_parent)
     }
@@ -302,7 +302,7 @@ compile_interfaces_idl :: fonc () -> chaine
         si it.est_mixin {
             continue
         }
-        génère_création_prototype(*enchaineuse, interfaces.interfaces, it, *interfaces.noms_et_indice_parents)
+        génère_création_prototype(*enchaineuse, interfaces.interfaces, it, interfaces.noms_et_indice_parents)
     }
 
     griffonier: Griffonier
@@ -371,7 +371,7 @@ compile_interfaces_idl :: fonc () -> chaine
 
 #portée_fichier
 
-génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_indice_parents: *[..]NomEtIndice)
+génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []Interface, interface: *Interface, noms_et_indice_parents: []NomEtIndice)
 {
     si interface.création_générée {
         retourne

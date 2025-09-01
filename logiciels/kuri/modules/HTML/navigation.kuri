@@ -2581,11 +2581,9 @@ clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *T
         entry_list := entry_lists_à_visiter[entry_lists_à_visiter.taille - 1]
         entry_lists_à_visiter.taille -= 1
 
-        si ensemble_possède(*entry_lists_visités, entry_list comme n64) {
+        si ensemble_ne_fut_pas_ajouté(*entry_lists_visités, entry_list comme n64) {
             continue
         }
-
-        ensemble_ajoute(*entry_lists_visités, entry_list comme n64)
 
         // 1. Remove every session history entry from entryList that has a step greater than step.
         pour entry_list.taille {
@@ -2635,10 +2633,9 @@ get_all_used_history_steps :: fonc (user_agent: *UserAgent, traversable: *Traver
     tantque entrées_à_visiter.taille != 0 {
         entrée := enlève_dernier_élément(*entrées_à_visiter)
 
-        si ensemble_possède(*entrées_visitées, entrée) {
+        si ensemble_ne_fut_pas_ajouté(*entrées_visitées, entrée) {
             continue
         }
-        ensemble_ajoute(*entrées_visitées, entrée)
 
         ensemble_ajoute(*steps, entrée.step)
 

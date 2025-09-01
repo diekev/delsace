@@ -608,7 +608,7 @@ ajoute_règle_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOM
     règle_par_identifiant: RèglesParIdentifiant
     règle_par_identifiant.ident = classe.valeur
 
-    indice := ensemble_possède_retourne_indice(*résolveuse.règles_par_classe, règle_par_identifiant)
+    indice := ensemble_possède_retourne_indice(résolveuse.règles_par_classe, règle_par_identifiant)
     si indice != -1 {
         règles_par_identifant := *résolveuse.règles_par_classe[indice]
         tableau_ajoute(*règles_par_identifant.règles, règle)
@@ -624,7 +624,7 @@ donne_règles_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOM
     règle_par_identifiant: RèglesParIdentifiant
     règle_par_identifiant.ident = classe.valeur
 
-    indice := ensemble_possède_retourne_indice(*résolveuse.règles_par_classe, règle_par_identifiant)
+    indice := ensemble_possède_retourne_indice(résolveuse.règles_par_classe, règle_par_identifiant)
     si indice != -1 {
         retourne résolveuse.règles_par_classe[indice].règles
     }
@@ -702,7 +702,7 @@ possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString
         retourne vrai
     }
 
-    retourne ensemble_possède(*résolveuse.ids_connus, id.valeur)
+    retourne ensemble_possède(résolveuse.ids_connus, id.valeur)
 }
 
 possède_règle_avec_attribut :: fonc (résolveuse: *RésolveuseStyle, attr: CSSOMString) -> bool
@@ -713,7 +713,7 @@ possède_règle_avec_attribut :: fonc (résolveuse: *RésolveuseStyle, attr: CSS
         retourne vrai
     }
 
-    retourne ensemble_possède(*résolveuse.attrs_connus, attr.valeur)
+    retourne ensemble_possède(résolveuse.attrs_connus, attr.valeur)
 }
 
 donne_ajournement_pour_redimensionnement :: fonc (résolveuse: *RésolveuseStyle @inutilisée, largeur: z32 @inutilisée, hauteur: z32 @inutilisée) -> AjournementArbre

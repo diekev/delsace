@@ -373,7 +373,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
         C := string16.unités[k]
 
         // b. If unescapedSet contains C, then
-        si ensemble_possède(*unescaped_set, C) {
+        si ensemble_possède(unescaped_set, C) {
             // i. Set k to k + 1.
             k += 1
 

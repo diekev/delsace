@@ -797,11 +797,9 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
         retourne
     }
 
-    si ensemble_possède(types_utilisés, infos) {
+    si ensemble_ne_fut_pas_ajouté(types_utilisés, infos) {
         retourne
     }
-
-    ensemble_ajoute(types_utilisés, infos)
 
     chn_type := chaine_pour_type(infos)
     ajoute_au_tampon(enchaineuse, chn_type, " :: struct {\n")
