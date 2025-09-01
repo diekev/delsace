@@ -675,7 +675,7 @@ ajoute_sortie :: fonc (noeud: *Noeud, nom: chaine, type : TypePrise = 0)
     tableau_ajoute(*noeud.sorties, sortie)
 }
 
-marques_connexions_inactives :: fonc (connexions: [..]*Connexion)
+marques_connexions_inactives :: fonc (connexions: []*Connexion)
 {
     pour connexions {
         it.active = faux

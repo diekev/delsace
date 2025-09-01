@@ -785,7 +785,7 @@ test_compare_chaine :: fonc () -> rien
 
 // --------------------------------
 
-arguments_ligne_commande :: fonc () -> [..]chaine
+arguments_ligne_commande :: fonc () -> []chaine
 {
     tabl_args: [..]chaine
 

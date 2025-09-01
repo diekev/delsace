@@ -683,7 +683,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
     imprime_dans_enchaineuse(enchaineuse, "} @FonctionLongue\n")
 }
 
-génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: [..]DonnéesCréationPointDEntréePage)
+génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, données_fonctions: []DonnéesCréationPointDEntréePage)
 {
     pour données_fonctions {
         génère_fonction_appariement_route(enchaineuse, it)

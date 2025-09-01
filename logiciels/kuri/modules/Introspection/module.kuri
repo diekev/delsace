@@ -633,7 +633,7 @@ FonctionParsage :: struct {
 /* Trouve une FonctionParsage pour un InfoType précisé et retourne un pointeur vers celle-ci,
  * ou nul le cas échéant.
  */
-trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionParsage, info_type: *InfoType) -> *FonctionParsage
+trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *InfoType) -> *FonctionParsage
 {
     pour * fonctions {
         si info_type == it.info_type {
@@ -1101,7 +1101,7 @@ ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-consomme :: fonc (tableau: *[..]$T) -> T
+consomme :: fonc (tableau: *[]$T) -> T
 {
     résultat := tableau.pointeur[0]
     tableau.pointeur += 1
@@ -1186,12 +1186,12 @@ explique_argument :: fonc (rapporteuse: *RapporteuseAide @inutilisée, nom: chai
     imprimeln("  -% : %", nom, texte)
 }
 
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine) -> Résultat(T, chaine)
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine) -> Résultat(T, chaine)
 {
     retourne parse_arguments_ligne_commande(T, args, nul)
 }
 
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: [..]chaine, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
+parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
 {
     infos := info_de(T)
     résultat: T

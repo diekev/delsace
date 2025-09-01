@@ -175,7 +175,7 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
     retourne crée_chaine_utf16_unique(résultat)
 }
 
-cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: [..]*Attr) -> [..]*Attr
+cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: []*Attr) -> [..]*Attr
 {
     résultat: [..]*Attr
 

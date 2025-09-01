@@ -576,7 +576,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     retourne liste
 }
 
-parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: [..]*InfoTypeRubriqueStructure) -> bool
+parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: []*InfoTypeRubriqueStructure) -> bool
 {
     pour infos_rubriques {
         rubrique := it

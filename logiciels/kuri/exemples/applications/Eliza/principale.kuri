@@ -36,7 +36,7 @@ mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
     retourne faux
 }
 
-génère_réponse_pour_toujours :: fonc (mots: [..]chaine, idx: z64) -> chaine
+génère_réponse_pour_toujours :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -56,7 +56,7 @@ génère_réponse_pour_toujours :: fonc (mots: [..]chaine, idx: z64) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-génère_réponse_pour_peur :: fonc (mots: [..]chaine, idx: z64) -> chaine
+génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)

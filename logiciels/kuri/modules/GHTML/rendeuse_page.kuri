@@ -151,7 +151,7 @@ rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[..]*NoeudSyntaxique)
  * Si plusieurs blocs du noeud racine ont le même nom, il seront remplacés par le même bloc d'origine.
  * À FAIRE : vérifie que tous les blocs ont été assignés ?
  */
-remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: [..]*NoeudSyntaxique)
+remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntaxique)
 {
     saufsi blocs {
         retourne
