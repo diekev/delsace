@@ -170,8 +170,7 @@ dessine_tracé :: fonc (fenêtre: TypeFenêtre)
         p0 := points_pour_plume_de_forme_libre[it]
         p1 := points_pour_plume_de_forme_libre[it + 1]
 
-        ligne := Ligne(r32)(p0, p1)
-        peintre_.dessine_segment(ligne, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
+        peintre_.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
     }
 
     peintre_.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))

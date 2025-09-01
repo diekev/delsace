@@ -451,13 +451,10 @@ dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVB
 
     pour chemin.sous_chemins {
         pour noeud, indice_noeud dans it.noeuds {
-            ligne: Ligne(r32)
             {
-                ligne = Ligne(r32)(noeud.controle_arrière, noeud.ancre)
-                peintre.dessine_segment(ligne, couleur)
+                peintre.dessine_segment(noeud.controle_arrière, noeud.ancre, couleur)
 
-                ligne = Ligne(r32)(noeud.ancre, noeud.controle_avant)
-                peintre.dessine_segment(ligne, couleur)
+                peintre.dessine_segment(noeud.ancre, noeud.controle_avant, couleur)
 
                 rect: RectanglePosDim(r32)
                 rect.x = noeud.ancre.x - RAYON_NOEUD
@@ -495,16 +492,13 @@ dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVB
             
             échantillonne_courbe_bézier(noeud, noeud_suivant, échantillons)
 
-            ligne = Ligne(r32)(p0, échantillons[0])
-            peintre.dessine_segment(ligne, couleur)
+            peintre.dessine_segment(p0, échantillons[0], couleur)
 
             pour i dans échantillons.taille - 1 {
-                ligne = Ligne(r32)(échantillons[i], échantillons[i + 1])
-                peintre.dessine_segment(ligne, couleur)
+                peintre.dessine_segment(échantillons[i], échantillons[i + 1], couleur)
             }
 
-            ligne = Ligne(r32)(échantillons[échantillons.taille - 1], p1)
-            peintre.dessine_segment(ligne, couleur)
+            peintre.dessine_segment(échantillons[échantillons.taille - 1], p1, couleur)
         }
     }
 }

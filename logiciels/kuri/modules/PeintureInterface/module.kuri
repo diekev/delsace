@@ -184,9 +184,34 @@ remplis_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: Coule
     peintre.rappel_remplis_cercle(peintre, cercle, couleur)
 }
 
+dessine_segment :: fonc (peintre: *Peintre, x0: $T, y0: T, x1: T, y1: T, couleur: CouleurPeintre)
+{
+    ligne : Ligne(T) = ---
+    ligne.p0.x = x0
+    ligne.p0.y = y0
+    ligne.p1.x = x1
+    ligne.p1.y = y1
+    dessine_segment(peintre, ligne, couleur)
+}
+
+dessine_segment :: fonc (peintre: *Peintre, p0: Point2D($T), p1: Point2D(T), couleur: CouleurPeintre)
+{
+    ligne : Ligne(T) = ---
+    ligne.p0 = p0
+    ligne.p1 = p1
+    dessine_segment(peintre, ligne, couleur)
+}
+
 dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_segment(peintre, ligne, couleur)
+}
+
+dessine_segments :: fonc (peintre: *Peintre, lignes: []Ligne($T), couleur: CouleurPeintre) -> rien #enligne
+{
+    pour lignes {
+        peintre.dessine_segment(it, couleur)
+    }
 }
 
 dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
