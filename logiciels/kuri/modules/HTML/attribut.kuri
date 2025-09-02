@@ -10,7 +10,7 @@ détruit_attributs :: fonc (attributs: &[..]AttributLexé)
     déloge(attributs)
 }
 
-cherche_attribut :: fonc (attributs: [..]AttributLexé, nom: DOMString) -> *AttributLexé
+cherche_attribut :: fonc (attributs: []AttributLexé, nom: DOMString) -> *AttributLexé
 {
     pour * attributs {
         si it.nom == nom {

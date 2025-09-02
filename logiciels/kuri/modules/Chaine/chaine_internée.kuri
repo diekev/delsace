@@ -86,11 +86,6 @@ opérateur == :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
     retourne chaine_internée.chn == chn
 }
 
-opérateur != :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
-{
-    retourne !(chaine_internée == chn)
-}
-
 opérateur == :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
 {
     si chaine_internée == nul {
@@ -98,11 +93,6 @@ opérateur == :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
     }
 
     retourne chaine_internée.chn == chn
-}
-
-opérateur != :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
-{
-    retourne !(chaine_internée == chn)
 }
 
 opérateur < :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool

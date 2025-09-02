@@ -776,47 +776,6 @@ ResultatOperation IMG_ouvre_image_avec_adaptrice(const char *chemin,
     return ResultatOperation::OK;
 }
 
-ImageIO_Chaine IMG_donne_filtre_extensions()
-{
-    auto map = OIIO::get_extension_map();
-
-    std::stringstream flux_tous_fichiers;
-    flux_tous_fichiers << "Images";
-    auto virgule = " (";
-    for (auto const &pair : map) {
-        for (auto const &v : pair.second) {
-            flux_tous_fichiers << virgule << "*." << v;
-            virgule = " ";
-        }
-    }
-    flux_tous_fichiers << ");;";
-
-    std::stringstream flux;
-    for (auto const &pair : map) {
-        flux << pair.first;
-        virgule = " (";
-        for (auto const &v : pair.second) {
-            flux << virgule << "*." << v;
-            virgule = " ";
-        }
-        flux << ");;";
-    }
-
-    flux_tous_fichiers << flux.str();
-
-    auto const str = flux_tous_fichiers.str();
-    /* -2 pour supprimer les derniers point-virugles. */
-    auto const taille = str.size() - 2;
-    auto caractères = new char[taille];
-
-    memcpy(caractères, str.data(), taille);
-
-    ImageIO_Chaine résultat;
-    résultat.caractères = caractères;
-    résultat.taille = taille;
-    return résultat;
-}
-
 ImageIO_Chaine IMG_donne_liste_extensions(void)
 {
     auto all_extensions = OIIO::get_string_attribute("extension_list");

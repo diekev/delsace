@@ -525,7 +525,6 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     // 5. Let R be the empty String.
     R: EnchaineuseUTF16
     initialise_enchaineuse(R)
-    diffère détruit_tampons(R)
 
     // 6. Let k be 0.
     k : n32 = 0

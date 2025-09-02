@@ -79,7 +79,6 @@ chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_valeur_json(*enchaineuse, arg)
 

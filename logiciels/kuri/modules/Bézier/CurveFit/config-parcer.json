@@ -1,0 +1,9 @@
+{
+    "fichier": [
+        "curve_fit_nd.h"
+    ],
+    "bibliothèque": "curve_fit_nd",
+    "sortie": "interface.kuri",
+    "args": [],
+    "inclusions": []
+}
