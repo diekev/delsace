@@ -5,6 +5,7 @@
 
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
+#include "compilation/contexte.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
@@ -681,7 +682,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->position |= position;
 
             aplatis_arbre(expr->accédée, arbre_aplatis, position);
-            // n'ajoute pas le rubrique, car la validation sémantique le considérera
+            // n'ajoute pas la rubrique, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
@@ -2242,7 +2243,7 @@ static void crée_assignation(AssembleuseArbre *assembleuse,
     assert(expression->type);
     auto bloc = assembleuse->bloc_courant();
     auto assignation = assembleuse->crée_assignation_variable(
-        &lexème_sentinel, variable, expression);
+        variable->lexème, variable, expression);
     assignation->type = expression->type;
     bloc->ajoute_expression(assignation);
 }
@@ -2459,10 +2460,10 @@ static void sauvegarde_fonction_init(Typeuse &typeuse,
 #undef ASSIGNE_SI
 }
 
-void crée_noeud_initialisation_type(EspaceDeTravail *espace,
-                                    Type *type,
-                                    AssembleuseArbre *assembleuse)
+void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 {
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
     auto &typeuse = espace->compilatrice().typeuse;
 
     if (type->est_type_énum()) {
@@ -2681,9 +2682,265 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
     }
 
     assembleuse->dépile_bloc();
-    simplifie_arbre(espace, assembleuse, typeuse, entête);
+    simplifie_arbre(contexte, entête);
     assigne_fonction_init(type, entête);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions pour les références à des opérateurs basiques.
+ * \{ */
+
+static NoeudDéclarationEntêteFonction *crée_fonction_pour_opérateur_synthétique(
+    EspaceDeTravail *espace,
+    OpérateurBinaire *destination,
+    NoeudExpression *site,
+    AssembleuseArbre *assembleuse)
+{
+    auto &typeuse = espace->compilatrice().typeuse;
+
+    auto types_entrées = kuri::tablet<Type *, 6>();
+    types_entrées.ajoute(destination->type1);
+    types_entrées.ajoute(destination->type2);
+
+    auto type_fonction = typeuse.type_fonction(types_entrées, destination->type_résultat);
+
+    auto lexème = site->lexème;
+
+    auto résultat = assembleuse->crée_entête_fonction(lexème);
+    résultat->bloc_constantes = assembleuse->crée_bloc_seul(lexème, nullptr);
+    résultat->bloc_paramètres = assembleuse->crée_bloc_seul(lexème, résultat->bloc_constantes);
+
+    /* Paramètre d'entrée. */
+    auto déclaration_opérande_gauche = assembleuse->crée_déclaration_variable(
+        lexème, destination->type1, ID::gauche, nullptr);
+    déclaration_opérande_gauche->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
+                                             DrapeauxNoeud::EST_UTILISEE;
+    résultat->params.ajoute(déclaration_opérande_gauche);
+
+    auto déclaration_opérande_droite = assembleuse->crée_déclaration_variable(
+        lexème, destination->type2, ID::droite, nullptr);
+    déclaration_opérande_droite->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
+                                             DrapeauxNoeud::EST_UTILISEE;
+    résultat->params.ajoute(déclaration_opérande_droite);
+
+    /* Paramètre de sortie. */
+    {
+        auto déclaration_sortie = assembleuse->crée_déclaration_variable(
+            lexème, destination->type_résultat, ID::__ret0, nullptr);
+        déclaration_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+        déclaration_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+        résultat->params_sorties.ajoute(déclaration_sortie);
+        résultat->param_sortie = déclaration_sortie;
+    }
+
+    résultat->type = type_fonction;
+    résultat->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    résultat->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
+                                    DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE |
+                                    DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE);
+    résultat->est_opérateur = true;
+
+    /* Création du corps. */
+    auto corps = résultat->corps;
+
+    corps->bloc = assembleuse->crée_bloc_seul(&lexème_sentinel, résultat->bloc_paramètres);
+
+    return résultat;
+}
+
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
+                                                                   OpérateurBinaire *destination,
+                                                                   NoeudExpression *site)
+{
+    if (destination->decl) {
+        return destination->decl;
+    }
+
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
+
+    auto lexème = site->lexème;
+
+    auto résultat = crée_fonction_pour_opérateur_synthétique(
+        espace, destination, site, assembleuse);
+    auto corps = résultat->corps;
+
+    assert(assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(corps->bloc);
+
+    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
+    auto déclaration_opérande_droite = résultat->parametre_entree(1);
+
+    auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_gauche);
+    auto référence_droite = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_droite);
+
+    auto expression_binaire = assembleuse->crée_expression_binaire(
+        lexème, destination, référence_gauche, référence_droite);
+    expression_binaire->op = destination;
+    expression_binaire->type = destination->type_résultat;
+
+    auto retour = assembleuse->crée_retourne(lexème, expression_binaire);
+    retour->type = destination->type_résultat;
+
+    corps->bloc->ajoute_expression(retour);
+
+    assembleuse->dépile_bloc();
+    simplifie_arbre(contexte, résultat);
+    corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    destination->decl = résultat;
+
+    espace->compilatrice().gestionnaire_code->requiers_ri_pour_opérateur_synthétique(espace,
+                                                                                     résultat);
+
+    return résultat;
+}
+
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
+                                                                   OpérateurUnaire *destination,
+                                                                   NoeudExpression *site)
+{
+    if (destination->déclaration) {
+        return destination->déclaration;
+    }
+
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
+    auto &typeuse = espace->compilatrice().typeuse;
+
+    auto types_entrées = kuri::tablet<Type *, 6>();
+    types_entrées.ajoute(destination->type_opérande);
+
+    auto type_fonction = typeuse.type_fonction(types_entrées, destination->type_résultat);
+
+    auto lexème = site->lexème;
+
+    auto résultat = assembleuse->crée_entête_fonction(lexème);
+    résultat->bloc_constantes = assembleuse->crée_bloc_seul(lexème, nullptr);
+    résultat->bloc_paramètres = assembleuse->crée_bloc_seul(lexème, résultat->bloc_constantes);
+
+    /* Paramètre d'entrée. */
+    auto déclaration_opérande = assembleuse->crée_déclaration_variable(
+        lexème, destination->type_opérande, ID::opérande, nullptr);
+    déclaration_opérande->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE |
+                                      DrapeauxNoeud::EST_UTILISEE;
+    résultat->params.ajoute(déclaration_opérande);
+
+    /* Paramètre de sortie. */
+    {
+        auto déclaration_sortie = assembleuse->crée_déclaration_variable(
+            lexème, destination->type_résultat, ID::__ret0, nullptr);
+        déclaration_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
+        déclaration_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+        résultat->params_sorties.ajoute(déclaration_sortie);
+        résultat->param_sortie = déclaration_sortie;
+    }
+
+    résultat->type = type_fonction;
+    résultat->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    résultat->drapeaux_fonction |= (DrapeauxNoeudFonction::FORCE_ENLIGNE |
+                                    DrapeauxNoeudFonction::FORCE_SANSTRACE |
+                                    DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE |
+                                    DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE);
+    résultat->est_opérateur = true;
+
+    /* Création du corps. */
+    auto corps = résultat->corps;
+
+    corps->bloc = assembleuse->crée_bloc_seul(&lexème_sentinel, résultat->bloc_paramètres);
+
+    assert(assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(corps->bloc);
+
+    auto référence_opérande = assembleuse->crée_référence_déclaration(lexème,
+                                                                      déclaration_opérande);
+
+    auto expression_unaire = assembleuse->crée_expression_unaire(lexème, référence_opérande);
+    expression_unaire->op = destination;
+    expression_unaire->type = destination->type_résultat;
+
+    auto retour = assembleuse->crée_retourne(lexème, expression_unaire);
+    retour->type = destination->type_résultat;
+
+    corps->bloc->ajoute_expression(retour);
+
+    assembleuse->dépile_bloc();
+    simplifie_arbre(contexte, résultat);
+    corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    destination->déclaration = résultat;
+
+    espace->compilatrice().gestionnaire_code->requiers_ri_pour_opérateur_synthétique(espace,
+                                                                                     résultat);
+
+    return résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Fonctions pour les opérateurs synthétisés.
+ * \{ */
+
+void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
+{
+    if (opérateur->decl) {
+        /* Peut-être que l'opérateur fut défini entre temps. */
+        return;
+    }
+
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
+    auto lexèmes_extra = contexte->lexèmes_extra;
+
+    auto site = opérateur->doit_être_synthétisé_depuis->decl;
+    auto lexème_site = site->lexème;
+
+    auto genre_lexème = donne_genre_lexème_pour_opérateur_symétrique(lexème_site->genre);
+    auto texte_lexème = donne_chaine_lexème_pour_op_binaire(lexème_site->genre);
+    auto lexème = lexèmes_extra->crée_lexème(lexème_site, genre_lexème, texte_lexème);
+
+    auto résultat = crée_fonction_pour_opérateur_synthétique(espace, opérateur, site, assembleuse);
+    résultat->lexème = lexème;
+    auto corps = résultat->corps;
+
+    assert(assembleuse->bloc_courant() == nullptr);
+    assembleuse->bloc_courant(corps->bloc);
+
+    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
+    auto déclaration_opérande_droite = résultat->parametre_entree(1);
+
+    auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_gauche);
+    auto référence_droite = assembleuse->crée_référence_déclaration(lexème,
+                                                                    déclaration_opérande_droite);
+
+    auto expression_binaire = assembleuse->crée_expression_binaire(
+        lexème, opérateur->doit_être_synthétisé_depuis, référence_gauche, référence_droite);
+    expression_binaire->op = opérateur->doit_être_synthétisé_depuis;
+    expression_binaire->type = opérateur->doit_être_synthétisé_depuis->type_résultat;
+
+    auto négation = assembleuse->crée_négation_logique(lexème, expression_binaire);
+    négation->type = TypeBase::BOOL;
+
+    auto retour = assembleuse->crée_retourne(lexème, négation);
+    retour->type = TypeBase::BOOL;
+
+    corps->bloc->ajoute_expression(retour);
+
+    assembleuse->dépile_bloc();
+    simplifie_arbre(contexte, résultat);
+    corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    opérateur->decl = résultat;
 }
 
 /** \} */

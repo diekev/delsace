@@ -12,7 +12,6 @@
 
 struct Annotation;
 struct Compilatrice;
-struct Tacheronne;
 struct UniteCompilation;
 
 enum class GenreNoeud : unsigned char;
@@ -86,7 +85,7 @@ class TableRéférences {
 struct Syntaxeuse : BaseSyntaxeuse {
   private:
     Compilatrice &m_compilatrice;
-    Tacheronne &m_tacheronne;
+    Contexte *m_contexte = nullptr;
     UniteCompilation const *m_unité = nullptr;
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
@@ -107,7 +106,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool m_désactive_réutilisation_référence = false;
 
   public:
-    Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);
+    Syntaxeuse(Contexte *contexte, UniteCompilation const *unite);
 
     EMPECHE_COPIE(Syntaxeuse);
 

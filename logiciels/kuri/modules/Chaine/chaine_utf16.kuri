@@ -111,11 +111,6 @@ opérateur == :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
-{
-    retourne !(chn == chaine_native)
-}
-
 chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
 {
     unités: [2]n16
@@ -272,11 +267,6 @@ opérateur == :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
     }
 
     retourne vrai
-}
-
-opérateur != :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
-{
-    retourne !(a == b)
 }
 
 opérateur < :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
@@ -770,6 +760,8 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF1
 
     résultat.unités.taille = curseur
 
+    enchaineuse.détruit_tampons()
+
     retourne résultat
 }
 
@@ -777,7 +769,6 @@ crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
     enchaineuse.ajoute(chn)
     retourne chaine_depuis_enchaineuse(enchaineuse)
 }
@@ -795,7 +786,6 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     si nombre == 0 {
         enchaineuse.ajoute('0')
@@ -1010,11 +1000,6 @@ opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16) -> bool
     retourne chn1.donne_chaine_utf16() == chn2
 }
 
-opérateur != :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
-{
-    retourne chn1.valeur != chn2.valeur
-}
-
 opérateur < :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
@@ -1122,7 +1107,6 @@ enchaine :: fonc (chns: ...ChaineUTF16Unique) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     pour chns {
         ajoute_au_tampon(*enchaineuse, it)
     }
@@ -1159,11 +1143,6 @@ opérateur == :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: Tabl
     retourne entrée1.chn == entrée2.chn
 }
 
-opérateur != :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
-{
-    retourne entrée1.chn != entrée2.chn
-}
-
 opérateur < :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
     retourne entrée1.chn < entrée2.chn
@@ -1174,7 +1153,7 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
     entrée: TableChainesUTF16Unique.EntréeCache
     entrée.chn = chn
 
-    entrée_existante := ensemble_possède_retourne_indice(*table.ensemble, entrée)
+    entrée_existante := ensemble_possède_retourne_indice(table.ensemble, entrée)
     si entrée_existante != -1 {
         entrée = table.ensemble[entrée_existante]
         retourne ChaineUTF16Unique(entrée.indice)

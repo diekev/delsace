@@ -5,7 +5,6 @@
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
-#include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 #include "structures/tablet.hh"
 
@@ -321,5 +320,6 @@ struct ÉtatRésolutionAppel {
 
 RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         Sémanticienne &contexte_validation,
+                                         Contexte *contexte,
+                                         Sémanticienne &sémanticienne,
                                          NoeudExpressionAppel *expr);

@@ -9,6 +9,7 @@
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
 #include "monomorpheuse.hh"
@@ -577,7 +578,7 @@ static void ajoute_candidate_pour_déclaration(ListeCandidatesExpressionAppel &c
 }
 
 static void trouve_candidates_pour_expression(
-    Sémanticienne &contexte,
+    Sémanticienne &sémanticienne,
     EspaceDeTravail &espace,
     NoeudExpression *appelée,
     Fichier const *fichier,
@@ -592,8 +593,8 @@ static void trouve_candidates_pour_expression(
                                             appelée->ident,
                                             fichier);
 
-    if (contexte.fonction_courante()) {
-        auto fonction_courante = contexte.fonction_courante();
+    if (sémanticienne.fonction_courante()) {
+        auto fonction_courante = sémanticienne.fonction_courante();
 
         if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
             auto site_monomorphisation = fonction_courante->site_monomorphisation;
@@ -668,7 +669,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
     return vérifie_compatibilité(type_du_paramètre, type_de_l_expression, slot, false);
 }
 
-static void crée_tableau_args_variadiques(Sémanticienne &contexte,
+static void crée_tableau_args_variadiques(Contexte *contexte,
                                           Lexème const *lexème,
                                           kuri::tablet<NoeudExpression *, 10> &slots,
                                           int nombre_args,
@@ -682,7 +683,7 @@ static void crée_tableau_args_variadiques(Sémanticienne &contexte,
 
     /* Pour les fonctions variadiques interne, nous créons un tableau
      * correspondant au types des arguments. */
-    auto noeud_tableau = contexte.donne_assembleuse()->crée_args_variadiques(lexème);
+    auto noeud_tableau = contexte->assembleuse->crée_args_variadiques(lexème);
 
     noeud_tableau->type = type_données_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
@@ -703,7 +704,7 @@ static void crée_tableau_args_variadiques(Sémanticienne &contexte,
     slots.redimensionne(nombre_args);
 }
 
-static void applique_transformations(Sémanticienne &contexte,
+static void applique_transformations(Sémanticienne &sémanticienne,
                                      CandidateAppariement const *candidate,
                                      NoeudExpressionAppel *expr)
 {
@@ -720,8 +721,8 @@ static void applique_transformations(Sémanticienne &contexte,
     auto i = 0;
     /* les drapeaux pour les arguments simples */
     for (; i < nombre_args_simples; ++i) {
-        contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
-                                                      candidate->transformations[i]);
+        sémanticienne.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
+                                                           candidate->transformations[i]);
     }
 
     /* les drapeaux pour les arguments variadics */
@@ -730,16 +731,14 @@ static void applique_transformations(Sémanticienne &contexte,
         auto noeud_tableau = candidate->exprs.back()->comme_args_variadiques();
 
         for (auto j = 0; i < nombre_args_variadics; ++i, ++j) {
-            contexte.crée_transtypage_implicite_au_besoin(noeud_tableau->expressions[j],
-                                                          candidate->transformations[i]);
+            sémanticienne.crée_transtypage_implicite_au_besoin(noeud_tableau->expressions[j],
+                                                               candidate->transformations[i]);
         }
     }
 }
 
 static RésultatAppariement apparie_construction_chaine(
-    Sémanticienne &contexte,
-    NoeudExpressionAppel const *b,
-    kuri::tableau<IdentifiantEtExpression> const &args)
+    NoeudExpressionAppel const *b, kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() != 2) {
         return ErreurAppariement::mécomptage_arguments(b, 2, args.taille());
@@ -774,7 +773,7 @@ static RésultatAppariement apparie_construction_chaine(
 }
 
 static RésultatAppariement apparie_appel_pointeur(
-    Sémanticienne &contexte,
+    Contexte *contexte,
     NoeudExpressionAppel const *b,
     NoeudExpression const *decl_pointeur_fonction,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -945,7 +944,6 @@ static RésultatAppariement apparie_appel_init_de(
 
 static RésultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
-    Sémanticienne &contexte,
     NoeudExpressionAppel const *expr,
     NoeudDéclarationEntêteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
@@ -986,7 +984,7 @@ static RésultatAppariement apparie_appel_fonction_pour_cuisson(
 }
 
 static RésultatAppariement apparie_appel_fonction(
-    Sémanticienne &contexte,
+    Contexte *contexte,
     NoeudExpressionAppel const *expr,
     NoeudDéclarationEntêteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args,
@@ -1199,13 +1197,13 @@ static RésultatAppariement apparie_appel_fonction(
 
 static RésultatAppariement apparie_appel_fonction(
     EspaceDeTravail &espace,
-    Sémanticienne &contexte,
+    Contexte *contexte,
     NoeudExpressionAppel const *expr,
     NoeudDéclarationEntêteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (expr->possède_drapeau(DrapeauxNoeud::POUR_CUISSON)) {
-        return apparie_appel_fonction_pour_cuisson(espace, contexte, expr, decl, args);
+        return apparie_appel_fonction_pour_cuisson(espace, expr, decl, args);
     }
 
     if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
@@ -1556,7 +1554,7 @@ static RésultatAppariement apparie_construction_opaque(
 
 static CodeRetourValidation trouve_candidates_pour_appel(
     EspaceDeTravail &espace,
-    Sémanticienne &contexte,
+    Sémanticienne &sémanticienne,
     NoeudExpressionAppel const *expr,
     kuri::tableau<IdentifiantEtExpression> &args,
     ListeCandidatesExpressionAppel &candidates)
@@ -1565,16 +1563,16 @@ static CodeRetourValidation trouve_candidates_pour_appel(
     auto fichier = espace.compilatrice().fichier(appelée->lexème->fichier);
 
     if (appelée->est_référence_déclaration()) {
-        trouve_candidates_pour_expression(contexte, espace, appelée, fichier, candidates);
+        trouve_candidates_pour_expression(sémanticienne, espace, appelée, fichier, candidates);
         return CodeRetourValidation::OK;
     }
 
     if (appelée->type && appelée->type->est_type_type_de_données()) {
         auto type_connu = appelée->type->comme_type_type_de_données()->type_connu;
         if (!type_connu) {
-            contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                     "dans une expression d'appel",
-                                     appelée);
+            sémanticienne.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                          "dans une expression d'appel",
+                                          appelée);
             return CodeRetourValidation::Erreur;
         }
 
@@ -1593,9 +1591,9 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             return CodeRetourValidation::OK;
         }
 
-        contexte.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
-                                 "dans une expression d'appel",
-                                 appelée);
+        sémanticienne.rapporte_erreur("Impossible d'utiliser un « type_de_données » "
+                                      "dans une expression d'appel",
+                                      appelée);
         return CodeRetourValidation::Erreur;
     }
 
@@ -1607,7 +1605,8 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             référence.lexème = accès->lexème;
             référence.bloc_parent = accès->bloc_parent;
             référence.ident = accès->ident;
-            trouve_candidates_pour_expression(contexte, espace, &référence, fichier, candidates);
+            trouve_candidates_pour_expression(
+                sémanticienne, espace, &référence, fichier, candidates);
             accès->accédée->genre_valeur = GenreValeur::TRANSCENDANTALE;
             args.ajoute_au_début({nullptr, nullptr, accès->accédée});
             return CodeRetourValidation::OK;
@@ -1640,12 +1639,12 @@ static CodeRetourValidation trouve_candidates_pour_appel(
         return CodeRetourValidation::OK;
     }
 
-    contexte.rapporte_erreur("L'expression n'est pas de type fonction", appelée);
+    sémanticienne.rapporte_erreur("L'expression n'est pas de type fonction", appelée);
     return CodeRetourValidation::Erreur;
 }
 
 static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
-                                                  Sémanticienne &contexte,
+                                                  Contexte *contexte,
                                                   NoeudExpressionAppel const *expr,
                                                   ÉtatRésolutionAppel *état)
 {
@@ -1658,7 +1657,7 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             état->résultats.ajoute(apparie_appel_pointeur(contexte, expr, it.decl, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_TYPE_CHAINE) {
-            état->résultats.ajoute(apparie_construction_chaine(contexte, expr, état->args));
+            état->résultats.ajoute(apparie_construction_chaine(expr, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_DÉCLARATION) {
             auto decl = it.decl;
@@ -1973,14 +1972,14 @@ static void rassemble_expressions_paramètres(NoeudExpressionAppel const *expr,
 static RésultatValidation crée_liste_candidates(NoeudExpressionAppel const *expr,
                                                 ÉtatRésolutionAppel *état,
                                                 EspaceDeTravail &espace,
-                                                Sémanticienne &contexte)
+                                                Sémanticienne &sémanticienne)
 {
     /* Si nous revenons ici suite à une attente nous devons recommencer donc vide la liste pour
      * éviter d'avoir des doublons. */
     état->liste_candidates.efface();
 
     auto code_retour = trouve_candidates_pour_appel(
-        espace, contexte, expr, état->args, état->liste_candidates);
+        espace, sémanticienne, expr, état->args, état->liste_candidates);
 
     if (code_retour == CodeRetourValidation::Erreur) {
         return code_retour;
@@ -2109,17 +2108,18 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
 
 RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         Sémanticienne &contexte,
+                                         Contexte *contexte,
+                                         Sémanticienne &sémanticienne,
                                          NoeudExpressionAppel *expr)
 {
 #ifdef STATISTIQUES_DETAILLEES
     auto possède_erreur = true;
     kuri::chrono::chrono_rappel_milliseconde chrono_([&](double temps) {
         if (possède_erreur) {
-            contexte.donne_stats_typage().validation_appel.fusionne_entrée(
+            sémanticienne.donne_stats_typage().validation_appel.fusionne_entrée(
                 {"tentatives râtées", temps});
         }
-        contexte.donne_stats_typage().validation_appel.fusionne_entrée(
+        sémanticienne.donne_stats_typage().validation_appel.fusionne_entrée(
             {"valide_appel_fonction", temps});
     });
 #endif
@@ -2130,23 +2130,23 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     ÉtatRésolutionAppel &état = *expr->état_résolution_appel;
 
     if (état.état == ÉtatRésolutionAppel::État::RÉSOLUTION_NON_COMMENCÉE) {
-        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
+        CHRONO_TYPAGE(sémanticienne.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__PREPARE_ARGUMENTS);
         rassemble_expressions_paramètres(expr, &état);
     }
 
     if (état.état == ÉtatRésolutionAppel::État::ARGUMENTS_RASSEMBLÉS) {
-        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
+        CHRONO_TYPAGE(sémanticienne.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__TROUVE_CANDIDATES);
 
-        auto résultat_liste = crée_liste_candidates(expr, &état, espace, contexte);
+        auto résultat_liste = crée_liste_candidates(expr, &état, espace, sémanticienne);
         if (!est_ok(résultat_liste)) {
             return résultat_liste;
         }
     }
 
     if (état.état == ÉtatRésolutionAppel::État::LISTE_CANDIDATES_CRÉÉE) {
-        CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel,
+        CHRONO_TYPAGE(sémanticienne.donne_stats_typage().validation_appel,
                       VALIDATION_APPEL__APPARIE_CANDIDATES);
         auto attente_possible = apparies_candidates(espace, contexte, expr, &état);
         if (attente_possible.has_value()) {
@@ -2169,9 +2169,10 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     // ------------
     // copie les données
 
-    CHRONO_TYPAGE(contexte.donne_stats_typage().validation_appel, VALIDATION_APPEL__COPIE_DONNEES);
+    CHRONO_TYPAGE(sémanticienne.donne_stats_typage().validation_appel,
+                  VALIDATION_APPEL__COPIE_DONNEES);
 
-    copie_paramètres_résolus(expr, candidate, contexte.donne_assembleuse());
+    copie_paramètres_résolus(expr, candidate, contexte->assembleuse);
 
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelée = candidate->noeud_decl->comme_entête_fonction();
@@ -2183,8 +2184,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         if (!candidate->items_monomorphisation.est_vide()) {
             auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
                 contexte,
-                compilatrice,
-                espace,
                 decl_fonction_appelée,
                 expr,
                 std::move(candidate->items_monomorphisation));
@@ -2197,7 +2196,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             decl_fonction_appelée = noeud_decl;
         }
         else if (decl_fonction_appelée->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
-            auto copie_macro = copie_noeud(contexte.donne_assembleuse(),
+            auto copie_macro = copie_noeud(contexte->assembleuse,
                                            decl_fonction_appelée,
                                            decl_fonction_appelée->bloc_parent,
                                            OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -2229,7 +2228,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             return CodeRetourValidation::Erreur;
         }
 
-        applique_transformations(contexte, candidate, expr);
+        applique_transformations(sémanticienne, candidate, expr);
 
         expr->noeud_fonction_appelée = const_cast<NoeudDéclarationEntêteFonction *>(
             decl_fonction_appelée);
@@ -2253,8 +2252,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         if (!candidate->items_monomorphisation.est_vide()) {
             auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
                 contexte,
-                compilatrice,
-                espace,
                 decl_fonction_appelée,
                 expr,
                 std::move(candidate->items_monomorphisation));
@@ -2275,15 +2272,15 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto decl_struct = candidate->noeud_decl->comme_déclaration_classe();
 
         auto copie = monomorphise_au_besoin(
-            contexte, espace, decl_struct, std::move(candidate->items_monomorphisation));
+            contexte, decl_struct, std::move(candidate->items_monomorphisation));
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
          * paramètre d'une fonction de rappel qui est rubrique de la structure */
         if (!copie->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) &&
-            copie != contexte.union_ou_structure_courante()) {
+            copie != sémanticienne.union_ou_structure_courante()) {
             // saute l'expression pour ne plus revenir
-            contexte.donne_arbre()->index_courant += 1;
+            sémanticienne.donne_arbre()->index_courant += 1;
             compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
             copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
             return Attente::sur_type(copie);
@@ -2296,8 +2293,8 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
             if (expr->paramètres_résolus[i] != nullptr) {
-                contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
-                                                              candidate->transformations[i]);
+                sémanticienne.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
+                                                                   candidate->transformations[i]);
             }
         }
         expr->noeud_fonction_appelée = const_cast<NoeudExpression *>(candidate->noeud_decl);
@@ -2321,7 +2318,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             expr->type = candidate->type->comme_type_fonction()->type_sortie;
         }
 
-        applique_transformations(contexte, candidate, expr);
+        applique_transformations(sémanticienne, candidate, expr);
 
         auto expr_gauche = !expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION);
         if (!expr->type->est_type_rien() && expr_gauche) {
@@ -2350,12 +2347,12 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     else if (candidate->note == CANDIDATE_EST_CONSTRUCTION_CHAINE) {
         expr->type = TypeBase::CHAINE;
         expr->aide_génération_code = CONSTRUIT_CHAINE;
-        applique_transformations(contexte, candidate, expr);
+        applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
         expr->type = TypeBase::RIEN;
-        applique_transformations(contexte, candidate, expr);
+        applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
         if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
@@ -2374,8 +2371,8 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
         else {
             for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
-                contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
-                                                              candidate->transformations[i]);
+                sémanticienne.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
+                                                                   candidate->transformations[i]);
             }
         }
 
@@ -2395,8 +2392,8 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto type_opaque = candidate->type->comme_type_opaque();
         for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
-            contexte.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
-                                                          candidate->transformations[i]);
+            sémanticienne.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
+                                                               candidate->transformations[i]);
         }
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);

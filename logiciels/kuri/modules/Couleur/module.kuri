@@ -42,11 +42,6 @@ opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
     retourne vrai
 }
 
-opérateur != :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
-{
-    retourne !(couleur1 == couleur2)
-}
-
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
 {
     résultat := couleur

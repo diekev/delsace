@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iosfwd>
-#include <optional>
 
 #include "prodeclaration.hh"
 
@@ -19,10 +18,12 @@
 struct ArbreAplatis;
 struct AssembleuseArbre;
 struct BaseDéclarationVariable;
-struct Compilatrice;
+struct Contexte;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
+struct OpérateurBinaire;
+struct OpérateurUnaire;
 struct Symbole;
 struct UniteCompilation;
 using Type = NoeudDéclarationType;
@@ -245,6 +246,9 @@ enum class DrapeauxNoeudFonction : uint32_t {
     /* N'ajoute pas des vérifications sur les rubriques des unions.
      * À FAIRE : macros. */
     SANS_VRU = (1 << 27),
+
+    /* La fonction fut créée pour une référence d'opérateur basique. */
+    EST_OPÉRATAUR_SYNTHÉTIQUE = (1 << 28),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
@@ -500,9 +504,16 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse);
 
-void crée_noeud_initialisation_type(EspaceDeTravail *espace,
-                                    Type *type,
-                                    AssembleuseArbre *assembleuse);
+void crée_noeud_initialisation_type(Contexte *contexte, Type *type);
+
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
+                                                                   OpérateurBinaire *destination,
+                                                                   NoeudExpression *site);
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
+                                                                   OpérateurUnaire *destination,
+                                                                   NoeudExpression *site);
+
+void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur);
 
 bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_statique annotation);
 
@@ -516,15 +527,15 @@ struct IdentifiantCode;
 
 struct RubriqueTypeComposé {
     enum {
-        // si le rubrique est une constante (par exemple, la définition d'une énumération, ou une
+        // si la rubrique est une constante (par exemple, la définition d'une énumération, ou une
         // simple valeur)
         EST_CONSTANT = (1 << 0),
-        // si le rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
+        // si la rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
-        // si le rubrique est employé
+        // si la rubrique est employé
         EST_UN_EMPLOI = (1 << 2),
-        // si le rubrique provient d'une instruction empl
+        // si la rubrique provient d'une instruction empl
         PROVIENT_D_UN_EMPOI = (1 << 3),
         // si l'expression du rubrique est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)
