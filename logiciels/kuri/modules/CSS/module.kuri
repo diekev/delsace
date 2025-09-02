@@ -859,11 +859,6 @@ opérateur == :: (s1: Spécificité, s2: Spécificité) -> bool
     retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C
 }
 
-opérateur != :: (s1: Spécificité, s2: Spécificité) -> bool
-{
-    retourne !(s1 == s2)
-}
-
 opérateur < :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     si s1.A < s2.A {

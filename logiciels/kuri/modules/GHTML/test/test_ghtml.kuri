@@ -58,7 +58,6 @@ ancien_test :: fonc ()
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     erreur_ := génère_page(*données_génération, racine, *enchaineuse)
 

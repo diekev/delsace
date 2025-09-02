@@ -449,7 +449,6 @@ prépare_chaine :: fonc (entrée: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour entrée {
         si 'A' <= it <= 'Z' {
@@ -476,7 +475,6 @@ prépare_résultat :: fonc (entrée: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour entrée {
         ajoute_au_tampon(*enchaineuse, it + 'A')
@@ -492,7 +490,6 @@ césar :: fonc (message: chaine, clé: z8) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour message {
         codé := (it + clé) % 26
@@ -511,7 +508,6 @@ vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour lettre, index_lettre dans message {
         index_lettre_message := lettre
@@ -537,7 +533,6 @@ scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour 0 ... taille_clé - 1 {
         index := it

@@ -20,6 +20,7 @@ struct Bibliothèque;
 struct BibliothèquesUtilisées;
 struct CompilatriceRI;
 struct Coulisse;
+struct Enchaineuse;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
@@ -27,8 +28,9 @@ struct Statistiques;
 using Type = NoeudDéclarationType;
 
 namespace kuri {
+struct chaine;
 struct chemin_systeme;
-}
+}  // namespace kuri
 
 /* ------------------------------------------------------------------------- */
 /** \name ÉtatCompilation.
@@ -91,7 +93,8 @@ struct DiagnostiqueÉtatCompilation {
     NoeudDéclaration *ri_déclaration_à_générer = nullptr;
 };
 
-void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique, std::ostream &os);
+void imprime_diagnostique(DiagnostiqueÉtatCompilation const &diagnostique,
+                          Enchaineuse &enchaineuse);
 
 bool operator==(DiagnostiqueÉtatCompilation const &diag1,
                 DiagnostiqueÉtatCompilation const &diag2);
@@ -276,7 +279,7 @@ struct Programme {
      * - ignore_doublon est faux, ou
      * - le diagnostique est différent du dernier.
      */
-    void imprime_diagnostique(std::ostream &os, bool ignore_doublon = true);
+    [[nodiscard]] kuri::chaine imprime_diagnostique(bool ignore_doublon = true);
 
     kuri::chemin_systeme donne_chemin_pour_fichier_ri() const;
 
