@@ -975,6 +975,37 @@ KEY_MICMUTE ::		248	/* Mute / unmute the microphone */
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions pour les images.
+ * \{ */
+
+XDestroyImage :: fonc (ximage: *XImage) -> z32
+{
+    retourne ximage.f.destroy_image(ximage)
+}
+
+XGetPixel :: fonc (ximage: *XImage, x: z32, y: z32) -> n64
+{
+    retourne ximage.f.get_pixel(ximage, x, y)
+}
+
+XPutPixel :: fonc (ximage: *XImage, x: z32, y: z32, pixel: n64) -> z32
+{
+    retourne ximage.f.put_pixel(ximage, x, y, pixel)
+}
+
+XSubImage :: fonc (ximage: *XImage, x: z32, y: z32, width: n32, height: n32) -> *XImage
+{
+    retourne ximage.f.sub_image(ximage, x, y, width, height)
+}
+
+XAddPixel :: fonc (ximage: *XImage, value: z64) -> z32
+{
+    retourne ximage.f.add_pixel(ximage, value)
+}
+
+/** \} */
+
 #portée_fichier
 
 /* ------------------------------------------------------------------------- */
