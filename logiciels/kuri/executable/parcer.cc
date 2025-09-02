@@ -2957,14 +2957,31 @@ int main(int argc, char **argv)
 
     args.ajoute("-fparse-all-comments");
 
+#if 0
+    auto contenu = std::string("#include \"") + config.fichier.c_str() + "\"\n";
+
+    CXUnsavedFile unsaved_file;
+    unsaved_file.Filename = "compilation.cc";
+    unsaved_file.Contents = contenu.c_str();
+    unsaved_file.Length = contenu.size();
+
+    CXUnsavedFile unsaved_files[] = {unsaved_file};
+    unsigned num_unsaved_files = 1;
+    const char *filename = "contenu.cc";
+#else
+    CXUnsavedFile *unsaved_files = nullptr;
+    unsigned num_unsaved_files = 0;
+    const char *filename = config.fichier.c_str();
+#endif
+
     CXIndex index = clang_createIndex(0, 0);
     CXTranslationUnit unit = clang_parseTranslationUnit(
         index,
-        config.fichier.c_str(),
+        filename,
         args.données(),
         static_cast<int>(args.taille()),
-        nullptr,
-        0,
+        unsaved_files,
+        num_unsaved_files,
         CXTranslationUnit_None | CXTranslationUnit_DetailedPreprocessingRecord |
             CXTranslationUnit_IncludeBriefCommentsInCodeCompletion);
 

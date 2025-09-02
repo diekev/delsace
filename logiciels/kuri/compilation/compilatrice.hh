@@ -70,13 +70,14 @@ struct ArgumentsCompilatrice {
     bool debogue_execution = false;
     bool émets_stats_ops_exécution = false;
     bool préserve_symboles = false;
-    bool sans_stats = false;
+    bool avec_stats = false;
     bool stats_détaillées = false;
     bool sans_traces_d_appel = false;
     bool émets_ri = false;
     bool émets_code_binaire = false;
     bool importe_kuri = true;
     bool compile_en_mode_parallèle = false;
+    bool verbeux = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     TypeCoulisse coulisse = TypeCoulisse::C;
@@ -297,7 +298,7 @@ struct Compilatrice {
 
     IdentifiantCode *donne_nom_défaut_valeur_retour(int index);
 
-    Sémanticienne *donne_sémanticienne_disponible(Tacheronne &tacheronne);
+    Sémanticienne *donne_sémanticienne_disponible(Contexte *contexte);
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
     ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
     void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);
