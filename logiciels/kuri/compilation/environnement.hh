@@ -96,7 +96,8 @@ kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin);
  * commande réussie.
  */
 bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
-                                     kuri::chaine_statique chemin_fichier_erreur);
+                                     kuri::chaine_statique chemin_fichier_erreur,
+                                     bool verbeux);
 
 /* Données pour les erreurs des commandes externes. */
 struct ErreurCommandeExterne {
@@ -108,5 +109,5 @@ struct ErreurCommandeExterne {
  * ne fut pas exécutée avec succès.
  * En cas de succès, ne retourne rien.
  */
-std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
-    kuri::chaine_statique commande);
+std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(kuri::chaine_statique commande,
+                                                                     bool verbeux);

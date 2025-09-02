@@ -210,11 +210,6 @@ opérateur == :: (a: n32, b: z8) -> bool
     retourne a == b comme n32
 }
 
-opérateur != :: (a: n32, b: z8) -> bool
-{
-    retourne a != b comme n32
-}
-
 opérateur <= :: (a: n32, b: z8) -> bool
 {
     retourne a <= b comme n32

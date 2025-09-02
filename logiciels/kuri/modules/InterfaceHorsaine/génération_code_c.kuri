@@ -1438,7 +1438,6 @@ génère_code_support_kuri :: fonc (ipa: &IPA, système_type: *SystèmeTypeC)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     /* Types pour les chaines et les tableaux.
      * Pour les tableaux, il est inutile d'avoir des types distincts tant que
