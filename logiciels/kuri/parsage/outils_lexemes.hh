@@ -5,6 +5,10 @@
 
 #include <cstdint>
 
+#include "structures/tableau_page.hh"
+
+#include "lexemes.hh"
+
 enum class GenreLexème : uint32_t;
 struct Lexème;
 
@@ -17,3 +21,19 @@ struct PositionLexème {
 PositionLexème position_lexeme(Lexème const &lexeme);
 
 GenreLexème operateur_pour_assignation_composee(GenreLexème type);
+
+/* Utilisée pour créer des lexèmes pour les noeuds générés par la compilation. */
+struct LexèmesExtra {
+  private:
+    kuri::tableau_page<Lexème> lexèmes_extra{};
+
+  public:
+    Lexème *crée_lexème(Lexème const *référence, GenreLexème genre, kuri::chaine_statique texte);
+
+    Lexème *crée_lexème(GenreLexème genre, IdentifiantCode *ident);
+
+    int64_t mémoire_utilisée() const
+    {
+        return lexèmes_extra.mémoire_utilisée();
+    }
+};

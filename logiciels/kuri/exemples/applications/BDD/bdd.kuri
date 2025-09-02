@@ -152,7 +152,7 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
     retourne RésultatExécution.SUCCÈS
 }
 
-donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: [..]z8) -> chaine
+donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: []z8) -> chaine
 {
     chn_c := ChaineC(tableau.pointeur)
     retourne chaine(tableau.pointeur, taille_chaine_c(chn_c))

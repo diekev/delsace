@@ -5,8 +5,6 @@
 
 #include "coulisse.hh"
 
-#include "arbre_syntaxique/noeud_code.hh"
-
 struct Programme;
 
 struct CoulisseMV final : public Coulisse {

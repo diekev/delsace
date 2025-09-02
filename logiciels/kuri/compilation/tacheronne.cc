@@ -12,6 +12,7 @@
 #include "arbre_syntaxique/noeud_code.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
@@ -90,6 +91,10 @@ static int file_pour_raison_d_être(RaisonDÊtre raison_d_être)
         case RaisonDÊtre::CALCULE_TAILLE_TYPE:
         {
             return OrdonnanceuseTache::FILE_CALCULE_TAILLE_TYPE;
+        }
+        case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
+        {
+            return OrdonnanceuseTache::FILE_SYNTHÉTISATION_OPÉRATEUR;
         }
         case RaisonDÊtre::AUCUNE:
         {
@@ -354,7 +359,9 @@ bool Tacheronne::gère_tâche()
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unite = tâche.unité;
                 auto debut_parsage = kuri::chrono::compte_seconde();
-                auto syntaxeuse = Syntaxeuse(*this, unite);
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, unite->espace);
+                auto syntaxeuse = Syntaxeuse(&contexte, unite);
                 syntaxeuse.analyse();
                 unite->fichier->fut_parsé = true;
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
@@ -467,7 +474,10 @@ bool Tacheronne::gère_tâche()
                 auto type = unite->type;
                 assert(type);
 
-                crée_noeud_initialisation_type(espace, type, this->assembleuse);
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, espace);
+
+                crée_noeud_initialisation_type(&contexte, type);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
                 break;
             }
@@ -477,6 +487,17 @@ bool Tacheronne::gère_tâche()
                 auto type = unite->type;
                 assert(type);
                 calcule_taille_type_composé(type->comme_type_composé(), false, 0);
+                break;
+            }
+            case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
+            {
+                auto unité = tâche.unité;
+
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, unité->espace);
+
+                synthétise_opérateur(&contexte, unité->opérateur_binaire);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 break;
             }
             case GenreTâche::NOMBRE_ELEMENTS:
@@ -492,7 +513,10 @@ bool Tacheronne::gère_tâche()
 
 void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
 {
-    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(*this);
+    auto contexte = Contexte{};
+    this->initialise_contexte(&contexte, unite->espace);
+
+    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(&contexte);
     auto résultat = sémanticienne->valide(unite);
     if (est_erreur(résultat)) {
         assert(unite->espace->possède_erreur);
@@ -779,12 +803,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             POUR (type_structure->donne_rubriques_pour_code_machine()) {
                 auto pointeur_rubrique = pointeur + it.decalage;
-                auto noeud_rubrique = noeud_syntaxique_depuis_résultat(espace,
-                                                                     directive,
-                                                                     lexeme,
-                                                                     it.type,
-                                                                     pointeur_rubrique,
-                                                                     détectrice_fuites_de_mémoire);
+                auto noeud_rubrique = noeud_syntaxique_depuis_résultat(
+                    espace,
+                    directive,
+                    lexeme,
+                    it.type,
+                    pointeur_rubrique,
+                    détectrice_fuites_de_mémoire);
                 construction_structure->paramètres_résolus.ajoute(noeud_rubrique);
             }
 
@@ -1017,4 +1042,12 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     }
 
     // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
+}
+
+void Tacheronne::initialise_contexte(Contexte *contexte, EspaceDeTravail *espace)
+{
+    contexte->espace = espace;
+    contexte->assembleuse = this->assembleuse;
+    contexte->allocatrice_noeud = &this->allocatrice_noeud;
+    contexte->lexèmes_extra = &this->lexèmes_extra;
 }

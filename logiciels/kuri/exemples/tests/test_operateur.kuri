@@ -1,3 +1,5 @@
+importe Fondation
+
 Vecteur3D :: struct {
     x: n32
     y: n32
@@ -77,7 +79,9 @@ longueur :: fonc (x: n32, y: n32, z: n32) -> n32
 
 principale :: fonc ()
 {
-   // longueur(compte, compte, compte);
+    op := opérateur+(z32, z32)
+    a := op(5, 11)
+    assert(a == 16)
 }
 
 foo :: fonc (compte: [2][2]n32) -> n32

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 #include "structures/enchaineuse.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau_page.hh"

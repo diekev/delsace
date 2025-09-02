@@ -533,7 +533,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
     noeud = b
 
     boucle {
-        si ensemble_possède(*ancêtres_de_a, noeud) {
+        si ensemble_possède(ancêtres_de_a, noeud) {
             retourne noeud
         }
 

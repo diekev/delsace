@@ -549,11 +549,6 @@ opérateur == :: fonc (chn1: chaine, chn2: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: fonc (chn1: chaine, chn2: chaine) -> bool
-{
-    retourne !(chn1 == chn2)
-}
-
 /*
     while (*s1 == *s2++)
         if (*s1++ == 0)
