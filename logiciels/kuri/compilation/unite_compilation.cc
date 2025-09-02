@@ -40,7 +40,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être)
 
 void UniteCompilation::ajoute_attente(Attente attente)
 {
-    if (!est_attente_sur_symbole_précédent(attente)) {
+    if (!est_attente_sur_symbole_précédent(attente) &&
+        !est_attente_sur_opérateur_précédent(attente)) {
         /* Ne remettons le cycle à zéro que si nous attendons sur autre chose que le même symbole
          * précédemment attendu ; sinon nous resterions bloqués dans une compilation infinie. */
         cycle = 0;
@@ -224,6 +225,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 
     auto toutes_les_attentes_sont_résolues = true;
     auto attente_sur_symbole = false;
+    auto attente_sur_opérateur = std::optional<Attente>();
     POUR (m_attentes) {
         if (!it.est_valide()) {
             continue;
@@ -233,6 +235,12 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
             toutes_les_attentes_sont_résolues = false;
             attente_sur_symbole = true;
             continue;
+        }
+
+        if (it.est<AttenteSurOpérateur>()) {
+            toutes_les_attentes_sont_résolues = false;
+            attente_sur_opérateur = it;
+            break;
         }
 
         if (!attente_est_résolue(espace, it)) {
@@ -264,6 +272,11 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
         return UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU;
     }
 
+    if (attente_sur_opérateur) {
+        marque_prête_pour_attente_sur_opérateur(attente_sur_opérateur.value());
+        return UniteCompilation::ÉtatAttentes::UN_OPÉRATEUR_EST_ATTENDU;
+    }
+
     return UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES;
 }
 
@@ -288,6 +301,28 @@ bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) cons
     }
 
     return m_attente_sur_symbole_précédente == attente.symbole();
+}
+
+void UniteCompilation::marque_prête_pour_attente_sur_opérateur(Attente attente)
+{
+    auto préserve_cycle = false;
+
+    if (attente.opérateur() == m_attente_sur_opérateur_précédente) {
+        cycle += 1;
+        préserve_cycle = true;
+    }
+
+    marque_prête(préserve_cycle);
+    m_attente_sur_opérateur_précédente = attente.opérateur();
+}
+
+bool UniteCompilation::est_attente_sur_opérateur_précédent(Attente attente) const
+{
+    if (!attente.est<AttenteSurOpérateur>()) {
+        return false;
+    }
+
+    return m_attente_sur_opérateur_précédente == attente.opérateur();
 }
 
 int64_t UniteCompilation::mémoire_utilisée() const
@@ -321,35 +356,35 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
     auto historique = unité->donne_historique();
     POUR (historique) {
-        os << "---- " << it.fonction << " ; " << it.raison << " ; " << it.état << '\n';
+        enchaineuse << "---- " << it.fonction << " ; " << it.raison << " ; " << it.état << '\n';
     }
 }
 
-void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
     POUR (unité->donne_attentes()) {
         if (it.info && it.info->commentaire) {
-            os << "---- " << it.info->commentaire(it) << '\n';
+            enchaineuse << "---- " << it.info->commentaire(it) << '\n';
         }
         else {
-            os << "---- attente sans commentaire\n";
+            enchaineuse << "---- attente sans commentaire\n";
         }
     }
 }
 
-void imprime_état_unité(std::ostream &os, const UniteCompilation *unité)
+void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
 {
-    os << "-- " << unité->donne_état() << '\n';
+    enchaineuse << "-- " << unité->donne_état() << '\n';
 #ifdef ENREGISTRE_HISTORIQUE
-    os << "-- historique :\n";
-    imprime_historique_unité(os, unité);
+    enchaineuse << "-- historique :\n";
+    imprime_historique_unité(enchaineuse, unité);
 #endif
-    os << "-- attentes :\n";
-    imprime_attentes_unité(os, unité);
+    enchaineuse << "-- attentes :\n";
+    imprime_attentes_unité(enchaineuse, unité);
 }
 
 void imprime_noeud_index_courant_unité(std::ostream &os, UniteCompilation const *unité)

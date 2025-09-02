@@ -12,6 +12,7 @@
 enum class GenreNoeud : uint8_t;
 
 struct AssembleuseArbre;
+struct Contexte;
 struct EspaceDeTravail;
 struct IdentifiantCode;
 struct Lexème;
@@ -29,6 +30,7 @@ using TypeStructure = NoeudStruct;
 
 struct Simplificatrice {
   private:
+    Contexte *m_contexte;
     EspaceDeTravail *espace;
     AssembleuseArbre *assem;
     Typeuse &typeuse;
@@ -75,11 +77,7 @@ struct Simplificatrice {
     int m_nombre_variables = 0;
 
   public:
-    Simplificatrice(EspaceDeTravail *e, AssembleuseArbre *a, Typeuse &t)
-        : espace(e), assem(a), typeuse(t)
-    {
-        m_expressions_blocs.empile_tableau();
-    }
+    explicit Simplificatrice(Contexte *contexte);
 
     EMPECHE_COPIE(Simplificatrice);
 
@@ -163,9 +161,6 @@ struct Simplificatrice {
 /** \name Point d'entrée pour la canonicalisation.
  * \{ */
 
-void simplifie_arbre(EspaceDeTravail *espace,
-                     AssembleuseArbre *assem,
-                     Typeuse &typeuse,
-                     NoeudExpression *arbre);
+void simplifie_arbre(Contexte *contexte, NoeudExpression *arbre);
 
 /** \} */

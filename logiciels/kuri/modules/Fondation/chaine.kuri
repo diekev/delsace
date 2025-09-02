@@ -214,7 +214,6 @@ remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pos_motif : z64 = 0
     répète {

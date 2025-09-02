@@ -83,7 +83,6 @@ donne_texte_graphviz :: fonc (graphe: *Graphe, direction: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     taille_max_texte_noeud : r32 = 0.0
     pour graphe.itère_noeuds() {

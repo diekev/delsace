@@ -268,7 +268,6 @@ chaine_depuis_probabilité :: fonc (p: Probabilité) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "%.", p.unité)
 

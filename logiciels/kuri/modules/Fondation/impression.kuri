@@ -29,14 +29,8 @@ initialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 réinitialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
-    tampon_courant := *enchaineuse.tampon
-
-    tantque tampon_courant != nul {
-        tampon_courant.occupé = 0
-        tampon_courant = tampon_courant.suivant
-    }
-
-    enchaineuse.tampon_courant = *enchaineuse.tampon
+    détruit_tampons(enchaineuse)
+    initialise_enchaineuse(enchaineuse)
 }
 
 taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
@@ -76,6 +70,8 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
         tampon_courant = tampon_courant.suivant
         curseur += taille_tampon
     }
+
+    réinitialise_enchaineuse(enchaineuse)
 
     retourne chn
 }
@@ -270,7 +266,6 @@ enchaine :: fonc (chns: ...chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     ajoute_au_tampon(*enchaineuse, ...chns)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
@@ -877,7 +872,6 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, format, ...args)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
@@ -1095,7 +1089,6 @@ chaine_pour_type :: fonc (info: *InfoType) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     imprime_type(*enchaineuse, info)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

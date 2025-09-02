@@ -17,6 +17,7 @@
 #include <optional>
 
 enum class GenreLexème : uint32_t;
+struct Contexte;
 struct EspaceDeTravail;
 struct ItemMonomorphisation;
 struct Sémanticienne;
@@ -62,6 +63,8 @@ struct OpérateurUnaire {
 };
 
 const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre);
+
+std::ostream &operator<<(std::ostream &os, OpérateurUnaire::Genre genre);
 
 /* Nom genre, chaine RI, code opération MV. */
 #define ENUMERE_OPERATEURS_BINAIRE                                                                \
@@ -114,6 +117,8 @@ struct OpérateurBinaire {
 
     NoeudDéclarationEntêteFonction *decl = nullptr;
 
+    OpérateurBinaire *doit_être_synthétisé_depuis = nullptr;
+
     Genre genre{};
 
     /* vrai si l'on peut sainement inverser les paramètres,
@@ -128,6 +133,8 @@ struct OpérateurBinaire {
 };
 
 const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre);
+
+std::ostream &operator<<(std::ostream &os, OpérateurBinaire::Genre genre);
 
 /* Structure stockant les opérateurs binaires pour un Type.
  * Le Type n'est pas stocké ici, mais chaque Type possède une telle table.
@@ -162,7 +169,9 @@ struct TableOpérateurs {
 
     void ajoute(GenreLexème lexeme, OpérateurBinaire *operateur);
 
-    type_conteneur const &opérateurs(GenreLexème lexeme);
+    OpérateurBinaire *donne_opérateur(GenreLexème genre_lexème, Type *type_opérande_droite) const;
+
+    type_conteneur const &opérateurs(GenreLexème lexeme) const;
 
     int64_t mémoire_utilisée() const;
 };
@@ -209,6 +218,19 @@ struct RegistreDesOpérateurs {
         GenreLexème id, Type *type1, Type *type2, Type *type_résultat, IndiceTypeOp indice_type);
 
     OpérateurUnaire *ajoute_basique_unaire(GenreLexème id, Type *type, Type *type_résultat);
+
+    OpérateurBinaire *crée_opérateur_binaire(GenreLexème id,
+                                             Type *type1,
+                                             Type *type2,
+                                             Type *type_résultat,
+                                             NoeudDéclarationEntêteFonction *decl);
+
+    void crée_opérateur_symétrique(TableOpérateurs *table,
+                                   OpérateurBinaire *opérateur_source,
+                                   GenreLexème id,
+                                   Type *type1,
+                                   Type *type2,
+                                   Type *type_résultat);
 
     void ajoute_perso(GenreLexème id,
                       Type *type1,
@@ -259,7 +281,7 @@ struct OpérateurCandidat {
 
 std::optional<Attente> cherche_candidats_opérateurs(
     EspaceDeTravail &espace,
-    NoeudExpressionBinaire *expression_binaire,
+    NoeudExpression *expression_binaire,
     Type *type1,
     Type *type2,
     GenreLexème type_op,
@@ -267,12 +289,8 @@ std::optional<Attente> cherche_candidats_opérateurs(
 
 using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, bool>;
 
-RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
-                                                            Sémanticienne &sémanticienne,
-                                                            NoeudExpressionBinaire *site,
-                                                            Type *type1,
-                                                            Type *type2,
-                                                            GenreLexème type_op);
+RésultatRechercheOpérateur trouve_opérateur_pour_expression(
+    Contexte *contexte, NoeudExpression *site, Type *type1, Type *type2, GenreLexème type_op);
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
 
@@ -284,3 +302,7 @@ bool peut_permuter_opérandes(OpérateurBinaire::Genre const genre);
 
 OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
     OpérateurBinaire::Genre const genre);
+
+GenreLexème donne_genre_lexème_pour_opérateur_symétrique(GenreLexème genre);
+
+kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(GenreLexème genre);
