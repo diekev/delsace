@@ -20,7 +20,6 @@ struct Compilatrice;
 struct EspaceDeTravail;
 struct Lexème;
 struct MetaProgramme;
-struct Tacheronne;
 struct TransformationType;
 struct UniteCompilation;
 
@@ -119,7 +118,7 @@ struct ArbreAplatis {
 struct Sémanticienne {
   private:
     Compilatrice &m_compilatrice;
-    Tacheronne *m_tacheronne = nullptr;
+    Contexte *m_contexte = nullptr;
     AssembleuseArbre *m_assembleuse = nullptr;
 
     UniteCompilation *m_unité = nullptr;
@@ -147,7 +146,7 @@ struct Sémanticienne {
     ~Sémanticienne();
 
     void réinitialise();
-    void définis_tacheronne(Tacheronne &tacheronne);
+    void définis_contexte(Contexte *contexte);
 
     RésultatValidation valide(UniteCompilation *unité);
 
@@ -252,8 +251,8 @@ struct Sémanticienne {
                                             TypeTableauFixe *type_tableau,
                                             int64_t index_acces);
     void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
-                                        NoeudExpression *rubrique,
-                                        TypeCompose *type);
+                                          NoeudExpression *rubrique,
+                                          TypeCompose *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);

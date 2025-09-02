@@ -12,6 +12,7 @@
 #include "arbre_syntaxique/noeud_code.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "coulisse.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
@@ -358,7 +359,9 @@ bool Tacheronne::gère_tâche()
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unite = tâche.unité;
                 auto debut_parsage = kuri::chrono::compte_seconde();
-                auto syntaxeuse = Syntaxeuse(*this, unite);
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, unite->espace);
+                auto syntaxeuse = Syntaxeuse(&contexte, unite);
                 syntaxeuse.analyse();
                 unite->fichier->fut_parsé = true;
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
@@ -486,8 +489,11 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
             {
                 auto unité = tâche.unité;
-                synthétise_opérateur(
-                    unité->espace, unité->opérateur_binaire, this->assembleuse, *this);
+
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, unité->espace);
+
+                synthétise_opérateur(&contexte, unité->opérateur_binaire);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 break;
             }
@@ -504,7 +510,10 @@ bool Tacheronne::gère_tâche()
 
 void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
 {
-    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(*this);
+    auto contexte = Contexte{};
+    this->initialise_contexte(&contexte, unite->espace);
+
+    auto sémanticienne = compilatrice.donne_sémanticienne_disponible(&contexte);
     auto résultat = sémanticienne->valide(unite);
     if (est_erreur(résultat)) {
         assert(unite->espace->possède_erreur);
@@ -1030,4 +1039,12 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
     }
 
     // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
+}
+
+void Tacheronne::initialise_contexte(Contexte *contexte, EspaceDeTravail *espace)
+{
+    contexte->espace = espace;
+    contexte->assembleuse = this->assembleuse;
+    contexte->allocatrice_noeud = &this->allocatrice_noeud;
+    contexte->lexèmes_extra = &this->lexèmes_extra;
 }

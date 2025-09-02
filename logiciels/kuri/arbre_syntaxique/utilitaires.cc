@@ -5,6 +5,7 @@
 
 #include "compilation/broyage.hh"
 #include "compilation/compilatrice.hh"
+#include "compilation/contexte.hh"
 #include "compilation/erreur.h"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
@@ -2880,22 +2881,23 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
 /** \name Fonctions pour les opérateurs synthétisés.
  * \{ */
 
-void synthétise_opérateur(EspaceDeTravail *espace,
-                          OpérateurBinaire *opérateur,
-                          AssembleuseArbre *assembleuse,
-                          Tacheronne &tâcheronne)
+void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
 {
     if (opérateur->decl) {
         /* Peut-être que l'opérateur fut défini entre temps. */
         return;
     }
 
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
+    auto lexèmes_extra = contexte->lexèmes_extra;
+
     auto site = opérateur->doit_être_synthétisé_depuis->decl;
     auto lexème_site = site->lexème;
 
     auto genre_lexème = donne_genre_lexème_pour_opérateur_symétrique(lexème_site->genre);
     auto texte_lexème = donne_chaine_lexème_pour_op_binaire(lexème_site->genre);
-    auto lexème = tâcheronne.lexèmes_extra.crée_lexème(lexème_site, genre_lexème, texte_lexème);
+    auto lexème = lexèmes_extra->crée_lexème(lexème_site, genre_lexème, texte_lexème);
 
     auto résultat = crée_fonction_pour_opérateur_synthétique(espace, opérateur, site, assembleuse);
     résultat->lexème = lexème;

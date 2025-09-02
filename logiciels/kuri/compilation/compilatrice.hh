@@ -298,7 +298,7 @@ struct Compilatrice {
 
     IdentifiantCode *donne_nom_défaut_valeur_retour(int index);
 
-    Sémanticienne *donne_sémanticienne_disponible(Tacheronne &tacheronne);
+    Sémanticienne *donne_sémanticienne_disponible(Contexte *contexte);
     void dépose_sémanticienne(Sémanticienne *sémanticienne);
     ConvertisseuseNoeudCode *donne_convertisseuse_noeud_code_disponible();
     void dépose_convertisseuse(ConvertisseuseNoeudCode *convertisseuse);

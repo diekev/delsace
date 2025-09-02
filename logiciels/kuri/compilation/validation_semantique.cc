@@ -18,6 +18,7 @@
 #include "utilitaires/macros.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "numerique.hh"
 #include "portee.hh"
@@ -83,17 +84,17 @@ Sémanticienne::~Sémanticienne()
 
 void Sémanticienne::réinitialise()
 {
-    m_tacheronne = nullptr;
+    m_contexte = nullptr;
     m_assembleuse = nullptr;
     m_espace = nullptr;
     m_unité = nullptr;
     m_arbre_courant = nullptr;
 }
 
-void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
+void Sémanticienne::définis_contexte(Contexte *contexte)
 {
-    m_tacheronne = &tacheronne;
-    m_assembleuse = tacheronne.assembleuse;
+    m_contexte = contexte;
+    m_assembleuse = contexte->assembleuse;
 }
 
 AssembleuseArbre *Sémanticienne::donne_assembleuse()
@@ -2170,8 +2171,7 @@ void Sémanticienne::valide_paramètres_constants_fonction(NoeudDéclarationEnt�
     }
 
     if (!decl->monomorphisations) {
-        decl->monomorphisations =
-            m_tacheronne->allocatrice_noeud.crée_monomorphisations_fonction();
+        decl->monomorphisations = m_contexte->allocatrice_noeud->crée_monomorphisations_fonction();
     }
 }
 
@@ -4057,7 +4057,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
+                m_contexte->allocatrice_noeud->crée_monomorphisations_struct();
         }
 
         // nous validerons les rubriques lors de la monomorphisation
@@ -4270,7 +4270,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne->allocatrice_noeud.crée_monomorphisations_union();
+                m_contexte->allocatrice_noeud->crée_monomorphisations_union();
         }
 
         // nous validerons les rubriques lors de la monomorphisation
