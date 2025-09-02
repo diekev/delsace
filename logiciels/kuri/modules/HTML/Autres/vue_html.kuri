@@ -705,7 +705,6 @@ ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
 
         ajoute_au_tampon(*enchaineuse, "<", élément.local_name)
 
@@ -1247,7 +1246,6 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
 
         uri := rappels.requête.donne_url_courant()
 
@@ -1290,7 +1288,6 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
 
         octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE)
 

@@ -6,7 +6,6 @@
 #include <optional>
 
 #include "structures/chaine.hh"
-#include "structures/tableau.hh"
 
 #include "bibliotheque.hh"
 

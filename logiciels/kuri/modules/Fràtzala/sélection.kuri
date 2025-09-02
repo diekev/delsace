@@ -164,7 +164,7 @@ ajourne_état_sélection_éléments :: fonc (empl sélection: *ÉtatSélection, 
     }
 
     pour sélection_courante {
-        si ensemble_possède(*domaine, it) {
+        si ensemble_possède(domaine, it) {
             continue
         }
         état_élément := tableau_ajoute_élément(*état_sélection_éléments)
@@ -180,7 +180,7 @@ donne_chemin_sélection :: fonc (sélection: *ÉtatSélection) -> *CheminSélect
 
 est_sélectionné :: fonc (sélection: *ÉtatSélection, indice: z32) -> bool
 {
-    retourne ensemble_possède(*sélection.sélection_courante, indice)
+    retourne ensemble_possède(sélection.sélection_courante, indice)
 }
 
 donne_éléments_sélectionnés :: fonc (sélection: *ÉtatSélection) -> [..]z32

@@ -584,9 +584,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
         rect_élément.y = rect.y + it.décalage_y
 
         si it.est_séparateur {
-            p0 := Point2D(z32)(rect.x, rect_élément.y)
-            p1 := Point2D(z32)(rect.x + rect.largeur, rect_élément.y)
-            dessine_segment(ctx.peintre, Ligne(z32)(p0, p1), thème.couleur_contour)
+            dessine_segment(ctx.peintre, rect.x, rect_élément.y, rect.x + rect.largeur, rect_élément.y, thème.couleur_contour)
             continue
         }
 

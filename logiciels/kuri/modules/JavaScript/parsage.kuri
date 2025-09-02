@@ -1094,7 +1094,6 @@ crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     début := chn.pointeur
     fin := chn.pointeur + chn.taille
