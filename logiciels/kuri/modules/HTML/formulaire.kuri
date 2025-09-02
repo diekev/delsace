@@ -47,7 +47,6 @@ ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
 génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 {
     enchaineuse: Enchaineuse
-    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
 
     virgule := ""

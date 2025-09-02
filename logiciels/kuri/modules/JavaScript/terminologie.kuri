@@ -97,7 +97,6 @@ génère_fonction_pour_tags :: fonc () -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
     ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
