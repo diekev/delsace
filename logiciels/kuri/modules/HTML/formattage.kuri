@@ -163,7 +163,6 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     pour classes {
         si indice_it > 0 {
@@ -176,7 +175,7 @@ tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
     retourne crée_chaine_utf16_unique(résultat)
 }
 
-cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: [..]*Attr) -> [..]*Attr
+cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: []*Attr) -> [..]*Attr
 {
     résultat: [..]*Attr
 
@@ -346,7 +345,6 @@ crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, docum
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     formatte_noeud(contexte_formattage, document, *enchaineuse)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }

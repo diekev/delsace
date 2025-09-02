@@ -346,7 +346,6 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
     // 2. Let R be the empty String.
     R: EnchaineuseUTF16
     initialise_enchaineuse(R)
-    diffère détruit_tampons(R)
 
     // 3. Let alwaysUnescaped be the string-concatenation of the ASCII word characters and "-.!~*'()".
     always_unescaped := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.!~*'()"
@@ -374,7 +373,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
         C := string16.unités[k]
 
         // b. If unescapedSet contains C, then
-        si ensemble_possède(*unescaped_set, C) {
+        si ensemble_possède(unescaped_set, C) {
             // i. Set k to k + 1.
             k += 1
 

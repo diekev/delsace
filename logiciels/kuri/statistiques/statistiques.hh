@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 #include "structures/tableau.hh"
 
 #include "utilitaires/chrono.hh"
