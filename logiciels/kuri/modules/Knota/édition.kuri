@@ -562,7 +562,7 @@ crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([.
             }
 
             noeud_sortie := entrée.connexion.donne_noeud_sortie()
-            si ensemble_possède(*noeuds_à_copier, noeud_sortie) {
+            si ensemble_possède(noeuds_à_copier, noeud_sortie) {
                 ensemble_ajoute(*connexions_à_copier, entrée.connexion)
             }
         }
@@ -570,7 +570,7 @@ crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([.
         pour sortie dans noeud.sorties {
             pour connexion dans sortie.connexions {
                 noeud_entrée := connexion.donne_noeud_entrée()
-                si ensemble_possède(*noeuds_à_copier, noeud_entrée) {
+                si ensemble_possède(noeuds_à_copier, noeud_entrée) {
                     ensemble_ajoute(*connexions_à_copier, connexion)
                 }
             }

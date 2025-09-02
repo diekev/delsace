@@ -4122,7 +4122,6 @@ donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     infos := info_de(CursorType)
     pour infos.noms {
