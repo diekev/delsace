@@ -14,6 +14,7 @@ struct EspaceDeTravail;
 struct Fichier;
 struct Message;
 struct MetaProgramme;
+struct OpérateurBinaire;
 struct UniteCompilation;
 
 using Type = NoeudDéclarationType;
@@ -130,6 +131,7 @@ using AttenteSurNoeudCode = AttenteSur<DonnéesAttenteNoeudCode>;
 using AttenteSurOpérateurPour = AttenteSur<OpérateurPour>;
 using AttenteSurInitialisationType = AttenteSur<InitialisationType>;
 using AttenteSurInfoType = AttenteSur<InfoDeType>;
+using AttenteSurSynthétisationOpérateur = AttenteSur<OpérateurBinaire const *>;
 
 /** \} */
 
@@ -162,6 +164,7 @@ DÉCLARE_INFO_TYPE_ATTENTE(noeud_code, AttenteSurNoeudCode);
 DÉCLARE_INFO_TYPE_ATTENTE(opérateur_pour, AttenteSurOpérateurPour);
 DÉCLARE_INFO_TYPE_ATTENTE(initialisation_type, AttenteSurInitialisationType);
 DÉCLARE_INFO_TYPE_ATTENTE(info_type, AttenteSurInfoType);
+DÉCLARE_INFO_TYPE_ATTENTE(synthétisation_opérateur, AttenteSurSynthétisationOpérateur);
 
 #undef DÉCLARE_INFO_TYPE_ATTENTE
 
@@ -189,7 +192,8 @@ struct Attente {
                                      AttenteSurNoeudCode,
                                      AttenteSurOpérateurPour,
                                      AttenteSurInitialisationType,
-                                     AttenteSurInfoType>;
+                                     AttenteSurInfoType,
+                                     AttenteSurSynthétisationOpérateur>;
 
     TypeAttente attente{};
 
@@ -298,6 +302,12 @@ struct Attente {
         return AttenteSurInfoType{type};
     }
 
+    static Attente sur_synthétisation_opérateur(OpérateurBinaire const *opérateur_binaire)
+    {
+        assert(opérateur_binaire);
+        return AttenteSurSynthétisationOpérateur{opérateur_binaire};
+    }
+
     /* Discrimination. */
 
     /* Retourne vrai si l'attente est valide, c'est-à-dire qu'elle contient quelque chose sur quoi
@@ -403,6 +413,12 @@ struct Attente {
     {
         assert(est<AttenteSurInfoType>());
         return std::get<AttenteSurInfoType>(attente).valeur.type;
+    }
+
+    OpérateurBinaire const *synthétisation_opérateur() const
+    {
+        assert(est<AttenteSurSynthétisationOpérateur>());
+        return std::get<AttenteSurSynthétisationOpérateur>(attente).valeur;
     }
 
     kuri::chaine donne_commentaire() const;

@@ -4,7 +4,6 @@ donne_commande_pour_nom :: fonc (nom: chaine) -> fonc(*Anonyme)(rien)
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
 

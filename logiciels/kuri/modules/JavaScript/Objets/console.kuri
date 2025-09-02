@@ -139,7 +139,6 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     virgule := ""
     pour arguments {

@@ -23,11 +23,6 @@ opérateur == :: (rune: Rune, c: z8) -> bool
     retourne (rune comme n32) == (c comme n32)
 }
 
-opérateur != :: (rune: Rune, c: z8) -> bool
-{
-    retourne !(rune == c)
-}
-
 /** \} */
 
 imprime_rune :: fonc (enchaineuse: *Enchaineuse, rune: *Rune)
