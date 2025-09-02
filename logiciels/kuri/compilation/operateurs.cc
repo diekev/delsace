@@ -8,6 +8,7 @@
 #include "statistiques/statistiques.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "monomorpheuse.hh"
 #include "typage.hh"
@@ -928,13 +929,10 @@ static Attente attente_sur_opérateur_ou_type(NoeudExpression *noeud, Type *type
     return Attente::sur_opérateur(noeud);
 }
 
-RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
-                                                            Sémanticienne &sémanticienne,
-                                                            NoeudExpression *site,
-                                                            Type *type1,
-                                                            Type *type2,
-                                                            GenreLexème type_op)
+RésultatRechercheOpérateur trouve_opérateur_pour_expression(
+    Contexte *contexte, NoeudExpression *site, Type *type1, Type *type2, GenreLexème type_op)
 {
+    auto &espace = *contexte->espace;
     auto &registre = espace.compilatrice().opérateurs;
     registre->ajoute_opérateurs_basiques_au_besoin(type1);
     registre->ajoute_opérateurs_basiques_au_besoin(type2);
@@ -967,9 +965,7 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &
 
     if (est_polymorphique(meilleur_candidat->op)) {
         auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
-            sémanticienne,
-            espace.compilatrice(),
-            espace,
+            contexte,
             meilleur_candidat->op->decl,
             site,
             std::move(meilleur_candidat->items_monomorphisation));

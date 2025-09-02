@@ -320,5 +320,6 @@ struct ÉtatRésolutionAppel {
 
 RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                                          EspaceDeTravail &espace,
-                                         Sémanticienne &contexte_validation,
+                                         Contexte *contexte,
+                                         Sémanticienne &sémanticienne,
                                          NoeudExpressionAppel *expr);

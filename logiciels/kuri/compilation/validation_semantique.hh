@@ -154,8 +154,6 @@ struct Sémanticienne {
 
     Type *union_ou_structure_courante() const;
 
-    AssembleuseArbre *donne_assembleuse();
-
     StatistiquesTypage &donne_stats_typage();
 
     void rassemble_statistiques(Statistiques &stats);

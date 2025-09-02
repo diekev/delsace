@@ -17,6 +17,7 @@
 #include <optional>
 
 enum class GenreLexème : uint32_t;
+struct Contexte;
 struct EspaceDeTravail;
 struct ItemMonomorphisation;
 struct Sémanticienne;
@@ -287,12 +288,8 @@ std::optional<Attente> cherche_candidats_opérateurs(
 
 using RésultatRechercheOpérateur = std::variant<Attente, OpérateurCandidat, bool>;
 
-RésultatRechercheOpérateur trouve_opérateur_pour_expression(EspaceDeTravail &espace,
-                                                            Sémanticienne &sémanticienne,
-                                                            NoeudExpression *site,
-                                                            Type *type1,
-                                                            Type *type2,
-                                                            GenreLexème type_op);
+RésultatRechercheOpérateur trouve_opérateur_pour_expression(
+    Contexte *contexte, NoeudExpression *site, Type *type1, Type *type2, GenreLexème type_op);
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op);
 

@@ -97,11 +97,6 @@ void Sémanticienne::définis_contexte(Contexte *contexte)
     m_assembleuse = contexte->assembleuse;
 }
 
-AssembleuseArbre *Sémanticienne::donne_assembleuse()
-{
-    return m_assembleuse;
-}
-
 StatistiquesTypage &Sémanticienne::donne_stats_typage()
 {
     return m_stats_typage;
@@ -562,7 +557,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            auto résultat = valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            auto résultat = valide_appel_fonction(
+                m_compilatrice, *m_espace, m_contexte, *this, expr);
             if (!est_ok(résultat)) {
                 return résultat;
             }
@@ -961,12 +957,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
                 default:
                 {
-                    auto résultat = trouve_opérateur_pour_expression(*m_espace,
-                                                                     *this,
-                                                                     expr,
-                                                                     type_gauche,
-                                                                     type_droite,
-                                                                     GenreLexème::CROCHET_OUVRANT);
+                    auto résultat = trouve_opérateur_pour_expression(
+                        m_contexte, expr, type_gauche, type_droite, GenreLexème::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -1709,7 +1701,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
 
             auto résultat = trouve_opérateur_pour_expression(
-                *m_espace, *this, référence, type_gauche, type_droite, type_op);
+                m_contexte, référence, type_gauche, type_droite, type_op);
 
             if (std::holds_alternative<Attente>(résultat)) {
                 return std::get<Attente>(résultat);
@@ -5623,7 +5615,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_chaine(NoeudExpres
     auto const type_droite = expression_comparée->type;
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_gauche, type_droite, type_op);
+        m_contexte, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5868,7 +5860,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_gauche, type_droite, type_op);
+        m_contexte, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5950,7 +5942,7 @@ RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_bool, type_bool, type_op);
+        m_contexte, expr, type_bool, type_bool, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
