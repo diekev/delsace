@@ -522,15 +522,15 @@ struct IdentifiantCode;
 
 struct RubriqueTypeComposé {
     enum {
-        // si le rubrique est une constante (par exemple, la définition d'une énumération, ou une
+        // si la rubrique est une constante (par exemple, la définition d'une énumération, ou une
         // simple valeur)
         EST_CONSTANT = (1 << 0),
-        // si le rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
+        // si la rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
-        // si le rubrique est employé
+        // si la rubrique est employé
         EST_UN_EMPLOI = (1 << 2),
-        // si le rubrique provient d'une instruction empl
+        // si la rubrique provient d'une instruction empl
         PROVIENT_D_UN_EMPOI = (1 << 3),
         // si l'expression du rubrique est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)

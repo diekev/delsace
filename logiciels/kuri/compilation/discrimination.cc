@@ -181,7 +181,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
     if (déclaration_existante != nullptr) {
         espace->rapporte_erreur(param,
-                                "Ne peut pas utiliser implicitement le rubrique car une "
+                                "Ne peut pas utiliser implicitement la rubrique car une "
                                 "variable de ce nom existe déjà");
         return false;
     }
@@ -290,7 +290,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         if (expression_valide->est_expression_appel) {
             if (rubrique.type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis un rubrique "
+                                          "Impossible de capturer une variable depuis une rubrique "
                                           "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
@@ -339,7 +339,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
 
         auto expression_valide = expression_valide_discrimination(feuille, false);
         if (!expression_valide.has_value()) {
-            m_espace->rapporte_erreur(feuille, "Attendu une référence à un rubrique de l'union")
+            m_espace->rapporte_erreur(feuille, "Attendu une référence à une rubrique de l'union")
                 .ajoute_message("L'expression est de genre : ", feuille->genre, "\n");
             return CodeRetourValidation::Erreur;
         }
@@ -391,7 +391,7 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
         if (expression_valide->est_expression_appel) {
             if (référence_type->type->est_type_rien()) {
                 m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis un rubrique "
+                                          "Impossible de capturer une variable depuis une rubrique "
                                           "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }

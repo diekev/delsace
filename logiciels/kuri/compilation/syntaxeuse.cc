@@ -505,7 +505,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
                 lexème_courant(), nullptr, TypeBloc::MODULE);
 
             if (module->nom() != ID::Kuri) {
-                /* Crée un rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
+                /* Crée une rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
                  * aux fonctions de ce module via une expression de référence de rubrique :
                  * « Kuri.fonction(...) ». */
                 auto lexème_ident_kuri = contexte->lexèmes_extra->crée_lexème(

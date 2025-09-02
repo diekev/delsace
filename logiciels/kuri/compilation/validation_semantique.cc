@@ -1895,7 +1895,7 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             if (est_accès_type_de_données && !rubrique_est_constant) {
                 m_espace->rapporte_erreur(
                     expression_rubrique,
-                    "Ne peut pas accéder à un rubrique non-constant d'un type de données.");
+                    "Ne peut pas accéder à une rubrique non-constant d'un type de données.");
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -1911,7 +1911,7 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
 
     m_espace
         ->rapporte_erreur(
-            structure, "Impossible de référencer un rubrique d'un type n'étant pas une structure")
+            structure, "Impossible de référencer une rubrique d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
     return CodeRetourValidation::Erreur;
 }
@@ -2576,7 +2576,7 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
         inst->type = TypeBase::RIEN;
 
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
-         * du type ayant le rubrique « rien » actif. */
+         * du type ayant la rubrique « rien » actif. */
         if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
             if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 inst->aide_génération_code = RETOURNE_UNE_UNION_VIA_RIEN;
@@ -3893,7 +3893,7 @@ struct ConstructriceRubriquesTypeComposé {
     void ajoute_rubrique_invisible()
     {
         m_rubriques_non_constant += 1;
-        /* Ajoute un rubrique, d'un octet de taille. */
+        /* Ajoute une rubrique, d'un octet de taille. */
         m_type_composé.rubriques.ajoute({nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
     }
 
@@ -3957,11 +3957,11 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
 {
     auto message = kuri::chaine_statique();
     if (type_composé->est_type_structure()) {
-        message = "Utilisation du type de la structure comme type d'un rubrique par valeur.";
+        message = "Utilisation du type de la structure comme type d'une rubrique par valeur.";
     }
     else {
         assert(type_composé->est_type_union());
-        message = "Utilisation du type de l'union comme type d'un rubrique par valeur.";
+        message = "Utilisation du type de l'union comme type d'une rubrique par valeur.";
     }
 
     auto e = espace->rapporte_erreur(expression_rubrique, message);
@@ -4010,7 +4010,7 @@ static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail
  *	  empl base: BaseExterne
  * }
  *
- * Ici nous n'aurons aucun rubrique.
+ * Ici nous n'aurons aucune rubrique.
  *
  * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
  * erreur de compilation si nous tentons d'utiliser un tel type par valeur.

@@ -675,7 +675,7 @@ static void aplatis_arbre(NoeudExpression *racine,
             expr->position |= position;
 
             aplatis_arbre(expr->accédée, arbre_aplatis, position);
-            // n'ajoute pas le rubrique, car la validation sémantique le considérera
+            // n'ajoute pas la rubrique, car la validation sémantique le considérera
             // comme une référence déclaration, ce qui soit clashera avec une variable
             // du même nom, soit résultera en une erreur de compilation
             arbre_aplatis.ajoute(expr);
