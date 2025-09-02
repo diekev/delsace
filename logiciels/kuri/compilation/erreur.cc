@@ -218,7 +218,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         }
         case RaisonErreurAppariement::EXPRESSION_MANQUANTE_POUR_UNION:
         {
-            e.ajoute_message("\tOn doit initialiser au moins un rubrique de l'union\n");
+            e.ajoute_message("\tOn doit initialiser au moins une rubrique de l'union\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
@@ -432,7 +432,7 @@ void rubrique_inconnu(EspaceDeTravail const &espace,
     e.ajoute_message("Le rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
 
     if (rubriques.taille() == 0) {
-        e.ajoute_message("Aucun rubrique connu !\n");
+        e.ajoute_message("Aucune rubrique connu !\n");
     }
     else {
         if (rubriques.taille() <= 32) {

@@ -650,7 +650,8 @@ void GestionnaireCode::garantie_typage_des_dépendances(
     kuri::pour_chaque_élément(données_dépendances.fonctions_utilisées, [&](auto &fonction) {
         if (!fonction->corps->unité &&
             !fonction->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
-                                       DrapeauxNoeudFonction::EST_EXTERNE)) {
+                                       DrapeauxNoeudFonction::EST_EXTERNE |
+                                       DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE)) {
             requiers_typage(espace, fonction->corps);
         }
         return kuri::DécisionItération::Continue;
@@ -1107,7 +1108,8 @@ void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression
                                                                  UniteCompilation *unité)
 {
     auto entête = donne_entête_fonction(noeud);
-    if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+    if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
+                                           DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE)) {
         return;
     }
 
@@ -1239,6 +1241,14 @@ void GestionnaireCode::requiers_initialisation_type(EspaceDeTravail *espace, Typ
     }
 
     type->drapeaux_type |= DrapeauxTypes::UNITE_POUR_INITIALISATION_FUT_CREE;
+}
+
+void GestionnaireCode::requiers_ri_pour_opérateur_synthétique(
+    EspaceDeTravail *espace, NoeudDéclarationEntêteFonction *entête)
+{
+    assert(entête->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
+    assert(entête->possède_drapeau(DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE));
+    requiers_génération_ri(espace, entête);
 }
 
 UniteCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace,
@@ -1391,6 +1401,11 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
         if (!fichier->en_lexage) {
             requiers_lexage(espace, fichier);
         }
+    }
+    else if (attente.est<AttenteSurSynthétisationOpérateur>()) {
+        auto opérateur_synthétisé = attente.synthétisation_opérateur();
+        requiers_synthétisation_opérateur(espace,
+                                          const_cast<OpérateurBinaire *>(opérateur_synthétisé));
     }
 }
 
@@ -2039,6 +2054,32 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     ajoute_unité_à_liste_attente(unité);
 }
 
+void GestionnaireCode::requiers_synthétisation_opérateur(EspaceDeTravail *espace,
+                                                         OpérateurBinaire *opérateur_binaire)
+{
+    auto unité = crée_unité(espace, RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR, true);
+    unité->opérateur_binaire = opérateur_binaire;
+}
+
+void GestionnaireCode::synthétisation_opérateur_terminée(UniteCompilation *unité)
+{
+    auto opérateur_binaire = unité->opérateur_binaire;
+    assert(opérateur_binaire->decl);
+    auto entête = opérateur_binaire->decl;
+    assert(entête->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE));
+    assert(entête->possède_drapeau(DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE));
+
+    détermine_dépendances(entête, unité->espace, nullptr, nullptr);
+    détermine_dépendances(entête->corps, unité->espace, nullptr, nullptr);
+
+    unité->mute_raison_d_être(RaisonDÊtre::GENERATION_RI);
+    auto espace = unité->espace;
+    TACHE_AJOUTEE(GENERATION_RI);
+    unité->noeud = entête;
+    entête->unité = unité;
+    ajoute_unité_à_liste_attente(unité);
+}
+
 void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
 {
 #ifdef TEMPORISE_UNITES_POUR_SIMULER_MOULTFILAGE
@@ -2133,6 +2174,7 @@ void GestionnaireCode::crée_tâches_pour_ordonnanceuse()
             }
             case UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES:
             case UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU:
+            case UniteCompilation::ÉtatAttentes::UN_OPÉRATEUR_EST_ATTENDU:
             {
                 unités_prêtes.ajoute(it);
                 break;
@@ -2230,10 +2272,13 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             }
         }
         else {
-            //            if (imprime_débogage) {
-            //                imprime_diagnostique(it->diagnositique_compilation());
-            //                std::cerr << espace->phase_courante() << '\n';
-            //            }
+            // if (imprime_débogage) {
+            //     auto diagnostique = it->imprime_diagnostique(true);
+            //     if (diagnostique.taille()) {
+            //         dbg() << diagnostique;
+            //     }
+            //     std::cerr << espace->phase_courante() << '\n';
+            // }
 
             if (espace->phase_courante() == PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE &&
                 it->ri_générées()) {
@@ -2544,6 +2589,11 @@ void GestionnaireCode::gère_choses_terminées()
             case RaisonDÊtre::GENERATION_CODE_MACHINE:
             {
                 generation_code_machine_terminée(it);
+                break;
+            }
+            case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
+            {
+                synthétisation_opérateur_terminée(unité);
                 break;
             }
         }

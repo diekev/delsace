@@ -605,14 +605,17 @@ kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin)
 }
 
 bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
-                                     kuri::chaine_statique chemin_fichier_erreur)
+                                     kuri::chaine_statique chemin_fichier_erreur,
+                                     bool verbeux)
 {
     assert(commande.taille() != 0 && commande.pointeur()[commande.taille() - 1] == '\0');
 
     /* N'imprime pas le caractère nul. */
     auto commande_sans_caractère_nul = commande.sous_chaine(0, commande.taille() - 1);
 
-    info() << "Exécution de la commande '" << commande_sans_caractère_nul << "'...";
+    if (verbeux) {
+        info() << "Exécution de la commande '" << commande_sans_caractère_nul << "'...";
+    }
 
     auto nouvelle_commande = enchaine(
         commande_sans_caractère_nul, " 2> \"", chemin_fichier_erreur, "\"", '\0');
@@ -628,12 +631,12 @@ bool exécute_commande_externe_erreur(kuri::chaine_statique commande,
 }
 
 std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
-    kuri::chaine_statique commande)
+    kuri::chaine_statique commande, bool verbeux)
 {
     auto chemin_fichier_erreur = kuri::chemin_systeme::chemin_temporaire("erreur_commande.txt");
     std::optional<ErreurCommandeExterne> résultat;
 
-    if (!exécute_commande_externe_erreur(commande, chemin_fichier_erreur)) {
+    if (!exécute_commande_externe_erreur(commande, chemin_fichier_erreur, verbeux)) {
         résultat = ErreurCommandeExterne{donne_contenu_fichier_erreur(chemin_fichier_erreur)};
         static_cast<void>(kuri::chemin_systeme::supprime(chemin_fichier_erreur));
     }

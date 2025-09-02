@@ -81,9 +81,7 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
                 Ligne(z32)(pos_rect_élément[1], pos_rect_central[2])
             ]
 
-            pour s dans segments {
-                peintre.dessine_segment(s, thème.couleur_contour)
-            }
+            peintre.dessine_segments(segments, thème.couleur_contour)
         }
     }
 }
