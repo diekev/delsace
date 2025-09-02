@@ -2235,7 +2235,7 @@ static void crée_assignation(AssembleuseArbre *assembleuse,
     assert(expression->type);
     auto bloc = assembleuse->bloc_courant();
     auto assignation = assembleuse->crée_assignation_variable(
-        &lexème_sentinel, variable, expression);
+        variable->lexème, variable, expression);
     assignation->type = expression->type;
     bloc->ajoute_expression(assignation);
 }
@@ -2452,10 +2452,10 @@ static void sauvegarde_fonction_init(Typeuse &typeuse,
 #undef ASSIGNE_SI
 }
 
-void crée_noeud_initialisation_type(EspaceDeTravail *espace,
-                                    Type *type,
-                                    AssembleuseArbre *assembleuse)
+void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 {
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
     auto &typeuse = espace->compilatrice().typeuse;
 
     if (type->est_type_énum()) {
@@ -2674,7 +2674,7 @@ void crée_noeud_initialisation_type(EspaceDeTravail *espace,
     }
 
     assembleuse->dépile_bloc();
-    simplifie_arbre(espace, assembleuse, typeuse, entête);
+    simplifie_arbre(contexte, entête);
     assigne_fonction_init(type, entête);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 }
@@ -2745,16 +2745,16 @@ static NoeudDéclarationEntêteFonction *crée_fonction_pour_opérateur_synthét
     return résultat;
 }
 
-NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
                                                                    OpérateurBinaire *destination,
-                                                                   NoeudExpression *site,
-                                                                   AssembleuseArbre *assembleuse)
+                                                                   NoeudExpression *site)
 {
     if (destination->decl) {
         return destination->decl;
     }
 
-    auto &typeuse = espace->compilatrice().typeuse;
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
 
     auto lexème = site->lexème;
 
@@ -2784,7 +2784,7 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
     corps->bloc->ajoute_expression(retour);
 
     assembleuse->dépile_bloc();
-    simplifie_arbre(espace, assembleuse, typeuse, résultat);
+    simplifie_arbre(contexte, résultat);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     destination->decl = résultat;
@@ -2795,15 +2795,16 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
     return résultat;
 }
 
-NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
                                                                    OpérateurUnaire *destination,
-                                                                   NoeudExpression *site,
-                                                                   AssembleuseArbre *assembleuse)
+                                                                   NoeudExpression *site)
 {
     if (destination->déclaration) {
         return destination->déclaration;
     }
 
+    auto espace = contexte->espace;
+    auto assembleuse = contexte->assembleuse;
     auto &typeuse = espace->compilatrice().typeuse;
 
     auto types_entrées = kuri::tablet<Type *, 6>();
@@ -2864,7 +2865,7 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeT
     corps->bloc->ajoute_expression(retour);
 
     assembleuse->dépile_bloc();
-    simplifie_arbre(espace, assembleuse, typeuse, résultat);
+    simplifie_arbre(contexte, résultat);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     destination->déclaration = résultat;
@@ -2928,7 +2929,7 @@ void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
     corps->bloc->ajoute_expression(retour);
 
     assembleuse->dépile_bloc();
-    simplifie_arbre(espace, assembleuse, espace->compilatrice().typeuse, résultat);
+    simplifie_arbre(contexte, résultat);
     corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     opérateur->decl = résultat;

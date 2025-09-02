@@ -474,7 +474,10 @@ bool Tacheronne::gère_tâche()
                 auto type = unite->type;
                 assert(type);
 
-                crée_noeud_initialisation_type(espace, type, this->assembleuse);
+                auto contexte = Contexte{};
+                this->initialise_contexte(&contexte, espace);
+
+                crée_noeud_initialisation_type(&contexte, type);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
                 break;
             }

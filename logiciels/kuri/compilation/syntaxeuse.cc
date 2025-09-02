@@ -508,12 +508,11 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
                 /* Crée un rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
                  * aux fonctions de ce module via une expression de référence de rubrique :
                  * « Kuri.fonction(...) ». */
-                static Lexème lexème_ident_kuri = {};
-                lexème_ident_kuri.genre = GenreLexème::CHAINE_CARACTERE;
-                lexème_ident_kuri.ident = ID::Kuri;
+                auto lexème_ident_kuri = contexte->lexèmes_extra->crée_lexème(
+                    GenreLexème::CHAINE_CARACTERE, ID::Kuri);
                 auto noeud_module = m_contexte->assembleuse
                                         ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(
-                                            &lexème_ident_kuri)
+                                            lexème_ident_kuri)
                                         ->comme_déclaration_module();
                 noeud_module->module = m_compilatrice.module_kuri;
                 noeud_module->ident = ID::Kuri;
@@ -2076,8 +2075,9 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_index = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
         noeud_index->ident = ID::indice_it;
 
-        static Lexème lexème_virgule = {",", {}, GenreLexème::VIRGULE, 0, 0, 0};
-        auto noeud_virgule = m_contexte->assembleuse->crée_virgule(&lexème_virgule);
+        auto lexème_virgule = m_contexte->lexèmes_extra->crée_lexème(
+            noeud->lexème, GenreLexème::VIRGULE, ",");
+        auto noeud_virgule = m_contexte->assembleuse->crée_virgule(lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
         noeud_virgule->expressions.ajoute(noeud_index);
         noeud_virgule->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;

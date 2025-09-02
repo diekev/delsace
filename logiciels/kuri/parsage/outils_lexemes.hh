@@ -30,6 +30,8 @@ struct LexèmesExtra {
   public:
     Lexème *crée_lexème(Lexème const *référence, GenreLexème genre, kuri::chaine_statique texte);
 
+    Lexème *crée_lexème(GenreLexème genre, IdentifiantCode *ident);
+
     int64_t mémoire_utilisée() const
     {
         return lexèmes_extra.mémoire_utilisée();

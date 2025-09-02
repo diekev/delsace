@@ -82,3 +82,11 @@ Lexème *LexèmesExtra::crée_lexème(Lexème const *référence,
     résultat->chaine = texte;
     return résultat;
 }
+
+Lexème *LexèmesExtra::crée_lexème(GenreLexème genre, IdentifiantCode *ident)
+{
+    auto résultat = lexèmes_extra.ajoute_élément();
+    résultat->genre = genre;
+    résultat->ident = ident;
+    return résultat;
+}

@@ -289,8 +289,9 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     decl_corps->bloc = m_assembleuse->empile_bloc(
         directive->lexème, decl_entete, TypeBloc::IMPÉRATIF);
 
-    static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
-    auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
+    auto lexème_retourne = m_contexte->lexèmes_extra->crée_lexème(
+        directive->lexème, GenreLexème::RETOURNE, "retourne");
+    auto expr_ret = m_assembleuse->crée_retourne(lexème_retourne, nullptr);
     expr_ret->type = type_expression;
 
 #ifndef NDEBUG
@@ -325,7 +326,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
 
     decl_corps->bloc->ajoute_expression(expr_ret);
 
-    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, decl_entete);
+    simplifie_arbre(m_contexte, decl_entete);
 
     decl_entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -1718,10 +1719,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (candidat.op->est_basique) {
                 auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
-                    m_espace,
-                    const_cast<OpérateurBinaire *>(candidat.op),
-                    référence,
-                    m_assembleuse);
+                    m_contexte, const_cast<OpérateurBinaire *>(candidat.op), référence);
                 référence->type = déclaration_opérateur->type;
             }
             else {
@@ -1751,7 +1749,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (op->est_basique) {
                 auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
-                    m_espace, const_cast<OpérateurUnaire *>(op), référence, m_assembleuse);
+                    m_contexte, const_cast<OpérateurUnaire *>(op), référence);
                 référence->type = déclaration_opérateur->type;
             }
             else {
@@ -3490,7 +3488,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         imprime_arbre_formatté(entete);
     }
 
-    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(m_contexte, entete);
 
     if (est_corps_texte) {
         /* À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
@@ -3536,7 +3534,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_opérateur_pour()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(m_contexte, entete);
     }
 
     avertis_déclarations_inutilisées(*m_espace, *entete);
@@ -4239,7 +4237,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(m_contexte, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -4524,7 +4522,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_contexte, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
 
@@ -4811,7 +4809,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_contexte, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))

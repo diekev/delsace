@@ -4,6 +4,7 @@
 #include "canonicalisation.hh"
 
 #include "compilation/compilatrice.hh"
+#include "compilation/contexte.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 #include "utilitaires/log.hh"
@@ -34,6 +35,13 @@ static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbr
 /* ------------------------------------------------------------------------- */
 /** \name Canonicalisation.
  * \{ */
+
+Simplificatrice::Simplificatrice(Contexte *contexte)
+    : m_contexte(contexte), espace(contexte->espace), assem(contexte->assembleuse),
+      typeuse(contexte->espace->compilatrice().typeuse)
+{
+    m_expressions_blocs.empile_tableau();
+}
 
 NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 {
@@ -1668,13 +1676,12 @@ NoeudExpression *Simplificatrice::simplifie_expression_logique(NoeudExpressionLo
 
     /* Utilisation d'un lexème spécifique pour la RI, qui pour les conditions des expressions-si se
      * base sur le lexème... */
-    static Lexème lexème_référence;
-    lexème_référence.genre = GenreLexème::CHAINE_CARACTERE;
-
-    auto référence = assem->crée_référence_déclaration(&lexème_référence, déclaration);
+    auto const lexème = logique->lexème;
+    auto lexème_référence = m_contexte->lexèmes_extra->crée_lexème(
+        lexème, GenreLexème::CHAINE_CARACTERE, "");
+    auto référence = assem->crée_référence_déclaration(lexème_référence, déclaration);
 
     auto bloc_parent = logique->bloc_parent;
-    auto const lexème = logique->lexème;
     auto inst_si = (lexème->genre == GenreLexème::BARRE_BARRE) ?
                        assem->crée_saufsi(lexème, référence) :
                        assem->crée_si(lexème, référence);
@@ -2907,17 +2914,14 @@ NoeudExpression *Simplificatrice::développe_macro(NoeudDéclarationEntêteFonct
 /** \name Point d'entrée pour la canonicalisation.
  * \{ */
 
-void simplifie_arbre(EspaceDeTravail *espace,
-                     AssembleuseArbre *assem,
-                     Typeuse &typeuse,
-                     NoeudExpression *arbre)
+void simplifie_arbre(Contexte *contexte, NoeudExpression *arbre)
 {
     assert_rappel(!arbre->possède_drapeau(DrapeauxNoeud::FUT_SIMPLIFIÉ),
                   [&]() { dbg() << nom_humainement_lisible(arbre); });
-    auto simplificatrice = Simplificatrice(espace, assem, typeuse);
-    assert(assem->bloc_courant() == nullptr);
+    auto simplificatrice = Simplificatrice(contexte);
+    assert(contexte->assembleuse->bloc_courant() == nullptr);
     simplificatrice.simplifie(arbre);
-    assert(assem->bloc_courant() == nullptr);
+    assert(contexte->assembleuse->bloc_courant() == nullptr);
     arbre->drapeaux |= DrapeauxNoeud::FUT_SIMPLIFIÉ;
 }
 

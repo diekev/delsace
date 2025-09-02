@@ -499,18 +499,14 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
                                                                      AssembleuseArbre *assembleuse,
                                                                      Typeuse &typeuse);
 
-void crée_noeud_initialisation_type(EspaceDeTravail *espace,
-                                    Type *type,
-                                    AssembleuseArbre *assembleuse);
+void crée_noeud_initialisation_type(Contexte *contexte, Type *type);
 
-NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
                                                                    OpérateurBinaire *destination,
-                                                                   NoeudExpression *site,
-                                                                   AssembleuseArbre *assembleuse);
-NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(EspaceDeTravail *espace,
+                                                                   NoeudExpression *site);
+NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte *contexte,
                                                                    OpérateurUnaire *destination,
-                                                                   NoeudExpression *site,
-                                                                   AssembleuseArbre *assembleuse);
+                                                                   NoeudExpression *site);
 
 void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur);
 
