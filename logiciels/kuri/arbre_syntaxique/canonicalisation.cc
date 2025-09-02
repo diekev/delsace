@@ -4,6 +4,7 @@
 #include "canonicalisation.hh"
 
 #include "compilation/compilatrice.hh"
+#include "compilation/contexte.hh"
 #include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 #include "utilitaires/log.hh"
@@ -34,6 +35,13 @@ static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbr
 /* ------------------------------------------------------------------------- */
 /** \name Canonicalisation.
  * \{ */
+
+Simplificatrice::Simplificatrice(Contexte *contexte)
+    : m_contexte(contexte), espace(contexte->espace), assem(contexte->assembleuse),
+      typeuse(contexte->espace->compilatrice().typeuse)
+{
+    m_expressions_blocs.empile_tableau();
+}
 
 NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 {
@@ -1669,13 +1677,12 @@ NoeudExpression *Simplificatrice::simplifie_expression_logique(NoeudExpressionLo
 
     /* Utilisation d'un lexème spécifique pour la RI, qui pour les conditions des expressions-si se
      * base sur le lexème... */
-    static Lexème lexème_référence;
-    lexème_référence.genre = GenreLexème::CHAINE_CARACTERE;
-
-    auto référence = assem->crée_référence_déclaration(&lexème_référence, déclaration);
+    auto const lexème = logique->lexème;
+    auto lexème_référence = m_contexte->lexèmes_extra->crée_lexème(
+        lexème, GenreLexème::CHAINE_CARACTERE, "");
+    auto référence = assem->crée_référence_déclaration(lexème_référence, déclaration);
 
     auto bloc_parent = logique->bloc_parent;
-    auto const lexème = logique->lexème;
     auto inst_si = (lexème->genre == GenreLexème::BARRE_BARRE) ?
                        assem->crée_saufsi(lexème, référence) :
                        assem->crée_si(lexème, référence);
@@ -2002,7 +2009,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_union(
 
     assert(expression_initialisation);
 
-    /* Nous devons transtyper l'expression, la RI s'occupera d'initialiser le rubrique implicite en
+    /* Nous devons transtyper l'expression, la RI s'occupera d'initialiser la rubrique implicite en
      * cas d'union sûre. */
     auto comme = assem->crée_comme(lexème, expression_initialisation, nullptr);
     comme->type = type_union;
@@ -2172,7 +2179,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_opaque_depuis_structure
 }
 
 /**
- * Trouve le rubrique de \a type_composé ayant ajouté via `empl base: ...` la \a decl_employée et
+ * Trouve la rubrique de \a type_composé ayant ajouté via `empl base: ...` la \a decl_employée et
  * retourne son #InformationRubriqueTypeCompose. */
 static std::optional<InformationRubriqueTypeCompose> trouve_information_rubrique_ayant_ajouté_decl(
     TypeCompose *type_composé, NoeudDéclarationSymbole *decl_employée)
@@ -2190,7 +2197,7 @@ static std::optional<InformationRubriqueTypeCompose> trouve_information_rubrique
 }
 
 /**
- * Trouve le rubrique de \a type_composé ayant pour nom le \a nom donné et
+ * Trouve la rubrique de \a type_composé ayant pour nom le \a nom donné et
  * retourne son #InformationRubriqueTypeCompose. */
 static std::optional<InformationRubriqueTypeCompose> trouve_information_rubrique_ajouté_par_emploi(
     TypeCompose *type_composé, IdentifiantCode *nom)
@@ -2202,7 +2209,7 @@ static std::optional<InformationRubriqueTypeCompose> trouve_information_rubrique
  * Construit la hiérarchie des structures employées par \a type_composé jusqu'à la structure
  * employée ayant ajoutée \a rubrique à \a type_composé.
  * Le résultat contiendra une #InformationRubriqueTypeCompose pour chaque rubrique employé de
- * chaque structure rencontrée + le rubrique de la structure à l'origine du rubrique ajouté par
+ * chaque structure rencontrée + la rubrique de la structure à l'origine du rubrique ajouté par
  * emploi.
  *
  * Par exemple, pour :
@@ -2252,7 +2259,7 @@ static kuri::tableau<InformationRubriqueTypeCompose, int> trouve_hiérarchie_emp
         assert(info_rubrique.has_value());
 
         if ((info_rubrique->rubrique.drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) == 0) {
-            /* Nous sommes au bout de la hiérarchie, ajoutons le rubrique, et arrêtons. */
+            /* Nous sommes au bout de la hiérarchie, ajoutons la rubrique, et arrêtons. */
             hiérarchie.ajoute(info_rubrique.value());
             break;
         }
@@ -2765,7 +2772,7 @@ NoeudExpression *Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
     NoeudExpression *expression = ref_decl;
 
     if (N == DISCR_UNION || N == DISCR_UNION_ANONYME) {
-        /* La discrimination se fait via le rubrique actif. Il faudra proprement gérer les unions
+        /* La discrimination se fait via la rubrique actif. Il faudra proprement gérer les unions
          * dans la RI. */
         expression = assem->crée_référence_rubrique(
             expression->lexème, expression, TypeBase::Z32, 1);
@@ -2908,17 +2915,14 @@ NoeudExpression *Simplificatrice::développe_macro(NoeudDéclarationEntêteFonct
 /** \name Point d'entrée pour la canonicalisation.
  * \{ */
 
-void simplifie_arbre(EspaceDeTravail *espace,
-                     AssembleuseArbre *assem,
-                     Typeuse &typeuse,
-                     NoeudExpression *arbre)
+void simplifie_arbre(Contexte *contexte, NoeudExpression *arbre)
 {
     assert_rappel(!arbre->possède_drapeau(DrapeauxNoeud::FUT_SIMPLIFIÉ),
                   [&]() { dbg() << nom_humainement_lisible(arbre); });
-    auto simplificatrice = Simplificatrice(espace, assem, typeuse);
-    assert(assem->bloc_courant() == nullptr);
+    auto simplificatrice = Simplificatrice(contexte);
+    assert(contexte->assembleuse->bloc_courant() == nullptr);
     simplificatrice.simplifie(arbre);
-    assert(assem->bloc_courant() == nullptr);
+    assert(contexte->assembleuse->bloc_courant() == nullptr);
     arbre->drapeaux |= DrapeauxNoeud::FUT_SIMPLIFIÉ;
 }
 

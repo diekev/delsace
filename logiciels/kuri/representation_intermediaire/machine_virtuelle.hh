@@ -7,9 +7,11 @@
 
 #include "structures/pile.hh"
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 #include "structures/intervalle.hh"
-#include "structures/table_hachage.hh"
+#ifdef UTILISE_NOTRE_TABLE
+#    include "structures/table_hachage.hh"
+#endif
 #include "structures/tableau_page.hh"
 
 struct AtomeFonction;
