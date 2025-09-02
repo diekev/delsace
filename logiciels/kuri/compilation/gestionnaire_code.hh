@@ -135,8 +135,8 @@ class GestionnaireCode {
     kuri::file<Programme *> programmes_en_cours{};
 
     /* Les dépendances d'une déclaration qui sont rassemblées après la fin du typage, nous ne
-     * stockons pas définitivement cette information, ce rubrique ne sers qu'à réutiliser la mémoire
-     * allouée précédemment afin de ne pas trop faire d'allocations dynamiques. */
+     * stockons pas définitivement cette information, ce rubrique ne sers qu'à réutiliser la
+     * mémoire allouée précédemment afin de ne pas trop faire d'allocations dynamiques. */
     DonnéesRésolutionDépendances dépendances{};
 
     AllocatriceNoeud allocatrice_noeud{};
@@ -216,6 +216,9 @@ class GestionnaireCode {
 
     void requiers_initialisation_type(EspaceDeTravail *espace, Type *type);
 
+    void requiers_ri_pour_opérateur_synthétique(EspaceDeTravail *espace,
+                                                NoeudDéclarationEntêteFonction *entête);
+
     UniteCompilation *crée_unité(EspaceDeTravail *espace, RaisonDÊtre raison, bool met_en_attente);
     UniteCompilation *crée_unité_pour_fichier(EspaceDeTravail *espace,
                                               Fichier *fichier,
@@ -238,6 +241,9 @@ class GestionnaireCode {
     void rassemble_statistiques(Statistiques &stats) const;
 
   private:
+    void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
+                                           OpérateurBinaire *opérateur_binaire);
+
     void chargement_fichier_terminé(UniteCompilation *unite);
 
     void lexage_fichier_terminé(UniteCompilation *unite);
@@ -259,6 +265,8 @@ class GestionnaireCode {
     void conversion_noeud_code_terminée(UniteCompilation *unite);
 
     void fonction_initialisation_type_créée(UniteCompilation *unite);
+
+    void synthétisation_opérateur_terminée(UniteCompilation *unité);
 
     void optimisation_terminée(UniteCompilation *unite);
 

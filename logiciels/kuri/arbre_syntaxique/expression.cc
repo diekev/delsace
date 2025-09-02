@@ -609,7 +609,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
 
             if (!type_accede->est_type_composé()) {
                 return erreur_évaluation(
-                    b, "L'expression ne référence pas le rubrique d'un type composé.");
+                    b, "L'expression ne référence pas la rubrique d'un type composé.");
             }
 
             auto type_composé = type_accede->comme_type_composé();

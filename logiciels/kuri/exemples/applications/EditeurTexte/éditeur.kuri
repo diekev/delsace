@@ -148,7 +148,6 @@ marque_modifié :: fonc (éditeur: *Éditeur)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour ligne dans éditeur.lignes_texte {
         ajoute_au_tampon(*enchaineuse, ligne, "\n")
@@ -366,7 +365,6 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, ...args)
 

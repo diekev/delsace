@@ -2812,7 +2812,8 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
 
             auto commande = commande_pour_fichier_objet(
                 espace.options, it.chemin_fichier, nom_sortie);
-            exécute_commande_externe_erreur(commande, it.chemin_fichier_erreur_objet);
+            exécute_commande_externe_erreur(
+                commande, it.chemin_fichier_erreur_objet, args.compilatrice->arguments.verbeux);
         });
     }
 
@@ -2868,7 +2869,8 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
     }
 
     auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
-    auto err_commande = exécute_commande_externe_erreur(commande);
+    auto err_commande = exécute_commande_externe_erreur(commande,
+                                                        args.compilatrice->arguments.verbeux);
     if (err_commande.has_value()) {
         auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
                                 err_commande.value().message);

@@ -70,11 +70,6 @@ opérateur == :: (i0: Instantané, i1: Instantané) -> bool
     retourne i0.seconde == i1.seconde && i0.nanoseconde == i1.nanoseconde
 }
 
-opérateur != :: (i0: Instantané, i1: Instantané) -> bool
-{
-    retourne !(i0 == i1)
-}
-
 opérateur < :: (i0: Instantané, i1: Instantané) -> bool
 {
     retourne i0.seconde <= i1.seconde && i0.nanoseconde < i1.nanoseconde
@@ -128,11 +123,6 @@ millisecondes :: fonc (temps: TempsSystème) -> z64
 opérateur == :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
     retourne t0.seconde == t1.seconde && t0.nanoseconde == t1.nanoseconde
-}
-
-opérateur != :: (t0: TempsSystème, t1: TempsSystème) -> bool
-{
-    retourne !(t0 == t1)
 }
 
 opérateur < :: (t0: TempsSystème, t1: TempsSystème) -> bool
