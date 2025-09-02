@@ -18,6 +18,7 @@
 #include "utilitaires/macros.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "numerique.hh"
 #include "portee.hh"
@@ -83,22 +84,17 @@ Sémanticienne::~Sémanticienne()
 
 void Sémanticienne::réinitialise()
 {
-    m_tacheronne = nullptr;
+    m_contexte = nullptr;
     m_assembleuse = nullptr;
     m_espace = nullptr;
     m_unité = nullptr;
     m_arbre_courant = nullptr;
 }
 
-void Sémanticienne::définis_tacheronne(Tacheronne &tacheronne)
+void Sémanticienne::définis_contexte(Contexte *contexte)
 {
-    m_tacheronne = &tacheronne;
-    m_assembleuse = tacheronne.assembleuse;
-}
-
-AssembleuseArbre *Sémanticienne::donne_assembleuse()
-{
-    return m_assembleuse;
+    m_contexte = contexte;
+    m_assembleuse = contexte->assembleuse;
 }
 
 StatistiquesTypage &Sémanticienne::donne_stats_typage()
@@ -293,8 +289,9 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     decl_corps->bloc = m_assembleuse->empile_bloc(
         directive->lexème, decl_entete, TypeBloc::IMPÉRATIF);
 
-    static Lexème lexème_retourne = {"retourne", {}, GenreLexème::RETOURNE, 0, 0, 0};
-    auto expr_ret = m_assembleuse->crée_retourne(&lexème_retourne, nullptr);
+    auto lexème_retourne = m_contexte->lexèmes_extra->crée_lexème(
+        directive->lexème, GenreLexème::RETOURNE, "retourne");
+    auto expr_ret = m_assembleuse->crée_retourne(lexème_retourne, nullptr);
     expr_ret->type = type_expression;
 
 #ifndef NDEBUG
@@ -329,7 +326,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
 
     decl_corps->bloc->ajoute_expression(expr_ret);
 
-    simplifie_arbre(m_espace, m_assembleuse, m_compilatrice.typeuse, decl_entete);
+    simplifie_arbre(m_contexte, decl_entete);
 
     decl_entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -561,7 +558,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = noeud->comme_appel();
-            auto résultat = valide_appel_fonction(m_compilatrice, *m_espace, *this, expr);
+            auto résultat = valide_appel_fonction(
+                m_compilatrice, *m_espace, m_contexte, *this, expr);
             if (!est_ok(résultat)) {
                 return résultat;
             }
@@ -960,12 +958,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
                 default:
                 {
-                    auto résultat = trouve_opérateur_pour_expression(*m_espace,
-                                                                     *this,
-                                                                     expr,
-                                                                     type_gauche,
-                                                                     type_droite,
-                                                                     GenreLexème::CROCHET_OUVRANT);
+                    auto résultat = trouve_opérateur_pour_expression(
+                        m_contexte, expr, type_gauche, type_droite, GenreLexème::CROCHET_OUVRANT);
 
                     if (std::holds_alternative<Attente>(résultat)) {
                         return std::get<Attente>(résultat);
@@ -1707,14 +1701,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return CodeRetourValidation::Erreur;
             }
 
-            // À FAIRE : supprime l'expression binaire
-            NoeudExpressionBinaire expr;
-            expr.lexème = référence->lexème;
-            expr.opérande_gauche = gauche;
-            expr.opérande_droite = droite;
-
             auto résultat = trouve_opérateur_pour_expression(
-                *m_espace, *this, &expr, type_gauche, type_droite, type_op);
+                m_contexte, référence, type_gauche, type_droite, type_op);
 
             if (std::holds_alternative<Attente>(résultat)) {
                 return std::get<Attente>(résultat);
@@ -1722,18 +1710,21 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             auto candidat = std::get<OpérateurCandidat>(résultat);
 
-            if (candidat.op->est_basique) {
-                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
-                return CodeRetourValidation::Erreur;
-            }
-
             if (candidat.permute_opérandes) {
                 rapporte_erreur("Aucun opérateur trouvé pour l'expression", référence);
                 return CodeRetourValidation::Erreur;
             }
 
             référence->op = candidat.op;
-            référence->type = candidat.op->decl->type;
+
+            if (candidat.op->est_basique) {
+                auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
+                    m_contexte, const_cast<OpérateurBinaire *>(candidat.op), référence);
+                référence->type = déclaration_opérateur->type;
+            }
+            else {
+                référence->type = candidat.op->decl->type;
+            }
 
             return CodeRetourValidation::OK;
         }
@@ -1754,13 +1745,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 return Attente::sur_opérateur(noeud);
             }
 
+            référence->op = op;
+
             if (op->est_basique) {
-                rapporte_erreur("Un opérateur basique ne peut être référencé", référence);
-                return CodeRetourValidation::Erreur;
+                auto déclaration_opérateur = synthétise_fonction_pour_opérateur(
+                    m_contexte, const_cast<OpérateurUnaire *>(op), référence);
+                référence->type = déclaration_opérateur->type;
+            }
+            else {
+                référence->type = op->déclaration->type;
             }
 
-            référence->op = op;
-            référence->type = op->déclaration->type;
             return CodeRetourValidation::OK;
         }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
@@ -1900,7 +1895,7 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             if (est_accès_type_de_données && !rubrique_est_constant) {
                 m_espace->rapporte_erreur(
                     expression_rubrique,
-                    "Ne peut pas accéder à un rubrique non-constant d'un type de données.");
+                    "Ne peut pas accéder à une rubrique non-constant d'un type de données.");
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -1916,7 +1911,7 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
 
     m_espace
         ->rapporte_erreur(
-            structure, "Impossible de référencer un rubrique d'un type n'étant pas une structure")
+            structure, "Impossible de référencer une rubrique d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
     return CodeRetourValidation::Erreur;
 }
@@ -2166,8 +2161,7 @@ void Sémanticienne::valide_paramètres_constants_fonction(NoeudDéclarationEnt�
     }
 
     if (!decl->monomorphisations) {
-        decl->monomorphisations =
-            m_tacheronne->allocatrice_noeud.crée_monomorphisations_fonction();
+        decl->monomorphisations = m_contexte->allocatrice_noeud->crée_monomorphisations_fonction();
     }
 }
 
@@ -2384,18 +2378,25 @@ RésultatValidation Sémanticienne::valide_définition_unique_opérateur(
     auto type2 = type_fonc->types_entrées[1];
 
     if (type1->table_opérateurs) {
-        for (auto &op : type1->table_opérateurs->opérateurs(decl->lexème->genre).plage()) {
-            if (op->type2 == type2) {
-                if (op->est_basique) {
-                    rapporte_erreur("redéfinition de l'opérateur basique", decl);
-                    return CodeRetourValidation::Erreur;
-                }
-
-                m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                    .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                    .ajoute_site(op->decl);
+        auto opérateur_existant = type1->table_opérateurs->donne_opérateur(decl->lexème->genre,
+                                                                           type2);
+        if (opérateur_existant) {
+            if (opérateur_existant->est_basique) {
+                rapporte_erreur("redéfinition de l'opérateur basique", decl);
                 return CodeRetourValidation::Erreur;
             }
+
+            if (opérateur_existant->doit_être_synthétisé_depuis) {
+                assert(opérateur_existant->decl == nullptr);
+                opérateur_existant->decl = decl;
+                opérateur_existant->doit_être_synthétisé_depuis = nullptr;
+                return CodeRetourValidation::OK;
+            }
+
+            m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                .ajoute_site(opérateur_existant->decl);
+            return CodeRetourValidation::Erreur;
         }
     }
 
@@ -2575,7 +2576,7 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
         inst->type = TypeBase::RIEN;
 
         /* Vérifie si le type de sortie est une union, auquel cas nous pouvons retourner une valeur
-         * du type ayant le rubrique « rien » actif. */
+         * du type ayant la rubrique « rien » actif. */
         if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
             if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
                 inst->aide_génération_code = RETOURNE_UNE_UNION_VIA_RIEN;
@@ -3487,7 +3488,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         imprime_arbre_formatté(entete);
     }
 
-    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
+    simplifie_arbre(m_contexte, entete);
 
     if (est_corps_texte) {
         /* À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
@@ -3533,7 +3534,7 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
     if (!entete->est_opérateur_pour()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, entete);
+        simplifie_arbre(m_contexte, entete);
     }
 
     avertis_déclarations_inutilisées(*m_espace, *entete);
@@ -3892,7 +3893,7 @@ struct ConstructriceRubriquesTypeComposé {
     void ajoute_rubrique_invisible()
     {
         m_rubriques_non_constant += 1;
-        /* Ajoute un rubrique, d'un octet de taille. */
+        /* Ajoute une rubrique, d'un octet de taille. */
         m_type_composé.rubriques.ajoute({nullptr, TypeBase::BOOL, ID::chaine_vide, 0, 0, nullptr});
     }
 
@@ -3956,11 +3957,11 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
 {
     auto message = kuri::chaine_statique();
     if (type_composé->est_type_structure()) {
-        message = "Utilisation du type de la structure comme type d'un rubrique par valeur.";
+        message = "Utilisation du type de la structure comme type d'une rubrique par valeur.";
     }
     else {
         assert(type_composé->est_type_union());
-        message = "Utilisation du type de l'union comme type d'un rubrique par valeur.";
+        message = "Utilisation du type de l'union comme type d'une rubrique par valeur.";
     }
 
     auto e = espace->rapporte_erreur(expression_rubrique, message);
@@ -4009,7 +4010,7 @@ static RésultatValidation valide_types_pour_calcule_taille_type(EspaceDeTravail
  *	  empl base: BaseExterne
  * }
  *
- * Ici nous n'aurons aucun rubrique.
+ * Ici nous n'aurons aucune rubrique.
  *
  * Il nous faudra une meilleure manière de gérer ce cas, peut-être via une
  * erreur de compilation si nous tentons d'utiliser un tel type par valeur.
@@ -4044,7 +4045,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     if (decl->est_polymorphe) {
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne->allocatrice_noeud.crée_monomorphisations_struct();
+                m_contexte->allocatrice_noeud->crée_monomorphisations_struct();
         }
 
         if (decl->est_corps_texte) {
@@ -4242,7 +4243,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+    simplifie_arbre(m_contexte, decl);
     return CodeRetourValidation::OK;
 }
 
@@ -4265,7 +4266,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
         if (!decl->monomorphisations) {
             decl->monomorphisations =
-                m_tacheronne->allocatrice_noeud.crée_monomorphisations_union();
+                m_contexte->allocatrice_noeud->crée_monomorphisations_union();
         }
 
         // nous validerons les rubriques lors de la monomorphisation
@@ -4527,7 +4528,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_contexte, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
 
@@ -4814,7 +4815,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
     }
 
     if (!fonction_courante()) {
-        simplifie_arbre(m_unité->espace, m_assembleuse, m_compilatrice.typeuse, decl);
+        simplifie_arbre(m_contexte, decl);
 
         POUR (decls_et_refs) {
             TENTE(valide_symbole_externe(it.decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -5618,7 +5619,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_chaine(NoeudExpres
     auto const type_droite = expression_comparée->type;
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_gauche, type_droite, type_op);
+        m_contexte, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5863,7 +5864,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     }
 
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_gauche, type_droite, type_op);
+        m_contexte, expr, type_gauche, type_droite, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
@@ -5945,7 +5946,7 @@ RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
 
     auto type_bool = expr_bool->type;
     auto résultat = trouve_opérateur_pour_expression(
-        *m_espace, *this, expr, type_bool, type_bool, type_op);
+        m_contexte, expr, type_bool, type_bool, type_op);
 
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);

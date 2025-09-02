@@ -288,7 +288,6 @@ chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     assert(message.version.taille != 0)
 
@@ -315,7 +314,6 @@ chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet)
     ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte)

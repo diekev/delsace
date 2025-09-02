@@ -1959,7 +1959,6 @@ mutate_action_url :: fonc (form: *HTMLFormElement, entry_list: *EntryList, parse
     // À FAIRE Let pairs be the result of converting to a list of name-value pairs with entry list.
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     séparateur := ""
     pour entry_list.entries {
