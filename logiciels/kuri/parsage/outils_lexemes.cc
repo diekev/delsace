@@ -71,3 +71,14 @@ GenreLexème operateur_pour_assignation_composee(GenreLexème type)
         }
     }
 }
+
+Lexème *LexèmesExtra::crée_lexème(Lexème const *référence,
+                                  GenreLexème genre,
+                                  kuri::chaine_statique texte)
+{
+    auto résultat = lexèmes_extra.ajoute_élément();
+    *résultat = *référence;
+    résultat->genre = genre;
+    résultat->chaine = texte;
+    return résultat;
+}

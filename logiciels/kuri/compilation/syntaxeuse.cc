@@ -2672,10 +2672,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         analyse_expression_retour_type(noeud, false);
     }
     else {
-        Lexème *lexème_rien = m_tacheronne.lexèmes_extra.ajoute_élément();
-        *lexème_rien = *lexème;
-        lexème_rien->genre = GenreLexème::RIEN;
-        lexème_rien->chaine = "";
+        Lexème *lexème_rien = m_tacheronne.lexèmes_extra.crée_lexème(
+            lexème, GenreLexème::RIEN, "");
 
         auto decl = crée_retour_défaut_fonction(m_tacheronne.assembleuse, lexème_rien);
         decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;

@@ -5,6 +5,8 @@
 
 #include "arbre_syntaxique/allocatrice.hh"
 
+#include "parsage/outils_lexemes.hh"
+
 #include "structures/file.hh"
 
 #include "utilitaires/badge.hh"
@@ -125,7 +127,7 @@ struct Tacheronne {
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
 
-    kuri::tableau_page<Lexème> lexèmes_extra{};
+    LexèmesExtra lexèmes_extra{};
 
     Broyeuse broyeuse{};
 

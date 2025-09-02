@@ -2891,10 +2891,11 @@ void synthétise_opérateur(EspaceDeTravail *espace,
     }
 
     auto site = opérateur->doit_être_synthétisé_depuis->decl;
-    auto lexème = tâcheronne.lexèmes_extra.ajoute_élément();
-    *lexème = *site->lexème;
-    lexème->genre = donne_genre_lexème_pour_opérateur_symétrique(lexème->genre);
-    lexème->chaine = donne_chaine_lexème_pour_op_binaire(lexème->genre);
+    auto lexème_site = site->lexème;
+
+    auto genre_lexème = donne_genre_lexème_pour_opérateur_symétrique(lexème_site->genre);
+    auto texte_lexème = donne_chaine_lexème_pour_op_binaire(lexème_site->genre);
+    auto lexème = tâcheronne.lexèmes_extra.crée_lexème(lexème_site, genre_lexème, texte_lexème);
 
     auto résultat = crée_fonction_pour_opérateur_synthétique(espace, opérateur, site, assembleuse);
     résultat->lexème = lexème;
