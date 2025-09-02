@@ -257,7 +257,7 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
             fn := decl.id.nom
 
             // iv. If declaredFunctionNames does not contain fn, then
-            saufsi ensemble_possède(*declared_function_names, fn) {
+            saufsi ensemble_possède(declared_function_names, fn) {
                 // À FAIRE : 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
                 // 2. If fnDefinable is false, throw a TypeError exception.
 
@@ -355,7 +355,6 @@ crée_erreur_de_compilation :: fonc (realm: *Realm, message: chaine, position: P
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ligne := position.texte_ligne
 

@@ -23,7 +23,6 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_dans_enchaineuse(*enchaineuse, "<form method='%' action='%'>\n", méthode, cible)
     ajoute_au_tampon(*enchaineuse, "<fieldset>\n")

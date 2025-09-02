@@ -11,6 +11,7 @@
 #include "utilitaires/log.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "portee.hh"
 #include "typage.hh"
@@ -193,17 +194,13 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
 }
 
 std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    Compilatrice &compilatrice,
-    EspaceDeTravail &espace,
+    Contexte *contexte,
     NoeudDéclarationEntêteFonction const *decl,
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
-                                                          decl,
-                                                          decl->monomorphisations,
-                                                          std::move(items_monomorphisation));
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(
+        contexte->assembleuse, decl, decl->monomorphisations, std::move(items_monomorphisation));
 
     auto entête = copie->comme_entête_fonction();
 
@@ -236,17 +233,17 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
         entête->params.redimensionne(int(nouveau_params.taille()));
     }
 
-    compilatrice.gestionnaire_code->requiers_typage(&espace, entête);
+    auto espace = contexte->espace;
+    espace->compilatrice().gestionnaire_code->requiers_typage(espace, entête);
     return {entête, true};
 }
 
 NoeudDéclarationClasse *monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    EspaceDeTravail &espace,
+    Contexte *contexte,
     NoeudDéclarationClasse const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte.donne_assembleuse(),
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
                                                           decl_struct,
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation));
@@ -261,7 +258,8 @@ NoeudDéclarationClasse *monomorphise_au_besoin(
     structure->est_monomorphisation = true;
     structure->polymorphe_de_base = decl_struct;
 
-    espace.compilatrice().gestionnaire_code->requiers_typage(&espace, structure);
+    auto espace = contexte->espace;
+    espace->compilatrice().gestionnaire_code->requiers_typage(espace, structure);
 
     return structure;
 }

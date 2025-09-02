@@ -799,7 +799,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             fn := decl.id.nom
 
             // iii. If functionNames does not contain fn, then
-            saufsi ensemble_possède(*function_names, fn) {
+            saufsi ensemble_possède(function_names, fn) {
                 // 1. Insert fn as the first element of functionNames.
                 ensemble_ajoute(*function_names, fn)
 
@@ -902,7 +902,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         // c. For each element n of varNames, do
         pour var_names {
             // i. If instantiatedVarNames does not contain n, then
-            saufsi ensemble_possède(*instantiated_names, it) {
+            saufsi ensemble_possède(instantiated_names, it) {
                 // 1. Append n to instantiatedVarNames.
                 ensemble_ajoute(*instantiated_names, it)
                 // 2. Perform ! env.CreateMutableBinding(n, false).

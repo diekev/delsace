@@ -404,13 +404,7 @@ copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
 
 énième_élément :: fonc (tableau: []$T, index: z64) -> T
 {
-    // À FAIRE(langage) : référence d'opérateurs basiques
-    comp :: fonc (a: T, b: T) -> bool 
-    {
-        retourne a < b
-    }
-
-    retourne énième_élément(tableau, comp)
+    retourne énième_élément(tableau, opérateur<(T, T))
 }
 
 énième_élément :: fonc (tableau: []$T, index: z64, comp: fonc(T, T)(bool)) -> T
@@ -426,13 +420,7 @@ copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
 
 énième_élément :: fonc (premier: *$T, énième: *T, dernier: *T)
 {
-    // À FAIRE(langage) : référence d'opérateurs basiques
-    comp :: fonc (a: T, b: T) -> bool 
-    {
-        retourne a < b
-    }
-
-    énième_élément(premier, énième, dernier, comp)
+    énième_élément(premier, énième, dernier, opérateur<(T, T))
 }
 
 énième_élément :: fonc (premier: *$T, énième: *T, dernier: *T, comp: fonc(T, T)(bool))
@@ -543,8 +531,6 @@ partition_sans_garde :: fonc (premier: *$T, dernier: *T, pivot: *T, comp: fonc(T
 
         permute(premier, dernier);
         premier += 1
-
-        // À FAIRE(langage) : compilation infinie premier += dernier
     }
 
     retourne nul

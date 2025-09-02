@@ -160,14 +160,6 @@ opérateur == :: (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enli
     retourne vrai
 }
 
-/**
- * Retourne vrai si les valeurs des deux quaternions sont différentes.
- */
-opérateur != :: (cote_gauche: Quaternion, cote_droit: Quaternion) -> bool #enligne
-{
-    retourne !(cote_gauche == cote_droit)
-}
-
 /* ************************************************************************** */
 
 /**

@@ -73,7 +73,6 @@ convertis_casse_serpent_pour_interface :: fonc (chn: chaine) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     convertis_casse_serpent_pour_interface(*enchaineuse, chn)
 

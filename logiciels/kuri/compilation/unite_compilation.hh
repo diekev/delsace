@@ -4,7 +4,6 @@
 #pragma once
 
 #include <iosfwd>
-#include <optional>
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
@@ -14,6 +13,7 @@
 #include "attente.hh"
 
 struct ArbreAplatis;
+struct Enchaineuse;
 struct EspaceDeTravail;
 struct Fichier;
 struct MetaProgramme;
@@ -25,6 +25,7 @@ struct Programme;
     O(LEXAGE_FICHIER, lexage_fichier, "lexage fichier")                                           \
     O(PARSAGE_FICHIER, parsage_fichier, "parsage fichier")                                        \
     O(CREATION_FONCTION_INIT_TYPE, creation_fonction_init_type, "création fonction init type")    \
+    O(SYNTHÉTISATION_OPÉRATEUR, synthétisation_opérateur, "synthétisation opérateur")             \
     O(TYPAGE, typage, "typage")                                                                   \
     O(CONVERSION_NOEUD_CODE, conversion_noeud_code, "conversion noeud code")                      \
     O(ENVOIE_MESSAGE, envoie_message, "envoie message")                                           \
@@ -60,7 +61,8 @@ std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être);
     O(ATTENTES_RÉSOLUES)                                                                          \
     O(ATTENTES_BLOQUÉES)                                                                          \
     O(ATTENTES_NON_RÉSOLUES)                                                                      \
-    O(UN_SYMBOLE_EST_ATTENDU)
+    O(UN_SYMBOLE_EST_ATTENDU)                                                                     \
+    O(UN_OPÉRATEUR_EST_ATTENDU)
 
 #undef ENREGISTRE_HISTORIQUE
 
@@ -121,6 +123,10 @@ struct UniteCompilation {
      * nous avons toujours la même attente avant de retenter la compilation. */
     NoeudExpression *m_attente_sur_symbole_précédente = nullptr;
 
+    /* Idem pour les opérateurs : mémorisons l'attente précédente et n'augmentons le cycle que si
+     * attendons toujours le même opérateur. */
+    NoeudExpression *m_attente_sur_opérateur_précédente = nullptr;
+
   public:
     EspaceDeTravail *espace = nullptr;
     union {
@@ -130,6 +136,7 @@ struct UniteCompilation {
         Programme *programme;
         Message *message;
         Type *type;
+        OpérateurBinaire *opérateur_binaire;
     };
 
     /* Mis en place par les sémanticiennes. Uniquement valide lors de la
@@ -264,6 +271,9 @@ struct UniteCompilation {
     bool est_attente_sur_symbole_précédent(Attente attente) const;
     void marque_prête_pour_attente_sur_symbole();
 
+    bool est_attente_sur_opérateur_précédent(Attente attente) const;
+    void marque_prête_pour_attente_sur_opérateur(Attente attente);
+
     /* Retourne la première Attente qui semble ne pas pouvoir être résolue, ou nul si elles sont
      * toutes résolvables. */
     Attente const *première_attente_bloquée() const;
@@ -278,12 +288,12 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
-void imprime_attentes_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
 /** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
-void imprime_état_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
 void imprime_noeud_index_courant_unité(std::ostream &os, const UniteCompilation *unité);
 

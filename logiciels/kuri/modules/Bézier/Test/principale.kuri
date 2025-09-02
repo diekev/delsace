@@ -156,13 +156,21 @@ dessine_tracé :: fonc (fenêtre: TypeFenêtre)
         }
 
         // outil_plume(it, fenêtre)
-        outil_plume_de_courbure(it, fenêtre)
+        // outil_plume_de_courbure(it, fenêtre)
+        outil_plume_de_forme_libre(it, fenêtre)
     }
 
     taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
     saufsi peintre_ {
         peintre_ = crée_peintre_igumi(taille_canevas)
         peintre_.définis_taille_canevas(taille_canevas)
+    }
+
+    pour points_pour_plume_de_forme_libre.taille - 2 {
+        p0 := points_pour_plume_de_forme_libre[it]
+        p1 := points_pour_plume_de_forme_libre[it + 1]
+
+        peintre_.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
     }
 
     peintre_.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
@@ -353,6 +361,37 @@ outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
         sinon {
             si it.touche == ToucheClavier.ESPACE {
                 déplace_le_dernier_noeud = faux
+            }
+        }
+    }
+}
+
+points_pour_plume_de_forme_libre: [..]Point2D(r32)
+
+outil_plume_de_forme_libre :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+{
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+
+                tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                
+                tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                si chemin.sous_chemins.taille == 0 {
+                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
+                }
+                sous_chemin := dernier_élément(chemin.sous_chemins)
+                _ := adpate_sous_chemin_aux_points(sous_chemin, points_pour_plume_de_forme_libre)
             }
         }
     }

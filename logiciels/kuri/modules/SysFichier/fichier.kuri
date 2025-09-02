@@ -82,20 +82,18 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
     pile.renverse()
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    tampon: TamponChemin
 
     saufsi chemin.est_relatif() {
-        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+        _ := ajoute(*tampon, séparateur_chemin())
     }
 
     tantque !pile.est_vide() {
-        ajoute_au_tampon(*enchaineuse, pile.dépile())
-        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+        saufsi ajoute(*tampon, pile.dépile()) && ajoute(*tampon, séparateur_chemin()) {
+            retourne ErreurFichier.MémoireInsuffisante
+        }
 
-        chemin_dossier := chaine_depuis_enchaineuse(*enchaineuse)
-        diffère déloge(chemin_dossier)
+        chemin_dossier := donne_chaine_statique(*tampon)
 
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
             retourne err
@@ -363,7 +361,6 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     c: z8
 
     boucle {

@@ -664,7 +664,6 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
 
             enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
-            diffère détruit_tampons(*enchaineuse)
 
             pour 0 ... morceaux_base.taille - 2 {
                 ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
@@ -689,7 +688,6 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
 
             enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
-            diffère détruit_tampons(*enchaineuse)
 
             pour 0 ... morceaux_base.taille - 3 {
                 ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
@@ -714,7 +712,6 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
 
             enchaineuse: Enchaineuse
             initialise_enchaineuse(*enchaineuse)
-            diffère détruit_tampons(*enchaineuse)
 
             pour 0 ... morceaux_base.taille - 2 {
                 ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])

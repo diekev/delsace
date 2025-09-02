@@ -110,11 +110,6 @@ opérateur == :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
     retourne vrai
 }
 
-opérateur != :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
-{
-    retourne !(a == b)
-}
-
 opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
 {
     si chn_utf32.taille() > chn_native.taille {
@@ -148,11 +143,6 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     }
 
     retourne vrai
-}
-
-opérateur != :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
-{
-    retourne !(chn_utf32 == chn_native)
 }
 
 opérateur [] :: (chn_utf32: ChaineUTF32, index: z64) -> n32

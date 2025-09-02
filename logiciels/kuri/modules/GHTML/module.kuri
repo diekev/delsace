@@ -20,7 +20,6 @@ erreur_de_génération :: fonc (données_génération: *DonnéesGénération, ch
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "Alors que je génère la page pour « ", données_génération.nom_court_page, " », j'ai rencontré une erreur :\n\n")
 

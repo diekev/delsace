@@ -942,7 +942,7 @@ InstructionAccèdeRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExp
                   << imprime_arbre(site_, 0);
         });
 
-    /* nous retournons un pointeur vers le rubrique */
+    /* nous retournons un pointeur vers la rubrique */
     type = m_typeuse.type_pointeur_pour(type, false);
     return crée_référence_rubrique(site_, type, accédé, index, crée_seulement);
 }
@@ -3218,7 +3218,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 m_constructrice.crée_stocke_mem(noeud, dest, valeur);
             }
             else {
-                /* Pour les unions, nous transtypons le rubrique vers le type cible afin d'éviter
+                /* Pour les unions, nous transtypons la rubrique vers le type cible afin d'éviter
                  * les problème de surécriture de mémoire dans le cas où le type du rubrique est
                  * plus grand que le type de la valeur. */
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);

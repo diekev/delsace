@@ -49,7 +49,6 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
     si realm {
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
 
         ajoute_au_tampon(*enchaineuse, message, "\n")
 
@@ -316,7 +315,6 @@ génère_structures_native_errors :: fonc ()
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
     ajoute_au_tampon(*enchaineuse, "importe Fondation\n")

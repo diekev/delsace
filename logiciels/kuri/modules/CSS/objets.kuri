@@ -238,7 +238,6 @@ donne_chaine_valeur :: fonc (déclaration: *DéclarationPropriété) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     imprime_chaine_valeur(*enchaineuse, déclaration)
 

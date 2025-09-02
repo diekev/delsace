@@ -69,7 +69,7 @@ Peintre :: struct {
 
     /* Dessine le segment avec la couleur donnée. */
     rappel_dessine_segment: fonc(*Peintre, LignePeintre, CouleurPeintre)(rien)
-    rappel_dessine_segments: fonc(*Peintre, [..]LignePeintre, CouleurPeintre)(rien)
+    rappel_dessine_segments: fonc(*Peintre, []LignePeintre, CouleurPeintre)(rien)
 
     /* Dessine le texte avec la fonte et la couleur données. */
     rappel_dessine_texte: fonc(*Peintre, *Fonte, chaine, RectanglePeintre, CouleurPeintre)(rien)
@@ -184,14 +184,39 @@ remplis_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: Coule
     peintre.rappel_remplis_cercle(peintre, cercle, couleur)
 }
 
+dessine_segment :: fonc (peintre: *Peintre, x0: $T, y0: T, x1: T, y1: T, couleur: CouleurPeintre)
+{
+    ligne : Ligne(T) = ---
+    ligne.p0.x = x0
+    ligne.p0.y = y0
+    ligne.p1.x = x1
+    ligne.p1.y = y1
+    dessine_segment(peintre, ligne, couleur)
+}
+
+dessine_segment :: fonc (peintre: *Peintre, p0: Point2D($T), p1: Point2D(T), couleur: CouleurPeintre)
+{
+    ligne : Ligne(T) = ---
+    ligne.p0 = p0
+    ligne.p1 = p1
+    dessine_segment(peintre, ligne, couleur)
+}
+
 dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_segment(peintre, ligne, couleur)
 }
 
-dessine_segments :: fonc (peintre: *Peintre, ligne: [..]LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_segments :: fonc (peintre: *Peintre, lignes: []Ligne($T), couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_segments(peintre, ligne, couleur)
+    pour lignes {
+        peintre.dessine_segment(it, couleur)
+    }
+}
+
+dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
+{
+    peintre.rappel_dessine_segments(peintre, lignes, couleur)
 }
 
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
@@ -622,7 +647,7 @@ dessine_segment_dessin :: fonc (peintre: *Peintre, segment_peintre: LignePeintre
     dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
 }
 
-dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: [..]LignePeintre, couleur_peintre: CouleurPeintre)
+dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
@@ -928,7 +953,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
 
     rayon_double := rayon * 2.0
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-        position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+        position := rectangle.position_interne(0.5, 0.5)
         cercle_immédiat(position.x, position.y, rayon, couleur, faux)
         retourne
     }
@@ -945,7 +970,7 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
 
     // rayon_double := rayon * 2.0
     // si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-    //     position := rectangle.position_interne(Point2D(r32)(0.5, 0.5))
+    //     position := rectangle.position_interne(0.5, 0.5)
     //     cercle_immédiat(position.x, position.y, rayon, couleur, vrai)
     //     retourne
     // }
@@ -1052,7 +1077,7 @@ dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: 
     segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
 }
 
-dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: [..]LignePeintre, couleur_peintre: CouleurPeintre)
+dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
 {
     couleur := donne_couleur_igumi(couleur_peintre)
 

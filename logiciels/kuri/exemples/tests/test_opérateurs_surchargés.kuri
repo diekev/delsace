@@ -33,6 +33,7 @@ principale :: fonc ()
 {
     test_opérateur_surchargé_simple()
     test_opérateur_surchargé_polymorphe()
+    test_opérateur_surchargé_synthétisé()
 }
 
 /* Définition d'une surcharge pour l'opérateur+ pour un nouveau type. */
@@ -84,3 +85,35 @@ test_opérateur_surchargé_polymorphe :: fonc ()
     polymorphe += 5
     assert(polymorphe.donnée == 5)
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Synthétisation automatique d'opérateurs.
+ * Les opérateurs de comparaison (==, !=, <, <=, >=, >) peuvent être
+ * synthétisés lors de la compilation si les opérateurs négatifs des opérations
+ * sont définis. Par exemple, si nous définissons l'opérateur==, le compilateur
+ * générera automatiquement l'opérateur!=.
+ * Ceci fonctionne pour ces couples d'opérateurs :
+ * == et !=
+ * < et >=
+ * > et <=
+ * \{ */
+
+TypeComparable :: struct {
+    données: z32
+}
+
+opérateur == :: (a: TypeComparable, b: TypeComparable) -> bool
+{
+    retourne a.données == b.données
+}
+
+test_opérateur_surchargé_synthétisé :: fonc ()
+{
+    a := TypeComparable(5)
+    b := TypeComparable(10)
+    /* Bien que l'opérateur!= ne soit pas défini, nous pouvons le
+     * synthétiser via l'opérateur==. */
+    assert(a != b)
+}
+
+/** \} */

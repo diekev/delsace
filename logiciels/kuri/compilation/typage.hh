@@ -367,7 +367,7 @@ bool est_type_pointeur_nul(Type const *type);
  * en a une de 3. */
 int donne_profondeur_type(Type const *type);
 
-/* Retourne vrai la variable est d'un type pouvant être le rubrique d'une structure. */
+/* Retourne vrai la variable est d'un type pouvant être la rubrique d'une structure. */
 bool est_type_valide_pour_rubrique(Type const *rubrique_type);
 
 bool peut_construire_union_via_rien(TypeUnion const *type_union);

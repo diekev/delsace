@@ -1118,7 +1118,7 @@ PyRun_SimpleString :: fonc (command: chaine) -> bool
     retourne PyRun_SimpleString(command_c) == 0
 }
 
-PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: [..]*PyObject, kws: [..]*PyObject, defs: [..]*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
+PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: []*PyObject, kws: []*PyObject, defs: []*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
 {
     retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32)
 }

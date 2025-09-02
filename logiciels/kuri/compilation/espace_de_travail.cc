@@ -119,6 +119,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(GenreTâche genre_tach
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
         case GenreTâche::CALCULE_TAILLE_TYPE:
+        case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }
@@ -178,6 +179,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:
         case GenreTâche::CALCULE_TAILLE_TYPE:
+        case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }
@@ -210,11 +212,6 @@ bool EspaceDeTravail::parsage_termine() const
 {
     return NOMBRE_DE_TACHES(CHARGEMENT) == 0 && NOMBRE_DE_TACHES(LEXAGE) == 0 &&
            NOMBRE_DE_TACHES(PARSAGE) == 0;
-}
-
-bool EspaceDeTravail::des_exécutions_sont_prévues() const
-{
-    return NOMBRE_DE_TACHES(EXECUTION) != 0;
 }
 
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const

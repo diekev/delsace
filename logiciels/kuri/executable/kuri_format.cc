@@ -6,6 +6,7 @@
 #include "arbre_syntaxique/impression.hh"
 
 #include "compilation/compilatrice.hh"
+#include "compilation/contexte.hh"
 #include "compilation/syntaxeuse.hh"
 #include "compilation/tacheronne.hh"
 
@@ -46,7 +47,9 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     unité.fichier = fichier;
 
     auto tacheronne = Tacheronne(compilatrice);
-    auto syntaxeuse = Syntaxeuse(tacheronne, &unité);
+    auto contexte = Contexte{};
+    tacheronne.initialise_contexte(&contexte, unité.espace);
+    auto syntaxeuse = Syntaxeuse(&contexte, &unité);
     syntaxeuse.analyse();
 
     if (compilatrice.possède_erreur()) {

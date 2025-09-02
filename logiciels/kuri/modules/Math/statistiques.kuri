@@ -75,7 +75,7 @@ p_distribution_normale :: fonc (qn: r32) -> r32
     retourne -sqrt(w1 * w3) comme r32
 }
 
-moyenne_arithmétique :: fonc (données: [..]$T) -> T
+moyenne_arithmétique :: fonc (données: []$T) -> T
 {
     résultat: T
 
@@ -96,7 +96,7 @@ moyenne_arithmétique :: fonc (données: [..]$T) -> T
     retourne résultat
 }
 
-moyenne_géométrique :: fonc (données: [..]$T) -> T
+moyenne_géométrique :: fonc (données: []$T) -> T
 {
     résultat: T
 
@@ -123,7 +123,7 @@ moyenne_géométrique :: fonc (données: [..]$T) -> T
     retourne résultat
 }
 
-moyenne_quadratique :: fonc (données: [..]$T) -> T
+moyenne_quadratique :: fonc (données: []$T) -> T
 {
     résultat: T
 
@@ -147,7 +147,7 @@ moyenne_quadratique :: fonc (données: [..]$T) -> T
     retourne racine_carrée(facteur * résultat)
 }
 
-moyenne_harmonique :: fonc (données: [..]$T) -> T
+moyenne_harmonique :: fonc (données: []$T) -> T
 {
     résultat: T
 
@@ -185,7 +185,7 @@ TypeMoyenne :: énum {
     Quadratique
 }
 
-moyenne :: fonc (données: [..]$T, type_moyenne: TypeMoyenne) -> T
+moyenne :: fonc (données: []$T, type_moyenne: TypeMoyenne) -> T
 {
     discr type_moyenne {
         Arithmétique {
@@ -232,7 +232,7 @@ ajourne_moyenne :: fonc (m: $T, n: z64, valeur: T, type_moyenne: TypeMoyenne) ->
     retourne 0
 }
 
-moyenne_quasi_arithmétique :: fonc (données: [..]$T, primitive: fonc(T)(T), dérivée: fonc(T)(T)) -> T
+moyenne_quasi_arithmétique :: fonc (données: []$T, primitive: fonc(T)(T), dérivée: fonc(T)(T)) -> T
 {
     si données.taille == 0 {
         retourne 0.0
@@ -255,13 +255,13 @@ moyenne_quasi_arithmétique :: fonc (données: [..]$T, primitive: fonc(T)(T), d�
     retourne dérivée(résultat / données.taille comme T)
 }
 
-variance :: fonc (données: [..]$T) -> T
+variance :: fonc (données: []$T) -> T
 {
     m := moyenne_arithmétique(données)
     retourne variance(données, m)
 }
 
-variance :: fonc (données: [..]$T, m: T) -> T
+variance :: fonc (données: []$T, m: T) -> T
 {
     si données.taille == 0 {
         retourne 0
@@ -276,14 +276,14 @@ variance :: fonc (données: [..]$T, m: T) -> T
     retourne résultat / données.taille comme T - m * m
 }
 
-covariance :: fonc (données1: [..]$T, données2: [..]T) -> T
+covariance :: fonc (données1: []$T, données2: []T) -> T
 {
     esp1 := moyenne_arithmétique(données1)
     esp2 := moyenne_arithmétique(données2)
     retourne covariance(données1, esp1, données1, esp2)
 }
 
-covariance :: fonc (données1: [..]$T, esp1: T, données2: [..]T, esp2: T) -> T, z64
+covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> T, z64
 {
     taille := min(données1.taille, données2.taille)
 

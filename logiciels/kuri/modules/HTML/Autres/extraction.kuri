@@ -202,13 +202,13 @@ principale :: fonc ()
 
     tantque traversée {
         noeud := enlève_dernier_élément(*traversée)
-        assert(ensemble_possède(*noeuds_à_garder, noeud))
+        assert(ensemble_possède(noeuds_à_garder, noeud))
 
         nouveaux_enfants := noeud.enfants.pointeur
         nombre_nouveaux_enfants: z64
 
         pour noeud.enfants {
-            si ensemble_possède(*noeuds_à_garder, it) {
+            si ensemble_possède(noeuds_à_garder, it) {
                 mémoire(nouveaux_enfants) = it
                 nouveaux_enfants += 1
                 nombre_nouveaux_enfants += 1

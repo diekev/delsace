@@ -34,7 +34,6 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
 
     // génère le code du test
     enchaineuse: Enchaineuse
-    diffère détruit_tampons(*enchaineuse)
 
     pour i dans 0 ... 5 {
         ajoute_au_tampon(*enchaineuse, chaines[i])

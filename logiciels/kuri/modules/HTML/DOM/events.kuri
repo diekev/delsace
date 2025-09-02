@@ -141,7 +141,6 @@ is_event_handler_content_attribute_name :: fonc (nom: DOMString) -> bool
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     infos := info_de(EventType)
     pour infos.noms {
@@ -159,7 +158,6 @@ donne_event_type_pour_nom_event_handler :: fonc (nom: DOMString) -> EventType
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     infos := info_de(EventType)
     pour infos.noms {

@@ -8,13 +8,11 @@
 #include "structures/tableau.hh"
 #include "structures/tuples.hh"
 
-#include "utilitaires/synchrone.hh"
-
+struct Contexte;
 struct EspaceDeTravail;
 struct Enchaineuse;
 struct IdentifiantCode;
 struct NoeudDéclarationType;
-struct Sémanticienne;
 using Type = NoeudDéclarationType;
 
 namespace kuri {
@@ -93,15 +91,12 @@ struct Monomorphisations {
 };
 
 std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    Compilatrice &compilatrice,
-    EspaceDeTravail &espace,
+    Contexte *contexte,
     NoeudDéclarationEntêteFonction const *decl,
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);
 
 NoeudDéclarationClasse *monomorphise_au_besoin(
-    Sémanticienne &contexte,
-    EspaceDeTravail &espace,
+    Contexte *contexte,
     NoeudDéclarationClasse const *decl_struct,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);

@@ -5,6 +5,8 @@
 
 #include "arbre_syntaxique/allocatrice.hh"
 
+#include "parsage/outils_lexemes.hh"
+
 #include "structures/file.hh"
 
 #include "utilitaires/badge.hh"
@@ -116,6 +118,7 @@ struct OrdonnanceuseTache {
 };
 
 struct Tacheronne {
+  private:
     Compilatrice &compilatrice;
 
     CompilatriceRI constructrice_ri{compilatrice};
@@ -125,10 +128,11 @@ struct Tacheronne {
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *assembleuse = nullptr;
 
-    kuri::tableau_page<Lexème> lexèmes_extra{};
+    LexèmesExtra lexèmes_extra{};
 
     Broyeuse broyeuse{};
 
+  public:
     double temps_validation = 0.0;
     double temps_lexage = 0.0;
     double temps_parsage = 0.0;
@@ -155,6 +159,8 @@ struct Tacheronne {
     bool gère_tâche();
 
     void rassemble_statistiques(Statistiques &stats);
+
+    void initialise_contexte(Contexte *contexte, EspaceDeTravail *espace);
 
   private:
     void gère_unité_pour_typage(UniteCompilation *unite);

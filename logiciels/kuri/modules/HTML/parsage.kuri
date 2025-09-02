@@ -2873,7 +2873,6 @@ HTML_fragment_serialization :: fonc (node: *Node, serializable_shadow_roots: boo
 {
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
     
     HTML_fragment_serialization_récursif(enchaineuse, node, serializable_shadow_roots)
 

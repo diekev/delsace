@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #define CONCATENE_IMPL(s1, s2) s1##s2
 #define CONCATENE(s1, s2) CONCATENE_IMPL(s1, s2)
 
@@ -120,7 +118,7 @@
 #define POUR_NOMME(nom, x) for (auto &nom : (x))
 
 #define POUR_INDEX(variable)                                                                      \
-    if (auto indice_it = -1)                                                                       \
+    if (auto indice_it = -1)                                                                      \
         for (auto &it : (variable))                                                               \
             if (++indice_it, true)
 

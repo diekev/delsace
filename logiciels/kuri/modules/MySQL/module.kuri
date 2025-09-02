@@ -576,7 +576,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
     retourne liste
 }
 
-parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: [..]*InfoTypeRubriqueStructure) -> bool
+parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: []*InfoTypeRubriqueStructure) -> bool
 {
     pour infos_rubriques {
         rubrique := it
@@ -612,7 +612,6 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "SELECT ")
 

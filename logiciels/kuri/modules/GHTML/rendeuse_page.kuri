@@ -151,7 +151,7 @@ rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[..]*NoeudSyntaxique)
  * Si plusieurs blocs du noeud racine ont le même nom, il seront remplacés par le même bloc d'origine.
  * À FAIRE : vérifie que tous les blocs ont été assignés ?
  */
-remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: [..]*NoeudSyntaxique)
+remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntaxique)
 {
     saufsi blocs {
         retourne
@@ -203,7 +203,6 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
 

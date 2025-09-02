@@ -7,7 +7,6 @@
 #include "structures/file.hh"
 #include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
-#include "structures/tablet.hh"
 
 #include "instructions.hh"
 

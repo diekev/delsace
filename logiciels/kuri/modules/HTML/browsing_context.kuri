@@ -275,10 +275,9 @@ donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navig
     // tantque doc_states_à_vérifier.taille != 0 {
     //     doc_state := enlève_dernier_élément(*doc_states_à_vérifier)
 
-    //     si ensemble_possède(*doc_states_vérifiés, doc_state) {
+    //     si ensemble_ne_fut_pas_ajouté(*doc_states_vérifiés, doc_state) {
     //         continue
     //     }
-    //     ensemble_ajoute(*doc_states_vérifiés, doc_state)
 
     //     // 1. For each nestedHistory of docState's nested histories:
     //     pour nested_history dans doc_state.nested_histories {

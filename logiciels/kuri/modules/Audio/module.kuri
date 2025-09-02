@@ -108,10 +108,11 @@ TamponAudioStatique :: struct {
 
 remplis_avec_onde_sinusoïdal :: fonc (tampon: TamponAudio, fréquence: r64, facteur_amplitude: r32) -> rien
 {
-    remplis_avec_onde_sinusoïdal(donne_tampon_statique(tampon), 0, fréquence, facteur_amplitude)
+    temps_sinus: r64
+    remplis_avec_onde_sinusoïdal(donne_tampon_statique(tampon), *temps_sinus, fréquence, facteur_amplitude)
 }
 
-remplis_avec_onde_sinusoïdal :: fonc (tampon: TamponAudioStatique, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32) -> rien
+remplis_avec_onde_sinusoïdal :: fonc (tampon: TamponAudioStatique, temps_sinus: *r64, fréquence: r64, facteur_amplitude: r32) -> rien
 {
     format := tampon.format
 
@@ -128,7 +129,7 @@ remplis_avec_onde_sinusoïdal :: fonc (tampon: TamponAudioStatique, décalage_é
     données.pointeur = tampon.données.pointeur comme *z16
     données.taille = tampon.données.taille / 2
 
-    remplis_avec_onde_sinusoïdal(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, décalage_échantillon, fréquence, facteur_amplitude)
+    remplis_avec_onde_sinusoïdal(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, temps_sinus, fréquence, facteur_amplitude)
 }
 
 remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
@@ -152,27 +153,33 @@ remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échan
 
 #portée_fichier
 
-remplis_avec_onde_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, taux_échantillon: n64, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)
+remplis_avec_onde_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, taux_échantillon: n64, temps_sinus: *r64, fréquence: r64, facteur_amplitude: r32)
 {
     nombre_échantillons := données.taille
     nombre_échantillons_par_canal := nombre_échantillons / nombre_de_canaux
 
-    t := (Constantes(r32).TAU * fréquence comme r32) / (taux_échantillon comme r32)
+    période := ((taux_échantillon comme r64) / fréquence) comme r32
+    dt_sinus := Constantes(r32).TAU / période
 
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0)
     amplitude := (facteur_amplitude * 32768)
 
     échantillon := données.pointeur
 
+    t_sinus := mémoire(temps_sinus)
+
     pour nombre_échantillons_par_canal {
-        valeur := (amplitude * sinus(t * (décalage_échantillon comme r32))) comme z16
-        décalage_échantillon += 1
+        valeur := (amplitude * sinus(t_sinus)) comme z16
 
         pour _ dans nombre_de_canaux {
             mémoire(échantillon) = valeur
             échantillon += 1
         }
+
+        t_sinus += dt_sinus
     }
+
+    mémoire(temps_sinus) = t_sinus
 }
 
 remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_échantillon: n64, décalage_échantillon: n64, fréquence: r64, facteur_amplitude: r32)

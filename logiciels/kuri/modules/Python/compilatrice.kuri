@@ -660,7 +660,6 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> O
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
     saufsi génère_interface_python(compilatrice, *enchaineuse) {
         retourne
     }

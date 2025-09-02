@@ -4,7 +4,6 @@
 #pragma once
 
 #include <ffi.h>  // pour ffi_type qui est un typedef
-#include <iosfwd>
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
@@ -101,8 +100,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_OU_EXCLUSIF)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE_EXTERNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_RUBRIQUE)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_RUBRIQUE_LOCALE)                                         \
+    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_RUBRIQUE)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_RUBRIQUE_LOCALE)                                       \
     ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_LOCALE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_NATUREL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_RELATIF)                                                   \
@@ -325,8 +324,8 @@ struct Chunk {
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
     void émets_référence_rubrique(NoeudExpression const *site, unsigned decalage);
     void émets_référence_rubrique_locale(NoeudExpression const *site,
-                                       int pointeur,
-                                       uint32_t décalage);
+                                         int pointeur,
+                                         uint32_t décalage);
     void émets_appel(NoeudExpression const *site,
                      AtomeFonction const *fonction,
                      const InstructionAppel *inst_appel,

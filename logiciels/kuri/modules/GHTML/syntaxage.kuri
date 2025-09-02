@@ -1,6 +1,6 @@
 
 Syntaxeuse :: struct {
-    lexèmes: [..]Lexème
+    lexèmes: []Lexème
     assembleuse: AssembleuseArbre
 
     position := 0
@@ -13,7 +13,7 @@ Syntaxeuse :: struct {
     inclusions: [..]*NoeudSyntaxique
 }
 
-construit_syntaxeuse :: fonc (lexèmes: &[..]Lexème) -> Syntaxeuse
+construit_syntaxeuse :: fonc (lexèmes: []Lexème) -> Syntaxeuse
 {
     syntaxeuse: Syntaxeuse
     syntaxeuse.lexèmes = lexèmes

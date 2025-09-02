@@ -977,11 +977,6 @@ opérateur == :: (a: PrivateName, b: PrivateName) -> bool
     retourne a.description == b.description
 }
 
-opérateur != :: (a: PrivateName, b: PrivateName) -> bool
-{
-    retourne a.description != b.description
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1083,11 +1078,6 @@ opérateur == :: (p1: PropertyKey, p2: PropertyKey) -> bool
             retourne faux
         }
     }
-}
-
-opérateur != :: (p1: PropertyKey, p2: PropertyKey) -> bool
-{
-    retourne !(p1 == p2)
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#array-index */
@@ -1199,7 +1189,6 @@ concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *Pr
 
     enchaineuse: EnchaineuseUTF16
     initialise_enchaineuse(enchaineuse)
-    diffère détruit_tampons(enchaineuse)
 
     ajoute(enchaineuse, chn1)
     ajoute(enchaineuse, chn2)

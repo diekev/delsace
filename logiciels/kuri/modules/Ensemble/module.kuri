@@ -11,6 +11,15 @@ ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
     _ := ensemble_ajoute_retourne_adresse(ensemble, donnée)
 }
 
+ensemble_ne_fut_pas_ajouté :: fonc (ensemble: *[..]$T, données: T) -> bool
+{
+    si ensemble_possède(mémoire(ensemble), données) {
+        retourne vrai
+    }
+    ensemble_ajoute(ensemble, données)
+    retourne faux
+}
+
 ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
     indice_d_insertion := ensemble_ajoute_retourne_indice(ensemble, donnée)
@@ -57,27 +66,12 @@ ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
     retourne indice_d_insertion
 }
 
-ensemble_possède :: fonc (ensemble: *[..]$T, donnée: T) -> bool
+ensemble_possède :: fonc (ensemble: []$T, donnée: T) -> bool
 {
-    si ensemble.taille == 0 {
-        retourne faux
-    }
-
-    début := ensemble.pointeur
-    fin := début + ensemble.taille
-
-    limite := limite_basse(début, fin, donnée)
-
-    si limite < fin {
-        si mémoire(limite) == donnée {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne ensemble_possède_retourne_indice(ensemble, donnée) != -1
 }
 
-ensemble_possède_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
+ensemble_possède_retourne_indice :: fonc (ensemble: []$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
         retourne -1
@@ -112,7 +106,7 @@ RésultatRecherche :: struct {
  * seront activés.
  * Autrement, le résultat retourné n'aura aucun drapeau activé.
  */
-ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
+ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
 {
     résultat: RésultatRecherche
 
@@ -145,23 +139,6 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: *[..]$T, donnée: T, rap
     retourne résultat
 }
 
-ensemble_possède_rappel_si_possible :: fonc (ensemble: *[]$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
-{
-    tableau: [..]T
-    tableau.pointeur = ensemble.pointeur
-    tableau.taille = ensemble.taille
-    retourne ensemble_possède_rappel_si_possible(*tableau, donnée, rappel)
-}
-
-/*
-ensemble_imprime :: fonc (ensemble: *[..]$T) -> rien
-{
-    pour donnée dans ensemble {
-        imprime("%\n", donnée)
-    }
-}
-*/
-
 TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
     clés: [..]Clé
     valeurs: [..]Valeur
@@ -175,7 +152,7 @@ détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
 
 table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur) -> (existait: bool, valeur_insérée: Valeur)
 {
-    indice := ensemble_possède_retourne_indice(*table.clés, clé)
+    indice := ensemble_possède_retourne_indice(table.clés, clé)
     si indice == -1 {
         indice = ensemble_ajoute_retourne_indice(*table.clés, clé)
         tableau_insère_indice(*table.valeurs, valeur, indice)

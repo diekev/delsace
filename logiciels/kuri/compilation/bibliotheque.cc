@@ -179,6 +179,7 @@ static int type_informations(const OptionsDeCompilation &options)
     return POUR_PRODUCTION;
 }
 
+#ifdef _MSC_VER
 static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_statique chn,
                                                                  char separateur)
 {
@@ -227,6 +228,7 @@ static void ajoute_chemins_depuis_env(const char *variable,
         chemins_connus.insère(it);
     }
 }
+#endif
 
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
 {

@@ -708,11 +708,6 @@ opérateur == :: (chn1: chaine, chn2: chaine) -> bool
     retourne vrai
 }
 
-opérateur != :: (chn1: chaine, chn2: chaine) -> bool
-{
-    retourne !(chn1 == chn2)
-}
-
 /*
     while (*s1 == *s2++)
         if (*s1++ == 0)
@@ -790,7 +785,7 @@ test_compare_chaine :: fonc () -> rien
 
 // --------------------------------
 
-arguments_ligne_commande :: fonc () -> [..]chaine
+arguments_ligne_commande :: fonc () -> []chaine
 {
     tabl_args: [..]chaine
 

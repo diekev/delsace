@@ -85,7 +85,7 @@ ParamètresRequête :: struct {
 ParamètresRoutage :: struct {
 }
 
-règles_ont_au_moins_un_paramètre :: fonc (règles: [..]RègleRoutage) -> bool
+règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
 {
     pour règles {
         si it.action != ActionRègleRoutage.ApparieChaineLittérale {
@@ -96,7 +96,7 @@ règles_ont_au_moins_un_paramètre :: fonc (règles: [..]RègleRoutage) -> bool
     retourne faux
 }
 
-apparie_paramètres_à_la_structure :: fonc (règles: [..]RègleRoutage, infos: *InfoType) -> bool
+apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *InfoType) -> bool
 {
     si infos.id != GenreInfoType.STRUCTURE {
         retourne faux
@@ -127,7 +127,7 @@ apparie_paramètres_à_la_structure :: fonc (règles: [..]RègleRoutage, infos: 
     retourne vrai
 }
 
-calcul_priorité :: fonc (règles: [..]RègleRoutage) -> z32
+calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
 {
     priorité := 0
 

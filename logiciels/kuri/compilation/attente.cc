@@ -108,6 +108,7 @@ RAPPEL_POUR_ERREUR(type)
         case RaisonDÊtre::LIAISON_PROGRAMME:
         case RaisonDÊtre::GENERATION_CODE_MACHINE:
         case RaisonDÊtre::CALCULE_TAILLE_TYPE:
+        case RaisonDÊtre::SYNTHÉTISATION_OPÉRATEUR:
         {
             break;
         }
@@ -281,46 +282,7 @@ RAPPEL_POUR_COMMENTAIRE(opérateur)
 RAPPEL_POUR_EST_RÉSOLUE(opérateur)
 {
     auto p = espace->phase_courante();
-    if (p < PhaseCompilation::PARSAGE_TERMINÉ || espace->des_exécutions_sont_prévues()) {
-        return true;
-    }
-
-    auto opérateur_attendu = attente.opérateur();
-    if (opérateur_attendu->est_expression_binaire() || opérateur_attendu->est_indexage()) {
-        auto expression_operation = opérateur_attendu->comme_expression_binaire();
-        auto type1 = expression_operation->opérande_gauche->type;
-        auto type2 = expression_operation->opérande_droite->type;
-
-        if (!type1->table_opérateurs || !type2->table_opérateurs) {
-            return false;
-        }
-
-        auto &opérateurs1 = type1->table_opérateurs->opérateurs(opérateur_attendu->lexème->genre);
-        if (opérateurs1.taille() == 0) {
-            return false;
-        }
-
-        auto &opérateurs2 = type1->table_opérateurs->opérateurs(opérateur_attendu->lexème->genre);
-        if (opérateurs2.taille() == 0) {
-            return false;
-        }
-
-        return true;
-    }
-
-    auto expression_operation = opérateur_attendu->comme_expression_unaire();
-    auto type_operande = expression_operation->opérande->type;
-    if (!type_operande->table_opérateurs) {
-        return false;
-    }
-
-    auto &opérateurs = type_operande->table_opérateurs->opérateurs(
-        opérateur_attendu->lexème->genre);
-    if (opérateurs.taille() == 0) {
-        return false;
-    }
-
-    return true;
+    return p < PhaseCompilation::PARSAGE_TERMINÉ;
 }
 
 static void imprime_operateurs_pour(Erreur &e,
@@ -356,8 +318,12 @@ RAPPEL_POUR_ERREUR(opérateur)
         auto type2 = expression_operation->opérande_droite->type;
 
         auto candidats = kuri::tablet<OpérateurCandidat, 10>();
-        auto résultat = cherche_candidats_opérateurs(
-            *espace, expression_operation, type1, type2, operateur_attendu->lexème->genre, candidats);
+        auto résultat = cherche_candidats_opérateurs(*espace,
+                                                     expression_operation,
+                                                     type1,
+                                                     type2,
+                                                     operateur_attendu->lexème->genre,
+                                                     candidats);
 
         Erreur e = espace->rapporte_erreur(operateur_attendu,
                                            "Je ne peux pas continuer la compilation car je "
@@ -367,7 +333,7 @@ RAPPEL_POUR_ERREUR(opérateur)
         if (!résultat.has_value()) {
             POUR (candidats) {
                 auto op = it.op;
-                if (!op || !op->decl) {
+                if (!op || op->est_basique) {
                     continue;
                 }
 
@@ -853,6 +819,61 @@ InfoTypeAttente info_type_attente_sur_initialisation_type = {
     NOM_RAPPEL_POUR_COMMENTAIRE(initialisation_type),
     NOM_RAPPEL_POUR_EST_RÉSOLUE(initialisation_type),
     NOM_RAPPEL_POUR_ERREUR(initialisation_type)};
+
+/** \} */
+
+/** -----------------------------------------------------------------
+ * AttenteSurSynthétisationOpérateur
+ * \{ */
+
+static kuri::chaine nom_humainement_lisible(OpérateurBinaire const *opérateur_binaire)
+{
+    return enchaine("opérateur ",
+                    donne_chaine_lexème_pour_op_binaire(opérateur_binaire->genre),
+                    " :: (",
+                    chaine_type(opérateur_binaire->type1),
+                    ", ",
+                    chaine_type(opérateur_binaire->type2),
+                    ") -> ",
+                    chaine_type(opérateur_binaire->type_résultat));
+}
+
+RAPPEL_POUR_COMMENTAIRE(synthétisation_opérateur)
+{
+    auto opérateur = attente.synthétisation_opérateur();
+    return enchaine("synthétisation de l'opérateur ", nom_humainement_lisible(opérateur));
+}
+
+RAPPEL_POUR_EST_RÉSOLUE(synthétisation_opérateur)
+{
+    auto opérateur = attente.synthétisation_opérateur();
+    return opérateur->decl != nullptr;
+}
+
+RAPPEL_POUR_ERREUR(synthétisation_opérateur)
+{
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
+    auto opérateur = attente.synthétisation_opérateur();
+
+    auto message = enchaine(
+        "Je ne pas continuer la compilation car une unité attend indéfiniement sur la "
+        "synthétisation de l'opérateur « ",
+        nom_humainement_lisible(opérateur),
+        " ».");
+
+    espace->rapporte_erreur(noeud, message)
+        .ajoute_message("\nNote : l'unité est dans l'état : ")
+        .ajoute_message(unité->chaine_attentes_récursives())
+        .ajoute_message("\n");
+}
+
+InfoTypeAttente info_type_attente_sur_synthétisation_opérateur = {
+    nullptr,
+    condition_blocage_défaut,
+    NOM_RAPPEL_POUR_COMMENTAIRE(synthétisation_opérateur),
+    NOM_RAPPEL_POUR_EST_RÉSOLUE(synthétisation_opérateur),
+    NOM_RAPPEL_POUR_ERREUR(synthétisation_opérateur)};
 
 /** \} */
 

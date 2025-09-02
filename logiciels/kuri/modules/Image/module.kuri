@@ -4,6 +4,7 @@ importe Fondation
 importe Math
 importe MIME
 importe SysFichier
+importe Triage
 importe PThread
 
 libtbb :: #bibliothèque "tbb"
@@ -1159,5 +1160,193 @@ WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z3
 
 WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
 WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Formats supportés
+ * \{ */
+
+InfoFormatImageSupporté :: struct {
+    nom_format: chaine
+    /* Les extensions ne contiennent pas le point. */
+    extensions: [..]chaine
+    /* Vrai si supporté pour lecture. */
+    pour_lecture: bool
+    /* Vrai si supporté pour écriture. */
+    pour_écriture: bool
+}
+
+détruit_infos :: fonc (infos: [..]InfoFormatImageSupporté)
+{
+    pour infos {
+        déloge(it.extensions)
+    }
+    déloge(infos)
+}
+
+compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: InfoFormatImageSupporté) -> z32
+{
+    retourne compare_chaine(a.nom_format, b.nom_format)    
+}
+
+donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
+{
+    liste_extensions := IMG_donne_liste_extensions()
+    chn_liste_extensions := chaine(liste_extensions.caractères, liste_extensions.taille comme z64)
+
+    nombre_de_doubles_points := compte_occurences_de(chn_liste_extensions, ':')
+    nombre_de_virgules := compte_occurences_de(chn_liste_extensions, ',')
+
+    nombre_d_extensions := nombre_de_virgules + nombre_de_doubles_points
+
+    résultat: [..]InfoFormatImageSupporté
+    /* + 3 pour SVG, GIF, et WebP */
+    tableau_réserve(*résultat, nombre_de_doubles_points + 3)
+
+    paires_type_extensions := divise(chn_liste_extensions, ';')
+    diffère déloge(paires_type_extensions)
+
+    type_et_extensions: [..]chaine 
+    tableau_réserve(*type_et_extensions, nombre_d_extensions)
+    diffère déloge(type_et_extensions)
+
+    extensions: [..]chaine 
+    tableau_réserve(*extensions, nombre_d_extensions)
+    diffère déloge(extensions)
+
+    pour paires_type_extensions {
+        divise(it, ':', *type_et_extensions)
+        si type_et_extensions.taille != 2 {
+            continue
+        }
+
+        divise(type_et_extensions[1], ',', *extensions)
+
+        info := tableau_ajoute_élément(*résultat)
+        info.nom_format = type_et_extensions[0]
+        info.pour_lecture = vrai
+        info.pour_écriture = vrai
+        info.extensions = tableau_copie(extensions)
+    }
+
+    info := tableau_ajoute_élément(*résultat)
+    info.nom_format = "gif"
+    info.pour_lecture = vrai
+    info.pour_écriture = faux
+    tableau_ajoute(*info.extensions, "gif")
+
+    info = tableau_ajoute_élément(*résultat)
+    info.nom_format = "svg"
+    info.pour_lecture = vrai
+    info.pour_écriture = faux
+    tableau_ajoute(*info.extensions, "svg")
+
+    info = tableau_ajoute_élément(*résultat)
+    info.nom_format = "webp"
+    info.pour_lecture = vrai
+    info.pour_écriture = faux
+    tableau_ajoute(*info.extensions, "webp")
+
+    tri_rapide(résultat, compare_info_image_supportée_par_nom)
+
+    retourne résultat
+}
+
+/* Imprime une chaine utilisable par les explorateurs de fichiers afin de filtrer les éléments selon les extensions. */
+imprime_filtre_extensions :: fonc (enchaineuse: *Enchaineuse, infos: []InfoFormatImageSupporté, pour_lecture: bool)
+{
+    ajoute_au_tampon(enchaineuse, "Images (")
+
+    pour infos {
+        si pour_lecture == faux && it.pour_écriture == faux {
+            continue
+        }
+
+        pour ext dans it.extensions {
+            ajoute_au_tampon(enchaineuse, "*.", ext, " ")
+        }
+    }
+
+    ajoute_au_tampon(enchaineuse, ")")
+
+    pour infos {
+        si pour_lecture == faux && it.pour_écriture == faux {
+            continue
+        }
+
+        ajoute_au_tampon(enchaineuse, ";;", it.nom_format)
+
+        séparateur := " ("
+        pour ext dans it.extensions {
+            ajoute_au_tampon(enchaineuse, séparateur, "*.", ext)
+            séparateur = " "
+        }
+        ajoute_au_tampon(enchaineuse, ")")
+    }
+}
+
+donne_chaine_filtre_extensions_images :: fonc (pour_lecture: bool) -> chaine
+{
+    infos := donne_infos_formats_images_supportés()
+    diffère détruit_infos(infos)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    imprime_filtre_extensions(*enchaineuse, infos, pour_lecture)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+est_image_supportée_pour_lecture :: fonc (extension: chaine)
+{
+    infos := donne_infos_formats_images_supportés()
+    diffère détruit_infos(infos)
+    retourne est_image_supportée_pour_lecture(infos, extension)
+}
+
+est_image_supportée_pour_écriture :: fonc (extension: chaine) -> bool
+{
+    infos := donne_infos_formats_images_supportés()
+    diffère détruit_infos(infos)
+    retourne est_image_supportée_pour_écriture(infos, extension)
+}
+
+est_image_supportée_pour_lecture :: fonc (infos: []InfoFormatImageSupporté, extension: chaine) -> bool
+{
+    retourne est_image_supportée(infos, extension, vrai)
+}
+
+est_image_supportée_pour_écriture :: fonc (infos: []InfoFormatImageSupporté, extension: chaine) -> bool
+{
+    retourne est_image_supportée(infos, extension, faux)
+}
+
+#portée_fichier
+
+est_image_supportée :: fonc (infos: []InfoFormatImageSupporté, extension: chaine, pour_lecture: bool) -> bool
+{
+    saufsi extension {
+        retourne faux
+    }
+
+    si extension[0] == '.' {
+        extension = avance(extension, 1)
+    }
+
+    pour infos {
+        si pour_lecture && it.pour_lecture == faux {
+            continue
+        }
+        si pour_lecture == faux && it.pour_écriture == faux {
+            continue
+        }
+        si est_une_extension_parmi(extension, it.extensions) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
 
 /** \} */

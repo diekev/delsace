@@ -185,7 +185,6 @@ affiche_informations_noeud :: fonc (vue_graphiques: *QT_GraphicsView, noeud: *No
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "<p>Noeud : ", noeud.nom, "</p>")
 
@@ -665,7 +664,6 @@ texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *Catégorisation
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     ajoute_au_tampon(*enchaineuse, "menu \"", identifiant, "\" {\n")
 

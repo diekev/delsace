@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include <cstdint>
 #include <functional>
-#include <inttypes.h>
 
 struct Atome;
 struct AtomeFonction;

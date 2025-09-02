@@ -39,7 +39,6 @@ génère_script :: fonc ()
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour ensemble {
         ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")

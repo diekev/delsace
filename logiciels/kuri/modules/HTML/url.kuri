@@ -1899,7 +1899,6 @@ url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
     // 1. Let output be url’s scheme and U+003A (:) concatenated.
     output: Enchaineuse
     initialise_enchaineuse(*output)
-    diffère détruit_tampons(*output)
 
     ajoute_au_tampon(*output, url.scheme, ":")
 
@@ -1954,7 +1953,6 @@ url_serializer :: fonc (url: *URL, exclude_fragment := faux) -> ChaineASCII
 donne_chaine_chemin :: fonc (url: *URL) -> chaine
 {
     enchaineuse: Enchaineuse
-    diffère détruit_tampons(*enchaineuse)
     initialise_enchaineuse(*enchaineuse)
     sérialise_chemin(*enchaineuse, url)
     retourne chaine_depuis_enchaineuse(*enchaineuse)

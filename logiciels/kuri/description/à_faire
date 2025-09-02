@@ -376,12 +376,6 @@ permet de modifier la valeur des globales via les métaprogrammes, la générati
 
 considère la surchage pour '='
 
-opérateurs implicites
-	<= implicite si > ou (< et ==) est défini
-	>= implicite si < ou (> et ==) est défini
-	== implicite si != est défini
-	!= implicite si == est défini
-
 considère un opérateur pour convertir entre des types
 
     opérateur Type :: fonc (a: AutreType) -> Type

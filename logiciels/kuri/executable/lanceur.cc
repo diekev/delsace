@@ -208,7 +208,7 @@ static ActionParsageArgument gère_argument_préserve_symbole(ParseuseArguments 
 static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
 
-static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments &parseuse,
+static ActionParsageArgument gère_argument_avec_stats(ParseuseArguments &parseuse,
                                                       ArgumentsCompilatrice &résultat);
 
 static ActionParsageArgument gère_argument_sans_traces_d_appel(ParseuseArguments &parseuse,
@@ -228,6 +228,9 @@ static ActionParsageArgument gère_argument_émission_code_binaire(ParseuseArgum
 
 static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments &parseuse,
                                                           ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_verbeux(ParseuseArguments &parseuse,
+                                                   ArgumentsCompilatrice &résultat);
 
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
@@ -274,11 +277,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Indique aux coulisses de préserver les symboles non-globaux",
      gère_argument_préserve_symbole},
-    {"--sans_stats",
+    {"--avec_stats",
      "",
      "",
-     "N'imprime pas les statistiques à la fin de la compilation",
-     gère_argument_sans_stats},
+     "Imprime les statistiques à la fin de la compilation",
+     gère_argument_avec_stats},
     {"--stats_détaillées",
      "",
      "",
@@ -309,6 +312,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "un log standard de métaprogramme, dont la racine du nom est « code_binaire.txt ».",
      gère_argument_émission_code_binaire},
     {"", "-j", "-j", "Active la compilation en mode parallèle", gère_argument_mode_parallèle},
+    {"--verbeux",
+     "-v",
+     "-v",
+     "Imprime plus de détail quant au processus de compilation.",
+     gère_argument_verbeux},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -457,10 +465,10 @@ static ActionParsageArgument gère_argument_format_profile(ParseuseArguments &pa
     return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
 }
 
-static ActionParsageArgument gère_argument_sans_stats(ParseuseArguments & /*parseuse*/,
+static ActionParsageArgument gère_argument_avec_stats(ParseuseArguments & /*parseuse*/,
                                                       ArgumentsCompilatrice &résultat)
 {
-    résultat.sans_stats = true;
+    résultat.avec_stats = true;
     return ActionParsageArgument::CONTINUE;
 }
 
@@ -496,6 +504,13 @@ static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments & 
                                                           ArgumentsCompilatrice &résultat)
 {
     résultat.compile_en_mode_parallèle = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_verbeux(ParseuseArguments & /*parseuse*/,
+                                                   ArgumentsCompilatrice &résultat)
+{
+    résultat.verbeux = true;
     return ActionParsageArgument::CONTINUE;
 }
 
@@ -690,14 +705,15 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     imprime_fichiers_utilises(compilatrice);
 
-    if (compilatrice.arguments.sans_stats == false) {
+    if (compilatrice.arguments.avec_stats) {
         auto stats = Statistiques();
         rassemble_statistiques(compilatrice, stats, tacheronnes);
 
         imprime_stats(compilatrice, stats, debut_compilation);
     }
-
-    info() << "Nettoyage...";
+    else {
+        info() << "\nDurée de la compilation " << debut_compilation.temps() << "s";
+    }
 
     POUR (tacheronnes) {
         mémoire::deloge("Tacheronne", it);

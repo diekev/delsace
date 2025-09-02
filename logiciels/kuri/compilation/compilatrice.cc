@@ -610,7 +610,7 @@ IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
     return m_noms_valeurs_retours_défaut[index];
 }
 
-Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacheronne)
+Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Contexte *contexte)
 {
     std::unique_lock l(m_mutex_sémanticiennes);
 
@@ -625,7 +625,7 @@ Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Tacheronne &tacher
     }
 
     résultat->réinitialise();
-    résultat->définis_tacheronne(tacheronne);
+    résultat->définis_contexte(contexte);
 
     return résultat;
 }

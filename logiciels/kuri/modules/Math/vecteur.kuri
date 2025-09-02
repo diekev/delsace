@@ -289,7 +289,6 @@ génère_opérateurs_vecteurs :: fonc ()
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     pour dimension dans dimensions {
         /* négation */

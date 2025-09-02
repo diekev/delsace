@@ -11,7 +11,6 @@
 
 struct Annotation;
 struct Compilatrice;
-struct Tacheronne;
 struct UniteCompilation;
 
 enum class GenreNoeud : unsigned char;
@@ -29,7 +28,7 @@ struct DonnéesPrécédence {
 struct Syntaxeuse : BaseSyntaxeuse {
   private:
     Compilatrice &m_compilatrice;
-    Tacheronne &m_tacheronne;
+    Contexte *m_contexte = nullptr;
     UniteCompilation const *m_unité = nullptr;
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
@@ -46,7 +45,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     PortéeSymbole m_portée = PortéeSymbole::EXPORT;
 
   public:
-    Syntaxeuse(Tacheronne &tacheronne, UniteCompilation const *unite);
+    Syntaxeuse(Contexte *contexte, UniteCompilation const *unite);
 
     EMPECHE_COPIE(Syntaxeuse);
 

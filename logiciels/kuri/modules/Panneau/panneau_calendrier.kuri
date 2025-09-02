@@ -25,30 +25,14 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
 
     pour 33 {
         y := rect.y + (hauteur_par_ligne * indice_it comme r32) comme z32
-
-        ligne: Ligne(z32)
-        ligne.p0.x = rect.x
-        ligne.p0.y = y
-
-        ligne.p1.x = rect.x + rect.largeur
-        ligne.p1.y = y
-
-        peintre.dessine_segment(ligne, couleur_noire)
+        peintre.dessine_segment(rect.x, y, rect.x + rect.largeur, y, couleur_noire)
     }
 
     largeur_par_colonne := rect.largeur comme r32 / 12.0
 
     pour 13 {
         x := rect.x + (indice_it comme r32 * largeur_par_colonne) comme z32
-
-        ligne: Ligne(z32)
-        ligne.p0.x = x
-        ligne.p0.y = rect.y
-
-        ligne.p1.x = x
-        ligne.p1.y = rect.y + rect.hauteur
-
-        peintre.dessine_segment(ligne, couleur_noire)
+        peintre.dessine_segment(x, rect.y, x, rect.y + rect.hauteur, couleur_noire)
     }
 
     mois := ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]

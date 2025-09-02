@@ -221,7 +221,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
 {
     condensat := donne_condensat(message)
 
-    indice := ensemble_possède_retourne_indice(*état.condensats_traces, condensat)
+    indice := ensemble_possède_retourne_indice(état.condensats_traces, condensat)
     si indice != -1 {
         détruit_données(*condensat)
         déloge(message.traces)

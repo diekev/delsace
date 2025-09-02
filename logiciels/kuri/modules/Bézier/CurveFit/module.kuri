@@ -1,0 +1,88 @@
+importe Compilatrice
+importe Fondation
+importe Processus
+importe SysFichier
+
+compile_bibliothèqe :: fonc ()
+{
+    chemin_courant := #chemin_de_ce_fichier
+    dossier := CheminFichier(chemin_courant).chemin_parent()
+    diffère détruit_chemin(dossier)
+
+    tampon_chemin: TamponChemin
+    _ := ajoute(*tampon_chemin, dossier)
+
+    sauvegarde_position(*tampon_chemin)
+
+    saufsi ajoute_avec_séparateur(*tampon_chemin, "lib/x86_64-linux-gnu/libcurve_fit_nd.a") {
+        compilatrice_rapporte_erreur("Impossible de déterminer le chemin absolu pour l'archive")
+    }
+
+    chemin_sortie := copie_chaine(donne_chaine_statique(*tampon_chemin))
+    diffère déloge(chemin_sortie)
+
+    restore_position(*tampon_chemin)
+
+    saufsi fichier_existe(CheminFichier(chemin_sortie)) {
+        fichiers := ["intern/curve_fit_corners_detect.c", "intern/curve_fit_cubic.c", "intern/curve_fit_cubic_refit.c", "intern/generic_heap.c"]
+
+        fichiers_objets: [..]chaine
+        diffère déloge_tableau_et_ses_éléments(fichiers_objets)
+
+        pour fichiers {
+            chemin := CheminFichier(it)
+            nom_fichier := chemin.nom_fichier()
+
+            sortie := enchaine(dossier.chn, "/intern/", nom_fichier, ".o")
+            tableau_ajoute(*fichiers_objets, sortie)
+        }
+
+        pour fichiers {
+            saufsi ajoute_avec_séparateur(*tampon_chemin, it) {
+                message := imprime_chaine("Chemin de fichier trop long pour '%", it)
+                compilatrice_rapporte_erreur(message)
+            }
+
+            chemin_fichier := donne_chaine_statique(*tampon_chemin)
+            restore_position(*tampon_chemin)
+
+            saufsi exécute_commande_externe("gcc", "-c", chemin_fichier, "-lm", "-o", fichiers_objets[indice_it]) {
+                message := imprime_chaine("Impossible de compiler le fichier '%", it)
+                compilatrice_rapporte_erreur(message)
+            }
+        }
+
+        enchaineuse: Enchaineuse
+        initialise_enchaineuse(*enchaineuse)
+
+        _ := crée_dossiers_pour_chemin(CheminFichier(chemin_sortie), faux)
+
+        ajoute_au_tampon(*enchaineuse, "ar rcs ")
+
+        ajoute_au_tampon(*enchaineuse, chemin_sortie, " ")
+
+        pour fichiers_objets {
+            ajoute_au_tampon(*enchaineuse, it)
+            ajoute_au_tampon(*enchaineuse, " ")
+        }
+
+        ajoute_au_tampon(*enchaineuse, '\0')
+
+        commande := chaine_depuis_enchaineuse(*enchaineuse)
+        diffère déloge(commande)
+
+        saufsi exécute_commande_externe(commande) {
+            compilatrice_rapporte_erreur("Impossible d'assembler l'archive")
+        }
+    }
+
+    sources_extra := «
+        charge "interface"
+        importe Math
+        #dépendance_bibliothèque libcurve_fit_nd libcmath
+    »
+
+    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), sources_extra)
+}
+
+#exécute compile_bibliothèqe()

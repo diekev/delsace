@@ -344,7 +344,7 @@ struct Rubrique {
     bool est_a_copier = false;
     /* Si vrai, ajoute "mutable" à la déclaration du rubrique dans le code C++. */
     bool est_mutable = false;
-    /* Si vrai, ajoute un paramètre pour le rubrique à la fonction de création. */
+    /* Si vrai, ajoute un paramètre pour la rubrique à la fonction de création. */
     bool est_requis_pour_construction = false;
 
     bool valeur_defaut_est_acces = false;

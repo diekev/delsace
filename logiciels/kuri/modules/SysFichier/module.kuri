@@ -330,6 +330,16 @@ supprime :: fonc (chm: &CheminFichier) -> Optionnel(ErreurFichier)
     retourne système_supprime(chm)
 }
 
+est_une_extension_parmi :: fonc (chn: chaine, extensions: []chaine) -> bool
+{
+    pour extensions {
+        si compare_ascii_insensible_à_la_casse(chn, it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
 /*
 
     Opération sur les chemins de fichiers :

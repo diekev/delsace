@@ -339,7 +339,6 @@ imprime :: fonc (racine: *Noeud, au_format: ImprimeAuFormat) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     discr au_format {
         HTML {

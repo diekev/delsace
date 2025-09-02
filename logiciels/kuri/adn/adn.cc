@@ -825,7 +825,7 @@ void SyntaxeuseADN::parse_enum()
         }
 
         if (protéine->est_horslignee()) {
-            rapporte_erreur("Déclaration d'un rubrique pour une énumération horslignée");
+            rapporte_erreur("Déclaration d'une rubrique pour une énumération horslignée");
         }
 
         auto rubrique = Rubrique{};

@@ -675,7 +675,7 @@ ajoute_sortie :: fonc (noeud: *Noeud, nom: chaine, type : TypePrise = 0)
     tableau_ajoute(*noeud.sorties, sortie)
 }
 
-marques_connexions_inactives :: fonc (connexions: [..]*Connexion)
+marques_connexions_inactives :: fonc (connexions: []*Connexion)
 {
     pour connexions {
         it.active = faux
@@ -1541,7 +1541,6 @@ chemin_complet :: fonc (graphe: *Graphe) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     tantque !pile.est_vide() {
         nom := pile.dépile()
@@ -1723,7 +1722,7 @@ dépile_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> *Noeud
 
 a_visité_noeud :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud) -> bool
 {
-    retourne ensemble_possède(*noeuds_visités, noeud)
+    retourne ensemble_possède(noeuds_visités, noeud)
 }
 
 marque_noeud_visité :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)

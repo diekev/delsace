@@ -2249,7 +2249,7 @@ bool peut_etre_type_constante(Type const *type)
         /* Sémantiquement, les variadiques ne peuvent être utilisées que pour les paramètres de
          * fonctions. */
         case GenreNoeud::VARIADIQUE:
-        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir un rubrique
+        /* Il n'est pas claire comment gérer les unions, les sûres doivent avoir une rubrique
          * actif, et les valeurs pour les sûres ou nonsûres doivent être transtypées sur le
          * lieu d'utilisation. */
         case GenreNoeud::DÉCLARATION_UNION:

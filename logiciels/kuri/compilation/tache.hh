@@ -21,7 +21,8 @@ struct UniteCompilation;
     O(OPTIMISER, OPTIMISATION, "optimisation", 9)                                                 \
     O(GENERER_CODE, GENERATION_CODE_MACHINE, "génération code machine", 10)                       \
     O(LIER_PROGRAMME, LIAISON_PROGRAMME, "liaison programme", 11)                                 \
-    O(CALCULER_TAILLE_TYPE, CALCULE_TAILLE_TYPE, "calcule taille type", 12)
+    O(CALCULER_TAILLE_TYPE, CALCULE_TAILLE_TYPE, "calcule taille type", 12)                       \
+    O(SYNTHÉTISER_OPÉRATEUR, SYNTHÉTISATION_OPÉRATEUR, "synthétisation opérateur", 13)
 
 #define ENUMERE_GENRES_TACHE(O)                                                                   \
     O(DORMIR, DORS, "dormir", 0)                                                                  \

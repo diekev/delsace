@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 
 /**
  * Ces structures sont les mêmes que celles définies par le langage (tableaux

@@ -594,7 +594,6 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     saufsi pour_impression {
         ajoute_au_tampon(*enchaineuse, "    si terminologie_css_initialisée { retourne }\n")

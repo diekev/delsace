@@ -68,8 +68,6 @@ principale :: fonc ()
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    diffère détruit_tampons(*enchaineuse)
-
     ajoute_au_tampon(*enchaineuse, "GET ")
     ajoute_au_tampon(*enchaineuse, uri.chemin)
 
