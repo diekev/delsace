@@ -2002,7 +2002,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
         chn_temp := converti_vers_chaine(tampon_temporaire)
 
-        résultat := ensemble_possède_rappel_si_possible(*symboles_entités, chn_temp, rappel_commence_par)
+        résultat := ensemble_possède_rappel_si_possible(symboles_entités, chn_temp, rappel_commence_par)
 
         si !résultat.trouvé {
             lexeuse.curseur -= 1

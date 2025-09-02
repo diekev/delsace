@@ -273,7 +273,6 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     si format {
         enchaineuse: Enchaineuse
         initialise_enchaineuse(*enchaineuse)
-        diffère détruit_tampons(*enchaineuse)
         imprime_dans_enchaineuse(*enchaineuse, format, ...args)
         ajoute_au_tampon(*enchaineuse, "\r\n")
         message = chaine_depuis_enchaineuse(*enchaineuse)
@@ -303,7 +302,6 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
 
     // À FAIRE: entêtes arbitraires
     // À FAIRE: Date

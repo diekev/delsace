@@ -52,6 +52,7 @@ set(SOURCES
     bibliotheque.hh
     broyage.hh
     compilatrice.hh
+    contexte.hh
     coulisse.hh
     coulisse_asm.hh
     coulisse_c.hh
