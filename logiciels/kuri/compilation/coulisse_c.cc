@@ -180,7 +180,7 @@ struct GénératriceCodeC {
      * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
      * des variables avec un index pour les rendre uniques. L'index est incrémenté à chaque
      * génération de code pour une chaine. */
-    int index_chaine = 0;
+    int indice_chaine = 0;
 
     /* Pour les noms des initialisations constantes de tableaux. */
     int nombre_init_tableau = 0;
@@ -235,8 +235,8 @@ struct GénératriceCodeC {
                                             DonnéesSymboleExterne const *données_externe);
     void génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
                                                      InstructionAppel const *appel,
-                                                     int32_t index_ordre_mémoire,
-                                                     int32_t index_ordre_mémoire2 = -1);
+                                                     int32_t indice_ordre_mémoire,
+                                                     int32_t indice_ordre_mémoire2 = -1);
     kuri::chaine_statique donne_valeur_pour_ordre_mémoire(Enchaineuse &os, Atome *arg);
 
     void génère_code_entête(CoulisseC::FichierC const &fichier, Enchaineuse &os);
@@ -876,7 +876,7 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
     enchaineuse << "    struct {\n";
 #endif
 
-    POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
+    POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
         enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, indice_it) << ";\n";
     }
@@ -1198,9 +1198,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto valeur = génère_code_pour_atome(transtype_const->valeur, os, pour_globale);
             return enchaine("(", donne_nom_pour_type(transtype_const->type), ")(", valeur, ")");
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto inst_accès = atome->comme_accès_index_constant();
+            auto inst_accès = atome->comme_accès_indice_constant();
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé, os, false);
 
             if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
@@ -1223,17 +1223,17 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_TYPE:
         {
             auto type = atome->comme_constante_type()->donne_type();
-            return enchaine(type->index_dans_table_types);
+            return enchaine(type->indice_dans_table_types);
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto type = atome->comme_taille_de()->type_de_données;
             return enchaine(type->taille_octet);
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
-            auto type = atome->comme_index_table_type()->type_de_données;
-            return enchaine(type->index_dans_table_types);
+            auto type = atome->comme_indice_table_type()->type_de_données;
+            return enchaine(type->indice_dans_table_types);
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
@@ -1341,7 +1341,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             // n'est pas initialisé
             auto virgule_placee = false;
 
-            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
+            POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
                 résultat << virgule;
                 virgule_placee = true;
 
@@ -1363,7 +1363,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 return stockage_chn.ajoute_chaine_statique(résultat.chaine_statique());
             }
 
-            auto nom = enchaine(nom_base_chaine, index_chaine++);
+            auto nom = enchaine(nom_base_chaine, indice_chaine++);
             os << "  const " << donne_nom_pour_type(type) << " " << nom << " = "
                << résultat.chaine() << ";\n";
             return nom;
@@ -1670,7 +1670,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << ";\n";
             break;
         }
-        case GenreInstruction::ACCEDE_INDEX:
+        case GenreInstruction::ACCÈDE_INDICE:
         {
             auto inst_accès = inst->comme_acces_index();
             auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé, os, false);
@@ -1722,7 +1722,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                                       "])");
 #else
             valeur_accédée = enchaine(valeur_accédée,
-                                      donne_nom_pour_rubrique(rubrique, index_rubrique));
+                                      donne_nom_pour_rubrique(rubrique, indice_rubrique));
 #endif
 
             table_valeurs[inst->numero] = valeur_accédée;
@@ -1875,7 +1875,7 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
     auto virgule = "(";
 
-    POUR_INDEX (atome_fonc->params_entrée) {
+    POUR_INDICE (atome_fonc->params_entrée) {
         auto est_paramètre_inutilisé = paramètre_est_marqué_comme_inutilisée(atome_fonc,
                                                                              indice_it);
 
@@ -2206,7 +2206,7 @@ void GénératriceCodeC::génère_code_pour_appel_impl(Enchaineuse &os, Instruct
 
     auto virgule = "(";
 
-    POUR_INDEX (arguments) {
+    POUR_INDICE (arguments) {
         os << virgule;
         if (est_init_contexte && indice_it == 1) {
             os << "(signed char **)";
@@ -2422,13 +2422,13 @@ void GénératriceCodeC::génère_code_pour_appel_intrinsèque(
 
 void GénératriceCodeC::génère_code_pour_appel_intrinsèque_atomique(Enchaineuse &os,
                                                                    InstructionAppel const *appel,
-                                                                   int32_t index_ordre_mémoire,
-                                                                   int32_t index_ordre_mémoire2)
+                                                                   int32_t indice_ordre_mémoire,
+                                                                   int32_t indice_ordre_mémoire2)
 {
     auto arguments = kuri::tablet<kuri::chaine, 10>();
 
-    POUR_INDEX (appel->args) {
-        if (indice_it == index_ordre_mémoire || indice_it == index_ordre_mémoire2) {
+    POUR_INDICE (appel->args) {
+        if (indice_it == indice_ordre_mémoire || indice_it == indice_ordre_mémoire2) {
             arguments.ajoute(donne_valeur_pour_ordre_mémoire(os, it));
         }
         else {
@@ -2785,18 +2785,18 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
      * fichiers. */
     constexpr auto nombre_instructions_max_par_fichier = 50000;
     int nombre_instructions = 0;
-    int index_première_fonction = 0;
+    int indice_première_fonction = 0;
     auto fonctions = repr_inter.donne_fonctions_horslignées();
 
-    POUR_INDEX (fonctions) {
+    POUR_INDICE (fonctions) {
         nombre_instructions += it->instructions.taille();
         if (nombre_instructions <= nombre_instructions_max_par_fichier &&
             indice_it != fonctions.taille() - 1) {
             continue;
         }
 
-        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
-        auto taille = indice_it - index_première_fonction + 1;
+        auto pointeur_fonction = fonctions.begin() + indice_première_fonction;
+        auto taille = indice_it - indice_première_fonction + 1;
 
         auto fonctions_du_fichier = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
                                                                             taille);
@@ -2805,7 +2805,7 @@ void CoulisseC::crée_fichiers(const ProgrammeRepreInter &repr_inter, EspaceDeTr
         fichier.fonctions = fonctions_du_fichier;
 
         nombre_instructions = 0;
-        index_première_fonction = indice_it + 1;
+        indice_première_fonction = indice_it + 1;
     }
 }
 

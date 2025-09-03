@@ -117,7 +117,7 @@ class TableUtilisateurs {
     struct Utilisateur {
         Atome *utilisateur = nullptr;
         int suivant = 0;
-        int index_bloc = 0;
+        int indice_bloc = 0;
     };
     kuri::tableau<Utilisateur, int> m_utilisateurs{};
 
@@ -126,21 +126,21 @@ class TableUtilisateurs {
   public:
     void réinitialise();
 
-    void ajoute_connexion(Atome *utilisé, Atome *utilisateur, int index_bloc);
+    void ajoute_connexion(Atome *utilisé, Atome *utilisateur, int indice_bloc);
 
-    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
+    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int indice_bloc) const;
 
     int64_t nombre_d_utilisateurs(Instruction const *inst) const;
 
     template <typename Fonction>
     void visite_utilisateurs(Instruction const *inst, Fonction rappel) const
     {
-        auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
-        if (index_données_utilisateur == -1) {
+        auto indice_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+        if (indice_données_utilisateur == -1) {
             return;
         }
 
-        auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+        auto &données_utilisateur = m_données_utilisateurs[indice_données_utilisateur];
         auto utilisateur = &m_utilisateurs[données_utilisateur.premier_utilisateur];
 
         while (true) {
@@ -168,11 +168,11 @@ struct Graphe {
 
   public:
     /* a est utilisé par b */
-    void ajoute_connexion(Atome *a, Atome *b, int index_bloc);
+    void ajoute_connexion(Atome *a, Atome *b, int indice_bloc);
 
-    void construit(kuri::tableau<Instruction *, int> const &instructions, int index_bloc);
+    void construit(kuri::tableau<Instruction *, int> const &instructions, int indice_bloc);
 
-    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const;
+    bool est_uniquement_utilisé_dans_bloc(Instruction const *inst, int indice_bloc) const;
 
     int64_t nombre_d_utilisateurs(Instruction const *inst) const;
 

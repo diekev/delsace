@@ -153,7 +153,7 @@ struct CopieuseInstruction {
                 return constructrice.crée_op_binaire(
                     inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
             }
-            case GenreInstruction::ACCEDE_INDEX:
+            case GenreInstruction::ACCÈDE_INDICE:
             {
                 auto accès = inst->comme_acces_index();
                 auto accedé = copie_atome(accès->accédé);
@@ -426,7 +426,7 @@ struct Substitutrice {
 
                 return appel;
             }
-            case GenreInstruction::ACCEDE_INDEX:
+            case GenreInstruction::ACCÈDE_INDICE:
             {
                 auto accès = instruction->comme_acces_index();
                 accès->accédé = valeur_substituée(accès->accédé);

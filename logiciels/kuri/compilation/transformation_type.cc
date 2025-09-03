@@ -170,7 +170,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
             REQUIERS_TYPE_VALIDE(type_vers);
 
-            auto résultat = trouve_index_rubrique_unique_type_compatible(type_union, type_de);
+            auto résultat = trouve_indice_rubrique_unique_type_compatible(type_union, type_de);
 
             /* Nous pouvons construire une union depuis nul si un seul rubrique est un pointeur. */
             if (std::holds_alternative<IndexRubrique>(résultat)) {
@@ -610,7 +610,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
 
         REQUIERS_TYPE_VALIDE(type_union);
 
-        POUR_INDEX (type_union->donne_rubriques_pour_code_machine()) {
+        POUR_INDICE (type_union->donne_rubriques_pour_code_machine()) {
             if (it.type != type_vers || type_union->est_nonsure) {
                 continue;
             }

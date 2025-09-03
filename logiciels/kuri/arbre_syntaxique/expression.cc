@@ -613,11 +613,11 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             auto type_composé = type_accede->comme_type_composé();
-            auto &rubrique = type_composé->rubriques[ref_rubrique->index_rubrique];
+            auto &rubrique = type_composé->rubriques[ref_rubrique->indice_rubrique];
 
             if (rubrique.est_constant()) {
                 return ValeurExpression(
-                    type_composé->rubriques[ref_rubrique->index_rubrique].valeur);
+                    type_composé->rubriques[ref_rubrique->indice_rubrique].valeur);
             }
 
             return erreur_évaluation(

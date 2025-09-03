@@ -1223,8 +1223,8 @@ RésultatMonomorphisation détermine_monomorphisation(
 #endif
 
     for (auto i = int64_t(0); i < arguments_reçus.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<int64_t>(entête->params.taille() - 1));
-        auto param = entête->parametre_entree(index_arg);
+        auto indice_arg = std::min(i, static_cast<int64_t>(entête->params.taille() - 1));
+        auto param = entête->parametre_entree(indice_arg);
         auto slot = arguments_reçus[i];
 
         if (param->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
