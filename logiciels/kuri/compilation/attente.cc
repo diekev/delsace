@@ -121,7 +121,7 @@ RAPPEL_POUR_ERREUR(type)
 
     if (site && site->est_corps_fonction()) {
         if (unité->arbre_aplatis) {
-            site = unité->arbre_aplatis->noeuds[unité->arbre_aplatis->index_courant];
+            site = unité->arbre_aplatis->noeuds[unité->arbre_aplatis->indice_courant];
         }
     }
 

@@ -117,7 +117,7 @@ static void imprime_atome_ex(Atome const *atome,
             }
             break;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             auto acces = static_cast<AccèdeIndexConstant const *>(atome);
             imprime_atome_ex(acces->accédé, os, options, true);
@@ -133,7 +133,7 @@ static void imprime_atome_ex(Atome const *atome,
         case Atome::Genre::CONSTANTE_TYPE:
         {
             os << chaine_type(atome->type, options) << ' '
-               << atome->comme_constante_type()->type_de_données->index_dans_table_types;
+               << atome->comme_constante_type()->type_de_données->indice_dans_table_types;
             break;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
@@ -184,7 +184,7 @@ static void imprime_atome_ex(Atome const *atome,
 
             auto virgule = "{ ";
 
-            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
+            POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
                 os << virgule;
                 os << it.nom->nom << " = ";
                 imprime_atome_ex(atomes_rubriques[indice_it], os, options, true);
@@ -250,11 +250,11 @@ static void imprime_atome_ex(Atome const *atome,
             imprime_atome_ex(init_tableau->valeur, os, options, true);
             break;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
-            auto const index_table = atome->comme_index_table_type();
-            os << chaine_type(atome->type, options) << " index_de("
-               << chaine_type(index_table->type_de_données, options) << ")";
+            auto const indice_table = atome->comme_indice_table_type();
+            os << chaine_type(atome->type, options) << " indice_de("
+               << chaine_type(indice_table->type_de_données, options) << ")";
             break;
         }
         case Atome::Genre::NON_INITIALISATION:
@@ -404,7 +404,7 @@ static void imprime_instruction_ex(Instruction const *inst,
             os << '\n';
             break;
         }
-        case GenreInstruction::ACCEDE_INDEX:
+        case GenreInstruction::ACCÈDE_INDICE:
         {
             auto inst_acces = inst->comme_acces_index();
             os << "index ";
