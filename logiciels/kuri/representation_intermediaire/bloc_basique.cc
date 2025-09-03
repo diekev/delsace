@@ -284,27 +284,27 @@ void TableUtilisateurs::réinitialise()
     m_table_données_utilisateurs.reinitialise();
 }
 
-void TableUtilisateurs::ajoute_connexion(Atome *utilisé, Atome *utilisateur, int index_bloc)
+void TableUtilisateurs::ajoute_connexion(Atome *utilisé, Atome *utilisateur, int indice_bloc)
 {
     auto enregistrement = Utilisateur{};
     enregistrement.utilisateur = utilisateur;
-    enregistrement.index_bloc = index_bloc;
+    enregistrement.indice_bloc = indice_bloc;
     enregistrement.suivant = -1;
 
-    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(utilisé, -1);
-    if (index_données_utilisateur == -1) {
+    auto indice_données_utilisateur = m_table_données_utilisateurs.valeur_ou(utilisé, -1);
+    if (indice_données_utilisateur == -1) {
         auto données_utilisateur = DonnéesUtilisateur{};
         données_utilisateur.premier_utilisateur = m_utilisateurs.taille();
         données_utilisateur.dernier_utilisateur = m_utilisateurs.taille();
         données_utilisateur.nombre_utilisateurs = 1;
 
-        index_données_utilisateur = m_données_utilisateurs.taille();
+        indice_données_utilisateur = m_données_utilisateurs.taille();
         m_données_utilisateurs.ajoute(données_utilisateur);
 
-        m_table_données_utilisateurs.insère(utilisé, index_données_utilisateur);
+        m_table_données_utilisateurs.insère(utilisé, indice_données_utilisateur);
     }
     else {
-        auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+        auto &données_utilisateur = m_données_utilisateurs[indice_données_utilisateur];
         données_utilisateur.nombre_utilisateurs += 1;
 
         auto &dernier = m_utilisateurs[données_utilisateur.dernier_utilisateur];
@@ -317,18 +317,18 @@ void TableUtilisateurs::ajoute_connexion(Atome *utilisé, Atome *utilisateur, in
 }
 
 bool TableUtilisateurs::est_uniquement_utilisé_dans_bloc(Instruction const *inst,
-                                                         int index_bloc) const
+                                                         int indice_bloc) const
 {
-    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
-    if (index_données_utilisateur == -1) {
+    auto indice_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+    if (indice_données_utilisateur == -1) {
         return true;
     }
 
-    auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+    auto &données_utilisateur = m_données_utilisateurs[indice_données_utilisateur];
     auto utilisateur = &m_utilisateurs[données_utilisateur.premier_utilisateur];
 
     while (true) {
-        if (utilisateur->index_bloc != index_bloc) {
+        if (utilisateur->indice_bloc != indice_bloc) {
             return false;
         }
 
@@ -344,31 +344,31 @@ bool TableUtilisateurs::est_uniquement_utilisé_dans_bloc(Instruction const *ins
 
 int64_t TableUtilisateurs::nombre_d_utilisateurs(Instruction const *inst) const
 {
-    auto index_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
-    if (index_données_utilisateur == -1) {
+    auto indice_données_utilisateur = m_table_données_utilisateurs.valeur_ou(inst, -1);
+    if (indice_données_utilisateur == -1) {
         return 0;
     }
 
-    auto &données_utilisateur = m_données_utilisateurs[index_données_utilisateur];
+    auto &données_utilisateur = m_données_utilisateurs[indice_données_utilisateur];
     return données_utilisateur.nombre_utilisateurs;
 }
 
-void Graphe::ajoute_connexion(Atome *a, Atome *b, int index_bloc)
+void Graphe::ajoute_connexion(Atome *a, Atome *b, int indice_bloc)
 {
-    m_table.ajoute_connexion(a, b, index_bloc);
+    m_table.ajoute_connexion(a, b, indice_bloc);
 }
 
-void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int index_bloc)
+void Graphe::construit(const kuri::tableau<Instruction *, int> &instructions, int indice_bloc)
 {
     POUR (instructions) {
         visite_opérandes_instruction(
-            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, index_bloc); });
+            it, [&](Atome *atome_courant) { ajoute_connexion(atome_courant, it, indice_bloc); });
     }
 }
 
-bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int index_bloc) const
+bool Graphe::est_uniquement_utilisé_dans_bloc(Instruction const *inst, int indice_bloc) const
 {
-    return m_table.est_uniquement_utilisé_dans_bloc(inst, index_bloc);
+    return m_table.est_uniquement_utilisé_dans_bloc(inst, indice_bloc);
 }
 
 int64_t Graphe::nombre_d_utilisateurs(const Instruction *inst) const
@@ -515,7 +515,7 @@ kuri::tableau_statique<Bloc *> FonctionEtBlocs::supprime_blocs_inatteignables(
 
     auto nombre_de_nouveaux_blocs = int(std::distance(blocs.begin(), résultat));
 
-    auto index_premier_bloc_libre = blocs_libres.taille();
+    auto indice_premier_bloc_libre = blocs_libres.taille();
 
     for (auto i = nombre_de_nouveaux_blocs; i < blocs.taille(); i++) {
         blocs_libres.ajoute(blocs[i]);
@@ -524,7 +524,7 @@ kuri::tableau_statique<Bloc *> FonctionEtBlocs::supprime_blocs_inatteignables(
     blocs.redimensionne(nombre_de_nouveaux_blocs);
     marque_blocs_modifiés();
 
-    return kuri::tableau_statique<Bloc *>(blocs_libres.données() + index_premier_bloc_libre,
+    return kuri::tableau_statique<Bloc *>(blocs_libres.données() + indice_premier_bloc_libre,
                                           blocs_libres.taille());
 }
 

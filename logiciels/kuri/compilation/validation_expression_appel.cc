@@ -334,7 +334,7 @@ struct ApparieuseParams {
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
      * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir
      * à quel rubrique réel le slot appartient. */
-    kuri::tablet<int, 10> m_index_pour_slot{};
+    kuri::tablet<int, 10> m_indice_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
     bool m_dernier_argument_est_variadique = false;
@@ -362,7 +362,7 @@ struct ApparieuseParams {
         // car le code d'appariement de type dépend de ce comportement.
         if (!est_variadique) {
             m_slots.ajoute(valeur_défaut);
-            m_index_pour_slot.ajoute(index);
+            m_indice_pour_slot.ajoute(index);
         }
 
         m_est_variadique = est_variadique;
@@ -394,22 +394,22 @@ struct ApparieuseParams {
         if (ident) {
             m_arguments_nommés = true;
 
-            auto index_param = 0l;
+            auto indice_param = 0l;
 
             POUR (m_noms) {
                 if (ident == it) {
                     break;
                 }
 
-                index_param += 1;
+                indice_param += 1;
             }
 
-            if (index_param >= m_noms.taille()) {
+            if (indice_param >= m_noms.taille()) {
                 erreur = ErreurAppariement::ménommage_arguments(expr_ident, ident);
                 return false;
             }
 
-            auto est_paramètre_variadique = index_param == m_noms.taille() - 1 && m_est_variadique;
+            auto est_paramètre_variadique = indice_param == m_noms.taille() - 1 && m_est_variadique;
 
             if ((m_args_rencontrés.possède(ident)) && !est_paramètre_variadique) {
                 erreur = ErreurAppariement::renommage_argument(expr_ident, ident);
@@ -420,7 +420,7 @@ struct ApparieuseParams {
 
             m_args_rencontrés.insère(ident);
 
-            if (m_dernier_argument_est_variadique || index_param >= m_slots.taille()) {
+            if (m_dernier_argument_est_variadique || indice_param >= m_slots.taille()) {
                 if (m_expansion_rencontrée && m_nombre_arg_variadiques_rencontrés != 0) {
                     erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
                     return false;
@@ -429,7 +429,7 @@ struct ApparieuseParams {
                 ajoute_slot(expr);
             }
             else {
-                remplis_slot(index_param, expr);
+                remplis_slot(indice_param, expr);
             }
         }
         else {
@@ -484,26 +484,26 @@ struct ApparieuseParams {
 
     kuri::tablet<NoeudExpression *, 10> &slots()
     {
-        assert(m_slots.taille() == m_index_pour_slot.taille());
+        assert(m_slots.taille() == m_indice_pour_slot.taille());
         return m_slots;
     }
 
-    int index_pour_slot(int64_t index_slot) const
+    int indice_pour_slot(int64_t indice_slot) const
     {
-        assert(m_slots.taille() == m_index_pour_slot.taille());
-        return m_index_pour_slot[index_slot];
+        assert(m_slots.taille() == m_indice_pour_slot.taille());
+        return m_indice_pour_slot[indice_slot];
     }
 
   private:
     void ajoute_slot(NoeudExpression *expression)
     {
         m_slots.ajoute(expression);
-        m_index_pour_slot.ajoute(-1);
+        m_indice_pour_slot.ajoute(-1);
     }
 
-    void remplis_slot(int64_t index_slot, NoeudExpression *expression)
+    void remplis_slot(int64_t indice_slot, NoeudExpression *expression)
     {
-        m_slots[index_slot] = expression;
+        m_slots[indice_slot] = expression;
     }
 };
 
@@ -675,9 +675,9 @@ static void crée_tableau_args_variadiques(Contexte *contexte,
                                           int nombre_args,
                                           Type *type_données_argument_variadique)
 {
-    auto index_premier_var_arg = nombre_args - 1;
+    auto indice_premier_var_arg = nombre_args - 1;
     if (slots.taille() == nombre_args &&
-        slots[index_premier_var_arg]->est_expansion_variadique()) {
+        slots[indice_premier_var_arg]->est_expansion_variadique()) {
         return;
     }
 
@@ -688,17 +688,17 @@ static void crée_tableau_args_variadiques(Contexte *contexte,
     noeud_tableau->type = type_données_argument_variadique;
     // @embouteillage, ceci gaspille également de la mémoire si la candidate n'est pas
     // sélectionné
-    noeud_tableau->expressions.réserve(static_cast<int>(slots.taille()) - index_premier_var_arg);
+    noeud_tableau->expressions.réserve(static_cast<int>(slots.taille()) - indice_premier_var_arg);
 
-    for (auto i = index_premier_var_arg; i < slots.taille(); ++i) {
+    for (auto i = indice_premier_var_arg; i < slots.taille(); ++i) {
         noeud_tableau->expressions.ajoute(slots[i]);
     }
 
-    if (index_premier_var_arg >= slots.taille()) {
+    if (indice_premier_var_arg >= slots.taille()) {
         slots.ajoute(noeud_tableau);
     }
     else {
-        slots[index_premier_var_arg] = noeud_tableau;
+        slots[indice_premier_var_arg] = noeud_tableau;
     }
 
     slots.redimensionne(nombre_args);
@@ -830,10 +830,10 @@ static RésultatAppariement apparie_appel_pointeur(
 
     /* Validation des types passés en paramètre. */
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
-        auto index_param = std::min(
+        auto indice_param = std::min(
             i, static_cast<int64_t>(type_fonction->types_entrées.taille() - 1));
         auto slot = slots[i];
-        auto type_prm = type_fonction->types_entrées[static_cast<int>(index_param)];
+        auto type_prm = type_fonction->types_entrées[static_cast<int>(indice_param)];
         auto type_enf = slot->type;
 
         auto résultat = apparie_type_paramètre_appel_fonction(slot, type_prm, type_enf);
@@ -1048,8 +1048,8 @@ static RésultatAppariement apparie_appel_fonction(
     }
 
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[index_arg];
+        auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
+        auto param = paramètres_entree[indice_arg];
         auto arg = param;
         auto slot = slots[i];
 
@@ -1163,8 +1163,8 @@ static RésultatAppariement apparie_appel_fonction(
 
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
-        auto index_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[index_arg];
+        auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
+        auto param = paramètres_entree[indice_arg];
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
@@ -1272,12 +1272,12 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
 
     kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
 
-    auto index_param = 0;
+    auto indice_param = 0;
     // détecte les arguments polymorphiques dans les fonctions polymorphiques
     auto est_type_argument_polymorphique = false;
     POUR (apparieuse_params.slots()) {
-        auto param = params_polymorphiques->rubrique_pour_index(index_param);
-        index_param += 1;
+        auto param = params_polymorphiques->rubrique_pour_index(indice_param);
+        indice_param += 1;
 
         if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             assert_rappel(false, []() {
@@ -1343,7 +1343,7 @@ static RésultatAppariement apparie_construction_type_composé(
 {
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
-    POUR_INDEX (type_compose->rubriques) {
+    POUR_INDICE (type_compose->rubriques) {
         /* Ignore les rubriques employés pour le moment. */
         if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANT |
                                RubriqueTypeComposé::EST_UN_EMPLOI)) {
@@ -1365,18 +1365,18 @@ static RésultatAppariement apparie_construction_type_composé(
         type_compose->rubriques.taille());
     auto poids_appariement = 1.0;
 
-    POUR_INDEX (apparieuse_params.slots()) {
+    POUR_INDICE (apparieuse_params.slots()) {
         if (it == nullptr) {
             continue;
         }
 
-        auto const index_rubrique = apparieuse_params.index_pour_slot(indice_it);
-        if (index_rubrique == -1) {
+        auto const indice_rubrique = apparieuse_params.indice_pour_slot(indice_it);
+        if (indice_rubrique == -1) {
             /* À FAIRE : meilleure erreur, ceci peut arriver pour les constructions invalides. */
             return ErreurAppariement::mécomptage_arguments(
                 it, type_compose->rubriques.taille(), apparieuse_params.slots().taille());
         }
-        auto &rubrique = type_compose->rubriques[index_rubrique];
+        auto &rubrique = type_compose->rubriques[indice_rubrique];
 
         auto résultat = vérifie_compatibilité(rubrique.type, it->type, it, false);
 
@@ -2278,7 +2278,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         if (!copie->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE) &&
             copie != sémanticienne.union_ou_structure_courante()) {
             // saute l'expression pour ne plus revenir
-            sémanticienne.donne_arbre()->index_courant += 1;
+            sémanticienne.donne_arbre()->indice_courant += 1;
             compilatrice.libère_état_résolution_appel(expr->état_résolution_appel);
             copie->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
             return Attente::sur_type(copie);

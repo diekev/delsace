@@ -1501,25 +1501,25 @@ struct Convertisseuse {
                 if (!enfants_filtres.est_vide()) {
                     syntaxeuse.noeud_courant.empile(structure);
 
-                    int64_t index_enfant = 0;
-                    while (index_enfant < enfants_filtres.taille()) {
-                        auto enfant = enfants_filtres[index_enfant];
-                        index_enfant += 1;
+                    int64_t indice_enfant = 0;
+                    while (indice_enfant < enfants_filtres.taille()) {
+                        auto enfant = enfants_filtres[indice_enfant];
+                        indice_enfant += 1;
 
                         auto bit_field = clang_Cursor_isBitField(enfant);
                         // clang_getFieldDeclBitWidth(enfant)
                         if (bit_field != 0) {
-                            while (index_enfant < enfants_filtres.taille()) {
-                                auto enfant2 = enfants_filtres[index_enfant];
+                            while (indice_enfant < enfants_filtres.taille()) {
+                                auto enfant2 = enfants_filtres[indice_enfant];
                                 if (!clang_Cursor_isBitField(enfant2)) {
                                     break;
                                 }
                                 // À FAIRE : vérifie que le type est le même
-                                index_enfant += 1;
+                                indice_enfant += 1;
                             }
 
                             auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
-                            variable->nom = "bitfield" + dls::vers_chaine(index_enfant);
+                            variable->nom = "bitfield" + dls::vers_chaine(indice_enfant);
                             variable->type_c = clang_getCursorType(enfant);
 
                             structure->rubriques.ajoute(variable);
@@ -2800,7 +2800,7 @@ struct Convertisseuse {
             if (!typedef_->type_fonction) {
                 auto nom_type_source = converti_type(typedef_->type_source, typedefs);
                 if (nom_type_source == nom_type_défini) {
-                    /* Par exemple : typedef struct XYZ { } XYZ; */
+                    /* Par exemple : typedef struct XYZ { } XYZ; */
                     return true;
                 }
             }

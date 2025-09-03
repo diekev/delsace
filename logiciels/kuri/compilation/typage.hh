@@ -409,18 +409,18 @@ struct ValeurOpaqueTaguee {
 };
 
 enum {
-    INDEX_RUBRIQUE = 0,
+    INDICE_RUBRIQUE = 0,
     AUCUN_TROUVE = 1,
     PLUSIEURS_TROUVES = 2,
 };
 
-using IndexRubrique = ValeurOpaqueTaguee<int, INDEX_RUBRIQUE>;
+using IndexRubrique = ValeurOpaqueTaguee<int, INDICE_RUBRIQUE>;
 using PlusieursRubriques = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
 using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 
 using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
-ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
+ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
                                                                        Type const *type_a_tester);
 
 /** \} */
