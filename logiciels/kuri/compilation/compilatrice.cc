@@ -421,9 +421,9 @@ static kuri::tableau<kuri::Lexème> converti_tableau_lexemes(
     kuri::tableau<Lexème, int> const &lexemes)
 {
     auto résultat = kuri::tableau<kuri::Lexème>(lexemes.taille());
-    auto index_résultat = 0;
+    auto indice_résultat = 0;
     POUR (lexemes) {
-        résultat[index_résultat++] = {static_cast<int>(it.genre), it.chaine};
+        résultat[indice_résultat++] = {static_cast<int>(it.genre), it.chaine};
     }
     return résultat;
 }

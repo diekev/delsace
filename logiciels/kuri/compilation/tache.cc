@@ -7,7 +7,7 @@
 
 const char *chaine_genre_tâche(GenreTâche genre)
 {
-#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDEX)                                         \
+#define ENUMERE_GENRE_TACHE(VERBE, ACTION, CHAINE, INDICE)                                        \
     case GenreTâche::ACTION:                                                                      \
         return CHAINE;
     switch (genre) {

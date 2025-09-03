@@ -41,9 +41,9 @@ void ÉtendueSourceNoeud::fusionne(ÉtendueSourceNoeud autre)
 {
     auto const pos = position_lexeme(*lexème);
     ÉtendueSourceNoeud résultat;
-    résultat.ligne_début = int32_t(pos.index_ligne);
+    résultat.ligne_début = int32_t(pos.indice_ligne);
     résultat.colonne_début = int32_t(pos.pos);
-    résultat.ligne_fin = int32_t(pos.index_ligne);
+    résultat.ligne_fin = int32_t(pos.indice_ligne);
     résultat.colonne_fin = int32_t(pos.pos + lexème->chaine.taille());
     return résultat;
 }

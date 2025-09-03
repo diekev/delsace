@@ -423,7 +423,7 @@ void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unit
     imprime_attentes_unité(enchaineuse, unité);
 }
 
-void imprime_noeud_index_courant_unité(std::ostream &os, UniteCompilation const *unité)
+void imprime_noeud_indice_courant_unité(std::ostream &os, UniteCompilation const *unité)
 {
     auto arbre_aplatis = unité->arbre_aplatis;
     if (!arbre_aplatis) {
@@ -436,7 +436,7 @@ void imprime_noeud_index_courant_unité(std::ostream &os, UniteCompilation const
         return;
     }
 
-    auto site = arbre_aplatis->noeuds[arbre_aplatis->index_courant];
+    auto site = arbre_aplatis->noeuds[arbre_aplatis->indice_courant];
     os << "-- " << *site << '\n';
 
     if (site->est_appel()) {
