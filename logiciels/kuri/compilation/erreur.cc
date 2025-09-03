@@ -352,7 +352,7 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t index_acces)
+                                     int64_t indice_acces)
 {
     espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
@@ -361,7 +361,7 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                         chaine_type(type_tableau),
                         ").\n")
         .ajoute_message("\tL'accès se fait à l'index ",
-                        index_acces,
+                        indice_acces,
                         " (index maximal : ",
                         taille_tableau - 1,
                         ").\n");
@@ -499,7 +499,7 @@ void imprime_site(Enchaineuse &enchaineuse,
     auto const etendue = donne_étendue_source_noeud(site);
     auto const pos = position_lexeme(*lexeme);
     auto const pos_mot = pos.pos;
-    auto const ligne = fichier->tampon()[pos.index_ligne];
+    auto const ligne = fichier->tampon()[pos.indice_ligne];
     enchaineuse << ligne;
     enchaineuse.imprime_caractère_vide(etendue.colonne_début, ligne);
     enchaineuse.imprime_tilde(ligne, etendue.colonne_début, pos_mot);
@@ -646,9 +646,9 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
                                params.chemin_fichier,
                                params.texte_ligne,
                                params.numéro_ligne,
-                               params.index_colonne,
-                               params.index_colonne_début,
-                               params.index_colonne_fin);
+                               params.indice_colonne,
+                               params.indice_colonne_début,
+                               params.indice_colonne_fin);
 
     flux << '\n';
 
@@ -698,12 +698,12 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
                     espace->site_source_pour(métaprogramme->corps_texte_pour_structure);
             flux << "Dans le code ajouté à la compilation par le #corps_texte situé "
                  << site_métaprogramme.fichier->chemin() << ':'
-                 << site_métaprogramme.index_ligne + 1 << " :\n";
+                 << site_métaprogramme.indice_ligne + 1 << " :\n";
         }
         else {
             auto site_exécute = espace->site_source_pour(fichier->site);
             flux << "Dans le code ajouté à la compilation via " << site_exécute.fichier->chemin()
-                 << ':' << site_exécute.index_ligne + 1 << " :\n";
+                 << ':' << site_exécute.indice_ligne + 1 << " :\n";
         }
     }
 
