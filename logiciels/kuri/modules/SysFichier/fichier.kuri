@@ -169,6 +169,45 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom InfoFichier
+ * Utile pour définir si un fichier fut modifié sur le disque.
+ * \{ */
+
+InfoFichier :: struct {
+    taille: n64
+    modification: z64
+}
+
+opérateur == :: (a: InfoFichier, b: InfoFichier) -> bool
+{
+    retourne a.taille == b.taille && a.modification == b.modification
+}
+
+donne_info_fichier :: fonc (chemin: CheminFichier) -> InfoFichier
+{
+    retourne donne_info_fichier(chemin.chn)
+}
+
+donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
+{
+    résultat: InfoFichier
+    résultat.taille = détermine_taille_fichier(CheminFichier(chemin))
+
+    ptr_chemin := crée_chaine_c(chemin)
+    diffère détruit_chaine_c(ptr_chemin)
+
+    st: struct_stat
+    ok := stat(ptr_chemin, *st)
+    assert(ok == 0)
+
+    résultat.modification = st.st_mtime
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /* Calcul de la taille de fichiers, soit seul, soit contenus dans des dossiers.
  * \{ */
 
