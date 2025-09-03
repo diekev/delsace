@@ -178,6 +178,11 @@ InfoFichier :: struct {
     modification: z64
 }
 
+opérateur == :: (a: InfoFichier, b: InfoFichier) -> bool
+{
+    retourne a.taille == b.taille && a.modification == b.modification
+}
+
 donne_info_fichier :: fonc (chemin: CheminFichier) -> InfoFichier
 {
     retourne donne_info_fichier(chemin.chn)
