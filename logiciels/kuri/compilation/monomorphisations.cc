@@ -226,7 +226,7 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
     }
 
     if (nouveau_params.taille() != entête->params.taille()) {
-        POUR_INDEX (nouveau_params) {
+        POUR_INDICE (nouveau_params) {
             static_cast<void>(it);
             entête->params[indice_it] = nouveau_params[indice_it];
         }

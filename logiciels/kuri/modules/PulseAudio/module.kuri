@@ -1,0 +1,27 @@
+
+charge "interface_pulse_audio"
+
+libpulse_simple :: #bibliothèque "pulse-simple"
+#dépendance_bibliothèque libpulse_simple libpulse
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonction de Pulse Simple
+ * \{ */
+
+pa_simple :: struct #externe
+
+pa_simple_new :: fonc (server: *z8, name: *z8, dir: pa_stream_direction_t, dev: *z8, stream_name: *z8, ss: *pa_sample_spec, map: *pa_channel_map, attr: *pa_buffer_attr, error: *z32) -> *pa_simple #externe libpulse_simple
+
+pa_simple_free :: fonc (s: *pa_simple) #externe libpulse_simple
+
+pa_simple_write :: fonc (s: *pa_simple, data: *rien, bytes: n64, error: *z32) -> z32 #externe libpulse_simple
+
+pa_simple_drain :: fonc (s: *pa_simple, error: *z32) -> z32 #externe libpulse_simple
+
+pa_simple_read :: fonc (s: *pa_simple, data: *rien, bytes: n64, error: *z32) -> z32 #externe libpulse_simple
+
+pa_simple_get_latency :: fonc (s: *pa_simple, error: *z32) -> pa_usec_t #externe libpulse_simple
+
+pa_simple_flush :: fonc (s: *pa_simple, error: *z32) -> z32 #externe libpulse_simple
+
+/** \} */
