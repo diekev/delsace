@@ -336,7 +336,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             info_type->est_sûre = !type_union->est_nonsure;
             info_type->type_le_plus_grand = crée_info_type_pour(typeuse,
                                                                 type_union->type_le_plus_grand);
-            info_type->décalage_index = type_union->décalage_index;
+            info_type->décalage_indice = type_union->décalage_indice;
             info_type->taille_en_octet = type_union->taille_octet;
             info_type->nom = donne_nom_hiérarchique(type_union);
             info_type->est_polymorphique = type_union->est_polymorphe;

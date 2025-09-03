@@ -24,7 +24,7 @@ class ensemble {
     void insère(T const &cle)
     {
         auto empreinte = std::hash<T>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
+        auto index = trouve_indice_innoccupe(cle, empreinte);
         occupes[index] = 1;
         cles[index] = cle;
     }
@@ -32,7 +32,7 @@ class ensemble {
     void insère(T &&cle)
     {
         auto empreinte = std::hash<T>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
+        auto index = trouve_indice_innoccupe(cle, empreinte);
         occupes[index] = 1;
         cles[index] = std::move(cle);
     }
@@ -180,7 +180,7 @@ class ensemble {
         return -1;
     }
 
-    int trouve_index_innoccupe(T const &cle, size_t empreinte)
+    int trouve_indice_innoccupe(T const &cle, size_t empreinte)
     {
         auto index = trouve_index(cle, empreinte);
 

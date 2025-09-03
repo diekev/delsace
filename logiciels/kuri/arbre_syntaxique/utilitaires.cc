@@ -971,9 +971,9 @@ static void aplatis_arbre(NoeudExpression *racine,
             aplatis_arbre(inst->bloc_si_vrai, arbre_aplatis, PositionCodeNoeud::AUCUNE);
             arbre_aplatis.ajoute(inst);  // insère une deuxième fois pour pouvoir sauter le code du
                                          // bloc_si_faux si la condition évalue à « vrai »
-            inst->index_bloc_si_faux = arbre_aplatis.taille() - 1;
+            inst->indice_bloc_si_faux = arbre_aplatis.taille() - 1;
             aplatis_arbre(inst->bloc_si_faux, arbre_aplatis, PositionCodeNoeud::AUCUNE);
-            inst->index_après = arbre_aplatis.taille() - 1;
+            inst->indice_après = arbre_aplatis.taille() - 1;
             break;
         }
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
@@ -1306,7 +1306,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
                 return nullptr;
             }
             auto type_compose = type_accédé->comme_type_composé();
-            auto &rubrique = type_compose->rubriques[référence_rubrique->index_rubrique];
+            auto &rubrique = type_compose->rubriques[référence_rubrique->indice_rubrique];
 
             if (rubrique.drapeaux == RubriqueTypeComposé::EST_CONSTANT) {
                 return nullptr;
@@ -1867,7 +1867,7 @@ NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lex�
         acces->ident = rubrique.nom;
     }
     acces->type = type;
-    acces->index_rubrique = index;
+    acces->indice_rubrique = index;
     return acces;
 }
 
@@ -2553,7 +2553,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 }
             }
 
-            POUR_INDEX (type_composé->rubriques) {
+            POUR_INDICE (type_composé->rubriques) {
                 if (it.ne_doit_pas_être_dans_code_machine() &&
                     !it.expression_initialisation_est_spéciale()) {
                     continue;
@@ -2633,7 +2633,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                      * comme types des rubriques). */
                     auto ref_rubrique = assembleuse->crée_référence_rubrique(
                         &lexème_sentinel, param_comme_structure);
-                    ref_rubrique->index_rubrique = 0;
+                    ref_rubrique->indice_rubrique = 0;
                     ref_rubrique->type = TypeBase::Z32;
                     ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                     crée_initialisation_defaut_pour_type(
@@ -2643,7 +2643,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 
                 auto ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                          param_comme_structure);
-                ref_rubrique->index_rubrique = 0;
+                ref_rubrique->indice_rubrique = 0;
                 ref_rubrique->type = rubrique.type;
                 ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                 crée_initialisation_defaut_pour_type(rubrique.type,
@@ -2654,7 +2654,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 
                 ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                     param_comme_structure);
-                ref_rubrique->index_rubrique = 1;
+                ref_rubrique->indice_rubrique = 1;
                 ref_rubrique->type = TypeBase::Z32;
                 ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                 crée_initialisation_defaut_pour_type(
