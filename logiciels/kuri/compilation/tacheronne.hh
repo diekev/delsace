@@ -28,7 +28,7 @@ struct Tacheronne;
 
 /* Drapeaux pour les tâches étant dans des files. */
 enum class DrapeauxTacheronne : uint32_t {
-#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX) PEUT_##VERBE = (1 << INDEX),
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDICE) PEUT_##VERBE = (1 << INDICE),
 
     ENUMERE_TACHES_POSSIBLES(ENUMERE_CAPACITE)
 
@@ -44,7 +44,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux);
 struct OrdonnanceuseTache {
   public:
     enum {
-#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDEX) FILE_##ACTION,
+#define ENUMERE_FILE(VERBE, ACTION, CHAINE, INDICE) FILE_##ACTION,
 
         ENUMERE_TACHES_POSSIBLES(ENUMERE_FILE)
 
@@ -76,8 +76,8 @@ struct OrdonnanceuseTache {
         {
 #if 0
             std::cerr << "Pique taille files :\n";
-#    define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                \
-        std::cerr << "-- " << CHAINE << " : " << tâches[INDEX] << '\n';
+#    define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDICE)                               \
+        std::cerr << "-- " << CHAINE << " : " << tâches[INDICE] << '\n';
 
             ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
 

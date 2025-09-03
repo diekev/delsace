@@ -76,30 +76,6 @@ InfoCompilation :: struct {
     commande: [..]chaine
 }
 
-InfoFichier :: struct {
-    taille: n64
-    modification: z64
-}
-
-importe POSIX
-
-donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
-{
-    résultat: InfoFichier
-    résultat.taille = détermine_taille_fichier(CheminFichier(chemin))
-
-    ptr_chemin := crée_chaine_c(chemin)
-    diffère détruit_chaine_c(ptr_chemin)
-
-    st: struct_stat
-    ok := stat(ptr_chemin, *st)
-    assert(ok == 0)
-
-    résultat.modification = st.st_mtime
-
-    retourne résultat
-}
-
 info_fichier_config: InfoFichier
 info_config_projet: InfoFichier
 
