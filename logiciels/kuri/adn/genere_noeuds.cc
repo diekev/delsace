@@ -1379,7 +1379,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
 
         if (genre == GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE) {
             /* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
-            noeud->comme_littérale_chaine()->valeur = lexeme->index_chaine;
+            noeud->comme_littérale_chaine()->valeur = lexeme->indice_chaine;
         }
 
         return noeud;

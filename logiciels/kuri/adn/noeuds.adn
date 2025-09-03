@@ -344,7 +344,7 @@ struct NoeudDéclarationVariable : BaseDéclarationVariable {
     @genre_valeur INVALIDE
 
     NoeudDéclarationSymbole *déclaration_vient_d_un_emploi
-    int index_rubrique_employée
+    int indice_rubrique_employée
 }
 
 /* a, b := ... */
@@ -554,7 +554,7 @@ struct NoeudExpressionRubrique : NoeudExpression {
     /* Pour l'accès à des modules. */
     NoeudDéclaration *déclaration_référée
     /* Pour l'accès à des structures. */
-    int index_rubrique [copie]
+    int indice_rubrique [copie]
 }
 
 struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
@@ -682,7 +682,7 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     unsigned taille_octet = 0
     unsigned alignement = 0
 
-    unsigned index_dans_table_types = 0
+    unsigned indice_dans_table_types = 0
 
     DrapeauxTypes drapeaux_type
 
@@ -766,7 +766,7 @@ struct NoeudUnion : NoeudDéclarationClasse {
     @code  NoeudCodeUnion
     @genre_valeur DROITE
 
-    uint32_t décalage_index
+    uint32_t décalage_indice
     bool est_nonsure [copie]
     bool est_compacte [copie]
 
@@ -1030,8 +1030,8 @@ struct NoeudSiStatique : NoeudExpression {
     NoeudBloc *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
 
-    int index_bloc_si_faux
-    int index_après
+    int indice_bloc_si_faux
+    int indice_après
     bool condition_est_vraie
     bool visité
 }
