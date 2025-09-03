@@ -9,9 +9,9 @@ SiteSource SiteSource::cree(const Fichier *fichier, const Lexème *lexeme)
 {
     SiteSource site;
     site.fichier = fichier;
-    site.index_ligne = lexeme->ligne;
-    site.index_colonne = lexeme->colonne;
-    site.index_colonne_min = site.index_colonne;
-    site.index_colonne_max = static_cast<int>(site.index_colonne + lexeme->chaine.taille());
+    site.indice_ligne = lexeme->ligne;
+    site.indice_colonne = lexeme->colonne;
+    site.indice_colonne_min = site.indice_colonne;
+    site.indice_colonne_max = static_cast<int>(site.indice_colonne + lexeme->chaine.taille());
     return site;
 }

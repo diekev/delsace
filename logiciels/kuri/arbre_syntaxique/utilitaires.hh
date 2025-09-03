@@ -588,7 +588,7 @@ using RubriqueTypeCompose = RubriqueTypeComposé;
 
 struct InformationRubriqueTypeCompose {
     RubriqueTypeComposé rubrique{};
-    int index_rubrique = -1;
+    int indice_rubrique = -1;
 };
 
 kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);

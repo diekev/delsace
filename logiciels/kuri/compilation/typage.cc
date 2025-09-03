@@ -957,7 +957,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
 
     if (!type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         calcule_taille_type_composé(type, false, 0);
-        crée_type_structure(*this, type, type->décalage_index);
+        crée_type_structure(*this, type, type->décalage_indice);
     }
 
     return type;
@@ -1142,7 +1142,7 @@ bool requiers_création_fonction_initialisation(Type const *type)
 std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
     TypeCompose const *type_composé, Type const *type)
 {
-    POUR_INDEX (type_composé->rubriques) {
+    POUR_INDICE (type_composé->rubriques) {
         if (it.type == type) {
             return InformationRubriqueTypeCompose{it, indice_it};
         }
@@ -1154,7 +1154,7 @@ std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
 std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
     TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique)
 {
-    POUR_INDEX (type_composé->rubriques) {
+    POUR_INDICE (type_composé->rubriques) {
         if (it.nom == nom_rubrique) {
             return InformationRubriqueTypeCompose{it, indice_it};
         }
@@ -1911,7 +1911,7 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
                 taille_union += marge_pour_alignement(max_alignement, taille_union);
             }
 
-            type_union->décalage_index = taille_union;
+            type_union->décalage_indice = taille_union;
 
             /* ajoute la taille du rubrique actif */
             taille_union += static_cast<unsigned>(taille_de(int));
@@ -2109,57 +2109,57 @@ bool est_type_pointeur_nul(Type const *type)
     return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé == nullptr;
 }
 
-ResultatRechercheRubrique trouve_index_rubrique_unique_type_compatible(TypeCompose const *type,
+ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
                                                                        Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
-    int index_rubrique = -1;
-    int index_courant = 0;
+    int indice_rubrique = -1;
+    int indice_courant = 0;
     POUR (type->rubriques) {
         if (it.type == type_a_tester) {
-            if (index_rubrique != -1) {
+            if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
 
-            index_rubrique = index_courant;
+            indice_rubrique = indice_courant;
         }
         else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
             if (pointeur_nul) {
-                if (index_rubrique != -1) {
+                if (indice_rubrique != -1) {
                     return PlusieursRubriques{-1};
                 }
 
-                index_rubrique = index_courant;
+                indice_rubrique = indice_courant;
             }
             else {
                 auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointé;
                 auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointé;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
-                    if (index_rubrique != -1) {
+                    if (indice_rubrique != -1) {
                         return PlusieursRubriques{-1};
                     }
 
-                    index_rubrique = index_courant;
+                    indice_rubrique = indice_courant;
                 }
             }
         }
         else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
-            if (index_rubrique != -1) {
+            if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
 
-            index_rubrique = index_courant;
+            indice_rubrique = indice_courant;
         }
 
-        index_courant += 1;
+        indice_courant += 1;
     }
 
-    if (index_rubrique == -1) {
+    if (indice_rubrique == -1) {
         return AucunRubrique{-1};
     }
 
-    return IndexRubrique{index_rubrique};
+    return IndexRubrique{indice_rubrique};
 }
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à

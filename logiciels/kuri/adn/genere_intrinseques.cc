@@ -552,7 +552,7 @@ int main(int argc, const char **argv)
     }
 
     pour noms_atomiques {
-        pour type, index_type dans types {
+        pour type, indice_type dans types {
             si type == "bool" && !it.supporte_bool {
                 continue
             }
@@ -561,7 +561,7 @@ int main(int argc, const char **argv)
             nom_kuri := it.nom_kuri
 
             type_kuri := type
-            type_c := types_c[index_type]
+            type_c := types_c[indice_type]
 
             arguments := remplace(it.arguments, "type", type_c)
             type_retour := remplace(it.type_retour, "type", type_c)
