@@ -514,7 +514,7 @@ void Chunk::émets_accès_index(NoeudExpression const *site, Type const *type)
     assert(type->taille_octet);
     émets_notifie_dépilage(site, 8); /* adresse */
     émets_notifie_dépilage(site, 8); /* index */
-    émets_entête_op(OP_ACCEDE_INDEX, site);
+    émets_entête_op(OP_ACCÈDE_INDICE, site);
     émets(type->taille_octet);
     émets_notifie_empilage(site, 8); /* nouvelle_adresse */
 }
@@ -536,46 +536,46 @@ void Chunk::émets_branche(NoeudExpression const *site,
 
 void Chunk::émets_branche_condition(NoeudExpression const *site,
                                     kuri::tableau<PatchLabel> &patchs_labels,
-                                    int index_label_si_vrai,
-                                    int index_label_si_faux)
+                                    int indice_label_si_vrai,
+                                    int indice_label_si_faux)
 {
     if (émets_vérification_branches) {
         émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
         émets(0);
-        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        patchs_labels.ajoute({indice_label_si_vrai, static_cast<int>(compte - 4)});
         émets(0);
-        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+        patchs_labels.ajoute({indice_label_si_faux, static_cast<int>(compte - 4)});
     }
 
     émets_notifie_dépilage(site, 1);
     émets_entête_op(OP_BRANCHE_CONDITION, site);
     émets(0);
-    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+    patchs_labels.ajoute({indice_label_si_vrai, static_cast<int>(compte - 4)});
     émets(0);
-    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    patchs_labels.ajoute({indice_label_si_faux, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
                                   kuri::tableau<PatchLabel> &patchs_labels,
                                   uint32_t taille_opérande,
-                                  int index_label_si_vrai,
-                                  int index_label_si_faux)
+                                  int indice_label_si_vrai,
+                                  int indice_label_si_faux)
 {
     if (émets_vérification_branches) {
         émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION, nullptr);
         émets(0);
-        patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+        patchs_labels.ajoute({indice_label_si_vrai, static_cast<int>(compte - 4)});
         émets(0);
-        patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+        patchs_labels.ajoute({indice_label_si_faux, static_cast<int>(compte - 4)});
     }
 
     émets_notifie_dépilage(site, taille_opérande);
     émets_entête_op(OP_BRANCHE_SI_ZÉRO, site);
     émets(taille_opérande);
     émets(0);
-    patchs_labels.ajoute({index_label_si_vrai, static_cast<int>(compte - 4)});
+    patchs_labels.ajoute({indice_label_si_vrai, static_cast<int>(compte - 4)});
     émets(0);
-    patchs_labels.ajoute({index_label_si_faux, static_cast<int>(compte - 4)});
+    patchs_labels.ajoute({indice_label_si_faux, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_operation_unaire(NoeudExpression const *site,
@@ -947,7 +947,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_REFERENCE_GLOBALE:
         case OP_RÉFÉRENCE_LOCALE:
         case OP_REFERENCE_RUBRIQUE:
-        case OP_ACCEDE_INDEX:
+        case OP_ACCÈDE_INDICE:
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
@@ -1364,11 +1364,11 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     chunk.émets_notifications_empilage = notifie_empilage;
     chunk.émets_profilage = émets_profilage;
 
-    m_index_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
+    m_indice_locales.redimensionne(fonction->nombre_d_instructions_avec_entrées_sorties());
     fonction->numérote_instructions();
 
     POUR (fonction->params_entrée) {
-        m_index_locales[it->numero] = chunk.ajoute_locale(it);
+        m_indice_locales[it->numero] = chunk.ajoute_locale(it);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1377,13 +1377,13 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         auto type_pointe = alloc->donne_type_alloué();
 
         if (!type_pointe->est_type_rien()) {
-            m_index_locales[alloc->numero] = chunk.ajoute_locale(alloc);
+            m_indice_locales[alloc->numero] = chunk.ajoute_locale(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            m_index_locales[it->numero] = chunk.ajoute_locale(it->comme_alloc());
+            m_indice_locales[it->numero] = chunk.ajoute_locale(it->comme_alloc());
         }
     }
 
@@ -1396,14 +1396,14 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     }
 
     POUR (patchs_labels) {
-        auto décalage = décalages_labels[it.index_label];
+        auto décalage = décalages_labels[it.indice_label];
         *reinterpret_cast<int *>(&chunk.code[it.adresse]) = décalage;
     }
 
     /* Réinitialise à la fin pour ne pas polluer les données pour les autres fonctions. */
     décalages_labels.efface();
     patchs_labels.efface();
-    m_index_locales.efface();
+    m_indice_locales.efface();
 
     chunk.rétrécis_capacité_sur_taille();
 
@@ -1474,7 +1474,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         {
             auto alloc = instruction->comme_alloc();
             assert(pour_operande);
-            chunk.émets_référence_locale(alloc->site, donne_index_locale(alloc));
+            chunk.émets_référence_locale(alloc->site, donne_indice_locale(alloc));
             break;
         }
         case GenreInstruction::CHARGE_MEMOIRE:
@@ -1483,7 +1483,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             if (est_allocation(charge->chargée)) {
                 auto alloc = charge->chargée->comme_instruction()->comme_alloc();
-                chunk.émets_charge_locale(charge->site, donne_index_locale(alloc), charge->type);
+                chunk.émets_charge_locale(charge->site, donne_indice_locale(alloc), charge->type);
                 break;
             }
 
@@ -1499,7 +1499,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 auto alloc_destination = static_cast<InstructionAllocation const *>(
                     stocke->destination);
                 chunk.émets_incrémente_locale(
-                    stocke->site, stocke->source->type, donne_index_locale(alloc_destination));
+                    stocke->site, stocke->source->type, donne_indice_locale(alloc_destination));
                 break;
             }
 
@@ -1508,8 +1508,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                     stocke->destination);
                 chunk.émets_copie_locale(stocke->site,
                                          stocke->source->type,
-                                         donne_index_locale(alloc_source),
-                                         donne_index_locale(alloc_destination));
+                                         donne_indice_locale(alloc_source),
+                                         donne_indice_locale(alloc_destination));
                 break;
             }
 
@@ -1518,7 +1518,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
                 auto alloc_destination = static_cast<InstructionAllocation const *>(
                     stocke->destination);
                 chunk.émets_init_locale_zéro(
-                    stocke->site, donne_index_locale(alloc_destination), stocke->source->type);
+                    stocke->site, donne_indice_locale(alloc_destination), stocke->source->type);
                 break;
             }
 
@@ -1527,7 +1527,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             if (est_allocation(stocke->destination)) {
                 auto alloc = stocke->destination->comme_instruction()->comme_alloc();
                 chunk.émets_assignation_locale(
-                    stocke->site, donne_index_locale(alloc), stocke->source->type);
+                    stocke->site, donne_indice_locale(alloc), stocke->source->type);
                 break;
             }
 
@@ -1618,7 +1618,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             break;
         }
-        case GenreInstruction::ACCEDE_INDEX:
+        case GenreInstruction::ACCÈDE_INDICE:
         {
             auto index = instruction->comme_acces_index();
             auto type_pointeur = index->type->comme_type_pointeur();
@@ -1645,7 +1645,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             if (est_allocation(accès_fusionné.accédé)) {
                 auto alloc = accès_fusionné.accédé->comme_instruction()->comme_alloc();
                 chunk.émets_référence_rubrique_locale(
-                    rubrique->site, donne_index_locale(alloc), accès_fusionné.décalage);
+                    rubrique->site, donne_indice_locale(alloc), accès_fusionné.décalage);
                 break;
             }
 
@@ -1737,12 +1737,12 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             génère_code_pour_atome(transtype->valeur, chunk);
             break;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto index_constant = atome->comme_accès_index_constant();
-            auto type_pointeur = index_constant->type->comme_type_pointeur();
-            chunk.émets_constante(index_constant->index);
-            génère_code_pour_atome(index_constant->accédé, chunk);
+            auto indice_constant = atome->comme_accès_indice_constant();
+            auto type_pointeur = indice_constant->type->comme_type_pointeur();
+            chunk.émets_constante(indice_constant->index);
+            génère_code_pour_atome(indice_constant->accédé, chunk);
             chunk.émets_accès_index(nullptr, type_pointeur->type_pointé);
             break;
         }
@@ -1843,7 +1843,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto adressage_destination = AdresseDonnéesExécution{
                 CODE_FONCTION, 0, m_atome_fonction_courante};
 
-            POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
+            POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
                 auto destination_rubrique = destination + it.decalage;
                 auto décalage_rubrique = décalage + int(it.decalage);
 
@@ -1900,12 +1900,12 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             break;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
              * être ici. */
             assert_rappel(false,
-                          []() { dbg() << "CONSTANTE_INDEX_TABLE_TYPE dans le code binaire."; });
+                          []() { dbg() << "CONSTANTE_INDICE_TABLE_TYPE dans le code binaire."; });
             break;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
@@ -1963,9 +1963,9 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
                 transtype->valeur, adressage_destination, destination, décalage);
             break;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto indexage = atome->comme_accès_index_constant();
+            auto indexage = atome->comme_accès_indice_constant();
             auto indexée = indexage->accédé->comme_globale();
 
             if (!indexée->initialisateur) {
@@ -2026,12 +2026,12 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             assigne(destination, type->taille_octet);
             break;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
              * être ici. */
             assert_rappel(false,
-                          []() { dbg() << "CONSTANTE_INDEX_TABLE_TYPE dans le code binaire."; });
+                          []() { dbg() << "CONSTANTE_INDICE_TABLE_TYPE dans le code binaire."; });
             break;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
@@ -2104,7 +2104,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto tableau_valeur = structure->donne_atomes_rubriques();
             auto type_composé = type->comme_type_composé();
 
-            POUR_INDEX (type_composé->donne_rubriques_pour_code_machine()) {
+            POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
                 auto destination_rubrique = destination + it.decalage;
                 auto décalage_rubrique = décalage + int(it.decalage);
                 génère_code_atome_constant(tableau_valeur[indice_it],
@@ -2206,9 +2206,9 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
         initialisateur, adressage_destination, destination, globale.adresse);
 }
 
-int CompilatriceCodeBinaire::donne_index_locale(const InstructionAllocation *alloc) const
+int CompilatriceCodeBinaire::donne_indice_locale(const InstructionAllocation *alloc) const
 {
-    return m_index_locales[alloc->numero];
+    return m_indice_locales[alloc->numero];
 }
 
 ContexteGénérationCodeBinaire CompilatriceCodeBinaire::contexte() const

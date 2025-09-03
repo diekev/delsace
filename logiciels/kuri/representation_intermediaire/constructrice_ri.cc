@@ -240,7 +240,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     param_sortie->atome = atome_param_sortie;
 
     if (decl->params_sorties.taille() > 1) {
-        POUR_INDEX (decl->params_sorties) {
+        POUR_INDICE (decl->params_sorties) {
             it->comme_déclaration_variable()->atome = m_constructrice->crée_référence_rubrique(
                 it, atome_param_sortie, indice_it, true);
         }
@@ -431,9 +431,9 @@ AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *p
     return m_taille_de.ajoute_élément(TypeBase::N32, pointeur_type);
 }
 
-AtomeIndexTableType *ConstructriceRI::crée_index_table_type(const Type *pointeur_type)
+AtomeIndexTableType *ConstructriceRI::crée_indice_table_type(const Type *pointeur_type)
 {
-    return m_index_table_type.ajoute_élément(TypeBase::N32, pointeur_type);
+    return m_indice_table_type.ajoute_élément(TypeBase::N32, pointeur_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
@@ -529,7 +529,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
     TypeTableauFixe const *type_tableau_fixe,
     Type *type_sous_jacent)
 {
-    AtomeConstante *ptr_premier_élément = crée_accès_index_constant(globale_tableau_fixe, 0);
+    AtomeConstante *ptr_premier_élément = crée_accès_indice_constant(globale_tableau_fixe, 0);
     auto valeur_taille = crée_z64(static_cast<unsigned>(type_tableau_fixe->taille));
     auto type_tranche = m_typeuse.crée_type_tranche(type_tableau_fixe->type_pointé);
 
@@ -753,7 +753,7 @@ InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_,
         type_fonction = appelé->type->comme_type_pointeur()->type_pointé->comme_type_fonction();
     }
 
-    POUR_INDEX (type_fonction->types_entrées) {
+    POUR_INDICE (type_fonction->types_entrées) {
         assert_rappel(sont_types_compatibles_pour_param_appel(it, args[indice_it]->type), [&]() {
             dbg() << "Espéré " << chaine_type(it);
             dbg() << "Obtenu " << chaine_type(args[indice_it]->type);
@@ -1345,7 +1345,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
     return m_transtype_constant.ajoute_élément(type, valeur);
 }
 
-AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstante *accédé,
+AccèdeIndexConstant *ConstructriceRI::crée_accès_indice_constant(AtomeConstante *accédé,
                                                                 int64_t index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
@@ -1359,7 +1359,7 @@ AccèdeIndexConstant *ConstructriceRI::crée_accès_index_constant(AtomeConstant
     auto type = m_typeuse.type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointé),
                                              false);
 
-    return m_accès_index_constant.ajoute_élément(type, accédé, index);
+    return m_accès_indice_constant.ajoute_élément(type, accédé, index);
 }
 
 AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type const *type)
@@ -2856,9 +2856,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto index = 0ul;
             POUR (noeud_tableau->expressions) {
-                auto index_tableau = m_constructrice.crée_accès_index(
+                auto indice_tableau = m_constructrice.crée_accès_index(
                     noeud, pointeur_tableau, m_constructrice.crée_z64(index++));
-                génère_ri_pour_expression_droite(it, index_tableau);
+                génère_ri_pour_expression_droite(it, indice_tableau);
             }
 
             auto valeur = convertis_vers_tranche(
@@ -3243,7 +3243,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                 acces_rubrique = m_constructrice.crée_référence_rubrique(noeud, alloc, 1);
                 auto index = m_constructrice.crée_constante_nombre_entier(
-                    TypeBase::Z32, static_cast<uint64_t>(transformation.index_rubrique + 1));
+                    TypeBase::Z32, static_cast<uint64_t>(transformation.indice_rubrique + 1));
                 m_constructrice.crée_stocke_mem(noeud, acces_rubrique, index);
             }
 
@@ -3279,7 +3279,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         OpérateurBinaire::Genre::Comp_Inegal,
                         rubrique_active,
                         m_constructrice.crée_z32(
-                            static_cast<unsigned>(transformation.index_rubrique + 1)));
+                            static_cast<unsigned>(transformation.indice_rubrique + 1)));
 
                     m_constructrice.crée_branche_condition(
                         noeud, condition, label_si_vrai, label_si_faux);
@@ -3782,13 +3782,13 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique(NoeudExpressionRubrique co
 
     if (pointeur_accede->est_constante_structure()) {
         auto initialisateur = pointeur_accede->comme_constante_structure();
-        auto valeur = initialisateur->donne_atomes_rubriques()[noeud->index_rubrique];
+        auto valeur = initialisateur->donne_atomes_rubriques()[noeud->indice_rubrique];
         empile_valeur(valeur, noeud);
         return;
     }
 
     empile_valeur(
-        m_constructrice.crée_référence_rubrique(noeud, pointeur_accede, noeud->index_rubrique),
+        m_constructrice.crée_référence_rubrique(noeud, pointeur_accede, noeud->indice_rubrique),
         noeud);
 }
 
@@ -3804,8 +3804,8 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
     }
 
     auto type_union = type->comme_type_union();
-    auto index_rubrique = noeud->index_rubrique;
-    auto type_rubrique = type_union->rubriques[index_rubrique].type;
+    auto indice_rubrique = noeud->indice_rubrique;
+    auto type_rubrique = type_union->rubriques[indice_rubrique].type;
 
     if (type_union->est_nonsure) {
         ptr_union = m_constructrice.crée_transtype(
@@ -3831,7 +3831,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
             noeud,
             OpérateurBinaire::Genre::Comp_Inegal,
             rubrique_active,
-            m_constructrice.crée_z32(static_cast<unsigned>(noeud->index_rubrique + 1)));
+            m_constructrice.crée_z32(static_cast<unsigned>(noeud->indice_rubrique + 1)));
 
         m_constructrice.crée_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
         m_constructrice.insère_label(label_si_vrai);
@@ -4259,7 +4259,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
              * nom: chaine
              * rubriques : []InfoTypeRubriqueStructure
              * type_le_plus_grand : *InfoType
-             * décalage_index : z64
+             * décalage_indice : z64
              * est_sûre: bool
              */
             AtomeConstante *info_type_plus_grand = nullptr;
@@ -4304,7 +4304,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 donne_nom_hiérarchique(const_cast<TypeUnion *>(type_union)));
             valeurs[4] = tableau_rubrique;
             valeurs[5] = info_type_plus_grand;
-            valeurs[6] = m_constructrice.crée_z64(type_union->décalage_index);
+            valeurs[6] = m_constructrice.crée_z64(type_union->décalage_indice);
             valeurs[7] = crée_tableau_annotations_pour_info_rubrique(type_union->annotations);
             valeurs[8] = info_type_polymorphe_de_base;
 
@@ -4564,7 +4564,7 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
      * du code machine. */
     valeurs[1] = m_constructrice.crée_constante_taille_de(pour_type);
     // L'index dans la table des types sera mis en place lors de la génération du code machine.
-    valeurs[2] = m_constructrice.crée_index_table_type(pour_type);
+    valeurs[2] = m_constructrice.crée_indice_table_type(pour_type);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
@@ -4867,7 +4867,7 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
         auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
         auto globale_tableau = m_constructrice.crée_globale(
             *ident, type_tableau, tableau, false, true);
-        auto pointeur_chaine = m_constructrice.crée_accès_index_constant(globale_tableau, 0);
+        auto pointeur_chaine = m_constructrice.crée_accès_indice_constant(globale_tableau, 0);
         auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
 
         auto rubriques = kuri::tableau<AtomeConstante *>(2);
@@ -5172,18 +5172,18 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
 
     if (transformation.type == TypeTransformation::INUTILE) {
         génère_ri_pour_expression_droite(expression, pointeur);
-        ajourne_index_rubrique_union(variable);
+        ajourne_indice_rubrique_union(variable);
         return;
     }
 
     génère_ri_transformee_pour_noeud(expression, pointeur, transformation);
-    ajourne_index_rubrique_union(variable);
+    ajourne_indice_rubrique_union(variable);
     return;
 }
 
 /* À FAIRE : gère les assignations à de multiples valeurs, déplace dans la
  * canonicalisation. */
-void CompilatriceRI::ajourne_index_rubrique_union(NoeudExpression *expression)
+void CompilatriceRI::ajourne_indice_rubrique_union(NoeudExpression *expression)
 {
     if (!expression->est_référence_rubrique_union()) {
         return;
@@ -5212,7 +5212,7 @@ void CompilatriceRI::ajourne_index_rubrique_union(NoeudExpression *expression)
     m_constructrice.crée_stocke_mem(
         noeud,
         rubrique_active,
-        m_constructrice.crée_z32(static_cast<unsigned>(noeud->index_rubrique + 1)));
+        m_constructrice.crée_z32(static_cast<unsigned>(noeud->indice_rubrique + 1)));
 }
 
 Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
@@ -5447,9 +5447,9 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
 
     auto index = 0ul;
     POUR (feuilles->expressions) {
-        auto index_tableau = m_constructrice.crée_accès_index(
+        auto indice_tableau = m_constructrice.crée_accès_index(
             expr, pointeur_tableau, m_constructrice.crée_z64(index++));
-        génère_ri_pour_expression_droite(it, index_tableau);
+        génère_ri_pour_expression_droite(it, indice_tableau);
     }
 
     if (pointeur_tableau != place) {
@@ -5535,8 +5535,8 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
     auto contexte_fil_principale = m_constructrice.trouve_globale(
         m_compilatrice.globale_contexte_programme);
     auto type_contexte_fil_principal = m_compilatrice.typeuse.type_contexte->comme_type_composé();
-    auto index_trace_appel_contexte =
-        donne_rubrique_pour_nom(type_contexte_fil_principal, ID::trace_appel)->index_rubrique;
+    auto indice_trace_appel_contexte =
+        donne_rubrique_pour_nom(type_contexte_fil_principal, ID::trace_appel)->indice_rubrique;
 
     auto anciennes_instructions = fonction->instructions;
     fonction->instructions.efface();
@@ -5547,28 +5547,28 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
     assert(anciennes_instructions[0]->est_label());
     fonction->instructions.ajoute(anciennes_instructions[0]);
 
-    auto const index_précédente =
-        donne_rubrique_pour_nom(type_trace_appel, ID::précédente)->index_rubrique;
-    auto const index_info_fonction =
-        donne_rubrique_pour_nom(type_trace_appel, ID::info_fonction)->index_rubrique;
-    auto const index_info_appel =
-        donne_rubrique_pour_nom(type_trace_appel, ID::info_appel)->index_rubrique;
-    auto const index_profondeur =
-        donne_rubrique_pour_nom(type_trace_appel, ID::profondeur)->index_rubrique;
+    auto const indice_précédente =
+        donne_rubrique_pour_nom(type_trace_appel, ID::précédente)->indice_rubrique;
+    auto const indice_info_fonction =
+        donne_rubrique_pour_nom(type_trace_appel, ID::info_fonction)->indice_rubrique;
+    auto const indice_info_appel =
+        donne_rubrique_pour_nom(type_trace_appel, ID::info_appel)->indice_rubrique;
+    auto const indice_profondeur =
+        donne_rubrique_pour_nom(type_trace_appel, ID::profondeur)->indice_rubrique;
 
     /* Crée la variable pour la trace d'appel. */
     auto trace_appel = m_constructrice.crée_allocation(nullptr, type_trace_appel, nullptr);
 
     /* trace.info_fonction = *info_fonction */
     auto ref_info_fonction = m_constructrice.crée_référence_rubrique(
-        nullptr, trace_appel, index_info_fonction);
+        nullptr, trace_appel, indice_info_fonction);
     m_constructrice.crée_stocke_mem(nullptr, ref_info_fonction, fonction->info_trace_appel);
 
     /* trace.précédente = __contexte_fil_principal.trace_appel */
     auto trace_appel_contexte = m_constructrice.crée_référence_rubrique(
-        nullptr, contexte_fil_principale, index_trace_appel_contexte);
+        nullptr, contexte_fil_principale, indice_trace_appel_contexte);
     auto ref_trace_précédente = m_constructrice.crée_référence_rubrique(
-        nullptr, trace_appel, index_précédente);
+        nullptr, trace_appel, indice_précédente);
     m_constructrice.crée_stocke_mem(
         nullptr,
         ref_trace_précédente,
@@ -5576,11 +5576,11 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
 
     /* trace.profondeur = trace.précédente.profondeur + 1 */
     auto ref_trace_précédente2 = m_constructrice.crée_référence_rubrique(
-        nullptr, trace_appel, index_précédente);
+        nullptr, trace_appel, indice_précédente);
     auto charge_ref_trace_précédente2 = m_constructrice.crée_charge_mem(nullptr,
                                                                         ref_trace_précédente2);
     auto ref_profondeur2 = m_constructrice.crée_référence_rubrique(
-        nullptr, charge_ref_trace_précédente2, index_profondeur);
+        nullptr, charge_ref_trace_précédente2, indice_profondeur);
     auto charge_profondeur2 = m_constructrice.crée_charge_mem(nullptr, ref_profondeur2);
     auto incrémentation = m_constructrice.crée_op_binaire(nullptr,
                                                           TypeBase::Z32,
@@ -5589,7 +5589,7 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
                                                           m_constructrice.crée_z32(1));
 
     auto ref_profondeur = m_constructrice.crée_référence_rubrique(
-        nullptr, trace_appel, index_profondeur);
+        nullptr, trace_appel, indice_profondeur);
     m_constructrice.crée_stocke_mem(nullptr, ref_profondeur, incrémentation);
 
     /* Copie les instructions et crée les modifications de la trace d'appel. */
@@ -5603,13 +5603,13 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
             /* Définis trace appel. */
             /* trace_appel.info_appel = *info_appel */
             auto ref_info_appel = m_constructrice.crée_référence_rubrique(
-                nullptr, trace_appel, index_info_appel);
+                nullptr, trace_appel, indice_info_appel);
             m_constructrice.crée_stocke_mem(
                 nullptr, ref_info_appel, inst->comme_appel()->info_trace_appel);
 
             /* __contexte_fil_principal.trace_appel = *ma_trace */
             auto ref_trace_appel_contexte = m_constructrice.crée_référence_rubrique(
-                nullptr, contexte_fil_principale, index_trace_appel_contexte);
+                nullptr, contexte_fil_principale, indice_trace_appel_contexte);
             m_constructrice.crée_stocke_mem(nullptr, ref_trace_appel_contexte, trace_appel);
         }
 
@@ -5619,9 +5619,9 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
             /* Restaure trace appel. */
             /* __contexte_fil_principal.trace_appel = ma_trace.précédente */
             auto ref_trace_appel_contexte = m_constructrice.crée_référence_rubrique(
-                nullptr, contexte_fil_principale, index_trace_appel_contexte);
+                nullptr, contexte_fil_principale, indice_trace_appel_contexte);
             auto ref_trace_précédente3 = m_constructrice.crée_référence_rubrique(
-                nullptr, trace_appel, index_précédente);
+                nullptr, trace_appel, indice_précédente);
             auto charge_ref_trace_précédente3 = m_constructrice.crée_charge_mem(
                 nullptr, ref_trace_précédente3);
             m_constructrice.crée_stocke_mem(
