@@ -1136,14 +1136,14 @@ void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme
     }
 }
 
-#define INSTRUCTIONS_PAR_BATCH 1000
+#define INSTRUCTIONS_PAR_LOT 1000
 
 MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructions(
     int &compte_exécutées)
 {
     auto frame = &frames[profondeur_appel - 1];
 
-    for (auto i = 0; i < INSTRUCTIONS_PAR_BATCH; ++i) {
+    for (auto i = 0; i < INSTRUCTIONS_PAR_LOT; ++i) {
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
         auto pointeur_debut = frame->pointeur;
         auto instruction = LIS_OCTET();
@@ -2047,7 +2047,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
         }
     }
 
-    compte_exécutées = INSTRUCTIONS_PAR_BATCH;
+    compte_exécutées = INSTRUCTIONS_PAR_LOT;
     return RésultatInterprétation::OK;
 }
 
