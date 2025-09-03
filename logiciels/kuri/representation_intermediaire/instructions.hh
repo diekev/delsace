@@ -32,12 +32,12 @@ enum class PartageMémoire : uint8_t;
     O(CONSTANTE_TABLEAU_FIXE, AtomeConstanteTableauFixe, constante_tableau)                       \
     O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
     O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
-    O(CONSTANTE_INDEX_TABLE_TYPE, AtomeIndexTableType, index_table_type)                          \
+    O(CONSTANTE_INDICE_TABLE_TYPE, AtomeIndexTableType, indice_table_type)                          \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
-    O(ACCÈS_INDEX_CONSTANT, AccèdeIndexConstant, accès_index_constant)                            \
+    O(ACCÈS_INDICE_CONSTANT, AccèdeIndexConstant, accès_indice_constant)                            \
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
@@ -58,7 +58,7 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
     O(RETOUR, InstructionRetour, retour)                                                          \
     O(ACCEDE_RUBRIQUE, InstructionAccèdeRubrique, acces_rubrique)                                       \
-    O(ACCEDE_INDEX, InstructionAccèdeIndex, acces_index)                                          \
+    O(ACCÈDE_INDICE, InstructionAccèdeIndex, acces_index)                                          \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
     O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
     O(SÉLECTION, InstructionSélection, sélection)
@@ -285,7 +285,7 @@ struct AtomeIndexTableType : public AtomeConstante {
         : type_de_données(type_de_données_)
     {
         type = type_;
-        genre_atome = Genre::CONSTANTE_INDEX_TABLE_TYPE;
+        genre_atome = Genre::CONSTANTE_INDICE_TABLE_TYPE;
     }
 
     EMPECHE_COPIE(AtomeIndexTableType);
@@ -391,7 +391,7 @@ struct TranstypeConstant : public AtomeConstante {
 struct AccèdeIndexConstant : public AtomeConstante {
     AccèdeIndexConstant()
     {
-        genre_atome = Genre::ACCÈS_INDEX_CONSTANT;
+        genre_atome = Genre::ACCÈS_INDICE_CONSTANT;
     }
 
     AtomeConstante *accédé = nullptr;
@@ -399,12 +399,12 @@ struct AccèdeIndexConstant : public AtomeConstante {
 
     EMPECHE_COPIE(AccèdeIndexConstant);
 
-    AccèdeIndexConstant(Type const *type_, AtomeConstante *accédé_, int64_t index_)
+    AccèdeIndexConstant(Type const *type_, AtomeConstante *accédé_, int64_t indice_)
         : AccèdeIndexConstant()
     {
         this->type = type_;
         this->accédé = accédé_;
-        this->index = index_;
+        this->index = indice_;
     }
 
     Type const *donne_type_accédé() const;
@@ -689,7 +689,7 @@ struct InstructionAccèdeRubrique : public Instruction {
     InstructionAccèdeRubrique(NoeudExpression const *site_,
                             Type const *type_,
                             Atome *accede_,
-                            int index_);
+                            int indice_);
 
     const Type *donne_type_accédé() const;
 
@@ -700,7 +700,7 @@ struct InstructionAccèdeIndex : public Instruction {
     explicit InstructionAccèdeIndex(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::ACCEDE_INDEX;
+        genre = GenreInstruction::ACCÈDE_INDICE;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
@@ -712,7 +712,7 @@ struct InstructionAccèdeIndex : public Instruction {
     InstructionAccèdeIndex(NoeudExpression const *site_,
                            Type const *type_,
                            Atome *accede_,
-                           Atome *index_);
+                           Atome *indice_);
 
     const Type *donne_type_accédé() const;
 };

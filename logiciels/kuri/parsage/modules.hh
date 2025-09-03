@@ -304,9 +304,9 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                 kuri::chaine_statique chemin_fichier,
                                 kuri::chaine_statique texte_ligne,
                                 int numéro_ligne,
-                                int index_colonne,
-                                int index_colonne_début,
-                                int index_colonne_fin);
+                                int indice_colonne,
+                                int indice_colonne_début,
+                                int indice_colonne_fin);
 
 /* Charge le contenu du fichier, c'est la responsabilité de l'appelant de vérifier que
  * le fichier existe bel et bien. */

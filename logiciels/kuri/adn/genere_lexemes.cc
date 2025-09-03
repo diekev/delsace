@@ -315,7 +315,7 @@ struct Lexème {
 	union {
 		uint64_t valeur_entiere;
 		double valeur_reelle;
-		int64_t index_chaine;
+		int64_t indice_chaine;
 		IdentifiantCode *ident;
 	};
 

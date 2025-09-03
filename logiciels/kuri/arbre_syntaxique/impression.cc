@@ -357,7 +357,7 @@ static void imprime_tableau_expression(Enchaineuse &enchaineuse,
 
     auto ignore_suivant = false;
 
-    POUR_INDEX (expressions) {
+    POUR_INDICE (expressions) {
         if (ignore_suivant) {
             ignore_suivant = false;
             continue;
@@ -512,7 +512,7 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
     /* Pour les commentaires en fin de ligne. */
     auto ignore_indentation = false;
 
-    POUR_INDEX (*expressions) {
+    POUR_INDICE (*expressions) {
         /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
          * les variables capturées par les discriminations). */
         if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) && !état.préfére_substitution) {

@@ -78,10 +78,10 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::CONSTANTE_STRUCTURE:
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
         case Atome::Genre::TRANSTYPE_CONSTANT:
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         case Atome::Genre::INITIALISATION_TABLEAU:
         case Atome::Genre::NON_INITIALISATION:
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             break;
         }
@@ -666,7 +666,7 @@ static SourceAdresseAtome détermine_source_adresse_atome(
     /* Pour « nul », mais également les arithmétiques de pointeurs, ou encore les pointeurs connus
      * lors de la compilation. */
     if (atome.est_constante_nulle() || atome.est_transtype_constant() ||
-        atome.est_accès_index_constant() || atome.est_constante_structure()) {
+        atome.est_accès_indice_constant() || atome.est_constante_structure()) {
         return SourceAdresseAtome::CONSTANTE;
     }
 
@@ -1208,14 +1208,14 @@ static bool rapproche_allocations_des_stockages(Bloc *bloc)
             continue;
         }
 
-        auto const index_stockage = trouve_stockage_dans_bloc(bloc, inst_i, i + 1);
-        if (!index_stockage.has_value()) {
+        auto const indice_stockage = trouve_stockage_dans_bloc(bloc, inst_i, i + 1);
+        if (!indice_stockage.has_value()) {
             continue;
         }
 
         std::rotate(&bloc->instructions[i],
                     &bloc->instructions[i + 1],
-                    &bloc->instructions[index_stockage.value()]);
+                    &bloc->instructions[indice_stockage.value()]);
 
         bloc_modifié = true;
     }

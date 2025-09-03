@@ -130,7 +130,7 @@ struct ConstructriceRI {
     AtomeConstanteEntière *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
     AtomeConstanteType *crée_constante_type(Type const *pointeur_type);
     AtomeConstanteTailleDe *crée_constante_taille_de(Type const *pointeur_type);
-    AtomeIndexTableType *crée_index_table_type(Type const *pointeur_type);
+    AtomeIndexTableType *crée_indice_table_type(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);
     AtomeConstanteNulle *crée_constante_nulle(Type const *type);
@@ -221,7 +221,7 @@ struct ConstructriceRI {
                           TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccèdeIndexConstant *crée_accès_index_constant(AtomeConstante *accédé, int64_t index);
+    AccèdeIndexConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
@@ -458,7 +458,7 @@ struct CompilatriceRI {
                         NoeudExpression *expression,
                         TransformationType const &transformation);
 
-    void ajourne_index_rubrique_union(NoeudExpression *expression);
+    void ajourne_indice_rubrique_union(NoeudExpression *expression);
 
     Atome *donne_atome_pour_locale(NoeudExpression *expression);
 

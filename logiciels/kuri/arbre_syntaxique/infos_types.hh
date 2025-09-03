@@ -42,7 +42,7 @@ enum class GenreInfoType : int32_t {
 struct InfoType {
     GenreInfoType genre{};
     uint32_t taille_en_octet = 0;
-    uint32_t index_dans_table_des_types = 0;
+    uint32_t indice_dans_table_des_types = 0;
 };
 
 struct InfoTypeEntier : public InfoType {
@@ -92,7 +92,7 @@ struct InfoTypeUnion : public InfoType {
     kuri::chaine_statique nom{};
     kuri::tranche<InfoTypeRubriqueStructure *> rubriques{};
     InfoType *type_le_plus_grand = nullptr;
-    int64_t décalage_index = 0;
+    int64_t décalage_indice = 0;
     kuri::tranche<const Annotation *> annotations{};
     InfoTypeUnion *polymorphe_de_base = nullptr;
 };

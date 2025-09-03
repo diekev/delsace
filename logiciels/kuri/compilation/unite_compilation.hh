@@ -295,6 +295,6 @@ void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *u
 /** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
 void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
 
-void imprime_noeud_index_courant_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_noeud_indice_courant_unité(std::ostream &os, const UniteCompilation *unité);
 
 /** \} */

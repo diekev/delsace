@@ -114,7 +114,7 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t index_acces);
+                                     int64_t indice_acces);
 
 void rubrique_inconnu(EspaceDeTravail const &espace,
                       NoeudExpression const *acces,
@@ -207,9 +207,9 @@ struct ParamètresErreurExterne {
     kuri::chaine_statique chemin_fichier{};
     kuri::chaine_statique texte_ligne = {};
     int numéro_ligne = 0;
-    int index_colonne = -1;
-    int index_colonne_fin = -1;
-    int index_colonne_début = -1;
+    int indice_colonne = -1;
+    int indice_colonne_fin = -1;
+    int indice_colonne_début = -1;
 };
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);

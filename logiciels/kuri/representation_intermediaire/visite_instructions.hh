@@ -49,7 +49,7 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
             rappel(op->valeur_gauche);
             break;
         }
-        case GenreInstruction::ACCEDE_INDEX:
+        case GenreInstruction::ACCÈDE_INDICE:
         {
             auto acces = inst->comme_acces_index();
             rappel(acces->index);

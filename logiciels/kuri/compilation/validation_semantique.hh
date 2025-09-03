@@ -104,12 +104,12 @@ struct ArbreAplatis {
     kuri::tableau<NoeudExpression *, int> noeuds{};
     /* Index courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la validation
      * en cas d'attente. */
-    int index_courant = 0;
+    int indice_courant = 0;
 
     void réinitialise()
     {
         noeuds.efface();
-        index_courant = 0;
+        indice_courant = 0;
     }
 };
 
@@ -247,7 +247,7 @@ struct Sémanticienne {
                                         NoeudExpression *noeud);
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
-                                            int64_t index_acces);
+                                            int64_t indice_acces);
     void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
                                           NoeudExpression *rubrique,
                                           TypeCompose *type);

@@ -68,12 +68,12 @@ MetaProgramme::~MetaProgramme()
 Enchaineuse &MetaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
 {
     assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
-    auto index_logueuse = static_cast<int>(type_log);
-    if (logueuses[index_logueuse] == nullptr) {
-        logueuses[index_logueuse] = mémoire::loge<Enchaineuse>("Enchaineuse");
+    auto indice_logueuse = static_cast<int>(type_log);
+    if (logueuses[indice_logueuse] == nullptr) {
+        logueuses[indice_logueuse] = mémoire::loge<Enchaineuse>("Enchaineuse");
     }
 
-    return *logueuses[index_logueuse];
+    return *logueuses[indice_logueuse];
 }
 
 static void imprime_date_format_iso(Date date, Enchaineuse &os)
@@ -211,11 +211,11 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
 void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
 {
     assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
-    auto index_logueuse = static_cast<int>(type_log);
-    if (!logueuses[index_logueuse]) {
+    auto indice_logueuse = static_cast<int>(type_log);
+    if (!logueuses[indice_logueuse]) {
         return;
     }
-    auto &logueuse = logueuses[index_logueuse];
+    auto &logueuse = logueuses[indice_logueuse];
 
     auto nom_fichier = enchaine(
         donne_nom_pour_fichier_log(), "_", donne_suffixe_pour_type_log(type_log), ".txt");

@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCEDE_INDEX)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -212,7 +212,7 @@ struct drapeau_pour_constante<double> {
 };
 
 struct PatchLabel {
-    int index_label;
+    int indice_label;
     int adresse;
 };
 
@@ -350,14 +350,14 @@ struct Chunk {
                        int index);
     void émets_branche_condition(NoeudExpression const *site,
                                  kuri::tableau<PatchLabel> &patchs_labels,
-                                 int index_label_si_vrai,
-                                 int index_label_si_faux);
+                                 int indice_label_si_vrai,
+                                 int indice_label_si_faux);
 
     void émets_branche_si_zéro(NoeudExpression const *site,
                                kuri::tableau<PatchLabel> &patchs_labels,
                                uint32_t taille_opérande,
-                               int index_label_si_vrai,
-                               int index_label_si_faux);
+                               int indice_label_si_vrai,
+                               int indice_label_si_faux);
 
     void émets_operation_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,
@@ -427,7 +427,7 @@ class CompilatriceCodeBinaire {
     kuri::tableau<PatchLabel> patchs_labels{};
 
     /* Pour stocker les index des locales. */
-    kuri::tableau<int> m_index_locales{};
+    kuri::tableau<int> m_indice_locales{};
 
     bool vérifie_adresses = false;
     bool émets_stats_ops = false;
@@ -457,7 +457,7 @@ class CompilatriceCodeBinaire {
     bool ajoute_globale(AtomeGlobale *globale) const;
     void génère_code_pour_globale(AtomeGlobale const *atome_globale) const;
 
-    int donne_index_locale(InstructionAllocation const *alloc) const;
+    int donne_indice_locale(InstructionAllocation const *alloc) const;
 
     ContexteGénérationCodeBinaire contexte() const;
 

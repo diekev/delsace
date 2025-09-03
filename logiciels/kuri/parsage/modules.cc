@@ -329,15 +329,15 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                 kuri::chaine_statique chemin_fichier,
                                 kuri::chaine_statique texte_ligne,
                                 int numéro_ligne,
-                                int index_colonne,
-                                int index_colonne_début,
-                                int index_colonne_fin)
+                                int indice_colonne,
+                                int indice_colonne_début,
+                                int indice_colonne_fin)
 {
 
     enchaineuse << chemin_fichier << ':' << numéro_ligne;
 
-    if (index_colonne != -1) {
-        enchaineuse << ':' << index_colonne;
+    if (indice_colonne != -1) {
+        enchaineuse << ':' << indice_colonne;
     }
 
     enchaineuse << " : " << message << "\n";
@@ -353,20 +353,20 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
         enchaineuse << '\n';
     }
 
-    if (index_colonne != -1) {
+    if (indice_colonne != -1) {
         enchaineuse << "      | ";
 
-        if (index_colonne_début != -1 && index_colonne_début != index_colonne) {
-            enchaineuse.imprime_caractère_vide(index_colonne_début, texte_ligne);
+        if (indice_colonne_début != -1 && indice_colonne_début != indice_colonne) {
+            enchaineuse.imprime_caractère_vide(indice_colonne_début, texte_ligne);
             enchaineuse.imprime_tilde(
-                texte_ligne.sous_chaine(index_colonne_début, index_colonne + 1));
+                texte_ligne.sous_chaine(indice_colonne_début, indice_colonne + 1));
         }
         else {
-            enchaineuse.imprime_caractère_vide(index_colonne, texte_ligne);
+            enchaineuse.imprime_caractère_vide(indice_colonne, texte_ligne);
         }
 
         enchaineuse << '^';
-        enchaineuse.imprime_tilde(texte_ligne.sous_chaine(index_colonne, index_colonne_fin));
+        enchaineuse.imprime_tilde(texte_ligne.sous_chaine(indice_colonne, indice_colonne_fin));
         enchaineuse << '\n';
     }
 }
@@ -383,9 +383,9 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
         return;
     }
 
-    auto const index_ligne = site.index_ligne;
-    auto const numéro_ligne = site.index_ligne + int32_t(fichier->décalage_fichier) + 1;
-    auto const texte_ligne = fichier->tampon()[index_ligne];
+    auto const indice_ligne = site.indice_ligne;
+    auto const numéro_ligne = site.indice_ligne + int32_t(fichier->décalage_fichier) + 1;
+    auto const texte_ligne = fichier->tampon()[indice_ligne];
     auto chemin = fichier->source == SourceFichier::CHAINE_AJOUTÉE ? ".chaine_ajoutées" :
                                                                      fichier->chemin();
 
@@ -396,9 +396,9 @@ void imprime_ligne_avec_message(Enchaineuse &enchaineuse,
                                chemin,
                                texte_ligne_kuri,
                                numéro_ligne,
-                               site.index_colonne,
-                               site.index_colonne_min,
-                               site.index_colonne_max);
+                               site.indice_colonne,
+                               site.indice_colonne_min,
+                               site.indice_colonne_max);
 }
 
 kuri::chaine charge_contenu_fichier(kuri::chaine_statique chemin)

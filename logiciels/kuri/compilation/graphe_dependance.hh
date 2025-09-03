@@ -74,7 +74,7 @@ struct NoeudDépendance {
     TypeNoeudDependance m_type_noeud = TypeNoeudDependance::INVALIDE;
 
   public:
-    int index_visite = 0;
+    int indice_visite = 0;
 
     /* pour certains algorithmes de travail sur le graphe */
     char drapeaux = 0;
@@ -167,7 +167,7 @@ struct GrapheDépendance {
     /* Index de la visite. Chaque traversée du graphe peut avoir un index de visite différent
      * (#prepare_visite() doit être utilisé pour indiquer une nouvelle visite). Les noeuds sont
      * considérés comme visités si leur index de visite est celui de celle-ci. */
-    int index_visite = 0;
+    int indice_visite = 0;
 
   public:
     kuri::tableau_page<NoeudDépendance> noeuds{};
@@ -215,7 +215,7 @@ struct GrapheDépendance {
     template <typename Rappel>
     void traverse(NoeudDépendance *racine, Rappel rappel)
     {
-        racine->index_visite = index_visite;
+        racine->indice_visite = indice_visite;
 
         for (auto const &relation : racine->relations().plage()) {
             auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
@@ -226,7 +226,7 @@ struct GrapheDépendance {
                 continue;
             }
 
-            if (relation.noeud_fin->index_visite == index_visite) {
+            if (relation.noeud_fin->indice_visite == indice_visite) {
                 continue;
             }
 

@@ -394,7 +394,7 @@ void Lexeuse::performe_lexage()
                 this->lèxe_caractère_littéral(&chaine);
             }
 
-            it.index_chaine = gérante_chaine->ajoute_chaine(chaine);
+            it.indice_chaine = gérante_chaine->ajoute_chaine(chaine);
         }
     }
 
@@ -882,10 +882,10 @@ void Lexeuse::rapporte_erreur(kuri::chaine_statique quoi, int centre, int min, i
 
     SiteSource site;
     site.fichier = m_données;
-    site.index_ligne = m_compte_ligne;
-    site.index_colonne = centre;
-    site.index_colonne_min = min;
-    site.index_colonne_max = max;
+    site.indice_ligne = m_compte_ligne;
+    site.indice_colonne = centre;
+    site.indice_colonne_min = min;
+    site.indice_colonne_max = max;
 
     m_rappel_erreur(site, quoi);
 }

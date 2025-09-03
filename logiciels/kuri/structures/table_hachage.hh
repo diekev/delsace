@@ -128,7 +128,7 @@ struct table_hachage {
     void insère(Cle const &cle, Valeur const &valeur)
     {
         auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
+        auto index = trouve_indice_innoccupe(cle, empreinte);
         occupes[index] = 1;
         empreintes[index] = empreinte;
         cles[index] = cle;
@@ -138,7 +138,7 @@ struct table_hachage {
     void insère(Cle &&cle, Valeur &&valeur)
     {
         auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index_innoccupe(cle, empreinte);
+        auto index = trouve_indice_innoccupe(cle, empreinte);
         occupes[index] = 1;
         empreintes[index] = empreinte;
         cles[index] = std::move(cle);
@@ -281,7 +281,7 @@ struct table_hachage {
     template <typename TypeFonction>
     void pour_chaque_élément(TypeFonction &&fonction) const
     {
-        POUR_INDEX (occupes) {
+        POUR_INDICE (occupes) {
             if (!it) {
                 continue;
             }
@@ -292,7 +292,7 @@ struct table_hachage {
     }
 
   private:
-    int trouve_index_innoccupe(Cle const &cle, size_t empreinte)
+    int trouve_indice_innoccupe(Cle const &cle, size_t empreinte)
     {
         /* éléments / alloués >= FACTEUR_DE_CHARGE / 100
          * donc

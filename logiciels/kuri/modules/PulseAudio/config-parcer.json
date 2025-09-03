@@ -1,0 +1,14 @@
+{
+    "fichier": [
+        "/usr/include/pulse/pulseaudio.h"
+    ],
+    "bibliothèque": "pulse",
+    "sortie": "interface_pulse_audio.kuri",
+    "args": [],
+    "inclusions": [
+        "/usr/include/pulse/"
+    ],
+    "modules_à_importer": [
+        "POSIX"
+    ]
+}

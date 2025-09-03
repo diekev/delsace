@@ -244,7 +244,7 @@ class ConstructriceHuitoctets {
     kuri::tablet<DonnéesHuitoctets, 4> données{};
     kuri::tableau<Type const *> types{};
     kuri::tableau<ClasseArgument> classes_pour_types{};
-    uint32_t index_huitoctet = 0;
+    uint32_t indice_huitoctet = 0;
 
   public:
     static void construit_huitoctets(Type const *type, kuri::tablet<Huitoctet, 4> &résultat)
@@ -272,14 +272,14 @@ class ConstructriceHuitoctets {
         assert_rappel(type->taille_octet <= 8,
                       [&]() { dbg() << "Le type est " << chaine_type(type); });
 
-        if (données[index_huitoctet].taille_types == 8 ||
-            (données[index_huitoctet].taille_types + type->taille_octet > 8)) {
-            index_huitoctet += 1;
-            données[index_huitoctet].premier_type_inclusif = uint32_t(types.taille());
+        if (données[indice_huitoctet].taille_types == 8 ||
+            (données[indice_huitoctet].taille_types + type->taille_octet > 8)) {
+            indice_huitoctet += 1;
+            données[indice_huitoctet].premier_type_inclusif = uint32_t(types.taille());
         }
 
-        données[index_huitoctet].dernier_type_exclusif = uint32_t(types.taille() + 1);
-        données[index_huitoctet].taille_types += type->taille_octet;
+        données[indice_huitoctet].dernier_type_exclusif = uint32_t(types.taille() + 1);
+        données[indice_huitoctet].taille_types += type->taille_octet;
         types.ajoute(type);
 
         kuri::tablet<Huitoctet, 4> tampon_classe;
@@ -290,15 +290,15 @@ class ConstructriceHuitoctets {
 
     void ajoute_rembourrage(uint32_t rembourrage)
     {
-        assert((index_huitoctet * 8) + données[index_huitoctet].taille_types + rembourrage <= 32);
+        assert((indice_huitoctet * 8) + données[indice_huitoctet].taille_types + rembourrage <= 32);
 
         while (rembourrage > 0) {
-            auto à_rembourrer = std::min(8 - données[index_huitoctet].taille_types, rembourrage);
+            auto à_rembourrer = std::min(8 - données[indice_huitoctet].taille_types, rembourrage);
 
-            données[index_huitoctet].taille_types += à_rembourrer;
+            données[indice_huitoctet].taille_types += à_rembourrer;
 
-            if (données[index_huitoctet].taille_types == 8) {
-                index_huitoctet += 1;
+            if (données[indice_huitoctet].taille_types == 8) {
+                indice_huitoctet += 1;
             }
 
             rembourrage -= à_rembourrer;
@@ -395,7 +395,7 @@ void ConstructriceHuitoctets::construit_huitoctets_récursif(Type const *type)
 
 void ConstructriceHuitoctets::assigne_classes_huitoctets()
 {
-    POUR_INDEX (données) {
+    POUR_INDICE (données) {
         auto classe_huitoctet = classes_pour_types[it.premier_type_inclusif];
         auto classe1 = classe_huitoctet;
 
@@ -729,8 +729,8 @@ class ClassifieuseArgument {
     kuri::table_hachage<Type const *, int> m_table_huitoctets_types{"Table huitoctets types"};
 
     struct RangéeHuitoctetsType {
-        int index_premier_inclusif = 0;
-        int index_dernier_exclusif = 0;
+        int indice_premier_inclusif = 0;
+        int indice_dernier_exclusif = 0;
     };
 
     kuri::tableau<RangéeHuitoctetsType> m_rangées_huitoctets_types{};
@@ -898,8 +898,8 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
         ::donne_classe_argument(type, résultat);
 
         auto rangée = RangéeHuitoctetsType{};
-        rangée.index_premier_inclusif = int32_t(m_huitoctets_types.taille());
-        rangée.index_dernier_exclusif = rangée.index_premier_inclusif + int32_t(résultat.taille());
+        rangée.indice_premier_inclusif = int32_t(m_huitoctets_types.taille());
+        rangée.indice_dernier_exclusif = rangée.indice_premier_inclusif + int32_t(résultat.taille());
 
         POUR (résultat) {
             m_huitoctets_types.ajoute(it);
@@ -914,7 +914,7 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
 
     auto rangée = m_rangées_huitoctets_types[index];
 
-    for (auto i = rangée.index_premier_inclusif; i < rangée.index_dernier_exclusif; i++) {
+    for (auto i = rangée.indice_premier_inclusif; i < rangée.indice_dernier_exclusif; i++) {
         résultat.ajoute(m_huitoctets_types[i]);
     }
 
@@ -929,9 +929,9 @@ void classifie_arguments(AtomeFonction const *fonction)
     auto classement = classifieuse.donne_classement_arguments(
         fonction->type->comme_type_fonction());
 
-    auto index_arg = 0;
+    auto indice_arg = 0;
     POUR (classement.arguments) {
-        dbg() << fonction->params_entrée[index_arg++]->ident->nom;
+        dbg() << fonction->params_entrée[indice_arg++]->ident->nom;
 
         for (auto i = it.premier_huitoctet_inclusif; i < it.dernier_huitoctet_exclusif; i++) {
             auto registre = classement.registres_huitoctets[i].registre;
@@ -1769,9 +1769,9 @@ struct GestionnaireRegistres {
     }
 
   private:
-    Registre donne_registre_inoccupé(int index_début, int index_fin)
+    Registre donne_registre_inoccupé(int indice_début, int indice_fin)
     {
-        for (auto i = index_début; i < index_fin; i++) {
+        for (auto i = indice_début; i < indice_fin; i++) {
             if (registres[i]) {
                 continue;
             }
@@ -1811,7 +1811,7 @@ struct GestionnaireRegistres {
     [[nodiscard]] std::array<bool, NOMBRE_REGISTRES> sauvegarde_état() const
     {
         std::array<bool, NOMBRE_REGISTRES> résultat;
-        POUR_INDEX (registres) {
+        POUR_INDICE (registres) {
             résultat[size_t(indice_it)] = it;
         }
         return résultat;
@@ -1819,7 +1819,7 @@ struct GestionnaireRegistres {
 
     void restaure_état(std::array<bool, NOMBRE_REGISTRES> sauvegarde)
     {
-        POUR_INDEX (sauvegarde) {
+        POUR_INDICE (sauvegarde) {
             registres[indice_it] = it;
         }
     }
@@ -1995,7 +1995,7 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
             VERIFIE_NON_ATTEINT;
             return;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             VERIFIE_NON_ATTEINT;
             return;
@@ -2009,10 +2009,10 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         {
             auto constante_type = atome->comme_constante_type();
             auto type = constante_type->donne_type();
-            assembleuse.push_immédiate_64(type->index_dans_table_types);
+            assembleuse.push_immédiate_64(type->indice_dans_table_types);
             return;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             VERIFIE_NON_ATTEINT;
             return;
@@ -2136,9 +2136,9 @@ bool est_initialisateur_supporté(Atome const *atome)
     switch (atome->genre_atome) {
         case Atome::Genre::FONCTION:
         case Atome::Genre::TRANSTYPE_CONSTANT:
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         case Atome::Genre::CONSTANTE_TYPE:
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::CONSTANTE_RÉELLE:
         case Atome::Genre::CONSTANTE_STRUCTURE:
@@ -2186,12 +2186,12 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             génère_code_pour_initialisation_globale(transtype->valeur, enchaineuse, profondeur);
             return;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto index_constant = initialisateur->comme_accès_index_constant();
-            assert(index_constant->index == 0);
+            auto indice_constant = initialisateur->comme_accès_indice_constant();
+            assert(indice_constant->index == 0);
             génère_code_pour_initialisation_globale(
-                index_constant->accédé, enchaineuse, profondeur);
+                indice_constant->accédé, enchaineuse, profondeur);
             return;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -2204,14 +2204,14 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto constante_type = initialisateur->comme_constante_type();
             auto type = constante_type->donne_type();
             enchaineuse << chaine_indentations_espace(profondeur) << "dq "
-                        << type->index_dans_table_types << NOUVELLE_LIGNE;
+                        << type->indice_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
-            auto type = initialisateur->comme_index_table_type()->type_de_données;
+            auto type = initialisateur->comme_indice_table_type()->type_de_données;
             enchaineuse << chaine_indentations_espace(profondeur) << "dd "
-                        << type->index_dans_table_types << NOUVELLE_LIGNE;
+                        << type->indice_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
@@ -2305,7 +2305,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto décalage = uint32_t(0);
             auto nombre_rembourrage = 0;
 
-            POUR_INDEX (type->donne_rubriques_pour_code_machine()) {
+            POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
                 if (it.decalage != décalage) {
                     auto rembourrage = it.decalage - décalage;
                     enchaineuse << chaine_indentations_espace(profondeur + 1) << "at "
@@ -2498,11 +2498,11 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
                         // nous devrons avoir 4 valeurs pour remplir le registre (ajout
                         // de trois zéros).
-                        auto index_constante = ajoute_constante(&m_constante_négation_r32);
+                        auto indice_constante = ajoute_constante(&m_constante_négation_r32);
                         ajoute_constante(&m_constante_zéro_z32);
                         ajoute_constante(&m_constante_zéro_z32);
                         ajoute_constante(&m_constante_zéro_z32);
-                        auto nom_constante = enchaine(".C", index_constante);
+                        auto nom_constante = enchaine(".C", indice_constante);
 
                         assembleuse.movss(Registre::XMM1, AssembleuseASM::Globale{nom_constante});
                         assembleuse.xorps(Registre::XMM0, Registre::XMM1);
@@ -2543,7 +2543,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_retourne(inst->comme_retour(), assembleuse);
             break;
         }
-        case GenreInstruction::ACCEDE_INDEX:
+        case GenreInstruction::ACCÈDE_INDICE:
         {
             génère_code_pour_accès_index(inst->comme_acces_index(), assembleuse);
             break;
@@ -2604,7 +2604,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     auto type_retour = appel->type;
     auto adresse_retour = m_adresses_locales[appel->numero];
 
-    POUR_INDEX (appel->args) {
+    POUR_INDICE (appel->args) {
         auto classement_arg = classement.arguments[indice_it];
         if (classement_arg.est_en_mémoire) {
             continue;
@@ -2708,7 +2708,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
 
     auto taille_requise = 0u;
 
-    POUR_INDEX (appel->args) {
+    POUR_INDICE (appel->args) {
         auto classement_arg = classement.arguments[indice_it];
         if (!classement_arg.est_en_mémoire) {
             continue;
@@ -2964,8 +2964,8 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
             assembleuse.movsd(registre, adresse);
         }
         else {
-            auto index_constante = ajoute_constante(constante_réelle);
-            auto nom = enchaine(".C", index_constante);
+            auto indice_constante = ajoute_constante(constante_réelle);
+            auto nom = enchaine(".C", indice_constante);
             assembleuse.movsd(registre, AssembleuseASM::Mémoire(nom));
         }
     }
@@ -4031,7 +4031,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             auto type = constante_type->donne_type();
             auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.mov(
-                registre, AssembleuseASM::Immédiate64{type->index_dans_table_types}, 8);
+                registre, AssembleuseASM::Immédiate64{type->indice_dans_table_types}, 8);
             src = registre;
         }
         else if (source->est_instruction()) {
@@ -4404,7 +4404,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     /* Définition des fonctions. */
     auto assembleuse = AssembleuseASM(os);
 
-    POUR_INDEX (fonctions_à_compiler) {
+    POUR_INDICE (fonctions_à_compiler) {
         if (it->est_externe) {
             continue;
         }
@@ -4462,7 +4462,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
      * trouve les arguments. */
     auto décalage_argument_mémoire = 8 * 8;
 
-    POUR_INDEX (fonction->params_entrée) {
+    POUR_INDICE (fonction->params_entrée) {
         auto classement_arg = classement.arguments[indice_it];
         auto type_alloué = it->donne_type_alloué();
 
@@ -4543,7 +4543,7 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         génère_code_pour_instruction(it, assembleuse, UtilisationAtome::AUCUNE);
     }
 
-    POUR_INDEX (m_constantes_fonction_courante) {
+    POUR_INDICE (m_constantes_fonction_courante) {
         os << TABULATION << ".C" << indice_it << ":" << NOUVELLE_LIGNE;
         génère_code_pour_initialisation_globale(it, os, 1);
     }

@@ -47,9 +47,9 @@ class ÉtatCompilation {
             return;
         }
 
-        const auto index_phase_courante = static_cast<int>(m_phase_courante);
-        const auto index_phase_suivante = index_phase_courante + 1;
-        m_phase_courante = static_cast<PhaseCompilation>(index_phase_suivante);
+        const auto indice_phase_courante = static_cast<int>(m_phase_courante);
+        const auto indice_phase_suivante = indice_phase_courante + 1;
+        m_phase_courante = static_cast<PhaseCompilation>(indice_phase_suivante);
     }
 
     void essaie_d_aller_à(PhaseCompilation cible)

@@ -1020,7 +1020,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         }
     }
 
-    auto index_type = 0u;
+    auto indice_type = 0u;
     POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
             /* Ignore les tuples, nous ne devrions pas avoir de variables de ce type (aucune
@@ -1028,7 +1028,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             continue;
         }
 
-        it->index_dans_table_types = index_type++;
+        it->indice_dans_table_types = indice_type++;
 
         if (it->atome_info_type) {
             continue;
@@ -1049,7 +1049,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
     }
 
     kuri::tableau<AtomeConstante *> table_des_types;
-    table_des_types.réserve(index_type);
+    table_des_types.réserve(indice_type);
 
     POUR (m_résultat.types) {
         if (est_type_tuple_ou_fonction_init_tuple(it)) {
@@ -1074,11 +1074,11 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
 
     auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
     auto rubriques_init = initialisateur->donne_atomes_rubriques();
-    auto atome_accès = rubriques_init[0]->comme_accès_index_constant();
+    auto atome_accès = rubriques_init[0]->comme_accès_indice_constant();
     m_résultat.globales.ajoute(atome_accès->accédé->comme_globale());
 
     auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
-                                                       static_cast<int>(index_type));
+                                                       static_cast<int>(indice_type));
     m_résultat.types.ajoute(type_tableau_fixe);
 }
 

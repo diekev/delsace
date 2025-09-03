@@ -103,3 +103,42 @@ timespec_depuis_ms :: fonc (ms: z64) -> timespec
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Surcharges pour dl
+ * \{ */
+
+dlopen :: fonc (fichier: chaine, mode: z32) -> *rien
+{
+    si intrinsèque_est_adresse_données_constantes(fichier.pointeur) {
+        retourne dlopen(ChaineC(fichier.pointeur), mode)
+    }
+
+    fichier_c := crée_chaine_c(fichier)
+    diffère détruit_chaine_c(fichier_c)
+    retourne dlopen(fichier_c, mode)
+}
+
+dlsym :: fonc (handle: *rien, nom: chaine) -> *rien
+{
+    si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
+        retourne dlsym(handle, ChaineC(nom.pointeur))
+    }
+
+    nom_c := crée_chaine_c(nom)
+    diffère détruit_chaine_c(nom_c)
+    retourne dlsym(handle, nom_c)
+}
+
+dlsym_func :: fonc (handle: *rien, nom: chaine) -> adresse_fonction
+{
+    si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
+        retourne dlsym_func(handle, ChaineC(nom.pointeur))
+    }
+
+    nom_c := crée_chaine_c(nom)
+    diffère détruit_chaine_c(nom_c)
+    retourne dlsym_func(handle, nom_c)
+}
+
+/** } */

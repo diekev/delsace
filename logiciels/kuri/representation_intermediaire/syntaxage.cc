@@ -78,12 +78,12 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
             os << "taille_de(" << chaine_type(desc.desc_type) << ")";
             break;
         }
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
-            os << "index_de(" << chaine_type(desc.desc_type) << ")";
+            os << "indice_de(" << chaine_type(desc.desc_type) << ")";
             break;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             os << "index constant";
             break;
@@ -283,7 +283,7 @@ DescriptionAtome PrésyntaxeuseRI::crée_indexage_constant(const LexèmesType &t
                                                          const DescriptionAtome &globale)
 {
     /* À FAIRE. */
-    return {Atome::Genre::ACCÈS_INDEX_CONSTANT, lexème_nombre, type};
+    return {Atome::Genre::ACCÈS_INDICE_CONSTANT, lexème_nombre, type};
 }
 
 DescriptionAtome PrésyntaxeuseRI::crée_taille_de(const Lexème *lexème, const LexèmesType &type)
@@ -291,9 +291,9 @@ DescriptionAtome PrésyntaxeuseRI::crée_taille_de(const Lexème *lexème, const
     return {Atome::Genre::CONSTANTE_TAILLE_DE, lexème, type};
 }
 
-DescriptionAtome PrésyntaxeuseRI::crée_index_de(const Lexème *lexème, const LexèmesType &type)
+DescriptionAtome PrésyntaxeuseRI::crée_indice_de(const Lexème *lexème, const LexèmesType &type)
 {
-    return {Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE, lexème, type};
+    return {Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE, lexème, type};
 }
 
 DescriptionAtome PrésyntaxeuseRI::crée_transtypage_constant(
@@ -823,7 +823,7 @@ Atome *SyntaxeuseRI::crée_indexage_constant(Type *type,
     }
     /* À FAIRE : passe le type. */
     globale->type = type;
-    return m_constructrice.crée_accès_index_constant(static_cast<AtomeConstante *>(globale),
+    return m_constructrice.crée_accès_indice_constant(static_cast<AtomeConstante *>(globale),
                                                      int64_t(lexème_nombre->valeur_entiere));
 }
 
@@ -832,9 +832,9 @@ Atome *SyntaxeuseRI::crée_taille_de(const Lexème *lexème, Type *type)
     return m_constructrice.crée_constante_taille_de(type);
 }
 
-Atome *SyntaxeuseRI::crée_index_de(const Lexème *lexème, Type *type)
+Atome *SyntaxeuseRI::crée_indice_de(const Lexème *lexème, Type *type)
 {
-    return m_constructrice.crée_index_table_type(type);
+    return m_constructrice.crée_indice_table_type(type);
 }
 
 Atome *SyntaxeuseRI::crée_transtypage_constant(const Lexème *lexème,
@@ -842,7 +842,7 @@ Atome *SyntaxeuseRI::crée_transtypage_constant(const Lexème *lexème,
                                                Type *type_destination)
 {
     if (!atome_transtypé->est_constante() && !atome_transtypé->est_globale() &&
-        !atome_transtypé->est_fonction() && !atome_transtypé->est_accès_index_constant()) {
+        !atome_transtypé->est_fonction() && !atome_transtypé->est_accès_indice_constant()) {
         rapporte_erreur("Valeur non constante pour le transtypage constant.");
         return nullptr;
     }
@@ -1036,13 +1036,13 @@ void SyntaxeuseRI::termine_fonction()
 Atome *SyntaxeuseRI::crée_référence_instruction(Type *type, const Lexème *lexème)
 {
     if (lexème->genre == GenreLexème::NOMBRE_ENTIER) {
-        auto index_instruction = int32_t(lexème->valeur_entiere) - m_décalage_instructions;
-        if (index_instruction >= m_fonction_courante->instructions.taille()) {
+        auto indice_instruction = int32_t(lexème->valeur_entiere) - m_décalage_instructions;
+        if (indice_instruction >= m_fonction_courante->instructions.taille()) {
             rapporte_erreur("Instruction référencée hors des limites des instructions connues.");
             return nullptr;
         }
 
-        return m_fonction_courante->instructions[index_instruction];
+        return m_fonction_courante->instructions[indice_instruction];
     }
 
     assert(lexème->genre == GenreLexème::CHAINE_CARACTERE);

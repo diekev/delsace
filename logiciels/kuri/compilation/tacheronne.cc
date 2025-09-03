@@ -28,8 +28,8 @@
 std::ostream &operator<<(std::ostream &os, DrapeauxTacheronne drapeaux)
 {
     const char *virgule = "";
-#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDEX)                                            \
-    if (drapeau_est_actif(drapeaux, static_cast<DrapeauxTacheronne>(1 << INDEX))) {               \
+#define ENUMERE_CAPACITE(VERBE, ACTION, CHAINE, INDICE)                                           \
+    if (drapeau_est_actif(drapeaux, static_cast<DrapeauxTacheronne>(1 << INDICE))) {              \
         os << virgule << "PEUT_" #VERBE;                                                          \
         virgule = "|";                                                                            \
     }
@@ -114,17 +114,17 @@ void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
     assert(unite);
     assert(unite->espace);
 
-    const auto index_file = file_pour_raison_d_être(unite->donne_raison_d_être());
+    const auto indice_file = file_pour_raison_d_être(unite->donne_raison_d_être());
 
     auto tache = Tâche{};
     tache.unité = unite;
     tache.espace = unite->espace;
-    tache.genre = static_cast<GenreTâche>(index_file + 2);
+    tache.genre = static_cast<GenreTâche>(indice_file + 2);
 
-    tâches[index_file].enfile(tache);
+    tâches[indice_file].enfile(tache);
 
-    pique_taille.tâches[index_file] = std::max(pique_taille.tâches[index_file],
-                                               tâches[index_file].taille());
+    pique_taille.tâches[indice_file] = std::max(pique_taille.tâches[indice_file],
+                                               tâches[indice_file].taille());
 }
 
 int64_t OrdonnanceuseTache::nombre_de_tâches_en_attente() const
@@ -226,8 +226,8 @@ void OrdonnanceuseTache::supprime_toutes_les_tâches_pour_espace(const EspaceDeT
 void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
 {
     os << "Nombre de tâches dans les files :\n";
-#define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDEX)                                    \
-    os << "-- " << CHAINE << " : " << tâches[INDEX].taille() << '\n';
+#define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDICE)                                   \
+    os << "-- " << CHAINE << " : " << tâches[INDICE].taille() << '\n';
 
     ENUMERE_TACHES_POSSIBLES(IMPRIME_NOMBRE_DE_TACHES)
 
@@ -832,12 +832,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             else {
                 auto pointeur_donnees = pointeur;
                 auto pointeur_discriminant = *reinterpret_cast<int *>(pointeur +
-                                                                      type_union->décalage_index);
-                auto index_rubrique = pointeur_discriminant - 1;
+                                                                      type_union->décalage_indice);
+                auto indice_rubrique = pointeur_discriminant - 1;
 
-                auto type_donnees = type_union->rubriques[index_rubrique].type;
+                auto type_donnees = type_union->rubriques[indice_rubrique].type;
 
-                for (auto i = 0; i < index_rubrique; ++i) {
+                for (auto i = 0; i < indice_rubrique; ++i) {
                     construction_union->paramètres_résolus.ajoute(nullptr);
                 }
 
