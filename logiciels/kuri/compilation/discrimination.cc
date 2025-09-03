@@ -200,7 +200,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     initialisation_déclaration->transformation = {
         TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION,
         type_rubrique,
-        info_rubrique.index_rubrique};
+        info_rubrique.indice_rubrique};
 
     auto déclaration_pour_expression = assembleuse->crée_déclaration_variable(
         param->comme_référence_déclaration(), initialisation_déclaration);

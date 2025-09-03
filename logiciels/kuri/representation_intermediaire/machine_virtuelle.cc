@@ -468,7 +468,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
 
     auto type_fonction = fonction->type->comme_type_fonction();
     auto pointeur_lecture_retour = pointeur_debut_entree;
-    POUR_INDEX (type_fonction->types_entrées) {
+    POUR_INDICE (type_fonction->types_entrées) {
         logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << indice_it << " ("
                  << chaine_type(it) << ") : ";
         lis_valeur(pointeur_lecture_retour, it, logueuse);
@@ -767,9 +767,9 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_erreur_externe)) {
         auto params = ParamètresErreurExterne{};
-        params.index_colonne_fin = dépile<int>();
-        params.index_colonne_début = dépile<int>();
-        params.index_colonne = dépile<int>();
+        params.indice_colonne_fin = dépile<int>();
+        params.indice_colonne_début = dépile<int>();
+        params.indice_colonne = dépile<int>();
         params.numéro_ligne = dépile<int>();
         params.texte_ligne = dépile<kuri::chaine_statique>();
         params.chemin_fichier = dépile<kuri::chaine_statique>();
@@ -1824,11 +1824,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_COPIE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto index_source = LIS_4_OCTETS();
-                auto index_destination = LIS_4_OCTETS();
+                auto indice_source = LIS_4_OCTETS();
+                auto indice_destination = LIS_4_OCTETS();
 
-                auto adresse_source = donne_adresse_locale(frame, index_source);
-                auto adresse_destination = donne_adresse_locale(frame, index_destination);
+                auto adresse_source = donne_adresse_locale(frame, indice_source);
+                auto adresse_destination = donne_adresse_locale(frame, indice_destination);
 
                 memcpy(adresse_destination, adresse_source, static_cast<size_t>(taille));
                 break;
@@ -1906,7 +1906,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(adresse_rubrique);
                 break;
             }
-            case OP_ACCEDE_INDEX:
+            case OP_ACCÈDE_INDICE:
             {
                 auto taille_données = LIS_4_OCTETS();
                 auto adresse = dépile<char *>();
