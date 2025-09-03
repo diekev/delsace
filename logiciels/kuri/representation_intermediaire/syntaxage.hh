@@ -959,14 +959,14 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         if (apparie(GenreLexème::CROCHET_OUVRANT)) {
             consomme();
             CONSOMME_NOMBRE_ENTIER(
-                index_accès,
+                indice_accès,
                 "Attendu un nombre entier après le crochet ouvrant de l'accès d'index",
                 {});
 
             CONSOMME_LEXEME(
                 CROCHET_FERMANT, "Attendu un crochet pour terminer l'accès d'index constant.", {});
 
-            return impl()->crée_indexage_constant(type, lexème_index_accès, globale);
+            return impl()->crée_indexage_constant(type, lexème_indice_accès, globale);
         }
 
         return globale;
@@ -987,20 +987,20 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         return impl()->crée_taille_de(lexème_taille_de, type_de_données);
     }
 
-    if (apparie(ID::index_de)) {
-        auto const lexème_index_de = m_lexème_courant;
+    if (apparie(ID::indice_de)) {
+        auto const lexème_indice_de = m_lexème_courant;
         consomme();
 
         CONSOMME_LEXEME(
-            PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après « index_de »", {});
+            PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après « indice_de »", {});
 
         auto type_de_données = analyse_type();
 
         CONSOMME_LEXEME(PARENTHESE_FERMANTE,
-                        "Attendu une parenthèse fermante après le type de « index_de »",
+                        "Attendu une parenthèse fermante après le type de « indice_de »",
                         {});
 
-        return impl()->crée_index_de(lexème_index_de, type_de_données);
+        return impl()->crée_indice_de(lexème_indice_de, type_de_données);
     }
 
     if (apparie(ID::transtype)) {
@@ -1138,11 +1138,11 @@ void BaseSyntaxeuseRI<Impl>::analyse_rubrique(NomInstruction nom)
     auto const atome_rubrique = analyse_atome_typé();
     CONSOMME_LEXEME(VIRGULE, "attendu une virgule après l'atome de « rubrique »");
     REQUIERS_NOMBRE_ENTIER("attendu un nombre entier pour l'index du rubrique");
-    auto const index_rubrique = lexème_courant()->valeur_entiere;
+    auto const indice_rubrique = lexème_courant()->valeur_entiere;
     consomme();
     CONSOMME_POINT_VIRGULE;
 
-    impl()->crée_rubrique(atome_rubrique, index_rubrique);
+    impl()->crée_rubrique(atome_rubrique, indice_rubrique);
 }
 
 template <typename Impl>
@@ -1363,7 +1363,7 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     DescriptionAtome crée_taille_de(Lexème const *lexème, LexèmesType const &type);
 
-    DescriptionAtome crée_index_de(Lexème const *lexème, LexèmesType const &type);
+    DescriptionAtome crée_indice_de(Lexème const *lexème, LexèmesType const &type);
 
     DescriptionAtome crée_transtypage_constant(Lexème const *lexème,
                                                DescriptionAtome const &atome_transtypé,
@@ -1542,7 +1542,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
     Atome *crée_taille_de(Lexème const *lexème, Type *type);
 
-    Atome *crée_index_de(Lexème const *lexème, Type *type);
+    Atome *crée_indice_de(Lexème const *lexème, Type *type);
 
     Atome *crée_transtypage_constant(Lexème const *lexème,
                                      Atome *atome_transtypé,

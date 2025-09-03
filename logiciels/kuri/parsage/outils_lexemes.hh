@@ -13,7 +13,7 @@ enum class GenreLexème : uint32_t;
 struct Lexème;
 
 struct PositionLexème {
-    int64_t index_ligne = 0;
+    int64_t indice_ligne = 0;
     int64_t numero_ligne = 0;
     int64_t pos = 0;
 };

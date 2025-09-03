@@ -253,12 +253,12 @@ InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *
 InstructionAccèdeRubrique::InstructionAccèdeRubrique(NoeudExpression const *site_,
                                                      Type const *type_,
                                                      Atome *accede_,
-                                                     int index_)
+                                                     int indice_)
     : InstructionAccèdeRubrique(site_)
 {
     this->type = type_;
     this->accédé = accede_;
-    this->index = index_;
+    this->index = indice_;
 }
 
 const Type *InstructionAccèdeRubrique::donne_type_accédé() const
@@ -288,12 +288,12 @@ const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé(
 InstructionAccèdeIndex::InstructionAccèdeIndex(NoeudExpression const *site_,
                                                Type const *type_,
                                                Atome *accede_,
-                                               Atome *index_)
+                                               Atome *indice_)
     : InstructionAccèdeIndex(site_)
 {
     this->type = type_;
     this->accédé = accede_;
-    this->index = index_;
+    this->index = indice_;
 }
 
 const Type *InstructionAccèdeIndex::donne_type_accédé() const
@@ -666,9 +666,9 @@ void VisiteuseAtome::visite_atome(Atome *racine,
             visite_atome(transtype_const->valeur, rappel);
             break;
         }
-        case Atome::Genre::ACCÈS_INDEX_CONSTANT:
+        case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto inst_acces = racine->comme_accès_index_constant();
+            auto inst_acces = racine->comme_accès_indice_constant();
             visite_atome(inst_acces->accédé, rappel);
             break;
         }
@@ -681,7 +681,7 @@ void VisiteuseAtome::visite_atome(Atome *racine,
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::NON_INITIALISATION:
-        case Atome::Genre::CONSTANTE_INDEX_TABLE_TYPE:
+        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             /* Pas de sous-atome. */
             break;
@@ -764,7 +764,7 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                     visite_atome(op->valeur_gauche, rappel);
                     break;
                 }
-                case GenreInstruction::ACCEDE_INDEX:
+                case GenreInstruction::ACCÈDE_INDICE:
                 {
                     auto acces = inst->comme_acces_index();
                     visite_atome(acces->index, rappel);

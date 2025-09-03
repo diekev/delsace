@@ -285,7 +285,7 @@ void GrapheDépendance::réduction_transitive()
 
 void GrapheDépendance::prépare_visite()
 {
-    index_visite++;
+    indice_visite++;
 }
 
 void GrapheDépendance::rassemble_fonctions_utilisées(NoeudDépendance *racine,

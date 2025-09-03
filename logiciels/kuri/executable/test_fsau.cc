@@ -22,18 +22,18 @@
 static void imprime_erreur(SiteSource site, kuri::chaine message)
 {
     auto fichier = site.fichier;
-    auto index_ligne = site.index_ligne;
-    auto index_colonne = site.index_colonne;
+    auto indice_ligne = site.indice_ligne;
+    auto indice_colonne = site.indice_colonne;
 
-    auto ligne_courante = fichier->tampon()[index_ligne];
+    auto ligne_courante = fichier->tampon()[indice_ligne];
 
     Enchaineuse enchaineuse;
-    enchaineuse << "Erreur : " << fichier->chemin() << ":" << index_ligne + 1 << ":\n";
+    enchaineuse << "Erreur : " << fichier->chemin() << ":" << indice_ligne + 1 << ":\n";
     enchaineuse << ligne_courante;
 
     /* La position ligne est en octet, il faut donc compter le nombre d'octets
      * de chaque point de code pour bien formater l'erreur. */
-    for (auto i = 0l; i < index_colonne;) {
+    for (auto i = 0l; i < indice_colonne;) {
         if (ligne_courante[i] == '\t') {
             enchaineuse << '\t';
         }
