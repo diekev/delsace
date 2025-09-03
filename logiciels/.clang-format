@@ -50,6 +50,7 @@ ForEachMacros:
   - SUR_ECHEC_PORTEE
   - SUR_REUSSITE_PORTEE
   - SUR_SORTIE_PORTEE
+  - POUR_INDICE
 
 ReflowComments: true
 

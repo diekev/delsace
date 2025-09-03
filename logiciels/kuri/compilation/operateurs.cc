@@ -288,13 +288,13 @@ std::ostream &operator<<(std::ostream &os, OpérateurUnaire::Genre genre)
     return os;
 }
 
-inline int index_op_binaire(GenreLexème lexeme)
+inline int indice_op_binaire(GenreLexème lexeme)
 {
     // À FAIRE: l'indice n'est pas bon, nous devrions utiliser le genre pour le bon type de données
     return static_cast<int>(genre_op_binaire_pour_lexeme(lexeme, IndiceTypeOp::ENTIER_NATUREL));
 }
 
-inline int index_op_unaire(GenreLexème lexeme)
+inline int indice_op_unaire(GenreLexème lexeme)
 {
     return static_cast<int>(genre_op_unaire_pour_lexeme(lexeme));
 }
@@ -324,7 +324,7 @@ void TableOpérateurs::ajoute(GenreLexème lexème, OpérateurBinaire *opérateu
 
     /* nous utilisons le lexème pour indexer afin que les opérateurs dépendants
      * du signe des types soient stockés ensemble */
-    opérateurs_[index_op_binaire(lexème)].ajoute(opérateur);
+    opérateurs_[indice_op_binaire(lexème)].ajoute(opérateur);
 }
 
 OpérateurBinaire *TableOpérateurs::donne_opérateur(GenreLexème genre_lexème,
@@ -349,7 +349,7 @@ const TableOpérateurs::type_conteneur &TableOpérateurs::opérateurs(GenreLexè
         return tableau_vide;
     }
 
-    return opérateurs_[index_op_binaire(lexeme)];
+    return opérateurs_[indice_op_binaire(lexeme)];
 }
 
 int64_t TableOpérateurs::mémoire_utilisée() const
@@ -386,7 +386,7 @@ RegistreDesOpérateurs::~RegistreDesOpérateurs() = default;
 const RegistreDesOpérateurs::type_conteneur_unaire &RegistreDesOpérateurs::trouve_unaire(
     GenreLexème id) const
 {
-    return opérateurs_unaires[index_op_unaire(id)];
+    return opérateurs_unaires[indice_op_unaire(id)];
 }
 
 OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(GenreLexème id,
@@ -405,7 +405,7 @@ OpérateurBinaire *RegistreDesOpérateurs::ajoute_basique(
 
     auto table = donne_ou_crée_table_opérateurs(type1);
 
-    auto op = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
+    auto op = opérateurs_binaires[indice_op_binaire(id)].ajoute_élément();
     op->type1 = type1;
     op->type2 = type2;
     op->type_résultat = type_résultat;
@@ -420,7 +420,7 @@ OpérateurUnaire *RegistreDesOpérateurs::ajoute_basique_unaire(GenreLexème id,
                                                               Type *type,
                                                               Type *type_résultat)
 {
-    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_élément();
+    auto op = opérateurs_unaires[indice_op_unaire(id)].ajoute_élément();
     op->type_opérande = type;
     op->type_résultat = type_résultat;
     op->est_basique = true;
@@ -435,7 +435,7 @@ OpérateurBinaire *RegistreDesOpérateurs::crée_opérateur_binaire(
     Type *type_résultat,
     NoeudDéclarationEntêteFonction *decl)
 {
-    auto résultat = opérateurs_binaires[index_op_binaire(id)].ajoute_élément();
+    auto résultat = opérateurs_binaires[indice_op_binaire(id)].ajoute_élément();
     résultat->type1 = type1;
     résultat->type2 = type2;
     résultat->type_résultat = type_résultat;
@@ -486,7 +486,7 @@ void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
                                                 Type *type_résultat,
                                                 NoeudDéclarationEntêteFonction *decl)
 {
-    auto op = opérateurs_unaires[index_op_unaire(id)].ajoute_élément();
+    auto op = opérateurs_unaires[indice_op_unaire(id)].ajoute_élément();
     op->type_opérande = type;
     op->type_résultat = type_résultat;
     op->est_basique = false;

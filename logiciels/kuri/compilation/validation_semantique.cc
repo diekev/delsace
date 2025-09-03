@@ -568,7 +568,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 auto entête = expr->noeud_fonction_appelée->comme_entête_fonction();
                 if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
                     if (!entête->corps->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-                        m_unité->arbre_aplatis->index_courant += 1;
+                        m_unité->arbre_aplatis->indice_courant += 1;
                         return Attente::sur_déclaration(entête->corps);
                     }
                 }
@@ -623,7 +623,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (racine_validation() != noeud) {
                 /* avance l'index car il est inutile de revalider ce noeud */
-                m_arbre_courant->index_courant += 1;
+                m_arbre_courant->indice_courant += 1;
                 return Attente::sur_métaprogramme(metaprogramme);
             }
 
@@ -1048,13 +1048,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 if (inst->est_saufsi_statique()) {
                     if (condition_est_vraie) {
                         // dis à l'unité de sauter les instructions jusqu'au prochain point
-                        m_arbre_courant->index_courant = inst->index_bloc_si_faux;
+                        m_arbre_courant->indice_courant = inst->indice_bloc_si_faux;
                     }
                 }
                 else {
                     if (!condition_est_vraie) {
                         // dis à l'unité de sauter les instructions jusqu'au prochain point
-                        m_arbre_courant->index_courant = inst->index_bloc_si_faux;
+                        m_arbre_courant->indice_courant = inst->indice_bloc_si_faux;
                     }
                 }
 
@@ -1062,7 +1062,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
             else {
                 // dis à l'unité de sauter les instructions jusqu'au prochain point
-                m_arbre_courant->index_courant = inst->index_après;
+                m_arbre_courant->indice_courant = inst->indice_après;
             }
 
             break;
@@ -1120,7 +1120,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 /* ce n'est plus la peine de revenir ici une fois que le type sera validé */
-                m_arbre_courant->index_courant += 1;
+                m_arbre_courant->indice_courant += 1;
                 return Attente::sur_type(type);
             }
 
@@ -1843,14 +1843,14 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             return CodeRetourValidation::Erreur;
         }
 
-        auto const index_rubrique = info_rubrique->index_rubrique;
+        auto const indice_rubrique = info_rubrique->indice_rubrique;
         auto const rubrique_est_constant = info_rubrique->rubrique.drapeaux &
                                            RubriqueTypeComposé::EST_CONSTANT;
         auto const rubrique_est_implicite = info_rubrique->rubrique.drapeaux &
                                             RubriqueTypeComposé::EST_IMPLICITE;
 
         expression_rubrique->type = info_rubrique->rubrique.type;
-        expression_rubrique->index_rubrique = index_rubrique;
+        expression_rubrique->indice_rubrique = indice_rubrique;
 
         if (type->est_type_énum() || type->est_type_erreur()) {
             expression_rubrique->genre_valeur = GenreValeur::DROITE;
@@ -2436,9 +2436,9 @@ RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declar
 RésultatValidation Sémanticienne::valide_arbre_aplatis(NoeudExpression *declaration,
                                                        ArbreAplatis *arbre_aplatis)
 {
-    for (; arbre_aplatis->index_courant < arbre_aplatis->noeuds.taille();
-         ++arbre_aplatis->index_courant) {
-        auto noeud_enfant = arbre_aplatis->noeuds[arbre_aplatis->index_courant];
+    for (; arbre_aplatis->indice_courant < arbre_aplatis->noeuds.taille();
+         ++arbre_aplatis->indice_courant) {
+        auto noeud_enfant = arbre_aplatis->noeuds[arbre_aplatis->indice_courant];
 
         if (noeud_enfant->est_déclaration_type() && noeud_enfant != racine_validation()) {
             /* Les types ont leurs propres unités de compilation. */
@@ -2717,7 +2717,7 @@ RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
         it = nullptr;
     }
 
-    auto index_courant = 0;
+    auto indice_courant = 0;
     auto eu_nom = false;
     POUR (vars_et_exprs) {
         auto expr = it.expression;
@@ -2755,16 +2755,16 @@ RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
                 return CodeRetourValidation::Erreur;
             }
 
-            if (expressions[index_courant] != nullptr) {
+            if (expressions[indice_courant] != nullptr) {
                 m_espace->rapporte_erreur(
                     it.expression, "Redéfinition d'une expression pour un paramètre de retour");
                 return CodeRetourValidation::Erreur;
             }
 
-            expressions[index_courant] = it.expression;
+            expressions[indice_courant] = it.expression;
         }
 
-        index_courant += 1;
+        indice_courant += 1;
     }
 
     auto valide_typage_et_ajoute = [this](DonneesAssignations &donnees,
@@ -4388,7 +4388,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     calcule_taille_type_composé(type_union, false, 0);
 
     if (!decl->est_nonsure) {
-        crée_type_structure(m_compilatrice.typeuse, type_union, type_union->décalage_index);
+        crée_type_structure(m_compilatrice.typeuse, type_union, type_union->décalage_indice);
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -4525,7 +4525,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
          */
         if (!decl->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
             /* Ne revalide pas ce noeud. */
-            m_arbre_courant->index_courant += 1;
+            m_arbre_courant->indice_courant += 1;
             return Attente::sur_type(decl->type);
         }
     }
@@ -4813,7 +4813,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
              */
             if (!it.decl->type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
                 /* Ne revalide pas ce noeud. */
-                m_arbre_courant->index_courant += 1;
+                m_arbre_courant->indice_courant += 1;
                 return Attente::sur_type(it.decl->type);
             }
         }
@@ -5355,10 +5355,10 @@ void Sémanticienne::rapporte_erreur_type_opération(const Type *type_gauche,
 
 void Sémanticienne::rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                                        TypeTableauFixe *type_tableau,
-                                                       int64_t index_acces)
+                                                       int64_t indice_acces)
 {
     erreur::lance_erreur_acces_hors_limites(
-        *m_espace, b, type_tableau->taille, type_tableau, index_acces);
+        *m_espace, b, type_tableau->taille, type_tableau, indice_acces);
 }
 
 void Sémanticienne::rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
@@ -5790,7 +5790,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
             }
 
             auto rubriques = kuri::tablet<RubriqueTypeComposé, 6>(expressions_rubriques.taille());
-            POUR_INDEX (expressions_rubriques) {
+            POUR_INDICE (expressions_rubriques) {
                 auto type_rubrique = it->type;
                 auto type_de_données = type_rubrique->comme_type_type_de_données();
                 auto type_connu = type_de_données->type_connu;
@@ -6305,7 +6305,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     inst->corps_opérateur_pour = corps_copie_macro;
 
     /* Inutile de revenir ici, la validation peut reprendre au noeud suivant. */
-    m_arbre_courant->index_courant += 1;
+    m_arbre_courant->indice_courant += 1;
 
     /* Attend sur la validation sémantique du macro. */
     return Attente::sur_déclaration(corps_copie_macro);
@@ -7018,7 +7018,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         bloc_parent = fonction_courante()->corps->bloc;
     }
 
-    POUR_INDEX (type_structure->rubriques) {
+    POUR_INDICE (type_structure->rubriques) {
         if (it.drapeaux & RubriqueTypeComposé::EST_CONSTANT) {
             continue;
         }
@@ -7046,7 +7046,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         decl_rubrique->bloc_parent = bloc_parent;
         decl_rubrique->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl_rubrique->déclaration_vient_d_un_emploi = decl;
-        decl_rubrique->index_rubrique_employée = indice_it;
+        decl_rubrique->indice_rubrique_employée = indice_it;
         decl_rubrique->expression = it.expression_valeur_defaut;
         decl_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
