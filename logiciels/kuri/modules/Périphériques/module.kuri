@@ -250,7 +250,7 @@ TypeÉvènement :: énum {
     Fermeture
     Souris
     Clavier
-    DragAndDrop
+    GlisserDéposer
     // Tablette
     // Window
     // Molette séparée de souris ?
@@ -278,7 +278,7 @@ TypeÉvènement :: énum {
     modificateurs_natifs: n32
     clé_virtuelle_native: n32
 
-    /* Mimes pour un Drop */
+    /* Mimes pour un déposer. */
     mimes: [..]DonnéesMime
 }
 
