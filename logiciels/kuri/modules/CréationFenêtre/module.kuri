@@ -552,7 +552,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         }
 
         évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.Déposer
+        évènement.type = TypeÉvènement.Déposage
         évènement.mimes = mimes
 
         QT_drop_event_accepte_action_propose(event.drop_event)
@@ -965,7 +965,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                     mime_type := XGetAtomName(display, format)
 
                     évènement := tableau_ajoute_élément(*__évènements)
-                    évènement.type = TypeÉvènement.Déposer
+                    évènement.type = TypeÉvènement.Déposage
 
                     mime := tableau_ajoute_élément(*évènement.mimes)
                     mime.type = convertis_chaine_c(ChaineC(mime_type))
