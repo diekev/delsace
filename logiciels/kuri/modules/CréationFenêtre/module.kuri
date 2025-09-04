@@ -427,7 +427,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         }
 
         évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.GlisserDéposer
+        évènement.type = TypeÉvènement.Déposer
         évènement.mimes = mimes
 
         QT_drop_event_accepte_action_propose(event.drop_event)

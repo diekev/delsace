@@ -328,7 +328,7 @@ TypeÉvènement :: énum {
     Fermeture
     Souris
     Clavier
-    GlisserDéposer
+    Déposer
     // Tablette
     // Window
     // Molette séparée de souris ?
