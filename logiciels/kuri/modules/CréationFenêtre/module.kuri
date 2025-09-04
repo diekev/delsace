@@ -30,7 +30,7 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évène
     sinon {
         assert(type_fenêtre.système == SystèmeFenêtre.QT)
         __évènements.taille = 0
-        qt_ajourne_évènements_fenêtre()
+        qt_ajourne_évènements_fenêtre(type_fenêtre)
     }
 
     retourne __évènements
@@ -272,8 +272,10 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
     retourne résultat
 }
 
-qt_ajourne_évènements_fenêtre :: fonc ()
+qt_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_application_process_events()
 }
 
@@ -374,6 +376,8 @@ qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 
 qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
 }
 
@@ -386,6 +390,8 @@ qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 
 qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_window_set_opacity(fenêtre.rappels_window.window, opacité)
 }
 
