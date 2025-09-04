@@ -152,11 +152,11 @@ AnyModifier ::		(1<<15)  /* used in GrabButton, GrabKey */
    and ButtonRelease events.  Not to be confused with button masks above.
    Note that 0 is already defined above as "AnyButton".  */
 
-Button1 ::			1
-Button2 ::			2
-Button3 ::			3
-Button4 ::			4
-Button5 ::			5
+Button1 : n32 :			1
+Button2 : n32 :			2
+Button3 : n32 :			3
+Button4 : n32 :			4
+Button5 : n32 :			5
 
 /* Notify modes */
 
@@ -1197,8 +1197,67 @@ XLookupString :: fonc (xkey_event: *XKeyEvent, buffer_return: *z8, bytes_buffer:
 /** \nom Conversion d'évènements
  * \{ */
 
+initialise_évènement_depuis_xmotion_event :: fonc (xmotion_event: *XMotionEvent, résultat: *Évènement)
+{
+    init_de(Évènement)(résultat)
+
+    état: ÉtatSouris
+    état.où.x = xmotion_event.x
+    état.où.y = xmotion_event.y
+    état.modificateur = convertis_modificateurs_clavier(xmotion_event.state)
+
+    résultat.type = TypeÉvènement.Souris
+    résultat.état_souris = état
+    résultat.action_souris = ActionSouris.DÉPLACÉE
+    résultat.bouton_souris = BoutonSouris.AUCUN
+}
+
+initialise_évènement_depuis_xbutton_event :: fonc (xbutton_event: *XButtonEvent, résultat: *Évènement)
+{
+    init_de(Évènement)(résultat)
+ 
+    état: ÉtatSouris
+    état.où.x = xbutton_event.x
+    état.où.y = xbutton_event.y
+    état.modificateur = convertis_modificateurs_clavier(xbutton_event.state)
+
+    résultat.type = TypeÉvènement.Souris
+    résultat.état_souris = état
+    résultat.action_souris = si xbutton_event.type == ButtonPress {
+        ActionSouris.PRESSÉE
+    }
+    sinon {
+        assert(xbutton_event.type == ButtonRelease)
+        ActionSouris.RELACHÉE
+    }
+    résultat.bouton_souris = si xbutton_event.button == Button1 {
+        BoutonSouris.PRIMAIRE
+    }
+    sinon si xbutton_event.button == Button2 {
+        BoutonSouris.MOLETTE
+    }
+    sinon si xbutton_event.button == Button3 {
+        BoutonSouris.CONTEXTUEL
+    }
+    sinon si xbutton_event.button == Button4 && xbutton_event.type == ButtonPress {
+        résultat.action_souris = ActionSouris.ROULEMENT
+        résultat.delta_souris = -1
+        BoutonSouris.MOLETTE
+    }
+    sinon si xbutton_event.button == Button5 && xbutton_event.type == ButtonPress {
+        résultat.action_souris = ActionSouris.ROULEMENT
+        résultat.delta_souris = 1
+        BoutonSouris.MOLETTE
+    }
+    sinon {
+        BoutonSouris.AUCUN
+    }
+}
+
 initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_répétée: bool, résultat: *Évènement)
 {
+    init_de(Évènement)(résultat)
+
     résultat.type = TypeÉvènement.Clavier
     résultat.touche_pressée = xkey_event.type == KeyPress
     résultat.est_répétée = est_répétée
@@ -1286,10 +1345,28 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         résultat.modificateurs.ALT = vrai
     }
 
+    résultat.modificateurs = convertis_modificateurs_clavier(xkey_event.state)
     résultat.modificateurs_natifs = xkey_event.state
 
     // texte: chaine
     // compte: z32
+}
+
+convertis_modificateurs_clavier :: fonc (state: n32) -> ModificateurClavier
+{
+    résultat: ModificateurClavier
+    si (state & ShiftMask comme n32) != 0 {
+        résultat.MAJUSCULE = vrai
+    }
+
+    si (state & ControlMask comme n32) != 0 {
+        résultat.CONTROL = vrai
+    }
+
+    si (state & Mod1Mask comme n32) != 0 {
+        résultat.ALT = vrai
+    }
+    retourne résultat
 }
 
 /* Media keys in some keyboards and laptops with XFree86/XORG. */
