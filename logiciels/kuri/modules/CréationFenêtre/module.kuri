@@ -193,11 +193,7 @@ TypeFenêtre :: struct {
     système: SystèmeFenêtre
 
     /* Pour X11. */
-    display: *Display
-    window: Window
-    xim: XIM
-    xic: XIC
-    wm_delete_window: Atom
+    données_x11: *DonnéesX11
 
     /* Pour Qt. */
     rappels_window: *RappelsWindow
@@ -569,6 +565,16 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
 importe X11
 
+DonnéesX11 :: struct {
+    display: *Display
+    window: Window
+    xim: XIM
+    xic: XIC
+    wm_delete_window: Atom
+}
+
+__données_x11: DonnéesX11
+
 x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
 {
     display := XOpenDisplay(nul)
@@ -650,13 +656,15 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_éc
 
     _ := XMapWindow(display, window)
 
+    __données_x11.display = display
+    __données_x11.window = window
+    __données_x11.xim = xim
+    __données_x11.xic = xic
+    __données_x11.wm_delete_window = wm_delete_window
+
     résultat: TypeFenêtre
     résultat.système = SystèmeFenêtre.NATIVE
-    résultat.display = display
-    résultat.window = window
-    résultat.xim = xim
-    résultat.xic = xic
-    résultat.wm_delete_window = wm_delete_window
+    résultat.données_x11 = *__données_x11
     retourne résultat
 }
 
@@ -672,7 +680,7 @@ x11_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre @inutilisée)
 
 x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
-    assert(fenêtre.display != nul)
+    assert(fenêtre.données_x11.display != nul)
 
     root_return: Window
     x_return: z32
@@ -682,8 +690,8 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hau
     border_w_return: n32
     depth_return: n32
 
-    _ := XGetGeometry(fenêtre.display,
-                      fenêtre.window,
+    _ := XGetGeometry(fenêtre.données_x11.display,
+                      fenêtre.données_x11.window,
                       *root_return,
                       *x_return,
                       *y_return,
@@ -697,10 +705,10 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hau
 
 x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    assert(fenêtre.display != nul)
+    assert(fenêtre.données_x11.display != nul)
     chaine_c_titre := crée_chaine_c(titre)
     diffère détruit_chaine_c(chaine_c_titre)
-    _ := XStoreName(fenêtre.display, fenêtre.window, chaine_c_titre)
+    _ := XStoreName(fenêtre.données_x11.display, fenêtre.données_x11.window, chaine_c_titre)
 }
 
 x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
@@ -732,8 +740,8 @@ x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
 x11_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE)
-    si type_fenêtre.display {
-        _ := XCloseDisplay(type_fenêtre.display)
+    si type_fenêtre.données_x11.display {
+        _ := XCloseDisplay(type_fenêtre.données_x11.display)
     }
 }
 
@@ -763,7 +771,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE)
 
-    display := fenêtre.display
+    display := fenêtre.données_x11.display
 
     // À FAIRE : expose, resize, glisser/déposer
 
@@ -775,7 +783,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
             évènement := tableau_ajoute_élément(*__évènements)
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
 
-            xic := fenêtre.xic
+            xic := fenêtre.données_x11.xic
             si xic {
                 tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
                 status: Status
@@ -812,7 +820,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                     }
 
                     imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status)
-                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, fenêtre.xim)
+                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, fenêtre.données_x11.xim)
                 }
 
                 // À FAIRE : supprime ces allocations
@@ -838,7 +846,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
         sinon si event.type == ClientMessage {
             data := event.xclient.data.l
             atome := data[0] comme Atom
-            si atome == fenêtre.wm_delete_window {
+            si atome == fenêtre.données_x11.wm_delete_window {
                 évènement := tableau_ajoute_élément(*__évènements)
                 évènement.type = TypeÉvènement.Fermeture
                 continue
