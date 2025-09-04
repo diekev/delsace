@@ -652,7 +652,7 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_éc
 
     _ := XSelectInput(display, window, masque_évènements)
 
-    _ := XStoreName(display, window, chaine_c_titre)
+    x11_définis_titre_fenêtre(display, window, titre)
 
     _ := XMapWindow(display, window)
 
@@ -705,10 +705,22 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hau
 
 x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    assert(fenêtre.données_x11.display != nul)
+    x11_définis_titre_fenêtre(fenêtre.données_x11.display, fenêtre.données_x11.window, titre)
+}
+
+x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: chaine)
+{
     chaine_c_titre := crée_chaine_c(titre)
     diffère détruit_chaine_c(chaine_c_titre)
-    _ := XStoreName(fenêtre.données_x11.display, fenêtre.données_x11.window, chaine_c_titre)
+
+    name := XInternAtom(display, "_NET_WM_NAME".pointeur, False);
+    utf8str := XInternAtom(display, "UTF8_STRING".pointeur, False);
+    
+    _ := XChangeProperty(display, window, name, utf8str, 8, PropModeReplace, titre.pointeur comme *n8, titre.taille comme z32);
+
+    _ := XStoreName(display, window, chaine_c_titre)
+
+    _ := XFlush(display);
 }
 
 x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
