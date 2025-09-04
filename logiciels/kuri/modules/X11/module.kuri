@@ -1213,7 +1213,11 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         ascii = '\0';
     }
 
-    résultat.touche = touche_clavier_depuis_keysym(keysym)
+    // verrouillage_casse est LockMask
+    // alt_gr est Mod5Mask
+    verrouillage_numérique_est_actif := (xkey_event.state & Mod2Mask comme n32) != 0
+
+    résultat.touche = touche_clavier_depuis_keysym(keysym, verrouillage_numérique_est_actif)
     discr résultat.touche {
         ALT_DROITE,
         ALT_GAUCHE,
@@ -1252,23 +1256,35 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         PAVÉ_NUM_ASTÉRISQUE,
         PAVÉ_NUM_SLASH {}
         sinon {
-            touche := touche_clavier_depuis_keysym(key_sym_str)
+            touche := touche_clavier_depuis_keysym(key_sym_str, verrouillage_numérique_est_actif)
             si touche != ToucheClavier.INCONNUE {
                 résultat.touche = touche
             }
         }
     }
 
-    // modificateurs: ModificateurClavier
+    si (xkey_event.state & ShiftMask comme n32) != 0 {
+        résultat.modificateurs.MAJUSCULE = vrai
+    }
+
+    si (xkey_event.state & ControlMask comme n32) != 0 {
+        résultat.modificateurs.CONTROL = vrai
+    }
+
+    si (xkey_event.state & Mod1Mask comme n32) != 0 {
+        résultat.modificateurs.ALT = vrai
+    }
+
+    résultat.modificateurs_natifs = xkey_event.state
+
     // texte: chaine
     // compte: z32
-    // modificateurs_natifs: n32
 }
 
 /* Media keys in some keyboards and laptops with XFree86/XORG. */
 AVEC_XF86KEYSYM :: vrai
 
-touche_clavier_depuis_keysym :: fonc (key: KeySym) -> ToucheClavier
+touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_actif: bool) -> ToucheClavier
 {
     si key >= XK_A && key <= XK_Z {
         retourne ((key - XK_A) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier
@@ -1367,30 +1383,32 @@ touche_clavier_depuis_keysym :: fonc (key: KeySym) -> ToucheClavier
     si key == XK_KP_9 { retourne ToucheClavier.PAVÉ_NUM_9 }
     si key == XK_KP_Decimal { retourne ToucheClavier.PAVÉ_NUM_POINT }
 
-    si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_0 }
-    si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_1 }
-    si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_2 }
-    si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_3 }
-    si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_4 }
-    si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5 } // xxx
-    si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_6 }
-    si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_7 }
-    si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_8 }
-    si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_9 }
-    si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR }
-
-    // À FAIRE : différencie les chiffres de ceux-ci
-    // si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_INSÈRE }
-    // si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_FIN }
-    // si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_BAS }
-    // si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_PAGE_BAS }
-    // si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_GAUCHE }
-    // si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5 } // xxx
-    // si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_DROITE }
-    // si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_DÉBUT }
-    // si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_HAUT }
-    // si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_PAGE_HAUT }
-    // si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR }
+    si verrouillage_numérique_est_actif {
+        si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_0 }
+        si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_1 }
+        si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_2 }
+        si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_3 }
+        si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_4 }
+        si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5 } // xxx
+        si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_6 }
+        si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_7 }
+        si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_8 }
+        si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_9 }
+        si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR }
+    }
+    sinon {
+        si key == XK_KP_Insert { retourne ToucheClavier.PAVÉ_NUM_INSÈRE }
+        si key == XK_KP_End { retourne ToucheClavier.PAVÉ_NUM_FIN }
+        si key == XK_KP_Down { retourne ToucheClavier.PAVÉ_NUM_BAS }
+        si key == XK_KP_Page_Down { retourne ToucheClavier.PAVÉ_NUM_PAGE_BAS }
+        si key == XK_KP_Left { retourne ToucheClavier.PAVÉ_NUM_GAUCHE }
+        si key == XK_KP_Begin { retourne ToucheClavier.PAVÉ_NUM_5 } // xxx
+        si key == XK_KP_Right { retourne ToucheClavier.PAVÉ_NUM_DROITE }
+        si key == XK_KP_Home { retourne ToucheClavier.PAVÉ_NUM_DÉBUT }
+        si key == XK_KP_Up { retourne ToucheClavier.PAVÉ_NUM_HAUT }
+        si key == XK_KP_Page_Up { retourne ToucheClavier.PAVÉ_NUM_PAGE_HAUT }
+        si key == XK_KP_Delete { retourne ToucheClavier.PAVÉ_NUM_SUPPR }
+    }
 
     si key == XK_KP_Enter { retourne ToucheClavier.PAVÉ_NUM_ENTRÉE }
     si key == XK_KP_Add { retourne ToucheClavier.PAVÉ_NUM_PLUS }
