@@ -17,7 +17,7 @@ principale :: fonc ()
     codepoint: n32 = 'A' comme n32
 
     chemin: Chemin
-    _ := charge_chemin_depuis_caractètre(chemin_fonte, codepoint, *chemin)
+    fenêtre := charge_chemin_depuis_caractètre(chemin_fonte, codepoint, *chemin)
 
     fenêtre := crée_fenêtre(800, 600, "Outline FreeType", vrai)
 
@@ -28,7 +28,7 @@ principale :: fonc ()
     échantillons: [32]Point2D(r32)
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre()
+        évènements := ajourne_évènements_fenêtre(fenêtre)
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre)
 

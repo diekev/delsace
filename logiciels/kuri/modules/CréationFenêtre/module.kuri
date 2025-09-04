@@ -1,43 +1,89 @@
+importe Chaine
 importe Fondation
 importe MIME
 importe OpenGL
 importe Périphériques
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai) -> TypeFenêtre
+SystèmeFenêtre :: énum {
+    QT
+    NATIVE
+}
+
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
 {
+    si système == SystèmeFenêtre.NATIVE {
+        retourne x11_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
+    }
+
     retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
 }
 
-ajourne_évènements_fenêtre :: fonc () -> []Évènement
+ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
 {
     __évènements.taille = 0
-    qt_ajourne_évènements_fenêtre()
+
+    si type_fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_ajourne_évènements_fenêtre(type_fenêtre)
+    }
+    sinon {
+        assert(type_fenêtre.système == SystèmeFenêtre.QT)
+        qt_ajourne_évènements_fenêtre()
+    }
+
     retourne __évènements
 }
 
 requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_requiers_ajournement_fenêtre(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_requiers_ajournement_fenêtre(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_requiers_ajournement_fenêtre(fenêtre)
+    }
 }
 
 permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_permute_tampons_fenêtre(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_permute_tampons_fenêtre(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_permute_tampons_fenêtre(fenêtre)
+    }
 }
 
 donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_donne_taille_fenêtre(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_donne_taille_fenêtre(fenêtre)
 }
 
 définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    qt_définis_titre_fenêtre(fenêtre, titre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_définis_titre_fenêtre(fenêtre, titre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_définis_titre_fenêtre(fenêtre, titre)
+    }
 }
 
 définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
 {
-    qt_définis_curseur(fenêtre, curseur)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_définis_curseur(fenêtre, curseur)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_définis_curseur(fenêtre, curseur)
+    }
 }
 
 donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
@@ -49,59 +95,122 @@ donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
 
 active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    }
 }
 
 possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_possède_barre_de_titre_et_bordures(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_possède_barre_de_titre_et_bordures(fenêtre)
 }
 
 minimise :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_minimise(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_minimise(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_minimise(fenêtre)
+    }
 }
 
 maximise :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_maximise(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_maximise(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_maximise(fenêtre)
+    }
 }
 
 ferme :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_ferme(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_ferme(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_ferme(fenêtre)
+    }
 }
 
 est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        qt_fenêtre_est_visible(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_fenêtre_est_visible(fenêtre)
 }
 
 définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    qt_fenêtre_définis_visible(fenêtre, oui_non)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_définis_visible(fenêtre, oui_non)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_définis_visible(fenêtre, oui_non)
+    }
 }
 
 donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_fenêtre_donne_opacité(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_fenêtre_donne_opacité(fenêtre)
 }
 
 définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
-    qt_fenêtre_définis_opacité(fenêtre, opacité)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_définis_opacité(fenêtre, opacité)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_définis_opacité(fenêtre, opacité)
+    }
 }
 
 TypeFenêtre :: struct {
+    système: SystèmeFenêtre
+
+    /* Pour X11. */
+    display: *Display
+    window: Window
+    wm_delete_window: Atom
+
     /* Pour Qt. */
     rappels_window: *RappelsWindow
 }
 
 donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne XXX
+    }
+
     assert(fenêtre.rappels_window != nul)
     retourne fenêtre.rappels_window.dernière_souris
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Qt
+ * \{ */
 
 #portée_fichier
 
@@ -152,7 +261,9 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
         QT_application_process_events()
     }
 
-    résultat := TypeFenêtre(*__rappels_window)
+    résultat: TypeFenêtre
+    résultat.système = SystèmeFenêtre.QT
+    résultat.rappels_window = *__rappels_window
     retourne résultat
 }
 
@@ -436,3 +547,201 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
     retourne faux
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom X11
+ * \{ */
+
+#portée_fichier
+
+importe X11
+
+x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
+{
+    display := XOpenDisplay(nul)
+    si display == nul {
+        imprimeln("X11 : impossible d'ouvrir un display.")
+        exit(1)
+    }
+
+    window := XCreateSimpleWindow(
+        display,
+        XDefaultRootWindow(display),
+        0,
+        0,
+        largeur comme n32,
+        hauteur comme n32,
+        0,
+        0,
+        0)
+
+    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False)
+    _ := XSetWMProtocols(display, window, *wm_delete_window, 1)
+
+    _ := XSelectInput(display, window, KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask)
+
+    chaine_c_titre := crée_chaine_c(titre)
+    diffère détruit_chaine_c(chaine_c_titre)
+    _ := XStoreName(display, window, chaine_c_titre)
+
+    _ := XMapWindow(display, window)
+
+    résultat: TypeFenêtre
+    résultat.display = display
+    résultat.window = window
+    résultat.wm_delete_window = wm_delete_window
+    retourne résultat
+}
+
+x11_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+{
+    assert(fenêtre.display != nul)
+
+    root_return: Window
+    x_return: z32
+    y_return: z32
+    w_return: n32
+    h_return: n32
+    border_w_return: n32
+    depth_return: n32
+
+    _ := XGetGeometry(fenêtre.display,
+                      fenêtre.window,
+                      *root_return,
+                      *x_return,
+                      *y_return,
+                      *w_return,
+                      *h_return,
+                      *border_w_return,
+                      *depth_return)
+
+    retourne w_return comme z32, h_return comme z32
+}
+
+x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+{
+    assert(fenêtre.display != nul)
+    chaine_c_titre := crée_chaine_c(titre)
+    diffère détruit_chaine_c(chaine_c_titre)
+    _ := XStoreName(fenêtre.display, fenêtre.window, chaine_c_titre)
+}
+
+x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    retourne faux
+}
+
+x11_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+    si type_fenêtre.display {
+        _ := XCloseDisplay(type_fenêtre.display)
+    }
+}
+
+x11_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    retourne faux
+}
+
+x11_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre @inutilisée) -> r64
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    retourne 1.0
+}
+
+x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre @inutilisée, opacité: r64 @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+
+    display := fenêtre.display
+
+    // À FAIRE : expose, resize, glisser/déposer
+
+    tantque XPending(display) > 0 {
+        event: XEvent
+        _ := XNextEvent(display, *event)
+
+        si event.type == KeyPress {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+        }
+        sinon si event.type == KeyRelease {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+        }
+        sinon si event.type == MotionNotify {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement)
+        }
+        sinon si event.type == ButtonPress {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+        }
+        sinon si event.type == ButtonRelease {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+        }
+        sinon si event.type == ClientMessage {
+            data := event.xclient.data.l
+            atome := data[0] comme Atom
+            si atome == fenêtre.wm_delete_window {
+                évènement := tableau_ajoute_élément(*__évènements)
+                évènement.type = TypeÉvènement.Fermeture
+                continue
+            }
+        }
+        sinon si event.type == ConfigureNotify {
+            // nouvelle_largeur := event.xconfigure.width comme n32
+            // nouvelle_hauteur := event.xconfigure.height comme n32
+        }
+        sinon si event.type == MapNotify {}
+        sinon si event.type == ReparentNotify {}
+    }
+}
+
+/** \} */
