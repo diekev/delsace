@@ -20,13 +20,16 @@ crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran 
 
 ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
 {
-    __évènements.taille = 0
-
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
+        pour __évènements {
+            déloge(it.texte)
+        }
+        __évènements.taille = 0
         x11_ajourne_évènements_fenêtre(type_fenêtre)
     }
     sinon {
         assert(type_fenêtre.système == SystèmeFenêtre.QT)
+        __évènements.taille = 0
         qt_ajourne_évènements_fenêtre()
     }
 
@@ -192,6 +195,8 @@ TypeFenêtre :: struct {
     /* Pour X11. */
     display: *Display
     window: Window
+    xim: XIM
+    xic: XIC
     wm_delete_window: Atom
 
     /* Pour Qt. */
@@ -580,17 +585,71 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_éc
     wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False)
     _ := XSetWMProtocols(display, window, *wm_delete_window, 1)
 
-    _ := XSelectInput(display, window, KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask)
+    _ := XSetLocaleModifiers("".pointeur);
 
     chaine_c_titre := crée_chaine_c(titre)
     diffère détruit_chaine_c(chaine_c_titre)
+
+    // À FAIRE : paramétrise la ressource et la classe
+    ressource_name := chaine_c_titre
+    ressource_class := chaine_c_titre
+
+    xim := XOpenIM(display, nul, ressource_name, ressource_class)
+    xic: XIC
+
+    masque_évènements: z64 = KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask
+    // ExposureMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | KeymapStateMask
+   
+    si xim {
+        // À FAIRE
+        // XIMCallback destroy;
+        // destroy.callback = (XIMProc)destroyIMCallback;
+        // destroy.client_data = (XPointer)&xim_;
+        // XSetIMValues(xim_, XNDestroyCallback, &destroy, nullptr);
+
+        // XICCallback destroy;
+        // destroy.callback = (XICProc)destroyICCallback;
+        // destroy.client_data = (XPointer)&xic_;
+        xic = XCreateIC(xim,
+                        XNClientWindow.pointeur,
+                        window,
+                        XNFocusWindow.pointeur,
+                        window,
+                        XNInputStyle.pointeur,
+                        XIMPreeditNothing | XIMStatusNothing,
+                        XNResourceName.pointeur,
+                        ressource_name,
+                        XNResourceClass.pointeur,
+                        ressource_class,
+                        // XNDestroyCallback,
+                        // &destroy,
+                        nul);
+
+        si xic {
+            // fevent: z64
+            // XGetICValues(xic_, XNFilterEvents, *fevent, nul);
+            // masque_évènements |= fevent
+        }
+        sinon {
+            imprimeln("X11 : impossible de créer le XInputContext")
+        }
+    }
+    sinon {
+        imprimeln("X11 : Impossible d'ouvrir la méthode d'entrée.")
+    }
+
+    _ := XSelectInput(display, window, masque_évènements)
+
     _ := XStoreName(display, window, chaine_c_titre)
 
     _ := XMapWindow(display, window)
 
     résultat: TypeFenêtre
+    résultat.système = SystèmeFenêtre.NATIVE
     résultat.display = display
     résultat.window = window
+    résultat.xim = xim
+    résultat.xic = xic
     résultat.wm_delete_window = wm_delete_window
     retourne résultat
 }
@@ -709,6 +768,50 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
         si event.type == KeyPress {
             évènement := tableau_ajoute_élément(*__évènements)
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+
+            xic := fenêtre.xic
+            si xic {
+                tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
+                status: Status
+                key_sym := évènement.clé_virtuelle_native comme KeySym
+                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status)
+
+                assert(status != XBufferOverflow)
+                // si status == XBufferOverflow {
+                //     utf8_buf = (char *)malloc(len + 5);
+                //     len = Xutf8LookupString(xic, xke, *tampon_utf8, tampon_utf8.taille, *key_sym, *status)
+                // }
+
+                chaine_touche := chaine(*tampon_utf8[0], len)
+
+                si status == XLookupChars || status == XLookupBoth {
+                    /* Testons les caractères de controle ASCII.
+                     * Enligne `iscntrl` car la locale de l'utilisateur ne doit pas changer. */
+                    si ((tampon_utf8[0] < 32 && tampon_utf8[0] > 0) || (tampon_utf8[0] == 127)) {
+                        len = 0
+                    }
+                }
+                sinon si status == XLookupKeySym {
+                    /* Cette touche n'a pas de représentation textuelle, c'est une sorte de touche de controle. */
+                }
+                sinon {
+                    chaine_status := si status == XLookupNone {
+                        "XLookupNone"
+                    }
+                    sinon si status == XLookupKeySym {
+                        "XLookupKeySym"
+                    }
+                    sinon {
+                        "Status inconnu"
+                    }
+
+                    imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status)
+                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, fenêtre.xim)
+                }
+
+                // À FAIRE : supprime ces allocations
+                évènement.texte = copie_chaine(chaine_touche)
+            }
         }
         sinon si event.type == KeyRelease {
             évènement := tableau_ajoute_élément(*__évènements)
