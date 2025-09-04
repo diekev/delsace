@@ -1217,6 +1217,7 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
     // alt_gr est Mod5Mask
     verrouillage_numérique_est_actif := (xkey_event.state & Mod2Mask comme n32) != 0
 
+    /* Seule une sélection de touches passe par XLookupKeysym, les autres par XLookupString. */
     résultat.touche = touche_clavier_depuis_keysym(keysym, verrouillage_numérique_est_actif)
     discr résultat.touche {
         ALT_DROITE,
@@ -1254,7 +1255,17 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         PAVÉ_NUM_PLUS,
         PAVÉ_NUM_MOINS,
         PAVÉ_NUM_ASTÉRISQUE,
-        PAVÉ_NUM_SLASH {}
+        PAVÉ_NUM_SLASH,
+        PAVÉ_NUM_INSÈRE,
+        PAVÉ_NUM_FIN,
+        PAVÉ_NUM_BAS,
+        PAVÉ_NUM_PAGE_BAS,
+        PAVÉ_NUM_GAUCHE,
+        PAVÉ_NUM_DROITE,
+        PAVÉ_NUM_DÉBUT,
+        PAVÉ_NUM_HAUT,
+        PAVÉ_NUM_PAGE_HAUT,
+        PAVÉ_NUM_SUPPR {}
         sinon {
             touche := touche_clavier_depuis_keysym(key_sym_str, verrouillage_numérique_est_actif)
             si touche != ToucheClavier.INCONNUE {
