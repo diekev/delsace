@@ -2,6 +2,7 @@ importe Périphériques
 
 charge "interface"
 
+Status :: z32
 False :: 0
 True :: 1
 
@@ -697,6 +698,72 @@ WhitePixel :: fonc (display: *Display, s: z32) -> n64 #enligne
 // #define DoesSaveUnders(s)	((s)->save_unders)
 // #define DoesBackingStore(s)	((s)->backing_store)
 // #define EventMaskOfScreen(s)	((s)->root_input_mask)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Définitions de Xlib.h
+ * \{ */
+
+XIMPreeditArea		 : z64 : 0x0001
+XIMPreeditCallbacks	 : z64 : 0x0002
+XIMPreeditPosition	 : z64 : 0x0004
+XIMPreeditNothing	 : z64 : 0x0008
+XIMPreeditNone		 : z64 : 0x0010
+XIMStatusArea		 : z64 : 0x0100
+XIMStatusCallbacks	 : z64 : 0x0200
+XIMStatusNothing	 : z64 : 0x0400
+XIMStatusNone		 : z64 : 0x0800
+
+XNVaNestedList :: "XNVaNestedList"
+XNQueryInputStyle :: "queryInputStyle"
+XNClientWindow :: "clientWindow"
+XNInputStyle :: "inputStyle"
+XNFocusWindow :: "focusWindow"
+XNResourceName :: "resourceName"
+XNResourceClass :: "resourceClass"
+XNGeometryCallback :: "geometryCallback"
+XNDestroyCallback :: "destroyCallback"
+XNFilterEvents :: "filterEvents"
+XNPreeditStartCallback :: "preeditStartCallback"
+XNPreeditDoneCallback :: "preeditDoneCallback"
+XNPreeditDrawCallback :: "preeditDrawCallback"
+XNPreeditCaretCallback :: "preeditCaretCallback"
+XNPreeditStateNotifyCallback :: "preeditStateNotifyCallback"
+XNPreeditAttributes :: "preeditAttributes"
+XNStatusStartCallback :: "statusStartCallback"
+XNStatusDoneCallback :: "statusDoneCallback"
+XNStatusDrawCallback :: "statusDrawCallback"
+XNStatusAttributes :: "statusAttributes"
+XNArea :: "area"
+XNAreaNeeded :: "areaNeeded"
+XNSpotLocation :: "spotLocation"
+XNColormap :: "colorMap"
+XNStdColormap :: "stdColorMap"
+XNForeground :: "foreground"
+XNBackground :: "background"
+XNBackgroundPixmap :: "backgroundPixmap"
+XNFontSet :: "fontSet"
+XNLineSpace :: "lineSpace"
+XNCursor :: "cursor"
+
+XNQueryIMValuesList :: "queryIMValuesList"
+XNQueryICValuesList :: "queryICValuesList"
+XNVisiblePosition :: "visiblePosition"
+XNR6PreeditCallback :: "r6PreeditCallback"
+XNStringConversionCallback :: "stringConversionCallback"
+XNStringConversion :: "stringConversion"
+XNResetState :: "resetState"
+XNHotKey :: "hotKey"
+XNHotKeyState :: "hotKeyState"
+XNPreeditState :: "preeditState"
+XNSeparatorofNestedList :: "separatorofNestedList"
+
+XBufferOverflow		:: -1
+XLookupNone		:: 1
+XLookupChars		:: 2
+XLookupKeySym		:: 3
+XLookupBoth		:: 4
 
 /** \} */
 
