@@ -23,6 +23,13 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évène
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
         pour __évènements {
             déloge(it.texte)
+
+            pour données_mime dans it.mimes {
+                déloge(données_mime.type)
+                déloge(données_mime.données)
+            }
+
+            déloge(it.mimes)
         }
         __évènements.taille = 0
         x11_ajourne_évènements_fenêtre(type_fenêtre)
@@ -571,6 +578,29 @@ DonnéesX11 :: struct {
     xim: XIM
     xic: XIC
     wm_delete_window: Atom
+
+    /* Atomes pour le glissage/déposage. */
+    XdndTypeList: Atom
+    XdndSelection: Atom
+    XdndEnter: Atom
+    XdndPosition: Atom
+    XdndStatus: Atom
+    XdndLeave: Atom
+    XdndDrop: Atom  
+    XdndFinished: Atom
+    XdndActionCopy: Atom
+    XdndActionMove: Atom
+    XdndActionLink: Atom
+    XdndActionAsk: Atom
+    XdndActionPrivate: Atom
+    XtextUriList: Atom
+    XtextPlain: Atom
+    XdndAware: Atom
+
+    /* Autres données pour le glissage/déposage. */
+    source: n64
+    version: z64
+    format: Atom
 }
 
 __données_x11: DonnéesX11
@@ -653,6 +683,34 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_éc
     _ := XSelectInput(display, window, masque_évènements)
 
     x11_définis_titre_fenêtre(display, window, titre)
+
+    /* fetching data */
+    __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
+    __données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
+
+    /* client messages */
+
+    /* client messages */
+    __données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
+    __données_x11.XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
+    __données_x11.XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
+    __données_x11.XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
+    __données_x11.XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
+    __données_x11.XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
+
+    /* actions */
+    __données_x11.XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
+    __données_x11.XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
+    __données_x11.XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
+    __données_x11.XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
+    __données_x11.XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
+
+    __données_x11.XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
+    __données_x11.XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
+
+    __données_x11.XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
+    myVersion : n8 = 5;
+    _ := XChangeProperty(display, window, __données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
 
     _ := XMapWindow(display, window)
 
@@ -783,9 +841,9 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE)
 
-    display := fenêtre.données_x11.display
+    empl données_x11 := fenêtre.données_x11
 
-    // À FAIRE : expose, resize, glisser/déposer
+    // À FAIRE : expose, resize
 
     tantque XPending(display) > 0 {
         event: XEvent
@@ -795,7 +853,6 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
             évènement := tableau_ajoute_élément(*__évènements)
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
 
-            xic := fenêtre.données_x11.xic
             si xic {
                 tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
                 status: Status
@@ -832,7 +889,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                     }
 
                     imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status)
-                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, fenêtre.données_x11.xim)
+                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, xim)
                 }
 
                 // À FAIRE : supprime ces allocations
@@ -863,6 +920,11 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                 évènement.type = TypeÉvènement.Fermeture
                 continue
             }
+
+            si event.xclient.message_type == XdndEnter || event.xclient.message_type == XdndPosition || event.xclient.message_type == XdndDrop {
+                x11_gère_entrée_glissage(*event.xclient, fenêtre.données_x11)
+                continue
+            }
         }
         sinon si event.type == ConfigureNotify {
             // nouvelle_largeur := event.xconfigure.width comme n32
@@ -870,6 +932,205 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
         }
         sinon si event.type == MapNotify {}
         sinon si event.type == ReparentNotify {}
+        sinon si event.type == SelectionNotify {
+            /* Vérifions si nous avons un déposage */
+            si event.xselection.property == XdndSelection {
+                data: *n8;
+                result: n64;
+
+                actual_type: Atom
+                actual_format: z32
+                octets_après: n64
+
+                LONG_MAX :: 0xffffffffffffffff
+
+                _ := XGetWindowProperty(display,
+                                        event.xselection.requestor,
+                                        event.xselection.property,
+                                        0,
+                                        LONG_MAX,
+                                        False,
+                                        event.xselection.target,
+                                        *actual_type,
+                                        *actual_format,
+                                        *result,
+                                        *octets_après,
+                                        *data);
+
+                si result == 0 {
+                    continue;
+                }
+
+                si data {
+                    mime_type := XGetAtomName(display, format)
+
+                    évènement := tableau_ajoute_élément(*__évènements)
+                    évènement.type = TypeÉvènement.Déposer
+
+                    mime := tableau_ajoute_élément(*évènement.mimes)
+                    mime.type = convertis_chaine_c(ChaineC(mime_type))
+                    mime.données = convertis_chaine_c(ChaineC(data comme *z8))
+
+                    _ := XFree(data)
+                }
+
+                si version >= 2 {
+                    reply: XEvent
+                    reply.type = ClientMessage;
+                    reply.xclient.window = source;
+                    reply.xclient.format = 32;
+                    reply.xclient.message_type = XdndFinished;
+                    l: [5]z64
+                    l[0] = window comme z64;
+                    l[1] = result comme z64
+                    l[2] = XdndActionCopy comme z64
+                    reply.xclient.data.l = l
+
+                    _ := XSendEvent(display, source, False, NoEventMask, *reply);
+                    _ := XFlush(display);
+
+                    fenêtre.données_x11.format = None comme n64
+                    fenêtre.données_x11.version = 0
+                    fenêtre.données_x11.source = 0
+                }
+            }
+        }
+    }
+}
+
+x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl données_x11: *DonnéesX11)
+{
+    reply: XEvent
+    reply.type = ClientMessage;
+    reply.xclient.window = source;
+    reply.xclient.format = 32;
+    l: [5]z64
+    l[0] = window comme z64;
+    reply.xclient.data.l = l
+
+    si xclient_event.message_type == XdndEnter {
+        format = None comme Atom
+
+        client_data := xclient_event.data.l
+
+        est_liste := client_data[1] & 1;
+
+        source = client_data[0] comme XID
+        version = client_data[1] >> 24;
+
+        si version > 5 {
+            imprimeln("X11 : version glissage/déposage non-supportée : %", version)
+            retourne
+        }
+
+        formats: *Atom
+        formats_réel: [6]Atom
+        compte: n64
+
+        si est_liste {
+            actual_type: Atom
+            actual_format: z32
+            octets_après: n64
+
+            LONG_MAX :: 0xffffffffffffffff
+
+            _ := XGetWindowProperty(display,
+                                    source,
+                                    XdndTypeList,
+                                    0,
+                                    LONG_MAX,
+                                    False,
+                                    4,
+                                    *actual_type,
+                                    *actual_format,
+                                    *compte,
+                                    *octets_après,
+                                    *formats comme **n8);
+        }
+        sinon {
+            compte = 0;
+
+            si client_data[2] != None {
+                formats_réel[compte] = client_data[2] comme Atom
+                compte += 1
+            }
+            si client_data[3] != None {
+                formats_réel[compte] = client_data[3] comme Atom
+                compte += 1
+            }
+            si client_data[4] != None {
+                formats_réel[compte] = client_data[4] comme Atom
+                compte += 1
+            }
+
+            formats = *formats_réel[0];
+        }
+
+        pour compte {
+            si formats_réel[it] == XtextUriList || formats_réel[it] == XtextPlain {
+                format = formats_réel[it]
+            }
+        }
+
+        si est_liste {
+            _ := XFree(formats);
+        }
+
+        retourne;
+    }
+
+    si xclient_event.message_type == XdndPosition && version <= 5 {
+        client_data := xclient_event.data.l
+
+        xabs := ((client_data[2] >> 16) & 0xffff) comme z32
+        yabs := ((client_data[2]) & 0xffff) comme z32
+
+        dummy: Window
+        xpos: z32
+        ypos: z32
+
+        _ := XTranslateCoordinates(display, XDefaultRootWindow(display), window, xabs, yabs, *xpos, *ypos, *dummy);
+
+        reply.xclient.message_type = XdndStatus
+
+        si format != (None comme Atom) {
+            l[1] = 1;
+            si version >= 2 {
+                l[4] = XdndActionCopy comme z64;
+            }
+        }
+
+        reply.xclient.data.l = l
+
+        _ := XSendEvent(display, source, False, NoEventMask, *reply);
+        _ := XFlush(display);
+        retourne;
+    }
+
+    si xclient_event.message_type == XdndDrop && version <= 5 {
+        si format != (None comme Atom) {
+            time := CurrentTime;
+
+            si version >= 1 {
+                client_data := xclient_event.data.l
+                time = client_data[2];
+            }
+
+            _ := XConvertSelection(display, XdndSelection, format, XdndSelection, window, time comme n64);
+        }
+        // Nous rejetons le déposage.
+        sinon si version >= 2 {
+            reply.xclient.message_type = XdndFinished;
+
+            _ := XSendEvent(display, source, False, NoEventMask, *reply);
+            _ := XFlush(display);
+
+            format = None comme n64
+            version = 0
+            source = 0
+        }
+
+        retourne
     }
 }
 
