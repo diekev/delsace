@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 importe MIME
 importe OpenGL
 importe Périphériques
@@ -579,6 +580,9 @@ DonnéesX11 :: struct {
     xic: XIC
     wm_delete_window: Atom
 
+    /* Atomes généraux. */
+    NET_WM_WINDOW_OPACITY: Atom
+
     /* Atomes pour le glissage/déposage. */
     XdndTypeList: Atom
     XdndSelection: Atom
@@ -684,11 +688,11 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_éc
 
     x11_définis_titre_fenêtre(display, window, titre)
 
+    __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False)
+
     /* fetching data */
     __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
     __données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
-
-    /* client messages */
 
     /* client messages */
     __données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
@@ -832,9 +836,17 @@ x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre @inutilisée) -> r64
     retourne 1.0
 }
 
-x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre @inutilisée, opacité: r64 @inutilisée)
+x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    assert(fenêtre.données_x11 != nul)
+
+    empl x11 := fenêtre.données_x11
+
+    opacité = restreint(0.0 comme r64, opacité, 1.0)
+    entier_opacité := (opacité * 255.0) comme n8 comme n64
+    valeur := entier_opacité << 24 | 0xffffff
+
+    _ := XChangeProperty(display, window, NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, *valeur comme *n8, 1);
 }
 
 x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
