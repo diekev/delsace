@@ -10,13 +10,13 @@ SystèmeFenêtre :: énum {
     NATIVE
 }
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
 {
     si système == SystèmeFenêtre.NATIVE {
-        retourne x11_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
+        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
     }
 
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
 }
 
 ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
@@ -231,7 +231,7 @@ __application_qt: *QT_Application
 __taille_arguments_qt: z32 = ---
 __rappels_window: RappelsWindow = ---
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
 {
     assert(__application_qt == nul)
 
@@ -258,7 +258,7 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
 
     QT_window_resize(window, largeur, hauteur)
 
-    si plein_écran {
+    si maximisée {
         QT_window_show_maximized(window)
     }
     sinon {
@@ -609,7 +609,7 @@ DonnéesX11 :: struct {
 
 __données_x11: DonnéesX11
 
-x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
+x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
 {
     display := XOpenDisplay(nul)
     si display == nul {
