@@ -2605,33 +2605,22 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         return analyse_déclaration_type_fonction(lexème_mot_clé);
     }
 
+    auto bloc_parent = m_contexte->assembleuse->bloc_courant();
+
     empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
-
-    auto noeud = m_contexte->assembleuse->crée_entête_fonction(lexème);
-
-    // @concurrence critique, si nous avons plusieurs définitions
-    if (noeud->ident == ID::principale) {
-        if (m_unité->espace->fonction_principale) {
-            m_unité->espace
-                ->rapporte_erreur(noeud, "Redéfinition de la fonction principale pour cet espace.")
-                .ajoute_message("La fonction principale fut déjà définie ici :\n")
-                .ajoute_site(m_unité->espace->fonction_principale);
-        }
-
-        m_unité->espace->fonction_principale = noeud;
-        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-    }
 
     auto lexème_bloc = lexème_courant();
     consomme(GenreLexème::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_contexte->assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::CONSTANTES);
-    noeud->bloc_paramètres = m_contexte->assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
+    /* À FAIRE : évite de créer des blocs à tout va (nous pourrions avoir une déclaration de type
+     * de fonction) */
+    auto bloc_constantes = m_contexte->assembleuse->empile_bloc(
+        lexème_bloc, nullptr, TypeBloc::CONSTANTES);
+    auto bloc_paramètres = m_contexte->assembleuse->empile_bloc(
+        lexème_bloc, nullptr, TypeBloc::PARAMÈTRES);
 
-    bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+    bloc_constantes_polymorphiques.empile(bloc_constantes);
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2660,33 +2649,97 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         consomme();
     }
 
-    copie_tablet_tableau(params, noeud->params);
-
     consomme(GenreLexème::PARENTHESE_FERMANTE,
              "Attendu ')' à la fin des paramètres de la fonction");
 
-    // nous avons la déclaration d'une fonction
-    if (apparie(GenreLexème::RETOUR_TYPE)) {
-        consomme();
-        analyse_expression_retour_type(noeud, false);
+    auto params_sortie = kuri::tablet<NoeudExpression *, 16>();
+    parse_paramètres_de_sortie(params_sortie, false);
+
+    ignore_point_virgule_implicite();
+
+    sauvegarde_position_lexème();
+
+    auto lexème_suivant_défini_fonction = false;
+    while (!fini()) {
+        auto lexème_spéculatif = lexème_courant();
+        if (lexème_spéculatif->genre == GenreLexème::DIRECTIVE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        if (lexème_spéculatif->genre == GenreLexème::POUSSE_CONTEXTE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        if (lexème_spéculatif->genre == GenreLexème::ACCOLADE_OUVRANTE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        break;
     }
-    else {
-        Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(
-            lexème, GenreLexème::RIEN, "");
 
-        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
-        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
+    restaure_position_lexème();
 
-        noeud->params_sorties.ajoute(decl);
-        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+    // À FAIRE : nous_sommes_dans_une_déclaration_de_type
+    if (!lexème_suivant_défini_fonction) {
+        /* dépile le bloc des paramètres */
+        m_contexte->assembleuse->dépile_bloc();
+
+        /* dépile le bloc des constantes */
+        m_contexte->assembleuse->dépile_bloc();
+
+        dbg() << "Type fonction...";
+        /* Nous avons une déclaration de type de fonction. */
+        auto résultat = m_contexte->assembleuse->crée_expression_type_fonction(lexème);
+        résultat->bloc_parent = bloc_parent;
+        copie_tablet_tableau(params, résultat->types_entrée);
+        copie_tablet_tableau(params_sortie, résultat->types_sortie);
+        return résultat;
     }
 
-    auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+    auto noeud = m_contexte->assembleuse->crée_entête_fonction(lexème);
+    noeud->bloc_parent = bloc_parent;
+
+    // @concurrence critique, si nous avons plusieurs définitions
+    if (noeud->ident == ID::principale) {
+        if (m_unité->espace->fonction_principale) {
+            m_unité->espace
+                ->rapporte_erreur(noeud, "Redéfinition de la fonction principale pour cet espace.")
+                .ajoute_message("La fonction principale fut déjà définie ici :\n")
+                .ajoute_site(m_unité->espace->fonction_principale);
+        }
+
+        m_unité->espace->fonction_principale = noeud;
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+    }
+
+    noeud->bloc_constantes = bloc_constantes;
+    bloc_constantes->appartiens_à_fonction = noeud;
+    noeud->bloc_paramètres = bloc_paramètres;
+    bloc_paramètres->appartiens_à_fonction = noeud;
+
+    auto bloc_constantes_courant = bloc_constantes_polymorphiques.depile();
+    assert(bloc_constantes_courant == bloc_constantes);
     if (bloc_constantes->nombre_de_rubriques() != 0) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
 
-    ignore_point_virgule_implicite();
+    copie_tablet_tableau(params, noeud->params);
+    copie_tablet_tableau(params_sortie, noeud->params_sorties);
+
+    if (noeud->params_sorties.taille() > 1) {
+        /* il nous faut un identifiant valide */
+        noeud->param_sortie = m_contexte->assembleuse->crée_déclaration_variable(
+            noeud->params_sorties[0]->lexème, nullptr, nullptr);
+        noeud->param_sortie->ident = m_compilatrice.table_identifiants
+                                         ->identifiant_pour_nouvelle_chaine("valeur_de_retour");
+    }
+    else {
+        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+    }
+
     analyse_directives_fonction(noeud);
 
     if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -2726,6 +2779,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
             noeud_corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
             noeud_corps->bloc->ident = noeud->ident;
         }
+
+        noeud_corps->bloc_parent = bloc_paramètres;
 
         analyse_annotations(noeud->annotations);
         fonctions_courantes.depile();
@@ -3157,10 +3212,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         consomme(GenreLexème::PARENTHESE_FERMANTE,
                  "Attendu ')' à la fin des paramètres de la fonction");
 
-        /* analyse les types de retour de la fonction */
-        consomme(GenreLexème::RETOUR_TYPE, "Attendu un retour de type");
+        auto params_sortie = kuri::tablet<NoeudExpression *, 16>();
+        parse_paramètres_de_sortie(params_sortie, true);
 
-        analyse_expression_retour_type(noeud, true);
+        if (params_sortie.taille() == 1) {
+            copie_tablet_tableau(params_sortie, noeud->params_sorties);
+            noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+        }
+
         analyse_directives_opérateur(noeud);
 
         if (!noeud->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
@@ -3281,9 +3340,27 @@ void Syntaxeuse::analyse_directives_opérateur(NoeudDéclarationEntêteFonction 
     kuri::copie_tablet_tableau(directives, noeud->directives);
 }
 
-void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
-                                                bool pour_opérateur)
+void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16> &résultat,
+                                            bool pour_opérateur)
 {
+    if (apparie(GenreLexème::RETOUR_TYPE)) {
+        consomme();
+    }
+    else {
+        if (pour_opérateur) {
+            rapporte_erreur("Attendu '->' pour le déclarer le résultat de l'opérateur");
+            return;
+        }
+
+        Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
+
+        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
+        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
+
+        résultat.ajoute(decl);
+        return;
+    }
+
     auto eu_parenthèse = false;
     if (apparie(GenreLexème::PARENTHESE_OUVRANTE)) {
         consomme();
@@ -3299,8 +3376,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
         }
 
         if (!decl_sortie->est_déclaration_variable()) {
-            auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(
-                noeud->params_sorties.taille());
+            auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(int32_t(résultat.taille()));
 
             auto decl = m_contexte->assembleuse->crée_déclaration_variable(
                 decl_sortie->lexème, nullptr, decl_sortie);
@@ -3313,7 +3389,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
 
         decl_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
-        noeud->params_sorties.ajoute(decl_sortie->comme_déclaration_variable());
+        résultat.ajoute(decl_sortie->comme_déclaration_variable());
 
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
@@ -3322,7 +3398,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
         consomme();
     }
 
-    auto const nombre_de_valeurs_retournées = noeud->params_sorties.taille();
+    auto const nombre_de_valeurs_retournées = résultat.taille();
     if (nombre_de_valeurs_retournées == 0) {
         rapporte_erreur("Attendu au moins une déclaration de valeur retournée");
         return;
@@ -3333,18 +3409,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
             rapporte_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
             return;
         }
-
-        /* il nous faut un identifiant valide */
-        noeud->param_sortie = m_contexte->assembleuse->crée_déclaration_variable(
-            noeud->params_sorties[0]->lexème, nullptr, nullptr);
-        noeud->param_sortie->ident = m_compilatrice.table_identifiants
-                                         ->identifiant_pour_nouvelle_chaine("valeur_de_retour");
     }
-    else {
-        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
-    }
-
-    noeud->param_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
     if (eu_parenthèse) {
         consomme(GenreLexème::PARENTHESE_FERMANTE,
