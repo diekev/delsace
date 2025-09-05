@@ -830,10 +830,40 @@ x11_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_
     imprimeln("À FAIRE : %", #nom_de_cette_fonction)
 }
 
-x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre @inutilisée) -> r64
+x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
-    retourne 1.0
+    assert(fenêtre.données_x11 != nul)
+
+    empl x11 := fenêtre.données_x11
+
+    data: *n8;
+    result: n64;
+
+    actual_type: Atom = XA_CARDINAL
+    actual_format: z32
+    octets_après: n64
+
+    _ := XGetWindowProperty(display,
+                            window,
+                            NET_WM_WINDOW_OPACITY,
+                            0,
+                            32,
+                            False,
+                            XA_CARDINAL,
+                            *actual_type,
+                            *actual_format,
+                            *result,
+                            *octets_après,
+                            *data);
+
+    entier_opacité := mémoire(data comme *n64) comme n32
+    valeur := (entier_opacité >> 24)
+
+    si data {
+        _ := XFree(data)
+    }
+
+    retourne valeur comme r64 / 255.0
 }
 
 x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
