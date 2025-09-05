@@ -15,28 +15,60 @@ TypeCurseurSystème :: énum {
     FLÈCHE
     /* Curseur en forme de I pour indiquer une insertion de texte. */
     TEXTE
+    TEXTE_VERTICAL
     /* Curseur indiquant d'attendre sur une tâche. */
     ATTENTE
     /* Curseur en forme de cible. */
     CROIX
-    /* Flèche avec une attente. */
+    /* Curseur indiquant un progrès, que quelque chose est en progrès. */
     FLÈCHE_AVEC_ATTENTE
-    /* Double flèche diagonale pointant nord-ouest sud-est. */
-    FLÈCHE_DOUBLE_NOSE
-    /* Double flèche diagonale pointant nord-est sud-ouest. */
-    FLÈCHE_DOUBLE_NESO
-    /* Double flèche horizontale. */
-    FLÈCHE_DOUBLE_HORIZONTALE
-    /* Double flèche verticale. */
-    FLÈCHE_DOUBLE_VERTICALE
-    /* Superposition de toutes les doubles flèches. */
-    FLÈCHE_DOUBLE_TOUT
+    PROGRÈS :: FLÈCHE_AVEC_ATTENTE
     /* Curseur indiquant que quelque chose est interdit. */
     INTERDIT
     /* Curseur représentant une main ouverte. */
     MAIN_OUVERTE
     /* Curseur représentant une main fermée. */
     MAIN_FERMÉE
+    /* Curseur représentant une main pointant sur quelque chose. */
+    MAIN_POINTANT
+    /* Curseur en forme de point d'interrogation. */
+    POINT_D_INTERROGATION
+    /* Curseur indiquant qu'un menu contextuel est disponible */
+    MENU_CONTEXTUEL
+    /* Cellule pour les tableurs. */
+    CELLULE
+    /* Curseur indiquant qu'un alias ou raccourci sera créé. */
+    ALIAS
+    /* Curseur indiquant qu'une copie sera créée. */
+    COPIE
+    /* L'objet survolé devra être déplacé. */
+    DÉPLACEMENT
+    /* Le curseur indique qu'on ne peut déposer d'élément à cet endroit. */
+    DÉPOSAGE_INTERDIT
+    /* Le curseur indique qu'on peut faire défiler le contenu dans n'importe quelle direction. */
+    DÉFILAGE_OMNI
+    /* L'élément ou la colonne peut être redimensionné horizontalement. */
+    REDIMENSIONNEMENT_COLONNE
+    /* L'élément ou la ligne peut être redimensionné verticalement. */
+    REDIMENSIONNEMENT_LIGNE
+    /* Redimensionnement vers des points cardinaux. */
+    REDIMENSIONNEMENT_EST
+    REDIMENSIONNEMENT_NORD
+    REDIMENSIONNEMENT_NORD_EST
+    REDIMENSIONNEMENT_NORD_OUEST
+    REDIMENSIONNEMENT_SUD
+    REDIMENSIONNEMENT_SUD_EST
+    REDIMENSIONNEMENT_SUD_OUEST
+    REDIMENSIONNEMENT_OUEST
+    REDIMENSIONNEMENT_EST_OUEST
+    REDIMENSIONNEMENT_NORD_SUD
+    REDIMENSIONNEMENT_NORD_EST_SUD_OUEST
+    REDIMENSIONNEMENT_NORD_OUEST_SUD_EST
+    REDIMENSIONNEMENT_NORD_SUD_EST_OUEST
+    /* Le pointeur indique qu'on peut zoomer sur le contenu. */
+    ZOOM
+    /* Le pointeur indique qu'on peut dézoomer sur le contenu. */
+    DÉZOOM
 }
 
 /** \} */

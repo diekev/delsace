@@ -380,13 +380,26 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
         MAIN_FERMÉE { retourne QT_CursorShape.CLOSED_HAND }
         TEXTE { retourne QT_CursorShape.IBEAM }
         CROIX { retourne QT_CursorShape.CROSS }
-        FLÈCHE_DOUBLE_TOUT { retourne QT_CursorShape.SIZE_ALL }
-        FLÈCHE_DOUBLE_NOSE { retourne QT_CursorShape.SIZE_FDIALOG }
-        FLÈCHE_DOUBLE_NESO { retourne QT_CursorShape.SIZE_BDIALOG }
-        FLÈCHE_DOUBLE_VERTICALE { retourne QT_CursorShape.SIZE_VERTICAL }
-        FLÈCHE_DOUBLE_HORIZONTALE { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL }
+        REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW }
+        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_VERTICAL }
+        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_NORD_EST_SUD_OUEST { QT_CursorShape.SIZE_BDIALOG }
+        REDIMENSIONNEMENT_NORD_OUEST_SUD_EST { QT_CursorShape.SIZE_FDIALOG }
+        MAIN_POINTANT { QT_CursorShape.POINTING_HAND }
         INTERDIT { retourne QT_CursorShape.FORBIDDEN }
+        POINT_D_INTERROGATION { retourne QT_CursorShape.WHATS_THIS }
+        COPIE { retourne QT_CursorShape.DRAG_COPY }
+        DÉPLACEMENT { retourne QT_CursorShape.DRAG_MOVE }
+        ALIAS { retourne QT_CursorShape.DRAG_LINK }
+        sinon {}
     }
+
+    // Non-supportés
+    // SPLIT_VERTICAL
+    // SPLIT_HORIZONTAL
+    // BITMAP
+    // CUSTOM
 
     retourne QT_CursorShape.ARROW
 }
