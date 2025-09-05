@@ -17,7 +17,7 @@ principale :: fonc ()
     codepoint: n32 = 'A' comme n32
 
     chemin: Chemin
-    fenêtre := charge_chemin_depuis_caractètre(chemin_fonte, codepoint, *chemin)
+    _ := charge_chemin_depuis_caractètre(chemin_fonte, codepoint, *chemin)
 
     fenêtre := crée_fenêtre(800, 600, "Outline FreeType", vrai)
 
