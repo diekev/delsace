@@ -404,6 +404,11 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
     retourne QT_CursorShape.ARROW
 }
 
+QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
+{
+    QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
+}
+
 /** } */
 
 /* ------------------------------------------------------------------------- */

@@ -318,7 +318,7 @@ qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystèm
 {
     assert(fenêtre.rappels_window != nul)
     assert(fenêtre.rappels_window.window != nul)
-    QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
+    QT_gui_application_definis_curseur(curseur)
 }
 
 qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
