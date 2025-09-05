@@ -385,6 +385,16 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         }
         case GenreNoeud::POINTEUR:
         {
+            if (type_de->est_type_type_de_données()) {
+                /* Les type_de_données sont des références vers les infos-types. */
+                auto type_pointé = type_vers->comme_type_pointeur()->type_pointé;
+                if (type_pointé->possède_drapeau(DrapeauxTypes::EST_TYPE_INFO_TYPE)) {
+                    return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                                              type_vers};
+                }
+                return TransformationType(TypeTransformation::IMPOSSIBLE);
+            }
+
             if (type_de->est_type_pointeur()) {
                 auto type_pointe_de = type_de->comme_type_pointeur()->type_pointé;
                 auto type_pointe_vers = type_vers->comme_type_pointeur()->type_pointé;

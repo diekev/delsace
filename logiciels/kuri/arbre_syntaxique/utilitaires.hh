@@ -121,6 +121,9 @@ enum class PositionCodeNoeud : uint8_t {
     DROITE_CONTRAINTE_POLYMORPHIQUE = (1u << 5),
     /* Le noeud est dans info_de(). */
     EXPRESSION_INFO_DE = (1u << 6),
+    /* Le noeud est dans une expression de type (à droite de ':' dans les déclarations de
+       variables). */
+    EXPRESSION_TYPE = (1u << 7),
 };
 DEFINIS_OPERATEURS_DRAPEAU(PositionCodeNoeud)
 
@@ -291,6 +294,7 @@ enum class DrapeauxTypes : uint32_t {
     UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
     INITIALISATION_TYPE_FUT_REQUISE = (1u << 10),
     POSSEDE_TYPE_TRANCHE = (1u << 11),
+    EST_TYPE_INFO_TYPE = (1u << 12),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTypes)
 

@@ -105,6 +105,8 @@ std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const position)
     SI_DRAPEAU_UTILISE(EXPRESSION_BLOC_SI)
     SI_DRAPEAU_UTILISE(EXPRESSION_TEST_DISCRIMINATION)
     SI_DRAPEAU_UTILISE(DROITE_CONTRAINTE_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(EXPRESSION_INFO_DE)
+    SI_DRAPEAU_UTILISE(EXPRESSION_TYPE)
 
     auto virgule = "";
 
@@ -520,7 +522,9 @@ static void aplatis_arbre(NoeudExpression *racine,
              * la déclaration n'est dans aucun bloc. */
             if (!opaque->expression_type->possède_drapeau(
                     DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-                aplatis_arbre(opaque->expression_type, arbre_aplatis, position);
+                aplatis_arbre(opaque->expression_type,
+                              arbre_aplatis,
+                              position | PositionCodeNoeud::EXPRESSION_TYPE);
             }
             arbre_aplatis.ajoute(racine);
             break;
@@ -533,7 +537,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                 expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
 
             arbre_aplatis.ajoute(expr);
 
@@ -548,7 +553,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                 expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
 
             arbre_aplatis.ajoute(expr);
 
@@ -564,7 +570,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                           position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(constante->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
             arbre_aplatis.ajoute(constante);
             break;
         }
@@ -599,7 +606,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             aplatis_arbre(expr->expression, arbre_aplatis, position);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
             arbre_aplatis.ajoute(expr);
             break;
         }
@@ -739,7 +747,9 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto tableau = racine->comme_construction_tableau_typé();
             tableau->position |= position;
-            aplatis_arbre(tableau->expression_type, arbre_aplatis, position);
+            aplatis_arbre(tableau->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             aplatis_arbre(tableau->expression, arbre_aplatis, position);
             arbre_aplatis.ajoute(tableau);
             break;
@@ -1027,21 +1037,27 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_expression_type_tableau_fixe();
             aplatis_arbre(expr->expression_taille, arbre_aplatis, position);
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         {
             auto expr = racine->comme_expression_type_tableau_dynamique();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             arbre_aplatis.ajoute(expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
         {
             auto expr = racine->comme_expression_type_tranche();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             arbre_aplatis.ajoute(expr);
             break;
         }

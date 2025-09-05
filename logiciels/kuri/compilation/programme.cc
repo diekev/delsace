@@ -1034,7 +1034,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
             continue;
         }
 
-        if (!atome_table_des_types) {
+        if (!atome_table_des_types && !m_programme.possède_info_de(it)) {
             /* La table n'est pas requise, ignorons-le. */
             continue;
         }
@@ -1361,6 +1361,10 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
     kuri::ensemble<Type const *> types_utilisés;
     POUR (m_résultat.globales) {
         types_utilisés.insère(it->donne_type_alloué());
+    }
+
+    POUR (m_programme.info_de()) {
+        types_utilisés.insère(it);
     }
 
     POUR (m_résultat.fonctions) {

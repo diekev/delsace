@@ -1753,11 +1753,10 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            // utilisation du pointeur directement au lieu de l'index car la table de type
-            // n'est pas implémentée, et il y a des concurrences critiques entre les
-            // métaprogrammes
-            auto type = atome->comme_constante_type()->type_de_données;
-            chunk.émets_constante(reinterpret_cast<int64_t>(type));
+            auto type = atome->comme_constante_type()->donne_type();
+            assert_rappel(type->atome_info_type,
+                          [&]() { dbg() << "Pas d'atome_info_type pour " << chaine_type(type); });
+            chunk.émets_référence_globale(nullptr, type->atome_info_type->index);
             break;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
@@ -2013,11 +2012,11 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            // utilisation du pointeur directement au lieu de l'index car la table de type
-            // n'est pas implémentée, et il y a des concurrences critiques entre les
-            // métaprogrammes
-            auto type = atome->comme_constante_type()->type_de_données;
-            assigne(destination, type);
+            auto type = atome->comme_constante_type()->donne_type();
+            assert_rappel(type->atome_info_type,
+                          [&]() { dbg() << "Pas d'atome_info_type pour " << chaine_type(type); });
+            auto globale = données_exécutions->globales[type->atome_info_type->index];
+            ajoute_réadressage_pour_globale(globale, adressage_destination, décalage);
             break;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:

@@ -2110,7 +2110,7 @@ bool est_type_pointeur_nul(Type const *type)
 }
 
 ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                       Type const *type_a_tester)
+                                                                        Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
     int indice_rubrique = -1;
@@ -2221,12 +2221,6 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     }
 
     if (type->est_type_bool()) {
-        return true;
-    }
-
-    if (type->est_type_type_de_données()) {
-        /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
-         * leurs valeurs dépends de l'index du type dans ladite table. */
         return true;
     }
 

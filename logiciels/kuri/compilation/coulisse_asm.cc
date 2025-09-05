@@ -290,7 +290,8 @@ class ConstructriceHuitoctets {
 
     void ajoute_rembourrage(uint32_t rembourrage)
     {
-        assert((indice_huitoctet * 8) + données[indice_huitoctet].taille_types + rembourrage <= 32);
+        assert((indice_huitoctet * 8) + données[indice_huitoctet].taille_types + rembourrage <=
+               32);
 
         while (rembourrage > 0) {
             auto à_rembourrer = std::min(8 - données[indice_huitoctet].taille_types, rembourrage);
@@ -899,7 +900,8 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
 
         auto rangée = RangéeHuitoctetsType{};
         rangée.indice_premier_inclusif = int32_t(m_huitoctets_types.taille());
-        rangée.indice_dernier_exclusif = rangée.indice_premier_inclusif + int32_t(résultat.taille());
+        rangée.indice_dernier_exclusif = rangée.indice_premier_inclusif +
+                                         int32_t(résultat.taille());
 
         POUR (résultat) {
             m_huitoctets_types.ajoute(it);
@@ -2007,9 +2009,7 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto constante_type = atome->comme_constante_type();
-            auto type = constante_type->donne_type();
-            assembleuse.push_immédiate_64(type->indice_dans_table_types);
+            VERIFIE_NON_ATTEINT;
             return;
         }
         case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
@@ -2201,10 +2201,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         }
         case Atome::Genre::CONSTANTE_TYPE:
         {
-            auto constante_type = initialisateur->comme_constante_type();
-            auto type = constante_type->donne_type();
-            enchaineuse << chaine_indentations_espace(profondeur) << "dq "
-                        << type->indice_dans_table_types << NOUVELLE_LIGNE;
+            VERIFIE_NON_ATTEINT;
             return;
         }
         case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
@@ -4027,12 +4024,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             src = registre;
         }
         else if (source->est_constante_type()) {
-            auto constante_type = source->comme_constante_type();
-            auto type = constante_type->donne_type();
-            auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.mov(
-                registre, AssembleuseASM::Immédiate64{type->indice_dans_table_types}, 8);
-            src = registre;
+            VERIFIE_NON_ATTEINT;
         }
         else if (source->est_instruction()) {
             génère_code_pour_atome(source, assembleuse, UtilisationAtome::AUCUNE);

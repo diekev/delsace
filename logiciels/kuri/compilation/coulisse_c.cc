@@ -1205,7 +1205,13 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_TYPE:
         {
             auto type = atome->comme_constante_type()->donne_type();
-            return enchaine(type->indice_dans_table_types);
+            /* Il est possible qu'une constante type soit utilisée pour un type */
+            assert_rappel(type->atome_info_type != nullptr, [&]() {
+                dbg() << "Le type ne possède pas d'atome_info_type : " << chaine_type(type)
+                      << " (info " << type->info_type << ")";
+            });
+            auto nom_globale = donne_nom_pour_globale(type->atome_info_type, false);
+            return enchaine("(int64_t)&", nom_globale);
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {

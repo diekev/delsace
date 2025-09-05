@@ -603,6 +603,18 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 ajoute_info_de(
                     info_de->expression->type->comme_type_type_de_données()->type_connu);
             }
+            else if (noeud->est_référence_type()) {
+                if (noeud->type && (noeud->position & PositionCodeNoeud::EXPRESSION_TYPE) ==
+                                       PositionCodeNoeud::AUCUNE) {
+                    auto type_de_données = noeud->type->comme_type_type_de_données();
+                    if (type_de_données->type_connu) {
+                        ajoute_info_de(type_de_données->type_connu);
+                    }
+                    else {
+                        ajoute_info_de(type_de_données);
+                    }
+                }
+            }
 
             return DecisionVisiteNoeud::CONTINUE;
         });

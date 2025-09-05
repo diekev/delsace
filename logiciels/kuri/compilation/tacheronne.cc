@@ -124,7 +124,7 @@ void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
     tâches[indice_file].enfile(tache);
 
     pique_taille.tâches[indice_file] = std::max(pique_taille.tâches[indice_file],
-                                               tâches[indice_file].taille());
+                                                tâches[indice_file].taille());
 }
 
 int64_t OrdonnanceuseTache::nombre_de_tâches_en_attente() const
@@ -876,9 +876,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
-            type_de_donnees = compilatrice.typeuse.type_type_de_donnees(type_de_donnees);
-            return assembleuse->crée_référence_type(lexeme, type_de_donnees);
+            // auto info_type = *reinterpret_cast<InfoType **>(pointeur);
+            espace->rapporte_erreur(directive,
+                                    "Il n'est pour le moment pas possible de retourner un "
+                                    "type_de_données depuis un métaprogramme");
+            return nullptr;
         }
         case GenreNoeud::FONCTION:
         {

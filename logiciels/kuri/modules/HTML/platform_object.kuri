@@ -244,10 +244,10 @@ détermine_indice_prototype :: fonc (type: type_de_données) -> z64
 
     types_à_essayer := type_de_données.[HTMLElement, Element, Node, EventTarget]
 
-    infos := __table_des_types[type] comme *InfoTypeStructure
+    infos := type comme *InfoTypeStructure
 
     pour types_à_essayer {
-        infos_à_essayer := __table_des_types[it] comme *InfoTypeStructure
+        infos_à_essayer := it comme *InfoTypeStructure
         saufsi est_struct_ou_employeuse_de(infos, infos_à_essayer) {
             continue
         }

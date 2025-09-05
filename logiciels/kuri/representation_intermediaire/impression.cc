@@ -133,7 +133,7 @@ static void imprime_atome_ex(Atome const *atome,
         case Atome::Genre::CONSTANTE_TYPE:
         {
             os << chaine_type(atome->type, options) << ' '
-               << atome->comme_constante_type()->type_de_données->indice_dans_table_types;
+               << chaine_type(atome->comme_constante_type()->donne_type(), options);
             break;
         }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
