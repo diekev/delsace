@@ -6,6 +6,73 @@ Status :: z32
 False :: 0
 True :: 1
 
+x11_imprime_erreur :: fonc (code: z32, message: chaine)
+{
+    chaine_code := ""
+
+    discr code {
+        Success {
+            retourne
+        }
+        BadRequest {
+            chaine_code = "mauvaise requête"
+        }
+        BadValue {
+            chaine_code = "mauvaise valeur"
+        }
+        BadWindow {
+            chaine_code = "mauvaise fenêtre"
+        }
+        BadPixmap {
+            chaine_code = "mauvaise pixmap"
+        }
+        BadAtom {
+            chaine_code = "mauvais atome"
+        }
+        BadCursor {
+            chaine_code = "mauvais curseur"
+        }
+        BadFont {
+            chaine_code = "mauvaise fonte"
+        }
+        BadMatch {
+            chaine_code = "mauvais appariement"
+        }
+        BadDrawable {
+            chaine_code = "mauvais dessinable"
+        }
+        BadAccess {
+            chaine_code = "mauvais accès"
+        }
+        BadAlloc {
+            chaine_code = "mauvaise allocation"
+        }
+        BadColor {
+            chaine_code = "mauvaise couleur"
+        }
+        BadGC {
+            chaine_code = "le paramètre n'est pas un contexte de graphisme"
+        }
+        BadIDChoice {
+            chaine_code = "l'identifiant choisit n'est hors de portée ou déjà pris"
+        }
+        BadName {
+            chaine_code = "le nom n'existe pas"
+        }
+        BadLength {
+            chaine_code = "taille incorrecte"
+        }
+        BadImplementation {
+            chaine_code = "défut du serveur"
+        }
+        sinon {
+            chaine_code = "erreur inconnue"
+        }
+    }
+
+    imprimeln("X11 : % : %", message, chaine_code)
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Définitions et macros définis par X.h
  * \{ */
