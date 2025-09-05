@@ -3323,6 +3323,10 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                          return DecisionVisiteNoeud::IGNORE_ENFANTS;
                      }
 
+                     if (noeud->est_expression_type_fonction()) {
+                         return DecisionVisiteNoeud::IGNORE_ENFANTS;
+                     }
+
                      if (!noeud->est_déclaration()) {
                          return DecisionVisiteNoeud::CONTINUE;
                      }
@@ -6794,6 +6798,9 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
 
     for (auto i = 0; i < expr->types_entrée.taille(); ++i) {
         NoeudExpression *type_entree = expr->types_entrée[i];
+        if (type_entree->est_déclaration_variable()) {
+            type_entree = type_entree->comme_déclaration_variable()->expression_type;
+        }
 
         if (résoud_type_final(type_entree, types_entrees[i]) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
@@ -6809,24 +6816,21 @@ RésultatValidation Sémanticienne::valide_expression_type_fonction(
 
     Type *type_sortie = nullptr;
 
-    if (expr->types_sortie.taille() == 1) {
-        if (résoud_type_final(expr->types_sortie[0], type_sortie) ==
-            CodeRetourValidation::Erreur) {
+    kuri::tablet<RubriqueTypeComposé, 6> rubriques;
+    rubriques.réserve(expr->types_sortie.taille());
+
+    for (auto type_declare : expr->types_sortie) {
+        if (type_declare->est_déclaration_variable()) {
+            type_declare = type_declare->comme_déclaration_variable()->expression_type;
+        }
+        if (résoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
             return CodeRetourValidation::Erreur;
         }
+
+        rubriques.ajoute({nullptr, type_sortie});
     }
-    else {
-        kuri::tablet<RubriqueTypeComposé, 6> rubriques;
-        rubriques.réserve(expr->types_sortie.taille());
 
-        for (auto &type_declare : expr->types_sortie) {
-            if (résoud_type_final(type_declare, type_sortie) == CodeRetourValidation::Erreur) {
-                return CodeRetourValidation::Erreur;
-            }
-
-            rubriques.ajoute({nullptr, type_sortie});
-        }
-
+    if (rubriques.taille() > 1) {
         type_sortie = m_compilatrice.typeuse.crée_tuple(rubriques);
     }
 
