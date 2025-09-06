@@ -2,6 +2,7 @@ importe Périphériques
 
 charge "interface"
 
+Bool :: z32
 Status :: z32
 False :: 0
 True :: 1
