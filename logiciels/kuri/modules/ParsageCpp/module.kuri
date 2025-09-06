@@ -284,6 +284,10 @@ parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
         consomme(*lexeuse)
         résultat = crée_type(parseuse, TypeKind.FLOAT)
     }
+    sinon si est_mot_clé(lexème, "double") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.DOUBLE)
+    }
     sinon si est_mot_clé(lexème, "unsigned") {
         consomme(*lexeuse)
         lexème = épie_lexème_suivant(*lexeuse)
