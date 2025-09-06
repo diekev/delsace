@@ -242,6 +242,11 @@ fini :: fonc (lexeuse: *SimpleLexeuse) -> bool
     retourne lexeuse.début >= lexeuse.fin
 }
 
+consomme :: fonc (lexeuse: *SimpleLexeuse)
+{
+    _ := donne_lexème_suivant(lexeuse)
+}
+
 consomme_ponctuation :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     _ := donne_lexème(lexeuse, TypeLexème.Ponctuation, texte)
