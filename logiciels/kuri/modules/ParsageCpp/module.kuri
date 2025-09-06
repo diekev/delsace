@@ -16,3 +16,618 @@ est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
     extension := chemin.extension()
     retourne fait_partie_de(extension, ".h", ".hh", ".cc", ".cpp")
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parseuse C
+ * \{ */
+
+importe Introspection
+
+ASTNode :: struct {
+    genre := #type_de_cette_structure
+}
+
+imprime_arbre :: fonc (node: *ASTNode)
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants
+    {
+        imprime_tabulation(visiteuse.profondeur)
+        imprimeln("%", info.nom)
+        retourne VisiteEnfants.Oui
+    }
+
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode)
+    {
+        pour tableau {
+            info := __table_des_types[it.genre]
+            rappel_pour_noeud(visiteuse, it, info comme *InfoTypeStructure)
+        }
+    }
+
+    visiteuse: VisiteuseArbre(ASTNode)
+    visiteuse.rappel_pour_noeud = rappel_pour_noeud
+    visite_noeud(*visiteuse, node)
+}
+
+TypeKind :: énum {
+    CHAR
+    UNSIGNED_CHAR
+    SHORT
+    UNSIGNED_SHORT
+    INT
+    UNSIGNED_INT
+    LONG
+    UNSIGNED_LONG
+    LONG_LONG
+    UNSIGNED_LONG_LONG
+    FLOAT
+    DOUBLE
+    LONG_DOUBLE
+
+    POINTER
+
+    VOID
+
+    RECORD
+    REFERENCE // Pour TypeRef
+
+    TYPEDEF
+
+    FUNCTION
+    CONSTANT_ARRAY
+}
+
+Type :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    kind: TypeKind
+}
+
+TypeRef :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.REFERENCE
+
+    // À FAIRE : type référencé
+    nom: chaine
+}
+
+PointerType :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.POINTER
+
+    pointed_to: *Type
+}
+
+FunctionType :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.FUNCTION
+
+    return_type: *Type
+    parameters: [..]*Type
+}
+
+ConstantArray :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.CONSTANT_ARRAY
+
+    size: n64
+    element_type: *Type
+}
+
+TypedefDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.TYPEDEF
+
+    type: *Type
+    underlying_type: *Type
+}
+
+StructDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.RECORD
+
+    name: chaine
+    fields: [..]*FieldDecl
+}
+
+UnionDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.RECORD
+
+    name: chaine
+    fields: [..]*FieldDecl
+}
+
+FieldDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    name: chaine
+    type: *Type
+}
+
+ParseuseC :: struct {
+    lexeuse: SimpleLexeuse
+    noeuds: [..]*ASTNode
+
+    symbole_non_consommé_lors_du_parsage_de_type: chaine
+}
+
+initialise_parseuse :: fonc (parseuse: *ParseuseC)
+{
+    initialise_lexeuse_c(*parseuse.lexeuse)
+}
+
+crée_noeud :: fonc (parseuse: *ParseuseC, $T: type_de_données) -> *T
+{
+    résultat := loge(T)
+    tableau_ajoute(*parseuse.noeuds, résultat)
+    retourne résultat
+}
+
+crée_type :: fonc (parseuse: *ParseuseC, kind: TypeKind) -> *Type
+{
+    résultat := crée_noeud(parseuse, Type)
+    résultat.kind = kind
+    retourne résultat
+}
+
+crée_type_ref :: fonc (parseuse: *ParseuseC, nom: chaine) -> *TypeRef
+{
+    résultat := crée_noeud(parseuse, TypeRef)
+    résultat.nom = nom
+    retourne résultat
+}
+
+crée_pointer_type :: fonc (parseuse: *ParseuseC, pointed_to: *Type) -> *PointerType
+{
+    résultat := crée_noeud(parseuse, PointerType)
+    résultat.pointed_to = pointed_to
+    retourne résultat
+}
+
+crée_constant_array :: fonc (parseuse: *ParseuseC, element_type: *Type, size: n64) -> *ConstantArray
+{
+    résultat := crée_noeud(parseuse, ConstantArray)
+    résultat.element_type = element_type
+    résultat.size = size
+    retourne résultat
+}
+
+parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
+{
+    initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
+    retourne parse_typedef_decl(parseuse)
+}
+
+parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
+{
+    consomme_mot_clé(*lexeuse, "typedef")
+
+    lexème := épie_lexème_suivant(*lexeuse)
+    si lexème.type == TypeLexème.FinDeFichier {
+        imprimeln("Fin inattendu de l'entrée")
+        exit(1)
+    }
+
+    underlying_type := parse_type(parseuse)
+
+    type: *Type
+
+    lexème = épie_lexème_suivant(*lexeuse)
+    si lexème.type == TypeLexème.Symbole {
+        consomme(*lexeuse)
+        type = crée_type_ref(parseuse, donne_texte(lexème))
+    }
+    sinon si parseuse.symbole_non_consommé_lors_du_parsage_de_type {
+        type = crée_type_ref(parseuse, parseuse.symbole_non_consommé_lors_du_parsage_de_type)
+        parseuse.symbole_non_consommé_lors_du_parsage_de_type = ""
+    }
+    sinon {
+        imprimeln("Attendu un symbole pour nommé le typedef")
+        exit(1)
+    }
+
+    /* Point virgule. */
+    consomme_ponctuation(*lexeuse, ";")
+
+    résultat := crée_noeud(parseuse, TypedefDecl)
+    résultat.underlying_type = underlying_type
+    résultat.type = type
+    retourne résultat
+}
+
+parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
+{
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    // À FAIRE : gère "const"
+    si est_mot_clé(lexème, "const") {
+        consomme(*lexeuse)
+        lexème = épie_lexème_suivant(*lexeuse)
+    }
+
+    résultat: *Type
+    si est_mot_clé(lexème, "char") || est_symbole(lexème, "int8_t") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.CHAR)
+    }
+    sinon si est_mot_clé(lexème, "short") || est_symbole(lexème, "int16_t") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.SHORT)
+    }
+    sinon si est_mot_clé(lexème, "int") || est_symbole(lexème, "int32_t") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.INT)
+    }
+    sinon si est_mot_clé(lexème, "long") || est_symbole(lexème, "int64_t") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.LONG)
+    }
+    sinon si est_mot_clé(lexème, "float") {
+        consomme(*lexeuse)
+        résultat = crée_type(parseuse, TypeKind.FLOAT)
+    }
+    sinon si est_mot_clé(lexème, "unsigned") {
+        consomme(*lexeuse)
+        lexème = épie_lexème_suivant(*lexeuse)
+
+        si est_mot_clé(lexème, "char") || est_symbole(lexème, "uint8_t") {
+            consomme(*lexeuse)
+            résultat = crée_type(parseuse, TypeKind.UNSIGNED_CHAR)
+        }
+        sinon si est_mot_clé(lexème, "short") || est_symbole(lexème, "uint16_t") {
+            consomme(*lexeuse)
+            résultat = crée_type(parseuse, TypeKind.UNSIGNED_SHORT)
+        }
+        sinon si est_mot_clé(lexème, "int") || est_symbole(lexème, "uint32_t") {
+            consomme(*lexeuse)
+            résultat = crée_type(parseuse, TypeKind.UNSIGNED_INT)
+        }
+        sinon si est_mot_clé(lexème, "long") || est_symbole(lexème, "uint64_t") {
+            consomme(*lexeuse)
+            résultat = crée_type(parseuse, TypeKind.UNSIGNED_LONG)
+        }
+        sinon {
+            imprimeln("Lexème inconnu pour le parsage des typedefs : '%' (%)", donne_texte(lexème), lexème.type)
+            exit(1)
+        }
+    }
+    sinon si est_mot_clé(lexème, "struct") {
+        résultat = parse_struct_decl(parseuse)
+    }
+    sinon si est_mot_clé(lexème, "union") {
+        résultat = parse_union_decl(parseuse)
+    }
+    sinon si est_mot_clé(lexème, "void") {
+        consomme(*lexeuse)
+        // À FAIRE
+        consomme_ponctuation(*lexeuse, "(")
+
+        consomme_ponctuation(*lexeuse, "*")
+
+        lexème = donne_lexème_suivant(*lexeuse)
+        si lexème.type != TypeLexème.Symbole {
+            imprimeln("Attendu un symbole dans la définition du pointeur de fonction")
+            exit(1)
+        }
+
+        // À FAIRE : récursion
+        parseuse.symbole_non_consommé_lors_du_parsage_de_type = donne_texte(lexème)
+
+        consomme_ponctuation(*lexeuse, ")")
+
+        consomme_ponctuation(*lexeuse, "(")
+        consomme_mot_clé(*lexeuse, "void")
+        consomme_ponctuation(*lexeuse, ")")
+
+        function_type := crée_noeud(parseuse, FunctionType)
+        function_type.return_type = crée_type(parseuse, TypeKind.VOID)
+        type_paramètre := crée_type(parseuse, TypeKind.VOID)
+        tableau_ajoute(*function_type.parameters, type_paramètre)
+
+        résultat = crée_pointer_type(parseuse, function_type)
+    }
+    sinon si lexème.type == TypeLexème.Symbole {
+        consomme_symbole(*lexeuse)
+        résultat = crée_type_ref(parseuse, donne_texte(lexème))
+    }
+
+    tantque !fini(*lexeuse) {
+        lexème = épie_lexème_suivant(*lexeuse)
+
+        si est_ponctuation(lexème, "*") {
+            consomme(*lexeuse)
+            résultat = crée_pointer_type(parseuse, résultat)
+        }
+        sinon si est_mot_clé(lexème, "const") {
+            consomme(*lexeuse)
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne résultat
+}
+
+parse_struct_decl :: fonc (empl parseuse: *ParseuseC) -> *StructDecl
+{
+    consomme_mot_clé(*parseuse.lexeuse, "struct")
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    eu_nom := faux
+    nom: chaine
+    si lexème.type == TypeLexème.Symbole {
+        consomme_symbole(*lexeuse)
+        nom = donne_texte(lexème)
+        eu_nom = vrai
+
+        lexème = épie_lexème_suivant(*lexeuse)
+    }
+
+    fields: [..]*FieldDecl
+    si est_ponctuation(lexème, "{") {
+        consomme_ponctuation(*lexeuse, "{")
+        fields = parse_fields(parseuse)
+    }
+    sinon saufsi eu_nom {
+        imprimeln("Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
+        exit(1)
+    }
+
+    résultat := crée_noeud(parseuse, StructDecl)
+    résultat.name = nom
+    résultat.fields = fields
+    retourne résultat
+}
+
+parse_union_decl :: fonc (empl parseuse: *ParseuseC) -> *UnionDecl
+{
+    consomme_mot_clé(*parseuse.lexeuse, "union")
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    eu_nom := faux
+    nom: chaine
+    si lexème.type == TypeLexème.Symbole {
+        consomme_symbole(*lexeuse)
+        nom = donne_texte(lexème)
+        eu_nom = vrai
+
+        lexème = épie_lexème_suivant(*lexeuse)
+    }
+
+    fields: [..]*FieldDecl
+    si est_ponctuation(lexème, "{") {
+        consomme_ponctuation(*lexeuse, "{")
+        fields = parse_fields(parseuse)
+    }
+    sinon saufsi eu_nom {
+        imprimeln("Lexème inattendu dans le parsage de l'union : %", donne_texte(lexème))
+        exit(1)
+    }
+
+    résultat := crée_noeud(parseuse, UnionDecl)
+    résultat.name = nom
+    résultat.fields = fields
+    retourne résultat
+}
+
+parse_fields :: fonc (empl parseuse: *ParseuseC) -> [..]*FieldDecl
+{
+    résultat: [..]*FieldDecl
+
+    tantque !fini(*lexeuse) {
+        lexème := épie_lexème_suivant(*lexeuse)
+        si est_ponctuation(lexème, "}") {
+            arrête
+        }
+
+        type := parse_type(parseuse)
+
+        lexème = donne_lexème_suivant(*lexeuse)
+        si lexème.type != TypeLexème.Symbole {
+            imprimeln("Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
+            exit(1)
+        }
+
+        lexème_nom := lexème
+
+        lexème = épie_lexème_suivant(*lexeuse)
+        // À FAIRE : mets ça dans parse_type
+        si est_ponctuation(lexème, "[") {
+            consomme(*lexeuse)
+
+            lexème_nombre := donne_nombre(*lexeuse)
+            type = crée_constant_array(parseuse, type, lexème_nombre.nombre)
+
+            consomme_ponctuation(*lexeuse, "]")
+        }
+
+        field := crée_noeud(parseuse, FieldDecl)
+        field.name = donne_texte(lexème_nom)
+        field.type = type
+
+        tableau_ajoute(*résultat, field)
+
+        lexème = épie_lexème_suivant(*lexeuse)
+        tantque est_ponctuation(lexème, ",") {
+            consomme(*lexeuse)
+
+            lexème = donne_lexème_suivant(*lexeuse)
+            si lexème.type != TypeLexème.Symbole {
+                imprimeln("Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
+                exit(1)
+            }
+
+            field = crée_noeud(parseuse, FieldDecl)
+            field.name = donne_texte(lexème)
+            field.type = type
+
+            tableau_ajoute(*résultat, field)
+
+            lexème = épie_lexème_suivant(*lexeuse)
+        }
+
+        consomme_ponctuation(*lexeuse, ";")
+    }
+
+    consomme_ponctuation(*lexeuse, "}")
+
+    retourne résultat
+}
+
+imprime_type_kuri :: fonc (type_c: *Type)
+{
+    discr type_c.kind {
+        CHAR {
+            imprime("z8")
+        }
+        UNSIGNED_CHAR {
+            imprime("n8")
+        }
+        SHORT {
+            imprime("z16")
+        }
+        UNSIGNED_SHORT {
+            imprime("n16")
+        }
+        INT {
+            imprime("z32")
+        }
+        UNSIGNED_INT {
+            imprime("n32")
+        }
+        LONG {
+            imprime("z64")
+        }
+        UNSIGNED_LONG {
+            imprime("n64")
+        }
+        LONG_LONG {
+            imprime("TYPE_NON_SUPPORTÉ : LONG_LONG")
+        }
+        UNSIGNED_LONG_LONG {
+            imprime("TYPE_NON_SUPPORTÉ : UNSIGNED_LONG_LONG")
+        }
+        FLOAT {
+            imprime("r32")
+        }
+        DOUBLE {
+            imprime("r64")
+        }
+        LONG_DOUBLE {
+            imprime("TYPE_NON_SUPPORTÉ : LONG_DOUBLE")
+        }
+        POINTER {
+            type_pointeur := type_c comme *PointerType
+
+            si type_pointeur.pointed_to.genre == FunctionType {
+                imprime_type_kuri(type_pointeur.pointed_to)
+            }
+            sinon {
+                imprime("*")
+                imprime_type_kuri(type_pointeur.pointed_to)
+            }
+        }
+        VOID {
+            imprime("rien")
+        }
+        RECORD {
+            si type_c.genre == StructDecl {
+                struct_decl := type_c comme *StructDecl
+                imprime("%", struct_decl.name)
+            }
+            sinon si type_c.genre == UnionDecl {
+                union_decl := type_c comme *UnionDecl
+                imprime("%", union_decl.name)
+            }
+            sinon {
+                imprime("TYPE_NON_SUPPORTÉ : RECORD")
+            }
+        }
+        REFERENCE {
+            type_ref := type_c comme *TypeRef
+            imprime("%", type_ref.nom)
+        }
+        TYPEDEF {
+
+        }
+        FUNCTION {
+            type_fonction := type_c comme *FunctionType
+            imprime("fonc (")
+            virgule := ""
+            pour type_fonction.parameters {
+                si it.kind == TypeKind.VOID {
+                    arrête
+                }
+                imprime("%", virgule)
+                imprime_type_kuri(it)
+                virgule = ", "
+            }
+            imprime(") -> ")
+            imprime_type_kuri(type_fonction.return_type)
+        }
+        CONSTANT_ARRAY {
+            constant_array := type_c comme *ConstantArray
+            imprime("[%]", constant_array.size)
+            imprime_type_kuri(constant_array.element_type)
+        }
+    }
+}
+
+déclare_type_kuri :: fonc (type_c: *Type, nom_typedef := "")
+{
+    si type_c.genre == StructDecl {
+        struct_decl := type_c comme *StructDecl
+        saufsi nom_typedef {
+            nom_typedef = struct_decl.name
+        }
+        imprimeln("% :: struct {", nom_typedef)
+        pour struct_decl.fields {
+            imprime("    %: ", it.name)
+            imprime_type_kuri(it.type)
+            imprime("\n")
+        }
+        imprimeln("}")
+    }
+    sinon si type_c.genre == UnionDecl {
+        union_decl := type_c comme *UnionDecl
+        saufsi nom_typedef {
+            nom_typedef = union_decl.name
+        }
+        imprimeln("% :: union nonsûr {", nom_typedef)
+        pour union_decl.fields {
+            imprime("    %: ", it.name)
+            imprime_type_kuri(it.type)
+            imprime("\n")
+        }
+        imprimeln("}")
+    }
+}
+
+est_structure_ou_union_anonyme :: fonc (type_c: *Type) -> bool
+{
+    résultat := faux
+
+    si type_c.genre == StructDecl {
+        struct_decl := type_c comme *StructDecl
+        résultat = struct_decl.name == ""
+    }
+    sinon si type_c.genre == UnionDecl {
+        union_decl := type_c comme *UnionDecl
+        résultat = union_decl.name == ""
+    }
+
+    retourne résultat
+}
+
+/** \} */
