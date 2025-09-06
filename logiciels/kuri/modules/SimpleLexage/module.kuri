@@ -119,6 +119,8 @@ SimpleLexeuse :: struct {
     taille_mot_clé_min: z32
     taille_mot_clé_max: z32
 
+    supporte_nombre_héxadécimaux_sans_préfixe: bool
+
     texte: chaine
 
     caractères_symboliques: chaine
@@ -768,7 +770,7 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable
         résultat.nombre = nombre_parsé comme n64
     }
-    sinon si drapeaux_accumulés.ChiffreHexadécimal {
+    sinon si drapeaux_accumulés.ChiffreHexadécimal && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
         résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     sinon {
