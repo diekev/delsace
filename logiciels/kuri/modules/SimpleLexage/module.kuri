@@ -267,6 +267,14 @@ consomme_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
     _ := donne_mot_clé(lexeuse, texte)
 }
 
+épie_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    début := lexeuse.début
+    diffère lexeuse.début = début
+    résultat := donne_lexème_suivant(lexeuse)
+    retourne résultat
+}
+
 donne_nombre :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
     retourne donne_lexème(lexeuse, TypeLexème.Nombre)
