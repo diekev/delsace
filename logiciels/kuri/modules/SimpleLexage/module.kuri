@@ -374,6 +374,7 @@ rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: 
 
 rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chaine) #sansretour
 {
+    lexeuse.début = lexème.donne_texte().pointeur
     ligne := donne_ligne_pour_erreur(lexeuse)
     imprimeln("%", ligne.texte)
     imprimeln("Attendu '%', obtenu '%'", voulu, lexème.donne_texte())
@@ -982,6 +983,7 @@ __mots_clés_c := [
     "const",
     "false",
     "short",
+    "union",
     "while",
     "double",
     "extern",
