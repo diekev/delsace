@@ -485,132 +485,132 @@ parse_fields :: fonc (empl parseuse: *ParseuseC) -> [..]*FieldDecl
     retourne résultat
 }
 
-imprime_type_kuri :: fonc (type_c: *Type)
+imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
 {
     discr type_c.kind {
         CHAR {
-            imprime("z8")
+            ajoute_au_tampon(enchaineuse, "z8")
         }
         UNSIGNED_CHAR {
-            imprime("n8")
+            ajoute_au_tampon(enchaineuse, "n8")
         }
         SHORT {
-            imprime("z16")
+            ajoute_au_tampon(enchaineuse, "z16")
         }
         UNSIGNED_SHORT {
-            imprime("n16")
+            ajoute_au_tampon(enchaineuse, "n16")
         }
         INT {
-            imprime("z32")
+            ajoute_au_tampon(enchaineuse, "z32")
         }
         UNSIGNED_INT {
-            imprime("n32")
+            ajoute_au_tampon(enchaineuse, "n32")
         }
         LONG {
-            imprime("z64")
+            ajoute_au_tampon(enchaineuse, "z64")
         }
         UNSIGNED_LONG {
-            imprime("n64")
+            ajoute_au_tampon(enchaineuse, "n64")
         }
         LONG_LONG {
-            imprime("TYPE_NON_SUPPORTÉ : LONG_LONG")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_LONG")
         }
         UNSIGNED_LONG_LONG {
-            imprime("TYPE_NON_SUPPORTÉ : UNSIGNED_LONG_LONG")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : UNSIGNED_LONG_LONG")
         }
         FLOAT {
-            imprime("r32")
+            ajoute_au_tampon(enchaineuse, "r32")
         }
         DOUBLE {
-            imprime("r64")
+            ajoute_au_tampon(enchaineuse, "r64")
         }
         LONG_DOUBLE {
-            imprime("TYPE_NON_SUPPORTÉ : LONG_DOUBLE")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_DOUBLE")
         }
         POINTER {
             type_pointeur := type_c comme *PointerType
 
             si type_pointeur.pointed_to.genre == FunctionType {
-                imprime_type_kuri(type_pointeur.pointed_to)
+                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to)
             }
             sinon {
-                imprime("*")
-                imprime_type_kuri(type_pointeur.pointed_to)
+                ajoute_au_tampon(enchaineuse, "*")
+                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to)
             }
         }
         VOID {
-            imprime("rien")
+            ajoute_au_tampon(enchaineuse, "rien")
         }
         RECORD {
             si type_c.genre == StructDecl {
                 struct_decl := type_c comme *StructDecl
-                imprime("%", struct_decl.name)
+                ajoute_au_tampon(enchaineuse, struct_decl.name)
             }
             sinon si type_c.genre == UnionDecl {
                 union_decl := type_c comme *UnionDecl
-                imprime("%", union_decl.name)
+                ajoute_au_tampon(enchaineuse, union_decl.name)
             }
             sinon {
-                imprime("TYPE_NON_SUPPORTÉ : RECORD")
+                ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : RECORD")
             }
         }
         REFERENCE {
             type_ref := type_c comme *TypeRef
-            imprime("%", type_ref.nom)
+            ajoute_au_tampon(enchaineuse, type_ref.nom)
         }
         TYPEDEF {
 
         }
         FUNCTION {
             type_fonction := type_c comme *FunctionType
-            imprime("fonc (")
+            ajoute_au_tampon(enchaineuse, "fonc (")
             virgule := ""
             pour type_fonction.parameters {
                 si it.kind == TypeKind.VOID {
                     arrête
                 }
-                imprime("%", virgule)
-                imprime_type_kuri(it)
+                ajoute_au_tampon(enchaineuse, virgule)
+                imprime_type_kuri(enchaineuse, it)
                 virgule = ", "
             }
-            imprime(") -> ")
-            imprime_type_kuri(type_fonction.return_type)
+            ajoute_au_tampon(enchaineuse, ") -> ")
+            imprime_type_kuri(enchaineuse, type_fonction.return_type)
         }
         CONSTANT_ARRAY {
             constant_array := type_c comme *ConstantArray
-            imprime("[%]", constant_array.size)
-            imprime_type_kuri(constant_array.element_type)
+            imprime_dans_enchaineuse(enchaineuse, "[%]", constant_array.size)
+            imprime_type_kuri(enchaineuse, constant_array.element_type)
         }
     }
 }
 
-déclare_type_kuri :: fonc (type_c: *Type, nom_typedef := "")
+déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typedef := "")
 {
     si type_c.genre == StructDecl {
         struct_decl := type_c comme *StructDecl
         saufsi nom_typedef {
             nom_typedef = struct_decl.name
         }
-        imprimeln("% :: struct {", nom_typedef)
+        imprime_dans_enchaineuse(enchaineuse, "% :: struct {\n", nom_typedef)
         pour struct_decl.fields {
-            imprime("    %: ", it.name)
-            imprime_type_kuri(it.type)
-            imprime("\n")
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name)
+            imprime_type_kuri(enchaineuse, it.type)
+            ajoute_au_tampon(enchaineuse, "\n")
         }
-        imprimeln("}")
+        ajoute_au_tampon(enchaineuse, "}\n")
     }
     sinon si type_c.genre == UnionDecl {
         union_decl := type_c comme *UnionDecl
         saufsi nom_typedef {
             nom_typedef = union_decl.name
         }
-        imprimeln("% :: union nonsûr {", nom_typedef)
+        imprime_dans_enchaineuse(enchaineuse, "% :: union nonsûr {\n", nom_typedef)
         pour union_decl.fields {
-            imprime("    %: ", it.name)
-            imprime_type_kuri(it.type)
-            imprime("\n")
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name)
+            imprime_type_kuri(enchaineuse, it.type)
+            ajoute_au_tampon(enchaineuse, "\n")
         }
-        imprimeln("}")
+        ajoute_au_tampon(enchaineuse, "}\n")
     }
 }
 
