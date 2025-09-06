@@ -107,7 +107,15 @@ FunctionType :: struct {
     kind = TypeKind.FUNCTION
 
     return_type: *Type
-    parameters: [..]*Type
+    parameters: [..]*ParamDecl
+}
+
+ParamDecl :: struct {
+    empl base: ASTNode
+    genre = #type_de_cette_structure
+
+    name: chaine
+    type: *Type
 }
 
 ConstantArray :: struct {
@@ -309,32 +317,7 @@ parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
     }
     sinon si est_mot_clé(lexème, "void") {
         consomme(*lexeuse)
-        // À FAIRE
-        consomme_ponctuation(*lexeuse, "(")
-
-        consomme_ponctuation(*lexeuse, "*")
-
-        lexème = donne_lexème_suivant(*lexeuse)
-        si lexème.type != TypeLexème.Symbole {
-            imprimeln("Attendu un symbole dans la définition du pointeur de fonction")
-            exit(1)
-        }
-
-        // À FAIRE : récursion
-        parseuse.symbole_non_consommé_lors_du_parsage_de_type = donne_texte(lexème)
-
-        consomme_ponctuation(*lexeuse, ")")
-
-        consomme_ponctuation(*lexeuse, "(")
-        consomme_mot_clé(*lexeuse, "void")
-        consomme_ponctuation(*lexeuse, ")")
-
-        function_type := crée_noeud(parseuse, FunctionType)
-        function_type.return_type = crée_type(parseuse, TypeKind.VOID)
-        type_paramètre := crée_type(parseuse, TypeKind.VOID)
-        tableau_ajoute(*function_type.parameters, type_paramètre)
-
-        résultat = crée_pointer_type(parseuse, function_type)
+        résultat = crée_type(parseuse, TypeKind.VOID)
     }
     sinon si lexème.type == TypeLexème.Symbole {
         consomme_symbole(*lexeuse)
@@ -354,6 +337,65 @@ parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
         sinon {
             arrête
         }
+    }
+
+    lexème = épie_lexème_suivant(*lexeuse)
+    si est_ponctuation(lexème, "(") {
+        // À FAIRE : gère proprement les pointeurs de fonctions
+        consomme_ponctuation(*lexeuse, "(")
+
+        consomme_ponctuation(*lexeuse, "*")
+
+        lexème = donne_lexème_suivant(*lexeuse)
+        si lexème.type != TypeLexème.Symbole {
+            imprimeln("Attendu un symbole dans la définition du pointeur de fonction")
+            exit(1)
+        }
+
+        // À FAIRE : récursion
+        parseuse.symbole_non_consommé_lors_du_parsage_de_type = donne_texte(lexème)
+
+        consomme_ponctuation(*lexeuse, ")")
+
+        consomme_ponctuation(*lexeuse, "(")
+
+        params: [..]*ParamDecl
+        
+        tantque !fini(*lexeuse) {
+            lexème = épie_lexème_suivant(*lexeuse)
+            si est_ponctuation(lexème, ")") {
+                arrête
+            }
+
+            type_param := parse_type(parseuse)
+            nom_param: chaine
+
+            lexème = épie_lexème_suivant(*lexeuse)
+            si lexème.type == TypeLexème.Symbole {
+                consomme(*lexeuse)
+                nom_param = donne_texte(lexème)
+                lexème = épie_lexème_suivant(*lexeuse)
+            }
+
+            param := crée_noeud(parseuse, ParamDecl)
+            param.name = nom_param
+            param.type = type_param
+            tableau_ajoute(*params, param)
+
+            saufsi est_ponctuation(lexème, ",") {
+                arrête
+            }
+
+            consomme_ponctuation(*lexeuse, ",")
+        }
+
+        consomme_ponctuation(*lexeuse, ")")
+
+        function_type := crée_noeud(parseuse, FunctionType)
+        function_type.return_type = résultat
+        function_type.parameters = params
+
+        résultat = crée_pointer_type(parseuse, function_type)
     }
 
     retourne résultat
@@ -566,11 +608,18 @@ imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
             ajoute_au_tampon(enchaineuse, "fonc (")
             virgule := ""
             pour type_fonction.parameters {
-                si it.kind == TypeKind.VOID {
+                si it.type.kind == TypeKind.VOID {
+                    assert(indice_it == 0)
                     arrête
                 }
+
                 ajoute_au_tampon(enchaineuse, virgule)
-                imprime_type_kuri(enchaineuse, it)
+
+                si it.name {
+                    ajoute_au_tampon(enchaineuse, it.name, ": ")
+                }
+
+                imprime_type_kuri(enchaineuse, it.type)
                 virgule = ", "
             }
             ajoute_au_tampon(enchaineuse, ") -> ")
