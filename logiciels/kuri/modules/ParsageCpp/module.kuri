@@ -213,7 +213,20 @@ crée_constant_array :: fonc (parseuse: *ParseuseC, element_type: *Type, size: n
 parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
 {
     initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
-    retourne parse_typedef_decl(parseuse)
+
+    résultat: *ASTNode
+
+    lexème := épie_lexème_suivant(*parseuse.lexeuse)
+    si est_mot_clé(lexème, "struct") {
+        résultat = parse_struct_decl(parseuse)
+    }
+    sinon {
+        résultat = parse_typedef_decl(parseuse) 
+    }
+
+    consomme_ponctuation(*parseuse.lexeuse, ";")
+
+    retourne résultat
 }
 
 parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
@@ -243,9 +256,6 @@ parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
         imprimeln("Attendu un symbole pour nommé le typedef")
         exit(1)
     }
-
-    /* Point virgule. */
-    consomme_ponctuation(*lexeuse, ";")
 
     résultat := crée_noeud(parseuse, TypedefDecl)
     résultat.underlying_type = underlying_type
