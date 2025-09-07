@@ -217,6 +217,9 @@ struct ParamètresErreurExterne {
     int indice_colonne_début = -1;
 };
 
+Erreur rapporte_avertissement(EspaceDeTravail const *espace,
+                              ParamètresErreurExterne const &params);
+
 Erreur rapporte_info(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);

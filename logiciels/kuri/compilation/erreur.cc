@@ -645,7 +645,10 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
 
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
 
-    if (genre == erreur::Genre::INFO) {
+    if (genre == erreur::Genre::AVERTISSEMENT) {
+        flux << "\nAvertissement : ";
+    }
+    else if (genre == erreur::Genre::INFO) {
         flux << "\nInfo : ";
     }
     else {
@@ -768,6 +771,13 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
 {
     auto erreur = Erreur(espace, false);
     erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
+    return erreur;
+}
+
+Erreur rapporte_avertissement(EspaceDeTravail const *espace, ParamètresErreurExterne const &params)
+{
+    auto erreur = Erreur(espace, false);
+    erreur.enchaineuse << génère_entête_erreur(espace, params, erreur::Genre::AVERTISSEMENT);
     return erreur;
 }
 

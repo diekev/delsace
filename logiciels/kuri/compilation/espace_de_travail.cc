@@ -273,6 +273,12 @@ Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fich
     return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
 }
 
+Erreur EspaceDeTravail::rapporte_avertissement_externe(ParamètresErreurExterne const &params) const
+{
+    possède_erreur = true;
+    return ::rapporte_avertissement(this, params);
+}
+
 Erreur EspaceDeTravail::rapporte_info(const NoeudExpression *site,
                                       kuri::chaine_statique message) const
 {

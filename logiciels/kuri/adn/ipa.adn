@@ -115,6 +115,10 @@ fonction compilatrice_possède_erreur(EspaceDeTravail * espace) -> bool
 fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
 @compilatrice
 
+/* Comme compilatrice_rapporte_erreur_externe, mais pour un avertissement. */
+fonction compilatrice_rapporte_avertissement_externe(EspaceDeTravail * espace, chaine_statique message, chaine_statique chemin_fichier, chaine_statique texte_ligne, int numéro_ligne, int index_colonne, int index_colonne_début, int index_colonne_fin)
+@compilatrice
+
 /* --------------------------------------------------------------------------
  * Rapport d'infos.
  */
