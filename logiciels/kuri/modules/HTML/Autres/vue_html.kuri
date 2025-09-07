@@ -271,8 +271,8 @@ sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: 
 
         élément := document.noeud_survolé
         si élément && élément.box {
-            curseur_qt := CSS.donne_qt_cursor_shape(CSS.donne_curseur(élément.box))
-            QT_gui_application_definis_curseur(curseur_qt)
+            curseur_système := CSS.donne_cursor_système(CSS.donne_curseur(élément.box))
+            QT_gui_application_definis_curseur(curseur_système)
         }
 
         QT_evenement_accepte(event)

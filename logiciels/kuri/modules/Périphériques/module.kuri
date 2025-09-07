@@ -15,28 +15,60 @@ TypeCurseurSystème :: énum {
     FLÈCHE
     /* Curseur en forme de I pour indiquer une insertion de texte. */
     TEXTE
+    TEXTE_VERTICAL
     /* Curseur indiquant d'attendre sur une tâche. */
     ATTENTE
     /* Curseur en forme de cible. */
     CROIX
-    /* Flèche avec une attente. */
+    /* Curseur indiquant un progrès, que quelque chose est en progrès. */
     FLÈCHE_AVEC_ATTENTE
-    /* Double flèche diagonale pointant nord-ouest sud-est. */
-    FLÈCHE_DOUBLE_NOSE
-    /* Double flèche diagonale pointant nord-est sud-ouest. */
-    FLÈCHE_DOUBLE_NESO
-    /* Double flèche horizontale. */
-    FLÈCHE_DOUBLE_HORIZONTALE
-    /* Double flèche verticale. */
-    FLÈCHE_DOUBLE_VERTICALE
-    /* Superposition de toutes les doubles flèches. */
-    FLÈCHE_DOUBLE_TOUT
+    PROGRÈS :: FLÈCHE_AVEC_ATTENTE
     /* Curseur indiquant que quelque chose est interdit. */
     INTERDIT
     /* Curseur représentant une main ouverte. */
     MAIN_OUVERTE
     /* Curseur représentant une main fermée. */
     MAIN_FERMÉE
+    /* Curseur représentant une main pointant sur quelque chose. */
+    MAIN_POINTANT
+    /* Curseur en forme de point d'interrogation. */
+    POINT_D_INTERROGATION
+    /* Curseur indiquant qu'un menu contextuel est disponible */
+    MENU_CONTEXTUEL
+    /* Cellule pour les tableurs. */
+    CELLULE
+    /* Curseur indiquant qu'un alias ou raccourci sera créé. */
+    ALIAS
+    /* Curseur indiquant qu'une copie sera créée. */
+    COPIE
+    /* L'objet survolé devra être déplacé. */
+    DÉPLACEMENT
+    /* Le curseur indique qu'on ne peut déposer d'élément à cet endroit. */
+    DÉPOSAGE_INTERDIT
+    /* Le curseur indique qu'on peut faire défiler le contenu dans n'importe quelle direction. */
+    DÉFILAGE_OMNI
+    /* L'élément ou la colonne peut être redimensionné horizontalement. */
+    REDIMENSIONNEMENT_COLONNE
+    /* L'élément ou la ligne peut être redimensionné verticalement. */
+    REDIMENSIONNEMENT_LIGNE
+    /* Redimensionnement vers des points cardinaux. */
+    REDIMENSIONNEMENT_EST
+    REDIMENSIONNEMENT_NORD
+    REDIMENSIONNEMENT_NORD_EST
+    REDIMENSIONNEMENT_NORD_OUEST
+    REDIMENSIONNEMENT_SUD
+    REDIMENSIONNEMENT_SUD_EST
+    REDIMENSIONNEMENT_SUD_OUEST
+    REDIMENSIONNEMENT_OUEST
+    REDIMENSIONNEMENT_EST_OUEST
+    REDIMENSIONNEMENT_NORD_SUD
+    REDIMENSIONNEMENT_NORD_EST_SUD_OUEST
+    REDIMENSIONNEMENT_NORD_OUEST_SUD_EST
+    REDIMENSIONNEMENT_NORD_SUD_EST_OUEST
+    /* Le pointeur indique qu'on peut zoomer sur le contenu. */
+    ZOOM
+    /* Le pointeur indique qu'on peut dézoomer sur le contenu. */
+    DÉZOOM
 }
 
 /** \} */
@@ -190,6 +222,43 @@ ToucheClavier :: énum {
     DOUBLE_POINT
     POINT_EXCLAMATION
 
+    POINT
+    APOSTROPHE
+    ACCENT_GRAVE
+    MOINS
+    PLUS
+    SLASH
+    BACK_SLASH
+    ÉGAL
+    CROCHET_OUVRANT
+    CROCHET_FERMANT
+    PAUSE
+    PARENTHÈSE_GAUCHE
+    PARENTHÈSE_DROITE
+    ESPERLUETTE
+    E_ACCENT_AIGÜE
+    E_ACCENT_GRAVE
+    TIRET_BAS
+    C_CÉDILLE
+    A_ACCENT_GRAVE
+    GUILLEMET_ANGLAIS
+    U_ACCENT_GRAVE
+    ASTÉRISQUE
+    DOLLAR
+    EXCLAMATION
+    INFÉRIEUR
+
+    MAJUSCULE_GAUCHE
+    MAJUSCULE_DROITE
+    CONTROLE_GAUCHE
+    CONTROLE_DROITE
+    ALT_GAUCHE
+    ALT_DROITE
+    SYSTÈME_GAUCHE
+    SYSTÈME_DROITE
+    HYPER_GAUCHE
+    HYPER_DROITE
+
     FLÈCHE_GAUCHE
     FLÈCHE_DROITE
     FLÈCHE_HAUT
@@ -201,6 +270,40 @@ ToucheClavier :: énum {
     FIN
     INSÉRER
     SUPPRIMER
+
+    VERROUILLAGE_CASSE
+    ARRÊT_DÉFILAGE
+    VERROUILLAGE_NUMÉRIQUE
+    APPLICATION
+
+    PAVÉ_NUM_0
+    PAVÉ_NUM_1
+    PAVÉ_NUM_2
+    PAVÉ_NUM_3
+    PAVÉ_NUM_4
+    PAVÉ_NUM_5
+    PAVÉ_NUM_6
+    PAVÉ_NUM_7
+    PAVÉ_NUM_8
+    PAVÉ_NUM_9
+    PAVÉ_NUM_POINT
+
+    PAVÉ_NUM_INSÈRE
+    PAVÉ_NUM_FIN
+    PAVÉ_NUM_BAS
+    PAVÉ_NUM_PAGE_BAS
+    PAVÉ_NUM_GAUCHE
+    PAVÉ_NUM_DROITE
+    PAVÉ_NUM_DÉBUT
+    PAVÉ_NUM_HAUT
+    PAVÉ_NUM_PAGE_HAUT
+    PAVÉ_NUM_SUPPR
+
+    PAVÉ_NUM_ENTRÉE
+    PAVÉ_NUM_PLUS
+    PAVÉ_NUM_MOINS
+    PAVÉ_NUM_ASTÉRISQUE
+    PAVÉ_NUM_SLASH
 
     F1
     F2
@@ -237,73 +340,13 @@ ToucheClavier :: énum {
     F33
     F34
     F35
-}
 
-__caractères_clé_clavier: [ToucheClavier.nombre_éléments]z8 = ---
-__caractères_clé_clavier_initialisés := faux
-
-caractère_pour_clé_clavier :: fonc (clé_clavier: ToucheClavier) -> z8
-{
-    saufsi __caractères_clé_clavier_initialisés {
-        initialise_caractères_clé_clavier()
-        __caractères_clé_clavier_initialisés = vrai
-    }
-
-    retourne __caractères_clé_clavier[clé_clavier]
-}
-
-initialise_caractères_clé_clavier :: fonc ()
-{
-    __caractères_clé_clavier[ToucheClavier.INCONNUE] = 0
-
-    __caractères_clé_clavier[ToucheClavier.A] = 'a'
-    __caractères_clé_clavier[ToucheClavier.B] = 'b'
-    __caractères_clé_clavier[ToucheClavier.C] = 'c'
-    __caractères_clé_clavier[ToucheClavier.D] = 'd'
-    __caractères_clé_clavier[ToucheClavier.E] = 'e'
-    __caractères_clé_clavier[ToucheClavier.F] = 'f'
-    __caractères_clé_clavier[ToucheClavier.G] = 'g'
-    __caractères_clé_clavier[ToucheClavier.H] = 'h'
-    __caractères_clé_clavier[ToucheClavier.I] = 'i'
-    __caractères_clé_clavier[ToucheClavier.J] = 'j'
-    __caractères_clé_clavier[ToucheClavier.K] = 'k'
-    __caractères_clé_clavier[ToucheClavier.L] = 'l'
-    __caractères_clé_clavier[ToucheClavier.M] = 'm'
-    __caractères_clé_clavier[ToucheClavier.N] = 'n'
-    __caractères_clé_clavier[ToucheClavier.O] = 'o'
-    __caractères_clé_clavier[ToucheClavier.P] = 'p'
-    __caractères_clé_clavier[ToucheClavier.Q] = 'q'
-    __caractères_clé_clavier[ToucheClavier.R] = 'r'
-    __caractères_clé_clavier[ToucheClavier.S] = 's'
-    __caractères_clé_clavier[ToucheClavier.T] = 't'
-    __caractères_clé_clavier[ToucheClavier.U] = 'u'
-    __caractères_clé_clavier[ToucheClavier.V] = 'v'
-    __caractères_clé_clavier[ToucheClavier.W] = 'w'
-    __caractères_clé_clavier[ToucheClavier.X] = 'x'
-    __caractères_clé_clavier[ToucheClavier.Y] = 'y'
-    __caractères_clé_clavier[ToucheClavier.Z] = 'z'
-
-    __caractères_clé_clavier[ToucheClavier._0] = '0'
-    __caractères_clé_clavier[ToucheClavier._1] = '1'
-    __caractères_clé_clavier[ToucheClavier._2] = '2'
-    __caractères_clé_clavier[ToucheClavier._3] = '3'
-    __caractères_clé_clavier[ToucheClavier._4] = '4'
-    __caractères_clé_clavier[ToucheClavier._5] = '5'
-    __caractères_clé_clavier[ToucheClavier._6] = '6'
-    __caractères_clé_clavier[ToucheClavier._7] = '7'
-    __caractères_clé_clavier[ToucheClavier._8] = '8'
-    __caractères_clé_clavier[ToucheClavier._9] = '9'
-
-    __caractères_clé_clavier[ToucheClavier.ENTRÉE] = '\n'
-    __caractères_clé_clavier[ToucheClavier.EFFACE] = 0
-    __caractères_clé_clavier[ToucheClavier.ÉCHAPPE] = 0
-    __caractères_clé_clavier[ToucheClavier.TAB] = '\t'
-    __caractères_clé_clavier[ToucheClavier.ESPACE] = ' '
-
-    __caractères_clé_clavier[ToucheClavier.VIRGULE] = ','
-    __caractères_clé_clavier[ToucheClavier.POINT_VIRGULE] = ';'
-    __caractères_clé_clavier[ToucheClavier.DOUBLE_POINT] = ':'
-    __caractères_clé_clavier[ToucheClavier.POINT_EXCLAMATION] = '!'
+    LECTURE_MÉDIA
+    PAUSE_MÉDIA
+    MÉDIA_PRÉCÉDENT
+    RECULE_MÉDIA
+    MÉDIA_SUIVANT
+    AVANCE_MÉDIA
 }
 
 /** \} */
@@ -317,7 +360,7 @@ TypeÉvènement :: énum {
     Fermeture
     Souris
     Clavier
-    DragAndDrop
+    Déposage
     // Tablette
     // Window
     // Molette séparée de souris ?
@@ -345,7 +388,7 @@ TypeÉvènement :: énum {
     modificateurs_natifs: n32
     clé_virtuelle_native: n32
 
-    /* Mimes pour un Drop */
+    /* Mimes pour un déposer. */
     mimes: [..]DonnéesMime
 }
 

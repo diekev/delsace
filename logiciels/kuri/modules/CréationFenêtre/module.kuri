@@ -1,43 +1,100 @@
+importe Chaine
 importe Fondation
+importe Math
 importe MIME
 importe OpenGL
 importe Périphériques
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai) -> TypeFenêtre
-{
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, plein_écran, index_écran, avec_barre_de_titre_et_bordures)
+SystèmeFenêtre :: énum {
+    QT
+    NATIVE
 }
 
-ajourne_évènements_fenêtre :: fonc () -> []Évènement
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
 {
-    __évènements.taille = 0
-    qt_ajourne_évènements_fenêtre()
+    si système == SystèmeFenêtre.NATIVE {
+        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
+    }
+
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
+}
+
+ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
+{
+    si type_fenêtre.système == SystèmeFenêtre.NATIVE {
+        pour __évènements {
+            déloge(it.texte)
+
+            pour données_mime dans it.mimes {
+                déloge(données_mime.type)
+                déloge(données_mime.données)
+            }
+
+            déloge(it.mimes)
+        }
+        __évènements.taille = 0
+        x11_ajourne_évènements_fenêtre(type_fenêtre)
+    }
+    sinon {
+        assert(type_fenêtre.système == SystèmeFenêtre.QT)
+        __évènements.taille = 0
+        qt_ajourne_évènements_fenêtre(type_fenêtre)
+    }
+
     retourne __évènements
 }
 
 requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_requiers_ajournement_fenêtre(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_requiers_ajournement_fenêtre(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_requiers_ajournement_fenêtre(fenêtre)
+    }
 }
 
 permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_permute_tampons_fenêtre(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_permute_tampons_fenêtre(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_permute_tampons_fenêtre(fenêtre)
+    }
 }
 
 donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_donne_taille_fenêtre(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_donne_taille_fenêtre(fenêtre)
 }
 
 définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    qt_définis_titre_fenêtre(fenêtre, titre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_définis_titre_fenêtre(fenêtre, titre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_définis_titre_fenêtre(fenêtre, titre)
+    }
 }
 
 définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
 {
-    qt_définis_curseur(fenêtre, curseur)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_définis_curseur(fenêtre, curseur)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_définis_curseur(fenêtre, curseur)
+    }
 }
 
 donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
@@ -49,59 +106,120 @@ donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
 
 active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+    }
 }
 
 possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_possède_barre_de_titre_et_bordures(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_possède_barre_de_titre_et_bordures(fenêtre)
 }
 
 minimise :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_minimise(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_minimise(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_minimise(fenêtre)
+    }
 }
 
 maximise :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_maximise(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_maximise(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_maximise(fenêtre)
+    }
 }
 
 ferme :: fonc (fenêtre: TypeFenêtre)
 {
-    qt_fenêtre_ferme(fenêtre)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_ferme(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_ferme(fenêtre)
+    }
 }
 
 est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        qt_fenêtre_est_visible(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_fenêtre_est_visible(fenêtre)
 }
 
 définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    qt_fenêtre_définis_visible(fenêtre, oui_non)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_définis_visible(fenêtre, oui_non)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_définis_visible(fenêtre, oui_non)
+    }
 }
 
 donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne x11_fenêtre_donne_opacité(fenêtre)
+    }
+    assert(fenêtre.système == SystèmeFenêtre.QT)
     retourne qt_fenêtre_donne_opacité(fenêtre)
 }
 
 définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
-    qt_fenêtre_définis_opacité(fenêtre, opacité)
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_définis_opacité(fenêtre, opacité)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_définis_opacité(fenêtre, opacité)
+    }
 }
 
 TypeFenêtre :: struct {
+    système: SystèmeFenêtre
+
+    /* Pour X11. */
+    données_x11: *DonnéesX11
+
     /* Pour Qt. */
     rappels_window: *RappelsWindow
 }
 
 donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 {
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        retourne XXX
+    }
+
     assert(fenêtre.rappels_window != nul)
     retourne fenêtre.rappels_window.dernière_souris
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Qt
+ * \{ */
 
 #portée_fichier
 
@@ -113,7 +231,7 @@ __application_qt: *QT_Application
 __taille_arguments_qt: z32 = ---
 __rappels_window: RappelsWindow = ---
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écran: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
 {
     assert(__application_qt == nul)
 
@@ -140,7 +258,7 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
 
     QT_window_resize(window, largeur, hauteur)
 
-    si plein_écran {
+    si maximisée {
         QT_window_show_maximized(window)
     }
     sinon {
@@ -152,12 +270,16 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, plein_écr
         QT_application_process_events()
     }
 
-    résultat := TypeFenêtre(*__rappels_window)
+    résultat: TypeFenêtre
+    résultat.système = SystèmeFenêtre.QT
+    résultat.rappels_window = *__rappels_window
     retourne résultat
 }
 
-qt_ajourne_évènements_fenêtre :: fonc ()
+qt_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_application_process_events()
 }
 
@@ -196,7 +318,7 @@ qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystèm
 {
     assert(fenêtre.rappels_window != nul)
     assert(fenêtre.rappels_window.window != nul)
-    QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
+    QT_gui_application_definis_curseur(curseur)
 }
 
 qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
@@ -258,6 +380,8 @@ qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 
 qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
 }
 
@@ -270,6 +394,8 @@ qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 
 qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
     QT_window_set_opacity(fenêtre.rappels_window.window, opacité)
 }
 
@@ -427,7 +553,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         }
 
         évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.Clavier
+        évènement.type = TypeÉvènement.Déposage
         évènement.mimes = mimes
 
         QT_drop_event_accepte_action_propose(event.drop_event)
@@ -436,3 +562,618 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
     retourne faux
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom X11
+ * \{ */
+
+#portée_fichier
+
+importe X11
+
+DonnéesX11 :: struct {
+    display: *Display
+    window: Window
+    xim: XIM
+    xic: XIC
+    wm_delete_window: Atom
+
+    /* Atomes généraux. */
+    NET_WM_WINDOW_OPACITY: Atom
+
+    /* Atomes pour le glissage/déposage. */
+    XdndTypeList: Atom
+    XdndSelection: Atom
+    XdndEnter: Atom
+    XdndPosition: Atom
+    XdndStatus: Atom
+    XdndLeave: Atom
+    XdndDrop: Atom  
+    XdndFinished: Atom
+    XdndActionCopy: Atom
+    XdndActionMove: Atom
+    XdndActionLink: Atom
+    XdndActionAsk: Atom
+    XdndActionPrivate: Atom
+    XtextUriList: Atom
+    XtextPlain: Atom
+    XdndAware: Atom
+
+    /* Autres données pour le glissage/déposage. */
+    source: n64
+    version: z64
+    format: Atom
+}
+
+__données_x11: DonnéesX11
+
+x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
+{
+    display := XOpenDisplay(nul)
+    si display == nul {
+        imprimeln("X11 : impossible d'ouvrir un display.")
+        exit(1)
+    }
+
+    window := XCreateSimpleWindow(
+        display,
+        XDefaultRootWindow(display),
+        0,
+        0,
+        largeur comme n32,
+        hauteur comme n32,
+        0,
+        0,
+        0)
+
+    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False)
+    _ := XSetWMProtocols(display, window, *wm_delete_window, 1)
+
+    _ := XSetLocaleModifiers("".pointeur);
+
+    chaine_c_titre := crée_chaine_c(titre)
+    diffère détruit_chaine_c(chaine_c_titre)
+
+    // À FAIRE : paramétrise la ressource et la classe
+    ressource_name := chaine_c_titre
+    ressource_class := chaine_c_titre
+
+    xim := XOpenIM(display, nul, ressource_name, ressource_class)
+    xic: XIC
+
+    masque_évènements: z64 = KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask
+    // ExposureMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | KeymapStateMask
+   
+    si xim {
+        // À FAIRE
+        // XIMCallback destroy;
+        // destroy.callback = (XIMProc)destroyIMCallback;
+        // destroy.client_data = (XPointer)&xim_;
+        // XSetIMValues(xim_, XNDestroyCallback, &destroy, nullptr);
+
+        // XICCallback destroy;
+        // destroy.callback = (XICProc)destroyICCallback;
+        // destroy.client_data = (XPointer)&xic_;
+        xic = XCreateIC(xim,
+                        XNClientWindow.pointeur,
+                        window,
+                        XNFocusWindow.pointeur,
+                        window,
+                        XNInputStyle.pointeur,
+                        XIMPreeditNothing | XIMStatusNothing,
+                        XNResourceName.pointeur,
+                        ressource_name,
+                        XNResourceClass.pointeur,
+                        ressource_class,
+                        // XNDestroyCallback,
+                        // &destroy,
+                        nul);
+
+        si xic {
+            // fevent: z64
+            // XGetICValues(xic_, XNFilterEvents, *fevent, nul);
+            // masque_évènements |= fevent
+        }
+        sinon {
+            imprimeln("X11 : impossible de créer le XInputContext")
+        }
+    }
+    sinon {
+        imprimeln("X11 : Impossible d'ouvrir la méthode d'entrée.")
+    }
+
+    _ := XSelectInput(display, window, masque_évènements)
+
+    x11_définis_titre_fenêtre(display, window, titre)
+
+    __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False)
+
+    /* fetching data */
+    __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
+    __données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
+
+    /* client messages */
+    __données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
+    __données_x11.XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
+    __données_x11.XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
+    __données_x11.XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
+    __données_x11.XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
+    __données_x11.XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
+
+    /* actions */
+    __données_x11.XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
+    __données_x11.XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
+    __données_x11.XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
+    __données_x11.XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
+    __données_x11.XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
+
+    __données_x11.XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
+    __données_x11.XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
+
+    __données_x11.XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
+    myVersion : n8 = 5;
+    _ := XChangeProperty(display, window, __données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
+
+    _ := XMapWindow(display, window)
+
+    __données_x11.display = display
+    __données_x11.window = window
+    __données_x11.xim = xim
+    __données_x11.xic = xic
+    __données_x11.wm_delete_window = wm_delete_window
+
+    résultat: TypeFenêtre
+    résultat.système = SystèmeFenêtre.NATIVE
+    résultat.données_x11 = *__données_x11
+    retourne résultat
+}
+
+x11_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+{
+    assert(fenêtre.données_x11.display != nul)
+
+    root_return: Window
+    x_return: z32
+    y_return: z32
+    w_return: n32
+    h_return: n32
+    border_w_return: n32
+    depth_return: n32
+
+    _ := XGetGeometry(fenêtre.données_x11.display,
+                      fenêtre.données_x11.window,
+                      *root_return,
+                      *x_return,
+                      *y_return,
+                      *w_return,
+                      *h_return,
+                      *border_w_return,
+                      *depth_return)
+
+    retourne w_return comme z32, h_return comme z32
+}
+
+x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+{
+    x11_définis_titre_fenêtre(fenêtre.données_x11.display, fenêtre.données_x11.window, titre)
+}
+
+x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: chaine)
+{
+    chaine_c_titre := crée_chaine_c(titre)
+    diffère détruit_chaine_c(chaine_c_titre)
+
+    name := XInternAtom(display, "_NET_WM_NAME".pointeur, False);
+    utf8str := XInternAtom(display, "UTF8_STRING".pointeur, False);
+    
+    _ := XChangeProperty(display, window, name, utf8str, 8, PropModeReplace, titre.pointeur comme *n8, titre.taille comme z32);
+
+    _ := XStoreName(display, window, chaine_c_titre)
+
+    _ := XFlush(display);
+}
+
+x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    retourne faux
+}
+
+x11_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+    si type_fenêtre.données_x11.display {
+        _ := XCloseDisplay(type_fenêtre.données_x11.display)
+    }
+}
+
+x11_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    retourne faux
+}
+
+x11_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+{
+    assert(fenêtre.données_x11 != nul)
+
+    empl x11 := fenêtre.données_x11
+
+    data: *n8;
+    result: n64;
+
+    actual_type: Atom = XA_CARDINAL
+    actual_format: z32
+    octets_après: n64
+
+    _ := XGetWindowProperty(display,
+                            window,
+                            NET_WM_WINDOW_OPACITY,
+                            0,
+                            32,
+                            False,
+                            XA_CARDINAL,
+                            *actual_type,
+                            *actual_format,
+                            *result,
+                            *octets_après,
+                            *data);
+
+    entier_opacité := mémoire(data comme *n64) comme n32
+    valeur := (entier_opacité >> 24)
+
+    si data {
+        _ := XFree(data)
+    }
+
+    retourne valeur comme r64 / 255.0
+}
+
+x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+{
+    assert(fenêtre.données_x11 != nul)
+
+    empl x11 := fenêtre.données_x11
+
+    opacité = restreint(0.0 comme r64, opacité, 1.0)
+    entier_opacité := (opacité * 255.0) comme n8 comme n64
+    valeur := entier_opacité << 24 | 0xffffff
+
+    _ := XChangeProperty(display, window, NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, *valeur comme *n8, 1);
+}
+
+x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+
+    empl données_x11 := fenêtre.données_x11
+
+    // À FAIRE : expose, resize
+
+    tantque XPending(display) > 0 {
+        event: XEvent
+        _ := XNextEvent(display, *event)
+
+        si event.type == KeyPress {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+
+            si xic {
+                tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
+                status: Status
+                key_sym := évènement.clé_virtuelle_native comme KeySym
+                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status)
+
+                assert(status != XBufferOverflow)
+                // si status == XBufferOverflow {
+                //     utf8_buf = (char *)malloc(len + 5);
+                //     len = Xutf8LookupString(xic, xke, *tampon_utf8, tampon_utf8.taille, *key_sym, *status)
+                // }
+
+                chaine_touche := chaine(*tampon_utf8[0], len)
+
+                si status == XLookupChars || status == XLookupBoth {
+                    /* Testons les caractères de controle ASCII.
+                     * Enligne `iscntrl` car la locale de l'utilisateur ne doit pas changer. */
+                    si ((tampon_utf8[0] < 32 && tampon_utf8[0] > 0) || (tampon_utf8[0] == 127)) {
+                        len = 0
+                    }
+                }
+                sinon si status == XLookupKeySym {
+                    /* Cette touche n'a pas de représentation textuelle, c'est une sorte de touche de controle. */
+                }
+                sinon {
+                    chaine_status := si status == XLookupNone {
+                        "XLookupNone"
+                    }
+                    sinon si status == XLookupKeySym {
+                        "XLookupKeySym"
+                    }
+                    sinon {
+                        "Status inconnu"
+                    }
+
+                    imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status)
+                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, xim)
+                }
+
+                // À FAIRE : supprime ces allocations
+                évènement.texte = copie_chaine(chaine_touche)
+            }
+        }
+        sinon si event.type == KeyRelease {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+        }
+        sinon si event.type == MotionNotify {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement)
+        }
+        sinon si event.type == ButtonPress {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+        }
+        sinon si event.type == ButtonRelease {
+            évènement := tableau_ajoute_élément(*__évènements)
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+        }
+        sinon si event.type == ClientMessage {
+            data := event.xclient.data.l
+            atome := data[0] comme Atom
+            si atome == fenêtre.données_x11.wm_delete_window {
+                évènement := tableau_ajoute_élément(*__évènements)
+                évènement.type = TypeÉvènement.Fermeture
+                continue
+            }
+
+            si event.xclient.message_type == XdndEnter || event.xclient.message_type == XdndPosition || event.xclient.message_type == XdndDrop {
+                x11_gère_entrée_glissage(*event.xclient, fenêtre.données_x11)
+                continue
+            }
+        }
+        sinon si event.type == ConfigureNotify {
+            // nouvelle_largeur := event.xconfigure.width comme n32
+            // nouvelle_hauteur := event.xconfigure.height comme n32
+        }
+        sinon si event.type == MapNotify {}
+        sinon si event.type == ReparentNotify {}
+        sinon si event.type == SelectionNotify {
+            /* Vérifions si nous avons un déposage */
+            si event.xselection.property == XdndSelection {
+                data: *n8;
+                result: n64;
+
+                actual_type: Atom
+                actual_format: z32
+                octets_après: n64
+
+                LONG_MAX :: 0xffffffffffffffff
+
+                _ := XGetWindowProperty(display,
+                                        event.xselection.requestor,
+                                        event.xselection.property,
+                                        0,
+                                        LONG_MAX,
+                                        False,
+                                        event.xselection.target,
+                                        *actual_type,
+                                        *actual_format,
+                                        *result,
+                                        *octets_après,
+                                        *data);
+
+                si result == 0 {
+                    continue;
+                }
+
+                si data {
+                    mime_type := XGetAtomName(display, format)
+
+                    évènement := tableau_ajoute_élément(*__évènements)
+                    évènement.type = TypeÉvènement.Déposage
+
+                    mime := tableau_ajoute_élément(*évènement.mimes)
+                    mime.type = convertis_chaine_c(ChaineC(mime_type))
+                    mime.données = convertis_chaine_c(ChaineC(data comme *z8))
+
+                    _ := XFree(data)
+                }
+
+                si version >= 2 {
+                    reply: XEvent
+                    reply.type = ClientMessage;
+                    reply.xclient.window = source;
+                    reply.xclient.format = 32;
+                    reply.xclient.message_type = XdndFinished;
+                    l: [5]z64
+                    l[0] = window comme z64;
+                    l[1] = result comme z64
+                    l[2] = XdndActionCopy comme z64
+                    reply.xclient.data.l = l
+
+                    _ := XSendEvent(display, source, False, NoEventMask, *reply);
+                    _ := XFlush(display);
+
+                    fenêtre.données_x11.format = None comme n64
+                    fenêtre.données_x11.version = 0
+                    fenêtre.données_x11.source = 0
+                }
+            }
+        }
+    }
+}
+
+x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl données_x11: *DonnéesX11)
+{
+    reply: XEvent
+    reply.type = ClientMessage;
+    reply.xclient.window = source;
+    reply.xclient.format = 32;
+    l: [5]z64
+    l[0] = window comme z64;
+    reply.xclient.data.l = l
+
+    si xclient_event.message_type == XdndEnter {
+        format = None comme Atom
+
+        client_data := xclient_event.data.l
+
+        est_liste := client_data[1] & 1;
+
+        source = client_data[0] comme XID
+        version = client_data[1] >> 24;
+
+        si version > 5 {
+            imprimeln("X11 : version glissage/déposage non-supportée : %", version)
+            retourne
+        }
+
+        formats: *Atom
+        formats_réel: [6]Atom
+        compte: n64
+
+        si est_liste {
+            actual_type: Atom
+            actual_format: z32
+            octets_après: n64
+
+            LONG_MAX :: 0xffffffffffffffff
+
+            _ := XGetWindowProperty(display,
+                                    source,
+                                    XdndTypeList,
+                                    0,
+                                    LONG_MAX,
+                                    False,
+                                    4,
+                                    *actual_type,
+                                    *actual_format,
+                                    *compte,
+                                    *octets_après,
+                                    *formats comme **n8);
+        }
+        sinon {
+            compte = 0;
+
+            si client_data[2] != None {
+                formats_réel[compte] = client_data[2] comme Atom
+                compte += 1
+            }
+            si client_data[3] != None {
+                formats_réel[compte] = client_data[3] comme Atom
+                compte += 1
+            }
+            si client_data[4] != None {
+                formats_réel[compte] = client_data[4] comme Atom
+                compte += 1
+            }
+
+            formats = *formats_réel[0];
+        }
+
+        pour compte {
+            si formats_réel[it] == XtextUriList || formats_réel[it] == XtextPlain {
+                format = formats_réel[it]
+            }
+        }
+
+        si est_liste {
+            _ := XFree(formats);
+        }
+
+        retourne;
+    }
+
+    si xclient_event.message_type == XdndPosition && version <= 5 {
+        client_data := xclient_event.data.l
+
+        xabs := ((client_data[2] >> 16) & 0xffff) comme z32
+        yabs := ((client_data[2]) & 0xffff) comme z32
+
+        dummy: Window
+        xpos: z32
+        ypos: z32
+
+        _ := XTranslateCoordinates(display, XDefaultRootWindow(display), window, xabs, yabs, *xpos, *ypos, *dummy);
+
+        reply.xclient.message_type = XdndStatus
+
+        si format != (None comme Atom) {
+            l[1] = 1;
+            si version >= 2 {
+                l[4] = XdndActionCopy comme z64;
+            }
+        }
+
+        reply.xclient.data.l = l
+
+        _ := XSendEvent(display, source, False, NoEventMask, *reply);
+        _ := XFlush(display);
+        retourne;
+    }
+
+    si xclient_event.message_type == XdndDrop && version <= 5 {
+        si format != (None comme Atom) {
+            time := CurrentTime;
+
+            si version >= 1 {
+                client_data := xclient_event.data.l
+                time = client_data[2];
+            }
+
+            _ := XConvertSelection(display, XdndSelection, format, XdndSelection, window, time comme n64);
+        }
+        // Nous rejetons le déposage.
+        sinon si version >= 2 {
+            reply.xclient.message_type = XdndFinished;
+
+            _ := XSendEvent(display, source, False, NoEventMask, *reply);
+            _ := XFlush(display);
+
+            format = None comme n64
+            version = 0
+            source = 0
+        }
+
+        retourne
+    }
+}
+
+/** \} */

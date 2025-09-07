@@ -1,121 +1,121 @@
 /* ------------------------------------------------------------------------- */
-/** \nom Qt
+/** \nom Périphériques
  * \{ */
 
-importe Qt
+importe Périphériques
 
-donne_qt_cursor_shape :: fonc (type: CursorType) -> QT_CursorShape
+donne_cursor_système :: fonc (type: CursorType) -> TypeCurseurSystème
 {
     discr type {
         auto,
         default {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.FLÈCHE
         }
         none {
-            retourne QT_CursorShape.BLANK
+            retourne TypeCurseurSystème.VIERGE
         }
         context_menu {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.MENU_CONTEXTUEL
         }
         help {
-            retourne QT_CursorShape.WHATS_THIS
+            retourne TypeCurseurSystème.POINT_D_INTERROGATION
         }
         pointer {
-            retourne QT_CursorShape.POINTING_HAND
+            retourne TypeCurseurSystème.MAIN_POINTANT
         }
         progress {
-            retourne QT_CursorShape.BUSY
+            retourne TypeCurseurSystème.PROGRÈS
         }
         wait {
-            retourne QT_CursorShape.WAIT
+            retourne TypeCurseurSystème.ATTENTE
         }
         cell {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.CELLULE
         }
         crosshair {
-            retourne QT_CursorShape.CROSS
+            retourne TypeCurseurSystème.CROIX
         }
         text {
-            retourne QT_CursorShape.IBEAM
+            retourne TypeCurseurSystème.TEXTE
         }
         vertical_text {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.TEXTE_VERTICAL
         }
         alias {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.ALIAS
         }
         copy {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.COPIE
         }
         move {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.DÉPLACEMENT
         }
         no_drop {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.DÉPOSAGE_INTERDIT
         }
         not_allowed {
-            retourne QT_CursorShape.FORBIDDEN
+            retourne TypeCurseurSystème.INTERDIT
         }
         grab {
-            retourne QT_CursorShape.OPEN_HAND
+            retourne TypeCurseurSystème.MAIN_OUVERTE
         }
         grabbing {
-            retourne QT_CursorShape.DRAG_MOVE
+            retourne TypeCurseurSystème.MAIN_FERMÉE
         }
         e_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST
         }
         n_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD
         }
         ne_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST
         }
         nw_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST
         }
         s_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD
         }
         se_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_EST
         }
         sw_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_OUEST
         }
         w_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_OUEST
         }
         ew_resize {
-            retourne QT_CursorShape.SIZE_HORIZONTAL
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST
         }
         ns_resize {
-            retourne QT_CursorShape.SIZE_VERTICAL
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_SUD
         }
         nesw_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST_SUD_OUEST
         }
         nwse_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST_SUD_EST
         }
         col_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_COLONNE
         }
         row_resize {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_LIGNE
         }
         all_scroll {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.DÉFILAGE_OMNI
         }
         zoom_in {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.ZOOM
         }
         zoom_out {
-            retourne QT_CursorShape.ARROW
+            retourne TypeCurseurSystème.DÉZOOM
         }
     }
 
-    retourne QT_CursorShape.ARROW
+    retourne TypeCurseurSystème.FLÈCHE
 }
 
 /** \} */

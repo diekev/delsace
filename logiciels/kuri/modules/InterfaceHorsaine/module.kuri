@@ -328,7 +328,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
     résultat := loge(TypeIPA)
     résultat.infos = type
     /* À FAIRE(langage) : table des types. */
-    type.index_dans_table_des_types = (ipa.types.taille + 1) comme n32
+    type.indice_dans_table_des_types = (ipa.types.taille + 1) comme n32
     tableau_ajoute(*ipa.types, résultat)
 
     discr type.id {
@@ -436,7 +436,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 {
     /* À FAIRE(langage) : table des types. */
-    index := (type.index_dans_table_des_types comme z64) - 1
+    index := (type.indice_dans_table_des_types comme z64) - 1
 
     si index < 0 || index >= ipa.types.taille {
         retourne nul

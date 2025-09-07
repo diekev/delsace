@@ -123,6 +123,9 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
     consomme_mot_clé(lexeuse, "thème")
     consomme_ponctuation(lexeuse, "]")
 
+    lexeuse.supporte_nombre_héxadécimaux_sans_préfixe = vrai
+    diffère lexeuse.supporte_nombre_héxadécimaux_sans_préfixe = faux
+
     tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse)
         lexeuse.reprends_depuis_lexème(lexème)
@@ -515,7 +518,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    _ := ouvre_projet(*anonyme, "kuri")
+    fenêtre := ouvre_projet(*anonyme, "kuri")
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
@@ -531,7 +534,7 @@ principale :: fonc ()
         }
         tics_fichier += 1
 
-        évènements := ajourne_évènements_fenêtre()
+        évènements := ajourne_évènements_fenêtre(fenêtre)
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre)
 

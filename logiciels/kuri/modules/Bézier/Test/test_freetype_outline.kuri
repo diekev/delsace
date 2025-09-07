@@ -28,7 +28,7 @@ principale :: fonc ()
     échantillons: [32]Point2D(r32)
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre()
+        évènements := ajourne_évènements_fenêtre(fenêtre)
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre)
 

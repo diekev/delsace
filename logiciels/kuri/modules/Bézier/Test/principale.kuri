@@ -30,7 +30,7 @@ point_sélectionné := -1
 
 dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre)
 {
-    évènements := ajourne_évènements_fenêtre()
+    évènements := ajourne_évènements_fenêtre(fenêtre)
 
     largeur, hauteur := donne_taille_fenêtre(fenêtre)
 
@@ -145,7 +145,7 @@ delta_déplacement_dernier_noeud: Vec2
 
 dessine_tracé :: fonc (fenêtre: TypeFenêtre)
 {
-    évènements := ajourne_évènements_fenêtre()
+    évènements := ajourne_évènements_fenêtre(fenêtre)
 
     largeur, hauteur := donne_taille_fenêtre(fenêtre)
 

@@ -51,7 +51,8 @@ namespace erreur {
     ENUMERE_GENRE_ERREUR_EX(CONTROLE_INVALIDE)                                                    \
     ENUMERE_GENRE_ERREUR_EX(MODULE_INCONNU)                                                       \
     ENUMERE_GENRE_ERREUR_EX(APPEL_INVALIDE)                                                       \
-    ENUMERE_GENRE_ERREUR_EX(AVERTISSEMENT)
+    ENUMERE_GENRE_ERREUR_EX(AVERTISSEMENT)                                                        \
+    ENUMERE_GENRE_ERREUR_EX(INFO)
 
 enum class Genre : int {
 #define ENUMERE_GENRE_ERREUR_EX(type) type,
@@ -192,6 +193,10 @@ Erreur rapporte_avertissement(EspaceDeTravail const *espace,
                               SiteSource site,
                               kuri::chaine_statique message);
 
+Erreur rapporte_info(EspaceDeTravail const *espace,
+                     SiteSource site,
+                     kuri::chaine_statique message);
+
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
                        kuri::chaine_statique message,
@@ -211,5 +216,10 @@ struct ParamètresErreurExterne {
     int indice_colonne_fin = -1;
     int indice_colonne_début = -1;
 };
+
+Erreur rapporte_avertissement(EspaceDeTravail const *espace,
+                              ParamètresErreurExterne const &params);
+
+Erreur rapporte_info(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);
 
 Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params);

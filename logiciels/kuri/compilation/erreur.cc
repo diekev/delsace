@@ -605,6 +605,10 @@ static kuri::chaine_statique chaine_pour_erreur(erreur::Genre genre)
         {
             return "AVERTISSEMENT";
         }
+        case erreur::Genre::INFO:
+        {
+            return "INFO";
+        }
     }
 
     return "ERREUR";
@@ -624,7 +628,8 @@ static bool est_dirigé_vers_un_terminal()
 }
 
 static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
-                                         ParamètresErreurExterne const &params)
+                                         ParamètresErreurExterne const &params,
+                                         erreur::Genre genre)
 {
     auto flux = Enchaineuse();
     const auto chaine_erreur = chaine_pour_erreur(erreur::Genre::NORMAL);
@@ -645,7 +650,16 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
     }
 
     flux << "Dans l'espace de travail « " << espace->nom << " » :\n";
-    flux << "\nErreur : ";
+
+    if (genre == erreur::Genre::AVERTISSEMENT) {
+        flux << "\nAvertissement : ";
+    }
+    else if (genre == erreur::Genre::INFO) {
+        flux << "\nInfo : ";
+    }
+    else {
+        flux << "\nErreur : ";
+    }
 
     imprime_ligne_avec_message(flux,
                                "",
@@ -714,11 +728,14 @@ kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
     }
 
     if (fichier) {
-        if (genre != erreur::Genre::AVERTISSEMENT) {
-            flux << "\nErreur : ";
+        if (genre == erreur::Genre::AVERTISSEMENT) {
+            flux << "\nAvertissement : ";
+        }
+        else if (genre == erreur::Genre::INFO) {
+            flux << "\nInfo : ";
         }
         else {
-            flux << "\nAvertissement : ";
+            flux << "\nErreur : ";
         }
 
         imprime_ligne_avec_message(flux, site, "");
@@ -746,6 +763,13 @@ Erreur rapporte_avertissement(EspaceDeTravail const *espace,
     return erreur;
 }
 
+Erreur rapporte_info(EspaceDeTravail const *espace, SiteSource site, kuri::chaine_statique message)
+{
+    auto erreur = Erreur(espace, true);
+    erreur.enchaineuse << genere_entete_erreur(espace, site, erreur::Genre::INFO, message);
+    return erreur;
+}
+
 Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        SiteSource site,
                        kuri::chaine_statique message,
@@ -756,9 +780,23 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
     return erreur;
 }
 
+Erreur rapporte_avertissement(EspaceDeTravail const *espace, ParamètresErreurExterne const &params)
+{
+    auto erreur = Erreur(espace, false);
+    erreur.enchaineuse << génère_entête_erreur(espace, params, erreur::Genre::AVERTISSEMENT);
+    return erreur;
+}
+
+Erreur rapporte_info(EspaceDeTravail const *espace, ParamètresErreurExterne const &params)
+{
+    auto erreur = Erreur(espace, false);
+    erreur.enchaineuse << génère_entête_erreur(espace, params, erreur::Genre::INFO);
+    return erreur;
+}
+
 Erreur rapporte_erreur(EspaceDeTravail const *espace, ParamètresErreurExterne const &params)
 {
     auto erreur = Erreur(espace, false);
-    erreur.enchaineuse << génère_entête_erreur(espace, params);
+    erreur.enchaineuse << génère_entête_erreur(espace, params, erreur::Genre::NORMAL);
     return erreur;
 }

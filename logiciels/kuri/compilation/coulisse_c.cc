@@ -290,7 +290,6 @@ struct ConvertisseuseTypeC {
     mutable kuri::tableau_page<TypeC> types_c{};
     Enchaineuse enchaineuse_tmp{};
     Enchaineuse stockage_chn{};
-    Broyeuse &broyeuse;
     GénératriceCodeC &génératrice_code;
 
     kuri::table_hachage<Type const *, TypeC *> table_types_c{""};
@@ -305,7 +304,7 @@ struct ConvertisseuseTypeC {
 
   public:
     ConvertisseuseTypeC(Broyeuse &broyeuse_, GénératriceCodeC &génératrice_code_)
-        : broyeuse(broyeuse_), génératrice_code(génératrice_code_)
+        : génératrice_code(génératrice_code_)
     {
     }
 

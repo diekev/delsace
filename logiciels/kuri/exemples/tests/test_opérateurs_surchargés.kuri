@@ -27,6 +27,12 @@ importe Fondation
  *  opérateur !
  *
  *  opérateur []
+ *
+ *  opérateur +=
+ *  opérateur -=
+ *  opérateur *=
+ *  opérateur /=
+ *  opérateur %=
  */
 
 principale :: fonc ()
@@ -43,9 +49,16 @@ MonType :: struct {
 
 opérateur + :: (mon_type: MonType, valeur: z32) -> MonType
 {
+    imprimeln("opérateur+ est appelé")
     résultat := mon_type
     résultat.x += valeur
     retourne résultat
+}
+
+opérateur += :: (mon_type: *MonType, valeur: z32)
+{
+    imprimeln("opérateur+= est appelé")
+    mon_type.x += valeur
 }
 
 test_opérateur_surchargé_simple :: fonc ()
@@ -66,6 +79,11 @@ test_opérateur_surchargé_simple :: fonc ()
     pointeur_opérateur := opérateur+(MonType, z32)
     mon_type = pointeur_opérateur(mon_type, 4)
     assert(mon_type.x == 10)
+
+    /* Méme si opérateur+= dû être déclaré avec *MonType, pour le référencer, seul MonType suffit. */
+    opérateur_plus_égal := opérateur+=(MonType, z32)
+    opérateur_plus_égal(*mon_type, 5)
+    assert(mon_type.x == 15)
 }
 
 Polymorphe :: struct ($T: type_de_données) {

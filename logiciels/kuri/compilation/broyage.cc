@@ -549,6 +549,26 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "oux";
         }
+        case GenreLexème::PLUS_EGAL:
+        {
+            return "plusegl";
+        }
+        case GenreLexème::MOINS_EGAL:
+        {
+            return "moinsegl";
+        }
+        case GenreLexème::MULTIPLIE_EGAL:
+        {
+            return "mulegl";
+        }
+        case GenreLexème::DIVISE_EGAL:
+        {
+            return "divegl";
+        }
+        case GenreLexème::MODULO_EGAL:
+        {
+            return "modegl";
+        }
     }
 
     return "inconnu";

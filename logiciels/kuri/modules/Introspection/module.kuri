@@ -1428,8 +1428,28 @@ visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
 donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
 {
     // À FAIRE : paramétrise l'accès du type
-    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
-    assert(est_struct_ou_employeuse_de(résultat, info_de(T)))
+    infos := info_de(T)
+
+    eini_racine: eini = ---
+    eini_racine.pointeur = racine
+    eini_racine.info = infos
+
+    type: type_de_données
+    pour infos.rubriques {
+        si it.id.id == GenreInfoType.TYPE_DE_DONNÉES {
+            // À FAIRE(langage) : eini comme type_de_données
+            valeur_rubrique := eini_depuis_info_rubrique(eini_racine, it)
+            type = mémoire(valeur_rubrique.pointeur comme *type_de_données)
+            arrête
+        }
+    }
+    sansarrêt {
+        imprimeln("Impossible de découvir le type du noeud")
+        exit(1)
+    }
+
+    résultat := __table_des_types[type] comme *InfoTypeStructure
+    assert(est_struct_ou_employeuse_de(résultat, infos))
     retourne résultat
 }
 

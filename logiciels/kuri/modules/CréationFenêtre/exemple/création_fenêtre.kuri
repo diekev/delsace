@@ -7,12 +7,12 @@ HAUTEUR_FENÊTRE :: 600
 
 principale :: fonc ()
 {
-    _ := crée_fenêtre(LARGEUR_FENÊTRE, HAUTEUR_FENÊTRE, "Ma Fenêtre")
+    fenêtre := crée_fenêtre(LARGEUR_FENÊTRE, HAUTEUR_FENÊTRE, "Ma Fenêtre")
 
     doit_fermer := faux
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre()
+        évènements := ajourne_évènements_fenêtre(fenêtre)
 
         pour évènements {
             si it.type == TypeÉvènement.Fermeture {

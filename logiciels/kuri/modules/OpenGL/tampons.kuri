@@ -60,7 +60,7 @@ génère_tampon :: fonc (id: *n32, data: *rien, size: z64, target: GLuint)
 
     glGenBuffers(1, id)
     glBindBuffer(target, mémoire(id))
-    glBufferData(target, size comme n64, data, draw_type)
+    glBufferData(target, size, data, draw_type)
 
     // if (util::check_bad_alloc()) {
     //     throw "Unable to allocate memory for buffer!";
@@ -113,7 +113,7 @@ détache :: fonc (tampon: *TamponObjet @inutilisée)
 définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, index: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
 {
     glEnableVertexAttribArray(index)
-    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride comme n32, pointeur)
+    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE comme GLboolean, stride, pointeur)
 }
 
 génère_tampon_sommet :: fonc (empl tampon: *TamponObjet, vertices: *rien, size: z64)

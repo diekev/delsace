@@ -52,7 +52,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 
     sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
-        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE_DOUBLE_HORIZONTALE)
+        contexte.définis_curseur_souris(TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST)
     }
 
     sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)

@@ -551,6 +551,11 @@ TamponChemin :: struct {
     sauvegarde: z32
 }
 
+réinitialise :: fonc (tampon: *TamponChemin)
+{
+    init_de(TamponChemin)(tampon)
+}
+
 donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
     retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)))

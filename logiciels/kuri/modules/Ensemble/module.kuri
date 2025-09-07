@@ -161,3 +161,17 @@ table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), c
 
     retourne vrai, table.valeurs[indice]
 }
+
+donne_valeur_pour_clé :: fonc (table: TableDeHachage($Clé, $Valeur), clé: Clé) -> (trouvée: bool, valeur: Valeur)
+{
+    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    si indice == -1 {
+        trouvée = faux
+    }
+    sinon {
+        trouvée = vrai
+        valeur = table.valeurs[indice]
+    }
+
+    retourne trouvée, valeur
+}

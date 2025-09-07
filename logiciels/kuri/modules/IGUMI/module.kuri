@@ -457,19 +457,19 @@ termine_immédiat :: fonc ()
     installe_format_xcnu(nuanceur)
 
     saufsi données_tampon_xcnu.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU), s.pointeur, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW)
         vérifie_erreur("termine_immédiat.glBufferData")
         données_tampon_xcnu.données_tampon_initialisées = vrai
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXCNU), s.pointeur)
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur)
     vérifie_erreur("termine_immédiat_id.glBufferSubData")
 
     si dernier_mode == ModeImmédiat.TRIANGLES {
-        glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
+        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei)
     }
     sinon {
-        glDrawArrays(GL_LINES, 0, compte comme z64)
+        glDrawArrays(GL_LINES, 0, compte comme GLsizei)
     }
 
     // nettoyage
@@ -485,14 +485,14 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
     stride := taille_de(FormatVertexXCNU)
 
     si nuanceur.loc_position != -1 {
-        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
+        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_SOMMETS comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
         glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
     }
 
     si nuanceur.loc_couleur != -1 {
-        glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_COULEUR comme *rien)
+        glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_COULEUR comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
         glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
@@ -501,14 +501,14 @@ installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
     si nuanceur.loc_normal != -1 {
         glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
-        glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_NORMAL comme *rien)
+        glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_NORMAL comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
     }
 
     si nuanceur.loc_uv != -1 {
         glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
-        glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_UV comme *rien)
+        glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_UV comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
     }
 }
@@ -1277,19 +1277,19 @@ termine_immédiat_id :: fonc ()
     installe_format_xid(nuanceur)
 
     saufsi données_tampon_id.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, (MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId), s.pointeur, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW)
         vérifie_erreur("termine_immédiat.glBufferData")
         données_tampon_id.données_tampon_initialisées = vrai
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, compte * taille_de(FormatVertexXId), s.pointeur)
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur)
     vérifie_erreur("termine_immédiat_id.glBufferSubData")
 
     si dernier_mode_id == ModeImmédiat.TRIANGLES {
-        glDrawArrays(GL_TRIANGLES, 0, compte comme z64)
+        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei)
     }
     sinon {
-        glDrawArrays(GL_LINES, 0, compte comme z64)
+        glDrawArrays(GL_LINES, 0, compte comme GLsizei)
     }
 
     // nettoyage
@@ -1307,14 +1307,14 @@ installe_format_xid :: fonc (nuanceur: *NuanceurGL)
     si nuanceur.loc_position != -1 {
         glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
-        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
+        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLint, DÉCALAGE_SOMMETS comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
     }
 
     si nuanceur.loc_id != -1 {
         glEnableVertexAttribArray(nuanceur.loc_id comme GLuint)
         vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_id")
-        glVertexAttribIPointer(nuanceur.loc_id comme GLuint, 1, GL_UNSIGNED_INT, stride, DÉCALAGE_ID comme *rien)
+        glVertexAttribIPointer(nuanceur.loc_id comme GLuint, 1, GL_UNSIGNED_INT, stride comme GLint, DÉCALAGE_ID comme *rien)
         // glVertexAttribPointer(nuanceur.loc_id comme GLuint, 1, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
         vérifie_erreur("glVertexAttribPointer nuanceur.loc_id")
     }
