@@ -130,11 +130,11 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
     nouveau_type.type_kuri = type
 
     /* Redimensionne la table de types au besoin. */
-    index_dans_table_des_types := (type.index_dans_table_des_types comme z64)
-    tableau_redimensionne(système.types, index_dans_table_des_types)
+    indice_dans_table_des_types := (type.indice_dans_table_des_types comme z64)
+    tableau_redimensionne(système.types, indice_dans_table_des_types)
 
     /* À FAIRE(langage) : table des types. */
-    index := index_dans_table_des_types - 1
+    index := indice_dans_table_des_types - 1
     système.types[index] = nouveau_type
 
     requiers_assainissement_nom := faux
@@ -328,7 +328,7 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
 trouve_type :: fonc (système: *SystèmeTypeC, type: *InfoType) -> *InfoTypeC
 {
     /* À FAIRE(langage) : table des types. */
-    index := (type.index_dans_table_des_types comme z64) - 1
+    index := (type.indice_dans_table_des_types comme z64) - 1
 
     si index < 0 || index >= système.types.taille {
         retourne nul
@@ -1198,7 +1198,7 @@ construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
     tri_par_sélection(ipa.types, compare_types_par_nom_sélection)
     /* Ajourne les index. À FAIRE(langage) : table des types */
     pour ipa.types {
-        it.infos.index_dans_table_des_types = (indice_it comme n32) + 1
+        it.infos.indice_dans_table_des_types = (indice_it comme n32) + 1
     }
 
     /* Rappel pour chaque fonction des types. */

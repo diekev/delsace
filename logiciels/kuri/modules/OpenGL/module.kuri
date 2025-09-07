@@ -2,10 +2,64 @@ importe Chaine
 importe Fondation
 importe Image
 
-charge "interface"
+charge "interface_gl"
 charge "programme"
 charge "tampons"
 charge "texture"
+
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    charge "interface_glx"
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom GLEW
+ * \{ */
+
+libGLEW :: #bibliothèque "GLEW"
+
+#dépendance_bibliothèque libGLEW libGL
+
+glewExperimental: z32 #externe libGLEW
+
+glewInit :: fonc () -> z32 #externe libGLEW
+
+glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Types manquants de la génération de code du registre.
+ * \{ */
+
+__GLsync :: struct #externe
+__GLXcontextRec :: struct #externe
+__GLXFBConfigRec :: struct #externe
+
+DMparams :: struct #externe
+DMbuffer :: struct #externe
+
+VLServer :: struct #externe
+VLPath :: struct #externe
+VLNode :: struct #externe
+
+XVisualInfo :: struct #externe
+
+khronos_int8_t :: z8
+khronos_int16_t :: z16
+khronos_int32_t :: z32
+khronos_int64_t :: z64
+
+khronos_uint8_t :: n8
+khronos_uint16_t :: n16
+khronos_uint32_t :: n32
+khronos_uint64_t :: n64
+
+khronos_float_t :: r32
+
+khronos_intptr_t :: z64
+khronos_ssize_t :: z64
+
+/** \} */
 
 initialise_opengl :: fonc () -> bool
 {
@@ -214,16 +268,16 @@ définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
     glBindTexture(GL_TEXTURE_2D, code_texture)
     vérifie_erreur("définis_texture_2d : glBindTexture")
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.min_filter)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.mag_filter)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.min_filter comme GLint)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.mag_filter comme GLint)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s comme GLint)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t comme GLint)
 
     si params.type == GL_UNSIGNED_BYTE {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA comme GLint, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
     vérifie_erreur("définis_texture_2d : glTexImage2D")
 
     glBindTexture(GL_TEXTURE_2D, 0)
