@@ -233,10 +233,10 @@ donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
     retourne ""
 }
 
-donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
+donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, indice: z64) -> eini
 {
     résultat : eini = ---
-    résultat.pointeur = *info.valeurs[index * info.taille_en_octet comme z64]
+    résultat.pointeur = *info.valeurs[indice * info.taille_en_octet comme z64]
     résultat.info = info.type_sous_jacent
     retourne résultat
 }

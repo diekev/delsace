@@ -13,7 +13,7 @@ TypeChaineRecherchée :: énum {
 
 reproduis_bug :: fonc () #cliche ri
 {
-    /* Un bit par index d'entrée où nous devons chercher les canaux.
+    /* Un bit par indice d'entrée où nous devons chercher les canaux.
      * Si le bit N est actif, nous cherchons les canaux dans le noeud
      * connecté à l'indice de prise N. */
     bits_fonctions_pour_canaux: [TypeChaineRecherchée.nombre_éléments]n64

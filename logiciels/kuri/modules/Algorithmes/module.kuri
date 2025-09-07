@@ -402,15 +402,15 @@ copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
  * précédents l'éniènme seront plus petit, les suivants plus grands, mais désordonnées.
  * \{ */
 
-énième_élément :: fonc (tableau: []$T, index: z64) -> T
+énième_élément :: fonc (tableau: []$T, indice: z64) -> T
 {
-    retourne énième_élément(tableau, index, opérateur<(T, T))
+    retourne énième_élément(tableau, indice, opérateur<(T, T))
 }
 
-énième_élément :: fonc (tableau: []$T, index: z64, comp: fonc(T, T)(bool)) -> T
+énième_élément :: fonc (tableau: []$T, indice: z64, comp: fonc(T, T)(bool)) -> T
 {
     début := tableau.pointeur
-    élément := début + index
+    élément := début + indice
     fin := début + tableau.taille
 
     énième_élément(début, élément, fin, comp)

@@ -546,8 +546,8 @@ lis_valeur_typée :: fonc (lectrice: *Lectrice, $T: type_de_données) -> T
 
 lis_chaine :: fonc (lectrice: *Lectrice) -> chaine
 {
-    index := lis_valeur_typée(lectrice, z64)
-    retourne lectrice.table_des_chaines.chaines[index]
+    indice := lis_valeur_typée(lectrice, z64)
+    retourne lectrice.table_des_chaines.chaines[indice]
 }
 
 lis_octets :: fonc (lectrice: *Lectrice, dest: []octet)

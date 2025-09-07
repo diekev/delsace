@@ -604,12 +604,12 @@ donne_index_marge :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDProp
 
 donne_marge_collapsée_depuis :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDPropriété) -> Optionnel(MargeCollapsée)
 {
-    index := donne_index_marge(ctx, box, id)
-    si index == -1 {
+    indice := donne_index_marge(ctx, box, id)
+    si indice == -1 {
         retourne
     }
 
-    dernier := *ctx.marges[index]
+    dernier := *ctx.marges[indice]
     premier := dernier
     début := *ctx.marges[0]
 

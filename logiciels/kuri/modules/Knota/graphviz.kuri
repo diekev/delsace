@@ -180,13 +180,13 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
     }
     sinon si (nombre_entrées + nombre_sorties) % 2 != 0 {
         si nombre_entrées > nombre_sorties {
-            // place les entrées sur les index paires, sorties sur impaires
+            // place les entrées sur les indices paires, sorties sur impaires
             décalage := (nombre_entrées - nombre_sorties) / 2
             assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0)
             assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage)
         }
         sinon {
-            // place les entrées sur les index impaires, sorties sur paires
+            // place les entrées sur les indices impaires, sorties sur paires
             décalage := (nombre_sorties - nombre_entrées) / 2
             assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage)
             assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0)
@@ -196,13 +196,13 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
     }
     sinon {
         si nombre_entrées > nombre_sorties {
-            // décale premier index
+            // décale premier indice
             décalage := (nombre_entrées - nombre_sorties) / 2
             assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
             assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage)
         }
         sinon {
-            // décale premier index
+            // décale premier indice
             décalage := (nombre_sorties - nombre_entrées) / 2
             assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage)
             assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0)
@@ -317,9 +317,9 @@ id_dot_pour_noeud :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud)
     imprime_dans_enchaineuse(enchaineuse, "\"%\"", noeud.nom)
 }
 
-id_dot_pour_prise :: fonc (enchaineuse: *Enchaineuse, prise: *Prise, index: z64)
+id_dot_pour_prise :: fonc (enchaineuse: *Enchaineuse, prise: *Prise, indice: z64)
 {
-    imprime_dans_enchaineuse(enchaineuse, "\"P%%\"", prise.nom, index)
+    imprime_dans_enchaineuse(enchaineuse, "\"P%%\"", prise.nom, indice)
 }
 
 /** \} */

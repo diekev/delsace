@@ -167,13 +167,13 @@ parse_état_méthode_http :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     méthodes : []chaine = [ "GET", "POST", "PUT", "DELETE", "HEAD", "CONNECT", "OPTIONS", "TRACE", "PATCH" ]
 
-    index := apparie_un_de(*parseuse.parseuse_chaine, ...méthodes)
+    indice := apparie_un_de(*parseuse.parseuse_chaine, ...méthodes)
 
-    si index == -1 {
+    si indice == -1 {
         retourne erreur_de_parsage("méthode inconnue")
     }
 
-    méthode := méthodes[index]
+    méthode := méthodes[indice]
 
     positionne(*parseuse.parseuse_chaine, méthode.taille)
 

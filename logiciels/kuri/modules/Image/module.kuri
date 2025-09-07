@@ -316,10 +316,10 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     restreint(*xi, 0 comme z32, largeur - 1)
     restreint(*yi, 0 comme z32, hauteur - 1)
 
-    index := xi + yi * largeur
+    indice := xi + yi * largeur
 
     couleurs := image.données comme *CouleurRVBA
-    retourne couleurs[index]
+    retourne couleurs[indice]
 }
 
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
@@ -333,8 +333,8 @@ pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
 pixel_à_la_position :: fonc (image: NouvelleImage, x: z32, y: z32, $T: type_de_données) -> *T
 {
     largeur := image.desc.largeur comme z32
-    index := y * largeur + x
-    retourne (*image.données[0] comme *T) + index
+    indice := y * largeur + x
+    retourne (*image.données[0] comme *T) + indice
 }
 
 crée_icone :: fonc (image: NouvelleImage, hauteur: z32) -> NouvelleImage
@@ -570,9 +570,9 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
 
     pour y dans hauteur_empreinte {
         pour x dans largeur_empreinte - 1 {
-            index := y * largeur_empreinte + x
+            indice := y * largeur_empreinte + x
             
-            si sortie[index] < sortie[index + 1] {
+            si sortie[indice] < sortie[indice + 1] {
                 empreinte |= (1 << bit) 
             }
 

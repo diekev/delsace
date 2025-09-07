@@ -601,17 +601,17 @@ cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguil
     }
 
     // recherche
-    index := 0
+    indice := 0
 
-    tantque (botte_de_foin.taille - index) >= aiguille.taille {
-        bdf := avance(botte_de_foin, index)
+    tantque (botte_de_foin.taille - indice) >= aiguille.taille {
+        bdf := avance(botte_de_foin, indice)
 
         si apparie_chaine(bdf, aiguille, aiguille.taille) {
-            retourne index
+            retourne indice
         }
 
-        indice_pour_caractère := botte_de_foin[index + aiguille.taille - 1] comme n8
-        index += table[indice_pour_caractère]
+        indice_pour_caractère := botte_de_foin[indice + aiguille.taille - 1] comme n8
+        indice += table[indice_pour_caractère]
     }
 
     retourne -1
@@ -777,22 +777,22 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
 
     chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
 
-    index := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
+    indice := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
 
-    si index != -1 {
-        retourne index + parseuse.curseur
+    si indice != -1 {
+        retourne indice + parseuse.curseur
     }
 
-    retourne index
+    retourne indice
 }
 
-sous_chaine_jusque_indice :: fonc (parseuse: *ParseuseChaine, index: z64) -> chaine
+sous_chaine_jusque_indice :: fonc (parseuse: *ParseuseChaine, indice: z64) -> chaine
 {
     si parseuse.fini() {
         retourne ""
     }
 
-    retourne sous_chaine(parseuse.chn, parseuse.curseur, index)
+    retourne sous_chaine(parseuse.chn, parseuse.curseur, indice)
 }
 
 saute_espace_blanc :: fonc (parseuse: *ParseuseChaine)

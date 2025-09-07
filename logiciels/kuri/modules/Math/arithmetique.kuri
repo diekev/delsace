@@ -83,13 +83,13 @@ arc_sinus_borné :: fonc (a: $T) -> T #enligne
     retourne arc_sinus(a)
 }
 
-racine :: fonc (a: $T, index: T) -> T
+racine :: fonc (a: $T, indice: T) -> T
 {
-    si index <= 0 {
+    si indice <= 0 {
         retourne 0
     }
 
-    retourne puissance(a, 1.0 / index)
+    retourne puissance(a, 1.0 / indice)
 }
 
 /* Calcul de la racine N d'un nombre réel selon la méthode approximative de Newton. */

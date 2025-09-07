@@ -433,45 +433,45 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
 
     chn := chemin.chn
 
-    index : z64 = 0
-    tantque index < chn.taille {
-        it := chn.pointeur[index]
+    indice : z64 = 0
+    tantque indice < chn.taille {
+        it := chn.pointeur[indice]
 
         si it != '$' {
             saufsi ajoute(*tampon, it) {
                 retourne copie_chaine("Résultat trop grand pour la sortie")
             }
-            index += 1
+            indice += 1
             continue
         }
 
-        index += 1
-        si index >= chn.taille {
+        indice += 1
+        si indice >= chn.taille {
             retourne copie_chaine("Entrée tronquée après '$'")
         }
 
-        it = chn.pointeur[index]
+        it = chn.pointeur[indice]
 
         si it == '{' {
-            index += 1
-            si index >= chn.taille {
+            indice += 1
+            si indice >= chn.taille {
                 retourne copie_chaine("Entrée tronquée après '{'")
             }
 
-            début_variable := index
+            début_variable := indice
             taille_mot := 0
 
             accolade_fermante_trouvée := faux
-            tantque index < chn.taille {
-                it = chn.pointeur[index]
+            tantque indice < chn.taille {
+                it = chn.pointeur[indice]
 
                 si it == '}' {
                     accolade_fermante_trouvée = vrai
-                    index += 1
+                    indice += 1
                     arrête
                 }
 
-                index += 1
+                indice += 1
                 taille_mot += 1
             }
 
@@ -491,16 +491,16 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
             continue
         }
 
-        début_variable := index
+        début_variable := indice
         taille_mot := 0
-        tantque index < chn.taille {
-            it = chn.pointeur[index]
+        tantque indice < chn.taille {
+            it = chn.pointeur[indice]
 
             si it == séparateur_chemin() {
                 arrête
             }
 
-            index += 1
+            indice += 1
             taille_mot += 1
         }
 

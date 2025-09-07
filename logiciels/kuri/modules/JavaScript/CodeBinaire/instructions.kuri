@@ -28,17 +28,17 @@ opérateur pour :: (itératrice: ItéractriceInstruction) -> *Instruction
     début := itératrice.flux.instructions.pointeur
     fin := début + itératrice.flux.instructions.taille
 
-    index : z64 = 0
+    indice : z64 = 0
 
     tantque début < fin {
         instruction := début comme *Instruction
 
         `it = instruction
-        `indice_it = index
+        `indice_it = indice
 
         #corps_boucle
 
-        index += 1
+        indice += 1
 
         début += donne_taille_octet(instruction)
     }
@@ -77,7 +77,7 @@ donne_taille_octet :: fonc (instruction: *Instruction) -> n32
     retourne résultat
 }
 
-imprime_instruction :: fonc (instruction: *Instruction, index: z64)
+imprime_instruction :: fonc (instruction: *Instruction, indice: z64)
 {
     infos := __table_des_types[instruction.type] comme *InfoTypeStructure
  
@@ -86,7 +86,7 @@ imprime_instruction :: fonc (instruction: *Instruction, index: z64)
         nom = avance(nom, 11)
     }
 
-    imprime("[%] %", index, nom)
+    imprime("[%] %", indice, nom)
 
     pointeur_rubrique := instruction comme *octet
 
@@ -407,7 +407,7 @@ InstructionCréePropriétéArray :: struct {
     type = #type_de_cette_structure
 
     obj: Registre
-    index: z32
+    indice: z32
 }
 
 InstructionAppel :: struct {
@@ -1154,7 +1154,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 objet := donne_registre(registres, inst.obj).donne_objet()
                 valeur := interprète.donne_accumulateur()
 
-                nom_propriété := to_string(interprète, Valeur(Number = inst.index comme r64)).texte
+                nom_propriété := to_string(interprète, Valeur(Number = inst.indice comme r64)).texte
 
                 _ := create_data_property(objet, nom_propriété, valeur)
             }

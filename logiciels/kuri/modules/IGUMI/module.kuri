@@ -671,7 +671,7 @@ quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r
      * Si le rayon correspondant à un coin est égal à zéro, un rectangle
      * sera dessiné, sinon, un quadrant de cercle.
      * 
-     * Les index des points pour la grille sont :
+     * Les indices des points pour la grille sont :
      *
      * 12 --- 13 --- 14 --- 15
      *  |      |      |      |

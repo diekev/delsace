@@ -272,8 +272,8 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
         décalage_source := 0
         décalage_résultat := 0
 
-        pour index dans indice_colonnes {
-            colonne := table.desc_colonnes[index]
+        pour indice dans indice_colonnes {
+            colonne := table.desc_colonnes[indice]
             décalage_source = colonne.décalage
 
             pointeur_src := ligne_source.pointeur + décalage_source
