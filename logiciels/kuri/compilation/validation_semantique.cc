@@ -2079,8 +2079,13 @@ RésultatValidation Sémanticienne::valide_entête_opérateur(NoeudDéclarationE
     auto type_fonc = decl->type->comme_type_fonction();
     auto type_résultat = type_fonc->type_sortie;
 
-    if (type_résultat == TypeBase::RIEN) {
+    if (type_résultat == TypeBase::RIEN && !est_assignation_composée(decl->lexème->genre)) {
         rapporte_erreur("Un opérateur ne peut retourner 'rien'", decl);
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (type_résultat != TypeBase::RIEN && est_assignation_composée(decl->lexème->genre)) {
+        rapporte_erreur("Un opérateur d'assignation composée ne peut retourner de valeur", decl);
         return CodeRetourValidation::Erreur;
     }
 
@@ -2377,6 +2382,19 @@ RésultatValidation Sémanticienne::valide_définition_unique_opérateur(
     auto type1 = type_fonc->types_entrées[0];
     auto type2 = type_fonc->types_entrées[1];
 
+    auto est_opérateur_assignation_composée = est_assignation_composée(decl->lexème->genre);
+
+    if (est_opérateur_assignation_composée) {
+        if (!type1->est_type_pointeur()) {
+            m_espace->rapporte_erreur(decl,
+                                      "Le premier paramètre d'un opérateur d'assignation composée "
+                                      "doit être un pointeur.");
+            return CodeRetourValidation::Erreur;
+        }
+
+        type1 = type1->comme_type_pointeur()->type_pointé;
+    }
+
     if (type1->table_opérateurs) {
         auto opérateur_existant = type1->table_opérateurs->donne_opérateur(decl->lexème->genre,
                                                                            type2);
@@ -2393,10 +2411,13 @@ RésultatValidation Sémanticienne::valide_définition_unique_opérateur(
                 return CodeRetourValidation::OK;
             }
 
-            m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
-                .ajoute_message("L'opérateur fut déjà défini ici :\n")
-                .ajoute_site(opérateur_existant->decl);
-            return CodeRetourValidation::Erreur;
+            if (opérateur_existant->est_assignation_composée ==
+                est_opérateur_assignation_composée) {
+                m_espace->rapporte_erreur(decl, "Redéfinition de l'opérateur")
+                    .ajoute_message("L'opérateur fut déjà défini ici :\n")
+                    .ajoute_site(opérateur_existant->decl);
+                return CodeRetourValidation::Erreur;
+            }
         }
     }
 
@@ -3530,9 +3551,14 @@ RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonc
 
     auto inst_ret = derniere_instruction(decl->bloc, false);
 
-    if (inst_ret == nullptr && !entete->est_opérateur_pour()) {
+    if (inst_ret == nullptr &&
+        (!entete->est_opérateur_pour() && !est_assignation_composée(entete->lexème->genre))) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
         return CodeRetourValidation::Erreur;
+    }
+
+    if (est_assignation_composée(entete->lexème->genre)) {
+        decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
     }
 
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
@@ -5851,8 +5877,6 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
 
     bool type_gauche_est_référence = false;
     if (assignation_composée) {
-        type_op = operateur_pour_assignation_composee(type_op);
-
         if (type_gauche->est_type_référence()) {
             type_gauche_est_référence = true;
             type_gauche = type_gauche->comme_type_référence()->type_pointé;
@@ -5885,7 +5909,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     crée_transtypage_implicite_au_besoin(expr->opérande_gauche, candidat.transformation_type1);
     crée_transtypage_implicite_au_besoin(expr->opérande_droite, candidat.transformation_type2);
 
-    if (assignation_composée) {
+    if (assignation_composée && !expr->op->est_assignation_composée) {
         expr->drapeaux |= DrapeauxNoeud::EST_ASSIGNATION_COMPOSEE;
 
         auto résultat_tfm = cherche_transformation(expr->type, type_gauche);

@@ -442,6 +442,7 @@ OpérateurBinaire *RegistreDesOpérateurs::crée_opérateur_binaire(
     résultat->est_commutatif = est_commutatif(id);
     résultat->est_basique = false;
     résultat->decl = decl;
+    résultat->est_assignation_composée = est_assignation_composée(id);
     résultat->genre = genre_op_binaire_pour_lexeme(id, IndiceTypeOp::ENTIER_NATUREL);
     return résultat;
 }
@@ -892,6 +893,15 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
             candidat.permute_opérandes = true;
 
             candidats.ajoute(candidat);
+        }
+    }
+
+    /* Réduisons les poids des opérateurs simples si nous avons une assignation composée, afin de
+     * privilégier les opérateurs d'assignation composée. */
+    auto const pour_assignation_composée = est_assignation_composée(type_op);
+    POUR (candidats) {
+        if (!it.op->est_assignation_composée && pour_assignation_composée) {
+            it.poids *= 0.5;
         }
     }
 

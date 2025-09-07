@@ -71,6 +71,11 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CHAPEAU:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::POUR:
+            case GenreLexème::PLUS_EGAL:
+            case GenreLexème::MOINS_EGAL:
+            case GenreLexème::MULTIPLIE_EGAL:
+            case GenreLexème::DIVISE_EGAL:
+            case GenreLexème::MODULO_EGAL:
             {
                 t[i] |= OPÉRATEUR_EST_SURCHARGEABLE;
                 break;
@@ -3346,11 +3351,6 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
         consomme();
     }
     else {
-        if (pour_opérateur) {
-            rapporte_erreur("Attendu '->' pour le déclarer le résultat de l'opérateur");
-            return;
-        }
-
         Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
 
         auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
