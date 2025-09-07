@@ -457,7 +457,7 @@ void RegistreDesOpérateurs::ajoute_perso(GenreLexème id,
     auto op = crée_opérateur_binaire(id, type1, type2, type_résultat, decl);
     table->ajoute(id, op);
     if (id == GenreLexeme::CROCHET_OUVRANT) {
-        table->operateur_indexage = op;
+        table->opérateur_indexage = op;
     }
 
     auto genre_opérateur_symétrique = donne_genre_lexème_pour_opérateur_symétrique(id);

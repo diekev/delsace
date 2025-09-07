@@ -131,7 +131,7 @@ struct Simplificatrice {
     NoeudExpression *crée_expression_pour_op_chainée(
         kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexeme_op_logique);
 
-    NoeudExpression *cree_indexage(const Lexeme *lexeme,
+    NoeudExpression *crée_indexage(const Lexeme *lexeme,
                                    NoeudExpression *expr1,
                                    NoeudExpression *expr2);
 

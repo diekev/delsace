@@ -1469,7 +1469,7 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
     return résultat;
 }
 
-NoeudExpression *Simplificatrice::cree_indexage(const Lexeme *lexeme,
+NoeudExpression *Simplificatrice::crée_indexage(const Lexeme *lexeme,
                                                 NoeudExpression *expr1,
                                                 NoeudExpression *expr2)
 {
