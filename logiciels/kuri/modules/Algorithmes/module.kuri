@@ -404,7 +404,7 @@ copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
 
 énième_élément :: fonc (tableau: []$T, index: z64) -> T
 {
-    retourne énième_élément(tableau, opérateur<(T, T))
+    retourne énième_élément(tableau, index, opérateur<(T, T))
 }
 
 énième_élément :: fonc (tableau: []$T, index: z64, comp: fonc(T, T)(bool)) -> T
