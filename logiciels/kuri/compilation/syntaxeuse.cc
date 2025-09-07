@@ -3775,69 +3775,124 @@ bool Syntaxeuse::ignore_point_virgule_implicite()
     return false;
 }
 
+enum DirectiveDeVariable : uint32_t {
+    ZÉRO = 0,
+    PARSÉANTE = (1u << 0),
+    EXTERNE = (1u << 1),
+    INTERNE = (1u << 2),
+    EXPORTE = (1u << 3),
+    MÉMOIRE_GLOBALE = (1u << 4),
+    MÉMOIRE_LOCALE = (1u << 5),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
+
+#define EST_DRAPEAU_ACTIF(type, variable, drapeau) (((variable) & type::drapeau) != type::ZÉRO)
+
 void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration)
 {
     if (!apparie(GenreLexème::DIRECTIVE)) {
         return;
     }
 
-    consomme();
+    auto est_variable_locale = !fonctions_courantes.est_vide();
+    auto directives = DirectiveDeVariable::ZÉRO;
 
-    auto lexème_directive = lexème_courant();
-
-    if (lexème_directive->ident == ID::parséante) {
+    while (apparie(GenreLexème::DIRECTIVE)) {
         consomme();
-        déclaration->drapeaux |= (DrapeauxNoeud::EST_GLOBALE | DrapeauxNoeud::EST_PARSÉANTE);
-        /* Une #parséante ne doit pas être visible. */
-        déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
-        déclaration->drapeaux &= ~(DrapeauxNoeud::EST_LOCALE);
-        déclaration->bloc_parent->ajoute_rubrique(déclaration);
-        return;
-    }
 
-    if (!fonctions_courantes.est_vide()) {
-        rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
-        return;
-    }
+        auto lexème_directive = lexème_courant();
 
-    if (lexème_directive->ident == ID::externe) {
-        if (déclaration->expression) {
-            rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
-                            "variables externes ne peuvent pas être initialisées.");
+        if (lexème_directive->ident == ID::parséante) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, INTERNE)) {
+                rapporte_info("Il est inutile de préciser #interne sur une variable #parséante, "
+                              "car une #parséante est forcément #interne.",
+                              lexème_directive);
+            }
+
+            consomme();
+            déclaration->drapeaux |= (DrapeauxNoeud::EST_GLOBALE | DrapeauxNoeud::EST_PARSÉANTE);
+            /* Une #parséante ne doit pas être visible. */
+            déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            déclaration->drapeaux &= ~(DrapeauxNoeud::EST_LOCALE);
+            déclaration->bloc_parent->ajoute_rubrique(déclaration);
+            est_variable_locale = false;
+            directives |= DirectiveDeVariable::PARSÉANTE;
+            continue;
+        }
+
+        if (est_variable_locale) {
+            rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
             return;
         }
 
-        consomme();
-        analyse_directive_symbole_externe(déclaration, nullptr);
-        déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-        return;
-    }
+        if (lexème_directive->ident == ID::externe) {
+            if (déclaration->expression) {
+                rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
+                                "variables externes ne peuvent pas être initialisées.");
+            }
 
-    if (lexème_directive->ident == ID::interne) {
-        consomme();
-        déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
-        return;
-    }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, INTERNE)) {
+                rapporte_erreur("Utilisation de #externe alors que #interne fut spécifié.");
+            }
 
-    if (lexème_directive->ident == ID::exporte) {
-        consomme();
-        déclaration->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
-        return;
-    }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_erreur("Une variable #parséante ne peut pas également être déclarée "
+                                "#externe. Il faut utiliser une variable globale pour ceci.");
+            }
 
-    if (lexème_directive->ident == ID::mémoire_globale) {
-        consomme();
-        déclaration->partage_mémoire = PartageMémoire::GLOBAL;
-        return;
-    }
+            consomme();
+            analyse_directive_symbole_externe(déclaration, nullptr);
+            déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            directives |= DirectiveDeVariable::EXTERNE;
+        }
+        else if (lexème_directive->ident == ID::interne) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, EXTERNE)) {
+                rapporte_erreur("Utilisation de #interne alors que #externe fut spécifié.");
+            }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_info("Il est inutile de préciser #interne sur une variable #parséante, "
+                              "car une #parséante est forcément #interne.",
+                              lexème_directive);
+            }
 
-    if (lexème_directive->ident == ID::mémoire_locale) {
-        consomme();
-        déclaration->partage_mémoire = PartageMémoire::LOCAL;
-        return;
-    }
+            consomme();
+            déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            directives |= DirectiveDeVariable::INTERNE;
+        }
+        else if (lexème_directive->ident == ID::exporte) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_erreur("Une variable #parséante ne peut pas également être déclarée "
+                                "#exporte. Il faut utiliser une variable globale pour ceci.");
+            }
 
-    rapporte_erreur("Directive de déclaration de variable inconnue.");
+            consomme();
+            déclaration->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
+            directives |= DirectiveDeVariable::EXPORTE;
+        }
+        else if (lexème_directive->ident == ID::mémoire_globale) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, MÉMOIRE_LOCALE)) {
+                rapporte_erreur(
+                    "Utilisation de #mémoire_globale alors que #mémoire_locale fut spécifié.");
+            }
+
+            consomme();
+            déclaration->partage_mémoire = PartageMémoire::GLOBAL;
+            directives |= DirectiveDeVariable::MÉMOIRE_GLOBALE;
+        }
+        else if (lexème_directive->ident == ID::mémoire_locale) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, MÉMOIRE_GLOBALE)) {
+                rapporte_erreur(
+                    "Utilisation de #mémoire_locale alors que #mémoire_globale fut spécifié.");
+            }
+
+            consomme();
+            déclaration->partage_mémoire = PartageMémoire::LOCAL;
+            directives |= DirectiveDeVariable::MÉMOIRE_LOCALE;
+        }
+        else {
+            rapporte_erreur("Directive de déclaration de variable inconnue.");
+        }
+    }
 }
 
 void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
