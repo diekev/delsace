@@ -107,6 +107,13 @@ struct EspaceDeTravail {
                                   int ligne,
                                   kuri::chaine_statique message) const;
 
+    Erreur rapporte_info(const NoeudExpression *site, kuri::chaine_statique message) const;
+    Erreur rapporte_info(kuri::chaine_statique fichier,
+                         int ligne,
+                         kuri::chaine_statique message) const;
+    Erreur rapporte_info(SiteSource site, kuri::chaine_statique message) const;
+    Erreur rapporte_info_externe(ParamètresErreurExterne const &params) const;
+
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;

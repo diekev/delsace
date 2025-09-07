@@ -126,6 +126,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
 
+    void rapporte_info(kuri::chaine_statique message, const Lexème *lexème);
+
     void requiers_typage(NoeudExpression *noeud);
 
     bool ignore_point_virgule_implicite();

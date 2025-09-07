@@ -273,6 +273,31 @@ Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fich
     return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
 }
 
+Erreur EspaceDeTravail::rapporte_info(const NoeudExpression *site,
+                                      kuri::chaine_statique message) const
+{
+    return ::rapporte_info(this, site_source_pour(site), message);
+}
+
+Erreur EspaceDeTravail::rapporte_info(kuri::chaine_statique chemin_fichier,
+                                      int ligne,
+                                      kuri::chaine_statique message) const
+{
+    const Fichier *f = m_compilatrice.fichier(chemin_fichier);
+    return ::rapporte_info(this, SiteSource(f, ligne - 1), message);
+}
+
+Erreur EspaceDeTravail::rapporte_info(SiteSource site, kuri::chaine_statique message) const
+{
+    return ::rapporte_info(this, site, message);
+}
+
+Erreur EspaceDeTravail::rapporte_info_externe(ParamètresErreurExterne const &params) const
+{
+    possède_erreur = true;
+    return ::rapporte_info(this, params);
+}
+
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,
                                         kuri::chaine_statique message,
                                         erreur::Genre genre) const

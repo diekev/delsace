@@ -3750,6 +3750,11 @@ void Syntaxeuse::rapporte_erreur_avec_site(const NoeudExpression *site,
     m_possède_erreur = true;
 }
 
+void Syntaxeuse::rapporte_info(kuri::chaine_statique message, const Lexème *lexème)
+{
+    m_unité->espace->rapporte_info(SiteSource::cree(m_fichier, lexème), message);
+}
+
 void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
 {
     /* N'envoie plus rien vers le typage si nous avons une erreur. */

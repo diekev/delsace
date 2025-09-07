@@ -116,6 +116,18 @@ fonction compilatrice_rapporte_avertissement(EspaceDeTravail * espace, chaine_st
 @compilatrice
 
 /* --------------------------------------------------------------------------
+ * Rapport d'infos.
+ */
+
+/* Rapporte une information, la compilation ne sera pas terminée. */
+fonction compilatrice_rapporte_info(EspaceDeTravail * espace, chaine_statique fichier, int ligne, chaine_statique message)
+@compilatrice
+
+/* Comme compilatrice_rapporte_erreur_externe, mais pour une information. */
+fonction compilatrice_rapporte_info_externe(EspaceDeTravail * espace, chaine_statique message, chaine_statique chemin_fichier, chaine_statique texte_ligne, int numéro_ligne, int index_colonne, int index_colonne_début, int index_colonne_fin)
+@compilatrice
+
+/* --------------------------------------------------------------------------
  * Espace de travail.
  */
 
