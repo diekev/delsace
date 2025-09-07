@@ -35,7 +35,7 @@ principale :: fonc ()
     doit_fermer := faux
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre()
+        évènements := ajourne_évènements_fenêtre(fenêtre)
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre)
 

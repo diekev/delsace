@@ -1,0 +1,19 @@
+importe Fondation
+
+fonction_avec_parséante :: fonc () -> z32
+{
+    /* Une #parséante est une variable globale déclarée localement.
+     * Cette variable persistera lors des appels à la fonction. */
+    parséante: z32 #parséante
+    parséante += 1
+    retourne parséante
+}
+
+principale :: fonc ()
+{
+    assert(fonction_avec_parséante() == 1)
+    assert(fonction_avec_parséante() == 2)
+    assert(fonction_avec_parséante() == 3)
+    assert(fonction_avec_parséante() == 4)
+    assert(fonction_avec_parséante() == 5)
+}

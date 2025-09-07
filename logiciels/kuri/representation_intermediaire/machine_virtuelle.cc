@@ -794,6 +794,47 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.indice_colonne_fin = dépile<int>();
+        params.indice_colonne_début = dépile<int>();
+        params.indice_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_avertissement_externe(params);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_info)) {
+        auto message = dépile<kuri::chaine_statique>();
+        /* Dans les noeuds codes, les lignes commencent à 1. */
+        auto ligne = dépile<int>() - 1;
+        auto fichier = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_info(fichier, ligne, message);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_info_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.indice_colonne_fin = dépile<int>();
+        params.indice_colonne_début = dépile<int>();
+        params.indice_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_info_externe(params);
+        return;
+    }
+
     if (EST_FONCTION_COMPILATRICE(compilatrice_possède_erreur)) {
         auto espace = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");

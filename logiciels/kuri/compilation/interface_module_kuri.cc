@@ -9,9 +9,9 @@
 
 NoeudDéclarationEntêteFonction *InterfaceKuri::declaration_pour_ident(const IdentifiantCode *ident)
 {
-#define RETOURNE_SI_APPARIEMENT_IDENT(nom_rubrique, nom_ident)                                      \
+#define RETOURNE_SI_APPARIEMENT_IDENT(nom_rubrique, nom_ident)                                    \
     if (ident == nom_ident) {                                                                     \
-        return nom_rubrique;                                                                        \
+        return nom_rubrique;                                                                      \
     }
     ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(RETOURNE_SI_APPARIEMENT_IDENT)
 #undef RETOURNE_SI_APPARIEMENT_IDENT
@@ -20,9 +20,9 @@ NoeudDéclarationEntêteFonction *InterfaceKuri::declaration_pour_ident(const Id
 
 void InterfaceKuri::mute_rubrique(NoeudDéclarationEntêteFonction *noeud)
 {
-#define INIT_RUBRIQUE(rubrique, nom)                                                                  \
+#define INIT_RUBRIQUE(rubrique, nom)                                                              \
     if (noeud->ident == nom) {                                                                    \
-        rubrique = noeud;                                                                           \
+        rubrique = noeud;                                                                         \
         return;                                                                                   \
     }
 
@@ -33,7 +33,7 @@ void InterfaceKuri::mute_rubrique(NoeudDéclarationEntêteFonction *noeud)
 
 bool ident_est_pour_fonction_interface(const IdentifiantCode *ident)
 {
-#define COMPARE_NOM(rubrique, nom)                                                                  \
+#define COMPARE_NOM(rubrique, nom)                                                                \
     if (ident == nom) {                                                                           \
         return true;                                                                              \
     }
@@ -46,9 +46,9 @@ bool ident_est_pour_fonction_interface(const IdentifiantCode *ident)
 
 void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Type *type)
 {
-#define INIT_TYPE(rubrique, nom)                                                                    \
+#define INIT_TYPE(rubrique, nom)                                                                  \
     if (ident == nom) {                                                                           \
-        typeuse.rubrique = type;                                                                    \
+        typeuse.rubrique = type;                                                                  \
         return;                                                                                   \
     }
 
@@ -59,7 +59,7 @@ void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Ty
 
 bool ident_est_pour_type_interface(const IdentifiantCode *ident)
 {
-#define COMPARE_TYPE(rubrique, nom)                                                                 \
+#define COMPARE_TYPE(rubrique, nom)                                                               \
     if (ident == nom) {                                                                           \
         return true;                                                                              \
     }
@@ -72,9 +72,9 @@ bool ident_est_pour_type_interface(const IdentifiantCode *ident)
 
 bool est_type_interface_disponible(Typeuse &typeuse, const IdentifiantCode *ident)
 {
-#define COMPARE_TYPE(rubrique, nom)                                                                 \
+#define COMPARE_TYPE(rubrique, nom)                                                               \
     if (ident == nom) {                                                                           \
-        return typeuse.rubrique != nullptr;                                                         \
+        return typeuse.rubrique != nullptr;                                                       \
     }
 
     ENUMERE_TYPE_INTERFACE_MODULE_KURI(COMPARE_TYPE)
