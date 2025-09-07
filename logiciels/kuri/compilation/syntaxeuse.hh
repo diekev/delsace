@@ -81,8 +81,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
     NoeudExpression *analyse_déclaration_opérateur();
     void analyse_directives_opérateur(NoeudDéclarationEntêteFonction *noeud);
-    void analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
-                                        bool pour_operateur);
+    void parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16> &résultat,
+                                    bool pour_opérateur);
 
     /* Structures et unions. */
     NoeudExpression *analyse_déclaration_structure(Lexème const *lexème_nom);
@@ -125,6 +125,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                Lexème const *lexème) override;
 
     void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
+
+    void rapporte_info(kuri::chaine_statique message, const Lexème *lexème);
 
     void requiers_typage(NoeudExpression *noeud);
 
