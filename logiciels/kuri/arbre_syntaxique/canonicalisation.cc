@@ -2481,17 +2481,26 @@ NoeudExpression *Simplificatrice::simplifie_opérateur_binaire(NoeudExpressionBi
             expr_bin->lexème, expr_bin->op, expr_bin->opérande_gauche, expr_bin->opérande_droite);
     }
 
+    auto opérande_gauche = expr_bin->opérande_gauche;
+    auto opérande_droite = expr_bin->opérande_droite;
+    if (expr_bin->permute_opérandes) {
+        std::swap(opérande_gauche, opérande_droite);
+    }
+
+    if (expr_bin->op->est_assignation_composée) {
+        // Nous devons prendre l'adresse de l'opérande gauche.
+        auto prise_adresse = crée_prise_adresse(assem,
+                                                opérande_gauche->lexème,
+                                                opérande_gauche,
+                                                typeuse.type_pointeur_pour(opérande_gauche->type));
+        opérande_gauche = prise_adresse;
+    }
+
     auto appel = assem->crée_appel(
         expr_bin->lexème, expr_bin->op->decl, expr_bin->op->type_résultat);
 
-    if (expr_bin->permute_opérandes) {
-        appel->paramètres_résolus.ajoute(expr_bin->opérande_droite);
-        appel->paramètres_résolus.ajoute(expr_bin->opérande_gauche);
-    }
-    else {
-        appel->paramètres_résolus.ajoute(expr_bin->opérande_gauche);
-        appel->paramètres_résolus.ajoute(expr_bin->opérande_droite);
-    }
+    appel->paramètres_résolus.ajoute(opérande_gauche);
+    appel->paramètres_résolus.ajoute(opérande_droite);
 
     return appel;
 }
