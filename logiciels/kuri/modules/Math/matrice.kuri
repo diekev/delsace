@@ -243,8 +243,8 @@ transforme :: fonc (mat: Mat4r, vec: Vec4) -> Vec4
 
 inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
 {
-    index_colonnes := [ 0, 0, 0, 0 ]
-    index_lignes := [ 0, 0, 0, 0 ]
+    indice_colonnes := [ 0, 0, 0, 0 ]
+    indice_lignes := [ 0, 0, 0, 0 ]
     index_pivots := [ 0, 0, 0, 0 ]
 
     pour i dans 0 ... 3 {
@@ -285,8 +285,8 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
             }
         }
 
-        index_lignes[i] = il
-        index_colonnes[i] = ic
+        indice_lignes[i] = il
+        indice_colonnes[i] = ic
 
         si matrice_inverse.m[ic][ic] == 0.0 {
             /* À FAIRE : erreur :
@@ -321,14 +321,14 @@ inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
     /* Échange les colonnes pour réfléchir la permutation. */
     j := 3
     tantque j >= 0 {
-        si index_lignes[j] == index_colonnes[j] {
+        si indice_lignes[j] == indice_colonnes[j] {
             j -= 1
             continue
         }
 
         pour k dans 0 ... 3 {
-            permute(*matrice_inverse.m[k][index_lignes[j]],
-                    *matrice_inverse.m[k][index_colonnes[j]])
+            permute(*matrice_inverse.m[k][indice_lignes[j]],
+                    *matrice_inverse.m[k][indice_colonnes[j]])
         }
 
         j -= 1

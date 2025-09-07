@@ -246,7 +246,7 @@ divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
 /* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
 exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
 {
-    début := index_premier_bit_actif_gauche(exp)
+    début := indice_premier_bit_actif_gauche(exp)
     résultat : n64 = 1
 
     pour début {

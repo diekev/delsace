@@ -30,14 +30,14 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
             lignes := divise(texte_résultat, '\n')
             diffère déloge(lignes)
 
-            index_noeud := 0
+            indice_noeud := 0
 
             pour lignes {
                 saufsi it.commence_par("node ") {
                     continue
                 }
 
-                diffère index_noeud += 1
+                diffère indice_noeud += 1
 
                 lexèmes := it.divise(' ')
                 diffère déloge(lexèmes)
@@ -139,23 +139,23 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         décalage: z64
     }
 
-    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, index_colonne: z64) -> z64
+    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, indice_colonne: z64) -> z64
     {
-        index_effectif := index_colonne - assignation.décalage
+        index_effectif := indice_colonne - assignation.décalage
         si index_effectif < 0 {
             retourne -1
         }
 
         discr assignation.choix_index {
             PlaceSurPair {
-                si index_colonne % 2 != 0 {
+                si indice_colonne % 2 != 0 {
                     retourne -1
                 }
 
                 retourne index_effectif / 2
             }
             PlaceSurImpair {
-                si index_colonne % 2 == 0 {
+                si indice_colonne % 2 == 0 {
                     retourne -1
                 }
 

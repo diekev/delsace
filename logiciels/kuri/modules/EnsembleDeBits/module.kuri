@@ -8,16 +8,16 @@ EnsembleDeBits :: struct {
 
 est_actif :: fonc (ensemble: &EnsembleDeBits, index: n32) -> bool
 {
-    index_octet := index / 8
-    index_bit := index comme n8 % 8
-    retourne (ensemble.bits[index_octet] >> index_bit) != 0
+    indice_octet := index / 8
+    indice_bit := index comme n8 % 8
+    retourne (ensemble.bits[indice_octet] >> indice_bit) != 0
 }
 
 active :: fonc (ensemble: &EnsembleDeBits, index: n32)
 {
-    index_octet := index / 8
-    index_bit := index comme n8 % 8
-    ensemble.bits[index_octet] |= (1 << index_bit)
+    indice_octet := index / 8
+    indice_bit := index comme n8 % 8
+    ensemble.bits[indice_octet] |= (1 << indice_bit)
 }
 
 active_tout :: fonc (ensemble: &EnsembleDeBits)
@@ -29,10 +29,10 @@ active_tout :: fonc (ensemble: &EnsembleDeBits)
 
 désactive :: fonc (ensemble: &EnsembleDeBits, index: n32)
 {
-    index_octet := index / 8
-    index_bit := index comme n8 % 8
-    masque := (1 << index_bit)
-    ensemble.bits[index_octet] &= ~masque
+    indice_octet := index / 8
+    indice_bit := index comme n8 % 8
+    masque := (1 << indice_bit)
+    ensemble.bits[indice_octet] &= ~masque
 }
 
 désactive_tout :: fonc (ensemble: &EnsembleDeBits)
@@ -100,22 +100,22 @@ crée_tableau_booléen :: fonc (taille: z64) -> TableauBooléen
     retourne résultat
 }
 
-index_et_décalage :: fonc (index: z64) -> z64, n64 #enligne
+indice_et_décalage :: fonc (index: z64) -> z64, n64 #enligne
 {
-    index_octet := index / 64
-    index_bit := index comme n64 % 64
+    indice_octet := index / 64
+    indice_bit := index comme n64 % 64
 }
 
 est_actif :: fonc (tableau: &TableauBooléen, index: z64) -> bool
 {
-    index_octet, index_bit := index_et_décalage(index)
-    retourne (tableau.bits[index_octet] >> index_bit) != 0
+    indice_octet, indice_bit := indice_et_décalage(index)
+    retourne (tableau.bits[indice_octet] >> indice_bit) != 0
 }
 
 active :: fonc (tableau: &TableauBooléen, index: z64)
 {
-    index_octet, index_bit := index_et_décalage(index)
-    tableau.bits[index_octet] |= (1 << index_bit)
+    indice_octet, indice_bit := indice_et_décalage(index)
+    tableau.bits[indice_octet] |= (1 << indice_bit)
 }
 
 active_tout :: fonc (tableau: &TableauBooléen)
@@ -127,9 +127,9 @@ active_tout :: fonc (tableau: &TableauBooléen)
 
 désactive :: fonc (tableau: &TableauBooléen, index: z64)
 {
-    index_octet, index_bit := index_et_décalage(index)
-    masque := (1 << index_bit)
-    tableau.bits[index_octet] &= ~masque
+    indice_octet, indice_bit := indice_et_décalage(index)
+    masque := (1 << indice_bit)
+    tableau.bits[indice_octet] &= ~masque
 }
 
 désactive_tout :: fonc (tableau: &TableauBooléen)

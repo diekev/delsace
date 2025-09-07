@@ -2968,13 +2968,13 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
     }
 
     pour ctx.colonnes_cellules.taille / 2 {
-        index_colonne := ctx.colonnes_cellules[it * 2]
+        indice_colonne := ctx.colonnes_cellules[it * 2]
         index_cellule := ctx.colonnes_cellules[it * 2 + 1]
 
         cellule := ctx.cellules[index_cellule]
 
         si cellule.colspan == 1 {
-            données_colonnes := *ctx.données_colonnes[index_colonne]
+            données_colonnes := *ctx.données_colonnes[indice_colonne]
 
             si données_colonnes.minimum_width < cellule.minimum_content_width {
                 données_colonnes.minimum_width = cellule.minimum_content_width
@@ -2988,7 +2988,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
             largeur_min_colonnes : r64 = 0.0
             largeur_max_colonnes : r64 = 0.0
 
-            pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+            pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
                 assert(idx < ctx.données_colonnes.taille)
                 données_colonnes := *ctx.données_colonnes[idx]
 
@@ -2999,7 +2999,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
             si largeur_min_colonnes < cellule.minimum_content_width {
                 delta := (cellule.minimum_content_width - largeur_min_colonnes) / cellule.colspan comme r64
 
-                pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+                pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
                     données_colonnes := *ctx.données_colonnes[idx]
                     données_colonnes.minimum_width += delta
                 }
@@ -3008,7 +3008,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
             si largeur_max_colonnes < cellule.maximum_content_width {
                 delta := (cellule.maximum_content_width - largeur_max_colonnes) / cellule.colspan comme r64
 
-                pour idx dans index_colonne ... index_colonne + (cellule.colspan comme z32) - 1 {
+                pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
                     données_colonnes := *ctx.données_colonnes[idx]
                     données_colonnes.maximum_width += delta
                 }
@@ -3102,12 +3102,12 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
 
 initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 {
-    index_ligne: z64
+    indice_ligne: z64
 
     pour table.enfants {
         si it.table_virtuelle.type == TableRowBox {
-            récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, index_ligne)
-            index_ligne += 1
+            récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, indice_ligne)
+            indice_ligne += 1
             continue
         }
 
@@ -3124,23 +3124,23 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
                 continue
             }
 
-            récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, index_ligne)
-            index_ligne += 1
+            récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, indice_ligne)
+            indice_ligne += 1
 
             groupe.nombre_de_lignes += 1
         }
     }
 
-    ctx.nombre_de_lignes = index_ligne
+    ctx.nombre_de_lignes = indice_ligne
 
     tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes)
 
-    // imprime("lignes : %, colones : %\n", index_ligne, ctx.nombre_de_colonnes)
+    // imprime("lignes : %, colones : %\n", indice_ligne, ctx.nombre_de_colonnes)
 }
 
-récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, index_ligne: z64)
+récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, indice_ligne: z64)
 {
-    index_colonne: z64
+    indice_colonne: z64
     cellules_sur_ligne: z32
 
     ligne := tableau_ajoute_élément(*ctx.lignes)
@@ -3158,8 +3158,8 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
 
         cellule := tableau_ajoute_élément(*ctx.cellules)
         cellule.box = cell
-        cellule.colonne = index_colonne
-        cellule.ligne = index_ligne
+        cellule.colonne = indice_colonne
+        cellule.ligne = indice_ligne
 
         si cell.donne_élément() {
             cellule.colspan = HTML.donne_colspan(cell.donne_élément())
@@ -3170,14 +3170,14 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
 
         ligne.nombre_de_cellules += 1
 
-        tableau_ajoute(*ctx.colonnes_cellules, index_colonne)
+        tableau_ajoute(*ctx.colonnes_cellules, indice_colonne)
         tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
 
-        index_colonne += cellule.colspan comme z64
+        indice_colonne += cellule.colspan comme z64
         cellules_sur_ligne += 1
 
-        si ctx.nombre_de_colonnes < index_colonne {
-            ctx.nombre_de_colonnes = index_colonne
+        si ctx.nombre_de_colonnes < indice_colonne {
+            ctx.nombre_de_colonnes = indice_colonne
         }
     }
 }

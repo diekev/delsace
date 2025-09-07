@@ -142,26 +142,26 @@ ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *I
     discr type.id {
         ENTIER {
             info_entier := type comme *InfoTypeEntier
-            index_nom := index_bit_taille_octet(info_entier.taille_en_octet)
+            indice_nom := indice_bit_taille_octet(info_entier.taille_en_octet)
             noms_signed := [ "int8_t", "int16_t", "int32_t", "int64_t" ]
 
             si info_entier.est_signé {
-                nouveau_type.nom_type_c = copie_chaine(noms_signed[index_nom])
-                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[index_nom])
-                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[index_nom])
+                nouveau_type.nom_type_c = copie_chaine(noms_signed[indice_nom])
+                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[indice_nom])
+                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[indice_nom])
             }
             sinon {
-                nouveau_type.nom_type_c = enchaine("u", noms_signed[index_nom])
-                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[index_nom])
-                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[index_nom])
+                nouveau_type.nom_type_c = enchaine("u", noms_signed[indice_nom])
+                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[indice_nom])
+                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[indice_nom])
             }
         }
         RÉEL {
-            index_nom := index_bit_taille_octet(type.taille_en_octet)
+            indice_nom := indice_bit_taille_octet(type.taille_en_octet)
             noms_types := [ "", "r16", "float", "double" ]
-            nouveau_type.nom_type_c = copie_chaine(noms_types[index_nom])
-            nouveau_type.nom_type_cpp = copie_chaine(noms_types[index_nom])
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[index_nom])
+            nouveau_type.nom_type_c = copie_chaine(noms_types[indice_nom])
+            nouveau_type.nom_type_cpp = copie_chaine(noms_types[indice_nom])
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[indice_nom])
         }
         BOOLÉEN {
             nouveau_type.nom_type_c = copie_chaine("bool")
@@ -631,9 +631,9 @@ prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, systè
 
         ajoute_au_tampon(enchaineuse, "enum class ", type_c.nom_type_cpp, " : ", type_c_sous_jacent.nom_type_cpp, " {\n")
 
-        pour nom, index_nom dans type_énum.noms {
+        pour nom, indice_nom dans type_énum.noms {
             ajoute_au_tampon(enchaineuse, "    ", nom, " = ")
-            eini_valeur := donne_eini_valeur_énum_indice(type_énum, index_nom)
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_nom)
             imprime_valeur(enchaineuse, eini_valeur, faux)
             ajoute_au_tampon(enchaineuse, ",\n")
         }
@@ -851,14 +851,14 @@ définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, g�
         saufsi type_fonction.types_entrée.taille > 1 {
             ajoute_au_tampon(enchaineuse, virgule)
         }
-        sinon pour index_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
-            entrée := type_fonction.types_entrée[index_entrée]
+        sinon pour indice_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
+            entrée := type_fonction.types_entrée[indice_entrée]
             type_c_entrée := trouve_type(système, entrée.infos)
             nom_type = type_c_entrée.nom_type_cpp
             si type_est_toujours_pointeur(entrée) {
                 nom_type = recule(nom_type, 1)
             }
-            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, nom_type, index_entrée)
+            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, nom_type, indice_entrée)
             virgule = ", "
         }
         ajoute_au_tampon(enchaineuse, ") = 0;\n\n")
@@ -905,9 +905,9 @@ définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Encha
         saufsi type_fonction.types_entrée {
             ajoute_au_tampon(enchaineuse, virgule)
         }
-        sinon pour entrée, index_entrée dans type_fonction.types_entrée {
+        sinon pour entrée, indice_entrée dans type_fonction.types_entrée {
             type_c_entrée := trouve_type(système, entrée.infos)
-            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, index_entrée)
+            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, indice_entrée)
             virgule = ", "
         }
         ajoute_au_tampon(enchaineuse, ")")
@@ -925,8 +925,8 @@ définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Encha
         si type_fonction.types_entrée.taille <= 1 {
             ajoute_au_tampon(enchaineuse, virgule)
         }
-        sinon pour index_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
-            entrée := type_fonction.types_entrée[index_entrée]
+        sinon pour indice_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
+            entrée := type_fonction.types_entrée[indice_entrée]
             type_c_entrée := trouve_type(système, entrée.infos)
             nom_type := type_c_entrée.nom_type_cpp
             si type_est_toujours_pointeur(entrée) {
@@ -935,7 +935,7 @@ définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Encha
             sinon saufsi type_requiers_conversion_entre_c_et_cpp(entrée.infos) {
                 nom_type = ""
             }
-            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, index_entrée)
+            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, indice_entrée)
             virgule = ", "
         }
         ajoute_au_tampon(enchaineuse, ");\n")

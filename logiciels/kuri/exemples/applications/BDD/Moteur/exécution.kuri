@@ -222,8 +222,8 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
         déloge(colonnes_résultat)
     }
 
-    index_colonnes: [..]z64
-    diffère déloge(index_colonnes)
+    indice_colonnes: [..]z64
+    diffère déloge(indice_colonnes)
 
     // trouve les colonnes dans la table
     pour expr dans inst.items {
@@ -246,7 +246,7 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
             }
 
             tableau_ajoute(*colonnes_résultat, colonne)
-            tableau_ajoute(*index_colonnes, idx_colonne)
+            tableau_ajoute(*indice_colonnes, idx_colonne)
 
             trouvée = vrai
         }
@@ -272,7 +272,7 @@ sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *I
         décalage_source := 0
         décalage_résultat := 0
 
-        pour index dans index_colonnes {
+        pour index dans indice_colonnes {
             colonne := table.desc_colonnes[index]
             décalage_source = colonne.décalage
 

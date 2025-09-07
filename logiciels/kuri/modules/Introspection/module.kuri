@@ -13,9 +13,9 @@ est_rubrique_active :: fonc (u: $TypeUnion, $TypeRubrique: type_de_données) -> 
     #assert info_de(TypeUnion).est_sûre == vrai
 
     info_union := info_de(TypeUnion)
-    adresse_index := (*u comme *octet + info_union.décalage_index) comme *z32
+    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32
 
-    index := mémoire(adresse_index)
+    index := mémoire(adresse_indice)
 
     si index == 0 {
         retourne faux
@@ -34,8 +34,8 @@ définis_rubrique_active :: fonc (u: *$TypeUnion, index: z32)
 
     assert(index >= 0 && index < info_union.rubriques.taille)
 
-    adresse_index := (u comme *octet + info_union.décalage_index) comme *z32
-    mémoire(adresse_index) = index + 1
+    adresse_indice := (u comme *octet + info_union.décalage_indice) comme *z32
+    mémoire(adresse_indice) = index + 1
 }
 
 donne_indice_rubrique_active :: fonc (u: $TypeUnion) -> z32
@@ -45,8 +45,8 @@ donne_indice_rubrique_active :: fonc (u: $TypeUnion) -> z32
 
     info_union := info_de(TypeUnion)
 
-    adresse_index := (*u comme *octet + info_union.décalage_index) comme *z32
-    retourne mémoire(adresse_index)
+    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32
+    retourne mémoire(adresse_indice)
 }
 
 est_valide :: fonc (valeur: eini) -> bool
