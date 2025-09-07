@@ -1337,7 +1337,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
 }
 
 AccèdeIndexConstant *ConstructriceRI::crée_accès_indice_constant(AtomeConstante *accédé,
-                                                                int64_t index)
+                                                                 int64_t index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
