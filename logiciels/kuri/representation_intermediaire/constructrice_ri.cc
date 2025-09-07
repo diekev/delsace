@@ -4974,7 +4974,7 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
 
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl)
 {
-    if (m_fonction_courante == nullptr) {
+    if (m_fonction_courante == nullptr || decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
         génère_ri_pour_variable_globale(decl);
         return;
     }

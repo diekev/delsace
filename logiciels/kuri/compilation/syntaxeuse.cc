@@ -3778,12 +3778,23 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
 
     consomme();
 
+    auto lexème_directive = lexème_courant();
+
+    if (lexème_directive->ident == ID::parséante) {
+        consomme();
+        déclaration->drapeaux |= (DrapeauxNoeud::EST_GLOBALE | DrapeauxNoeud::EST_PARSÉANTE);
+        /* Une #parséante ne doit pas être visible. */
+        déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+        déclaration->drapeaux &= ~(DrapeauxNoeud::EST_LOCALE);
+        déclaration->bloc_parent->ajoute_rubrique(déclaration);
+        return;
+    }
+
     if (!fonctions_courantes.est_vide()) {
         rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
         return;
     }
 
-    auto lexème_directive = lexème_courant();
     if (lexème_directive->ident == ID::externe) {
         if (déclaration->expression) {
             rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
