@@ -1337,7 +1337,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
 }
 
 AccèdeIndexConstant *ConstructriceRI::crée_accès_indice_constant(AtomeConstante *accédé,
-                                                                int64_t index)
+                                                                 int64_t index)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
@@ -4979,7 +4979,7 @@ void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
 
 void CompilatriceRI::génère_ri_pour_déclaration_variable(NoeudDéclarationVariable *decl)
 {
-    if (m_fonction_courante == nullptr) {
+    if (m_fonction_courante == nullptr || decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
         génère_ri_pour_variable_globale(decl);
         return;
     }
