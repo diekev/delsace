@@ -62,20 +62,20 @@ définis_typage :: fonc (atlas: *AtlasTexture, type: n32, format: n32, format_in
 
 définis_filtre_min_mag :: fonc (atlas: *AtlasTexture @inutilisée, min: GLenum, mag: GLenum)
 {
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, min)
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, mag)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, min comme GLint)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, mag comme GLint)
 }
 
 remplis :: fonc (empl atlas: *AtlasTexture, données: *rien, taille: [3]z32)
 {
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format_interne, taille[0], taille[1], taille[2],
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, format_interne comme GLint, taille[0], taille[1], taille[2],
 				 bordure, format, type, données);
 }
 
 définis_enveloppage :: fonc (atlas: *AtlasTexture @inutilisée, enveloppe: GLenum)
 {
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, enveloppe)
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, enveloppe)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, enveloppe comme GLint)
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, enveloppe comme GLint)
 }
 
 /** \} */
@@ -144,20 +144,20 @@ définis_typage :: fonc (texture: *Texture2D, type: n32, format: n32, format_int
 
 définis_filtre_min_mag :: fonc (texture: *Texture2D @inutilisée, min: GLenum, mag: GLenum)
 {
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min comme GLint)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag comme GLint)
 }
 
 remplis :: fonc (empl texture: *Texture2D, données: *rien, taille: [2]z32)
 {
-	glTexImage2D(GL_TEXTURE_2D, 0, format_interne, taille[0], taille[1],
+	glTexImage2D(GL_TEXTURE_2D, 0, format_interne comme GLint, taille[0], taille[1],
 				 bordure, format, type, données);
 }
 
 définis_enveloppage :: fonc (texture: *Texture2D @inutilisée, enveloppe: GLenum)
 {
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, enveloppe)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, enveloppe)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, enveloppe comme GLint)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, enveloppe comme GLint)
 }
 
 /** \} */
