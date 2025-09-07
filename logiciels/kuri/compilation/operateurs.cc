@@ -442,6 +442,7 @@ OpérateurBinaire *RegistreDesOpérateurs::crée_opérateur_binaire(
     résultat->est_commutatif = est_commutatif(id);
     résultat->est_basique = false;
     résultat->decl = decl;
+    résultat->est_assignation_composée = est_assignation_composée(id);
     résultat->genre = genre_op_binaire_pour_lexeme(id, IndiceTypeOp::ENTIER_NATUREL);
     return résultat;
 }
@@ -708,6 +709,22 @@ static NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type)
     return classe->polymorphe_de_base;
 }
 
+static void rassemble_opérateurs_pour_type(
+    Type *type, GenreLexème type_op, kuri::tablet<OpérateurBinaire const *, 10> &op_candidats)
+{
+    rassemble_opérateurs_pour_type(*type, type_op, op_candidats);
+
+    if (type->est_type_opaque()) {
+        auto type_opacifié = type->comme_type_opaque()->type_opacifié;
+        rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
+    }
+
+    auto polymorphe_type = donne_polymorphe_de_base(type);
+    if (polymorphe_type) {
+        rassemble_opérateurs_pour_type(*polymorphe_type, type_op, op_candidats);
+    }
+}
+
 std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
                                                     NoeudExpression *expression,
                                                     Type *type1,
@@ -719,30 +736,10 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
     assert(type2);
 
     auto op_candidats = kuri::tablet<OpérateurBinaire const *, 10>();
-    rassemble_opérateurs_pour_type(*type1, type_op, op_candidats);
-
-    if (type1->est_type_opaque()) {
-        auto type_opacifié = type1->comme_type_opaque()->type_opacifié;
-        rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
-    }
-
-    auto polymorphe_type1 = donne_polymorphe_de_base(type1);
-    if (polymorphe_type1) {
-        rassemble_opérateurs_pour_type(*polymorphe_type1, type_op, op_candidats);
-    }
+    rassemble_opérateurs_pour_type(type1, type_op, op_candidats);
 
     if (type1 != type2) {
-        rassemble_opérateurs_pour_type(*type2, type_op, op_candidats);
-
-        if (type2->est_type_opaque()) {
-            auto type_opacifié = type2->comme_type_opaque()->type_opacifié;
-            rassemble_opérateurs_pour_type(*type_opacifié, type_op, op_candidats);
-        }
-
-        auto polymorphe_type2 = donne_polymorphe_de_base(type2);
-        if (polymorphe_type2) {
-            rassemble_opérateurs_pour_type(*polymorphe_type2, type_op, op_candidats);
-        }
+        rassemble_opérateurs_pour_type(type2, type_op, op_candidats);
     }
 
     for (auto const op : op_candidats) {
@@ -896,6 +893,15 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
             candidat.permute_opérandes = true;
 
             candidats.ajoute(candidat);
+        }
+    }
+
+    /* Réduisons les poids des opérateurs simples si nous avons une assignation composée, afin de
+     * privilégier les opérateurs d'assignation composée. */
+    auto const pour_assignation_composée = est_assignation_composée(type_op);
+    POUR (candidats) {
+        if (!it.op->est_assignation_composée && pour_assignation_composée) {
+            it.poids *= 0.5;
         }
     }
 
