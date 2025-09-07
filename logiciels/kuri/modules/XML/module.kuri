@@ -1,0 +1,208 @@
+importe Chaine
+importe Fondation
+
+/* Simple parseuse XML de type SAX :
+ * https://fr.wikipedia.org/wiki/Simple_API_for_XML */
+
+Attribut :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+donne_attribut :: fonc (attributs: []Attribut, nom: chaine) -> *Attribut
+{
+    pour * attributs {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+parse_xml :: fonc (contenu: chaine,
+                   rappel_début_élément: fonc(données: eini, élément: chaine, attributs: []Attribut),
+                   rappel_contenu: fonc (données: eini, s: chaine),
+                   rappel_cdata: fonc(données: eini, cdata: chaine),
+                   rappel_fin_élément: fonc(données: eini, élément: chaine),
+                   données_utilisateur: eini)
+{
+    XML_TAG :: 1
+    XML_CONTENU :: 2
+
+    s := contenu
+    extraction := s
+    extraction.taille = 0
+
+    état := XML_CONTENU
+
+    tantque s {
+        si s[0] == '<' && état == XML_CONTENU {
+            /* Début d'un tag */
+            s = avance(s, 1)
+
+            parse_contenu(extraction, rappel_contenu, données_utilisateur)
+
+            si commence_par(s, "![CDATA[") {
+                s = avance(s, 8)
+                cdata := s
+                cdata.taille = 0
+                tantque s && !commence_par(s, "]]>") {
+                    s = avance(s, 1)
+                    cdata.taille += 1
+                }
+
+                si commence_par(s, "]]>") {
+                    s = avance(s, 3)
+                }
+
+                parse_cdata(cdata, rappel_cdata, données_utilisateur)
+
+                extraction = s;
+                extraction.taille = 0
+                état = XML_CONTENU;
+            }
+            sinon {
+                extraction = s
+                extraction.taille = 0
+                état = XML_TAG
+            }
+        }
+        sinon si s[0] == '>' && état == XML_TAG {
+            /* Début d'un contenu ou d'un nouveau tag. */
+            s = avance(s, 1)
+            parse_élément(extraction, rappel_début_élément, rappel_fin_élément, données_utilisateur)
+			extraction = s;
+            extraction.taille = 0
+			état = XML_CONTENU;
+		}
+        sinon {
+            s = avance(s, 1)
+            extraction.taille += 1
+		}
+	}
+}
+
+#portée_fichier
+
+est_espace_blanche_xml :: fonc (c: z8) -> bool
+{
+    pour " \t\n\v\f\r" {
+        si it == c {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+parse_contenu :: fonc (contenu: chaine, rappel_contenu: fonc (données: eini, s: chaine), données_utilisateur: eini)
+{	
+    contenu = supprime_espaces_blancs_au_début(contenu)
+    si contenu {
+        si rappel_contenu {
+            rappel_contenu(données_utilisateur, contenu)
+        }
+    }
+}
+
+parse_cdata :: fonc (cdata: chaine, rappel_cdata: fonc(données: eini, cdata: chaine), données_utilisateur: eini)
+{
+    si rappel_cdata {
+        rappel_cdata(données_utilisateur, cdata)
+    }
+}
+
+parse_élément :: fonc (contenu: chaine,
+                       rappel_début_élément: fonc(données: eini, élément: chaine, attributs: []Attribut),
+                       rappel_fin_élément: fonc(données: eini, élément: chaine),
+                       données_utilisateur: eini)
+{
+    contenu = supprime_espaces_blancs_au_début(contenu)
+
+    si contenu {
+        /* Vérifions si nous avons un tag de fin. */
+        est_tag_de_fin := faux
+        est_tag_de_début := faux
+        si contenu[0] == '/' {
+            contenu = avance(contenu, 1)
+            est_tag_de_fin = vrai
+        }
+        sinon {
+            est_tag_de_début = vrai
+        }
+
+        si contenu.taille == 0 || contenu[0] == '?' || contenu[0] == '!' {
+            retourne
+        }
+
+        /* Extrayons le nom de tag. */
+        nom := contenu
+        nom.taille = 0
+        tantque contenu.taille != 0 && !est_espace_blanche_xml(contenu[0]) {
+            nom.taille += 1
+            contenu = avance(contenu, 1)
+        }
+
+        /* Attributs. */
+        XML_MAX_ATTRIBS :: 256
+        attributs: [XML_MAX_ATTRIBS]Attribut
+        nombre_d_attributs := 0
+        tantque !est_tag_de_fin && contenu.taille != 0 && nombre_d_attributs < XML_MAX_ATTRIBS {
+            /* Sautons les espaces blanches avant le nom de l'attribut. */
+            contenu = supprime_espaces_blancs_au_début(contenu)
+            saufsi contenu {
+                arrête
+            }
+
+            si contenu[0] == '/' {
+                est_tag_de_fin = vrai
+                arrête
+            }
+
+            nom_attribut := contenu
+            nom_attribut.taille = 0
+
+            /* Trouvons la fin du nom de l'attribut. */
+            tantque contenu.taille != 0 && !est_espace_blanche_xml(contenu[0]) && contenu[0] != '=' {
+                contenu = avance(contenu, 1)
+                nom_attribut.taille += 1
+            }
+
+            /* Trouvons le début de la valeur de l'attribut. */
+            tantque contenu.taille != 0 && contenu[0] != '"' && contenu[0] != '\'' {
+                contenu = avance(contenu, 1)
+            }
+
+            saufsi contenu {
+                arrête
+            }
+
+            guillemet := contenu[0]
+            contenu = avance(contenu, 1)
+
+            /* Trouvons la fin de la valeur. */
+            valeur_attribut := contenu
+            valeur_attribut.taille = 0
+            tantque contenu.taille != 0 && contenu[0] != guillemet {
+                contenu = avance(contenu, 1)
+                valeur_attribut.taille += 1
+            }
+            contenu = avance(contenu, 1)
+
+            /* Ne stockons que les attributs bien formées. */
+            si nom_attribut && valeur_attribut {
+                attributs[nombre_d_attributs] = Attribut(nom_attribut, valeur_attribut)
+                nombre_d_attributs += 1
+            }
+        }
+
+        si est_tag_de_début && rappel_début_élément {
+            tranche_attributs : []Attribut = attributs
+            tranche_attributs.taille = nombre_d_attributs
+            rappel_début_élément(données_utilisateur, nom, tranche_attributs)
+        }
+
+        si est_tag_de_fin && rappel_fin_élément {
+            rappel_fin_élément(données_utilisateur, nom)
+        }
+    }
+}

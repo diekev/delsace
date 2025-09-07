@@ -130,6 +130,8 @@ struct OpérateurBinaire {
 
     /* vrai pour les opérateurs d'arithmétiques de pointeurs */
     bool est_arithmétique_pointeur = false;
+
+    bool est_assignation_composée = false;
 };
 
 const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre);
