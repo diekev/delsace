@@ -241,6 +241,11 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CHAPEAU:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::POUR:
+            case GenreLexème::PLUS_EGAL:
+            case GenreLexème::MOINS_EGAL:
+            case GenreLexème::MULTIPLIE_EGAL:
+            case GenreLexème::DIVISE_EGAL:
+            case GenreLexème::MODULO_EGAL:
             {
                 t[i] |= OPÉRATEUR_EST_SURCHARGEABLE;
                 break;
@@ -2848,22 +2853,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         return analyse_déclaration_type_fonction(lexème_mot_clé);
     }
 
+    auto bloc_parent = m_contexte->assembleuse->bloc_courant();
+
     empile_état("dans le syntaxage de la fonction", lexème_mot_clé);
-
-    auto noeud = m_contexte->assembleuse->crée_entête_fonction(lexème);
-
-    // @concurrence critique, si nous avons plusieurs définitions
-    if (noeud->ident == ID::principale) {
-        if (m_unité->espace->fonction_principale) {
-            m_unité->espace
-                ->rapporte_erreur(noeud, "Redéfinition de la fonction principale pour cet espace.")
-                .ajoute_message("La fonction principale fut déjà définie ici :\n")
-                .ajoute_site(m_unité->espace->fonction_principale);
-        }
-
-        m_unité->espace->fonction_principale = noeud;
-        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-    }
 
     empile_table_références();
     SUR_SORTIE_PORTEE {
@@ -2874,12 +2866,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     consomme(GenreLexème::PARENTHESE_OUVRANTE,
              "Attendu une parenthèse ouvrante après le nom de la fonction");
 
-    noeud->bloc_constantes = m_contexte->assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::CONSTANTES);
-    noeud->bloc_paramètres = m_contexte->assembleuse->empile_bloc(
-        lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
+    /* À FAIRE : évite de créer des blocs à tout va (nous pourrions avoir une déclaration de type
+     * de fonction) */
+    auto bloc_constantes = m_contexte->assembleuse->empile_bloc(
+        lexème_bloc, nullptr, TypeBloc::CONSTANTES);
+    auto bloc_paramètres = m_contexte->assembleuse->empile_bloc(
+        lexème_bloc, nullptr, TypeBloc::PARAMÈTRES);
 
-    bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+    bloc_constantes_polymorphiques.empile(bloc_constantes);
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2908,33 +2902,96 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         consomme();
     }
 
-    copie_tablet_tableau(params, noeud->params);
-
     consomme(GenreLexème::PARENTHESE_FERMANTE,
              "Attendu ')' à la fin des paramètres de la fonction");
 
-    // nous avons la déclaration d'une fonction
-    if (apparie(GenreLexème::RETOUR_TYPE)) {
-        consomme();
-        analyse_expression_retour_type(noeud, false);
+    auto params_sortie = kuri::tablet<NoeudExpression *, 16>();
+    parse_paramètres_de_sortie(params_sortie, false);
+
+    ignore_point_virgule_implicite();
+
+    sauvegarde_position_lexème();
+
+    auto lexème_suivant_défini_fonction = false;
+    while (!fini()) {
+        auto lexème_spéculatif = lexème_courant();
+        if (lexème_spéculatif->genre == GenreLexème::DIRECTIVE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        if (lexème_spéculatif->genre == GenreLexème::POUSSE_CONTEXTE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        if (lexème_spéculatif->genre == GenreLexème::ACCOLADE_OUVRANTE) {
+            lexème_suivant_défini_fonction = true;
+            break;
+        }
+
+        break;
     }
-    else {
-        Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(
-            lexème, GenreLexème::RIEN, "");
 
-        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
-        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
+    restaure_position_lexème();
 
-        noeud->params_sorties.ajoute(decl);
-        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+    // À FAIRE : nous_sommes_dans_une_déclaration_de_type
+    if (!lexème_suivant_défini_fonction) {
+        /* dépile le bloc des paramètres */
+        m_contexte->assembleuse->dépile_bloc();
+
+        /* dépile le bloc des constantes */
+        m_contexte->assembleuse->dépile_bloc();
+
+        /* Nous avons une déclaration de type de fonction. */
+        auto résultat = m_contexte->assembleuse->crée_expression_type_fonction(lexème);
+        résultat->bloc_parent = bloc_parent;
+        copie_tablet_tableau(params, résultat->types_entrée);
+        copie_tablet_tableau(params_sortie, résultat->types_sortie);
+        return résultat;
     }
 
-    auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+    auto noeud = m_contexte->assembleuse->crée_entête_fonction(lexème);
+    noeud->bloc_parent = bloc_parent;
+
+    // @concurrence critique, si nous avons plusieurs définitions
+    if (noeud->ident == ID::principale) {
+        if (m_unité->espace->fonction_principale) {
+            m_unité->espace
+                ->rapporte_erreur(noeud, "Redéfinition de la fonction principale pour cet espace.")
+                .ajoute_message("La fonction principale fut déjà définie ici :\n")
+                .ajoute_site(m_unité->espace->fonction_principale);
+        }
+
+        m_unité->espace->fonction_principale = noeud;
+        noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+    }
+
+    noeud->bloc_constantes = bloc_constantes;
+    bloc_constantes->appartiens_à_fonction = noeud;
+    noeud->bloc_paramètres = bloc_paramètres;
+    bloc_paramètres->appartiens_à_fonction = noeud;
+
+    auto bloc_constantes_courant = bloc_constantes_polymorphiques.depile();
+    assert(bloc_constantes_courant == bloc_constantes);
     if (bloc_constantes->nombre_de_rubriques() != 0) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
 
-    ignore_point_virgule_implicite();
+    copie_tablet_tableau(params, noeud->params);
+    copie_tablet_tableau(params_sortie, noeud->params_sorties);
+
+    if (noeud->params_sorties.taille() > 1) {
+        /* il nous faut un identifiant valide */
+        noeud->param_sortie = m_contexte->assembleuse->crée_déclaration_variable(
+            noeud->params_sorties[0]->lexème, nullptr, nullptr);
+        noeud->param_sortie->ident = m_compilatrice.table_identifiants
+                                         ->identifiant_pour_nouvelle_chaine("valeur_de_retour");
+    }
+    else {
+        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+    }
+
     analyse_directives_fonction(noeud);
 
     if (noeud->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
@@ -2974,6 +3031,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
             noeud_corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
             noeud_corps->bloc->ident = noeud->ident;
         }
+
+        noeud_corps->bloc_parent = bloc_paramètres;
 
         analyse_annotations(noeud->annotations);
         fonctions_courantes.depile();
@@ -3410,10 +3469,14 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         consomme(GenreLexème::PARENTHESE_FERMANTE,
                  "Attendu ')' à la fin des paramètres de la fonction");
 
-        /* analyse les types de retour de la fonction */
-        consomme(GenreLexème::RETOUR_TYPE, "Attendu un retour de type");
+        auto params_sortie = kuri::tablet<NoeudExpression *, 16>();
+        parse_paramètres_de_sortie(params_sortie, true);
 
-        analyse_expression_retour_type(noeud, true);
+        if (params_sortie.taille() == 1) {
+            copie_tablet_tableau(params_sortie, noeud->params_sorties);
+            noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
+        }
+
         analyse_directives_opérateur(noeud);
 
         if (!noeud->possède_drapeau(DrapeauxNoeudFonction::FORCE_HORSLIGNE)) {
@@ -3534,9 +3597,22 @@ void Syntaxeuse::analyse_directives_opérateur(NoeudDéclarationEntêteFonction 
     kuri::copie_tablet_tableau(directives, noeud->directives);
 }
 
-void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction *noeud,
-                                                bool pour_opérateur)
+void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16> &résultat,
+                                            bool pour_opérateur)
 {
+    if (apparie(GenreLexème::RETOUR_TYPE)) {
+        consomme();
+    }
+    else {
+        Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
+
+        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
+        decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
+
+        résultat.ajoute(decl);
+        return;
+    }
+
     auto eu_parenthèse = false;
     if (apparie(GenreLexème::PARENTHESE_OUVRANTE)) {
         consomme();
@@ -3552,8 +3628,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
         }
 
         if (!decl_sortie->est_déclaration_variable()) {
-            auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(
-                noeud->params_sorties.taille());
+            auto ident = m_compilatrice.donne_nom_défaut_valeur_retour(int32_t(résultat.taille()));
 
             auto decl = m_contexte->assembleuse->crée_déclaration_variable(
                 decl_sortie->lexème, nullptr, decl_sortie);
@@ -3566,7 +3641,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
 
         decl_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
-        noeud->params_sorties.ajoute(decl_sortie->comme_déclaration_variable());
+        résultat.ajoute(decl_sortie->comme_déclaration_variable());
 
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
@@ -3575,7 +3650,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
         consomme();
     }
 
-    auto const nombre_de_valeurs_retournées = noeud->params_sorties.taille();
+    auto const nombre_de_valeurs_retournées = résultat.taille();
     if (nombre_de_valeurs_retournées == 0) {
         rapporte_erreur("Attendu au moins une déclaration de valeur retournée");
         return;
@@ -3586,18 +3661,7 @@ void Syntaxeuse::analyse_expression_retour_type(NoeudDéclarationEntêteFonction
             rapporte_erreur("Il est impossible d'avoir plusieurs de sortie pour un opérateur");
             return;
         }
-
-        /* il nous faut un identifiant valide */
-        noeud->param_sortie = m_contexte->assembleuse->crée_déclaration_variable(
-            noeud->params_sorties[0]->lexème, nullptr, nullptr);
-        noeud->param_sortie->ident = m_compilatrice.table_identifiants
-                                         ->identifiant_pour_nouvelle_chaine("valeur_de_retour");
     }
-    else {
-        noeud->param_sortie = noeud->params_sorties[0]->comme_déclaration_variable();
-    }
-
-    noeud->param_sortie->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
 
     if (eu_parenthèse) {
         consomme(GenreLexème::PARENTHESE_FERMANTE,
@@ -3949,6 +4013,11 @@ void Syntaxeuse::rapporte_erreur_avec_site(const NoeudExpression *site,
     m_possède_erreur = true;
 }
 
+void Syntaxeuse::rapporte_info(kuri::chaine_statique message, const Lexème *lexème)
+{
+    m_unité->espace->rapporte_info(SiteSource::cree(m_fichier, lexème), message);
+}
+
 void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
 {
     /* N'envoie plus rien vers le typage si nous avons une erreur. */
@@ -3969,58 +4038,124 @@ bool Syntaxeuse::ignore_point_virgule_implicite()
     return false;
 }
 
+enum DirectiveDeVariable : uint32_t {
+    ZÉRO = 0,
+    PARSÉANTE = (1u << 0),
+    EXTERNE = (1u << 1),
+    INTERNE = (1u << 2),
+    EXPORTE = (1u << 3),
+    MÉMOIRE_GLOBALE = (1u << 4),
+    MÉMOIRE_LOCALE = (1u << 5),
+};
+DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
+
+#define EST_DRAPEAU_ACTIF(type, variable, drapeau) (((variable) & type::drapeau) != type::ZÉRO)
+
 void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration)
 {
     if (!apparie(GenreLexème::DIRECTIVE)) {
         return;
     }
 
-    consomme();
+    auto est_variable_locale = !fonctions_courantes.est_vide();
+    auto directives = DirectiveDeVariable::ZÉRO;
 
-    if (!fonctions_courantes.est_vide()) {
-        rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
-        return;
-    }
+    while (apparie(GenreLexème::DIRECTIVE)) {
+        consomme();
 
-    auto lexème_directive = lexème_courant();
-    if (lexème_directive->ident == ID::externe) {
-        if (déclaration->expression) {
-            rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
-                            "variables externes ne peuvent pas être initialisées.");
+        auto lexème_directive = lexème_courant();
+
+        if (lexème_directive->ident == ID::parséante) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, INTERNE)) {
+                rapporte_info("Il est inutile de préciser #interne sur une variable #parséante, "
+                              "car une #parséante est forcément #interne.",
+                              lexème_directive);
+            }
+
+            consomme();
+            déclaration->drapeaux |= (DrapeauxNoeud::EST_GLOBALE | DrapeauxNoeud::EST_PARSÉANTE);
+            /* Une #parséante ne doit pas être visible. */
+            déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            déclaration->drapeaux &= ~(DrapeauxNoeud::EST_LOCALE);
+            déclaration->bloc_parent->ajoute_rubrique(déclaration);
+            est_variable_locale = false;
+            directives |= DirectiveDeVariable::PARSÉANTE;
+            continue;
+        }
+
+        if (est_variable_locale) {
+            rapporte_erreur("Utilisation d'une directive sur une variable non-globale.");
             return;
         }
 
-        consomme();
-        analyse_directive_symbole_externe(déclaration, nullptr);
-        déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
-        return;
-    }
+        if (lexème_directive->ident == ID::externe) {
+            if (déclaration->expression) {
+                rapporte_erreur("Utilisation de #externe sur une déclaration initialisée. Les "
+                                "variables externes ne peuvent pas être initialisées.");
+            }
 
-    if (lexème_directive->ident == ID::interne) {
-        consomme();
-        déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
-        return;
-    }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, INTERNE)) {
+                rapporte_erreur("Utilisation de #externe alors que #interne fut spécifié.");
+            }
 
-    if (lexème_directive->ident == ID::exporte) {
-        consomme();
-        déclaration->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
-        return;
-    }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_erreur("Une variable #parséante ne peut pas également être déclarée "
+                                "#externe. Il faut utiliser une variable globale pour ceci.");
+            }
 
-    if (lexème_directive->ident == ID::mémoire_globale) {
-        consomme();
-        déclaration->partage_mémoire = PartageMémoire::GLOBAL;
-        return;
-    }
+            consomme();
+            analyse_directive_symbole_externe(déclaration, nullptr);
+            déclaration->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            directives |= DirectiveDeVariable::EXTERNE;
+        }
+        else if (lexème_directive->ident == ID::interne) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, EXTERNE)) {
+                rapporte_erreur("Utilisation de #interne alors que #externe fut spécifié.");
+            }
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_info("Il est inutile de préciser #interne sur une variable #parséante, "
+                              "car une #parséante est forcément #interne.",
+                              lexème_directive);
+            }
 
-    if (lexème_directive->ident == ID::mémoire_locale) {
-        consomme();
-        déclaration->partage_mémoire = PartageMémoire::LOCAL;
-        return;
-    }
+            consomme();
+            déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            directives |= DirectiveDeVariable::INTERNE;
+        }
+        else if (lexème_directive->ident == ID::exporte) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, PARSÉANTE)) {
+                rapporte_erreur("Une variable #parséante ne peut pas également être déclarée "
+                                "#exporte. Il faut utiliser une variable globale pour ceci.");
+            }
 
-    rapporte_erreur("Directive de déclaration de variable inconnue.");
+            consomme();
+            déclaration->visibilité_symbole = VisibilitéSymbole::EXPORTÉ;
+            directives |= DirectiveDeVariable::EXPORTE;
+        }
+        else if (lexème_directive->ident == ID::mémoire_globale) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, MÉMOIRE_LOCALE)) {
+                rapporte_erreur(
+                    "Utilisation de #mémoire_globale alors que #mémoire_locale fut spécifié.");
+            }
+
+            consomme();
+            déclaration->partage_mémoire = PartageMémoire::GLOBAL;
+            directives |= DirectiveDeVariable::MÉMOIRE_GLOBALE;
+        }
+        else if (lexème_directive->ident == ID::mémoire_locale) {
+            if (EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, MÉMOIRE_GLOBALE)) {
+                rapporte_erreur(
+                    "Utilisation de #mémoire_locale alors que #mémoire_globale fut spécifié.");
+            }
+
+            consomme();
+            déclaration->partage_mémoire = PartageMémoire::LOCAL;
+            directives |= DirectiveDeVariable::MÉMOIRE_LOCALE;
+        }
+        else {
+            rapporte_erreur("Directive de déclaration de variable inconnue.");
+        }
+    }
 }
 
 void Syntaxeuse::analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,

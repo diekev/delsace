@@ -92,10 +92,12 @@ enum class DrapeauxNoeud : uint32_t {
 
     IDENT_EST_DÉFAUT = (1u << 28),  // decl var
 
-    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
-    EST_RÉUTILISÉ = (1u << 29),
+    EST_PARSÉANTE = (1u << 29),  // decl var
 
-    FUT_APLATIS = (1u << 30),
+    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
+    EST_RÉUTILISÉ = (1u << 30),
+
+    FUT_APLATIS = (1u << 31),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
