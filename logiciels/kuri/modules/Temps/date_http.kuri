@@ -1,6 +1,7 @@
 /* Structure représentant le temps pour les paramètres HTTP « Date », il doit être dans le fuseau GMT.
  */
 
+importe Chaine
 importe Sérialisation
 
 __chaine_jour_pour_tm := [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]

@@ -1,5 +1,7 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
+importe Chaine
+importe Compilatrice // pour les fonctions de formattages
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
