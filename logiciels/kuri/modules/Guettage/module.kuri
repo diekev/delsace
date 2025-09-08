@@ -131,8 +131,8 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
         retourne
     }
 
-    index := donne_position_curseur_pour_souris(guetteuse, souris)
-    déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, index)
+    indice := donne_position_curseur_pour_souris(guetteuse, souris)
+    déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, indice)
 }
 
 guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
@@ -193,10 +193,10 @@ définis_position_curseur_pour_clic :: fonc (empl guetteuse: *GuetteuseÉditionT
 donne_position_curseur_pour_souris :: fonc (empl guetteuse: *GuetteuseÉditionTexte, souris: ÉtatSouris) -> z64
 {
     position_relative := souris.où.x - rect_texte.x
-    index := donne_indice_caractère_pour_position(éditrice.fonte, éditrice.texte_à_éditer, position_relative comme r32)
+    indice := donne_indice_caractère_pour_position(éditrice.fonte, éditrice.texte_à_éditer, position_relative comme r32)
 
-    si index != -1 {
-        retourne index
+    si indice != -1 {
+        retourne indice
     }
 
     retourne éditrice.texte_à_éditer.taille()

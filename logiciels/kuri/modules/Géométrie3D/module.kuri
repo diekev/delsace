@@ -36,8 +36,8 @@ CréatriceGéométrie :: struct {
     /* Ajoute un polygone à la géométrie de sortie.
      * Paramètres :
      * - données utilisateurs
-     * - pointeur vers une liste d'index de points formant le polygone
-     * - nombre d'index de points formant le polygone
+     * - pointeur vers une liste d'indices de points formant le polygone
+     * - nombre d'indices de points formant le polygone
      */
     ajoute_polygone: fonc(*CréatriceGéométrie, *z32, z32)(rien)
 }

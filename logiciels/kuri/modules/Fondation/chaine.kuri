@@ -404,9 +404,9 @@ append :: fonc (vers: *chaine, chn: chaine) -> rien
     mémoire(vers) = tmp
 }
 
-trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64 = 0) -> z64
+trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z64 = 0) -> z64
 {
-    pour i dans index_début ... chn.taille - motif.taille - 1 {
+    pour i dans indice_début ... chn.taille - motif.taille - 1 {
         trouvé := vrai
 
         pour m, idx dans motif {
@@ -425,10 +425,10 @@ trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, index_début : z64
 }
 
 /**
- * Retourne l'index de la première occurence de `c` dans `chn` ou -1 si le
+ * Retourne l'indice de la première occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
- * donc l'index retourné est l'index de l'octet du caractère dans la chaine
+ * donc l'indice retourné est l'indice de l'octet du caractère dans la chaine
  * d'octets.
  */
 trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
@@ -442,10 +442,10 @@ trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
 }
 
 /**
- * Retourne l'index de la dernière occurence de `c` dans `chn` ou -1 si le
+ * Retourne l'indice de la dernière occurence de `c` dans `chn` ou -1 si le
  * caractère est introuvable.
  * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
- * donc l'index retourné est l'index de l'octet du caractère dans la chaine
+ * donc l'indice retourné est l'indice de l'octet du caractère dans la chaine
  * d'octets.
  */
 trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
@@ -596,22 +596,22 @@ cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguil
     }
 
     pour 0 ... aiguille.taille - 2 {
-        index_pour_caractère := aiguille[it] comme n8
-        table[index_pour_caractère] = (aiguille.taille - 1 - it) comme z32
+        indice_pour_caractère := aiguille[it] comme n8
+        table[indice_pour_caractère] = (aiguille.taille - 1 - it) comme z32
     }
 
     // recherche
-    index := 0
+    indice := 0
 
-    tantque (botte_de_foin.taille - index) >= aiguille.taille {
-        bdf := avance(botte_de_foin, index)
+    tantque (botte_de_foin.taille - indice) >= aiguille.taille {
+        bdf := avance(botte_de_foin, indice)
 
         si apparie_chaine(bdf, aiguille, aiguille.taille) {
-            retourne index
+            retourne indice
         }
 
-        index_pour_caractère := botte_de_foin[index + aiguille.taille - 1] comme n8
-        index += table[index_pour_caractère]
+        indice_pour_caractère := botte_de_foin[indice + aiguille.taille - 1] comme n8
+        indice += table[indice_pour_caractère]
     }
 
     retourne -1
@@ -648,7 +648,7 @@ ParseuseChaine :: struct {
 
 chaine_restante :: fonc (parseuse: *ParseuseChaine) -> chaine
 {
-    retourne parseuse.sous_chaine_jusque_index(parseuse.chn.taille)
+    retourne parseuse.sous_chaine_jusque_indice(parseuse.chn.taille)
 }
 
 apparie :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
@@ -719,12 +719,12 @@ consomme_nombre :: fonc (parseuse: *ParseuseChaine, taille: z32) -> bool
         retourne faux
     }
 
-    index_début := parseuse.curseur
-    index_fin := index_début + taille
+    indice_début := parseuse.curseur
+    indice_fin := indice_début + taille
 
     parseuse.nombre = 0
 
-    pour index_début ... index_fin - 1 {
+    pour indice_début ... indice_fin - 1 {
         chiffre := (parseuse.chn[it] - '0') comme n32
 
         si chiffre >= 10 {
@@ -777,22 +777,22 @@ trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
 
     chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
 
-    index := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
+    indice := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
 
-    si index != -1 {
-        retourne index + parseuse.curseur
+    si indice != -1 {
+        retourne indice + parseuse.curseur
     }
 
-    retourne index
+    retourne indice
 }
 
-sous_chaine_jusque_index :: fonc (parseuse: *ParseuseChaine, index: z64) -> chaine
+sous_chaine_jusque_indice :: fonc (parseuse: *ParseuseChaine, indice: z64) -> chaine
 {
     si parseuse.fini() {
         retourne ""
     }
 
-    retourne sous_chaine(parseuse.chn, parseuse.curseur, index)
+    retourne sous_chaine(parseuse.chn, parseuse.curseur, indice)
 }
 
 saute_espace_blanc :: fonc (parseuse: *ParseuseChaine)

@@ -41,7 +41,7 @@
  * Permettra d'avoir '$' et '?' dans les symboles.
  *
  *
- * À FAIRE : retourne les indice des mots-clés
+ * À FAIRE : retourne les indices des mots-clés
  * À FAIRE : permet de spécifier les limites des chaines littérales
  * À FAIRE : séparateur dans les valeurs numériques
  * À FAIRE : échappements (caractères unicode etc.)

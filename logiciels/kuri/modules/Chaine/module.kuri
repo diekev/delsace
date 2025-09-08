@@ -171,7 +171,7 @@ opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
     ptr_source := itératrice.chn.pointeur
     curseur := 0
 
-    index := 0
+    indice := 0
 
     tantque curseur < itératrice.chn.taille {
         no := nombre_octets_utf8_rapide(*ptr_source[curseur])
@@ -182,11 +182,11 @@ opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
         }
 
         `it = converti_utf8_utf32(*ptr_source[curseur]) comme n32
-        `indice_it = index
+        `indice_it = indice
 
         #corps_boucle
 
-        index += 1
+        indice += 1
         curseur += no comme z32
     }
 }

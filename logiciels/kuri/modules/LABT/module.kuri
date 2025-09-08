@@ -266,7 +266,7 @@ parse_texte :: fonc (parseuse: *ParseuseDocument, document: *Document @inutilis�
 
     parseuse.positionne(position)
 
-    texte := parseuse.sous_chaine_jusque_index(position_fin)
+    texte := parseuse.sous_chaine_jusque_indice(position_fin)
 
     noeud_texte := parent.crée_enfant(Texte)
     noeud_texte.texte = texte
@@ -292,7 +292,7 @@ parse_attributs :: fonc (parseuse: *ParseuseDocument, noeud: *Noeud)
             rapporte_erreur(parseuse, "attendu un signe « = » après le nom de l'attribut")
         }
 
-        nom := parseuse.sous_chaine_jusque_index(index_égal)
+        nom := parseuse.sous_chaine_jusque_indice(index_égal)
         parseuse.positionne(index_égal)
 
         parseuse.consomme_espaces_blanches()
@@ -316,7 +316,7 @@ parse_attributs :: fonc (parseuse: *ParseuseDocument, noeud: *Noeud)
             retourne
         }
 
-        valeur := parseuse.sous_chaine_jusque_index(fin_chaine)
+        valeur := parseuse.sous_chaine_jusque_indice(fin_chaine)
 
         parseuse.positionne(fin_chaine + 1)
 

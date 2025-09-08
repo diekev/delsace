@@ -48,15 +48,15 @@ donne_sous_chaine_source :: fonc (flux: &FluxSource, données: DonnéesSousChain
 
 construit_tableau_runes :: fonc (flux: &FluxSource)
 {
-    index : z64 = 0
+    indice : z64 = 0
     pointeur_source := flux.source.pointeur
 
-    tantque index < flux.source.taille {
+    tantque indice < flux.source.taille {
         taille_rune := nombre_octets_utf8(pointeur_source)
 
         // À FAIRE : ajout d'une rune invalide (voir HTML)
         si taille_rune == 0 {
-            index += 1
+            indice += 1
             continue
         }
 
@@ -64,14 +64,14 @@ construit_tableau_runes :: fonc (flux: &FluxSource)
         rune := Rune(rune_ comme n32)
 
         tableau_ajoute(*flux.runes, rune)
-        tableau_ajoute(*flux.décalage_runes, index)
+        tableau_ajoute(*flux.décalage_runes, indice)
 
-        index += taille_rune
+        indice += taille_rune
         pointeur_source += taille_rune
     }
 
     si flux.runes {
-        tableau_ajoute(*flux.décalage_runes, index)
+        tableau_ajoute(*flux.décalage_runes, indice)
         flux.début = *flux.runes[0]
         flux.fin = flux.début + flux.runes.taille
     }

@@ -152,36 +152,36 @@ tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
     lignes_furent_modifiées := faux
     lignes := données_fichier.lignes
 
-    index_ligne := 0
-    tantque index_ligne < lignes.taille {
-        lignes_modifiées := tri_bloc_imports_ou_chargements(lignes, index_ligne, "importe ")
+    indice_ligne := 0
+    tantque indice_ligne < lignes.taille {
+        lignes_modifiées := tri_bloc_imports_ou_chargements(lignes, indice_ligne, "importe ")
         si lignes_modifiées != 0 {
             lignes_furent_modifiées = vrai
-            index_ligne += lignes_modifiées
+            indice_ligne += lignes_modifiées
             continue
         }
 
-        lignes_modifiées = tri_bloc_imports_ou_chargements(lignes, index_ligne, "charge ")
+        lignes_modifiées = tri_bloc_imports_ou_chargements(lignes, indice_ligne, "charge ")
         si lignes_modifiées != 0 {
             lignes_furent_modifiées = vrai
-            index_ligne += lignes_modifiées
+            indice_ligne += lignes_modifiées
             continue
         }
 
-        index_ligne += 1
+        indice_ligne += 1
     }
 
     données_fichier.lignes_furent_modifiées |= lignes_furent_modifiées
 }
 
-tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, début_ligne: chaine) -> z32
+tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, indice_ligne: z64, début_ligne: chaine) -> z32
 {
-    it := lignes[index_ligne]
+    it := lignes[indice_ligne]
 
     taille_bloc := 0
-    index_début_bloc := index_ligne
-    tantque index_ligne < lignes.taille && lignes[index_ligne].commence_par(début_ligne) {
-        index_ligne += 1
+    indice_début_bloc := indice_ligne
+    tantque indice_ligne < lignes.taille && lignes[indice_ligne].commence_par(début_ligne) {
+        indice_ligne += 1
         taille_bloc += 1
     }
 
@@ -189,7 +189,7 @@ tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, index_ligne: z64, dé
         retourne 0
     }
 
-    bloc := tableau_donne_tranche(lignes, index_début_bloc, index_début_bloc + taille_bloc - 1)
+    bloc := tableau_donne_tranche(lignes, indice_début_bloc, indice_début_bloc + taille_bloc - 1)
     tri_rapide(bloc, compare_chaine)
     retourne taille_bloc
 }

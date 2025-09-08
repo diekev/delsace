@@ -681,10 +681,10 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
         info := tableau.info comme *InfoTypeTableauFixe
         type_pointé := info.type_pointé
         pointeur := tableau.pointeur
-        index := 0
+        indice := 0
 
         tantque !scanner.fini() {
-            si index >= info.nombre_éléments comme z32 {
+            si indice >= info.nombre_éléments comme z32 {
                 scanner.rapporte_erreur_parsage("trop d'éléments pour le tableau fixe")
                 retourne LexèmeJSON.INVALIDE
             }
@@ -695,7 +695,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
                 arrête
             }
 
-            tampon := pointeur + type_pointé.taille_en_octet comme z32 * index
+            tampon := pointeur + type_pointé.taille_en_octet comme z32 * indice
 
             valeur : eini = ---
             valeur.pointeur = tampon
@@ -707,7 +707,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 
             scanner.dépile()
 
-            index += 1
+            indice += 1
 
             scanner.lis()
 
@@ -716,7 +716,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             }
         }
 
-        si index < info.nombre_éléments comme z32 {
+        si indice < info.nombre_éléments comme z32 {
             scanner.rapporte_erreur_parsage("trop peu d'éléments pour le tableau fixe")
             retourne LexèmeJSON.INVALIDE
         }
@@ -725,7 +725,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
         info := tableau.info comme *InfoTypeTableau
         type_pointé := info.type_pointé
         tampon_tableau: [..]octet
-        index := 0
+        indice := 0
 
         tantque !scanner.fini() {
             scanner.lis()
@@ -737,7 +737,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             nouvelle_taille := tampon_tableau.taille + type_pointé.taille_en_octet comme z64
             tableau_redimensionne(tampon_tableau, nouvelle_taille)
 
-            tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * index
+            tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * indice
 
             valeur : eini = ---
             valeur.pointeur = tampon
@@ -749,7 +749,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 
             scanner.dépile()
 
-            index += 1
+            indice += 1
 
             scanner.lis()
 
