@@ -757,6 +757,24 @@ opérateur >= :: (chn1: chaine, chn2: chaine) -> bool
     retourne compare_chaine(chn1, chn2) >= 0
 }
 
+opérateur [] :: fonc (chn: chaine, index: z64) -> z8
+{
+    si index < 0 || index >= chn.taille {
+       panique_dépassement_limites_chaine(chn.taille, index)
+    }
+
+    retourne chn.pointeur[index]
+}
+
+opérateur []= :: fonc (chn: *chaine, index: z64, valeur: z8)
+{
+    si index < 0 || index >= chn.taille {
+       panique_dépassement_limites_chaine(chn.taille, index)
+    }
+
+    chn.pointeur[index] = valeur
+}
+
 /*
 test_compare_chaine_impl :: fonc (chn1: chaine, chn2: chaine, attendu: z32) -> rien
 {
