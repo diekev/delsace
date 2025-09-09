@@ -1907,15 +1907,6 @@ NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)
             rapporte_erreur("Obtenu une déclaration de variable dans l'expression d'appel");
         }
 
-        if (ignore_point_virgule_implicite()) {
-            if (!apparie(GenreLexème::PARENTHESE_FERMANTE) && !apparie(GenreLexème::VIRGULE)) {
-                rapporte_erreur(
-                    "Attendu une parenthèse fermante ou une virgule après la nouvelle ligne");
-            }
-
-            continue;
-        }
-
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
         }
@@ -2384,8 +2375,6 @@ NoeudExpressionTypeTableauFixe *Syntaxeuse::parse_type_tableau_fixe(Lexème cons
 NoeudExpressionConstructionTableau *Syntaxeuse::parse_construction_tableau(Lexème const *lexème)
 {
     auto expression_entre_crochets = analyse_expression_avec_virgule(true);
-
-    ignore_point_virgule_implicite();
 
     consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
 
