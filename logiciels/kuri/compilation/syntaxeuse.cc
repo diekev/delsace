@@ -1741,7 +1741,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction()
 
             auto expression = NoeudExpression::nul();
             if (apparie_expression()) {
-                expression = analyse_expression_avec_virgule(false);
+                expression = analyse_expression_avec_virgule(false, GenreLexème::POINT_VIRGULE);
             }
 
             if (m_fonction_courante_retourne_plusieurs_valeurs) {
@@ -1964,7 +1964,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
             noeud_discr->bloc_sinon = analyse_bloc(TypeBloc::IMPÉRATIF);
         }
         else {
-            auto expr = analyse_expression_avec_virgule(true);
+            auto expr = analyse_expression_avec_virgule(true, GenreLexème::ACCOLADE_OUVRANTE);
             auto bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
 
             auto noeud_paire = m_contexte->assembleuse->crée_paire_discr(expr->lexème);
@@ -2050,7 +2050,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
 
     analyse_specifiants_instruction_pour(noeud);
 
-    auto expression = analyse_expression_avec_virgule(false);
+    auto expression = analyse_expression_avec_virgule(false, GenreLexème::INCONNU);
 
     if (apparie(GenreLexème::DANS)) {
         consomme();
@@ -2230,7 +2230,8 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
     return noeud;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(bool force_noeud_virgule)
+NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(bool force_noeud_virgule,
+                                                             GenreLexème lexème_final)
 {
     kuri::tablet<NoeudExpression *, 6> expressions;
     Lexème *lexème_racine = lexème_courant();
@@ -2242,6 +2243,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_avec_virgule(bool force_noeud_vi
             expressions.ajoute(noeud);
             consomme();
             continue;
+        }
+
+        if (apparie(lexème_final)) {
+            break;
         }
 
         auto expr = analyse_expression({}, GenreLexème::VIRGULE);
@@ -2374,7 +2379,8 @@ NoeudExpressionTypeTableauFixe *Syntaxeuse::parse_type_tableau_fixe(Lexème cons
 
 NoeudExpressionConstructionTableau *Syntaxeuse::parse_construction_tableau(Lexème const *lexème)
 {
-    auto expression_entre_crochets = analyse_expression_avec_virgule(true);
+    auto expression_entre_crochets = analyse_expression_avec_virgule(true,
+                                                                     GenreLexème::CROCHET_FERMANT);
 
     consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
 
