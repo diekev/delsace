@@ -100,7 +100,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
                                    Statistiques &stats,
                                    kuri::tableau<Tacheronne *> const &tacheronnes)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
+    if (!compilatrice.espace_de_travail_défaut->options.émets_métriques) {
         return;
     }
 
@@ -117,7 +117,7 @@ static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
                           kuri::chrono::compte_seconde debut_compilation)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
+    if (!compilatrice.espace_de_travail_défaut->options.émets_métriques) {
         return;
     }
 
@@ -633,8 +633,8 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
 
     /* Charge d'abord le module basique. */
-    auto espace_defaut = compilatrice.espace_de_travail_defaut;
-    espace_defaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
+    auto espace_défaut = compilatrice.espace_de_travail_défaut;
+    espace_défaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
 
     auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
@@ -643,7 +643,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     auto module = compilatrice.sys_module->crée_module_fichier_racine_compilation(dossier, chemin);
     compilatrice.module_racine_compilation = module;
-    compilatrice.gestionnaire_code->requiers_chargement(espace_defaut, module->fichiers[0]);
+    compilatrice.gestionnaire_code->requiers_chargement(espace_défaut, module->fichiers[0]);
 
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
