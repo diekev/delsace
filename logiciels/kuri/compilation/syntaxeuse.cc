@@ -1065,13 +1065,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                     m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::TEST;
                     expression = analyse_bloc(TypeBloc::IMPÉRATIF);
                 }
-                else {
-                    if (directive == ID::exécute) {
-                        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::EXÉCUTE;
+                else if (directive == ID::exécute) {
+                    m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::EXÉCUTE;
+                    if (apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
+                        expression = analyse_bloc(TypeBloc::IMPÉRATIF);
                     }
-                    else if (directive == ID::assert_) {
-                        m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::ASSERT;
+                    else {
+                        expression = analyse_expression({}, GenreLexème::INCONNU);
                     }
+                }
+                else if (directive == ID::assert_) {
+                    m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::ASSERT;
                     expression = analyse_expression({}, GenreLexème::INCONNU);
                 }
 
