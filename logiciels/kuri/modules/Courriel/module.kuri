@@ -90,7 +90,8 @@ pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
     résultat.nom = nom
     résultat.nom_fichier = nom_fichier
     résultat.type_mime = type_mime_pour_extension(chemin.extension())
-    résultat.contenu = contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
+    résultat.contenu = contenu
     retourne résultat
 }
 

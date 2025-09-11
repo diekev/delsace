@@ -187,7 +187,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
-    contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    _, contenu := contenu_fichier_binaire(CheminFichier(chemin))
     diffère déloge(contenu)
     retourne décode_image(contenu, "", chemin)
 }

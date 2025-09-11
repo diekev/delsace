@@ -78,7 +78,10 @@ test_mises_en_pages :: fonc () -> bool
 
         chemin_sortie := chemins_sorties[indice_it]
 
-        sortie := contenu_fichier_texte(chemin_sortie)
+        succès, sortie := contenu_fichier_texte(chemin_sortie)
+        saufsi succès {
+            continue
+        }
         diffère déloge(sortie)
 
         si impression != sortie {
@@ -124,7 +127,10 @@ ajourne_fichiers :: fonc ()
 
         chemin_sortie := chemins_sorties[indice_it]
 
-        original := contenu_fichier_texte(chemin_sortie)
+        succès, original := contenu_fichier_texte(chemin_sortie)
+        saufsi succès {
+            continue
+        }
         diffère déloge(original)
     
         si impression == original {
@@ -159,7 +165,10 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
 
         chemin_sortie := chemins_sorties[indice_it]
 
-        original := contenu_fichier_texte(chemin_sortie)
+        succès, original := contenu_fichier_texte(chemin_sortie)
+        saufsi succès {
+            continue
+        }
         // diffère déloge(original)
 
         si impression == original {
@@ -264,7 +273,10 @@ donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichie
 
 donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
 {
-    contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin)
+    saufsi succès {
+        retourne ""
+    }
     diffère déloge(contenu)
 
     mv: JavaScript.MachineVirtuelle

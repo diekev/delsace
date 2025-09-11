@@ -120,9 +120,9 @@ crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *Nuan
 
 crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
-    contenu_source_vertex := contenu_fichier_texte(source_vertex)
+    _, contenu_source_vertex := contenu_fichier_texte(source_vertex)
     diffère déloge(contenu_source_vertex)
-    contenu_source_fragment := contenu_fichier_texte(source_fragment)
+    _, contenu_source_fragment := contenu_fichier_texte(source_fragment)
     diffère déloge(contenu_source_fragment)
 
     retourne crée_nuanceur_depuis_sources(contenu_source_vertex, contenu_source_fragment)
