@@ -48,12 +48,29 @@ int GestionnaireChainesAjoutées::nombre_de_chaines() const
     return m_chaines.taille();
 }
 
+static void préfixe_entier(std::ostream &os, int entier)
+{
+    if (entier < 10) {
+        os << "0";
+    }
+    os << entier;
+}
+
 void GestionnaireChainesAjoutées::imprime_dans(std::ostream &os)
 {
     auto d = hui_systeme();
 
-    os << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee << " à " << d.heure
-       << ':' << d.minute << ':' << d.seconde << "\n\n";
+    os << "Fichier créé le ";
+    préfixe_entier(os, d.jour);
+    os << "/";
+    préfixe_entier(os, d.mois);
+    os << "/" << d.annee << " à ";
+    préfixe_entier(os, d.heure);
+    os << ':';
+    préfixe_entier(os, d.minute);
+    os << ':';
+    préfixe_entier(os, d.seconde);
+    os << "\n\n";
 
     POUR (m_chaines) {
         os << it;
