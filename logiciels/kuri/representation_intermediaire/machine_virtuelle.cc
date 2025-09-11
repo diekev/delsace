@@ -740,7 +740,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto options = dépile<OptionsDeCompilation *>();
         auto nom = dépile<kuri::chaine_statique>();
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
-        auto espace = compilatrice.démarre_un_espace_de_travail(*options, nom);
+        auto dossier = compilatrice.espace_de_travail_défaut->module->chemin();
+        auto espace = compilatrice.démarre_un_espace_de_travail(*options, nom, dossier);
         empile(espace);
         return;
     }
@@ -907,7 +908,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_racine_compilation)) {
-        auto module = compilatrice.module_racine_compilation;
+        auto module = compilatrice.espace_de_travail_défaut->module;
         empile(module);
         return;
     }

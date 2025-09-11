@@ -152,7 +152,6 @@ struct Compilatrice {
     kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
-    Module *module_racine_compilation = nullptr;
 
     RegistreSymboliqueRI *registre_ri = nullptr;
 
@@ -233,7 +232,8 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     EspaceDeTravail *démarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                  kuri::chaine_statique nom);
+                                                  kuri::chaine_statique nom,
+                                                  kuri::chaine_statique dossier);
 
     /* ********************************************************************** */
 
