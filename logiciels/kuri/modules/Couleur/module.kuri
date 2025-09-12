@@ -407,22 +407,22 @@ linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
 {
     résultat : Spectre = ---
 
-    résultat.x = linéaire_vers_srgb(spectre.x) comme r32 / 255.0
-    résultat.y = linéaire_vers_srgb(spectre.y) comme r32 / 255.0
-    résultat.z = linéaire_vers_srgb(spectre.z) comme r32 / 255.0
+    résultat.x = linéaire_vers_srgb(spectre.x)
+    résultat.y = linéaire_vers_srgb(spectre.y)
+    résultat.z = linéaire_vers_srgb(spectre.z)
 
     retourne résultat
 }
 
-linéaire_vers_srgb :: fonc (value: r32) -> z32
+linéaire_vers_srgb :: fonc (value: r32) -> r32
 {
     v := max(0.0, min(1.0, value))
 
     si v <= 0.0031308 {
-        retourne (v * 12.92 * 255.0 + 0.5) comme z32
+        retourne v * 12.92
     }
 
-    retourne ((1.055 * puissance(v, 1.0 / 2.4) - 0.055) * 255.0 + 0.5) comme z32
+    retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055
 }
 
 srgb_vers_linéaire :: fonc (valeur: r32) -> r32
