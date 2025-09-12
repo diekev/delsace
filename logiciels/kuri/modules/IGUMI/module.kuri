@@ -1004,37 +1004,37 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
 /** \nom Image
  * \{ */
 
-image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage)
+image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect)
+    image_immédiat(*params, rect_image, rect, id_nuanceur)
 }
 
-image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage)
+image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     /* À FAIRE : dessine en noir et blanc. */
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect)
+    image_immédiat(*params, rect_image, rect, id_nuanceur)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage)
+image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect)
+    image_immédiat(*params, rect_image, rect, id_nuanceur)
 }
 
-image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage)
+image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect)
+    image_immédiat(*params, rect_image, rect, id_nuanceur)
 }
 
-image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32))
+image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), id_nuanceur := IDNuanceur.Image)
 {
     empl __ctx_courant;
-    nuanceur_image := nuanceurs[IDNuanceur.Image]
+    nuanceur_image := nuanceurs[id_nuanceur]
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Image)
+    commence_immédiat(ModeImmédiat.TRIANGLES, id_nuanceur)
 
     // ancienne_fonction_mélange: z32
     // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
