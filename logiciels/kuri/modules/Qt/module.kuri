@@ -382,8 +382,8 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
         CROIX { retourne QT_CursorShape.CROSS }
         REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL }
         REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW }
-        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_VERTICAL }
-        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_VERTICAL }
         REDIMENSIONNEMENT_NORD_EST_SUD_OUEST { retourne QT_CursorShape.SIZE_BDIALOG }
         REDIMENSIONNEMENT_NORD_OUEST_SUD_EST { retourne QT_CursorShape.SIZE_FDIALOG }
         MAIN_POINTANT { retourne QT_CursorShape.POINTING_HAND }
