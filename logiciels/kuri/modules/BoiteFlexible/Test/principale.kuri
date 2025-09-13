@@ -46,7 +46,7 @@ principale :: fonc ()
                 arrête
             }
 
-            si app.guetteuse && gère_évènement(app.guetteuse, it) {
+            si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
                 continue
             }
 
