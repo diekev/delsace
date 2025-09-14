@@ -36,8 +36,8 @@ CréatriceGéométrie :: struct {
     /* Ajoute un polygone à la géométrie de sortie.
      * Paramètres :
      * - données utilisateurs
-     * - pointeur vers une liste d'index de points formant le polygone
-     * - nombre d'index de points formant le polygone
+     * - pointeur vers une liste d'indices de points formant le polygone
+     * - nombre d'indices de points formant le polygone
      */
     ajoute_polygone: fonc(*CréatriceGéométrie, *z32, z32)(rien)
 }
@@ -123,8 +123,9 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 
 crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie, chemin: CheminFichier)
 {
-    contenu := contenu_fichier_texte(chemin)
-    diffère déloge(contenu)
-
-    pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
+    succès, contenu := contenu_fichier_texte(chemin)
+    si succès {
+        pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
+        déloge(contenu)
+    }
 }

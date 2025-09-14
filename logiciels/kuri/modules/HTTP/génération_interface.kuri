@@ -49,7 +49,7 @@ ParamètresGénérationInterface :: struct {
     dossier_pilote: chaine
 }
 
-génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterface, fichier_racine: chaine)
+génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterface, fichier_racine: chaine, espace_cible: *EspaceDeTravail)
 {
     options := OptionsDeCompilation()
     options.résultat = RésultatCompilation.RIEN
@@ -82,7 +82,7 @@ génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterf
 
                 pour entête.annotations {
                     si it.nom == "chemin" {
-                        crée_interface_pour_fonction(paramètres, espace, entête)
+                        crée_interface_pour_fonction(paramètres, espace_cible, entête)
                         arrête
                     }
                 }
@@ -92,7 +92,7 @@ génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterf
         si message.genre == GenreMessage.PHASE_COMPILATION {
             phase := message comme *MessagePhaseCompilation
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
-                crée_interface_pour_initialisations_routes(paramètres, espace)
+                crée_interface_pour_initialisations_routes(paramètres, espace_cible)
                 crée_pilote_client(paramètres, espace)
                 arrête
             }
@@ -108,7 +108,7 @@ génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterf
 
 InfoParamètreFonctionRappel :: struct {
     type: *InfoTypeStructure
-    index: z64
+    indice: z64
 }
 
 InformationParamètres :: struct {
@@ -205,27 +205,27 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     nombre_paramètres := 0
 
     si infos_paramètres.serveuse.type != nul {
-        paramètres_appel[infos_paramètres.serveuse.index] = paramètres.nom_serveuse
+        paramètres_appel[infos_paramètres.serveuse.indice] = paramètres.nom_serveuse
         nombre_paramètres += 1
     }
 
     si infos_paramètres.connexion.type != nul {
-        paramètres_appel[infos_paramètres.connexion.index] = "données_prise"
+        paramètres_appel[infos_paramètres.connexion.indice] = "données_prise"
         nombre_paramètres += 1
     }
 
     si infos_paramètres.paramètres_route.type != nul {
-        paramètres_appel[infos_paramètres.paramètres_route.index] = "paramètres_routage"
+        paramètres_appel[infos_paramètres.paramètres_route.indice] = "paramètres_routage"
         nombre_paramètres += 1
     }
 
     si infos_paramètres.formulaire.type != nul {
-        paramètres_appel[infos_paramètres.formulaire.index] = "paramètres_post"
+        paramètres_appel[infos_paramètres.formulaire.indice] = "paramètres_post"
         nombre_paramètres += 1
     }
 
     si infos_paramètres.paramètres_requête.type != nul {
-        paramètres_appel[infos_paramètres.paramètres_requête.index] = "paramètres_requête"
+        paramètres_appel[infos_paramètres.paramètres_requête.indice] = "paramètres_requête"
         nombre_paramètres += 1
     }
 
@@ -374,7 +374,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.serveuse.type = info_struct
-                infos_paramètres.serveuse.index = indice_it
+                infos_paramètres.serveuse.indice = indice_it
             }
             EST_TYPE_CONNEXION {
                 info_struct := (it comme *InfoTypePointeur).type_pointé comme *InfoTypeStructure
@@ -384,7 +384,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.connexion.type = info_struct
-                infos_paramètres.connexion.index = indice_it
+                infos_paramètres.connexion.indice = indice_it
             }
             EST_TYPE_PARAMÈTRE_ROUTAGE {
                 info_struct := it comme *InfoTypeStructure
@@ -394,7 +394,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_route.type = info_struct
-                infos_paramètres.paramètres_route.index = indice_it
+                infos_paramètres.paramètres_route.indice = indice_it
             }
             EST_TYPE_PARAMÈTRE_REQUÊTE {
                 info_struct := it comme *InfoTypeStructure
@@ -404,7 +404,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.paramètres_requête.type = info_struct
-                infos_paramètres.paramètres_requête.index = indice_it
+                infos_paramètres.paramètres_requête.indice = indice_it
             }
             EST_TYPE_FORMULAIRE {
                 info_struct := it comme *InfoTypeStructure
@@ -414,7 +414,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
                 }
 
                 infos_paramètres.formulaire.type = info_struct
-                infos_paramètres.formulaire.index = indice_it
+                infos_paramètres.formulaire.indice = indice_it
             }
         }
     }

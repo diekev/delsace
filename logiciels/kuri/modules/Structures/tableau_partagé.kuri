@@ -96,7 +96,7 @@ détruit :: fonc (tableau: &TableauPartagé($T, $C, $D))
     }
 }
 
-définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), index: z64, valeur: T)
+définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64, valeur: T)
 {
     tableau.rends_unique()
 
@@ -108,15 +108,15 @@ définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), index: z64, vale
         tableau.est_comprimée = faux
     }
 
-    tableau.valeurs[index] = valeur
+    tableau.valeurs[indice] = valeur
 }
 
-donne_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), index: z64) -> T
+donne_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64) -> T
 {
     si tableau.est_comprimée {
         retourne tableau.valeur_constante
     }
-    retourne tableau.valeurs[index]
+    retourne tableau.valeurs[indice]
 }
 
 mémoire_utilisée :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64

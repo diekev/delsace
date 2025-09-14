@@ -106,10 +106,10 @@ test_taille_chaine_littérale :: fonc () -> z64
 
 #assert test_taille_chaine_littérale() == 10
 
-test_indexage_chaine :: fonc (index: z64) -> z64
+test_indexage_chaine :: fonc (indice: z64) -> z64
 {
     chn := "0123456789"
-    retourne chn[index]
+    retourne chn[indice]
 }
 
 #assert test_indexage_chaine(0) == '0'
@@ -123,9 +123,9 @@ test_indexage_chaine :: fonc (index: z64) -> z64
 #assert test_indexage_chaine(8) == '8'
 #assert test_indexage_chaine(9) == '9'
 
-test_indexage_chaine_littérale :: fonc (index: z64) -> z64
+test_indexage_chaine_littérale :: fonc (indice: z64) -> z64
 {
-    retourne "0123456789abcdef"[index]
+    retourne "0123456789abcdef"[indice]
 }
 
 #assert test_indexage_chaine_littérale(10) == 'a'
@@ -864,40 +864,40 @@ taille_tranche_octet :: fonc (tranche: []octet) -> z64
 // ----------------------------------------------------------------------------
 // Tests tableaux fixes
 
-test_construction_tableau_fixe :: fonc (index: z64) -> z32
+test_construction_tableau_fixe :: fonc (indice: z64) -> z32
 {
     t := [ 0, 1, 2 ]
-    retourne t[index]
+    retourne t[indice]
 }
 
 #assert test_construction_tableau_fixe(0) == 0
 #assert test_construction_tableau_fixe(1) == 1
 #assert test_construction_tableau_fixe(2) == 2
 
-passe_tableau_fixe :: fonc (t: [3]z32, index: z64) -> z32
+passe_tableau_fixe :: fonc (t: [3]z32, indice: z64) -> z32
 {
-    retourne t[index]
+    retourne t[indice]
 }
 
-test_passe_tableau_fixe :: fonc (index: z64) -> z32
+test_passe_tableau_fixe :: fonc (indice: z64) -> z32
 {
     t := [ 0, 1, 2 ]
-    retourne passe_tableau_fixe(t, index)
+    retourne passe_tableau_fixe(t, indice)
 }
 
 #assert test_passe_tableau_fixe(0) == 0
 #assert test_passe_tableau_fixe(1) == 1
 #assert test_passe_tableau_fixe(2) == 2
 
-passe_tranche :: fonc (t: []z32, index: z64) -> z32
+passe_tranche :: fonc (t: []z32, indice: z64) -> z32
 {
-    retourne t[index]
+    retourne t[indice]
 }
 
-test_conversion_tranche :: fonc (index: z64) -> z32
+test_conversion_tranche :: fonc (indice: z64) -> z32
 {
     t := [ 0, 1, 2 ]
-    retourne passe_tranche(t, index)
+    retourne passe_tranche(t, indice)
 }
 
 #assert test_conversion_tranche(0) == 0

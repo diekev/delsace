@@ -305,6 +305,23 @@ bool chemin_systeme::supprime(chaine_statique chemin)
     return true;
 }
 
+bool chemin_systeme::renomme(chaine_statique vieux_nom, chaine_statique nouveau_nom)
+{
+    auto const std_vieux_nom = vers_std_path(vieux_nom);
+    auto const std_nouveau_nom = vers_std_path(nouveau_nom);
+
+    auto résultat = false;
+    try {
+        std::filesystem::rename(std_vieux_nom, std_nouveau_nom);
+        résultat = true;
+    }
+    catch (std::filesystem::filesystem_error const &e) {
+        dbg() << e.what();
+        résultat = false;
+    }
+    return résultat;
+}
+
 static chemin_systeme concatene_chemins(chaine_statique base, chaine_statique feuille)
 {
     auto const std_path_base = vers_std_path(base);
