@@ -108,7 +108,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
 {
     stats.nombre_de_fichiers += 1
 
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
     mv: MachineVirtuelle
@@ -150,7 +150,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
 crée_environnement_de_test :: fonc (realm: *Realm)
 {
     chemin := "environnement_test.js"
-    source := contenu_fichier_texte(chemin)
+    _, source := contenu_fichier_texte(chemin)
     diffère déloge(source)
     _ := exécute_script(realm, source, CheminFichier(chemin))
 }

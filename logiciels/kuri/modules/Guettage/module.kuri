@@ -26,9 +26,9 @@ PlateformeGuettage :: struct {
 Guetteuse :: struct {
     plateforme: *PlateformeGuettage
     sur_termine_guettage: fonc(*Guetteuse)(rien)
-    sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
-    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
-    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
+    sur_clic: fonc(*Guetteuse, ClicSouris) -> ÉtatÉvènement
+    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris) -> ÉtatÉvènement
+    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier) -> ÉtatÉvènement
     sur_destruction: fonc(*Guetteuse)(rien)
 }
 
@@ -53,31 +53,33 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
     }    
 }
 
-gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> bool
+ÉtatÉvènement :: énum {
+    CONSOMMÉ
+    PASSE_AU_PARENT
+}
+
+gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> ÉtatÉvènement
 {
     si évènement.type == TypeÉvènement.Souris {
         si guetteuse.sur_clic && (évènement.action_souris == ActionSouris.PRESSÉE || évènement.action_souris == ActionSouris.RELACHÉE) {
-            guetteuse.sur_clic(guetteuse, donne_clic_souris(évènement))
-            retourne vrai
+            retourne guetteuse.sur_clic(guetteuse, donne_clic_souris(évènement))
         }
 
         si guetteuse.sur_déplacement_souris && (évènement.action_souris == ActionSouris.DÉPLACÉE) {
-            guetteuse.sur_déplacement_souris(guetteuse, évènement.état_souris)
-            retourne vrai
+            retourne guetteuse.sur_déplacement_souris(guetteuse, évènement.état_souris)
         }
 
-        retourne faux
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     si évènement.type == TypeÉvènement.Clavier {
         si guetteuse.sur_touche_clavier && évènement.touche_pressée {
-            guetteuse.sur_touche_clavier(guetteuse, InfoToucheClavier(évènement.touche, évènement.texte))
-            retourne vrai
+            retourne guetteuse.sur_touche_clavier(guetteuse, InfoToucheClavier(évènement.touche, évènement.texte))
         }
-        retourne faux
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
-    retourne faux
+    retourne ÉtatÉvènement.PASSE_AU_PARENT
 }
 
 /** \} */
@@ -123,37 +125,41 @@ guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
     éditrice.termine_édition()
 }
 
-guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
+guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
     saufsi état == ÉtatGuettageÉditionTexte.EnSélection {
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     indice := donne_position_curseur_pour_souris(guetteuse, souris)
     déplace_vers(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, indice)
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
     si état != ÉtatGuettageÉditionTexte.EnÉdition {
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     sur_touche_clavier(éditrice, touche)
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
+guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
+
+    résultat := ÉtatÉvènement.CONSOMMÉ
 
     si clic.action == ActionSouris.PRESSÉE {
         si rect.contient(clic.état.où) {
@@ -162,6 +168,7 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
         }
         sinon {
             termine_guettage(guetteuse)
+            résultat = ÉtatÉvènement.PASSE_AU_PARENT
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
@@ -177,11 +184,14 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
         }
         sinon si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
             termine_guettage(guetteuse)
+            résultat = ÉtatÉvènement.PASSE_AU_PARENT
         }
         sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
             état = ÉtatGuettageÉditionTexte.EnÉdition
         }
     }
+
+    retourne résultat
 }
 
 définis_position_curseur_pour_clic :: fonc (empl guetteuse: *GuetteuseÉditionTexte, souris: ÉtatSouris)

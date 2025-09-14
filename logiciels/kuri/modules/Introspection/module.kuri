@@ -1,5 +1,6 @@
 // Bibliothèque d'introspection.
 
+importe Chaine
 importe Compilatrice
 importe Fondation
 importe Numérique

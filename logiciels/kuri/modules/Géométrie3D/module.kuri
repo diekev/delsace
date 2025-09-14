@@ -123,8 +123,9 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
 
 crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie, chemin: CheminFichier)
 {
-    contenu := contenu_fichier_texte(chemin)
-    diffère déloge(contenu)
-
-    pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
+    succès, contenu := contenu_fichier_texte(chemin)
+    si succès {
+        pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
+        déloge(contenu)
+    }
 }

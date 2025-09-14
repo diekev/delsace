@@ -2,6 +2,7 @@
  * appeler les fonctions depuis C. */
 
 importe Bits
+importe Chaine
 importe Triage
 
 /* ------------------------------------------------------------------------- */

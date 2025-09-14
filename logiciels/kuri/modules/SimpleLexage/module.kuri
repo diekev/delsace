@@ -47,6 +47,7 @@
  * À FAIRE : échappements (caractères unicode etc.)
  */
 
+importe Chaine
 importe Fondation
 importe Numérique
 

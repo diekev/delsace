@@ -11,6 +11,7 @@
 // À FAIRE : rapport des rubriques remplis
 // À FAIRE : le scanner ne gère pas les espaces blancs Unicode
 
+importe Chaine
 importe Math
 importe Numérique
 importe Structures

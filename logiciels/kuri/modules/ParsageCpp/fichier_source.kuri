@@ -116,7 +116,7 @@ FichierSource :: struct {
 
 construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
 {
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     retourne construit_fichier_source(chemin, contenu)
 }
 

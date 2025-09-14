@@ -26,7 +26,10 @@ DonnéesTestParsage :: struct {
 charge_cas_parsage :: fonc () -> DonnéesTestParsage
 {
     chemin := "fichiers/parsage.css"
-    contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin)
+    saufsi succès {
+        retourne
+    }
 
     lignes := divise(contenu, '\n')
 

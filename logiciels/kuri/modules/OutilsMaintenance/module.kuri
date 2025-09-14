@@ -92,7 +92,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: &DonnéesFichier, rappels: []fonc(&DonnéesFichier)(rien), données_utilisateurs: eini)
 {
-    contenu_fichier_binaire(chemin, données.contenu)
+    _ := contenu_fichier_binaire(chemin, données.contenu)
 
     données.racine_exécution = racine
     divise(chaine_depuis_tranche_octets(données.contenu), '\n', *données.lignes)
