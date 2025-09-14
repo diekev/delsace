@@ -1,4 +1,5 @@
 importe Compilatrice
+importe Chaine
 importe Fondation
 
 foo :: fonc (b: z32, c: z32) -> z32 #enligne
@@ -233,7 +234,7 @@ test_parseuse_chaine :: fonc () -> z32
             curseur := parseuse.curseur
 
             positionne(*parseuse, début_entête)
-            entête := sous_chaine_jusque_index(*parseuse, début_entête + taille_entête)
+            entête := sous_chaine_jusque_indice(*parseuse, début_entête + taille_entête)
 
             imprime_log("[post_page_image]", "entête    : %\n", entête)
 

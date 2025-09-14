@@ -88,13 +88,13 @@ arc_sinus_borné :: fonc (a: $T) -> T #enligne
     retourne arc_sinus(a)
 }
 
-racine :: fonc (a: $T, index: T) -> T
+racine :: fonc (a: $T, indice: T) -> T
 {
-    si index <= 0 {
+    si indice <= 0 {
         retourne 0
     }
 
-    retourne puissance(a, 1.0 / index)
+    retourne puissance(a, 1.0 / indice)
 }
 
 /* Calcul de la racine N d'un nombre réel selon la méthode approximative de Newton. */
@@ -251,7 +251,7 @@ divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
 /* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
 exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
 {
-    début := index_premier_bit_actif_gauche(exp)
+    début := indice_premier_bit_actif_gauche(exp)
     résultat : n64 = 1
 
     pour début {

@@ -140,14 +140,14 @@ int main(int argc, char **argv)
 
     POUR (syntaxeuse.donne_fonctions()) {
         contexte_analyse.analyse_ri(
-            *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+            *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
 
         if (est_test_enlignage) {
             optimise_code(
-                *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+                *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
 
             contexte_analyse.analyse_ri(
-                *compilatrice.espace_de_travail_defaut, syntaxeuse.donne_constructrice(), it);
+                *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
         }
 
         auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));

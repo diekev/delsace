@@ -756,7 +756,7 @@ bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compi
 {
     auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
     auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
-    auto espace = compilatrice.espace_defaut_compilation();
+    auto espace = compilatrice.espace_défaut_compilation();
 
     /* La bibliothèque C. */
     auto libc = gestionnaire->crée_bibliothèque(*espace, nullptr, ID::libc, nom_bibliothèque_c());

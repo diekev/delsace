@@ -19,9 +19,9 @@ crée_tablet :: fonc () -> Tablet
 
 opérateur pour :: (tablet: Tablet) -> z32
 {
-    pour donnée, index dans tablet.données {
+    pour donnée, indice dans tablet.données {
         `it = donnée
-        `indice_it = index
+        `indice_it = indice
 
         #corps_boucle
     }
@@ -50,7 +50,7 @@ DonnéesRubriqueStructure :: struct {
 
 opérateur pour :: (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriqueStructure
 {
-    index := 0
+    indice := 0
 
     boucle {
         rubrique, nom := itératrice.rubrique_suivante()
@@ -62,9 +62,9 @@ opérateur pour :: (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriq
         données := DonnéesRubriqueStructure(rubrique, nom)
 
         `it = données
-        `indice_it = index
+        `indice_it = indice
 
-        index += 1
+        indice += 1
 
         #corps_boucle
     }
