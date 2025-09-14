@@ -66,12 +66,12 @@ compte_nombre_de_bits_inactifs :: fonc (x: n32) -> n32
     retourne 32 - compte_nombre_de_bits_actifs(x)
 }
 
-bit_est_actif :: fonc (n: n64, index_bit: n64) -> bool #enligne
+bit_est_actif :: fonc (n: n64, indice_bit: n64) -> bool #enligne
 {
-    retourne (n & (1 << index_bit)) != 0
+    retourne (n & (1 << indice_bit)) != 0
 }
 
-index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
+indice_premier_bit_actif_gauche :: fonc (v: n64) -> n64
 {
     pour > 64 {
         si bit_est_actif(v, it comme n64) {
@@ -83,7 +83,7 @@ index_premier_bit_actif_gauche :: fonc (v: n64) -> n64
 }
 
 // À FAIRE(langage) : crash dans la MV si le type retour est n32 (la conversion vers z64 pour l'indexage ne fonctionne pas)
-index_bit_taille_octet :: fonc (taille: n32) -> z32
+indice_bit_taille_octet :: fonc (taille: n32) -> z32
 {
     résultat : z32 = 0
 
@@ -95,10 +95,10 @@ index_bit_taille_octet :: fonc (taille: n32) -> z32
     retourne résultat
 }
 
-/* Retourne l'index du bit, en partant de la droite, du plus petit multiple de
+/* Retourne l'indice du bit, en partant de la droite, du plus petit multiple de
  * 2 supérieur au nombre passé. Ceci est équivalent au logarithme base 2 dudit
  * multiple. */
-index_bit_multiple_de_2_suivant :: fonc (n: z64) -> z64 #enligne #sanstrace
+indice_bit_multiple_de_2_suivant :: fonc (n: z64) -> z64 #enligne #sanstrace
 {
     multiple := multiple_de_2_suivant(n)
     retourne 64 - 1 - intrinsèque_compte_zéros_en_tête(multiple comme n64)

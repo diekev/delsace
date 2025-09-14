@@ -28,7 +28,7 @@ principale :: fonc ()
 
 évalue_fichier :: fonc (chemin: CheminFichier, utilise_code_binaire: bool) -> z32
 {
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
     mv: MachineVirtuelle

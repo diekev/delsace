@@ -426,8 +426,8 @@ est_intégral :: fonc (n: r64) -> bool
 /* Donne des informations sur où fut trouvée une référence, dans un DeclarativeEnvironment,
  * par rapport à l'environnement courant. */
 CoordonnéeEnvironnement :: struct {
-    /* L'index de la référence dans DeclarativeEnvironment.bindings. */
-    index: z32
+    /* L'indice de la référence dans DeclarativeEnvironment.bindings. */
+    indice: z32
     /* Le nombre de sauts à effectuer pour aller de l'environnement courant à celui où se
      * trouve la référence. */
     sauts: z32
@@ -597,7 +597,7 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
     si V.coordonnée.possède_valeur() {
         coordonnée := V.coordonnée.Quelque
         declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
-        retourne declarative_environment.bindings[coordonnée.index].valeur
+        retourne declarative_environment.bindings[coordonnée.indice].valeur
     }
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
@@ -693,7 +693,7 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
     si record.coordonnée.possède_valeur() {
         coordonnée := record.coordonnée.Quelque
         declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
-        declarative_environment.bindings[coordonnée.index].valeur = valeur
+        declarative_environment.bindings[coordonnée.indice].valeur = valeur
         retourne vrai
     }
 

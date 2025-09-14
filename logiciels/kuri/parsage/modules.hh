@@ -245,9 +245,6 @@ struct SystèmeModule {
     kuri::tableau_page<Module> modules{};
     kuri::tableau_page<Fichier> fichiers{};
 
-    kuri::table_hachage<kuri::chaine_statique, Fichier *> table_fichiers{
-        "Fichiers système modules"};
-
     Module *module_kuri = nullptr;
     bool importe_kuri = false;
     kuri::chaine_statique racine_modules_kuri = "";
@@ -255,8 +252,7 @@ struct SystèmeModule {
     Module *initialise_module_kuri(kuri::chaine_statique chemin_racine_modules,
                                    bool doit_importer_kuri_implicitement);
 
-    Module *crée_module_fichier_racine_compilation(kuri::chaine_statique dossier,
-                                                   kuri::chaine_statique nom_fichier);
+    Module *crée_module_fichier_racine_compilation(kuri::chaine_statique dossier);
 
     Module *trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 

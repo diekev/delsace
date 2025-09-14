@@ -206,12 +206,12 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 
     /* Trouve la position du premier chiffre en partant de la fin du chemin
      * afin de ne considérer que la dernière séquence de chiffre. */
-    index_début_nombre : z64 = -1
+    indice_début_nombre : z64 = -1
     eu_chiffre := faux
     pour > i dans nom_fichier.taille {
         si est_nombre_décimal(nom_fichier[i]) {
             eu_chiffre = vrai
-            index_début_nombre = i
+            indice_début_nombre = i
             continue
         }
 
@@ -219,11 +219,11 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
     }
 
     numéro := -1
-    index_fin_nombre : z64 = -1
+    indice_fin_nombre : z64 = -1
     taille_numéro := 0
-    si index_début_nombre != -1 {
+    si indice_début_nombre != -1 {
         numéro = 0
-        pour i dans index_début_nombre ... nom_fichier.taille - 1 {
+        pour i dans indice_début_nombre ... nom_fichier.taille - 1 {
             c := nom_fichier[i]
 
             saufsi est_nombre_décimal(c) {
@@ -232,7 +232,7 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 
             numéro = numéro * 10 + (c - '0') comme z32
 
-            index_fin_nombre = i
+            indice_fin_nombre = i
             taille_numéro += 1
         }
     }
@@ -243,15 +243,15 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
     résultat.numéro = numéro
     résultat.taille_numéro = taille_numéro
 
-    si index_début_nombre != -1 {
-        résultat.préfixe = nom_fichier.sous_chaine(0, index_début_nombre)
+    si indice_début_nombre != -1 {
+        résultat.préfixe = nom_fichier.sous_chaine(0, indice_début_nombre)
     }
     sinon {
         résultat.préfixe = nom_fichier
     }
 
-    si index_fin_nombre != -1 && index_fin_nombre + 1 < nom_fichier.taille - 1 {
-        résultat.suffixe = nom_fichier.sous_chaine(index_fin_nombre + 1, nom_fichier.taille)
+    si indice_fin_nombre != -1 && indice_fin_nombre + 1 < nom_fichier.taille - 1 {
+        résultat.suffixe = nom_fichier.sous_chaine(indice_fin_nombre + 1, nom_fichier.taille)
     }
 
     retourne résultat
