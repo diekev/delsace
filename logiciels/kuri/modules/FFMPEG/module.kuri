@@ -148,15 +148,15 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
     retourne vrai
 }
 
-ouvre_composant_flux_vidéo :: fonc (flux_vidéo: *FluxVidéo, index_flux: z32) -> bool
+ouvre_composant_flux_vidéo :: fonc (flux_vidéo: *FluxVidéo, indice_flux: z32) -> bool
 {
     format_ctx := flux_vidéo.format_ctx
 
-    si index_flux < 0 || index_flux >= format_ctx.nb_streams comme z32 {
+    si indice_flux < 0 || indice_flux >= format_ctx.nb_streams comme z32 {
         retourne faux
     }
 
-    paramètres_codec := format_ctx.streams[index_flux].codecpar
+    paramètres_codec := format_ctx.streams[indice_flux].codecpar
     codec := avcodec_find_decoder(paramètres_codec.codec_id)
     saufsi codec {
         imprime("Codec non-supporté : %.\n", paramètres_codec.codec_id)
@@ -173,12 +173,12 @@ ouvre_composant_flux_vidéo :: fonc (flux_vidéo: *FluxVidéo, index_flux: z32) 
 
     discr codec_ctx.codec_type {
         AVMEDIA_TYPE_VIDEO {
-            flux_vidéo.video_stream_idx = index_flux
+            flux_vidéo.video_stream_idx = indice_flux
             flux_vidéo.codec = codec
             flux_vidéo.codec_ctx = codec_ctx
         }
         AVMEDIA_TYPE_AUDIO {
-            flux_vidéo.audio_stream_idx = index_flux
+            flux_vidéo.audio_stream_idx = indice_flux
             flux_vidéo.audio_codec_ctx = codec_ctx
             // imprime("sample_rate : %\n", codec_ctx.sample_rate)
             // imprime("channels    : %\n", codec_ctx.channels)

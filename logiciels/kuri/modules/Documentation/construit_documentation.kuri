@@ -27,8 +27,8 @@ enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
 }
 
 DonnéesDocument :: struct {
-    index_début: z64
-    index_fin: z64
+    indice_début: z64
+    indice_fin: z64
     est_commentaire: bool
 }
 
@@ -42,7 +42,7 @@ compile :: fonc ()
     données: [..]DonnéesDocument
     diffère déloge(données)
 
-    index_début: z64
+    indice_début: z64
     taille_code: z64
 
     pour lexèmes {
@@ -50,8 +50,8 @@ compile :: fonc ()
             si taille_code != 0 {
                 d: DonnéesDocument
                 d.est_commentaire = faux
-                d.index_début = index_début
-                d.index_fin = index_début + taille_code
+                d.indice_début = indice_début
+                d.indice_fin = indice_début + taille_code
 
                 tableau_ajoute(*données, d)
 
@@ -60,13 +60,13 @@ compile :: fonc ()
 
             d: DonnéesDocument
             d.est_commentaire = vrai
-            d.index_début = indice_it
+            d.indice_début = indice_it
 
             tableau_ajoute(*données, d)
         }
         sinon {
             si taille_code == 0 {
-                index_début = indice_it
+                indice_début = indice_it
             }
 
             taille_code += 1
@@ -76,22 +76,22 @@ compile :: fonc ()
     si taille_code != 0 {
         d: DonnéesDocument
         d.est_commentaire = faux
-        d.index_début = index_début
-        d.index_fin = index_début + taille_code
+        d.indice_début = indice_début
+        d.indice_fin = indice_début + taille_code
 
         tableau_ajoute(*données, d)
     }
 
     pour données {
         si it.est_commentaire {
-            texte := lexèmes[it.index_début].texte
+            texte := lexèmes[it.indice_début].texte
             texte = enlève_début_fin_commentaire(texte)
             imprime("<p>%</p>\n", texte)
         }
         sinon {
             sous_lexèmes: [..]Lexème
-            sous_lexèmes.pointeur = *lexèmes[it.index_début]
-            sous_lexèmes.taille = it.index_fin - it.index_début
+            sous_lexèmes.pointeur = *lexèmes[it.indice_début]
+            sous_lexèmes.taille = it.indice_fin - it.indice_début
 
             // supprime les espaces blancs au début du code
             tantque sous_lexèmes.taille > 0 {

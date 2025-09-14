@@ -299,20 +299,20 @@ crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
 }
 
 // À FAIRE : référence
-opérateur [] :: (texte: TexteUnicode, index: z64) -> Rune
+opérateur [] :: (texte: TexteUnicode, indice: z64) -> Rune
 {
     ptr := texte.chn.pointeur
 
-    si texte.index_sauvegardé == -1 || texte.index_sauvegardé > index {
+    si texte.index_sauvegardé == -1 || texte.index_sauvegardé > indice {
         texte.index_sauvegardé = 0
         texte.it_sauvegardé = rune_depuis_pointeur(ptr)
     }
 
-    si index == texte.index_sauvegardé {
+    si indice == texte.index_sauvegardé {
         retourne texte.it_sauvegardé
     }
 
-    tantque texte.index_sauvegardé < index {
+    tantque texte.index_sauvegardé < indice {
         n := nombre_octets_utf8(ptr)
         ptr += n
         texte.index_sauvegardé += 1

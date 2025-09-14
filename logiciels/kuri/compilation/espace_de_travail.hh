@@ -44,6 +44,10 @@ struct EspaceDeTravail {
     kuri::chaine nom{};
     OptionsDeCompilation options{};
 
+    /* Chaque espace a son propre module racine où sont ajoutés les fichiers et les chaines
+     * ajoutées lors de la compilation. */
+    Module *module = nullptr;
+
     Programme *programme = nullptr;
     UniteCompilation *unité_pour_code_machine = nullptr;
 

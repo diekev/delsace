@@ -1,5 +1,6 @@
 // Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
+importe Chaine
 importe Ensemble
 importe Fondation
 importe SysFichier

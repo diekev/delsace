@@ -51,7 +51,7 @@ insère_bits_du_bas :: fonc (
     // large, rendant la vérification de la plage plus bas plus simple.
     high_index := COMPTE - 1 - grand_décalage
 
-    // Écris les résultats dans le tableau de données. Si l'index est trop
+    // Écris les résultats dans le tableau de données. Si l'indice est trop
     // grand alors les données ont été décalées hors du nombre.
     si high_index < COMPTE {
         hp.données[high_index] |= résultat_haut comme n32

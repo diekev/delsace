@@ -1,5 +1,7 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
+importe Chaine
+importe Compilatrice // pour les fonctions de formattages
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
@@ -130,34 +132,34 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 
 imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
 {
-    index_caractère : z64 = 0
-    index_argument : z64 = 0
+    indice_caractère : z64 = 0
+    indice_argument : z64 = 0
     pointeur := format.pointeur
 
     début_mot_courant : z64 = 0
     taille_mot_courant : z64 = 0
 
-    tantque index_caractère < format.taille {
-        c := pointeur[index_caractère]
+    tantque indice_caractère < format.taille {
+        c := pointeur[indice_caractère]
 
-        si c == '%' && index_argument < args.taille {
+        si c == '%' && indice_argument < args.taille {
             si taille_mot_courant != 0 {
                 mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
                 enchaineuse.ajoute_au_tampon(mot)
             }
 
             taille_mot_courant = 0
-            début_mot_courant = index_caractère + 1
+            début_mot_courant = indice_caractère + 1
 
-            arg := args[index_argument]
+            arg := args[indice_argument]
             imprime_valeur(enchaineuse, arg, faux)
-            index_argument += 1
+            indice_argument += 1
         }
         sinon {
             taille_mot_courant += 1
         }
 
-        index_caractère += 1
+        indice_caractère += 1
     }
 
     si taille_mot_courant != 0 {
@@ -365,23 +367,23 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 
     résultat : [64]z8 = ---
 
-    index_fin : z64 = 63
-    index_début : z64 = index_fin
+    indice_fin : z64 = 63
+    indice_début : z64 = indice_fin
 
     tantque v != 0 {
         chiffre := v % base
         v /= base
 
-        résultat[index_début] = chiffres_base_64[chiffre]
-        index_début -= 1
+        résultat[indice_début] = chiffres_base_64[chiffre]
+        indice_début -= 1
     }
 
-    si index_début == index_fin {
-        résultat[index_début] = '0'
-        index_début -= 1
+    si indice_début == indice_fin {
+        résultat[indice_début] = '0'
+        indice_début -= 1
     }
 
-    taille := index_fin - index_début
+    taille := indice_fin - indice_début
 
     si format.séparation != 0 {
         pour i dans 0 ... taille - 1 {
@@ -389,11 +391,11 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
                 ajoute_au_tampon(enchaineuse, ' ')
             }
 
-            ajoute_au_tampon(enchaineuse, résultat[index_début + i + 1])
+            ajoute_au_tampon(enchaineuse, résultat[indice_début + i + 1])
         }
     }
     sinon {
-        mot := chaine(*résultat[index_début + 1], taille)
+        mot := chaine(*résultat[indice_début + 1], taille)
         ajoute_au_tampon(enchaineuse, mot)
     }
 }
@@ -726,15 +728,15 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             ajoute_au_tampon(enchaineuse, " { ")
 
             si info_arg.est_sûre {
-                pointeur_index := (valeur.pointeur + info_arg.décalage_index) comme *z32
-                index := mémoire(pointeur_index)
+                pointeur_indice := (valeur.pointeur + info_arg.décalage_indice) comme *z32
+                indice := mémoire(pointeur_indice)
 
-                // note la rubrique_active est l'index de la rubrique + 1, 0 étant une valeur montrant que l'union est invalide
-                si index == 0 {
+                // note la rubrique_active est l'indice de la rubrique + 1, 0 étant une valeur montrant que l'union est invalide
+                si indice == 0 {
                     ajoute_au_tampon(enchaineuse, "union invalide")
                 }
                 sinon {
-                    rubrique := info_arg.rubriques[index - 1]
+                    rubrique := info_arg.rubriques[indice - 1]
 
                     ajoute_au_tampon(enchaineuse, rubrique.nom)
                     ajoute_au_tampon(enchaineuse, " = ")
@@ -825,7 +827,7 @@ imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *In
 
 imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &ItératriceTableau, profondeur: z32)
 {
-    index := 0
+    indice := 0
     max_élément := 5
     ajoute_au_tampon(enchaineuse, "[")
 
@@ -836,17 +838,17 @@ imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &Itéra
             arrête
         }
 
-        si index >= max_élément {
+        si indice >= max_élément {
             ajoute_au_tampon(enchaineuse, ", ...")
             arrête
         }
 
-        si index != 0 {
+        si indice != 0 {
             ajoute_au_tampon(enchaineuse, ',')
         }
 
         imprime_valeur(enchaineuse, valeur_, vrai, profondeur + 1)
-        index += 1
+        indice += 1
     }
 
     ajoute_au_tampon(enchaineuse, "]")
@@ -1159,19 +1161,19 @@ fmt_imprime :: fonc (format: chaine, args: ...eini)
 fmt_imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini)
 {
     tantque format.taille > 0 {
-        extraction, reste, index := fmt_consomme(format)
+        extraction, reste, indice := fmt_consomme(format)
 
         ajoute_au_tampon(enchaineuse, extraction)
 
-        si index != -1 && index < args.taille {
-            ajoute_au_tampon(enchaineuse, args[index])
+        si indice != -1 && indice < args.taille {
+            ajoute_au_tampon(enchaineuse, args[indice])
         }
 
         format = reste
     }
 }
 
-fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, index: z32)
+fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, indice: z32)
 {
     si format.taille == 0 {
         retourne "", "", -1
@@ -1182,7 +1184,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 
     reste = format
 
-    index = -1
+    indice = -1
 
     ptr := format.pointeur
     fin := format.pointeur + format.taille
@@ -1196,15 +1198,15 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
             chn_index := reste
             nombre_de_chiffres := 0
 
-            index = 0
+            indice = 0
 
             pour chn_index {
                 saufsi '0' <= it <= '9' {
                     arrête
                 }
 
-                index *= 10
-                index += (it - '0') comme z32
+                indice *= 10
+                indice += (it - '0') comme z32
 
                 nombre_de_chiffres += 1
             }
@@ -1215,7 +1217,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
                 reste.pointeur += 1
                 reste.taille -= 1
                 ptr += 1
-                index = -1
+                indice = -1
                 continue
             }
 
@@ -1227,7 +1229,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
                 reste.pointeur += 1
                 reste.taille -= 1
                 ptr += 1
-                index = -1
+                indice = -1
                 continue
             }
 
@@ -1243,7 +1245,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
         ptr += 1
     }
 
-    retourne extraction, reste, index
+    retourne extraction, reste, indice
 }
 
 /** \} */

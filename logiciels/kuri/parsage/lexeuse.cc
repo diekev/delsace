@@ -421,7 +421,8 @@ void Lexeuse::consomme_espaces_blanches()
                 }
 
                 if (c == '\n') {
-                    if (doit_ajouter_point_virgule(m_dernier_id)) {
+                    if (m_imbrication_parenthèses == 0 && m_imbrication_crochets == 0 &&
+                        doit_ajouter_point_virgule(m_dernier_id)) {
                         this->enregistre_pos_mot();
                         this->ajoute_caractère();
                         ajoute_lexème(GenreLexème::POINT_VIRGULE);
@@ -594,8 +595,6 @@ Lexème Lexeuse::donne_lexème_suivant()
 
             APPARIE_CARACTERE_SIMPLE('`', GenreLexème::ACCENT_GRAVE)
             APPARIE_CARACTERE_SIMPLE('~', GenreLexème::TILDE)
-            APPARIE_CARACTERE_SIMPLE('[', GenreLexème::CROCHET_OUVRANT)
-            APPARIE_CARACTERE_SIMPLE(']', GenreLexème::CROCHET_FERMANT)
             APPARIE_CARACTERE_SIMPLE('{', GenreLexème::ACCOLADE_OUVRANTE)
             APPARIE_CARACTERE_SIMPLE('}', GenreLexème::ACCOLADE_FERMANTE)
             APPARIE_CARACTERE_SIMPLE('@', GenreLexème::AROBASE)
@@ -603,8 +602,26 @@ Lexème Lexeuse::donne_lexème_suivant()
             APPARIE_CARACTERE_SIMPLE(';', GenreLexème::POINT_VIRGULE)
             APPARIE_CARACTERE_SIMPLE('#', GenreLexème::DIRECTIVE)
             APPARIE_CARACTERE_SIMPLE('$', GenreLexème::DOLLAR)
-            APPARIE_CARACTERE_SIMPLE('(', GenreLexème::PARENTHESE_OUVRANTE)
-            APPARIE_CARACTERE_SIMPLE(')', GenreLexème::PARENTHESE_FERMANTE)
+
+            if (c == '(') {
+                m_imbrication_parenthèses += 1;
+                return crée_lexème_opérateur(1, GenreLexème::PARENTHESE_OUVRANTE);
+            }
+
+            if (c == ')') {
+                m_imbrication_parenthèses -= 1;
+                return crée_lexème_opérateur(1, GenreLexème::PARENTHESE_FERMANTE);
+            }
+
+            if (c == '[') {
+                m_imbrication_crochets += 1;
+                return crée_lexème_opérateur(1, GenreLexème::CROCHET_OUVRANT);
+            }
+
+            if (c == ']') {
+                m_imbrication_crochets -= 1;
+                return crée_lexème_opérateur(1, GenreLexème::CROCHET_FERMANT);
+            }
 
             APPARIE_CARACTERE_DOUBLE_EGAL('+', GenreLexème::PLUS, GenreLexème::PLUS_EGAL)
             APPARIE_CARACTERE_DOUBLE_EGAL('!', GenreLexème::EXCLAMATION, GenreLexème::DIFFÉRENCE)

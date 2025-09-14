@@ -1777,8 +1777,8 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
 
     imprime("%\n", chemin.chn)
 
-    contenu := contenu_fichier_binaire(chemin)
-    si contenu.taille == 0 {
+    succès, contenu := contenu_fichier_binaire(chemin)
+    si succès == faux || contenu.taille == 0 {
         retourne
     }
     diffère déloge(contenu)

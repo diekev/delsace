@@ -14,8 +14,8 @@ ContexteEntropisation :: struct {
 
 choisis_un_de :: fonc (gna: *GNA, tags: ...DOMString) -> DOMString
 {
-    index := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
-    retourne tags[index]
+    indice := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
+    retourne tags[indice]
 }
 
 tag_enfant_possible :: fonc (gna: *GNA, tag: DOMString) -> DOMString

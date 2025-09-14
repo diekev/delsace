@@ -1,6 +1,7 @@
 /* Structure représentant le temps pour les paramètres HTTP « Date », il doit être dans le fuseau GMT.
  */
 
+importe Chaine
 importe Sérialisation
 
 __chaine_jour_pour_tm := [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
@@ -81,13 +82,13 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
     parseuse := ParseuseChaine(chn = chn)
 
     // parse nom jour
-    index := apparie_un_de(*parseuse, ...__chaine_jour_pour_tm)
+    indice := apparie_un_de(*parseuse, ...__chaine_jour_pour_tm)
 
-    si index == -1 {
+    si indice == -1 {
         retourne ErreurParsageDate.NomJourMalformé
     }
 
-    date.jour_semaine = index comme z32
+    date.jour_semaine = indice comme z32
 
     avance(*parseuse, 3)
 
@@ -111,13 +112,13 @@ parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
     }
 
     // parse mois
-    index = apparie_un_de(*parseuse, ...__chaine_mois_pour_tm)
+    indice = apparie_un_de(*parseuse, ...__chaine_mois_pour_tm)
 
-    si index == -1 {
+    si indice == -1 {
         retourne ErreurParsageDate.MoisMalformé
     }
 
-    date.mois = index comme z32
+    date.mois = indice comme z32
 
     avance(*parseuse, 3)
 

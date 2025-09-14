@@ -301,70 +301,70 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 insère :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, valeur: TypeValeur)
 {
     empreinte := calcule_empreinte(clé)
-    index := trouve_index(table, clé, empreinte)
+    indice := trouve_indice(table, clé, empreinte)
 
-    si index == -1 {
+    si indice == -1 {
         si table.nombre_éléments * 2 >= table.capacité {
             agrandis(table)
         }
 
-        index = (empreinte % table.capacité comme n64) comme z64
+        indice = (empreinte % table.capacité comme n64) comme z64
 
-        tantque table.occupés[index] {
-            index += 1
+        tantque table.occupés[indice] {
+            indice += 1
 
-            si index >= table.capacité {
-                index = 0
+            si indice >= table.capacité {
+                indice = 0
             }
         }
 
         table.nombre_éléments += 1
     }
 
-    table.occupés[index] = vrai
-    table.empreintes[index] = empreinte
-    table.clés[index] = clé
-    table.valeurs[index] = valeur
+    table.occupés[indice] = vrai
+    table.empreintes[indice] = empreinte
+    table.clés[indice] = clé
+    table.valeurs[indice] = valeur
 }
 
 trouve :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> TypeValeur | bool
 {
     empreinte := calcule_empreinte(clé)
-    index := trouve_index(table, clé, empreinte)
+    indice := trouve_indice(table, clé, empreinte)
 
-    si index == -1 {
+    si indice == -1 {
         retourne faux
     }
 
-    retourne table.valeurs[index]
+    retourne table.valeurs[indice]
 }
 
 possède :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> bool
 {
     empreinte := calcule_empreinte(clé)
-    index := trouve_index(table, clé, empreinte)
-    retourne index != -1
+    indice := trouve_indice(table, clé, empreinte)
+    retourne indice != -1
 }
 
-trouve_index :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, empreinte: n64) -> z64
+trouve_indice :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, empreinte: n64) -> z64
 {
     saufsi table.capacité {
         retourne -1
     }
 
-    index := (empreinte % table.capacité comme n64) comme z64
+    indice := (empreinte % table.capacité comme n64) comme z64
 
-    tantque table.occupés[index] {
-        si table.empreintes[index] == empreinte {
-            si table.clés[index] == clé {
-                retourne index
+    tantque table.occupés[indice] {
+        si table.empreintes[indice] == empreinte {
+            si table.clés[indice] == clé {
+                retourne indice
             }
         }
 
-        index += 1
+        indice += 1
 
-        si index >= table.capacité {
-            index = 0
+        si indice >= table.capacité {
+            indice = 0
         }
     }
 

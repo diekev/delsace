@@ -390,7 +390,8 @@ static kuri::chaine_statique donne_commande_pour_type_liaison(TypeLiaison const 
 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
-                                   BibliothèquesUtilisées const &bibliothèques)
+                                   BibliothèquesUtilisées const &bibliothèques,
+                                   kuri::chaine_statique chemin_sortie)
 {
     auto compilateur = donne_compilateur_cpp();
     auto options_compilateur = options_pour_liaison(compilateur, options);
@@ -470,7 +471,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
      */
     enchaineuse << " -Wl,-Bdynamic";
 
-    enchaineuse << " -o " << nom_sortie_résultat_final(options);
+    enchaineuse << " -o \"" << chemin_sortie << "\"";
 
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';

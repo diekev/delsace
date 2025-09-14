@@ -349,11 +349,11 @@ crée_charge_index :: fonc (génératrice: &GénératriceCodeBinaire, reg_objet:
     retourne Registre(0)
 }
 
-crée_propriété_array :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, index: z32)
+crée_propriété_array :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, indice: z32)
 {
     résultat := génératrice.crée_instruction(InstructionCréePropriétéArray)
     résultat.obj = obj
-    résultat.index = index
+    résultat.indice = indice
 }
 
 crée_data_property_or_throw :: fonc (génératrice: &GénératriceCodeBinaire, obj: Registre, nom: ECMAString)

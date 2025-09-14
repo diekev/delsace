@@ -47,13 +47,13 @@ crée_nombre_infini :: fonc (chn: chaine) -> NombreInfini
     retourne résultat
 }
 
-chiffre_pour_index :: fonc (n: NombreInfini, index: z64) -> n8
+chiffre_pour_index :: fonc (n: NombreInfini, indice: z64) -> n8
 {
-    si index >= n.chiffres.taille || index < 0 {
+    si indice >= n.chiffres.taille || indice < 0 {
         retourne 0
     }
 
-    retourne n.chiffres[index]
+    retourne n.chiffres[indice]
 }
 
 nombre_de_chiffres :: fonc (n: NombreInfini) -> z64
@@ -137,10 +137,10 @@ opérateur + :: (n0: NombreInfini, n1: n64) -> NombreInfini
     tableau_inverse(résultat.chiffres)
 
     retenue := n1
-    index := 0
+    indice := 0
 
     répète {
-        tmp := résultat.chiffres[index] + retenue
+        tmp := résultat.chiffres[indice] + retenue
 
         si tmp >= 10 {
             retenue = tmp / 10
@@ -150,9 +150,9 @@ opérateur + :: (n0: NombreInfini, n1: n64) -> NombreInfini
             retenue = 0
         }
 
-        résultat.chiffres[index] = tmp comme n8
-        index += 1
-    } tantque retenue != 0 && index < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp comme n8
+        indice += 1
+    } tantque retenue != 0 && indice < résultat.nombre_de_chiffres()
 
     si retenue != 0 {
         ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)
@@ -235,10 +235,10 @@ opérateur - :: (n0: NombreInfini, n1: n64) -> NombreInfini
     tableau_inverse(résultat.chiffres)
 
     emprunt := n1 comme n8
-    index := 0
+    indice := 0
 
     répète {
-        tmp := 10 + résultat.chiffres[index] - emprunt
+        tmp := 10 + résultat.chiffres[indice] - emprunt
 
         si tmp < 10 {
             emprunt = 1
@@ -248,9 +248,9 @@ opérateur - :: (n0: NombreInfini, n1: n64) -> NombreInfini
             tmp -= 10
         }
 
-        résultat.chiffres[index] = tmp
-        index += 1
-    } tantque emprunt == 1 && index < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp
+        indice += 1
+    } tantque emprunt == 1 && indice < résultat.nombre_de_chiffres()
 
     supprime_zéro_en_début(*résultat)
 
@@ -291,10 +291,10 @@ opérateur * :: (n0: NombreInfini, n2: n64) -> NombreInfini
     tableau_inverse(résultat.chiffres)
 
     retenue: n64
-    index := 0
+    indice := 0
 
     répète {
-        tmp := résultat.chiffres[index] * n2 + retenue
+        tmp := résultat.chiffres[indice] * n2 + retenue
 
         si tmp >= 10 {
             retenue = tmp / 10
@@ -304,9 +304,9 @@ opérateur * :: (n0: NombreInfini, n2: n64) -> NombreInfini
             retenue = 0
         }
 
-        résultat.chiffres[index] = tmp comme n8
-        index += 1
-    } tantque index < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp comme n8
+        indice += 1
+    } tantque indice < résultat.nombre_de_chiffres()
 
     si retenue != 0 {
         ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)

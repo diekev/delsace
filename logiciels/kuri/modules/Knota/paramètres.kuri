@@ -258,15 +258,15 @@ détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeRubriqueStruct
         retourne
     }
 
-    index := extrait_n64_nonsûr(annotation.valeur)
+    indice := extrait_n64_nonsûr(annotation.valeur)
 
-    si index >= 64 {
+    si indice >= 64 {
         // compilatrice_rapporte_erreur("Index >= 64 pour la valeur de ChercheCanal")
         retourne
     }
 
     param.type_chaine_recherchée = type
-    param.index_prise_pour_recherche_chaine = index comme z32
+    param.index_prise_pour_recherche_chaine = indice comme z32
 }
 
 parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param: *TableParamètres.Paramètre)

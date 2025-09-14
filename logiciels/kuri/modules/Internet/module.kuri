@@ -150,15 +150,15 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
         possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[morceaux_nombre.taille - 1], *ipv4)
 
-        index_début := 8 - morceaux_nombre.taille
+        indice_début := 8 - morceaux_nombre.taille
 
         si possède_ipv4 {
-            index_début -= 1
+            indice_début -= 1
             morceaux_nombre[morceaux_nombre.taille - 1] = ""
         }
 
         pour morceaux_nombre {
-            chaines[index_début + indice_it] = it
+            chaines[indice_début + indice_it] = it
         }
     }
 
@@ -197,11 +197,11 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 
 // Structure pour tenir des informations sur les séquences de '0' d'une adresse IPv6
 // Par exemple : 1:0:0:0:1:0:0:1:1 possède 2 séquences.
-// index_début et index_fin sont les position dans les éléments de la séquence.
+// indice_début et indice_fin sont les position dans les éléments de la séquence.
 // nombre_de_zéros est pour la taille de la taille de séquence.
 SéquenceDeZéros :: struct {
-    index_début  : z64
-    index_fin    : z64
+    indice_début  : z64
+    indice_fin    : z64
     nombre_zéros : z32
 }
 
@@ -219,14 +219,14 @@ détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> [4]SéquenceDeZé
     pour ipv6 {
         si it == 0 {
             si nombre_zéros == 0 {
-                séquence.index_début = indice_it
+                séquence.indice_début = indice_it
             }
 
             nombre_zéros += 1
         }
         sinon si nombre_zéros != 0 {
             séquence.nombre_zéros = nombre_zéros
-            séquence.index_fin = indice_it
+            séquence.indice_fin = indice_it
 
             séquences[nombre_de_séquences] = séquence
             nombre_de_séquences += 1
@@ -236,7 +236,7 @@ détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> [4]SéquenceDeZé
 
     si nombre_zéros != 0 {
         séquence.nombre_zéros = nombre_zéros
-        séquence.index_fin = 8
+        séquence.indice_fin = 8
 
         séquences[nombre_de_séquences] = séquence
         nombre_de_séquences += 1
@@ -257,8 +257,8 @@ détermine_séquence_la_plus_longue :: fonc (séquences: [4]SéquenceDeZéros, n
 
     si séquence_la_plus_longue.nombre_zéros < 2 {
         séquence_la_plus_longue.nombre_zéros = 0
-        séquence_la_plus_longue.index_début = 0
-        séquence_la_plus_longue.index_fin = 0
+        séquence_la_plus_longue.indice_début = 0
+        séquence_la_plus_longue.indice_fin = 0
     }
 
     retourne séquence_la_plus_longue
@@ -348,11 +348,11 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
     tampon : Tamponet
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
-    si séquence_la_plus_longue.index_début == 0 && séquence_la_plus_longue.nombre_zéros > 1 {
+    si séquence_la_plus_longue.indice_début == 0 && séquence_la_plus_longue.nombre_zéros > 1 {
         ajoute_au_tampon(tampon, ':')
     }
     /* Formatte jusqu'au début de la séquence de zéros. */
-    sinon pour séquence_la_plus_longue.index_début {
+    sinon pour séquence_la_plus_longue.indice_début {
         si it != 0 {
             ajoute_au_tampon(tampon, ':')
         }
@@ -360,16 +360,16 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
     }
 
     /* Ignore les séquences entre deux séquences non-égales à zéro (remplace par un simple ':'). */
-    si séquence_la_plus_longue.index_début != 0 && séquence_la_plus_longue.nombre_zéros != 0 {
+    si séquence_la_plus_longue.indice_début != 0 && séquence_la_plus_longue.nombre_zéros != 0 {
         ajoute_au_tampon(tampon, ':')
     }
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
-    si séquence_la_plus_longue.index_fin == 8 {
+    si séquence_la_plus_longue.indice_fin == 8 {
         ajoute_au_tampon(tampon, ':')
     }
     /* Formatte depuis la fin de la séquence de zéros. */
-    sinon pour séquence_la_plus_longue.index_fin ... 7 {
+    sinon pour séquence_la_plus_longue.indice_fin ... 7 {
         si it != 0 {
             ajoute_au_tampon(tampon, ':')
         }

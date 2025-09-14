@@ -90,10 +90,10 @@ get_identifier_reference :: fonc (interpréteuse: *Interpréteuse, environment: 
     récursion := 0
 
     tantque environment != nul {
-        index := -1
+        indice := -1
 
         // 2. Let exists be ? env.HasBinding(name).
-        exists := has_binding(environment, nom.texte, *index)
+        exists := has_binding(environment, nom.texte, *indice)
         si interpréteuse.possède_exception() {
             retourne référence_non_résolvable(Valeur(String = nom), strict)
         }
@@ -106,10 +106,10 @@ get_identifier_reference :: fonc (interpréteuse: *Interpréteuse, environment: 
             résultat.referenced_name = Valeur(String = nom)
             résultat.strict = strict
 
-            si index != -1 {
+            si indice != -1 {
                 assert(est_declarative_environment(environment))
                 coordonnée: CoordonnéeEnvironnement
-                coordonnée.index = index
+                coordonnée.indice = indice
                 coordonnée.sauts = récursion
                 résultat.coordonnée = coordonnée
             }

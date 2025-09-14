@@ -382,8 +382,8 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
         CROIX { retourne QT_CursorShape.CROSS }
         REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL }
         REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW }
-        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_VERTICAL }
-        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_HORIZONTAL }
+        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_VERTICAL }
         REDIMENSIONNEMENT_NORD_EST_SUD_OUEST { retourne QT_CursorShape.SIZE_BDIALOG }
         REDIMENSIONNEMENT_NORD_OUEST_SUD_EST { retourne QT_CursorShape.SIZE_FDIALOG }
         MAIN_POINTANT { retourne QT_CursorShape.POINTING_HAND }
@@ -694,20 +694,20 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
 
         si type == QT_Event_Type.MouseMove && rappels.guetteuse.sur_déplacement_souris {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
-            rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état)
-            retourne vrai
+            résultat := rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état)
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ
         }
 
         si type == QT_Event_Type.MouseButtonPress && rappels.guetteuse.sur_clic {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-            rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne vrai
+            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ
         }
 
         si type == QT_Event_Type.MouseButtonRelease && rappels.guetteuse.sur_clic {
             clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
-            rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne vrai
+            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ
         }
 
         si type == QT_Event_Type.KeyPress && rappels.guetteuse.sur_touche_clavier {
@@ -719,8 +719,8 @@ plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *
             touche.type = table_conversion_clé[clé_qt]
             touche.texte = texte
 
-            rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche)
-            retourne vrai
+            résultat := rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche)
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ
         }
 
         retourne faux

@@ -58,7 +58,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
         }
         TABLEAU,
         TABLEAU_FIXE {
-            index := 0
+            indice := 0
             itératrice := crée_itératrice_tableau(valeur)
 
             ajoute_au_tampon(enchaineuse, "[")
@@ -70,12 +70,12 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
                     arrête
                 }
 
-                si index != 0 {
+                si indice != 0 {
                     ajoute_au_tampon(enchaineuse, ',')
                 }
 
                 imprime_valeur(enchaineuse, valeur_, vrai)
-                index += 1
+                indice += 1
             }
 
             ajoute_au_tampon(enchaineuse, "]")

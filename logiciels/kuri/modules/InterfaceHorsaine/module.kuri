@@ -436,13 +436,13 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 {
     /* À FAIRE(langage) : table des types. */
-    index := (type.indice_dans_table_des_types comme z64) - 1
+    indice := (type.indice_dans_table_des_types comme z64) - 1
 
-    si index < 0 || index >= ipa.types.taille {
+    si indice < 0 || indice >= ipa.types.taille {
         retourne nul
     }
 
-    retourne ipa.types[index]
+    retourne ipa.types[indice]
 }
 
 ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)

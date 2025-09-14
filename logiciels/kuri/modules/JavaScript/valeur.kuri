@@ -40,8 +40,8 @@ est_valide :: fonc (valeur: Valeur) -> bool #enligne
 donne_type :: fonc (valeur: Valeur) -> z32
 {
     info := info_de(Valeur)
-    index := mémoire(((*valeur comme *octet) + info.décalage_index) comme *z32)
-    retourne index
+    indice := mémoire(((*valeur comme *octet) + info.décalage_indice) comme *z32)
+    retourne indice
 }
 
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: *Valeur)

@@ -31,7 +31,7 @@ parse_document_depuis_chemin :: fonc (chemin: chaine) -> ParsatHTML
         __mv_initialisée = vrai
     }
 
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
     parsat := parse_document(JS.donne_tas_de_mémoire(*__mv), contenu)

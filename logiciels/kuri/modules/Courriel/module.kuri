@@ -90,7 +90,8 @@ pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
     résultat.nom = nom
     résultat.nom_fichier = nom_fichier
     résultat.type_mime = type_mime_pour_extension(chemin.extension())
-    résultat.contenu = contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
+    résultat.contenu = contenu
     retourne résultat
 }
 
@@ -243,14 +244,14 @@ parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
             avance(*parseuse, 1)
         }
 
-        index_fin_ligne := trouve_prochain(*parseuse, "\r\n")
-        si index_fin_ligne < 0 {
+        indice_fin_ligne := trouve_prochain(*parseuse, "\r\n")
+        si indice_fin_ligne < 0 {
             détruit_réponse(résultat)
             retourne RéponseServeuse()
         }
 
-        texte_ligne := sous_chaine_jusque_index(*parseuse, index_fin_ligne)
-        positionne(*parseuse, (index_fin_ligne + 2) comme z32)
+        texte_ligne := sous_chaine_jusque_indice(*parseuse, indice_fin_ligne)
+        positionne(*parseuse, (indice_fin_ligne + 2) comme z32)
 
         si texte_ligne {
             tableau_ajoute(*résultat.textes, texte_ligne)

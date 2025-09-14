@@ -13,9 +13,9 @@ principale :: fonc ()
 
     pour y dans labyrinthe.taille_y {
         pour x dans labyrinthe.taille_x {
-            index := x + y * labyrinthe.taille_x
+            indice := x + y * labyrinthe.taille_x
 
-            si labyrinthe.données[index] {
+            si labyrinthe.données[indice] {
                 imprime("[]")
             }
             sinon {

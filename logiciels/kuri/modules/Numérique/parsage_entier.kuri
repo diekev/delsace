@@ -6,6 +6,7 @@
 //           -- nombres négatifs ?
 //           -- validation dans l'algorithme de parsage via SIMD
 
+importe Chaine
 importe Math
 importe Ordinatrice
 

@@ -294,7 +294,7 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
                 retourne résultat
             }
 
-            valeur := sous_chaine_jusque_index(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos)
 
             résultat.domaine = valeur
 
@@ -315,7 +315,7 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
                 pos = parseuse.chn.taille
             }
 
-            valeur := sous_chaine_jusque_index(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos)
 
             résultat.domaine = valeur
 
@@ -335,7 +335,7 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
                 pos = parseuse.chn.taille
             }
 
-            valeur := sous_chaine_jusque_index(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos)
 
             si valeur == "None" {
                 résultat.même_site = Cookie.PolitiqueMêmeSite.None
@@ -370,7 +370,7 @@ parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> bool, Cookie
         retourne faux, cookie
     }
 
-    nom := sous_chaine_jusque_index(parseuse, pos)
+    nom := sous_chaine_jusque_indice(parseuse, pos)
 
     positionne(parseuse, pos + 1)
 
@@ -380,7 +380,7 @@ parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> bool, Cookie
         pos = parseuse.chn.taille
     }
 
-    valeur := sous_chaine_jusque_index(parseuse, pos)
+    valeur := sous_chaine_jusque_indice(parseuse, pos)
 
     positionne(parseuse, pos + 1)
 
@@ -475,7 +475,7 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
     si pos_point_virgule <= 0 {
         pos_point_virgule = parseuse.chn.taille
     }
-    paire_nom_valeur := sous_chaine_jusque_index(*parseuse, pos_point_virgule)
+    paire_nom_valeur := sous_chaine_jusque_indice(*parseuse, pos_point_virgule)
 
     pos_égal := trouve_caractère_depuis_le_début(paire_nom_valeur, '=')
     si pos_égal == -1 {
@@ -501,7 +501,7 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
         si pos_point_virgule <= 0 {
             pos_point_virgule = parseuse.chn.taille
         }
-        valeur_attribut_cookie := sous_chaine_jusque_index(*parseuse, pos_point_virgule)
+        valeur_attribut_cookie := sous_chaine_jusque_indice(*parseuse, pos_point_virgule)
 
         nom_attribut := valeur_attribut_cookie
         valeur_attribut := ""
@@ -641,9 +641,9 @@ parse_date_cookie :: fonc (valeur: chaine) -> Optionnel(Date)
         }
 
         si mois_trouvé == faux {
-            index_mois := est_production_mois(token)
-            si index_mois >= 0 {
-                valeur_mois = index_mois
+            indice_mois := est_production_mois(token)
+            si indice_mois >= 0 {
+                valeur_mois = indice_mois
                 mois_trouvé = vrai
                 continue
             }

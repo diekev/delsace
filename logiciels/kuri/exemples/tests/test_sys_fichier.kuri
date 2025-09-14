@@ -41,7 +41,10 @@ test_itération_dossier :: fonc () -> rien
 principale :: fonc ()
 {
     chm := CheminFichier("/tmp/test_parcer.cc")
-    contenu := contenu_fichier_texte(chm)
+    succès, contenu := contenu_fichier_texte(chm)
+    saufsi succès {
+        exit(1)
+    }
     diffère déloge(contenu)
 
     chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc")

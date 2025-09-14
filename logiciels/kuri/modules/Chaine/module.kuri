@@ -1,3 +1,4 @@
+importe Algorithmes
 importe Fondation
 importe Unicode
 
@@ -171,7 +172,7 @@ opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
     ptr_source := itératrice.chn.pointeur
     curseur := 0
 
-    index := 0
+    indice := 0
 
     tantque curseur < itératrice.chn.taille {
         no := nombre_octets_utf8_rapide(*ptr_source[curseur])
@@ -182,13 +183,815 @@ opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
         }
 
         `it = converti_utf8_utf32(*ptr_source[curseur]) comme n32
-        `indice_it = index
+        `indice_it = indice
 
         #corps_boucle
 
-        index += 1
+        indice += 1
         curseur += no comme z32
     }
 }
 
 /** \} */
+
+// À FAIRE: ceci ne fonctionnera pas pour les chaines statiques, connues lors de la compilation
+chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
+{
+    si !donnée {
+        retourne
+    }
+
+    tmp := mémoire(chn)
+
+    taille := chn.taille
+    reloge_chaine(tmp, taille + donnée.taille)
+
+    copie_mem_nonsur(src = donnée.pointeur, dst = tmp.pointeur + taille, taille = donnée.taille)
+
+    mémoire(chn) = tmp
+}
+
+inverse :: fonc (chn: *chaine) -> rien
+{
+    inverse(chn.pointeur, chn.pointeur + chn.pointeur.taille)
+}
+
+copie_chaine :: fonc (chn: chaine) -> chaine
+{
+    si chn.taille == 0 {
+        retourne ""
+    }
+
+    nchn := loge_chaine(chn.taille)
+    copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille)
+    retourne nchn
+}
+
+chaine_depuis_tranche_octets :: fonc (données: []octet) -> chaine
+{
+    retourne chaine(données.pointeur comme *z8, données.taille)
+}
+
+// execute une fonction pour chaque ligne du texte d'entrée
+pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc(chaine, T)(rien)) -> rien
+{
+    taille : z64 = 0
+    début_chaine : z64 = 0
+
+    pour c, i dans texte {
+        taille += 1
+
+        si c == '\n' {
+            ligne := chaine(*texte[début_chaine], taille)
+            rappel(ligne, donnees)
+
+            début_chaine = i + 1 comme z64
+            taille = 0
+        }
+    }
+
+    // La dernière ligne n'a pas de retour...
+    si taille != 0 {
+        ligne := chaine(*texte[début_chaine], taille)
+        rappel(ligne, donnees)
+    }
+}
+
+est_vide :: fonc (chn: chaine) -> bool
+{
+    retourne chn.taille == 0
+}
+
+avance :: fonc (ligne: chaine, compte: z64) -> chaine
+{
+    retourne chaine(ligne.pointeur + compte, ligne.taille - compte)
+}
+
+recule :: fonc (ligne: chaine, compte: z64) -> chaine
+{
+    retourne chaine(ligne.pointeur, ligne.taille - compte)
+}
+
+est_espace_blanche :: fonc (c: z8) -> bool
+{
+    retourne c == ' ' || c == '\n' || c == '\t' || c == '\v' || c == '\r' || c == '\f'
+}
+
+est_nombre_binaire :: fonc (c: z8) -> bool
+{
+    retourne c == '0' || c == '1'
+}
+
+est_nombre_décimal :: fonc (c: z8) -> bool
+{
+    retourne '0' <= c <= '9'
+}
+
+est_nombre_octal :: fonc (c: z8) -> bool
+{
+    retourne '0' <= c <= '7'
+}
+
+est_nombre_hexadécimal :: fonc (c: z8) -> bool
+{
+    retourne ('0' <= c <= '9') || ('A' <= (c & ~0x20) <= 'F')
+}
+
+donne_valeur_hex :: fonc (c: z8) -> z8 #enligne
+{
+    assert(est_nombre_hexadécimal(c))
+    si 'A' <= (c & ~0x20) <= 'F' {
+        retourne (((c & ~0x20) - 'A') + 10) comme z8
+    }
+    retourne (c - '0')
+}
+
+en_majuscule :: fonc (c: z8) -> z8
+{
+    si 'a' <= c <= 'z' {
+        retourne c - 'a' + 'A'
+    }
+
+    retourne c
+}
+
+en_minuscule :: fonc (c: z8) -> z8
+{
+    si 'A' <= c <= 'Z' {
+        retourne c - 'A' + 'a'
+    }
+
+    retourne c
+}
+
+en_majuscule :: fonc (chn: chaine) -> chaine
+{
+    pour & c dans chn {
+        c = en_majuscule(c)
+    }
+
+    retourne chn
+}
+
+en_minuscule :: fonc (chn: chaine) -> chaine
+{
+    pour & c dans chn {
+        c = en_majuscule(c)
+    }
+
+    retourne chn
+}
+
+commence_par :: fonc (chn: chaine, c: z8) -> bool
+{
+    retourne chn.taille > 0 && chn[0] == c
+}
+
+commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
+{
+    si ligne.taille < motif.taille {
+        retourne faux
+    }
+
+    tmp := chaine(ligne.pointeur, motif.taille)
+
+    retourne tmp == motif
+}
+
+commence_par :: fonc (ligne: chaine, motifs: ...chaine) -> bool
+{
+    pour motifs {
+        si commence_par(ligne, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
+{
+    si ligne.taille < motif.taille {
+        retourne faux
+    }
+
+    tmp := chaine(ligne.pointeur + ligne.taille - motif.taille, motif.taille)
+
+    retourne tmp == motif
+}
+
+fini_par :: fonc (ligne: chaine, motifs: ...chaine) -> bool
+{
+    pour motifs {
+        si fini_par(ligne, it) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+remplace :: fonc (texte: chaine, motif: chaine, par: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pos_motif : z64 = 0
+    répète {
+        pos_motif = cherche_aiguille_par_boyer_moore_horspool(texte, motif)
+
+        si pos_motif == -1 {
+            ajoute_au_tampon(*enchaineuse, texte)
+        }
+        sinon {
+            ajoute_au_tampon(*enchaineuse, texte.sous_chaine(0, pos_motif))
+            ajoute_au_tampon(*enchaineuse, par)
+
+            texte = avance(texte, pos_motif + motif.taille)
+        }
+    } tantque pos_motif != -1
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
+{
+    résultat := copie_chaine(ligne)
+    remplace_sans_copie(*résultat, c, par)
+    retourne résultat
+}
+
+remplace_sans_copie :: fonc (ligne: *chaine, c: z8, par: z8)
+{
+    résultat := mémoire(ligne)
+    pour & résultat {
+        si it == c {
+            it = par
+        }
+    }
+    mémoire(ligne) = résultat
+}
+
+compte_occurences_de :: fonc (ligne: chaine, motif: chaine) -> z64
+{
+    résultat := 0
+    pos_motif : z64 = 0
+    répète {
+        pos_motif = cherche_aiguille_par_boyer_moore_horspool(texte, motif)
+        si pos_motif != -1 {
+            résultat += 1
+        }
+    } tantque pos_motif != -1
+
+    retourne résultat
+}
+
+compte_occurences_de :: fonc (ligne: chaine, c: z8) -> z64
+{
+    résultat := 0
+    pour ligne {
+        si it == c {
+            résultat += 1
+        }
+    }
+    retourne résultat
+}
+
+compte_commun :: fonc (chn1: chaine, chn2: chaine) -> z64
+{
+    si chn1.taille != chn2.taille {
+        retourne 0
+    }
+
+    occurences : z64 = 0
+
+    pour c, idx dans chn1 {
+        si c != chn2[idx] {
+            arrête
+        }
+
+        occurences += 1
+    }
+
+    retourne occurences
+}
+
+premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
+{
+    taille_min : z64 = taille
+
+    si taille_min > ligne.taille {
+        taille_min = ligne.taille
+    }
+
+    retourne chaine(ligne.pointeur, taille_min)
+}
+
+dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
+{
+    taille_min : z64 = taille
+
+    si taille_min > ligne.taille {
+        taille_min = ligne.taille
+    }
+
+    retourne chaine(ligne.pointeur + ligne.taille - taille_min, taille_min)
+}
+
+sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enligne
+{
+    si chn.taille == 0 {
+        retourne ""
+    }
+
+    si pos_début >= chn.taille {
+        retourne ""
+    }
+
+    retourne chaine(*chn[pos_début], pos_fin - pos_début)
+}
+
+est_sous_chaine :: fonc (a: chaine, b: chaine) -> bool
+{
+    début_a := a.pointeur
+    fin_a := début_a + a.taille
+    début_b := b.pointeur
+    fin_b := début_b + b.taille
+
+    retourne début_a <= début_b <= fin_a && début_a <= fin_b <= fin_a
+}
+
+distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
+{
+    m := chn1.taille
+    n := chn2.taille
+
+    si m == 0 {
+        retourne n
+    }
+
+    si n == 0 {
+        retourne m
+    }
+
+    coûts := loge_tableau(z64, n + 1)
+    coûts.taille = n + 1
+
+    pour c, idx dans coûts {
+        c = idx
+    }
+
+    pour i dans 0 ... chn1.taille - 1 {
+        coûts[0] = i + 1
+        coin := i
+
+        pour j dans 0 ... chn2.taille - 1 {
+            enhaut := coûts[j + 1]
+
+            si chn1[i] == chn2[j] {
+                coûts[j + 1] = coin
+            }
+            sinon {
+                t: z64
+
+                si enhaut < coin {
+                    t = enhaut
+                }
+                sinon {
+                    t = coin
+                }
+
+                si coûts[j] < t {
+                    coûts[j + 1] = coûts[j] + 1
+                }
+                sinon {
+                    coûts[j + 1] = t + 1
+                }
+            }
+
+            coin = enhaut
+        }
+    }
+
+    retourne coûts[n]
+}
+
+append :: fonc (vers: *chaine, chn: chaine) -> rien
+{
+    si chn.taille == 0 {
+        retourne
+    }
+
+    tmp := mémoire(vers)
+
+    taille := tmp.taille
+    reloge_chaine(tmp, tmp.taille + chn.taille)
+
+    pour idx_vers, idx_chn dans taille ... tmp.taille - 1 {
+        tmp[idx_vers] = chn[idx_chn]
+    }
+
+    mémoire(vers) = tmp
+}
+
+trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z64 = 0) -> z64
+{
+    pour i dans indice_début ... chn.taille - motif.taille - 1 {
+        trouvé := vrai
+
+        pour m, idx dans motif {
+            si m != chn[i + idx] {
+                trouvé = faux
+                arrête
+            }
+        }
+
+        si trouvé {
+            retourne i
+        }
+    }
+
+    retourne -1
+}
+
+/**
+ * Retourne l'indice de la première occurence de `c` dans `chn` ou -1 si le
+ * caractère est introuvable.
+ * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
+ * donc l'indice retourné est l'indice de l'octet du caractère dans la chaine
+ * d'octets.
+ */
+trouve_caractère_depuis_le_début :: fonc (chn: chaine, c: z8) -> z64
+{
+    pour chn {
+        si it == c {
+            retourne indice_it
+        }
+    }
+    retourne -1
+}
+
+/**
+ * Retourne l'indice de la dernière occurence de `c` dans `chn` ou -1 si le
+ * caractère est introuvable.
+ * Les caracètres non ASCII ne sont pas résolus comme de simples caractères,
+ * donc l'indice retourné est l'indice de l'octet du caractère dans la chaine
+ * d'octets.
+ */
+trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
+{
+    pour > chn {
+        si it == c {
+            retourne chn.taille - indice_it - 1
+        }
+    }
+    retourne -1
+}
+
+/* Tests pour la recherche de caractères. */
+#test {
+    /* Avec accents. */
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kévin", 'n'), 5)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kévin", 'a'), -1)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'n'), 5)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'k'), 0)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kévin", 'a'), -1)
+    /* Sans accents. */
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kevin", 'n'), 4)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_le_début("kevin", 'a'), -1)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'n'), 4)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'k'), 0)
+    compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'a'), -1)
+}
+
+trouve_position_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+{
+    début : z64 = 0
+
+    tantque début < chn.taille {
+        si condition(chn[début]) {
+            arrête
+        }
+
+        début += 1
+    }
+
+    retourne début
+}
+
+compte_consécutifs_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+{
+    compte := 0
+
+    tantque compte < chn.taille {
+        si !condition(chn[compte]) {
+            arrête
+        }
+
+        compte += 1
+    }
+
+    retourne compte
+}
+
+avance_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+{
+    début : z64 = 0
+
+    tantque début < chn.taille {
+        si !condition(chn[début]) {
+            arrête
+        }
+
+        début += 1
+    }
+
+    retourne avance(chn, début)
+}
+
+recule_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+{
+    début : z64 = chn.taille - 1
+
+    tantque début > 0 {
+        si !condition(chn[début]) {
+            arrête
+        }
+
+        début -= 1
+    }
+
+    retourne chaine(chn.pointeur, début + 1)
+}
+
+apparie_chaine :: fonc (chn1: chaine, chn2: chaine, n: z64) -> bool
+{
+    i := n - 1
+
+    si i >= chn1.taille || i >= chn2.taille {
+        retourne faux
+    }
+
+    tantque chn1[i] == chn2[i] {
+        si i == 0 {
+            retourne vrai
+        }
+
+        i -= 1
+    }
+
+    retourne faux
+}
+
+// Algorithmes de recherche de motifs dans des chaines (« chercher une aiguille dans une botte de foin »)
+//
+// Why GNU grep is fast
+// https://news.ycombinator.com/item?id=23923645
+//
+// Exact string matching algorithms
+// https://www-igm.univ-mlv.fr/~lecroq/string/index.html
+
+ChercheAiguillePar :: énum {
+    ForceBrute
+    BoyerMooreHorspool
+}
+
+// Algorithme de force brute
+cherche_aiguille_par_force_brute :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
+{
+    si aiguille.taille > botte_de_foin.taille {
+        retourne -1
+    }
+
+    pour 0 ... botte_de_foin.taille - aiguille.taille {
+        bdf := avance(botte_de_foin, it)
+
+        si commence_par(bdf, aiguille) {
+            retourne it
+        }
+    }
+
+    retourne -1
+}
+
+// Algorithme de Boyer-Moore-Horspool
+// https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore%E2%80%93Horspool_algorithm
+cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
+{
+    // crée une table pour définir le nombre de caractères sûrement omissible
+    table: [256]z32
+
+    pour & table {
+        it = aiguille.taille comme z32
+    }
+
+    pour 0 ... aiguille.taille - 2 {
+        indice_pour_caractère := aiguille[it] comme n8
+        table[indice_pour_caractère] = (aiguille.taille - 1 - it) comme z32
+    }
+
+    // recherche
+    indice := 0
+
+    tantque (botte_de_foin.taille - indice) >= aiguille.taille {
+        bdf := avance(botte_de_foin, indice)
+
+        si apparie_chaine(bdf, aiguille, aiguille.taille) {
+            retourne indice
+        }
+
+        indice_pour_caractère := botte_de_foin[indice + aiguille.taille - 1] comme n8
+        indice += table[indice_pour_caractère]
+    }
+
+    retourne -1
+}
+
+cherche_aiguille :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheAiguillePar) -> z64
+{
+    discr par {
+        ForceBrute {
+            retourne cherche_aiguille_par_force_brute(botte_de_foin, aiguille)
+        }
+        BoyerMooreHorspool {
+            retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
+        }
+        sinon {
+            // À FAIRE(langage) : erreur de compilation si ce bloc n'existe pas
+            retourne -1
+        }
+    }
+}
+
+contiens :: fonc (chn: chaine, sous_chaine: chaine, par := ChercheAiguillePar.ForceBrute) -> bool
+{
+    retourne cherche_aiguille(chn, sous_chaine, par) != -1
+}
+
+/* Une simple parseuse pour travailler sur des chaines.
+ */
+ParseuseChaine :: struct {
+    chn: chaine
+    curseur: z32
+    nombre: z32
+}
+
+chaine_restante :: fonc (parseuse: *ParseuseChaine) -> chaine
+{
+    retourne parseuse.sous_chaine_jusque_indice(parseuse.chn.taille)
+}
+
+apparie :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
+{
+    chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
+    retourne commence_par(chn_, chn)
+}
+
+apparie_un_de :: fonc (parseuse: *ParseuseChaine, chns: ...chaine) -> z64
+{
+    chn := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
+    pour chns {
+        si commence_par(chn, it) {
+            retourne indice_it
+        }
+    }
+
+    retourne -1
+}
+
+caractère_courant :: fonc (parseuse: *ParseuseChaine) -> z8
+{
+    retourne parseuse.chn[parseuse.curseur]
+}
+
+apparie :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
+{
+    si parseuse.curseur >= parseuse.chn.taille {
+        retourne faux
+    }
+
+    retourne parseuse.chn[parseuse.curseur] == c
+}
+
+consomme :: fonc (parseuse: *ParseuseChaine, c: z8) -> bool
+{
+    si !parseuse.apparie(c) {
+        retourne faux
+    }
+
+    parseuse.curseur += 1
+    retourne vrai
+}
+
+consomme :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> bool
+{
+    si !parseuse.apparie(chn) {
+        retourne faux
+    }
+
+    parseuse.curseur += chn.taille comme z32
+    retourne vrai
+}
+
+avance :: fonc (parseuse: *ParseuseChaine, n: z32)
+{
+    parseuse.curseur += n
+}
+
+fini :: fonc (parseuse: *ParseuseChaine) -> bool
+{
+    retourne parseuse.curseur >= parseuse.chn.taille
+}
+
+consomme_nombre :: fonc (parseuse: *ParseuseChaine, taille: z32) -> bool
+{
+    si parseuse.curseur + taille >= parseuse.chn.taille {
+        retourne faux
+    }
+
+    indice_début := parseuse.curseur
+    indice_fin := indice_début + taille
+
+    parseuse.nombre = 0
+
+    pour indice_début ... indice_fin - 1 {
+        chiffre := (parseuse.chn[it] - '0') comme n32
+
+        si chiffre >= 10 {
+            retourne faux
+        }
+
+        parseuse.nombre *= 10
+        parseuse.nombre += chiffre comme z32
+    }
+
+    parseuse.curseur += taille
+
+    retourne vrai
+}
+
+positionne :: fonc (parseuse: *ParseuseChaine, position: z64)
+{
+    parseuse.curseur = position comme z32
+}
+
+trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: z8) -> z64
+{
+    pour parseuse.curseur comme z64 ... parseuse.chn.taille - 1 {
+        si parseuse.chn[it] == c {
+            retourne it
+        }
+    }
+
+    retourne -1
+}
+
+trouve_prochain :: fonc (parseuse: *ParseuseChaine, c: ...z8) -> z64
+{
+    pour début dans parseuse.curseur comme z64 ... parseuse.chn.taille - 1 {
+        pour c {
+            si parseuse.chn[début] == it {
+                retourne début
+            }
+        }
+    }
+
+    retourne -1
+}
+
+trouve_prochain :: fonc (parseuse: *ParseuseChaine, chn: chaine) -> z64
+{
+    si chn.taille + parseuse.curseur > parseuse.chn.taille {
+        retourne -1
+    }
+
+    chn_ := sous_chaine(parseuse.chn, parseuse.curseur, parseuse.chn.taille)
+
+    indice := cherche_aiguille_par_boyer_moore_horspool(chn_, chn)
+
+    si indice != -1 {
+        retourne indice + parseuse.curseur
+    }
+
+    retourne indice
+}
+
+sous_chaine_jusque_indice :: fonc (parseuse: *ParseuseChaine, indice: z64) -> chaine
+{
+    si parseuse.fini() {
+        retourne ""
+    }
+
+    retourne sous_chaine(parseuse.chn, parseuse.curseur, indice)
+}
+
+saute_espace_blanc :: fonc (parseuse: *ParseuseChaine)
+{
+    tantque parseuse.curseur < parseuse.chn.taille {
+        si parseuse.chn[parseuse.curseur] != ' ' {
+            arrête
+        }
+
+        parseuse.curseur += 1
+    }
+}

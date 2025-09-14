@@ -155,6 +155,8 @@ struct chemin_systeme {
      */
     [[nodiscard]] static bool supprime(chaine_statique chemin);
 
+    [[nodiscard]] static bool renomme(chaine_statique vieux_nom, chaine_statique nouveau_nom);
+
     [[nodiscard]] static char séparateur_préféré();
 };
 

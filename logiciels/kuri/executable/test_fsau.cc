@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     POUR (syntaxeuse.donne_fonctions()) {
 
         convertis_fsau(
-            *compilatrice.espace_de_travail_defaut, it, syntaxeuse.donne_constructrice());
+            *compilatrice.espace_de_travail_défaut, it, syntaxeuse.donne_constructrice());
 
         auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));
         //        dbg() << résultat;

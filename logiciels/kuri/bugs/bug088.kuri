@@ -4,6 +4,7 @@
  * Catégorie : [génération code, discr]
  */
 
+importe Chaine
 importe Fondation
 
 cherche_aiguille_ :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheAiguillePar) -> z64

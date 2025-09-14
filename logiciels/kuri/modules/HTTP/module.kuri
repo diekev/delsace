@@ -416,7 +416,7 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
 sers_fichier :: fonc (prise: *Prise @inutilisée, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
 {
     chm := chemin_pour_fichier(message.requête)
-    contenu := contenu_fichier_texte(chm)
+    _, contenu := contenu_fichier_texte(chm)
 
     saufsi contenu {
         retourne ressource_non_trouvée()

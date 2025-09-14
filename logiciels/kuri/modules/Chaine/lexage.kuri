@@ -90,24 +90,24 @@ divise :: fonc (chn: chaine, séparation: chaine, résultat: *[..]chaine, réini
         résultat.taille = 0
     }
 
-    index_début : z64 = 0
-    index_fin : z64 = 0
+    indice_début : z64 = 0
+    indice_fin : z64 = 0
 
     boucle {
-        index_fin = trouve_motif_dans_chaine(chn, séparation, index_début)
+        indice_fin = trouve_motif_dans_chaine(chn, séparation, indice_début)
 
-        si index_fin == -1 {
+        si indice_fin == -1 {
             arrête
         }
 
-        c := sous_chaine(chn, index_début, index_fin)
+        c := sous_chaine(chn, indice_début, indice_fin)
         tableau_ajoute(résultat, c)
 
-        index_début = index_fin + séparation.taille
+        indice_début = indice_fin + séparation.taille
     }
 
-    si index_début < chn.taille {
-        c := sous_chaine(chn, index_début, chn.taille)
+    si indice_début < chn.taille {
+        c := sous_chaine(chn, indice_début, chn.taille)
         tableau_ajoute(résultat, c)
     }
 }

@@ -171,7 +171,7 @@ Tâche OrdonnanceuseTache::tâche_suivante(Tâche &tache_terminee, DrapeauxTache
         /* Puisque l'espace possède une erreur, nous allons dormir sur l'espace par défaut de la
          * compilation. Ceci car la tâche sera retournée dans tache_suivante suivant sa complétion.
          */
-        espace = m_compilatrice->espace_defaut_compilation();
+        espace = m_compilatrice->espace_défaut_compilation();
     }
 
     return Tâche::dors(espace);
@@ -251,7 +251,7 @@ Tacheronne::~Tacheronne()
 bool Tacheronne::gère_tâche()
 {
     auto temps_debut = kuri::chrono::compte_seconde();
-    auto tâche = Tâche::dors(compilatrice.espace_de_travail_defaut);
+    auto tâche = Tâche::dors(compilatrice.espace_de_travail_défaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
     {

@@ -1,3 +1,4 @@
+importe Flux
 importe Fondation
 importe Math
 importe SysFichier
@@ -241,6 +242,121 @@ remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_
     chunk_données.données = données
 
     écris_données(format, chunk_données, CheminFichier(chemin))
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FluxLectureAudio
+ * \{ */
+
+FluxLectureAudio :: struct {
+    flux: *FluxOctets
+}
+
+crée_flux_lecture_audio :: fonc (chemin: chaine) -> *FluxLectureAudio
+{
+    résultat := loge(FluxLectureAudio)
+    initialise_flux_lecture_audio(résultat, chemin)
+    retourne résultat
+}
+
+crée_flux_lecture_audio :: fonc (chemin: CheminFichier) -> *FluxLectureAudio
+{
+    retourne crée_flux_lecture_audio(chemin.chn)
+}
+
+crée_flux_lecture_audio :: fonc (octets: []octet) -> *FluxLectureAudio
+{
+    résultat := loge(FluxLectureAudio)
+    initialise_flux_lecture_audio(résultat, chemin)
+    retourne résultat
+}
+
+initialise_flux_lecture_audio :: fonc (flux: *FluxLectureAudio, chemin: CheminFichier)
+{
+    initialise_flux_lecture_audio(flux, chemin.chn)
+}
+
+initialise_flux_lecture_audio :: fonc (flux: *FluxLectureAudio, chemin: chaine)
+{
+    flux.flux = crée_flux_octets(chemin)
+}
+
+initialise_flux_lecture_audio :: fonc (flux: *FluxLectureAudio, octets: []octet)
+{
+    flux.flux = crée_flux_octets(octets)
+}
+
+détruit_données_flux :: fonc (flux: *FluxLectureAudio)
+{
+    détruit(flux.flux)
+}
+
+/* Détruit un flux qui fut créé par crée_flux_lecture_audio */
+détruit_flux :: fonc (flux: *FluxLectureAudio)
+{
+    détruit_données_flux(flux)
+    déloge(flux)
+}
+
+est_valide :: fonc (flux: *FluxLectureAudio) -> bool
+{
+    retourne flux.flux != nul
+}
+
+positionne_sur_données :: fonc (empl flux_lecture: *FluxLectureAudio)
+{
+    positionne(flux, PositionDébut(0))
+
+    succès_chunk, chunk := lis_structure(flux, EntêteChunk)
+    saufsi succès_chunk {
+        imprimeln("Impossible de lire le chunk de l'entête WAVE")
+        retourne
+    }
+
+    entête: EntêteWave
+    entête.chunk = chunk
+    taille_lue: z64
+    entête.type_riff, taille_lue = lis_petit_boutisme(flux, n32)
+    si taille_lue != 4 {
+        imprimeln("Données trop petites pour lire l'entête WAVE")
+        retourne
+    }
+
+    saufsi valide_entête_wave(entête) {
+        imprimeln("Entête WAVE invalide")
+        retourne
+    }
+
+    succès_format, format := lis_structure(flux, ChunkFormatWave)
+    saufsi succès_format {
+        imprimeln("Données trop petites pour lire le chunk de format")
+        retourne
+    }
+    saufsi valide_chunk_format_wave(format) {
+        imprimeln("Format wave invalide ou non reconnue.")
+        retourne
+    }
+
+    tantque est_valide(flux) {
+        succès_chunk, chunk = lis_structure(flux, EntêteChunk)
+        saufsi succès_chunk {
+            imprimeln("Impossible de lire un chunk du fichier WAVE")
+            retourne
+        }
+
+        si chunk.id == ID_CHUNK_DATA_PB {
+            arrête
+        }
+
+        positionne(flux, PositionRelative(chunk.taille comme z64))
+    }
+}
+
+lis_échantillons_audio :: fonc (flux: *FluxLectureAudio, sortie: []octet)
+{
+    _ := lis(flux.flux, sortie)
 }
 
 /** \} */

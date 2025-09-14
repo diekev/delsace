@@ -16,16 +16,16 @@ DNJ_dessine_table_paramètres :: fonc (noeud: *Noeud, constructrice: *DNJ_Constr
     maçonne_grille := constructrice.debute_grille(constructrice)
     diffère constructrice.termine_grille(constructrice, maçonne_grille)
 
-    index_ligne := 0
+    indice_ligne := 0
 
     pour table.informations_dessin {
         discr it {
             AjouteEspaceur(espaceur) {
                 taille := espaceur comme octet comme z32
-                maçonne_grille.ajoute_espaceur(maçonne_grille, taille, index_ligne, 0, 1, 1)
+                maçonne_grille.ajoute_espaceur(maçonne_grille, taille, indice_ligne, 0, 1, 1)
             }
             DessineÉtiquette(texte) {
-                maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(texte), index_ligne, 0, 1, 2)
+                maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(texte), indice_ligne, 0, 1, 2)
             }
             DessineParamètre(param) {
                 type := donne_type_paramètre_danjo(param)
@@ -38,26 +38,26 @@ DNJ_dessine_table_paramètres :: fonc (noeud: *Noeud, constructrice: *DNJ_Constr
                 nom_param := param.nom
 
                 si param.est_étiquette {
-                    maçonne_grille.ajoute_etiquette_propriete(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 0, 1, 2)
-                    index_ligne += 1
+                    maçonne_grille.ajoute_etiquette_propriete(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, indice_ligne, 0, 1, 2)
+                    indice_ligne += 1
                     continue
                 }
 
                 si param.est_activable_depuis_interface {
-                    maçonne_grille.ajoute_etiquette_activable(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 0, 1, 1)
+                    maçonne_grille.ajoute_etiquette_activable(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, indice_ligne, 0, 1, 1)
                 }
                 sinon {
-                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(nom_param), index_ligne, 0, 1, 1)
+                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(nom_param), indice_ligne, 0, 1, 1)
                 }
 
-                maçonne_grille.ajoute_controle(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, index_ligne, 1, 1, 1)
+                maçonne_grille.ajoute_controle(maçonne_grille, vers_qt(nom_param), enveloppe_valeur, indice_ligne, 1, 1, 1)
 
                 si noeud.paramètre_est_erroné(nom_param) {
-                    index_ligne += 1
+                    indice_ligne += 1
                     erreur_param := noeud.erreur_pour_paramètre(nom_param)
 
                     // À FAIRE : icone, stylisation du paramètre
-                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(erreur_param), index_ligne, 1, 1, 1)
+                    maçonne_grille.ajoute_etiquette(maçonne_grille, vers_qt(erreur_param), indice_ligne, 1, 1, 1)
                 }
             }
             sinon {
@@ -65,7 +65,7 @@ DNJ_dessine_table_paramètres :: fonc (noeud: *Noeud, constructrice: *DNJ_Constr
             }
         }
 
-        index_ligne += 1
+        indice_ligne += 1
     }
 }
 

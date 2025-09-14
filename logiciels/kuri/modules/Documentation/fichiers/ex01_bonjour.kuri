@@ -7,7 +7,7 @@ principale :: fonc ()
 
     args := arguments_ligne_commande()
 
-    pour arg, index dans args {
-        imprime("Argument % = %\n", index, arg)
+    pour arg, indice dans args {
+        imprime("Argument % = %\n", indice, arg)
     }
 }

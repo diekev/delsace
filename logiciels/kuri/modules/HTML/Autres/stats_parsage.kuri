@@ -36,7 +36,7 @@ imprime_stats :: fonc (statistiques: StatistiquesParsage)
 
 parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &StatistiquesParsage)
 {
-    contenu := contenu_fichier_texte(chemin.chn)
+    _, contenu := contenu_fichier_texte(chemin.chn)
     diffère déloge(contenu)
 
     mv: JS.MachineVirtuelle

@@ -290,13 +290,13 @@ crée_sources_glsl_depuis_texte :: fonc (vertex: chaine, fragment: chaine) -> Op
 
 crée_sources_glsl_depuis_fichier :: fonc (vertex: CheminFichier, fragment: CheminFichier) -> Optionnel(SourcesGLSL)
 {
-    source_vertex := contenu_fichier_texte(vertex)
-    saufsi source_vertex {
+    succès_source_vertex, source_vertex := contenu_fichier_texte(vertex)
+    saufsi succès_source_vertex && source_vertex {
         retourne
     }
 
-    source_fragment := contenu_fichier_texte(fragment)
-    saufsi source_fragment {
+    succès_source_fragment, source_fragment := contenu_fichier_texte(fragment)
+    saufsi succès_source_fragment && source_fragment {
         déloge(source_vertex)
         retourne
     }

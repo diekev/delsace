@@ -32,10 +32,10 @@ détache :: fonc (objet: *ObjetTamponTableau)
     glBindVertexArray(0)
 }
 
-définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, index: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
+définis_pointeur_attribut :: fonc (objet: *ObjetTamponTableau, indice: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
 {
-    glEnableVertexAttribArray(index)
-    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointeur)
+    glEnableVertexAttribArray(indice)
+    glVertexAttribPointer(indice, size, GL_FLOAT, GL_FALSE, stride, pointeur)
 }
 
 /** \} */
@@ -110,10 +110,10 @@ détache :: fonc (tampon: *TamponObjet @inutilisée)
     glBindVertexArray(0)
 }
 
-définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, index: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
+définis_pointeur_attribut :: fonc (tampon: *TamponObjet @inutilisée, indice: n32, size: z32, stride : z32 = 0, pointeur : *rien = nul)
 {
-    glEnableVertexAttribArray(index)
-    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE comme GLboolean, stride, pointeur)
+    glEnableVertexAttribArray(indice)
+    glVertexAttribPointer(indice, size, GL_FLOAT, GL_FALSE comme GLboolean, stride, pointeur)
 }
 
 génère_tampon_sommet :: fonc (empl tampon: *TamponObjet, vertices: *rien, size: z64)
@@ -173,13 +173,13 @@ ParamètresCréationTampon :: struct {
     /* La taille en octet des sommets. */
     taille_octet_sommets: n64
 
-    /* Le pointeur vers le début du tableau d'index des sommets. */
-    pointeur_index: *rien
+    /* Le pointeur vers le début du tableau d'indices des sommets. */
+    pointeur_indice: *rien
 
-    /* Le taille en octet des index des sommets. */
-    taille_octet_index: n64
+    /* Le taille en octet des indices des sommets. */
+    taille_octet_indices: n64
 
-    /* Le nombre d'index. */
+    /* Le nombre d'indices. */
     éléments: n64
 
     /* Le pointeur vers le début du tableau des données extra. */
@@ -192,34 +192,34 @@ ParamètresCréationTampon :: struct {
     nombre_instances: n64
 }
 
-initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec3, index: []n32)
+initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec3, indices: []n32)
 {
     params.attribut = attribut
     params.dimension_attribut = 3
     params.pointeur_sommets = sommets.pointeur
     params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64
-    params.pointeur_index = index.pointeur
-    params.taille_octet_index = tableau_taille_mémoire(index) comme n64
+    params.pointeur_indice = indices.pointeur
+    params.taille_octet_indices = tableau_taille_mémoire(indices) comme n64
 
-    si index.taille != 0 {
-        params.éléments = index.taille comme n64
+    si indices.taille != 0 {
+        params.éléments = indices.taille comme n64
     }
     sinon {
         params.éléments = sommets.taille comme n64
     }
 }
 
-initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec2, index: []n32)
+initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attribut: chaine, sommets: []Vec2, indices: []n32)
 {
     params.attribut = attribut
     params.dimension_attribut = 2
     params.pointeur_sommets = sommets.pointeur
     params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64
-    params.pointeur_index = index.pointeur
-    params.taille_octet_index = tableau_taille_mémoire(index) comme n64
+    params.pointeur_indice = indices.pointeur
+    params.taille_octet_indices = tableau_taille_mémoire(indices) comme n64
 
-    si index.taille != 0 {
-        params.éléments = index.taille comme n64
+    si indices.taille != 0 {
+        params.éléments = indices.taille comme n64
     }
     sinon {
         params.éléments = sommets.taille comme n64
@@ -350,9 +350,9 @@ remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCré
     génère_tampon_sommet(données_tampon, paramètres.pointeur_sommets, paramètres.taille_octet_sommets comme z64)
     vérifie_erreur("Erreur lors du tampon sommet")
 
-    si paramètres.pointeur_index {
-        génère_tampon_index(données_tampon, paramètres.pointeur_index, paramètres.taille_octet_index comme z64)
-        vérifie_erreur("Erreur lors du tampon index")
+    si paramètres.pointeur_indice {
+        génère_tampon_index(données_tampon, paramètres.pointeur_indice, paramètres.taille_octet_indices comme z64)
+        vérifie_erreur("Erreur lors du tampon indices")
         dessin_indexé = vrai
     }
 
@@ -378,7 +378,7 @@ remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &Paramètr
     // }
 }
 
-crée_tableau_index_iota :: fonc (nombre_éléments: z64) -> [..]n32
+crée_tableau_indice_iota :: fonc (nombre_éléments: z64) -> [..]n32
 {
     résultat: [..]n32
     tableau_redimensionne(résultat, nombre_éléments)
@@ -386,18 +386,18 @@ crée_tableau_index_iota :: fonc (nombre_éléments: z64) -> [..]n32
     retourne résultat
 }
 
-remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3, index: []n32)
+remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3, indices: []n32)
 {
     params: ParamètresCréationTampon
-    initialise_paramètres_tampon(*params, attribut, sommets, index)
+    initialise_paramètres_tampon(*params, attribut, sommets, indices)
     tampon.remplis_tampon(params)
 }
 
 remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3)
 {
-    index: []n32
+    indices: []n32
     params: ParamètresCréationTampon
-    initialise_paramètres_tampon(*params, attribut, sommets, index)
+    initialise_paramètres_tampon(*params, attribut, sommets, indices)
     tampon.remplis_tampon(params)
 }
 

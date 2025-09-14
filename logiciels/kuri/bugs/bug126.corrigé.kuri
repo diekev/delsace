@@ -13,8 +13,8 @@ Structure :: struct {
 
 opérateur pour :: (structure: Structure) -> z32
 {
-    pour index, indice_itération dans structure.itérations {
-        `it = index
+    pour indice, indice_itération dans structure.itérations {
+        `it = indice
         `indice_it = indice_itération
 
         #corps_boucle

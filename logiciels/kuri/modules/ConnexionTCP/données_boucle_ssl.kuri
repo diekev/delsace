@@ -72,7 +72,7 @@ DonnéesSSLBoucle :: struct {
     /* La prise courante. */
     prise_ssl: *PriseSSL
 
-    /* L'index de la dernière fois que la boucle évènements fut exécuté. */
+    /* L'indice de la dernière fois que la boucle évènements fut exécuté. */
     index_dernière_itération: z32
 
     /* Nous avons une limite quant au nombre de serrage de main effectué

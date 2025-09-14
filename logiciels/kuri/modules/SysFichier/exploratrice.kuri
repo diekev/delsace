@@ -124,7 +124,7 @@ opérateur pour :: (exploratrice: ExploratriceFichier) -> CheminFichier
     exploratrice = crée_exploratrice_fichier(exploratrice.racine)
     diffère détruit(exploratrice)
 
-    index := 0
+    indice := 0
 
     tantque !exploratrice.exploration_finie() {
         chemin: CheminFichier
@@ -138,9 +138,9 @@ opérateur pour :: (exploratrice: ExploratriceFichier) -> CheminFichier
         }
 
         `it = chemin
-        `indice_it = index
+        `indice_it = indice
 
-        index += 1
+        indice += 1
         diffère détruit_chemin(chemin)
 
         #corps_boucle

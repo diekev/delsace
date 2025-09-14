@@ -128,7 +128,7 @@ ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
 
 lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
 {
-    contenu := contenu_fichier_texte(série.fichier_de_spécification)
+    _, contenu := contenu_fichier_texte(série.fichier_de_spécification)
     diffère déloge(contenu)
 
     saufsi contenu {

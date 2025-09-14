@@ -171,14 +171,14 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     nombre_de_lignes_additionnelles := table.nombre_de_lignes % table.lignes_par_page
 
     si nombre_de_lignes_additionnelles > 0 {
-        index_page := nombre_de_pages_pleines
+        indice_page := nombre_de_pages_pleines
 
-        si paginatrice.pages[index_page].pointeur != nul {
+        si paginatrice.pages[indice_page].pointeur != nul {
             si paginatrice.utilise_stockage_disque {
-                flush_paginatrice(paginatrice, index_page)
+                flush_paginatrice(paginatrice, indice_page)
             }
 
-            déloge(paginatrice.pages[index_page])
+            déloge(paginatrice.pages[indice_page])
         }
     }
 

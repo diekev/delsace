@@ -187,7 +187,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
-    contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    _, contenu := contenu_fichier_binaire(CheminFichier(chemin))
     diffère déloge(contenu)
     retourne décode_image(contenu, "", chemin)
 }
@@ -316,10 +316,10 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     restreint(*xi, 0 comme z32, largeur - 1)
     restreint(*yi, 0 comme z32, hauteur - 1)
 
-    index := xi + yi * largeur
+    indice := xi + yi * largeur
 
     couleurs := image.données comme *CouleurRVBA
-    retourne couleurs[index]
+    retourne couleurs[indice]
 }
 
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
@@ -333,8 +333,8 @@ pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
 pixel_à_la_position :: fonc (image: NouvelleImage, x: z32, y: z32, $T: type_de_données) -> *T
 {
     largeur := image.desc.largeur comme z32
-    index := y * largeur + x
-    retourne (*image.données[0] comme *T) + index
+    indice := y * largeur + x
+    retourne (*image.données[0] comme *T) + indice
 }
 
 crée_icone :: fonc (image: NouvelleImage, hauteur: z32) -> NouvelleImage
@@ -570,9 +570,9 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
 
     pour y dans hauteur_empreinte {
         pour x dans largeur_empreinte - 1 {
-            index := y * largeur_empreinte + x
+            indice := y * largeur_empreinte + x
             
-            si sortie[index] < sortie[index + 1] {
+            si sortie[indice] < sortie[indice + 1] {
                 empreinte |= (1 << bit) 
             }
 
@@ -813,7 +813,7 @@ rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *Ta
     dlargeur := (entrée.largeur comme r32) / (sortie.largeur comme r32)
     dhauteur := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
 
-    index_sortie := 0
+    indice_sortie := 0
 
     pixels_entrée := entrée.données
     pixels_sortie := sortie.données
@@ -823,17 +823,17 @@ rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *Ta
             position_x := (x comme r32 * dlargeur) comme z32
             position_y := (y comme r32 * dhauteur) comme z32
 
-            index_entrée := position_y * entrée.largeur + position_x
+            indice_entrée := position_y * entrée.largeur + position_x
 
-            pixels_sortie[index_sortie] = pixels_entrée[index_entrée]
-            index_sortie += 1
+            pixels_sortie[indice_sortie] = pixels_entrée[indice_entrée]
+            indice_sortie += 1
         }
     }
 }
 
 rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
 {
-    index_sortie := 0
+    indice_sortie := 0
     pixels_sortie := sortie.données
 
     échelle_x := (entrée.largeur comme r32) / (sortie.largeur comme r32)
@@ -867,8 +867,8 @@ rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponIm
             résultat += frac_x * (1.0 - frac_y) * grille[idx2]
             résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
 
-            pixels_sortie[index_sortie] = résultat
-            index_sortie += 1
+            pixels_sortie[indice_sortie] = résultat
+            indice_sortie += 1
         }
     }
 }

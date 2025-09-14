@@ -1,6 +1,6 @@
 Curseur :: struct {
     table: *Table
-    index_ligne := 0
+    indice_ligne := 0
     est_fin_de_table := faux
 }
 
@@ -8,7 +8,7 @@ curseur_début_de_table :: fonc (table: *Table) -> *Curseur
 {
     curseur := loge(Curseur)
     curseur.table = table
-    curseur.index_ligne = 0
+    curseur.indice_ligne = 0
     curseur.est_fin_de_table = table.nombre_de_lignes == 0
 
     retourne curseur
@@ -18,7 +18,7 @@ curseur_fin_de_table :: fonc (table: *Table) -> *Curseur
 {
     curseur := loge(Curseur)
     curseur.table = table
-    curseur.index_ligne = table.nombre_de_lignes
+    curseur.indice_ligne = table.nombre_de_lignes
     curseur.est_fin_de_table = vrai
 
     retourne curseur
@@ -28,11 +28,11 @@ valeur_curseur :: fonc (curseur: *Curseur) -> []octet
 {
     table := curseur.table
 
-    index_ligne := curseur.index_ligne
-    index_page := index_ligne / table.lignes_par_page
-    page := trouve_page(table.paginatrice, index_page)
+    indice_ligne := curseur.indice_ligne
+    indice_page := indice_ligne / table.lignes_par_page
+    page := trouve_page(table.paginatrice, indice_page)
 
-    décalage_ligne := index_ligne % table.lignes_par_page
+    décalage_ligne := indice_ligne % table.lignes_par_page
     décalage_octet := décalage_ligne * table.taille_octet_ligne
 
     page.pointeur += décalage_octet
@@ -43,6 +43,6 @@ valeur_curseur :: fonc (curseur: *Curseur) -> []octet
 
 avance_curseur :: fonc (curseur: *Curseur) -> rien
 {
-    curseur.index_ligne += 1
-    curseur.est_fin_de_table = curseur.index_ligne >= curseur.table.nombre_de_lignes
+    curseur.indice_ligne += 1
+    curseur.est_fin_de_table = curseur.indice_ligne >= curseur.table.nombre_de_lignes
 }

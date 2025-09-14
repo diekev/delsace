@@ -1820,7 +1820,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     }
                 }
                 Texte {
-                    /* À FAIRE : décalage de 1 dans le calcul des indice des fragments. */
+                    /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
                     si boite.texte.taille == 0 {
                         continue
                     }

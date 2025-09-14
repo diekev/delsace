@@ -26,49 +26,52 @@ DonnéesTestParsage :: struct {
 charge_cas_parsage :: fonc () -> DonnéesTestParsage
 {
     chemin := "fichiers/parsage.css"
-    contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin)
+    saufsi succès {
+        retourne
+    }
 
     lignes := divise(contenu, '\n')
 
     cas_parsage: [..]CasParsage
 
-    index := 0
-    tantque index < lignes.taille {
-        si lignes[index] == "// entrée" {
-            index += 1
+    indice := 0
+    tantque indice < lignes.taille {
+        si lignes[indice] == "// entrée" {
+            indice += 1
 
             cas := tableau_ajoute_élément(*cas_parsage)
-            cas.entrée.pointeur = lignes.pointeur + index
+            cas.entrée.pointeur = lignes.pointeur + indice
             cas.entrée.taille = 1
-            index += 1
+            indice += 1
 
-            tantque index < lignes.taille {
-                si lignes[index] == "// sortie" {
-                    index += 1
+            tantque indice < lignes.taille {
+                si lignes[indice] == "// sortie" {
+                    indice += 1
                     arrête
                 }
 
                 cas.entrée.taille += 1
-                index += 1
+                indice += 1
             }
 
-            cas.sortie.pointeur = lignes.pointeur + index
+            cas.sortie.pointeur = lignes.pointeur + indice
             cas.sortie.taille = 1
-            index += 1
+            indice += 1
 
-            tantque index < lignes.taille {
-                si lignes[index] == "// entrée" {
+            tantque indice < lignes.taille {
+                si lignes[indice] == "// entrée" {
                     arrête
                 }
 
                 cas.sortie.taille += 1
-                index += 1
+                indice += 1
             }
 
             continue
         }
 
-        index += 1
+        indice += 1
     }
 
     résultat: DonnéesTestParsage
@@ -136,8 +139,8 @@ sont_équivalents :: fonc (décl1: *DéclarationPropriété, décl2: *Déclarati
         retourne faux
     }
 
-    pour valeur1, index dans décl1.value {
-        saufsi sont_mêmes_valeurs(valeur1, décl2.value[index]) {
+    pour valeur1, indice dans décl1.value {
+        saufsi sont_mêmes_valeurs(valeur1, décl2.value[indice]) {
             retourne faux
         }
     }

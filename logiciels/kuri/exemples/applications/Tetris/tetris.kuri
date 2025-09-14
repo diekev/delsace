@@ -76,7 +76,7 @@ Tétrimino :: struct {
     taille_x: z32
     taille_y: z32
 
-    index_couleur: z32
+    indice_couleur: z32
 }
 
 déplace_vers_la_gauche :: fonc (tétrimino: *Tétrimino)
@@ -149,8 +149,8 @@ formes := [
 
 initialise_tétrimino :: fonc (tétrimino: *Tétrimino, entropie: &SérieAléatoire)
 {
-    index_formes := aléatoire_entre(entropie, 0, formes.taille comme z32)
-    tétrimino.cases = formes[index_formes]
+    indice_formes := aléatoire_entre(entropie, 0, formes.taille comme z32)
+    tétrimino.cases = formes[indice_formes]
 
     pour tétrimino.cases {
         tétrimino.taille_x = max(tétrimino.taille_x, it[0] + 1)
@@ -160,7 +160,7 @@ initialise_tétrimino :: fonc (tétrimino: *Tétrimino, entropie: &SérieAléato
     tétrimino.x = TUILES_X / 2 - tétrimino.taille_x / 2
     tétrimino.y = TUILES_Y - tétrimino.taille_y
 
-    tétrimino.index_couleur = index_formes
+    tétrimino.indice_couleur = indice_formes
 }
 
 Tetris :: struct {
@@ -231,13 +231,13 @@ ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
 
     pour x dans TUILES_X {
         pour y dans TUILES_Y {
-            index_couleur := tetris.grille[x][y]
-            si index_couleur == 0 {
+            indice_couleur := tetris.grille[x][y]
+            si indice_couleur == 0 {
                 dessine_carré(x, y, CouleurRVBA(0.961, 0.929, 0.890, 1.0))
             }
             sinon {
-                dessine_carré(x, y, couleurs_sombres[index_couleur - 1])
-                dessine_carré_intérieur(x, y, couleurs[index_couleur - 1])
+                dessine_carré(x, y, couleurs_sombres[indice_couleur - 1])
+                dessine_carré_intérieur(x, y, couleurs[indice_couleur - 1])
             }
         }
     }
@@ -248,7 +248,7 @@ ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
 verrouille_tétrimino :: fonc (empl tetris: *Tetris)
 {
     pour tétrimino.cases {
-        grille[tétrimino.x + it[0]][tétrimino.y + it[1]] = tétrimino.index_couleur + 1
+        grille[tétrimino.x + it[0]][tétrimino.y + it[1]] = tétrimino.indice_couleur + 1
     }
 }
 
@@ -257,13 +257,13 @@ dessine_tétrimino :: fonc (tétrimino: *Tétrimino)
     x := tétrimino.x
     y := tétrimino.y
 
-    couleur := couleurs_sombres[tétrimino.index_couleur]
+    couleur := couleurs_sombres[tétrimino.indice_couleur]
 
     pour tétrimino.cases {
         dessine_carré(x + it[0], y + it[1], couleur)
     }
 
-    couleur = couleurs[tétrimino.index_couleur]
+    couleur = couleurs[tétrimino.indice_couleur]
 
     pour tétrimino.cases {
         dessine_carré_intérieur(x + it[0], y + it[1], couleur)

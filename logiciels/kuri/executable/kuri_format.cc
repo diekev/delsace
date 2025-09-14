@@ -43,7 +43,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     }
 
     /* Syntaxage du fichier. */
-    auto unité = UniteCompilation(compilatrice.espace_de_travail_defaut);
+    auto unité = UniteCompilation(compilatrice.espace_de_travail_défaut);
     unité.fichier = fichier;
 
     auto tacheronne = Tacheronne(compilatrice);

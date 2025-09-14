@@ -31,9 +31,9 @@ ajoute_caractères :: fonc (alphabet: &Alphabet, caractères: chaine)
     }
 }
 
-caractère_pour_index :: fonc (alphabet: &Alphabet, index: z64) -> z8
+caractère_pour_index :: fonc (alphabet: &Alphabet, indice: z64) -> z8
 {
-    retourne alphabet.caractères[index]
+    retourne alphabet.caractères[indice]
 }
 
 crée_alphabet_ascii_courriel :: fonc () -> Alphabet

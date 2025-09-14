@@ -340,15 +340,15 @@ démo_chiffre_message :: fonc (message: chaine, clé: chaine) -> chaine
 xor_chaines :: fonc (chn1: chaine, chn2: chaine)
 {
     compte := 0
-    index := 0
+    indice := 0
 
     pour & chn1 {
-        it = it ^ (chn2[index] + compte comme z8)
+        it = it ^ (chn2[indice] + compte comme z8)
 
-        index += 1
+        indice += 1
 
-        si index >= chn2.taille {
-            index = 0
+        si indice >= chn2.taille {
+            indice = 0
             compte += chn2.taille comme z32
         }
     }
@@ -535,11 +535,11 @@ scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
     initialise_enchaineuse(*enchaineuse)
 
     pour 0 ... taille_clé - 1 {
-        index := it
+        indice := it
 
-        tantque index < message.taille {
-            ajoute_au_tampon(*enchaineuse, message[index])
-            index += taille_clé
+        tantque indice < message.taille {
+            ajoute_au_tampon(*enchaineuse, message[indice])
+            indice += taille_clé
         }
     }
 

@@ -2,6 +2,7 @@
  * Catégories : [validation sémantique]
  */
 
+importe Chaine
 importe Fondation
 
 fonction_corps_texte :: fonc ()

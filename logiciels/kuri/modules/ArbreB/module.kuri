@@ -183,7 +183,7 @@ divise_enfant :: fonc (
     noeud.n += 1
 }
 
-// Auxiliaire pour trouver l'index de la première clé qui est supérieure ou égale à k
+// Auxiliaire pour trouver l'indice de la première clé qui est supérieure ou égale à k
 trouve_clé :: fonc (noeud: *NoeudArbreB(C = $C), k: C) -> z32
 {
     idx := 0

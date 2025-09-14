@@ -265,8 +265,8 @@ dessine_ligne_bresenham :: fonc (
     tantque i < enjambée_i {
         xi := x comme z32
         yi := y comme z32
-        index := xi + yi * enjambée_dest
-        fusionne_pixels(couleur, dest + index)
+        indice := xi + yi * enjambée_dest
+        fusionne_pixels(couleur, dest + indice)
 
         x += dx
         y += dy
@@ -783,12 +783,12 @@ dessine_image_rvb_8 :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleIm
         enjambée_y := y comme z32 * enjambée_source
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            index := x comme z32 + enjambée_y
+            indice := x comme z32 + enjambée_y
 
             assert(début_dest <= pixel_dest < fin_dest)
-            assert(début_source <= (pixel_source + index * 3) < fin_source)
+            assert(début_source <= (pixel_source + indice * 3) < fin_source)
 
-            copie_pixel_rvb_8(pixel_source + index * 3, pixel_dest)
+            copie_pixel_rvb_8(pixel_source + indice * 3, pixel_dest)
 
             pixel_dest += 1
             x += ratio_largeur
@@ -903,9 +903,9 @@ copie_données_image_rvb :: fonc (ligne_source: *r32, enjambée_source: z32, rat
         enjambée_y := y comme z32 * enjambée_source
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            index := x comme z32 + enjambée_y
+            indice := x comme z32 + enjambée_y
 
-            copie_pixel_rvb(pixel_source + index * 3, pixel_dest)
+            copie_pixel_rvb(pixel_source + indice * 3, pixel_dest)
 
             pixel_dest += 1
             x += ratio_largeur

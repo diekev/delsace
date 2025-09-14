@@ -19,6 +19,5 @@ commence_fichier :: fonc (fichier: *FichierTexte) -> rien
     }
 
     chm := CheminFichier(fichier.chemin)
-    fichier.données = contenu_fichier_texte(chm)
-    fichier.succès = vrai
+    fichier.succès, fichier.données = contenu_fichier_texte(chm)
 }

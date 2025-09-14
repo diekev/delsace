@@ -210,7 +210,8 @@ TypeFenêtre :: struct {
 donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        retourne XXX
+        imprimeln("donne_état_souris non-implémenté pour X11")
+        retourne ÉtatSouris()
     }
 
     assert(fenêtre.rappels_window != nul)

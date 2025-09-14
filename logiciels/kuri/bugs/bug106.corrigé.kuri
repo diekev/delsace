@@ -3,6 +3,7 @@
  * Catégorie : [génération code, fonction polymorphique, portée, diffère]
  */
 
+importe Chaine
 importe Fondation
 
 principale :: fonc ()
