@@ -37,7 +37,7 @@ principale :: fonc ()
         exit(1)
     }
 
-    contenu := contenu_fichier_texte(fichier_source)
+    _, contenu := contenu_fichier_texte(fichier_source)
     diffère déloge(contenu)
 
     parseuse: ParseuseRegistreGL

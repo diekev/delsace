@@ -53,7 +53,7 @@ initialise_file_globale :: fonc ()
     _ := sem_init(*__file_globale.sémaphore, 0, 0)
 
     pour * __fils_exécutions {
-        it.index_logique = indice_it comme z32
+        it.indice_logique = indice_it comme z32
         it.file = *__file_globale
 
         _ := pthread_create(*it.index_natif, nul, fonction_fil, it)
@@ -121,9 +121,9 @@ complète_et_donne_prochaine_entrée_file :: fonc (file: *FileDeTravail, complé
     }
 
     si file.prochaine_entrée_à_faire < file.nombre_d_entrées {
-        index_entrée := atomique_donne_puis_ajt(*file.prochaine_entrée_à_faire, 1, OrdreMémoire.ACQUIÈRE)
+        indice_entrée := atomique_donne_puis_ajt(*file.prochaine_entrée_à_faire, 1, OrdreMémoire.ACQUIÈRE)
 
-        entrée := *file.entrées[index_entrée]
+        entrée := *file.entrées[indice_entrée]
         résultat.données = entrée.données
         résultat.fonction_travail = entrée.fonction_travail
         résultat.est_valide = vrai
@@ -136,11 +136,11 @@ complète_et_donne_prochaine_entrée_file :: fonc (file: *FileDeTravail, complé
 
 InfoFilExécution :: struct {
     file: *FileDeTravail
-    index_logique: z32
+    indice_logique: z32
     index_natif: pthread_t
 }
 
-travail_sur_la_tâche :: fonc (entrée: EntréeFileTravail, index_logique: z32 @inutilisée)
+travail_sur_la_tâche :: fonc (entrée: EntréeFileTravail, indice_logique: z32 @inutilisée)
 {
     assert(entrée.est_valide)
     assert(entrée.fonction_travail != nul)
@@ -157,7 +157,7 @@ fonction_fil :: fonc (arg: *rien) -> *rien #sanstrace
     boucle {
         entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée)
         si entrée.est_valide {
-            travail_sur_la_tâche(entrée, info_fil.index_logique)
+            travail_sur_la_tâche(entrée, info_fil.indice_logique)
         }
         sinon  {
             _ := sem_wait(*info_fil.file.sémaphore)
@@ -169,12 +169,12 @@ fonction_fil :: fonc (arg: *rien) -> *rien #sanstrace
 
 attend_sur_complétion_tâches :: fonc (file: *FileDeTravail)
 {
-    index_logique := file.fils_exécution.taille comme z32 - 1
+    indice_logique := file.fils_exécution.taille comme z32 - 1
     entrée: EntréeFileTravail
     tantque file.choses_terminées != file.nombre_d_entrées {
         entrée = complète_et_donne_prochaine_entrée_file(file, entrée)
         si entrée.est_valide {
-            travail_sur_la_tâche(entrée, index_logique)
+            travail_sur_la_tâche(entrée, indice_logique)
         }
     }
 }
@@ -215,7 +215,7 @@ contexte_boucle_parallèle :: fonc (file: *FileDeTravail, plage: Plage, fonction
 
         entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée)
         si entrée.est_valide {
-            travail_sur_la_tâche(entrée, info_fil.index_logique)
+            travail_sur_la_tâche(entrée, info_fil.indice_logique)
         }
     }
 }

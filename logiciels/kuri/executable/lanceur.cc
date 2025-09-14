@@ -100,7 +100,7 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
                                    Statistiques &stats,
                                    kuri::tableau<Tacheronne *> const &tacheronnes)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
+    if (!compilatrice.espace_de_travail_défaut->options.émets_métriques) {
         return;
     }
 
@@ -117,7 +117,7 @@ static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
                           kuri::chrono::compte_seconde debut_compilation)
 {
-    if (!compilatrice.espace_de_travail_defaut->options.émets_métriques) {
+    if (!compilatrice.espace_de_travail_défaut->options.émets_métriques) {
         return;
     }
 
@@ -619,6 +619,42 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         return false;
     }
 
+    /* enregistre le dossier d'origine */
+    auto dossier_origine = kuri::chemin_systeme::chemin_courant();
+
+    auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
+
+    auto dossier = chemin.chemin_parent();
+
+    /* Charge le module Kuri. */
+    compilatrice.module_kuri = compilatrice.sys_module->initialise_module_kuri(
+        compilatrice.racine_modules_kuri, compilatrice.arguments.importe_kuri);
+    if (!compilatrice.module_kuri) {
+        exit(1);
+    }
+
+    compilatrice.module_kuri->importé = true;
+
+    auto options_espace_défaut = OptionsDeCompilation{};
+    options_espace_défaut.utilise_trace_appel = !compilatrice.arguments.sans_traces_d_appel;
+    options_espace_défaut.coulisse = compilatrice.arguments.coulisse;
+
+    compilatrice.espace_de_travail_défaut = compilatrice.démarre_un_espace_de_travail(
+        options_espace_défaut, "Espace 1", dossier);
+    auto espace_défaut = compilatrice.espace_de_travail_défaut;
+    espace_défaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
+
+    POUR (compilatrice.module_kuri->fichiers) {
+        if (it->fut_chargé) {
+            compilatrice.gestionnaire_code->requiers_lexage(compilatrice.espace_de_travail_défaut,
+                                                            it);
+        }
+        else {
+            compilatrice.gestionnaire_code->requiers_chargement(
+                compilatrice.espace_de_travail_défaut, it);
+        }
+    }
+
     /* Initialise les bibliothèques après avoir généré les objets r16. */
     if (!GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(compilatrice)) {
         return false;
@@ -627,23 +663,17 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     /* Crée les tâches pour les données requise de la typeuse. */
     Typeuse::crée_tâches_précompilation(compilatrice);
 
-    /* enregistre le dossier d'origine */
-    auto dossier_origine = kuri::chemin_systeme::chemin_courant();
-
-    auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
-
-    /* Charge d'abord le module basique. */
-    auto espace_defaut = compilatrice.espace_de_travail_defaut;
-    espace_defaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
-
-    auto dossier = chemin.chemin_parent();
     kuri::chemin_systeme::change_chemin_courant(dossier);
 
     info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
-    auto module = compilatrice.sys_module->crée_module_fichier_racine_compilation(dossier, chemin);
-    compilatrice.module_racine_compilation = module;
-    compilatrice.gestionnaire_code->requiers_chargement(espace_defaut, module->fichiers[0]);
+    auto module = compilatrice.espace_de_travail_défaut->module;
+
+    auto fichier_racine = compilatrice.sys_module->crée_fichier(
+        module, chemin.nom_fichier_sans_extension(), chemin);
+
+    compilatrice.gestionnaire_code->requiers_chargement(espace_défaut,
+                                                        static_cast<Fichier *>(fichier_racine));
 
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 

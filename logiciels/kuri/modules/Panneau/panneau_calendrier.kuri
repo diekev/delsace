@@ -58,12 +58,12 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
         rect_texte.largeur = largeur_par_colonne comme z32
         rect_texte.y = rect.y + rect.hauteur - (hauteur_par_ligne * (indice_it + 2) comme r32) comme z32 + 5
 
-        pour index_mois dans 12 {
-            si it >= nombre_de_jours_dans_mois(index_mois + 1, 2013) {
+        pour indice_mois dans 12 {
+            si it >= nombre_de_jours_dans_mois(indice_mois + 1, 2013) {
                 continue
             }
 
-            rect_texte.x = (index_mois comme r32 * largeur_par_colonne) comme z32 + 5
+            rect_texte.x = (indice_mois comme r32 * largeur_par_colonne) comme z32 + 5
             peintre.dessine_texte(fonte, chn_texte, rect_texte, couleur_noire)
         }
     }
