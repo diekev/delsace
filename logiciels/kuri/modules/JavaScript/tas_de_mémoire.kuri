@@ -597,10 +597,10 @@ est_utilisable :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
     retourne bloc.cellules_disponibles < bloc.nombre_de_cellules()
 }
 
-donne_cellule :: fonc (bloc: *BlocDeMémoire, index: n64) -> *Cellule
+donne_cellule :: fonc (bloc: *BlocDeMémoire, indice: n64) -> *Cellule
 {
     stockage := (bloc + 1) comme *octet
-    retourne (stockage + index * bloc.taille_cellule) comme *Cellule
+    retourne (stockage + indice * bloc.taille_cellule) comme *Cellule
 }
 
 alloue_cellule :: fonc (bloc: *BlocDeMémoire) -> *Cellule

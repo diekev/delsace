@@ -141,7 +141,7 @@ CurseurRésultat :: struct {
 
     nombre_résultat: n64
     nombre_colonne: n32
-    index_colonne: n32
+    indice_colonne: n32
 }
 
 détruit_curseur :: fonc (curseur: *CurseurRésultat) -> rien
@@ -261,7 +261,7 @@ ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
 
     ligne := mysql_fetch_row(curseur.résultat)
 
-    curseur.index_colonne = 0
+    curseur.indice_colonne = 0
     curseur.ligne = ligne
     curseur.longueurs = mysql_fetch_lengths(curseur.résultat)
 
@@ -270,8 +270,8 @@ ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
 
 colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 {
-    chn := chaine(curseur.ligne[curseur.index_colonne], curseur.longueurs[curseur.index_colonne] comme z64)
-    curseur.index_colonne += 1
+    chn := chaine(curseur.ligne[curseur.indice_colonne], curseur.longueurs[curseur.indice_colonne] comme z64)
+    curseur.indice_colonne += 1
     retourne chn
 }
 
