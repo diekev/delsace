@@ -276,7 +276,7 @@ compile_interfaces_idl :: fonc () -> chaine
             continue
         }
 
-        texte := contenu_fichier_texte(chm)
+        _, texte := contenu_fichier_texte(chm)
         tableau_ajoute(*interfaces.contenus_fichiers, texte)
 
         parse_fichier(chm, texte, *interfaces)
