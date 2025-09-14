@@ -49,14 +49,14 @@ efface_cible_rendu :: fonc (couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0))
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 }
 
-commence_2d :: fonc (caméra: *Caméra2D)
+commence_2d :: fonc (caméra: *Caméra2D, x := 0, y := 0)
 {
     termine_immédiat()
 
     assert(__ctx_courant.caméra_2d == nul)
     __ctx_courant.caméra_2d = caméra
 
-    glViewport(0, 0, caméra.largeur, caméra.hauteur)
+    glViewport(x, y, caméra.largeur, caméra.hauteur)
 }
 
 termine_2d :: fonc ()
@@ -66,6 +66,7 @@ termine_2d :: fonc ()
     assert(__ctx_courant.caméra_2d != nul)
     __ctx_courant.caméra_2d = nul
 
+    // À FAIRE : restaure proprement la position
     glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas)
 }
 
