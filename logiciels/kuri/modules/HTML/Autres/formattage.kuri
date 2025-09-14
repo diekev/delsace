@@ -33,7 +33,7 @@ principale :: fonc ()
     diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
     diffère détruit_chaines_internées()
 
-    contenu := contenu_fichier_texte(chm.chn)
+    _, contenu := contenu_fichier_texte(chm.chn)
     diffère déloge(contenu)
 
     imprime("%\n", contenu)

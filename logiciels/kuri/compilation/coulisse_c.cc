@@ -2863,17 +2863,26 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
     }
 
     auto nom_sortie = nom_sortie_résultat_final(espace.options);
-    if (!kuri::chemin_systeme::supprime(nom_sortie)) {
-        return ErreurCoulisse{"Impossible de supprimer le vieux compilat."};
-    }
 
-    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+    auto nom_sortie_temporaire = kuri::chemin_systeme::chemin_temporaire(
+        enchaine("kuri-", args.espace->nom, "/", nom_sortie));
+
+    auto commande = commande_pour_liaison(
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie_temporaire);
     auto err_commande = exécute_commande_externe_erreur(commande,
                                                         args.compilatrice->arguments.verbeux);
     if (err_commande.has_value()) {
         auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
                                 err_commande.value().message);
         return ErreurCoulisse{message};
+    }
+
+    if (!kuri::chemin_systeme::supprime(nom_sortie)) {
+        return ErreurCoulisse{"Impossible de supprimer le vieux compilat."};
+    }
+
+    if (!kuri::chemin_systeme::renomme(nom_sortie_temporaire, nom_sortie)) {
+        return ErreurCoulisse{"Impossible d'écrire le nouveau compilat."};
     }
 
     if (!kuri::chemin_systeme::existe(nom_sortie)) {

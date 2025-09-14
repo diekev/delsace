@@ -44,7 +44,7 @@ fn_store :: fonc (p_data: *rien) -> *rien #sanstrace
 
 donnée_client_t :: struct {
     store: *store_t
-    index: z32
+    indice: z32
 }
 
 // Fonction pour les threads des clients.
@@ -54,7 +54,7 @@ fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
 
     donnée_client := p_data comme *donnée_client_t
     store := donnée_client.store
-    nb : z32 = donnée_client.index
+    nb : z32 = donnée_client.indice
 
     entropie := graine_aléatoire(nb comme n32)
 
@@ -142,7 +142,7 @@ principale :: fonc ()
         pour fil_client, idx dans store.thread_clients {
             donnée_client: donnée_client_t
             donnée_client.store = *store
-            donnée_client.index = idx comme z32
+            donnée_client.indice = idx comme z32
             ret = pthread_create(*fil_client, nul, fn_clients, *donnée_client)
 
             si ret != 0 {
