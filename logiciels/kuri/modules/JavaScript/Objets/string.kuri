@@ -224,13 +224,13 @@ string_index_of :: fonc (string: ECMAString, search_value: ECMAString, from_inde
     search_value_utf16 := search_value.donne_chaine_utf16()
 
     index := from_index
-    index_final := len - search_len
+    indice_final := len - search_len
 
     candidate: ChaineUTF16
     candidate.unités.pointeur = string_utf16.unités.pointeur + from_index
     candidate.unités.taille = search_len
 
-    tantque index <= index_final {
+    tantque index <= indice_final {
         // a. Let candidate be the substring of string from i to i + searchLen.
         // b. If candidate is searchValue, return i.
         si candidate == search_value_utf16 {
