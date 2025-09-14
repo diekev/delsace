@@ -159,9 +159,9 @@ observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ClicSouris) -> 
         retourne vrai
     }
 
-    index_élément := donne_élément_sous_souris(panneau, souris.état)
-    si index_élément != -1 {
-        définis_élément_pressé(panneau, index_élément, vrai)
+    indice_élément := donne_élément_sous_souris(panneau, souris.état)
+    si indice_élément != -1 {
+        définis_élément_pressé(panneau, indice_élément, vrai)
 
         guetteuse: GuetteuseBarreDeMenu
         guetteuse.barre_de_menu = panneau
@@ -185,12 +185,12 @@ donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: 
     retourne -1
 }
 
-définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64, indéfinis_élément: bool)
+définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, indice_élément: z64, indéfinis_élément: bool)
 {
-    assert(index_élément >= -1)
-    assert(index_élément < éléments.taille)
+    assert(indice_élément >= -1)
+    assert(indice_élément < éléments.taille)
 
-    si état.élément_pressé == index_élément {
+    si état.élément_pressé == indice_élément {
         si indéfinis_élément {
             anime_élément_pour_dépression(panneau)
             état.élément_pressé = -1
@@ -201,12 +201,12 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
         anime_élément_pour_dépression(panneau)
 
         panneau.détruit_panneau_menu()
-        état.élément_pressé = index_élément comme z32
+        état.élément_pressé = indice_élément comme z32
 
-        si index_élément != -1 {
+        si indice_élément != -1 {
             anime_élément_pour_pression(panneau)
-            rect_élément := donne_rect_élément_pour_clic(panneau, index_élément)
-            panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[index_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
+            rect_élément := donne_rect_élément_pour_clic(panneau, indice_élément)
+            panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[indice_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
             panneau_menu.panneau_barre_de_menu = panneau
             panneau.affiche_panneau_menu(panneau_menu)
         }
@@ -214,12 +214,12 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, index_él
 }
 
 /* Retourne les limites de l'élément pour les clics. */
-donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauBarreDeMenu, index_élément: z64) -> RectanglePosDim(z32)
+donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauBarreDeMenu, indice_élément: z64) -> RectanglePosDim(z32)
 {
-    assert(index_élément >= 0)
-    assert(index_élément < éléments.taille)
+    assert(indice_élément >= 0)
+    assert(indice_élément < éléments.taille)
 
-    élément := éléments[index_élément]
+    élément := éléments[indice_élément]
 
     résultat : RectanglePosDim(z32) = ---
     résultat.x = rect.x + élément.décalage - décalage_élément_x
@@ -298,8 +298,8 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
     panneau := guetteuse.barre_de_menu
 
     si clic.action == ActionSouris.PRESSÉE {
-        index_élément := donne_élément_sous_souris(panneau, clic.état)
-        si index_élément == -1 {
+        indice_élément := donne_élément_sous_souris(panneau, clic.état)
+        si indice_élément == -1 {
             pour panneau.menus_affichés {
                 si it.gère_clic_souris(clic) {
                     retourne
@@ -308,8 +308,8 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
-        index_élément := donne_élément_sous_souris(panneau, clic.état)
-        si index_élément != -1 {
+        indice_élément := donne_élément_sous_souris(panneau, clic.état)
+        si indice_élément != -1 {
             retourne
         }
 
@@ -334,9 +334,9 @@ guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souri
     guetteuse := base comme *GuetteuseBarreDeMenu
     panneau := guetteuse.barre_de_menu
 
-    index_élément := donne_élément_sous_souris(panneau, souris)
-    si index_élément != -1 {
-        définis_élément_pressé(panneau, index_élément, faux)
+    indice_élément := donne_élément_sous_souris(panneau, souris)
+    si indice_élément != -1 {
+        définis_élément_pressé(panneau, indice_élément, faux)
     }
     sinon {
         // regarde dans les menus ouverts
@@ -625,7 +625,7 @@ observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
 {
     saufsi rect.contient(souris.où) {
         saufsi menu_fut_affiché {
-            définis_index_élément_survolé(panneau, -1)
+            définis_indice_élément_survolé(panneau, -1)
         }
         retourne
     }
@@ -636,17 +636,17 @@ observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
             continue
         }
 
-        définis_index_élément_survolé(panneau, indice_it comme z32)
+        définis_indice_élément_survolé(panneau, indice_it comme z32)
         arrête
     }
 }
 
-donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauMenu, index_élément: z64) -> RectanglePosDim(z32)
+donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauMenu, indice_élément: z64) -> RectanglePosDim(z32)
 {
-    assert(index_élément >= 0)
-    assert(index_élément < éléments.taille)
+    assert(indice_élément >= 0)
+    assert(indice_élément < éléments.taille)
 
-    élément := éléments[index_élément]
+    élément := éléments[indice_élément]
 
     résultat: RectanglePosDim(z32)
     résultat.x = rect.x
@@ -656,9 +656,9 @@ donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauMenu, index_élém
     retourne résultat
 }
 
-définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_élément: z32)
+définis_indice_élément_survolé :: fonc (empl panneau: *PanneauMenu, indice_élément: z32)
 {
-    si index_élément == état.élément_survolé {
+    si indice_élément == état.élément_survolé {
         retourne
     }
 
@@ -671,7 +671,7 @@ définis_index_élément_survolé :: fonc (empl panneau: *PanneauMenu, index_él
         }
     }
 
-    état.élément_survolé = index_élément
+    état.élément_survolé = indice_élément
 
     // entre dans le nouvel élément
     si état.élément_survolé != -1 {

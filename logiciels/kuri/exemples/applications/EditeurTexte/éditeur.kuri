@@ -58,7 +58,11 @@ importe Unicode
         retourne
     }
 
-    contenu := contenu_fichier_texte(chm)
+    succès, contenu := contenu_fichier_texte(chm)
+    saufsi succès {
+        éditeur_ajourne_message_status(éditeur, "Impossible de lire le fichier")
+        retourne
+    }
     diffère déloge(contenu)
 
     /* À FAIRE : \r */

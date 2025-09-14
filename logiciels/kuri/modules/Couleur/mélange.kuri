@@ -168,7 +168,7 @@ plus :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
     retourne B
 }
 
-lumiere_douce :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
+lumière_douce :: fonc (A: r32, a: r32 @inutilisée, B: r32, b: r32 @inutilisée) -> r32
 {
     AB := A * B
 
@@ -194,7 +194,7 @@ ou_exclusif :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
     retourne A * (1.0 - b) + B * (1.0 - a)
 }
 
-lumiere_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
+lumière_dure :: fonc (A: r32, a: r32, B: r32, b: r32) -> r32
 {
     si A < 0.5 {
         retourne multiplie(A, a, B, b)
@@ -264,8 +264,8 @@ fonctions_de_mélange : [OpérationMélange.nombre_éléments]TypeFonction = [
     exclus,
     depuis,
     géométrique,
-    lumiere_douce,
-    lumiere_dure,
+    lumière_douce,
+    lumière_dure,
     hypothénuse,
     masque,
     matte,
