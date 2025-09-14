@@ -86,7 +86,10 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     lexeuse.mots_clés = __mots_clés_config
     lexeuse.caractères_symboliques = "-/"
 
-    contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin)
+    saufsi succès {
+        retourne
+    }
     diffère déloge(contenu)
 
     initialise_lexeuse_pour_texte(*lexeuse, contenu)

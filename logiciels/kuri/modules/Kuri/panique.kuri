@@ -75,14 +75,14 @@ panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #
     imprime_panique()
 }
 
-panique_dépassement_limites_tableau :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface #sansretour
+panique_dépassement_limites_tableau :: fonc (taille: z64, indice: z64) -> rien #sanstrace #interface #sansretour
 {
-    panique("dépassement des limites du tableau, la taille est de % mais l'index est de %", taille, index)
+    panique("dépassement des limites du tableau, la taille est de % mais l'indice est de %", taille, indice)
 }
 
-panique_dépassement_limites_chaine :: fonc (taille: z64, index: z64) -> rien #sanstrace #interface #sansretour
+panique_dépassement_limites_chaine :: fonc (taille: z64, indice: z64) -> rien #sanstrace #interface #sansretour
 {
-    panique("dépassement des limites de la chaine, la taille est de % mais l'index est de %", taille, index)
+    panique("dépassement des limites de la chaine, la taille est de % mais l'indice est de %", taille, indice)
 }
 
 panique_rubrique_union :: fonc () -> rien #sanstrace #interface #sansretour

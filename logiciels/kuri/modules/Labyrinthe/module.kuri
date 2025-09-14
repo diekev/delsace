@@ -109,9 +109,9 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
                 continue
             }
 
-            index := x + y * taille_x
-            labyrinthe.données[index] = vrai
-            est_poste[index] = vrai
+            indice := x + y * taille_x
+            labyrinthe.données[indice] = vrai
+            est_poste[indice] = vrai
         }
     }
 
@@ -119,9 +119,9 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
      * tomber sur un obstacle. */
     pour y dans 1 ... taille_y - 2 {
         pour x dans 1 ... taille_x - 2 {
-            index := x + y * taille_x
+            indice := x + y * taille_x
 
-            saufsi est_poste[index] {
+            saufsi est_poste[indice] {
                 continue
             }
 
@@ -132,13 +132,13 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
             delta := deltas[direction]
 
             boucle {
-                index += delta
+                indice += delta
 
-                si labyrinthe.données[index] {
+                si labyrinthe.données[indice] {
                     arrête
                 }
 
-                labyrinthe.données[index] = vrai
+                labyrinthe.données[indice] = vrai
             }
         }
     }
@@ -204,7 +204,7 @@ ConstructriceMéthodeEller :: struct {
         précédent: *Groupe
 
         /* Pour le débogage. */
-        index: z32
+        indice: z32
         cellules: [..]*Cellule
     }
 
@@ -277,7 +277,7 @@ crée_groupe :: fonc (constructrice: *ConstructriceMéthodeEller) -> *Constructr
     }
     constructrice.groupes = résultat
 
-    résultat.index = constructrice.groupe_courant
+    résultat.indice = constructrice.groupe_courant
     constructrice.groupe_courant += 1
     retourne résultat
 }
@@ -466,38 +466,38 @@ crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthode
     vérifie_comptes_cellules(constructrice)
 }
 
-copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeEller, index_ligne: z32)
+copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeEller, indice_ligne: z32)
 {
     /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
-    données_sortie := labyrinthe.données.pointeur + labyrinthe.taille_x * (index_ligne * 2 + 1)
+    données_sortie := labyrinthe.données.pointeur + labyrinthe.taille_x * (indice_ligne * 2 + 1)
 
     pour ligne_courante {
         /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
-        index_sortie := (indice_it * 2) + 1
+        indice_sortie := (indice_it * 2) + 1
 
         si it.position_mur.GAUCHE == vrai {
-            données_sortie[index_sortie - 1] = vrai
+            données_sortie[indice_sortie - 1] = vrai
         }
         si it.position_mur.DROITE == vrai {
-            données_sortie[index_sortie + 1] = vrai
+            données_sortie[indice_sortie + 1] = vrai
         }
         si it.position_mur.HAUT == vrai {
-            données_sortie[index_sortie - labyrinthe.taille_x] = vrai
+            données_sortie[indice_sortie - labyrinthe.taille_x] = vrai
         }
         si it.position_mur.BAS == vrai {
-            données_sortie[index_sortie + labyrinthe.taille_x] = vrai
+            données_sortie[indice_sortie + labyrinthe.taille_x] = vrai
         }
         si it.position_mur.HAUT_GAUCHE == vrai {
-            données_sortie[index_sortie - labyrinthe.taille_x - 1] = vrai
+            données_sortie[indice_sortie - labyrinthe.taille_x - 1] = vrai
         }
         si it.position_mur.BAS_GAUCHE == vrai {
-            données_sortie[index_sortie + labyrinthe.taille_x - 1] = vrai
+            données_sortie[indice_sortie + labyrinthe.taille_x - 1] = vrai
         }
         si it.position_mur.HAUT_DROITE == vrai {
-            données_sortie[index_sortie - labyrinthe.taille_x + 1] = vrai
+            données_sortie[indice_sortie - labyrinthe.taille_x + 1] = vrai
         }
         si it.position_mur.BAS_DROITE == vrai {
-            données_sortie[index_sortie + labyrinthe.taille_x + 1] = vrai
+            données_sortie[indice_sortie + labyrinthe.taille_x + 1] = vrai
         }
     }
 }

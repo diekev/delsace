@@ -711,7 +711,7 @@ crée_réponse_pour_hôte_introuvable :: fonc (request: *Request) -> *Response
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-introuvable.html"
     diffère détruit_chemin(chemin_fichier)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
+    _, contenu := contenu_fichier_texte(chemin_fichier)
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
 }
 
@@ -723,7 +723,7 @@ crée_réponse_pour_hôte_ferma_connexion :: fonc (request: *Request) -> *Respon
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-ferma-connexion.html"
     diffère détruit_chemin(chemin_fichier)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
+    _, contenu := contenu_fichier_texte(chemin_fichier)
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
 }
 
@@ -735,7 +735,7 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-inconnue.html"
     diffère détruit_chemin(chemin_fichier)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
+    _, contenu := contenu_fichier_texte(chemin_fichier)
 
     nouveau_contenu := remplace(contenu, "{{détail}}", détail)
     déloge(contenu)
@@ -1558,7 +1558,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
             chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html"
             diffère détruit_chemin(chemin_erreur_404)
 
-            contenu := contenu_fichier_texte(chemin_erreur_404)
+            _, contenu := contenu_fichier_texte(chemin_erreur_404)
 
             nouveau_contenu := remplace(contenu, "{{nom-navigateur}}", user_agent.nom_navigateur)
             déloge(contenu)
@@ -1588,7 +1588,7 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 crée_réponse_pour_fichier :: fonc (request: *Request, chemin: CheminFichier, status: z32) -> *Response
 {
     type_mime := type_mime_pour_extension(chemin.extension())
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     retourne crée_réponse_pour_fichier(request, type_mime, contenu, status)
 }
 

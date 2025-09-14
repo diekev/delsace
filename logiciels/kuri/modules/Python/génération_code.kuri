@@ -400,12 +400,12 @@ génère_fonctions_protocole_séquences :: fonc (enchaineuse: *Enchaineuse, type
     enchaineuse.ajoute_au_tampon("}\n")
 
     /* sq_item */
-    enchaineuse.ajoute_au_tampon("sq_item_pour_", type.nom_sauf, " :: fonc (self: *PyObject, index: Py_ssize_t) -> *PyObject\n")
+    enchaineuse.ajoute_au_tampon("sq_item_pour_", type.nom_sauf, " :: fonc (self: *PyObject, indice: Py_ssize_t) -> *PyObject\n")
     enchaineuse.ajoute_au_tampon("{\n")
     enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
     // À FAIRE : erreur dépassement limites ?
     sous_type := type.type_élément
-    enchaineuse.ajoute_au_tampon("    retourne ", sous_type.fonctions.pour_construction, "(notre_instance[index])\n")
+    enchaineuse.ajoute_au_tampon("    retourne ", sous_type.fonctions.pour_construction, "(notre_instance[indice])\n")
     enchaineuse.ajoute_au_tampon("}\n")
 
     /* init */

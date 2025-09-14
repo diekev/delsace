@@ -107,7 +107,7 @@ principale :: fonc ()
 {
     fichier := "entities.json"
     chemin := CheminFichier(chn = fichier)
-    contenu := contenu_fichier_texte(chemin)
+    _, contenu := contenu_fichier_texte(chemin)
     diffère déloge(contenu)
 
     données: TableSymboles
