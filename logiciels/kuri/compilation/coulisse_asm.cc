@@ -290,7 +290,8 @@ class ConstructriceHuitoctets {
 
     void ajoute_rembourrage(uint32_t rembourrage)
     {
-        assert((indice_huitoctet * 8) + données[indice_huitoctet].taille_types + rembourrage <= 32);
+        assert((indice_huitoctet * 8) + données[indice_huitoctet].taille_types + rembourrage <=
+               32);
 
         while (rembourrage > 0) {
             auto à_rembourrer = std::min(8 - données[indice_huitoctet].taille_types, rembourrage);
@@ -899,7 +900,8 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
 
         auto rangée = RangéeHuitoctetsType{};
         rangée.indice_premier_inclusif = int32_t(m_huitoctets_types.taille());
-        rangée.indice_dernier_exclusif = rangée.indice_premier_inclusif + int32_t(résultat.taille());
+        rangée.indice_dernier_exclusif = rangée.indice_premier_inclusif +
+                                         int32_t(résultat.taille());
 
         POUR (résultat) {
             m_huitoctets_types.ajoute(it);
@@ -4662,7 +4664,9 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 
     fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
 
-    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+    auto nom_sortie = nom_sortie_résultat_final(espace.options);
+    auto commande = commande_pour_liaison(
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie);
     auto err_commande = exécute_commande_externe_erreur(commande);
     if (err_commande.has_value()) {
         auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",

@@ -1,5 +1,6 @@
 /* Cliente pour tester le module WebSocket avec Autobahn. */
 
+importe Chaine
 importe Fondation
 importe ConnexionTCP
 importe HTTP

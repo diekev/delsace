@@ -30,13 +30,13 @@ ouvre_paginatrice_mémoire :: fonc () -> *Paginatrice
     retourne loge(Paginatrice)
 }
 
-trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
+trouve_page :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> []octet
 {
-    si index_page > TABLE_MAX_PAGES {
-        panique("Tentative de prendre une page hors des limites : % > %", index_page, TABLE_MAX_PAGES)
+    si indice_page > TABLE_MAX_PAGES {
+        panique("Tentative de prendre une page hors des limites : % > %", indice_page, TABLE_MAX_PAGES)
     }
 
-    page := paginatrice.pages[index_page]
+    page := paginatrice.pages[indice_page]
 
     si page.pointeur == nul {
         // Cache miss
@@ -49,8 +49,8 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
             nombre_de_pages += 1
         }
 
-        si index_page <= nombre_de_pages && paginatrice.utilise_stockage_disque {
-            _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(index_page * TAILLE_PAGE)) piège _ {
+        si indice_page <= nombre_de_pages && paginatrice.utilise_stockage_disque {
+            _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(indice_page * TAILLE_PAGE)) piège _ {
                 panique("Impossible de chercher le point dans le fichier !")
             }
 
@@ -63,7 +63,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
             }
         }
 
-        paginatrice.pages[index_page] = page
+        paginatrice.pages[indice_page] = page
     }
 
     retourne page
@@ -71,17 +71,17 @@ trouve_page :: fonc (paginatrice: *Paginatrice, index_page: z32) -> []octet
 
 // les pages ne sont pas flushées si le programme est interrompu (ctrl + C)
 // nous pourrions également éviter d'écrire des pages qui n'ont pas changées
-flush_paginatrice :: fonc (paginatrice: *Paginatrice, index_page: z32) -> rien
+flush_paginatrice :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> rien
 {
-    si paginatrice.pages[index_page].pointeur == nul {
+    si paginatrice.pages[indice_page].pointeur == nul {
         panique("Tentativer de flusher une page nulle !")
     }
 
-    _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(index_page * TAILLE_PAGE)) piège _ {
+    _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(indice_page * TAILLE_PAGE)) piège _ {
         panique("Impossible de chercher le point dans le fichier !")
     }
 
-    octets_écris := tente écris(*paginatrice.fichier, paginatrice.pages[index_page]) piège _ {
+    octets_écris := tente écris(*paginatrice.fichier, paginatrice.pages[indice_page]) piège _ {
         panique("Erreur lors de l'écriture !")
     }
 
