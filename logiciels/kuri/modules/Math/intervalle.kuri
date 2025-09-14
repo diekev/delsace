@@ -137,7 +137,7 @@ test_intervalles :: fonc ()
     }
 
     {
-        // Je veux accéder à un index via une expression :
+        // Je veux accéder à un indice via une expression :
         //     x := chn[it * 2]
         //
         // calcul de l'intervalle de l'expression

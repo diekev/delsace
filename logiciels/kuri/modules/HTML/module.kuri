@@ -110,7 +110,7 @@ donne_feuille_de_style :: fonc (chemin: chaine) -> *CSS.CSSStyleSheet
     chemin_fichier := donne_chemin_fichier_css(chemin)
     diffère détruit_chemin(chemin_fichier)
 
-    contenu := contenu_fichier_texte(chemin_fichier)
+    _, contenu := contenu_fichier_texte(chemin_fichier)
     diffère déloge(contenu)
 
     ctx: CSS.ContexteParsageFeuilleDeStyle

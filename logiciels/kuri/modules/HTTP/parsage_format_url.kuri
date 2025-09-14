@@ -105,7 +105,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
             retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
         }
 
-        nom := sous_chaine_jusque_index(*parseuse, pos)
+        nom := sous_chaine_jusque_indice(*parseuse, pos)
         résoud_échappement_url_localement(nom)
 
         positionne(*parseuse, pos + 1)
@@ -120,7 +120,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> Résulta
             pos = parseuse.chn.taille
         }
 
-        valeur := sous_chaine_jusque_index(*parseuse, pos)
+        valeur := sous_chaine_jusque_indice(*parseuse, pos)
         résoud_échappement_url_localement(valeur)
 
         positionne(*parseuse, pos + 1)

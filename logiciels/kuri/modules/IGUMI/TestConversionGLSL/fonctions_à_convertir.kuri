@@ -53,7 +53,7 @@ crée_base_orthonormale :: fonc (n: Vec3) -> (b0: Vec3, b1: Vec3) #enligne #raci
 } @GLSL
 
 /**
- * Calcul le coefficient de fresnel avec l'index de réfraction fourni.
+ * Calcul le coefficient de fresnel avec l'indice de réfraction fourni.
  */
 fresnel :: fonc (I: Vec3, N: Vec3, idr: r32) -> (coef: r32) #racine
 {

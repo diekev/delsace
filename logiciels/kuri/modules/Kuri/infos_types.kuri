@@ -134,7 +134,7 @@ InfoTypeUnion :: struct #interface {
     nom: chaine
     rubriques: []*InfoTypeRubriqueStructure
     type_le_plus_grand: *InfoType
-    décalage_index: z64
+    décalage_indice: z64
     annotations: []*Annotation
     polymorphe_de_base: *InfoTypeUnion
 }
@@ -233,10 +233,10 @@ donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
     retourne ""
 }
 
-donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, index: z64) -> eini
+donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, indice: z64) -> eini
 {
     résultat : eini = ---
-    résultat.pointeur = *info.valeurs[index * info.taille_en_octet comme z64]
+    résultat.pointeur = *info.valeurs[indice * info.taille_en_octet comme z64]
     résultat.info = info.type_sous_jacent
     retourne résultat
 }
