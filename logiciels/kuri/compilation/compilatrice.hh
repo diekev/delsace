@@ -113,7 +113,7 @@ struct Compilatrice {
     kuri::Synchrone<GestionnaireChainesAjoutées> chaines_ajoutées_à_la_compilation{};
 
     kuri::tableau_synchrone<EspaceDeTravail *> espaces_de_travail{};
-    EspaceDeTravail *espace_de_travail_defaut = nullptr;
+    EspaceDeTravail *espace_de_travail_défaut = nullptr;
 
     kuri::chemin_systeme racine_kuri{};
     kuri::chemin_systeme racine_modules_kuri{};
@@ -152,7 +152,6 @@ struct Compilatrice {
     kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
 
     Module *module_kuri = nullptr;
-    Module *module_racine_compilation = nullptr;
 
     RegistreSymboliqueRI *registre_ri = nullptr;
 
@@ -232,8 +231,9 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    EspaceDeTravail *demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                  kuri::chaine_statique nom);
+    EspaceDeTravail *démarre_un_espace_de_travail(OptionsDeCompilation const &options,
+                                                  kuri::chaine_statique nom,
+                                                  kuri::chaine_statique dossier);
 
     /* ********************************************************************** */
 
@@ -275,7 +275,7 @@ struct Compilatrice {
                                     kuri::chaine_statique c,
                                     const NoeudExpression *site);
     const Message *attend_message();
-    EspaceDeTravail *espace_defaut_compilation();
+    EspaceDeTravail *espace_défaut_compilation();
     kuri::tableau_statique<kuri::Lexème> lexe_fichier(EspaceDeTravail *espace,
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);

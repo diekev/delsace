@@ -596,7 +596,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
             }
 
-            if (noeud_directive->ident != ID::test) {
+            if (!expression->est_bloc()) {
                 if (auto expr_variable = trouve_expression_non_constante(expression)) {
                     m_espace
                         ->rapporte_erreur(noeud_directive,

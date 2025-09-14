@@ -757,15 +757,15 @@ système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFi
     chemin_destination := chemin_corbeille / "files" / chemin_à_supprimer.nom_fichier_avec_extension()
 
     /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
-    index := 1
+    indice := 1
     tantque fichier_existe(chemin_destination) {
         détruit_chemin(chemin_destination)
 
-        nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, index, extension)
+        nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension)
         chemin_destination = chemin_corbeille / "files" / nom_fichier_destination
         déloge(nom_fichier_destination)
 
-        index += 1
+        indice += 1
     }
 
     retourne chemin_destination

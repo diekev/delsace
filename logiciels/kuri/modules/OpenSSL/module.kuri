@@ -422,7 +422,7 @@ contexte_ssl_charge_fichier_ca :: fonc (contexte_ssl: *SSL_CTX, fichier_ca: chai
  * Retourne vrai en cas de réussite, faux le cas échéant. */
 contexte_ssl_charge_paramètres_dh :: fonc (contexte_ssl: *SSL_CTX, fichier_paramètres_dh: chaine) -> bool
 {
-    contenu := contenu_fichier_texte(fichier_paramètres_dh)
+    _, contenu := contenu_fichier_texte(fichier_paramètres_dh)
 
     saufsi contenu {
         retourne faux

@@ -527,7 +527,7 @@ Typeuse::~Typeuse()
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
 {
     auto gestionnaire = compilatrice.gestionnaire_code;
-    auto espace = compilatrice.espace_de_travail_defaut;
+    auto espace = compilatrice.espace_de_travail_défaut;
 
     /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
      * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
@@ -2103,7 +2103,7 @@ bool est_type_pointeur_nul(Type const *type)
 }
 
 ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                       Type const *type_a_tester)
+                                                                        Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
     int indice_rubrique = -1;

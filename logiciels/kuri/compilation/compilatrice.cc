@@ -49,12 +49,29 @@ int GestionnaireChainesAjoutées::nombre_de_chaines() const
     return m_chaines.taille();
 }
 
+static void préfixe_entier(std::ostream &os, int entier)
+{
+    if (entier < 10) {
+        os << "0";
+    }
+    os << entier;
+}
+
 void GestionnaireChainesAjoutées::imprime_dans(std::ostream &os)
 {
     auto d = hui_systeme();
 
-    os << "Fichier créé le " << d.jour << "/" << d.mois << "/" << d.annee << " à " << d.heure
-       << ':' << d.minute << ':' << d.seconde << "\n\n";
+    os << "Fichier créé le ";
+    préfixe_entier(os, d.jour);
+    os << "/";
+    préfixe_entier(os, d.mois);
+    os << "/" << d.annee << " à ";
+    préfixe_entier(os, d.heure);
+    os << ':';
+    préfixe_entier(os, d.minute);
+    os << ':';
+    préfixe_entier(os, d.seconde);
+    os << "\n\n";
 
     POUR (m_chaines) {
         os << it;
@@ -89,33 +106,6 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
     auto ops = opérateurs.verrou_ecriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
-
-    auto options_espace_défaut = OptionsDeCompilation{};
-    options_espace_défaut.utilise_trace_appel = !arguments.sans_traces_d_appel;
-    options_espace_défaut.coulisse = arguments.coulisse;
-
-    espace_de_travail_defaut = demarre_un_espace_de_travail(options_espace_défaut, "Espace 1");
-
-    /* Charge le module Kuri. */
-    if (arguments.importe_kuri) {
-        module_kuri = sys_module->initialise_module_kuri(racine_modules_kuri,
-                                                         arguments.importe_kuri);
-
-        if (!module_kuri) {
-            exit(1);
-        }
-
-        POUR (module_kuri->fichiers) {
-            if (it->fut_chargé) {
-                gestionnaire_code->requiers_lexage(espace_de_travail_defaut, it);
-            }
-            else {
-                gestionnaire_code->requiers_chargement(espace_de_travail_defaut, it);
-            }
-        }
-
-        module_kuri->importé = true;
-    }
 
     broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
@@ -320,10 +310,12 @@ bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
 
 /* ************************************************************************** */
 
-EspaceDeTravail *Compilatrice::demarre_un_espace_de_travail(OptionsDeCompilation const &options,
-                                                            kuri::chaine_statique nom)
+EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilation const &options,
+                                                            kuri::chaine_statique nom,
+                                                            kuri::chaine_statique dossier)
 {
     auto espace = mémoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
+    espace->module = sys_module->crée_module_fichier_racine_compilation(dossier);
     espaces_de_travail->ajoute(espace);
     gestionnaire_code->espace_créé(espace);
     return espace;
@@ -351,22 +343,22 @@ ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 
 OptionsDeCompilation *Compilatrice::options_compilation()
 {
-    return &espace_de_travail_defaut->options;
+    return &espace_de_travail_défaut->options;
 }
 
 void Compilatrice::ajourne_options_compilation(OptionsDeCompilation *options)
 {
     /* À FAIRE : il faut ajourner la coulisse selon l'espace, et peut-être arrêter la compilation
      * du code. */
-    espace_de_travail_defaut->options = *options;
-    gestionnaire_code->ajourne_espace_pour_nouvelles_options(espace_de_travail_defaut);
+    espace_de_travail_défaut->options = *options;
+    gestionnaire_code->ajourne_espace_pour_nouvelles_options(espace_de_travail_défaut);
 }
 
 void Compilatrice::ajoute_chaine_compilation(EspaceDeTravail *espace,
                                              NoeudExpression const *site,
                                              kuri::chaine_statique c)
 {
-    ajoute_chaine_au_module(espace, site, module_racine_compilation, c);
+    ajoute_chaine_au_module(espace, site, espace->module, c);
 }
 
 void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
@@ -400,7 +392,7 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
                                               kuri::chaine_statique c,
                                               const NoeudExpression *site)
 {
-    ajoute_fichier_a_la_compilation(espace, c, module_racine_compilation, site);
+    ajoute_fichier_a_la_compilation(espace, c, espace->module, site);
 }
 
 Message const *Compilatrice::attend_message()
@@ -412,9 +404,9 @@ Message const *Compilatrice::attend_message()
     return messagère_->defile();
 }
 
-EspaceDeTravail *Compilatrice::espace_defaut_compilation()
+EspaceDeTravail *Compilatrice::espace_défaut_compilation()
 {
-    return espace_de_travail_defaut;
+    return espace_de_travail_défaut;
 }
 
 static kuri::tableau<kuri::Lexème> converti_tableau_lexemes(

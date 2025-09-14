@@ -57,8 +57,8 @@ choisit :: fonc (gna: *GNA, tableau: []$T) -> T
     }
 
     index_r32 := gna.uniforme(0 comme r32, (tableau.taille) comme r32)
-    index := index_r32 comme z64
-    retourne tableau[index]
+    indice := index_r32 comme z64
+    retourne tableau[indice]
 }
 
 mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
