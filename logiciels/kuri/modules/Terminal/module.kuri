@@ -1,5 +1,6 @@
 // Module d'interface avec le terminal/la console
 
+importe Chaine
 importe Fondation
 importe SysFichier
 

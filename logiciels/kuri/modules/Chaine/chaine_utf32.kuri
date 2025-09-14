@@ -145,9 +145,9 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     retourne vrai
 }
 
-opérateur [] :: (chn_utf32: ChaineUTF32, index: z64) -> n32
+opérateur [] :: (chn_utf32: ChaineUTF32, indice: z64) -> n32
 {
-    retourne chn_utf32.points_de_code[index]
+    retourne chn_utf32.points_de_code[indice]
 }
 
 est_valide :: fonc (chn_utf32: ChaineUTF32) -> bool
