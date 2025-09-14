@@ -30,9 +30,9 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([..]AdresseIP)
 
     résultat: [..]AdresseIP
 
-    index := 0
+    indice := 0
     boucle {
-        ptr := he.h_addr_list[index]
+        ptr := he.h_addr_list[indice]
 
         si ptr comme *z8 == nul {
             arrête
@@ -51,7 +51,7 @@ trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([..]AdresseIP)
             tableau_ajoute(*résultat, adresse)
         }
 
-        index += 1
+        indice += 1
     }
 
     retourne résultat

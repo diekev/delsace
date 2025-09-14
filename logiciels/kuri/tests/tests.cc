@@ -107,7 +107,7 @@ static erreur::Genre lance_test(TamponSource &tampon)
 
     auto compilatrice = Compilatrice(getenv("RACINE_KURI"), {});
 
-    auto espace = compilatrice.espace_defaut_compilation();
+    auto espace = compilatrice.espace_défaut_compilation();
 
     /* Ne nomme pas le module, car c'est le module racine. */
     auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");

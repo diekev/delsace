@@ -377,17 +377,17 @@ décode_par_plages :: fonc (données: []$T) -> [..]T
 
     tableau_réserve(*résultat, données.taille)
 
-    index := 0
+    indice := 0
 
-    tantque index < données.taille {
-        valeur := données[index]
-        compte := données[index + 1]
+    tantque indice < données.taille {
+        valeur := données[indice]
+        compte := données[indice + 1]
 
         pour compte {
             tableau_ajoute(*résultat, valeur)
         }
 
-        index += 2
+        indice += 2
     }
 
     retourne résultat
@@ -522,11 +522,11 @@ décode_hexadécimal :: fonc (entrée: []octet) -> chaine
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    index := 0
+    indice := 0
 
-    tantque index < entrée.taille {
-        a := entrée[index]
-        b := entrée[index + 1]
+    tantque indice < entrée.taille {
+        a := entrée[indice]
+        b := entrée[indice + 1]
 
         na := donne_valeur_hex(a comme z8) comme n8
         nb := donne_valeur_hex(b comme z8) comme n8
@@ -535,7 +535,7 @@ décode_hexadécimal :: fonc (entrée: []octet) -> chaine
 
         ajoute_au_tampon(*enchaineuse, c comme z8)
 
-        index += 2
+        indice += 2
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
@@ -549,23 +549,23 @@ encode_base96 :: fonc (message: []octet) -> chaine
 
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
-    index : n64 = 0
+    indice : n64 = 0
 
     pour message {
-        index %= 6
+        indice %= 6
 
         n := it comme n8
 
         a := (n >> 4) & 0xf
         b := n & 0xf
 
-        ca := base[16 * index + a]
+        ca := base[16 * indice + a]
         ajoute_au_tampon(*enchaineuse, ca)
-        index += 1
+        indice += 1
 
-        cb := base[16 * index + b]
+        cb := base[16 * indice + b]
         ajoute_au_tampon(*enchaineuse, cb)
-        index += 1
+        indice += 1
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)

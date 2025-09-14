@@ -85,17 +85,15 @@ Module *SystèmeModule::initialise_module_kuri(kuri::chaine_statique chemin_raci
     return module;
 }
 
-Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_statique dossier,
-                                                              kuri::chaine_statique chemin_fichier)
+Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_statique dossier)
 {
     auto chemin_normalisé = kuri::chaine(dossier);
-    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != kuri::chemin_systeme::séparateur_préféré()) {
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] !=
+                                             kuri::chemin_systeme::séparateur_préféré()) {
         chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
     }
     auto module = crée_module(ID::chaine_vide, chemin_normalisé);
     module->importé = true;
-    auto chemin_fichier_ = kuri::chemin_systeme(chemin_fichier);
-    crée_fichier(module, chemin_fichier_.nom_fichier_sans_extension(), chemin_fichier_);
     return module;
 }
 
@@ -103,7 +101,8 @@ Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chain
 {
     auto chemin_normalisé = kuri::chaine(chemin);
 
-    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] != kuri::chemin_systeme::séparateur_préféré()) {
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] !=
+                                             kuri::chemin_systeme::séparateur_préféré()) {
         chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
     }
 
@@ -234,10 +233,10 @@ RésultatFichier SystèmeModule::trouve_ou_crée_fichier(Module *module,
                                                       kuri::chaine_statique nom,
                                                       kuri::chaine_statique chemin)
 {
-    auto fichier = table_fichiers.valeur_ou(chemin, nullptr);
-
-    if (fichier) {
-        return FichierExistant(fichier);
+    POUR (module->fichiers) {
+        if (it->nom() == nom) {
+            return FichierExistant(it);
+        }
     }
 
     return crée_fichier(module, nom, chemin);
@@ -254,8 +253,6 @@ FichierNeuf SystèmeModule::crée_fichier(Module *module,
     df->module = module;
 
     module->ajoute_fichier(df);
-
-    table_fichiers.insère(df->chemin(), df);
 
     return FichierNeuf(df);
 }
