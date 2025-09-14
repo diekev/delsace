@@ -131,7 +131,7 @@ RappelSauvegarde :: struct {
 
 ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
 {
-    contenu := contenu_fichier_texte("/tmp/test.js")
+    _, contenu := contenu_fichier_texte("/tmp/test.js")
     qcontenu := contenu.vers_qt()
     QT_plain_text_edit_definis_texte(éditeur, *qcontenu)
     déloge(contenu)
@@ -163,7 +163,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         chemin := imprime_chaine("%", valeur_arg_utf16)
         diffère déloge(chemin)
 
-        contenu := contenu_fichier_texte(chemin)
+        _, contenu := contenu_fichier_texte(chemin)
         diffère déloge(contenu)
 
         parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu)

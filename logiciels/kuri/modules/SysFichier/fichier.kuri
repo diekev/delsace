@@ -156,7 +156,7 @@ positionne_fichier :: fonc (fichier: *Fichier, position: PositionFichier) -> Ré
 
 copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> bool
 {
-    contenu_source := contenu_fichier_texte(source)
+    _, contenu_source := contenu_fichier_texte(source)
     diffère déloge(contenu_source)
 
     fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège _ {

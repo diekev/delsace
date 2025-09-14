@@ -186,7 +186,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
             parseuse.avance(1)
         }
 
-        domaine := parseuse.sous_chaine_jusque_index(position_crlf)
+        domaine := parseuse.sous_chaine_jusque_indice(position_crlf)
         parseuse.avance(domaine.taille comme z32)
         parseuse.avance(2) // CRLF
 
@@ -276,7 +276,7 @@ parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat(AdresseC
         retourne ErreurParsageCommande.ErreurDeSyntaxe
     }
 
-    chn_adresse := parseuse.sous_chaine_jusque_index(position_chevron_droit)
+    chn_adresse := parseuse.sous_chaine_jusque_indice(position_chevron_droit)
 
     parseuse.avance(chn_adresse.taille comme z32)
     parseuse.avance(1) // >

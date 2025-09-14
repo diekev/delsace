@@ -16,7 +16,7 @@ importe SysFichier
 
 principale :: fonc ()
 {
-    contenu := contenu_fichier_texte(CheminFichier("js_gen.txt"))
+    _, contenu := contenu_fichier_texte(CheminFichier("js_gen.txt"))
     lignes := divise(contenu, '\n')
 
     parseuse: Parseuse
