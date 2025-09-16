@@ -1730,6 +1730,18 @@ touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_a
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Xfixes.h
+ * \{ */
+
+libXfixes :: #bibliothèque "Xfixes"
+
+XFixesHideCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+
+XFixesShowCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+
+/** \} */
+
 #portée_fichier
 
 /* ------------------------------------------------------------------------- */
