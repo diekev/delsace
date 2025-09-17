@@ -42,8 +42,6 @@ VLServer :: struct #externe
 VLPath :: struct #externe
 VLNode :: struct #externe
 
-XVisualInfo :: struct #externe
-
 khronos_int8_t :: z8
 khronos_int16_t :: z16
 khronos_int32_t :: z32
