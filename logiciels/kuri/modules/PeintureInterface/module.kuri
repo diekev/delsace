@@ -33,7 +33,7 @@ Taille :: struct {
 
 Peintre :: struct {
     /* Définis la taille du canevas. */
-    rappel_définis_taille_canevas: fonc(*Peintre, Taille)(rien)
+    rappel_définis_fenêtre: fonc(*Peintre, z32, z32, Taille)(rien)
     /* Donne la taille du canevas. */
     rappel_donne_taille_canevas: fonc(*Peintre)(Taille)
 
@@ -109,9 +109,19 @@ détruit_peintre :: fonc (peintre: *Peintre)
     }
 }
 
+définis_fenêtre :: fonc (peintre: *Peintre, x: z32, y: z32, largeur: z32, hauteur: z32) #enligne
+{
+    définis_fenêtre(peintre, x, y, Taille(Largeur(largeur), Hauteur(hauteur)))
+}
+
+définis_fenêtre :: fonc (peintre: *Peintre, x: z32, y: z32, taille: Taille) #enligne
+{
+    peintre.rappel_définis_fenêtre(peintre, x, y, taille)
+}
+
 définis_taille_canevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
 {
-    peintre.rappel_définis_taille_canevas(peintre, taille)
+    définis_fenêtre(peintre, 0, 0, taille)
 }
 
 donne_taille_canevas :: fonc (peintre: *Peintre) -> Taille #enligne
@@ -324,7 +334,7 @@ crée_peintre_module_dessin :: fonc (taille_canevas: Taille) -> *PeintreDessin
 
 initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
-    peintre.rappel_définis_taille_canevas = définis_taille_canevas_dessin
+    peintre.rappel_définis_fenêtre = définis_fenêtre_dessin
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin
     peintre.rappel_efface_cible_rendu = remplis_arrière_plan_dessin
     peintre.rappel_commence_dessin = commence_dessin_dessin
@@ -426,7 +436,7 @@ donne_couleur_dessin :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBAN8
     retourne résultat
 }
 
-définis_taille_canevas_dessin :: fonc (peintre: *Peintre, taille: Taille)
+définis_fenêtre_dessin :: fonc (peintre: *Peintre, x: z32 @inutilisée, y: z32 @inutilisée, taille: Taille)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rect := RectanglePosDim(z32)(largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32)
@@ -782,7 +792,7 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
         initialise_igumi()
     }
 
-    peintre.rappel_définis_taille_canevas = définis_taille_canevas_igumi
+    peintre.rappel_définis_fenêtre = définis_fenêtre_igumi
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_igumi
     peintre.rappel_efface_cible_rendu = igumi_efface_cible_rendu
     peintre.rappel_commence_dessin = commence_dessin_igumi
@@ -885,9 +895,9 @@ donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
     retourne résultat
 }
 
-définis_taille_canevas_igumi :: fonc (peintre: *Peintre @inutilisée, taille: Taille)
+définis_fenêtre_igumi :: fonc (peintre: *Peintre @inutilisée, x: z32, y: z32, taille: Taille)
 {
-    IGUMI.définis_fenêtre(taille.largeur comme z32, taille.hauteur comme z32)
+    IGUMI.définis_fenêtre(x, y, taille.largeur comme z32, taille.hauteur comme z32)
 }
 
 donne_taille_canevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
