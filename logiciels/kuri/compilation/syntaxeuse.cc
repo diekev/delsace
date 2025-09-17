@@ -2947,6 +2947,9 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         résultat->bloc_parent = bloc_parent;
         copie_tablet_tableau(params, résultat->types_entrée);
         copie_tablet_tableau(params_sortie, résultat->types_sortie);
+
+        // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
+        bloc_constantes_polymorphiques.depile();
         return résultat;
     }
 
@@ -2972,7 +2975,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     bloc_paramètres->appartiens_à_fonction = noeud;
 
     auto bloc_constantes_courant = bloc_constantes_polymorphiques.depile();
-    assert(bloc_constantes_courant == bloc_constantes);
+    assert_rappel(bloc_constantes_courant == bloc_constantes,
+                  [&]() { dbg() << erreur::imprime_site(*m_unité->espace, noeud); });
     if (bloc_constantes->nombre_de_rubriques() != 0) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
