@@ -237,6 +237,11 @@ graine_aléatoire :: fonc (graine: n32) -> SérieAléatoire
     retourne SérieAléatoire(graine)
 }
 
+donne_aléatoire :: fonc (série: *SérieAléatoire) -> n32
+{
+    retourne xor_shift(série.état)
+}
+
 aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32
 {
     retourne xor_shift(série.état) comme r32 / ((-1 comme n32) comme r32)

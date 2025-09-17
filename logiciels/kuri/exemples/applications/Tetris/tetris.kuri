@@ -222,7 +222,7 @@ ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
         temps_avant_mouvement = TEMPS_ENTRE_MOUVEMENT
     }
 
-    IGUMI.définis_fenêtre(tetris.largeur, tetris.hauteur)
+    IGUMI.définis_fenêtre(0, 0, tetris.largeur, tetris.hauteur)
     glViewport(0, 0, tetris.largeur, tetris.hauteur)
     // glClearColor(0.961, 0.929, 0.890, 1.0)
 
