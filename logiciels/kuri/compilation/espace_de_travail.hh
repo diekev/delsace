@@ -44,6 +44,10 @@ struct EspaceDeTravail {
     kuri::chaine nom{};
     OptionsDeCompilation options{};
 
+    /* Chaque espace a son propre module racine où sont ajoutés les fichiers et les chaines
+     * ajoutées lors de la compilation. */
+    Module *module = nullptr;
+
     Programme *programme = nullptr;
     UniteCompilation *unité_pour_code_machine = nullptr;
 
@@ -106,6 +110,14 @@ struct EspaceDeTravail {
     Erreur rapporte_avertissement(kuri::chaine_statique fichier,
                                   int ligne,
                                   kuri::chaine_statique message) const;
+    Erreur rapporte_avertissement_externe(ParamètresErreurExterne const &params) const;
+
+    Erreur rapporte_info(const NoeudExpression *site, kuri::chaine_statique message) const;
+    Erreur rapporte_info(kuri::chaine_statique fichier,
+                         int ligne,
+                         kuri::chaine_statique message) const;
+    Erreur rapporte_info(SiteSource site, kuri::chaine_statique message) const;
+    Erreur rapporte_info_externe(ParamètresErreurExterne const &params) const;
 
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,

@@ -2,6 +2,7 @@ importe Périphériques
 
 charge "interface"
 
+Bool :: z32
 Status :: z32
 False :: 0
 True :: 1
@@ -1729,6 +1730,51 @@ touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_a
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Xfixes.h
+ * \{ */
+
+libXfixes :: #bibliothèque "Xfixes"
+
+XFixesHideCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+
+XFixesShowCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Xutil.h
+ * \{ */
+
+VisualNoMask		:: 0x0
+VisualIDMask 		:: 0x1
+VisualScreenMask	:: 0x2
+VisualDepthMask		:: 0x4
+VisualClassMask		:: 0x8
+VisualRedMaskMask	:: 0x10
+VisualGreenMaskMask	:: 0x20
+VisualBlueMaskMask	:: 0x40
+VisualColormapSizeMask	:: 0x80
+VisualBitsPerRGBMask	:: 0x100
+VisualAllMask		:: 0x1FF
+
+XVisualInfo :: struct {
+    visual: *Visual
+    visualid: VisualID
+    screen: z32
+    depth: z32
+    class: z32
+    red_mask: n64
+    green_mask: n64
+    blue_mask: n64
+    colormap_size: z32
+    bits_per_rgb: z32
+}
+
+XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVisualInfo, nitems_return: *z32) -> *XVisualInfo #externe libX11
+
+/** \} */
+
 #portée_fichier
 
 /* ------------------------------------------------------------------------- */
@@ -1776,8 +1822,8 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
 
     imprime("%\n", chemin.chn)
 
-    contenu := contenu_fichier_binaire(chemin)
-    si contenu.taille == 0 {
+    succès, contenu := contenu_fichier_binaire(chemin)
+    si succès == faux || contenu.taille == 0 {
         retourne
     }
     diffère déloge(contenu)

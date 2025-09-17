@@ -1,0 +1,423 @@
+importe Algorithmes
+importe Ensemble
+importe Fondation
+importe ParsageCpp
+importe SimpleLexage
+importe SysFichier
+importe XML
+
+principale :: fonc ()
+{
+    args := arguments_ligne_commande()
+    si args.taille == 1 {
+        imprimeln("UTILISATION : % FICHIER.xml", args[0])
+        exit(0)
+    }
+
+    fichier_source := args[1]
+
+    chemin_fichier_source := CheminFichier(fichier_source)
+
+    chemin_fichier_sortie: chaine
+    imports: chaine
+    bibliothèque: chaine
+
+    nom_fichier := nom_fichier_avec_extension(chemin_fichier_source)
+    si nom_fichier == "gl.xml" {
+        chemin_fichier_sortie = "../interface_gl.kuri"
+        bibliothèque = "GL"
+    }
+    sinon si nom_fichier == "glx.xml" {
+        chemin_fichier_sortie = "../interface_glx.kuri"
+        imports = "importe X11"
+        bibliothèque = "GLX"
+    }
+    sinon {
+        imprimeln("Le fichier doit être gl.xml ou glx.xml")
+        exit(1)
+    }
+
+    _, contenu := contenu_fichier_texte(fichier_source)
+    diffère déloge(contenu)
+
+    parseuse: ParseuseRegistreGL
+
+    parse_xml(contenu, début_élément_glx, contenu_glx, nul, fin_élément_glx, *parseuse)
+
+    types: [..]chaine
+
+    pour * commande dans parseuse.commandes {
+        ensemble_ajoute(*types, commande.type_retour)
+        pour paramètre dans commande.paramètres {
+            ensemble_ajoute(*types, paramètre.type)
+        }
+    }
+
+    table_des_types: TableDeHachage(chaine, chaine)
+
+    parseuse_type_c: ParseuseC
+    initialise_parseuse(*parseuse_type_c)
+
+    enchaineuse_type: Enchaineuse
+    initialise_enchaineuse(*enchaineuse_type)
+
+    pour types {
+        initialise_lexeuse_pour_texte(*parseuse_type_c.lexeuse, it)
+        type := parse_type(*parseuse_type_c)
+
+        imprime_type_kuri(*enchaineuse_type, type)
+
+        type_kuri := chaine_depuis_enchaineuse(*enchaineuse_type)
+
+        _, _ := table_insère_si_non_existant(*table_des_types, it, type_kuri)
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "/* stats-code ignore fichier */\n\n")
+
+    si imports {
+        ajoute_au_tampon(*enchaineuse, imports, "\n\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "lib", bibliothèque, " :: #bibliothèque \"", bibliothèque, "\"\n\n")
+
+    parseuse_c: ParseuseC
+    initialise_parseuse(*parseuse_c)
+
+    pour parseuse.typedefs {
+        // imprimeln("'%'", it.nom)
+        si it.texte {
+            // imprimeln("-------------------------------")
+            // imprimeln("[% / %] %", indice_it + 1, parseuse.typedefs.taille, it.texte)
+
+            si commence_par(it.texte, "#ifdef __APPLE__") {
+                it.texte = "typedef unsigned int GLhandleARB;"
+            }
+
+            noeud := parse_texte(*parseuse_c, it.texte)
+            // imprime_arbre(noeud)
+
+            si noeud.genre == TypedefDecl {
+                typedef_decl := noeud comme *TypedefDecl
+                type_sous_jacent := typedef_decl.underlying_type
+                type_définis := typedef_decl.type
+
+                si est_structure_ou_union_anonyme(type_sous_jacent) {
+                    assert(type_définis.genre == TypeRef)
+                    type_ref := type_définis comme *TypeRef
+                    déclare_type_kuri(*enchaineuse, type_sous_jacent, type_ref.nom)
+                    ajoute_au_tampon(*enchaineuse, "\n")
+                }
+                sinon {
+                    déclare_type_kuri(*enchaineuse, type_sous_jacent)
+
+                    assert(type_définis.genre == TypeRef)
+                    type_ref := type_définis comme *TypeRef
+                    imprime_dans_enchaineuse(*enchaineuse, "% :: ", type_ref.nom)
+                    imprime_type_kuri(*enchaineuse, type_sous_jacent)
+                    ajoute_au_tampon(*enchaineuse, "\n\n")
+                }
+            }
+            sinon si noeud.genre == StructDecl {
+                struct_decl := noeud comme *StructDecl
+                assert(struct_decl.name != "")
+
+                si struct_decl.fields.taille {
+                    déclare_type_kuri(*enchaineuse, struct_decl)
+                    ajoute_au_tampon(*enchaineuse, "\n")
+                }
+                sinon {
+                    imprime_dans_enchaineuse(*enchaineuse, "% :: struct #externe\n\n", struct_decl.name)
+                }
+            }
+            sinon {
+                imprimeln("Noeud non-géré : %", noeud.genre)
+                exit(1)
+            }
+        }
+    }
+
+    pour parseuse.énumérations {
+        si it.énumérants.taille == 0 {
+            continue
+        }
+
+        si it.espace_de_nom {
+            imprime_dans_enchaineuse(*enchaineuse, "/* % */\n", it.espace_de_nom)
+        }
+
+        pour énumérant dans it.énumérants {
+            quot := "&quot;"
+            si commence_par(énumérant.valeur, quot) {
+                assert(fini_par(énumérant.valeur, quot))
+                valeur := avance(énumérant.valeur, quot.taille)
+                valeur = recule(valeur, quot.taille)
+
+                imprime_dans_enchaineuse(*enchaineuse, "% :: \"%\"\n", énumérant.nom, valeur)
+            }
+            sinon {
+                imprime_dans_enchaineuse(*enchaineuse, "% : GLenum : %\n", énumérant.nom, énumérant.valeur)
+            }
+        }
+
+        ajoute_au_tampon(*enchaineuse, "\n")
+    }
+
+    pour * commande dans parseuse.commandes {
+        imprime_dans_enchaineuse(*enchaineuse, "% :: fonc (", commande.nom)
+
+        virgule := ""
+        pour paramètre dans commande.paramètres {
+            trouvée, type_kuri := donne_valeur_pour_clé(table_des_types, paramètre.type)
+            assert(trouvée)
+
+            imprime_dans_enchaineuse(*enchaineuse, "%%: %", virgule, paramètre.nom, type_kuri)
+
+            virgule = ", "
+        }
+
+        trouvée, type_kuri := donne_valeur_pour_clé(table_des_types, commande.type_retour)
+        assert(trouvée)
+        imprime_dans_enchaineuse(*enchaineuse, ") -> % #externe lib%\n", type_kuri, bibliothèque)
+        ajoute_au_tampon(*enchaineuse, "\n")
+    }
+
+    // imprimeln("nombre d'énumérations %", parseuse.nombre_énums)
+    // imprimeln("nombre de commandes   %", parseuse.commandes.taille)
+    // imprimeln("nombre de types       %", types.taille)
+    // imprimeln("nombre de typedefs    %", parseuse.typedefs.taille)
+
+    _ := écris_fichier_entier(chemin_fichier_sortie, *enchaineuse)
+}
+
+Paramètre :: struct {
+    type: chaine
+    nom: chaine
+}
+
+Commande :: struct {
+    nom: chaine
+    type_retour: chaine
+
+    paramètres: [..]Paramètre
+}
+
+Énumérant :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+Énumération :: struct {
+    espace_de_nom: chaine
+    énumérants: [..]Énumérant
+}
+
+Typedef :: struct {
+    nom: chaine
+    texte: chaine
+}
+
+ParseuseRegistreGL :: struct {
+    nombre_énums: z32
+
+    énumérations: [..]Énumération   
+    énumération_courante: *Énumération
+
+    commandes: [..]Commande
+    commande_courante: *Commande
+    paramètre_courant: *Paramètre
+
+    typedefs: [..]Typedef
+    typedef_courant: *Typedef
+
+    dans_commands: bool
+    dans_proto: bool
+    dans_énum: bool
+    dans_nom_paramètre: bool
+    dans_nom_commande: bool
+    dans_extension: bool
+    dans_feature: bool
+    dans_typedef: bool
+    dans_nom_typedef: bool
+}
+
+début_élément_glx :: fonc (données: eini, élément: chaine, attributs: []Attribut)
+{
+    parseuse := données comme *ParseuseRegistreGL
+
+    si parseuse.dans_commands {
+        si parseuse.commande_courante {
+            si élément == "proto" {
+                parseuse.dans_proto = vrai
+            }
+            sinon si élément == "param" {
+                assert(parseuse.paramètre_courant == nul)
+                parseuse.paramètre_courant = tableau_ajoute_élément(*parseuse.commande_courante.paramètres)
+            }
+            sinon si parseuse.paramètre_courant {
+                si élément == "name" {
+                    parseuse.dans_nom_paramètre = vrai
+                }
+            }
+            sinon si élément == "name" {
+                si parseuse.dans_proto {
+                    parseuse.dans_nom_commande = vrai
+                }
+            }
+        }
+        sinon si élément == "command" {
+            si parseuse.dans_commands {
+                parseuse.commande_courante = tableau_ajoute_élément(*parseuse.commandes)
+            }
+        }
+    }
+    sinon si élément == "extension" {
+        parseuse.dans_extension = vrai
+    }
+    sinon si élément == "feature" {
+        parseuse.dans_feature = vrai
+    }
+    sinon si élément == "enums" {
+        assert(parseuse.énumération_courante == nul)
+        parseuse.énumération_courante = tableau_ajoute_élément(*parseuse.énumérations)
+
+        attribut_namespace := donne_attribut(attributs, "namespace")
+        si attribut_namespace {
+            parseuse.énumération_courante.espace_de_nom = attribut_namespace.valeur
+        }
+    }
+    sinon si élément == "enum" {
+        si parseuse.énumération_courante {
+            attribut_api := donne_attribut(attributs, "api")
+            si attribut_api == nul || attribut_api.valeur == "gl" {
+                attribut_name := donne_attribut(attributs, "name")
+                attribut_value := donne_attribut(attributs, "value")
+                si attribut_name && attribut_value {
+                    énumérant := tableau_ajoute_élément(*parseuse.énumération_courante.énumérants)
+                    énumérant.nom = attribut_name.valeur
+                    énumérant.valeur = attribut_value.valeur
+                    parseuse.nombre_énums += 1
+                }
+                parseuse.dans_énum = vrai
+            }
+        }
+    }
+    sinon si élément == "commands" {
+        parseuse.dans_commands = vrai
+    }
+    sinon si élément == "type" {
+        attribut_name := donne_attribut(attributs, "name")
+        si attribut_name == nul || (attribut_name.valeur != "khrplatform" && attribut_name.valeur != "inttypes") {
+            parseuse.dans_typedef = vrai
+            assert(parseuse.typedef_courant == nul)
+            parseuse.typedef_courant = tableau_ajoute_élément(*parseuse.typedefs)
+
+            si attribut_name {
+                parseuse.typedef_courant.nom = attribut_name.valeur
+            }
+        }
+    }
+    sinon si parseuse.dans_typedef {
+        si élément == "name" {
+            parseuse.dans_nom_typedef = vrai
+        }
+    }
+}
+
+contenu_glx :: fonc (données: eini, contenu: chaine)
+{
+    parseuse := données comme *ParseuseRegistreGL
+
+    si parseuse.dans_commands {
+        si parseuse.dans_nom_paramètre {
+            parseuse.paramètre_courant.nom = contenu
+        }
+        sinon si parseuse.paramètre_courant {
+            ancien_type := parseuse.paramètre_courant.type
+            parseuse.paramètre_courant.type = enchaine(ancien_type, contenu)
+        }
+        sinon si parseuse.dans_nom_commande {
+            parseuse.commande_courante.nom = contenu
+        }
+        sinon si parseuse.dans_proto {
+            ancien_type := parseuse.commande_courante.type_retour
+            parseuse.commande_courante.type_retour = enchaine(ancien_type, contenu)
+        }
+    }
+    sinon si parseuse.dans_typedef {
+        assert(parseuse.typedef_courant != nul)
+
+        ancien_type := parseuse.typedef_courant.texte
+        parseuse.typedef_courant.texte = enchaine(ancien_type, contenu)
+
+        si parseuse.dans_nom_typedef {
+            parseuse.typedef_courant.nom = contenu
+        }
+    }
+}
+
+fin_élément_glx :: fonc (données: eini, élément: chaine)
+{
+    parseuse := données comme *ParseuseRegistreGL
+
+    // si parseuse.dans_extension {    
+    //     si élément == "extension" {
+    //         parseuse.dans_extension = faux
+    //     }
+    //     retourne
+    // }
+
+    // si parseuse.dans_feature {
+    //     si élément == "feature" {
+    //         parseuse.dans_feature = faux
+    //     }
+    //     retourne
+    // }
+
+    si élément == "enum" {
+        parseuse.dans_énum = faux
+    }
+    sinon si élément == "enums" {
+        parseuse.énumération_courante = nul
+    }
+    sinon si parseuse.dans_commands {
+        si élément == "command" {
+            parseuse.commande_courante = nul
+        }
+        sinon si élément == "param" {
+            assert(parseuse.commande_courante != nul)
+            assert(parseuse.paramètre_courant != nul)
+            parseuse.paramètre_courant = nul
+        }
+        sinon si parseuse.paramètre_courant {
+            si élément == "name" {
+                parseuse.dans_nom_paramètre = faux
+            }
+        }
+        sinon si élément == "proto" {
+            assert(parseuse.dans_proto)
+            parseuse.dans_proto = faux
+        }
+        sinon si élément == "name" {
+            si parseuse.dans_proto {
+                parseuse.dans_nom_commande = faux
+            }
+        }
+        sinon si élément == "commands" {
+            parseuse.dans_commands = faux
+        }
+    }
+    sinon si parseuse.dans_typedef {
+        si élément == "name" {
+            parseuse.dans_nom_typedef = faux
+        }
+        sinon si élément == "type" {
+            assert(parseuse.typedef_courant != nul)
+            parseuse.dans_typedef = faux
+            parseuse.typedef_courant = nul
+        }
+    }
+}

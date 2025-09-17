@@ -86,7 +86,10 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     lexeuse.mots_clés = __mots_clés_config
     lexeuse.caractères_symboliques = "-/"
 
-    contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin)
+    saufsi succès {
+        retourne
+    }
     diffère déloge(contenu)
 
     initialise_lexeuse_pour_texte(*lexeuse, contenu)
@@ -122,6 +125,9 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
     consomme_ponctuation(lexeuse, "[")
     consomme_mot_clé(lexeuse, "thème")
     consomme_ponctuation(lexeuse, "]")
+
+    lexeuse.supporte_nombre_héxadécimaux_sans_préfixe = vrai
+    diffère lexeuse.supporte_nombre_héxadécimaux_sans_préfixe = faux
 
     tantque !fini(lexeuse) {
         lexème := donne_lexème_suivant(lexeuse)

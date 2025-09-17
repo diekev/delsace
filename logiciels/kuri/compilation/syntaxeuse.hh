@@ -105,7 +105,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */
-    NoeudExpression *analyse_expression_avec_virgule(bool force_noeud_virgule);
+    NoeudExpression *analyse_expression_avec_virgule(bool force_noeud_virgule,
+                                                     GenreLexème lexème_final);
 
     bool est_déclaration_type_tableau();
 
@@ -125,6 +126,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                Lexème const *lexème) override;
 
     void rapporte_erreur_avec_site(NoeudExpression const *site, kuri::chaine_statique message);
+
+    void rapporte_info(kuri::chaine_statique message, const Lexème *lexème);
 
     void requiers_typage(NoeudExpression *noeud);
 

@@ -390,10 +390,10 @@ génère_opérateurs_vecteurs :: fonc ()
             ajoute_au_tampon(*enchaineuse, "}\n")
         }
 
-        imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, index: z64) -> r32\n", dimension)
+        imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, indice: z64) -> r32\n", dimension)
         ajoute_au_tampon(*enchaineuse, "{\n")
-        imprime_dans_enchaineuse(*enchaineuse, "    assert(index >= 0 && index < %)\n", dimension)
-        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[index]\n")
+        imprime_dans_enchaineuse(*enchaineuse, "    assert(indice >= 0 && indice < %)\n", dimension)
+        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[indice]\n")
         ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
         ajoute_au_tampon(*enchaineuse, "}\n")
     }

@@ -740,13 +740,14 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto options = dépile<OptionsDeCompilation *>();
         auto nom = dépile<kuri::chaine_statique>();
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
-        auto espace = compilatrice.demarre_un_espace_de_travail(*options, nom);
+        auto dossier = compilatrice.espace_de_travail_défaut->module->chemin();
+        auto espace = compilatrice.démarre_un_espace_de_travail(*options, nom, dossier);
         empile(espace);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(espace_défaut_compilation)) {
-        auto espace = compilatrice.espace_defaut_compilation();
+        auto espace = compilatrice.espace_défaut_compilation();
         empile(espace);
         return;
     }
@@ -791,6 +792,47 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_avertissement_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.indice_colonne_fin = dépile<int>();
+        params.indice_colonne_début = dépile<int>();
+        params.indice_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_avertissement_externe(params);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_info)) {
+        auto message = dépile<kuri::chaine_statique>();
+        /* Dans les noeuds codes, les lignes commencent à 1. */
+        auto ligne = dépile<int>() - 1;
+        auto fichier = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_info(fichier, ligne, message);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_rapporte_info_externe)) {
+        auto params = ParamètresErreurExterne{};
+        params.indice_colonne_fin = dépile<int>();
+        params.indice_colonne_début = dépile<int>();
+        params.indice_colonne = dépile<int>();
+        params.numéro_ligne = dépile<int>();
+        params.texte_ligne = dépile<kuri::chaine_statique>();
+        params.chemin_fichier = dépile<kuri::chaine_statique>();
+        params.message = dépile<kuri::chaine_statique>();
+        auto espace = dépile<EspaceDeTravail *>();
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        espace->rapporte_info_externe(params);
         return;
     }
 
@@ -866,7 +908,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_racine_compilation)) {
-        auto module = compilatrice.module_racine_compilation;
+        auto module = compilatrice.espace_de_travail_défaut->module;
         empile(module);
         return;
     }

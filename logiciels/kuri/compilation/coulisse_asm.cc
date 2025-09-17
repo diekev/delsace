@@ -4654,7 +4654,9 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 
     fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
 
-    auto commande = commande_pour_liaison(espace.options, fichiers_objet, m_bibliothèques);
+    auto nom_sortie = nom_sortie_résultat_final(espace.options);
+    auto commande = commande_pour_liaison(
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie);
     auto err_commande = exécute_commande_externe_erreur(commande);
     if (err_commande.has_value()) {
         auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",

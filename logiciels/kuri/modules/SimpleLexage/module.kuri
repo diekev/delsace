@@ -41,12 +41,13 @@
  * Permettra d'avoir '$' et '?' dans les symboles.
  *
  *
- * À FAIRE : retourne les indice des mots-clés
+ * À FAIRE : retourne les indices des mots-clés
  * À FAIRE : permet de spécifier les limites des chaines littérales
  * À FAIRE : séparateur dans les valeurs numériques
  * À FAIRE : échappements (caractères unicode etc.)
  */
 
+importe Chaine
 importe Fondation
 importe Numérique
 
@@ -118,6 +119,8 @@ SimpleLexeuse :: struct {
 
     taille_mot_clé_min: z32
     taille_mot_clé_max: z32
+
+    supporte_nombre_héxadécimaux_sans_préfixe: bool
 
     texte: chaine
 
@@ -242,6 +245,11 @@ fini :: fonc (lexeuse: *SimpleLexeuse) -> bool
     retourne lexeuse.début >= lexeuse.fin
 }
 
+consomme :: fonc (lexeuse: *SimpleLexeuse)
+{
+    _ := donne_lexème_suivant(lexeuse)
+}
+
 consomme_ponctuation :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     _ := donne_lexème(lexeuse, TypeLexème.Ponctuation, texte)
@@ -260,6 +268,14 @@ consomme_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 consomme_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     _ := donne_mot_clé(lexeuse, texte)
+}
+
+épie_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    début := lexeuse.début
+    diffère lexeuse.début = début
+    résultat := donne_lexème_suivant(lexeuse)
+    retourne résultat
 }
 
 donne_nombre :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
@@ -369,14 +385,12 @@ rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: 
         }
     }
 
-    ligne := donne_ligne_pour_erreur(lexeuse)
-    imprimeln("%", ligne.texte)
-    imprimeln("Attendu %, obtenu '%'", voulu, lexème.donne_texte())
-    exit(1)
+    rapporte_erreur(lexeuse, lexème, voulu)
 }
 
 rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chaine) #sansretour
 {
+    lexeuse.début = lexème.donne_texte().pointeur
     ligne := donne_ligne_pour_erreur(lexeuse)
     imprimeln("%", ligne.texte)
     imprimeln("Attendu '%', obtenu '%'", voulu, lexème.donne_texte())
@@ -757,7 +771,7 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable
         résultat.nombre = nombre_parsé comme n64
     }
-    sinon si drapeaux_accumulés.ChiffreHexadécimal {
+    sinon si drapeaux_accumulés.ChiffreHexadécimal && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
         résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     sinon {
@@ -985,6 +999,7 @@ __mots_clés_c := [
     "const",
     "false",
     "short",
+    "union",
     "while",
     "double",
     "extern",

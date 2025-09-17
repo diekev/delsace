@@ -597,7 +597,7 @@ Identifier :: struct {
     sur_exécution = sur_exécution_identifier
 
     nom: ECMAString
-    index_chaine_en_cache := -1
+    indice_chaine_en_cache := -1
     coordonnée: Optionnel(CoordonnéeEnvironnement)
 }
 
@@ -658,20 +658,20 @@ sur_exécution_identifier :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 
 donne_chaine_primitive :: fonc (identifier: *Identifier, realm: *Realm) -> *PrimitiveChaine
 {
-    si identifier.index_chaine_en_cache == -1 {
+    si identifier.indice_chaine_en_cache == -1 {
         pour realm.chaines {
             si it.texte == identifier.nom {
-                identifier.index_chaine_en_cache = indice_it comme z32
+                identifier.indice_chaine_en_cache = indice_it comme z32
                 retourne it
             }
         }
 
         résultat := realm.crée_chaine(identifier.nom)
-        identifier.index_chaine_en_cache = realm.chaines.taille comme z32 - 1
+        identifier.indice_chaine_en_cache = realm.chaines.taille comme z32 - 1
         retourne résultat
     }
 
-    retourne realm.chaines[identifier.index_chaine_en_cache]
+    retourne realm.chaines[identifier.indice_chaine_en_cache]
 }
 
 /** \} */
@@ -1816,7 +1816,7 @@ StringLiteral :: struct {
     sur_exécution = sur_exécution_string_literal
 
     valeur: ECMAString
-    index_chaine : z64 = -1
+    indice_chaine : z64 = -1
 }
 
 crée_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème, valeur: ECMAString) -> *StringLiteral
@@ -1839,13 +1839,13 @@ sur_exécution_string_literal :: fonc (base: *NoeudSyntaxique, interpréteuse: *
     realm := interpréteuse.donne_realm()
 
     chn: *PrimitiveChaine
-    si noeud.index_chaine == -1 {
+    si noeud.indice_chaine == -1 {
         chn = crée_chaine(realm, noeud.valeur)
         tableau_ajoute(*realm.chaines_littérales, chn)
-        noeud.index_chaine = realm.chaines_littérales.taille - 1
+        noeud.indice_chaine = realm.chaines_littérales.taille - 1
     }
     sinon {
-        chn = realm.chaines_littérales[noeud.index_chaine]
+        chn = realm.chaines_littérales[noeud.indice_chaine]
     }
 
     retourne normal_completion(chn)
@@ -4852,11 +4852,11 @@ sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse:
     realm := interpréteuse.donne_realm()
     tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
 
-    index_expression := 0
+    indice_expression := 0
 
-    tantque index_expression < template.expressions.taille {
-        expression := template.expressions[index_expression]
-        index_expression += 1
+    tantque indice_expression < template.expressions.taille {
+        expression := template.expressions[indice_expression]
+        indice_expression += 1
 
         completion := exécute_noeud(expression, interpréteuse)
         saufsi completion.est_normal() {
@@ -4872,7 +4872,7 @@ sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse:
         }
         tableau_ajoute(*chaines, str)
 
-        quasi = template.quasis[index_expression]
+        quasi = template.quasis[indice_expression]
         tableau_ajoute(*chaines, crée_chaine(realm, quasi.value))
     }
 

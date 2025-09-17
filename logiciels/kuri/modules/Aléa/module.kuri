@@ -57,8 +57,8 @@ choisit :: fonc (gna: *GNA, tableau: []$T) -> T
     }
 
     index_r32 := gna.uniforme(0 comme r32, (tableau.taille) comme r32)
-    index := index_r32 comme z64
-    retourne tableau[index]
+    indice := index_r32 comme z64
+    retourne tableau[indice]
 }
 
 mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
@@ -235,6 +235,11 @@ graine_aléatoire :: fonc (graine: n32) -> SérieAléatoire
     graine = xor_shift(graine)
     graine = (graine & 0x330e) | (graine << 16)
     retourne SérieAléatoire(graine)
+}
+
+donne_aléatoire :: fonc (série: *SérieAléatoire) -> n32
+{
+    retourne xor_shift(série.état)
 }
 
 aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32

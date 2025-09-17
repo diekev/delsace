@@ -526,7 +526,7 @@ Typeuse::~Typeuse()
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
 {
     auto gestionnaire = compilatrice.gestionnaire_code.verrou_ecriture();
-    auto espace = compilatrice.espace_de_travail_defaut;
+    auto espace = compilatrice.espace_de_travail_défaut;
 
     /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
      * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
