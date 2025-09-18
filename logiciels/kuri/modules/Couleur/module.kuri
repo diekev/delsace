@@ -192,9 +192,14 @@ rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
 
     chroma := r - min_vb
 
-    résultat : CouleurTSV = ---
-    résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
-    résultat.s = (chroma / (r + 1e-20)) comme r32
+    résultat: CouleurTSV
+
+    si chroma != 0.0 {
+        résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
+    }
+    si r != 0.0 {
+        résultat.s = (chroma / (r + 1e-20)) comme r32
+    }
     résultat.v = r comme r32
     retourne résultat
 }
