@@ -311,6 +311,28 @@ restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
     peintre.rappel_définis_ciseau(peintre, rectangle)
 }
 
+dessine_grille :: fonc (peintre: *Peintre, rect: RectanglePosDim(r32), lignes: n32, colonnes: n32, couleur: CouleurRVBA)
+{
+    si lignes > 0 {
+        décalage_hauteur := rect.hauteur / lignes comme r32;
+        h := décalage_hauteur;
+        pour lignes - 1 {
+            peintre.dessine_segment(rect.x, rect.y + h, rect.x + rect.largeur, rect.y + h, couleur);
+            h += décalage_hauteur;
+        }
+    }
+
+    si colonnes > 0 {
+        décalage_largeur := rect.largeur / colonnes comme r32;
+        l := décalage_largeur;
+
+        pour colonnes - 1 {
+            peintre.dessine_segment(rect.x + l, rect.y, rect.x + l, rect.y + rect.hauteur, couleur);
+            l += décalage_largeur;
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
