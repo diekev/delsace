@@ -526,26 +526,10 @@ RectanglePosDim :: struct ($T: type_de_données) {
 
 crée_rectangle_pos_dim :: fonc (a: Point2D($T), b: Point2D(T)) -> RectanglePosDim(T)
 {
-    // À FAIRE : dédpulication des classes avec Math
-    // x := min(a.x, b.x)
-    // y := min(a.y, b.y)
-
-    // hauteur := abs(a.y - b.y)
-    // largeur := abs(a.x - b.x)
-
-    x := si a.x < b.x { a.x } sinon { b.x }
-    y := si a.y < b.y { a.y } sinon { b.y }
-
-    hauteur := a.y - b.y
-    largeur := a.x - b.x
-
-    si largeur < 0.0 {
-        largeur = -largeur
-    }
-    si hauteur < 0.0 {
-        hauteur = -hauteur
-    }
-
+    x := min(a.x, b.x)
+    y := min(a.y, b.y)
+    hauteur := abs(a.y - b.y)
+    largeur := abs(a.x - b.x)
     retourne RectanglePosDim(T)(x, y, hauteur, largeur)
 }
 
