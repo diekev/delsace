@@ -40,6 +40,14 @@ Peintre :: struct {
     /* Efface la cible du rendu. */
     rappel_efface_cible_rendu: fonc(*Peintre, CouleurPeintre)(rien)
 
+    /* Controle la largeur des lignes. */
+    rappel_définis_largeur_ligne: fonc(peintre: *Peintre, largeur: r32)
+    rappel_donne_largeur_ligne: fonc(peintre: *Peintre) -> r32
+
+    /* Controle le rayon des points. */
+    rappel_définis_rayon_point: fonc(peintre: *Peintre, rayon: r32)
+    rappel_donne_rayon_point: fonc(peintre: *Peintre) -> r32
+
     /* Commence un nouveau dessin. */
     rappel_commence_dessin: fonc(*Peintre)(rien)
 
@@ -137,6 +145,26 @@ efface_cible_rendu :: fonc (peintre: *Peintre)
 efface_cible_rendu :: fonc (peintre: *Peintre, couleur: CouleurPeintre)
 {
     peintre.rappel_efface_cible_rendu(peintre, couleur)
+}
+
+définis_largeur_ligne :: fonc (peintre: *Peintre, largeur: r32)
+{
+    peintre.rappel_définis_largeur_ligne(peintre, largeur)
+}
+
+donne_largeur_ligne :: fonc (peintre: *Peintre) -> r32
+{
+    retourne peintre.rappel_donne_largeur_ligne(peintre)
+}
+
+définis_rayon_point :: fonc (peintre: *Peintre, rayon: r32)
+{
+    peintre.rappel_définis_rayon_point(peintre, rayon)
+}
+
+donne_rayon_point :: fonc (peintre: *Peintre) -> r32
+{
+    retourne peintre.donne_rayon_point(peintre)
 }
 
 commence_dessin :: fonc (peintre: *Peintre) #enligne
@@ -359,6 +387,10 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_définis_fenêtre = définis_fenêtre_dessin
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin
     peintre.rappel_efface_cible_rendu = remplis_arrière_plan_dessin
+    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_dessin
+    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_dessin
+    peintre.rappel_définis_rayon_point = définis_rayon_point_dessin
+    peintre.rappel_donne_rayon_point = donne_rayon_point_dessin
     peintre.rappel_commence_dessin = commence_dessin_dessin
     peintre.rappel_termine_dessin = termine_dessin_dessin
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
@@ -475,6 +507,26 @@ donne_taille_canevas_dessin :: fonc (peintre: *Peintre) -> Taille
     peintre_dessin := peintre comme *PeintreDessin
     rect := peintre_dessin.tampon_de_rendu.rect
     retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
+}
+
+définis_largeur_ligne_dessin :: fonc (peintre: *PeintreDessin @inutilisée, largeur: r32 @inutilisée)
+{
+    // À FAIRE
+}
+
+donne_largeur_ligne_dessin :: fonc (peintre: *PeintreDessin @inutilisée) -> r32
+{
+    retourne 0.0
+}
+
+définis_rayon_point_dessin :: fonc (peintre: *PeintreDessin @inutilisée, rayon: r32 @inutilisée)
+{
+    // À FAIRE
+}
+
+donne_rayon_point_dessin :: fonc (peintre: *PeintreDessin @inutilisée) -> r32
+{
+    retourne 0.0
 }
 
 commence_dessin_dessin :: fonc (peintre: *PeintreDessin @inutilisée)
@@ -817,6 +869,10 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
     peintre.rappel_définis_fenêtre = définis_fenêtre_igumi
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_igumi
     peintre.rappel_efface_cible_rendu = igumi_efface_cible_rendu
+    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_igumi
+    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_igumi
+    peintre.rappel_définis_rayon_point = définis_rayon_point_igumi
+    peintre.rappel_donne_rayon_point = donne_rayon_point_igumi
     peintre.rappel_commence_dessin = commence_dessin_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
     peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
@@ -930,6 +986,32 @@ donne_taille_canevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
 igumi_efface_cible_rendu :: fonc (peintre: *PeintreIGUMI @inutilisée, couleur: CouleurPeintre)
 {
     IGUMI.efface_cible_rendu(donne_couleur_igumi(couleur))
+}
+
+définis_largeur_ligne_igumi :: fonc (peintre: *Peintre @inutilisée, largeur: r32)
+{
+    IGUMI.termine_immédiat()
+    glLineWidth(largeur)
+}
+
+donne_largeur_ligne_igumi :: fonc (peintre: *Peintre @inutilisée) -> r32
+{
+    résultat: r32
+    glGetFloatv(GL_LINE_WIDTH, *résultat)
+    retourne résultat
+}
+
+définis_rayon_point_igumi :: fonc (peintre: *Peintre @inutilisée, rayon: r32)
+{
+    IGUMI.termine_immédiat()
+    glPointSize(rayon)
+}
+
+donne_rayon_point_igumi :: fonc (peintre: *Peintre @inutilisée) -> r32
+{
+    résultat: r32
+    glGetFloatv(GL_POINT_SIZE, *résultat)
+    retourne résultat
 }
 
 commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
