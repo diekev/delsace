@@ -828,6 +828,20 @@ contiens :: fonc (chn: chaine, sous_chaine: chaine, par := ChercheAiguillePar.Fo
     retourne cherche_aiguille(chn, sous_chaine, par) != -1
 }
 
+donne_sous_chaine_jusque :: fonc (texte: chaine, caractère: z8) -> (résultat: chaine, reste: chaine)
+{
+    pos := trouve_caractère_depuis_le_début(texte, caractère)
+    si pos == -1 {
+        résultat = texte
+        reste = ""
+    }
+    sinon {
+        résultat = sous_chaine(texte, 0, pos)
+        reste = avance(texte, pos + 1)
+    }
+    retourne résultat, reste
+}
+
 /* Une simple parseuse pour travailler sur des chaines.
  */
 ParseuseChaine :: struct {
@@ -995,3 +1009,53 @@ saute_espace_blanc :: fonc (parseuse: *ParseuseChaine)
         parseuse.curseur += 1
     }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom nom_section
+ * \{ */
+
+ItératricePointsDeCodeChaine :: struct {
+    chn: chaine
+    curseur := 0
+}
+
+opérateur pour :: (itératrice: ItératricePointsDeCodeChaine) -> n32
+{
+    taille_chaine := itératrice.chn.taille
+
+    indice_point_de_code := 0
+    tantque itératrice.curseur < taille_chaine {
+        `it = point_de_code_suivant(*itératrice)
+        `indice_it = indice_point_de_code
+
+        #corps_boucle
+
+        indice_point_de_code += 1
+    }
+}
+
+itératrice_points_de_code :: fonc (chn: chaine) -> ItératricePointsDeCodeChaine
+{
+    retourne ItératricePointsDeCodeChaine(chn)
+}
+
+point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaine) -> n32
+{
+    point_de_code: n32
+    
+    ptr_source := chn.pointeur + itératrice.curseur
+
+    no := nombre_octets_utf8_rapide(ptr_source)
+    si no == 0 {
+        point_de_code = 0xFFFD
+    }
+    sinon {
+        point_de_code = converti_utf8_utf32(ptr_source, no) comme n32
+    }
+
+    curseur += no comme z32
+
+    retourne point_de_code
+}
+
+/** \} */

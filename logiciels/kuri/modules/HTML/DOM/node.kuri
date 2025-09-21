@@ -724,7 +724,7 @@ assign_slottables :: fonc (slot: *Element)
     slottables := find_slottables(slot)
 
     // 2. If slottables and slot’s assigned nodes are not identical, then run signal a slot change for slot.
-    saufsi tableaux_ont_mêmes_valeurs(slottables, slot.assigned_nodes) {
+    saufsi tableaux_ont_mêmes_valeurs_désordonnées(slottables, slot.assigned_nodes) {
         signal_a_slot_change(slot)
     }
 

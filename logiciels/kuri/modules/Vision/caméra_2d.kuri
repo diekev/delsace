@@ -57,7 +57,20 @@ ratio_d_aspect :: fonc (caméra: *Caméra2D) -> r32
     retourne (caméra.largeur comme r32) / (caméra.hauteur comme r32)
 }
 
-applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où: Point2D(z32))
+applique_zoom :: fonc (caméra: *Caméra2D, delta: r32, où: Point2D(z32)) #enligne
+{
+    position: Point2D(z32)
+    position.x = où.x comme z32
+    position.y = où.y comme z32
+    applique_zoom(caméra, delta, où.x, où.y)
+}
+
+applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où: Point2D(r32)) #enligne
+{
+    applique_zoom(caméra, delta, où.x, où.y)
+}
+
+applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où_x: r32, où_y: r32)
 {
     quantité := si delta >= 0.0 {
         Constantes(r32).PHI
@@ -71,7 +84,7 @@ applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où: Point2D(z32))
     neuf_zoom := vieux_zoom * quantité
 
     taille_vue := Vec2(caméra.largeur comme r32, caméra.hauteur comme r32)
-    souris := Vec2(où.x comme r32, où.y comme r32)
+    souris := Vec2(où_x, où_y)
 
     différence_pixels := taille_vue / vieux_zoom - taille_vue / neuf_zoom
     ratio := souris / taille_vue

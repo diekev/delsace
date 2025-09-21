@@ -303,7 +303,6 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
 
 échantillonne_prochain :: fonc (image: *NouvelleImage, pos: *Vec2) -> CouleurRVBA
 {
-    assert(image.desc.format == FormatPixel.RVBA_32)
     largeur := image.desc.largeur comme z32
     hauteur := image.desc.hauteur comme z32
 
@@ -317,9 +316,15 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     restreint(*yi, 0 comme z32, hauteur - 1)
 
     indice := xi + yi * largeur
+    si image.desc.format == FormatPixel.RVBA_32 {
+        couleurs := image.données comme *CouleurRVBA
+        retourne couleurs[indice]
+    }
 
-    couleurs := image.données comme *CouleurRVBA
-    retourne couleurs[indice]
+    assert(image.desc.format == FormatPixel.RVBA_8)
+    couleurs := image.données comme *CouleurRVBAN8
+    résultat := vers_couleur_rvba(couleurs[indice])
+    retourne résultat
 }
 
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T

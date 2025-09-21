@@ -1438,9 +1438,8 @@ donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
     type: type_de_données
     pour infos.rubriques {
         si it.id.id == GenreInfoType.TYPE_DE_DONNÉES {
-            // À FAIRE(langage) : eini comme type_de_données
             valeur_rubrique := eini_depuis_info_rubrique(eini_racine, it)
-            type = mémoire(valeur_rubrique.pointeur comme *type_de_données)
+            type = valeur_rubrique comme type_de_données
             arrête
         }
     }

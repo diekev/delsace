@@ -187,39 +187,13 @@ donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> eini,
 
 donne_nom_énum_pour_valeur :: fonc (valeur: eini) -> chaine
 {
-    infos := valeur.info comme *InfoTypeÉnum
-    type_sous_jacent := infos.type_sous_jacent
-
-    si type_sous_jacent.est_signé {
-        si type_sous_jacent.taille_en_octet == 1 {
-            valeur_énum := mémoire(valeur.pointeur comme *z8)
-            retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-        }
-        si type_sous_jacent.taille_en_octet == 2 {
-            valeur_énum := mémoire(valeur.pointeur comme *z16)
-            retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-        }
-        si type_sous_jacent.taille_en_octet == 4 {
-            valeur_énum := mémoire(valeur.pointeur comme *z32)
-            retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-        }
-        valeur_énum := mémoire(valeur.pointeur comme *z64)
-        retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
+    indice := donne_indice_valeur_énum(valeur)
+    résultat := ""
+    si indice != -1 {
+        infos := valeur.info comme *InfoTypeÉnum
+        résultat = infos.noms[indice]
     }
-    si type_sous_jacent.taille_en_octet == 1 {
-        valeur_énum := mémoire(valeur.pointeur comme *n8)
-        retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-    }
-    si type_sous_jacent.taille_en_octet == 2 {
-        valeur_énum := mémoire(valeur.pointeur comme *n16)
-        retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-    }
-    si type_sous_jacent.taille_en_octet == 4 {
-        valeur_énum := mémoire(valeur.pointeur comme *n32)
-        retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
-    }
-    valeur_énum := mémoire(valeur.pointeur comme *n64)
-    retourne donne_nom_énum_pour_valeur(infos, valeur_énum)
+    retourne résultat
 }
 
 donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
@@ -231,6 +205,54 @@ donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
     }
 
     retourne ""
+}
+
+donne_indice_valeur_énum :: fonc (valeur: eini) -> z64
+{
+    infos := valeur.info comme *InfoTypeÉnum
+    type_sous_jacent := infos.type_sous_jacent
+
+    si type_sous_jacent.est_signé {
+        si type_sous_jacent.taille_en_octet == 1 {
+            valeur_énum := mémoire(valeur.pointeur comme *z8)
+            retourne donne_indice_valeur_énum(infos, valeur_énum)
+        }
+        si type_sous_jacent.taille_en_octet == 2 {
+            valeur_énum := mémoire(valeur.pointeur comme *z16)
+            retourne donne_indice_valeur_énum(infos, valeur_énum)
+        }
+        si type_sous_jacent.taille_en_octet == 4 {
+            valeur_énum := mémoire(valeur.pointeur comme *z32)
+            retourne donne_indice_valeur_énum(infos, valeur_énum)
+        }
+        valeur_énum := mémoire(valeur.pointeur comme *z64)
+        retourne donne_indice_valeur_énum(infos, valeur_énum)
+    }
+    si type_sous_jacent.taille_en_octet == 1 {
+        valeur_énum := mémoire(valeur.pointeur comme *n8)
+        retourne donne_indice_valeur_énum(infos, valeur_énum)
+    }
+    si type_sous_jacent.taille_en_octet == 2 {
+        valeur_énum := mémoire(valeur.pointeur comme *n16)
+        retourne donne_indice_valeur_énum(infos, valeur_énum)
+    }
+    si type_sous_jacent.taille_en_octet == 4 {
+        valeur_énum := mémoire(valeur.pointeur comme *n32)
+        retourne donne_indice_valeur_énum(infos, valeur_énum)
+    }
+    valeur_énum := mémoire(valeur.pointeur comme *n64)
+    retourne donne_indice_valeur_énum(infos, valeur_énum)
+}
+
+donne_indice_valeur_énum :: fonc (info: *InfoTypeÉnum, valeur: $T) -> z64
+{
+    pour info.donne_valeurs_typées(T) {
+        si it == valeur {
+            retourne indice_it
+        }
+    }
+
+    retourne -1
 }
 
 donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, indice: z64) -> eini

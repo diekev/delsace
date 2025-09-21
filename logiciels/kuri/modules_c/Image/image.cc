@@ -1145,8 +1145,24 @@ void SVG_image_ratisse(SVGImage *image, uint8_t *sortie, int largeur, int hauteu
         image->ratisseuse = nsvgCreateRasterizer();
     }
 
-    nsvgRasterize(
-        image->ratisseuse, image->image, 0.0f, 0.0f, 1.0f, sortie, largeur, hauteur, largeur * 4);
+    auto échelle = 1.0f;
+
+    if (image->width >= image->height) {
+        échelle = float(largeur) / float(image->width);
+    }
+    else if (image->width < image->height) {
+        échelle = float(hauteur) / float(image->height);
+    }
+
+    nsvgRasterize(image->ratisseuse,
+                  image->image,
+                  0.0f,
+                  0.0f,
+                  échelle,
+                  sortie,
+                  largeur,
+                  hauteur,
+                  largeur * 4);
 }
 
 void SVG_image_detruit(SVGImage *image)

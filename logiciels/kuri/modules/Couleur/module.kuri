@@ -42,6 +42,26 @@ opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
     retourne vrai
 }
 
+opérateur * :: (a: CouleurRVBA, b: r32) -> CouleurRVBA
+{
+    résultat := a
+    résultat.r *= b
+    résultat.v *= b
+    résultat.b *= b
+    résultat.a *= b
+    retourne résultat
+}
+
+opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
+{
+    résultat := a
+    résultat.r += b.r
+    résultat.v += b.v
+    résultat.b += b.b
+    résultat.a += b.a
+    retourne résultat
+}
+
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
 {
     résultat := couleur
@@ -192,9 +212,14 @@ rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
 
     chroma := r - min_vb
 
-    résultat : CouleurTSV = ---
-    résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
-    résultat.s = (chroma / (r + 1e-20)) comme r32
+    résultat: CouleurTSV
+
+    si chroma != 0.0 {
+        résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
+    }
+    si r != 0.0 {
+        résultat.s = (chroma / (r + 1e-20)) comme r32
+    }
     résultat.v = r comme r32
     retourne résultat
 }

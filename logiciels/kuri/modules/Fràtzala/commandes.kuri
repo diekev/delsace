@@ -122,12 +122,17 @@ GestionnaireCommande :: struct {
     commande_modale: *Commande
 }
 
-détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
+détruit_données_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
 {
     pour gestionnaire.groupes {
         déloge_tableau_et_ses_éléments(it.commandes)
     }
     déloge_tableau_et_ses_éléments(gestionnaire.groupes)
+}
+
+détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
+{
+    détruit_données_gestionnaire_commande(gestionnaire)
     déloge(gestionnaire)
 }
 
