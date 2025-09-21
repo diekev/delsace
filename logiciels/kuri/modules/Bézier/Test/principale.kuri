@@ -6,18 +6,165 @@ importe IGUMI
 importe Math
 importe Périphériques
 importe PeintureInterface
+importe Typographie
+
+TypeOutil :: énum {
+    TEST
+    PLUME
+    PLUME_DE_COURBURE
+    PLUME_DE_FORME_LIBRE
+}
 
 LARGEUR_POINT :: 10.0
+
+type_outil: TypeOutil
 
 principale :: fonc ()
 {
     fenêtre := crée_fenêtre(1280, 720, "Bézier")
+    fonte := crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
 
     initialise_igumi()
 
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    peintre := crée_peintre_igumi(taille_canevas)
+
     tantque !doit_fermer {
-        // dessine_segment_bézier(fenêtre)
-        dessine_tracé(fenêtre)
+        évènements := ajourne_évènements_fenêtre(fenêtre)
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+        taille_canevas = Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+        peintre.définis_taille_canevas(taille_canevas)
+
+        dernière_souris := donne_état_souris(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si it.touche_pressée && it.touche == ToucheClavier.O {
+                // À FAIRE(modules) : fonction générique pour avance une énumération
+                type_outil_entier := type_outil comme z32
+                type_outil_entier += 1
+                si type_outil_entier >= TypeOutil.nombre_éléments {
+                    type_outil_entier = 0
+                }
+                type_outil = type_outil_entier comme TypeOutil
+            }
+
+            it.état_souris.où.y = hauteur - it.état_souris.où.y
+
+            outil_gère_évènement(it, dernière_souris)
+        }
+
+        marque := donne_marque_stockage_temporaire()
+        diffère définis_marque_stockage_temporaire(marque)
+
+        peintre.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
+
+        si type_outil == TypeOutil.TEST {
+            dessine_segment_bézier(fenêtre, peintre)
+        }
+        sinon {
+            dessine_tracé(peintre)
+        }
+
+        texte := imprime_chaine_temp("Outil : % (pressez O pour outil suivant)", type_outil)
+        rect_texte: RectanglePosDim(r32)
+        rect_texte.x = 10
+        rect_texte.hauteur = 30
+        rect_texte.y = hauteur comme r32 - rect_texte.hauteur
+        rect_texte.largeur = donne_largeur_texte(fonte, texte) comme r32
+        dessine_texte(peintre, fonte, texte, rect_texte, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+        peintre.termine_dessin()
+        permute_tampons_fenêtre(fenêtre)
+    }
+}
+
+outil_gère_évènement :: fonc (évènement: Évènement, dernière_souris: ÉtatSouris)
+{
+    discr type_outil {
+        TEST {
+            outil_test_gère_évènement(évènement)
+        }
+        PLUME {
+            outil_plume_gère_évènement(évènement, dernière_souris)
+        }
+        PLUME_DE_COURBURE {
+            outil_plume_de_courbure_gère_évènement(évènement, dernière_souris)
+        }
+        PLUME_DE_FORME_LIBRE {
+            outil_plume_de_forme_libre_gère_évènement(évènement)
+        }
+    }
+}
+
+outil_test_gère_évènement :: fonc (it: Évènement)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                si nombre_de_points < 4 {
+
+                    si point_sélectionné == -1 {
+                        points[nombre_de_points].x = souris_x
+                        points[nombre_de_points].y = souris_y
+
+                        points[nombre_de_points + 1].x = souris_x
+                        points[nombre_de_points + 1].y = souris_y
+
+                        point_sélectionné = nombre_de_points + 1
+                        nombre_de_points += 2
+                    }
+                    sinon {
+                        points[point_sélectionné].x = souris_x
+                        points[point_sélectionné].y = souris_y
+                        point_sélectionné = -1
+                    }
+                }
+                sinon {
+                    mode_sélection_point = vrai
+                    point_sélectionné = -1
+                    pour p, index_point dans points {
+                        dx := p.x - souris_x
+                        dy := p.y - souris_y
+
+                        si (dx * dx + dy * dy) < (LARGEUR_POINT * LARGEUR_POINT) {
+                            point_sélectionné = index_point comme z32
+                        }
+                    }
+                }
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                si mode_sélection_point {
+                    point_sélectionné = -1
+                    mode_sélection_point = faux
+                }
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                si point_sélectionné != -1 {
+                    souris_x := it.état_souris.où.x comme r32
+                    souris_y := it.état_souris.où.y comme r32
+                    points[point_sélectionné].x = souris_x
+                    points[point_sélectionné].y = souris_y
+                }
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            si point_sélectionné != -1 {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                points[point_sélectionné].x = souris_x
+                points[point_sélectionné].y = souris_y
+            }
+        }
     }
 }
 
@@ -28,82 +175,9 @@ doit_fermer := faux
 mode_sélection_point := faux
 point_sélectionné := -1
 
-dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre)
+dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre, peintre: *Peintre @inutilisée)
 {
-    évènements := ajourne_évènements_fenêtre(fenêtre)
-
     largeur, hauteur := donne_taille_fenêtre(fenêtre)
-
-    pour évènements {
-        si it.type == TypeÉvènement.Fermeture {
-            doit_fermer = vrai
-            arrête
-        }
-
-        si it.type == TypeÉvènement.Souris {
-            si it.bouton_souris == BoutonSouris.GAUCHE {
-                si it.action_souris == ActionSouris.PRESSÉE {
-                    souris_x := it.état_souris.où.x comme r32
-                    souris_y := (hauteur - it.état_souris.où.y) comme r32
-                    si nombre_de_points < 4 {
-
-                        si point_sélectionné == -1 {
-                            points[nombre_de_points].x = souris_x
-                            points[nombre_de_points].y = souris_y
-
-                            points[nombre_de_points + 1].x = souris_x
-                            points[nombre_de_points + 1].y = souris_y
-
-                            point_sélectionné = nombre_de_points + 1
-                            nombre_de_points += 2
-                        }
-                        sinon {
-                            points[point_sélectionné].x = souris_x
-                            points[point_sélectionné].y = souris_y
-                            point_sélectionné = -1
-                        }
-                    }
-                    sinon {
-                        mode_sélection_point = vrai
-                        point_sélectionné = -1
-                        pour p, index_point dans points {
-                            dx := p.x - souris_x
-                            dy := p.y - souris_y
-
-                            si (dx * dx + dy * dy) < (LARGEUR_POINT * LARGEUR_POINT) {
-                                point_sélectionné = index_point comme z32
-                            }
-                        }
-                    }
-                }
-                sinon si it.action_souris == ActionSouris.RELACHÉE {
-                    si mode_sélection_point {
-                        point_sélectionné = -1
-                        mode_sélection_point = faux
-                    }
-                }
-                sinon si it.action_souris == ActionSouris.DÉPLACÉE {
-                    si point_sélectionné != -1 {
-                        souris_x := it.état_souris.où.x comme r32
-                        souris_y := (hauteur - it.état_souris.où.y) comme r32
-                        points[point_sélectionné].x = souris_x
-                        points[point_sélectionné].y = souris_y
-                    }
-                }
-            }
-            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
-                si point_sélectionné != -1 {
-                    souris_x := it.état_souris.où.x comme r32
-                    souris_y := (hauteur - it.état_souris.où.y) comme r32
-                    points[point_sélectionné].x = souris_x
-                    points[point_sélectionné].y = souris_y
-                }
-            }
-        }
-    }
-
-    IGUMI.définis_fenêtre(largeur, hauteur)
-    IGUMI.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
 
     IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
 
@@ -134,61 +208,32 @@ dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre)
     }
 
     IGUMI.termine_immédiat()
-    permute_tampons_fenêtre(fenêtre)
 }
 
 chemin: Chemin
-peintre_: *Peintre
 un_noeud_vient_d_être_positionné := faux
 déplace_le_dernier_noeud := faux
 delta_déplacement_dernier_noeud: Vec2
 
-dessine_tracé :: fonc (fenêtre: TypeFenêtre)
+dessine_tracé :: fonc (peintre: *Peintre)
 {
-    évènements := ajourne_évènements_fenêtre(fenêtre)
-
-    largeur, hauteur := donne_taille_fenêtre(fenêtre)
-
-    pour évènements {
-        si it.type == TypeÉvènement.Fermeture {
-            doit_fermer = vrai
-            arrête
-        }
-
-        // outil_plume(it, fenêtre)
-        // outil_plume_de_courbure(it, fenêtre)
-        outil_plume_de_forme_libre(it, fenêtre)
-    }
-
-    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
-    saufsi peintre_ {
-        peintre_ = crée_peintre_igumi(taille_canevas)
-        peintre_.définis_taille_canevas(taille_canevas)
-    }
-
     pour points_pour_plume_de_forme_libre.taille - 2 {
         p0 := points_pour_plume_de_forme_libre[it]
         p1 := points_pour_plume_de_forme_libre[it + 1]
 
-        peintre_.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
+        peintre.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
     }
 
-    peintre_.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
-    dessine_chemin(peintre_, chemin)
-
-    peintre_.termine_dessin()
-    permute_tampons_fenêtre(fenêtre)
+    dessine_chemin(peintre, chemin)
 }
 
-outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+outil_plume_gère_évènement :: fonc (it: Évènement, dernière_souris: ÉtatSouris)
 {
-    largeur, hauteur := donne_taille_fenêtre(fenêtre)
-
     si it.type == TypeÉvènement.Souris {
         si it.bouton_souris == BoutonSouris.GAUCHE {
             si it.action_souris == ActionSouris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
 
                 si chemin.sous_chemins.taille == 0 {
                     _ := tableau_ajoute_élément(*chemin.sous_chemins)
@@ -224,7 +269,7 @@ outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
                     noeud := dernier_élément(sous_chemin.noeuds)
 
                     souris_x := it.état_souris.où.x comme r32
-                    souris_y := (hauteur - it.état_souris.où.y) comme r32
+                    souris_y := it.état_souris.où.y comme r32
 
                     noeud.controle_avant.x = souris_x
                     noeud.controle_avant.y = souris_y
@@ -240,7 +285,7 @@ outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
                 noeud := dernier_élément(sous_chemin.noeuds)
 
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
 
                 nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
                 nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
@@ -267,10 +312,9 @@ outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
                     noeud := dernier_élément(sous_chemin.noeuds)
 
                     déplace_le_dernier_noeud = vrai
-                    dernière_souris := donne_état_souris(fenêtre)
 
                     souris_x := dernière_souris.où.x comme r32
-                    souris_y := (hauteur - dernière_souris.où.y) comme r32
+                    souris_y := dernière_souris.où.y comme r32
 
                     delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
                     delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
@@ -285,15 +329,13 @@ outil_plume :: fonc (it: Évènement, fenêtre: TypeFenêtre)
     }
 }
 
-outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+outil_plume_de_courbure_gère_évènement :: fonc (it: Évènement, dernière_souris: ÉtatSouris)
 {
-    largeur, hauteur := donne_taille_fenêtre(fenêtre)
-
     si it.type == TypeÉvènement.Souris {
         si it.bouton_souris == BoutonSouris.GAUCHE {
             si it.action_souris == ActionSouris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
 
                 si chemin.sous_chemins.taille == 0 {
                     _ := tableau_ajoute_élément(*chemin.sous_chemins)
@@ -325,7 +367,7 @@ outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
                 noeud := dernier_élément(sous_chemin.noeuds)
 
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
 
                 nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
                 nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
@@ -348,10 +390,9 @@ outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
                     noeud := dernier_élément(sous_chemin.noeuds)
 
                     déplace_le_dernier_noeud = vrai
-                    dernière_souris := donne_état_souris(fenêtre)
 
                     souris_x := dernière_souris.où.x comme r32
-                    souris_y := (hauteur - dernière_souris.où.y) comme r32
+                    souris_y := dernière_souris.où.y comme r32
 
                     delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
                     delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
@@ -368,21 +409,19 @@ outil_plume_de_courbure :: fonc (it: Évènement, fenêtre: TypeFenêtre)
 
 points_pour_plume_de_forme_libre: [..]Point2D(r32)
 
-outil_plume_de_forme_libre :: fonc (it: Évènement, fenêtre: TypeFenêtre)
+outil_plume_de_forme_libre_gère_évènement :: fonc (it: Évènement)
 {
-    largeur, hauteur := donne_taille_fenêtre(fenêtre)
-
     si it.type == TypeÉvènement.Souris {
         si it.bouton_souris == BoutonSouris.GAUCHE {
             si it.action_souris == ActionSouris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
 
                 tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
             }
             sinon si it.action_souris == ActionSouris.DÉPLACÉE {
                 souris_x := it.état_souris.où.x comme r32
-                souris_y := (hauteur - it.état_souris.où.y) comme r32
+                souris_y := it.état_souris.où.y comme r32
                 
                 tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
             }
