@@ -828,6 +828,20 @@ contiens :: fonc (chn: chaine, sous_chaine: chaine, par := ChercheAiguillePar.Fo
     retourne cherche_aiguille(chn, sous_chaine, par) != -1
 }
 
+donne_sous_chaine_jusque :: fonc (texte: chaine, caractère: z8) -> (résultat: chaine, reste: chaine)
+{
+    pos := trouve_caractère_depuis_le_début(texte, caractère)
+    si pos == -1 {
+        résultat = texte
+        reste = ""
+    }
+    sinon {
+        résultat = sous_chaine(texte, 0, pos)
+        reste = avance(texte, pos + 1)
+    }
+    retourne résultat, reste
+}
+
 /* Une simple parseuse pour travailler sur des chaines.
  */
 ParseuseChaine :: struct {
