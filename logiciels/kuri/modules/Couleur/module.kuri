@@ -42,6 +42,26 @@ opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
     retourne vrai
 }
 
+opérateur * :: (a: CouleurRVBA, b: r32) -> CouleurRVBA
+{
+    résultat := a
+    résultat.r *= b
+    résultat.v *= b
+    résultat.b *= b
+    résultat.a *= b
+    retourne résultat
+}
+
+opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
+{
+    résultat := a
+    résultat.r += b.r
+    résultat.v += b.v
+    résultat.b += b.b
+    résultat.a += b.a
+    retourne résultat
+}
+
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
 {
     résultat := couleur
