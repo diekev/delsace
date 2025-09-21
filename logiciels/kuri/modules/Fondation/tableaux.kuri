@@ -460,7 +460,7 @@ tableau_possède_élément :: fonc (tableau: []$T, valeur: T) -> bool
     retourne faux
 }
 
-tableaux_ont_mêmes_valeurs :: fonc (a: []$T, b: []T) -> bool
+tableaux_ont_mêmes_valeurs_désordonnées :: fonc (a: []$T, b: []T) -> bool
 {
     si a.taille != b.taille {
         retourne faux
@@ -468,6 +468,27 @@ tableaux_ont_mêmes_valeurs :: fonc (a: []$T, b: []T) -> bool
 
     pour a {
         saufsi tableau_possède_élément(b, it) {
+            retourne faux
+        }
+    }
+
+    pour b {
+        saufsi tableau_possède_élément(a, it) {
+            retourne faux
+        }
+    }
+
+    retourne vrai
+}
+
+tableaux_ont_mêmes_valeurs :: fonc (a: []$T, b: []T) -> bool
+{
+    si a.taille != b.taille {
+        retourne faux
+    }
+
+    pour a {
+        si b[indice_it] != it {
             retourne faux
         }
     }
