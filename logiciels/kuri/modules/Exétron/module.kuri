@@ -179,6 +179,54 @@ attend_sur_complétion_tâches :: fonc (file: *FileDeTravail)
     }
 }
 
+contexte_boucle_parallèle :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
+{
+    #si faux {
+        // À FAIRE : rend le système plus flexible
+        pour * tâches {
+            contexte_ajoute_tâche(rappel, it)
+        }
+
+        contexte_attend_sur_tâches()
+    }
+    sinon {
+        plage: PlageExecution
+        plage.debut = 0
+        plage.fin = tâches.taille
+
+        DonnéesTâcheParallele :: struct {
+            empl base: DonneesTacheParallele
+            tâches: []T
+            fonction_utilisateur: fonc (*T)(rien)
+        }
+
+        fonction_pour_boucle :: fonc (données: *DonnéesTâcheParallele, plage: *PlageExecution) #sanstrace
+        {
+            // À FAIRE : ne le fais que pour chaque fil
+            __init_contexte_fil_exécution()
+
+            pour plage.debut ... plage.fin - 1 {
+                tâche := *données.tâches[it]
+                données.fonction_utilisateur(tâche)
+            }
+        }
+
+        données: DonnéesTâcheParallele
+        données.tâches = tâches
+        données.fonction_utilisateur = rappel
+        données.fonction = fonction_pour_boucle
+
+        EXETRON_boucle_parallele(*plage, *données, 1)
+    }
+}
+
+contexte_boucle_série :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
+{
+    pour * tâches {
+        rappel(it)
+    }
+}
+
 /** \} */
 
 /*
