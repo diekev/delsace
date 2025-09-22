@@ -1039,6 +1039,13 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)()
 }
 
+donne_rect :: fonc () -> RectanglePosDim(r32)
+{
+    assert(__boite_courante != nul)
+    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id)
+    retourne résultat
+}
+
 définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
 {
     pour * emboiteuse.éditrices_textes {
