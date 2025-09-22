@@ -114,7 +114,7 @@ SousChemin :: struct {
     Noeud :: struct {
         Drapeaux :: énum_drapeau {
             ANCRE_VISIBLE
-            ANCRE_SÉCELCTIONNÉE
+            ANCRE_SÉLECTIONNÉE
             CONTROLE_AVANT_VISIBLE
             CONTROLE_ARRIÈRE_VISIBLE
             CONTROLES_LIÉS
@@ -122,7 +122,7 @@ SousChemin :: struct {
 
             DRAPEAUX_DÉFAUT :: ANCRE_VISIBLE
             SÉLECTION_CONTOLES :: CONTROLE_AVANT_VISIBLE | CONTROLE_ARRIÈRE_VISIBLE
-            SÉLECTION :: ANCRE_SÉCELCTIONNÉE | SÉLECTION_CONTOLES
+            SÉLECTION :: ANCRE_SÉLECTIONNÉE | SÉLECTION_CONTOLES
         }
 
         controle_arrière: Point2D(r32)
