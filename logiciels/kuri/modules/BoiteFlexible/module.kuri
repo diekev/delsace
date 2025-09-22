@@ -266,6 +266,11 @@ ConfigurationDéfilage :: struct {
 Cotation :: struct {
     largeur: z32
     hauteur: z32
+
+    largeur_min: n32
+    hauteur_min: n32
+    largeur_max: n32 = 0xffffffff
+    hauteur_max: n32 = 0xffffffff
 }
 
 crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
@@ -550,6 +555,22 @@ donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
         retourne donne_cotation(boite.disposition.cotation.largeur)
     }
     retourne donne_cotation(boite.disposition.cotation.hauteur)
+}
+
+donne_cotation_min :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.cotation.largeur_min
+    }
+    retourne boite.disposition.cotation.hauteur_min
+}
+
+donne_cotation_max :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.cotation.largeur_max
+    }
+    retourne boite.disposition.cotation.hauteur_max
 }
 
 est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
@@ -1442,7 +1463,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         cotation += boite.donne_rembourrage(direction)
         /* Inclus le rembourrage dans la taille minimale afin de ne pas souscoter
          * des boites qui ne contiennent que du texte.
-         * (Ou alors il faudra noter que le texte doit être élidée). */
+         * (Ou alors il faudra noter que le texte doit être élidé). */
         boite.taille_min[direction] += boite.donne_rembourrage(direction)
 
         si boite.disposition.direction == direction {
@@ -1450,6 +1471,17 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         }
 
         cotation = max(cotation, boite.donne_cotation(direction) comme r32)
+    }
+
+    boite.taille_min[direction] = max(boite.taille_min[direction], donne_cotation_min(boite, direction) comme r32)
+
+    si cotation < boite.taille_min[direction] {
+        cotation = boite.taille_min[direction]
+    }
+
+    cotation_max_spécifiée := donne_cotation_max(boite, direction) comme r32
+    si cotation > cotation_max_spécifiée {
+        cotation = cotation_max_spécifiée
     }
 
     boite.définis_taille(direction, cotation)
