@@ -1812,6 +1812,17 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.largeur = boite.largeur
             rect.hauteur = boite.hauteur
 
+            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite)
+            si boite_pour_ciselage {
+                // À FAIRE : ne restreint que dans la bonne direction
+                rect_ciselage: RectanglePosDim(r32)
+                rect_ciselage.x = boite_pour_ciselage.position.x
+                rect_ciselage.y = boite_pour_ciselage.position.y
+                rect_ciselage.largeur = boite_pour_ciselage.largeur
+                rect_ciselage.hauteur = boite_pour_ciselage.hauteur
+                commandes.débute_ciselage(rect_ciselage)
+            }
+
             discr boite.type {
                 Normale {
                     si boite.rectangle.rayon_coin != 0.0 {
@@ -1856,9 +1867,8 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                 }
             }
 
-            si boite.défilage.vertical || boite.défilage.horizontal {
-                // À FAIRE : ne restreint que dans la bonne direction
-                commandes.débute_ciselage(rect)
+            si boite_pour_ciselage {
+                commandes.termine_ciselage()
             }
 
             pour > boite.enfants {
@@ -1883,8 +1893,6 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
         rect.hauteur = boite.hauteur
 
         si boite.défilage.vertical || boite.défilage.horizontal {
-            commandes.termine_ciselage()
-
             si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
                 barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
 
@@ -1925,6 +1933,18 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
         }
     }
+}
+
+donne_parent_avec_barre_défilage :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
+{
+    parent := boite.parent
+    tantque parent != nul {
+        si parent.défilage.vertical || parent.défilage.horizontal {
+            arrête
+        }
+        parent = parent.parent
+    }
+    retourne parent
 }
 
 /** \} */
