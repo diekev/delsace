@@ -258,6 +258,9 @@ donne_cotation :: fonc (v: z32) -> z32
 ConfigurationDéfilage :: struct {
     vertical: bool
     horizontal: bool
+
+    largeur_verticale := 16.0
+    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
 }
 
 Cotation :: struct {
@@ -365,6 +368,14 @@ ajoute_défilage :: fonc (config: ConfigurationDéfilage)
 {
     assert(__boite_courante != nul)
     __boite_courante.défilage = config
+}
+
+ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7))
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage.vertical = vrai
+    __boite_courante.défilage.largeur_verticale = largeur
+    __boite_courante.défilage.couleur_verticale = couleur
 }
 
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
@@ -1898,12 +1909,12 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-                rect.x = rect.x + boite.largeur - 16.0
-                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio
-                rect.largeur = 12.0
-                rect.hauteur = hauteur_disponible * barre.ratio
+                rect.x = rect.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
+                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
+                rect.largeur = boite.défilage.largeur_verticale - 2.0
+                rect.hauteur = hauteur_disponible * barre.ratio - 2.0
 
-                couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+                couleur_barre := boite.défilage.couleur_verticale
 
                 commandes.remplis_rectangle(rect, couleur_barre)
             }
