@@ -962,17 +962,17 @@ glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: Coul
 
 souslignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.underline_position, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.underline_position, couleur)
 }
 
 surlignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.ascender, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender, couleur)
 }
 
 barrage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.font.ascender * 0.33, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender * 0.33, couleur)
 }
 
 ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
@@ -980,7 +980,7 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
     x0 := x
     y0 := y
     x1 := x0 + glyph.advance_x
-    y1 := y0 - fonte.font.underline_thickness
+    y1 := y0 - fonte.underline_thickness
     s0 := caractère_nul.s0
     t0 := caractère_nul.t0
     s1 := caractère_nul.s1
