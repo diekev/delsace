@@ -543,6 +543,53 @@ strlen :: fonc (str: *z8) -> n64 #externe libc
 // <sys/mman.h>
 // <sys/msg.h>
 // <sys/resource.h>
+
+/* ------------------------------------------------------------------------- */
+/** \nom sys/resource.h
+ * \{ */
+
+rusage :: struct {
+    ru_utime: timeval     /* user CPU time used */
+    ru_stime: timeval     /* system CPU time used */
+    ru_maxrss: z64        /* maximum resident set size */
+    ru_ixrss: z64         /* integral shared memory size */
+    ru_idrss: z64         /* integral unshared data size */
+    ru_isrss: z64         /* integral unshared stack size */
+    ru_minflt: z64        /* page reclaims (soft page faults) */
+    ru_majflt: z64        /* page faults (hard page faults) */
+    ru_nswap: z64         /* swaps */
+    ru_inblock: z64       /* block input operations */
+    ru_oublock: z64       /* block output operations */
+    ru_msgsnd: z64        /* IPC messages sent */
+    ru_msgrcv: z64        /* IPC messages received */
+    ru_nsignals: z64      /* signals received */
+    ru_nvcsw: z64         /* voluntary context switches */
+    ru_nivcsw: z64        /* involuntary context switches */
+}
+
+
+/* Whose usage statistics do you want?  */
+__rusage_who :: énum z32 {
+    /* The calling process.  */
+    RUSAGE_SELF :: 0
+
+    /* All of its terminated child processes.  */
+    RUSAGE_CHILDREN :: -1
+
+    /* The calling thread.  */
+    RUSAGE_THREAD :: 1
+}
+
+RUSAGE_SELF :: __rusage_who.RUSAGE_SELF
+RUSAGE_CHILDREN :: __rusage_who.RUSAGE_CHILDREN
+RUSAGE_THREAD :: __rusage_who.RUSAGE_THREAD
+  /* Name for the same functionality on Solaris.  */
+RUSAGE_LWP :: __rusage_who.RUSAGE_THREAD
+
+getrusage :: fonc (who: __rusage_who, usage: *rusage) -> z32 #externe libc
+
+/** \} */
+
 // <sys/select.h>
 // <sys/sem.h>
 // <sys/shm.h>
