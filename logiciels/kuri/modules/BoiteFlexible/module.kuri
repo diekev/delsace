@@ -258,11 +258,19 @@ donne_cotation :: fonc (v: z32) -> z32
 ConfigurationDéfilage :: struct {
     vertical: bool
     horizontal: bool
+
+    largeur_verticale := 16.0
+    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
 }
 
 Cotation :: struct {
     largeur: z32
     hauteur: z32
+
+    largeur_min: n32
+    hauteur_min: n32
+    largeur_max: n32 = 0xffffffff
+    hauteur_max: n32 = 0xffffffff
 }
 
 crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
@@ -365,6 +373,14 @@ ajoute_défilage :: fonc (config: ConfigurationDéfilage)
 {
     assert(__boite_courante != nul)
     __boite_courante.défilage = config
+}
+
+ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7))
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage.vertical = vrai
+    __boite_courante.défilage.largeur_verticale = largeur
+    __boite_courante.défilage.couleur_verticale = couleur
 }
 
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
@@ -539,6 +555,22 @@ donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
         retourne donne_cotation(boite.disposition.cotation.largeur)
     }
     retourne donne_cotation(boite.disposition.cotation.hauteur)
+}
+
+donne_cotation_min :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.cotation.largeur_min
+    }
+    retourne boite.disposition.cotation.hauteur_min
+}
+
+donne_cotation_max :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+{
+    si direction == Direction.Horizontale {
+        retourne boite.disposition.cotation.largeur_max
+    }
+    retourne boite.disposition.cotation.hauteur_max
 }
 
 est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
@@ -1039,6 +1071,13 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)()
 }
 
+donne_rect :: fonc () -> RectanglePosDim(r32)
+{
+    assert(__boite_courante != nul)
+    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id)
+    retourne résultat
+}
+
 définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
 {
     pour * emboiteuse.éditrices_textes {
@@ -1424,7 +1463,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         cotation += boite.donne_rembourrage(direction)
         /* Inclus le rembourrage dans la taille minimale afin de ne pas souscoter
          * des boites qui ne contiennent que du texte.
-         * (Ou alors il faudra noter que le texte doit être élidée). */
+         * (Ou alors il faudra noter que le texte doit être élidé). */
         boite.taille_min[direction] += boite.donne_rembourrage(direction)
 
         si boite.disposition.direction == direction {
@@ -1432,6 +1471,17 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         }
 
         cotation = max(cotation, boite.donne_cotation(direction) comme r32)
+    }
+
+    boite.taille_min[direction] = max(boite.taille_min[direction], donne_cotation_min(boite, direction) comme r32)
+
+    si cotation < boite.taille_min[direction] {
+        cotation = boite.taille_min[direction]
+    }
+
+    cotation_max_spécifiée := donne_cotation_max(boite, direction) comme r32
+    si cotation > cotation_max_spécifiée {
+        cotation = cotation_max_spécifiée
     }
 
     boite.définis_taille(direction, cotation)
@@ -1805,6 +1855,17 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.largeur = boite.largeur
             rect.hauteur = boite.hauteur
 
+            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite)
+            si boite_pour_ciselage {
+                // À FAIRE : ne restreint que dans la bonne direction
+                rect_ciselage: RectanglePosDim(r32)
+                rect_ciselage.x = boite_pour_ciselage.position.x
+                rect_ciselage.y = boite_pour_ciselage.position.y
+                rect_ciselage.largeur = boite_pour_ciselage.largeur
+                rect_ciselage.hauteur = boite_pour_ciselage.hauteur
+                commandes.débute_ciselage(rect_ciselage)
+            }
+
             discr boite.type {
                 Normale {
                     si boite.rectangle.rayon_coin != 0.0 {
@@ -1849,9 +1910,8 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                 }
             }
 
-            si boite.défilage.vertical || boite.défilage.horizontal {
-                // À FAIRE : ne restreint que dans la bonne direction
-                commandes.débute_ciselage(rect)
+            si boite_pour_ciselage {
+                commandes.termine_ciselage()
             }
 
             pour > boite.enfants {
@@ -1876,19 +1936,17 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
         rect.hauteur = boite.hauteur
 
         si boite.défilage.vertical || boite.défilage.horizontal {
-            commandes.termine_ciselage()
-
             si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
                 barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-                rect.x = rect.x + boite.largeur - 16.0
-                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio
-                rect.largeur = 12.0
-                rect.hauteur = hauteur_disponible * barre.ratio
+                rect.x = rect.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
+                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
+                rect.largeur = boite.défilage.largeur_verticale - 2.0
+                rect.hauteur = hauteur_disponible * barre.ratio - 2.0
 
-                couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+                couleur_barre := boite.défilage.couleur_verticale
 
                 commandes.remplis_rectangle(rect, couleur_barre)
             }
@@ -1918,6 +1976,18 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
         }
     }
+}
+
+donne_parent_avec_barre_défilage :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
+{
+    parent := boite.parent
+    tantque parent != nul {
+        si parent.défilage.vertical || parent.défilage.horizontal {
+            arrête
+        }
+        parent = parent.parent
+    }
+    retourne parent
 }
 
 /** \} */
