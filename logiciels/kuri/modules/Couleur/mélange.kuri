@@ -279,3 +279,43 @@ fonctions_de_mélange : [OpérationMélange.nombre_éléments]TypeFonction = [
     pochoir,
     superpose
 ]
+
+fusionne_couleurs :: fonc (base: []CouleurRVBA, source: []CouleurRVBA, opacité: r32, mode_de_fusion: OpérationMélange)
+{
+    assert(base.taille == source.taille)
+
+    ptr_source := source.pointeur
+    ptr_base := base.pointeur
+    ptr_dest := base.pointeur
+
+    fonction_de_mélange := fonctions_de_mélange[mode_de_fusion]
+
+    pour base.taille {
+        couleur_base := ptr_base[it]
+        couleur_source := ptr_source[it]
+
+        alpha_source := couleur_source.a * opacité
+
+        résultat: CouleurRVBA
+        résultat.r = fonction_de_mélange(couleur_source.r, alpha_source, couleur_base.r, couleur_base.a)
+        résultat.v = fonction_de_mélange(couleur_source.v, alpha_source, couleur_base.v, couleur_base.a)
+        résultat.b = fonction_de_mélange(couleur_source.b, alpha_source, couleur_base.b, couleur_base.a)
+        résultat.a = fonction_de_mélange(couleur_source.a, alpha_source, couleur_base.a, couleur_base.a)
+
+        ptr_dest[it] = résultat
+    }
+}
+
+mélange :: fonc (base: CouleurRVBA, dessus: CouleurRVBA, opacité: r32, mode: OpérationMélange) -> CouleurRVBA
+{
+    résultat: CouleurRVBA
+
+    fonction := fonctions_de_mélange[mode]
+
+    résultat.r = fonction(base.r, base.a, dessus.r, dessus.a)
+    résultat.v = fonction(base.v, base.a, dessus.v, dessus.a)
+    résultat.b = fonction(base.b, base.a, dessus.b, dessus.a)
+    résultat.a = fonction(base.a, base.a, dessus.a, dessus.a)
+
+    retourne résultat
+}
