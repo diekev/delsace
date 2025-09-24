@@ -420,7 +420,7 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
 {
     fonte_défaut_mono := "fontes/FiraCode-Regular.ttf"
     anonyme.fonte = crée_fonte(fonte_défaut_mono, 16)
-    anonyme.fonte.font.kerning = faux
+    anonyme.fonte.kerning = faux
 
     initialise_éditrice(*anonyme.éditrice_sélection_fichier, anonyme.fonte, "", nul)
     initialise_édition_sélection_fichier(*anonyme.rappels_édition_texte, anonyme)

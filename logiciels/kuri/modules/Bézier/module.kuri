@@ -114,7 +114,7 @@ SousChemin :: struct {
     Noeud :: struct {
         Drapeaux :: énum_drapeau {
             ANCRE_VISIBLE
-            ANCRE_SÉCELCTIONNÉE
+            ANCRE_SÉLECTIONNÉE
             CONTROLE_AVANT_VISIBLE
             CONTROLE_ARRIÈRE_VISIBLE
             CONTROLES_LIÉS
@@ -122,7 +122,7 @@ SousChemin :: struct {
 
             DRAPEAUX_DÉFAUT :: ANCRE_VISIBLE
             SÉLECTION_CONTOLES :: CONTROLE_AVANT_VISIBLE | CONTROLE_ARRIÈRE_VISIBLE
-            SÉLECTION :: ANCRE_SÉCELCTIONNÉE | SÉLECTION_CONTOLES
+            SÉLECTION :: ANCRE_SÉLECTIONNÉE | SÉLECTION_CONTOLES
         }
 
         controle_arrière: Point2D(r32)
@@ -501,6 +501,239 @@ dessine_chemin :: fonc (peintre: *Peintre, chemin: Chemin, couleur := CouleurRVB
             peintre.dessine_segment(échantillons[échantillons.taille - 1], p1, couleur)
         }
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Plume
+ * \{ */
+
+Plume :: struct {
+    chemin: Chemin
+    un_noeud_vient_d_être_positionné := faux
+    déplace_le_dernier_noeud := faux
+    delta_déplacement_dernier_noeud: Vec2
+}
+
+commence_ajout_noeud :: fonc (empl plume: *Plume, x: r32, y: r32)
+{
+    si déplace_le_dernier_noeud {
+        retourne
+    }
+
+    si chemin.sous_chemins.taille == 0 {
+        _ := tableau_ajoute_élément(*chemin.sous_chemins)
+    }
+
+    sous_chemin := dernier_élément(chemin.sous_chemins)
+
+    touche := donne_touche_tracé(*chemin, x, y)
+
+    si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
+        /* Nous touchons le premier noeud -> fermeture du chemin. */
+        sous_chemin.est_fermé = vrai
+    }
+    sinon {
+        noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
+        noeud.ancre.x = x
+        noeud.ancre.y = y
+        noeud.controle_avant = noeud.ancre
+        noeud.controle_arrière = noeud.ancre
+
+        // nous_pouvons_développer_les_ancres = vrai
+        un_noeud_vient_d_être_positionné = vrai
+    }
+}
+
+continue_ajout_noeud :: fonc (empl plume: *Plume, x: r32, y: r32)
+{
+    si déplace_le_dernier_noeud {
+        retourne
+    }
+
+    // nous_pouvons_développer_les_ancres
+    si un_noeud_vient_d_être_positionné {
+        sous_chemin := dernier_élément(chemin.sous_chemins)
+        noeud := dernier_élément(sous_chemin.noeuds)
+
+        noeud.controle_avant.x = x
+        noeud.controle_avant.y = y
+
+        noeud.controle_arrière.x = noeud.ancre.x + (noeud.ancre.x - noeud.controle_avant.x)
+        noeud.controle_arrière.y = noeud.ancre.y + (noeud.ancre.y - noeud.controle_avant.y)
+    }
+}
+
+termine_ajout_noeud :: fonc (empl plume: *Plume)
+{
+    si déplace_le_dernier_noeud {
+        retourne
+    }
+
+    // nous_pouvons_développer_les_ancres = faux
+    un_noeud_vient_d_être_positionné = faux
+}
+
+commence_déplacement_dernier_noeud :: fonc (empl plume: *Plume, x: r32, y: r32)
+{
+    si un_noeud_vient_d_être_positionné || déplace_le_dernier_noeud {
+        retourne
+    }
+
+    si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
+        sous_chemin := dernier_élément(chemin.sous_chemins)
+        noeud := dernier_élément(sous_chemin.noeuds)
+
+        déplace_le_dernier_noeud = vrai
+
+        delta_déplacement_dernier_noeud.x = x - noeud.ancre.x
+        delta_déplacement_dernier_noeud.y = y - noeud.ancre.y
+    }
+}
+
+continue_déplacement_dernier_noeud :: fonc (empl plume: *Plume, x: r32, y: r32)
+{
+    si un_noeud_vient_d_être_positionné {
+        retourne
+    }
+
+    si déplace_le_dernier_noeud {
+        sous_chemin := dernier_élément(chemin.sous_chemins)
+        noeud := dernier_élément(sous_chemin.noeuds)
+
+        nouvelle_ancre_x := x - delta_déplacement_dernier_noeud.x
+        nouvelle_ancre_y := y - delta_déplacement_dernier_noeud.y
+
+        dx := nouvelle_ancre_x - noeud.ancre.x
+        dy := nouvelle_ancre_y - noeud.ancre.y
+
+        noeud.ancre.x = nouvelle_ancre_x
+        noeud.ancre.y = nouvelle_ancre_y
+
+        noeud.controle_avant.x += dx
+        noeud.controle_avant.y += dy
+
+        noeud.controle_arrière.x += dx
+        noeud.controle_arrière.y += dy
+    }
+}
+
+termine_déplacement_dernier_noeud :: fonc (empl plume: *Plume)
+{
+    si un_noeud_vient_d_être_positionné {
+        retourne
+    }
+
+    déplace_le_dernier_noeud = faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PlumeDeCourbure
+ * \{ */
+
+PlumeDeCourbure :: struct {
+    chemin: Chemin
+    déplace_le_dernier_noeud := faux
+    delta_déplacement_dernier_noeud: Vec2
+}
+
+ajoute_point :: fonc (empl plume: *PlumeDeCourbure, x: r32, y: r32)
+{
+    si chemin.sous_chemins.taille == 0 {
+        _ := tableau_ajoute_élément(*chemin.sous_chemins)
+    }
+
+    sous_chemin := dernier_élément(chemin.sous_chemins)
+
+    touche := donne_touche_tracé(*chemin, x, y)
+
+    si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
+        /* Nous touchons le premier noeud -> fermeture du chemin. */
+        sous_chemin.est_fermé = vrai
+    }
+    sinon {
+        noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
+        noeud.ancre.x = x
+        noeud.ancre.y = y
+
+        noeud.controle_avant = noeud.ancre
+        noeud.controle_arrière = noeud.ancre
+    }
+
+    interpole_courbe_depuis_polygone(mémoire(sous_chemin))
+}
+
+commence_déplacement_dernier_noeud :: fonc (empl plume: *PlumeDeCourbure, x: r32, y: r32)
+{
+    si déplace_le_dernier_noeud {
+        retourne
+    }
+
+    si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
+        sous_chemin := dernier_élément(chemin.sous_chemins)
+        noeud := dernier_élément(sous_chemin.noeuds)
+
+        déplace_le_dernier_noeud = vrai
+
+        delta_déplacement_dernier_noeud.x = x - noeud.ancre.x
+        delta_déplacement_dernier_noeud.y = y - noeud.ancre.y
+    }
+}
+
+continue_déplacement_dernier_noeud :: fonc (empl plume: *PlumeDeCourbure, x: r32, y: r32)
+{
+    si déplace_le_dernier_noeud {
+        sous_chemin := dernier_élément(chemin.sous_chemins)
+        noeud := dernier_élément(sous_chemin.noeuds)
+
+        nouvelle_ancre_x := x - delta_déplacement_dernier_noeud.x
+        nouvelle_ancre_y := y - delta_déplacement_dernier_noeud.y
+
+        dx := nouvelle_ancre_x - noeud.ancre.x
+        dy := nouvelle_ancre_y - noeud.ancre.y
+
+        noeud.ancre.x = nouvelle_ancre_x
+        noeud.ancre.y = nouvelle_ancre_y
+
+        noeud.controle_avant.x += dx
+        noeud.controle_avant.y += dy
+
+        noeud.controle_arrière.x += dx
+        noeud.controle_arrière.y += dy
+    }
+}
+
+termine_déplacement_dernier_noeud :: fonc (empl plume: *PlumeDeCourbure)
+{
+    déplace_le_dernier_noeud = faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PlumeDeFormeLibre
+ * \{ */
+
+PlumeDeFormeLibre :: struct {
+    points: [..]Point2D(r32)
+    chemin: Chemin
+}
+
+ajoute_point :: fonc (plume: *PlumeDeFormeLibre, x: r32, y: r32)
+{
+    tableau_ajoute(*plume.points, Point2D(r32)(x, y))
+}
+
+termine_tracé :: fonc (empl plume: *PlumeDeFormeLibre)
+{
+    si chemin.sous_chemins.taille == 0 {
+        _ := tableau_ajoute_élément(*chemin.sous_chemins)
+    }
+    sous_chemin := dernier_élément(chemin.sous_chemins)
+    _ := adpate_sous_chemin_aux_points(sous_chemin, points)
 }
 
 /** \} */

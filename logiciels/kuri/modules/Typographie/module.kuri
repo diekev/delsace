@@ -18,9 +18,95 @@ importe Unicode
 
 Fonte :: struct {
     atlas: *texture_atlas_t
-    font: *texture_font_t
     /* Mise en cache des glyphes pour les mesures de texte, etc. */
     glyphes: [..]*texture_glyph_t
+
+    /**
+     * Vector of glyphs contained in this font.
+     */
+    glyphs: [..]*texture_glyph_t
+
+    fileinfo: InfoFichier
+    /**
+     * Font size
+     */
+    taille: r32
+    /**
+     * Whether to use autohint when rendering font
+     */
+    hinting := vrai
+    /**
+     * Mode the font is rendering its next glyph
+     */
+    rendermode: rendermode_t
+    /**
+     * Outline thickness
+     */
+    outline_thickness: r32
+    /**
+     * Whether to use our own lcd filter.
+     */
+    filtering := vrai
+    /**
+     * LCD filter weights
+     */
+    lcd_weights: [5]n8
+    /**
+     * Whether to use kerning if available
+     */
+    kerning := vrai
+    /**
+     * This field is simply used to compute a default line spacing (i.e., the
+     * baseline-to-baseline distance) when writing text with this font. Note
+     * that it usually is larger than the sum of the ascender and descender
+     * taken as absolute values. There is also no guarantee that no glyphs
+     * extend above or below subsequent baselines when using this distance.
+     */
+    height: r32
+    /**
+     * This field is the distance that must be placed between two lines of
+     * text. The baseline-to-baseline distance should be computed as:
+     * ascender - descender + linegap
+     */
+    linegap: r32
+    /**
+     * The ascender is the vertical distance from the horizontal baseline to
+     * the highest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the ascender differently. For some, it represents the
+     * ascent of all capital latin characters (without accents), for others it
+     * is the ascent of the highest accented character, and finally, other
+     * formats define it as being equal to bbox.yMax.
+     */
+    ascender: r32
+    /**
+     * The descender is the vertical distance from the horizontal baseline to
+     * the lowest 'character' coordinate in a font face. Unfortunately, font
+     * formats define the descender differently. For some, it represents the
+     * descent of all capital latin characters (without accents), for others it
+     * is the ascent of the lowest accented character, and finally, other
+     * formats define it as being equal to bbox.yMin. This field is negative
+     * for values below the baseline.
+     */
+    descender: r32
+    max_char_width: r32
+    avg_char_width: r32
+    typo_ascender: r32
+    typo_descender: r32
+    /**
+     * The position of the underline line for this face. It is the center of
+     * the underlining stem. Only relevant for scalable formats.
+     */
+    underline_position: r32
+    /**
+     * The thickness of the underline for this face. Only relevant for scalable
+     * formats.
+     */
+    underline_thickness: r32
+    /**
+     * The padding to be add to the glyph's texture that are loaded by this font.
+     * Usefull when adding effects with shaders.
+     */
+    padding: z32
 }
 
 crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
@@ -30,45 +116,52 @@ crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
-    si taille_police == 0.0 {
-        retourne nul
-    }
-
-    atlas := texture_atlas_new(512, 512, 1)
-    font := texture_font_new_from_file(atlas, taille_police, chemin.chn)
-
-    saufsi font {
-        texture_atlas_delete(atlas)
-        retourne nul
-    }
-
     fonte := loge(Fonte)
-    fonte.font = font
-    fonte.atlas = atlas
+    succès := initialise_fonte(fonte, chemin.chn, taille_police)
+    saufsi succès {
+        détruit_fonte(fonte)
+        fonte = nul
+    }
     retourne fonte
+}
+
+initialise_fonte :: fonc (fonte: *Fonte, chemin: chaine, taille_police: r32) -> bool
+{
+    si taille_police == 0.0 {
+        retourne faux
+    }
+    
+    atlas := texture_atlas_new(512, 512, 1)
+    succès := texture_font_new_from_file(fonte, atlas, taille_police, chemin)
+    retourne succès
+}
+
+détruit_données_fonte :: fonc (fonte: *Fonte)
+{
+    texture_atlas_delete(fonte.atlas)
+    détruit_données(fonte)
+    déloge(fonte.glyphes)
 }
 
 détruit_fonte :: fonc (fonte: *Fonte)
 {
-    texture_atlas_delete(fonte.atlas)
-    texture_font_delete(fonte.font)
-    déloge(fonte.glyphes)
+    détruit_données_fonte(fonte)
     déloge(fonte)
 }
 
 donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
 {
-    retourne texture_font_get_glyph(fonte.font, c)
+    retourne texture_font_get_glyph(fonte, c)
 }
 
 donne_glyphe_nul :: fonc (fonte: *Fonte) -> *texture_glyph_t
 {
-    retourne texture_font_get_glyph(fonte.font, -1 comme n32)
+    retourne texture_font_get_glyph(fonte, -1 comme n32)
 }
 
 donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
 {
-    retourne texture_font_get_glyph(fonte.font, point_de_code)
+    retourne texture_font_get_glyph(fonte, point_de_code)
 }
 
 ContrainteChaine :: chaine | ChaineUTF16 | ChaineUTF32
@@ -82,7 +175,7 @@ donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> z32
 donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z32
 {
     résultat := 0.0
-    utilise_crénage := fonte.font.kerning
+    utilise_crénage := fonte.kerning
     dernier_glyphe: *texture_glyph_t
     pour glyphes {
         si utilise_crénage {
@@ -97,7 +190,7 @@ donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z3
 
 donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
 {
-    utilise_crénage := fonte.font.kerning
+    utilise_crénage := fonte.kerning
     dernier_glyphe: *texture_glyph_t
     pour texte.points_de_code {
         glyph := donne_glyphe(fonte, it)
@@ -225,11 +318,11 @@ MétriquesFonte :: struct {
 donne_métriques_fonte :: fonc (fonte: *Fonte) -> MétriquesFonte
 {
     résultat : MétriquesFonte = ---
-    résultat.jambage_supérieur = fonte.font.ascender
-    résultat.jambage_inférieur = fonte.font.descender
-    résultat.interligne = fonte.font.linegap
-    résultat.largeur_maximale = fonte.font.max_char_width
-    résultat.largeur_moyenne = fonte.font.avg_char_width
+    résultat.jambage_supérieur = fonte.ascender
+    résultat.jambage_inférieur = fonte.descender
+    résultat.interligne = fonte.linegap
+    résultat.largeur_maximale = fonte.max_char_width
+    résultat.largeur_moyenne = fonte.avg_char_width
     retourne résultat
 }
 
@@ -445,7 +538,7 @@ texture_glyph_get_kerning_glyph :: fonc (self: *texture_glyph_t, other: *texture
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom texture_font_t
+/** \nom Fonte
  * \{ */
 
 InfoFichier :: union {
@@ -453,103 +546,7 @@ InfoFichier :: union {
     Mémoire: [..]octet
 }
 
-/**
- *  Texture font structure.
- */
-texture_font_t :: struct {
-    /**
-     * Vector of glyphs contained in this font.
-     */
-    glyphs: [..]*texture_glyph_t
-    /**
-     * Atlas structure to store glyphs data.
-     */
-    atlas: *texture_atlas_t
-
-    fileinfo: InfoFichier
-    /**
-     * Font size
-     */
-    taille: r32
-    /**
-     * Whether to use autohint when rendering font
-     */
-    hinting := vrai
-    /**
-     * Mode the font is rendering its next glyph
-     */
-    rendermode: rendermode_t
-    /**
-     * Outline thickness
-     */
-    outline_thickness: r32
-    /**
-     * Whether to use our own lcd filter.
-     */
-    filtering := vrai
-    /**
-     * LCD filter weights
-     */
-    lcd_weights: [5]n8
-    /**
-     * Whether to use kerning if available
-     */
-    kerning := vrai
-    /**
-     * This field is simply used to compute a default line spacing (i.e., the
-     * baseline-to-baseline distance) when writing text with this font. Note
-     * that it usually is larger than the sum of the ascender and descender
-     * taken as absolute values. There is also no guarantee that no glyphs
-     * extend above or below subsequent baselines when using this distance.
-     */
-    height: r32
-    /**
-     * This field is the distance that must be placed between two lines of
-     * text. The baseline-to-baseline distance should be computed as:
-     * ascender - descender + linegap
-     */
-    linegap: r32
-    /**
-     * The ascender is the vertical distance from the horizontal baseline to
-     * the highest 'character' coordinate in a font face. Unfortunately, font
-     * formats define the ascender differently. For some, it represents the
-     * ascent of all capital latin characters (without accents), for others it
-     * is the ascent of the highest accented character, and finally, other
-     * formats define it as being equal to bbox.yMax.
-     */
-    ascender: r32
-    /**
-     * The descender is the vertical distance from the horizontal baseline to
-     * the lowest 'character' coordinate in a font face. Unfortunately, font
-     * formats define the descender differently. For some, it represents the
-     * descent of all capital latin characters (without accents), for others it
-     * is the ascent of the lowest accented character, and finally, other
-     * formats define it as being equal to bbox.yMin. This field is negative
-     * for values below the baseline.
-     */
-    descender: r32
-    max_char_width: r32
-    avg_char_width: r32
-    typo_ascender: r32
-    typo_descender: r32
-    /**
-     * The position of the underline line for this face. It is the center of
-     * the underlining stem. Only relevant for scalable formats.
-     */
-    underline_position: r32
-    /**
-     * The thickness of the underline for this face. Only relevant for scalable
-     * formats.
-     */
-    underline_thickness: r32
-    /**
-     * The padding to be add to the glyph's texture that are loaded by this font.
-     * Usefull when adding effects with shaders.
-     */
-    padding: z32
-}
-
-texture_font_init :: fonc (self: *texture_font_t) -> bool
+texture_font_init :: fonc (self: *Fonte) -> bool
 {
     assert(self.atlas != nul)
     assert(self.taille > 0)
@@ -605,53 +602,33 @@ texture_font_init :: fonc (self: *texture_font_t) -> bool
     retourne vrai
 }
 
-texture_font_new_from_file :: fonc (atlas: *texture_atlas_t, pt_taille: r32, filename: chaine) -> *texture_font_t
+texture_font_new_from_file :: fonc (fonte: *Fonte, atlas: *texture_atlas_t, pt_taille: r32, filename: chaine) -> bool
 {
     assert(filename.taille > 0)
 
-    self := loge(texture_font_t)
-    saufsi self {
-        panique("Impossible de loger une instance de texture_font_t")
-    }
+    fonte.atlas = atlas
+    fonte.taille = pt_taille
+    fonte.fileinfo = copie_chaine(filename)
 
-    self.atlas = atlas
-    self.taille = pt_taille
-    self.fileinfo = copie_chaine(filename)
-
-    saufsi texture_font_init(self) {
-        texture_font_delete(self)
-        retourne nul;
-    }
-
-    retourne self
+    retourne texture_font_init(fonte)
 }
 
-texture_font_new_from_memory :: fonc (atlas: *texture_atlas_t, pt_taille: r32, données_mémoire: [..]octet)
+texture_font_new_from_memory :: fonc (fonte: *Fonte, atlas: *texture_atlas_t, pt_taille: r32, données_mémoire: [..]octet) -> bool
 {
     assert(données_mémoire.taille > 0)
 
-    self := loge(texture_font_t)
-    saufsi self {
-        panique("Impossible de loger une instance de texture_font_t")
-    }
+    fonte.atlas = atlas
+    fonte.taille = pt_taille
+    fonte.fileinfo = données_mémoire
 
-    self.atlas = atlas
-    self.taille = pt_taille
-    self.fileinfo = données_mémoire
-
-    saufsi texture_font_init(self) {
-        texture_font_delete(self)
-        retourne nul
-    }
-
-    retourne self
+    retourne texture_font_init(fonte)
 }
 
-texture_font_delete :: fonc (self: *texture_font_t)
+détruit_données :: fonc (fonte: *Fonte)
 {
-    assert(self != nul)
+    assert(fonte != nul)
 
-    discr self.fileinfo {
+    discr fonte.fileinfo {
         Fichier(chn) {
             déloge_si_logée(chn)
         }
@@ -661,11 +638,10 @@ texture_font_delete :: fonc (self: *texture_font_t)
         sinon {}
     }
 
-    déloge_tableau_et_ses_éléments(self.glyphs, texture_glyph_delete)
-    déloge(self)
+    déloge_tableau_et_ses_éléments(fonte.glyphs, texture_glyph_delete)
 }
 
-texture_font_load_face :: fonc (self: *texture_font_t, taille: r32, library: *FT_Library, face: *FT_Face) -> (succès: bool)
+texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library, face: *FT_Face) -> (succès: bool)
 {
     assert(library != nul)
     assert(taille != 0.0)
@@ -735,7 +711,7 @@ texture_font_load_face :: fonc (self: *texture_font_t, taille: r32, library: *FT
     retourne vrai
 }
 
-texture_font_generate_kerning :: fonc (self: *texture_font_t, face: *FT_Face)
+texture_font_generate_kerning :: fonc (self: *Fonte, face: *FT_Face)
 {
     assert(self != nul)
 
@@ -766,7 +742,7 @@ texture_font_generate_kerning :: fonc (self: *texture_font_t, face: *FT_Face)
     }
 }
 
-texture_font_find_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
+texture_font_find_glyph :: fonc (self: *Fonte, codepoint: n32) -> *texture_glyph_t
 {
     pour self.glyphs {
         si it.codepoint == codepoint && (codepoint == (-1 comme n32) || (it.rendermode == self.rendermode && it.outline_thickness == self.outline_thickness)) {
@@ -781,7 +757,7 @@ données_glyphe_nul : [4 * 4 * 3]octet = octet.[0xff, 0xff, 0xff, 0xff, 0xff, 0x
                                          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
 
-texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
+texture_font_load_glyph :: fonc (self: *Fonte, codepoint: n32) -> bool
 {
     library: FT_Library
     face: FT_Face
@@ -1016,9 +992,9 @@ texture_font_load_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> bool
     retourne vrai
 }
 
-// À FAIRE : texture_font_load_glyphs :: fonc (self: *texture_font_t, codepoints: chaine)
+// À FAIRE : texture_font_load_glyphs :: fonc (self: *Fonte, codepoints: chaine)
 
-texture_font_get_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *texture_glyph_t
+texture_font_get_glyph :: fonc (self: *Fonte, codepoint: n32) -> *texture_glyph_t
 {
     assert(self != nul)
     assert(donne_indice_rubrique_active(self.fileinfo) != 0)
@@ -1038,7 +1014,7 @@ texture_font_get_glyph :: fonc (self: *texture_font_t, codepoint: n32) -> *textu
     retourne nul
 }
 
-texture_font_enlarge_atlas :: fonc (self: *texture_font_t, width_new: n64, height_new: n64)
+texture_font_enlarge_atlas :: fonc (self: *Fonte, width_new: n64, height_new: n64)
 {
     assert(self);
     assert(self.atlas);

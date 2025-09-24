@@ -113,18 +113,18 @@ dessine_effets :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, effets: 
     ligne.p1.x = x1
 
     si effets.surlignage {
-        ligne.p0.y = y0 + fonte.font.ascender comme z32
-        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        ligne.p0.y = y0 + fonte.ascender comme z32
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
         dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_surlignage))
     }
     si effets.souslignage {
-        ligne.p0.y = y0 + fonte.font.underline_position comme z32
-        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        ligne.p0.y = y0 + fonte.underline_position comme z32
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
         dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_souslignage))
     }
     si effets.barrage {
-        ligne.p0.y = y0 + (fonte.font.ascender * 0.33) comme z32
-        ligne.p1.y = ligne.p0.y + fonte.font.underline_thickness comme z32
+        ligne.p0.y = y0 + (fonte.ascender * 0.33) comme z32
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
         dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_barrage))
     }
 }

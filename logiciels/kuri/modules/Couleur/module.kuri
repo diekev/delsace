@@ -62,6 +62,14 @@ opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
     retourne résultat
 }
 
+opérateur [] :: (couleur: CouleurRVBA, indice: z64) -> r32
+{
+    assert(indice >= 0)
+    assert(indice <= 3)
+    ptr := *couleur.r
+    retourne ptr[indice]
+}
+
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
 {
     résultat := couleur
@@ -121,6 +129,14 @@ CouleurRVBAN8 :: struct {
 opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
 {
     retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a
+}
+
+opérateur [] :: (couleur: CouleurRVBAN8, indice: z64) -> n8
+{
+    assert(indice >= 0)
+    assert(indice <= 3)
+    ptr := *couleur.r
+    retourne ptr[indice]
 }
 
 couleur_rouge := CouleurRVBAN8(255, 0, 0, 255)
