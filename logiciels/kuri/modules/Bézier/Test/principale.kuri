@@ -69,8 +69,21 @@ principale :: fonc ()
         si type_outil == TypeOutil.TEST {
             dessine_segment_bézier(fenêtre, peintre)
         }
+        sinon si type_outil == TypeOutil.PLUME {
+            dessine_chemin(peintre, plume_.chemin)
+        }
+        sinon si type_outil == TypeOutil.PLUME_DE_COURBURE {
+            dessine_chemin(peintre, plume_de_courbure_.chemin)
+        }
         sinon {
-            dessine_tracé(peintre)
+            pour plume_de_forme_libre_.points.taille - 2 {
+                p0 := plume_de_forme_libre_.points[it]
+                p1 := plume_de_forme_libre_.points[it + 1]
+
+                peintre.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
+            }
+
+            dessine_chemin(peintre, plume_de_forme_libre_.chemin)
         }
 
         texte := imprime_chaine_temp("Outil : % (pressez O pour outil suivant)", type_outil)
@@ -86,6 +99,10 @@ principale :: fonc ()
     }
 }
 
+plume_: Plume
+plume_de_courbure_: PlumeDeCourbure
+plume_de_forme_libre_: PlumeDeFormeLibre
+
 outil_gère_évènement :: fonc (évènement: Évènement, dernière_souris: ÉtatSouris)
 {
     discr type_outil {
@@ -93,13 +110,13 @@ outil_gère_évènement :: fonc (évènement: Évènement, dernière_souris: Ét
             outil_test_gère_évènement(évènement)
         }
         PLUME {
-            outil_plume_gère_évènement(évènement, dernière_souris)
+            outil_plume_gère_évènement(*plume_, évènement, dernière_souris)
         }
         PLUME_DE_COURBURE {
-            outil_plume_de_courbure_gère_évènement(évènement, dernière_souris)
+            outil_plume_de_courbure_gère_évènement(*plume_de_courbure_, évènement, dernière_souris)
         }
         PLUME_DE_FORME_LIBRE {
-            outil_plume_de_forme_libre_gère_évènement(évènement)
+            outil_plume_de_forme_libre_gère_évènement(*plume_de_forme_libre_, évènement)
         }
     }
 }
@@ -210,227 +227,94 @@ dessine_segment_bézier :: fonc (fenêtre: TypeFenêtre, peintre: *Peintre @inut
     IGUMI.termine_immédiat()
 }
 
-chemin: Chemin
-un_noeud_vient_d_être_positionné := faux
-déplace_le_dernier_noeud := faux
-delta_déplacement_dernier_noeud: Vec2
-
-dessine_tracé :: fonc (peintre: *Peintre)
-{
-    pour points_pour_plume_de_forme_libre.taille - 2 {
-        p0 := points_pour_plume_de_forme_libre[it]
-        p1 := points_pour_plume_de_forme_libre[it + 1]
-
-        peintre.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
-    }
-
-    dessine_chemin(peintre, chemin)
-}
-
-outil_plume_gère_évènement :: fonc (it: Évènement, dernière_souris: ÉtatSouris)
+outil_plume_gère_évènement :: fonc (plume: *Plume, it: Évènement, dernière_souris: ÉtatSouris)
 {
     si it.type == TypeÉvènement.Souris {
         si it.bouton_souris == BoutonSouris.GAUCHE {
             si it.action_souris == ActionSouris.PRESSÉE {
                 souris_x := it.état_souris.où.x comme r32
                 souris_y := it.état_souris.où.y comme r32
-
-                si chemin.sous_chemins.taille == 0 {
-                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
-                }
-
-                sous_chemin := dernier_élément(chemin.sous_chemins)
-
-                touche := donne_touche_tracé(*chemin, souris_x, souris_y)
-
-                si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
-                    /* Nous touchons le premier noeud -> fermeture du chemin. */
-                    sous_chemin.est_fermé = vrai
-                }
-                sinon {
-                    noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
-                    noeud.ancre.x = souris_x
-                    noeud.ancre.y = souris_y
-                    noeud.controle_avant = noeud.ancre
-                    noeud.controle_arrière = noeud.ancre
-
-                    // nous_pouvons_développer_les_ancres = vrai
-                    un_noeud_vient_d_être_positionné = vrai
-                }
+                commence_ajout_noeud(plume, souris_x, souris_y)
             }
             sinon si it.action_souris == ActionSouris.RELACHÉE {
-                // nous_pouvons_développer_les_ancres = faux
-                un_noeud_vient_d_être_positionné = faux
-            }
-            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
-                // nous_pouvons_développer_les_ancres
-                si un_noeud_vient_d_être_positionné {
-                    sous_chemin := dernier_élément(chemin.sous_chemins)
-                    noeud := dernier_élément(sous_chemin.noeuds)
-
-                    souris_x := it.état_souris.où.x comme r32
-                    souris_y := it.état_souris.où.y comme r32
-
-                    noeud.controle_avant.x = souris_x
-                    noeud.controle_avant.y = souris_y
-
-                    noeud.controle_arrière.x = noeud.ancre.x + (noeud.ancre.x - noeud.controle_avant.x)
-                    noeud.controle_arrière.y = noeud.ancre.y + (noeud.ancre.y - noeud.controle_avant.y)
-                }
-            }
-        }
-        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
-            si déplace_le_dernier_noeud {
-                sous_chemin := dernier_élément(chemin.sous_chemins)
-                noeud := dernier_élément(sous_chemin.noeuds)
-
-                souris_x := it.état_souris.où.x comme r32
-                souris_y := it.état_souris.où.y comme r32
-
-                nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
-                nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
-
-                dx := nouvelle_ancre_x - noeud.ancre.x
-                dy := nouvelle_ancre_y - noeud.ancre.y
-
-                noeud.ancre.x = nouvelle_ancre_x
-                noeud.ancre.y = nouvelle_ancre_y
-
-                noeud.controle_avant.x += dx
-                noeud.controle_avant.y += dy
-
-                noeud.controle_arrière.x += dx
-                noeud.controle_arrière.y += dy
-            }
-        }
-    }
-    sinon si it.type == TypeÉvènement.Clavier {
-        si it.touche_pressée {
-            si it.touche == ToucheClavier.ESPACE {
-                si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
-                    sous_chemin := dernier_élément(chemin.sous_chemins)
-                    noeud := dernier_élément(sous_chemin.noeuds)
-
-                    déplace_le_dernier_noeud = vrai
-
-                    souris_x := dernière_souris.où.x comme r32
-                    souris_y := dernière_souris.où.y comme r32
-
-                    delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
-                    delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
-                }
-            }
-        }
-        sinon {
-            si it.touche == ToucheClavier.ESPACE {
-                déplace_le_dernier_noeud = faux
-            }
-        }
-    }
-}
-
-outil_plume_de_courbure_gère_évènement :: fonc (it: Évènement, dernière_souris: ÉtatSouris)
-{
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
-                souris_x := it.état_souris.où.x comme r32
-                souris_y := it.état_souris.où.y comme r32
-
-                si chemin.sous_chemins.taille == 0 {
-                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
-                }
-
-                sous_chemin := dernier_élément(chemin.sous_chemins)
-
-                touche := donne_touche_tracé(*chemin, souris_x, souris_y)
-
-                si touche.quoi == NatureToucheTracé.ANCRE && touche.indice_sous_chemin.noeud == 0 && touche.indice_sous_chemin.sous_chemin == chemin.sous_chemins.taille - 1 {
-                    /* Nous touchons le premier noeud -> fermeture du chemin. */
-                    sous_chemin.est_fermé = vrai
-                }
-                sinon {
-                    noeud := tableau_ajoute_élément(*sous_chemin.noeuds)
-                    noeud.ancre.x = souris_x
-                    noeud.ancre.y = souris_y
-
-                    noeud.controle_avant = noeud.ancre
-                    noeud.controle_arrière = noeud.ancre
-                }
-
-                interpole_courbe_depuis_polygone(mémoire(sous_chemin))
-            }
-        }
-        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
-            si déplace_le_dernier_noeud {
-                sous_chemin := dernier_élément(chemin.sous_chemins)
-                noeud := dernier_élément(sous_chemin.noeuds)
-
-                souris_x := it.état_souris.où.x comme r32
-                souris_y := it.état_souris.où.y comme r32
-
-                nouvelle_ancre_x := souris_x - delta_déplacement_dernier_noeud.x
-                nouvelle_ancre_y := souris_y - delta_déplacement_dernier_noeud.y
-
-                noeud.ancre.x = nouvelle_ancre_x
-                noeud.ancre.y = nouvelle_ancre_y
-
-                noeud.controle_avant = noeud.ancre
-                noeud.controle_arrière = noeud.ancre
-
-                interpole_courbe_depuis_polygone(mémoire(sous_chemin))
-            }
-        }
-    }
-    sinon si it.type == TypeÉvènement.Clavier {
-        si it.touche_pressée {
-            si it.touche == ToucheClavier.ESPACE {
-                si chemin.sous_chemins.taille != 0 && chemin.sous_chemins[0].noeuds.taille != 0 && !déplace_le_dernier_noeud {
-                    sous_chemin := dernier_élément(chemin.sous_chemins)
-                    noeud := dernier_élément(sous_chemin.noeuds)
-
-                    déplace_le_dernier_noeud = vrai
-
-                    souris_x := dernière_souris.où.x comme r32
-                    souris_y := dernière_souris.où.y comme r32
-
-                    delta_déplacement_dernier_noeud.x = souris_x - noeud.ancre.x
-                    delta_déplacement_dernier_noeud.y = souris_y - noeud.ancre.y
-                }
-            }
-        }
-        sinon {
-            si it.touche == ToucheClavier.ESPACE {
-                déplace_le_dernier_noeud = faux
-            }
-        }
-    }
-}
-
-points_pour_plume_de_forme_libre: [..]Point2D(r32)
-
-outil_plume_de_forme_libre_gère_évènement :: fonc (it: Évènement)
-{
-    si it.type == TypeÉvènement.Souris {
-        si it.bouton_souris == BoutonSouris.GAUCHE {
-            si it.action_souris == ActionSouris.PRESSÉE {
-                souris_x := it.état_souris.où.x comme r32
-                souris_y := it.état_souris.où.y comme r32
-
-                tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
+                termine_ajout_noeud(plume)
             }
             sinon si it.action_souris == ActionSouris.DÉPLACÉE {
                 souris_x := it.état_souris.où.x comme r32
                 souris_y := it.état_souris.où.y comme r32
-                
-                tableau_ajoute(*points_pour_plume_de_forme_libre, Point2D(r32)(souris_x, souris_y))
+                continue_ajout_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            souris_x := it.état_souris.où.x comme r32
+            souris_y := it.état_souris.où.y comme r32
+            continue_déplacement_dernier_noeud(plume, souris_x, souris_y)
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée || it.est_répétée {
+            si it.touche == ToucheClavier.ESPACE {
+                souris_x := dernière_souris.où.x comme r32
+                souris_y := dernière_souris.où.y comme r32
+                commence_déplacement_dernier_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                termine_déplacement_dernier_noeud(plume)
+            }
+        }
+    }
+}
+
+outil_plume_de_courbure_gère_évènement :: fonc (plume: *PlumeDeCourbure, it: Évènement, dernière_souris: ÉtatSouris)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            souris_x := it.état_souris.où.x comme r32
+            souris_y := it.état_souris.où.y comme r32
+            continue_déplacement_dernier_noeud(plume, souris_x, souris_y)
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée || it.est_répétée {
+            si it.touche == ToucheClavier.ESPACE {
+                souris_x := dernière_souris.où.x comme r32
+                souris_y := dernière_souris.où.y comme r32
+                commence_déplacement_dernier_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                termine_déplacement_dernier_noeud(plume)
+            }
+        }
+    }
+}
+
+outil_plume_de_forme_libre_gère_évènement :: fonc (plume: *PlumeDeFormeLibre, it: Évènement)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
             }
             sinon si it.action_souris == ActionSouris.RELACHÉE {
-                si chemin.sous_chemins.taille == 0 {
-                    _ := tableau_ajoute_élément(*chemin.sous_chemins)
-                }
-                sous_chemin := dernier_élément(chemin.sous_chemins)
-                _ := adpate_sous_chemin_aux_points(sous_chemin, points_pour_plume_de_forme_libre)
+                termine_tracé(plume)
             }
         }
     }

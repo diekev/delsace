@@ -1603,7 +1603,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, propri
 
 initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte: *Fonte)
 {
-    longueurs.em = fonte.font.taille
+    longueurs.em = fonte.taille
 
     ex := donne_hauteur_glyph(fonte, 'o' comme n32)
     si ex.possède_valeur() {
@@ -1618,7 +1618,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
         longueurs.cap = cap.Quelque comme r32
     }
     sinon {
-        longueurs.cap = fonte.font.ascender
+        longueurs.cap = fonte.ascender
     }
 
     ch := donne_largeur_glyph(fonte, '0' comme n32)
