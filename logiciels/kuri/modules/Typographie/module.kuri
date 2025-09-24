@@ -116,27 +116,36 @@ crée_fonte :: fonc (chemin: chaine, taille_police: r32) -> *Fonte
 
 crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
 {
-    si taille_police == 0.0 {
-        retourne nul
-    }
-
     fonte := loge(Fonte)
-    
-    atlas := texture_atlas_new(512, 512, 1)
-    succès := texture_font_new_from_file(fonte, atlas, taille_police, chemin.chn)
+    succès := initialise_fonte(fonte, chemin.chn, taille_police)
     saufsi succès {
         détruit_fonte(fonte)
-        retourne nul
+        fonte = nul
     }
-
     retourne fonte
 }
 
-détruit_fonte :: fonc (fonte: *Fonte)
+initialise_fonte :: fonc (fonte: *Fonte, chemin: chaine, taille_police: r32) -> bool
+{
+    si taille_police == 0.0 {
+        retourne faux
+    }
+    
+    atlas := texture_atlas_new(512, 512, 1)
+    succès := texture_font_new_from_file(fonte, atlas, taille_police, chemin)
+    retourne succès
+}
+
+détruit_données_fonte :: fonc (fonte: *Fonte)
 {
     texture_atlas_delete(fonte.atlas)
     détruit_données(fonte)
     déloge(fonte.glyphes)
+}
+
+détruit_fonte :: fonc (fonte: *Fonte)
+{
+    détruit_données_fonte(fonte)
     déloge(fonte)
 }
 
