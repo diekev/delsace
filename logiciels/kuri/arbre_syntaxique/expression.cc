@@ -304,6 +304,10 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 return ValeurExpression(decl->comme_entête_fonction());
             }
 
+            if (decl->est_déclaration_type()) {
+                return ValeurExpression(decl->comme_déclaration_type());
+            }
+
             if (!decl->est_déclaration_constante()) {
                 return erreur_évaluation(
                     b, "La référence n'est pas celle d'une variable constante !");
