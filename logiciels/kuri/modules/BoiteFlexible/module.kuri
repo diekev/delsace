@@ -1447,7 +1447,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         }
         sinon {
             cotation = max(cotation, taille_enfant)
-            boite.taille_min[direction] += max(boite.taille_min[direction], it.taille_min[direction])
+            boite.taille_min[direction] = max(boite.taille_min[direction], it.taille_min[direction])
         }
     }
 
