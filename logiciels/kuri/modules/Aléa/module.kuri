@@ -252,6 +252,16 @@ aléatoire_bilatérale :: fonc (série: &SérieAléatoire) -> r32
     retourne bilatéral_de(série.aléatoire_unilatérale())
 }
 
+choix_aléatoire :: fonc (série: *SérieAléatoire, compte: $T) -> T
+{
+    retourne (donne_aléatoire(série) % (compte comme n32)) comme T
+}
+
+choix_aléatoire :: fonc (série: *SérieAléatoire, valeurs: []$T) -> T
+{
+    retourne valeurs[choix_aléatoire(série, valeurs.taille)]
+}
+
 vec3_aléatoire_unilatéral :: fonc (série: &SérieAléatoire) -> Vec3
 {
     retourne Vec3(série.aléatoire_unilatérale(), série.aléatoire_unilatérale(), série.aléatoire_unilatérale())
