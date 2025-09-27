@@ -101,16 +101,18 @@ CommandeDessineBordure :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_BORDURE
 
-    couleur: CouleurRVBAN8
-    largeur: r32
+    couleur: [4]CouleurRVBAN8
+    largeur: [4]r32
     rayon: r32
 }
 
-dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA, largeur: r32, rayon: r32)
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: [4]CouleurRVBA, largeur: [4]r32, rayon: r32)
 {
     résultat := crée_commande(commandes, CommandeDessineBordure)
     résultat.rect = rect
-    résultat.couleur = depuis_couleur_rvba(couleur)
+    pour couleur {
+        résultat.couleur[indice_it] = depuis_couleur_rvba(it)
+    }
     résultat.largeur = largeur
     résultat.rayon = rayon
 }
@@ -278,6 +280,13 @@ crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
     retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32))
 }
 
+IndiceRectangle :: énum {
+    GAUCHE :: 0
+    HAUT :: 1
+    DROITE :: 2
+    BAS :: 3
+}
+
 Rembourrage :: struct {
     v: [4]r32
 }
@@ -325,8 +334,8 @@ est_valide :: fonc (indice: IndexConfigBordure) -> bool #enligne
 }
 
 ConfigurationBordure :: struct {
-    largeur: r32
-    couleur: CouleurRVBA
+    largeur: [4]r32
+    couleur: [4]CouleurRVBA
 }
 
 dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := PositionCodeSource())
@@ -354,20 +363,62 @@ définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage
     __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
 }
 
-ajoute_bordure :: fonc (largeur: r32, couleur: CouleurRVBA)
+ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    config := donne_configuration_bordure_courante()
+    si config {
+        pour 4 {
+            config.largeur[it] = largeur
+            config.couleur[it] = couleur
+        }
+    }
+}
+
+ajoute_bordure_haut :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT)
+}
+
+ajoute_bordure_bas :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS)
+}
+
+ajoute_bordure_gauche :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE)
+}
+
+ajoute_bordure_droite :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE)
+}
+
+#portée_fichier
+
+donne_configuration_bordure_courante :: fonc () -> *ConfigurationBordure
 {
     assert(__boite_courante != nul)
     emboiteuse := __boite_courante.emboiteuse
 
-    si __boite_courante.indice_bordure.est_valide() {
-        config := *emboiteuse.bordures[__boite_courante.indice_bordure]
-        config.largeur = largeur
-        config.couleur = couleur
+    saufsi __boite_courante.indice_bordure.est_valide() {
+        __boite_courante.indice_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure())
     }
-    sinon {
-        __boite_courante.indice_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure(largeur, couleur))
+
+    config := *emboiteuse.bordures[__boite_courante.indice_bordure]
+    retourne config
+}
+
+définis_bordure_courante :: fonc (largeur: r32, couleur: CouleurRVBA, indice: IndiceRectangle)
+{
+    config := donne_configuration_bordure_courante()
+    si config {
+        config.largeur[indice] = largeur
+        config.couleur[indice] = couleur
     }
 }
+
+#portée_export
 
 ajoute_défilage :: fonc (config: ConfigurationDéfilage)
 {
@@ -2026,10 +2077,10 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 commande := base comme *CommandeDessineBordure
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
-                // À FAIRE : largeur
+                // À FAIRE : rayon
 
-                largeurs := [commande.largeur, commande.largeur, commande.largeur, commande.largeur]
-                couleurs := CouleurPeintre.[commande.couleur, commande.couleur, commande.couleur, commande.couleur]
+                largeurs := [commande.largeur[1], commande.largeur[2], commande.largeur[3], commande.largeur[0]]
+                couleurs := CouleurPeintre.[commande.couleur[1], commande.couleur[2], commande.couleur[3], commande.couleur[0]]
 
                 peintre.dessine_bordure(rect, largeurs, couleurs)
             }
