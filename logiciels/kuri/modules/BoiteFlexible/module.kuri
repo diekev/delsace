@@ -348,7 +348,7 @@ dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), conf
         boite.id = calcule_empreinte_djb2(id)
     }
     sinon {
-        boite.id = donne_empreinte(pos, __boite_courante.enfants.taille comme n64)
+        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64))
     }
 
     boite.défilage = défilage
