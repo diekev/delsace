@@ -173,6 +173,15 @@ détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
     déloge(nuanceur)
 }
 
+// À FAIRE : meilleure IPA
+définis_uniforme :: fonc (id_nuanceur: IDNuanceur, nom: chaine, valeur: $T)
+{
+    nuanceur := __ctx_courant.nuanceurs[id_nuanceur]
+
+    glUseProgram(nuanceur.programme)
+    définis_uniforme(nuanceur.programme, nom, valeur)
+}
+
 CheminsNuanceurs :: struct {
     chemin_vertex_texte: chaine
     chemin_fragment_texte: chaine
@@ -613,16 +622,19 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
 /** \nom Cercle.
  * \{ */
 
+// À FAIRE : trouve une manière de mieux déterminer ceci.
+NOMBRE_SEGMENTS_CERCLE :: 64
+
 cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    segs := 32
+    segs := NOMBRE_SEGMENTS_CERCLE
     phi := 0.0
     cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
 
 quadrant_cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, quadrant: z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    segs := 8
+    segs := NOMBRE_SEGMENTS_CERCLE / 4
     phi := quadrant comme r32 * (Constantes(r32).PI / 2.0)
     cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
 }
@@ -630,7 +642,7 @@ quadrant_cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, quadrant: z32, coul
 cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     p0 := Vec3(cx, cy, 0.0)
-    phi_delta := Constantes(r32).TAU / 32.0
+    phi_delta := Constantes(r32).TAU / segs comme r32
 
     pour segs {
         ca0 := cx + cosinus(phi) * r

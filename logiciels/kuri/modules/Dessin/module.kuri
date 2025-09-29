@@ -80,27 +80,7 @@ détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 
 donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> RectanglePosDim(z32)
 {
-    saufsi intersecte(tampon.rect_ciseau, rect) {
-        retourne RectanglePosDim(z32)()
-    }
-
-    rect_tampon := tampon.rect_ciseau.donne_rectangle_pur()
-    rect_pur := rect.donne_rectangle_pur()
-
-    si rect_pur.gauche < rect_tampon.gauche {
-        rect_pur.gauche = rect_tampon.gauche
-    }
-    si rect_pur.bas < rect_tampon.bas {
-        rect_pur.bas = rect_tampon.bas
-    }
-    si rect_pur.haut > rect_tampon.haut {
-        rect_pur.haut = rect_tampon.haut
-    }
-    si rect_pur.droite > rect_tampon.droite {
-        rect_pur.droite = rect_tampon.droite
-    }
-
-    retourne rect_pur.donne_rectangle_pos_dim()
+    retourne donne_intersection(tampon.rect_ciseau, rect)
 }
 
 /** \} */
