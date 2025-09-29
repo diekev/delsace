@@ -3300,6 +3300,20 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
                 lexème_directive);
             directives.ajoute(noeud_directive);
         }
+        else if (ident_directive == ID::optimise) {
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+            consomme();
+
+            // À FAIRE : validation du niveau, etc.
+            auto lexème = lexème_courant();
+            if (lexème->genre != GenreLexème::NOMBRE_ENTIER) {
+                rapporte_erreur("Attendu un nombre entier après #optimise");
+            }
+
+            noeud->niveau_optimisation = lexème->valeur_entiere;
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }
