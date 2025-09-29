@@ -1846,6 +1846,16 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 #endif
                 }
             }
+            else {
+                if (atome_fonc->decl->niveau_optimisation != 0) {
+                    auto niveau = atome_fonc->decl->niveau_optimisation;
+                    if (niveau > 3) {
+                        niveau = 3;
+                    }
+
+                    os << "__attribute__((optimize (" << niveau << "))) ";
+                }
+            }
 
             if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
 #ifndef _MSC_VER
