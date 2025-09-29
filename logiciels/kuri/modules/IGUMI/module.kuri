@@ -173,6 +173,15 @@ détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
     déloge(nuanceur)
 }
 
+// À FAIRE : meilleure IPA
+définis_uniforme :: fonc (id_nuanceur: IDNuanceur, nom: chaine, valeur: $T)
+{
+    nuanceur := __ctx_courant.nuanceurs[id_nuanceur]
+
+    glUseProgram(nuanceur.programme)
+    définis_uniforme(nuanceur.programme, nom, valeur)
+}
+
 CheminsNuanceurs :: struct {
     chemin_vertex_texte: chaine
     chemin_fragment_texte: chaine
