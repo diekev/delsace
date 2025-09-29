@@ -49,7 +49,7 @@ RaccourciCommande :: struct {
 donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
 {
     pour * projet.raccourcis {
-        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.clé == évènement.touche && it.contexte == contexte {
+        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.touche == évènement.touche && it.contexte == contexte {
             retourne it
         }
     }
@@ -297,52 +297,52 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
     }
 
     si texte == "FlècheGauche" {
-        résultat.clé = ToucheClavier.FLÈCHE_GAUCHE
+        résultat.touche = ToucheClavier.FLÈCHE_GAUCHE
     }
     sinon si texte == "FlècheDroite" {
-        résultat.clé = ToucheClavier.FLÈCHE_DROITE
+        résultat.touche = ToucheClavier.FLÈCHE_DROITE
     }
     sinon si texte == "FlècheHaut" {
-        résultat.clé = ToucheClavier.FLÈCHE_HAUT
+        résultat.touche = ToucheClavier.FLÈCHE_HAUT
     }
     sinon si texte == "FlècheBas" {
-        résultat.clé = ToucheClavier.FLÈCHE_BAS
+        résultat.touche = ToucheClavier.FLÈCHE_BAS
     }
     sinon si texte == "Début" {
-        résultat.clé = ToucheClavier.DÉBUT
+        résultat.touche = ToucheClavier.DÉBUT
     }
     sinon si texte == "Fin" {
-        résultat.clé = ToucheClavier.FIN
+        résultat.touche = ToucheClavier.FIN
     }
     sinon si texte == "PageHaut" {
-        résultat.clé = ToucheClavier.PAGE_HAUT
+        résultat.touche = ToucheClavier.PAGE_HAUT
     }
     sinon si texte == "PageBas" {
-        résultat.clé = ToucheClavier.PAGE_BAS
+        résultat.touche = ToucheClavier.PAGE_BAS
     }
     sinon si texte == "Entrée" {
-        résultat.clé = ToucheClavier.ENTRÉE
+        résultat.touche = ToucheClavier.ENTRÉE
     }
     sinon si texte == "RetourArrière" {
-        résultat.clé = ToucheClavier.EFFACE
+        résultat.touche = ToucheClavier.EFFACE
     }
     sinon si texte == "Suppr" {
-        résultat.clé = ToucheClavier.SUPPRIMER
+        résultat.touche = ToucheClavier.SUPPRIMER
     }
     sinon si texte.taille == 1 {
         caractère := texte[0]
 
         si 'A' <= caractère <= 'Z' {
             décalage := caractère - 'A'
-            résultat.clé = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
         }
         sinon si 'a' <= caractère <= 'z' {
             décalage := caractère - 'a'
-            résultat.clé = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
         }
         sinon si '0' <= caractère <= '9' {
             décalage := caractère - '0'
-            résultat.clé = (ToucheClavier._0 comme z32 + décalage) comme ToucheClavier
+            résultat.touche = (ToucheClavier._0 comme z32 + décalage) comme ToucheClavier
         }
         sinon {
             retourne résultat, faux
@@ -354,7 +354,7 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
             retourne résultat, faux
         }
 
-        résultat.clé = valeur comme ToucheClavier
+        résultat.touche = valeur comme ToucheClavier
     }
 
     retourne résultat, vrai

@@ -138,29 +138,29 @@ InfoToucheClavier :: struct {
  * \{ */
 
 RaccourciClavier :: struct {
-    clé: ToucheClavier
+    touche: ToucheClavier
     modificateur: ModificateurClavier
 }
 
 opérateur == :: (a: RaccourciClavier, b: RaccourciClavier) -> bool
 {
-    retourne a.clé == b.clé && a.modificateur == b.modificateur
+    retourne a.touche == b.touche && a.modificateur == b.modificateur
 }
 
-ctrl :: fonc (clé: ToucheClavier) -> RaccourciClavier
+ctrl :: fonc (touche: ToucheClavier) -> RaccourciClavier
 {
     résultat: RaccourciClavier
     résultat.modificateur = ModificateurClavier.CONTROL
-    résultat.clé = clé
+    résultat.touche = touche
     retourne résultat
 }
 
-ctrl_maj :: fonc (clé: ToucheClavier) -> RaccourciClavier
+ctrl_maj :: fonc (touche: ToucheClavier) -> RaccourciClavier
 {
     résultat: RaccourciClavier
     résultat.modificateur.CONTROL = vrai
     résultat.modificateur.MAJUSCULE = vrai
-    résultat.clé = clé
+    résultat.touche = touche
     retourne résultat
 }
 
@@ -414,7 +414,7 @@ initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
 donne_raccourci :: fonc (évènement: Évènement) -> RaccourciClavier
 {
     résultat: RaccourciClavier = ---
-    résultat.clé = évènement.touche
+    résultat.touche = évènement.touche
     résultat.modificateur  = évènement.modificateurs
     retourne résultat
 }
