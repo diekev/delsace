@@ -41,7 +41,7 @@ Thème :: struct {
 thème: Thème
 
 RaccourciCommande :: struct {
-    raccourci: RaccourcisClavier
+    raccourci: RaccourciClavier
     commande: fonc(*Anonyme)(rien)
     contexte: chaine
 }
@@ -274,9 +274,9 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     }
 }
 
-donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourcisClavier, bool
+donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
 {
-    résultat: RaccourcisClavier
+    résultat: RaccourciClavier
 
     boucle {
         si texte.commence_par("Ctrl-") {

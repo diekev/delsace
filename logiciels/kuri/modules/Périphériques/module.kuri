@@ -123,7 +123,7 @@ ClicSouris :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RaccourcisClavier
+/** \nom RaccourciClavier
  * \{ */
 
 InfoToucheClavier :: struct {
@@ -134,30 +134,30 @@ InfoToucheClavier :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RaccourcisClavier
+/** \nom RaccourciClavier
  * \{ */
 
-RaccourcisClavier :: struct {
+RaccourciClavier :: struct {
     clé: ToucheClavier
     modificateur: ModificateurClavier
 }
 
-opérateur == :: (a: RaccourcisClavier, b: RaccourcisClavier) -> bool
+opérateur == :: (a: RaccourciClavier, b: RaccourciClavier) -> bool
 {
     retourne a.clé == b.clé && a.modificateur == b.modificateur
 }
 
-ctrl :: fonc (clé: ToucheClavier) -> RaccourcisClavier
+ctrl :: fonc (clé: ToucheClavier) -> RaccourciClavier
 {
-    résultat: RaccourcisClavier
+    résultat: RaccourciClavier
     résultat.modificateur = ModificateurClavier.CONTROL
     résultat.clé = clé
     retourne résultat
 }
 
-ctrl_maj :: fonc (clé: ToucheClavier) -> RaccourcisClavier
+ctrl_maj :: fonc (clé: ToucheClavier) -> RaccourciClavier
 {
-    résultat: RaccourcisClavier
+    résultat: RaccourciClavier
     résultat.modificateur.CONTROL = vrai
     résultat.modificateur.MAJUSCULE = vrai
     résultat.clé = clé
