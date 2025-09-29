@@ -411,4 +411,12 @@ initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
     évènement.action_souris = clic.action
 }
 
+donne_raccourci :: fonc (évènement: Évènement) -> RaccourciClavier
+{
+    résultat: RaccourciClavier = ---
+    résultat.clé = évènement.touche
+    résultat.modificateur  = évènement.modificateurs
+    retourne résultat
+}
+
 /** \} */
