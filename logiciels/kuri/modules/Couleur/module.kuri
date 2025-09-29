@@ -194,6 +194,11 @@ mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> C
     retourne résultat
 }
 
+luminance :: fonc (c: CouleurRVBAN8) -> n8
+{
+    retourne (c.r comme r32 * 0.212671 + c.v comme r32 * 0.715160 + c.b comme r32 * 0.072169) comme n8
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
