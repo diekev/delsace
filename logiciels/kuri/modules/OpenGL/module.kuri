@@ -294,7 +294,7 @@ donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, paramètres
     discr image.desc.format {
         Gris_8 {
             résultat.type = GL_UNSIGNED_BYTE
-            résultat.format = GL_RED
+            résultat.format = GL_LUMINANCE
         }
         RVB_8 {
             résultat.type = GL_UNSIGNED_BYTE
@@ -306,7 +306,7 @@ donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, paramètres
         }
         Gris_32 {
             résultat.type = GL_FLOAT
-            résultat.format = GL_RED
+            résultat.format = GL_LUMINANCE
         }
         RVB_32 {
             résultat.type = GL_FLOAT
@@ -332,7 +332,7 @@ donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, param
     résultat.données = image.données
     résultat.bordure = 0
     résultat.type = GL_UNSIGNED_BYTE
-    résultat.format = GL_RED
+    résultat.format = GL_LUMINANCE
     définis_répétition(*résultat, paramètres.répétition)
     définis_échantillonnage(*résultat, paramètres.échantillonnage)
     retourne résultat
