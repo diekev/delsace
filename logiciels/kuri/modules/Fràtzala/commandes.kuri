@@ -78,7 +78,7 @@ ajoute_commande :: fonc (groupe: *GroupeDeCommandes, nom: chaine) -> *Commande
 
 Commande :: struct {
     nom: chaine
-    raccourcis: Optionnel(RaccourciClavier)
+    raccourci: Optionnel(RaccourciClavier)
     bouton_souris: Optionnel(BoutonSouris)
     action_souris: Optionnel(ActionSouris)
     modificateur: Optionnel(ModificateurClavier)
@@ -90,7 +90,7 @@ Commande :: struct {
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
 {
-    saufsi commande.raccourcis.possède_valeur() {
+    saufsi commande.raccourci.possède_valeur() {
         retourne faux
     }
 
@@ -202,13 +202,13 @@ trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte
     retourne nul
 }
 
-trouve_commande_pour_raccourcis :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourcis: RaccourciClavier) -> *Commande
+trouve_commande_pour_raccourci :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourci: RaccourciClavier) -> *Commande
 {
     groupe := trouve_groupe_pour_id(gestionnaire, contexte)
 
     tantque groupe != nul {
         pour groupe.commandes {
-            saufsi a_valeur(it.raccourcis, raccourcis) {
+            saufsi a_valeur(it.raccourci, raccourci) {
                 continue
             }
 
@@ -287,9 +287,9 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     retourne vrai
 }
 
-appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourcis: RaccourciClavier, souris: ÉtatSouris) -> bool
+appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourci: RaccourciClavier, souris: ÉtatSouris) -> bool
 {
-    commande := trouve_commande_pour_raccourcis(gestionnaire, type_éditrice, raccourcis)
+    commande := trouve_commande_pour_raccourci(gestionnaire, type_éditrice, raccourci)
     saufsi commande {
         retourne faux
     }
