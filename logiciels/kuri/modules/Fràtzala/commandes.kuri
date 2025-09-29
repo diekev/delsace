@@ -78,6 +78,7 @@ ajoute_commande :: fonc (groupe: *GroupeDeCommandes, nom: chaine) -> *Commande
 
 Commande :: struct {
     nom: chaine
+    icone: chaine
     raccourci: Optionnel(RaccourciClavier)
     bouton_souris: Optionnel(BoutonSouris)
     action_souris: Optionnel(ActionSouris)
