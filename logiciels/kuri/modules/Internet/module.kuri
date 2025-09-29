@@ -316,7 +316,7 @@ formatte_champs :: fonc (tampon: &Tamponet, champs: n16)
  *
  * les caractères doivent être en minuscule
  *
- * les suites de zéros doivent être raccourcis
+ * les suites de zéros doivent être raccourcies
  * 2001:db8:0:0:0:0:2:1 -> 2001:db8::2:1 mais non 2001:db8::0:1
  *
  * on ne peut raccourcir un seul 0

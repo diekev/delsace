@@ -758,6 +758,33 @@ donne_union :: fonc (rect1: RectanglePosDim($T), rect2: RectanglePosDim(T)) -> R
     retourne résultat
 }
 
+donne_intersection :: fonc (rect1: RectanglePosDim($T), rect2: RectanglePosDim(T)) -> RectanglePosDim(T)
+{
+    résultat: RectanglePosDim(T)
+
+    si intersecte(rect1, rect2) {
+        rect_pur1 := rect1.donne_rectangle_pur()
+        rect_pur2 := rect2.donne_rectangle_pur()
+
+        si rect_pur2.gauche < rect_pur1.gauche {
+            rect_pur2.gauche = rect_pur1.gauche
+        }
+        si rect_pur2.bas < rect_pur1.bas {
+            rect_pur2.bas = rect_pur1.bas
+        }
+        si rect_pur2.haut > rect_pur1.haut {
+            rect_pur2.haut = rect_pur1.haut
+        }
+        si rect_pur2.droite > rect_pur1.droite {
+            rect_pur2.droite = rect_pur1.droite
+        }
+
+        résultat = rect_pur2.donne_rectangle_pos_dim()
+    }
+
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

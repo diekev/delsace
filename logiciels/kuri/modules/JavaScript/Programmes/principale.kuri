@@ -36,9 +36,9 @@ principale :: fonc ()
 
     rappel_sauvegarde: RappelSauvegarde
     rappel_sauvegarde.rappels_fenêtre = *rappels_fenêtre
-    raccourcis := QT_shortcut_cree(fenêtre)
-    QT_shortcut_definis_touches(raccourcis, QT_Keyboard_Modifier.CTRL, QT_Key.S)
-    QT_shortcut_sur_activation(raccourcis, *rappel_sauvegarde)
+    raccourci := QT_shortcut_cree(fenêtre)
+    QT_shortcut_definis_touches(raccourci, QT_Keyboard_Modifier.CTRL, QT_Key.S)
+    QT_shortcut_sur_activation(raccourci, *rappel_sauvegarde)
 
     QT_widget_definis_titre_fenetre(fenêtre, vers_qt("JavaScript"))
     QT_widget_affiche_maximisee(fenêtre)
