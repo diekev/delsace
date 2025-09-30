@@ -146,6 +146,17 @@ maximise :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
+permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
+{
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        x11_fenêtre_permute_plein_écran(fenêtre)
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT)
+        qt_fenêtre_permute_plein_écran(fenêtre)
+    }
+}
+
 ferme :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
@@ -260,6 +271,7 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     QT_window_resize(window, largeur, hauteur)
 
     si maximisée {
+        __rappels_window.fut_maximisée = vrai
         QT_window_show_maximized(window)
     }
     sinon {
@@ -365,6 +377,28 @@ qt_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre)
     QT_window_show_maximized(fenêtre.rappels_window.window)
 }
 
+qt_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.rappels_window != nul)
+    assert(fenêtre.rappels_window.window != nul)
+
+    rappels := fenêtre.rappels_window
+    window := rappels.window
+
+    si QT_window_is_fullscreen(window) {
+        si rappels.fut_maximisée {
+            QT_window_show_maximized(window)
+        }
+        sinon {
+            QT_window_show_normal(window)
+        }
+    }
+    sinon {
+        rappels.fut_maximisée = QT_window_is_maximized(window)
+        QT_window_show_fullscreen(window)
+    }
+}
+
 qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
 {
     assert(fenêtre.rappels_window != nul)
@@ -406,6 +440,7 @@ RappelsWindow :: struct {
     glctx: *QT_OpenGL_Context
     glew_est_initialisé: bool
     taille_fenêtre: QT_Taille
+    fut_maximisée: bool
 
     sur_creation = rappels_window_sur_création
     sur_evenement = rappels_window_sur_évènement
@@ -808,6 +843,11 @@ x11_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre @inutilisée)
 }
 
 x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+{
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+}
+
+x11_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction)
 }
