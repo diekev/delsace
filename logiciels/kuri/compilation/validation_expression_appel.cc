@@ -409,7 +409,8 @@ struct ApparieuseParams {
                 return false;
             }
 
-            auto est_paramètre_variadique = indice_param == m_noms.taille() - 1 && m_est_variadique;
+            auto est_paramètre_variadique = indice_param == m_noms.taille() - 1 &&
+                                            m_est_variadique;
 
             if ((m_args_rencontrés.possède(ident)) && !est_paramètre_variadique) {
                 erreur = ErreurAppariement::renommage_argument(expr_ident, ident);

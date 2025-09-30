@@ -148,7 +148,8 @@ struct Simplificatrice {
 
     NoeudExpression *simplifie_tente(NoeudInstructionTente *inst);
 
-    NoeudExpression *développe_macro(NoeudDéclarationEntêteFonction *macro);
+    NoeudExpression *développe_macro(NoeudDéclarationEntêteFonction *macro,
+                                     kuri::tableau_statique<NoeudExpression *> params);
 };
 
 /** \} */

@@ -693,7 +693,8 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 if (noeud_fonction_appelée->est_entête_fonction() &&
                     noeud_fonction_appelée->comme_entête_fonction()->possède_drapeau(
                         DrapeauxNoeudFonction::EST_MACRO)) {
-                    return développe_macro(noeud_fonction_appelée->comme_entête_fonction());
+                    return développe_macro(noeud_fonction_appelée->comme_entête_fonction(),
+                                           appel->paramètres_résolus);
                 }
 
                 if (!appel->expression->est_référence_déclaration() ||
@@ -2908,9 +2909,21 @@ NoeudSi *Simplificatrice::crée_condition_boucle(NoeudExpression *inst, GenreNoe
     return condition;
 }
 
-NoeudExpression *Simplificatrice::développe_macro(NoeudDéclarationEntêteFonction *macro)
+NoeudExpression *Simplificatrice::développe_macro(NoeudDéclarationEntêteFonction *macro,
+                                                  kuri::tableau_statique<NoeudExpression *> params)
 {
     simplifie(macro->corps->bloc);
+
+    for (int i = 0; i < macro->params.taille(); i++) {
+        auto param = macro->parametre_entree(i)->comme_déclaration_variable();
+        ajoute_expression(param);
+
+        simplifie(params[i]);
+
+        auto assignation = assem->crée_assignation_variable(param->lexème, param, params[i]);
+        ajoute_expression(assignation);
+    }
+
     POUR (*macro->corps->bloc->expressions.verrou_lecture()) {
         ajoute_expression(it);
     }
