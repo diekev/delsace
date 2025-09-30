@@ -1465,14 +1465,46 @@ void QT_window_show(struct QT_Window *window)
     CONVERTIS_ET_APPEL(window, show);
 }
 
+static bool vérifie_état(struct QT_Window *window, Qt::WindowState state)
+{
+    VERS_QT(window);
+    auto states = qwindow->windowStates();
+    return (states & state) == state;
+}
+
+bool QT_window_is_maximized(struct QT_Window *window)
+{
+    return vérifie_état(window, Qt::WindowMaximized);
+}
+
 void QT_window_show_maximized(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, showMaximized);
 }
 
+bool QT_window_is_minimized(struct QT_Window *window)
+{
+    return vérifie_état(window, Qt::WindowMinimized);
+}
+
 void QT_window_show_minimized(struct QT_Window *window)
 {
     CONVERTIS_ET_APPEL(window, showMinimized);
+}
+
+bool QT_window_is_fullscreen(struct QT_Window *window)
+{
+    return vérifie_état(window, Qt::WindowFullScreen);
+}
+
+void QT_window_show_fullscreen(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showFullScreen);
+}
+
+void QT_window_show_normal(struct QT_Window *window)
+{
+    CONVERTIS_ET_APPEL(window, showNormal);
 }
 
 bool QT_window_is_visible(struct QT_Window *window)
