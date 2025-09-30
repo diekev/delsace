@@ -3064,7 +3064,7 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
                 rapporte_erreur("Attendu un nombre entier après #optimise");
             }
 
-            noeud->niveau_optimisation = lexème->valeur_entiere;
+            noeud->niveau_optimisation = uint8_t(lexème->valeur_entiere);
         }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
