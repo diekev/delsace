@@ -313,6 +313,11 @@ définis_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichi
     retourne système_chemin_courant(chemin)
 }
 
+donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur := vrai) -> bool
+{
+    retourne système_donne_chemin_exécutable(tampon_chemin, imprime_erreur)
+}
+
 chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
 {
     retourne système_chemin_répertoire_personnel()
