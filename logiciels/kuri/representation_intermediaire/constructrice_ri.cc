@@ -5144,7 +5144,8 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
                 pointeur,
                 m_constructrice.crée_initialisation_défaut_pour_type(type_var));
         }
-        else {
+        else if (!variable->type->possède_drapeau(
+                     DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION)) {
             crée_appel_fonction_init_type(variable, type_var, pointeur);
         }
         return;

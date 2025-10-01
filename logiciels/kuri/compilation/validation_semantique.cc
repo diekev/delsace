@@ -1931,6 +1931,11 @@ static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction c
         return true;
     }
 
+    if (fonction1.possède_drapeau(DrapeauxNoeudFonction::EST_SSE2) &&
+        fonction2.possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
+        return fonction1.ident == fonction2.ident;
+    }
+
     if (fonction1.ident != fonction2.ident) {
         return false;
     }

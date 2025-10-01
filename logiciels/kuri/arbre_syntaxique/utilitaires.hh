@@ -247,6 +247,9 @@ enum class DrapeauxNoeudFonction : uint32_t {
     /* La fonction fut créée pour une référence d'opérateur basique. */
     EST_OPÉRATAUR_SYNTHÉTIQUE = (1 << 28),
 
+    /* La fonction est une intrinsèque SSE2. */
+    EST_SSE2 = (1 << 29),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
                        EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),

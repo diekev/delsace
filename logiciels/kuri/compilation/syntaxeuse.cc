@@ -3066,6 +3066,17 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
 
             noeud->niveau_optimisation = uint8_t(lexème->valeur_entiere);
         }
+        else if (ident_directive == ID::sse2) {
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SSE2;
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSBROYAGE;
+            consomme();
+        }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
         }
@@ -3523,6 +3534,13 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         }
         else if (ident_directive == ID::externe) {
             noeud->est_externe = true;
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sse2) {
+            noeud->est_externe = true;
+            noeud->est_sse2 = true;
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);

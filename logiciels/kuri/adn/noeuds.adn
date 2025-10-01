@@ -735,6 +735,7 @@ struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
     MetaProgramme *métaprogramme_corps_texte
 
     bool est_externe [copie]
+    bool est_sse2 [copie]
     bool est_polymorphe [copie]
     bool est_monomorphisation [copie]
     bool est_corps_texte [copie]

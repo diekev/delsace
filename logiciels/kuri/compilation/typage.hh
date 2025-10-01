@@ -421,7 +421,7 @@ using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
 ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                       Type const *type_a_tester);
+                                                                        Type const *type_a_tester);
 
 /** \} */
 
@@ -504,6 +504,8 @@ bool est_type_booléen_implicite(Type *type);
 bool est_type_tableau_fixe(Type const *type);
 
 bool est_pointeur_vers_tableau_fixe(Type const *type);
+
+bool est_type_sse2(Type const *type);
 
 /* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
  * un type dérivé. */
