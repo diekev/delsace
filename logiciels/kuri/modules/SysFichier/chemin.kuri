@@ -43,7 +43,7 @@ séparateur_chemin :: fonc () -> z8 #enligne
     retourne système_séparateur_chemin_préféré()
 }
 
-extension :: fonc (chemin: &CheminFichier) -> chaine
+extension :: fonc (chemin: CheminFichier) -> chaine
 {
     résultat := nom_fichier_avec_extension(chemin)
     saufsi résultat {
