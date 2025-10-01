@@ -48,7 +48,7 @@ taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
     retourne taille
 }
 
-chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
+chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse, réinitialise := vrai) -> chaine
 {
     taille := taille_chaine(enchaineuse)
 
@@ -73,7 +73,9 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> chaine
         curseur += taille_tampon
     }
 
-    réinitialise_enchaineuse(enchaineuse)
+    si réinitialise {
+        réinitialise_enchaineuse(enchaineuse)
+    }
 
     retourne chn
 }
