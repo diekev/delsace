@@ -561,6 +561,11 @@ donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
     retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)))
 }
 
+donne_chemin_statique :: fonc (tampon: *TamponChemin) -> CheminFichier
+{
+    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés))
+}
+
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
 {
     retourne chaine(*tampon.données[0], tampon.occupés)
