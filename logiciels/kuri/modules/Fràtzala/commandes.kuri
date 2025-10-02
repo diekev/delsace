@@ -89,6 +89,7 @@ Commande :: struct {
     exécute_modal: fonc(*ContexteExécutionCommande)(rien)
     termine_modal: fonc(*ContexteExécutionCommande)(rien)
     sur_donne_nom: fonc (données_utilisateur: eini) -> chaine
+    sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool
 }
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
@@ -121,6 +122,15 @@ donne_nom :: fonc (commande: *Commande, données_utilisateur: eini) -> chaine
         retourne commande.nom
     }
     retourne commande.identifiant
+}
+
+est_exécutable :: fonc (commande: *Commande, ctx: *ContexteExécutionCommande) -> bool
+{
+    résultat := vrai
+    si commande.sur_est_exécutable {
+        résultat = commande.sur_est_exécutable(ctx)
+    }
+    retourne résultat
 }
 
 /** \} */
@@ -262,6 +272,11 @@ appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Context
     }
 
     ctx.métadonnée = métadonnée
+
+    saufsi est_exécutable(commande, ctx) {
+        retourne
+    }
+
     résultat := commande.exécute(ctx)
 
     discr résultat {
@@ -283,6 +298,10 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     }
 
     saufsi commande.exécute {
+        retourne faux
+    }
+
+    saufsi est_exécutable(commande, ctx) {
         retourne faux
     }
 
@@ -309,6 +328,10 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     }
 
     saufsi commande.exécute {
+        retourne faux
+    }
+
+    saufsi est_exécutable(commande, ctx) {
         retourne faux
     }
 
