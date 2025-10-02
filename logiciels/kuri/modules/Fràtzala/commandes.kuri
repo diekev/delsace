@@ -77,6 +77,7 @@ ajoute_commande :: fonc (groupe: *GroupeDeCommandes, identifiant: chaine) -> *Co
  * \{ */
 
 Commande :: struct {
+    nom: chaine
     identifiant: chaine
     icone: chaine
     raccourci: Optionnel(RaccourciClavier)
@@ -87,6 +88,7 @@ Commande :: struct {
     exécute: fonc(*ContexteExécutionCommande)(RésultatExécutionCommande)
     exécute_modal: fonc(*ContexteExécutionCommande)(rien)
     termine_modal: fonc(*ContexteExécutionCommande)(rien)
+    sur_donne_nom: fonc (données_utilisateur: eini) -> chaine
 }
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
@@ -108,6 +110,17 @@ est_commande_clavier :: fonc (commande: *Commande) -> bool
     }
 
     retourne vrai
+}
+
+donne_nom :: fonc (commande: *Commande, données_utilisateur: eini) -> chaine
+{
+    si commande.sur_donne_nom {
+        retourne commande.sur_donne_nom(données_utilisateur)
+    }
+    si commande.nom {
+        retourne commande.nom
+    }
+    retourne commande.identifiant
 }
 
 /** \} */
