@@ -76,3 +76,125 @@ allocatrice_stats_alloc :: fonc (params: &ParamètresAllocation, données: *Base
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArèneMémoire
+ * \{ */
+
+IndiceMémoire :: n64
+
+MémoireTemporaire :: struct {
+    arène: *ArèneMémoire
+    utilisé: IndiceMémoire
+}
+
+ArèneMémoire :: struct {
+    base: *octet
+    taille: IndiceMémoire
+    utilisé: IndiceMémoire
+    compte_temp: z32
+}
+
+initialise_arène :: fonc (arène: *ArèneMémoire, base: *octet, taille: IndiceMémoire)
+{
+    arène.base = base
+    arène.taille = taille
+    arène.utilisé = 0
+    arène.compte_temp = 0
+}
+
+réinitialise :: fonc (arène: *ArèneMémoire)
+{
+    arène.utilisé = 0
+}
+
+donne_sous_arène :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire) -> ArèneMémoire
+{
+    base := loge_mémoire(arène, taille comme n32)
+    résultat: ArèneMémoire = ---
+    initialise_arène(*résultat, base, taille)
+    retourne résultat
+}
+
+/* L'objet délogé doit être le dernier objet alloué. */
+déloge :: fonc (arène: *ArèneMémoire, objet: *$T)
+{
+    pointeur_supposé := arène.base + arène.utilisé - taille_de(T)
+    assert(pointeur_supposé == objet)
+    arène.utilisé -= taille_de(T)
+}
+
+loge :: fonc (arène: *ArèneMémoire, $T: type_de_données) -> *T
+{
+    résultat := loge_mémoire(arène, taille_de(T)) comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+loge_chaine :: fonc (arène: *ArèneMémoire, chn: chaine) -> chaine
+{
+    résultat := loge_mémoire(arène, chn.taille comme n32)
+    copie_mem_nonsur(src = chn.pointeur, dst = résultat, taille = chn.taille)
+    retourne chaine(résultat comme *z8, chn.taille)
+}
+
+loge_tableau :: fonc (arène: *ArèneMémoire, nombre_d_éléments: n64, $T: type_de_données) -> []T
+{
+    taille := taille_de(T) * nombre_d_éléments comme n32
+
+    résultat: []T = ---
+    résultat.pointeur = loge_mémoire(arène, taille) comme *T
+    résultat.taille = nombre_d_éléments comme z64
+    retourne résultat
+}
+
+enchaine :: fonc (arène: *ArèneMémoire, chns: ...chaine) -> chaine
+{
+    taille : z64 = 0
+    pour chns {
+        taille += it.taille
+    }
+
+    résultat := loge_mémoire(arène, taille comme n32)
+
+    dst := résultat
+    pour chns {
+        copie_mem_nonsur(src = it.pointeur, dst = dst, taille = it.taille)
+        dst += it.taille
+    }
+
+    retourne chaine(résultat comme *z8, taille)
+}
+
+loge_mémoire :: fonc (arène: *ArèneMémoire, taille: n32) -> *octet
+{
+    assert(arène.utilisé + taille <= arène.taille)
+    résultat := (arène.base + arène.utilisé)
+    arène.utilisé += taille
+    retourne résultat
+}
+
+commence_mémoire_temporaire :: fonc (arène: *ArèneMémoire) -> MémoireTemporaire
+{
+    résultat: MémoireTemporaire
+    résultat.arène = arène
+    résultat.utilisé = arène.utilisé
+    arène.compte_temp += 1
+    retourne résultat
+}
+
+termine_mémoire_temporaire :: fonc (temp: MémoireTemporaire)
+{
+    arène := temp.arène
+    assert(arène.utilisé >= temp.utilisé)
+    arène.utilisé = temp.utilisé
+    assert(arène.compte_temp > 0)
+    arène.compte_temp -= 1
+}
+
+vérifie_arène :: fonc (arène: *ArèneMémoire)
+{
+    assert(arène.compte_temp == 0)
+}
+
+/** \} */
