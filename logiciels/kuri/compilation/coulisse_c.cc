@@ -882,6 +882,9 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
     POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
+        if (it.decl && it.decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+            enchaineuse << "volatile ";
+        }
         enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, indice_it) << ";\n";
     }
 
@@ -1510,6 +1513,9 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             os << donne_nom_pour_type(type_alloué);
             auto nom = donne_nom_pour_instruction(inst);
+            if (alloc->site && alloc->site->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+                os << " volatile";
+            }
             os << ' ' << nom;
             os << ";\n";
             table_valeurs[inst->numero] = enchaine("&", nom);
@@ -1757,6 +1763,11 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
 
     auto type = valeur_globale->donne_type_alloué();
     os << donne_nom_pour_type(type) << ' ';
+
+    if (valeur_globale->decl &&
+        valeur_globale->decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+        os << "volatile ";
+    }
 
     auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entête);
     os << nom_globale;

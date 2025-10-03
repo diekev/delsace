@@ -93,6 +93,7 @@ enum class DrapeauxNoeud : uint32_t {
     IDENT_EST_DÉFAUT = (1u << 28),  // decl var
 
     EST_PARSÉANTE = (1u << 29),  // decl var
+    EST_VOLATILE = (1u << 30),   // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

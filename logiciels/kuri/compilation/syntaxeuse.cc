@@ -3819,6 +3819,7 @@ enum DirectiveDeVariable : uint32_t {
     EXPORTE = (1u << 3),
     MÉMOIRE_GLOBALE = (1u << 4),
     MÉMOIRE_LOCALE = (1u << 5),
+    VOLATILE = (1U << 6),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
 
@@ -3924,6 +3925,11 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
             consomme();
             déclaration->partage_mémoire = PartageMémoire::LOCAL;
             directives |= DirectiveDeVariable::MÉMOIRE_LOCALE;
+        }
+        else if (lexème_directive->ident == ID::volatile_) {
+            consomme();
+            directives |= DirectiveDeVariable::VOLATILE;
+            déclaration->drapeaux |= DrapeauxNoeud::EST_VOLATILE;
         }
         else {
             rapporte_erreur("Directive de déclaration de variable inconnue.");
