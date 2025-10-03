@@ -1664,6 +1664,17 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
             }
 
+            if (noeud->ident == ID::position_code_source) {
+                auto &typeuse = m_espace->compilatrice().typeuse;
+                if (typeuse.type_position_code_source == nullptr) {
+                    m_espace->rapporte_erreur(
+                        noeud, "Erreur interne : PositionCodeSource ne fut pas encore parsé");
+                    return CodeRetourValidation::Erreur;
+                }
+                noeud->type = typeuse.type_position_code_source;
+                return CodeRetourValidation::OK;
+            }
+
             noeud->type = m_compilatrice.typeuse.type_chaine;
             break;
         }

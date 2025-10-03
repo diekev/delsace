@@ -20,7 +20,7 @@ char *FT_Error_String(FT_Error error_code)
 
 */
 
-imprime_erreur_freetype :: fonc (error: FT_Error @inutilisée, position := PositionCodeSource() @inutilisée)
+imprime_erreur_freetype :: fonc (error: FT_Error @inutilisée, position := #position_code_source @inutilisée)
 {
     imprimeln("ERREUR ::::::::::::: !!!")
     // fprintf(stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));

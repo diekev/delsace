@@ -340,7 +340,7 @@ ConfigurationBordure :: struct {
     couleur: [4]CouleurRVBA
 }
 
-dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := PositionCodeSource())
+dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := #position_code_source)
 {
     assert(__boite_courante != nul)
 

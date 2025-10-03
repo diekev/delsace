@@ -2105,7 +2105,7 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
     POUR (candidate->exprs) {
         /* Copie les expressions par défaut des paramètres afin d'éviter d'avoir des conflits lors
          * de la canonicalisation du code où la même expression pourrait avoir différentes
-         * substitution (p.e. pour les PositionCodeSource()).
+         * substitution.
          *
          * Une expression peut être nulle pour les expressions de construction de type. */
         if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT)) {

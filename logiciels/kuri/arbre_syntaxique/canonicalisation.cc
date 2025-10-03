@@ -963,6 +963,9 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                      noeud->ident == ID::type_de_cette_structure) {
                 noeud->substitution = assem->crée_référence_type(noeud->lexème, noeud->type);
             }
+            else if (noeud->ident == ID::position_code_source) {
+                simplifie_position_code_source(noeud->comme_directive_instrospection());
+            }
 
             return noeud->substitution;
         }
@@ -1628,11 +1631,6 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure(
         return simplifie_construction_union(construction);
     }
 
-    /* L'expression peut être nulle pour les structures anonymes crées par la compilatrice. */
-    if (construction->expression && construction->expression->ident == ID::PositionCodeSource) {
-        return simplifie_construction_structure_position_code_source(construction);
-    }
-
     return simplifie_construction_structure_impl(construction);
 }
 
@@ -2020,13 +2018,13 @@ NoeudExpression *Simplificatrice::simplifie_construction_union(
     return comme;
 }
 
-NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code_source(
-    NoeudExpressionConstructionStructure *construction)
+void Simplificatrice::simplifie_position_code_source(NoeudDirectiveIntrospection *directive)
 {
-    auto const lexème = construction->lexème;
+    auto const lexème = directive->lexème;
     const NoeudExpression *site = m_site_pour_position_code_source ?
-                                      m_site_pour_position_code_source :
-                                      construction;
+                                      static_cast<const NoeudExpression *>(
+                                          m_site_pour_position_code_source) :
+                                      static_cast<const NoeudExpression *>(directive);
     auto const lexème_site = site->lexème;
 
     auto &compilatrice = espace->compilatrice();
@@ -2094,8 +2092,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
         ajoute_expression(assign);
     }
 
-    construction->substitution = ref_position;
-    return ref_position;
+    directive->substitution = ref_position;
 }
 
 NoeudExpressionRéférence *Simplificatrice::génère_simplification_construction_structure(

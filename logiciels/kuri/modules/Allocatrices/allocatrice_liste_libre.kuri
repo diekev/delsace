@@ -138,7 +138,7 @@ détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
 {
     params: ParamètresAllocation
     params.mode = ModeAllocatrice.DÉSALLOUE
-    params.pos = PositionCodeSource()
+    params.pos = #position_code_source
 
     pour allocatrice.racines {
         taille_bloc := (1 comme z64) << indice_it
@@ -158,7 +158,7 @@ ajoute_bloc :: fonc (allocatrice: *AllocatriceListeLibre, adresse: *rien, taille
     si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
         params: ParamètresAllocation
         params.mode = ModeAllocatrice.DÉSALLOUE
-        params.pos = PositionCodeSource()
+        params.pos = #position_code_source
         params.ancienne_taille = taille
         params.ancien_pointeur = adresse
         _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice)

@@ -1135,7 +1135,7 @@ imprime_tableau :: fonc (tableau: []$T, message := "", séparation := ", ")
 
 // --------------------------
 
-assert :: fonc (expr: bool, pos := PositionCodeSource()) -> rien
+assert :: fonc (expr: bool, pos := #position_code_source) -> rien
 {
     si expr {
         retourne

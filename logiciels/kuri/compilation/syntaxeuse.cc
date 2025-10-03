@@ -1143,7 +1143,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                      directive == ID::chemin_de_ce_fichier ||
                      directive == ID::chemin_de_ce_module ||
                      directive == ID::type_de_cette_fonction ||
-                     directive == ID::type_de_cette_structure) {
+                     directive == ID::type_de_cette_structure ||
+                     directive == ID::position_code_source) {
                 auto noeud = m_contexte->assembleuse->crée_directive_instrospection(lexème);
                 return noeud;
             }
