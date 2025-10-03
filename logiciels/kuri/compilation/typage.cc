@@ -23,71 +23,6 @@
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
-/* ************************************************************************** */
-
-namespace TypeBase {
-#define DECLARE_EXTERNE_TYPE(nom) Type *nom;
-ENUMERE_TYPE_FONDAMENTAL(DECLARE_EXTERNE_TYPE)
-#undef DECLARE_EXTERNE_TYPE
-}  // namespace TypeBase
-
-struct DonneesTypeCommun {
-    Type **ptr_type;
-    GenreLexème dt[2];
-};
-
-static DonneesTypeCommun donnees_types_communs[] = {
-    {&TypeBase::PTR_N8, {GenreLexème::POINTEUR, GenreLexème::N8}},
-    {&TypeBase::PTR_N16, {GenreLexème::POINTEUR, GenreLexème::N16}},
-    {&TypeBase::PTR_N32, {GenreLexème::POINTEUR, GenreLexème::N32}},
-    {&TypeBase::PTR_N64, {GenreLexème::POINTEUR, GenreLexème::N64}},
-    {&TypeBase::PTR_Z8, {GenreLexème::POINTEUR, GenreLexème::Z8}},
-    {&TypeBase::PTR_Z16, {GenreLexème::POINTEUR, GenreLexème::Z16}},
-    {&TypeBase::PTR_Z32, {GenreLexème::POINTEUR, GenreLexème::Z32}},
-    {&TypeBase::PTR_Z64, {GenreLexème::POINTEUR, GenreLexème::Z64}},
-    {&TypeBase::PTR_R16, {GenreLexème::POINTEUR, GenreLexème::R16}},
-    {&TypeBase::PTR_R32, {GenreLexème::POINTEUR, GenreLexème::R32}},
-    {&TypeBase::PTR_R64, {GenreLexème::POINTEUR, GenreLexème::R64}},
-    {&TypeBase::PTR_EINI, {GenreLexème::POINTEUR, GenreLexème::EINI}},
-    {&TypeBase::PTR_CHAINE, {GenreLexème::POINTEUR, GenreLexème::CHAINE}},
-    {&TypeBase::PTR_RIEN, {GenreLexème::POINTEUR, GenreLexème::RIEN}},
-    {&TypeBase::PTR_NUL, {GenreLexème::POINTEUR, GenreLexème::NUL}},
-    {&TypeBase::PTR_BOOL, {GenreLexème::POINTEUR, GenreLexème::BOOL}},
-    {&TypeBase::PTR_OCTET, {GenreLexème::POINTEUR, GenreLexème::OCTET}},
-
-    {&TypeBase::REF_N8, {GenreLexème::REFERENCE, GenreLexème::N8}},
-    {&TypeBase::REF_N16, {GenreLexème::REFERENCE, GenreLexème::N16}},
-    {&TypeBase::REF_N32, {GenreLexème::REFERENCE, GenreLexème::N32}},
-    {&TypeBase::REF_N64, {GenreLexème::REFERENCE, GenreLexème::N64}},
-    {&TypeBase::REF_Z8, {GenreLexème::REFERENCE, GenreLexème::Z8}},
-    {&TypeBase::REF_Z16, {GenreLexème::REFERENCE, GenreLexème::Z16}},
-    {&TypeBase::REF_Z32, {GenreLexème::REFERENCE, GenreLexème::Z32}},
-    {&TypeBase::REF_Z64, {GenreLexème::REFERENCE, GenreLexème::Z64}},
-    {&TypeBase::REF_R16, {GenreLexème::REFERENCE, GenreLexème::R16}},
-    {&TypeBase::REF_R32, {GenreLexème::REFERENCE, GenreLexème::R32}},
-    {&TypeBase::REF_R64, {GenreLexème::REFERENCE, GenreLexème::R64}},
-    {&TypeBase::REF_EINI, {GenreLexème::REFERENCE, GenreLexème::EINI}},
-    {&TypeBase::REF_CHAINE, {GenreLexème::REFERENCE, GenreLexème::CHAINE}},
-    {&TypeBase::REF_RIEN, {GenreLexème::REFERENCE, GenreLexème::RIEN}},
-    {&TypeBase::REF_BOOL, {GenreLexème::REFERENCE, GenreLexème::BOOL}},
-
-    {&TypeBase::TABL_N8, {GenreLexème::TABLEAU, GenreLexème::N8}},
-    {&TypeBase::TABL_N16, {GenreLexème::TABLEAU, GenreLexème::N16}},
-    {&TypeBase::TABL_N32, {GenreLexème::TABLEAU, GenreLexème::N32}},
-    {&TypeBase::TABL_N64, {GenreLexème::TABLEAU, GenreLexème::N64}},
-    {&TypeBase::TABL_Z8, {GenreLexème::TABLEAU, GenreLexème::Z8}},
-    {&TypeBase::TABL_Z16, {GenreLexème::TABLEAU, GenreLexème::Z16}},
-    {&TypeBase::TABL_Z32, {GenreLexème::TABLEAU, GenreLexème::Z32}},
-    {&TypeBase::TABL_Z64, {GenreLexème::TABLEAU, GenreLexème::Z64}},
-    {&TypeBase::TABL_R16, {GenreLexème::TABLEAU, GenreLexème::R16}},
-    {&TypeBase::TABL_R32, {GenreLexème::TABLEAU, GenreLexème::R32}},
-    {&TypeBase::TABL_R64, {GenreLexème::TABLEAU, GenreLexème::R64}},
-    {&TypeBase::TABL_EINI, {GenreLexème::TABLEAU, GenreLexème::EINI}},
-    {&TypeBase::TABL_CHAINE, {GenreLexème::TABLEAU, GenreLexème::CHAINE}},
-    {&TypeBase::TABL_BOOL, {GenreLexème::TABLEAU, GenreLexème::BOOL}},
-    {&TypeBase::TABL_OCTET, {GenreLexème::TABLEAU, GenreLexème::OCTET}},
-};
-
 /* ------------------------------------------------------------------------- */
 /** \name Création de types de bases.
  * \{ */
@@ -428,83 +363,79 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     alloc = mémoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
 
     /* initialise les types communs */
-#define CREE_TYPE_SIMPLE(IDENT)                                                                   \
-    TypeBase::IDENT = crée_type_pour_lexeme(GenreLexème::IDENT);                                  \
-    types_simples->ajoute(TypeBase::IDENT)
+    type_n8 = crée_type_pour_lexeme(GenreLexème::N8);
+    types_simples->ajoute(type_n8);
+    type_n16 = crée_type_pour_lexeme(GenreLexème::N16);
+    types_simples->ajoute(type_n16);
+    type_n32 = crée_type_pour_lexeme(GenreLexème::N32);
+    types_simples->ajoute(type_n32);
+    type_n64 = crée_type_pour_lexeme(GenreLexème::N64);
+    types_simples->ajoute(type_n64);
+    type_z8 = crée_type_pour_lexeme(GenreLexème::Z8);
+    types_simples->ajoute(type_z8);
+    type_z16 = crée_type_pour_lexeme(GenreLexème::Z16);
+    types_simples->ajoute(type_z16);
+    type_z32 = crée_type_pour_lexeme(GenreLexème::Z32);
+    types_simples->ajoute(type_z32);
+    type_z64 = crée_type_pour_lexeme(GenreLexème::Z64);
+    types_simples->ajoute(type_z64);
+    type_r16 = crée_type_pour_lexeme(GenreLexème::R16);
+    types_simples->ajoute(type_r16);
+    type_r32 = crée_type_pour_lexeme(GenreLexème::R32);
+    types_simples->ajoute(type_r32);
+    type_r64 = crée_type_pour_lexeme(GenreLexème::R64);
+    types_simples->ajoute(type_r64);
+    type_rien = crée_type_pour_lexeme(GenreLexème::RIEN);
+    types_simples->ajoute(type_rien);
+    type_bool = crée_type_pour_lexeme(GenreLexème::BOOL);
+    types_simples->ajoute(type_bool);
 
-    CREE_TYPE_SIMPLE(N8);
-    CREE_TYPE_SIMPLE(N16);
-    CREE_TYPE_SIMPLE(N32);
-    CREE_TYPE_SIMPLE(N64);
-    CREE_TYPE_SIMPLE(Z8);
-    CREE_TYPE_SIMPLE(Z16);
-    CREE_TYPE_SIMPLE(Z32);
-    CREE_TYPE_SIMPLE(Z64);
-    CREE_TYPE_SIMPLE(R16);
-    CREE_TYPE_SIMPLE(R32);
-    CREE_TYPE_SIMPLE(R64);
-    CREE_TYPE_SIMPLE(RIEN);
-    CREE_TYPE_SIMPLE(BOOL);
-    CREE_TYPE_SIMPLE(OCTET);
-    CREE_TYPE_SIMPLE(ADRESSE_FONCTION);
+    // À FAIRE : transforme en types opaques
+    type_entier_constant = crée_type_entier_constant();
+    types_simples->ajoute(type_entier_constant);
+    type_octet = crée_type_pour_lexeme(GenreLexème::OCTET);
+    types_simples->ajoute(type_octet);
+    type_adresse_fonction = crée_type_pour_lexeme(GenreLexème::ADRESSE_FONCTION);
+    types_simples->ajoute(type_adresse_fonction);
 
-    TypeBase::TRANCHE_OCTET = crée_type_tranche(TypeBase::OCTET, true);
+    type_tranche_octet = crée_type_tranche(type_octet, true);
 
-#undef CREE_TYPE_SIMPLE
+    type_ref_n8 = type_reference_pour(type_n8);
+    type_ref_n64 = type_reference_pour(type_n64);
+    type_ref_z8 = type_reference_pour(type_z8);
 
-    TypeBase::RIEN->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                      DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+    type_ptr_n8 = type_pointeur_pour(type_n8);
+    type_ptr_z8 = type_pointeur_pour(type_z8);
+    type_ptr_rien = type_pointeur_pour(type_rien);
+    type_ptr_octet = type_pointeur_pour(type_octet);
 
-    TypeBase::ENTIER_CONSTANT = crée_type_entier_constant();
-    types_simples->ajoute(TypeBase::ENTIER_CONSTANT);
+    type_tabl_n8 = type_tableau_dynamique(type_n8);
 
-    TypeBase::EINI = crée_type_eini();
-    TypeBase::CHAINE = crée_type_chaine();
+    type_rien->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
+                                 DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+
+    type_eini = crée_type_eini();
+    type_chaine = crée_type_chaine();
 
     type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(type_type_de_donnees_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
-    auto ptr_nul = alloc->m_noeuds_type_pointeur.ajoute_élément();
-    initialise_type_pointeur(ptr_nul, nullptr);
-
-    TypeBase::PTR_NUL = ptr_nul;
-
-    for (auto &donnees : donnees_types_communs) {
-        auto type = this->type_pour_lexeme(donnees.dt[1]);
-
-        if (donnees.dt[0] == GenreLexème::TABLEAU) {
-            type = this->type_tableau_dynamique(type);
-        }
-        else if (donnees.dt[0] == GenreLexème::POINTEUR) {
-            type = this->type_pointeur_pour(type);
-        }
-        else if (donnees.dt[0] == GenreLexème::REFERENCE) {
-            type = this->type_reference_pour(type);
-        }
-        else {
-            assert_rappel(false, [&]() {
-                dbg() << "Genre de type non-géré : " << chaine_du_lexème(donnees.dt[0]);
-            });
-        }
-
-        *donnees.ptr_type = type;
-    }
+    type_ptr_nul = alloc->m_noeuds_type_pointeur.ajoute_élément();
+    initialise_type_pointeur(type_ptr_nul, nullptr);
 
     auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_eini.ajoute({nullptr, TypeBase::PTR_RIEN, ID::pointeur, 0});
+    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur, 0});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
     rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
-    auto type_eini = TypeBase::EINI->comme_type_composé();
     type_eini->rubriques = std::move(rubriques_eini);
     type_eini->nombre_de_rubriques_réelles = type_eini->rubriques.taille();
     type_eini->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
-    auto type_chaine = TypeBase::CHAINE->comme_type_composé();
     auto rubriques_chaine = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_chaine.ajoute({nullptr, TypeBase::PTR_Z8, ID::pointeur, 0});
-    rubriques_chaine.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::pointeur, 0});
+    rubriques_chaine.ajoute({nullptr, type_z64, ID::taille, 8});
     type_chaine->rubriques = std::move(rubriques_chaine);
     type_chaine->nombre_de_rubriques_réelles = type_chaine->rubriques.taille();
     type_chaine->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -516,9 +447,7 @@ Typeuse::~Typeuse()
         mémoire::deloge("Type", ptr);
     }
 
-    auto type_chaine = TypeBase::CHAINE->comme_type_composé();
     mémoire::deloge("TypeCompose", type_chaine);
-    auto type_eini = TypeBase::EINI->comme_type_composé();
     mémoire::deloge("TypeCompose", type_eini);
     mémoire::deloge("AllocatriceNoeud", alloc);
 }
@@ -531,17 +460,17 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
     /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
      * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
      * autres pointeurs et les fonctions. */
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::N8);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::N16);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::N32);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::N64);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::Z8);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::Z16);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::Z32);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::Z64);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::PTR_RIEN);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::ADRESSE_FONCTION);
-    gestionnaire->requiers_initialisation_type(espace, TypeBase::TRANCHE_OCTET);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n8);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n16);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n32);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n64);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z8);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z16);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z32);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z64);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_ptr_rien);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_adresse_fonction);
+    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_tranche_octet);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
@@ -549,67 +478,67 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
     switch (lexeme) {
         case GenreLexème::BOOL:
         {
-            return TypeBase::BOOL;
+            return type_bool;
         }
         case GenreLexème::OCTET:
         {
-            return TypeBase::OCTET;
+            return type_octet;
         }
         case GenreLexème::N8:
         {
-            return TypeBase::N8;
+            return type_n8;
         }
         case GenreLexème::Z8:
         {
-            return TypeBase::Z8;
+            return type_z8;
         }
         case GenreLexème::N16:
         {
-            return TypeBase::N16;
+            return type_n16;
         }
         case GenreLexème::Z16:
         {
-            return TypeBase::Z16;
+            return type_z16;
         }
         case GenreLexème::N32:
         {
-            return TypeBase::N32;
+            return type_n32;
         }
         case GenreLexème::Z32:
         {
-            return TypeBase::Z32;
+            return type_z32;
         }
         case GenreLexème::N64:
         {
-            return TypeBase::N64;
+            return type_n64;
         }
         case GenreLexème::Z64:
         {
-            return TypeBase::Z64;
+            return type_z64;
         }
         case GenreLexème::R16:
         {
-            return TypeBase::R16;
+            return type_r16;
         }
         case GenreLexème::R32:
         {
-            return TypeBase::R32;
+            return type_r32;
         }
         case GenreLexème::R64:
         {
-            return TypeBase::R64;
+            return type_r64;
         }
         case GenreLexème::CHAINE:
         {
-            return TypeBase::CHAINE;
+            return type_chaine;
         }
         case GenreLexème::EINI:
         {
-            return TypeBase::EINI;
+            return type_eini;
         }
         case GenreLexème::RIEN:
         {
-            return TypeBase::RIEN;
+            return type_rien;
         }
         case GenreLexème::TYPE_DE_DONNÉES:
         {
@@ -617,7 +546,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
         }
         case GenreLexème::ADRESSE_FONCTION:
         {
-            return TypeBase::ADRESSE_FONCTION;
+            return type_adresse_fonction;
         }
         default:
         {
@@ -629,7 +558,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
 TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
 {
     if (!type) {
-        return TypeBase::PTR_NUL->comme_type_pointeur();
+        return type_ptr_nul;
     }
 
     VERROUILLE(types_pointeurs);
@@ -695,7 +624,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr,
-                      TypeBase::Z64,
+                      type_z64,
                       ID::taille,
                       0,
                       uint64_t(taille),
@@ -750,8 +679,8 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
-    rubriques.ajoute({nullptr, TypeBase::Z64, ID::capacite, 16});
+    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, type_z64, ID::capacite, 16});
 
     auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
     initialise_type_tableau_dynamique(type, type_pointe, std::move(rubriques));
@@ -781,7 +710,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
 
     auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
     initialise_type_tranche(type, type_élément, std::move(rubriques));
@@ -808,7 +737,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, TypeBase::Z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();
     initialise_type_variadique(type, type_pointe, std::move(rubriques));
@@ -1324,14 +1253,16 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
     if (type->type_le_plus_grand) {
         auto rubriques_ = kuri::tableau<RubriqueTypeComposé, int>(2);
         rubriques_[0] = {nullptr, type->type_le_plus_grand, ID::valeur, 0};
-        rubriques_[1] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
+        rubriques_[1] = {
+            nullptr, typeuse.type_z32, ID::rubrique_active, alignement_rubrique_active};
         type->type_structure->rubriques = std::move(rubriques_);
         type->type_structure->nombre_de_rubriques_réelles =
             type->type_structure->rubriques.taille();
     }
     else {
         auto rubriques_ = kuri::tableau<RubriqueTypeComposé, int>(1);
-        rubriques_[0] = {nullptr, TypeBase::Z32, ID::rubrique_active, alignement_rubrique_active};
+        rubriques_[0] = {
+            nullptr, typeuse.type_z32, ID::rubrique_active, alignement_rubrique_active};
         type->type_structure->rubriques = std::move(rubriques_);
         type->type_structure->nombre_de_rubriques_réelles =
             type->type_structure->rubriques.taille();
@@ -1956,13 +1887,13 @@ bool est_type_polymorphique(Type const *type)
     return false;
 }
 
-bool est_type_tableau_fixe(Type const *type)
+bool est_type_tableau_fixe(Typeuse &typeuse, Type const *type)
 {
-    auto type_primitif = donne_type_primitif(type);
+    auto type_primitif = donne_type_primitif(typeuse, type);
     return type_primitif->est_type_tableau_fixe();
 }
 
-bool est_pointeur_vers_tableau_fixe(Type const *type)
+bool est_pointeur_vers_tableau_fixe(Typeuse &typeuse, Type const *type)
 {
     if (!type->est_type_pointeur()) {
         return false;
@@ -1974,7 +1905,7 @@ bool est_pointeur_vers_tableau_fixe(Type const *type)
         return false;
     }
 
-    return est_type_tableau_fixe(type_pointeur->type_pointé);
+    return est_type_tableau_fixe(typeuse, type_pointeur->type_pointé);
 }
 
 bool est_type_sse2(Type const *type)
@@ -2009,10 +1940,10 @@ Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
     return résultat;
 }
 
-Type const *type_entier_sous_jacent(Type const *type)
+Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
 {
     if (type->est_type_entier_constant()) {
-        return TypeBase::Z32;
+        return typeuse.type_z32;
     }
 
     if (type->est_type_énum()) {
@@ -2024,11 +1955,11 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     if (type->est_type_type_de_données()) {
-        return TypeBase::Z64;
+        return typeuse.type_z64;
     }
 
     if (type->est_type_octet()) {
-        return TypeBase::N8;
+        return typeuse.type_n8;
     }
 
     if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -2036,17 +1967,17 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     if (type->est_type_opaque()) {
-        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifié);
+        return type_entier_sous_jacent(typeuse, type->comme_type_opaque()->type_opacifié);
     }
 
     return nullptr;
 }
 
-Type const *donne_type_primitif(Type const *type)
+Type const *donne_type_primitif(Typeuse &typeuse, Type const *type)
 {
     while (true) {
         if (type->est_type_entier_constant()) {
-            return TypeBase::Z32;
+            return typeuse.type_z32;
         }
 
         if (type->est_type_énum()) {
@@ -2058,11 +1989,11 @@ Type const *donne_type_primitif(Type const *type)
         }
 
         if (type->est_type_type_de_données()) {
-            return TypeBase::Z64;
+            return typeuse.type_z64;
         }
 
         if (type->est_type_octet()) {
-            return TypeBase::N8;
+            return typeuse.type_n8;
         }
 
         if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -2558,6 +2489,18 @@ Trie::Noeud *Trie::ajoute_enfant(Noeud *parent, const Type *type, bool est_sorti
 bool est_type_entier(const Type *type)
 {
     return type->est_type_entier_naturel() || type->est_type_entier_relatif();
+}
+
+bool est_type_ptr_rien(const Type *type)
+{
+    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé &&
+           type->comme_type_pointeur()->type_pointé->genre == GenreNoeud::RIEN;
+}
+
+bool est_type_ptr_octet(const Type *type)
+{
+    return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé &&
+           type->comme_type_pointeur()->type_pointé->genre == GenreNoeud::OCTET;
 }
 
 /* ------------------------------------------------------------------------- */

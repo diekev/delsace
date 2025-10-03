@@ -50,80 +50,6 @@ enum class DrapeauxTypes : uint32_t;
 
 /* ************************************************************************** */
 
-namespace TypeBase {
-#define ENUMERE_TYPE_FONDAMENTAL(O)                                                               \
-    O(N8)                                                                                         \
-    O(N16)                                                                                        \
-    O(N32)                                                                                        \
-    O(N64)                                                                                        \
-    O(Z8)                                                                                         \
-    O(Z16)                                                                                        \
-    O(Z32)                                                                                        \
-    O(Z64)                                                                                        \
-    O(R16)                                                                                        \
-    O(R32)                                                                                        \
-    O(R64)                                                                                        \
-    O(EINI)                                                                                       \
-    O(CHAINE)                                                                                     \
-    O(RIEN)                                                                                       \
-    O(BOOL)                                                                                       \
-    O(OCTET)                                                                                      \
-    O(ENTIER_CONSTANT)                                                                            \
-    O(PTR_N8)                                                                                     \
-    O(PTR_N16)                                                                                    \
-    O(PTR_N32)                                                                                    \
-    O(PTR_N64)                                                                                    \
-    O(PTR_Z8)                                                                                     \
-    O(PTR_Z16)                                                                                    \
-    O(PTR_Z32)                                                                                    \
-    O(PTR_Z64)                                                                                    \
-    O(PTR_R16)                                                                                    \
-    O(PTR_R32)                                                                                    \
-    O(PTR_R64)                                                                                    \
-    O(PTR_EINI)                                                                                   \
-    O(PTR_CHAINE)                                                                                 \
-    O(PTR_RIEN)                                                                                   \
-    O(PTR_NUL)                                                                                    \
-    O(PTR_BOOL)                                                                                   \
-    O(PTR_OCTET)                                                                                  \
-    O(REF_N8)                                                                                     \
-    O(REF_N16)                                                                                    \
-    O(REF_N32)                                                                                    \
-    O(REF_N64)                                                                                    \
-    O(REF_Z8)                                                                                     \
-    O(REF_Z16)                                                                                    \
-    O(REF_Z32)                                                                                    \
-    O(REF_Z64)                                                                                    \
-    O(REF_R16)                                                                                    \
-    O(REF_R32)                                                                                    \
-    O(REF_R64)                                                                                    \
-    O(REF_EINI)                                                                                   \
-    O(REF_CHAINE)                                                                                 \
-    O(REF_RIEN)                                                                                   \
-    O(REF_BOOL)                                                                                   \
-    O(TABL_N8)                                                                                    \
-    O(TABL_N16)                                                                                   \
-    O(TABL_N32)                                                                                   \
-    O(TABL_N64)                                                                                   \
-    O(TABL_Z8)                                                                                    \
-    O(TABL_Z16)                                                                                   \
-    O(TABL_Z32)                                                                                   \
-    O(TABL_Z64)                                                                                   \
-    O(TABL_R16)                                                                                   \
-    O(TABL_R32)                                                                                   \
-    O(TABL_R64)                                                                                   \
-    O(TABL_EINI)                                                                                  \
-    O(TABL_CHAINE)                                                                                \
-    O(TABL_BOOL)                                                                                  \
-    O(TABL_OCTET)                                                                                 \
-    O(ADRESSE_FONCTION)                                                                           \
-    O(TRANCHE_OCTET)
-
-#define DECLARE_EXTERNE_TYPE(nom) extern Type *nom;
-ENUMERE_TYPE_FONDAMENTAL(DECLARE_EXTERNE_TYPE)
-#undef DECLARE_EXTERNE_TYPE
-}  // namespace TypeBase
-
 bool est_type_polymorphique(Type const *type);
 
 /* ************************************************************************** */
@@ -260,6 +186,40 @@ struct Typeuse {
     NoeudDéclarationEntêteFonction *init_type_z64 = nullptr;
     NoeudDéclarationEntêteFonction *init_type_pointeur = nullptr;
 
+    NoeudDéclarationType *type_n8 = nullptr;
+    NoeudDéclarationType *type_n16 = nullptr;
+    NoeudDéclarationType *type_n32 = nullptr;
+    NoeudDéclarationType *type_n64 = nullptr;
+    NoeudDéclarationType *type_z8 = nullptr;
+    NoeudDéclarationType *type_z16 = nullptr;
+    NoeudDéclarationType *type_z32 = nullptr;
+    NoeudDéclarationType *type_z64 = nullptr;
+    NoeudDéclarationType *type_r16 = nullptr;
+    NoeudDéclarationType *type_r32 = nullptr;
+    NoeudDéclarationType *type_r64 = nullptr;
+    NoeudDéclarationType *type_rien = nullptr;
+    NoeudDéclarationType *type_bool = nullptr;
+    NoeudDéclarationType *type_octet = nullptr;
+    NoeudDéclarationType *type_adresse_fonction = nullptr;
+
+    NoeudDéclarationTypePointeur *type_ptr_nul = nullptr;
+    NoeudDéclarationTypePointeur *type_ptr_n8 = nullptr;
+    NoeudDéclarationTypePointeur *type_ptr_z8 = nullptr;
+    NoeudDéclarationTypePointeur *type_ptr_octet = nullptr;
+    NoeudDéclarationTypePointeur *type_ptr_rien = nullptr;
+
+    NoeudDéclarationTypeRéférence *type_ref_n8 = nullptr;
+    NoeudDéclarationTypeRéférence *type_ref_n64 = nullptr;
+    NoeudDéclarationTypeRéférence *type_ref_z8 = nullptr;
+
+    NoeudDéclarationTypeTableauDynamique *type_tabl_n8 = nullptr;
+
+    NoeudDéclarationType *type_entier_constant = nullptr;
+    NoeudDéclarationTypeComposé *type_eini = nullptr;
+    NoeudDéclarationTypeComposé *type_chaine = nullptr;
+
+    NoeudDéclarationType *type_tranche_octet = nullptr;
+
   private:
     std::mutex mutex_infos_types_vers_types{};
     kuri::table_hachage<InfoType const *, Type const *> m_infos_types_vers_types{""};
@@ -343,11 +303,11 @@ bool requiers_création_fonction_initialisation(Type const *type);
 
 /* Retourne le type entier sous-jacent pour les types pouvant être représentés par un nombre entier
  * (p.e. les énumérations). Retourne nul sinon. */
-Type const *type_entier_sous_jacent(Type const *type);
+Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type);
 
 /* Retourne le type primitif du type donné. Par exemple, pour un type énumération, son type
  * sous-jacent. */
-Type const *donne_type_primitif(Type const *type);
+Type const *donne_type_primitif(Typeuse &typeuse, Type const *type);
 
 /** Si \a type_base_potentiel est un type employé par \a type_dérivé, ou employé par un type
  * employé par \a type_dérivé, retourne le décalage absolu en octet dans la structure de \a
@@ -499,11 +459,15 @@ Type *type_déréférencé_pour(Type const *type);
 
 bool est_type_entier(Type const *type);
 
+bool est_type_ptr_rien(const Type *type);
+
+bool est_type_ptr_octet(const Type *type);
+
 bool est_type_booléen_implicite(Type *type);
 
-bool est_type_tableau_fixe(Type const *type);
+bool est_type_tableau_fixe(Typeuse &typeuse, Type const *type);
 
-bool est_pointeur_vers_tableau_fixe(Type const *type);
+bool est_pointeur_vers_tableau_fixe(Typeuse &typeuse, Type const *type);
 
 bool est_type_sse2(Type const *type);
 

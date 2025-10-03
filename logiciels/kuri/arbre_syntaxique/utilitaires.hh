@@ -439,6 +439,7 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
                                                 TypePointeur *type_résultat);
 
 NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+                                                      Typeuse &typeuse,
                                                       Lexème const *lexème);
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
@@ -596,7 +597,7 @@ struct InformationRubriqueTypeCompose {
     int indice_rubrique = -1;
 };
 
-kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);
+kuri::tableau<char> donne_tableau_valeurs_énum(Typeuse &typeuse, NoeudEnum const &noeud);
 
 NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud);
 

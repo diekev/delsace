@@ -308,7 +308,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                auto type = donne_type_primitif(déclaration->type);
+                auto type = donne_type_primitif(typeuse, déclaration->type);
 
                 if (type->est_type_réel()) {
                     référence->substitution = assem->crée_littérale_réel(
@@ -437,7 +437,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (expr->type->est_type_entier_constant() &&
                 inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
-                expr->type = TypeBase::Z64;
+                expr->type = typeuse.type_z64;
                 return inst;
             }
 
@@ -470,7 +470,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto appel = assem->crée_appel(
                     inst->lexème,
                     espace->compilatrice().interface_kuri->decl_vérifie_typage_extraction_eini,
-                    TypeBase::RIEN);
+                    typeuse.type_rien);
                 appel->paramètres_résolus.ajoute(référence_rubrique);
                 appel->paramètres_résolus.ajoute(transtype_info_de);
 
@@ -669,13 +669,13 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 ajoute_expression(temporaire);
 
                 auto ref_rubrique = assem->crée_référence_rubrique(
-                    appel->lexème, ref_temporaire, TypeBase::PTR_Z8, 0);
+                    appel->lexème, ref_temporaire, typeuse.type_ptr_z8, 0);
                 auto assignation = assem->crée_assignation_variable(
                     appel->lexème, ref_rubrique, appel->paramètres_résolus[0]);
                 ajoute_expression(assignation);
 
                 ref_rubrique = assem->crée_référence_rubrique(
-                    appel->lexème, ref_temporaire, TypeBase::Z64, 1);
+                    appel->lexème, ref_temporaire, typeuse.type_z64, 1);
                 assignation = assem->crée_assignation_variable(
                     appel->lexème, ref_rubrique, appel->paramètres_résolus[1]);
                 ajoute_expression(assignation);
@@ -934,7 +934,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
                 littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->chemin());
-                littérale_chaine->type = TypeBase::CHAINE;
+                littérale_chaine->type = typeuse.type_chaine;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::chemin_de_ce_module) {
@@ -945,7 +945,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto fichier = compilatrice.fichier(noeud->lexème->fichier);
                 littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->module->chemin());
-                littérale_chaine->type = TypeBase::CHAINE;
+                littérale_chaine->type = typeuse.type_chaine;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::nom_de_cette_fonction) {
@@ -956,7 +956,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
                 littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fonction_courante->ident->nom);
-                littérale_chaine->type = TypeBase::CHAINE;
+                littérale_chaine->type = typeuse.type_chaine;
                 noeud->substitution = littérale_chaine;
             }
             else if (noeud->ident == ID::type_de_cette_fonction ||
@@ -1261,14 +1261,14 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             if (type_itéré->est_type_tableau_fixe()) {
                 auto taille_tableau = type_itéré->comme_type_tableau_fixe()->taille;
                 expr_taille = assem->crée_littérale_entier(
-                    inst->lexème, TypeBase::Z64, static_cast<uint64_t>(taille_tableau));
+                    inst->lexème, typeuse.type_z64, static_cast<uint64_t>(taille_tableau));
             }
             else {
                 expr_taille = assem->crée_référence_rubrique(
-                    inst->lexème, expression_iteree, TypeBase::Z64, 1);
+                    inst->lexème, expression_iteree, typeuse.type_z64, 1);
             }
 
-            auto type_z64 = TypeBase::Z64;
+            auto type_z64 = typeuse.type_z64;
             condition->condition = assem->crée_expression_binaire(
                 inst->lexème, type_z64->table_opérateurs->opérateur_seg, ref_index, expr_taille);
 
@@ -1538,14 +1538,14 @@ NoeudExpression *Simplificatrice::crée_retourne_union_via_rien(
 
     auto type_union = type_sortie;
 
-    auto info_rubrique = donne_rubrique_pour_type(type_union, TypeBase::RIEN);
+    auto info_rubrique = donne_rubrique_pour_type(type_union, typeuse.type_rien);
     assert(info_rubrique.has_value());
     auto indice_rubrique = uint32_t(info_rubrique->indice_rubrique);
 
     auto ref_rubrique = assem->crée_référence_rubrique(
-        lexeme_reference, ref_param_sortie, TypeBase::Z32, 1);
+        lexeme_reference, ref_param_sortie, typeuse.type_z32, 1);
     auto valeur_index = assem->crée_littérale_entier(
-        lexeme_reference, TypeBase::Z32, indice_rubrique + 1);
+        lexeme_reference, typeuse.type_z32, indice_rubrique + 1);
 
     auto assignation = assem->crée_assignation_variable(
         lexeme_reference, ref_rubrique, valeur_index);
@@ -1644,7 +1644,7 @@ NoeudExpressionAppel *Simplificatrice::crée_appel_fonction_init(
 
     auto prise_adresse = crée_prise_adresse(
         assem, lexeme, expression_à_initialiser, typeuse.type_pointeur_pour(type_expression));
-    auto appel = assem->crée_appel(lexeme, fonction_init, TypeBase::RIEN);
+    auto appel = assem->crée_appel(lexeme, fonction_init, typeuse.type_rien);
     appel->paramètres_résolus.ajoute(prise_adresse);
 
     return appel;
@@ -1707,7 +1707,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     NoeudExpression *expression)
 {
     auto type_condition = expression->type;
-    auto type_primitif = donne_type_primitif(type_condition);
+    auto type_primitif = donne_type_primitif(typeuse, type_condition);
 
     switch (type_primitif->genre) {
         case GenreNoeud::ENTIER_NATUREL:
@@ -1732,7 +1732,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             zéro->type = type_condition;
 
             auto &registre = espace->compilatrice().opérateurs;
-            registre->ajoute_opérateurs_basiques_au_besoin(type_condition);
+            registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type_condition);
 
             auto op = type_primitif->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, expression, zéro);
@@ -1741,9 +1741,9 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
         {
             /* x -> x.pointeur != nul */
             auto ref_pointeur = assem->crée_référence_rubrique(
-                expression->lexème, expression, TypeBase::PTR_RIEN, 0);
+                expression->lexème, expression, typeuse.type_ptr_rien, 0);
             auto zéro = assem->crée_littérale_nul(expression->lexème);
-            zéro->type = TypeBase::PTR_RIEN;
+            zéro->type = typeuse.type_ptr_rien;
             auto op = zéro->type->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, ref_pointeur, zéro);
         }
@@ -1753,8 +1753,8 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
         {
             /* x -> x.taille != 0 */
             auto ref_taille = assem->crée_référence_rubrique(
-                expression->lexème, expression, TypeBase::Z64, 1);
-            auto zéro = assem->crée_littérale_entier(expression->lexème, TypeBase::Z64, 0);
+                expression->lexème, expression, typeuse.type_z64, 1);
+            auto zéro = assem->crée_littérale_entier(expression->lexème, typeuse.type_z64, 0);
             auto op = zéro->type->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, ref_taille, zéro);
         }
@@ -1807,7 +1807,7 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
             auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
             assert(panique);
 
-            auto appel = assem->crée_appel(inst->lexème, panique, TypeBase::RIEN);
+            auto appel = assem->crée_appel(inst->lexème, panique, typeuse.type_rien);
             bloc->ajoute_expression(appel);
         }
         else {
@@ -1860,11 +1860,11 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
         }
 
         auto accès_rubrique_active = assem->crée_référence_rubrique(
-            lexème, référence_erreur, TypeBase::Z32, 1);
+            lexème, référence_erreur, typeuse.type_z32, 1);
 
         /* si rubrique_active == erreur */
         auto index = assem->crée_littérale_entier(lexème, type_erreur, indice_rubrique_erreur + 1);
-        auto op = TypeBase::Z32->table_opérateurs->opérateur_egt;
+        auto op = typeuse.type_z32->table_opérateurs->opérateur_egt;
         assert(op);
         auto comparaison = assem->crée_expression_binaire(
             lexème, op, accès_rubrique_active, index);
@@ -1913,7 +1913,7 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
             auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
             assert(panique);
 
-            auto appel = assem->crée_appel(inst->lexème, panique, TypeBase::RIEN);
+            auto appel = assem->crée_appel(inst->lexème, panique, typeuse.type_rien);
             bloc->ajoute_expression(appel);
         }
         else {
@@ -2041,7 +2041,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     auto valeur_chemin_fichier = assem->crée_littérale_chaine(lexème);
     valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_chemin_fichier->valeur = compilatrice.gérante_chaine->ajoute_chaine(fichier->chemin());
-    valeur_chemin_fichier->type = TypeBase::CHAINE;
+    valeur_chemin_fichier->type = typeuse.type_chaine;
 
     /* PositionCodeSource.fonction */
     auto nom_fonction = kuri::chaine_statique("");
@@ -2052,16 +2052,16 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     auto valeur_nom_fonction = assem->crée_littérale_chaine(lexème);
     valeur_nom_fonction->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_nom_fonction->valeur = compilatrice.gérante_chaine->ajoute_chaine(nom_fonction);
-    valeur_nom_fonction->type = TypeBase::CHAINE;
+    valeur_nom_fonction->type = typeuse.type_chaine;
 
     /* PositionCodeSource.ligne */
     auto pos = position_lexeme(*lexème_site);
     auto valeur_ligne = assem->crée_littérale_entier(
-        lexème, TypeBase::Z32, static_cast<unsigned>(pos.numero_ligne));
+        lexème, typeuse.type_z32, static_cast<unsigned>(pos.numero_ligne));
 
     /* PositionCodeSource.colonne */
     auto valeur_colonne = assem->crée_littérale_entier(
-        lexème, TypeBase::Z32, static_cast<unsigned>(pos.pos));
+        lexème, typeuse.type_z32, static_cast<unsigned>(pos.pos));
 
     /* Création d'une temporaire et assignation des rubriques. */
 
@@ -2072,13 +2072,13 @@ NoeudExpression *Simplificatrice::simplifie_construction_structure_position_code
     auto ref_position = assem->crée_référence_déclaration(decl_position->lexème, decl_position);
 
     auto ref_rubrique_fichier = assem->crée_référence_rubrique(
-        lexème, ref_position, TypeBase::CHAINE, 0);
+        lexème, ref_position, typeuse.type_chaine, 0);
     auto ref_rubrique_fonction = assem->crée_référence_rubrique(
-        lexème, ref_position, TypeBase::CHAINE, 1);
+        lexème, ref_position, typeuse.type_chaine, 1);
     auto ref_rubrique_ligne = assem->crée_référence_rubrique(
-        lexème, ref_position, TypeBase::Z32, 2);
+        lexème, ref_position, typeuse.type_z32, 2);
     auto ref_rubrique_colonne = assem->crée_référence_rubrique(
-        lexème, ref_position, TypeBase::Z32, 3);
+        lexème, ref_position, typeuse.type_z32, 3);
 
     NoeudExpression *couples_ref_rubrique_expression[4][2] = {
         {ref_rubrique_fichier, valeur_chemin_fichier},
@@ -2356,7 +2356,7 @@ NoeudExpression *Simplificatrice::simplifie_référence_rubrique(
 
             if (valeur.est_booléenne()) {
                 ref_rubrique->substitution = assem->crée_littérale_bool(
-                    lexème, TypeBase::BOOL, valeur.booléenne());
+                    lexème, typeuse.type_bool, valeur.booléenne());
             }
             else if (valeur.est_chaine()) {
                 ref_rubrique->substitution = valeur.chaine();
@@ -2520,7 +2520,7 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
     // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointé)
     if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
-        auto type_z64 = TypeBase::Z64;
+        auto type_z64 = typeuse.type_z64;
         auto soustraction = assem->crée_expression_binaire(
             expr_bin->lexème,
             type_z64->table_opérateurs->opérateur_sst,
@@ -2784,7 +2784,7 @@ NoeudExpression *Simplificatrice::simplifie_discr_impl(NoeudDiscr *discr)
         /* La discrimination se fait via la rubrique actif. Il faudra proprement gérer les unions
          * dans la RI. */
         expression = assem->crée_référence_rubrique(
-            expression->lexème, expression, TypeBase::Z32, 1);
+            expression->lexème, expression, typeuse.type_z32, 1);
     }
 
     simplifie(discr->bloc_sinon);

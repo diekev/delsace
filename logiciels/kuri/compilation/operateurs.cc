@@ -492,7 +492,7 @@ void RegistreDesOpérateurs::ajoute_perso_unaire(GenreLexème id,
     op->genre = genre_op_unaire_pour_lexeme(id);
 }
 
-void RegistreDesOpérateurs::ajoute_opérateur_basique_enum(TypeEnum *type)
+void RegistreDesOpérateurs::ajoute_opérateur_basique_enum(Typeuse &typeuse, TypeEnum *type)
 {
     auto table = donne_ou_crée_table_opérateurs(type);
 
@@ -504,22 +504,23 @@ void RegistreDesOpérateurs::ajoute_opérateur_basique_enum(TypeEnum *type)
         indice_type_op = IndiceTypeOp::ENTIER_RELATIF;
     }
 
-    ajoute_opérateurs_comparaison(type, indice_type_op);
+    ajoute_opérateurs_comparaison(typeuse, type, indice_type_op);
     ajoute_opérateurs_entiers(type, indice_type_op);
 
     table->opérateur_non = this->ajoute_basique_unaire(GenreLexème::TILDE, type, type);
 }
 
-void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(TypePointeur *type)
+void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(Typeuse &typeuse,
+                                                                TypePointeur *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    ajoute_opérateurs_comparaison(type, indice);
+    ajoute_opérateurs_comparaison(typeuse, type, indice);
 
     /* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
      * gros, la résolution de l'opérateur ajoutera une transformation afin
      * que le type plus petit soit transtyper à la bonne taille. */
-    auto type_entier = TypeBase::Z64;
+    auto type_entier = typeuse.type_z64;
 
     ajoute_basique(GenreLexème::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
         true;
@@ -532,7 +533,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(TypePointeur *
     ajoute_basique(GenreLexème::MOINS_EGAL, type, type_entier, type, indice)
         ->est_arithmétique_pointeur = true;
 
-    type_entier = TypeBase::N64;
+    type_entier = typeuse.type_n64;
     indice = IndiceTypeOp::ENTIER_NATUREL;
 
     ajoute_basique(GenreLexème::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
@@ -545,11 +546,12 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(TypePointeur *
         ->est_arithmétique_pointeur = true;
 }
 
-void RegistreDesOpérateurs::ajoute_opérateurs_basiques_fonction(TypeFonction *type)
+void RegistreDesOpérateurs::ajoute_opérateurs_basiques_fonction(Typeuse &typeuse,
+                                                                TypeFonction *type)
 {
     auto indice = IndiceTypeOp::ENTIER_RELATIF;
 
-    auto const &type_bool = TypeBase::BOOL;
+    auto const &type_bool = typeuse.type_bool;
 
     ajoute_basique(GenreLexème::EGALITE, type, type_bool, indice);
     ajoute_basique(GenreLexème::DIFFÉRENCE, type, type_bool, indice);
@@ -586,11 +588,13 @@ void RegistreDesOpérateurs::rassemble_statistiques(Statistiques &stats) const
     stats_ops.fusionne_entrée({"TableOpérateurs", nombre_tables, mémoire_tables});
 }
 
-void RegistreDesOpérateurs::ajoute_opérateurs_comparaison(Type *pour_type, IndiceTypeOp indice)
+void RegistreDesOpérateurs::ajoute_opérateurs_comparaison(Typeuse &typeuse,
+                                                          Type *pour_type,
+                                                          IndiceTypeOp indice)
 {
     auto table = donne_ou_crée_table_opérateurs(pour_type);
     for (auto op : opérateurs_comparaisons) {
-        auto op_bin = this->ajoute_basique(op, pour_type, TypeBase::BOOL, indice);
+        auto op_bin = this->ajoute_basique(op, pour_type, typeuse.type_bool, indice);
 
         if (op == GenreLexème::SUPERIEUR) {
             table->opérateur_sup = op_bin;
@@ -656,7 +660,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers_unaires(Type *pour_type)
     }
 }
 
-void RegistreDesOpérateurs::ajoute_opérateurs_basiques_au_besoin(Type *type)
+void RegistreDesOpérateurs::ajoute_opérateurs_basiques_au_besoin(Typeuse &typeuse, Type *type)
 {
     if (!(type->est_type_pointeur() || type->est_type_fonction())) {
         return;
@@ -668,11 +672,11 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_au_besoin(Type *type)
 
     if (type->est_type_pointeur()) {
         auto type_pointeur = type->comme_type_pointeur();
-        ajoute_opérateurs_basiques_pointeur(type_pointeur);
+        ajoute_opérateurs_basiques_pointeur(typeuse, type_pointeur);
     }
     else {
         auto type_fonction = type->comme_type_fonction();
-        ajoute_opérateurs_basiques_fonction(type_fonction);
+        ajoute_opérateurs_basiques_fonction(typeuse, type_fonction);
     }
 
     type->drapeaux_type |= DrapeauxTypes::TYPE_POSSEDE_OPERATEURS_DE_BASE;
@@ -939,9 +943,10 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(
     Contexte *contexte, NoeudExpression *site, Type *type1, Type *type2, GenreLexème type_op)
 {
     auto &espace = *contexte->espace;
+    auto &typeuse = espace.compilatrice().typeuse;
     auto &registre = espace.compilatrice().opérateurs;
-    registre->ajoute_opérateurs_basiques_au_besoin(type1);
-    registre->ajoute_opérateurs_basiques_au_besoin(type2);
+    registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type1);
+    registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type2);
 
     auto candidats = kuri::tablet<OpérateurCandidat, 10>();
     auto attente_potentielle = cherche_candidats_opérateurs(
@@ -1007,48 +1012,48 @@ const OpérateurUnaire *cherche_opérateur_unaire(RegistreDesOpérateurs const &
 
 void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &registre)
 {
-    auto type_entier_constant = TypeBase::ENTIER_CONSTANT;
-    auto type_octet = TypeBase::OCTET;
+    auto type_entier_constant = typeuse.type_entier_constant;
+    auto type_octet = typeuse.type_octet;
 
     Type *types_entiers_naturels[] = {
-        TypeBase::N8,
-        TypeBase::N16,
-        TypeBase::N32,
-        TypeBase::N64,
+        typeuse.type_n8,
+        typeuse.type_n16,
+        typeuse.type_n32,
+        typeuse.type_n64,
         type_entier_constant,
     };
 
     Type *types_entiers_relatifs[] = {
-        TypeBase::Z8,
-        TypeBase::Z16,
-        TypeBase::Z32,
-        TypeBase::Z64,
+        typeuse.type_z8,
+        typeuse.type_z16,
+        typeuse.type_z32,
+        typeuse.type_z64,
         type_octet,
     };
 
-    auto type_r32 = TypeBase::R32;
-    auto type_r64 = TypeBase::R64;
+    auto type_r32 = typeuse.type_r32;
+    auto type_r64 = typeuse.type_r64;
 
     Type *types_réels[] = {type_r32, type_r64};
 
-    auto type_bool = TypeBase::BOOL;
+    auto type_bool = typeuse.type_bool;
 
     for (auto type : types_entiers_relatifs) {
-        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_RELATIF);
+        registre.ajoute_opérateurs_comparaison(typeuse, type, IndiceTypeOp::ENTIER_RELATIF);
         registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_RELATIF);
         registre.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_RELATIF);
         registre.ajoute_opérateurs_entiers_unaires(type);
     }
 
     for (auto type : types_entiers_naturels) {
-        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::ENTIER_NATUREL);
+        registre.ajoute_opérateurs_comparaison(typeuse, type, IndiceTypeOp::ENTIER_NATUREL);
         registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::ENTIER_NATUREL);
         registre.ajoute_opérateurs_entiers(type, IndiceTypeOp::ENTIER_NATUREL);
         registre.ajoute_opérateurs_entiers_unaires(type);
     }
 
     for (auto type : types_réels) {
-        registre.ajoute_opérateurs_comparaison(type, IndiceTypeOp::REEL);
+        registre.ajoute_opérateurs_comparaison(typeuse, type, IndiceTypeOp::REEL);
         registre.ajoute_opérateurs_entiers_réel(type, IndiceTypeOp::REEL);
 
         // opérateurs unaires + -

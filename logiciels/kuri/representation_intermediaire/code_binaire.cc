@@ -112,6 +112,11 @@ void Chunk::rétrécis_capacité_sur_taille()
     capacité = compte;
 }
 
+Type const *Chunk::donne_type_primitif(Type const *type)
+{
+    return ::donne_type_primitif(*m_typeuse, type);
+}
+
 int64_t Chunk::mémoire_utilisée() const
 {
     int64_t résultat = 0;
@@ -1359,6 +1364,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     }
 
     auto &chunk = données_exécution->chunk;
+    chunk.m_typeuse = &espace->compilatrice().typeuse;
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
     chunk.émets_notifications_empilage = notifie_empilage;
@@ -1552,7 +1558,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             POUR (appel->args) {
                 génère_code_pour_atome(it, chunk);
-                auto type_primitif = donne_type_primitif(it->type);
+                auto type_primitif = donne_type_primitif(espace->compilatrice().typeuse, it->type);
                 taille_arguments += type_primitif->taille_octet;
             }
 
@@ -1640,7 +1646,8 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::ACCEDE_RUBRIQUE:
         {
             auto rubrique = instruction->comme_acces_rubrique();
-            auto accès_fusionné = fusionne_accès_rubriques(rubrique);
+            auto accès_fusionné = fusionne_accès_rubriques(espace->compilatrice().typeuse,
+                                                           rubrique);
 
             if (est_allocation(accès_fusionné.accédé)) {
                 auto alloc = accès_fusionné.accédé->comme_instruction()->comme_alloc();
@@ -1784,7 +1791,8 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             auto constante_entière = atome->comme_constante_entière();
             auto valeur_entiere = constante_entière->valeur;
-            auto type = type_entier_sous_jacent(constante_entière->type);
+            auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                constante_entière->type);
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {
@@ -2052,7 +2060,8 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         {
             auto constante_entière = atome->comme_constante_entière();
             auto valeur_entiere = constante_entière->valeur;
-            auto type = type_entier_sous_jacent(constante_entière->type);
+            auto type = type_entier_sous_jacent(espace->compilatrice().typeuse,
+                                                constante_entière->type);
 
             if (type->est_type_entier_naturel()) {
                 if (type->taille_octet == 1) {

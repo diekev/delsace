@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -238,6 +238,8 @@ struct Chunk {
 
     kuri::tableau<Locale, int> locales{};
 
+    Typeuse *m_typeuse = nullptr;
+
   private:
     struct SiteSource {
         /* Le décalage dans les instructions où se trouve le site. */
@@ -257,6 +259,8 @@ struct Chunk {
     void détruit();
 
     int64_t mémoire_utilisée() const;
+
+    Type const *donne_type_primitif(Type const *type);
 
   private:
     void émets(octet_t o);

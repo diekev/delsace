@@ -2006,12 +2006,13 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
 }
 
 NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+                                                      Typeuse &typeuse,
                                                       Lexème const *lexème)
 {
     auto type_declaré = assembleuse->crée_référence_type(lexème);
 
     auto déclaration_paramètre = assembleuse->crée_déclaration_variable(
-        lexème, TypeBase::RIEN, ID::__ret0, nullptr);
+        lexème, typeuse.type_rien, ID::__ret0, nullptr);
     déclaration_paramètre->expression_type = type_declaré;
     déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
     return déclaration_paramètre;
@@ -2168,7 +2169,7 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
     auto types_entrées = kuri::tablet<Type *, 6>();
     types_entrées.ajoute(type_param);
 
-    auto type_fonction = typeuse.type_fonction(types_entrées, TypeBase::RIEN);
+    auto type_fonction = typeuse.type_fonction(types_entrées, typeuse.type_rien);
 
     static Lexème lexème_entête = {};
     auto entête = assembleuse->crée_entête_fonction(&lexème_entête);
@@ -2200,7 +2201,8 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
     /* Paramètre de sortie. */
     {
         static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
-        auto déclaration_paramètre = crée_retour_défaut_fonction(assembleuse, &lexème_rien);
+        auto déclaration_paramètre = crée_retour_défaut_fonction(
+            assembleuse, typeuse, &lexème_rien);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         entête->params_sorties.ajoute(déclaration_paramètre);
@@ -2268,7 +2270,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto prise_adresse = crée_prise_adresse(
                 assembleuse, &lexème_sentinel, ref_param, typeuse.type_pointeur_pour(type));
             auto fonction = crée_entête_pour_initialisation_type(type, assembleuse, typeuse);
-            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
+            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, typeuse.type_rien);
             appel->paramètres_résolus.ajoute(prise_adresse);
             assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
@@ -2353,11 +2355,11 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
             pour->decl_indice_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, TypeBase::Z64, ID::indice_it, nullptr);
+                &lexème_sentinel, typeuse.type_z64, ID::indice_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
                 type_élément, assembleuse, typeuse);
-            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, TypeBase::RIEN);
+            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonction, typeuse.type_rien);
             appel->paramètres_résolus.ajoute(ref_it);
 
             pour->bloc->ajoute_expression(appel);
@@ -2384,7 +2386,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
 
             auto fonc_init = crée_entête_pour_initialisation_type(
                 type_opacifié, assembleuse, typeuse);
-            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonc_init, TypeBase::RIEN);
+            auto appel = assembleuse->crée_appel(&lexème_sentinel, fonc_init, typeuse.type_rien);
             appel->paramètres_résolus.ajoute(comme);
             assembleuse->bloc_courant()->ajoute_expression(appel);
             break;
@@ -2407,23 +2409,22 @@ static void crée_initialisation_defaut_pour_type(Type *type,
  */
 static void assigne_fonction_init_énum(Typeuse &typeuse, TypeEnum *type)
 {
-#define ASSIGNE_SI(ident_maj, ident_min)                                                          \
-    if (type_données == TypeBase::ident_maj) {                                                    \
+#define ASSIGNE_SI(ident_min)                                                                     \
+    if (type_données == typeuse.type_##ident_min) {                                               \
         assigne_fonction_init(type, typeuse.init_type_##ident_min);                               \
         return;                                                                                   \
     }
 
     auto type_données = type->type_sous_jacent;
 
-    ASSIGNE_SI(N8, n8);
-    ASSIGNE_SI(N16, n16);
-    ASSIGNE_SI(N32, n32);
-    ASSIGNE_SI(N64, n64);
-
-    ASSIGNE_SI(Z8, z8);
-    ASSIGNE_SI(Z16, z16);
-    ASSIGNE_SI(Z32, z32);
-    ASSIGNE_SI(Z64, z64);
+    ASSIGNE_SI(n8);
+    ASSIGNE_SI(n16);
+    ASSIGNE_SI(n32);
+    ASSIGNE_SI(n64);
+    ASSIGNE_SI(z8);
+    ASSIGNE_SI(z16);
+    ASSIGNE_SI(z32);
+    ASSIGNE_SI(z64);
 
 #undef ASSIGNE_SI
 }
@@ -2433,21 +2434,25 @@ static void sauvegarde_fonction_init(Typeuse &typeuse,
                                      Type *type,
                                      NoeudDéclarationEntêteFonction *entete)
 {
-#define ASSIGNE_SI(ident_maj, ident_min)                                                          \
-    if (type == TypeBase::ident_maj) {                                                            \
+#define ASSIGNE_SI(ident_min)                                                                     \
+    if (type == typeuse.type_##ident_min) {                                                       \
         typeuse.init_type_##ident_min = entete;                                                   \
         return;                                                                                   \
     }
 
-    ASSIGNE_SI(N8, n8);
-    ASSIGNE_SI(N16, n16);
-    ASSIGNE_SI(N32, n32);
-    ASSIGNE_SI(N64, n64);
-    ASSIGNE_SI(Z8, z8);
-    ASSIGNE_SI(Z16, z16);
-    ASSIGNE_SI(Z32, z32);
-    ASSIGNE_SI(Z64, z64);
-    ASSIGNE_SI(PTR_RIEN, pointeur);
+    ASSIGNE_SI(n8);
+    ASSIGNE_SI(n16);
+    ASSIGNE_SI(n32);
+    ASSIGNE_SI(n64);
+    ASSIGNE_SI(z8);
+    ASSIGNE_SI(z16);
+    ASSIGNE_SI(z32);
+    ASSIGNE_SI(z64);
+
+    if (type == typeuse.type_ptr_rien) {
+        typeuse.init_type_pointeur = entete;
+        return;
+    }
 
 #undef ASSIGNE_SI
 }
@@ -2631,10 +2636,10 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                     auto ref_rubrique = assembleuse->crée_référence_rubrique(
                         &lexème_sentinel, param_comme_structure);
                     ref_rubrique->indice_rubrique = 0;
-                    ref_rubrique->type = TypeBase::Z32;
+                    ref_rubrique->type = typeuse.type_z32;
                     ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                     crée_initialisation_defaut_pour_type(
-                        TypeBase::Z32, assembleuse, ref_rubrique, nullptr, typeuse);
+                        typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
                     break;
                 }
 
@@ -2652,10 +2657,10 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
                                                                     param_comme_structure);
                 ref_rubrique->indice_rubrique = 1;
-                ref_rubrique->type = TypeBase::Z32;
+                ref_rubrique->type = typeuse.type_z32;
                 ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
                 crée_initialisation_defaut_pour_type(
-                    TypeBase::Z32, assembleuse, ref_rubrique, nullptr, typeuse);
+                    typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
             }
 
             break;
@@ -2890,6 +2895,7 @@ void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
     }
 
     auto espace = contexte->espace;
+    auto &typeuse = espace->compilatrice().typeuse;
     auto assembleuse = contexte->assembleuse;
     auto lexèmes_extra = contexte->lexèmes_extra;
 
@@ -2921,10 +2927,10 @@ void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
     expression_binaire->type = opérateur->doit_être_synthétisé_depuis->type_résultat;
 
     auto négation = assembleuse->crée_négation_logique(lexème, expression_binaire);
-    négation->type = TypeBase::BOOL;
+    négation->type = typeuse.type_bool;
 
     auto retour = assembleuse->crée_retourne(lexème, négation);
-    retour->type = TypeBase::BOOL;
+    retour->type = typeuse.type_bool;
 
     corps->bloc->ajoute_expression(retour);
 
@@ -3091,7 +3097,7 @@ static void remplis_tableau_valeurs_énum(NoeudEnum const &noeud, kuri::tableau<
     }
 }
 
-kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
+kuri::tableau<char> donne_tableau_valeurs_énum(Typeuse &typeuse, NoeudEnum const &noeud)
 {
     int nombre_de_rubriques_non_implicite = 0;
     POUR (noeud.rubriques) {
@@ -3109,7 +3115,7 @@ kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud)
         return résultat;
     }
 
-    auto const type_sous_jacent = type_entier_sous_jacent(noeud.type_sous_jacent);
+    auto const type_sous_jacent = type_entier_sous_jacent(typeuse, noeud.type_sous_jacent);
 
     if (type_sous_jacent->est_type_entier_naturel()) {
         if (type_sous_jacent->taille_octet == 1) {

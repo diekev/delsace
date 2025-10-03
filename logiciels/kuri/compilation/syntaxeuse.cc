@@ -3381,7 +3381,8 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
     else {
         Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
 
-        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
+        auto decl = crée_retour_défaut_fonction(
+            m_contexte->assembleuse, m_compilatrice.typeuse, lexème_rien);
         decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         résultat.ajoute(decl);
@@ -3525,7 +3526,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
             if (noeud->ident == ID::InfoType) {
-                TypeBase::EINI->comme_type_composé()->rubriques[1].type =
+                m_compilatrice.typeuse.type_eini->rubriques[1].type =
                     m_compilatrice.typeuse.type_pointeur_pour(noeud);
             }
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(

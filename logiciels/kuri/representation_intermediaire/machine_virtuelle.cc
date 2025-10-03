@@ -1006,7 +1006,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         données_externe.types_entrées.réserve(nombre_arguments_totaux);
 
         POUR (inst_appel->args) {
-            auto type_primitif = donne_type_primitif(it->type);
+            auto type_primitif = donne_type_primitif(compilatrice.typeuse, it->type);
             auto type_ffi = converti_type_ffi(type_primitif);
             données_externe.types_entrées.ajoute(type_ffi);
 

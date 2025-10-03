@@ -271,10 +271,10 @@ const Type *InstructionAccèdeRubrique::donne_type_accédé() const
     return type_accédé->comme_type_pointeur()->type_pointé;
 }
 
-const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé() const
+const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé(Typeuse &typeuse) const
 {
     auto type_adressé = donne_type_accédé();
-    type_adressé = donne_type_primitif(type_adressé);
+    type_adressé = donne_type_primitif(typeuse, type_adressé);
 
     auto type_composé = type_adressé->comme_type_composé();
     /* Pour les unions, l'accès de rubrique se fait via le type structure qui est valeur unie
@@ -597,12 +597,13 @@ bool est_instruction_comparaison(Atome const *atome)
     return est_opérateur_comparaison(op_binaire->op);
 }
 
-AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique)
+AccèsRubriqueFusionné fusionne_accès_rubriques(Typeuse &typeuse,
+                                               InstructionAccèdeRubrique const *accès_rubrique)
 {
     AccèsRubriqueFusionné résultat;
 
     while (true) {
-        auto const &rubrique = accès_rubrique->donne_rubrique_accédé();
+        auto const &rubrique = accès_rubrique->donne_rubrique_accédé(typeuse);
 
         résultat.accédé = accès_rubrique->accédé;
         résultat.décalage += rubrique.decalage;

@@ -1286,10 +1286,11 @@ static void supprime_allocations_temporaires(FonctionEtBlocs &fonction_et_blocs)
 
 struct Calculatrice {
     template <typename Opération>
-    static uint64_t applique_opération_entier(AtomeConstanteEntière const *opérande_gauche,
+    static uint64_t applique_opération_entier(Typeuse &typeuse,
+                                              AtomeConstanteEntière const *opérande_gauche,
                                               AtomeConstanteEntière const *opérande_droite)
     {
-        auto const type = donne_type_primitif(opérande_gauche->type);
+        auto const type = donne_type_primitif(typeuse, opérande_gauche->type);
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
                 return applique_opération_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
@@ -1327,12 +1328,13 @@ struct Calculatrice {
     }
 
     template <typename Opération>
-    static double applique_opération_réel(AtomeConstanteRéelle const *opérande_gauche,
+    static double applique_opération_réel(Typeuse &typeuse,
+                                          AtomeConstanteRéelle const *opérande_gauche,
                                           AtomeConstanteRéelle const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = donne_type_primitif(opérande_gauche->type);
+        auto const type = donne_type_primitif(typeuse, opérande_gauche->type);
         if (type->taille_octet == 2) {
             /* À FAIRE(r16). */
             return 0.0;
@@ -1348,12 +1350,13 @@ struct Calculatrice {
     }
 
     template <typename Opération>
-    static bool applique_comparaison_entier(AtomeConstanteEntière const *opérande_gauche,
+    static bool applique_comparaison_entier(Typeuse &typeuse,
+                                            AtomeConstanteEntière const *opérande_gauche,
                                             AtomeConstanteEntière const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = donne_type_primitif(opérande_gauche->type);
+        auto const type = donne_type_primitif(typeuse, opérande_gauche->type);
         if (type->est_type_entier_naturel()) {
             if (type->taille_octet == 1) {
                 return applique_comparaison_entier_ex<Opération, uint8_t>(opérande_gauche->valeur,
@@ -1387,12 +1390,13 @@ struct Calculatrice {
     }
 
     template <typename Opération>
-    static bool applique_comparaison_réel(AtomeConstanteRéelle const *opérande_gauche,
+    static bool applique_comparaison_réel(Typeuse &typeuse,
+                                          AtomeConstanteRéelle const *opérande_gauche,
                                           AtomeConstanteRéelle const *opérande_droite)
     {
         assert(opérande_gauche->type == opérande_droite->type);
 
-        auto const type = donne_type_primitif(opérande_gauche->type);
+        auto const type = donne_type_primitif(typeuse, opérande_gauche->type);
         if (type->taille_octet == 2) {
             /* À FAIRE(r16). */
             return 0.0;
@@ -1439,22 +1443,30 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
 
 #define APPLIQUE_OPERATION_ENTIER(nom)                                                            \
     auto résultat = Calculatrice::applique_opération_entier<nom>(                                 \
-        opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
+        constructrice.typeuse(),                                                                  \
+        opérande_gauche->comme_constante_entière(),                                               \
+        opérande_droite->comme_constante_entière());                                              \
     return constructrice.crée_constante_nombre_entier(inst->type, résultat)
 
 #define APPLIQUE_OPERATION_REEL(nom)                                                              \
     auto résultat = Calculatrice::applique_opération_réel<nom>(                                   \
-        opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
+        constructrice.typeuse(),                                                                  \
+        opérande_gauche->comme_constante_réelle(),                                                \
+        opérande_droite->comme_constante_réelle());                                               \
     return constructrice.crée_constante_nombre_réel(inst->type, résultat)
 
 #define APPLIQUE_COMPARAISON_ENTIER(nom)                                                          \
     auto résultat = Calculatrice::applique_comparaison_entier<nom>(                               \
-        opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
+        constructrice.typeuse(),                                                                  \
+        opérande_gauche->comme_constante_entière(),                                               \
+        opérande_droite->comme_constante_entière());                                              \
     return constructrice.crée_constante_booléenne(résultat)
 
 #define APPLIQUE_COMPARAISON_REEL(nom)                                                            \
     auto résultat = Calculatrice::applique_comparaison_réel<nom>(                                 \
-        opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
+        constructrice.typeuse(),                                                                  \
+        opérande_gauche->comme_constante_réelle(),                                                \
+        opérande_droite->comme_constante_réelle());                                               \
     return constructrice.crée_constante_booléenne(résultat)
 
 #define APPLIQUE_COMPARAISON_BOOL(nom)                                                            \

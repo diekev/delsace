@@ -7,10 +7,11 @@
 
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
+struct Typeuse;
 
 /**
- * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas les
- * types ayant une taille de 0 ou les alignements de 0.
+ * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas
+ * les types ayant une taille de 0 ou les alignements de 0.
  */
 template <typename T>
 inline bool est_puissance_de_2(T x)
@@ -37,4 +38,4 @@ uint64_t valeur_max(Type *type);
 /**
  * Retourne le nombre de bits du type (8 * sa taille en octets).
  */
-int nombre_de_bits_pour_type(Type const *type);
+int nombre_de_bits_pour_type(Typeuse &typeuse, Type const *type);

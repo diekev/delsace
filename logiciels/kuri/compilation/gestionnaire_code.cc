@@ -453,7 +453,8 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
-                auto type_indexe = donne_type_primitif(indexage->opérande_gauche->type);
+                auto type_indexe = donne_type_primitif(compilatrice->typeuse,
+                                                       indexage->opérande_gauche->type);
 
                 switch (type_indexe->genre) {
                     case GenreNoeud::VARIADIQUE:
@@ -988,7 +989,7 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice->table_identifiants->identifiant_pour_chaine("__ret0");
-    decl_sortie->type = TypeBase::CHAINE;
+    decl_sortie->type = m_compilatrice->typeuse.type_chaine;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     fonction->params_sorties.ajoute(decl_sortie);
@@ -996,7 +997,7 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
 
-    auto type_sortie = TypeBase::CHAINE;
+    auto type_sortie = m_compilatrice->typeuse.type_chaine;
 
     fonction->type = m_compilatrice->typeuse.type_fonction(types_entrees, type_sortie);
     fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
