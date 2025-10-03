@@ -3,8 +3,21 @@
 
 empl => ajoute erreur si nom variable est nom d'un membre
 
+pas d'erreur si emp x: X @inutilisée devient utilisé
+
 MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
 
+erreur de compilation
+// retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
+
+erreur de compilation
+// calque.drapeaux ^= (1 << Calque.Drapeaux.VISIBLE comme n32) comme Calque.Drapeaux
+
+erreur/avertissement si - unaire utilisé sur nombre naturel
+
+erreur/avertissement si > 0 ou >= 0 utilisé sur nombre naturel
+
+aucune collision de symboles entre les énums ou structures et les constantes
 
 erreur de compilation :
     fonction :: fonc (a: z32)
@@ -16,6 +29,24 @@ erreur de compilation :
 
 adressage relatif :
 *~z32 z32
+
+permet de définir des tableaux plus petits que la taille du type annoncé (remplis le reste avec des zéros).
+    x: [7]z32 = [1, 2, 3]
+
+crash 
+    a = (b, c, d)
+
+struct comme expression
+ma_variable: struct { x: r32; y: r32 }
+
+struct {
+    x: r32
+    y: r32
+}
+
+typage des indices selon le type itéré
+
+mémoire(fonction_retournant_pointeur()) ne fonctionne pas
 
 //////////// fonctionnalités
 
