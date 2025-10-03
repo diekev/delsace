@@ -949,7 +949,7 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
             }
 
             if (est_comparaison_ordonnée_naturel_zéro(it->comme_op_binaire())) {
-                espace.rapporte_avertissement(
+                espace.rapporte_erreur(
                     it->site,
                     "La comparaison ordonnée d'un entier naturel avec zéro est toujours vrai.");
                 continue;
