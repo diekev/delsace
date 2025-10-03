@@ -108,11 +108,23 @@ réinitialise :: fonc (arène: *ArèneMémoire)
     arène.utilisé = 0
 }
 
-donne_sous_arène :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire) -> ArèneMémoire
+donne_sous_arène :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 16) -> ArèneMémoire
 {
-    base := loge_mémoire(arène, taille comme n32)
+    base := loge_mémoire(arène, taille comme n32, alignement)
     résultat: ArèneMémoire = ---
     initialise_arène(*résultat, base, taille)
+    retourne résultat
+}
+
+donne_sous_arène :: fonc (résultat: *ArèneMémoire, arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 16)
+{
+    mémoire(résultat) = donne_sous_arène(arène, taille, alignement)
+}
+
+donne_taille_restante_arène :: fonc (arène: *ArèneMémoire, alignement: IndiceMémoire = 4) -> IndiceMémoire
+{
+    décalage_alignement := donne_décalage_alignement(arène, alignement)
+    résultat := arène.taille - (arène.utilisé + décalage_alignement)
     retourne résultat
 }
 
@@ -166,18 +178,27 @@ enchaine :: fonc (arène: *ArèneMémoire, chns: ...chaine) -> chaine
     retourne chaine(résultat comme *z8, taille)
 }
 
-loge_mémoire :: fonc (arène: *ArèneMémoire, taille: n32, alignement: n32 = 0) -> *octet
+loge_mémoire :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 0) -> *octet
 {
-    décalage_pour_alignement : n64 = 0
-    si alignement != 0 {
-        décalage_pour_alignement = (arène.base + arène.utilisé) comme n64 & (alignement - 1)
-    }
-    position := arène.utilisé + décalage_pour_alignement
-
-    assert(position + taille <= arène.taille)
-    résultat := (arène.base + position)
-    arène.utilisé += taille + décalage_pour_alignement
+    décalage_alignement := donne_décalage_alignement(arène, alignement)
+    taille += décalage_alignement
+    assert(arène.utilisé + taille <= arène.taille)
+    résultat := (arène.base + arène.utilisé + décalage_alignement)
+    arène.utilisé += taille
     retourne résultat
+}
+
+donne_décalage_alignement :: fonc (arène: *ArèneMémoire, alignement: IndiceMémoire) -> IndiceMémoire #enligne
+{
+    adresse_résultat := (arène.base comme IndiceMémoire) + arène.utilisé
+    décalage_alignement: IndiceMémoire
+    si alignement != 0 {
+        masque_alignement: IndiceMémoire = alignement - 1
+        si adresse_résultat & masque_alignement {
+            décalage_alignement = alignement - (adresse_résultat & masque_alignement)
+        }
+    }
+    retourne décalage_alignement
 }
 
 commence_mémoire_temporaire :: fonc (arène: *ArèneMémoire) -> MémoireTemporaire
