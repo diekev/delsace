@@ -1120,23 +1120,33 @@ bool QT_mimedata_a_format(QT_MimeData *mimedata, QT_Chaine mimetype)
 /** \name QT_Clipboard
  * \{ */
 
-QT_MimeData *QT_clipboard_donne_mimedata(QT_Clipboard *clipboard)
+static QClipboard::Mode convertis_clipboard_mode(QT_Clipboard_Mode mode)
 {
-    VERS_QT(clipboard);
-    return vers_ipa(const_cast<QMimeData *>(qclipboard->mimeData()));
+    switch (mode) {
+        ENUMERE_CLIPBOARD_MODE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return QClipboard::Clipboard;
 }
 
-void QT_clipboard_definis_mimedata(QT_Clipboard *clipboard, QT_MimeData *mimedata)
+QT_MimeData *QT_clipboard_donne_mimedata(QT_Clipboard *clipboard, enum QT_Clipboard_Mode mode)
+{
+    VERS_QT(clipboard);
+    return vers_ipa(const_cast<QMimeData *>(qclipboard->mimeData(convertis_clipboard_mode(mode))));
+}
+
+void QT_clipboard_definis_mimedata(QT_Clipboard *clipboard,
+                                   QT_MimeData *mimedata,
+                                   enum QT_Clipboard_Mode mode)
 {
     VERS_QT(clipboard);
     VERS_QT(mimedata);
-    qclipboard->setMimeData(qmimedata);
+    qclipboard->setMimeData(qmimedata, convertis_clipboard_mode(mode));
 }
 
-void QT_clipboard_efface(QT_Clipboard *clipboard)
+void QT_clipboard_efface(QT_Clipboard *clipboard, enum QT_Clipboard_Mode mode)
 {
     VERS_QT(clipboard);
-    qclipboard->clear();
+    qclipboard->clear(convertis_clipboard_mode(mode));
 }
 
 /** \} */
