@@ -843,6 +843,20 @@ struct NoeudDéclarationTypeOpaque : NoeudDéclarationType {
     chaine nom_hiérarchique_
 }
 
+struct NoeudDéclarationTypeEntierConstant : NoeudDéclarationTypeOpaque {
+    @genre ENTIER_CONSTANT
+    @comme type_entier_constant
+    @code  NoeudCodeTypeEntierConstant
+    @genre_valeur DROITE
+}
+
+struct NoeudDéclarationTypeOctet : NoeudDéclarationTypeOpaque {
+    @genre OCTET
+    @comme type_octet
+    @code  NoeudCodeTypeOctet
+    @genre_valeur DROITE
+}
+
 struct NoeudDéclarationTypePointeur : NoeudDéclarationType {
     @genre POINTEUR
     @comme type_pointeur
@@ -881,20 +895,6 @@ struct NoeudDéclarationTypeEntierRelatif : NoeudDéclarationType {
     @genre ENTIER_RELATIF
     @comme type_entier_relatif
     @code  NoeudCodeTypeEntierRelatif
-    @genre_valeur DROITE
-}
-
-struct NoeudDéclarationTypeEntierConstant : NoeudDéclarationType {
-    @genre ENTIER_CONSTANT
-    @comme type_entier_constant
-    @code  NoeudCodeTypeEntierConstant
-    @genre_valeur DROITE
-}
-
-struct NoeudDéclarationTypeOctet : NoeudDéclarationType {
-    @genre OCTET
-    @comme type_octet
-    @code  NoeudCodeTypeOctet
     @genre_valeur DROITE
 }
 
@@ -980,6 +980,8 @@ struct NoeudDéclarationTypeTypeDeDonnées : NoeudDéclarationType {
      * Si l'expression est, par exemple, « z32 », ceci pointera vers la déclaration de z32.
      * Sinon le pointeur sera nul. */
     NoeudDéclarationType *type_connu [code enfant]
+
+    NoeudDéclarationType *type_code_machine;
 }
 
 struct NoeudDéclarationTypeAdresseFonction : NoeudDéclarationType {

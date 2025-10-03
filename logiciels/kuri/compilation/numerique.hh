@@ -7,7 +7,6 @@
 
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
-struct Typeuse;
 
 /**
  * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas
@@ -38,4 +37,4 @@ uint64_t valeur_max(Type *type);
 /**
  * Retourne le nombre de bits du type (8 * sa taille en octets).
  */
-int nombre_de_bits_pour_type(Typeuse &typeuse, Type const *type);
+int nombre_de_bits_pour_type(Type const *type);

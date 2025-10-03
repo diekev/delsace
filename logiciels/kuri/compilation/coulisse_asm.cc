@@ -2578,7 +2578,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             génère_code_pour_atome(accédé, assembleuse, UtilisationAtome::AUCUNE);
 
-            auto const &rubrique = accès->donne_rubrique_accédé(typeuse);
+            auto const &rubrique = accès->donne_rubrique_accédé();
             if (rubrique.decalage != 0) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
@@ -2946,9 +2946,9 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
     }
 }
 
-static bool est_type_compatible_registre_entier(Typeuse &typeuse, Type const *type)
+static bool est_type_compatible_registre_entier(Type const *type)
 {
-    auto type_primitif = donne_type_primitif(typeuse, type);
+    auto type_primitif = donne_type_primitif(type);
     return est_type_entier(type_primitif) || type->est_type_pointeur() || type->est_type_bool() ||
            type->est_type_référence() || type->est_type_adresse_fonction() ||
            type->est_type_fonction();
@@ -3017,7 +3017,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 registres.marque_registre_inoccupé(tmp);
             }
             else {
-                assert_rappel(est_type_compatible_registre_entier(typeuse, source->type),
+                assert_rappel(est_type_compatible_registre_entier(source->type),
                               [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.pop(registre);
                 assembleuse.mov(
@@ -3041,7 +3041,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
                 assembleuse.add(Registre::RSP, AssembleuseASM::Immédiate64{8}, 8);
             }
             else {
-                assert_rappel(est_type_compatible_registre_entier(typeuse, source->type),
+                assert_rappel(est_type_compatible_registre_entier(source->type),
                               [&]() { dbg() << "Le type est " << chaine_type(source->type); });
                 assembleuse.dépile(registre, source->type->taille_octet);
             }
@@ -3052,7 +3052,7 @@ void GénératriceCodeASM::charge_atome_dans_registre(Atome const *atome,
         }
     }
     else if (atome->est_globale()) {
-        if (est_type_compatible_registre_entier(typeuse, source->type)) {
+        if (est_type_compatible_registre_entier(source->type)) {
             assembleuse.pop(registre);
             assembleuse.mov(registre, AssembleuseASM::Mémoire{registre}, 8);
         }
@@ -4615,7 +4615,7 @@ void GénératriceCodeASM::définis_fonction_courante(AtomeFonction const *fonct
 AssembleuseASM::Mémoire GénératriceCodeASM::alloue_variable(InstructionAllocation const *alloc)
 {
     auto type_alloué = alloc->donne_type_alloué();
-    auto type_primitif = donne_type_primitif(typeuse, type_alloué);
+    auto type_primitif = donne_type_primitif(type_alloué);
     return alloue_variable(type_primitif);
 }
 

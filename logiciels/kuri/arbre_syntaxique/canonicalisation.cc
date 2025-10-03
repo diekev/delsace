@@ -308,7 +308,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     return référence->substitution;
                 }
 
-                auto type = donne_type_primitif(typeuse, déclaration->type);
+                auto type = donne_type_primitif(déclaration->type);
 
                 if (type->est_type_réel()) {
                     référence->substitution = assem->crée_littérale_réel(
@@ -1707,7 +1707,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     NoeudExpression *expression)
 {
     auto type_condition = expression->type;
-    auto type_primitif = donne_type_primitif(typeuse, type_condition);
+    auto type_primitif = donne_type_primitif(type_condition);
 
     switch (type_primitif->genre) {
         case GenreNoeud::ENTIER_NATUREL:

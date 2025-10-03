@@ -925,7 +925,7 @@ InstructionAccèdeRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExp
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto const *type_élément = type_déréférencé_pour(accédé->type);
-    type_élément = donne_type_primitif(m_typeuse, type_élément);
+    type_élément = donne_type_primitif(type_élément);
 
     assert_rappel(type_élément->est_type_composé(), [&]() {
         dbg() << "Type accédé : '" << chaine_type(type_élément) << "'\n" << imprime_site(site_);
@@ -2313,8 +2313,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_INDEXAGE:
         {
             auto expr_bin = noeud->comme_indexage();
-            auto type_gauche = donne_type_primitif(m_compilatrice.typeuse,
-                                                   expr_bin->opérande_gauche->type);
+            auto type_gauche = donne_type_primitif(expr_bin->opérande_gauche->type);
 
             génère_ri_pour_noeud(expr_bin->opérande_gauche);
             auto pointeur = depile_valeur();
@@ -3058,8 +3057,8 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
     auto const dst_originale = dst;
 #endif
 
-    src = donne_type_primitif(espace.compilatrice().typeuse, src);
-    dst = donne_type_primitif(espace.compilatrice().typeuse, dst);
+    src = donne_type_primitif(src);
+    dst = donne_type_primitif(dst);
 
     if (src->taille_octet == dst->taille_octet) {
         /* Cas simple : les types ont les mêmes tailles, transtype la représentation binaire. */
@@ -3514,7 +3513,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         noeud, type_cible, valeur, TypeTranstypage::BITS);
                     valeur_pointeur = valeur;
 
-                    auto type_primitif = donne_type_primitif(m_compilatrice.typeuse, noeud->type);
+                    auto type_primitif = donne_type_primitif(noeud->type);
                     valeur_taille = m_constructrice.crée_z64(type_primitif->taille_octet);
                     break;
                 }
@@ -3913,7 +3912,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
                                                         InstructionLabel *label_si_faux)
 {
     auto const *type_condition = condition->type;
-    type_condition = donne_type_primitif(m_compilatrice.typeuse, type_condition);
+    type_condition = donne_type_primitif(type_condition);
     auto valeur = static_cast<Atome *>(nullptr);
 
     switch (type_condition->genre) {

@@ -199,7 +199,6 @@ struct Typeuse {
     NoeudDéclarationType *type_r64 = nullptr;
     NoeudDéclarationType *type_rien = nullptr;
     NoeudDéclarationType *type_bool = nullptr;
-    NoeudDéclarationType *type_octet = nullptr;
     NoeudDéclarationType *type_adresse_fonction = nullptr;
 
     NoeudDéclarationTypePointeur *type_ptr_nul = nullptr;
@@ -214,7 +213,9 @@ struct Typeuse {
 
     NoeudDéclarationTypeTableauDynamique *type_tabl_n8 = nullptr;
 
-    NoeudDéclarationType *type_entier_constant = nullptr;
+    NoeudDéclarationTypeOpaque *type_octet = nullptr;
+    NoeudDéclarationTypeOpaque *type_entier_constant = nullptr;
+
     NoeudDéclarationTypeComposé *type_eini = nullptr;
     NoeudDéclarationTypeComposé *type_chaine = nullptr;
 
@@ -303,11 +304,11 @@ bool requiers_création_fonction_initialisation(Type const *type);
 
 /* Retourne le type entier sous-jacent pour les types pouvant être représentés par un nombre entier
  * (p.e. les énumérations). Retourne nul sinon. */
-Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type);
+Type const *type_entier_sous_jacent(Type const *type);
 
 /* Retourne le type primitif du type donné. Par exemple, pour un type énumération, son type
  * sous-jacent. */
-Type const *donne_type_primitif(Typeuse &typeuse, Type const *type);
+Type const *donne_type_primitif(Type const *type);
 
 /** Si \a type_base_potentiel est un type employé par \a type_dérivé, ou employé par un type
  * employé par \a type_dérivé, retourne le décalage absolu en octet dans la structure de \a
@@ -465,9 +466,9 @@ bool est_type_ptr_octet(const Type *type);
 
 bool est_type_booléen_implicite(Type *type);
 
-bool est_type_tableau_fixe(Typeuse &typeuse, Type const *type);
+bool est_type_tableau_fixe(Type const *type);
 
-bool est_pointeur_vers_tableau_fixe(Typeuse &typeuse, Type const *type);
+bool est_pointeur_vers_tableau_fixe(Type const *type);
 
 bool est_type_sse2(Type const *type);
 

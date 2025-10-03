@@ -260,8 +260,6 @@ struct Chunk {
 
     int64_t mémoire_utilisée() const;
 
-    Type const *donne_type_primitif(Type const *type);
-
   private:
     void émets(octet_t o);
 

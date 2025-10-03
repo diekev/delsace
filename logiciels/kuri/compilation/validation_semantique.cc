@@ -5943,7 +5943,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
         if (!résultat_decalage.est_erroné) {
-            auto const bits_max = nombre_de_bits_pour_type(m_compilatrice.typeuse, type_gauche);
+            auto const bits_max = nombre_de_bits_pour_type(type_gauche);
             auto const decalage = résultat_decalage.valeur.entière();
             if (résultat_decalage.valeur.entière() >= bits_max) {
                 m_espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")

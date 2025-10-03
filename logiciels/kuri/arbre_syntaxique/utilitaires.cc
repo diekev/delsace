@@ -3115,7 +3115,7 @@ kuri::tableau<char> donne_tableau_valeurs_énum(Typeuse &typeuse, NoeudEnum cons
         return résultat;
     }
 
-    auto const type_sous_jacent = type_entier_sous_jacent(typeuse, noeud.type_sous_jacent);
+    auto const type_sous_jacent = type_entier_sous_jacent(noeud.type_sous_jacent);
 
     if (type_sous_jacent->est_type_entier_naturel()) {
         if (type_sous_jacent->taille_octet == 1) {

@@ -693,7 +693,7 @@ struct InstructionAccèdeRubrique : public Instruction {
 
     const Type *donne_type_accédé() const;
 
-    const RubriqueTypeComposé &donne_rubrique_accédé(Typeuse &typeuse) const;
+    const RubriqueTypeComposé &donne_rubrique_accédé() const;
 };
 
 struct InstructionAccèdeIndex : public Instruction {
@@ -853,8 +853,7 @@ struct AccèsRubriqueFusionné {
 
 /* "Fusionne" les accès de rubrique consécutifs (x.y.z).
  * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-AccèsRubriqueFusionné fusionne_accès_rubriques(Typeuse &typeuse,
-                                               InstructionAccèdeRubrique const *accès_rubrique);
+AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);

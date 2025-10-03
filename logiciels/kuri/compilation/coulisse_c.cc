@@ -1082,14 +1082,13 @@ static kuri::tableau_statique<const T> donne_tableau_typé(
 }
 
 static void génère_code_pour_données_constantes(Enchaineuse &enchaineuse,
-                                                Typeuse &typeuse,
                                                 AtomeConstanteDonnéesConstantes const *constante)
 {
     enchaineuse.réinitialise();
 
     auto const type_tableau = constante->type->comme_type_tableau_fixe();
     auto const taille_tableau = type_tableau->taille;
-    auto const type_élément = donne_type_primitif(typeuse, type_tableau->type_pointé);
+    auto const type_élément = donne_type_primitif(type_tableau->type_pointé);
 
     if (type_élément->est_type_entier_relatif()) {
         if (type_élément->taille_octet == 1) {
@@ -1201,8 +1200,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 return valeur_accédée;
             }
 
-            if (est_type_tableau_fixe(m_espace.compilatrice().typeuse,
-                                      inst_accès->donne_type_accédé())) {
+            if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
                 valeur_accédée = enchaine(valeur_accédée, ".", nom_variable_tableau_fixe);
             }
 
@@ -1421,8 +1419,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             auto constante = atome->comme_données_constantes();
-            génère_code_pour_données_constantes(
-                enchaineuse_tmp, m_espace.compilatrice().typeuse, constante);
+            génère_code_pour_données_constantes(enchaineuse_tmp, constante);
 
             if (enchaineuse_tmp.nombre_tampons() > 1) {
                 auto chaine_résultat = enchaineuse_tmp.chaine();
@@ -1554,7 +1551,6 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                  * rubrique de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
-                        m_espace.compilatrice().typeuse,
                         charge->type->comme_type_pointeur()->type_pointé)) {
                     valeur_chargée = enchaine("&(*", valeur.sous_chaine(1), ")");
                 }
@@ -1677,8 +1673,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine(
                     "&((", donne_nom_pour_type(inst_accès->type), ")", valeur_accédée, ")");
             }
-            else if (est_type_tableau_fixe(m_espace.compilatrice().typeuse,
-                                           inst_accès->donne_type_accédé())) {
+            else if (est_type_tableau_fixe(inst_accès->donne_type_accédé())) {
                 valeur_accédée = enchaine(valeur_accédée, ".", nom_variable_tableau_fixe);
             }
 
@@ -1703,8 +1698,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                 valeur_accédée = enchaine("&", valeur_accédée, "->");
             }
 
-            auto const &rubrique = inst_accès->donne_rubrique_accédé(
-                m_espace.compilatrice().typeuse);
+            auto const &rubrique = inst_accès->donne_rubrique_accédé();
 
 #ifdef TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
             auto nom_type = donne_nom_pour_type(rubrique.type);

@@ -111,9 +111,9 @@ uint64_t valeur_max(Type *type)
     return std::numeric_limits<int64_t>::max();
 }
 
-int nombre_de_bits_pour_type(Typeuse &typeuse, Type const *type)
+int nombre_de_bits_pour_type(Type const *type)
 {
-    type = donne_type_primitif(typeuse, type);
+    type = donne_type_primitif(type);
 
     /* Utilisation de unsigned car signed enlève 1 bit pour le signe. */
 

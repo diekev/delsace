@@ -58,15 +58,6 @@ static Type *crée_type_entier(IdentifiantCode *ident, unsigned taille_octet, bo
     return type;
 }
 
-static Type *crée_type_entier_constant()
-{
-    auto type = mémoire::loge<Type>("Type");
-    type->ident = ID::entier_constant;
-    type->genre = GenreNoeud::ENTIER_CONSTANT;
-    type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-    return type;
-}
-
 static Type *crée_type_reel(IdentifiantCode *ident, unsigned taille_octet)
 {
     auto type = mémoire::loge<Type>("Type");
@@ -93,17 +84,6 @@ static Type *crée_type_bool()
     auto type = mémoire::loge<Type>("Type");
     type->ident = ID::bool_;
     type->genre = GenreNoeud::BOOL;
-    type->taille_octet = 1;
-    type->alignement = 1;
-    type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-    return type;
-}
-
-static Type *crée_type_octet()
-{
-    auto type = mémoire::loge<Type>("Type");
-    type->ident = ID::octet;
-    type->genre = GenreNoeud::OCTET;
     type->taille_octet = 1;
     type->alignement = 1;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
@@ -251,9 +231,12 @@ static void initialise_type_variadique(TypeVariadique *résultat,
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 }
 
-static void initialise_type_type_de_données(TypeTypeDeDonnees *résultat, Type *type_connu_)
+static void initialise_type_type_de_données(Typeuse &typeuse,
+                                            TypeTypeDeDonnees *résultat,
+                                            Type *type_connu_)
 {
     résultat->ident = ID::type_de_données;
+    résultat->type_code_machine = typeuse.type_z64;
     // un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
     résultat->taille_octet = 8;
     résultat->alignement = 8;
@@ -292,10 +275,6 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
         case GenreLexème::BOOL:
         {
             return crée_type_bool();
-        }
-        case GenreLexème::OCTET:
-        {
-            return crée_type_octet();
         }
         case GenreLexème::N8:
         {
@@ -390,11 +369,18 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_bool = crée_type_pour_lexeme(GenreLexème::BOOL);
     types_simples->ajoute(type_bool);
 
-    // À FAIRE : transforme en types opaques
-    type_entier_constant = crée_type_entier_constant();
-    types_simples->ajoute(type_entier_constant);
-    type_octet = crée_type_pour_lexeme(GenreLexème::OCTET);
-    types_simples->ajoute(type_octet);
+    type_entier_constant = alloc->m_noeuds_type_entier_constant.ajoute_élément();
+    type_entier_constant->type_opacifié = type_z32;
+    type_entier_constant->ident = ID::entier_constant;
+    type_entier_constant->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+
+    type_octet = alloc->m_noeuds_type_octet.ajoute_élément();
+    type_octet->type_opacifié = type_n8;
+    type_octet->ident = ID::octet;
+    type_octet->taille_octet = 1;
+    type_octet->alignement = 1;
+    type_octet->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+
     type_adresse_fonction = crée_type_pour_lexeme(GenreLexème::ADRESSE_FONCTION);
     types_simples->ajoute(type_adresse_fonction);
 
@@ -418,7 +404,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_chaine = crée_type_chaine();
 
     type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
-    initialise_type_type_de_données(type_type_de_donnees_, nullptr);
+    initialise_type_type_de_données(*this, type_type_de_donnees_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
@@ -829,7 +815,7 @@ TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
     }
 
     auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_élément();
-    initialise_type_type_de_données(résultat, type_connu);
+    initialise_type_type_de_données(*this, résultat, type_connu);
     table_types_de_donnees.insère(type_connu, résultat);
     return résultat;
 }
@@ -1887,13 +1873,13 @@ bool est_type_polymorphique(Type const *type)
     return false;
 }
 
-bool est_type_tableau_fixe(Typeuse &typeuse, Type const *type)
+bool est_type_tableau_fixe(Type const *type)
 {
-    auto type_primitif = donne_type_primitif(typeuse, type);
+    auto type_primitif = donne_type_primitif(type);
     return type_primitif->est_type_tableau_fixe();
 }
 
-bool est_pointeur_vers_tableau_fixe(Typeuse &typeuse, Type const *type)
+bool est_pointeur_vers_tableau_fixe(Type const *type)
 {
     if (!type->est_type_pointeur()) {
         return false;
@@ -1905,7 +1891,7 @@ bool est_pointeur_vers_tableau_fixe(Typeuse &typeuse, Type const *type)
         return false;
     }
 
-    return est_type_tableau_fixe(typeuse, type_pointeur->type_pointé);
+    return est_type_tableau_fixe(type_pointeur->type_pointé);
 }
 
 bool est_type_sse2(Type const *type)
@@ -1940,12 +1926,8 @@ Type const *donne_type_opacifié_racine(TypeOpaque const *type_opaque)
     return résultat;
 }
 
-Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
+Type const *type_entier_sous_jacent(Type const *type)
 {
-    if (type->est_type_entier_constant()) {
-        return typeuse.type_z32;
-    }
-
     if (type->est_type_énum()) {
         return type->comme_type_énum()->type_sous_jacent;
     }
@@ -1955,11 +1937,7 @@ Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
     }
 
     if (type->est_type_type_de_données()) {
-        return typeuse.type_z64;
-    }
-
-    if (type->est_type_octet()) {
-        return typeuse.type_n8;
+        return type->comme_type_type_de_données()->type_code_machine;
     }
 
     if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -1967,19 +1945,15 @@ Type const *type_entier_sous_jacent(Typeuse &typeuse, Type const *type)
     }
 
     if (type->est_type_opaque()) {
-        return type_entier_sous_jacent(typeuse, type->comme_type_opaque()->type_opacifié);
+        return type_entier_sous_jacent(type->comme_type_opaque()->type_opacifié);
     }
 
     return nullptr;
 }
 
-Type const *donne_type_primitif(Typeuse &typeuse, Type const *type)
+Type const *donne_type_primitif(Type const *type)
 {
     while (true) {
-        if (type->est_type_entier_constant()) {
-            return typeuse.type_z32;
-        }
-
         if (type->est_type_énum()) {
             return type->comme_type_énum()->type_sous_jacent;
         }
@@ -1989,11 +1963,7 @@ Type const *donne_type_primitif(Typeuse &typeuse, Type const *type)
         }
 
         if (type->est_type_type_de_données()) {
-            return typeuse.type_z64;
-        }
-
-        if (type->est_type_octet()) {
-            return typeuse.type_n8;
+            return type->comme_type_type_de_données()->type_code_machine;
         }
 
         if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
