@@ -55,6 +55,9 @@ requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
+// À FAIRE :  déplace permute tampons dans IGUMI
+// - IGUMI.définis_cible_rendu(TypeFenêtre)
+// - IGUMI.permute_tampons()
 permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
