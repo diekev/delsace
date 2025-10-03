@@ -1736,7 +1736,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
             if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
                 /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
                  * de générer ces instructions redondantes. */
-                espace->rapporte_avertissement(inst, "Import superflux du module");
+                espace->rapporte_info(inst, "Import superflux du module");
             }
         }
         else {

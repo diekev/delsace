@@ -3339,7 +3339,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
             espace.rapporte_erreur(decl_param, "Paramètre d'opérateur inutilisé.");
         }
         else {
-            espace.rapporte_avertissement(decl_param, "Paramètre inutilisé.");
+            espace.rapporte_info(decl_param, "Paramètre inutilisé.");
         }
     }
 
@@ -3399,7 +3399,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                                  " : fonction « ",
                                  (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                                  " » inutilisée");
-                             espace.rapporte_avertissement(noeud, message);
+                             espace.rapporte_info(noeud, message);
 
                              /* Ne traverse pas la fonction nichée. */
                              return DecisionVisiteNoeud::IGNORE_ENFANTS;
@@ -3411,7 +3411,7 @@ static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,
                              " : déclaration « ",
                              (noeud->ident ? noeud->ident->nom : kuri::chaine_statique("")),
                              " » inutilisée");
-                         espace.rapporte_avertissement(noeud, message);
+                         espace.rapporte_info(noeud, message);
                      }
 
                      /* Ne traversons pas les fonctions nichées. Nous arrivons ici uniquement si la
@@ -6689,7 +6689,7 @@ RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
          * type monomorphé. */
         if (fonction_courante() &&
             !fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            m_espace->rapporte_avertissement(expr, "Instruction de transtypage inutile.");
+            m_espace->rapporte_info(expr, "Instruction de transtypage inutile.");
         }
     }
 

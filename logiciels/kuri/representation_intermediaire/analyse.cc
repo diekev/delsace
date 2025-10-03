@@ -308,10 +308,10 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
 
     POUR (allocs_inutilisees) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
-            espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
+            espace.rapporte_info(it->site, "Paramètre inutilisé");
         }
         else {
-            espace.rapporte_avertissement(it->site, "Variable locale inutilisée");
+            espace.rapporte_info(it->site, "Variable locale inutilisée");
         }
     }
 
@@ -320,7 +320,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
             continue;
         }
 
-        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
+        espace.rapporte_info(it->site, "Retour de fonction inutilisé");
     }
 
     return true;
