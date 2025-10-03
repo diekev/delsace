@@ -166,13 +166,15 @@ CommandeDessineImage :: struct {
     type = TypeCommandeDeRendu.DESSINE_IMAGE
 
     image: NouvelleImage
+    teinte: CouleurRVBA
 }
 
-dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: NouvelleImage)
+dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: NouvelleImage, teinte: CouleurRVBA)
 {
     résultat := crée_commande(commandes, CommandeDessineImage)
     résultat.rect = rect
     résultat.image = image
+    résultat.teinte = teinte
 }
 
 CommandeDébuteCiselage :: struct {
@@ -528,11 +530,12 @@ dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
     boite.config_texte = config
 }
 
-dispose_image :: fonc (image: NouvelleImage, cotation: Cotation)
+dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 {
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_image(image)
     boite.disposition.cotation = cotation
+    boite.teinte = teinte
 }
 
 dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien, id := "", cotation := Cotation())
@@ -576,6 +579,7 @@ BoiteFlexible :: struct {
     texte: chaine
     texte_utf32: ChaineUTF32
     image: NouvelleImage
+    teinte: CouleurRVBA
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
     données_procédure: *rien
@@ -1954,7 +1958,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     commandes.dessine_texte(rect, boite.config_texte.fonte, boite.texte_utf32, boite.config_texte.couleur)
                 }
                 Image {
-                    commandes.dessine_image(rect, boite.image)
+                    commandes.dessine_image(rect, boite.image, boite.teinte)
                 }
                 Procédure {
                     commandes.dessine_procédural(rect, boite.procédure, boite.données_procédure)
@@ -2100,7 +2104,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu)
                 commande := base comme *CommandeDessineImage
                 rect := commande.rect
                 rect.y = hauteur_vue - rect.y - rect.hauteur
-                peintre.dessine_image(*commande.image, rect, rect, ParamètresRenduImage())
+                peintre.dessine_image(*commande.image, rect, commande.teinte)
             }
             DESSINE_PROCÉDURAL {
                 commande := base comme *CommandeDessineProcédural
