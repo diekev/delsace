@@ -2206,6 +2206,10 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
         }
 
         auto param = decl->parametre_entree(i);
+        if (possède_annotation(param, "inutilisée")) {
+            param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
+        }
+
         auto expression = param->expression;
 
         if (noms.possède(param->ident)) {
@@ -3234,18 +3238,34 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
     expr->genre_valeur = decl->genre_valeur;
 
     decl->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    auto déclaration_pour_marquée_inutilisée = decl;
+    auto vient_d_un_emploi = false;
     if (decl->est_déclaration_variable()) {
         auto decl_var = decl->comme_déclaration_variable();
         if (decl_var->déclaration_vient_d_un_emploi) {
+            vient_d_un_emploi = true;
+            déclaration_pour_marquée_inutilisée = decl_var->déclaration_vient_d_un_emploi;
             decl_var->déclaration_vient_d_un_emploi->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
         }
         expr->genre_valeur = GenreValeur::TRANSCENDANTALE;
     }
 
-    if (decl->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
-        m_espace->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
-            .ajoute_message("La déclaration fut déclarée ici :\n")
-            .ajoute_site(decl);
+    if (déclaration_pour_marquée_inutilisée->possède_drapeau(
+            DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
+        if (vient_d_un_emploi) {
+            m_espace
+                ->rapporte_erreur(expr,
+                                  "Utilisation d'une rubrique employée d'une déclaration marquée "
+                                  "comme inutilisée.")
+                .ajoute_message("La rubrique provient de l'emploi déclaré ici :\n")
+                .ajoute_site(déclaration_pour_marquée_inutilisée);
+        }
+        else {
+            m_espace
+                ->rapporte_erreur(expr, "Utilisation d'une déclaration marquée comme inutilisée.")
+                .ajoute_message("La variable fut déclarée ici :\n")
+                .ajoute_site(déclaration_pour_marquée_inutilisée);
+        }
         return CodeRetourValidation::Erreur;
     }
 
@@ -3469,13 +3489,6 @@ static MéthodeRetourFonction détermine_méthode_retour_fonction(NoeudDéclarat
 RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFonction *decl)
 {
     auto entete = decl->entête;
-
-    for (int i = 0; i < entete->params.taille(); ++i) {
-        auto decl_param = entete->parametre_entree(i);
-        if (possède_annotation(decl_param, "inutilisée")) {
-            decl_param->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
-        }
-    }
 
     if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
         !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {

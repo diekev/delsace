@@ -3,8 +3,6 @@
 
 empl => ajoute erreur si nom variable est nom d'un membre
 
-pas d'erreur si emp x: X @inutilisée devient utilisé
-
 MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
 
 erreur de compilation
