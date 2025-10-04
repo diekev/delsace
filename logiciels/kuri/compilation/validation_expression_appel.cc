@@ -605,8 +605,6 @@ static void trouve_candidates_pour_expression(
                 site_monomorphisation->lexème->fichier);
 
             if (fichier_site != fichier) {
-                auto anciennes_déclarations = déclarations;
-                auto anciens_modules_visités = modules_visités;
                 trouve_declarations_dans_bloc_ou_module(déclarations,
                                                         modules_visités,
                                                         fichier_site->module,
