@@ -3146,10 +3146,8 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
             decl = trouve_dans_bloc_ou_module(
                 bloc_recherche_original, expr->ident, fichier, fonction_courante());
         }
-        if (decl == nullptr && fonction_courante() &&
-            fonction_courante()->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            auto site_monomorphisation = fonction_courante()->site_monomorphisation;
-
+        auto site_monomorphisation = donne_site_monomorphisation();
+        if (site_monomorphisation) {
             fichier = m_compilatrice.fichier(site_monomorphisation->lexème->fichier);
             decl = trouve_dans_bloc_ou_module(
                 site_monomorphisation->bloc_parent, expr->ident, fichier, fonction_courante());
@@ -3340,6 +3338,22 @@ Type *Sémanticienne::union_ou_structure_courante() const
     }
 
     return nullptr;
+}
+
+NoeudExpression *Sémanticienne::donne_site_monomorphisation() const
+{
+    NoeudExpression *résultat = nullptr;
+
+    if (fonction_courante()) {
+        auto fonction = fonction_courante();
+        résultat = fonction->site_monomorphisation;
+    }
+    else if (union_ou_structure_courante()) {
+        auto classe = union_ou_structure_courante()->comme_déclaration_classe();
+        résultat = classe->site_monomorphisation;
+    }
+
+    return résultat;
 }
 
 static void avertis_déclarations_inutilisées(EspaceDeTravail const &espace,

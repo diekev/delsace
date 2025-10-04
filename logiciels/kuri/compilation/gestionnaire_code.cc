@@ -1077,6 +1077,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
                             fonction->bloc_constantes->ajoute_rubrique(it);
                         }
                     });
+                fonction->site_monomorphisation = decl->site_monomorphisation;
             }
 
             /* Annule le bloc du type pour détecter les erreurs. Il sera ajourné après le

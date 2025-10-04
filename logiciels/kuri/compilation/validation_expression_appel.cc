@@ -594,31 +594,27 @@ static void trouve_candidates_pour_expression(
                                             appelée->ident,
                                             fichier);
 
-    if (sémanticienne.fonction_courante()) {
-        auto fonction_courante = sémanticienne.fonction_courante();
+    auto site_monomorphisation = sémanticienne.donne_site_monomorphisation();
+    if (site_monomorphisation) {
+        assert_rappel(site_monomorphisation->lexème,
+                      [&]() { dbg() << erreur::imprime_site(espace, appelée); });
 
-        if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            auto site_monomorphisation = fonction_courante->site_monomorphisation;
-            assert_rappel(site_monomorphisation->lexème,
-                          [&]() { dbg() << erreur::imprime_site(espace, appelée); });
-            auto fichier_site = espace.compilatrice().fichier(
-                site_monomorphisation->lexème->fichier);
+        auto fichier_site = espace.compilatrice().fichier(site_monomorphisation->lexème->fichier);
 
-            if (fichier_site != fichier) {
-                trouve_declarations_dans_bloc_ou_module(déclarations,
-                                                        modules_visités,
-                                                        fichier_site->module,
-                                                        site_monomorphisation->bloc_parent,
-                                                        appelée->ident,
-                                                        fichier_site);
+        if (fichier_site != fichier) {
+            trouve_declarations_dans_bloc_ou_module(déclarations,
+                                                    modules_visités,
+                                                    fichier_site->module,
+                                                    site_monomorphisation->bloc_parent,
+                                                    appelée->ident,
+                                                    fichier_site);
 
-                /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
-                 * blocs parents de toutes les expressions nous faisant potentiellement
-                 * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
-                 * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
-                 * devrons proprement gérer tout ça pour éviter de perdre du temps. */
-                supprime_doublons(déclarations);
-            }
+            /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
+             * blocs parents de toutes les expressions nous faisant potentiellement
+             * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
+             * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
+             * devrons proprement gérer tout ça pour éviter de perdre du temps. */
+            supprime_doublons(déclarations);
         }
     }
 
