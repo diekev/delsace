@@ -731,6 +731,9 @@ struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
     NoeudDéclarationClasse const *polymorphe_de_base
 
     Monomorphisations *monomorphisations
+    /* Le site où la première monomorphisation eu lieu, afin de pouvoir chercher les fonctions
+     * dans le contexte du site. */
+    NoeudExpression *site_monomorphisation
 
     MetaProgramme *métaprogramme_corps_texte
 

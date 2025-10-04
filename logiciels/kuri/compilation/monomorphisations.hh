@@ -102,4 +102,5 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
 NoeudDéclarationClasse *monomorphise_au_besoin(
     Contexte *contexte,
     NoeudDéclarationClasse const *decl_struct,
+    NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);

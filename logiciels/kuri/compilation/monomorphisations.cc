@@ -256,6 +256,7 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
 NoeudDéclarationClasse *monomorphise_au_besoin(
     Contexte *contexte,
     NoeudDéclarationClasse const *decl_struct,
+    NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
     auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
@@ -272,6 +273,7 @@ NoeudDéclarationClasse *monomorphise_au_besoin(
     structure->est_polymorphe = false;
     structure->est_monomorphisation = true;
     structure->polymorphe_de_base = decl_struct;
+    structure->site_monomorphisation = site;
 
     auto espace = contexte->espace;
     espace->compilatrice().gestionnaire_code->requiers_typage(espace, structure);

@@ -2283,7 +2283,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto decl_struct = candidate->noeud_decl->comme_déclaration_classe();
 
         auto copie = monomorphise_au_besoin(
-            contexte, decl_struct, std::move(candidate->items_monomorphisation));
+            contexte, decl_struct, expr, std::move(candidate->items_monomorphisation));
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
