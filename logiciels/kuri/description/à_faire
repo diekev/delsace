@@ -13,8 +13,6 @@ erreur de compilation
 
 erreur/avertissement si - unaire utilisé sur nombre naturel
 
-erreur/avertissement si > 0 ou >= 0 utilisé sur nombre naturel
-
 aucune collision de symboles entre les énums ou structures et les constantes
 
 erreur de compilation :
