@@ -30,4 +30,30 @@ principale :: fonc ()
     pour s {
         imprimeln("% | % % %", indice_it, it.p0.x, it.p1.y, it.p2.z)
     }
+
+    imprimeln("")
+    imprimeln("Utilisation d'un masque pour lire ou écrire")
+    imprimeln("")
+    masque: MasqueSDT(Triangle)
+    masque.p1 = vrai
+
+    t = donne_élément(*s, 32, masque)
+    imprimeln("Seul le point 1 doit avoir une valeur :")
+    imprimeln("%", t)
+
+    masque.p1 = faux
+    masque.p2 = vrai
+
+    t.p0 = Vec3(111, 111, 111)
+    t.p1 = Vec3(222, 222, 222)
+    t.p2 = Vec3(333, 333, 333)
+
+    imprimeln("")
+    imprimeln("Écris... %", t)
+    définis_élément(*s, 33, t, masque)
+    imprimeln("... avec masque : %", masque)
+
+    t = s[33]
+    imprimeln("")
+    imprimeln("Lu sans masque : %", t)
 }

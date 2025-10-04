@@ -40,6 +40,22 @@ SDT :: struct ($T: type_de_données) #corps_texte {
     retourne source
 }
 
+MasqueSDT :: struct ($T: type_de_données) #corps_texte {
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    infos := info_de(T)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
 redimensionne :: fonc (structure: *SDT($T), nombre_d_éléments: z64)
 #corps_texte {
     infos := info_de(T)
@@ -79,6 +95,27 @@ donne_élément :: fonc (structure: *SDT($T), indice: z64) -> T
     retourne source
 }
 
+donne_élément :: fonc (structure: *SDT($T), indice: z64, masque: MasqueSDT(T)) -> T
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat: T\n")
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "si masque.", it.nom, " {\n")
+        ajoute_au_tampon(*enchaineuse, "    résultat.", it.nom, " = structure.", it.nom, "[indice]\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne résultat\n")
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
 définis_élément :: fonc (structure: *SDT($T), indice: z64, élément: T)
 #corps_texte {
     infos := info_de(T)
@@ -88,6 +125,23 @@ définis_élément :: fonc (structure: *SDT($T), indice: z64, élément: T)
 
     pour rubriques_sdt(infos) {
         ajoute_au_tampon(*enchaineuse, "structure.", it.nom, "[indice] = élément.", it.nom, "\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+définis_élément :: fonc (structure: *SDT($T), indice: z64, élément: T, masque: MasqueSDT(T))
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "si masque.", it.nom, " {\n")
+        ajoute_au_tampon(*enchaineuse, "    structure.", it.nom, "[indice] = élément.", it.nom, "\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse)
