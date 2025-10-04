@@ -79,6 +79,21 @@ void Monomorphisations::ajoute(const tableau_items &items, NoeudExpression *noeu
     monomorphisations->ajoute({items, noeud});
 }
 
+kuri::tableau<ItemMonomorphisation, int> Monomorphisations::donne_items_pour(
+    NoeudExpression *noeud) const
+{
+    kuri::tableau<ItemMonomorphisation, int> résultat;
+
+    POUR (*monomorphisations.verrou_lecture()) {
+        if (it.second == noeud) {
+            résultat = it.premier;
+            break;
+        }
+    }
+
+    return résultat;
+}
+
 int64_t Monomorphisations::mémoire_utilisée() const
 {
     int64_t résultat = 0;

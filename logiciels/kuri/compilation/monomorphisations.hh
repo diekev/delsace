@@ -77,6 +77,9 @@ struct Monomorphisations {
   public:
     void ajoute(tableau_items const &items, NoeudExpression *noeud);
 
+    // À FAIRE : supprime l'allocation, mais nous le passons à monomorphie_au_besoin.
+    kuri::tableau<ItemMonomorphisation, int> donne_items_pour(NoeudExpression *noeud) const;
+
     NoeudExpression *trouve_monomorphisation(
         kuri::tableau_statique<ItemMonomorphisation> items) const;
 

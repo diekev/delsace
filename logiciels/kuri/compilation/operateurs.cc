@@ -703,16 +703,6 @@ static void rassemble_opérateurs_pour_type(Type const &type,
     }
 }
 
-static NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type)
-{
-    if (!type->est_déclaration_classe()) {
-        return nullptr;
-    }
-
-    auto classe = type->comme_déclaration_classe();
-    return classe->polymorphe_de_base;
-}
-
 static void rassemble_opérateurs_pour_type(
     Type *type, GenreLexème type_op, kuri::tablet<OpérateurBinaire const *, 10> &op_candidats)
 {

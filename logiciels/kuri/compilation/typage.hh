@@ -502,3 +502,5 @@ struct VisiteuseType {
 };
 
 /** \} */
+
+NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type);

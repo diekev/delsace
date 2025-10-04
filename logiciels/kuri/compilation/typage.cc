@@ -2613,4 +2613,14 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
     }
 }
 
+NoeudDéclarationClasse const *donne_polymorphe_de_base(Type const *type)
+{
+    if (!type->est_déclaration_classe()) {
+        return nullptr;
+    }
+
+    auto classe = type->comme_déclaration_classe();
+    return classe->polymorphe_de_base;
+}
+
 /** \} */

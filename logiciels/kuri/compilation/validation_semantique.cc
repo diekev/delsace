@@ -2136,6 +2136,8 @@ RésultatValidation Sémanticienne::valide_entête_opérateur_pour(
         return CodeRetourValidation::Erreur;
     }
 
+    valide_paramètres_constants_fonction(opérateur);
+
     {
         CHRONO_TYPAGE(m_stats_typage.entêtes_fonctions, ENTETE_FONCTION__ARBRE_APLATIS);
         TENTE(valide_arbre_aplatis(opérateur));
@@ -6130,6 +6132,7 @@ using RésultatTypeItérande = std::variant<TypageItérandeBouclePour, Attente>;
  * - une instance de #TypageItérandeBouclePour remplis convenablement.
  */
 static RésultatTypeItérande détermine_typage_itérande(
+    Contexte *contexte,
     const NoeudExpression *itéré,
     Typeuse &typeuse,
     kuri::Synchrone<RegistreDesOpérateurs> &registre)
@@ -6172,6 +6175,27 @@ static RésultatTypeItérande détermine_typage_itérande(
     /* N'accèdons pas à la table via le registre pour éviter de la créer. */
     auto table_opérateurs = type_variable_itérée->table_opérateurs;
     if (table_opérateurs == nullptr || table_opérateurs->opérateur_pour == nullptr) {
+
+        auto polymorphe = donne_polymorphe_de_base(type_variable_itérée);
+        if (polymorphe) {
+            table_opérateurs = polymorphe->table_opérateurs;
+            if (table_opérateurs != nullptr && table_opérateurs->opérateur_pour != nullptr) {
+                auto items_monomorphisation = polymorphe->monomorphisations->donne_items_pour(
+                    type_variable_itérée);
+
+                auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
+                    contexte,
+                    table_opérateurs->opérateur_pour,
+                    const_cast<NoeudExpression *>(itéré),
+                    std::move(items_monomorphisation));
+
+                if (doit_monomorpher ||
+                    !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                    return Attente::sur_déclaration(noeud_decl);
+                }
+            }
+        }
+
         return Attente::sur_opérateur_pour(type_variable_itérée);
     }
 
@@ -6240,7 +6264,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     auto expression = inst->expression;
     auto const résultat_typage_itérande = détermine_typage_itérande(
-        expression, m_compilatrice.typeuse, m_compilatrice.opérateurs);
+        m_contexte, expression, m_compilatrice.typeuse, m_compilatrice.opérateurs);
     if (std::holds_alternative<Attente>(résultat_typage_itérande)) {
         return std::get<Attente>(résultat_typage_itérande);
     }
