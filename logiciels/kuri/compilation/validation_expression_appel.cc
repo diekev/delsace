@@ -409,7 +409,8 @@ struct ApparieuseParams {
                 return false;
             }
 
-            auto est_paramètre_variadique = indice_param == m_noms.taille() - 1 && m_est_variadique;
+            auto est_paramètre_variadique = indice_param == m_noms.taille() - 1 &&
+                                            m_est_variadique;
 
             if ((m_args_rencontrés.possède(ident)) && !est_paramètre_variadique) {
                 erreur = ErreurAppariement::renommage_argument(expr_ident, ident);
@@ -593,33 +594,27 @@ static void trouve_candidates_pour_expression(
                                             appelée->ident,
                                             fichier);
 
-    if (sémanticienne.fonction_courante()) {
-        auto fonction_courante = sémanticienne.fonction_courante();
+    auto site_monomorphisation = sémanticienne.donne_site_monomorphisation();
+    if (site_monomorphisation) {
+        assert_rappel(site_monomorphisation->lexème,
+                      [&]() { dbg() << erreur::imprime_site(espace, appelée); });
 
-        if (fonction_courante->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
-            auto site_monomorphisation = fonction_courante->site_monomorphisation;
-            assert_rappel(site_monomorphisation->lexème,
-                          [&]() { dbg() << erreur::imprime_site(espace, appelée); });
-            auto fichier_site = espace.compilatrice().fichier(
-                site_monomorphisation->lexème->fichier);
+        auto fichier_site = espace.compilatrice().fichier(site_monomorphisation->lexème->fichier);
 
-            if (fichier_site != fichier) {
-                auto anciennes_déclarations = déclarations;
-                auto anciens_modules_visités = modules_visités;
-                trouve_declarations_dans_bloc_ou_module(déclarations,
-                                                        modules_visités,
-                                                        fichier_site->module,
-                                                        site_monomorphisation->bloc_parent,
-                                                        appelée->ident,
-                                                        fichier_site);
+        if (fichier_site != fichier) {
+            trouve_declarations_dans_bloc_ou_module(déclarations,
+                                                    modules_visités,
+                                                    fichier_site->module,
+                                                    site_monomorphisation->bloc_parent,
+                                                    appelée->ident,
+                                                    fichier_site);
 
-                /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
-                 * blocs parents de toutes les expressions nous faisant potentiellement
-                 * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
-                 * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
-                 * devrons proprement gérer tout ça pour éviter de perdre du temps. */
-                supprime_doublons(déclarations);
-            }
+            /* L'expansion d'opérateurs pour les boucles « pour » ne réinitialise pas les
+             * blocs parents de toutes les expressions nous faisant potentiellement
+             * revisiter et réajouter les déclarations du bloc du module où l'opérateur fut
+             * défini. À FAIRE : pour l'instant nous supprimons les doublons mais nous
+             * devrons proprement gérer tout ça pour éviter de perdre du temps. */
+            supprime_doublons(déclarations);
         }
     }
 
@@ -641,7 +636,10 @@ static void trouve_candidates_pour_expression(
 }
 
 static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
-    NoeudExpression const *slot, Type const *type_du_paramètre, Type const *type_de_l_expression)
+    Typeuse &typeuse,
+    NoeudExpression const *slot,
+    Type const *type_du_paramètre,
+    Type const *type_de_l_expression)
 {
     if (type_du_paramètre->est_type_variadique()) {
         /* Si le paramètre est variadique, utilise le type pointé pour vérifier la compatibilité,
@@ -654,7 +652,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
             if (type_de_l_expression->est_type_entier_constant()) {
                 return PoidsTransformation{
                     TransformationType(TypeTransformation::CONVERTI_ENTIER_CONSTANT,
-                                       TypeBase::Z32),
+                                       typeuse.type_z32),
                     1.0};
             }
             return PoidsTransformation{TransformationType(), 1.0};
@@ -738,18 +736,20 @@ static void applique_transformations(Sémanticienne &sémanticienne,
 }
 
 static RésultatAppariement apparie_construction_chaine(
-    NoeudExpressionAppel const *b, kuri::tableau<IdentifiantEtExpression> const &args)
+    Typeuse &typeuse,
+    NoeudExpressionAppel const *b,
+    kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() != 2) {
         return ErreurAppariement::mécomptage_arguments(b, 2, args.taille());
     }
 
-    if (args[0].expr->type != TypeBase::PTR_Z8) {
+    if (args[0].expr->type != typeuse.type_ptr_z8) {
         return ErreurAppariement::métypage_argument(
-            args[0].expr, TypeBase::PTR_Z8, args[0].expr->type);
+            args[0].expr, typeuse.type_ptr_z8, args[0].expr->type);
     }
 
-    auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, TypeBase::Z64);
+    auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, typeuse.type_z64);
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
     }
@@ -757,7 +757,7 @@ static RésultatAppariement apparie_construction_chaine(
     auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
         return ErreurAppariement::métypage_argument(
-            args[1].expr, TypeBase::Z64, args[1].expr->type);
+            args[1].expr, typeuse.type_z64, args[1].expr->type);
     }
 
     auto transformations = kuri::tableau<TransformationType, int>(2);
@@ -769,7 +769,7 @@ static RésultatAppariement apparie_construction_chaine(
     exprs.ajoute(args[1].expr);
 
     return CandidateAppariement::construction_chaine(
-        1.0, TypeBase::CHAINE, std::move(exprs), std::move(transformations));
+        1.0, typeuse.type_chaine, std::move(exprs), std::move(transformations));
 }
 
 static RésultatAppariement apparie_appel_pointeur(
@@ -836,7 +836,8 @@ static RésultatAppariement apparie_appel_pointeur(
         auto type_prm = type_fonction->types_entrées[static_cast<int>(indice_param)];
         auto type_enf = slot->type;
 
-        auto résultat = apparie_type_paramètre_appel_fonction(slot, type_prm, type_enf);
+        auto résultat = apparie_type_paramètre_appel_fonction(
+            contexte->espace->compilatrice().typeuse, slot, type_prm, type_enf);
 
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -882,14 +883,15 @@ static RésultatAppariement apparie_appel_pointeur(
         poids_args, decl_pointeur_fonction, type, std::move(exprs), std::move(transformations));
 }
 
-static bool type_est_compatible_pour_init_de(Type const *type_initialisé,
+static bool type_est_compatible_pour_init_de(Typeuse &typeuse,
+                                             Type const *type_initialisé,
                                              Type const *type_expression)
 {
     if (type_initialisé == type_expression) {
         return true;
     }
 
-    if (type_initialisé == TypeBase::PTR_RIEN &&
+    if (type_initialisé == typeuse.type_ptr_rien &&
         (type_expression->est_type_pointeur() || type_expression->est_type_fonction())) {
         return true;
     }
@@ -898,7 +900,9 @@ static bool type_est_compatible_pour_init_de(Type const *type_initialisé,
 }
 
 static RésultatAppariement apparie_appel_init_de(
-    NoeudExpression const *expr, kuri::tableau<IdentifiantEtExpression> const &args)
+    Typeuse &typeuse,
+    NoeudExpression const *expr,
+    kuri::tableau<IdentifiantEtExpression> const &args)
 {
     if (args.taille() > 1) {
         return ErreurAppariement::mécomptage_arguments(expr, 1, args.taille());
@@ -919,7 +923,7 @@ static RésultatAppariement apparie_appel_init_de(
 
     type_expression = type_expression->comme_type_pointeur()->type_pointé;
 
-    if (!type_est_compatible_pour_init_de(type_initialisé, type_expression)) {
+    if (!type_est_compatible_pour_init_de(typeuse, type_initialisé, type_expression)) {
         return ErreurAppariement::métypage_argument(
             args[0].expr, type_pointeur, args[0].expr->type);
     }
@@ -1074,7 +1078,10 @@ static RésultatAppariement apparie_appel_fonction(
         }
 
         auto résultat = apparie_type_paramètre_appel_fonction(
-            slot, type_du_paramètre, type_de_l_expression);
+            contexte->espace->compilatrice().typeuse,
+            slot,
+            type_du_paramètre,
+            type_de_l_expression);
 
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);
@@ -1657,7 +1664,8 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
             état->résultats.ajoute(apparie_appel_pointeur(contexte, expr, it.decl, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_TYPE_CHAINE) {
-            état->résultats.ajoute(apparie_construction_chaine(expr, état->args));
+            état->résultats.ajoute(apparie_construction_chaine(
+                contexte->espace->compilatrice().typeuse, expr, état->args));
         }
         else if (it.quoi == CANDIDATE_EST_DÉCLARATION) {
             auto decl = it.decl;
@@ -1755,7 +1763,8 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
         }
         else if (it.quoi == CANDIDATE_EST_INIT_DE) {
             // ici nous pourrions directement retourner si le type est correcte...
-            état->résultats.ajoute(apparie_appel_init_de(it.decl, état->args));
+            état->résultats.ajoute(apparie_appel_init_de(
+                contexte->espace->compilatrice().typeuse, it.decl, état->args));
         }
     }
 
@@ -2090,7 +2099,7 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
     POUR (candidate->exprs) {
         /* Copie les expressions par défaut des paramètres afin d'éviter d'avoir des conflits lors
          * de la canonicalisation du code où la même expression pourrait avoir différentes
-         * substitution (p.e. pour les PositionCodeSource()).
+         * substitution.
          *
          * Une expression peut être nulle pour les expressions de construction de type. */
         if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT)) {
@@ -2272,7 +2281,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto decl_struct = candidate->noeud_decl->comme_déclaration_classe();
 
         auto copie = monomorphise_au_besoin(
-            contexte, decl_struct, std::move(candidate->items_monomorphisation));
+            contexte, decl_struct, expr, std::move(candidate->items_monomorphisation));
         expr->type = espace.compilatrice().typeuse.type_type_de_donnees(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
@@ -2345,13 +2354,13 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
     else if (candidate->note == CANDIDATE_EST_CONSTRUCTION_CHAINE) {
-        expr->type = TypeBase::CHAINE;
+        expr->type = compilatrice.typeuse.type_chaine;
         expr->aide_génération_code = CONSTRUIT_CHAINE;
         applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
         // le type du retour
-        expr->type = TypeBase::RIEN;
+        expr->type = compilatrice.typeuse.type_rien;
         applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {

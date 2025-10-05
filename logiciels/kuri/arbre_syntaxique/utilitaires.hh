@@ -94,10 +94,12 @@ enum class DrapeauxNoeud : uint32_t {
 
     EST_PARSÉANTE = (1u << 29),  // decl var
 
-    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
-    EST_RÉUTILISÉ = (1u << 30),
+    EST_VOLATILE = (1u << 30),  // decl var
 
-    FUT_APLATIS = (1u << 31),
+    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
+    EST_RÉUTILISÉ = (1u << 31),
+
+    FUT_APLATIS = (1u << 32),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
@@ -251,6 +253,9 @@ enum class DrapeauxNoeudFonction : uint32_t {
 
     /* La fonction fut créée pour une référence d'opérateur basique. */
     EST_OPÉRATAUR_SYNTHÉTIQUE = (1 << 28),
+
+    /* La fonction est une intrinsèque SSE2. */
+    EST_SSE2 = (1 << 29),
 
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
@@ -441,6 +446,7 @@ NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
                                                 TypePointeur *type_résultat);
 
 NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assembleuse,
+                                                      Typeuse &typeuse,
                                                       Lexème const *lexème);
 
 void imprime_détails_fonction(EspaceDeTravail *espace,
@@ -598,7 +604,7 @@ struct InformationRubriqueTypeCompose {
     int indice_rubrique = -1;
 };
 
-kuri::tableau<char> donne_tableau_valeurs_énum(NoeudEnum const &noeud);
+kuri::tableau<char> donne_tableau_valeurs_énum(Typeuse &typeuse, NoeudEnum const &noeud);
 
 NoeudDéclaration *donne_déclaration_employée(NoeudExpression *noeud);
 
