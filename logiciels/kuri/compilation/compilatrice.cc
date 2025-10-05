@@ -108,6 +108,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
     broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
     m_date_début_compilation = hui_systeme();
+
+    m_bloc_racine = gestionnaire_code->crée_bloc_racine(typeuse);
 }
 
 Compilatrice::~Compilatrice()
