@@ -203,17 +203,17 @@ struct ConstructriceRI {
                                              Atome *accédé,
                                              Atome *index);
     InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                   Type const *type,
-                                                   Atome *accédé,
-                                                   int index,
-                                                   bool crée_seulement = false);
+                                                       Type const *type,
+                                                       Atome *accédé,
+                                                       int index,
+                                                       bool crée_seulement = false);
     InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                   Atome *accédé,
-                                                   int index,
-                                                   bool crée_seulement = false);
+                                                       Atome *accédé,
+                                                       int index,
+                                                       bool crée_seulement = false);
     Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
-                                                 Atome *accédé,
-                                                 int index);
+                                                   Atome *accédé,
+                                                   int index);
 
     Atome *crée_transtype(NoeudExpression const *site_,
                           Type const *type,
@@ -230,6 +230,11 @@ struct ConstructriceRI {
     InstructionSélection *crée_sélection(NoeudExpression const *site, bool crée_seulement);
 
     void insère(Instruction *inst);
+
+    Typeuse &typeuse()
+    {
+        return m_typeuse;
+    }
 
   private:
     kuri::chaine imprime_site(NoeudExpression const *site) const;
@@ -474,15 +479,15 @@ struct CompilatriceRI {
 
     AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType index, Type const *pour_type);
     void remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                            GenreInfoType index,
-                                            Type const *pour_type);
+                                              GenreInfoType index,
+                                              Type const *pour_type);
     AtomeGlobale *crée_info_type_défaut(GenreInfoType index, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,
                                          kuri::tableau<AtomeConstante *> &&valeurs);
     AtomeGlobale *crée_info_type_rubrique_structure(RubriqueTypeComposé const &rubrique,
-                                                  NoeudExpression const *site);
+                                                    NoeudExpression const *site);
 
     AtomeConstante *donne_tableau_pour_structs_employées(TypeStructure const *type_structure,
                                                          NoeudExpression const *site);

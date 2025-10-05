@@ -252,7 +252,9 @@ class GestionnaireCode {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-  private:
+    NoeudBloc *crée_bloc_racine(Typeuse &typeuse);
+
+private:
     void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
                                            OpérateurBinaire *opérateur_binaire);
 
