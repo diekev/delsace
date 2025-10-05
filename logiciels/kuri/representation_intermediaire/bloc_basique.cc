@@ -419,6 +419,10 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
             continue;
         }
 
+        if (!bloc_courant) {
+            continue;
+        }
+
         bloc_courant->ajoute_instruction(it);
 
         if (it->est_branche()) {
@@ -431,6 +435,10 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
                 return false;
             }
             bloc_courant->ajoute_enfant(bloc_cible);
+            /* Les opérateurs pour peuvent ajouter du code après un continue ou arrête
+             * inconditionnel, créant ainsi plusieurs terminatrices dans le même bloc. N'insérons
+             * plus de code jusqu'au prochain label. */
+            bloc_courant = nullptr;
             continue;
         }
 
@@ -454,7 +462,18 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 
             bloc_courant->ajoute_enfant(bloc_si_vrai);
             bloc_courant->ajoute_enfant(bloc_si_faux);
+            /* Les opérateurs pour peuvent ajouter du code après un continue ou arrête
+             * inconditionnel, créant ainsi plusieurs terminatrices dans le même bloc. N'insérons
+             * plus de code jusqu'au prochain label. */
+            bloc_courant = nullptr;
             continue;
+        }
+
+        if (it->est_terminatrice()) {
+            /* Les opérateurs pour peuvent ajouter du code après un continue ou arrête
+             * inconditionnel, créant ainsi plusieurs terminatrices dans le même bloc. N'insérons
+             * plus de code jusqu'au prochain label. */
+            bloc_courant = nullptr;
         }
     }
 

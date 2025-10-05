@@ -511,7 +511,7 @@ ipv6_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> AdresseIPv6
 
 importe Compilatrice
 
-test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := PositionCodeSource())
+test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := #position_code_source)
 {
     ipv6 := tente parse_ipv6(donnée) piège err {
         espace := compilatrice_espace_courant()
@@ -571,12 +571,12 @@ test_parsage_ipv4_impl :: fonc (chn_donnée: chaine, chn_attendue: chaine, pos :
     déloge(chn_ipv4)
 }
 
-test_parsage_ipv4 :: fonc (chn: chaine, pos := PositionCodeSource())
+test_parsage_ipv4 :: fonc (chn: chaine, pos := #position_code_source)
 {
     test_parsage_ipv4_impl(chn, chn, pos)
 }
 
-test_parsage_ipv4_décimale :: fonc (chn_décimale: chaine, chn_attendue: chaine, pos := PositionCodeSource())
+test_parsage_ipv4_décimale :: fonc (chn_décimale: chaine, chn_attendue: chaine, pos := #position_code_source)
 {
     test_parsage_ipv4_impl(chn_décimale, chn_attendue, pos)
 }
@@ -587,7 +587,7 @@ test_parsage_ipv4_décimale :: fonc (chn_décimale: chaine, chn_attendue: chaine
     test_parsage_ipv4_décimale("0", "0.0.0.0")
 }
 
-test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := PositionCodeSource())
+test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := #position_code_source)
 {
     ipv4 := tente parse_ipv4(chn_ipv4) piège err {
         espace := compilatrice_espace_courant()
@@ -605,7 +605,7 @@ test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := Positi
     test_ipv6_depuis_ipv4("127.0.0.1", "::ffff:7f00:1")
 }
 
-test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := PositionCodeSource())
+test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := #position_code_source)
 {
     ipv6 := tente parse_ipv6(chn_ipv6) piège err {
         espace := compilatrice_espace_courant()
