@@ -340,24 +340,25 @@ struct GeneratriceCodeCPP {
                 os << "/>\\n\";\n";
             }
 
-            génère_code_pour_enfant(os, it, false, [&os](ProtéineStruct &, Rubrique const &rubrique) {
-                if (rubrique.type->est_tableau()) {
-                    const auto type_tableau = rubrique.type->comme_tableau();
-                    if (type_tableau->est_synchrone) {
-                        os << "\t\t\tPOUR ((*racine_typee->" << rubrique.nom
-                           << ".verrou_lecture())) {\n";
+            génère_code_pour_enfant(
+                os, it, false, [&os](ProtéineStruct &, Rubrique const &rubrique) {
+                    if (rubrique.type->est_tableau()) {
+                        const auto type_tableau = rubrique.type->comme_tableau();
+                        if (type_tableau->est_synchrone) {
+                            os << "\t\t\tPOUR ((*racine_typee->" << rubrique.nom
+                               << ".verrou_lecture())) {\n";
+                        }
+                        else {
+                            os << "\t\t\tPOUR (racine_typee->" << rubrique.nom << ") {\n";
+                        }
+                        os << "\t\t\t\timprime_arbre(it, os, profondeur + 1, substitution);\n";
+                        os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tPOUR (racine_typee->" << rubrique.nom << ") {\n";
+                        os << "\t\t\timprime_arbre(racine_typee->" << rubrique.nom
+                           << ", os, profondeur + 1, substitution);\n";
                     }
-                    os << "\t\t\t\timprime_arbre(it, os, profondeur + 1, substitution);\n";
-                    os << "\t\t\t}\n";
-                }
-                else {
-                    os << "\t\t\timprime_arbre(racine_typee->" << rubrique.nom
-                       << ", os, profondeur + 1, substitution);\n";
-                }
-            });
+                });
 
             if (it->possède_enfants()) {
                 os << "\t\t\tos << chaine_indentations(profondeur);\n";
@@ -633,6 +634,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
                 os << copie_extra_entete_fonction << "\n";
+                os << "\t\tif (orig->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {\n";
+                os << copie_extra_entête_opérateur_pour << "\n";
+                os << "\t\t}\n";
             }
             else if (nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
                 os << copie_extra_entete_fonction << "\n";
@@ -749,7 +753,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     continue;
                 }
 
-                if (nom_rubrique.nom() == "valeur" && nom_code.nom() == "NoeudCodeLittéraleChaine") {
+                if (nom_rubrique.nom() == "valeur" &&
+                    nom_code.nom() == "NoeudCodeLittéraleChaine") {
                     os << "\tkuri::chaine_statique valeur{};\n";
                     continue;
                 }
@@ -991,8 +996,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     else {
                         os << "\t\t\tif (racine_typee->" << nom_rubrique << ") {\n";
                         os << "\t\t\t\tn->" << nom_rubrique
-                           << " = convertis_noeud_syntaxique(espace, racine_typee->" << nom_rubrique
-                           << ")";
+                           << " = convertis_noeud_syntaxique(espace, racine_typee->"
+                           << nom_rubrique << ")";
                         if (desc_type->accede_nom_code().nom() != "NoeudCode" &&
                             desc_type->accede_nom_code().nom() != "") {
                             os << "->comme_" << desc_type->accede_nom_comme() << "()";
@@ -1519,7 +1524,8 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
                     const auto nom_rubrique = rubrique.nom;
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
                                                               nom_rubrique.nom());
-                    os << nom_tableau << " = std::max(" << nom_tableau << ", noeud." << nom_rubrique;
+                    os << nom_tableau << " = std::max(" << nom_tableau << ", noeud."
+                       << nom_rubrique;
                     os << rubrique.type->accesseur() << "taille());\n";
                     os << "memoire_" << nom_comme << " += noeud." << nom_rubrique;
                     os << rubrique.type->accesseur() << "taille_mémoire();\n";

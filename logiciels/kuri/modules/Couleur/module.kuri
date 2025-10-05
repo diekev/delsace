@@ -365,14 +365,15 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
 calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 {
     luminosite_fond := luminance(fond)
-
-    si luminosite_fond == 0.0 {
-        retourne 0.0
-    }
-
     luminosite_zone := luminance(zone)
 
-    retourne (luminosite_zone - luminosite_fond) / luminosite_fond
+    résultat := luminosite_zone
+
+    si luminosite_fond != 0.0 {
+        résultat = (luminosite_zone - luminosite_fond) / luminosite_fond
+    }
+
+    retourne résultat
 }
 
 /* ------------------------------------------------------------------------- */

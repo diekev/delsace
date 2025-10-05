@@ -56,17 +56,17 @@ IDGroupeCommande :: z32
 
 GroupeDeCommandes :: struct {
     groupe_parent: *GroupeDeCommandes
-    nom: chaine
+    identifiant: chaine
 
     commandes: [..]*Commande
     id: IDGroupeCommande
 }
 
-ajoute_commande :: fonc (groupe: *GroupeDeCommandes, nom: chaine) -> *Commande
+ajoute_commande :: fonc (groupe: *GroupeDeCommandes, identifiant: chaine) -> *Commande
 {
     résultat := loge(Commande)
     tableau_ajoute(*groupe.commandes, résultat)
-    résultat.nom = nom
+    résultat.identifiant = identifiant
     retourne résultat
 }
 
@@ -78,6 +78,7 @@ ajoute_commande :: fonc (groupe: *GroupeDeCommandes, nom: chaine) -> *Commande
 
 Commande :: struct {
     nom: chaine
+    identifiant: chaine
     icone: chaine
     raccourci: Optionnel(RaccourciClavier)
     bouton_souris: Optionnel(BoutonSouris)
@@ -87,6 +88,8 @@ Commande :: struct {
     exécute: fonc(*ContexteExécutionCommande)(RésultatExécutionCommande)
     exécute_modal: fonc(*ContexteExécutionCommande)(rien)
     termine_modal: fonc(*ContexteExécutionCommande)(rien)
+    sur_donne_nom: fonc (données_utilisateur: eini) -> chaine
+    sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool
 }
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
@@ -108,6 +111,26 @@ est_commande_clavier :: fonc (commande: *Commande) -> bool
     }
 
     retourne vrai
+}
+
+donne_nom :: fonc (commande: *Commande, données_utilisateur: eini) -> chaine
+{
+    si commande.sur_donne_nom {
+        retourne commande.sur_donne_nom(données_utilisateur)
+    }
+    si commande.nom {
+        retourne commande.nom
+    }
+    retourne commande.identifiant
+}
+
+est_exécutable :: fonc (commande: *Commande, ctx: *ContexteExécutionCommande) -> bool
+{
+    résultat := vrai
+    si commande.sur_est_exécutable {
+        résultat = commande.sur_est_exécutable(ctx)
+    }
+    retourne résultat
 }
 
 /** \} */
@@ -137,7 +160,7 @@ détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
     déloge(gestionnaire)
 }
 
-crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande, nom: chaine) -> *GroupeDeCommandes
+crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande, identifiant: chaine) -> *GroupeDeCommandes
 {
     existant := trouve_groupe_pour_id(gestionnaire, id)
     si existant {
@@ -146,14 +169,14 @@ crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande,
 
     résultat := loge(GroupeDeCommandes)
     tableau_ajoute(*gestionnaire.groupes, résultat)
-    résultat.nom = nom
+    résultat.identifiant = identifiant
     résultat.id = id
     retourne résultat
 }
 
-crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, parent: *GroupeDeCommandes, id: IDGroupeCommande, nom: chaine) -> *GroupeDeCommandes
+crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, parent: *GroupeDeCommandes, id: IDGroupeCommande, identifiant: chaine) -> *GroupeDeCommandes
 {
-    résultat := crée_groupe(gestionnaire, id, nom)
+    résultat := crée_groupe(gestionnaire, id, identifiant)
     assert(résultat.groupe_parent == nul)
     résultat.groupe_parent = parent
     retourne résultat
@@ -222,11 +245,11 @@ trouve_commande_pour_raccourci :: fonc (gestionnaire: *GestionnaireCommande, con
     retourne nul
 }
 
-trouve_commande_pour_nom :: fonc (gestionnaire: *GestionnaireCommande, nom: chaine) -> *Commande
+trouve_commande_pour_identifiant :: fonc (gestionnaire: *GestionnaireCommande, identifiant: chaine) -> *Commande
 {
     pour gestionnaire.groupes {
         pour commande dans it.commandes {
-            si commande.nom != nom {
+            si commande.identifiant != identifiant {
                 continue
             }
 
@@ -237,9 +260,9 @@ trouve_commande_pour_nom :: fonc (gestionnaire: *GestionnaireCommande, nom: chai
     retourne nul
 }
 
-appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, nom: chaine, métadonnée := "")
+appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, identifiant: chaine, métadonnée := "")
 {
-    commande := trouve_commande_pour_nom(gestionnaire, nom)
+    commande := trouve_commande_pour_identifiant(gestionnaire, identifiant)
     saufsi commande {
         retourne
     }
@@ -249,6 +272,11 @@ appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *Context
     }
 
     ctx.métadonnée = métadonnée
+
+    saufsi est_exécutable(commande, ctx) {
+        retourne
+    }
+
     résultat := commande.exécute(ctx)
 
     discr résultat {
@@ -270,6 +298,10 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     }
 
     saufsi commande.exécute {
+        retourne faux
+    }
+
+    saufsi est_exécutable(commande, ctx) {
         retourne faux
     }
 
@@ -296,6 +328,10 @@ appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExé
     }
 
     saufsi commande.exécute {
+        retourne faux
+    }
+
+    saufsi est_exécutable(commande, ctx) {
         retourne faux
     }
 

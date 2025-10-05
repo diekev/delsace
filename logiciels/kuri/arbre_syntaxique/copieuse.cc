@@ -19,7 +19,7 @@ NoeudExpression *Copieuse::trouve_copie(const NoeudExpression *racine)
 }
 
 void Copieuse::copie_rubriques_de_bases_et_insère(const NoeudExpression *racine,
-                                                NoeudExpression *nracine)
+                                                  NoeudExpression *nracine)
 {
     insere_copie(racine, nracine);
     nracine->type = racine->type;
