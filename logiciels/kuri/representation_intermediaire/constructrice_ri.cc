@@ -4933,7 +4933,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
         auto constructeur = trouve_constructeur_pour(it);
         if (!constructeur) {
             if (it->initialisateur && !est_globale_pour_tableau_données_constantes(it)) {
-                m_constructrice.crée_stocke_mem(nullptr, it, it->initialisateur);
+                m_constructrice.crée_stocke_mem(it->decl, it, it->initialisateur);
             }
             continue;
         }
