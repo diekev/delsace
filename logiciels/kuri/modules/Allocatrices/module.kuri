@@ -128,14 +128,6 @@ donne_taille_restante_arène :: fonc (arène: *ArèneMémoire, alignement: Indic
     retourne résultat
 }
 
-/* L'objet délogé doit être le dernier objet alloué. */
-déloge :: fonc (arène: *ArèneMémoire, objet: *$T)
-{
-    pointeur_supposé := arène.base + arène.utilisé - taille_de(T)
-    assert(pointeur_supposé == objet)
-    arène.utilisé -= taille_de(T)
-}
-
 loge :: fonc (arène: *ArèneMémoire, $T: type_de_données, alignement: n32 = 0) -> *T
 {
     résultat := loge_mémoire(arène, taille_de(T), alignement) comme *T
