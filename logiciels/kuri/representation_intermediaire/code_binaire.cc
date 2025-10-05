@@ -1359,6 +1359,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     }
 
     auto &chunk = données_exécution->chunk;
+    chunk.m_typeuse = &espace->compilatrice().typeuse;
     chunk.émets_stats_ops = émets_stats_ops;
     chunk.émets_vérification_branches = vérifie_adresses;
     chunk.émets_notifications_empilage = notifie_empilage;

@@ -536,7 +536,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
                 }
 
                 /* fonc(*rien)() = fonc(*T)(). */
-                if (type_entrée_vers == TypeBase::PTR_RIEN) {
+                if (est_type_ptr_rien(type_entrée_vers)) {
                     continue;
                 }
 
@@ -579,7 +579,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
             }
 
             if (POUR_TRANSTYPAGE) {
-                if (type_de == TypeBase::PTR_RIEN) {
+                if (est_type_ptr_rien(type_de)) {
                     return TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
                                               type_vers};
                 }
@@ -652,7 +652,7 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
         auto transformation = std::get<TransformationType>(résultat);
         /* Préserve la transformation d'opaque de pointeur vers *octet. */
         if (transformation.type == TypeTransformation::CONVERTI_VERS_TYPE_CIBLE) {
-            if (type_opacifié->est_type_pointeur() && type_vers == TypeBase::PTR_OCTET) {
+            if (type_opacifié->est_type_pointeur() && est_type_ptr_octet(type_vers)) {
                 return résultat;
             }
         }

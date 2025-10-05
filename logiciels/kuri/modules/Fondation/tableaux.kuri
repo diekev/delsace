@@ -1,6 +1,6 @@
 /* Fonctions basiques pour les tableaux */
 
-loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := PositionCodeSource()) -> [..]T
+loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := #position_code_source) -> [..]T
 {
     taille_en_octets := taille * (taille_de(T) comme z64)
     ptr := loge_mémoire(taille_en_octets, info_de([..]T), pos)
@@ -13,7 +13,7 @@ loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := PositionCodeSour
     retourne résultat
 }
 
-reloge_tableau :: fonc (tableau: &[..]$T, nouvelle_taille: z64, pos := PositionCodeSource())
+reloge_tableau :: fonc (tableau: &[..]$T, nouvelle_taille: z64, pos := #position_code_source)
 {
     ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
     nouvelle_taille_en_octets := nouvelle_taille * (taille_de(T) comme z64)
@@ -24,7 +24,7 @@ reloge_tableau :: fonc (tableau: &[..]$T, nouvelle_taille: z64, pos := PositionC
     tableau.capacité = nouvelle_taille
 }
 
-déloge :: fonc (tableau: &[..]$T, pos := PositionCodeSource())
+déloge :: fonc (tableau: &[..]$T, pos := #position_code_source)
 {
     ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64)
     déloge_mémoire(ancienne_taille_en_octets, tableau.pointeur, info_de([..]T), pos)
