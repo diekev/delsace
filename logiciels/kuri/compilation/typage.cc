@@ -381,6 +381,16 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_octet->alignement = 1;
     type_octet->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
+    type_dff_adr_nat = crée_opaque_défaut(type_n64, ID::dff_adr_nat);
+    type_dff_adr_rel = crée_opaque_défaut(type_z64, ID::dff_adr_rel);
+    type_adr_plt_nat = crée_opaque_défaut(type_n64, ID::adr_plt_nat);
+    type_adr_plt_rel = crée_opaque_défaut(type_z64, ID::adr_plt_rel);
+    type_taille_mnat = crée_opaque_défaut(type_n64, ID::taille_mnat);
+    type_taille_mrel = crée_opaque_défaut(type_z64, ID::taille_mrel);
+    type_nbr_nat = crée_opaque_défaut(type_n32, ID::nbr_nat);
+    type_nbr_rel = crée_opaque_défaut(type_z32, ID::nbr_rel);
+    type_nbf_flt = crée_opaque_défaut(type_r32, ID::nbf_flt);
+
     type_adresse_fonction = crée_type_pour_lexeme(GenreLexème::ADRESSE_FONCTION);
     types_simples->ajoute(type_adresse_fonction);
 
@@ -1005,6 +1015,18 @@ NoeudDéclaration const *Typeuse::decl_pour_info_type(InfoType const *info_type)
         return nullptr;
     }
 
+    return résultat;
+}
+
+NoeudDéclarationTypeOpaque *Typeuse::crée_opaque_défaut(Type *type_opacifié,
+                                                        IdentifiantCode *ident)
+{
+    auto résultat = alloc->m_noeuds_type_opaque.ajoute_élément();
+    résultat->type_opacifié = type_opacifié;
+    résultat->ident = ident;
+    résultat->alignement = type_opacifié->alignement;
+    résultat->taille_octet = type_opacifié->taille_octet;
+    résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
     return résultat;
 }
 

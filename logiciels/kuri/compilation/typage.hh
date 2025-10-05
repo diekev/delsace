@@ -216,6 +216,16 @@ struct Typeuse {
     NoeudDéclarationTypeOpaque *type_octet = nullptr;
     NoeudDéclarationTypeOpaque *type_entier_constant = nullptr;
 
+    NoeudDéclarationTypeOpaque *type_dff_adr_nat = nullptr;
+    NoeudDéclarationTypeOpaque *type_dff_adr_rel = nullptr;
+    NoeudDéclarationTypeOpaque *type_adr_plt_nat = nullptr;
+    NoeudDéclarationTypeOpaque *type_adr_plt_rel = nullptr;
+    NoeudDéclarationTypeOpaque *type_taille_mnat = nullptr;
+    NoeudDéclarationTypeOpaque *type_taille_mrel = nullptr;
+    NoeudDéclarationTypeOpaque *type_nbr_nat = nullptr;
+    NoeudDéclarationTypeOpaque *type_nbr_rel = nullptr;
+    NoeudDéclarationTypeOpaque *type_nbf_flt = nullptr;
+
     NoeudDéclarationTypeComposé *type_eini = nullptr;
     NoeudDéclarationTypeComposé *type_chaine = nullptr;
 
@@ -284,6 +294,9 @@ struct Typeuse {
     void définis_info_type_pour_type(const InfoType *info_type, const Type *type);
 
     NoeudDéclaration const *decl_pour_info_type(const InfoType *info_type);
+
+  private:
+    NoeudDéclarationTypeOpaque *crée_opaque_défaut(Type *type_opacifié, IdentifiantCode *ident);
 };
 
 /* ------------------------------------------------------------------------- */
