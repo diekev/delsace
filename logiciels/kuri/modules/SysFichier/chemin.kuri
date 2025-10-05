@@ -43,7 +43,7 @@ séparateur_chemin :: fonc () -> z8 #enligne
     retourne système_séparateur_chemin_préféré()
 }
 
-extension :: fonc (chemin: &CheminFichier) -> chaine
+extension :: fonc (chemin: CheminFichier) -> chaine
 {
     résultat := nom_fichier_avec_extension(chemin)
     saufsi résultat {
@@ -559,6 +559,11 @@ réinitialise :: fonc (tampon: *TamponChemin)
 donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
     retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)))
+}
+
+donne_chemin_statique :: fonc (tampon: *TamponChemin) -> CheminFichier
+{
+    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés))
 }
 
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
