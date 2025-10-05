@@ -101,7 +101,7 @@ crée_données_ssl_boucle :: fonc () -> *DonnéesSSLBoucle
     SSL_load_error_strings()
 
     données_ssl_boucle := loge(DonnéesSSLBoucle)
-    données_ssl_boucle.ssl_read_output = loge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, info_de(*octet), PositionCodeSource())
+    données_ssl_boucle.ssl_read_output = loge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, info_de(*octet), #position_code_source)
 
     méthode_bio_mémoire := BIO_meth_new(BIO_TYPE_MEM, ChaineC("BIO ConnexionTCP\0".pointeur))
     BIO_meth_set_create(méthode_bio_mémoire, rappel_personnalisé_création_bio)
@@ -124,7 +124,7 @@ crée_données_ssl_boucle :: fonc () -> *DonnéesSSLBoucle
 
 détruit_données_ssl_boucle :: fonc (données_ssl_boucle: *DonnéesSSLBoucle)
 {
-    déloge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, données_ssl_boucle.ssl_read_output, info_de(*rien), PositionCodeSource())
+    déloge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, données_ssl_boucle.ssl_read_output, info_de(*rien), #position_code_source)
 
     _ := BIO_free(données_ssl_boucle.bio_partagé_lecture)
     _ := BIO_free(données_ssl_boucle.bio_partagé_écriture)
