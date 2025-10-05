@@ -1,0 +1,284 @@
+/* Module pour définir des structures de tableaux depuis des structures normales.
+ * Les structures de tableaux auront des rubriques correspondantes aux rubriques
+ * de la structure d'origine, mais dont les membres seront des tableaux.
+ *
+ * Par exemple, pour :
+ *
+ * MaStructure :: struct {
+ *    x: z32
+ *    y: r32
+ *    z: bool
+ * }
+ *
+ * SDT(MaStructure) sera définis comme :
+ *
+ * SDT(MaStructure) :: struct {
+ *    x: [..]z32
+ *    y: [..]r32
+ *    z: [..]bool
+ * }
+ *
+ */
+
+importe Fondation
+
+SDT :: struct ($T: type_de_données) #corps_texte {
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    infos := info_de(T)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, it.nom, ": [..]")
+        imprime_type(*enchaineuse, it.type)
+        ajoute_au_tampon(*enchaineuse, "\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+MasqueSDT :: struct ($T: type_de_données) #corps_texte {
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    infos := info_de(T)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+redimensionne :: fonc (structure: *SDT($T), nombre_d_éléments: z64)
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "tableau_redimensionne(structure.", it.nom, ", nombre_d_éléments)\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+opérateur [] :: (structure: SDT($T), indice: z64) -> T
+{
+    retourne donne_élément(*structure, indice)
+}
+
+donne_élément :: fonc (structure: *SDT($T), indice: z64) -> T
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat: T = ---\n")
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "résultat.", it.nom, " = structure.", it.nom, "[indice]\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne résultat\n")
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+donne_élément :: fonc (structure: *SDT($T), indice: z64, masque: MasqueSDT(T)) -> T
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat: T\n")
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "si masque.", it.nom, " {\n")
+        ajoute_au_tampon(*enchaineuse, "    résultat.", it.nom, " = structure.", it.nom, "[indice]\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne résultat\n")
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+définis_élément :: fonc (structure: *SDT($T), indice: z64, élément: T)
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "structure.", it.nom, "[indice] = élément.", it.nom, "\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+définis_élément :: fonc (structure: *SDT($T), indice: z64, élément: T, masque: MasqueSDT(T))
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "si masque.", it.nom, " {\n")
+        ajoute_au_tampon(*enchaineuse, "    structure.", it.nom, "[indice] = élément.", it.nom, "\n")
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+ajoute :: fonc (structure: *SDT($T), élément: T)
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "tableau_ajoute(*structure.", it.nom, ", élément.", it.nom, ")\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+réinitialise :: fonc (structure: *SDT($T))
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "structure.", it.nom, ".taille = 0\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+détruit_données :: fonc (structure: *SDT($T))
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "déloge(structure.", it.nom, ")\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+copie :: fonc (structure: *SDT($T))
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "déloge(structure.", it.nom, ")\n")
+    }
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+donne_taille :: fonc (structure: SDT($T)) -> z64
+#corps_texte {
+    infos := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat: z64\n")
+
+    pour rubriques_sdt(infos) {
+        ajoute_au_tampon(*enchaineuse, "résultat = structure.", it.nom, ".taille\n")
+        arrête
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne résultat\n")
+
+    source := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne source
+}
+
+opérateur pour :: (structure: SDT($T)) -> T
+{
+    indice: z64
+    taille := donne_taille(structure)
+
+    tantque indice < taille {
+        `it = donne_élément(*structure, indice)
+        `indice_it = indice
+
+        #corps_boucle
+
+        indice += 1
+    }
+}
+
+#portée_fichier
+
+RubriquesSDT :: struct {
+    info: *InfoTypeStructure
+}
+
+rubriques_sdt :: fonc (infos: *InfoTypeStructure) -> RubriquesSDT
+{
+    retourne RubriquesSDT(infos)
+}
+
+InfoRubriqueSDT :: struct {
+    nom: chaine
+    type: *InfoType
+}
+
+opérateur pour :: (rubriques: RubriquesSDT) -> InfoRubriqueSDT
+{
+    indice_logique: z64
+
+    pour rubriques.info.rubriques {
+        si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+            continue
+        }
+
+        // À FAIRE : gère les emplois
+
+        info: InfoRubriqueSDT
+        info.nom = it.nom
+        info.type = it.id
+
+        `it = info
+        `indice_it = indice_logique
+
+        #corps_boucle
+
+        indice_logique += 1
+    }
+}

@@ -524,6 +524,20 @@ système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichi
     retourne donne_erreur_si_résultat_invalide(résultat)
 }
 
+système_donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur: bool) -> bool
+{
+    résultat := vrai
+    len := readlink(ChaineC("/proc/self/exe".pointeur), *tampon_chemin.données[0], TAILLE_MAX_CHEMIN comme n64);
+    si len < 0 {
+        si imprime_erreur {
+            imprimeln("impossible de déterminer le chemin de l'exécutable")
+        }
+        résultat = faux
+    }
+    tampon_chemin.occupés = len comme z32
+    retourne résultat
+}
+
 /* ------------------------------------------------------------------------- */
 /** Accès à des dossiers clé du système pour l'utilisateur.
  * \{ */
