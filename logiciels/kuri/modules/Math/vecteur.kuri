@@ -80,13 +80,10 @@ angle_entre :: fonc (a: Vec2, b: Vec2) -> r32
 donne_angle_01 :: fonc (v: Vec2) -> r32
 {
     angle := arc_tangeante2(v.y, v.x)
-    résultat := 0.0
-    si angle >= 0.0 {
-        résultat = (angle / Constantes(r32).PI) * 0.5
+    si angle < 0.0 {
+        angle += Constantes(r32).TAU
     }
-    sinon {
-        résultat = 0.5 + ((Constantes(r32).PI + angle) / Constantes(r32).PI) * 0.5
-    }
+    résultat := angle / Constantes(r32).TAU
     retourne résultat
 }
 

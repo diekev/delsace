@@ -1,5 +1,6 @@
 importe Fondation
 importe Ordinatrice
+importe Sérialisation
 importe SysFichier
 
 /* ------------------------------------------------------------------------- */
@@ -151,7 +152,7 @@ flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: Po
             flux.curseur = avance(flux.octets, pos comme z64)
         }
         Fin(pos) {
-            flux.curseur = avance(flux.octets, flux.octest.taille + pos comme z64)
+            flux.curseur = avance(flux.octets, flux.octets.taille + pos comme z64)
         }
         Décalage(pos) {
             flux.curseur = avance(flux.curseur, pos comme z64)

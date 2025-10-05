@@ -5,6 +5,8 @@
 
 #include "coulisse.hh"
 
+struct Typeuse;
+
 struct CoulisseASM final : public Coulisse {
   private:
     std::optional<ErreurCoulisse> génère_code_impl(ArgsGénérationCode const &args) override;
@@ -18,4 +20,4 @@ struct CoulisseASM final : public Coulisse {
 };
 
 struct AtomeFonction;
-void classifie_arguments(AtomeFonction const *fonction);
+void classifie_arguments(Typeuse &typeuse, AtomeFonction const *fonction);
