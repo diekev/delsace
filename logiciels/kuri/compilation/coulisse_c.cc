@@ -374,7 +374,7 @@ bool ConvertisseuseTypeC::typedef_fut_généré(Type const *type_kuri)
 
 void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchaineuse)
 {
-    if (type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+    if (type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE) || est_type_sse2(type)) {
         return;
     }
 
@@ -845,6 +845,11 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
 void ConvertisseuseTypeC::génère_déclaration_structure(
     Enchaineuse &enchaineuse, const NoeudDéclarationTypeComposé *type_composé)
 {
+    if (type_composé->est_déclaration_classe() &&
+        type_composé->comme_déclaration_classe()->est_sse2) {
+        return;
+    }
+
 #ifdef IMPRIME_COMMENTAIRE
     enchaineuse << "// " << chaine_type(type_composé) << " (" << type_composé->genre << ')'
                 << '\n';
@@ -877,6 +882,9 @@ void ConvertisseuseTypeC::génère_déclaration_structure(
 
     POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
         enchaineuse << "      " << génératrice_code.donne_nom_pour_type(it.type) << ' ';
+        if (it.decl && it.decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+            enchaineuse << "volatile ";
+        }
         enchaineuse << génératrice_code.donne_nom_pour_rubrique(it, indice_it) << ";\n";
     }
 
@@ -1176,6 +1184,9 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 }
                 if (atome_fonc->decl->ident == ID::intrinsèque_lis_compteur_temporel) {
                     return "intrinseque_lis_compteur_temporel";
+                }
+                if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
+                    return atome_fonc->decl->ident->nom;
                 }
                 return atome_fonc->decl->données_externes->nom_symbole;
             }
@@ -1519,6 +1530,9 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
 
             os << donne_nom_pour_type(type_alloué);
             auto nom = donne_nom_pour_instruction(inst);
+            if (alloc->site && alloc->site->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+                os << " volatile";
+            }
             os << ' ' << nom;
             os << ";\n";
             table_valeurs[inst->numero] = enchaine("&", nom);
@@ -1766,6 +1780,11 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
 
     auto type = valeur_globale->donne_type_alloué();
     os << donne_nom_pour_type(type) << ' ';
+
+    if (valeur_globale->decl &&
+        valeur_globale->decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+        os << "volatile ";
+    }
 
     auto nom_globale = donne_nom_pour_globale(valeur_globale, pour_entête);
     os << nom_globale;
@@ -2069,6 +2088,10 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_fonction(AtomeFonction 
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
 {
+    if (est_type_sse2(type)) {
+        return enchaine(chaine_type(type));
+    }
+
     if (préserve_symboles()) {
         return broyeuse.nom_broyé_type(const_cast<Type *>(type));
     }
@@ -2161,7 +2184,21 @@ void GénératriceCodeC::génère_code(CoulisseC::FichierC const &fichier)
     Enchaineuse enchaineuse;
 
     if (fichier.est_entête) {
+        auto utilise_sse2 = false;
+        POUR (fichier.fonctions) {
+            if (it->est_intrinsèque() &&
+                it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
+                utilise_sse2 = true;
+                break;
+            }
+        }
+
         génère_code_début_fichier(enchaineuse, m_espace.compilatrice().racine_kuri);
+
+        if (utilise_sse2) {
+            enchaineuse << "#include <xmmintrin.h>\n\n";
+            enchaineuse << "#include <emmintrin.h>\n\n";
+        }
 
         POUR (fichier.types) {
             m_convertisseuse_type_c->génère_typedef(it, enchaineuse);

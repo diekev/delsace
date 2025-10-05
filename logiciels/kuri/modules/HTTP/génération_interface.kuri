@@ -769,7 +769,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
         compilatrice_rapporte_erreur(espace, "Un pilote client fut demandé, mais le chemin de dossier n'est pas renseigné !\n")
     }
 
-    chm_courant := tente chemin_courant() piège _ {
+    chm_courant := tente donne_chemin_courant() piège _ {
         compilatrice_rapporte_erreur(espace, "Impossible de déterminer le chemin courant !\n")
     }
 
