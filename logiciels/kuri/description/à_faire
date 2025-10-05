@@ -1,6 +1,11 @@
 
 /* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
 
+#corps_texte pour les opérateurs
+
+opérateur non trouvé s'il y a une attente non résolue
+    => l'erreur devrait être sur l'attente de l'opérateur
+
 empl => ajoute erreur si nom variable est nom d'un membre
 
 MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
