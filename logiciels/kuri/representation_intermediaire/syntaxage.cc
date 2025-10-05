@@ -824,7 +824,7 @@ Atome *SyntaxeuseRI::crée_indexage_constant(Type *type,
     /* À FAIRE : passe le type. */
     globale->type = type;
     return m_constructrice.crée_accès_indice_constant(static_cast<AtomeConstante *>(globale),
-                                                     int64_t(lexème_nombre->valeur_entiere));
+                                                      int64_t(lexème_nombre->valeur_entiere));
 }
 
 Atome *SyntaxeuseRI::crée_taille_de(const Lexème *lexème, Type *type)
@@ -910,8 +910,7 @@ void SyntaxeuseRI::crée_déclaration_type_structure(const DonnéesTypeComposé 
 
     if (structure->ident == ID::InfoType) {
         m_typeuse.type_info_type_ = structure;
-        TypeBase::EINI->comme_type_composé()->rubriques[1].type = m_typeuse.type_pointeur_pour(
-            structure);
+        m_typeuse.type_eini->rubriques[1].type = m_typeuse.type_pointeur_pour(structure);
     }
 }
 
@@ -1162,7 +1161,7 @@ void SyntaxeuseRI::crée_opérateur_binaire(OpérateurBinaire::Genre genre,
 {
     auto type_résultat = gauche->type;
     if (est_opérateur_comparaison(genre)) {
-        type_résultat = TypeBase::BOOL;
+        type_résultat = m_typeuse.type_bool;
     }
 
     m_constructrice.crée_op_binaire(nullptr, type_résultat, genre, gauche, droite);

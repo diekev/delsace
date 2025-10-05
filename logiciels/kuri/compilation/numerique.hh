@@ -9,8 +9,8 @@ struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
 /**
- * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas les
- * types ayant une taille de 0 ou les alignements de 0.
+ * Retourne si la valeur passée est une puissance de 2. 0 est exclus car nous ne supportons pas
+ * les types ayant une taille de 0 ou les alignements de 0.
  */
 template <typename T>
 inline bool est_puissance_de_2(T x)

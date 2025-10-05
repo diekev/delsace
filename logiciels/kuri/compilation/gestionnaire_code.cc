@@ -992,7 +992,7 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice->table_identifiants->identifiant_pour_chaine("__ret0");
-    decl_sortie->type = TypeBase::CHAINE;
+    decl_sortie->type = m_compilatrice->typeuse.type_chaine;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     fonction->params_sorties.ajoute(decl_sortie);
@@ -1000,7 +1000,7 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
 
-    auto type_sortie = TypeBase::CHAINE;
+    auto type_sortie = m_compilatrice->typeuse.type_chaine;
 
     fonction->type = m_compilatrice->typeuse.type_fonction(types_entrees, type_sortie);
     fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -1083,6 +1083,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
                             fonction->bloc_constantes->ajoute_rubrique(it);
                         }
                     });
+                fonction->site_monomorphisation = decl->site_monomorphisation;
             }
 
             /* Annule le bloc du type pour détecter les erreurs. Il sera ajourné après le
@@ -1464,6 +1465,30 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
 }
 
+NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
+{
+#define CREE_DECLARATION_TYPE_PLATEFORME(nom)                                                     \
+    résultat->ajoute_rubrique(typeuse.nom);                                                       \
+    typeuse.nom->expression_type = m_assembleuse->crée_référence_déclaration(                     \
+        nullptr, typeuse.nom->comme_déclaration_type());                                          \
+    typeuse.nom->bloc_parent = résultat;
+
+    auto résultat = m_assembleuse->crée_bloc_seul(nullptr, nullptr);
+
+    CREE_DECLARATION_TYPE_PLATEFORME(type_dff_adr);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_nat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_rel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mnat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mrel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_nat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_rel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbf_flt);
+
+#undef CREE_DECLARATION_TYPE_PLATEFORME
+
+    return résultat;
+}
+
 void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante, Attente attente)
 {
     std::unique_lock verrou(m_mutex_unités_terminées);
@@ -1680,7 +1705,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
             if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
                 /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
                  * de générer ces instructions redondantes. */
-                espace->rapporte_avertissement(inst, "Import superflux du module");
+                espace->rapporte_info(inst, "Import superflux du module");
             }
         }
         else {
