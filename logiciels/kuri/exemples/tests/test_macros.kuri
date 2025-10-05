@@ -11,8 +11,17 @@ macro_simple :: fonc () #développe
     diffère imprimeln("Nous sommes à la fin du macro")
 }
 
+/* Il est possible de passer des paramètres aux macros. */
+passe_paramètre :: fonc (a: z32) #développe
+{
+    imprimeln("le paramètre est %", a)
+}
+
 principale :: fonc ()
 {
     macro_simple()
     imprimeln("Nous sommes dans '%' après le macro.", #nom_de_cette_fonction)
+    passe_paramètre(123)
+    passe_paramètre(456)
+    passe_paramètre(789)
 }

@@ -32,12 +32,12 @@ enum class PartageMémoire : uint8_t;
     O(CONSTANTE_TABLEAU_FIXE, AtomeConstanteTableauFixe, constante_tableau)                       \
     O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
     O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
-    O(CONSTANTE_INDICE_TABLE_TYPE, AtomeIndexTableType, indice_table_type)                          \
+    O(CONSTANTE_INDICE_TABLE_TYPE, AtomeIndexTableType, indice_table_type)                        \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
-    O(ACCÈS_INDICE_CONSTANT, AccèdeIndexConstant, accès_indice_constant)                            \
+    O(ACCÈS_INDICE_CONSTANT, AccèdeIndexConstant, accès_indice_constant)                          \
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
@@ -57,8 +57,8 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(BRANCHE, InstructionBranche, branche)                                                       \
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
     O(RETOUR, InstructionRetour, retour)                                                          \
-    O(ACCEDE_RUBRIQUE, InstructionAccèdeRubrique, acces_rubrique)                                       \
-    O(ACCÈDE_INDICE, InstructionAccèdeIndex, acces_index)                                          \
+    O(ACCEDE_RUBRIQUE, InstructionAccèdeRubrique, acces_rubrique)                                 \
+    O(ACCÈDE_INDICE, InstructionAccèdeIndex, acces_index)                                         \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
     O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
     O(SÉLECTION, InstructionSélection, sélection)
@@ -689,9 +689,9 @@ struct InstructionAccèdeRubrique : public Instruction {
     EMPECHE_COPIE(InstructionAccèdeRubrique);
 
     InstructionAccèdeRubrique(NoeudExpression const *site_,
-                            Type const *type_,
-                            Atome *accede_,
-                            int indice_);
+                              Type const *type_,
+                              Atome *accede_,
+                              int indice_);
 
     const Type *donne_type_accédé() const;
 

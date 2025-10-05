@@ -63,7 +63,7 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
 crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_données, $TypeDeDonnéesUtilisateur: type_de_données) -> *TypeDuContexte
 {
     taille_à_loger := (taille_de(TypeDuContexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64
-    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), PositionCodeSource())
+    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), #position_code_source)
 
     contexte_ := mém_contexte_ comme *TypeDuContexte
     init_de(TypeDuContexte)(contexte_)
@@ -91,7 +91,7 @@ détruit_contexte :: fonc (ctx: *Contexte)
         retourne
     }
 
-    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), PositionCodeSource())
+    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), #position_code_source)
 }
 
 // -----------------------------------------------------
@@ -186,7 +186,7 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
 crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
 {
     taille_à_loger := (taille_de(TypePrise) + info_données_externes.taille_en_octet) comme z64
-    mém_prise := loge_mémoire(taille_à_loger, info_de(TypePrise), PositionCodeSource())
+    mém_prise := loge_mémoire(taille_à_loger, info_de(TypePrise), #position_code_source)
 
     prise := mém_prise comme *TypePrise
     init_de(TypePrise)(prise)
