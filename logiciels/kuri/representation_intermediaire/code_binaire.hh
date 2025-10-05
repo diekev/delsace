@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -237,6 +237,8 @@ struct Chunk {
     int taille_allouée = 0;
 
     kuri::tableau<Locale, int> locales{};
+
+    Typeuse *m_typeuse = nullptr;
 
   private:
     struct SiteSource {

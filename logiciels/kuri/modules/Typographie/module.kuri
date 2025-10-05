@@ -12,6 +12,11 @@ importe Math
 importe SysFichier
 importe Unicode
 
+// Fontes intéressantes
+// vollkorn-regular.ttf
+// VictorMono-regular.ttf
+// iosevka
+
 /* ------------------------------------------------------------------------- */
 /** \nom Fonte
  * \{ */
