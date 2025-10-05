@@ -308,10 +308,10 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
 
     POUR (allocs_inutilisees) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
-            espace.rapporte_avertissement(it->site, "Paramètre inutilisé");
+            espace.rapporte_info(it->site, "Paramètre inutilisé");
         }
         else {
-            espace.rapporte_avertissement(it->site, "Variable locale inutilisée");
+            espace.rapporte_info(it->site, "Variable locale inutilisée");
         }
     }
 
@@ -320,7 +320,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
             continue;
         }
 
-        espace.rapporte_avertissement(it->site, "Retour de fonction inutilisé");
+        espace.rapporte_info(it->site, "Retour de fonction inutilisé");
     }
 
     return true;
@@ -949,7 +949,7 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
             }
 
             if (est_comparaison_ordonnée_naturel_zéro(it->comme_op_binaire())) {
-                espace.rapporte_avertissement(
+                espace.rapporte_erreur(
                     it->site,
                     "La comparaison ordonnée d'un entier naturel avec zéro est toujours vrai.");
                 continue;
