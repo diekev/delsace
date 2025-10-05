@@ -17,7 +17,6 @@
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
 
-#include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
@@ -80,7 +79,8 @@ static bool est_référence_compatible_pointeur(Type const *type_dest, Type cons
     return true;
 }
 
-static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
+static bool type_dest_et_type_source_sont_compatibles(Typeuse &typeuse,
+                                                      Type const *type_dest,
                                                       Type const *type_source)
 {
     auto type_élément_dest = type_déréférencé_pour(type_dest);
@@ -89,7 +89,7 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
     }
 
     /* L'initialisation des r16 utilise un n16. */
-    if (type_source == TypeBase::N16 && type_élément_dest == TypeBase::R16) {
+    if (type_source == typeuse.type_n16 && type_élément_dest == typeuse.type_r16) {
         return true;
     }
 
@@ -118,6 +118,14 @@ static bool type_dest_et_type_source_sont_compatibles(Type const *type_dest,
      * un pointeur. */
     if (type_source->est_type_pointeur()) {
         if (est_référence_compatible_pointeur(type_source, type_élément_dest)) {
+            return true;
+        }
+    }
+
+    /* On ne peut pas transtyper dans la coulisse C entre une union et son type le plus grand. */
+    if (type_élément_dest->est_type_union()) {
+        auto type_union = type_élément_dest->comme_type_union();
+        if (type_union->est_nonsure && type_source == type_union->type_le_plus_grand) {
             return true;
         }
     }
@@ -428,22 +436,22 @@ AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *p
         }
     }
 #endif
-    return m_taille_de.ajoute_élément(TypeBase::N32, pointeur_type);
+    return m_taille_de.ajoute_élément(m_typeuse.type_n32, pointeur_type);
 }
 
 AtomeIndexTableType *ConstructriceRI::crée_indice_table_type(const Type *pointeur_type)
 {
-    return m_indice_table_type.ajoute_élément(TypeBase::N32, pointeur_type);
+    return m_indice_table_type.ajoute_élément(m_typeuse.type_n32, pointeur_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
 {
-    return crée_constante_nombre_entier(TypeBase::Z32, valeur);
+    return crée_constante_nombre_entier(m_typeuse.type_z32, valeur);
 }
 
 AtomeConstante *ConstructriceRI::crée_z64(uint64_t valeur)
 {
-    return crée_constante_nombre_entier(TypeBase::Z64, valeur);
+    return crée_constante_nombre_entier(m_typeuse.type_z64, valeur);
 }
 
 AtomeConstanteRéelle *ConstructriceRI::crée_constante_nombre_réel(Type const *type, double valeur)
@@ -538,7 +546,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_tableau_global(
             type_sous_jacent = type_tableau_fixe->type_pointé;
         }
 
-        if (type_sous_jacent != TypeBase::Z8) {
+        if (type_sous_jacent != m_typeuse.type_z8) {
             /* Nous devons transtypé vers le type pointeur idoine. */
             auto type_cible = m_typeuse.type_pointeur_pour(type_sous_jacent);
             ptr_premier_élément = crée_transtype_constant(type_cible, ptr_premier_élément);
@@ -561,7 +569,7 @@ AtomeConstanteBooléenne *ConstructriceRI::crée_constante_booléenne(bool valeu
         }
     }
 #endif
-    return m_constante_booléenne.ajoute_élément(TypeBase::BOOL, valeur);
+    return m_constante_booléenne.ajoute_élément(m_typeuse.type_bool, valeur);
 }
 
 AtomeConstanteCaractère *ConstructriceRI::crée_constante_caractère(Type const *type,
@@ -678,13 +686,15 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
               << imprime_site(site_);
     });
 
-    assert_rappel(type_dest_et_type_source_sont_compatibles(ou->type, valeur->type), [&]() {
-        auto type_élément_dest = type_déréférencé_pour(ou->type);
-        dbg() << "\tType élément destination : " << chaine_type(type_élément_dest) << " ("
-              << type_élément_dest << ") "
-              << ", type source : " << chaine_type(valeur->type) << " (" << valeur->type << ")\n"
-              << imprime_site(site_);
-    });
+    assert_rappel(type_dest_et_type_source_sont_compatibles(m_typeuse, ou->type, valeur->type),
+                  [&]() {
+                      auto type_élément_dest = type_déréférencé_pour(ou->type);
+                      dbg() << "\tType élément destination : " << chaine_type(type_élément_dest)
+                            << " (" << type_élément_dest << ") "
+                            << ", type source : " << chaine_type(valeur->type) << " ("
+                            << valeur->type << ")\n"
+                            << imprime_site(site_);
+                  });
 
     auto inst = m_stocke_mem.ajoute_élément(site_, ou, valeur);
 
@@ -869,7 +879,7 @@ Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
                                             Atome *valeur_gauche,
                                             Atome *valeur_droite)
 {
-    return crée_op_binaire(site_, TypeBase::BOOL, op, valeur_gauche, valeur_droite);
+    return crée_op_binaire(site_, m_typeuse.type_bool, op, valeur_gauche, valeur_droite);
 }
 
 InstructionAccèdeIndex *ConstructriceRI::crée_accès_index(NoeudExpression const *site_,
@@ -1383,12 +1393,12 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         }
         case GenreNoeud::ENTIER_CONSTANT:
         {
-            return crée_constante_nombre_entier(TypeBase::Z32, 0);
+            return crée_constante_nombre_entier(m_typeuse.type_z32, 0);
         }
         case GenreNoeud::RÉEL:
         {
             if (type->taille_octet == 2) {
-                return crée_constante_nombre_entier(TypeBase::N16, 0);
+                return crée_constante_nombre_entier(m_typeuse.type_n16, 0);
             }
 
             return crée_constante_nombre_réel(type, 0.0);
@@ -1411,7 +1421,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
             valeurs.réserve(2);
 
             valeurs.ajoute(crée_initialisation_défaut_pour_type(type_union->type_le_plus_grand));
-            valeurs.ajoute(crée_initialisation_défaut_pour_type(TypeBase::Z32));
+            valeurs.ajoute(crée_initialisation_défaut_pour_type(m_typeuse.type_z32));
 
             return crée_constante_structure(type, std::move(valeurs));
         }
@@ -1659,7 +1669,7 @@ AtomeFonction *CompilatriceRI::genere_fonction_init_globales_et_appel(
         nom_fonction);
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
-    auto type_sortie = TypeBase::RIEN;
+    auto type_sortie = m_compilatrice.typeuse.type_rien;
 
     auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
     fonction->type = m_compilatrice.typeuse.type_fonction(types_entrees, type_sortie);
@@ -1754,7 +1764,7 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
      * transtyper vers le type approprié. */
     if (type->est_type_pointeur() || type->est_type_fonction()) {
         auto &typeuse = m_compilatrice.typeuse;
-        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(TypeBase::PTR_RIEN);
+        auto type_ptr_ptr_rien = typeuse.type_pointeur_pour(typeuse.type_ptr_rien);
         argument = m_constructrice.crée_transtype(
             site_, type_ptr_ptr_rien, argument, TypeTranstypage::BITS);
     }
@@ -3220,7 +3230,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                 acces_rubrique = m_constructrice.crée_référence_rubrique(noeud, alloc, 1);
                 auto index = m_constructrice.crée_constante_nombre_entier(
-                    TypeBase::Z32, static_cast<uint64_t>(transformation.indice_rubrique + 1));
+                    m_compilatrice.typeuse.type_z32,
+                    static_cast<uint64_t>(transformation.indice_rubrique + 1));
                 m_constructrice.crée_stocke_mem(noeud, acces_rubrique, index);
             }
 
@@ -3289,7 +3300,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             if (noeud->genre != GenreNoeud::EXPRESSION_LITTÉRALE_NUL) {
                 valeur = m_constructrice.crée_transtype(
-                    noeud, TypeBase::PTR_RIEN, valeur, TypeTranstypage::BITS);
+                    noeud, m_compilatrice.typeuse.type_ptr_rien, valeur, TypeTranstypage::BITS);
             }
 
             break;
@@ -3323,12 +3334,16 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto type = valeur->type;
             if (type->taille_octet != 8) {
                 if (type->est_type_entier_naturel()) {
-                    valeur = m_constructrice.crée_transtype(
-                        noeud, TypeBase::N64, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+                    valeur = m_constructrice.crée_transtype(noeud,
+                                                            m_compilatrice.typeuse.type_n64,
+                                                            valeur,
+                                                            TypeTranstypage::AUGMENTE_NATUREL);
                 }
                 else {
-                    valeur = m_constructrice.crée_transtype(
-                        noeud, TypeBase::Z64, valeur, TypeTranstypage::AUGMENTE_RELATIF);
+                    valeur = m_constructrice.crée_transtype(noeud,
+                                                            m_compilatrice.typeuse.type_z64,
+                                                            valeur,
+                                                            TypeTranstypage::AUGMENTE_RELATIF);
                 }
             }
 
@@ -3415,21 +3430,21 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto alloc_eini = place;
 
             if (alloc_eini == nullptr) {
-                auto type_eini = TypeBase::EINI;
-                alloc_eini = m_constructrice.crée_allocation(noeud, type_eini, nullptr);
+                alloc_eini = m_constructrice.crée_allocation(
+                    noeud, m_compilatrice.typeuse.type_eini, nullptr);
             }
 
             /* copie le pointeur de la valeur vers le type eini */
             auto ptr_eini = m_constructrice.crée_référence_rubrique(noeud, alloc_eini, 0);
 
             if (valeur->type->est_type_entier_constant()) {
-                valeur->type = TypeBase::Z32;
+                valeur->type = m_compilatrice.typeuse.type_z32;
             }
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
             auto transtype = m_constructrice.crée_transtype(
-                noeud, TypeBase::PTR_RIEN, valeur, TypeTranstypage::BITS);
+                noeud, m_compilatrice.typeuse.type_ptr_rien, valeur, TypeTranstypage::BITS);
             m_constructrice.crée_stocke_mem(noeud, ptr_eini, transtype);
 
             /* copie le pointeur vers les infos du type du eini */
@@ -3478,7 +3493,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto valeur_pointeur = static_cast<Atome *>(nullptr);
             auto valeur_taille = static_cast<Atome *>(nullptr);
 
-            auto type_cible = TypeBase::PTR_OCTET;
+            auto type_cible = m_compilatrice.typeuse.type_ptr_octet;
 
             switch (noeud->type->genre) {
                 default:
@@ -3530,7 +3545,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     valeur_taille = m_constructrice.crée_op_binaire(
                         noeud,
-                        TypeBase::Z64,
+                        m_compilatrice.typeuse.type_z64,
                         OpérateurBinaire::Genre::Multiplication,
                         valeur_taille,
                         m_constructrice.crée_z64(taille_type));
@@ -3552,7 +3567,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     valeur_taille = m_constructrice.crée_op_binaire(
                         noeud,
-                        TypeBase::Z64,
+                        m_compilatrice.typeuse.type_z64,
                         OpérateurBinaire::Genre::Multiplication,
                         valeur_taille,
                         m_constructrice.crée_z64(taille_type));
@@ -3579,7 +3594,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto tabl_octet = place;
             if (!tabl_octet) {
                 tabl_octet = m_constructrice.crée_allocation(
-                    noeud, TypeBase::TRANCHE_OCTET, nullptr);
+                    noeud, m_compilatrice.typeuse.type_tranche_octet, nullptr);
             }
 
             auto pointeur_tabl_octet = m_constructrice.crée_référence_rubrique(
@@ -3712,8 +3727,8 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
 
     auto const décalage_type_base = transformation.décalage_type_base;
     if (décalage_type_base != 0) {
-        auto const type_z64 = TypeBase::Z64;
-        auto const type_ptr_octet = TypeBase::PTR_OCTET;
+        auto const type_z64 = m_compilatrice.typeuse.type_z64;
+        auto const type_ptr_octet = m_compilatrice.typeuse.type_ptr_octet;
 
         /* Convertis en entier. */
         valeur = m_constructrice.crée_transtype(
@@ -3969,7 +3984,8 @@ void CompilatriceRI::génère_ri_pour_expression_logique(NoeudExpressionLogique 
 
     auto destination = place;
     if (destination == nullptr) {
-        destination = m_constructrice.crée_allocation(noeud, TypeBase::BOOL, nullptr);
+        destination = m_constructrice.crée_allocation(
+            noeud, m_compilatrice.typeuse.type_bool, nullptr);
     }
 
     génère_ri_pour_condition(noeud, label_si_vrai, label_si_faux);
@@ -4091,7 +4107,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::ENTIER_CONSTANT:
         {
-            auto type_z32 = TypeBase::Z32;
+            auto type_z32 = m_compilatrice.typeuse.type_z32;
             if (type_z32->atome_info_type) {
                 type->atome_info_type = type_z32->atome_info_type;
             }
@@ -4108,13 +4124,13 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
         }
         case GenreNoeud::ENTIER_RELATIF:
         {
-            auto type_z32 = TypeBase::Z32;
+            auto type_z32 = m_compilatrice.typeuse.type_z32;
 
             if (type != type_z32) {
                 type->atome_info_type = crée_info_type_entier(type, true);
             }
             else {
-                auto type_entier_constant = TypeBase::ENTIER_CONSTANT;
+                auto type_entier_constant = m_compilatrice.typeuse.type_entier_constant;
                 if (type_entier_constant->atome_info_type) {
                     type->atome_info_type = type_entier_constant->atome_info_type;
                 }
@@ -4159,7 +4175,8 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto type_enum = static_cast<TypeEnum const *>(type);
 
             /* Les valeurs sont convertis en un tableau de données constantes. */
-            auto tampon_valeurs_énum = donne_tableau_valeurs_énum(*type_enum);
+            auto tampon_valeurs_énum = donne_tableau_valeurs_énum(m_compilatrice.typeuse,
+                                                                  *type_enum);
 
             auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
                 type_enum->type_sous_jacent, int32_t(tampon_valeurs_énum.taille()));
@@ -4181,9 +4198,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto ident_valeurs = m_compilatrice.donne_identifiant_pour_globale("valeurs_énums");
             auto ident_noms = m_compilatrice.donne_identifiant_pour_globale("noms_valeurs_énums");
             auto tableau_valeurs = m_constructrice.crée_tranche_globale(
-                *ident_valeurs, tableau, true, TypeBase::OCTET);
+                *ident_valeurs, tableau, true, m_compilatrice.typeuse.type_octet);
             auto tableau_noms = m_constructrice.crée_tranche_globale(
-                *ident_noms, TypeBase::CHAINE, std::move(noms_enum), true);
+                *ident_noms, m_compilatrice.typeuse.type_chaine, std::move(noms_enum), true);
 
             /* création de l'info type */
 
@@ -4827,7 +4844,7 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
         return valeur;
     }
 
-    auto type_chaine = TypeBase::CHAINE;
+    auto type_chaine = m_compilatrice.typeuse.type_chaine;
 
     AtomeConstante *constante_chaine;
 
@@ -4836,7 +4853,7 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
     }
     else {
         auto type_tableau = m_compilatrice.typeuse.type_tableau_fixe(
-            TypeBase::Z8, static_cast<int>(chaine.taille()));
+            m_compilatrice.typeuse.type_z8, static_cast<int>(chaine.taille()));
         auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
             type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
         tableau->drapeaux |= DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE;
@@ -4872,7 +4889,8 @@ AtomeGlobale *CompilatriceRI::crée_globale_pour_chaine(kuri::chaine_statique ch
     }
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("constante_chaine");
-    auto résultat = m_constructrice.crée_globale(*ident, TypeBase::CHAINE, constante, false, true);
+    auto résultat = m_constructrice.crée_globale(
+        *ident, m_compilatrice.typeuse.type_chaine, constante, false, true);
     résultat->est_chaine = true;
     table_chaines->insère_globale_pour_chaine(constante, résultat);
     return résultat;
@@ -4908,7 +4926,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
         auto constructeur = trouve_constructeur_pour(it);
         if (!constructeur) {
             if (it->initialisateur && !est_globale_pour_tableau_données_constantes(it)) {
-                m_constructrice.crée_stocke_mem(nullptr, it, it->initialisateur);
+                m_constructrice.crée_stocke_mem(it->decl, it, it->initialisateur);
             }
             continue;
         }
@@ -5130,7 +5148,8 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
                 pointeur,
                 m_constructrice.crée_initialisation_défaut_pour_type(type_var));
         }
-        else {
+        else if (!variable->type->possède_drapeau(
+                     DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION)) {
             crée_appel_fonction_init_type(variable, type_var, pointeur);
         }
         return;
@@ -5454,8 +5473,8 @@ AtomeGlobale *CompilatriceRI::crée_info_fonction_pour_trace_appel(AtomeFonction
     kuri::tableau<AtomeConstante *> valeurs(3);
     valeurs[0] = nom_fonction;
     valeurs[1] = nom_fichier;
-    valeurs[2] = m_constructrice.crée_transtype_constant(TypeBase::ADRESSE_FONCTION,
-                                                         pour_fonction);
+    valeurs[2] = m_constructrice.crée_transtype_constant(
+        m_compilatrice.typeuse.type_adresse_fonction, pour_fonction);
 
     auto initialisateur = m_constructrice.crée_constante_structure(type_info_fonction_trace_appel,
                                                                    std::move(valeurs));
@@ -5560,7 +5579,7 @@ void CompilatriceRI::crée_trace_appel(AtomeFonction *fonction)
         nullptr, charge_ref_trace_précédente2, indice_profondeur);
     auto charge_profondeur2 = m_constructrice.crée_charge_mem(nullptr, ref_profondeur2);
     auto incrémentation = m_constructrice.crée_op_binaire(nullptr,
-                                                          TypeBase::Z32,
+                                                          m_compilatrice.typeuse.type_z32,
                                                           OpérateurBinaire::Genre::Addition,
                                                           charge_profondeur2,
                                                           m_constructrice.crée_z32(1));

@@ -81,8 +81,8 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
 }
 
 static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_types,
-                                     InfoTypeRubriqueStructure *info_type_rubrique,
-                                     RubriqueTypeComposé const &rubrique)
+                                       InfoTypeRubriqueStructure *info_type_rubrique,
+                                       RubriqueTypeComposé const &rubrique)
 {
     info_type_rubrique->décalage = int32_t(rubrique.decalage);
     info_type_rubrique->nom = rubrique.nom->nom;
@@ -393,7 +393,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 noms.ajoute(it.nom->nom);
             }
 
-            auto valeurs = donne_tableau_valeurs_énum(*type_enum);
+            auto valeurs = donne_tableau_valeurs_énum(typeuse, *type_enum);
 
             info_type->noms = allocatrice_infos_types.donne_tranche(noms);
             info_type->valeurs = allocatrice_infos_types.donne_tranche(valeurs);
@@ -473,20 +473,20 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
     switch (type->genre) {
         case GenreInfoType::EINI:
         {
-            return TypeBase::EINI;
+            return typeuse.type_eini;
         }
         case GenreInfoType::RÉEL:
         {
             if (type->taille_en_octet == 2) {
-                return TypeBase::R16;
+                return typeuse.type_r16;
             }
 
             if (type->taille_en_octet == 4) {
-                return TypeBase::R32;
+                return typeuse.type_r32;
             }
 
             if (type->taille_en_octet == 8) {
-                return TypeBase::R64;
+                return typeuse.type_r64;
             }
 
             return nullptr;
@@ -497,61 +497,61 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
 
             if (info_type_entier->est_signé) {
                 if (type->taille_en_octet == 1) {
-                    return TypeBase::Z8;
+                    return typeuse.type_z8;
                 }
 
                 if (type->taille_en_octet == 2) {
-                    return TypeBase::Z16;
+                    return typeuse.type_z16;
                 }
 
                 if (type->taille_en_octet == 4) {
-                    return TypeBase::Z32;
+                    return typeuse.type_z32;
                 }
 
                 if (type->taille_en_octet == 8) {
-                    return TypeBase::Z64;
+                    return typeuse.type_z64;
                 }
 
                 return nullptr;
             }
 
             if (type->taille_en_octet == 1) {
-                return TypeBase::N8;
+                return typeuse.type_n8;
             }
 
             if (type->taille_en_octet == 2) {
-                return TypeBase::N16;
+                return typeuse.type_n16;
             }
 
             if (type->taille_en_octet == 4) {
-                return TypeBase::N32;
+                return typeuse.type_n32;
             }
 
             if (type->taille_en_octet == 8) {
-                return TypeBase::N64;
+                return typeuse.type_n64;
             }
 
             return nullptr;
         }
         case GenreInfoType::OCTET:
         {
-            return TypeBase::OCTET;
+            return typeuse.type_octet;
         }
         case GenreInfoType::BOOLÉEN:
         {
-            return TypeBase::BOOL;
+            return typeuse.type_bool;
         }
         case GenreInfoType::CHAINE:
         {
-            return TypeBase::CHAINE;
+            return typeuse.type_chaine;
         }
         case GenreInfoType::RIEN:
         {
-            return TypeBase::RIEN;
+            return typeuse.type_rien;
         }
         case GenreInfoType::ADRESSE_FONCTION:
         {
-            return TypeBase::ADRESSE_FONCTION;
+            return typeuse.type_adresse_fonction;
         }
         case GenreInfoType::POINTEUR:
         {

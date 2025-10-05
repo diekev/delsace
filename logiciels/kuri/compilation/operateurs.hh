@@ -245,20 +245,20 @@ struct RegistreDesOpérateurs {
                              Type *type_résultat,
                              NoeudDéclarationEntêteFonction *decl);
 
-    void ajoute_opérateur_basique_enum(TypeEnum *type);
+    void ajoute_opérateur_basique_enum(Typeuse &typeuse, TypeEnum *type);
 
-    void ajoute_opérateurs_basiques_pointeur(TypePointeur *type);
+    void ajoute_opérateurs_basiques_pointeur(Typeuse &typeuse, TypePointeur *type);
 
-    void ajoute_opérateurs_basiques_fonction(TypeFonction *type);
+    void ajoute_opérateurs_basiques_fonction(Typeuse &typeuse, TypeFonction *type);
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void ajoute_opérateurs_comparaison(Type *pour_type, IndiceTypeOp indice);
+    void ajoute_opérateurs_comparaison(Typeuse &typeuse, Type *pour_type, IndiceTypeOp indice);
     void ajoute_opérateurs_entiers_réel(Type *pour_type, IndiceTypeOp indice);
     void ajoute_opérateurs_entiers(Type *pour_type, IndiceTypeOp indice);
     void ajoute_opérateurs_entiers_unaires(Type *pour_type);
 
-    void ajoute_opérateurs_basiques_au_besoin(Type *type);
+    void ajoute_opérateurs_basiques_au_besoin(Typeuse &typeuse, Type *type);
 };
 
 /** \} */

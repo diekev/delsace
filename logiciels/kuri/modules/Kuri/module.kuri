@@ -202,7 +202,7 @@ déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos: Po
     _ := contexte().allocatrice(params, contexte().données_allocatrice)
 }
 
-loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
+loge :: fonc ($T: type_de_données, pos := #position_code_source) -> *T
 {
     info := info_de(T)
     ptr := loge_mémoire(info.taille_en_octet comme z64, info, pos) comme *T
@@ -212,7 +212,7 @@ loge :: fonc ($T: type_de_données, pos := PositionCodeSource()) -> *T
     retourne ptr
 }
 
-reloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
+reloge :: fonc (pointeur: &*$T, pos := #position_code_source)
 {
     info := info_de(T)
     ancien_pointeur := pointeur
@@ -227,7 +227,7 @@ reloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
     pointeur = nouveau_pointeur
 }
 
-déloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
+déloge :: fonc (pointeur: &*$T, pos := #position_code_source)
 {
     info := info_de(T)
     ancien_pointeur := pointeur
@@ -235,13 +235,13 @@ déloge :: fonc (pointeur: &*$T, pos := PositionCodeSource())
     pointeur = nul
 }
 
-loge_chaine :: fonc (taille: z64, pos := PositionCodeSource()) -> chaine
+loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
 {
     ptr := loge_mémoire(taille, info_de(chaine), pos)
     retourne chaine(ptr comme *z8, taille)
 }
 
-reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := PositionCodeSource())
+reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code_source)
 {
     ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos)
 
@@ -249,14 +249,14 @@ reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := PositionCodeSo
     chn.taille = nouvelle_taille
 }
 
-déloge :: fonc (chn: &chaine, pos := PositionCodeSource())
+déloge :: fonc (chn: &chaine, pos := #position_code_source)
 {
     déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
     chn.pointeur = nul
     chn.taille = 0
 }
 
-déloge_si_logée :: fonc (chn: &chaine, pos := PositionCodeSource())
+déloge_si_logée :: fonc (chn: &chaine, pos := #position_code_source)
 {
     saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
         déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
@@ -1022,17 +1022,17 @@ ContexteKuri :: struct {
 
 loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien
 {
-    retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
+    retourne loge_mémoire(taille comme z64, nul, #position_code_source)
 }
 
 reloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
 {
-    retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, #position_code_source)
 }
 
 déloge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, ancien_pointeur: *rien, ancienne_taille: n64) -> rien
 {
-    déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    déloge_mémoire(ancienne_taille comme z64, ancien_pointeur, nul, #position_code_source)
 }
 
 initialise_contexte_kuri :: fonc () -> ContexteKuri
