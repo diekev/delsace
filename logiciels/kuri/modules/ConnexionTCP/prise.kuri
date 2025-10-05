@@ -30,7 +30,7 @@ Prise :: struct {
 
 détruit_prise :: fonc (prise: *Prise)
 {
-    déloge_mémoire(prise.taille_mémoire, prise, info_de(Prise), PositionCodeSource())
+    déloge_mémoire(prise.taille_mémoire, prise, info_de(Prise), #position_code_source)
 }
 
 mute_données_serveuse :: fonc (prise: *Prise, info_serveuse: *$T)

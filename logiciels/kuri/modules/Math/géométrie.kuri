@@ -430,6 +430,55 @@ médicentre :: fonc (triangle: Triangle($T)) -> Point2D(T)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Ellipse
+ * \{ */
+
+Ellipse :: struct ($T: type_de_données) {
+    x: T
+    y: T
+    rayon_x: T
+    rayon_y: T
+}
+
+donne_ellipse :: fonc (rect: RectanglePosDim($T)) -> Ellipse(T)
+{
+    résultat: Ellipse(T) = ---
+    résultat.x = rect.x + rect.largeur / 2.0
+    résultat.y = rect.y + rect.hauteur / 2.0
+    résultat.rayon_x = rect.largeur / 2.0
+    résultat.rayon_y = rect.hauteur / 2.0
+    retourne résultat
+}
+
+contient :: fonc (ellipse: Ellipse($T), x: T, y: T) -> bool #enligne
+{
+    résultat := faux
+
+    si ellipse.rayon_x != 0.0 && ellipse.rayon_y != 0.0 {
+        dx := x - ellipse.x
+        dy := y - ellipse.y
+
+        // dx² / rx² + dy² / ry² <= 1
+        dx² := dx * dx
+        dy² := dy * dy
+        rx² := ellipse.rayon_x * ellipse.rayon_x
+        ry² := ellipse.rayon_y * ellipse.rayon_y
+
+        résultat = ((dx² / rx²) + (dy² / ry²)) <= 1.0
+    }
+    sinon si ellipse.rayon_x != 0.0 {
+        résultat = (y == ellipse.y) && (abs(x - ellipse.x) <= ellipse.rayon_x)
+    }
+    sinon si ellipse.rayon_y != 0.0 {
+        résultat = (x == ellipse.x) && (abs(y - ellipse.y) <= ellipse.rayon_y)
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Cercle
  * \{ */
 

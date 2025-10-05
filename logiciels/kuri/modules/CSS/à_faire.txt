@@ -1,0 +1,106 @@
+AnimationControler :: struct {
+    action_animations: [..]AnimationState
+    inactive_animations: [..]AnimationState
+}
+
+tick :: fonc (controller: AnimationControler, temps: Temps)
+{
+
+}
+-> éléments changés
+-> animation output
+    left: 50px, opacity: 0.2
+    etc..
+
+
+/* Une copie pour chaque propriété animée. */
+AnimationStateCommon :: struct {
+    id: AnimationId
+    start_time: Secondes
+    pause_time: Secondes
+    durée: Secondes
+    temporisation: Secondes
+    scheduled_pause_time: Optionnel(Secondes)
+    iterations: AnimationIterationCount.Value
+    fill_mode: AnimationFillMode.Type
+    direction: AnimationDirection.Type
+    timing: AnimationTimingFunction.Timing
+    play_state: AnimationPlayState.Type
+    iterations_passed: r32
+    playback_rate := 1.0
+}
+
+AnimationState :: struct {
+
+}
+
+AnimationStateProperty :: struct ($T: type_de_données) {
+    empl base: AnimationState
+
+    keyframes: AnimatedDefinitionFrames(T)
+}
+
+
+AnimatedDefinitionFrames :: struct ($T: type_de_données) {
+
+}
+
+
+// auto-générée, listes pour actives et inactives
+
+CSSVector<AnimationStateProperty<BorderWidth>> m_BorderTopWidthActiveAnimState;
+CSSVector<AnimationStateProperty<BorderWidth>> m_BorderLeftWidthActiveAnimState;
+...
+CSSVector<AnimationStateProperty<ZIndex>> m_ZIndexActiveAnimState;
+
+
+// ticking animations
+
+template<css::PropertyTypes PropType>
+AnimationRunningState TickAnimation(seconds nom, AnimationStateProperty<typename css::PropertyValue<PropType>::type_t& state)
+{
+    using Type = typename css::PropertyValue<PropType>::type_t;
+
+    AnimationRunningState transition;
+    const auto t = CalculateAnimationPoint(now, state, transition);
+    assert(!std::isnan(t));
+
+    const typename AnimatedDefinitionFrames<Type>::Frame *from = nullptr;
+    const typename AnimatedDefinitionFrames<Type>::Frame *to = nullptr;
+
+    size_t firtFrameIndex;
+    auto interpolator = DetermineKeyFrameInterval(t, state, from, to, firstFrameIndex);
+
+    interpolator = ApplyEase(interpolator, state.Timing, state.Duration);
+
+    const auto newValue = GetInterpolatedValue(state, firstFrameIndex, interpolator, from->Value, to->Value);
+
+    state.Output->template SetValue<Type, PropType>(newValue);
+
+    return transition;
+}
+
+ JS API -> Animation     ->     AnimationControler
+
+            Play();             Play(Id);
+            Pause();            Payse(Id);
+            Stop();             Stop(Id);
+            ...                 ...
+            AnimationId Id;
+
+https://drafts.csswg.org/css-sizing-3/#specifying-sizes
+
+https://www.w3.org/TR/CSS2/generate.html#lists
+
+https://www.w3.org/TR/2011/REC-CSS2-20110607/text.html#spacing-props
+
+
+Météo France :
+    - block-blocliensradar manquant (cotation de 0 si pourcentage dans min-content ou max-content)
+    - nuage flou (ratisse les svg selon la résolution finale)
+    - propriétés :
+        - linear-gradient
+        - radial-gradient
+        - object-fit
+        - display: grid
+        - position: sticky

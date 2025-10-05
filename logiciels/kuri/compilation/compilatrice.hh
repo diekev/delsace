@@ -165,6 +165,8 @@ struct Compilatrice {
 
     kuri::tableau<ÉtatRésolutionAppel *> m_états_libres{};
 
+    NoeudBloc *m_bloc_racine = nullptr;
+
   private:
     /* Note la date de début de la compilation. Principalement utilisé pour générer les noms des
      * fichiers de logs. */

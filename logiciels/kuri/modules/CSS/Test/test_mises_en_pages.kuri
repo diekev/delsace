@@ -154,7 +154,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
     chemins_échouants: [..]CheminFichier
     diffère déloge(chemins_échouants)
 
-    chemin_courant := tente chemin_courant() piège err {
+    chemin_courant := tente donne_chemin_courant() piège err {
         imprime("Impossible de déterminer le chemin courant : %\n", err)
         retourne
     }

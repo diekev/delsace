@@ -67,53 +67,58 @@ int main()
     auto compilatrice = Compilatrice("", arguments);
     auto &typeuse = compilatrice.typeuse;
 
-    auto dt_tabl_fixe = typeuse.type_tableau_fixe(TypeBase::Z32, 8);
-    auto dt_tranche = typeuse.crée_type_tranche(TypeBase::Z32);
+    auto dt_tabl_fixe = typeuse.type_tableau_fixe(typeuse.type_z32, 8);
+    auto dt_tranche = typeuse.crée_type_tranche(typeuse.type_z32);
 
     auto reussite = true;
 
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::N8, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::REF_N8, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::REF_N8, TypeBase::N8, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::PTR_N8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_N8, TypeBase::N8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::Z8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::REF_Z8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::PTR_Z8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::N64, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::REF_N64, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::N8, TypeBase::CHAINE, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::R64, TypeBase::N8, false);
-    reussite &= verifie_transformation(compilatrice, TypeBase::R64, TypeBase::EINI, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::R64, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::EINI, TypeBase::EINI, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_n8, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_n8, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_ref_n8, typeuse.type_n8, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ptr_n8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_ptr_n8, typeuse.type_n8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_z8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_z8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ptr_z8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_n64, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_n64, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_chaine, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_r64, typeuse.type_n8, false);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_r64, typeuse.type_eini, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_eini, typeuse.type_r64, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_eini, typeuse.type_eini, true);
     // test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
     reussite &= verifie_transformation(
-        compilatrice, TypeBase::TRANCHE_OCTET, TypeBase::EINI, true);
+        compilatrice, typeuse.type_tranche_octet, typeuse.type_eini, true);
     reussite &= verifie_transformation(
-        compilatrice, TypeBase::EINI, TypeBase::TRANCHE_OCTET, true);
-
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_Z8, TypeBase::PTR_NUL, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_Z8, TypeBase::PTR_RIEN, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_Z8, TypeBase::PTR_OCTET, true);
-
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_NUL, TypeBase::PTR_Z8, true);
-    reussite &= verifie_transformation(compilatrice, TypeBase::PTR_RIEN, TypeBase::PTR_Z8, true);
+        compilatrice, typeuse.type_eini, typeuse.type_tranche_octet, true);
 
     reussite &= verifie_transformation(
-        compilatrice, TypeBase::TABL_N8, TypeBase::TRANCHE_OCTET, true);
+        compilatrice, typeuse.type_ptr_z8, typeuse.type_ptr_nul, true);
+    reussite &= verifie_transformation(
+        compilatrice, typeuse.type_ptr_z8, typeuse.type_ptr_rien, true);
+    reussite &= verifie_transformation(
+        compilatrice, typeuse.type_ptr_z8, typeuse.type_ptr_octet, true);
+
+    reussite &= verifie_transformation(
+        compilatrice, typeuse.type_ptr_nul, typeuse.type_ptr_z8, true);
+    reussite &= verifie_transformation(
+        compilatrice, typeuse.type_ptr_rien, typeuse.type_ptr_z8, true);
+
+    reussite &= verifie_transformation(
+        compilatrice, typeuse.type_tabl_n8, typeuse.type_tranche_octet, true);
 
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tranche, true);
 
-    auto dt_eini = TypeBase::EINI;
+    auto dt_eini = typeuse.type_eini;
 
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_eini, true);
 
-    auto dt_tabl_octet = TypeBase::TRANCHE_OCTET;
+    auto dt_tabl_octet = typeuse.type_tranche_octet;
     reussite &= verifie_transformation(compilatrice, dt_tabl_fixe, dt_tabl_octet, true);
 
     /* test : appel fonction */
-    reussite &= verifie_transformation(compilatrice, TypeBase::R16, TypeBase::R32, true);
+    reussite &= verifie_transformation(compilatrice, typeuse.type_r16, typeuse.type_r32, true);
 
     // test nul -> fonc()
 

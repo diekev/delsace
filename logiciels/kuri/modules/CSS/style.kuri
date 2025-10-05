@@ -630,7 +630,7 @@ détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
         détruit_valeur_de_style(position.décalage_vertical)
     }
 
-    déloge_mémoire(valeur.taille_allouée comme z64, valeur, nul, PositionCodeSource())
+    déloge_mémoire(valeur.taille_allouée comme z64, valeur, nul, #position_code_source)
 }
 
 sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool

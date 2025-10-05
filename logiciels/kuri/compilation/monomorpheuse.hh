@@ -161,6 +161,7 @@ using RésultatRésolutionType = std::variant<ErreurMonomorphisation, TypeAppari
 class Monomorpheuse {
   private:
     EspaceDeTravail &espace;
+    Typeuse &typeuse;
 
     using TypeTableauItem = kuri::tablet<ItemMonomorphisation, 6>;
 
@@ -361,8 +362,6 @@ class Monomorpheuse {
                                            ItemMonomorphisation const &candidat);
 
     /* Autres. */
-
-    Typeuse &typeuse();
 
     ItemMonomorphisation *item_résultat_pour_ident(IdentifiantCode const *ident);
 };

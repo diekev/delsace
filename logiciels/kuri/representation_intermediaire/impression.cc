@@ -150,7 +150,8 @@ static void imprime_atome_ex(Atome const *atome,
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
-            if (atome->type == TypeBase::PTR_NUL) {
+            if (atome->type->est_type_pointeur() &&
+                atome->type->comme_type_pointeur()->type_pointé == nullptr) {
                 os << "*nul" << ' ';
             }
             else {

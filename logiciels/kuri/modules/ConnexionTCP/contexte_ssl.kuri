@@ -65,7 +65,7 @@ détruit_contexte_ssl :: fonc (ctx: *ContextePriseSSL)
     // sni_free(context->sni, sni_hostname_destructor);
     // }
 
-    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(ContextePriseSSL), PositionCodeSource())
+    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(ContextePriseSSL), #position_code_source)
 }
 
 // ------------------------------------------------------

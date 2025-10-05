@@ -731,7 +731,7 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune32)
     }
 }
 
-chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF16
+chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise := vrai) -> ChaineUTF16
 {
     taille := enchaineuse.taille_chaine()
 
@@ -760,7 +760,9 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16) -> ChaineUTF1
 
     résultat.unités.taille = curseur
 
-    enchaineuse.détruit_tampons()
+    si réinitialise {
+        enchaineuse.détruit_tampons()
+    }
 
     retourne résultat
 }

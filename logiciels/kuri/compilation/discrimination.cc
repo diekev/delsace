@@ -220,9 +220,10 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
 RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
+    auto &typeuse = m_espace->compilatrice().typeuse;
     auto expression = inst->expression_discriminée;
     auto type_union = type->comme_type_union();
-    inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
+    inst->op = typeuse.type_z32->table_opérateurs->opérateur_egt;
 
     if (type_union->est_nonsure) {
         rapporte_erreur("« discr » ne peut prendre une union nonsûre", expression);
@@ -289,9 +290,10 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
             if (rubrique.type->est_type_rien()) {
-                m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis une rubrique "
-                                          "d'union de type « rien »");
+                m_espace->rapporte_erreur(
+                    expression_valide->est_expression_appel,
+                    "Impossible de capturer une variable depuis une rubrique "
+                    "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,
@@ -319,8 +321,9 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
 
 RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
+    auto &typeuse = m_espace->compilatrice().typeuse;
     auto type_union = type->comme_type_union();
-    inst->op = TypeBase::Z32->table_opérateurs->opérateur_egt;
+    inst->op = typeuse.type_z32->table_opérateurs->opérateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
 
     auto rubriques_rencontrés = kuri::ensemblon<IdentifiantCode const *, 16>();
@@ -390,9 +393,10 @@ RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst,
         /* Ajoute la variable dans le bloc suivant. */
         if (expression_valide->est_expression_appel) {
             if (référence_type->type->est_type_rien()) {
-                m_espace->rapporte_erreur(expression_valide->est_expression_appel,
-                                          "Impossible de capturer une variable depuis une rubrique "
-                                          "d'union de type « rien »");
+                m_espace->rapporte_erreur(
+                    expression_valide->est_expression_appel,
+                    "Impossible de capturer une variable depuis une rubrique "
+                    "d'union de type « rien »");
                 return CodeRetourValidation::Erreur;
             }
             crée_variable_pour_expression_test(m_espace,

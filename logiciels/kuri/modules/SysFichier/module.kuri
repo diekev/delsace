@@ -303,14 +303,19 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 
 // -----------------------------------------------------------------------
 
-chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
+donne_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
     retourne système_chemin_courant()
 }
 
-chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
+définis_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_chemin_courant(chemin)
+}
+
+donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur := vrai) -> bool
+{
+    retourne système_donne_chemin_exécutable(tampon_chemin, imprime_erreur)
 }
 
 chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)

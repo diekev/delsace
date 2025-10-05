@@ -11,6 +11,8 @@
 
 #include "noeud_expression.hh"
 
+#include "log.hh"
+
 /* À FAIRE: les expressions littérales des énumérations ne sont pas validées donc les valeurs sont
  * toujours sur les lexèmes */
 
@@ -620,12 +622,22 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto &rubrique = type_composé->rubriques[ref_rubrique->indice_rubrique];
 
             if (rubrique.est_constant()) {
-                return ValeurExpression(
-                    type_composé->rubriques[ref_rubrique->indice_rubrique].valeur);
+                auto decl = rubrique.decl;
+                // À FAIRE : nettoye tout ça, déduplique avec canonicalisation
+                if (decl) {
+                    if (!decl->est_déclaration_constante()) {
+                        return erreur_évaluation(b,
+                                                 "La rubrique n'a pas de déclaration constante.");
+                    }
+
+                    if (decl->comme_déclaration_constante()->valeur_expression.est_valide()) {
+                        return decl->comme_déclaration_constante()->valeur_expression;
+                    }
+                }
+                return ValeurExpression(rubrique.valeur);
             }
 
-            return erreur_évaluation(
-                b, "L'expression n'est pas constante et ne peut être calculée !");
+            return erreur_évaluation(b, "La rubrique n'est pas une constante.");
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {

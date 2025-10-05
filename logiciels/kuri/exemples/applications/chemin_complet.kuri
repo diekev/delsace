@@ -23,7 +23,7 @@ principale :: fonc ()
         exit(0)
     }
 
-    chemin_courant := tente chemin_courant() piège err {
+    chemin_courant := tente donne_chemin_courant() piège err {
         imprime("Impossible de déterminer le chemin courant : %\n", err)
         exit(1)
     }

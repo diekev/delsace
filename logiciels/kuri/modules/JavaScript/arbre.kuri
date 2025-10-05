@@ -6714,7 +6714,7 @@ crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseN
 {
     rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure) -> VisiteEnfants
     {
-        déloge_mémoire(info.taille_en_octet comme z64, noeud, info, PositionCodeSource())
+        déloge_mémoire(info.taille_en_octet comme z64, noeud, info, #position_code_source)
         retourne VisiteEnfants.Oui
     }
 

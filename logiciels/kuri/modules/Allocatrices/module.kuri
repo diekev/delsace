@@ -76,3 +76,177 @@ allocatrice_stats_alloc :: fonc (params: &ParamètresAllocation, données: *Base
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ArèneMémoire
+ * \{ */
+
+IndiceMémoire :: n64
+
+MémoireTemporaire :: struct {
+    arène: *ArèneMémoire
+    utilisé: IndiceMémoire
+}
+
+ArèneMémoire :: struct {
+    base: *octet
+    taille: IndiceMémoire
+    utilisé: IndiceMémoire
+    compte_temp: z32
+}
+
+initialise_arène :: fonc (arène: *ArèneMémoire, base: *octet, taille: IndiceMémoire)
+{
+    arène.base = base
+    arène.taille = taille
+    arène.utilisé = 0
+    arène.compte_temp = 0
+}
+
+réinitialise :: fonc (arène: *ArèneMémoire)
+{
+    arène.utilisé = 0
+}
+
+donne_sous_arène :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 16) -> ArèneMémoire
+{
+    base := loge_mémoire(arène, taille comme n32, alignement)
+    résultat: ArèneMémoire = ---
+    initialise_arène(*résultat, base, taille)
+    retourne résultat
+}
+
+donne_sous_arène :: fonc (résultat: *ArèneMémoire, arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 16)
+{
+    mémoire(résultat) = donne_sous_arène(arène, taille, alignement)
+}
+
+donne_taille_restante_arène :: fonc (arène: *ArèneMémoire, alignement: IndiceMémoire = 4) -> IndiceMémoire
+{
+    décalage_alignement := donne_décalage_alignement(arène, alignement)
+    résultat := arène.taille - (arène.utilisé + décalage_alignement)
+    retourne résultat
+}
+
+loge :: fonc (arène: *ArèneMémoire, $T: type_de_données, alignement: n32 = 0) -> *T
+{
+    résultat := loge_mémoire(arène, taille_de(T), alignement) comme *T
+    init_de(T)(résultat)
+    retourne résultat
+}
+
+loge_chaine :: fonc (arène: *ArèneMémoire, chn: chaine) -> chaine
+{
+    résultat := loge_mémoire(arène, chn.taille comme n32)
+    copie_mem_nonsur(src = chn.pointeur, dst = résultat, taille = chn.taille)
+    retourne chaine(résultat comme *z8, chn.taille)
+}
+
+loge_tableau :: fonc (arène: *ArèneMémoire, nombre_d_éléments: n64, $T: type_de_données, alignement : n32 = 0) -> []T
+{
+    taille := taille_de(T) * nombre_d_éléments comme n32
+
+    résultat: []T = ---
+    résultat.pointeur = loge_mémoire(arène, taille, alignement) comme *T
+    résultat.taille = nombre_d_éléments comme z64
+    retourne résultat
+}
+
+enchaine :: fonc (arène: *ArèneMémoire, chns: ...chaine) -> chaine
+{
+    taille : z64 = 0
+    pour chns {
+        taille += it.taille
+    }
+
+    résultat := loge_mémoire(arène, taille comme n32)
+
+    dst := résultat
+    pour chns {
+        copie_mem_nonsur(src = it.pointeur, dst = dst, taille = it.taille)
+        dst += it.taille
+    }
+
+    retourne chaine(résultat comme *z8, taille)
+}
+
+imprime_chaine :: fonc (arène: *ArèneMémoire, format: chaine, args: ...eini) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+
+    taille := taille_chaine(*enchaineuse)
+
+    résultat := loge_mémoire(arène, taille comme n32)
+
+    tampon_courant := *enchaineuse.tampon
+
+    curseur : z64 = 0
+    curseur_dest := résultat
+
+    tantque tampon_courant != nul {
+        taille_tampon : z64 = tampon_courant.occupé
+        src := *tampon_courant.données[0]
+        dst := curseur_dest
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon)
+
+        tampon_courant = tampon_courant.suivant
+        curseur += taille_tampon
+
+        curseur_dest += taille_tampon
+    }
+
+    retourne chaine(résultat comme *z8, taille)
+}
+
+loge_mémoire :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 0) -> *octet
+{
+    décalage_alignement := donne_décalage_alignement(arène, alignement)
+    taille += décalage_alignement
+    assert(arène.utilisé + taille <= arène.taille)
+    résultat := (arène.base + arène.utilisé + décalage_alignement)
+    arène.utilisé += taille
+    retourne résultat
+}
+
+donne_décalage_alignement :: fonc (arène: *ArèneMémoire, alignement: IndiceMémoire) -> IndiceMémoire #enligne
+{
+    adresse_résultat := (arène.base comme IndiceMémoire) + arène.utilisé
+    décalage_alignement: IndiceMémoire
+    si alignement != 0 {
+        masque_alignement: IndiceMémoire = alignement - 1
+        si adresse_résultat & masque_alignement {
+            décalage_alignement = alignement - (adresse_résultat & masque_alignement)
+        }
+    }
+    retourne décalage_alignement
+}
+
+commence_mémoire_temporaire :: fonc (arène: *ArèneMémoire) -> MémoireTemporaire
+{
+    résultat: MémoireTemporaire
+    résultat.arène = arène
+    résultat.utilisé = arène.utilisé
+    arène.compte_temp += 1
+    retourne résultat
+}
+
+termine_mémoire_temporaire :: fonc (temp: MémoireTemporaire)
+{
+    arène := temp.arène
+    assert(arène.utilisé >= temp.utilisé)
+    arène.utilisé = temp.utilisé
+    assert(arène.compte_temp > 0)
+    arène.compte_temp -= 1
+}
+
+vérifie_arène :: fonc (arène: *ArèneMémoire)
+{
+    assert(arène.compte_temp == 0)
+}
+
+/** \} */

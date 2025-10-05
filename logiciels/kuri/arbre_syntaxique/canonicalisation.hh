@@ -38,13 +38,13 @@ struct Simplificatrice {
     NoeudDéclarationEntêteFonction *fonction_courante = nullptr;
 
     /* Tiens trace des appels de fonction. Quand nous visitons les paramètres de d'appel d'une
-     * fonction, si l'un des paramètres est la construction d'une instance de PositionCodeSource,
-     * nous devons utiliser le site d'appel et non le site de l'argument car celui-ci pourrait être
-     * le site de la déclaration de l'argument de la fonction.
+     * fonction, si l'un des paramètres est la construction d'une instance de
+     * #position_code_source, nous devons utiliser le site d'appel et non le site de l'argument car
+     * celui-ci pourrait être le site de la déclaration de l'argument de la fonction.
      *
      * Par exemple :
      *
-     * une_fonction :: fonc (position := PositionCodeSource()) ...
+     * une_fonction :: fonc (position := #position_code_source) ...
      *
      * une_autre_fonction :: fonc ()
      * {
@@ -112,14 +112,14 @@ struct Simplificatrice {
         NoeudExpressionConstructionStructure *construction);
     NoeudExpression *simplifie_construction_union(
         NoeudExpressionConstructionStructure *construction);
-    NoeudExpression *simplifie_construction_structure_position_code_source(
-        NoeudExpressionConstructionStructure *construction);
     NoeudExpression *simplifie_construction_structure_impl(
         NoeudExpressionConstructionStructure *construction);
     NoeudExpressionRéférence *génère_simplification_construction_structure(
         NoeudExpressionAppel *construction, TypeStructure *type_struct);
     NoeudExpression *simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
     NoeudExpression *simplifie_référence_rubrique(NoeudExpressionRubrique *ref_rubrique);
+
+    void simplifie_position_code_source(NoeudDirectiveIntrospection *directive);
 
     NoeudExpression *simplifie_assignation_énum_drapeau(NoeudExpression *var,
                                                         NoeudExpression *expression);
@@ -148,7 +148,8 @@ struct Simplificatrice {
 
     NoeudExpression *simplifie_tente(NoeudInstructionTente *inst);
 
-    NoeudExpression *développe_macro(NoeudDéclarationEntêteFonction *macro);
+    NoeudExpression *développe_macro(NoeudDéclarationEntêteFonction *macro,
+                                     kuri::tableau_statique<NoeudExpression *> params);
 };
 
 /** \} */

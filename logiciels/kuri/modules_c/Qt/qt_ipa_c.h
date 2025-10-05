@@ -821,9 +821,19 @@ struct QT_ByteArray QT_mimedata_donne_donnee(struct QT_MimeData *mimedata,
 /** \name QT_Clipboard
  * \{ */
 
-struct QT_MimeData *QT_clipboard_donne_mimedata(struct QT_Clipboard *clipboard);
-void QT_clipboard_definis_mimedata(struct QT_Clipboard *clipboard, struct QT_MimeData *mimedata);
-void QT_clipboard_efface(struct QT_Clipboard *clipboard);
+#define ENUMERE_CLIPBOARD_MODE(O)                                                                 \
+    O(QT_CLIPBOARD_MODE_Clipboard, QClipboard::Clipboard)                                         \
+    O(QT_CLIPBOARD_MODE_Selection, QClipboard::Selection)                                         \
+    O(QT_CLIPBOARD_MODE_FindBuffer, QClipboard::FindBuffer)
+
+enum QT_Clipboard_Mode { ENUMERE_CLIPBOARD_MODE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+struct QT_MimeData *QT_clipboard_donne_mimedata(struct QT_Clipboard *clipboard,
+                                                enum QT_Clipboard_Mode mode);
+void QT_clipboard_definis_mimedata(struct QT_Clipboard *clipboard,
+                                   struct QT_MimeData *mimedata,
+                                   enum QT_Clipboard_Mode mode);
+void QT_clipboard_efface(struct QT_Clipboard *clipboard, enum QT_Clipboard_Mode mode);
 
 /** \} */
 
@@ -1470,8 +1480,13 @@ void QT_window_close(struct QT_Window *window);
 void QT_window_destroy(struct QT_Window *window);
 void QT_window_request_update(struct QT_Window *window);
 void QT_window_show(struct QT_Window *window);
+bool QT_window_is_maximized(struct QT_Window *window);
 void QT_window_show_maximized(struct QT_Window *window);
+bool QT_window_is_minimized(struct QT_Window *window);
 void QT_window_show_minimized(struct QT_Window *window);
+bool QT_window_is_fullscreen(struct QT_Window *window);
+void QT_window_show_fullscreen(struct QT_Window *window);
+void QT_window_show_normal(struct QT_Window *window);
 bool QT_window_is_visible(struct QT_Window *window);
 void QT_window_set_visible(struct QT_Window *window, bool oui_non);
 void QT_window_set_surface_type(struct QT_Window *window, enum QT_Surface_Type surface_type);

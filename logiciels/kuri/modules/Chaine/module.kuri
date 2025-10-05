@@ -596,22 +596,22 @@ append :: fonc (vers: *chaine, chn: chaine) -> rien
 
 trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z64 = 0) -> z64
 {
-    pour i dans indice_début ... chn.taille - motif.taille - 1 {
-        trouvé := vrai
+    résultat : z64 = -1
+    indice := 0
 
-        pour m, idx dans motif {
-            si m != chn[i + idx] {
-                trouvé = faux
-                arrête
-            }
+    chn = avance(chn, indice_début)
+
+    tantque chn.taille >= motif.taille {
+        si chn.commence_par(motif) {
+            résultat = indice
+            arrête
         }
 
-        si trouvé {
-            retourne i
-        }
+        chn = avance(chn, 1)
+        indice += 1
     }
 
-    retourne -1
+    retourne résultat
 }
 
 /**

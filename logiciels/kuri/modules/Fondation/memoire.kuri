@@ -9,7 +9,7 @@ importe POSIX // pour memcpy
 /* Retourne la taille alignée pour être un multiple de N.
  * N doit être une puissance de 2, car nous présupposons
  * un alignement en mémoire. */
-taille_alignée :: fonc (taille: z64, $N: z32) -> z64 #enligne
+donne_taille_alignée :: fonc (taille: z64, $N: z32) -> z64 #enligne
 {
     #assert (N & (N - 1)) == 0
     /* (taille + (2^n - 1) & ~(2^n - 1) */

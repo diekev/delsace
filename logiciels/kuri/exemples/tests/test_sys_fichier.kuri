@@ -5,15 +5,15 @@ importe SysFichier
 
 test_chemin_courant :: fonc () -> rien
 {
-    chemin := chemin_courant()
+    chemin := donne_chemin_courant()
 
     imprime("chemin courant : %\n", chemin.chn)
     déloge(chemin.chn)
 
     chemin = CheminFichier("/tmp/")
-    chemin_courant(chemin)
+    définis_chemin_courant(chemin)
 
-    chemin = chemin_courant()
+    chemin = donne_chemin_courant()
 
     imprime("chemin courant : %\n", chemin.chn)
     déloge(chemin.chn)

@@ -59,10 +59,10 @@ ratio_d_aspect :: fonc (caméra: *Caméra2D) -> r32
 
 applique_zoom :: fonc (caméra: *Caméra2D, delta: r32, où: Point2D(z32)) #enligne
 {
-    position: Point2D(z32)
-    position.x = où.x comme z32
-    position.y = où.y comme z32
-    applique_zoom(caméra, delta, où.x, où.y)
+    position: Point2D(r32)
+    position.x = où.x comme r32
+    position.y = où.y comme r32
+    applique_zoom(caméra, delta, position)
 }
 
 applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où: Point2D(r32)) #enligne

@@ -109,6 +109,7 @@ NuanceurGL :: struct {
     loc_atlas : z32 = -1
     loc_projection : z32 = -1
     adresse_image : z32 = -1
+    adresse_teinte : z32 = -1
     loc_id : z32 = -1
 }
 
@@ -142,6 +143,7 @@ crée_nuanceur_depuis_sources :: fonc (source_vertex: chaine, source_fragment: c
     nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas")
     nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection")
     nuanceur.adresse_image = donne_adresse_uniforme(nuanceur.programme, "image")
+    nuanceur.adresse_teinte = donne_adresse_uniforme(nuanceur.programme, "teinte")
     nuanceur.loc_id = donne_adresse_attribut(nuanceur.programme, "id")
 
     glUseProgram(0)
@@ -625,33 +627,45 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
 // À FAIRE : trouve une manière de mieux déterminer ceci.
 NOMBRE_SEGMENTS_CERCLE :: 64
 
+ellipse_immédiat :: fonc (ellipse: Ellipse(r32), couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    ellipse_immédiat(ellipse.x, ellipse.y, ellipse.rayon_x, ellipse.rayon_y, couleur, ajoute_centre)
+}
+
+ellipse_immédiat :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    segs := NOMBRE_SEGMENTS_CERCLE
+    phi := 0.0
+    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur, ajoute_centre)
+}
+
 cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := NOMBRE_SEGMENTS_CERCLE
     phi := 0.0
-    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
+    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre)
 }
 
 quadrant_cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, quadrant: z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     segs := NOMBRE_SEGMENTS_CERCLE / 4
     phi := quadrant comme r32 * (Constantes(r32).PI / 2.0)
-    cercle_immédiat_impl(cx, cy, r, segs, phi, couleur, ajoute_centre)
+    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre)
 }
 
-cercle_immédiat_impl :: fonc (cx: r32, cy: r32, r: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
+cercle_immédiat_impl :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
     p0 := Vec3(cx, cy, 0.0)
     phi_delta := Constantes(r32).TAU / segs comme r32
 
     pour segs {
-        ca0 := cx + cosinus(phi) * r
-        sa0 := cy + sinus(phi) * r
+        ca0 := cx + cosinus(phi) * rx
+        sa0 := cy + sinus(phi) * ry
 
         phi += phi_delta
 
-        ca1 := cx + cosinus(phi) * r
-        sa1 := cy + sinus(phi) * r
+        ca1 := cx + cosinus(phi) * rx
+        sa1 := cy + sinus(phi) * ry
 
         p1 := Vec3(ca0, sa0, 0.0)
         p2 := Vec3(ca1, sa1, 0.0)
@@ -1017,32 +1031,32 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
 /** \nom Image
  * \{ */
 
-image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
+image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0), id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur)
+    image_immédiat(*params, rect_image, rect, teinte, id_nuanceur)
 }
 
 image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     /* À FAIRE : dessine en noir et blanc. */
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur)
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
 }
 
 image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur)
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
 }
 
 image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur)
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
 }
 
-image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), id_nuanceur := IDNuanceur.Image)
+image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0), id_nuanceur := IDNuanceur.Image)
 {
     empl __ctx_courant;
     nuanceur_image := nuanceurs[id_nuanceur]
@@ -1068,6 +1082,7 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePos
 
     glBindTexture(GL_TEXTURE_2D, code_texture)
     définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
+    définis_uniforme(nuanceur_image.adresse_teinte, teinte)
 
     x := rect.x
     y := rect.y

@@ -151,17 +151,17 @@ formatte_nombre_réel :: fonc (enchaineuse: *Enchaineuse, ptr: *NombreRéel)
 
 loge_gmp :: fonc (taille: n64) -> *rien
 {
-    retourne loge_mémoire(taille comme z64, nul, PositionCodeSource())
+    retourne loge_mémoire(taille comme z64, nul, #position_code_source)
 }
 
 reloge_gmp :: fonc (ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
 {
-    retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, PositionCodeSource())
+    retourne reloge_mémoire(ancienne_taille comme z64, nouvelle_taille comme z64, ancien_pointeur, nul, #position_code_source)
 }
 
 déloge_gmp :: fonc (pointeur: *rien, taille: n64) -> rien
 {
-    déloge_mémoire(taille comme z64, pointeur, nul, PositionCodeSource())
+    déloge_mémoire(taille comme z64, pointeur, nul, #position_code_source)
 }
 
 initialise_nombre_réel :: fonc ()

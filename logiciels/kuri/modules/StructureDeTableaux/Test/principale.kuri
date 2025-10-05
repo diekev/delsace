@@ -1,0 +1,59 @@
+importe Fondation
+importe Math
+importe StructureDeTableaux
+
+principale :: fonc ()
+{
+    Triangle :: struct {
+        p0: Vec3
+        p1: Vec3
+        p2: Vec3
+    }
+
+    s: SDT(Triangle)
+    redimensionne(*s, 64)
+
+    imprimeln("nombre de p0 : %", s.p0.taille)
+
+    t: Triangle
+    t.p0 = Vec3(123,   0,   0)
+    t.p1 = Vec3(  0, 456,   0)
+    t.p2 = Vec3(  0,   0, 789)
+
+    définis_élément(*s, 32, t)
+    imprimeln("stocke triangle : %", t)
+
+    triangle_stocké := donne_élément(*s, 32)
+    imprimeln("triangle_stocké : %", triangle_stocké)
+    imprimeln("triangle_stocké : %", s[32])
+
+    pour s {
+        imprimeln("% | % % %", indice_it, it.p0.x, it.p1.y, it.p2.z)
+    }
+
+    imprimeln("")
+    imprimeln("Utilisation d'un masque pour lire ou écrire")
+    imprimeln("")
+    masque: MasqueSDT(Triangle)
+    masque.p1 = vrai
+
+    t = donne_élément(*s, 32, masque)
+    imprimeln("Seul le point 1 doit avoir une valeur :")
+    imprimeln("%", t)
+
+    masque.p1 = faux
+    masque.p2 = vrai
+
+    t.p0 = Vec3(111, 111, 111)
+    t.p1 = Vec3(222, 222, 222)
+    t.p2 = Vec3(333, 333, 333)
+
+    imprimeln("")
+    imprimeln("Écris... %", t)
+    définis_élément(*s, 33, t, masque)
+    imprimeln("... avec masque : %", masque)
+
+    t = s[33]
+    imprimeln("")
+    imprimeln("Lu sans masque : %", t)
+}

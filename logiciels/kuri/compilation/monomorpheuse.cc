@@ -156,7 +156,7 @@ kuri::chaine ErreurMonomorphisation::message() const
 
 Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
                              const NoeudDéclarationEntêteFonction *entete)
-    : espace(ref_espace), polymorphe(entete)
+    : espace(ref_espace), typeuse(espace.compilatrice().typeuse), polymorphe(entete)
 {
     POUR (*entete->bloc_constantes->rubriques.verrou_lecture()) {
         ajoute_item_pour_constante(it->comme_déclaration_constante());
@@ -291,10 +291,10 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
     if (!type_reçu || !type_reçu->est_type_type_de_données()) {
         /* Garantie que nous n'avons pas d'entiers constants dans les résultats. */
         if (type_reçu && type_reçu->est_type_entier_constant()) {
-            type_reçu = TypeBase::Z32;
+            type_reçu = typeuse.type_z32;
         }
 
-        type_reçu = typeuse().type_type_de_donnees(const_cast<Type *>(type_reçu));
+        type_reçu = typeuse.type_type_de_donnees(const_cast<Type *>(type_reçu));
     }
 
     candidats.ajoute({ident, type_reçu, {}, GenreItem::TYPE_DE_DONNÉES});
@@ -405,8 +405,8 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
 }
 
 static NoeudDéclaration *rubrique_pour_ident_ou_index(NoeudBloc *bloc,
-                                                    const IdentifiantCode *ident,
-                                                    int index)
+                                                      const IdentifiantCode *ident,
+                                                      int index)
 {
     if (ident) {
         return trouve_dans_bloc(bloc, ident);
@@ -566,7 +566,7 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                           DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             ValeurExpression valeur = type_tableau->taille;
-            ajoute_candidat_valeur(decl_referee->ident, TypeBase::Z64, valeur);
+            ajoute_candidat_valeur(decl_referee->ident, typeuse.type_z64, valeur);
         }
     }
 
@@ -695,7 +695,7 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         if (!type_pointe) {
             return nullptr;
         }
-        return typeuse().type_pointeur_pour(type_pointe);
+        return typeuse.type_pointeur_pour(type_pointe);
     }
     else if (expression_polymorphique->est_prise_référence()) {
         auto const prise_référence = expression_polymorphique->comme_prise_référence();
@@ -703,7 +703,7 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         if (!type_pointe) {
             return nullptr;
         }
-        return typeuse().type_reference_pour(type_pointe);
+        return typeuse.type_reference_pour(type_pointe);
     }
     else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
         auto const type_tableau_fixe =
@@ -887,7 +887,7 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
             types_sorties.ajoute(rubrique);
         }
 
-        type_sortie = typeuse().crée_tuple(types_sorties);
+        type_sortie = typeuse.crée_tuple(types_sorties);
     }
     else {
         type_sortie = résoud_type_final_impl(decl_type_fonction->types_sortie[0]);
@@ -897,7 +897,7 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
         return nullptr;
     }
 
-    return typeuse().type_fonction(types_entrees, type_sortie);
+    return typeuse.type_fonction(types_entrees, type_sortie);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
@@ -992,7 +992,7 @@ Type *Monomorpheuse::résoud_type_final_pour_construction_opaque(
     assert(item_résultat);
 
     /* À FAIRE(opaque) : il faudrait pouvoir vérifier que la monomorphisation existe. */
-    return typeuse().monomorphe_opaque(
+    return typeuse.monomorphe_opaque(
         opaque_construite,
         const_cast<Type *>(item_résultat->type->comme_type_type_de_données()->type_connu));
 }
@@ -1004,7 +1004,7 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tranche(
     if (!type_pointe) {
         return nullptr;
     }
-    return typeuse().crée_type_tranche(type_pointe);
+    return typeuse.crée_type_tranche(type_pointe);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_dynamique(
@@ -1014,7 +1014,7 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_dynamique(
     if (!type_pointe) {
         return nullptr;
     }
-    return typeuse().type_tableau_dynamique(type_pointe);
+    return typeuse.type_tableau_dynamique(type_pointe);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
@@ -1029,14 +1029,14 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
     if (expression_taille->est_référence_déclaration()) {
         auto item = trouve_item_pour_ident(items_résultat, expression_taille->ident);
         assert(item);
-        return typeuse().type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
+        return typeuse.type_tableau_fixe(type_pointe, int32_t(item->valeur.entière()));
     }
     auto valeur_taille = évalue_valeur(expression_taille);
     if (!valeur_taille.est_entière()) {
         erreur_sémantique(expression_taille, "La taille du tableau n'est pas une valeur entière");
         return nullptr;
     }
-    return typeuse().type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entière()));
+    return typeuse.type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entière()));
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(
@@ -1046,12 +1046,7 @@ Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(
     if (!type_pointe) {
         return nullptr;
     }
-    return typeuse().type_variadique(type_pointe);
-}
-
-Typeuse &Monomorpheuse::typeuse()
-{
-    return espace.compilatrice().typeuse;
+    return typeuse.type_variadique(type_pointe);
 }
 
 RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation const &item,
