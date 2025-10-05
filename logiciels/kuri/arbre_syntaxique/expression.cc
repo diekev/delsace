@@ -622,7 +622,6 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             auto &rubrique = type_composé->rubriques[ref_rubrique->indice_rubrique];
 
             if (rubrique.est_constant()) {
-                auto &rubrique = type_composé->rubriques[ref_rubrique->indice_rubrique];
                 auto decl = rubrique.decl;
                 // À FAIRE : nettoye tout ça, déduplique avec canonicalisation
                 if (decl) {
