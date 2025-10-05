@@ -123,6 +123,14 @@ static bool type_dest_et_type_source_sont_compatibles(Typeuse &typeuse,
         }
     }
 
+    /* On ne peut pas transtyper dans la coulisse C entre une union et son type le plus grand. */
+    if (type_élément_dest->est_type_union()) {
+        auto type_union = type_élément_dest->comme_type_union();
+        if (type_union->est_nonsure && type_source == type_union->type_le_plus_grand) {
+            return true;
+        }
+    }
+
     return false;
 }
 
