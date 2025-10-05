@@ -1448,6 +1448,30 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
 }
 
+NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
+{
+#define CREE_DECLARATION_TYPE_PLATEFORME(nom)                                                     \
+    résultat->ajoute_rubrique(typeuse.nom);                                                       \
+    typeuse.nom->expression_type = m_assembleuse->crée_référence_déclaration(                     \
+        nullptr, typeuse.nom->comme_déclaration_type());                                          \
+    typeuse.nom->bloc_parent = résultat;
+
+    auto résultat = m_assembleuse->crée_bloc_seul(nullptr, nullptr);
+
+    CREE_DECLARATION_TYPE_PLATEFORME(type_dff_adr);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_nat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_rel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mnat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mrel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_nat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_rel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_nbf_flt);
+
+#undef CREE_DECLARATION_TYPE_PLATEFORME
+
+    return résultat;
+}
+
 void GestionnaireCode::mets_en_attente(UniteCompilation *unité_attendante, Attente attente)
 {
     assert(attente.est_valide());

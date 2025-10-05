@@ -508,6 +508,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
         if (module->bloc == nullptr) {
             module->bloc = m_contexte->assembleuse->empile_bloc(
                 lexème_courant(), nullptr, TypeBloc::MODULE);
+            module->bloc->bloc_parent = m_compilatrice.m_bloc_racine;
 
             if (module->nom() != ID::Kuri) {
                 /* Crée une rubrique pour l'import implicite du module Kuri afin de pouvoir accéder

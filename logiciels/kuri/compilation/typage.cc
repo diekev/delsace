@@ -381,8 +381,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_octet->alignement = 1;
     type_octet->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
-    type_dff_adr_nat = crée_opaque_défaut(type_n64, ID::dff_adr_nat);
-    type_dff_adr_rel = crée_opaque_défaut(type_z64, ID::dff_adr_rel);
+    type_dff_adr = crée_opaque_défaut(type_n64, ID::dff_adr);
     type_adr_plt_nat = crée_opaque_défaut(type_n64, ID::adr_plt_nat);
     type_adr_plt_rel = crée_opaque_défaut(type_z64, ID::adr_plt_rel);
     type_taille_mnat = crée_opaque_défaut(type_n64, ID::taille_mnat);

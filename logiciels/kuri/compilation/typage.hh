@@ -216,8 +216,7 @@ struct Typeuse {
     NoeudDéclarationTypeOpaque *type_octet = nullptr;
     NoeudDéclarationTypeOpaque *type_entier_constant = nullptr;
 
-    NoeudDéclarationTypeOpaque *type_dff_adr_nat = nullptr;
-    NoeudDéclarationTypeOpaque *type_dff_adr_rel = nullptr;
+    NoeudDéclarationTypeOpaque *type_dff_adr = nullptr;
     NoeudDéclarationTypeOpaque *type_adr_plt_nat = nullptr;
     NoeudDéclarationTypeOpaque *type_adr_plt_rel = nullptr;
     NoeudDéclarationTypeOpaque *type_taille_mnat = nullptr;
