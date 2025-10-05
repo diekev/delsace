@@ -178,6 +178,39 @@ enchaine :: fonc (arène: *ArèneMémoire, chns: ...chaine) -> chaine
     retourne chaine(résultat comme *z8, taille)
 }
 
+imprime_chaine :: fonc (arène: *ArèneMémoire, format: chaine, args: ...eini) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+
+    taille := taille_chaine(*enchaineuse)
+
+    résultat := loge_mémoire(arène, taille comme n32)
+
+    tampon_courant := *enchaineuse.tampon
+
+    curseur : z64 = 0
+    curseur_dest := résultat
+
+    tantque tampon_courant != nul {
+        taille_tampon : z64 = tampon_courant.occupé
+        src := *tampon_courant.données[0]
+        dst := curseur_dest
+
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon)
+
+        tampon_courant = tampon_courant.suivant
+        curseur += taille_tampon
+
+        curseur_dest += taille_tampon
+    }
+
+    retourne chaine(résultat comme *z8, taille)
+}
+
 loge_mémoire :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 0) -> *octet
 {
     décalage_alignement := donne_décalage_alignement(arène, alignement)
