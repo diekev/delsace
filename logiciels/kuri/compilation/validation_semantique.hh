@@ -154,6 +154,8 @@ struct Sémanticienne {
 
     Type *union_ou_structure_courante() const;
 
+    NoeudExpression *donne_site_monomorphisation() const;
+
     StatistiquesTypage &donne_stats_typage();
 
     void rassemble_statistiques(Statistiques &stats);

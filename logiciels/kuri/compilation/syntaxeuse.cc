@@ -508,6 +508,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
         if (module->bloc == nullptr) {
             module->bloc = m_contexte->assembleuse->empile_bloc(
                 lexème_courant(), nullptr, TypeBloc::MODULE);
+            module->bloc->bloc_parent = m_compilatrice.m_bloc_racine;
 
             if (module->nom() != ID::Kuri) {
                 /* Crée une rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
@@ -1143,7 +1144,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                      directive == ID::chemin_de_ce_fichier ||
                      directive == ID::chemin_de_ce_module ||
                      directive == ID::type_de_cette_fonction ||
-                     directive == ID::type_de_cette_structure) {
+                     directive == ID::type_de_cette_structure ||
+                     directive == ID::position_code_source) {
                 auto noeud = m_contexte->assembleuse->crée_directive_instrospection(lexème);
                 return noeud;
             }
@@ -3064,7 +3066,18 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
                 rapporte_erreur("Attendu un nombre entier après #optimise");
             }
 
-            noeud->niveau_optimisation = lexème->valeur_entiere;
+            noeud->niveau_optimisation = uint8_t(lexème->valeur_entiere);
+        }
+        else if (ident_directive == ID::sse2) {
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+            noeud->drapeaux |= DrapeauxNoeud::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_EXTERNE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::EST_SSE2;
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
+            drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSBROYAGE;
+            consomme();
         }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
@@ -3370,7 +3383,8 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
     else {
         Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
 
-        auto decl = crée_retour_défaut_fonction(m_contexte->assembleuse, lexème_rien);
+        auto decl = crée_retour_défaut_fonction(
+            m_contexte->assembleuse, m_compilatrice.typeuse, lexème_rien);
         decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         résultat.ajoute(decl);
@@ -3514,7 +3528,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
             if (noeud->ident == ID::InfoType) {
-                TypeBase::EINI->comme_type_composé()->rubriques[1].type =
+                m_compilatrice.typeuse.type_eini->rubriques[1].type =
                     m_compilatrice.typeuse.type_pointeur_pour(noeud);
             }
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
@@ -3523,6 +3537,13 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         }
         else if (ident_directive == ID::externe) {
             noeud->est_externe = true;
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
+        else if (ident_directive == ID::sse2) {
+            noeud->est_externe = true;
+            noeud->est_sse2 = true;
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);
@@ -3800,6 +3821,7 @@ enum DirectiveDeVariable : uint32_t {
     EXPORTE = (1u << 3),
     MÉMOIRE_GLOBALE = (1u << 4),
     MÉMOIRE_LOCALE = (1u << 5),
+    VOLATILE = (1U << 6),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
 
@@ -3905,6 +3927,11 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
             consomme();
             déclaration->partage_mémoire = PartageMémoire::LOCAL;
             directives |= DirectiveDeVariable::MÉMOIRE_LOCALE;
+        }
+        else if (lexème_directive->ident == ID::volatile_) {
+            consomme();
+            directives |= DirectiveDeVariable::VOLATILE;
+            déclaration->drapeaux |= DrapeauxNoeud::EST_VOLATILE;
         }
         else {
             rapporte_erreur("Directive de déclaration de variable inconnue.");
