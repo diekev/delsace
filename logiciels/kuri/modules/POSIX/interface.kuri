@@ -369,8 +369,6 @@ setjmp :: fonc (buf: *__jmp_buf_tag) -> z32 #externe libc
 
 /** \} */
 
-// <signal.h>
-
 /* ------------------------------------------------------------------------- */
 /** \nom signal.h
  * \{ */
@@ -450,6 +448,127 @@ sigaction_struct :: struct {
 }
 
 sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc
+
+__SI_MAX_SIZE : n32 : 128
+// #if __WORDSIZE == 64
+__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 4)
+// #else
+__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
+// #endif
+
+__pid_t :: z32
+__uid_t :: z32
+__clock_t :: z64
+__SI_CLOCK_T :: __clock_t
+
+__sigval_t :: union nonsûr {
+    __sival_int: z32
+    __sival_ptr: *rien
+}
+
+siginfo_t :: struct {
+    si_signo: z32;    /* Signal number.  */
+    si_errno: z32;    /* If non-zero, an errno value associated with this signal, as defined in <errno.h>.  */
+    si_code: z32;     /* Signal code.  */
+
+    // #if WORDSIZE == 64
+    __pad0: z32;      /* Explicit padding.  */
+
+    __sifield_t :: union nonsûr {
+	    _pad: [__SI_PAD_SIZE]z32
+
+        /* kill().  */
+        kill_info_t :: struct {
+            si_pid: __pid_t;	/* Sending process ID.  */
+            si_uid: __uid_t;	/* Real user ID of sending process.  */
+        }
+        _kill: kill_info_t
+
+        /* POSIX.1b timers.  */
+        time_info_t :: struct {
+            si_tid: z32;		/* Timer ID.  */
+            si_overrun: z32;	/* Overrun count.  */
+            si_sigval: __sigval_t;	/* Signal value.  */
+        }
+        _timer: time_info_t
+
+        /* POSIX.1b signals.  */
+        signal_info_t :: struct {
+            si_pid: __pid_t;	/* Sending process ID.  */
+            si_uid: __uid_t;	/* Real user ID of sending process.  */
+            si_sigval: __sigval_t;	/* Signal value.  */
+        }
+        _rt: signal_info_t;
+
+        /* SIGCHLD.  */
+        sigchld_info_t :: struct {
+            si_pid: __pid_t;	/* Which child.	 */
+            si_uid: __uid_t;	/* Real user ID of sending process.  */
+            si_status: z32;	/* Exit value or signal.  */
+            si_utime: __SI_CLOCK_T;
+            si_stime: __SI_CLOCK_T;
+        }
+        _sigchld: sigchld_info_t;
+
+        /* SIGILL, SIGFPE, SIGSEGV, SIGBUS.  */
+        // À FAIRE : fini ça
+    //     struct
+    //     {
+    //         void *si_addr;	    /* Faulting insn/memory ref.  */
+    //         __SI_SIGFAULT_ADDL
+    //         short int si_addr_lsb;  /* Valid LSB of the reported address.  */
+    //         union
+    //         {
+    //         /* used when si_code=SEGV_BNDERR */
+    //         struct
+    //         {
+    //             void *_lower;
+    //             void *_upper;
+    //         } _addr_bnd;
+    //         /* used when si_code=SEGV_PKUERR */
+    //         __uint32_t _pkey;
+    //         } _bounds;
+    //     } _sigfault;
+
+    //     /* SIGPOLL.  */
+    //     struct
+    //     {
+    //         __SI_BAND_TYPE si_band;	/* Band event for SIGPOLL.  */
+    //         int si_fd;
+    //     } _sigpoll;
+
+    //     /* SIGSYS.  */
+    // #if __SI_HAVE_SIGSYS
+    //     struct
+    //     {
+    //         void *_call_addr;	/* Calling user insn.  */
+    //         int _syscall;	/* Triggering system call number.  */
+    //         unsigned int _arch; /* AUDIT_ARCH_* of syscall.  */
+    //     } _sigsys;
+    // #endif
+    }
+
+    _sifields: __sifield_t
+}
+
+// <bits/siginfo-consts.h>
+
+SI_ASYNCNL :: -60		/* Sent by asynch name lookup completion.  */
+SI_DETHREAD :: -7		/* Sent by execve killing subsidiary threads.  */
+SI_TKILL :: -6			/* Sent by tkill.  */
+SI_SIGIO :: -5			/* Sent by queued SIGIO. */
+SI_ASYNCIO :: -4		/* Sent by AIO completion.  */
+SI_MESGQ :: -3			/* Sent by real time mesq state change.  */
+SI_TIMER :: -2			/* Sent by timer expiration.  */
+SI_QUEUE :: -1			/* Sent by sigqueue.  */
+SI_USER :: 0			/* Sent by kill, sigsend.  */
+SI_KERNEL :: 0x80		/* Send by kernel.  */
+
+TRAP_BRKPT :: 1  /* Process breakpoint.  */
+TRAP_TRACE :: 2  /* Process trace trap.  */
+TRAP_BRANCH :: 3  /* Process taken branch trap.  */
+TRAP_HWBKPT :: 4  /* Hardware breakpoint/watchpoint.  */
+TRAP_UNK :: 5  /* Undiagnosed trap.  */
 
 /** \} */
 
