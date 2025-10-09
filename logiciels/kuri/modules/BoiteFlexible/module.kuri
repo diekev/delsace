@@ -365,6 +365,56 @@ définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage
     __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
 }
 
+définis_cotation :: fonc (cotation: Cotation)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.cotation = cotation
+}
+
+définis_rembourrage :: fonc (rembourrage: Rembourrage)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.rembourrage = rembourrage
+}
+
+définis_séparation_enfant :: fonc (séparation_enfant: r32)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.séparation_enfant = séparation_enfant
+}
+
+définis_alignement :: fonc (alignement: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement
+    __boite_courante.disposition.alignement_vertical = alignement
+}
+
+définis_alignement :: fonc (alignement_horizontal: AlignementEnfant, alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_alignement_horizontal :: fonc (alignement_horizontal: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+}
+
+définis_alignement_vertical :: fonc (alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_direction :: fonc (direction: Direction)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.direction = direction
+}
+
 ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
     config := donne_configuration_bordure_courante()
