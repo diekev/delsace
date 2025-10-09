@@ -1052,6 +1052,104 @@ waitpid :: fonc (id: z32, ptr: *z32, options: z32) -> z32 #externe libc
 
 wait :: fonc (status: *z32) -> z32 #externe libc
 
+/* If WIFEXITED(STATUS), the low-order 8 bits of the status.  */
+__WEXITSTATUS :: fonc (status: z32) -> z32 #enligne
+{
+    retourne (((status) & 0xff00) >> 8)
+}
+
+/* If WIFSIGNALED(STATUS), the terminating signal.  */
+__WTERMSIG :: fonc (status: z32) -> z32 #enligne
+{
+    retourne ((status) & 0x7f)
+}
+
+/* If WIFSTOPPED(STATUS), the signal that stopped the child.  */
+__WSTOPSIG :: fonc (status: z32) -> z32 #enligne
+{
+    retourne __WEXITSTATUS(status)
+}
+
+/* Nonzero if STATUS indicates normal termination.  */
+__WIFEXITED :: fonc (status: z32) -> bool #enligne
+{
+    retourne (__WTERMSIG(status) == 0)
+}
+
+/* Nonzero if STATUS indicates termination by a signal.  */
+__WIFSIGNALED :: fonc (status: z32) -> bool #enligne
+{
+    retourne (((((status) & 0x7f) + 1) comme z8 >> 1) > 0)
+}
+
+/* Nonzero if STATUS indicates the child is stopped.  */
+__WIFSTOPPED :: fonc (status: z32) -> bool #enligne
+{
+    retourne (((status) & 0xff) == 0x7f)
+}
+
+/* Nonzero if STATUS indicates the child continued after a stop.  We only
+   define this if <bits/waitflags.h> provides the WCONTINUED flag bit.  */
+__WIFCONTINUED :: fonc (status: z32) -> bool #enligne
+{
+    retourne ((status) == __W_CONTINUED)
+}
+
+/* Nonzero if STATUS indicates the child dumped core.  */
+__WCOREDUMP :: fonc (status: z32) -> z32 #enligne
+{
+    retourne ((status) & __WCOREFLAG)
+}
+
+/* Macros for constructing status values.  */
+__W_EXITCODE :: fonc (ret: z32, sig: z32) -> z32 #enligne
+{
+    retourne ((ret) << 8 | (sig))
+}
+
+__W_STOPCODE :: fonc (sig: z32) -> z32 #enligne
+{
+    retourne ((sig) << 8 | 0x7f)
+}
+
+__W_CONTINUED :: 0xffff
+__WCOREFLAG :: 0x80
+
+WEXITSTATUS :: fonc (status: z32) -> z32 #enligne
+{
+    retourne __WEXITSTATUS(status)
+}
+
+WTERMSIG :: fonc (status: z32) -> z32 #enligne
+{
+    retourne __WTERMSIG(status)
+}
+
+WSTOPSIG :: fonc (status: z32) -> z32 #enligne
+{
+    retourne __WSTOPSIG(status)
+}
+
+WIFEXITED :: fonc (status: z32) -> bool #enligne
+{
+    retourne __WIFEXITED(status)
+}
+
+WIFSIGNALED :: fonc (status: z32) -> bool #enligne
+{
+    retourne __WIFSIGNALED(status)
+}
+
+WIFSTOPPED :: fonc (status: z32) -> bool #enligne
+{
+    retourne __WIFSTOPPED(status)
+}
+
+WIFCONTINUED :: fonc (status: z32) -> bool #enligne
+{
+    retourne __WIFCONTINUED(status)
+}
+
 /** \} */
 
 // <syslog.h>
