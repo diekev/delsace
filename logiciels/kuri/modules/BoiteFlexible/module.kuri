@@ -1929,11 +1929,6 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     sinon {
                         commandes.remplis_rectangle(rect, boite.arrière_plan)
                     }
-
-                    si boite.indice_bordure.est_valide() {
-                        config := boite.emboiteuse.bordures[boite.indice_bordure]
-                        commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
-                    }
                 }
                 Texte {
                     /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
@@ -1996,15 +1991,21 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-                rect.x = rect.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
-                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
-                rect.largeur = boite.défilage.largeur_verticale - 2.0
-                rect.hauteur = hauteur_disponible * barre.ratio - 2.0
+                rect_défilage := rect
+                rect_défilage.x = rect_défilage.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
+                rect_défilage.y = rect_défilage.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
+                rect_défilage.largeur = boite.défilage.largeur_verticale - 2.0
+                rect_défilage.hauteur = hauteur_disponible * barre.ratio - 2.0
 
                 couleur_barre := boite.défilage.couleur_verticale
 
-                commandes.remplis_rectangle(rect, couleur_barre)
+                commandes.remplis_rectangle(rect_défilage, couleur_barre)
             }
+        }
+
+        si boite.indice_bordure.est_valide() {
+            config := boite.emboiteuse.bordures[boite.indice_bordure]
+            commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
         }
 
         éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
