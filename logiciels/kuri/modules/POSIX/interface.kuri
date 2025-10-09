@@ -1249,6 +1249,8 @@ dup2 :: fonc (oldfd: z32, newfd: z32) -> z32 #externe libc
 
 execvp :: fonc (file: ChaineC, argv: *ChaineC) -> z32 #externe libc
 
+execl :: fonc (pathname: *z8, arg: *z8, args: ... /* (char  *) NULL */) -> z32 #externe libc
+
 sysconf :: fonc (nom: SysConf) -> z64 #externe libc
 
 getpid :: fonc () -> z32 #externe libc
