@@ -37,6 +37,8 @@ Tabuleuse :: struct {
     nombre_colonnes: z64
 
     chaines_allouées: [..]chaine
+
+    tailles_max_colonnes: [..]z64
 }
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
@@ -48,12 +50,20 @@ crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 crée_tabuleuse :: fonc (ligne_titre: LigneTabuleuse) -> Tabuleuse
 {
     tabuleuse: Tabuleuse
-
-    ajoute_ligne(*tabuleuse, ligne_titre)
-
-    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE)
-
+    initialise_tabuleuse(*tabuleuse, ligne_titre)
     retourne tabuleuse
+}
+
+initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, titres: ...chaine)
+{
+    ligne := crée_ligne(...titres)
+    initialise_tabuleuse(tabuleuse, ligne)
+}
+
+initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, ligne_titre: LigneTabuleuse)
+{
+    ajoute_ligne(tabuleuse, ligne_titre)
+    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE)
 }
 
 détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
@@ -65,6 +75,7 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
     déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées)
     déloge(tabuleuse.lignes)
     déloge(tabuleuse.alignements)
+    déloge(tabuleuse.tailles_max_colonnes)
 }
 
 /**
@@ -92,7 +103,7 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
         tableau_ajoute(*ligne.colonnes, chn)
     }
 
-    tableau_ajoute(*tabuleuse.lignes, ligne)
+    ajoute_ligne(tabuleuse, ligne)
 }
 
 obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
@@ -114,7 +125,7 @@ obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
 {
-    tableau_ajoute(*tabuleuse.lignes, crée_ligne(...args))
+    ajoute_ligne(tabuleuse, crée_ligne(...args))
 }
 
 crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
@@ -128,8 +139,12 @@ crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
     retourne résultat
 }
 
-ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
+ajoute_ligne :: fonc (empl tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 {
+    si ligne.colonnes.taille > tailles_max_colonnes.taille {
+        tableau_redimensionne(tailles_max_colonnes, ligne.colonnes.taille)
+    }
+
     tableau_ajoute(*tabuleuse.lignes, ligne)
 }
 
@@ -138,23 +153,11 @@ définis_alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement)
     tabuleuse.alignements[idx] = align
 }
 
-imprime_table :: fonc (tabuleuse: *Tabuleuse) -> rien
+imprime_table :: fonc (empl tabuleuse: *Tabuleuse) -> rien
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
     diffère détruit_tampons(*enchaineuse)
-
-    nombre_colonnes: z64
-
-    pour ligne dans tabuleuse.lignes {
-        si ligne.colonnes.taille > nombre_colonnes {
-            nombre_colonnes = ligne.colonnes.taille
-        }
-    }
-
-    tailles_max_colonnes: [..]z64
-    tableau_redimensionne(tailles_max_colonnes, nombre_colonnes)
-    diffère déloge(tailles_max_colonnes)
 
     tableau_remplis_avec(tailles_max_colonnes, 0)
 

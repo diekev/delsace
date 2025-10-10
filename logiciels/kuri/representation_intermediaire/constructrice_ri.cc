@@ -17,6 +17,10 @@
 #include "structures/enchaineuse.hh"
 #include "structures/rassembleuse.hh"
 
+#ifndef NDEBUG
+#    include "utilitaires/divers.hh"
+#endif
+
 #include "utilitaires/log.hh"
 #include "utilitaires/macros.hh"
 
