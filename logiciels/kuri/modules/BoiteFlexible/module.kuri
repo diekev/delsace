@@ -361,6 +361,18 @@ dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), conf
     __boite_courante = boite
 }
 
+tag_boite :: fonc ()
+{
+    assert(__boite_courante != nul)
+    __boite_courante.est_taggée = vrai
+}
+
+définis_id_débogage :: fonc (id: chaine)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.id_débogage = id
+}
+
 définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
 {
     assert(__boite_courante != nul)
@@ -620,6 +632,8 @@ BoiteFlexible :: struct {
 
     id: n64
     type: Type
+    // est_taggée: bool
+    // id_débogage: chaine
 
     disposition: ConfigurationDisposition
     rectangle: ConfigurationRectangle
@@ -886,6 +900,9 @@ BoiteDisposée :: struct {
     puiné : z32 = -1
 
     id: n64
+    // est_taggée: bool
+    // type: BoiteFlexible.Type
+    // id_débogage: chaine
     rect: RectanglePosDim(r32)
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
@@ -1237,6 +1254,9 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     boite_disposée := tableau_ajoute_élément(*emboiteuse.boites_disposées)
     boite_disposée.parent = parent
     boite_disposée.id = boite.id
+    // boite_disposée.type = boite.type
+    // boite_disposée.est_taggée = boite.est_taggée
+    // boite_disposée.id_débogage = boite.id_débogage
     boite_disposée.rect.x = boite.position.x
     boite_disposée.rect.y = boite.position.y
     boite_disposée.rect.largeur = boite.largeur
