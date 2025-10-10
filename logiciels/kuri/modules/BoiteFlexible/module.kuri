@@ -1087,14 +1087,16 @@ guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, sou
         delta = souris.où.x comme r32 - souris_orig_x
     }
 
-    mémoire(barre) = barre_orig
-    barre.défilage += delta
+    si barre.ratio != 0.0 {
+        mémoire(barre) = barre_orig
+        barre.défilage += delta / barre.ratio
 
-    si barre.défilage < 0.0 {
-        barre.défilage = 0.0
-    }
-    si barre.défilage > barre.défilage_max {
-        barre.défilage = barre.défilage_max
+        si barre.défilage < 0.0 {
+            barre.défilage = 0.0
+        }
+        si barre.défilage > barre.défilage_max {
+            barre.défilage = barre.défilage_max
+        }
     }
 
     retourne ÉtatÉvènement.CONSOMMÉ
