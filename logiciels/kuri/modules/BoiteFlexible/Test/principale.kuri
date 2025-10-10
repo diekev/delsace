@@ -471,7 +471,7 @@ sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: 
     déloge(rappels)
 }
 
-démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n64, indice: z32 @inutilisée)
+démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
     rappels_édition_texte := loge(RappelsÉditionTexteApp)
     rappels_édition_texte.sur_édition = sur_édition_texte_qt
@@ -496,6 +496,8 @@ démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n
     initialise_guetteuse_édition_texte(guetteuse, *rappels_édition_texte.éditrice, rectz, rectz)
     guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction
     app.guetteuse = guetteuse
+
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 // :GuetteuseÉditionTexte

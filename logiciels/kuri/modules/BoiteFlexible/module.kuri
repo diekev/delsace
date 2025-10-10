@@ -872,7 +872,7 @@ TypeRappelUtilisateur :: énum {
     SurMoletteSouris
 }
 
-TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(rien)
+TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(ÉtatÉvènement)
 
 RappelUtilisateur :: struct {
     rappel: TypeRappelSouris
@@ -897,8 +897,8 @@ appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souri
 {
     rappel := boite.rappels[type]
     si rappel.rappel {
-        rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.indice_utilisateur)
-        retourne vrai
+        résultat := rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.indice_utilisateur)
+        retourne résultat == ÉtatÉvènement.CONSOMMÉ
     }
     retourne faux
 }
@@ -1012,19 +1012,20 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
         }
 
         si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
-            applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
-            sur_molette_souris(emboiteuse, évènement.donne_clic_souris())
+            saufsi sur_molette_souris(emboiteuse, évènement.donne_clic_souris()) {
+                applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
+            }
             retourne
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
-
-            si évènement.bouton_souris == BoutonSouris.PRIMAIRE {
-                pour * emboiteuse.barres_de_défilement {
-                    si it.est_survolée {
-                        commence_guettage_barre(emboiteuse, indice_it comme z32)
-                        arrête
+            saufsi sur_pression_souris(emboiteuse, évènement.donne_clic_souris()) {
+                si évènement.bouton_souris == BoutonSouris.PRIMAIRE {
+                    pour * emboiteuse.barres_de_défilement {
+                        si it.est_survolée {
+                            commence_guettage_barre(emboiteuse, indice_it comme z32)
+                            arrête
+                        }
                     }
                 }
             }
@@ -1033,7 +1034,7 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
         }
 
         si évènement.action_souris == ActionSouris.RELACHÉE {
-            sur_relâchement_souris(emboiteuse, évènement.donne_clic_souris())
+            _ := sur_relâchement_souris(emboiteuse, évènement.donne_clic_souris())
             retourne
         }
     }
@@ -1350,7 +1351,7 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     emboiteuse.souris_y = souris.état.où.y comme r32
 }
 
-sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
+sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
 {
     définis_position_souris(emboiteuse, souris)
 
@@ -1358,7 +1359,7 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     tantque boite {
         si appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, souris) {
             emboiteuse.id_pressé = boite.id
-            arrête
+            retourne vrai
         }
 
         si boite.parent == -1 {
@@ -1367,9 +1368,11 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 
         boite = *emboiteuse.boites_disposées[boite.parent]
     }
+
+    retourne faux
 }
 
-sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
+sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
 {
     définis_position_souris(emboiteuse, souris)
 
@@ -1379,7 +1382,7 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
             si emboiteuse.id_pressé == boite.id {
                 _ := appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris, souris)
             }
-            arrête
+            retourne vrai
         }
 
         si boite.parent == -1 {
@@ -1390,9 +1393,10 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     }
 
     emboiteuse.id_pressé = 0
+    retourne faux
 }
 
-sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
+sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
 {
     définis_position_souris(emboiteuse, souris)
     applique_défilage_vertical(emboiteuse, emboiteuse.souris_x, emboiteuse.souris_y, souris.delta)
@@ -1401,7 +1405,7 @@ sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     tantque boite {
         si appel_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, souris) {
             emboiteuse.id_pressé = boite.id
-            arrête
+            retourne vrai
         }
 
         si boite.parent == -1 {
@@ -1410,6 +1414,8 @@ sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 
         boite = *emboiteuse.boites_disposées[boite.parent]
     }
+
+    retourne faux
 }
 
 applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
