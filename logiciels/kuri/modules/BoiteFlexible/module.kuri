@@ -365,6 +365,56 @@ définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage
     __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
 }
 
+définis_cotation :: fonc (cotation: Cotation)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.cotation = cotation
+}
+
+définis_rembourrage :: fonc (rembourrage: Rembourrage)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.rembourrage = rembourrage
+}
+
+définis_séparation_enfant :: fonc (séparation_enfant: r32)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.séparation_enfant = séparation_enfant
+}
+
+définis_alignement :: fonc (alignement: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement
+    __boite_courante.disposition.alignement_vertical = alignement
+}
+
+définis_alignement :: fonc (alignement_horizontal: AlignementEnfant, alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_alignement_horizontal :: fonc (alignement_horizontal: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+}
+
+définis_alignement_vertical :: fonc (alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_direction :: fonc (direction: Direction)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.direction = direction
+}
+
 ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
     config := donne_configuration_bordure_courante()
@@ -1929,11 +1979,6 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     sinon {
                         commandes.remplis_rectangle(rect, boite.arrière_plan)
                     }
-
-                    si boite.indice_bordure.est_valide() {
-                        config := boite.emboiteuse.bordures[boite.indice_bordure]
-                        commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
-                    }
                 }
                 Texte {
                     /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
@@ -1996,15 +2041,21 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-                rect.x = rect.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
-                rect.y = rect.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
-                rect.largeur = boite.défilage.largeur_verticale - 2.0
-                rect.hauteur = hauteur_disponible * barre.ratio - 2.0
+                rect_défilage := rect
+                rect_défilage.x = rect_défilage.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
+                rect_défilage.y = rect_défilage.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
+                rect_défilage.largeur = boite.défilage.largeur_verticale - 2.0
+                rect_défilage.hauteur = hauteur_disponible * barre.ratio - 2.0
 
                 couleur_barre := boite.défilage.couleur_verticale
 
-                commandes.remplis_rectangle(rect, couleur_barre)
+                commandes.remplis_rectangle(rect_défilage, couleur_barre)
             }
+        }
+
+        si boite.indice_bordure.est_valide() {
+            config := boite.emboiteuse.bordures[boite.indice_bordure]
+            commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
         }
 
         éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)

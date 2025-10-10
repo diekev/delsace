@@ -422,6 +422,19 @@ tableau_avance :: fonc (tableau: []$T) -> []T
     retourne tableau
 }
 
+tableau_avance :: fonc (tableau: []$T, delta: z64) -> []T
+{
+    si tableau.taille - delta >= 0 {
+        tableau.pointeur += delta
+        tableau.taille -= delta
+    }
+    sinon {
+        tableau.pointeur = nul
+        tableau.taille = 0
+    }
+    retourne tableau
+}
+
 tableau_donne_indice :: fonc (tableau: []$T, valeur: T) -> z64
 {
     pour tableau {
