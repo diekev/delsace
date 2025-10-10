@@ -1982,21 +1982,19 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                 }
                 Texte {
                     /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
-                    si boite.texte.taille == 0 {
-                        continue
-                    }
+                    si boite.texte.taille != 0 {
+                        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
+                        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
+                        métriques := boite.config_texte.fonte.donne_métriques_fonte()
 
-                    premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
-                    dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
-                    métriques := boite.config_texte.fonte.donne_métriques_fonte()
+                        rect.hauteur = métriques.donne_hauteur_ligne()
 
-                    rect.hauteur = métriques.donne_hauteur_ligne()
+                        tantque premier_fragment < dernier_fragment {
+                            commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
+                            premier_fragment += 1
 
-                    tantque premier_fragment < dernier_fragment {
-                        commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
-                        premier_fragment += 1
-
-                        rect.y += métriques.donne_hauteur_ligne()
+                            rect.y += métriques.donne_hauteur_ligne()
+                        }
                     }
                 }
                 TexteUTF32 {
