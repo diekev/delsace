@@ -2,3 +2,17 @@ charge "impression"
 charge "memoire"
 charge "outils"
 charge "tableaux"
+
+pré_incrémente :: fonc (v: *$T) -> T
+{
+    mémoire(v) += 1
+    résultat := mémoire(v)
+    retourne résultat
+}
+
+post_incrémente :: fonc (v: *$T) -> T
+{
+    résultat := mémoire(v)
+    mémoire(v) += 1
+    retourne résultat
+}

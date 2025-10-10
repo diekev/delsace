@@ -95,6 +95,11 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
                 return "const char *";
             }
         }
+        if (entête->ident->nom == "execl") {
+            if (index == 0 || index == 1) {
+                return "const char *";
+            }
+        }
         return {};
     }
 
