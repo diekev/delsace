@@ -3,6 +3,7 @@ importe Couleur
 importe Empreinte
 importe ÉditionTexte
 importe Fondation
+importe Guettage
 importe Image
 importe Math
 importe Périphériques
@@ -265,6 +266,7 @@ ConfigurationDéfilage :: struct {
 
     largeur_verticale := 16.0
     couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+    couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7)
 }
 
 Cotation :: struct {
@@ -478,12 +480,13 @@ ajoute_défilage :: fonc (config: ConfigurationDéfilage)
     __boite_courante.défilage = config
 }
 
-ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7))
+ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7), couleur_survolage_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7))
 {
     assert(__boite_courante != nul)
     __boite_courante.défilage.vertical = vrai
     __boite_courante.défilage.largeur_verticale = largeur
     __boite_courante.défilage.couleur_verticale = couleur
+    __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage
 }
 
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
@@ -848,6 +851,10 @@ BarreDeDéfilement :: struct {
     défilage_max: r32
     /* hauteur disponible / hauteur contenu */
     ratio: r32
+
+    direction: Direction
+    est_survolée: bool
+    rect: RectanglePosDim(r32)
 }
 
 IndexBarreDeDéfilement :: #opaque n16
@@ -935,6 +942,9 @@ Emboiteuse :: struct {
     /* Mémoire vive. */
     croissables: [..]*BoiteFlexible
     décroissables: [..]*BoiteFlexible
+
+    guetteuse_courante: *Guetteuse
+    guetteuse_barre: GuetteuseBarreDéfilage
 }
 
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
@@ -984,11 +994,20 @@ donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) ->
 
 gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
 {
+    si emboiteuse.guetteuse_courante && gère_évènement(emboiteuse.guetteuse_courante, évènement) == ÉtatÉvènement.CONSOMMÉ {
+        retourne
+    }
+
     si évènement.type == TypeÉvènement.Souris {
         position := évènement.état_souris.où
 
         si évènement.action_souris == ActionSouris.DÉPLACÉE {
             définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
+
+            pour * emboiteuse.barres_de_défilement {
+                it.est_survolée = contient(it.rect, position.x comme r32, position.y comme r32)
+            }
+
             retourne
         }
 
@@ -1000,6 +1019,16 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
             sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
+
+            si évènement.bouton_souris == BoutonSouris.PRIMAIRE {
+                pour * emboiteuse.barres_de_défilement {
+                    si it.est_survolée {
+                        commence_guettage_barre(emboiteuse, indice_it comme z32)
+                        arrête
+                    }
+                }
+            }
+
             retourne
         }
 
@@ -1011,6 +1040,80 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
 }
 
 #portée_fichier
+
+GuetteuseBarreDéfilage :: struct {
+    empl base: Guetteuse
+
+    emboiteuse: *Emboiteuse
+    indice_barre: z32
+    souris_orig_x: r32
+    souris_orig_y: r32
+    barre_orig: BarreDeDéfilement
+
+    sur_termine_guettage = guetteuse_barre_défilage_sur_termine_guettage
+    sur_déplacement_souris = guetteuse_barre_défilage_sur_déplacement_souris
+    sur_clic = guetteuse_barre_défilage_sur_clic
+}
+
+commence_guettage_barre :: fonc (emboiteuse: *Emboiteuse, indice_barre: z32)
+{
+    assert(emboiteuse.guetteuse_courante == nul)
+    emboiteuse.guetteuse_barre.emboiteuse = emboiteuse
+    emboiteuse.guetteuse_barre.indice_barre = indice_barre
+    emboiteuse.guetteuse_barre.souris_orig_x = emboiteuse.souris_x
+    emboiteuse.guetteuse_barre.souris_orig_y = emboiteuse.souris_y
+    emboiteuse.guetteuse_barre.barre_orig = emboiteuse.barres_de_défilement[indice_barre]
+    emboiteuse.guetteuse_courante = *emboiteuse.guetteuse_barre
+}
+
+guetteuse_barre_défilage_sur_termine_guettage :: fonc (base: *Guetteuse)
+{
+    empl guetteuse := base comme *GuetteuseBarreDéfilage
+    emboiteuse.guetteuse_courante = nul
+}
+
+guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
+{
+    empl guetteuse := base comme *GuetteuseBarreDéfilage
+
+    barre := *emboiteuse.barres_de_défilement[indice_barre]
+
+    delta: r32
+    si barre.direction == Direction.Verticale {
+        delta = souris.où.y comme r32 - souris_orig_y
+    }
+    sinon {
+        delta = souris.où.x comme r32 - souris_orig_x
+    }
+
+    mémoire(barre) = barre_orig
+    barre.défilage += delta
+
+    si barre.défilage < 0.0 {
+        barre.défilage = 0.0
+    }
+    si barre.défilage > barre.défilage_max {
+        barre.défilage = barre.défilage_max
+    }
+
+    retourne ÉtatÉvènement.CONSOMMÉ
+}
+
+guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
+{
+    empl guetteuse := base comme *GuetteuseBarreDéfilage
+
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+
+    si clic.bouton == BoutonSouris.PRIMAIRE {
+        si clic.action == ActionSouris.RELACHÉE {
+            termine_guettage(guetteuse)
+            résultat = ÉtatÉvènement.CONSOMMÉ
+        }
+    }
+
+    retourne résultat
+}
 
 __boite_courante : *BoiteFlexible = nul
 
@@ -1232,6 +1335,7 @@ enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
     barre, indice_barre := donne_barre_de_défilement(boite, Direction.Verticale)
     barre.défilage_max = hauteur_enfants - hauteur_disponible
     barre.ratio = hauteur_disponible / hauteur_enfants
+    barre.direction = Direction.Verticale
 }
 
 définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
@@ -2035,7 +2139,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
         si boite.défilage.vertical || boite.défilage.horizontal {
             si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
-                barre := boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+                barre := *boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
@@ -2046,6 +2150,11 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                 rect_défilage.hauteur = hauteur_disponible * barre.ratio - 2.0
 
                 couleur_barre := boite.défilage.couleur_verticale
+                si barre.est_survolée {
+                    couleur_barre = boite.défilage.couleur_verticale_survolage
+                }
+
+                barre.rect = rect_défilage
 
                 commandes.remplis_rectangle(rect_défilage, couleur_barre)
             }
