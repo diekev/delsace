@@ -1814,7 +1814,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
                 auto ancien_noeud_virgule = m_noeud_expression_virgule;
                 m_noeud_expression_virgule = nullptr;
-                auto expression = analyse_expression({}, GenreLexème::INCONNU);
+                auto expression = analyse_expression_avec_virgule(true,
+                                                                  GenreLexème::CROCHET_FERMANT);
                 m_noeud_expression_virgule = ancien_noeud_virgule;
 
                 if (!apparie(GenreLexème::CROCHET_FERMANT)) {
