@@ -501,6 +501,19 @@ ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 
     __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage
 }
 
+donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
+{
+    assert(__boite_courante != nul)
+
+    boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id)
+    si boite && boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
+        retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+    }
+
+    barre, _ := donne_barre_de_défilement(__boite_courante, Direction.Verticale)
+    retourne barre
+}
+
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
 {
     définis_arrière_plan(CouleurRVBA(r, v, b, a))
@@ -879,6 +892,19 @@ est_valide :: fonc (indice: IndexBarreDeDéfilement) -> bool
     retourne indice comme n16 != INDEX_BARRE_DÉFILEMENT_INVALIDE comme n16
 }
 
+définis_défilage :: fonc (barre: *BarreDeDéfilement, défilage: r32)
+{
+    barre.défilage = défilage
+    si barre.ratio != 0.0 {
+        si barre.défilage < 0.0 {
+            barre.défilage = 0.0
+        }
+        si barre.défilage > barre.défilage_max {
+            barre.défilage = barre.défilage_max
+        }
+    }
+}
+
 TypeRappelUtilisateur :: énum {
     SurPressionSouris
     SurRelâchementSouris
@@ -1106,14 +1132,7 @@ guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, sou
 
     si barre.ratio != 0.0 {
         mémoire(barre) = barre_orig
-        barre.défilage += delta / barre.ratio
-
-        si barre.défilage < 0.0 {
-            barre.défilage = 0.0
-        }
-        si barre.défilage > barre.défilage_max {
-            barre.défilage = barre.défilage_max
-        }
+        définis_défilage(barre, barre.défilage + delta / barre.ratio)
     }
 
     retourne ÉtatÉvènement.CONSOMMÉ
@@ -1471,17 +1490,10 @@ applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, de
     barre := *emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
 
     si delta > 0 {
-        barre.défilage -= 60.0
+        définis_défilage(barre, barre.défilage - 60.0)
     }
     sinon {
-        barre.défilage += 60.0
-    }
-
-    si barre.défilage < 0.0 {
-        barre.défilage = 0.0
-    }
-    si barre.défilage > barre.défilage_max {
-        barre.défilage = barre.défilage_max
+        définis_défilage(barre, barre.défilage + 60.0)
     }
 }
 
