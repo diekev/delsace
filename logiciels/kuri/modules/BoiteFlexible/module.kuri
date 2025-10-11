@@ -1356,9 +1356,16 @@ enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
     }
 
     barre, indice_barre := donne_barre_de_défilement(boite, Direction.Verticale)
-    barre.défilage_max = hauteur_enfants - hauteur_disponible
-    barre.ratio = hauteur_disponible / hauteur_enfants
     barre.direction = Direction.Verticale
+
+    nouveau_défilage_max := hauteur_enfants - hauteur_disponible
+    nouveau_ratio := hauteur_disponible / hauteur_enfants
+
+    barre.défilage_max = nouveau_défilage_max
+    barre.ratio = nouveau_ratio
+    si barre.défilage > barre.défilage_max {
+        barre.défilage = barre.défilage_max
+    }
 }
 
 définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
