@@ -647,6 +647,7 @@ BoiteFlexible :: struct {
     type: Type
     // est_taggée: bool
     // id_débogage: chaine
+    profondeur: z32
 
     disposition: ConfigurationDisposition
     rectangle: ConfigurationRectangle
@@ -791,6 +792,7 @@ ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
     assert(boite.type == BoiteFlexible.Type.Normale)
     enfant := crée_boite(boite.emboiteuse)
     enfant.parent = boite
+    enfant.profondeur = boite.profondeur + 1
     tableau_ajoute(*boite.enfants, enfant)
     retourne enfant
 }
@@ -929,6 +931,7 @@ BoiteDisposée :: struct {
     // est_taggée: bool
     // type: BoiteFlexible.Type
     // id_débogage: chaine
+    profondeur: z32
     rect: RectanglePosDim(r32)
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
@@ -1283,6 +1286,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     boite_disposée.rappels = boite.rappels
     boite_disposée.barre_de_défilement_horizontale = boite.barre_de_défilement_horizontale
     boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale
+    boite_disposée.profondeur = boite.profondeur
 
     dernier_enfant := -1
 
@@ -1522,11 +1526,14 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
 
     boite_courante := racine_boites_disposées
 
+    profondeur_flottante := 0x7fffffff
     pour emboiteuse.boites_disposées_flottantes {
         boite := racine_boites_disposées + it
         si boite.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
-            boite_courante = boite
-            arrête
+            si boite.profondeur < profondeur_flottante {
+                boite_courante = boite
+                profondeur_flottante = boite.profondeur
+            }
         }
     }
 
