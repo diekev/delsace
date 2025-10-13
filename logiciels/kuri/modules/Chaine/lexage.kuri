@@ -66,8 +66,10 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réiniti
     pour c, i dans ligne {
         si c == séparation {
             si i != 0 {
-                mot := chaine(*ligne[début_mot], taille_mot)
-                tableau_ajoute(résultat, mot)
+                si taille_mot != 0 {
+                    mot := chaine(*ligne[début_mot], taille_mot)
+                    tableau_ajoute(résultat, mot)
+                }
             }
 
             début_mot = i + 1 comme z64
