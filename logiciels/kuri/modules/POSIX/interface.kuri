@@ -457,7 +457,7 @@ __SI_MAX_SIZE : n32 : 128
 // #if __WORDSIZE == 64
 __SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 4)
 // #else
-__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
+// __SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
 // #endif
 
 __pid_t :: z32
