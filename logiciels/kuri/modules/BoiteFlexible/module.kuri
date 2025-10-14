@@ -1740,7 +1740,9 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         boite.taille_min[direction] += boite.donne_rembourrage(direction)
 
         si boite.disposition.direction == direction {
-            cotation += (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant
+            espace_entre_enfants := (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant
+            cotation += espace_entre_enfants
+            boite.taille_min[direction] += espace_entre_enfants
         }
 
         cotation = max(cotation, boite.donne_cotation(direction) comme r32)
