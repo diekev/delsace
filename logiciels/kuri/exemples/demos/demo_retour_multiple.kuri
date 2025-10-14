@@ -75,7 +75,7 @@ appel_ptr_moult_ret :: fonc () -> (z32, bool)
     retourne ptr()
 }
 
-test___ :: fonc (x: fonc(z32)(z32) @inutilisée, y: fonc(z32)(z32) @inutilisée, z: fonc(z32)(z32, z32) @inutilisée, w: z32 @inutilisée) -> rien
+test___ :: fonc (x: fonc (a: z32) -> z32 @inutilisée, y: fonc (a: z32) -> z32 @inutilisée, z: fonc (a: z32) -> (z32, z32) @inutilisée, w: z32 @inutilisée) -> rien
 {
 }
 
@@ -84,6 +84,7 @@ test_ptr_fonction_ret_moult :: fonc () -> rien
     imprime("---------------------------\n")
     imprime("pointeur fonc ret multiple\n")
 
+    // À FAIRE(langage) : erreur pour x : fonc (a: z32) -> z32 = nul
     x : fonc(z32)(z32) = nul
     y : fonc(z32)(z32) = nul
     z : fonc(z32)(z32, z32) = nul

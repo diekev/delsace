@@ -43,7 +43,7 @@ thème: Thème
 
 RaccourciCommande :: struct {
     raccourci: RaccourciClavier
-    commande: fonc(*Anonyme)(rien)
+    commande: fonc (anonyme: *Anonyme)
     contexte: chaine
 }
 

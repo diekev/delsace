@@ -4,7 +4,7 @@
 
 importe Support
 
-TypeFonction :: fonc(z32)(rien)
+TypeFonction :: fonc (valeur: z32)
 
 Struct :: struct {
     pointeur: TypeFonction

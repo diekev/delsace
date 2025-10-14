@@ -18,7 +18,7 @@ divise_sur_espace_blanche_ou_ponctuation_ascii :: fonc (texte: chaine) -> [..]ch
     retourne divise(texte, est_espace_blanche_ou_ponctuation_ascii)
 }
 
-divise :: fonc (texte: chaine, rappel: fonc(z8)(bool), inclus_chaines_vide := vrai) -> [..]chaine
+divise :: fonc (texte: chaine, rappel: fonc (caractère: z8) -> bool, inclus_chaines_vide := vrai) -> [..]chaine
 {
     taille_mot : z64 = 0
     début_mot : z64 = 0
