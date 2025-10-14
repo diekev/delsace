@@ -1065,6 +1065,7 @@ Emboiteuse :: struct {
     guetteuse_barre: GuetteuseBarreDéfilage
 
     rappels: [..]RappelUtilisateur
+    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64
 }
 
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
@@ -1120,6 +1121,8 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
     }
 
     si évènement.type == TypeÉvènement.Souris {
+        empl TypeRappelUtilisateur
+        
         position := évènement.état_souris.où
 
         si évènement.action_souris == ActionSouris.DÉPLACÉE {
@@ -1133,17 +1136,23 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
         }
 
         si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
-            _ := sur_molette_souris(emboiteuse, évènement.donne_clic_souris())
+            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris())
             retourne
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            _ := sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
+            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris())
             retourne
         }
 
         si évènement.action_souris == ActionSouris.RELACHÉE {
-            _ := sur_relâchement_souris(emboiteuse, évènement.donne_clic_souris())
+            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris())
+
+            si emboiteuse.boite_interagit[SurPressionSouris] == emboiteuse.boite_interagit[SurRelâchementSouris] {
+                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris])
+                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris())
+            }
+
             retourne
         }
     }
@@ -1474,16 +1483,16 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     emboiteuse.souris_y = souris.état.où.y comme r32
 }
 
-sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
+sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: TypeRappelUtilisateur, souris: ClicSouris)
 {
     définis_position_souris(emboiteuse, souris)
 
     boite := donne_boite_sous_souris(emboiteuse)
     tantque boite {
-        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurPressionSouris, souris)
+        état_évènement := appel_rappel(emboiteuse, boite, type, souris)
         si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
-            emboiteuse.id_pressé = boite.id
-            retourne vrai
+            emboiteuse.boite_interagit[type] = boite.id
+            retourne
         }
 
         si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
@@ -1497,65 +1506,6 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> boo
 
         boite = *emboiteuse.boites_disposées[boite.parent]
     }
-
-    retourne faux
-}
-
-sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
-{
-    définis_position_souris(emboiteuse, souris)
-
-    boite := donne_boite_sous_souris(emboiteuse)
-    tantque boite {
-        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurRelâchementSouris, souris)
-        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
-            si emboiteuse.id_pressé == boite.id {
-                _ := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurClicSouris, souris)
-            }
-            retourne vrai
-        }
-
-        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
-            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
-            continue
-        }
-
-        si boite.parent == -1 {
-            arrête
-        }
-
-        boite = *emboiteuse.boites_disposées[boite.parent]
-    }
-
-    emboiteuse.id_pressé = 0
-    retourne faux
-}
-
-sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
-{
-    définis_position_souris(emboiteuse, souris)
-
-    boite := donne_boite_sous_souris(emboiteuse)
-    tantque boite {
-        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurMoletteSouris, souris)
-        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
-            emboiteuse.id_pressé = boite.id
-            retourne vrai
-        }
-
-        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
-            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
-            continue
-        }
-
-        si boite.parent == -1 {
-            arrête
-        }
-
-        boite = *emboiteuse.boites_disposées[boite.parent]
-    }
-
-    retourne faux
 }
 
 donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
