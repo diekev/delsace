@@ -1,13 +1,673 @@
-importe Chaine
-importe Couleur
-importe Empreinte
-importe ÉditionTexte
-importe Fondation
-importe Guettage
-importe Image
-importe Math
-importe Périphériques
-importe Typographie
+charge "interne"
+
+/* ------------------------------------------------------------------------- */
+/** \nom Emboiteuse
+ * \{ */
+
+ÉditriceTextePourId :: struct {
+    id: n64
+    éditrice_texte: *ÉditriceTexte
+}
+
+Emboiteuse :: struct {
+    racine: *BoiteFlexible
+
+    toutes_les_boites: [..]*BoiteFlexible
+    boites_libres: [..]*BoiteFlexible
+
+    traversée_boites: [..]*BoiteFlexible
+    boites_à_visiter: [..]z64
+
+    fragments: [..]FragmentTexte
+
+    boites_disposées: [..]BoiteDisposée
+    boites_disposées_flottantes: [..]z32
+
+    barres_de_défilement: [..]BarreDeDéfilement
+    éditrices_textes: [..]ÉditriceTextePourId
+
+    bordures: [..]ConfigurationBordure
+    flottances: [..]Flottance
+
+    /* Hors des bordures pour éviter les problèmes lors du démarrage des applications
+     * (p.e. un élément est détecté comme survolé alors que la souris est ailleurs). */
+    souris_x : r32 = -1.0
+    souris_y : r32 = -1.0
+
+    hauteur_racine: r32
+
+    commandes: CommandesDeRendu
+
+    id_pressé: n64
+
+    /* Mémoire vive. */
+    croissables: [..]*BoiteFlexible
+    décroissables: [..]*BoiteFlexible
+
+    guetteuse_courante: *Guetteuse
+    guetteuse_barre: GuetteuseBarreDéfilage
+
+    rappels: [..]RappelUtilisateur
+    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64
+}
+
+détruit_données :: fonc (emboiteuse: *Emboiteuse)
+{
+    pour emboiteuse.toutes_les_boites {
+        déloge(it)
+    }
+    déloge(emboiteuse.toutes_les_boites)
+    déloge(emboiteuse.boites_libres)
+    déloge(emboiteuse.fragments)
+    déloge(emboiteuse.boites_disposées)
+    déloge(emboiteuse.boites_disposées_flottantes)
+    déloge(emboiteuse.barres_de_défilement)
+    déloge(emboiteuse.éditrices_textes)
+    déloge(emboiteuse.bordures)
+    déloge(emboiteuse.croissables)
+    déloge(emboiteuse.décroissables)
+    déloge(emboiteuse.traversée_boites)
+    déloge(emboiteuse.boites_à_visiter)
+    déloge(emboiteuse.rappels)
+}
+
+commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
+{
+    réinitialise(emboiteuse)
+
+    emboiteuse.hauteur_racine = hauteur comme r32
+
+    racine := emboiteuse.crée_boite()
+    racine.disposition.cotation.largeur = FIXE(largeur)
+    racine.disposition.cotation.hauteur = FIXE(hauteur)
+
+    emboiteuse.racine = racine
+
+    __boite_courante = emboiteuse.racine
+}
+
+termine_disposition :: fonc (emboiteuse: *Emboiteuse) -> CommandesDeRendu
+{
+    assert(__boite_courante == emboiteuse.racine)
+    __boite_courante = nul
+
+    emboiteuse.commandes.commandes.taille = 0
+
+    si emboiteuse.racine {
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Horizontale)
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Horizontale)
+        fragmente_texte(emboiteuse.racine)
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale)
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale)
+        calcule_positions(emboiteuse.racine)
+        génère_commandes(emboiteuse)
+
+        enregistre_disposition(emboiteuse)
+    }
+
+    retourne emboiteuse.commandes
+}
+
+donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) -> Point2D(r32)
+{
+    résultat : Point2D(r32) = ---
+    résultat.x = emboiteuse.souris_x
+    résultat.y = emboiteuse.souris_y
+    si origine_en_bas {
+        résultat.y = emboiteuse.hauteur_racine - résultat.y
+    }
+    retourne résultat
+}
+
+gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
+{
+    si emboiteuse.guetteuse_courante && gère_évènement(emboiteuse.guetteuse_courante, évènement) == ÉtatÉvènement.CONSOMMÉ {
+        retourne
+    }
+
+    si évènement.type == TypeÉvènement.Souris {
+        empl TypeRappelUtilisateur
+        
+        position := évènement.état_souris.où
+
+        si évènement.action_souris == ActionSouris.DÉPLACÉE {
+            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
+
+            pour * emboiteuse.barres_de_défilement {
+                it.est_survolée = contient(it.rect, position.x comme r32, position.y comme r32)
+            }
+
+            retourne
+        }
+
+        si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
+            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris())
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.PRESSÉE {
+            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris())
+            retourne
+        }
+
+        si évènement.action_souris == ActionSouris.RELACHÉE {
+            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris())
+
+            si emboiteuse.boite_interagit[SurPressionSouris] == emboiteuse.boite_interagit[SurRelâchementSouris] {
+                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris])
+                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris())
+            }
+
+            retourne
+        }
+    }
+}
+
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
+{
+    emboiteuse.souris_x = x
+    emboiteuse.souris_y = y
+}
+
+définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
+{
+    emboiteuse.souris_x = souris.état.où.x comme r32
+    emboiteuse.souris_y = souris.état.où.y comme r32
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Disposition
+ * \{ */
+
+AlignementEnfant :: énum n8 {
+    Début
+    Milieu
+    Fin
+}
+
+Direction :: énum n8 {
+    Horizontale
+    Verticale
+}
+
+Cotation :: struct {
+    largeur: z32
+    hauteur: z32
+
+    largeur_min: n32
+    hauteur_min: n32
+    largeur_max: n32 = 0xffffffff
+    hauteur_max: n32 = 0xffffffff
+}
+
+FIXE :: fonc (v: z32) -> z32
+{
+    retourne v | BIT_COTATION_FIXE
+}
+
+CROISSANTE :: fonc () -> z32
+{
+    retourne BIT_COTATION_CROISSANTE
+}
+
+crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
+{
+    retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32))
+}
+
+IndiceRectangle :: énum {
+    GAUCHE :: 0
+    HAUT :: 1
+    DROITE :: 2
+    BAS :: 3
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Création Boite
+ * \{ */
+
+ConfigurationDisposition :: struct {
+    cotation: Cotation
+    rembourrage: Rembourrage
+    séparation_enfant: r32
+    alignement_horizontal: AlignementEnfant
+    alignement_vertical: AlignementEnfant
+    direction: Direction
+}
+
+ConfigurationRectangle :: struct {
+    rayon_coin: r32
+}
+
+ConfigurationBordure :: struct {
+    largeur: [4]r32
+    couleur: [4]CouleurRVBA
+}
+
+Rembourrage :: struct {
+    v: [4]r32
+}
+
+RembourrageUniforme :: fonc (v: r32) -> Rembourrage
+{
+    retourne Rembourrage([v, v, v, v])
+}
+
+RembourrageDifforme :: fonc (horizontal: r32, vertical: r32) -> Rembourrage
+{
+    retourne Rembourrage([horizontal, vertical, horizontal, vertical])
+}
+
+RembourrageHoriz :: fonc (valeur: r32) -> Rembourrage
+{
+    retourne RembourrageDifforme(valeur, 0.0)
+}
+
+RembourrageVert :: fonc (valeur: r32) -> Rembourrage
+{
+    retourne RembourrageDifforme(0.0, valeur)
+}
+
+dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := #position_code_source)
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_enfant()
+
+    si id {
+        boite.id = calcule_empreinte_djb2(id)
+    }
+    sinon {
+        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64))
+    }
+
+    boite.défilage = défilage
+    boite.rectangle = config
+
+    __boite_courante = boite
+}
+
+termine_rectangle :: fonc ()
+{
+    assert(__boite_courante != nul)
+    __boite_courante = __boite_courante.parent
+}
+
+ConfigurationTexte :: struct {
+    fonte: *Fonte
+    couleur: CouleurRVBA
+}
+
+dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_texte(nul, texte)
+    boite.config_texte = config
+}
+
+dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
+{
+    assert(__boite_courante != nul)
+
+    boite := __boite_courante.ajoute_texte(nul, texte)
+    boite.config_texte = config
+}
+
+dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+{
+    assert(__boite_courante != nul)
+    boite := __boite_courante.ajoute_image(image)
+    boite.disposition.cotation = cotation
+    boite.teinte = teinte
+}
+
+dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien, id := "", cotation := Cotation())
+{
+    assert(__boite_courante != nul)
+    boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
+    boite.disposition.cotation = cotation
+    boite.id = calcule_empreinte_djb2(id)
+    __boite_courante = boite
+}
+
+termine_procédure :: fonc ()
+{
+    termine_rectangle()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évènements
+ * \{ */
+
+TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(ÉtatÉvènement)
+
+sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux)
+}
+
+sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux)
+}
+
+sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux)
+}
+
+sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Propriétés Boite
+ * \{ */
+
+tag_boite :: fonc ()
+{
+    assert(__boite_courante != nul)
+    __boite_courante.est_taggée = vrai
+}
+
+définis_id_débogage :: fonc (id: chaine)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.id_débogage = id
+}
+
+définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
+}
+
+définis_cotation :: fonc (cotation: Cotation)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.cotation = cotation
+}
+
+définis_rembourrage :: fonc (rembourrage: Rembourrage)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.rembourrage = rembourrage
+}
+
+définis_séparation_enfant :: fonc (séparation_enfant: r32)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.séparation_enfant = séparation_enfant
+}
+
+définis_alignement :: fonc (alignement: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement
+    __boite_courante.disposition.alignement_vertical = alignement
+}
+
+définis_alignement :: fonc (alignement_horizontal: AlignementEnfant, alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_alignement_horizontal :: fonc (alignement_horizontal: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+}
+
+définis_alignement_vertical :: fonc (alignement_vertical: AlignementEnfant)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.alignement_vertical = alignement_vertical
+}
+
+définis_direction :: fonc (direction: Direction)
+{
+     assert(__boite_courante != nul)
+    __boite_courante.disposition.direction = direction
+}
+
+ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    config := donne_configuration_bordure_courante()
+    si config {
+        pour 4 {
+            config.largeur[it] = largeur
+            config.couleur[it] = couleur
+        }
+    }
+}
+
+ajoute_bordure_haut :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT)
+}
+
+ajoute_bordure_bas :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS)
+}
+
+ajoute_bordure_gauche :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE)
+}
+
+ajoute_bordure_droite :: fonc (largeur: r32, couleur: CouleurRVBA)
+{
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE)
+}
+
+ConfigurationDéfilage :: struct {
+    vertical: bool
+    horizontal: bool
+
+    largeur_verticale := 16.0
+    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
+    couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7)
+}
+
+ajoute_défilage :: fonc (config: ConfigurationDéfilage)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage = config
+}
+
+ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7), couleur_survolage_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7))
+{
+    assert(__boite_courante != nul)
+    __boite_courante.défilage.vertical = vrai
+    __boite_courante.défilage.largeur_verticale = largeur
+    __boite_courante.défilage.couleur_verticale = couleur
+    __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage
+}
+
+BarreDeDéfilement :: struct {
+    défilage: r32
+    défilage_max: r32
+    /* hauteur disponible / hauteur contenu */
+    ratio: r32
+
+    direction: Direction
+    est_survolée: bool
+    rect: RectanglePosDim(r32)
+}
+
+donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
+{
+    assert(__boite_courante != nul)
+
+    boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id)
+    si boite && boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
+        retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+    }
+
+    barre, _ := donne_barre_de_défilement(__boite_courante, Direction.Verticale)
+    retourne barre
+}
+
+définis_défilage :: fonc (barre: *BarreDeDéfilement, défilage: r32)
+{
+    barre.défilage = défilage
+    si barre.ratio != 0.0 {
+        si barre.défilage < 0.0 {
+            barre.défilage = 0.0
+        }
+        si barre.défilage > barre.défilage_max {
+            barre.défilage = barre.défilage_max
+        }
+    }
+}
+
+définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
+{
+    définis_arrière_plan(CouleurRVBA(r, v, b, a))
+}
+
+définis_arrière_plan :: fonc (couleur := CouleurRVBA())
+{
+    assert(__boite_courante != nul)
+    __boite_courante.arrière_plan = couleur
+}
+
+AncrageFlottante :: énum {
+    HAUT_GAUCHE
+    HAUT_CENTRE
+    HAUT_DROIT
+    CENTRE_GAUCHE
+    CENTRE
+    CENTRE_DROIT
+    BAS_GAUCHE
+    BAS_CENTRE
+    BAS_DROIT
+}
+
+Flottance :: struct {
+    /* Ancrage par rapport au parent. */
+    ancrage: AncrageFlottante
+    /* Décalages par rapport à l'ancrage. */
+    décalage_x := 0.0
+    décalage_y := 0.0
+}
+
+définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := AncrageFlottante.HAUT_GAUCHE)
+{
+    assert(__boite_courante != nul)
+    emboiteuse := __boite_courante.emboiteuse
+
+    si __boite_courante.flottance.est_valide() {
+        config := *emboiteuse.flottances[__boite_courante.flottance]
+        config.ancrage = ancrage
+        config.décalage_x = décalage_x
+        config.décalage_y = décalage_y
+    }
+    sinon {
+        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y))
+    }
+}
+
+donne_rect :: fonc () -> RectanglePosDim(r32)
+{
+    assert(__boite_courante != nul)
+    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id)
+    retourne résultat
+}
+
+est_survolée :: fonc () -> bool
+{
+    assert(__boite_courante != nul)
+    boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
+    boite_courante := boite_disposée
+
+    tantque boite_courante != nul {
+        si boite_courante.id == __boite_courante.id {
+            retourne vrai
+        }
+
+        si boite_courante.parent == -1 {
+            arrête
+        }
+
+        boite_courante = *__boite_courante.emboiteuse.boites_disposées[boite_courante.parent]
+    }
+
+    retourne faux
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Édition Texte
+ * \{ */
+
+définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id != id {
+            continue
+        }
+
+        si éditrice_texte == nul {
+            tableau_supprime_indice(*emboiteuse.éditrices_textes, indice_it)
+            retourne
+        }
+
+        it.éditrice_texte = éditrice_texte
+        retourne
+    }
+
+    assert(éditrice_texte != nul)
+    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
+}
+
+donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
+{
+    pour * emboiteuse.éditrices_textes {
+        si it.id == id {
+            retourne it.éditrice_texte
+        }
+    }
+
+    retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+dispose_séparateur_horizontal :: fonc (hauteur := 0)
+{
+    assert(__boite_courante != nul)
+    séparateur := __boite_courante.ajoute_enfant()
+    séparateur.disposition.cotation.largeur = CROISSANTE()
+
+    si hauteur != 0 {
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur)
+    }
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom CommandesDeRendu
@@ -213,2081 +873,6 @@ dessine_procédural :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim
     résultat.rect = rect
     résultat.procédure = procédure
     résultat.données_procédure = données_procédure
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom BoiteFlexible
- * \{ */
-
-AlignementEnfant :: énum n8 {
-    Début
-    Milieu
-    Fin
-}
-
-Direction :: énum n8 {
-    Horizontale
-    Verticale
-}
-
-BIT_COTATION_FIXE :: (1 << 17)
-BIT_COTATION_CROISSANTE :: (1 << 18)
-
-FIXE :: fonc (v: z32) -> z32
-{
-    retourne v | BIT_COTATION_FIXE
-}
-
-CROISSANTE :: fonc () -> z32
-{
-    retourne BIT_COTATION_CROISSANTE
-}
-
-est_cotation_fixe :: fonc (v: z32) -> bool
-{
-    retourne (v & BIT_COTATION_FIXE) != 0
-}
-
-est_cotation_croissante :: fonc (v: z32) -> bool
-{
-    retourne (v & BIT_COTATION_CROISSANTE) != 0
-}
-
-donne_cotation :: fonc (v: z32) -> z32
-{
-    retourne v & 0xffff
-}
-
-ConfigurationDéfilage :: struct {
-    vertical: bool
-    horizontal: bool
-
-    largeur_verticale := 16.0
-    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
-    couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7)
-}
-
-Cotation :: struct {
-    largeur: z32
-    hauteur: z32
-
-    largeur_min: n32
-    hauteur_min: n32
-    largeur_max: n32 = 0xffffffff
-    hauteur_max: n32 = 0xffffffff
-}
-
-crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
-{
-    retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32))
-}
-
-IndiceRectangle :: énum {
-    GAUCHE :: 0
-    HAUT :: 1
-    DROITE :: 2
-    BAS :: 3
-}
-
-Rembourrage :: struct {
-    v: [4]r32
-}
-
-RembourrageUniforme :: fonc (v: r32) -> Rembourrage
-{
-    retourne Rembourrage([v, v, v, v])
-}
-
-RembourrageDifforme :: fonc (horizontal: r32, vertical: r32) -> Rembourrage
-{
-    retourne Rembourrage([horizontal, vertical, horizontal, vertical])
-}
-
-RembourrageHoriz :: fonc (valeur: r32) -> Rembourrage
-{
-    retourne RembourrageDifforme(valeur, 0.0)
-}
-
-RembourrageVert :: fonc (valeur: r32) -> Rembourrage
-{
-    retourne RembourrageDifforme(0.0, valeur)
-}
-
-ConfigurationDisposition :: struct {
-    cotation: Cotation
-    rembourrage: Rembourrage
-    séparation_enfant: r32
-    alignement_horizontal: AlignementEnfant
-    alignement_vertical: AlignementEnfant
-    direction: Direction
-}
-
-ConfigurationRectangle :: struct {
-    rayon_coin: r32
-}
-
-IndexConfigBordure :: #opaque n16
-
-CONFIG_BORDURE_INVALIDE :: IndexConfigBordure(-1 comme n16)
-
-est_valide :: fonc (indice: IndexConfigBordure) -> bool #enligne
-{
-    retourne indice comme n16 != CONFIG_BORDURE_INVALIDE comme n16
-}
-
-ConfigurationBordure :: struct {
-    largeur: [4]r32
-    couleur: [4]CouleurRVBA
-}
-
-dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := #position_code_source)
-{
-    assert(__boite_courante != nul)
-
-    boite := __boite_courante.ajoute_enfant()
-
-    si id {
-        boite.id = calcule_empreinte_djb2(id)
-    }
-    sinon {
-        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64))
-    }
-
-    boite.défilage = défilage
-    boite.rectangle = config
-
-    __boite_courante = boite
-}
-
-tag_boite :: fonc ()
-{
-    assert(__boite_courante != nul)
-    __boite_courante.est_taggée = vrai
-}
-
-définis_id_débogage :: fonc (id: chaine)
-{
-    assert(__boite_courante != nul)
-    __boite_courante.id_débogage = id
-}
-
-définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
-{
-    assert(__boite_courante != nul)
-    __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
-}
-
-définis_cotation :: fonc (cotation: Cotation)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.cotation = cotation
-}
-
-définis_rembourrage :: fonc (rembourrage: Rembourrage)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.rembourrage = rembourrage
-}
-
-définis_séparation_enfant :: fonc (séparation_enfant: r32)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.séparation_enfant = séparation_enfant
-}
-
-définis_alignement :: fonc (alignement: AlignementEnfant)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement
-    __boite_courante.disposition.alignement_vertical = alignement
-}
-
-définis_alignement :: fonc (alignement_horizontal: AlignementEnfant, alignement_vertical: AlignementEnfant)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
-    __boite_courante.disposition.alignement_vertical = alignement_vertical
-}
-
-définis_alignement_horizontal :: fonc (alignement_horizontal: AlignementEnfant)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
-}
-
-définis_alignement_vertical :: fonc (alignement_vertical: AlignementEnfant)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_vertical = alignement_vertical
-}
-
-définis_direction :: fonc (direction: Direction)
-{
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.direction = direction
-}
-
-ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
-{
-    config := donne_configuration_bordure_courante()
-    si config {
-        pour 4 {
-            config.largeur[it] = largeur
-            config.couleur[it] = couleur
-        }
-    }
-}
-
-ajoute_bordure_haut :: fonc (largeur: r32, couleur: CouleurRVBA)
-{
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT)
-}
-
-ajoute_bordure_bas :: fonc (largeur: r32, couleur: CouleurRVBA)
-{
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS)
-}
-
-ajoute_bordure_gauche :: fonc (largeur: r32, couleur: CouleurRVBA)
-{
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE)
-}
-
-ajoute_bordure_droite :: fonc (largeur: r32, couleur: CouleurRVBA)
-{
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE)
-}
-
-#portée_fichier
-
-donne_configuration_bordure_courante :: fonc () -> *ConfigurationBordure
-{
-    assert(__boite_courante != nul)
-    emboiteuse := __boite_courante.emboiteuse
-
-    saufsi __boite_courante.indice_bordure.est_valide() {
-        __boite_courante.indice_bordure = emboiteuse.ajoute_configuration_bordure(ConfigurationBordure())
-    }
-
-    config := *emboiteuse.bordures[__boite_courante.indice_bordure]
-    retourne config
-}
-
-définis_bordure_courante :: fonc (largeur: r32, couleur: CouleurRVBA, indice: IndiceRectangle)
-{
-    config := donne_configuration_bordure_courante()
-    si config {
-        config.largeur[indice] = largeur
-        config.couleur[indice] = couleur
-    }
-}
-
-#portée_export
-
-ajoute_défilage :: fonc (config: ConfigurationDéfilage)
-{
-    assert(__boite_courante != nul)
-    __boite_courante.défilage = config
-}
-
-ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7), couleur_survolage_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7))
-{
-    assert(__boite_courante != nul)
-    __boite_courante.défilage.vertical = vrai
-    __boite_courante.défilage.largeur_verticale = largeur
-    __boite_courante.défilage.couleur_verticale = couleur
-    __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage
-}
-
-donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
-{
-    assert(__boite_courante != nul)
-
-    boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id)
-    si boite && boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
-        retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
-    }
-
-    barre, _ := donne_barre_de_défilement(__boite_courante, Direction.Verticale)
-    retourne barre
-}
-
-définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
-{
-    définis_arrière_plan(CouleurRVBA(r, v, b, a))
-}
-
-définis_arrière_plan :: fonc (couleur := CouleurRVBA())
-{
-    assert(__boite_courante != nul)
-    __boite_courante.arrière_plan = couleur
-}
-
-IndexFlottance :: #opaque n16
-
-FLOTTANCE_INVALIDE :: IndexFlottance(-1 comme n16)
-
-est_valide :: fonc (indice: IndexFlottance) -> bool #enligne
-{
-    retourne indice comme n16 != FLOTTANCE_INVALIDE comme n16
-}
-
-AncrageFlottante :: énum {
-    HAUT_GAUCHE
-    HAUT_CENTRE
-    HAUT_DROIT
-    CENTRE_GAUCHE
-    CENTRE
-    CENTRE_DROIT
-    BAS_GAUCHE
-    BAS_CENTRE
-    BAS_DROIT
-}
-
-Flottance :: struct {
-    /* Ancrage par rapport au parent. */
-    ancrage: AncrageFlottante
-    /* Décalages par rapport à l'ancrage. */
-    décalage_x := 0.0
-    décalage_y := 0.0
-}
-
-définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := AncrageFlottante.HAUT_GAUCHE)
-{
-    assert(__boite_courante != nul)
-    emboiteuse := __boite_courante.emboiteuse
-
-    si __boite_courante.flottance.est_valide() {
-        config := *emboiteuse.flottances[__boite_courante.flottance]
-        config.ancrage = ancrage
-        config.décalage_x = décalage_x
-        config.décalage_y = décalage_y
-    }
-    sinon {
-        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y))
-    }
-}
-
-termine_rectangle :: fonc ()
-{
-    assert(__boite_courante != nul)
-    __boite_courante = __boite_courante.parent
-}
-
-dispose_séparateur_horizontal :: fonc (hauteur := 0)
-{
-    assert(__boite_courante != nul)
-    séparateur := __boite_courante.ajoute_enfant()
-    séparateur.disposition.cotation.largeur = CROISSANTE()
-
-    si hauteur != 0 {
-        séparateur.disposition.cotation.hauteur = FIXE(hauteur)
-    }
-}
-
-ConfigurationTexte :: struct {
-    fonte: *Fonte
-    couleur: CouleurRVBA
-}
-
-dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
-{
-    assert(__boite_courante != nul)
-
-    boite := __boite_courante.ajoute_texte(nul, texte)
-    boite.config_texte = config
-}
-
-dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
-{
-    assert(__boite_courante != nul)
-
-    boite := __boite_courante.ajoute_texte(nul, texte)
-    boite.config_texte = config
-}
-
-dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
-{
-    assert(__boite_courante != nul)
-    boite := __boite_courante.ajoute_image(image)
-    boite.disposition.cotation = cotation
-    boite.teinte = teinte
-}
-
-dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien, id := "", cotation := Cotation())
-{
-    assert(__boite_courante != nul)
-    boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
-    boite.disposition.cotation = cotation
-    boite.id = calcule_empreinte_djb2(id)
-    __boite_courante = boite
-}
-
-termine_procédure :: fonc ()
-{
-    termine_rectangle()
-}
-
-BoiteFlexible :: struct {
-    Type :: énum n8 {
-        Normale
-        Image
-        Texte
-        TexteUTF32
-        Procédure
-    }
-
-    emboiteuse: *Emboiteuse
-    parent: *BoiteFlexible
-    enfants: [..]*BoiteFlexible
-
-    id: n64
-    type: Type
-    // est_taggée: bool
-    // id_débogage: chaine
-    profondeur: z32
-
-    disposition: ConfigurationDisposition
-    rectangle: ConfigurationRectangle
-    défilage: ConfigurationDéfilage
-    config_texte: ConfigurationTexte
-    indice_bordure := CONFIG_BORDURE_INVALIDE
-
-    /* Valeurs pour les différents types. */
-    arrière_plan: CouleurRVBA
-    texte: chaine
-    texte_utf32: ChaineUTF32
-    image: NouvelleImage
-    teinte: CouleurRVBA
-
-    procédure: fonc(*rien, RectanglePosDim(r32))(rien)
-    données_procédure: *rien
-
-    flottance := FLOTTANCE_INVALIDE
-
-    /* Rappels */
-    rappels: [TypeRappelUtilisateur.nombre_éléments]n32
-
-    /* mémoire vive */
-    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
-    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
-
-    /* Valeurs calculées. */
-    position: Point2D(r32)
-    largeur: r32
-    hauteur: r32
-    largeur_texte: r32
-    premier_fragment: n32
-    dernier_fragment: n32
-
-    taille_min: [2]r32
-}
-
-donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
-{
-    si direction == Direction.Horizontale {
-        retourne donne_cotation(boite.disposition.cotation.largeur)
-    }
-    retourne donne_cotation(boite.disposition.cotation.hauteur)
-}
-
-donne_cotation_min :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
-{
-    si direction == Direction.Horizontale {
-        retourne boite.disposition.cotation.largeur_min
-    }
-    retourne boite.disposition.cotation.hauteur_min
-}
-
-donne_cotation_max :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
-{
-    si direction == Direction.Horizontale {
-        retourne boite.disposition.cotation.largeur_max
-    }
-    retourne boite.disposition.cotation.hauteur_max
-}
-
-est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
-{
-    si direction == Direction.Horizontale {
-        retourne est_cotation_fixe(boite.disposition.cotation.largeur)
-    }
-    retourne est_cotation_fixe(boite.disposition.cotation.hauteur)
-}
-
-est_cotation_croissante :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
-{
-    si direction == Direction.Horizontale {
-        retourne est_cotation_croissante(boite.disposition.cotation.largeur)
-    }
-    retourne est_cotation_croissante(boite.disposition.cotation.hauteur)
-}
-
-donne_taille :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
-{
-    si direction == Direction.Horizontale {
-        retourne boite.largeur
-    }
-    retourne boite.hauteur
-}
-
-définis_taille :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
-{
-    si direction == Direction.Horizontale {
-        boite.largeur = valeur
-        retourne
-    }
-    boite.hauteur = valeur
-}
-
-définis_taille_au_max :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
-{
-    si direction == Direction.Horizontale {
-        boite.largeur = max(boite.largeur, valeur)
-    }
-    sinon {
-        boite.hauteur = max(boite.hauteur, valeur)
-    }
-}
-
-donne_rembourrage :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
-{
-    si direction == Direction.Horizontale {
-        retourne boite.disposition.rembourrage.v[0] + boite.disposition.rembourrage.v[2]
-    }
-    retourne boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]
-}
-
-agrandis_par :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
-{
-    si direction == Direction.Horizontale {
-        boite.largeur += valeur
-    }
-    sinon {
-        boite.hauteur += valeur
-    }
-}
-
-donne_alignement :: fonc (boite: *BoiteFlexible, direction: Direction) -> AlignementEnfant
-{
-    si direction == Direction.Horizontale {
-        retourne boite.disposition.alignement_horizontal
-    }
-    retourne boite.disposition.alignement_vertical
-}
-
-réinitialise :: fonc (boite: *BoiteFlexible)
-{
-    enfants := boite.enfants
-    enfants.taille = 0
-
-    init_de(BoiteFlexible)(boite)
-    boite.enfants = enfants
-}
-
-ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
-{
-    assert(boite.type == BoiteFlexible.Type.Normale)
-    enfant := crée_boite(boite.emboiteuse)
-    enfant.parent = boite
-    enfant.profondeur = boite.profondeur + 1
-    tableau_ajoute(*boite.enfants, enfant)
-    retourne enfant
-}
-
-ajoute_image :: fonc (boite: *BoiteFlexible, image: NouvelleImage) -> *BoiteFlexible
-{
-    enfant := ajoute_enfant(boite)
-    enfant.type = BoiteFlexible.Type.Image
-    enfant.image = image
-    retourne enfant
-}
-
-ajoute_procédure :: fonc (boite: *BoiteFlexible, procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien) -> *BoiteFlexible
-{
-    enfant := ajoute_enfant(boite)
-    enfant.type = BoiteFlexible.Type.Procédure
-    enfant.procédure = procédure
-    enfant.données_procédure = données_procédure
-    retourne enfant
-}
-
-ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *BoiteFlexible
-{
-    enfant := ajoute_enfant(boite)
-    enfant.type = BoiteFlexible.Type.Texte
-    enfant.config_texte.fonte = fonte
-    enfant.texte = texte
-    retourne enfant
-}
-
-ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: ChaineUTF32) -> *BoiteFlexible
-{
-    enfant := ajoute_enfant(boite)
-    enfant.type = BoiteFlexible.Type.TexteUTF32
-    enfant.config_texte.fonte = fonte
-    enfant.texte_utf32 = texte
-    retourne enfant
-}
-
-sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
-{
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux)
-}
-
-sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
-{
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux)
-}
-
-sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
-{
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux)
-}
-
-sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
-{
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux)
-}
-
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, indice: z32, doit_être_premier: bool)
-{
-    emboiteuse := boite.emboiteuse
-
-    entrée_rappel := tableau_ajoute_élément(*emboiteuse.rappels)
-    entrée_rappel.rappel = rappel
-    entrée_rappel.données_utilisateur = données
-    entrée_rappel.indice_utilisateur = indice
-
-    indice_rappel := emboiteuse.rappels.taille comme n32
-
-    indice_rappel_existant := boite.rappels[type]
-
-    si indice_rappel_existant != 0 {
-        si doit_être_premier {
-            entrée_rappel.suivant = indice_rappel_existant
-            boite.rappels[type] = indice_rappel
-        }
-        sinon {
-            rappel_existant := *emboiteuse.rappels[indice_rappel_existant - 1]
-            rappel_existant.suivant = indice_rappel
-        }
-    }
-    sinon {
-        boite.rappels[type] = indice_rappel
-    }
-}
-
-#portée_fichier
-
-rappel_molette_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
-{
-    assert(souris.bouton == BoutonSouris.MOLETTE)
-
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
-
-    si indice >= 0 && indice < emboiteuse.barres_de_défilement.taille {
-        barre := *emboiteuse.barres_de_défilement[indice]
-        si souris.delta > 0 {
-            définis_défilage(barre, barre.défilage - 60.0)
-        }
-        sinon {
-            définis_défilage(barre, barre.défilage + 60.0)
-        }
-        résultat = ÉtatÉvènement.CONSOMMÉ
-    }
-
-    retourne résultat
-}
-
-rappel_pression_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
-{
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
-
-    si souris.bouton == BoutonSouris.PRIMAIRE {
-        si indice >= 0 && indice < emboiteuse.barres_de_défilement.taille {
-            barre := *emboiteuse.barres_de_défilement[indice]
-            si barre.est_survolée {
-                commence_guettage_barre(emboiteuse, indice)
-                résultat = ÉtatÉvènement.CONSOMMÉ
-            }
-        }
-    }
-
-    retourne résultat
-}
-
-#portée_export
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom
- * \{ */
-
-FragmentTexte :: struct {
-    texte: chaine
-    largeur: r32
-    est_espace_blanche: bool
-}
-
-BarreDeDéfilement :: struct {
-    défilage: r32
-    défilage_max: r32
-    /* hauteur disponible / hauteur contenu */
-    ratio: r32
-
-    direction: Direction
-    est_survolée: bool
-    rect: RectanglePosDim(r32)
-}
-
-IndexBarreDeDéfilement :: #opaque n16
-INDEX_BARRE_DÉFILEMENT_INVALIDE :: IndexBarreDeDéfilement(-1 comme n16)
-
-est_valide :: fonc (indice: IndexBarreDeDéfilement) -> bool
-{
-    retourne indice comme n16 != INDEX_BARRE_DÉFILEMENT_INVALIDE comme n16
-}
-
-définis_défilage :: fonc (barre: *BarreDeDéfilement, défilage: r32)
-{
-    barre.défilage = défilage
-    si barre.ratio != 0.0 {
-        si barre.défilage < 0.0 {
-            barre.défilage = 0.0
-        }
-        si barre.défilage > barre.défilage_max {
-            barre.défilage = barre.défilage_max
-        }
-    }
-}
-
-TypeRappelUtilisateur :: énum {
-    SurPressionSouris
-    SurRelâchementSouris
-    SurClicSouris
-    SurMoletteSouris
-}
-
-TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(ÉtatÉvènement)
-
-RappelUtilisateur :: struct {
-    rappel: TypeRappelSouris
-    données_utilisateur: *rien
-    indice_utilisateur: z32
-    suivant: n32
-}
-
-BoiteDisposée :: struct {
-    parent : z32 = -1
-    premier_enfant: z32 = -1
-    puiné : z32 = -1
-
-    id: n64
-    // est_taggée: bool
-    // type: BoiteFlexible.Type
-    // id_débogage: chaine
-    profondeur: z32
-    rect: RectanglePosDim(r32)
-    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
-    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
-    est_flottante: bool
-
-    rappels: [TypeRappelUtilisateur.nombre_éléments]n32
-}
-
-appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris) -> Optionnel(ÉtatÉvènement)
-{
-    résultat: Optionnel(ÉtatÉvènement)
-
-    indice_rappel := boite.rappels[type]
-    tantque indice_rappel != 0 {
-        rappel := emboiteuse.rappels[indice_rappel - 1]
-        état_évènement := rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.indice_utilisateur)
-        si état_évènement == ÉtatÉvènement.CONSOMMÉ {
-            retourne état_évènement
-        }
-        indice_rappel = rappel.suivant
-        résultat = ÉtatÉvènement.PASSE_AU_PARENT
-    }
-
-    retourne résultat
-}
-
-ÉditriceTextePourId :: struct {
-    id: n64
-    éditrice_texte: *ÉditriceTexte
-}
-
-Emboiteuse :: struct {
-    racine: *BoiteFlexible
-
-    toutes_les_boites: [..]*BoiteFlexible
-    boites_libres: [..]*BoiteFlexible
-
-    traversée_boites: [..]*BoiteFlexible
-    boites_à_visiter: [..]z64
-
-    fragments: [..]FragmentTexte
-
-    boites_disposées: [..]BoiteDisposée
-    boites_disposées_flottantes: [..]z32
-
-    barres_de_défilement: [..]BarreDeDéfilement
-    éditrices_textes: [..]ÉditriceTextePourId
-
-    bordures: [..]ConfigurationBordure
-    flottances: [..]Flottance
-
-    /* Hors des bordures pour éviter les problèmes lors du démarrage des applications
-     * (p.e. un élément est détecté comme survolé alors que la souris est ailleurs). */
-    souris_x : r32 = -1.0
-    souris_y : r32 = -1.0
-
-    hauteur_racine: r32
-
-    commandes: CommandesDeRendu
-
-    id_pressé: n64
-
-    /* Mémoire vive. */
-    croissables: [..]*BoiteFlexible
-    décroissables: [..]*BoiteFlexible
-
-    guetteuse_courante: *Guetteuse
-    guetteuse_barre: GuetteuseBarreDéfilage
-
-    rappels: [..]RappelUtilisateur
-    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64
-}
-
-détruit_données :: fonc (emboiteuse: *Emboiteuse)
-{
-    pour emboiteuse.toutes_les_boites {
-        déloge(it)
-    }
-    déloge(emboiteuse.toutes_les_boites)
-    déloge(emboiteuse.boites_libres)
-    déloge(emboiteuse.fragments)
-    déloge(emboiteuse.boites_disposées)
-    déloge(emboiteuse.boites_disposées_flottantes)
-    déloge(emboiteuse.barres_de_défilement)
-    déloge(emboiteuse.éditrices_textes)
-    déloge(emboiteuse.bordures)
-    déloge(emboiteuse.croissables)
-    déloge(emboiteuse.décroissables)
-    déloge(emboiteuse.traversée_boites)
-    déloge(emboiteuse.boites_à_visiter)
-    déloge(emboiteuse.rappels)
-}
-
-commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
-{
-    réinitialise(emboiteuse)
-
-    emboiteuse.hauteur_racine = hauteur comme r32
-
-    racine := emboiteuse.crée_boite()
-    racine.disposition.cotation.largeur = FIXE(largeur)
-    racine.disposition.cotation.hauteur = FIXE(hauteur)
-
-    emboiteuse.racine = racine
-
-    __boite_courante = emboiteuse.racine
-}
-
-donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) -> Point2D(r32)
-{
-    résultat : Point2D(r32) = ---
-    résultat.x = emboiteuse.souris_x
-    résultat.y = emboiteuse.souris_y
-    si origine_en_bas {
-        résultat.y = emboiteuse.hauteur_racine - résultat.y
-    }
-    retourne résultat
-}
-
-gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
-{
-    si emboiteuse.guetteuse_courante && gère_évènement(emboiteuse.guetteuse_courante, évènement) == ÉtatÉvènement.CONSOMMÉ {
-        retourne
-    }
-
-    si évènement.type == TypeÉvènement.Souris {
-        empl TypeRappelUtilisateur
-        
-        position := évènement.état_souris.où
-
-        si évènement.action_souris == ActionSouris.DÉPLACÉE {
-            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
-
-            pour * emboiteuse.barres_de_défilement {
-                it.est_survolée = contient(it.rect, position.x comme r32, position.y comme r32)
-            }
-
-            retourne
-        }
-
-        si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
-            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris())
-            retourne
-        }
-
-        si évènement.action_souris == ActionSouris.PRESSÉE {
-            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris())
-            retourne
-        }
-
-        si évènement.action_souris == ActionSouris.RELACHÉE {
-            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris())
-
-            si emboiteuse.boite_interagit[SurPressionSouris] == emboiteuse.boite_interagit[SurRelâchementSouris] {
-                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris])
-                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris())
-            }
-
-            retourne
-        }
-    }
-}
-
-#portée_fichier
-
-GuetteuseBarreDéfilage :: struct {
-    empl base: Guetteuse
-
-    emboiteuse: *Emboiteuse
-    indice_barre: z32
-    souris_orig_x: r32
-    souris_orig_y: r32
-    barre_orig: BarreDeDéfilement
-
-    sur_termine_guettage = guetteuse_barre_défilage_sur_termine_guettage
-    sur_déplacement_souris = guetteuse_barre_défilage_sur_déplacement_souris
-    sur_clic = guetteuse_barre_défilage_sur_clic
-}
-
-commence_guettage_barre :: fonc (emboiteuse: *Emboiteuse, indice_barre: z32)
-{
-    assert(emboiteuse.guetteuse_courante == nul)
-    emboiteuse.guetteuse_barre.emboiteuse = emboiteuse
-    emboiteuse.guetteuse_barre.indice_barre = indice_barre
-    emboiteuse.guetteuse_barre.souris_orig_x = emboiteuse.souris_x
-    emboiteuse.guetteuse_barre.souris_orig_y = emboiteuse.souris_y
-    emboiteuse.guetteuse_barre.barre_orig = emboiteuse.barres_de_défilement[indice_barre]
-    emboiteuse.guetteuse_courante = *emboiteuse.guetteuse_barre
-}
-
-guetteuse_barre_défilage_sur_termine_guettage :: fonc (base: *Guetteuse)
-{
-    empl guetteuse := base comme *GuetteuseBarreDéfilage
-    emboiteuse.guetteuse_courante = nul
-}
-
-guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
-{
-    empl guetteuse := base comme *GuetteuseBarreDéfilage
-
-    barre := *emboiteuse.barres_de_défilement[indice_barre]
-
-    delta: r32
-    si barre.direction == Direction.Verticale {
-        delta = souris.où.y comme r32 - souris_orig_y
-    }
-    sinon {
-        delta = souris.où.x comme r32 - souris_orig_x
-    }
-
-    si barre.ratio != 0.0 {
-        mémoire(barre) = barre_orig
-        définis_défilage(barre, barre.défilage + delta / barre.ratio)
-    }
-
-    retourne ÉtatÉvènement.CONSOMMÉ
-}
-
-guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
-{
-    empl guetteuse := base comme *GuetteuseBarreDéfilage
-
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
-
-    si clic.bouton == BoutonSouris.PRIMAIRE {
-        si clic.action == ActionSouris.RELACHÉE {
-            termine_guettage(guetteuse)
-            résultat = ÉtatÉvènement.CONSOMMÉ
-        }
-    }
-
-    retourne résultat
-}
-
-__boite_courante : *BoiteFlexible = nul
-
-réinitialise :: fonc (emboiteuse: *Emboiteuse)
-{
-    emboiteuse.racine = nul
-
-    pour emboiteuse.toutes_les_boites {
-        réinitialise(it)
-        tableau_ajoute(*emboiteuse.boites_libres, it)
-    }
-
-    emboiteuse.toutes_les_boites.taille = 0
-    emboiteuse.fragments.taille = 0
-    emboiteuse.bordures.taille = 0
-    emboiteuse.flottances.taille = 0
-    emboiteuse.rappels.taille = 0
-}
-
-ajoute_configuration_bordure :: fonc (emboiteuse: *Emboiteuse, config: ConfigurationBordure) -> IndexConfigBordure
-{
-    résultat := IndexConfigBordure(emboiteuse.bordures.taille comme n16)
-    tableau_ajoute(*emboiteuse.bordures, config)
-    retourne résultat
-}
-
-ajoute_flottance :: fonc (emboiteuse: *Emboiteuse, flottance: Flottance) -> IndexFlottance
-{
-    résultat := IndexFlottance(emboiteuse.flottances.taille comme n16)
-    tableau_ajoute(*emboiteuse.flottances, flottance)
-    retourne résultat
-}
-
-donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction) -> (*BarreDeDéfilement, IndexBarreDeDéfilement)
-{
-    indice := si direction == Direction.Verticale {
-        *boite.barre_de_défilement_verticale
-    }
-    sinon {
-        *boite.barre_de_défilement_horizontale
-    }
-
-    résultat := donne_ou_crée_barre(boite.emboiteuse, indice)
-    retourne résultat, mémoire(indice)
-}
-
-donne_ou_crée_barre :: fonc (emboiteuse: *Emboiteuse, indice: *IndexBarreDeDéfilement) -> *BarreDeDéfilement
-{
-    si est_valide(mémoire(indice)) {
-        retourne *emboiteuse.barres_de_défilement[mémoire(indice)]
-    }
-
-    mémoire(indice) = IndexBarreDeDéfilement((emboiteuse.barres_de_défilement.taille) comme n16)
-    retourne tableau_ajoute_élément(*emboiteuse.barres_de_défilement)
-}
-
-#portée_export
-
-crée_boite :: fonc (emboiteuse: *Emboiteuse) -> *BoiteFlexible
-{
-    résultat: *BoiteFlexible
-
-    si emboiteuse.boites_libres {
-        résultat = emboiteuse.boites_libres[emboiteuse.boites_libres.taille - 1]
-        emboiteuse.boites_libres.taille -= 1
-    }
-    sinon {
-        résultat = loge(BoiteFlexible)
-    }
-
-    saufsi emboiteuse.racine {
-        emboiteuse.racine = résultat
-    }
-
-    résultat.emboiteuse = emboiteuse
-    tableau_ajoute(*emboiteuse.toutes_les_boites, résultat)
-    retourne résultat
-}
-
-termine_disposition :: fonc (emboiteuse: *Emboiteuse) -> CommandesDeRendu
-{
-    assert(__boite_courante == emboiteuse.racine)
-    __boite_courante = nul
-
-    emboiteuse.commandes.commandes.taille = 0
-
-    si emboiteuse.racine {
-        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Horizontale)
-        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Horizontale)
-        fragmente_texte(emboiteuse.racine)
-        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale)
-        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale)
-        calcule_positions(emboiteuse.racine)
-        génère_commandes(emboiteuse)
-
-        enregistre_disposition(emboiteuse)
-    }
-
-    retourne emboiteuse.commandes
-}
-
-enregistre_disposition :: fonc (emboiteuse: *Emboiteuse)
-{
-    assert(emboiteuse.racine != nul)
-
-    emboiteuse.boites_disposées.taille = 0
-    emboiteuse.boites_disposées_flottantes.taille = 0
-    tableau_réserve(*emboiteuse.boites_disposées, emboiteuse.toutes_les_boites.taille)
-
-    enregistre_disposition(emboiteuse, emboiteuse.racine, -1)
-}
-
-enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, parent: z32)
-{
-    enregistre_barre_de_défilement(boite)
-
-    indice_boite_disposée := emboiteuse.boites_disposées.taille comme z32
-
-    si boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
-        // À FAIRE : défilage horizontal
-        définis_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, rappel_molette_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai)
-        définis_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, rappel_pression_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai)
-    }
-
-    boite_disposée := tableau_ajoute_élément(*emboiteuse.boites_disposées)
-    boite_disposée.parent = parent
-    boite_disposée.id = boite.id
-    // boite_disposée.type = boite.type
-    // boite_disposée.est_taggée = boite.est_taggée
-    // boite_disposée.id_débogage = boite.id_débogage
-    boite_disposée.rect.x = boite.position.x
-    boite_disposée.rect.y = boite.position.y
-    boite_disposée.rect.largeur = boite.largeur
-    boite_disposée.rect.hauteur = boite.hauteur
-    boite_disposée.rappels = boite.rappels
-    boite_disposée.barre_de_défilement_horizontale = boite.barre_de_défilement_horizontale
-    boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale
-    boite_disposée.profondeur = boite.profondeur
-    boite_disposée.est_flottante = boite.flottance.est_valide()
-
-    dernier_enfant := -1
-
-    pour boite.enfants {
-        /* À FAIRE : inclus les textes. */
-        si it.type == BoiteFlexible.Type.Texte || it.type == BoiteFlexible.Type.TexteUTF32 {
-            continue
-        }
-
-        indice_enfant := emboiteuse.boites_disposées.taille comme z32
-        si dernier_enfant == -1 {
-            boite_disposée.premier_enfant = indice_enfant
-        }
-        sinon {
-            emboiteuse.boites_disposées[dernier_enfant].puiné = indice_enfant
-        }
-
-        si it.flottance.est_valide() {
-            tableau_ajoute(*emboiteuse.boites_disposées_flottantes, indice_enfant)
-        }
-        
-        enregistre_disposition(emboiteuse, it, indice_boite_disposée)
-
-        dernier_enfant = indice_enfant
-    }
-}
-
-donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
-{
-    pour * emboiteuse.boites_disposées {
-        si it.id == id {
-            retourne it.rect
-        }
-    }
-
-    retourne RectanglePosDim(r32)()
-}
-
-donne_rect :: fonc () -> RectanglePosDim(r32)
-{
-    assert(__boite_courante != nul)
-    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id)
-    retourne résultat
-}
-
-définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
-{
-    pour * emboiteuse.éditrices_textes {
-        si it.id != id {
-            continue
-        }
-
-        si éditrice_texte == nul {
-            tableau_supprime_indice(*emboiteuse.éditrices_textes, indice_it)
-            retourne
-        }
-
-        it.éditrice_texte = éditrice_texte
-        retourne
-    }
-
-    assert(éditrice_texte != nul)
-    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
-}
-
-donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
-{
-    pour * emboiteuse.éditrices_textes {
-        si it.id == id {
-            retourne it.éditrice_texte
-        }
-    }
-
-    retourne nul
-}
-
-enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
-{
-    saufsi boite.défilage.vertical {
-        retourne
-    }
-
-    hauteur_enfants := donne_hauteur_enfants(boite)
-    hauteur_disponible := (boite.hauteur - (boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]))
-
-    si hauteur_enfants <= hauteur_disponible {
-        // À FAIRE : libère la mémoire
-        boite.barre_de_défilement_verticale = INDEX_BARRE_DÉFILEMENT_INVALIDE
-        retourne
-    }
-
-    barre, indice_barre := donne_barre_de_défilement(boite, Direction.Verticale)
-    barre.direction = Direction.Verticale
-
-    nouveau_défilage_max := hauteur_enfants - hauteur_disponible
-    nouveau_ratio := hauteur_disponible / hauteur_enfants
-
-    barre.défilage_max = nouveau_défilage_max
-    barre.ratio = nouveau_ratio
-    si barre.défilage > barre.défilage_max {
-        barre.défilage = barre.défilage_max
-    }
-}
-
-définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
-{
-    emboiteuse.souris_x = x
-    emboiteuse.souris_y = y
-}
-
-définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
-{
-    emboiteuse.souris_x = souris.état.où.x comme r32
-    emboiteuse.souris_y = souris.état.où.y comme r32
-}
-
-sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: TypeRappelUtilisateur, souris: ClicSouris)
-{
-    définis_position_souris(emboiteuse, souris)
-
-    boite := donne_boite_sous_souris(emboiteuse)
-    tantque boite {
-        état_évènement := appel_rappel(emboiteuse, boite, type, souris)
-        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
-            emboiteuse.boite_interagit[type] = boite.id
-            retourne
-        }
-
-        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
-            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
-            continue
-        }
-
-        si boite.parent == -1 {
-            arrête
-        }
-
-        boite = *emboiteuse.boites_disposées[boite.parent]
-    }
-}
-
-donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
-{
-    si emboiteuse.boites_disposées.taille == 0 {
-        retourne nul
-    }
-
-    pour * emboiteuse.boites_disposées {
-        si it.id == id {
-            retourne *emboiteuse.boites_disposées[indice_it]
-        }
-    }
-
-    retourne nul
-}
-
-donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *BoiteDisposée = nul) -> *BoiteDisposée
-{
-    si emboiteuse.boites_disposées.taille == 0 {
-        retourne nul
-    }
-
-    racine_boites_disposées := *emboiteuse.boites_disposées[0]
-
-    boite_courante := racine_boites_disposées
-
-    profondeur_flottante := 0x7fffffff
-    pour emboiteuse.boites_disposées_flottantes {
-        boite := racine_boites_disposées + it
-        si boite == ignore_boite {
-            continue
-        }
-        si boite.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
-            si boite.profondeur < profondeur_flottante {
-                boite_courante = boite
-                profondeur_flottante = boite.profondeur
-            }
-        }
-    }
-
-    boucle {
-        si boite_courante.premier_enfant == -1 {
-            arrête
-        }
-
-        enfant := racine_boites_disposées + boite_courante.premier_enfant
-
-        boucle {
-            si enfant.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
-                arrête
-            }
-
-            si enfant.puiné == -1 {
-                enfant = nul
-                arrête
-            }
-
-            enfant = racine_boites_disposées + enfant.puiné
-        }
-
-        si enfant == nul {
-            arrête
-        }
-
-        boite_courante = enfant
-    }
-
-    retourne boite_courante
-}
-
-est_survolée :: fonc () -> bool
-{
-    assert(__boite_courante != nul)
-    boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
-    boite_courante := boite_disposée
-
-    tantque boite_courante != nul {
-        si boite_courante.id == __boite_courante.id {
-            retourne vrai
-        }
-
-        si boite_courante.parent == -1 {
-            arrête
-        }
-
-        boite_courante = *__boite_courante.emboiteuse.boites_disposées[boite_courante.parent]
-    }
-
-    retourne faux
-}
-
-fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
-{
-    début := boite.texte.pointeur
-    fin := début + boite.texte.taille
-
-    premier_fragment := emboiteuse.fragments.taille comme n32
-    dernier_fragment: n32
-
-    courant := début
-    tantque courant < fin {
-        si mémoire(courant) == ' ' || mémoire(courant) == '\n' {
-            fragment := chaine(début, courant - début)
-
-            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
-
-            fragment.pointeur = courant
-            fragment.taille = 1
-            dernier_fragment = ajoute_fragment(emboiteuse, fragment, vrai)
-
-            courant += 1
-            début = courant
-            continue
-        }
-
-        si mémoire(courant) == '-' {
-            courant += 1
-
-            fragment := chaine(début, courant - début)
-            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
-
-            début = courant
-            continue
-        }
-
-        courant += 1
-    }
-
-    fragment := chaine(début, courant - début)
-
-    si fragment.taille {
-        dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
-    }
-
-    boite.premier_fragment = premier_fragment
-    boite.dernier_fragment = dernier_fragment
-}
-
-ajoute_fragment :: fonc (emboiteuse: *Emboiteuse, texte: chaine, est_espace_blanche: bool) -> n32
-{
-    résultat := emboiteuse.fragments.taille
-    tableau_ajoute(*emboiteuse.fragments, FragmentTexte(texte, est_espace_blanche = est_espace_blanche))
-    retourne résultat comme n32
-}
-
-calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
-{
-    si boite.type == BoiteFlexible.Type.Texte {
-        si direction == Direction.Horizontale {
-            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte) comme r32
-            boite.largeur_texte = boite.largeur
-
-            fragmente_texte(boite.emboiteuse, boite)
-
-            largeur_min := 0.0
-
-            premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
-            dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
-
-            tantque premier_fragment < dernier_fragment {
-                largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte) comme r32
-                premier_fragment.largeur = largeur_fragment
-                saufsi premier_fragment.est_espace_blanche {
-                    largeur_min = max(largeur_min, largeur_fragment)
-                }
-                premier_fragment += 1
-            }
-
-            boite.taille_min[direction] = largeur_min
-            retourne
-        }
-
-        métriques := donne_métriques_fonte(boite.config_texte.fonte)
-        boite.hauteur = métriques.donne_hauteur_ligne() * (boite.dernier_fragment - boite.premier_fragment + 1) comme r32
-        boite.taille_min[direction] = boite.hauteur
-        retourne
-    }
-
-    si boite.type == BoiteFlexible.Type.TexteUTF32 {
-        si direction == Direction.Horizontale {
-            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte_utf32) comme r32
-            boite.largeur_texte = boite.largeur
-            boite.taille_min[direction] = boite.largeur_texte
-            retourne
-        }
-
-        métriques := donne_métriques_fonte(boite.config_texte.fonte)
-        boite.hauteur = métriques.donne_hauteur_ligne()
-        boite.taille_min[direction] = boite.hauteur
-        retourne
-    }
-
-    cotation := 0.0
-
-    nombre_enfants_non_flottants := 0
-
-    pour boite.enfants {
-        calcule_cotation_sur_direction(it, direction)
-
-        si it.flottance.est_valide() {
-            continue
-        }
-
-        nombre_enfants_non_flottants += 1
-
-        taille_enfant := it.donne_taille(direction)
-
-        si boite.disposition.direction == direction {
-            cotation += taille_enfant
-            boite.taille_min[direction] += it.taille_min[direction]
-        }
-        sinon {
-            cotation = max(cotation, taille_enfant)
-            boite.taille_min[direction] = max(boite.taille_min[direction], it.taille_min[direction])
-        }
-    }
-
-    si boite.est_cotation_fixe(direction) {
-        cotation = boite.donne_cotation(direction) comme r32
-        boite.taille_min[direction] = cotation
-    }
-    sinon si boite.est_cotation_croissante(direction) {
-        cotation = 0.0
-        boite.taille_min[direction] = cotation
-    }
-    sinon {
-        cotation += boite.donne_rembourrage(direction)
-        /* Inclus le rembourrage dans la taille minimale afin de ne pas souscoter
-         * des boites qui ne contiennent que du texte.
-         * (Ou alors il faudra noter que le texte doit être élidé). */
-        boite.taille_min[direction] += boite.donne_rembourrage(direction)
-
-        si boite.disposition.direction == direction {
-            espace_entre_enfants := (nombre_enfants_non_flottants - 1) comme r32 * boite.disposition.séparation_enfant
-            cotation += espace_entre_enfants
-            boite.taille_min[direction] += espace_entre_enfants
-        }
-
-        cotation = max(cotation, boite.donne_cotation(direction) comme r32)
-    }
-
-    boite.taille_min[direction] = max(boite.taille_min[direction], donne_cotation_min(boite, direction) comme r32)
-
-    si cotation < boite.taille_min[direction] {
-        cotation = boite.taille_min[direction]
-    }
-
-    cotation_max_spécifiée := donne_cotation_max(boite, direction) comme r32
-    si cotation > cotation_max_spécifiée {
-        cotation = cotation_max_spécifiée
-    }
-
-    boite.définis_taille(direction, cotation)
-}
-
-résoud_cotation_croissante_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
-{
-    saufsi boite.enfants {
-        retourne
-    }
-
-    résoud_cotation_croissante_sur_direction_impl(boite, direction)
-
-    pour boite.enfants {
-        résoud_cotation_croissante_sur_direction(it, direction)
-    }
-}
-
-résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, direction: Direction)
-{
-    si boite.disposition.direction != direction {
-        espace_libre := boite.donne_taille(direction) - boite.donne_rembourrage(direction)
-
-        pour boite.enfants {
-            si it.flottance.est_valide() {
-                continue
-            }
-            si it.est_cotation_croissante(direction) {
-                it.agrandis_par(direction, espace_libre - it.donne_taille(direction))
-            }
-            sinon saufsi it.est_cotation_fixe(direction) {
-                si it.donne_taille(direction) > espace_libre {
-                    it.définis_taille(direction, it.taille_min[direction])
-                }
-            }
-        }
-
-        retourne
-    }
-
-    espace_libre := donne_espace_libre(boite, direction == Direction.Verticale)
-
-    si espace_libre < 0.0 {
-        si direction == Direction.Verticale && boite.défilage.vertical {
-            retourne
-        }
-        si direction == Direction.Horizontale && boite.défilage.horizontal {
-            retourne
-        }
-    }
-
-    croissables := boite.emboiteuse.croissables
-    diffère boite.emboiteuse.croissables = croissables
-    croissables.taille = 0
-
-    décroissables := boite.emboiteuse.décroissables
-    diffère boite.emboiteuse.décroissables = décroissables
-    décroissables.taille = 0
-
-    pour boite.enfants {
-        si it.flottance.est_valide() {
-            continue
-        }
-        si it.est_cotation_croissante(direction) {
-            tableau_ajoute(*croissables, it)
-        }
-        sinon saufsi it.est_cotation_fixe(direction) {
-            tableau_ajoute(*décroissables, it)
-        }
-    }
-
-    R64_INFINITÉ : r64 : 0r7ff0000000000000
-
-    tantque croissables.taille > 0 && espace_libre > 0.0 {
-        petissime := croissables[0].donne_taille(direction)
-        antepetissime := R64_INFINITÉ comme r32
-        largeur_à_ajouter := espace_libre
-
-        pour croissables {
-            taille_enfant := it.donne_taille(direction)
-            si taille_enfant < petissime {
-                antepetissime = petissime
-                petissime = taille_enfant
-            }
-            si taille_enfant > petissime {
-                antepetissime = min(antepetissime, taille_enfant)
-                largeur_à_ajouter = antepetissime - petissime
-            }
-        }
-
-        largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / croissables.taille comme r32)
-
-        pour croissables {
-            si it.donne_taille(direction) == petissime {
-                it.agrandis_par(direction, largeur_à_ajouter)
-                espace_libre -= largeur_à_ajouter
-            }
-        }
-    }
-
-    tantque décroissables.taille > 0 && espace_libre < 0.0 {
-        grandissime := décroissables[0].donne_taille(direction)
-        antegrandissime := R64_INFINITÉ comme r32
-        largeur_à_ajouter := espace_libre
-
-        pour décroissables {
-            taille_enfant := it.donne_taille(direction)
-            si taille_enfant > grandissime {
-                antegrandissime = grandissime
-                grandissime = taille_enfant
-            }
-            si taille_enfant < grandissime {
-                antegrandissime = min(antegrandissime, taille_enfant)
-                largeur_à_ajouter = antegrandissime - grandissime
-            }
-        }
-
-        largeur_à_ajouter = min(largeur_à_ajouter, espace_libre / décroissables.taille comme r32)
-
-        pour décroissables {
-            taille_initiale_enfant := it.donne_taille(direction)
-            si taille_initiale_enfant != grandissime {
-                continue
-            }
-
-            it.agrandis_par(direction, largeur_à_ajouter)
-
-            supprime_décroissable := faux
-
-            si it.donne_taille(direction) <= it.taille_min[direction] {
-                it.définis_taille(direction, it.taille_min[direction])
-                supprime_décroissable = vrai
-            }
-
-            espace_libre -= (it.donne_taille(direction) - taille_initiale_enfant)
-
-            si supprime_décroissable {
-                tableau_supprime_indice(*décroissables, indice_it)
-                reprends it
-            }
-        }
-    }
-}
-
-fragmente_texte :: fonc (boite: *BoiteFlexible)
-{
-    si boite.type == BoiteFlexible.Type.Texte {
-        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
-        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
-
-        si boite.largeur >= boite.largeur_texte {
-            premier_fragment.texte = boite.texte
-            boite.dernier_fragment = boite.premier_fragment
-            retourne
-        }
-
-        insertion := premier_fragment
-        nombre_fragments : n32 = 0
-
-        largeur_ligne := 0.0
-
-        tantque premier_fragment < dernier_fragment {
-            nombre_de_caractères: z64
-            mémoire(insertion) = mémoire(premier_fragment)
-
-            tantque premier_fragment < dernier_fragment {
-                si largeur_ligne + premier_fragment.largeur > boite.largeur {
-                    premier_fragment -= 1
-                    arrête
-                }
-
-                largeur_ligne += premier_fragment.largeur
-                nombre_de_caractères += premier_fragment.texte.taille
-                premier_fragment += 1
-            }
-
-            insertion.texte.taille = nombre_de_caractères
-
-            largeur_ligne = 0.0
-
-            insertion += 1
-
-            nombre_fragments += 1
-            premier_fragment += 1
-        }
-
-        boite.dernier_fragment = boite.premier_fragment + nombre_fragments - 1
-        retourne
-    }
-
-    pour boite.enfants {
-        fragmente_texte(it)
-    }
-}
-
-calcule_positions :: fonc (boite: *BoiteFlexible)
-{
-    décalage_enfants := [boite.disposition.rembourrage.v[0], boite.disposition.rembourrage.v[1]]
-
-    orthogonale := Direction.Horizontale
-    si boite.disposition.direction == orthogonale {
-        orthogonale = Direction.Verticale
-    }
-
-    alignement_direction := boite.donne_alignement(boite.disposition.direction)
-    alignement_orthogonal := boite.donne_alignement(orthogonale)
-
-    si alignement_direction == AlignementEnfant.Milieu {
-        espace := donne_espace_libre(boite, boite.disposition.direction == Direction.Verticale)
-        décalage_enfants[boite.disposition.direction] += espace * 0.5
-    }
-    sinon si alignement_direction == AlignementEnfant.Fin {
-        espace := donne_espace_libre(boite, boite.disposition.direction == Direction.Verticale)
-        décalage_enfants[boite.disposition.direction] += espace
-    }
-
-    si boite.défilage.vertical && boite.id {
-        boite_disposée := donne_boite_disposée_pour_id(boite.emboiteuse, boite.id)
-        si boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
-            barre := *boite.emboiteuse.barres_de_défilement[boite_disposée.barre_de_défilement_verticale]
-            décalage_enfants[Direction.Verticale] -= barre.défilage
-            boite.barre_de_défilement_verticale = boite_disposée.barre_de_défilement_verticale
-        }
-    }
-
-    pour boite.enfants {
-        si it.flottance.est_valide() {
-            flottance := boite.emboiteuse.flottances[it.flottance]
-
-            it.position.x = boite.position.x
-            it.position.y = boite.position.y
-
-            discr flottance.ancrage {
-                HAUT_GAUCHE {
-                    /* Rien à faire. */
-                }
-                HAUT_CENTRE {
-                    it.position.x += boite.largeur * 0.5
-                }
-                HAUT_DROIT {
-                    it.position.x += boite.largeur
-                }
-                CENTRE_GAUCHE {
-                    it.position.y += boite.hauteur * 0.5
-                }
-                CENTRE {
-                    it.position.x += boite.largeur * 0.5
-                    it.position.y += boite.hauteur * 0.5
-                }
-                CENTRE_DROIT {
-                    it.position.x += boite.largeur
-                    it.position.y += boite.hauteur * 0.5
-                }
-                BAS_GAUCHE {
-                    it.position.y += boite.hauteur
-                }
-                BAS_CENTRE {
-                    it.position.x += boite.largeur * 0.5
-                    it.position.y += boite.hauteur
-                }
-                BAS_DROIT {
-                    it.position.x += boite.largeur
-                    it.position.y += boite.hauteur
-                }
-            }
-
-            it.position.x += flottance.décalage_x
-            it.position.y += flottance.décalage_y
-
-            calcule_positions(it)
-            continue
-        }
-
-        décalage_pour_enfant := décalage_enfants
-
-        si alignement_orthogonal != AlignementEnfant.Début {
-            espace_libre := boite.donne_taille(orthogonale) - boite.donne_rembourrage(orthogonale)
-            espace_libre -= it.donne_taille(orthogonale)
-
-            si alignement_orthogonal == AlignementEnfant.Milieu {
-                espace_libre *= 0.5
-            }
-
-            décalage_pour_enfant[orthogonale] += espace_libre
-        }
-
-        it.position.x = boite.position.x + décalage_pour_enfant[0]
-        it.position.y = boite.position.y + décalage_pour_enfant[1]
-
-        calcule_positions(it)
-
-        décalage_enfants[boite.disposition.direction] += it.donne_taille(boite.disposition.direction) + boite.disposition.séparation_enfant
-    }
-}
-
-donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
-{
-    espace_occupé := 0.0
-
-    nombre_enfants_non_flottants := 0
-
-    pour boite.enfants {
-        si it.flottance.est_valide() {
-            continue
-        }
-        nombre_enfants_non_flottants += 1
-        si axe_y {
-            espace_occupé += it.hauteur
-        }
-        sinon {
-            espace_occupé += it.largeur
-        }
-    }
-
-    espace_occupé += boite.disposition.séparation_enfant * (nombre_enfants_non_flottants - 1) comme r32
-
-    si axe_y {
-        espace_occupé += boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3]
-        retourne boite.hauteur - espace_occupé
-    }
-
-    espace_occupé += boite.disposition.rembourrage.v[0] + boite.disposition.rembourrage.v[2]
-    retourne boite.largeur - espace_occupé
-}
-
-donne_hauteur_enfants :: fonc (boite: *BoiteFlexible) -> r32
-{
-    si boite.enfants.taille == 0 {
-        retourne 0.0
-    }
-
-    premier_enfant: *BoiteFlexible
-    dernier_enfant: *BoiteFlexible
-
-    pour boite.enfants {
-        si it.flottance.est_valide() {
-            continue
-        }
-        si premier_enfant == nul {
-            premier_enfant = it
-        }
-        dernier_enfant = it
-    }
-
-    si premier_enfant == nul {
-        assert(dernier_enfant == nul)
-        retourne 0.0
-    }
-
-    retourne dernier_enfant.position.y + dernier_enfant.hauteur - premier_enfant.position.y
-}
-
-génère_commandes :: fonc (emboiteuse: *Emboiteuse)
-{
-    commandes := *emboiteuse.commandes
-
-    tableau_réserve(*emboiteuse.traversée_boites, emboiteuse.toutes_les_boites.taille)
-    tableau_réserve(*emboiteuse.boites_à_visiter, emboiteuse.toutes_les_boites.taille)
-
-    tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
-    tableau_ajoute(*emboiteuse.traversée_boites, emboiteuse.racine)
-
-    tantque emboiteuse.traversée_boites.taille != 0 {
-        /* Traverse d'abord les boites et leurs enfants, pour générer les commandes. */
-        si emboiteuse.boites_à_visiter.taille != 0 {
-            boite := emboiteuse.traversée_boites[enlève_dernier_élément(*emboiteuse.boites_à_visiter)]
-
-            rect: RectanglePosDim(r32)
-            rect.x = boite.position.x
-            rect.y = boite.position.y
-            rect.largeur = boite.largeur
-            rect.hauteur = boite.hauteur
-
-            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite)
-            si boite_pour_ciselage {
-                rect_ciselage := donne_rect_ciselage_défilage(boite_pour_ciselage)
-                commandes.débute_ciselage(rect_ciselage)
-            }
-
-            discr boite.type {
-                Normale {
-                    si boite.rectangle.rayon_coin != 0.0 {
-                        commandes.remplis_rectangle_arrondi(rect, boite.arrière_plan, boite.rectangle.rayon_coin)
-                    }
-                    sinon {
-                        commandes.remplis_rectangle(rect, boite.arrière_plan)
-                    }
-                }
-                Texte {
-                    /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
-                    si boite.texte.taille != 0 {
-                        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
-                        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
-                        métriques := boite.config_texte.fonte.donne_métriques_fonte()
-
-                        rect.hauteur = métriques.donne_hauteur_ligne()
-
-                        tantque premier_fragment < dernier_fragment {
-                            commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
-                            premier_fragment += 1
-
-                            rect.y += métriques.donne_hauteur_ligne()
-                        }
-                    }
-                }
-                TexteUTF32 {
-                    commandes.dessine_texte(rect, boite.config_texte.fonte, boite.texte_utf32, boite.config_texte.couleur)
-                }
-                Image {
-                    commandes.dessine_image(rect, boite.image, boite.teinte)
-                }
-                Procédure {
-                    commandes.dessine_procédural(rect, boite.procédure, boite.données_procédure)
-                }
-            }
-
-            si boite_pour_ciselage {
-                commandes.termine_ciselage()
-            }
-
-            pour > boite.enfants {
-                si it.flottance.est_valide() {
-                    continue
-                }
-                tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
-                tableau_ajoute(*emboiteuse.traversée_boites, it)
-            }
-
-            continue
-        }
-
-        /* Maintenant que nous avons généré les commandes de base, nous remontons dans l'arbre pour
-         * dessiner les éléments devant êtres devant les enfants (barre de défilement, etc). */
-        boite := enlève_dernier_élément(*emboiteuse.traversée_boites)
-
-        rect: RectanglePosDim(r32)
-        rect.x = boite.position.x
-        rect.y = boite.position.y
-        rect.largeur = boite.largeur
-        rect.hauteur = boite.hauteur
-
-        si boite.défilage.vertical || boite.défilage.horizontal {
-            si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
-                barre := *boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
-
-                hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
-
-                rect_défilage := rect
-                rect_défilage.x = rect_défilage.x + boite.largeur - boite.défilage.largeur_verticale + 1.0
-                rect_défilage.y = rect_défilage.y + boite.disposition.rembourrage.v[1] + barre.défilage * barre.ratio + 1.0
-                rect_défilage.largeur = boite.défilage.largeur_verticale - 2.0
-                rect_défilage.hauteur = hauteur_disponible * barre.ratio - 2.0
-
-                couleur_barre := boite.défilage.couleur_verticale
-                si barre.est_survolée {
-                    couleur_barre = boite.défilage.couleur_verticale_survolage
-                }
-
-                barre.rect = rect_défilage
-
-                commandes.remplis_rectangle(rect_défilage, couleur_barre)
-            }
-        }
-
-        si boite.indice_bordure.est_valide() {
-            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite)
-            si boite_pour_ciselage {
-                rect_ciselage := donne_rect_ciselage_défilage(boite_pour_ciselage)
-                commandes.débute_ciselage(rect_ciselage)
-            }
-
-            config := boite.emboiteuse.bordures[boite.indice_bordure]
-            commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
-
-            si boite_pour_ciselage {
-                commandes.termine_ciselage()
-            }
-        }
-
-        éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
-        si éditrice && éditrice.curseur_est_affiché {
-            texte_avant_curseur := éditrice.texte_à_éditer
-            texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin
-
-            curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
-            hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
-
-            rect.x = rect.x + boite.disposition.rembourrage.v[0] + curseur_x comme r32
-            rect.y = rect.y + boite.disposition.rembourrage.v[1]
-            rect.largeur = 1.0
-            rect.hauteur = hauteur_disponible
-            
-            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
-            commandes.remplis_rectangle(rect, couleur_barre)
-        }
-
-        pour > boite.enfants {
-            si it.flottance.est_valide() {
-                tableau_ajoute(*emboiteuse.boites_à_visiter, emboiteuse.traversée_boites.taille)
-                tableau_ajoute(*emboiteuse.traversée_boites, it)
-            }
-        }
-    }
-}
-
-donne_parent_avec_barre_défilage :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
-{
-    parent := boite.parent
-    tantque parent != nul {
-        si parent.défilage.vertical || parent.défilage.horizontal {
-            arrête
-        }
-        parent = parent.parent
-    }
-    retourne parent
-}
-
-donne_rect_ciselage_défilage :: fonc (boite: *BoiteFlexible) -> RectanglePosDim(r32)
-{
-    // À FAIRE : ne restreint que dans la bonne direction
-    rect_ciselage: RectanglePosDim(r32)
-    rect_ciselage.x = boite.position.x
-    rect_ciselage.y = boite.position.y
-    rect_ciselage.largeur = boite.largeur
-    rect_ciselage.hauteur = boite.hauteur
-
-    si boite.défilage.vertical {
-        rect_ciselage.largeur -= boite.défilage.largeur_verticale
-    }
-
-    retourne rect_ciselage
 }
 
 /** \} */
