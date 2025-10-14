@@ -5,6 +5,7 @@ importe Chaine
 importe Couleur
 importe Ensemble
 importe Fondation
+importe Guettage
 importe Image
 importe Krypto
 importe Math
@@ -541,18 +542,20 @@ sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: C
     retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
+définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     assert(indice >= 0)
     assert(indice < serveuse.état_mémoire.allocations.taille)
 
     serveuse.état_mémoire.allocation_sélectionnée = indice
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
+définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     assert(indice >= 0)
     assert(indice < serveuse.état_mémoire.traces_triées.taille)
 
     serveuse.état_mémoire.trace_sélectionnée = indice
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
