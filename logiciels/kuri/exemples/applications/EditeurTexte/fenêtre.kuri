@@ -4,6 +4,7 @@ importe CréationFenêtre
 importe Couleur
 importe ÉditionTexte
 importe Fondation
+importe Guettage
 importe Math
 importe Numérique
 importe PeintureInterface
@@ -521,7 +522,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    fenêtre := ouvre_projet(*anonyme, "kuri")
+    _ := ouvre_projet(*anonyme, "kuri")
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
