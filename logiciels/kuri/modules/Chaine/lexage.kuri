@@ -18,7 +18,7 @@ divise_sur_espace_blanche_ou_ponctuation_ascii :: fonc (texte: chaine) -> [..]ch
     retourne divise(texte, est_espace_blanche_ou_ponctuation_ascii)
 }
 
-divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
+divise :: fonc (texte: chaine, rappel: fonc(z8)(bool), inclus_chaines_vide := vrai) -> [..]chaine
 {
     taille_mot : z64 = 0
     début_mot : z64 = 0
@@ -26,7 +26,7 @@ divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
 
     pour texte {
         si rappel(it) {
-            si taille_mot != 0 {
+            si taille_mot != 0 || inclus_chaines_vide {
                 mot := chaine(*texte[début_mot], taille_mot)
                 tableau_ajoute(*mots, mot)
             }
@@ -47,14 +47,14 @@ divise :: fonc (texte: chaine, rappel: fonc(z8)(bool)) -> [..]chaine
     retourne mots
 }
 
-divise :: fonc (ligne: chaine, séparation: z8) -> [..]chaine
+divise :: fonc (ligne: chaine, séparation: z8, inclus_chaines_vide := vrai) -> [..]chaine
 {
     mots: [..]chaine
-    divise(ligne, séparation, *mots)
+    divise(ligne, séparation, *mots, inclus_chaines_vide = inclus_chaines_vide)
     retourne mots
 }
 
-divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réinitialise_résultat := vrai)
+divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réinitialise_résultat := vrai, inclus_chaines_vide := vrai)
 {
     si réinitialise_résultat {
         résultat.taille = 0
@@ -66,7 +66,7 @@ divise :: fonc (ligne: chaine, séparation: z8, résultat: *[..]chaine, réiniti
     pour c, i dans ligne {
         si c == séparation {
             si i != 0 {
-                si taille_mot != 0 {
+                si taille_mot != 0 || inclus_chaines_vide {
                     mot := chaine(*ligne[début_mot], taille_mot)
                     tableau_ajoute(résultat, mot)
                 }
