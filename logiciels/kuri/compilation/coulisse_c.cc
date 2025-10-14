@@ -1088,8 +1088,8 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
     : m_espace(espace), broyeuse(broyeuse_)
 {
     m_convertisseuse_type_c = mémoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
-    auto compilatrice = &espace.compilatrice();
 #if 0
+    auto compilatrice = &espace.compilatrice();
     m_info_débogage = mémoire::loge<InformationsDeDébogage>("InformationsDeDébogage",
                                                             compilatrice);
 #endif
