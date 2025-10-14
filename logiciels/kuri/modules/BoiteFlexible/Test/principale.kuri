@@ -91,17 +91,18 @@ App :: struct {
     document_courant: z32
 }
 
-définis_document_courant :: fonc (app: *App, souris: ClicSouris @inutilisée, id: n64, indice: z32)
+définis_document_courant :: fonc (app: *App, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     si indice < 0 && indice >= app.documents.taille {
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     si indice == app.document_courant {
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     app.document_courant = indice
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
