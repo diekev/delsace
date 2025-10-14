@@ -668,7 +668,7 @@ BoiteFlexible :: struct {
     flottance := FLOTTANCE_INVALIDE
 
     /* Rappels */
-    rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
+    rappels: [TypeRappelUtilisateur.nombre_éléments]n32
 
     /* mémoire vive */
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
@@ -835,33 +835,95 @@ ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: ChaineUTF32) 
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux)
 }
 
 sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux)
 }
 
 sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux)
 }
 
 sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice)
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux)
 }
 
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, indice: z32)
+définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, indice: z32, doit_être_premier: bool)
 {
-    boite.rappels[type].rappel = rappel
-    boite.rappels[type].données_utilisateur = données
-    boite.rappels[type].indice_utilisateur = indice
+    emboiteuse := boite.emboiteuse
+
+    entrée_rappel := tableau_ajoute_élément(*emboiteuse.rappels)
+    entrée_rappel.rappel = rappel
+    entrée_rappel.données_utilisateur = données
+    entrée_rappel.indice_utilisateur = indice
+
+    indice_rappel := emboiteuse.rappels.taille comme n32
+
+    indice_rappel_existant := boite.rappels[type]
+
+    si indice_rappel_existant != 0 {
+        si doit_être_premier {
+            entrée_rappel.suivant = indice_rappel_existant
+            boite.rappels[type] = indice_rappel
+        }
+        sinon {
+            rappel_existant := *emboiteuse.rappels[indice_rappel_existant - 1]
+            rappel_existant.suivant = indice_rappel
+        }
+    }
+    sinon {
+        boite.rappels[type] = indice_rappel
+    }
 }
+
+#portée_fichier
+
+rappel_molette_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+{
+    assert(souris.bouton == BoutonSouris.MOLETTE)
+
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+
+    si indice >= 0 && indice < emboiteuse.barres_de_défilement.taille {
+        barre := *emboiteuse.barres_de_défilement[indice]
+        si souris.delta > 0 {
+            définis_défilage(barre, barre.défilage - 60.0)
+        }
+        sinon {
+            définis_défilage(barre, barre.défilage + 60.0)
+        }
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+
+    retourne résultat
+}
+
+rappel_pression_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        si indice >= 0 && indice < emboiteuse.barres_de_défilement.taille {
+            barre := *emboiteuse.barres_de_défilement[indice]
+            si barre.est_survolée {
+                commence_guettage_barre(emboiteuse, indice)
+                résultat = ÉtatÉvènement.CONSOMMÉ
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+#portée_export
 
 /** \} */
 
@@ -920,6 +982,7 @@ RappelUtilisateur :: struct {
     rappel: TypeRappelSouris
     données_utilisateur: *rien
     indice_utilisateur: z32
+    suivant: n32
 }
 
 BoiteDisposée :: struct {
@@ -935,18 +998,27 @@ BoiteDisposée :: struct {
     rect: RectanglePosDim(r32)
     barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
+    est_flottante: bool
 
-    rappels: [TypeRappelUtilisateur.nombre_éléments]RappelUtilisateur
+    rappels: [TypeRappelUtilisateur.nombre_éléments]n32
 }
 
-appel_rappel :: fonc (boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris) -> bool
+appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris) -> Optionnel(ÉtatÉvènement)
 {
-    rappel := boite.rappels[type]
-    si rappel.rappel {
-        résultat := rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.indice_utilisateur)
-        retourne résultat == ÉtatÉvènement.CONSOMMÉ
+    résultat: Optionnel(ÉtatÉvènement)
+
+    indice_rappel := boite.rappels[type]
+    tantque indice_rappel != 0 {
+        rappel := emboiteuse.rappels[indice_rappel - 1]
+        état_évènement := rappel.rappel(rappel.données_utilisateur, souris, boite.id, rappel.indice_utilisateur)
+        si état_évènement == ÉtatÉvènement.CONSOMMÉ {
+            retourne état_évènement
+        }
+        indice_rappel = rappel.suivant
+        résultat = ÉtatÉvènement.PASSE_AU_PARENT
     }
-    retourne faux
+
+    retourne résultat
 }
 
 ÉditriceTextePourId :: struct {
@@ -991,6 +1063,8 @@ Emboiteuse :: struct {
 
     guetteuse_courante: *Guetteuse
     guetteuse_barre: GuetteuseBarreDéfilage
+
+    rappels: [..]RappelUtilisateur
 }
 
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
@@ -1010,6 +1084,7 @@ détruit_données :: fonc (emboiteuse: *Emboiteuse)
     déloge(emboiteuse.décroissables)
     déloge(emboiteuse.traversée_boites)
     déloge(emboiteuse.boites_à_visiter)
+    déloge(emboiteuse.rappels)
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
@@ -1058,24 +1133,12 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
         }
 
         si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
-            saufsi sur_molette_souris(emboiteuse, évènement.donne_clic_souris()) {
-                applique_défilage_vertical(emboiteuse, position.x comme r32, position.y comme r32, évènement.delta_souris)
-            }
+            _ := sur_molette_souris(emboiteuse, évènement.donne_clic_souris())
             retourne
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            saufsi sur_pression_souris(emboiteuse, évènement.donne_clic_souris()) {
-                si évènement.bouton_souris == BoutonSouris.PRIMAIRE {
-                    pour * emboiteuse.barres_de_défilement {
-                        si it.est_survolée {
-                            commence_guettage_barre(emboiteuse, indice_it comme z32)
-                            arrête
-                        }
-                    }
-                }
-            }
-
+            _ := sur_pression_souris(emboiteuse, évènement.donne_clic_souris())
             retourne
         }
 
@@ -1172,6 +1235,7 @@ réinitialise :: fonc (emboiteuse: *Emboiteuse)
     emboiteuse.fragments.taille = 0
     emboiteuse.bordures.taille = 0
     emboiteuse.flottances.taille = 0
+    emboiteuse.rappels.taille = 0
 }
 
 ajoute_configuration_bordure :: fonc (emboiteuse: *Emboiteuse, config: ConfigurationBordure) -> IndexConfigBordure
@@ -1273,6 +1337,12 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
 
     indice_boite_disposée := emboiteuse.boites_disposées.taille comme z32
 
+    si boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
+        // À FAIRE : défilage horizontal
+        définis_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, rappel_molette_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai)
+        définis_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, rappel_pression_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai)
+    }
+
     boite_disposée := tableau_ajoute_élément(*emboiteuse.boites_disposées)
     boite_disposée.parent = parent
     boite_disposée.id = boite.id
@@ -1287,6 +1357,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     boite_disposée.barre_de_défilement_horizontale = boite.barre_de_défilement_horizontale
     boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale
     boite_disposée.profondeur = boite.profondeur
+    boite_disposée.est_flottante = boite.flottance.est_valide()
 
     dernier_enfant := -1
 
@@ -1409,9 +1480,15 @@ sur_pression_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> boo
 
     boite := donne_boite_sous_souris(emboiteuse)
     tantque boite {
-        si appel_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, souris) {
+        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurPressionSouris, souris)
+        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
             emboiteuse.id_pressé = boite.id
             retourne vrai
+        }
+
+        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
+            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
+            continue
         }
 
         si boite.parent == -1 {
@@ -1430,11 +1507,17 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) ->
 
     boite := donne_boite_sous_souris(emboiteuse)
     tantque boite {
-        si appel_rappel(boite, TypeRappelUtilisateur.SurRelâchementSouris, souris) {
+        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurRelâchementSouris, souris)
+        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
             si emboiteuse.id_pressé == boite.id {
-                _ := appel_rappel(boite, TypeRappelUtilisateur.SurClicSouris, souris)
+                _ := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurClicSouris, souris)
             }
             retourne vrai
+        }
+
+        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
+            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
+            continue
         }
 
         si boite.parent == -1 {
@@ -1451,13 +1534,18 @@ sur_relâchement_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) ->
 sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
 {
     définis_position_souris(emboiteuse, souris)
-    applique_défilage_vertical(emboiteuse, emboiteuse.souris_x, emboiteuse.souris_y, souris.delta)
 
     boite := donne_boite_sous_souris(emboiteuse)
     tantque boite {
-        si appel_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, souris) {
+        état_évènement := appel_rappel(emboiteuse, boite, TypeRappelUtilisateur.SurMoletteSouris, souris)
+        si a_valeur(état_évènement, ÉtatÉvènement.CONSOMMÉ) {
             emboiteuse.id_pressé = boite.id
             retourne vrai
+        }
+
+        si a_valeur(état_évènement, ÉtatÉvènement.PASSE_AU_PARENT) && boite.est_flottante {
+            boite = donne_boite_sous_souris(emboiteuse, ignore_boite = boite)
+            continue
         }
 
         si boite.parent == -1 {
@@ -1468,37 +1556,6 @@ sur_molette_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris) -> bool
     }
 
     retourne faux
-}
-
-applique_défilage_vertical :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32, delta: z32)
-{
-    emboiteuse.souris_x = x
-    emboiteuse.souris_y = y
-
-    boite := donne_boite_sous_souris(emboiteuse)
-
-    racine_boites_disposées := *emboiteuse.boites_disposées[0]
-
-    tantque boite != nul && !est_valide(boite.barre_de_défilement_verticale) {
-        si boite.parent == -1 {
-            retourne
-        }
-
-        boite = racine_boites_disposées + boite.parent
-    }
-
-    saufsi boite {
-        retourne
-    }
-
-    barre := *emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
-
-    si delta > 0 {
-        définis_défilage(barre, barre.défilage - 60.0)
-    }
-    sinon {
-        définis_défilage(barre, barre.défilage + 60.0)
-    }
 }
 
 donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
@@ -1516,7 +1573,7 @@ donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *Boi
     retourne nul
 }
 
-donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
+donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *BoiteDisposée = nul) -> *BoiteDisposée
 {
     si emboiteuse.boites_disposées.taille == 0 {
         retourne nul
@@ -1529,6 +1586,9 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse) -> *BoiteDisposée
     profondeur_flottante := 0x7fffffff
     pour emboiteuse.boites_disposées_flottantes {
         boite := racine_boites_disposées + it
+        si boite == ignore_boite {
+            continue
+        }
         si boite.rect.contient(emboiteuse.souris_x, emboiteuse.souris_y) {
             si boite.profondeur < profondeur_flottante {
                 boite_courante = boite
