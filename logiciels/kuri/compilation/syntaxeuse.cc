@@ -1327,6 +1327,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             auto opérande_droite = analyse_expression({}, GenreLexème::INCONNU);
+            if (opérande_droite->est_virgule()) {
+                rapporte_erreur("Expression invalide pour la valeur de l'indice",
+                                opérande_droite->lexème);
+            }
             auto noeud = m_contexte->assembleuse->crée_indexage(lexème, gauche, opérande_droite);
 
             consomme(GenreLexème::CROCHET_FERMANT, "attendu un crochet fermant");
