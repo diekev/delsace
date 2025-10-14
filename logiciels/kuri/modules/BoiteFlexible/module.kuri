@@ -2225,8 +2225,23 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
         }
 
         si boite.indice_bordure.est_valide() {
+            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite)
+            si boite_pour_ciselage {
+                // À FAIRE : ne restreint que dans la bonne direction
+                rect_ciselage: RectanglePosDim(r32)
+                rect_ciselage.x = boite_pour_ciselage.position.x
+                rect_ciselage.y = boite_pour_ciselage.position.y
+                rect_ciselage.largeur = boite_pour_ciselage.largeur
+                rect_ciselage.hauteur = boite_pour_ciselage.hauteur
+                commandes.débute_ciselage(rect_ciselage)
+            }
+
             config := boite.emboiteuse.bordures[boite.indice_bordure]
             commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+
+            si boite_pour_ciselage {
+                commandes.termine_ciselage()
+            }
         }
 
         éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id)
