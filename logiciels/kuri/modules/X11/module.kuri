@@ -1858,7 +1858,7 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
 	}
 }
 
-read_x11_auth_entry :: fonc (tampon: []octet) -> AuthEntry, []octet
+read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
 {
 	entry := AuthEntry()
 
