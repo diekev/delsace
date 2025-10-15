@@ -5,11 +5,11 @@
 
 importe Support
 
-reçoie_une_fonction :: fonc (a: $T, rappel: fonc(T)(rien))
+reçoie_une_fonction :: fonc (a: $T, rappel: fonc (valeur: T))
 {
 }
 
-reçoie_une_autre_fonction :: fonc (a: $T, rappel: fonc(T)(rien))
+reçoie_une_autre_fonction :: fonc (a: $T, rappel: fonc (valeur: T))
 {
 }
 
