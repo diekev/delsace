@@ -359,7 +359,7 @@ parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
     retourne résultat
 }
 
-parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> bool, Cookie
+parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> (bool, Cookie)
 {
     cookie: Cookie
     saute_espace_blanc(parseuse)

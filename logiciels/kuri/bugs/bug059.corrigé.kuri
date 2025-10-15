@@ -4,7 +4,7 @@
 
 importe Support
 
-retourne_multiple :: fonc () -> z32, z32
+retourne_multiple :: fonc () -> (z32, z32)
 {
     retourne 9, 10
 }
