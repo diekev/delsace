@@ -3,7 +3,7 @@
 importe Fondation
 
 TEST :: struct {
-    fonction: fonc(eini)(z32)
+    fonction: fonc (valeur: eini) -> z32
 }
 
 foo :: fonc (args: eini) -> z32
