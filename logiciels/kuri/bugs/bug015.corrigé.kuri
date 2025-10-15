@@ -9,7 +9,7 @@ foo :: fonc () -> rien
 {
 }
 
-est_nul :: fonc (ptr: fonc()(rien)) -> bool
+est_nul :: fonc (ptr: fonc ()) -> bool
 {
     retourne ptr == nul
 }
