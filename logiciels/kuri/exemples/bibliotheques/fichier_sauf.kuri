@@ -41,18 +41,18 @@ importe POSIX
 SAFE_OPEN_DEFAULT_MODE := 0o600;
 SAFE_OPEN_RETRY_MAX := 50;
 
-safe_open_path_warning_callback_type :: fonc(*z8)(z32)
+safe_open_path_warning_callback_type :: fonc (str: *z8) -> z32
 
-safe_open_path_warning_callback : fonc(*z8)z32 = nul;
+safe_open_path_warning_callback : fonc (str: *z8) -> z32 = nul;
 
-safe_open_register_path_warning_callback :: fonc(f : safe_open_path_warning_callback_type) -> safe_open_path_warning_callback_type
+safe_open_register_path_warning_callback :: fonc (f : safe_open_path_warning_callback_type) -> safe_open_path_warning_callback_type
 {
     old_value := safe_open_path_warning_callback;
     safe_open_path_warning_callback = f;
     retourne old_value;
 }
 
-safe_open_path_warning :: fonc(fn : *z8) -> z32
+safe_open_path_warning :: fonc (fn : *z8) -> z32
 {
     f = safe_open_path_warning_callback;
 
@@ -64,7 +64,7 @@ safe_open_path_warning :: fonc(fn : *z8) -> z32
 }
 
 // open existing file, if the last component of fn is a symbolic link fail
-safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
+safe_open_no_create :: fonc (fn : *z8, flags : z32) -> z32
 {
     saved_errno = errno;        // used to restore errno on success
     want_trunc = (flags & _O_TRUNC) != 0;
@@ -265,7 +265,7 @@ safe_open_no_create :: fonc(fn : *z8, flags : z32) -> z32
 }
 
 // create file, error if exists, don't follow sym link
-safe_create_fail_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_create_fail_if_exists :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     // check for invalid argument values
     si (fn == nul) {
@@ -279,7 +279,7 @@ safe_create_fail_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 }
 
 // create file if it doesn't exist, keep inode if it does
-safe_create_keep_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_create_keep_if_exists :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     f = -1;
     saved_errno = errno;
@@ -351,7 +351,7 @@ safe_create_keep_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 }
 
 // create file, replace file if exists
-safe_create_replace_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_create_replace_if_exists :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     f = -1;
     saved_errno = errno;
@@ -418,7 +418,7 @@ safe_create_replace_if_exists :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 }
 
 // open existing file
-safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
+safe_open_no_create_follow :: fonc (fn : *z8, flags : z32) -> z32
 {
     want_trunc = (flags & _O_TRUNC) != 0;
 
@@ -487,7 +487,7 @@ safe_open_no_create_follow :: fonc(fn : *z8, flags : z32) -> z32
 }
 
 // create file if it doesn't exist, keep inode if it does
-safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_create_keep_if_exists_follow :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     f = -1;
     saved_errno = errno;
@@ -589,7 +589,7 @@ safe_create_keep_if_exists_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> 
 // will need to be added if missing.
 
 // Fonction de remplacement pour 'open', échoue si fn est un lien symbolic.
-safe_open_wrapper :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_open_wrapper :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     si (flags & _O_CREAT) != 0 {
         // _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
@@ -606,7 +606,7 @@ safe_open_wrapper :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
 }
 
 // Fonction de remplacement pour 'open', suit les liens symbolics existants.
-safe_open_wrapper_follow :: fonc(fn : *z8, flags : z32, mode : z32) -> z32
+safe_open_wrapper_follow :: fonc (fn : *z8, flags : z32, mode : z32) -> z32
 {
     si (flags & _O_CREAT) != 0 {
         // _O_CREAT spécifié, choisi la fonction selon le drapeau _O_EXCL
