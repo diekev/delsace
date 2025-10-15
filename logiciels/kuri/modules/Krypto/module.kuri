@@ -1,5 +1,6 @@
 // Interface Kuri pour Krypto
 
+importe Chaine
 importe CodecDonnées
 importe Fondation
 importe SysFichier

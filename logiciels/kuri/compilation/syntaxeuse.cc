@@ -1327,6 +1327,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             auto opérande_droite = analyse_expression({}, GenreLexème::INCONNU);
+            if (opérande_droite->est_virgule()) {
+                rapporte_erreur("Expression invalide pour la valeur de l'indice",
+                                opérande_droite->lexème);
+            }
             auto noeud = m_contexte->assembleuse->crée_indexage(lexème, gauche, opérande_droite);
 
             consomme(GenreLexème::CROCHET_FERMANT, "attendu un crochet fermant");
@@ -3422,7 +3426,7 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
 
         résultat.ajoute(decl_sortie->comme_déclaration_variable());
 
-        if (!apparie(GenreLexème::VIRGULE)) {
+        if (!apparie(GenreLexème::VIRGULE) || !eu_parenthèse) {
             break;
         }
 

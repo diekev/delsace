@@ -717,7 +717,7 @@ donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingC
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
-crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Element, group: *BrowsingContextGroup) -> *BrowsingContext, *Document
+crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Element, group: *BrowsingContextGroup) -> (*BrowsingContext, *Document)
 {
     // 1. Let browsingContext be a new browsing context.
     browsing_context := loge(BrowsingContext)
@@ -886,7 +886,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-browsing-context */
-crée_un_nouveau_top_level_browsing_context_et_document :: fonc (user_agent: *UserAgent) -> *BrowsingContext, *Document
+crée_un_nouveau_top_level_browsing_context_et_document :: fonc (user_agent: *UserAgent) -> (*BrowsingContext, *Document)
 {
     // 1. Let group and document be the result of creating a new browsing context group and document.
     group, document := crée_un_nouveau_browsing_context_group_and_document(user_agent)
@@ -896,7 +896,7 @@ crée_un_nouveau_top_level_browsing_context_et_document :: fonc (user_agent: *Us
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-browsing-context-group-and-document */
-crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserAgent) -> *BrowsingContextGroup, *Document
+crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserAgent) -> (*BrowsingContextGroup, *Document)
 {
     // 1. Let group be a new browsing context group.
     group := loge(BrowsingContextGroup)
