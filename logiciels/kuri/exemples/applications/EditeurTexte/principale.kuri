@@ -37,7 +37,7 @@ CléConsole :: énum {
 E: Éditeur
 terminal_original: termios
 
-console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc(chaine, CléConsole)(rien)) -> chaine
+console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc (requête: chaine, clé: CléConsole)) -> chaine
 {
     tampon: chaine
 
