@@ -64,7 +64,7 @@ RésultatParsageFormatURL :: énum {
  *
  * Le type T doit être une structure.
  */
-parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> RésultatParsageFormatURL, DonnéesRésultat(T = T), T
+parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T = T), T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 

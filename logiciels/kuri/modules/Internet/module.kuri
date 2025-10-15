@@ -58,7 +58,7 @@ chaine_depuis_ip :: fonc (adresse: AdresseIP) -> chaine
     retourne copie_chaine("")
 }
 
-parse_adresse_ip :: fonc (chn: chaine) -> bool, AdresseIP
+parse_adresse_ip :: fonc (chn: chaine) -> (bool, AdresseIP)
 {
     résultat : AdresseIP
 
@@ -208,7 +208,7 @@ SéquenceDeZéros :: struct {
 // il ne peut y avoir qu'au maximum 4 séquences de 1 zéros :
 // 1:0:1:0:1:0:1:0
 // 0:1:0:1:0:1:0:1
-détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> [4]SéquenceDeZéros, z64
+détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> ([4]SéquenceDeZéros, z64)
 {
     séquences : [4]SéquenceDeZéros
     nombre_zéros := 0

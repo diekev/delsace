@@ -283,7 +283,7 @@ covariance :: fonc (données1: []$T, données2: []T) -> T
     retourne covariance(données1, esp1, données1, esp2)
 }
 
-covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> T, z64
+covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> (T, z64)
 {
     taille := min(données1.taille, données2.taille)
 

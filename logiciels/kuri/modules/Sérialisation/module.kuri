@@ -45,7 +45,7 @@ désérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: 
     chn.pointeur = (octets.pointeur + décalage) comme *z8
 }
 
-lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64)
     résultat := mémoire(tampon.pointeur comme *T)
@@ -54,7 +54,7 @@ lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
     retourne résultat, reste
 }
 
-lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64)
     résultat := mémoire(tampon.pointeur comme *T)
@@ -62,7 +62,7 @@ lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
     retourne résultat, reste
 }
 
-lis_données :: fonc (tampon: []octet, $T: type_de_données) -> T, []octet
+lis_données :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64)
     résultat := mémoire(tampon.pointeur comme *T)

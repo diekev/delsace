@@ -849,7 +849,7 @@ contenu_est_utf8_valide :: fonc (frame: *Frame, données: []octet) -> bool
     retourne est_valide
 }
 
-contenu_est_utf8_valide :: fonc (données: []octet, est_frame_finale: bool) -> bool, z64
+contenu_est_utf8_valide :: fonc (données: []octet, est_frame_finale: bool) -> (bool, z64)
 {
     taille_consommée : z64
     séquence := données

@@ -43,7 +43,7 @@ retourne_opaque :: fonc () -> Temps
     retourne Temps(60.0)
 }
 
-retourne_tuple :: fonc () -> Vec3, Temps
+retourne_tuple :: fonc () -> (Vec3, Temps)
 {
     retourne Vec3(5.0, 6.0, 7.0), Temps(45.0)
 }

@@ -3,8 +3,8 @@
  */
 
 Struct :: struct {
-    rappel1: fonc(z32)(rien)
-    rappel2: fonc(z32, z32)(rien)
+    rappel1: fonc (a: z32)
+    rappel2: fonc (a: z32, b: z32)
 }
 
 principale :: fonc ()

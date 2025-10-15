@@ -1,6 +1,8 @@
 
 /* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
 
+pas d'erreur pour foo(a = a = 13)
+
 #corps_texte pour les opérateurs
 
 opérateur non trouvé s'il y a une attente non résolue

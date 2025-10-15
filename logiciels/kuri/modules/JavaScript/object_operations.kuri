@@ -768,7 +768,7 @@ iterator_value :: fonc (iterator_result: *Object) -> Valeur
 
 /* 7.4.9 IteratorStep ( iteratorRecord )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorstep */
-iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> *Object, bool
+iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> (*Object, bool)
 {
     // 1. Let result be ? IteratorNext(iteratorRecord).
     result := iterator_next(interpréteuse, iterator_record)
@@ -802,7 +802,7 @@ iterator_step :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterat
 
 /* 7.4.10 IteratorStepValue ( iteratorRecord )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-iteratorstepvalue */
-iterator_step_value :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> Valeur, bool
+iterator_step_value :: fonc (interpréteuse: *Interpréteuse, iterator_record: *Iterator) -> (Valeur, bool)
 {
     // 1. Let result be ? IteratorStep(iteratorRecord).
     result, done := iterator_step(interpréteuse, iterator_record)

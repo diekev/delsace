@@ -5,7 +5,7 @@ MotDePasse :: struct {
     chn: chaine
 }
 
-parse_mot_de_passe :: fonc (chn: chaine) -> bool, MotDePasse
+parse_mot_de_passe :: fonc (chn: chaine) -> (bool, MotDePasse)
 {
     retourne vrai, MotDePasse(chn)
 } @ParsageURL

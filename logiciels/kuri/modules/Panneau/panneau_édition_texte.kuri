@@ -7,9 +7,9 @@ importe Unicode
 
 RappelsÉditionTexte :: struct {
     /* Appelé à chaque changement. */
-    sur_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    sur_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine)
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine)
 }
 
 PanneauÉditionTexte :: struct {

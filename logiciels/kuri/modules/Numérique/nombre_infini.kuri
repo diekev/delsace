@@ -341,7 +341,7 @@ opérateur == :: (n0: NombreInfini, n1: n64) -> bool
 }
 
 // À FAIRE: p et c doivent être des NombreInfini
-trouve_y :: fonc (p: n32, c: n32) -> n32, n32
+trouve_y :: fonc (p: n32, c: n32) -> (n32, n32)
 {
     dernier_x : n32 = 0
     x := dernier_x

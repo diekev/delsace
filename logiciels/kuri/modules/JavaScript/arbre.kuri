@@ -4253,7 +4253,7 @@ catch_clause_evaluation :: fonc (catch: *CatchClause, interpréteuse: *Interprè
     retourne B
 }
 
-crée_environnement_lexical_pour_catch :: fonc (interpréteuse: *Interpréteuse, arg_name: ECMAString, thrown_value: Valeur) -> CompletionRecord, *Environment
+crée_environnement_lexical_pour_catch :: fonc (interpréteuse: *Interpréteuse, arg_name: ECMAString, thrown_value: Valeur) -> (CompletionRecord, *Environment)
 {
     mv := interpréteuse.mv
     running_execution_context := mv.donne_running_execution_context()

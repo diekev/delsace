@@ -27,8 +27,8 @@ BoutonCoche :: struct {
     empl base: Bouton
 
     données: *rien
-    sur_donne_coche: fonc(*rien)(bool)
-    sur_définis_coche: fonc(*rien, bool)(rien)
+    sur_donne_coche: fonc (données: *rien) -> bool
+    sur_définis_coche: fonc (données: *rien, est_coché: bool)
 }
 
 est_coché :: fonc (bouton: *BoutonCoche) -> bool
@@ -48,7 +48,7 @@ bouton_coche_sur_clic :: fonc (bouton: *BoutonCoche)
     bouton.sur_définis_coche(bouton.données, !bouton.sur_donne_coche(bouton.données))
 }
 
-crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(*T)(bool), sur_définis_coche: fonc(*T, bool)(rien)) -> *BoutonCoche
+crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc (données: *T) -> bool, sur_définis_coche: fonc (données: *T, est_coché: bool)) -> *BoutonCoche
 {
     résultat := loge(BoutonCoche)
     résultat.texte = texte

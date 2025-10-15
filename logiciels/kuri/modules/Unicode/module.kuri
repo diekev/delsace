@@ -275,7 +275,7 @@ ErreurValidationUTF8 :: énum n8 {
  * un point de code valide.
  * Si l'erreur retournée est "SéquenceTropCourte", la taille retournée sera la taille voulue.
  * Sinon, l'erreur retournée est "SéquenceInvalide", la taille retournée sera 0. */
-est_séquence_utf8_valide :: fonc (séquence: []octet) -> ErreurValidationUTF8, z32
+est_séquence_utf8_valide :: fonc (séquence: []octet) -> (ErreurValidationUTF8, z32)
 {
     assert(séquence.taille != 0)
 

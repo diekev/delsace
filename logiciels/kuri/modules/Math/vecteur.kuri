@@ -168,7 +168,7 @@ normalise :: fonc (v: Vec3) -> Vec3 #enligne
     retourne v / l
 }
 
-normalise_retourne_longueur :: fonc (v: Vec3) -> Vec3, r32 #enligne
+normalise_retourne_longueur :: fonc (v: Vec3) -> (Vec3, r32) #enligne
 {
     l := longueur(v)
     retourne v / l, l

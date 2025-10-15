@@ -6,10 +6,10 @@ Bouton :: struct {
     // À FAIRE : icone
     // À FAIRE : métadonnées
     texte: chaine
-    sur_clic: fonc(*Bouton)(rien)
+    sur_clic: fonc (bouton: *Bouton)
 }
 
-crée_bouton :: fonc (texte: chaine, sur_clic: fonc(*Bouton)(rien)) -> *Bouton
+crée_bouton :: fonc (texte: chaine, sur_clic: fonc (bouton: *Bouton)) -> *Bouton
 {
     résultat := loge(Bouton)
     résultat.texte = texte

@@ -4,6 +4,7 @@ importe CréationFenêtre
 importe Couleur
 importe ÉditionTexte
 importe Fondation
+importe Guettage
 importe Math
 importe Numérique
 importe PeintureInterface
@@ -42,7 +43,7 @@ thème: Thème
 
 RaccourciCommande :: struct {
     raccourci: RaccourciClavier
-    commande: fonc(*Anonyme)(rien)
+    commande: fonc (anonyme: *Anonyme)
     contexte: chaine
 }
 
@@ -521,7 +522,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    fenêtre := ouvre_projet(*anonyme, "kuri")
+    _ := ouvre_projet(*anonyme, "kuri")
 
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
 
@@ -767,14 +768,14 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
     termine_rectangle()
 }
 
-déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, indice_chaine: z32 @inutilisée)
+déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id: n64, indice_chaine: z32 @inutilisée) -> ÉtatÉvènement
 {
     rect := donne_rect(*emboiteuse, id)
 
     où_relatif_x := souris.état.où.x comme r32 - rect.x
     où_relatif_y := souris.état.où.y comme r32 - rect.y
     si où_relatif_x < 0.0 || où_relatif_y < 0.0 {
-        retourne
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     métriques := donne_métriques_fonte(fonte)
@@ -796,6 +797,8 @@ déplace_curseur_souris :: fonc (empl anonyme: *Anonyme, souris: ClicSouris, id:
 
     éditeur.cx = cx
     éditeur.cy = cy
+
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 dessine_barre_status :: fonc (anonyme: *Anonyme)

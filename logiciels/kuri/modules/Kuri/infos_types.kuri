@@ -173,7 +173,7 @@ InfoTypeÉnum :: struct #interface {
     type_sous_jacent: *InfoTypeEntier
 }
 
-donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> eini, bool
+donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> (eini, bool)
 {
     pour info.noms {
         si it == nom {

@@ -7,10 +7,10 @@ Polymorphe :: struct ($T: type_de_données) {
     x: T
 }
 
-TypeRappel :: fonc(Polymorphe(r32))(rien)
+TypeRappel :: fonc (poly: Polymorphe(r32))
 
 Interface :: struct {
-    rappel: fonc(Polymorphe(r32))(rien)
+    rappel: fonc (poly: Polymorphe(r32))
 }
 
 principale :: fonc ()

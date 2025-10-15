@@ -223,7 +223,7 @@ compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingCon
 
 #portée_module
 
-donne_rectangle_ciselage_pour_overflow :: fonc (box: *Box) -> bool, RectanglePosDim(r32)
+donne_rectangle_ciselage_pour_overflow :: fonc (box: *Box) -> (bool, RectanglePosDim(r32))
 {
     résultat: RectanglePosDim(r32)
 

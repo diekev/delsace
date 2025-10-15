@@ -5,6 +5,7 @@ importe Chaine
 importe Couleur
 importe Ensemble
 importe Fondation
+importe Guettage
 importe Image
 importe Krypto
 importe Math
@@ -517,7 +518,7 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
     termine_rectangle()   
 }
 
-dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: fonc(*rien, ClicSouris, n64, z32)(rien), indice: z32)
+dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: TypeRappelSouris, indice: z32)
 {
     dispose_rectangle(id = texte)
     {
@@ -529,7 +530,7 @@ dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: fon
     termine_rectangle()
 }
 
-sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
+sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     si indice == 0 {
         serveuse.dessine_allocations = vrai
@@ -537,20 +538,24 @@ sur_sélection_affichage_alloc_ou_traces :: fonc (serveuse: *Serveuse, souris: C
     sinon si indice == 1 {
         serveuse.dessine_allocations = faux
     }
+
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
+définis_allocation_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     assert(indice >= 0)
     assert(indice < serveuse.état_mémoire.allocations.taille)
 
     serveuse.état_mémoire.allocation_sélectionnée = indice
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
-définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32)
+définis_trace_sélectionnée :: fonc (serveuse: *Serveuse, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     assert(indice >= 0)
     assert(indice < serveuse.état_mémoire.traces_triées.taille)
 
     serveuse.état_mémoire.trace_sélectionnée = indice
+    retourne ÉtatÉvènement.CONSOMMÉ
 }

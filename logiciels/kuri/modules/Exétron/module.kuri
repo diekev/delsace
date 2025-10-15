@@ -9,7 +9,7 @@ charge "interface_exétron"
 
 FilExecution :: pthread_t
 
-crée_fil_exécution :: fonc (rappel: fonc(*rien)(*rien), données: *rien) -> *FilExecution
+crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rien) -> *FilExecution
 {
     résultat := loge(FilExecution)
 
@@ -68,7 +68,7 @@ contexte_ajoute_tâche :: fonc (rappel: fonc(*$T)(rien), données: *T)
         initialise_file_globale()
     }
 
-    ajoute_tâche(*__file_globale, rappel comme fonc(*rien)(rien), données)
+    ajoute_tâche(*__file_globale, rappel comme fonc (arg: *rien), données)
 }
 
 contexte_attend_sur_tâches :: fonc ()
@@ -78,7 +78,7 @@ contexte_attend_sur_tâches :: fonc ()
 
 DonnéesEntréeFileTravail :: struct {
     données: *rien
-    fonction_travail: fonc(*rien)(rien)
+    fonction_travail: fonc (arg: *rien)
 }
 
 FileDeTravail :: struct {
@@ -94,11 +94,11 @@ FileDeTravail :: struct {
 
 EntréeFileTravail :: struct {
     données: *rien
-    fonction_travail: fonc(*rien)(rien)
+    fonction_travail: fonc (arg: *rien)
     est_valide: bool
 }
 
-ajoute_tâche :: fonc (file: *FileDeTravail, fonction_travail: fonc(*rien)(rien), données: *rien)
+ajoute_tâche :: fonc (file: *FileDeTravail, fonction_travail: fonc (arg: *rien), données: *rien)
 {
     assert(file.nombre_d_entrées < file.entrées.taille comme n32)
 
@@ -231,17 +231,17 @@ contexte_boucle_série :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
 
 /*
 
-contexte_boucle_série :: fonc (plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+contexte_boucle_série :: fonc (plage: Plage, fonction: fonc (plage: Plage, données: *rien), données: *rien)
 {
     fonction(plage, données)
 }
 
-contexte_boucle_parallèle :: fonc (plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+contexte_boucle_parallèle :: fonc (plage: Plage, fonction: fonc (plage: Plage, données: *rien), données: *rien)
 {
     boucle_parallèle(*__file_globale, plage, fonction, données)
 }
 
-contexte_boucle_parallèle :: fonc (file: *FileDeTravail, plage: Plage, fonction: fonc(Plage, *rien)(rien), données: *rien)
+contexte_boucle_parallèle :: fonc (file: *FileDeTravail, plage: Plage, fonction: fonc (plage: Plage, données: *rien), données: *rien)
 {
     groupe: GroupeDeTâche
     diffère déloge(groupe.tâches)
@@ -273,7 +273,7 @@ GroupeDeTâche :: struct {
         groupe: *GroupeDeTâche
         plage: Plage
         données: *rien
-        fonction: fonc(Plage, *rien)(rien)
+        fonction: fonc (plage: Plage, données: *rien)
     }
 
     tâches: [..]Tâche

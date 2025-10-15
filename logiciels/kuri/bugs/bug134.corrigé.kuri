@@ -10,7 +10,7 @@ Polymorphe :: struct ($T: type_de_données) {
 
 Interface :: struct {
     /* Les paramètres de monomorphisation manquent. */
-    rappel: fonc(Polymorphe)(rien)
+    rappel: fonc (poly: Polymorphe)
 }
 
 principale :: fonc ()

@@ -429,6 +429,10 @@ SIGWINCH :: 28 /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: fonc(z32)(rien)) -> rien #externe libc
 
+pid_t :: z32
+
+kill :: fonc (pid: pid_t, sig: z32) -> z32 #externe libc
+
 sighandler_t :: fonc(z32)(rien)
 sigset_t :: struct #externe {
     __val: [1024 / (8 * taille_de(n64))]n64
@@ -453,7 +457,7 @@ __SI_MAX_SIZE : n32 : 128
 // #if __WORDSIZE == 64
 __SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 4)
 // #else
-__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
+// __SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
 // #endif
 
 __pid_t :: z32

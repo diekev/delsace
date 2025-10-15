@@ -585,7 +585,7 @@ crée_itératrice_rubrique :: fonc (structure: eini, ignore_rubriques_constantes
     retourne itératrice
 }
 
-rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> eini, chaine
+rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> (eini, chaine)
 {
     résultat: eini
     nom: chaine
@@ -1314,12 +1314,12 @@ parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fon
     retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
 }
 
-parse_arguments_ligne_commande2 :: fonc ($T: type_de_données) -> bool, T
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données) -> (bool, T)
 {
     retourne parse_arguments_ligne_commande2(T, nul)
 }
 
-parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> bool, T
+parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> (bool, T)
 {
     args := arguments_ligne_commande()
 

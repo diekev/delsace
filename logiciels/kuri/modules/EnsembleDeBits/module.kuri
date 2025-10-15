@@ -100,7 +100,7 @@ crée_tableau_booléen :: fonc (taille: z64) -> TableauBooléen
     retourne résultat
 }
 
-indice_et_décalage :: fonc (indice: z64) -> z64, n64 #enligne
+indice_et_décalage :: fonc (indice: z64) -> (z64, n64) #enligne
 {
     indice_octet := indice / 64
     indice_bit := indice comme n64 % 64
