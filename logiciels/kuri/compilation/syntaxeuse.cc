@@ -3426,7 +3426,7 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
 
         résultat.ajoute(decl_sortie->comme_déclaration_variable());
 
-        if (!apparie(GenreLexème::VIRGULE)) {
+        if (!apparie(GenreLexème::VIRGULE) || !eu_parenthèse) {
             break;
         }
 
