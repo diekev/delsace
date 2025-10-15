@@ -62,7 +62,7 @@ lis :: fonc (flux: *FluxOctets, position: PositionFichier, tampon: []octet) -> z
     retourne lis(flux, tampon)
 }
 
-lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
+lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> (T, z64)
 {
     résultat: T
     taille_lue := flux.lis(résultat)
@@ -72,33 +72,33 @@ lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
     retourne résultat, taille_lue
 }
 
-lis_grand_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> T, z64
+lis_grand_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (T, z64)
 {
     positionne(flux, position)
     retourne lis_grand_boutisme(flux, T)
 }
 
-lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> T, z64
+lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> (T, z64)
 {
     résultat: T
     taille_lue := flux.lis(résultat)
     retourne résultat, taille_lue
 }
 
-lis_petit_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> T, z64
+lis_petit_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (T, z64)
 {
     positionne(flux, position)
     retourne lis_petit_boutisme(flux, T)
 }
 
-lis_structure :: fonc (flux: *FluxOctets, $T: type_de_données) -> bool, T
+lis_structure :: fonc (flux: *FluxOctets, $T: type_de_données) -> (bool, T)
 {
     résultat: T
     taille_lue := lis(flux, résultat)
     retourne taille_lue == taille_de(T) comme z64, résultat
 }
 
-lis_structure :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> bool, T
+lis_structure :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (bool, T)
 {
     positionne(flux, position)
     retourne lis_structure(flux, T)

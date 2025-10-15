@@ -42,12 +42,12 @@ test_ptr_fonction_ret_simple :: fonc () -> rien
 
 /* ------------------------------------------------------------------------- */
 
-ret_multiple :: fonc () -> z32, bool
+ret_multiple :: fonc () -> (z32, bool)
 {
     retourne 1237, faux
 }
 
-indirection :: fonc () -> z32, bool
+indirection :: fonc () -> (z32, bool)
 {
     retourne ret_multiple()
 }
@@ -68,7 +68,7 @@ test_fonction_ret_moult :: fonc () -> rien
     // imprime("c = ", c, '\n');
 }
 
-appel_ptr_moult_ret :: fonc () -> z32, bool
+appel_ptr_moult_ret :: fonc () -> (z32, bool)
 {
     ptr := indirection
 
