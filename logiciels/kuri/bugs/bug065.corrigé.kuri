@@ -4,13 +4,13 @@
 
 importe Exétron
 
-boucle_parallèle :: fonc (données: $T, rappel: fonc(*PlageExecution, T)(rien))
+boucle_parallèle :: fonc (données: $T, rappel: fonc (plage: *PlageExecution, données: T))
 {
     /* Chercher S échoue. */
     DonneesTacheCorps :: struct ($S: type_de_données) {
         empl base: DonneesTacheParallele
 
-        rappel: fonc(*PlageExecution, S)(rien)
+        rappel: fonc (plage: *PlageExecution, données: S)
         données: S
     }
 

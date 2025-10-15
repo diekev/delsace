@@ -163,6 +163,58 @@ static bool est_infini(double v)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name Informations de débogage.
+ * \{ */
+
+struct InformationsDeDébogage {
+  private:
+    Compilatrice *m_compilatrice = nullptr;
+    kuri::chaine_statique fichier_c_courant = "";
+    NoeudDéclarationEntêteFonction const *m_fonction_courante = nullptr;
+
+  public:
+    explicit InformationsDeDébogage(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
+    {
+    }
+
+    void définis_fichier_c_courant(kuri::chaine_statique chemin)
+    {
+        fichier_c_courant = chemin;
+    }
+
+    void ajoute_c_vers_kuri();
+
+    void ajoute_ligne_kuri_vers_c(NoeudExpression const *site, int ligne)
+    {
+        // À FAIRE : lexèmes extra
+        // À FAIRE : fichier .chaines_ajoutées
+        // À FAIRE : fonctions polymorphiques
+        if (site && site->lexème) {
+            auto fichier_kuri = m_compilatrice->fichier(site->lexème->fichier);
+            dbg() << fichier_kuri->chemin() << " " << (site->lexème->ligne + 1) << " -> "
+                  << fichier_c_courant << " " << ligne;
+        }
+    }
+
+    void définis_fonction_courante(NoeudDéclarationEntêteFonction const *fonction)
+    {
+        if (fonction) {
+            m_fonction_courante = fonction;
+            dbg() << nom_humainement_lisible(fonction);
+        }
+    }
+
+    void ajoute_variable(NoeudExpression const *site, kuri::chaine nom_c)
+    {
+        if (site && site->ident) {
+            dbg() << site->ident->nom << " -> " << nom_c;
+        }
+    }
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name Déclaration de GénératriceCodeC.
  * \{ */
 
@@ -176,6 +228,8 @@ struct GénératriceCodeC {
     kuri::table_hachage<Type const *, kuri::chaine_statique> table_types{"Noms types C"};
     EspaceDeTravail &m_espace;
     AtomeFonction const *m_fonction_courante = nullptr;
+
+    InformationsDeDébogage *m_info_débogage = nullptr;
 
     Broyeuse &broyeuse;
 
@@ -1051,11 +1105,17 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
     : m_espace(espace), broyeuse(broyeuse_)
 {
     m_convertisseuse_type_c = mémoire::loge<ConvertisseuseTypeC>("Conver", broyeuse, *this);
+#if 0
+    auto compilatrice = &espace.compilatrice();
+    m_info_débogage = mémoire::loge<InformationsDeDébogage>("InformationsDeDébogage",
+                                                            compilatrice);
+#endif
 }
 
 GénératriceCodeC::~GénératriceCodeC()
 {
     mémoire::deloge("Conver", m_convertisseuse_type_c);
+    mémoire::deloge("InformationsDeDébogage", m_info_débogage);
 }
 
 int64_t GénératriceCodeC::mémoire_utilisée() const
@@ -1541,6 +1601,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << ' ' << nom;
             os << ";\n";
             table_valeurs[inst->numero] = enchaine("&", nom);
+
+            if (m_info_débogage) {
+                m_info_débogage->ajoute_variable(alloc->site, nom);
+            }
+
             break;
         }
         case GenreInstruction::APPEL:
@@ -1993,6 +2058,10 @@ void GénératriceCodeC::génère_code_fonction(AtomeFonction const *atome_fonc,
 
     for (auto param : atome_fonc->params_entrée) {
         table_valeurs[param->numero] = enchaine("&", donne_nom_pour_instruction(param));
+
+        if (m_info_débogage) {
+            m_info_débogage->ajoute_variable(param->site, donne_nom_pour_instruction(param));
+        }
     }
 
     os << "\n{\n";
@@ -2180,6 +2249,10 @@ void GénératriceCodeC::génère_code_source(CoulisseC::FichierC const &fichier
 
     /* Définis les fonctions. */
     POUR (fichier.fonctions) {
+        if (m_info_débogage) {
+            m_info_débogage->ajoute_ligne_kuri_vers_c(it->decl, os.ligne_courante + 1);
+            m_info_débogage->définis_fonction_courante(it->decl);
+        }
         génère_code_fonction(it, os);
     }
 }
@@ -2656,6 +2729,9 @@ std::optional<ErreurCoulisse> CoulisseC::génère_code_impl(const ArgsGénérati
     auto génératrice = GénératriceCodeC(espace, *args.broyeuse);
 
     POUR (m_fichiers) {
+        if (génératrice.m_info_débogage) {
+            génératrice.m_info_débogage->définis_fichier_c_courant(it.chemin_fichier);
+        }
         génératrice.génère_code(it);
 
         if (!kuri::chemin_systeme::existe(it.chemin_fichier)) {

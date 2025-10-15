@@ -94,7 +94,7 @@ rappel_copie_chaine :: fonc (chn: chaine) -> chaine
  * prises depuis la chaine originelle, ce qui implique que la chaine JSON originelle
  * doit être valide pour la durée de vie de la structure retournée.
  */
-parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -> bool, T
+parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -> (bool, T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 
@@ -120,7 +120,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
 /* Parse une structure depuis un fichier JSON. Les chaines de caractères contenu dans le fichier
  * sont copiées dans la structure, et devront être délogées par quiconque nous appelle.
  */
-parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) -> bool, T
+parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) -> (bool, T)
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE
 

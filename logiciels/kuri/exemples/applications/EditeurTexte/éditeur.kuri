@@ -160,7 +160,7 @@ marque_modifié :: fonc (éditeur: *Éditeur)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
-éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt: fonc()(chaine)) -> rien
+éditeur_sauvegarde_fichier :: fonc (éditeur: *Éditeur, rappel_prompt: fonc () -> chaine) -> rien
 {
     si éditeur.chemin_fichier == "" {
         éditeur.chemin_fichier = rappel_prompt()
