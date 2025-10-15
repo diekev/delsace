@@ -416,7 +416,7 @@ supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
     chn.unités.taille = taille_finale
 }
 
-supprime :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> ChaineUTF16
+supprime :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> ChaineUTF16
 {
     résultat: ChaineUTF16
 
@@ -430,7 +430,7 @@ supprime :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> ChaineUTF16
     retourne résultat
 }
 
-possède :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> bool
+possède :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> bool
 {
     pour chn.unités {
         si prédicat(it) {
@@ -440,7 +440,7 @@ possède :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> bool
     retourne faux
 }
 
-possède_au_début_ou_à_la_fin :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> bool
+possède_au_début_ou_à_la_fin :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> bool
 {
     pour chn.unités {
         si prédicat(it) {
@@ -457,7 +457,7 @@ possède_au_début_ou_à_la_fin :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(
     retourne faux
 }
 
-donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool)) -> ChaineUTF16
+donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> ChaineUTF16
 {
     résultat := chn
 
@@ -503,7 +503,7 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
     retourne résultat
 }
 
-commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_max: z64) -> bool
+commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool, occurences_max: z64) -> bool
 {
     si chn.taille() < occurences_max {
         retourne faux
@@ -522,7 +522,7 @@ commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc(n32)(bool), occurences_m
     retourne vrai
 }
 
-transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc(n32)(n32))
+transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc (point_de_code: n32) -> n32)
 {
     tableau_réserve(*résultat.unités, chn.taille())
 
@@ -807,7 +807,7 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 
 // Idée pour l'impression de chaines UTF-16
 FluxSortie :: struct {
-    ajoute: fonc(&FluxSortie, n32)(rien)
+    ajoute: fonc (flux: &FluxSortie, point_de_code: n32)
 
     données: *rien
 }

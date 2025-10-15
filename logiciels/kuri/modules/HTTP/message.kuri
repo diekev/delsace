@@ -214,7 +214,7 @@ crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClie
     retourne message
 }
 
-parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> bool, T
+parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> (bool, T)
 {
     //  À FAIRE : message.parse_contenu() -> Contenu(type_contenu, chaine) | Rien
     si !possède_entête(message, "Content-Length") {
