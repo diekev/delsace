@@ -20,6 +20,7 @@ struct Enchaineuse {
     };
 
     bool format_réel_court = false;
+    int ligne_courante = 0;
 
     Tampon m_tampon_base{};
     Tampon *tampon_courant = nullptr;
