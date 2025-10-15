@@ -136,7 +136,7 @@ donne_point :: fonc (ligne: Ligne($T)) -> Point2D(T) #enligne
     retourne ligne.p1
 }
 
-point_d_intersection :: fonc (l0: Ligne($T), l1: Ligne(T)) -> bool, Point2D(T)
+point_d_intersection :: fonc (l0: Ligne($T), l1: Ligne(T)) -> (bool, Point2D(T))
 {
     retourne point_d_intersection(l0.p0, l0.p1, l1.p0, l1.p1)
 }
@@ -529,7 +529,7 @@ inverse :: fonc (cercle_d_inversion: Cercle($T), point: Point2D(T)) -> Point2D(T
     retourne cercle_d_inversion.origine + OP / l_OP * (rr / l_OP)
 }
 
-point_d_intersection :: fonc (o1: Point2D($T), p1: Point2D(T), o2: Point2D(T), p2: Point2D(T)) -> bool, Point2D(T)
+point_d_intersection :: fonc (o1: Point2D($T), p1: Point2D(T), o2: Point2D(T), p2: Point2D(T)) -> (bool, Point2D(T))
 {
     résultat: Point2D(T)
 

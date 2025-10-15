@@ -926,7 +926,7 @@ consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
 
 /* 4.3.12 Consume a number
  * https://www.w3.org/TR/css-syntax-3/#consume-number */
-consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> r64, DrapeauxTypeNombre
+consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> (r64, DrapeauxTypeNombre)
 {
     type := DrapeauxTypeNombre.Integer
 

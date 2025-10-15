@@ -41,20 +41,20 @@ c := Chaine()
 // Codec
 
 Codec :: struct ($T: type_de_données) {
-    est_espace_blanche : fonc(T)(bool)
-    est_nombre : fonc(T)(bool)
-    est_lettre : fonc(T)(bool)
-    en_minuscule : fonc(T)(T)
-    en_majuscule : fonc(T)(T)
+    est_espace_blanche : fonc (caractère: T) -> bool
+    est_nombre : fonc (caractère: T) -> bool
+    est_lettre : fonc (caractère: T) -> bool
+    en_minuscule : fonc (caractère: T) -> T
+    en_majuscule : fonc (caractère: T) -> T
 
     // ne contient que des lettres
-    est_alphabétique : fonc(T)(T)
+    est_alphabétique : fonc (caractère: T) -> T
 
     // ne contient que des nombres
-    est_numérique : fonc(T)(T)
+    est_numérique : fonc (caractère: T) -> T
 
     // ne contient que des lettres et des nombres
-    est_alphanumérique : fonc(T)(bool)
+    est_alphanumérique : fonc (caractère: T) -> bool
 
     // converti vers un codec de base (UTF-8)
     en_utf8 :: fonc (T, &[4]n8)(z32)
