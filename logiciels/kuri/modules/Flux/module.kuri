@@ -149,13 +149,13 @@ flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: Po
 {
     discr position {
         Début(pos) {
-            flux.curseur = avance(flux.octets, pos comme z64)
+            flux.curseur = tableau_avance(flux.octets, pos comme z64)
         }
         Fin(pos) {
-            flux.curseur = avance(flux.octets, flux.octets.taille + pos comme z64)
+            flux.curseur = tableau_avance(flux.octets, flux.octets.taille + pos comme z64)
         }
         Décalage(pos) {
-            flux.curseur = avance(flux.curseur, pos comme z64)
+            flux.curseur = tableau_avance(flux.curseur, pos comme z64)
         }
         sinon {}
     }
@@ -183,7 +183,7 @@ flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
 
     copie_mem_nonsur(src = flux.curseur.pointeur, dst = tampon.pointeur, taille = taille_à_lire)
 
-    flux.curseur = avance(flux.curseur, taille_à_lire)
+    flux.curseur = tableau_avance(flux.curseur, taille_à_lire)
 
     retourne taille_à_lire
 }
