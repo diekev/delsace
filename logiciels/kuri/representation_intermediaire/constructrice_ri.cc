@@ -3002,25 +3002,71 @@ void CompilatriceRI::génère_ri_pour_fonction(NoeudDéclarationEntêteFonction 
 
     m_fonction_courante->instructions.rétrécis_capacité_sur_taille();
 
-    assert_rappel(m_pile.taille() == 0, [&]() {
-        dbg() << __func__ << " : " << m_pile.taille() << ", " << m_fonction_courante->nom;
-        dbg() << imprime_fonction(m_fonction_courante);
-        POUR (m_pile) {
-            if (it.valeur->est_instruction()) {
-                dbg() << "-- " << imprime_instruction(it.valeur->comme_instruction());
+    while (m_pile.taille() != 0) {
+        auto valeur = m_pile.défile();
+        if (valeur.site) {
+            if (valeur.site->est_appel()) {
+                auto appel = valeur.site->comme_appel();
+                auto e = m_espace->rapporte_erreur(
+                    valeur.site,
+                    "La valeur de retour de l'expression d'appel n'est pas utilisée. Il est "
+                    "important de "
+                    "toujours utiliser les valeurs retournées par les fonctions, par pour ne pas "
+                    "oublier de vérifier si une erreur existe.\n");
+
+                if (appel->noeud_fonction_appelée &&
+                    appel->noeud_fonction_appelée->est_entête_fonction()) {
+                    e.ajoute_message("NOTE : la fonction appelée fut déclarée comme retournant "
+                                     "une valeur ici :\n")
+                        .ajoute_site(appel->noeud_fonction_appelée);
+                }
+
+                e.ajoute_conseil(
+                     "si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « "
+                     "_ » comme identifiant pour la capturer et l'ignorer :\n")
+                    .ajoute_message("\t_ := appel_mais_ignore_la_valeur()\n");
             }
-            else if (it.valeur->est_fonction()) {
-                dbg() << "-- " << it.valeur->comme_fonction()->nom;
+            else if (valeur.site->est_exécute()) {
+                m_espace->rapporte_erreur(valeur.site,
+                                          "La valeur calculée par #exécute n'est pas utilisée.");
+            }
+            else if (valeur.site->est_expression_binaire() && valeur.site->lexème &&
+                     valeur.site->lexème->genre == GenreLexème::EGALITE) {
+                m_espace->rapporte_erreur(
+                    valeur.site,
+                    "Valeur non utilisée. Peut-être vouliez-vous utiliser '=' au lieu de '==' ?");
+            }
+            else if (valeur.site->est_construction_structure()) {
+                m_espace->rapporte_erreur(valeur.site,
+                                          "La valeur de l'expression de construction de type "
+                                          "n'est pas utilisée. Peut-être vouliez-vous l'assigner "
+                                          "à quelque variable ou l'utiliser comme type ?");
             }
             else {
-                dbg() << "-- " << it.valeur->genre_atome;
-            }
-
-            if (it.site) {
-                dbg() << erreur::imprime_site(*espace(), it.site);
+                m_espace->rapporte_erreur(
+                    valeur.site, "Valeur non utilisée. Avez-vous oubliez une assignation ?");
             }
         }
-    });
+        else {
+            assert_rappel(false, [&]() {
+                dbg() << __func__ << " : " << m_pile.taille() << ", " << m_fonction_courante->nom;
+                dbg() << imprime_fonction(m_fonction_courante);
+                if (valeur.valeur->est_instruction()) {
+                    dbg() << "-- " << imprime_instruction(valeur.valeur->comme_instruction());
+                }
+                else if (valeur.valeur->est_fonction()) {
+                    dbg() << "-- " << valeur.valeur->comme_fonction()->nom;
+                }
+                else {
+                    dbg() << "-- " << valeur.valeur->genre_atome;
+                }
+
+                if (valeur.site) {
+                    dbg() << erreur::imprime_site(*espace(), valeur.site);
+                }
+            });
+        }
+    }
 
     définis_fonction_courante(nullptr);
 }

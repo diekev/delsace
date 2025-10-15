@@ -2219,24 +2219,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         auto type_fonc = decl_fonction_appelée->type->comme_type_fonction();
         auto type_sortie = type_fonc->type_sortie;
 
-        auto expr_gauche = !expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION);
-        if (!type_sortie->est_type_rien() && expr_gauche) {
-            espace
-                .rapporte_erreur(
-                    expr,
-                    "La valeur de retour de la fonction n'est pas utilisée. Il est important de "
-                    "toujours utiliser les valeurs retournées par les fonctions, par exemple pour "
-                    "ne "
-                    "pas oublier de vérifier si une erreur existe.")
-                .ajoute_message("La fonction a été déclarée comme retournant une valeur :\n")
-                .ajoute_site(decl_fonction_appelée)
-                .ajoute_conseil(
-                    "si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ "
-                    "» comme identifiant pour la capturer et l'ignorer :\n")
-                .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
-            return CodeRetourValidation::Erreur;
-        }
-
         applique_transformations(sémanticienne, candidate, expr);
 
         expr->noeud_fonction_appelée = const_cast<NoeudDéclarationEntêteFonction *>(
@@ -2307,15 +2289,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             }
         }
         expr->noeud_fonction_appelée = const_cast<NoeudExpression *>(candidate->noeud_decl);
-
-        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-            espace.rapporte_erreur(
-                expr,
-                "La valeur de l'expression de construction de structure n'est pas "
-                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
-                "ou l'utiliser comme type ?");
-            return CodeRetourValidation::Erreur;
-        }
     }
     else if (candidate->note == CANDIDATE_EST_TYPE_POLYMORPHIQUE) {
         expr->type = const_cast<Type *>(candidate->type);
@@ -2328,25 +2301,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         applique_transformations(sémanticienne, candidate, expr);
-
-        auto expr_gauche = !expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION);
-        if (!expr->type->est_type_rien() && expr_gauche) {
-            espace
-                .rapporte_erreur(expr,
-                                 "La valeur de retour du pointeur de fonction n'est pas utilisée. "
-                                 "Il est important "
-                                 "de toujours utiliser les valeurs retournées par les fonctions, "
-                                 "par exemple pour "
-                                 "ne pas oublier de vérifier si une erreur existe.")
-                .ajoute_message("Le type de retour du pointeur de fonctions est : ")
-                .ajoute_message(chaine_type(expr->type))
-                .ajoute_message("\n")
-                .ajoute_conseil(
-                    "si vous ne voulez pas utiliser la valeur de retour, vous pouvez utiliser « _ "
-                    "» comme identifiant pour la capturer et l'ignorer :\n")
-                .ajoute_message("\t_ := appel_mais_ignore_le_retourne()\n");
-            return CodeRetourValidation::Erreur;
-        }
 
         if (expr->expression->est_référence_déclaration()) {
             auto ref = expr->expression->comme_référence_déclaration();
@@ -2364,15 +2318,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE) {
-        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-            espace.rapporte_erreur(
-                expr,
-                "La valeur de l'expression de construction d'opaque n'est pas "
-                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
-                "ou l'utiliser comme type ?");
-            return CodeRetourValidation::Erreur;
-        }
-
         auto type_opaque = candidate->type->comme_type_opaque();
         if (type_opaque->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
             type_opaque = espace.compilatrice().typeuse.monomorphe_opaque(
@@ -2390,15 +2335,6 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
-        if (!expr->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
-            espace.rapporte_erreur(
-                expr,
-                "La valeur de l'expression de construction d'opaque n'est pas "
-                "utilisée. Peut-être vouliez-vous l'assigner à quelque variable "
-                "ou l'utiliser comme type ?");
-            return CodeRetourValidation::Erreur;
-        }
-
         auto type_opaque = candidate->type->comme_type_opaque();
         for (auto i = 0; i < expr->paramètres_résolus.taille(); ++i) {
             sémanticienne.crée_transtypage_implicite_au_besoin(expr->paramètres_résolus[i],
