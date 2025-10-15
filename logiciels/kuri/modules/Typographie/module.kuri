@@ -130,6 +130,31 @@ crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
     retourne fonte
 }
 
+donne_fonte_défaut :: fonc (taille_police: r32) -> *Fonte
+{
+    retourne crée_fonte(donne_chemin_fonte_défaut(), taille_police)
+}
+
+donne_famille_fonte_défaut :: fonc () -> chaine
+{
+    retourne "DejaVuSans"
+}
+
+donne_chemin_fonte_défaut :: fonc () -> chaine
+{
+    retourne "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+}
+
+donne_fonte_mono_défaut :: fonc (taille_police: r32) -> *Fonte
+{
+    retourne crée_fonte(donne_chemin_fonte_mono_défaut(), taille_police)
+}
+
+donne_chemin_fonte_mono_défaut :: fonc () -> chaine
+{
+    retourne "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+}
+
 initialise_fonte :: fonc (fonte: *Fonte, chemin: chaine, taille_police: r32) -> bool
 {
     si taille_police == 0.0 {
