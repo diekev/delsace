@@ -106,7 +106,7 @@ inflateBackInit :: fonc (strm: z_streamp, windowBits: z32, window: *n8) -> z32
  * \{ */
 
 /* Compresse des données depuis un flux d'entrée vers un flux de sortie. */
-compresse :: fonc (entrée: []octet, niveau: z32) -> z32, [..]octet
+compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
 {
     résultat: [..]octet
 
@@ -145,7 +145,7 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> z32, [..]octet
     retourne 0, résultat
 }
 
-décompresse :: fonc (entrée: []octet) -> z32, [..]octet
+décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
 {
     // @Paramétrise
     /* Passe des informations entre les fonctions de Zlib. */

@@ -359,6 +359,15 @@ parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
     retourne v comme n16
 }
 
+parse_hexadécimal_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
+{
+    v := tente parse_hexadécimal_n64(chn) piège err {
+        retourne err
+    }
+
+    retourne v comme n32
+}
+
 parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {

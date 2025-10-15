@@ -233,7 +233,7 @@ chaine_depuis_tranche_octets :: fonc (données: []octet) -> chaine
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée
-pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc(chaine, T)(rien)) -> rien
+pour_chaque_ligne :: fonc (texte: chaine, donnees: $T, rappel: fonc (texte: chaine, données: T)) -> rien
 {
     taille : z64 = 0
     début_chaine : z64 = 0
@@ -664,7 +664,7 @@ trouve_caractère_depuis_la_fin :: fonc (chn: chaine, c: z8) -> z64
     compilatrice_vérifie_égalité(trouve_caractère_depuis_la_fin("kevin", 'a'), -1)
 }
 
-trouve_position_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+trouve_position_si :: fonc (chn: chaine, condition: fonc (caractère: z8) -> bool) -> z64
 {
     début : z64 = 0
 
@@ -679,7 +679,7 @@ trouve_position_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
     retourne début
 }
 
-compte_consécutifs_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
+compte_consécutifs_si :: fonc (chn: chaine, condition: fonc (caractère: z8) -> bool) -> z64
 {
     compte := 0
 
@@ -694,7 +694,7 @@ compte_consécutifs_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> z64
     retourne compte
 }
 
-avance_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+avance_si :: fonc (chn: chaine, condition: fonc (caractère: z8) -> bool) -> chaine
 {
     début : z64 = 0
 
@@ -709,7 +709,7 @@ avance_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
     retourne avance(chn, début)
 }
 
-recule_si :: fonc (chn: chaine, condition: fonc(z8)(bool)) -> chaine
+recule_si :: fonc (chn: chaine, condition: fonc (caractère: z8) -> bool) -> chaine
 {
     début : z64 = chn.taille - 1
 

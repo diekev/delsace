@@ -5,12 +5,12 @@
 
 importe Exétron
 
-boucle_parallèle :: fonc (données: $T, rappel: fonc(*PlageExecution, T)(rien))
+boucle_parallèle :: fonc (données: $T, rappel: fonc (plage: *PlageExecution, données: T))
 {
     DonneesTacheCorps :: struct {
         empl base: DonneesTacheParallele
 
-        rappel: fonc(*PlageExecution, T)(rien)
+        rappel: fonc (plage: *PlageExecution, données: T)
         /* T n'a pas de taille. */
         données: T
     }
