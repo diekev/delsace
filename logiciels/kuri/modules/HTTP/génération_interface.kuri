@@ -354,7 +354,7 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
     retourne ClassificationParamètre.EST_INCONNU
 }
 
-parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> bool, InformationParamètres
+parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInterface, fonction: *NoeudCodeEntêteFonction) -> (bool, InformationParamètres)
 {
     infos_paramètres: InformationParamètres
     type_fonction := fonction.type comme *InfoTypeFonction
@@ -425,7 +425,7 @@ parse_informations_paramètres :: fonc (paramètres: *ParamètresGénérationInt
 // -----------------------------------------
 // Validation des chemins pour les routes
 
-valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> bool, [..]RègleRoutage
+valide_chemin :: fonc (fonction: *NoeudCodeEntêteFonction, route: chaine, type_paramètres: *InfoTypeStructure) -> (bool, [..]RègleRoutage)
 {
     règles_ou_erreur := parse_règles(route)
     règles: [..]RègleRoutage

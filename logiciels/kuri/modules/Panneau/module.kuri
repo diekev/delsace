@@ -58,10 +58,10 @@ ContexteAffichage :: struct {
 Guetteuse :: struct {
     contexte: *ContexteInterface
 
-    sur_termine_guettage: fonc(*Guetteuse)(rien)
-    sur_clic: fonc(*Guetteuse, ClicSouris)(rien)
-    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris)(rien)
-    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier)(rien)
+    sur_termine_guettage: fonc (guetteuse: *Guetteuse)
+    sur_clic: fonc (guetteuse: *Guetteuse, clic: ClicSouris)
+    sur_déplacement_souris: fonc (guettuse: *Guetteuse, état: ÉtatSouris)
+    sur_touche_clavier: fonc (guetteuse: *Guetteuse, info: InfoToucheClavier)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, ctx: *ContexteInterface)
@@ -99,8 +99,8 @@ est_invalide :: fonc (id: IDChronomètre) -> bool
 }
 
 Chronomètre :: struct {
-    rappel: fonc(*Chronomètre)(rien)
-    sur_destruction: fonc(*Chronomètre)(rien)
+    rappel: fonc (chrono: *Chronomètre)
+    sur_destruction: fonc (chrono: *Chronomètre)
     délai: z32
 }
 
@@ -140,15 +140,15 @@ ContexteInterface :: struct {
 
     panneau_survolé: *Panneau
 
-    rappel_définis_curseur_souris: fonc(*ContexteInterface, TypeCurseurSystème)(rien)
+    rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: TypeCurseurSystème)
 
     /* Doit commencer une boucle locale pour guetter les évènements. */
-    sur_commence_guettage: fonc (*ContexteInterface, *Guetteuse)(rien)
+    sur_commence_guettage: fonc (ctx: *ContexteInterface, guetteuse: *Guetteuse)
     /* Termine la boucle locale commencée via sur_commence_guettage. */
-    sur_termine_guettage: fonc (*ContexteInterface)(rien)
+    sur_termine_guettage: fonc (ctx: *ContexteInterface)
 
-    sur_création_chronomètre: fonc(*ContexteInterface, *Chronomètre)(IDChronomètre)
-    sur_arrêt_chronomètre: fonc(*ContexteInterface, IDChronomètre)(rien)
+    sur_création_chronomètre: fonc (ctx: *ContexteInterface, chrono: *Chronomètre) -> IDChronomètre
+    sur_arrêt_chronomètre: fonc (ctx: *ContexteInterface, id: IDChronomètre)
 }
 
 initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
@@ -314,13 +314,13 @@ Panneau :: struct {
     règle_cotation_verticale: RègleDeCotation
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
-    sur_destruction: fonc(*Panneau)(rien)
-    sur_déplacement_souris: fonc(*Panneau, ÉtatSouris)(rien)
-    sur_clic_souris: fonc(*Panneau, ClicSouris)(bool)
-    sur_dessin: fonc(*Panneau, *ContexteAffichage)(rien)
-    sur_redimension: fonc(*Panneau, RectanglePosDim(z32))(rien)
-    sur_début_survol: fonc(*Panneau)(rien)
-    sur_fin_survol: fonc(*Panneau)(rien)
+    sur_destruction: fonc (panneau: *Panneau)
+    sur_déplacement_souris: fonc (panneau: *Panneau, ÉtatSouris)
+    sur_clic_souris: fonc (panneau: *Panneau, clic: ClicSouris) -> bool
+    sur_dessin: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
+    sur_redimension: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+    sur_début_survol: fonc (panneau: *Panneau)
+    sur_fin_survol: fonc (panneau: *Panneau)
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
