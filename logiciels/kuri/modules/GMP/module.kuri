@@ -30,7 +30,7 @@ crée_nombre_réel :: fonc (chn: chaine) -> NombreRéel
     retourne résultat
 }
 
-chaine_depuis_nombre_réel :: fonc (n: NombreRéel) -> chaine, mp_exp_t
+chaine_depuis_nombre_réel :: fonc (n: NombreRéel) -> (chaine, mp_exp_t)
 {
     exposant: mp_exp_t
     chn_c := __gmpf_get_str(nul, *exposant, 10, 0, n)

@@ -39,6 +39,12 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
 {
     auto tampon = tampon_courant;
 
+    for (auto i = 0; i < N; i++) {
+        if (c_str[i] == '\n') {
+            ligne_courante += 1;
+        }
+    }
+
     if (tampon->occupe + N < TAILLE_TAMPON) {
         memcpy(&tampon->donnees[tampon->occupe], c_str, static_cast<size_t>(N));
         tampon->occupe += static_cast<int>(N);
@@ -76,6 +82,10 @@ void Enchaineuse::ajoute_caractère(char c)
     if (tampon->occupe == TAILLE_TAMPON) {
         ajoute_tampon();
         tampon = tampon_courant;
+    }
+
+    if (c == '\n') {
+        ligne_courante += 1;
     }
 
     tampon->donnees[tampon->occupe++] = c;

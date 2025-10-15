@@ -751,6 +751,10 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         auto expression = expression_polymorphique->comme_expression_binaire();
         return résoud_type_final_impl(expression->opérande_gauche);
     }
+    else if (expression_polymorphique->est_déclaration_variable()) {
+        auto variable = expression_polymorphique->comme_déclaration_variable();
+        return résoud_type_final_impl(variable->expression_type);
+    }
     else {
         erreur_interne(expression_polymorphique,
                        enchaine("type de noeud non géré ", expression_polymorphique->genre));
