@@ -175,6 +175,16 @@ définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
     emboiteuse.souris_y = souris.état.où.y comme r32
 }
 
+donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
+{
+    résultat := TypeCurseurSystème.FLÈCHE
+    boite := donne_boite_sous_souris(emboiteuse)
+    si boite {
+        résultat = boite.curseur
+    }
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -617,6 +627,12 @@ est_survolée :: fonc () -> bool
     }
 
     retourne faux
+}
+
+définis_curseur :: fonc (curseur: TypeCurseurSystème)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.curseur = curseur
 }
 
 /** \} */

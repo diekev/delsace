@@ -98,6 +98,8 @@ BoiteFlexible :: struct {
     config_texte: ConfigurationTexte
     indice_bordure := CONFIG_BORDURE_INVALIDE
 
+    curseur := TypeCurseurSystème.FLÈCHE
+
     /* Valeurs pour les différents types. */
     arrière_plan: CouleurRVBA
     texte: chaine
@@ -389,6 +391,8 @@ BoiteDisposée :: struct {
     barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE
     est_flottante: bool
 
+    curseur: TypeCurseurSystème
+
     rappels: [TypeRappelUtilisateur.nombre_éléments]n32
 }
 
@@ -593,6 +597,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
     boite_disposée.barre_de_défilement_verticale = boite.barre_de_défilement_verticale
     boite_disposée.profondeur = boite.profondeur
     boite_disposée.est_flottante = boite.flottance.est_valide()
+    boite_disposée.curseur = boite.curseur
 
     dernier_enfant := -1
 
