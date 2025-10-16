@@ -298,9 +298,6 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
                                                             kuri::chaine_statique dossier)
 {
     auto espace = mémoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
-    espace->module = espace->sys_module->crée_module_fichier_racine_compilation(dossier);
-    espaces_de_travail->ajoute(espace);
-    gestionnaire_code->espace_créé(espace);
 
     espace->module_kuri = espace->sys_module->initialise_module_kuri(racine_modules_kuri,
                                                                      arguments.importe_kuri);
@@ -316,6 +313,11 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
             }
         }
     }
+
+    espace->module = espace->sys_module->crée_module_fichier_racine_compilation(dossier);
+
+    espaces_de_travail->ajoute(espace);
+    gestionnaire_code->espace_créé(espace);
 
     /* Crée les tâches pour les données requise de la typeuse. */
     Typeuse::crée_tâches_précompilation(*this, espace);
