@@ -428,6 +428,8 @@ static void aplatis_arbre(NoeudExpression *racine,
         return;
     }
 
+    racine->position |= position;
+
     switch (racine->genre) {
         case GenreNoeud::COMMENTAIRE:
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
@@ -571,7 +573,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto expr = racine->comme_assignation_variable();
-            expr->position |= position;
 
             aplatis_arbre(expr->assignée, arbre_aplatis, position);
             aplatis_arbre(
@@ -583,7 +584,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_ASSIGNATION_MULTIPLE:
         {
             auto expr = racine->comme_assignation_multiple();
-            expr->position |= position;
 
             aplatis_arbre(expr->assignées, arbre_aplatis, position);
             aplatis_arbre(
@@ -595,7 +595,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto expr = racine->comme_comme();
-            expr->position |= position;
             aplatis_arbre(expr->expression, arbre_aplatis, position);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
@@ -607,7 +606,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::OPÉRATEUR_COMPARAISON_CHAINÉE:
         {
             auto expr = racine->comme_expression_binaire();
-            expr->position |= position;
 
             aplatis_arbre(expr->opérande_gauche, arbre_aplatis, position);
             aplatis_arbre(expr->opérande_droite, arbre_aplatis, position);
@@ -618,7 +616,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_PLAGE:
         {
             auto expr = racine->comme_plage();
-            expr->position |= position;
             aplatis_arbre(expr->début, arbre_aplatis, position);
             aplatis_arbre(expr->fin, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
@@ -627,7 +624,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::OPÉRATEUR_BINAIRE:
         {
             auto expr = racine->comme_expression_binaire();
-            expr->position |= position;
 
             if (est_assignation_composée(expr->lexème->genre)) {
                 position |= PositionCodeNoeud::DROITE_ASSIGNATION;
@@ -672,7 +668,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
             auto expr = racine->comme_référence_rubrique();
-            expr->position |= position;
 
             aplatis_arbre(expr->accédée, arbre_aplatis, position);
             // n'ajoute pas la rubrique, car la validation sémantique le considérera
@@ -686,7 +681,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::EXPRESSION_APPEL:
         {
             auto expr = racine->comme_appel();
-            expr->position |= position;
 
             aplatis_arbre(expr->expression, arbre_aplatis, position);
             expr->expression->position |= PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL;
@@ -730,7 +724,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_EMPL:
         {
             auto expr = static_cast<NoeudExpressionUnaire *>(racine);
-            expr->position |= position;
             aplatis_arbre(expr->opérande, arbre_aplatis, position);
             arbre_aplatis.ajoute(expr);
             break;
@@ -810,7 +803,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::DIRECTIVE_EXÉCUTE:
         {
             auto expr = racine->comme_exécute();
-            expr->position |= position;
 
             if (expr->ident == ID::assert_ || expr->ident == ID::test) {
                 position |= PositionCodeNoeud::DROITE_ASSIGNATION;
@@ -823,7 +815,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::DIRECTIVE_INSÈRE:
         {
             auto expr = racine->comme_insère();
-            expr->position |= position;
             if (expr->expression->est_exécute()) {
                 position |= PositionCodeNoeud::DROITE_ASSIGNATION;
             }
@@ -934,9 +925,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         case GenreNoeud::INSTRUCTION_SI:
         {
             auto expr = racine->comme_si();
-
-            /* préserve le drapeau au cas où nous serions à droite d'une expression */
-            expr->position |= position;
 
             /* Seul l'expression racine, directement après l'assignation, doit être marquée comme
              * tel. */

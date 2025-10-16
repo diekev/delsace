@@ -140,7 +140,7 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
             retourne
         }
 
-        si évènement.bouton_souris == BoutonSouris.MOLETTE && évènement.delta_souris != 0 {
+        si évènement.action_souris == ActionSouris.ROULEMENT {
             sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris())
             retourne
         }
