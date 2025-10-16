@@ -619,6 +619,22 @@ est_survolée :: fonc () -> bool
 /** \nom Édition Texte
  * \{ */
 
+définis_éditrice_texte :: fonc (éditrice_texte: *ÉditriceTexte)
+{
+    assert(__boite_courante != nul)
+    emboiteuse := __boite_courante.emboiteuse
+
+    pour * emboiteuse.éditrices_textes {
+        si it.id == __boite_courante.id {
+            it.éditrice_texte = éditrice_texte
+            arrête
+        }
+    }
+    sansarrêt {
+        tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(__boite_courante.id, éditrice_texte))
+    }
+}
+
 définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_texte: *ÉditriceTexte)
 {
     pour * emboiteuse.éditrices_textes {
