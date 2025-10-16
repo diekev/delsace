@@ -1,10 +1,15 @@
+importe BoiteFlexible
+importe CréationFenêtre
 importe Chaine
+importe Couleur
 importe Fondation
 HTML :: importe HTML
 importe JavaScript
-importe Qt
+importe PeintureInterface
+importe Périphériques
 importe SysFichier
 importe Temps
+importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction principale.
@@ -13,129 +18,162 @@ importe Temps
 principale :: fonc ()
 {
     mémoire_entrée := mémoire_utilisée()
+    diffère imprime("mémoire_utilisée %\n", mémoire_utilisée() - mémoire_entrée)
 
-    arguments := __arguments_ligne_commande
-
-    /* Création application. */
-    taille_arguments := arguments.taille comme z32
-    app := QT_cree_application(*taille_arguments, arguments.pointeur)
-    diffère QT_detruit_application(app)
-
-    rappel_fermeture: RappelFermetureApp
-    rappel_fermeture.mémoire_entrée = mémoire_entrée
-    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
-
-    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
-    QT_core_application_definis_nom_application(vers_qt("JavaScript"))
-
-    /* Création fenêtre. */
-    rappels_fenêtre: RappelsFenetrePrincipale
-
-    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
-    diffère QT_detruit_fenetre_principale(fenêtre)
-
-    rappel_sauvegarde: RappelSauvegarde
-    rappel_sauvegarde.rappels_fenêtre = *rappels_fenêtre
-    raccourci := QT_shortcut_cree(fenêtre)
-    QT_shortcut_definis_touches(raccourci, QT_Keyboard_Modifier.CTRL, QT_Key.S)
-    QT_shortcut_sur_activation(raccourci, *rappel_sauvegarde)
-
-    QT_widget_definis_titre_fenetre(fenêtre, vers_qt("JavaScript"))
-    QT_widget_affiche_maximisee(fenêtre)
-
-    /* Création widgets. */
-    widget := QT_cree_widget(nul, fenêtre)
-    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
-
-    fonte: QT_Font
-    fonte.famille = vers_qt("Monospace")
-    feuille_de_style := vers_qt("QPlainTextEdit { background: black; color: white; }")
-
-    éditeur := QT_cree_plain_text_edit(nul, widget)
-    QT_widget_definis_feuille_de_style(éditeur, *feuille_de_style)
-    QT_widget_definis_fonte(éditeur, *fonte)
-    ouvre_fichier(éditeur)
-
-    sortie := QT_cree_plain_text_edit(nul, widget)
-    QT_plain_text_edit_definis_lecture_seule(sortie, vrai)
-    QT_widget_definis_feuille_de_style(sortie, *feuille_de_style)
-    QT_widget_definis_fonte(sortie, *fonte)
-
-    sortie_console := QT_cree_plain_text_edit(nul, widget)
-    QT_plain_text_edit_definis_lecture_seule(sortie_console, vrai)
-    QT_widget_definis_feuille_de_style(sortie_console, *feuille_de_style)
-    QT_widget_definis_fonte(sortie_console, *fonte)
-
-    rappels_fenêtre.éditeur = éditeur
-    rappels_fenêtre.sortie = sortie
-    rappels_fenêtre.sortie_console = sortie_console
-
-    dispv := QT_cree_vbox_layout(QT_widget_nul())
-    QT_layout_ajoute_widget(dispv, sortie)
-    QT_layout_ajoute_widget(dispv, sortie_console)
-
-    disp := QT_cree_hbox_layout(widget)
-    QT_layout_ajoute_widget(disp, éditeur)
-    QT_box_layout_ajoute_layout(disp, dispv)
-
-    exécute(app)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Sur fermeture application.
- * \{ */
-
-RappelFermetureApp :: struct {
-    empl base: QT_Rappel_Generique
-
-    mémoire_entrée: z64
-
-    sur_rappel = sur_fermeture_application
-}
-
-sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
-{
-    rappel := base comme *RappelFermetureApp
-    imprime("mémoire_utilisée %\n", mémoire_utilisée() - rappel.mémoire_entrée)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Données fenêtre principale.
- * \{ */
-
-RappelsFenetrePrincipale :: struct {
-    empl base: QT_Rappels_Fenetre_Principale
-
-    éditeur: *QT_PlainTextEdit
-    sortie: *QT_PlainTextEdit
-    sortie_console: *QT_PlainTextEdit
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Sauvegarde/Évaluation du fichier de test.
- * \{ */
-
-RappelSauvegarde :: struct {
-    empl base: QT_Rappel_Generique
-
-    rappels_fenêtre: *RappelsFenetrePrincipale
-
-    sur_rappel = sur_rappel_sauvegarde
-}
-
-ouvre_fichier :: fonc (éditeur: *QT_PlainTextEdit)
-{
+    application: Application
     _, contenu := contenu_fichier_texte("/tmp/test.js")
-    qcontenu := contenu.vers_qt()
-    QT_plain_text_edit_definis_texte(éditeur, *qcontenu)
-    déloge(contenu)
+    application.texte = contenu
+
+    application.fonte = donne_fonte_mono_défaut(14.0)
+
+    fenêtre := crée_fenêtre(800, 600, "ECMAScript", vrai)
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre(fenêtre)
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si it.touche_pressée {
+                si it.modificateurs == ModificateurClavier.CONTROL && it.touche == ToucheClavier.S && !it.est_répétée {
+                    sauvegarde_texte(*application)
+                }
+            }
+
+            gère_évènement(*application.emboiteuse, it)
+        }
+
+        dessine_fenêtre(*application, largeur, hauteur)
+
+        permute_tampons_fenêtre(fenêtre)
+    }
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Application.
+ * \{ */
+
+Application :: struct {
+    texte: chaine
+    sortie: chaine
+    sortie_console: chaine
+
+    emboiteuse: Emboiteuse
+    fonte: *Fonte
+    peintre: *Peintre
+
+    lignes: [..]chaine
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Interface
+ * \{ */
+
+GRIS_157 := CouleurRVBA(0.157, 0.157, 0.157, 1.0)
+GRIS_325 := CouleurRVBA(0.325, 0.325, 0.325, 1.0)
+
+TEXTE_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0)
+TEXTE_INACTIF := CouleurRVBA(0.660, 0.660, 0.660, 1.0)
+
+dessine_fenêtre :: fonc (empl application: *Application, largeur: z32, hauteur: z32)
+{
+    marque := donne_marque_stockage_temporaire()
+    diffère définis_marque_stockage_temporaire(marque)
+
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi application.peintre {
+        peintre = crée_peintre_igumi(taille_canevas)
+    }
+
+    peintre.définis_taille_canevas(taille_canevas)
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+    commandes := crée_interface(application, largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
+}
+
+crée_interface :: fonc (application: *Application, largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    emboiteuse := *application.emboiteuse
+
+    commence_disposition(emboiteuse, largeur, hauteur)
+
+    dispose_rectangle()
+    {
+        définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+        définis_arrière_plan(GRIS_325)
+        définis_rembourrage(RembourrageUniforme(8))
+        définis_séparation_enfant(8)
+
+        /* Texte. */
+        dispose_rectangle()
+        {
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_arrière_plan(GRIS_157)
+            définis_direction(Direction.Verticale)
+            définis_rembourrage(RembourrageUniforme(8))
+
+            dispose_texte(application, application.texte)
+        }
+        termine_rectangle()
+
+        dispose_rectangle()
+        {
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_arrière_plan(GRIS_325)
+            définis_séparation_enfant(8)
+            définis_direction(Direction.Verticale)
+
+            dispose_rectangle()
+            {
+                définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+                définis_arrière_plan(GRIS_157)
+                définis_direction(Direction.Verticale)
+                définis_rembourrage(RembourrageUniforme(8))
+
+                dispose_texte(application, application.sortie)
+            }
+            termine_rectangle()
+
+            dispose_rectangle()
+            {
+                définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+                définis_arrière_plan(GRIS_157)
+                définis_direction(Direction.Verticale)
+                définis_rembourrage(RembourrageUniforme(8))
+
+                dispose_texte(application, application.sortie_console)
+            }
+            termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(emboiteuse)
+}
+
+dispose_texte :: fonc (application: *Application, texte: chaine)
+{
+    divise(texte, '\n', *application.lignes)
+
+    pour application.lignes {
+        dispose_texte(it, ConfigurationTexte(application.fonte, TEXTE_ACTIF))
+    }
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom ObjetHTML
@@ -180,7 +218,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
 ConfigurationRealmTest :: struct {
     empl base: ConfigurationRealm
 
-    sortie_console: *QT_PlainTextEdit
+    application: *Application
     html: ObjetHTML
 }
 
@@ -191,7 +229,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     FluxSortieConsoleQt :: struct {
         empl base: FluxSortieConsole
 
-        sortie_console: *QT_PlainTextEdit
+        application: *Application
     }
 
     flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
@@ -203,21 +241,19 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     flux_sortie_sur_log :: fonc (base: *FluxSortieConsole, texte: chaine)
     {
         flux := base comme *FluxSortieConsoleQt
-        qtexte := texte.vers_qt()
-        sortie := flux.sortie_console
-        QT_plain_text_edit_definis_texte(sortie, *qtexte)
+        application := flux.application
+        application.sortie_console = copie_chaine(texte)
     }
 
     flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole)
     {
         flux := base comme *FluxSortieConsoleQt
-        sortie := flux.sortie_console
-        qtexte := "".vers_qt()
-        QT_plain_text_edit_definis_texte(sortie, *qtexte)
+        application := flux.application
+        déloge(application.sortie_console)
     }
 
     flux := loge(FluxSortieConsoleQt)
-    flux.sortie_console = configuration.sortie_console
+    flux.application = configuration.application
     flux.sur_destruction = flux_sortie_sur_destruction
     flux.sur_log = flux_sortie_sur_log
     flux.sur_efface = flux_sortie_sur_efface
@@ -229,19 +265,11 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     global.ajoute_objet_natif("html", *configuration.html)
 }
 
-sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
+sauvegarde_texte :: fonc (application: *Application)
 {
-    rappel := base comme *RappelSauvegarde
-    rappels_fenêtre := rappel.rappels_fenêtre
+    déloge_si_logée(application.sortie)
 
-    éditeur := rappels_fenêtre.éditeur
-    sortie := rappels_fenêtre.sortie
-
-    texte := QT_plain_text_edit_donne_texte(éditeur)
-    diffère QT_chaine_detruit(*texte)
-
-    contenu := texte.vers_kuri()
-    _ := écris_fichier_entier("/tmp/test.js", contenu)
+    _ := écris_fichier_entier("/tmp/test.js", application.texte)
 
     début := maintenant_précis()
 
@@ -253,37 +281,27 @@ sur_rappel_sauvegarde :: fonc (base: *QT_Rappel_Generique)
 
     rappels_hôte: ConfigurationRealmTest
     rappels_hôte.crée_host_instrinsics = HTML.initialise_host_intrinsics
-    rappels_hôte.sortie_console = rappels_fenêtre.sortie_console
+    rappels_hôte.application = application
     rappels_hôte.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
 
     realm := initialise_host_defined_realm(*mv, *rappels_hôte)
 
     script: *Script
-    discr parse_script(contenu, realm) {
+    discr parse_script(application.texte, realm) {
         Ok(s) {
             script = s
         }
         Erreur(e) {
-            chn := imprime_chaine("%", Valeur(Object = e))
-            diffère déloge(chn)
-            chn_qt := chn.vers_qt()
-            QT_plain_text_edit_definis_texte(sortie, *chn_qt)
+            application.sortie = imprime_chaine("%", Valeur(Object = e))
             retourne
         }
         sinon {
-            chn := "Erreur inconnue".vers_qt()
-            QT_plain_text_edit_definis_texte(sortie, *chn)
+            application.sortie = "Erreur inconnue"
             retourne
         }
     }
 
     résultat := script_evaluation(script)
 
-    texte_résultat := imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes())
-    diffère déloge(texte_résultat)
-
-    chn := texte_résultat.vers_qt()
-    QT_plain_text_edit_definis_texte(sortie, *chn)
+    application.sortie = imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes())
 }
-
-/** \} */
