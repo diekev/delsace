@@ -28,8 +28,8 @@ principale :: fonc ()
 
     tableau_ajoute(*app.documents, ...documents)
 
-    app.fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 16.0)
-    app.grosse_fonte = crée_fonte(CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 40.0)
+    app.fonte = donne_fonte_défaut(16.0)
+    app.grosse_fonte = donne_fonte_défaut(40.0)
 
     fenêtre := crée_fenêtre(800, 600, "BoiteFlexible", vrai)
 
