@@ -26,8 +26,8 @@ principale :: fonc ()
 
     serveuse: Serveuse
     // serveuse.extrémité = extrémité
-    serveuse.fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 60.0)
-    serveuse.petite_fonte = crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
+    serveuse.fonte = donne_fonte("Alegreya-Regular", 60.0)
+    serveuse.petite_fonte = donne_fonte("Alegreya-Regular", 20.0)
 
     fenêtre := crée_fenêtre(800, 600, "Serveuse", vrai, 1)
 
