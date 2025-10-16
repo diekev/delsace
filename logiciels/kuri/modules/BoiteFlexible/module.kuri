@@ -585,6 +585,12 @@ définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := A
     }
 }
 
+donne_rembourrage :: fonc () -> Rembourrage
+{
+    assert(__boite_courante != nul)
+    retourne __boite_courante.disposition.rembourrage
+}
+
 donne_rect :: fonc () -> RectanglePosDim(r32)
 {
     assert(__boite_courante != nul)
@@ -664,6 +670,46 @@ donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTe
     }
 
     retourne nul
+}
+
+dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurRVBA, couleur_texte: CouleurRVBA)
+{
+    si éditrice.curseur_est_affiché {
+        lignes_pour_rendu := donne_lignes_pour_rendu(éditrice)
+
+        si éditrice.curseur.ligne < lignes_pour_rendu.taille {
+            métriques := donne_métriques_fonte(éditrice.fonte)
+            hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
+            largeur_caractère := métriques.largeur_moyenne
+
+            rembourrage := donne_rembourrage()
+            rembourrage_x := rembourrage.v[IndiceRectangle.GAUCHE]
+            rembourrage_y := rembourrage.v[IndiceRectangle.HAUT]
+
+            dispose_rectangle()
+            {
+                définis_arrière_plan(couleur)
+                définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
+
+                texte_ligne := lignes_pour_rendu[éditrice.curseur.ligne]
+                texte_avant_curseur := texte_ligne
+                texte_avant_curseur.points_de_code.taille = éditrice.curseur.début
+
+                texte_sous_curseur := avance(texte_ligne, éditrice.curseur.début comme z32)
+                si texte_sous_curseur.taille() {
+                    texte_sous_curseur.points_de_code.taille = 1
+                    dispose_texte(texte_sous_curseur, ConfigurationTexte(éditrice.fonte, couleur_texte))
+                }
+
+                position_curseur := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
+                décalage_flottance_x := rembourrage_x + position_curseur comme r32
+                décalage_flottance_y := rembourrage_y + (éditrice.curseur.ligne * hauteur_ligne) comme r32
+
+                définis_flottance(décalage_flottance_x, décalage_flottance_y)
+            }
+            termine_rectangle()
+        }
+    }
 }
 
 /** \} */
