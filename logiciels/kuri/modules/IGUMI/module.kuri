@@ -321,8 +321,7 @@ initialise_contexte :: fonc (empl ctx: *DonnéesContexteGL)
     nuanceurs[IDNuanceur.Id] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_id, chemins.chemin_fragment_id)
     nuanceurs[IDNuanceur.Id].nom = "id"
 
-    chemin_fonte := CheminFichier("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
-    fonte_globale = crée_fonte(chemin_fonte, 14.0)
+    fonte_globale = donne_fonte_mono_défaut(14.0)
 
     glGenVertexArrays(1, *données_tampon_xcnu.va_immédiat)
     glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat)
