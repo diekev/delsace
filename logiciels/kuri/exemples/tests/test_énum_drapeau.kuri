@@ -93,6 +93,53 @@ test_expressions_booléennes_variables :: fonc ()
     imprime("SUCCÈS de test_expressions_booléennes_variables !\n")
 }
 
+test_expressions_booléennes_expression :: fonc ()
+{
+    d: Drapeau
+
+    d.FA = retourne_faux()
+    si d.FA {
+        imprime("PAS OK: d.FA doit être faux !\n")
+        retourne
+    }
+
+    d.FA = retourne_vrai()
+    saufsi d.FA {
+        imprime("PAS OK: d.FA doit être vrai !\n")
+        retourne
+    }
+
+    d.FA = retourne_vrai() && !retourne_faux()
+    saufsi d.FA {
+        imprime("PAS OK: d.FA doit être vrai !\n")
+        retourne
+    }
+
+    d.FA = !retourne_vrai() && retourne_faux()
+    si d.FA {
+        imprime("PAS OK: d.FA doit être faux !\n")
+        retourne
+    }
+
+    d.FA = retourne_vrai() || retourne_faux()
+    saufsi d.FA {
+        imprime("PAS OK: d.FA doit être vrai !\n")
+        retourne
+    }
+
+    imprime("SUCCÈS de test_expressions_booléennes_expression !\n")
+}
+
+retourne_vrai :: fonc () -> bool
+{
+    retourne vrai
+}
+
+retourne_faux :: fonc () -> bool
+{
+    retourne faux
+}
+
 test_expressions_booléennes_tableau :: fonc ()
 {
     a := [ Drapeau.FA ]
@@ -216,6 +263,7 @@ test_conjonction_énum_simple :: fonc ()
 principale :: fonc ()
 {
     test_expressions_booléennes_variables()
+    test_expressions_booléennes_expression()
     test_expressions_booléennes()
     test_expressions_booléennes_tableau()
     test_raccourcis_assignation_énumération_drapeau()

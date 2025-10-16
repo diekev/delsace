@@ -544,7 +544,7 @@ parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: ch
 parse_sources_glsl :: fonc (sources: SourcesGLSL, programme: *ProgrammeDeNuançage)
 {
     lexeuse: SimpleLexeuse
-    lexeuse.ponctuations = ["{", "}", "(", ")", "=", ";", "#", "*", "-", "+", "/", ","]
+    lexeuse.ponctuations = ["{", "}", "(", ")", "=", ";", "#", "*", "-", "+", "/", ",", "<", ">", "<=", ">=", "!=", "=="]
     lexeuse.mots_clés = __mots_clés_glsl
 
     parse_attributs_et_uniformes_depuis(*lexeuse, sources.vertex, programme)

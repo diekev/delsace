@@ -23,7 +23,7 @@ crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rie
 
 join :: fonc (fil: *FilExecution) -> bool
 {
-    retourne pthread_join(fil, nul) == 0
+    retourne pthread_join(mémoire(fil), nul) == 0
 }
 
 détache :: fonc (fil: *FilExecution)

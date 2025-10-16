@@ -1213,7 +1213,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
         case GenreLexème::ÉNUM:
         case GenreLexème::ÉNUM_DRAPEAU:
         case GenreLexème::ERREUR:
-        case GenreLexème::STRUCT:
         case GenreLexème::UNION:
         {
             auto message_erreur = enchaine(
@@ -1222,6 +1221,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                 " » ne peut pas être utilisé comme expression primaire.\n");
             rapporte_erreur(message_erreur);
             return nullptr;
+        }
+        case GenreLexème::STRUCT:
+        {
+            return analyse_déclaration_structure(lexème);
         }
         case GenreLexème::SI:
         {

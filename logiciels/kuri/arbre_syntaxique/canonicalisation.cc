@@ -868,6 +868,12 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 simplifie(it.expression_valeur_defaut);
             }
 
+            if (noeud->possède_drapeau(PositionCodeNoeud::DROITE_ASSIGNATION)) {
+                structure->substitution = assem->crée_référence_type(
+                    structure->lexème, typeuse.type_type_de_donnees(structure));
+                return structure->substitution;
+            }
+
             return structure;
         }
         case GenreNoeud::INSTRUCTION_DIFFÈRE:

@@ -22,7 +22,7 @@ type_outil: TypeOutil
 principale :: fonc ()
 {
     fenêtre := crée_fenêtre(1280, 720, "Bézier")
-    fonte := crée_fonte("/home/kevin/Documents/fontes/Alegreya-Regular.ttf", 20.0)
+    fonte := donne_fonte("Alegreya-Regular", 20.0)
 
     initialise_igumi()
 

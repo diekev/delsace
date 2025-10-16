@@ -12,11 +12,6 @@ importe Math
 importe SysFichier
 importe Unicode
 
-// Fontes intéressantes
-// vollkorn-regular.ttf
-// VictorMono-regular.ttf
-// iosevka
-
 /* ------------------------------------------------------------------------- */
 /** \nom Fonte
  * \{ */
@@ -128,6 +123,56 @@ crée_fonte :: fonc (chemin: CheminFichier, taille_police: r32) -> *Fonte
         fonte = nul
     }
     retourne fonte
+}
+
+donne_fonte_défaut :: fonc (taille_police: r32) -> *Fonte
+{
+    retourne crée_fonte(donne_chemin_fonte_défaut(), taille_police)
+}
+
+donne_famille_fonte_défaut :: fonc () -> chaine
+{
+    retourne "DejaVuSans"
+}
+
+donne_chemin_fonte_défaut :: fonc () -> chaine
+{
+    retourne "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+}
+
+donne_fonte_mono_défaut :: fonc (taille_police: r32) -> *Fonte
+{
+    retourne crée_fonte(donne_chemin_fonte_mono_défaut(), taille_police)
+}
+
+donne_chemin_fonte_mono_défaut :: fonc () -> chaine
+{
+    retourne "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+}
+
+donne_fonte :: fonc (nom: chaine, taille_police: r32) -> *Fonte
+{
+    chemin_courant := #chemin_de_ce_fichier
+    dossier := CheminFichier(chemin_courant).chemin_parent()
+    diffère détruit_chemin(dossier)
+
+    tampon_chemin: TamponChemin
+    _ := ajoute(*tampon_chemin, dossier)
+
+    _ := ajoute_avec_séparateur(*tampon_chemin, "fontes")
+    _ := ajoute_avec_séparateur(*tampon_chemin, nom)
+    _ := ajoute(*tampon_chemin, ".ttf")
+
+    chemin_fonte := donne_chaine_statique(*tampon_chemin)
+
+    résultat: *Fonte
+    si est_un_fichier_régulier(CheminFichier(chemin_fonte)) {
+        résultat = crée_fonte(chemin_fonte, taille_police)
+    }
+    sinon {
+        imprimeln("Fonte inconnue : %", nom)
+    }
+    retourne résultat
 }
 
 initialise_fonte :: fonc (fonte: *Fonte, chemin: chaine, taille_police: r32) -> bool

@@ -3040,6 +3040,12 @@ link_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMStr
 /* https://html.spec.whatwg.org/multipage/links.html */
 process_link_element :: fonc (link: *HTMLLinkElement)
 {
+    document := link.document
+    user_agent := document.donne_user_agent()
+    saufsi user_agent {
+        retourne
+    }
+
     rel := link.donne_rel()
     si rel.est_vide() {
         link.document.supprime_feuille_de_style_associée(link)

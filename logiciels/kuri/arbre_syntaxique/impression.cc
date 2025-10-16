@@ -633,8 +633,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto structure = noeud->comme_type_structure();
-            imprime_ident(enchaineuse, structure->ident);
-            enchaineuse << " :: struct";
+            if (structure->ident) {
+                imprime_ident(enchaineuse, structure->ident);
+                enchaineuse << " :: struct";
+            }
+            enchaineuse << "struct";
             imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
             imprime_directives(enchaineuse, état, structure->directives);
             if (!structure->bloc) {

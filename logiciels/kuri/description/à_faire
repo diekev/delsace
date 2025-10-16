@@ -39,14 +39,6 @@ permet de définir des tableaux plus petits que la taille du type annoncé (remp
 crash 
     a = (b, c, d)
 
-struct comme expression
-ma_variable: struct { x: r32; y: r32 }
-
-struct {
-    x: r32
-    y: r32
-}
-
 typage des indices selon le type itéré
 
 mémoire(fonction_retournant_pointeur()) ne fonctionne pas
