@@ -65,7 +65,8 @@ int main()
     auto arguments = ArgumentsCompilatrice{};
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
-    auto &typeuse = compilatrice.typeuse;
+    auto espace = compilatrice.espace_de_travail_défaut;
+    auto &typeuse = espace->typeuse;
 
     auto dt_tabl_fixe = typeuse.type_tableau_fixe(typeuse.type_z32, 8);
     auto dt_tranche = typeuse.crée_type_tranche(typeuse.type_z32);

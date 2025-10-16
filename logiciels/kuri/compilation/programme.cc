@@ -67,7 +67,7 @@ void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
     if (!m_fonctions.insère(fonction)) {
         return;
     }
-    ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexème->fichier));
+    ajoute_fichier(m_espace->fichier(fonction->lexème->fichier));
     m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     m_éléments_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -100,7 +100,7 @@ void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
     if (!m_globales.insère(globale)) {
         return;
     }
-    ajoute_fichier(m_espace->compilatrice().fichier(globale->lexème->fichier));
+    ajoute_fichier(m_espace->fichier(globale->lexème->fichier));
     m_éléments_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[GLOBALES][POUR_RI] = true;
     if (globale->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -1066,7 +1066,7 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         table_des_types.ajoute(m_compilatrice_ri.transtype_base_info_type(it->atome_info_type));
     }
 
-    auto &typeuse = m_espace.compilatrice().typeuse;
+    auto &typeuse = m_espace.typeuse;
     auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
     auto ident = m_espace.compilatrice().donne_identifiant_pour_globale("données_table_des_types");
     atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tranche_globale(

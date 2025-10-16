@@ -89,16 +89,13 @@ struct ConstructriceRI {
     /* Utilisé pour assigner des identifiants aux labels. */
     int m_nombre_labels = 0;
 
-    Typeuse &m_typeuse;
-    RegistreSymboliqueRI &m_registre;
-
     AtomeFonction *m_fonction_courante = nullptr;
 
   public:
-    explicit ConstructriceRI(Typeuse &typeuse, RegistreSymboliqueRI &registre)
-        : m_typeuse(typeuse), m_registre(registre)
-    {
-    }
+    Typeuse *m_typeuse = nullptr;
+    RegistreSymboliqueRI *m_registre = nullptr;
+
+    ConstructriceRI() = default;
 
     EMPECHE_COPIE(ConstructriceRI);
 
@@ -233,7 +230,7 @@ struct ConstructriceRI {
 
     Typeuse &typeuse()
     {
-        return m_typeuse;
+        return *m_typeuse;
     }
 
   private:
@@ -311,7 +308,7 @@ class RegistreChainesRI {
 struct CompilatriceRI {
   private:
     Compilatrice &m_compilatrice;
-    ConstructriceRI m_constructrice;
+    ConstructriceRI m_constructrice{};
 
     bool expression_gauche = true;
 

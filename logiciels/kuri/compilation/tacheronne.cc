@@ -574,7 +574,7 @@ void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
     }
 
     /* N'optimise pas cette fonction car le manque de retour supprime tout le code. */
-    if (entete == compilatrice.interface_kuri->decl_creation_contexte) {
+    if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
         return;
     }
 
@@ -877,7 +877,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
             auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
-            type_de_donnees = compilatrice.typeuse.type_type_de_donnees(type_de_donnees);
+            type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
             return assembleuse->crée_référence_type(lexeme, type_de_donnees);
         }
         case GenreNoeud::FONCTION:
@@ -949,7 +949,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 pointeur_donnees);
 
             /* crée un tableau fixe */
-            auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
+            auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(
                 type_tableau->type_pointé, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
@@ -960,7 +960,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
-            comme->type = compilatrice.typeuse.crée_type_tranche(type_tableau->type_pointé);
+            comme->type = espace->typeuse.crée_type_tranche(type_tableau->type_pointé);
             comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
@@ -987,7 +987,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 pointeur_donnees);
 
             /* crée un tableau fixe */
-            auto type_tableau_fixe = compilatrice.typeuse.type_tableau_fixe(
+            auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(
                 type_tranche->type_élément, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,

@@ -6,14 +6,22 @@
 #include "utilitaires/synchrone.hh"
 
 #include "erreur.h"
+#include "graphe_dependance.hh"
+#include "interface_module_kuri.hh"
 #include "messagere.hh"
+#include "operateurs.hh"
 #include "options.hh"
 #include "tache.hh"
+#include "typage.hh"
 
+#include "parsage/modules.hh"
+
+struct AtomeGlobale;
 struct Compilatrice;
 struct MetaProgramme;
 struct NoeudDéclarationEntêteFonction;
 struct Programme;
+struct RegistreSymboliqueRI;
 struct SiteSource;
 struct Statistiques;
 struct UniteCompilation;
@@ -65,6 +73,34 @@ struct EspaceDeTravail {
     bool optimisations = false;
     mutable std::atomic<bool> possède_erreur{false};
 
+    kuri::Synchrone<InterfaceKuri> interface_kuri{};
+
+    kuri::Synchrone<SystèmeModule> sys_module{};
+
+    kuri::Synchrone<GrapheDépendance> graphe_dépendance{};
+
+    kuri::Synchrone<RegistreDesOpérateurs> opérateurs{};
+
+    Typeuse typeuse;
+
+    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
+    NoeudDéclarationVariable *globale_contexte_programme = nullptr;
+
+    struct DonneesConstructeurGlobale {
+        AtomeGlobale *atome = nullptr;
+        NoeudExpression *expression = nullptr;
+        TransformationType transformation{};
+    };
+
+    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
+    kuri::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+    Module *module_kuri = nullptr;
+
+    RegistreSymboliqueRI *registre_ri = nullptr;
+
+    NoeudBloc *m_bloc_racine = nullptr;
+
     Compilatrice &m_compilatrice;
 
     EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
@@ -74,6 +110,13 @@ struct EspaceDeTravail {
     ~EspaceDeTravail();
 
     POINTEUR_NUL(EspaceDeTravail)
+
+    Module *donne_module(const IdentifiantCode *nom_module) const;
+
+    Fichier *fichier(int64_t index);
+    const Fichier *fichier(int64_t index) const;
+
+    Fichier *fichier(kuri::chaine_statique chemin) const;
 
     int64_t memoire_utilisee() const;
 

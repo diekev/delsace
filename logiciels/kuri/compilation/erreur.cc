@@ -47,7 +47,7 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
 kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
     auto lexeme = expr->lexème;
-    auto fichier = espace.compilatrice().fichier(lexeme->fichier);
+    auto fichier = espace.fichier(lexeme->fichier);
     auto etendue_expr = donne_étendue_source_noeud(expr);
     auto ligne = fichier->tampon()[lexeme->ligne];
     return ligne.sous_chaine(etendue_expr.colonne_début, etendue_expr.colonne_fin);
@@ -308,7 +308,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
 
         if (decl != nullptr) {
             auto const &lexeme_df = decl->lexème;
-            auto fichier_df = espace.compilatrice().fichier(lexeme_df->fichier);
+            auto fichier_df = espace.fichier(lexeme_df->fichier);
             auto pos_df = position_lexeme(*lexeme_df);
 
             e.ajoute_message(' ',
@@ -478,7 +478,7 @@ void fonction_principale_manquante(EspaceDeTravail const &espace)
 }
 
 void imprime_site(Enchaineuse &enchaineuse,
-                  const Compilatrice &compilatrice,
+                  const EspaceDeTravail &espace,
                   const NoeudExpression *site)
 {
     if (site == nullptr) {
@@ -486,7 +486,7 @@ void imprime_site(Enchaineuse &enchaineuse,
     }
 
     auto lexeme = site->lexème;
-    auto fichier = compilatrice.fichier(lexeme->fichier);
+    auto fichier = espace.fichier(lexeme->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {
         enchaineuse << fichier->chemin();
@@ -508,27 +508,15 @@ void imprime_site(Enchaineuse &enchaineuse,
     enchaineuse << '\n';
 }
 
-kuri::chaine imprime_site(const Compilatrice &compilatrice, const NoeudExpression *site)
+kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
 {
     if (site == nullptr) {
         return "aucun site";
     }
 
     Enchaineuse enchaineuse;
-    imprime_site(enchaineuse, compilatrice, site);
+    imprime_site(enchaineuse, espace, site);
     return enchaineuse.chaine();
-}
-
-void imprime_site(Enchaineuse &enchaineuse,
-                  const EspaceDeTravail &espace,
-                  const NoeudExpression *site)
-{
-    imprime_site(enchaineuse, espace.compilatrice(), site);
-}
-
-kuri::chaine imprime_site(const EspaceDeTravail &espace, const NoeudExpression *site)
-{
-    return imprime_site(espace.compilatrice(), site);
 }
 
 }  // namespace erreur

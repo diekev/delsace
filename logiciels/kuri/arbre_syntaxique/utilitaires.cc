@@ -2449,7 +2449,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 {
     auto espace = contexte->espace;
     auto assembleuse = contexte->assembleuse;
-    auto &typeuse = espace->compilatrice().typeuse;
+    auto &typeuse = espace->typeuse;
 
     if (type->est_type_énum()) {
         assigne_fonction_init_énum(typeuse, type->comme_type_énum());
@@ -2684,7 +2684,7 @@ static NoeudDéclarationEntêteFonction *crée_fonction_pour_opérateur_synthét
     NoeudExpression *site,
     AssembleuseArbre *assembleuse)
 {
-    auto &typeuse = espace->compilatrice().typeuse;
+    auto &typeuse = espace->typeuse;
 
     auto types_entrées = kuri::tablet<Type *, 6>();
     types_entrées.ajoute(destination->type1);
@@ -2798,7 +2798,7 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte 
 
     auto espace = contexte->espace;
     auto assembleuse = contexte->assembleuse;
-    auto &typeuse = espace->compilatrice().typeuse;
+    auto &typeuse = espace->typeuse;
 
     auto types_entrées = kuri::tablet<Type *, 6>();
     types_entrées.ajoute(destination->type_opérande);
@@ -2883,7 +2883,7 @@ void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
     }
 
     auto espace = contexte->espace;
-    auto &typeuse = espace->compilatrice().typeuse;
+    auto &typeuse = espace->typeuse;
     auto assembleuse = contexte->assembleuse;
     auto lexèmes_extra = contexte->lexèmes_extra;
 

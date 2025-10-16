@@ -114,6 +114,7 @@ int main(int argc, char **argv)
     ArgumentsCompilatrice arguments;
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
+    auto espace = EspaceDeTravail(compilatrice, {}, "");
 
     auto contexte_lexage = ContexteLexage{
         compilatrice.gérante_chaine, compilatrice.table_identifiants, imprime_erreur};
@@ -132,8 +133,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    SyntaxeuseRI syntaxeuse(
-        &fichier, compilatrice.typeuse, *compilatrice.registre_ri, pré_syntaxeuse);
+    SyntaxeuseRI syntaxeuse(&fichier, espace.typeuse, *espace.registre_ri, pré_syntaxeuse);
     syntaxeuse.analyse();
 
     auto contexte_analyse = ContexteAnalyseRI();

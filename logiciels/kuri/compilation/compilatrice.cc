@@ -94,22 +94,16 @@ int64_t GestionnaireChainesAjoutées::mémoire_utilisée() const
 Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatrice arguments_)
     : ordonnanceuse(this), messagère(this), gestionnaire_code(this),
       gestionnaire_bibliothèques(GestionnaireBibliothèques(*this)), arguments(arguments_),
-      racine_kuri(chemin_racine_kuri), typeuse(graphe_dépendance),
-      registre_ri(mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse))
+      racine_kuri(chemin_racine_kuri)
 {
     racine_modules_kuri = racine_kuri / "modules";
 
     initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
     initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
 
-    auto ops = opérateurs.verrou_ecriture();
-    enregistre_opérateurs_basiques(typeuse, *ops);
-
     broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
     m_date_début_compilation = hui_systeme();
-
-    m_bloc_racine = gestionnaire_code->crée_bloc_racine(typeuse);
 }
 
 Compilatrice::~Compilatrice()
@@ -131,7 +125,6 @@ Compilatrice::~Compilatrice()
     }
 
     mémoire::deloge("Broyeuse", broyeuse);
-    mémoire::deloge("RegistreSymboliqueRI", registre_ri);
 }
 
 /* ************************************************************************** */
@@ -170,7 +163,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         return;
     }
 
-    auto résultat = this->sys_module->trouve_ou_crée_fichier(module, nom, opt_chemin.value());
+    auto résultat = espace->sys_module->trouve_ou_crée_fichier(module, nom, opt_chemin.value());
 
     if (std::holds_alternative<FichierNeuf>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
@@ -194,8 +187,6 @@ int64_t Compilatrice::memoire_utilisee() const
     }
 
     résultat += messagère->mémoire_utilisée();
-
-    résultat += sys_module->mémoire_utilisée();
 
     auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
@@ -226,7 +217,6 @@ int64_t Compilatrice::memoire_utilisee() const
     }
 
     résultat += broyeuse->mémoire_utilisée();
-    résultat += constructeurs_globaux->taille_mémoire();
     résultat += registre_chaines_ri->mémoire_utilisée();
 
     résultat += m_sémanticiennes.taille_mémoire() +
@@ -250,12 +240,7 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     gestionnaire_code->rassemble_statistiques(stats);
 
-    sys_module->rassemble_stats(stats);
-
-    opérateurs->rassemble_statistiques(stats);
-    graphe_dépendance->rassemble_statistiques(stats);
     gestionnaire_bibliothèques->rassemble_statistiques(stats);
-    typeuse.rassemble_statistiques(stats);
 
     auto metaprogrammes_ = métaprogrammes.verrou_lecture();
     POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
@@ -263,7 +248,6 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
     }
 
     données_constantes_exécutions.rassemble_statistiques(stats);
-    registre_ri->rassemble_statistiques(stats);
 
     POUR (m_sémanticiennes) {
         stats.temps_typage -= it->donne_temps_chargement();
@@ -314,9 +298,28 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
                                                             kuri::chaine_statique dossier)
 {
     auto espace = mémoire::loge<EspaceDeTravail>("EspaceDeTravail", *this, options, nom);
-    espace->module = sys_module->crée_module_fichier_racine_compilation(dossier);
+    espace->module = espace->sys_module->crée_module_fichier_racine_compilation(dossier);
     espaces_de_travail->ajoute(espace);
     gestionnaire_code->espace_créé(espace);
+
+    espace->module_kuri = espace->sys_module->initialise_module_kuri(racine_modules_kuri,
+                                                                     arguments.importe_kuri);
+    if (espace->module_kuri) {
+        espace->module_kuri->importé = true;
+
+        POUR (espace->module_kuri->fichiers) {
+            if (it->fut_chargé) {
+                gestionnaire_code->requiers_lexage(espace, it);
+            }
+            else {
+                gestionnaire_code->requiers_chargement(espace, it);
+            }
+        }
+    }
+
+    /* Crée les tâches pour les données requise de la typeuse. */
+    Typeuse::crée_tâches_précompilation(*this, espace);
+
     return espace;
 }
 
@@ -375,7 +378,8 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
     auto nom_fichier = enchaine("chaine_ajoutée",
                                 chaines_ajoutées_à_la_compilation->nombre_de_chaines());
     auto chemin_fichier = enchaine(".", nom_fichier);
-    auto résultat = this->sys_module->trouve_ou_crée_fichier(module, nom_fichier, chemin_fichier);
+    auto résultat = espace->sys_module->trouve_ou_crée_fichier(
+        module, nom_fichier, chemin_fichier);
 
     assert(std::holds_alternative<FichierNeuf>(résultat));
 
@@ -430,9 +434,9 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     auto chemin_absolu = opt_chemin.value();
 
-    auto module = this->module(ID::chaine_vide);
+    auto module = espace->donne_module(ID::chaine_vide);
 
-    auto résultat = this->sys_module->trouve_ou_crée_fichier(
+    auto résultat = espace->sys_module->trouve_ou_crée_fichier(
         module, chemin_absolu.nom_fichier_sans_extension(), chemin_absolu);
 
     if (std::holds_alternative<FichierExistant>(résultat)) {
@@ -474,11 +478,6 @@ kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parse
     return m_tableaux_code_fonctions.dernier_élément();
 }
 
-Module *Compilatrice::module(const IdentifiantCode *nom_module) const
-{
-    return sys_module->module(nom_module);
-}
-
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
     NoeudDéclarationEntêteFonction const *entete)
 {
@@ -491,13 +490,14 @@ MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
     return nullptr;
 }
 
-Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme_)
+Fichier *Compilatrice::crée_fichier_pour_metaprogramme(EspaceDeTravail *espace,
+                                                       MetaProgramme *metaprogramme_)
 {
     auto const id_source_corps_texte = metaprogramme_->corps_texte->lexème->fichier;
-    auto fichier_racine = this->fichier(id_source_corps_texte);
+    auto fichier_racine = espace->fichier(id_source_corps_texte);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(metaprogramme_);
-    auto résultat_fichier = this->sys_module->trouve_ou_crée_fichier(
+    auto résultat_fichier = espace->sys_module->trouve_ou_crée_fichier(
         module, nom_fichier, nom_fichier);
     assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
     auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
@@ -508,13 +508,14 @@ Fichier *Compilatrice::crée_fichier_pour_metaprogramme(MetaProgramme *metaprogr
     return résultat;
 }
 
-Fichier *Compilatrice::crée_fichier_pour_insère(NoeudDirectiveInsère *insère)
+Fichier *Compilatrice::crée_fichier_pour_insère(EspaceDeTravail *espace,
+                                                NoeudDirectiveInsère *insère)
 {
     auto const id_source_insère = insère->lexème->fichier;
-    auto fichier_racine = this->fichier(id_source_insère);
+    auto fichier_racine = espace->fichier(id_source_insère);
     auto module = fichier_racine->module;
     auto nom_fichier = enchaine(insère);
-    auto résultat_fichier = this->sys_module->trouve_ou_crée_fichier(
+    auto résultat_fichier = espace->sys_module->trouve_ou_crée_fichier(
         module, nom_fichier, nom_fichier);
     assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
     auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
@@ -523,21 +524,6 @@ Fichier *Compilatrice::crée_fichier_pour_insère(NoeudDirectiveInsère *insère
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
     insère->fichier = résultat;
     return résultat;
-}
-
-const Fichier *Compilatrice::fichier(int64_t index) const
-{
-    return sys_module->fichier(index);
-}
-
-Fichier *Compilatrice::fichier(int64_t index)
-{
-    return sys_module->fichier(index);
-}
-
-Fichier *Compilatrice::fichier(kuri::chaine_statique chemin) const
-{
-    return sys_module->fichier(chemin);
 }
 
 MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
