@@ -2709,6 +2709,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         résultat->bloc_parent = bloc_parent;
         copie_tablet_tableau(params, résultat->types_entrée);
         copie_tablet_tableau(params_sortie, résultat->types_sortie);
+
         // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
         bloc_constantes_polymorphiques.depile();
         return résultat;
