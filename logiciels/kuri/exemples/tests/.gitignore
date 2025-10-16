@@ -25,6 +25,7 @@ test_polymorphisme
 test_pousse_contexte
 test_ppm
 test_si_statique
+test_structure_anonyme
 test_structure_poly
 test_sys_fichier
 test_tableaux
