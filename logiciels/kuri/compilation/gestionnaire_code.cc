@@ -1908,6 +1908,17 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 
     auto espace = unité->espace;
     auto noeud = unité->noeud;
+    if (noeud == espace->fonction_point_d_entree &&
+        espace->options.résultat == RésultatCompilation::EXÉCUTABLE) {
+        noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+        noeud->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
+    else if ((noeud == espace->fonction_point_d_entree_dynamique ||
+              noeud == espace->fonction_point_de_sortie_dynamique) &&
+             espace->options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
+        noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+        noeud->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
 
     if (noeud->est_si_statique()) {
         auto bloc_parent = noeud->bloc_parent;
@@ -2316,8 +2327,6 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             continue;
         }
 
-        tente_de_garantir_fonction_point_d_entrée(espace);
-
         if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_état_compilation();
 
@@ -2367,31 +2376,6 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             }
             return true;
         });
-}
-
-void GestionnaireCode::tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace)
-{
-    // Ne compile le point d'entrée que pour les exécutables
-    if (espace->options.résultat == RésultatCompilation::EXÉCUTABLE) {
-        assert(espace->fonction_point_d_entree);
-        if (!espace->fonction_point_d_entree->possède_drapeau(
-                DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            requiers_typage(espace, espace->fonction_point_d_entree);
-        }
-    }
-    else if (espace->options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
-        assert(espace->fonction_point_d_entree_dynamique);
-        if (!espace->fonction_point_d_entree_dynamique->possède_drapeau(
-                DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            requiers_typage(espace, espace->fonction_point_d_entree_dynamique);
-        }
-        assert(espace->fonction_point_de_sortie_dynamique);
-        assert(espace->fonction_point_de_sortie_dynamique);
-        if (!espace->fonction_point_de_sortie_dynamique->possède_drapeau(
-                DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
-            requiers_typage(espace, espace->fonction_point_de_sortie_dynamique);
-        }
-    }
 }
 
 void GestionnaireCode::finalise_programme_avant_génération_code_machine(EspaceDeTravail *espace,

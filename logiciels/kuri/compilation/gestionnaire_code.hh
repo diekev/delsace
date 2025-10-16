@@ -242,7 +242,7 @@ class GestionnaireCode {
 
     NoeudBloc *crée_bloc_racine(Typeuse &typeuse);
 
-private:
+  private:
     void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
                                            OpérateurBinaire *opérateur_binaire);
 
@@ -326,8 +326,6 @@ private:
     bool plus_rien_n_est_à_faire();
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
                                                       Programme *programme);
-
-    void tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace);
 
     void finalise_programme_avant_génération_code_machine(EspaceDeTravail *espace,
                                                           Programme *programme);
