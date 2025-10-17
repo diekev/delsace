@@ -7,6 +7,7 @@
 
 #include "compilation/compilatrice.hh"
 #include "compilation/contexte.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/syntaxeuse.hh"
 #include "compilation/tacheronne.hh"
 
@@ -21,9 +22,10 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     auto arguments = ArgumentsCompilatrice{};
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
+    auto espace = EspaceDeTravail(compilatrice, {}, "");
 
     /* Création du module et du fichier. */
-    auto &sys_module = compilatrice.sys_module;
+    auto &sys_module = espace.sys_module;
     auto module = sys_module->trouve_ou_crée_module(nullptr, chemin_fichier.chemin_parent());
     auto résultat_fichier = sys_module->trouve_ou_crée_fichier(
         module, chemin_fichier.nom_fichier(), chemin_fichier);
@@ -43,7 +45,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     }
 
     /* Syntaxage du fichier. */
-    auto unité = UniteCompilation(compilatrice.espace_de_travail_défaut);
+    auto unité = UniteCompilation(&espace);
     unité.fichier = fichier;
 
     auto tacheronne = Tacheronne(compilatrice);

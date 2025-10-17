@@ -6,7 +6,7 @@
 #include "parsage/identifiant.hh"
 #include "parsage/outils_lexemes.hh"
 
-#include "compilation/compilatrice.hh"
+#include "compilation/espace_de_travail.hh"
 #include "compilation/portee.hh"
 
 #include "noeud_expression.hh"
@@ -227,9 +227,9 @@ static RésultatExpression erreur_évaluation(const NoeudExpression *b, const ch
     return res;
 }
 
-RésultatExpression évalue_expression(const Compilatrice &compilatrice, const NoeudExpression *b)
+RésultatExpression évalue_expression(const EspaceDeTravail *espace, const NoeudExpression *b)
 {
-    return évalue_expression(compilatrice, b->bloc_parent, b);
+    return évalue_expression(espace, b->bloc_parent, b);
 }
 
 /**
@@ -237,7 +237,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice, const N
  * constante, c'est à dire ne contenir que des noeuds dont la valeur est connue
  * lors de la compilation.
  */
-RésultatExpression évalue_expression(const Compilatrice &compilatrice,
+RésultatExpression évalue_expression(const EspaceDeTravail *espace,
                                      NoeudBloc *bloc,
                                      const NoeudExpression *b)
 {
@@ -289,11 +289,11 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                                          "La déclaration de la variable n'a pas d'expression !");
             }
 
-            return évalue_expression(compilatrice, decl->bloc_parent, decl->expression);
+            return évalue_expression(espace, decl->bloc_parent, decl->expression);
         }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:
         {
-            auto fichier = compilatrice.fichier(b->lexème->fichier);
+            auto fichier = espace->fichier(b->lexème->fichier);
             auto référence = b->comme_référence_déclaration();
             auto decl = trouve_dans_bloc_ou_module(
                 bloc, référence->ident, fichier, bloc->appartiens_à_fonction);
@@ -315,7 +315,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                     b, "La référence n'est pas celle d'une variable constante !");
             }
 
-            return évalue_expression(compilatrice, decl->bloc_parent, decl);
+            return évalue_expression(espace, decl->bloc_parent, decl);
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
@@ -366,7 +366,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::INSTRUCTION_SI:
         {
             auto inst = static_cast<const NoeudSi *>(b);
-            auto res = évalue_expression(compilatrice, bloc, inst->condition);
+            auto res = évalue_expression(espace, bloc, inst->condition);
 
             if (res.est_erroné) {
                 return res;
@@ -377,11 +377,11 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             if (res.valeur.booléenne() == (b->genre == GenreNoeud::INSTRUCTION_SI)) {
-                res = évalue_expression(compilatrice, bloc, inst->bloc_si_vrai);
+                res = évalue_expression(espace, bloc, inst->bloc_si_vrai);
             }
             else {
                 if (inst->bloc_si_faux) {
-                    res = évalue_expression(compilatrice, bloc, inst->bloc_si_faux);
+                    res = évalue_expression(espace, bloc, inst->bloc_si_faux);
                 }
             }
 
@@ -390,7 +390,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::OPÉRATEUR_UNAIRE:
         {
             auto inst = b->comme_expression_unaire();
-            auto res = évalue_expression(compilatrice, bloc, inst->opérande);
+            auto res = évalue_expression(espace, bloc, inst->opérande);
 
             if (res.est_erroné) {
                 return res;
@@ -408,7 +408,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
             auto négation = b->comme_négation_logique();
-            auto res = évalue_expression(compilatrice, bloc, négation->opérande);
+            auto res = évalue_expression(espace, bloc, négation->opérande);
             if (res.est_erroné) {
                 return res;
             }
@@ -437,13 +437,13 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::OPÉRATEUR_BINAIRE:
         {
             auto inst = b->comme_expression_binaire();
-            auto res1 = évalue_expression(compilatrice, bloc, inst->opérande_gauche);
+            auto res1 = évalue_expression(espace, bloc, inst->opérande_gauche);
 
             if (res1.est_erroné) {
                 return res1;
             }
 
-            auto res2 = évalue_expression(compilatrice, bloc, inst->opérande_droite);
+            auto res2 = évalue_expression(espace, bloc, inst->opérande_droite);
 
             if (res2.est_erroné) {
                 return res2;
@@ -496,7 +496,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         {
             auto logique = b->comme_expression_logique();
 
-            auto res1 = évalue_expression(compilatrice, bloc, logique->opérande_gauche);
+            auto res1 = évalue_expression(espace, bloc, logique->opérande_gauche);
             if (res1.est_erroné) {
                 return res1;
             }
@@ -506,7 +506,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                     "L'expression n'est pas évaluable car elle n'est pas de type booléen.");
             }
 
-            auto res2 = évalue_expression(compilatrice, bloc, logique->opérande_droite);
+            auto res2 = évalue_expression(espace, bloc, logique->opérande_droite);
             if (res2.est_erroné) {
                 return res2;
             }
@@ -528,12 +528,12 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
         case GenreNoeud::EXPRESSION_PARENTHÈSE:
         {
             auto inst = b->comme_parenthèse();
-            return évalue_expression(compilatrice, bloc, inst->expression);
+            return évalue_expression(espace, bloc, inst->expression);
         }
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto inst = b->comme_comme();
-            auto résultat = évalue_expression(compilatrice, bloc, inst->expression);
+            auto résultat = évalue_expression(espace, bloc, inst->expression);
 
             if (!inst->type) {
                 // À FAIRE : les expressions 'comme' (et les autres) ne sont pas validées dans les
@@ -586,7 +586,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                 auto accédée = ref_rubrique->accédée->comme_référence_déclaration();
                 auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
                 auto module = déclaration_module->module;
-                auto fichier = compilatrice.fichier(ref_rubrique->lexème->fichier);
+                auto fichier = espace->fichier(ref_rubrique->lexème->fichier);
                 auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
                 trouve_déclarations_dans_module(
                     déclarations, module, ref_rubrique->ident, fichier);
@@ -599,7 +599,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
                                              "contient plusieurs symboles de ce nom.");
                 }
 
-                return évalue_expression(compilatrice, module->bloc, déclarations[0]);
+                return évalue_expression(espace, module->bloc, déclarations[0]);
             }
 
             auto type_accede = ref_rubrique->accédée->type;
@@ -686,7 +686,7 @@ RésultatExpression évalue_expression(const Compilatrice &compilatrice,
             }
 
             /* L'assignation du type opaque à la valeur se fera par quiconque nous a appelé. */
-            return évalue_expression(compilatrice, bloc, expression_appel->paramètres_résolus[0]);
+            return évalue_expression(espace, bloc, expression_appel->paramètres_résolus[0]);
         }
     }
 }

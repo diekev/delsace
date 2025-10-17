@@ -1456,7 +1456,7 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     AssembleuseArbre m_assembleuse{m_allocatrice};
     Typeuse &m_typeuse;
 
-    ConstructriceRI m_constructrice;
+    ConstructriceRI m_constructrice{};
 
     kuri::table_hachage<IdentifiantCode *, AtomeGlobale *> m_table_globales{"table_globales"};
     kuri::table_hachage<IdentifiantCode *, AtomeFonction *> m_table_fonctions{"table_fonctions"};
