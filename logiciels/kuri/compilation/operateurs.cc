@@ -523,7 +523,7 @@ void RegistreDesOpérateurs::ajoute_opérateurs_basiques_pointeur(Typeuse &typeu
     /* Pour l'arithmétique de pointeur nous n'utilisons que le type le plus
      * gros, la résolution de l'opérateur ajoutera une transformation afin
      * que le type plus petit soit transtyper à la bonne taille. */
-    auto type_entier = typeuse.type_z64;
+    auto type_entier = typeuse.type_pointeur_vers_entier;
 
     ajoute_basique(GenreLexème::PLUS, type, type_entier, type, indice)->est_arithmétique_pointeur =
         true;

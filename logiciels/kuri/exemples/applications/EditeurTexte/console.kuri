@@ -1,0 +1,511 @@
+importe Chaine
+importe Fondation
+importe GlibC
+importe Numérique
+importe POSIX
+importe Temps
+importe Terminal
+
+charge "éditeur"
+
+// -------------------------------
+
+// tiré de https://viewsourcecode.org/snaptoken/kilo/
+// continue : https://viewsourcecode.org/snaptoken/kilo/05.aTextEditor.html
+
+CléConsole :: énum {
+    Nulle
+    Retour :: 127
+    AncienRetour :: 'h' & 0x1f // CLÉ_CONTROLE('h')
+    RafraichisConsole :: 'l' & 0x1f // CLÉ_CONTROLE('l')
+    Sauvegarde :: 's' & 0x1f // CLÉ_CONTROLE('s')
+    Recherche :: 'f' & 0x1f // CLÉ_CONTROLE('f')
+    RetourChariot :: '\r'
+    NouvelleLigne :: '\n'
+    Échappement :: '\x1b'
+    FlècheHaut :: 1000
+    FlècheBas
+    FlècheGauche
+    FlècheDroite
+    PageHaut
+    PageBas
+    Début
+    Fin
+    Supprime
+}
+
+E: Éditeur
+terminal_original: termios
+
+console_affiche_prompt :: fonc (prompt: chaine, rappel: fonc (requête: chaine, clé: CléConsole)) -> chaine
+{
+    tampon: chaine
+
+    taille_écrite := 0
+
+    boucle {
+        éditeur_ajourne_message_status(*E, prompt, tampon)
+        console_rafraichis_écran()
+
+        c := console_lis_clé()
+
+        si c == CléConsole.Supprime || c == CléConsole.Retour || c == CléConsole.AncienRetour {
+            si taille_écrite != 0 {
+                taille_écrite -= 1
+                // À FAIRE : optimise ceci
+                reloge_chaine(tampon, tampon.taille - 1)
+            }
+        }
+        si c == CléConsole.Échappement {
+            éditeur_ajourne_message_status(*E, "")
+
+            si rappel != nul {
+                rappel(tampon, c)
+            }
+
+            déloge(tampon)
+            arrête
+        }
+        sinon si c == CléConsole.RetourChariot {
+            si taille_écrite != 0 {
+                éditeur_ajourne_message_status(*E, "")
+
+                si rappel != nul {
+                    rappel(tampon, c)
+                }
+
+                retourne tampon
+            }
+        }
+        sinon si !iscntrl(c comme z32 comme z8) && c <= CléConsole.Retour {
+            // À FAIRE : optimise ceci
+            reloge_chaine(tampon, tampon.taille + 1)
+            tampon[taille_écrite] = c comme z32 comme z8
+            taille_écrite += 1
+        }
+
+        si rappel != nul {
+            rappel(tampon, c)
+        }
+    }
+
+    retourne tampon
+}
+
+dernière_pos_recherche : z64 = -1
+direction_recherche : z64 = 1
+
+rappel_recherche :: fonc (requête: chaine @inutilisée, clé: CléConsole) -> rien
+{
+    si clé == CléConsole.RetourChariot || clé == CléConsole.Échappement {
+        dernière_pos_recherche = -1
+        direction_recherche = 1
+        retourne
+    }
+
+    si clé == CléConsole.FlècheDroite || clé == CléConsole.FlècheBas {
+        direction_recherche = 1
+    }
+    sinon si clé == CléConsole.FlècheGauche || clé == CléConsole.FlècheHaut {
+        direction_recherche = -1
+    }
+    sinon {
+        dernière_pos_recherche = -1
+        direction_recherche = 1
+    }
+
+    si dernière_pos_recherche == -1 {
+        direction_recherche = 1
+    }
+
+    courant := dernière_pos_recherche
+
+    pour E.lignes_rendu {
+        courant += direction_recherche
+
+        si courant == -1 {
+            courant = E.lignes_texte.taille - 1
+        }
+        sinon si courant == E.lignes_texte.taille {
+            courant = 0
+        }
+
+        // À FAIRE
+        // lgn := E.lignes_rendu[courant]
+        // pos := trouve_motif_dans_chaine(lgn, requête)
+
+        // si pos != -1 {
+        //     dernière_pos_recherche = courant
+        //     E.cy = courant comme z32
+        //     E.cx = éditeur_rx_vers_cx(E.lignes_texte[courant], pos comme z32)
+        //     E.décalage_ligne = E.lignes_rendu.taille comme z32
+        //     arrête
+        // }
+    }
+}
+
+éditeur_recherche :: fonc () -> rien
+{
+    sauvegarde_cx := E.cx
+    sauvegarde_cy := E.cy
+    sauvegarde_décalage_colonne := E.décalage_colonne
+    sauvegarde_décalage_ligne := E.décalage_ligne
+
+    requête := console_affiche_prompt("Recherche (Echap pour annuler) : ", rappel_recherche)
+
+    si requête.pointeur != nul {
+        déloge(requête)
+    }
+    sinon {
+        E.cx = sauvegarde_cx
+        E.cy = sauvegarde_cy
+        E.décalage_colonne = sauvegarde_décalage_colonne
+        E.décalage_ligne = sauvegarde_décalage_ligne
+    }
+}
+
+console_initialise_éditeur :: fonc (éditeur: *Éditeur) -> rien
+{
+    éditeur.cx = 0
+    éditeur.cy = 0
+    éditeur.décalage_ligne = 0
+    éditeur.décalage_colonne = 0
+    évalue_taille_fenêtre(*éditeur.colonnes, *éditeur.lignes)
+    // réserve de la place pour la barre de status et celle de message
+    éditeur.lignes -= 2
+}
+
+active_mode_cru :: fonc () -> rien
+{
+    tcgetattr(STDIN_FILENO, *terminal_original)
+
+    raw := terminal_original
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
+    raw.c_oflag &= ~(OPOST)
+    raw.c_cflag |= (CS8)
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN)
+    raw.c_cc[VMIN] = 0
+    raw.c_cc[VTIME] = 1
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, *raw)
+}
+
+restaure_terminal :: fonc () -> rien
+{
+    imprime("\x1b[2J\x1b[H")
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, *terminal_original)
+}
+
+évalue_taille_fenêtre :: fonc (largeur: *z32, hauteur: *z32) -> rien
+{
+    ws: winsize
+    r := ioctl(STDIN_FILENO, TIOCGWINSZ, *ws)
+
+    si r == -1 || ws.ws_col == 0 {
+        retourne
+    }
+
+    mémoire(largeur) = ws.ws_col comme z32
+    mémoire(hauteur) = ws.ws_row comme z32
+}
+
+CLÉ_CONTROLE :: fonc (c: z8) -> CléConsole
+{
+    retourne ((c & 0x1f) comme z32) comme CléConsole
+}
+
+console_lis_clé :: fonc () -> CléConsole
+{
+    c := tente entrée_standarde().lis_caractère() piège _ {
+        imprime("une erreur est survenue lors de la lecture de l'entrée !\n")
+        retourne 0 comme CléConsole
+    }
+
+    si c == '\x1b' {
+        seq: [3]z8
+
+        seq[0] = tente entrée_standarde().lis_caractère() piège nonatteignable
+        seq[1] = tente entrée_standarde().lis_caractère() piège nonatteignable
+
+        si seq[0] == '[' {
+            si '0' <= seq[1] <= '9' {
+                seq[2] = tente entrée_standarde().lis_caractère() piège nonatteignable
+
+                si seq[2] == '~' {
+                    si seq[1] == '1' { retourne CléConsole.Début }
+                    si seq[1] == '3' { retourne CléConsole.Supprime }
+                    si seq[1] == '4' { retourne CléConsole.Fin }
+                    si seq[1] == '5' { retourne CléConsole.PageHaut }
+                    si seq[1] == '6' { retourne CléConsole.PageBas }
+                    si seq[1] == '7' { retourne CléConsole.Début }
+                    si seq[1] == '8' { retourne CléConsole.Fin }
+                }
+            }
+            si seq[1] == 'A' { retourne CléConsole.FlècheHaut }
+            si seq[1] == 'B' { retourne CléConsole.FlècheBas }
+            si seq[1] == 'C' { retourne CléConsole.FlècheDroite }
+            si seq[1] == 'D' { retourne CléConsole.FlècheGauche }
+            si seq[1] == 'F' { retourne CléConsole.Fin }
+            si seq[1] == 'H' { retourne CléConsole.Début }
+        }
+        sinon si seq[0] == 'O' {
+            si seq[1] == 'F' { retourne CléConsole.Fin }
+            si seq[1] == 'H' { retourne CléConsole.Début }
+        }
+    }
+
+    retourne c comme z32 comme CléConsole
+}
+
+ActionÉditeur :: énum {
+    Rien
+    Quitte
+}
+
+ÉDITEUR_NOMBRE_QUITTE :: 3
+tentative_fermeture := ÉDITEUR_NOMBRE_QUITTE
+
+rappel_prompt_sauvegarde_fichier :: fonc () -> chaine
+{
+    retourne console_affiche_prompt("Sauve comme : ", nul)
+}
+
+console_gère_clé_pressée :: fonc () -> ActionÉditeur
+{
+    c := console_lis_clé()
+
+    si c == CLÉ_CONTROLE('q') {
+        si E.modifié != 0 && tentative_fermeture > 0 {
+            // À FAIRE : formatte le status
+            éditeur_ajourne_message_status(*E, "Attention ! Le fichier a été modifié, tenter plusieurs fois de quitter pour confirmer !")
+            tentative_fermeture -= 1
+            retourne ActionÉditeur.Rien
+        }
+
+        retourne ActionÉditeur.Quitte
+    }
+
+    discr c {
+        Nulle { retourne ActionÉditeur.Rien }
+        FlècheHaut,
+        FlècheBas,
+        FlècheDroite,
+        FlècheGauche,
+        Début,
+        Fin {
+           console_déplace_curseur(c)
+        }
+        PageHaut {
+            E.cy = E.décalage_ligne
+
+            pour E.colonnes {
+                console_déplace_curseur(CléConsole.FlècheHaut)
+            }
+        }
+        PageBas {
+            E.cy = E.décalage_ligne + E.lignes - 1
+
+            si E.cy > E.lignes_texte.taille {
+                E.cy = E.lignes_texte.taille comme z32
+            }
+
+            pour E.colonnes {
+                console_déplace_curseur(CléConsole.FlècheBas)
+            }
+        }
+        AncienRetour,
+        Retour {
+            éditeur_supprime_caractère(*E)
+        }
+        Supprime {
+            console_déplace_curseur(CléConsole.FlècheDroite)
+            éditeur_supprime_caractère(*E)
+        }
+        RetourChariot,
+        NouvelleLigne {
+            éditeur_ajoute_nouvelle_ligne(*E)
+        }
+        RafraichisConsole,
+        Échappement {
+            /* ignore */
+        }
+        Recherche {
+            éditeur_recherche()
+        }
+        Sauvegarde {
+            éditeur_sauvegarde_fichier(*E, rappel_prompt_sauvegarde_fichier)
+        }
+        sinon {
+            éditeur_insère_caractère(*E, c comme z32 comme n32)
+        }
+    }
+
+    tentative_fermeture = ÉDITEUR_NOMBRE_QUITTE
+    retourne ActionÉditeur.Rien
+}
+
+console_déplace_curseur :: fonc (c: CléConsole) -> rien
+{
+    discr c {
+        FlècheGauche {
+            éditeur_déplace_curseur(*E, Mouvement.Recule)
+        }
+        FlècheDroite {
+            éditeur_déplace_curseur(*E, Mouvement.Avance)
+        }
+        FlècheHaut {
+            éditeur_déplace_curseur(*E, Mouvement.LignePrécédente)
+        }
+        FlècheBas {
+            éditeur_déplace_curseur(*E, Mouvement.LigneSuivante)
+        }
+        Début {
+            éditeur_déplace_curseur(*E, Mouvement.DébutLigne)
+        }
+        Fin {
+            éditeur_déplace_curseur(*E, Mouvement.FinLigne)
+        }
+        sinon {}
+    }
+}
+
+console_dessine_lignes :: fonc (enchaineuse: *Enchaineuse) -> rien
+{
+    pour i dans 0 ... E.lignes - 1 {
+        idx_ligne := i + E.décalage_ligne
+
+        si idx_ligne >= E.lignes_texte.taille {
+            si E.lignes_texte.taille == 0 && i == E.lignes / 3 {
+                chn := "Bienvenue dans Éditeur 0.0.1"
+
+                rembourrage := (E.colonnes - chn.taille) / 2
+
+                si rembourrage > 0 {
+                    ajoute_au_tampon(enchaineuse, "~")
+                    rembourrage -= 1
+                }
+
+                pour rembourrage {
+                    ajoute_au_tampon(enchaineuse, " ")
+                }
+
+                ajoute_au_tampon(enchaineuse, chn)
+            }
+            sinon {
+                ajoute_au_tampon(enchaineuse, "~")
+            }
+        }
+        sinon {
+            ligne := E.lignes_rendu[idx_ligne]
+            ligne = avance(ligne, E.décalage_colonne)
+
+            si ligne.taille() > E.colonnes - 1 {
+                ligne.points_de_code.taille = E.colonnes - 1
+            }
+
+            ajoute_au_tampon(enchaineuse, ligne)
+        }
+
+        ajoute_au_tampon(enchaineuse, "\x1b[K\r\n")
+    }
+}
+
+console_dessine_barre_status :: fonc (enchaineuse: *Enchaineuse) -> rien
+{
+    ajoute_au_tampon(enchaineuse, "\x1b[7m")
+
+    taille_imprimée := 0
+
+    si E.chemin_fichier.taille != 0 {
+        ajoute_au_tampon(enchaineuse, E.chemin_fichier)
+        taille_imprimée += E.chemin_fichier.taille comme z32
+    }
+    sinon {
+        chemin_fichier := "Document sans nom"
+        ajoute_au_tampon(enchaineuse, chemin_fichier)
+        taille_imprimée += chemin_fichier.taille comme z32
+    }
+
+    si E.modifié != 0 {
+        chn_modifié := " (modifié)"
+        ajoute_au_tampon(enchaineuse, chn_modifié)
+        taille_imprimée += chn_modifié.taille comme z32
+    }
+
+    format := " - % lignes"
+    imprime_dans_enchaineuse(enchaineuse, format, E.lignes_texte.taille)
+    taille_imprimée += (format.taille + magnitude_décimale(E.lignes_texte.taille)) comme z32
+
+    pour (E.colonnes - taille_imprimée) + 1 {
+        ajoute_au_tampon(enchaineuse, ' ')
+    }
+
+    ajoute_au_tampon(enchaineuse, "\x1b[m\r\n")
+}
+
+console_dessine_barre_message :: fonc (enchaineuse: *Enchaineuse) -> rien
+{
+    ajoute_au_tampon(enchaineuse, "\x1b[K")
+
+    si temps_écoulé_secondes(E.temps_message) < 5 {
+        ajoute_au_tampon(enchaineuse, E.message)
+    }
+}
+
+console_rafraichis_écran :: fonc () -> rien
+{
+    ajourne_tampon_rendu(*E)
+    éditeur_défile(*E)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    diffère détruit_tampons(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "\x1b[?25l\x1b[H")
+
+    console_dessine_lignes(*enchaineuse)
+    console_dessine_barre_status(*enchaineuse)
+    console_dessine_barre_message(*enchaineuse)
+
+    imprime_dans_enchaineuse(*enchaineuse, "\x1b[%;%H", (E.cy - E.décalage_ligne) + 1, (E.rx - E.décalage_colonne) + 1)
+
+    ajoute_au_tampon(*enchaineuse, "\x1b[?25h")
+
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
+}
+
+principale :: fonc ()
+{
+    __contexte_fil_principal.rappel_panique = gère_panique
+
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+
+    args := arguments_ligne_commande()
+
+    active_mode_cru()
+    diffère restaure_terminal()
+
+    console_initialise_éditeur(*E)
+
+    éditeur_ajourne_message_status(*E, "AIDE : CTRL-S pour sauvegarder | CTRL-Q pour quitter | CTRL-F pour rechercher")
+
+    si args.taille == 2 {
+        éditeur_ouvre(*E, copie_chaine(args[1]))
+    }
+
+    diffère éditeur_ferme(*E)
+
+    boucle {
+        console_rafraichis_écran()
+        action := console_gère_clé_pressée()
+
+        si action == ActionÉditeur.Quitte {
+            arrête
+        }
+    }
+}
+
+gère_panique :: fonc () -> rien
+{
+    restaure_terminal()
+}

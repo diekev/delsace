@@ -3399,16 +3399,18 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             auto type = valeur->type;
             if (type->taille_octet != 8) {
                 if (type->est_type_entier_naturel()) {
-                    valeur = m_constructrice.crée_transtype(noeud,
-                                                            m_espace->typeuse.type_n64,
-                                                            valeur,
-                                                            TypeTranstypage::AUGMENTE_NATUREL);
+                    valeur = m_constructrice.crée_transtype(
+                        noeud,
+                        m_espace->typeuse.type_entier_vers_pointeur_nat,
+                        valeur,
+                        TypeTranstypage::AUGMENTE_NATUREL);
                 }
                 else {
-                    valeur = m_constructrice.crée_transtype(noeud,
-                                                            m_espace->typeuse.type_z64,
-                                                            valeur,
-                                                            TypeTranstypage::AUGMENTE_RELATIF);
+                    valeur = m_constructrice.crée_transtype(
+                        noeud,
+                        m_espace->typeuse.type_entier_vers_pointeur,
+                        valeur,
+                        TypeTranstypage::AUGMENTE_RELATIF);
                 }
             }
 
@@ -3610,10 +3612,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     valeur_taille = m_constructrice.crée_op_binaire(
                         noeud,
-                        m_espace->typeuse.type_z64,
+                        m_espace->typeuse.type_taille_tableau,
                         OpérateurBinaire::Genre::Multiplication,
                         valeur_taille,
-                        m_constructrice.crée_z64(taille_type));
+                        m_constructrice.crée_constante_nombre_entier(
+                            m_espace->typeuse.type_taille_tableau, taille_type));
 
                     break;
                 }
@@ -3632,10 +3635,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     valeur_taille = m_constructrice.crée_op_binaire(
                         noeud,
-                        m_espace->typeuse.type_z64,
+                        m_espace->typeuse.type_taille_tableau,
                         OpérateurBinaire::Genre::Multiplication,
                         valeur_taille,
-                        m_constructrice.crée_z64(taille_type));
+                        m_constructrice.crée_constante_nombre_entier(
+                            m_espace->typeuse.type_taille_tableau, taille_type));
 
                     break;
                 }
@@ -3649,7 +3653,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         noeud, valeur, m_constructrice.crée_z64(0ul));
                     valeur_pointeur = m_constructrice.crée_transtype(
                         noeud, type_cible, valeur_pointeur, TypeTranstypage::BITS);
-                    valeur_taille = m_constructrice.crée_z64(
+                    valeur_taille = m_constructrice.crée_constante_nombre_entier(
+                        m_espace->typeuse.type_taille_tableau,
                         static_cast<unsigned>(type_tabl->taille) * taille_type);
 
                     break;
@@ -3792,16 +3797,17 @@ Atome *CompilatriceRI::crée_transtype_entre_base_et_dérivé(
 
     auto const décalage_type_base = transformation.décalage_type_base;
     if (décalage_type_base != 0) {
-        auto const type_z64 = m_espace->typeuse.type_z64;
+        auto const type_entier = m_espace->typeuse.type_pointeur_vers_entier;
         auto const type_ptr_octet = m_espace->typeuse.type_ptr_octet;
 
         /* Convertis en entier. */
         valeur = m_constructrice.crée_transtype(
-            noeud, type_z64, valeur, TypeTranstypage::POINTEUR_VERS_ENTIER);
+            noeud, type_entier, valeur, TypeTranstypage::POINTEUR_VERS_ENTIER);
 
         /* Ajoute ou soustrait le décalage selon l'opération. */
-        auto valeur_décalage = m_constructrice.crée_z64(uint64_t(décalage_type_base));
-        valeur = m_constructrice.crée_op_binaire(noeud, type_z64, op, valeur, valeur_décalage);
+        auto valeur_décalage = m_constructrice.crée_constante_nombre_entier(
+            type_entier, uint64_t(décalage_type_base));
+        valeur = m_constructrice.crée_op_binaire(noeud, type_entier, op, valeur, valeur_décalage);
 
         /* Convertis vers un pointeur. */
         valeur = m_constructrice.crée_transtype(
