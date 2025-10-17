@@ -2195,6 +2195,12 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 
     POUR (unités_en_attente) {
         if (it->espace->possède_erreur) {
+            auto raison = it->donne_raison_d_être();
+            if (raison == RaisonDÊtre::PARSAGE_FICHIER ||
+                raison == RaisonDÊtre::CHARGEMENT_FICHIER ||
+                raison == RaisonDÊtre::LEXAGE_FICHIER) {
+                m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(it);
+            }
             it->définis_état(UniteCompilation::État::ANNULÉE_CAR_ESPACE_POSSÈDE_ERREUR);
             continue;
         }
