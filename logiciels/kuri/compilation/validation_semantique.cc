@@ -971,7 +971,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 }
             }
 
-            auto type_cible = m_espace->typeuse.type_z64;
+            auto type_cible = m_espace->typeuse.type_indexage;
             auto type_index = droite->type;
 
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
@@ -6156,13 +6156,13 @@ static RésultatTypeItérande détermine_typage_itérande(
         type_variable_itérée->est_type_tableau_fixe() ||
         type_variable_itérée->est_type_variadique() || type_variable_itérée->est_type_tranche()) {
         auto type_itérateur = type_déréférencé_pour(type_variable_itérée);
-        auto type_index = typeuse.type_z64;
+        auto type_index = typeuse.type_indexage;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
     if (type_variable_itérée->est_type_chaine()) {
         auto type_itérateur = typeuse.type_z8;
-        auto type_index = typeuse.type_z64;
+        auto type_index = typeuse.type_indexage;
         return TypageItérandeBouclePour{GENERE_BOUCLE_TABLEAU, type_itérateur, type_index};
     }
 
@@ -6210,7 +6210,7 @@ static RésultatTypeItérande détermine_typage_itérande(
     auto const opérateur_pour = table_opérateurs->opérateur_pour;
     auto type_itérateur = opérateur_pour->param_sortie->type;
     /* À FAIRE : typage correct de l'index. */
-    auto type_index = typeuse.type_z64;
+    auto type_index = typeuse.type_indexage;
     return TypageItérandeBouclePour{BOUCLE_POUR_OPÉRATEUR, type_itérateur, type_index};
 }
 
