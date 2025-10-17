@@ -771,7 +771,9 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
         si mémoire(courant) == ' ' || mémoire(courant) == '\n' {
             fragment := chaine(début, courant - début)
 
-            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+            si fragment.taille {
+                dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+            }
 
             fragment.pointeur = courant
             fragment.taille = 1
