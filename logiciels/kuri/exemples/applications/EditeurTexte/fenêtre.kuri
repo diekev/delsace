@@ -275,7 +275,7 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     }
 }
 
-donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
+donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
 {
     résultat: RaccourciClavier
 
