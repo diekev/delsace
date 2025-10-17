@@ -11,7 +11,7 @@
 
 #include "utilitaires/macros.hh"
 
-struct Compilatrice;
+struct EspaceDeTravail;
 
 using Type = NoeudDéclarationType;
 
@@ -182,8 +182,8 @@ struct RésultatExpression {
     COPIE_CONSTRUCT(RésultatExpression);
 };
 
-RésultatExpression évalue_expression(const Compilatrice &compilatrice, const NoeudExpression *b);
+RésultatExpression évalue_expression(const EspaceDeTravail *espace, const NoeudExpression *b);
 
-RésultatExpression évalue_expression(const Compilatrice &compilatrice,
+RésultatExpression évalue_expression(const EspaceDeTravail *espace,
                                      NoeudBloc *bloc,
                                      const NoeudExpression *b);

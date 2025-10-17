@@ -4641,7 +4641,7 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     Enchaineuse enchaineuse;
 
     auto &repr_inter_programme = *args.ri_programme;
-    auto &typeuse = args.compilatrice->typeuse;
+    auto &typeuse = args.espace->typeuse;
 
     // génère_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
 
