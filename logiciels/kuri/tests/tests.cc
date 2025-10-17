@@ -107,15 +107,15 @@ static erreur::Genre lance_test(TamponSource &tampon)
 
     auto compilatrice = Compilatrice(getenv("RACINE_KURI"), {});
 
-    auto espace = compilatrice.espace_défaut_compilation();
+    auto espace = EspaceDeTravail(compilatrice, {}, "");
 
     /* Ne nomme pas le module, car c'est le module racine. */
-    auto module = compilatrice.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
-    auto résultat = compilatrice.sys_module->trouve_ou_crée_fichier(module, "", "");
+    auto module = espace.sys_module->trouve_ou_crée_module(ID::chaine_vide, "");
+    auto résultat = espace.sys_module->trouve_ou_crée_fichier(module, "", "");
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->charge_tampon(std::move(tampon));
 
-    compilatrice.gestionnaire_code->requiers_lexage(espace, fichier);
+    compilatrice.gestionnaire_code->requiers_lexage(&espace, fichier);
 
     auto tacheronne = Tacheronne(compilatrice);
     tacheronne.gère_tâche();

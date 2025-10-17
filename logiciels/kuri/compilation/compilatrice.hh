@@ -5,20 +5,15 @@
 
 #include "parsage/gerante_chaine.hh"
 #include "parsage/identifiant.hh"
-#include "parsage/modules.hh"
 
 #include "bibliotheque.hh"
 #include "erreur.h"
 #include "gestionnaire_code.hh"
-#include "graphe_dependance.hh"
-#include "interface_module_kuri.hh"
 #include "messagere.hh"
 #include "metaprogramme.hh"
-#include "operateurs.hh"
 #include "options.hh"
 #include "structures.hh"
 #include "tacheronne.hh"
-#include "typage.hh"
 
 #include "structures/chemin_systeme.hh"
 #include "structures/date.hh"
@@ -118,42 +113,7 @@ struct Compilatrice {
     kuri::chemin_systeme racine_kuri{};
     kuri::chemin_systeme racine_modules_kuri{};
 
-    kuri::Synchrone<SystèmeModule> sys_module{};
-
     kuri::tableau_page_synchrone<MetaProgramme> métaprogrammes{};
-
-    kuri::Synchrone<GrapheDépendance> graphe_dépendance{};
-
-    kuri::Synchrone<RegistreDesOpérateurs> opérateurs{};
-
-    Typeuse typeuse;
-
-    kuri::Synchrone<InterfaceKuri> interface_kuri{};
-    NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
-    NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
-    NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
-
-    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
-    NoeudDéclarationVariable *globale_contexte_programme = nullptr;
-
-    /* Pour les executions des métaprogrammes. */
-    std::mutex mutex_données_constantes_exécutions{};
-    DonnéesConstantesExécutions données_constantes_exécutions{};
-
-    struct DonneesConstructeurGlobale {
-        AtomeGlobale *atome = nullptr;
-        NoeudExpression *expression = nullptr;
-        TransformationType transformation{};
-    };
-
-    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
-    kuri::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
-
-    kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
-
-    Module *module_kuri = nullptr;
-
-    RegistreSymboliqueRI *registre_ri = nullptr;
 
     Broyeuse *broyeuse = nullptr;
 
@@ -164,8 +124,6 @@ struct Compilatrice {
     kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexèmes{};
 
     kuri::tableau<ÉtatRésolutionAppel *> m_états_libres{};
-
-    NoeudBloc *m_bloc_racine = nullptr;
 
   private:
     /* Note la date de début de la compilation. Principalement utilisé pour générer les noms des
@@ -199,28 +157,10 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    /**
-     * Retourne un pointeur vers le module dont le nom est spécifié. Si aucun
-     * module n'a ce nom, retourne nullptr.
-     */
-    Module *module(const IdentifiantCode *nom_module) const;
+    Fichier *crée_fichier_pour_metaprogramme(EspaceDeTravail *espace,
+                                             MetaProgramme *metaprogramme);
 
-    Fichier *crée_fichier_pour_metaprogramme(MetaProgramme *metaprogramme);
-
-    Fichier *crée_fichier_pour_insère(NoeudDirectiveInsère *insère);
-
-    /**
-     * Retourne un pointeur vers le fichier à l'index indiqué. Si l'index est
-     * en dehors de portée, le programme crashera.
-     */
-    Fichier *fichier(int64_t index);
-    const Fichier *fichier(int64_t index) const;
-
-    /**
-     * Retourne un pointeur vers le module dont le chemin est spécifié. Si aucun
-     * fichier n'a ce nom, retourne nullptr.
-     */
-    Fichier *fichier(kuri::chaine_statique chemin) const;
+    Fichier *crée_fichier_pour_insère(EspaceDeTravail *espace, NoeudDirectiveInsère *insère);
 
     MetaProgramme *crée_metaprogramme(EspaceDeTravail *espace);
 
@@ -267,9 +207,11 @@ struct Compilatrice {
     OptionsDeCompilation *options_compilation();
     void ajourne_options_compilation(OptionsDeCompilation *options);
     void ajoute_chaine_compilation(EspaceDeTravail *espace,
+                                   EspaceDeTravail *espace_pour_site,
                                    NoeudExpression const *site,
                                    kuri::chaine_statique c);
     void ajoute_chaine_au_module(EspaceDeTravail *espace,
+                                 EspaceDeTravail *espace_pour_site,
                                  NoeudExpression const *site,
                                  Module *module,
                                  kuri::chaine_statique c);

@@ -23,6 +23,7 @@
 #include "tampon_source.hh"
 
 struct Enchaineuse;
+struct EspaceDeTravail;
 struct IdentifiantCode;
 struct MetaProgramme;
 struct Module;
@@ -127,6 +128,7 @@ struct Fichier {
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le site de l'expression ayant ajouté le code.
      * Ceci ne concerne pas les #corps_texte, le site étant donné via le métaprogramme. */
+    EspaceDeTravail const *espace_pour_site = nullptr;
     NoeudExpression const *site = nullptr;
 
     /* Mis en place par la Syntaxeuse, c'est la liste de toutes les déclarations dans le bloc

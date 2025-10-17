@@ -37,7 +37,7 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
         }
 
         auto type = it->est_info_type_de;
-        type->info_type = convertisseuse_noeud_code->crée_info_type_pour(compilatrice.typeuse,
+        type->info_type = convertisseuse_noeud_code->crée_info_type_pour(espace.typeuse,
                                                                          const_cast<Type *>(type));
         assert(type->info_type);
     }
@@ -62,7 +62,7 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
         métaprogramme->cibles_appels.insère(it);
     }
 
-    std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
+    std::unique_lock verrou(espace.mutex_données_constantes_exécutions);
 
     auto compilatrice_cb = CompilatriceCodeBinaire(&espace, métaprogramme);
     if (!compilatrice_cb.génère_code(repr_inter)) {
@@ -107,16 +107,16 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
-    auto &compilatrice = *args.compilatrice;
+    auto &espace = *args.espace;
     auto programme = args.programme;
 
-    std::unique_lock verrou(compilatrice.mutex_données_constantes_exécutions);
+    std::unique_lock verrou(espace.mutex_données_constantes_exécutions);
 
     auto métaprogramme = programme->pour_métaprogramme();
     assert(métaprogramme);
 
     /* Liaison du code binaire du métaprogramme (application des patchs). */
-    auto &données_constantes = compilatrice.données_constantes_exécutions;
+    auto &données_constantes = espace.données_constantes_exécutions;
 
     /* Copie les tableaux de données pour le métaprogramme, ceci est nécessaire car le code binaire
      * des fonctions n'est généré qu'une seule fois, mais l'exécution des métaprogrammes a besoin

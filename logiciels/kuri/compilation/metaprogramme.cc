@@ -130,7 +130,7 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
     if (!site) {
         site = corps_texte;
     }
-    auto const fichier_directive = espace->compilatrice().fichier(site->lexème->fichier);
+    auto const fichier_directive = espace->fichier(site->lexème->fichier);
     auto const hiérarchie = donne_les_noms_de_la_hiérarchie(site->bloc_parent);
     auto const date = espace->compilatrice().donne_date_début_compilation();
 

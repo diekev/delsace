@@ -156,7 +156,7 @@ kuri::chaine ErreurMonomorphisation::message() const
 
 Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
                              const NoeudDéclarationEntêteFonction *entete)
-    : espace(ref_espace), typeuse(espace.compilatrice().typeuse), polymorphe(entete)
+    : espace(ref_espace), typeuse(espace.typeuse), polymorphe(entete)
 {
     POUR (*entete->bloc_constantes->rubriques.verrou_lecture()) {
         ajoute_item_pour_constante(it->comme_déclaration_constante());
@@ -194,7 +194,7 @@ ItemMonomorphisation *Monomorpheuse::item_résultat_pour_ident(IdentifiantCode c
 
 ValeurExpression Monomorpheuse::évalue_valeur(const NoeudExpression *expr)
 {
-    auto résultat = évalue_expression(espace.compilatrice(), expr->bloc_parent, expr);
+    auto résultat = évalue_expression(&espace, expr->bloc_parent, expr);
 
     if (résultat.est_erroné) {
         erreur_sémantique(expr, "l'expression n'est pas constante");

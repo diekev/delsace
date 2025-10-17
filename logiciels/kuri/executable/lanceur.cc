@@ -91,8 +91,10 @@ static void imprime_fichiers_utilises(Compilatrice &compilatrice)
 
     std::ofstream fichier_sortie(chemin);
 
-    POUR_TABLEAU_PAGE (compilatrice.sys_module->fichiers) {
-        fichier_sortie << it.chemin() << "\n";
+    POUR_NOMME (espace, *compilatrice.espaces_de_travail.verrou_lecture()) {
+        POUR_TABLEAU_PAGE (espace->sys_module->fichiers) {
+            fichier_sortie << it.chemin() << "\n";
+        }
     }
 }
 
@@ -626,15 +628,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
     auto dossier = chemin.chemin_parent();
 
-    /* Charge le module Kuri. */
-    compilatrice.module_kuri = compilatrice.sys_module->initialise_module_kuri(
-        compilatrice.racine_modules_kuri, compilatrice.arguments.importe_kuri);
-    if (!compilatrice.module_kuri) {
-        exit(1);
-    }
-
-    compilatrice.module_kuri->importé = true;
-
     auto options_espace_défaut = OptionsDeCompilation{};
     options_espace_défaut.utilise_trace_appel = !compilatrice.arguments.sans_traces_d_appel;
     options_espace_défaut.coulisse = compilatrice.arguments.coulisse;
@@ -643,16 +636,8 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         options_espace_défaut, "Espace 1", dossier);
     auto espace_défaut = compilatrice.espace_de_travail_défaut;
     espace_défaut->options.nom_sortie = chemin.nom_fichier_sans_extension();
-
-    POUR (compilatrice.module_kuri->fichiers) {
-        if (it->fut_chargé) {
-            compilatrice.gestionnaire_code->requiers_lexage(compilatrice.espace_de_travail_défaut,
-                                                            it);
-        }
-        else {
-            compilatrice.gestionnaire_code->requiers_chargement(
-                compilatrice.espace_de_travail_défaut, it);
-        }
+    if (!espace_défaut->module_kuri) {
+        exit(1);
     }
 
     /* Initialise les bibliothèques après avoir généré les objets r16. */
@@ -660,16 +645,13 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         return false;
     }
 
-    /* Crée les tâches pour les données requise de la typeuse. */
-    Typeuse::crée_tâches_précompilation(compilatrice);
-
     kuri::chemin_systeme::change_chemin_courant(dossier);
 
     info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
 
     auto module = compilatrice.espace_de_travail_défaut->module;
 
-    auto fichier_racine = compilatrice.sys_module->crée_fichier(
+    auto fichier_racine = compilatrice.espace_de_travail_défaut->sys_module->crée_fichier(
         module, chemin.nom_fichier_sans_extension(), chemin);
 
     compilatrice.gestionnaire_code->requiers_chargement(espace_défaut,

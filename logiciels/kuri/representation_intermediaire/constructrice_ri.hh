@@ -89,16 +89,13 @@ struct ConstructriceRI {
     /* Utilisé pour assigner des identifiants aux labels. */
     int m_nombre_labels = 0;
 
-    Typeuse &m_typeuse;
-    RegistreSymboliqueRI &m_registre;
-
     AtomeFonction *m_fonction_courante = nullptr;
 
   public:
-    explicit ConstructriceRI(Typeuse &typeuse, RegistreSymboliqueRI &registre)
-        : m_typeuse(typeuse), m_registre(registre)
-    {
-    }
+    Typeuse *m_typeuse = nullptr;
+    RegistreSymboliqueRI *m_registre = nullptr;
+
+    ConstructriceRI() = default;
 
     EMPECHE_COPIE(ConstructriceRI);
 
@@ -233,7 +230,7 @@ struct ConstructriceRI {
 
     Typeuse &typeuse()
     {
-        return m_typeuse;
+        return *m_typeuse;
     }
 
   private:
@@ -311,7 +308,7 @@ class RegistreChainesRI {
 struct CompilatriceRI {
   private:
     Compilatrice &m_compilatrice;
-    ConstructriceRI m_constructrice;
+    ConstructriceRI m_constructrice{};
 
     bool expression_gauche = true;
 
@@ -331,13 +328,6 @@ struct CompilatriceRI {
 
     AtomeFonction *m_fonction_courante = nullptr;
 
-    /* Globale pour les annotations vides des rubriques des infos-type.
-     * Nous n'en créons qu'une seule dans ce cas afin d'économiser de la mémoire.
-     */
-    AtomeConstante *m_globale_annotations_vides = nullptr;
-
-    RegistreAnnotations m_registre_annotations{};
-
     /* Il est possible qu'une boucle retourne tout le temps ou soit infinie,
      * ou qu'un arbre de décision retourne tout le temps.
      * Dans ces cas, le label postérieur à ces controles ne sont jamais
@@ -348,20 +338,6 @@ struct CompilatriceRI {
      * les mettons en cache, et les insérons avant la génération de code
      * suivant. */
     InstructionLabel *m_label_après_controle = nullptr;
-
-    /* Un seul tableau pour toutes les structures n'ayant pas d'employées. */
-    AtomeConstante *m_tableau_structs_employées_vide = nullptr;
-    kuri::trie<AtomeConstante *, AtomeConstante *> m_trie_structs_employées{};
-
-    /* Trie pour les entrées et sorties des fonctions. Nous partageons les tableaux pour les
-     * entrées et sorties. */
-    kuri::trie<Type *, AtomeConstante *> m_trie_types_entrée_sortie{};
-
-    /* Un seul tableau pour toutes les fonctions n'ayant pas d'entrées. */
-    AtomeConstante *m_tableau_types_entrées_vide = nullptr;
-
-    /* Un seul tableau pour toutes les fonctions ne retournant « rien ». */
-    AtomeConstante *m_tableau_types_sorties_rien = nullptr;
 
   public:
     double temps_generation = 0.0;
@@ -394,6 +370,9 @@ struct CompilatriceRI {
     {
         return m_constructrice;
     }
+
+    void commence_espace(EspaceDeTravail *espace);
+    void termine_espace();
 
     void rassemble_statistiques(Statistiques &stats);
 

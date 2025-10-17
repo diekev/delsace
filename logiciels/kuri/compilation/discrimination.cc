@@ -220,7 +220,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
 
 RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *type)
 {
-    auto &typeuse = m_espace->compilatrice().typeuse;
+    auto &typeuse = m_espace->typeuse;
     auto expression = inst->expression_discriminée;
     auto type_union = type->comme_type_union();
     inst->op = typeuse.type_z32->table_opérateurs->opérateur_egt;
@@ -321,7 +321,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
 
 RésultatValidation Sémanticienne::valide_discr_union_anonyme(NoeudDiscr *inst, Type *type)
 {
-    auto &typeuse = m_espace->compilatrice().typeuse;
+    auto &typeuse = m_espace->typeuse;
     auto type_union = type->comme_type_union();
     inst->op = typeuse.type_z32->table_opérateurs->opérateur_egt;
     inst->genre = GenreNoeud::INSTRUCTION_DISCR_UNION;
@@ -435,7 +435,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
 {
     auto type_pour_la_recherche = type;
     if (type->est_type_type_de_données()) {
-        type_pour_la_recherche = m_compilatrice.typeuse.type_type_de_donnees_;
+        type_pour_la_recherche = m_espace->typeuse.type_type_de_donnees_;
     }
 
     auto résultat = trouve_opérateur_pour_expression(

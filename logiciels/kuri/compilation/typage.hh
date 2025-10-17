@@ -246,7 +246,7 @@ struct Typeuse {
 
     /* Ajoute des tâches avant le début de la compilation afin de préparer des données pour
      * celle-ci. */
-    static void crée_tâches_précompilation(Compilatrice &compilatrice);
+    static void crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace);
 
     Type *type_pour_lexeme(GenreLexème lexeme);
 
