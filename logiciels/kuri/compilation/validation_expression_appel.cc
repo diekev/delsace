@@ -750,15 +750,18 @@ static RésultatAppariement apparie_construction_chaine(
             args[0].expr, typeuse.type_ptr_z8, args[0].expr->type);
     }
 
-    auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, typeuse.type_z64);
+    auto type_chaine = typeuse.type_chaine;
+    auto rubrique_taille = type_chaine->rubriques[1];
+    auto type_taille = rubrique_taille.type;
+
+    auto résultat = cherche_transformation_pour_transtypage(args[1].expr->type, type_taille);
     if (std::holds_alternative<Attente>(résultat)) {
         return std::get<Attente>(résultat);
     }
 
     auto transformation = std::get<TransformationType>(résultat);
     if (transformation.type == TypeTransformation::IMPOSSIBLE) {
-        return ErreurAppariement::métypage_argument(
-            args[1].expr, typeuse.type_z64, args[1].expr->type);
+        return ErreurAppariement::métypage_argument(args[1].expr, type_taille, args[1].expr->type);
     }
 
     auto transformations = kuri::tableau<TransformationType, int>(2);
@@ -770,7 +773,7 @@ static RésultatAppariement apparie_construction_chaine(
     exprs.ajoute(args[1].expr);
 
     return CandidateAppariement::construction_chaine(
-        1.0, typeuse.type_chaine, std::move(exprs), std::move(transformations));
+        1.0, type_chaine, std::move(exprs), std::move(transformations));
 }
 
 static RésultatAppariement apparie_appel_pointeur(
