@@ -282,6 +282,7 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
 struct RassembleuseDependances {
     DonnéesDépendance &dépendances;
     Compilatrice *compilatrice;
+    EspaceDeTravail *espace;
     NoeudExpression *racine_;
 
     void ajoute_type(Type *type)
@@ -334,7 +335,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
     auto rassemble_dépendances_transformation = [&](TransformationType transformation,
                                                     Type *type) {
         /* Marque les dépendances sur les fonctions d'interface de kuri. */
-        auto interface = compilatrice->interface_kuri;
+        auto interface = espace->interface_kuri;
 
         if (transformation.type == TypeTransformation::EXTRAIT_UNION) {
             assert(interface->decl_panique_rubrique_union);
@@ -371,7 +372,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
          * RI. À FAIRE: généralise pour toutes les variables. */
         if (transformation.type_cible) {
-            auto type_pointeur = compilatrice->typeuse.type_pointeur_pour(
+            auto type_pointeur = espace->typeuse.type_pointeur_pour(
                 const_cast<Type *>(transformation.type_cible), false);
             ajoute_type(type_pointeur);
             ajoute_type(const_cast<Type *>(transformation.type_cible));
@@ -449,7 +450,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 }
 
                 /* Marque les dépendances sur les fonctions d'interface de kuri. */
-                auto interface = compilatrice->interface_kuri;
+                auto interface = espace->interface_kuri;
 
                 /* Nous ne devrions pas avoir de référence ici, la validation sémantique s'est
                  * chargée de transtyper automatiquement. */
@@ -510,20 +511,20 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 /* Ajout également du type de pointeur pour la génération de code C. */
                 auto type_feuille =
                     construction_tableau->type->comme_type_tableau_fixe()->type_pointé;
-                auto type_ptr = compilatrice->typeuse.type_pointeur_pour(type_feuille);
+                auto type_ptr = espace->typeuse.type_pointeur_pour(type_feuille);
                 ajoute_type(type_ptr);
             }
             else if (noeud->est_tente()) {
                 auto tente = noeud->comme_tente();
 
                 if (!tente->expression_piégée) {
-                    auto interface = compilatrice->interface_kuri;
+                    auto interface = espace->interface_kuri;
                     assert(interface->decl_panique_erreur);
                     ajoute_fonction(interface->decl_panique_erreur);
                 }
             }
             else if (noeud->est_référence_rubrique_union()) {
-                auto interface = compilatrice->interface_kuri;
+                auto interface = espace->interface_kuri;
                 assert(interface->decl_panique_rubrique_union);
                 ajoute_fonction(interface->decl_panique_rubrique_union);
             }
@@ -551,7 +552,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 /* Création d'un type tableau fixe, pour la génération de code. */
                 auto taille_tableau = args->expressions.taille();
                 if (taille_tableau != 0) {
-                    auto type_tfixe = compilatrice->typeuse.type_tableau_fixe(
+                    auto type_tfixe = espace->typeuse.type_tableau_fixe(
                         args->type, taille_tableau, false);
                     ajoute_type(type_tfixe);
                 }
@@ -610,9 +611,10 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
 
 static void rassemble_dépendances(NoeudExpression *racine,
                                   Compilatrice *compilatrice,
+                                  EspaceDeTravail *espace,
                                   DonnéesDépendance &dépendances)
 {
-    RassembleuseDependances rassembleuse{dépendances, compilatrice, racine};
+    RassembleuseDependances rassembleuse{dépendances, compilatrice, espace, racine};
     rassembleuse.rassemble_dépendances();
 }
 
@@ -751,7 +753,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     dépendances.reinitialise();
 
     DÉBUTE_STAT(RASSEMBLE_DÉPENDANCES);
-    rassemble_dépendances(noeud, m_compilatrice, dépendances.dépendances);
+    rassemble_dépendances(noeud, m_compilatrice, espace, dépendances.dépendances);
     TERMINE_STAT(RASSEMBLE_DÉPENDANCES);
 
     /* Ajourne le graphe de dépendances avant de les épendres, afin de ne pas ajouter trop de
@@ -776,7 +778,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         }
 
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_ecriture();
         NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
         graphe->ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
@@ -819,10 +821,13 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     /* Ajoute les dépendances au programme si nécessaire. */
     auto dépendances_ajoutees = false;
     POUR (programmes_en_cours) {
+        if (it->espace() != espace) {
+            continue;
+        }
         if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
-        auto graphe = m_compilatrice->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_ecriture();
         if (!ajoute_dépendances_au_programme(*graphe, dépendances, espace, *it, noeud)) {
             break;
         }
@@ -988,7 +993,7 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto decl_sortie = m_assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
     decl_sortie->ident = m_compilatrice->table_identifiants->identifiant_pour_chaine("__ret0");
-    decl_sortie->type = m_compilatrice->typeuse.type_chaine;
+    decl_sortie->type = espace->typeuse.type_chaine;
     decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     fonction->params_sorties.ajoute(decl_sortie);
@@ -996,9 +1001,9 @@ MetaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTravai
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
 
-    auto type_sortie = m_compilatrice->typeuse.type_chaine;
+    auto type_sortie = espace->typeuse.type_chaine;
 
-    fonction->type = m_compilatrice->typeuse.type_fonction(types_entrees, type_sortie);
+    fonction->type = espace->typeuse.type_fonction(types_entrees, type_sortie);
     fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     auto metaprogramme = m_compilatrice->crée_metaprogramme(espace);
@@ -1055,7 +1060,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             TACHE_AJOUTEE(TYPAGE);
             crée_unité_pour_noeud(espace, ancien_corps, RaisonDÊtre::TYPAGE, true);
 
-            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(métaprogramme);
+            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(espace, métaprogramme);
             ancien_corps->unité->ajoute_attente(Attente::sur_parsage(fichier));
         }
         else if (noeud->est_déclaration_classe()) {
@@ -1087,7 +1092,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             TACHE_AJOUTEE(TYPAGE);
             crée_unité_pour_noeud(espace, decl, RaisonDÊtre::TYPAGE, true);
 
-            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(métaprogramme);
+            auto fichier = m_compilatrice->crée_fichier_pour_metaprogramme(espace, métaprogramme);
             decl->unité->ajoute_attente(Attente::sur_parsage(fichier));
 
             /* Pour requérir le typage du corps de métaprogramme plus bas. */
@@ -1194,8 +1199,8 @@ void GestionnaireCode::requiers_génération_ri_principale_métaprogramme(
     ajoute_attentes_sur_initialisations_types(metaprogramme->fonction, unité);
 
     if (!peut_planifier_compilation) {
-        assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
-        métaprogrammes_en_attente_de_crée_contexte.ajoute(unité);
+        assert(espace->métaprogrammes_en_attente_de_crée_contexte_est_ouvert);
+        espace->métaprogrammes_en_attente_de_crée_contexte.ajoute(unité);
     }
 }
 
@@ -1262,10 +1267,11 @@ bool GestionnaireCode::tente_de_garantir_présence_création_contexte(EspaceDeTr
     /* NOTE : la déclaration sera automatiquement ajoutée au programme si elle n'existe pas déjà
      * lors de la complétion de son typage. Si elle existe déjà, il faut l'ajouter manuellement.
      */
-    auto decl_creation_contexte = m_compilatrice->interface_kuri->decl_creation_contexte;
+    auto decl_creation_contexte = espace->interface_kuri->decl_creation_contexte;
     assert(decl_creation_contexte);
 
     // À FAIRE : déplace ceci quand toutes les entêtes seront validées avant le reste.
+    assert(programme->espace() == espace);
     programme->ajoute_fonction(decl_creation_contexte);
 
     if (!decl_creation_contexte->unité) {
@@ -1311,6 +1317,7 @@ void GestionnaireCode::requiers_compilation_métaprogramme(EspaceDeTravail *espa
     métaprogramme_créé(metaprogramme);
 
     auto programme = metaprogramme->programme;
+    assert(programme->espace() == espace);
     programme->ajoute_fonction(metaprogramme->fonction);
 
     détermine_dépendances(metaprogramme->fonction, espace, nullptr, nullptr);
@@ -1427,9 +1434,7 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     auto mémoire = int64_t(0);
     mémoire += unités.mémoire_utilisée();
     mémoire += unités_en_attente.taille_mémoire();
-    mémoire += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
     mémoire += programmes_en_cours.taille_mémoire();
-    mémoire += m_fonctions_parsées.taille_mémoire();
     mémoire += m_noeuds_à_valider.taille_mémoire();
     mémoire += m_fonctions_init_type_requises.taille_mémoire();
     mémoire += m_nouvelles_unités.taille_mémoire();
@@ -1673,7 +1678,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         if (!opt_chemin.has_value()) {
             return;
         }
-        auto résultat = m_compilatrice->sys_module->trouve_ou_crée_fichier(
+        auto résultat = espace->sys_module->trouve_ou_crée_fichier(
             module, nom, opt_chemin.value());
 
         if (std::holds_alternative<FichierNeuf>(résultat)) {
@@ -1696,7 +1701,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         if (!module) {
             const auto lexème = inst->expression->lexème;
 
-            auto info_module = m_compilatrice->sys_module->trouve_ou_crée_module(
+            auto info_module = espace->sys_module->trouve_ou_crée_module(
                 m_compilatrice->table_identifiants, fichier, lexème->chaine);
 
             switch (info_module.état) {
@@ -1906,6 +1911,17 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
 
     auto espace = unité->espace;
     auto noeud = unité->noeud;
+    if (noeud == espace->fonction_point_d_entree &&
+        espace->options.résultat == RésultatCompilation::EXÉCUTABLE) {
+        noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+        noeud->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
+    else if ((noeud == espace->fonction_point_d_entree_dynamique ||
+              noeud == espace->fonction_point_de_sortie_dynamique) &&
+             espace->options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
+        noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
+        noeud->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    }
 
     if (noeud->est_si_statique()) {
         auto bloc_parent = noeud->bloc_parent;
@@ -1914,7 +1930,7 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
         auto si_statique = noeud->comme_si_statique();
         auto bloc = donne_bloc_à_fusionner(si_statique);
 
-        auto fichier = m_compilatrice->fichier(si_statique->lexème->fichier);
+        auto fichier = espace->fichier(si_statique->lexème->fichier);
 
         if (bloc) {
             POUR (*bloc->rubriques.verrou_ecriture()) {
@@ -1967,7 +1983,7 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     TACHE_TERMINEE(TYPAGE);
 
     if (noeud->est_entête_fonction()) {
-        m_fonctions_parsées.ajoute(noeud->comme_entête_fonction());
+        espace->fonctions_parsées.ajoute(noeud->comme_entête_fonction());
     }
     TERMINE_STAT(TYPAGE_TERMINÉ);
 }
@@ -1997,9 +2013,8 @@ void GestionnaireCode::generation_ri_terminée(UniteCompilation *unité)
 
     /* Si nous avons la RI pour #crée_contexte, il nout faut ajouter toutes les unités l'attendant.
      */
-    if (est_corps_de(unité->noeud,
-                     espace->compilatrice().interface_kuri->decl_creation_contexte)) {
-        flush_métaprogrammes_en_attente_de_crée_contexte();
+    if (est_corps_de(unité->noeud, espace->interface_kuri->decl_creation_contexte)) {
+        flush_métaprogrammes_en_attente_de_crée_contexte(espace);
     }
 
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
@@ -2067,13 +2082,13 @@ void GestionnaireCode::generation_code_machine_terminée(UniteCompilation *unit�
         TACHE_TERMINEE(GENERATION_CODE_MACHINE);
 
         if (programme_requiers_liaison_exécutable(espace->options)) {
-            espace->change_de_phase(m_compilatrice->messagère,
-                                    PhaseCompilation::AVANT_LIAISON_EXÉCUTABLE);
+            espace->change_de_phase(
+                m_compilatrice->messagère, PhaseCompilation::AVANT_LIAISON_EXÉCUTABLE, __func__);
             requiers_liaison_executable(espace, unité->programme);
         }
         else {
-            espace->change_de_phase(m_compilatrice->messagère,
-                                    PhaseCompilation::COMPILATION_TERMINÉE);
+            espace->change_de_phase(
+                m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE, __func__);
         }
     }
 
@@ -2095,7 +2110,8 @@ void GestionnaireCode::liaison_programme_terminée(UniteCompilation *unité)
     }
     else {
         TACHE_TERMINEE(LIAISON_PROGRAMME);
-        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE);
+        espace->change_de_phase(
+            m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE, __func__);
     }
 
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
@@ -2119,8 +2135,10 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
     }
 
     POUR (programmes_en_cours) {
-        if (it->possède(unité->type)) {
-            it->ajoute_fonction(fonction);
+        if (it->espace() == unité->espace) {
+            if (it->possède(unité->type)) {
+                it->ajoute_fonction(fonction);
+            }
         }
     }
 
@@ -2310,8 +2328,8 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
                 m_compilatrice->messagère->purge_messages();
             }
 
-            espace->change_de_phase(m_compilatrice->messagère,
-                                    PhaseCompilation::COMPILATION_TERMINÉE);
+            espace->change_de_phase(
+                m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE, __func__);
 
             if (!espace->options.continue_si_erreur) {
                 return true;
@@ -2320,8 +2338,6 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
             espace_errone_existe = true;
             continue;
         }
-
-        tente_de_garantir_fonction_point_d_entrée(espace);
 
         if (it->pour_métaprogramme()) {
             auto etat = it->ajourne_état_compilation();
@@ -2353,8 +2369,14 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
         }
     }
 
-    if (!unités_en_attente.est_vide() || !métaprogrammes_en_attente_de_crée_contexte.est_vide()) {
+    if (!unités_en_attente.est_vide()) {
         return false;
+    }
+
+    POUR (programmes_en_cours) {
+        if (!it->espace()->métaprogrammes_en_attente_de_crée_contexte.est_vide()) {
+            return false;
+        }
     }
 
     return std::all_of(
@@ -2374,51 +2396,12 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
         });
 }
 
-void GestionnaireCode::tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace)
-{
-    auto copie_et_valide_point_d_entree = [&](NoeudDéclarationEntêteFonction *point_d_entree) {
-        auto copie = copie_noeud(m_assembleuse,
-                                 point_d_entree,
-                                 point_d_entree->bloc_parent,
-                                 OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
-        copie->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-        copie->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-        copie->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-        requiers_typage(espace, copie);
-        return copie->comme_entête_fonction();
-    };
-
-    // Ne compile le point d'entrée que pour les exécutables
-    if (espace->options.résultat == RésultatCompilation::EXÉCUTABLE) {
-        if (espace->fonction_point_d_entree != nullptr) {
-            return;
-        }
-
-        auto point_d_entree = m_compilatrice->fonction_point_d_entree;
-        assert(point_d_entree);
-        espace->fonction_point_d_entree = copie_et_valide_point_d_entree(point_d_entree);
-    }
-    else if (espace->options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
-        if (espace->fonction_point_d_entree_dynamique == nullptr) {
-            auto point_d_entree = m_compilatrice->fonction_point_d_entree_dynamique;
-            assert(point_d_entree);
-            espace->fonction_point_d_entree_dynamique = copie_et_valide_point_d_entree(
-                point_d_entree);
-        }
-        if (espace->fonction_point_de_sortie_dynamique == nullptr) {
-            auto point_d_entree = m_compilatrice->fonction_point_de_sortie_dynamique;
-            assert(point_d_entree);
-            espace->fonction_point_de_sortie_dynamique = copie_et_valide_point_d_entree(
-                point_d_entree);
-        }
-    }
-}
-
 void GestionnaireCode::finalise_programme_avant_génération_code_machine(EspaceDeTravail *espace,
                                                                         Programme *programme)
 {
     if (espace->options.résultat == RésultatCompilation::RIEN) {
-        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE);
+        espace->change_de_phase(
+            m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE, __func__);
         return;
     }
 
@@ -2456,9 +2439,9 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     }
 
     /* Requiers la génération de RI pour les fonctions ajoute_fini et ajoute_init. */
-    auto decl_ajoute_fini = m_compilatrice->interface_kuri->decl_fini_execution_kuri;
-    auto decl_ajoute_init = m_compilatrice->interface_kuri->decl_init_execution_kuri;
-    auto decl_init_globales = m_compilatrice->interface_kuri->decl_init_globales_kuri;
+    auto decl_ajoute_fini = espace->interface_kuri->decl_fini_execution_kuri;
+    auto decl_ajoute_init = espace->interface_kuri->decl_init_execution_kuri;
+    auto decl_init_globales = espace->interface_kuri->decl_init_globales_kuri;
 
     auto ri_requise = false;
     if (!decl_ajoute_fini->corps->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE)) {
@@ -2480,8 +2463,8 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
 
     /* Tous les métaprogrammes furent exécutés, et la RI pour les fonctions
      * d'initialisation/finition sont générées : nous pouvons générer le code machine. */
-    auto message = espace->change_de_phase(m_compilatrice->messagère,
-                                           PhaseCompilation::AVANT_GÉNÉRATION_OBJET);
+    auto message = espace->change_de_phase(
+        m_compilatrice->messagère, PhaseCompilation::AVANT_GÉNÉRATION_OBJET, __func__);
 
     /* Nous avions déjà créé une unité pour générer le code machine, mais un métaprogramme a sans
      * doute ajouté du code. Il faut annuler l'unité précédente qui peut toujours être dans la file
@@ -2501,14 +2484,14 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     }
 }
 
-void GestionnaireCode::flush_métaprogrammes_en_attente_de_crée_contexte()
+void GestionnaireCode::flush_métaprogrammes_en_attente_de_crée_contexte(EspaceDeTravail *espace)
 {
-    assert(metaprogrammes_en_attente_de_crée_contexte_est_ouvert);
-    POUR (métaprogrammes_en_attente_de_crée_contexte) {
+    assert(espace->métaprogrammes_en_attente_de_crée_contexte_est_ouvert);
+    POUR (espace->métaprogrammes_en_attente_de_crée_contexte) {
         ajoute_unité_à_liste_attente(it);
     }
-    métaprogrammes_en_attente_de_crée_contexte.efface();
-    metaprogrammes_en_attente_de_crée_contexte_est_ouvert = false;
+    espace->métaprogrammes_en_attente_de_crée_contexte.efface();
+    espace->métaprogrammes_en_attente_de_crée_contexte_est_ouvert = false;
 }
 
 void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
@@ -2536,7 +2519,8 @@ void GestionnaireCode::ajourne_espace_pour_nouvelles_options(EspaceDeTravail *es
     programme->ajourne_pour_nouvelles_options_espace();
     /* À FAIRE : gère proprement tous les cas. */
     if (espace->options.résultat == RésultatCompilation::RIEN) {
-        espace->change_de_phase(m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE);
+        espace->change_de_phase(
+            m_compilatrice->messagère, PhaseCompilation::COMPILATION_TERMINÉE, __func__);
     }
 }
 
