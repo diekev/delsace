@@ -936,8 +936,8 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(
     Contexte *contexte, NoeudExpression *site, Type *type1, Type *type2, GenreLexème type_op)
 {
     auto &espace = *contexte->espace;
-    auto &typeuse = espace.compilatrice().typeuse;
-    auto &registre = espace.compilatrice().opérateurs;
+    auto &typeuse = espace.typeuse;
+    auto &registre = espace.opérateurs;
     registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type1);
     registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type2);
 
