@@ -735,6 +735,8 @@ void Chunk::émets_inatteignable(const NoeudExpression *site)
 
 void Chunk::émets_sélection(const NoeudExpression *site, const Type *type)
 {
+    émets_notifie_dépilage(site, 1);
+    émets_notifie_dépilage(site, type->taille_octet);
     émets_entête_op(OP_SÉLECTION, site);
     émets(type->taille_octet);
 }
