@@ -47,15 +47,29 @@ RaccourciCommande :: struct {
     contexte: chaine
 }
 
-donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
 {
-    pour * projet.raccourcis {
-        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.touche == évènement.touche && it.contexte == contexte {
-            retourne it
+    liste := *anonyme.raccourcis
+    si anonyme.projet_ouvert {
+        liste = *anonyme.projet_ouvert.raccourcis
+    }
+
+    tantque liste {
+        pour * liste.raccourcis {
+            si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.touche == évènement.touche && it.contexte == contexte {
+                retourne it
+            }
         }
+
+        liste = liste.parent
     }
 
     retourne nul
+}
+
+ListeRaccourcis :: struct {
+    parent: *ListeRaccourcis
+    raccourcis: [..]RaccourciCommande
 }
 
 Projet :: struct {
@@ -65,7 +79,7 @@ Projet :: struct {
     /* Commandes de compilation. */
     commandes_de_compilation: [..]InfoCompilation
 
-    raccourcis: [..]RaccourciCommande
+    raccourcis: ListeRaccourcis
 
     /* Mémoire vive. */
     info_projet: InfoProjet
@@ -80,8 +94,10 @@ InfoCompilation :: struct {
 info_fichier_config: InfoFichier
 info_config_projet: InfoFichier
 
-parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, projet: *Projet)
+parse_config_depuis_fichier :: fonc (anonyme: *Anonyme, chemin: chaine, projet: *Projet, raccourcis: *ListeRaccourcis)
 {
+    lexeuse := *anonyme.lexeuse
+
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
     lexeuse.ponctuations = __ponctuation_config
     lexeuse.mots_clés = __mots_clés_config
@@ -93,26 +109,26 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     }
     diffère déloge(contenu)
 
-    initialise_lexeuse_pour_texte(*lexeuse, contenu)
+    initialise_lexeuse_pour_texte(lexeuse, contenu)
 
-    tantque !fini(*lexeuse) {
-        consomme_ponctuation(*lexeuse, "[[")
+    tantque !fini(lexeuse) {
+        consomme_ponctuation(lexeuse, "[[")
 
-        lexème := donne_lexème_suivant(*lexeuse)
+        lexème := donne_lexème_suivant(lexeuse)
 
-        consomme_ponctuation(*lexeuse, "]]")
+        consomme_ponctuation(lexeuse, "]]")
 
         si lexème.est_mot_clé("paramètres") {
-            parse_paramètres(*lexeuse)
+            parse_paramètres(lexeuse)
         }
         sinon si lexème.est_mot_clé("espace") {
-            parse_espace_de_travail(*lexeuse, projet)
+            parse_espace_de_travail(lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("compilation") {
-            parse_commandes_compilation(*lexeuse, projet)
+            parse_commandes_compilation(lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("raccourcis") {
-            parse_raccourcis(*lexeuse, projet)
+            parse_raccourcis(lexeuse, raccourcis)
         }
         sinon {
             imprimeln("catégorie inconnue : %", lexème.donne_texte())
@@ -234,7 +250,7 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     }
 }
 
-parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
+parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, raccourcis: *ListeRaccourcis)
 {
     contexte_courant := ""
 
@@ -268,7 +284,7 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
             imprimeln("Commande inconnue '%'", lexème.donne_texte())
         }
 
-        raccourci_commande := tableau_ajoute_élément(*projet.raccourcis)
+        raccourci_commande := tableau_ajoute_élément(*raccourcis.raccourcis)
         raccourci_commande.raccourci = raccourci
         raccourci_commande.commande = commande
         raccourci_commande.contexte = copie_chaine(contexte_courant)
@@ -361,20 +377,23 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
     retourne résultat, vrai
 }
 
-ajourne_configuration :: fonc (anonyme: *Anonyme, chemin_config_projet: chaine, projet: *Projet)
+ajourne_configuration :: fonc (anonyme: *Anonyme)
 {
     chemin_config_globale := "globale.config-éditeur"
 
     info := donne_info_fichier(chemin_config_globale)
     si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
-        parse_config_depuis_fichier(anonyme, chemin_config_globale, projet)
+        parse_config_depuis_fichier(anonyme, chemin_config_globale, nul, *anonyme.raccourcis)
         info_fichier_config = info
     }
 
-    si chemin_config_projet {
+    si anonyme.projet_ouvert {
+        projet := anonyme.projet_ouvert
+        chemin_config_projet := projet.info_projet.chemin_config
+        projet.raccourcis.parent = *anonyme.raccourcis
         info = donne_info_fichier(chemin_config_projet)
         si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
-            parse_config_depuis_fichier(anonyme, chemin_config_projet, projet)
+            parse_config_depuis_fichier(anonyme, chemin_config_projet, projet, *projet.raccourcis)
             info_config_projet = info
         }
     }
@@ -393,6 +412,7 @@ Anonyme :: struct {
     chemins: CheminsAnonyme
     infos_projets: [..]InfoProjet
 
+    raccourcis: ListeRaccourcis
     projet_ouvert: *Projet
 
     État :: énum {
@@ -522,11 +542,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    _ := ouvre_projet(*anonyme, "kuri")
-
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
-
-    éditeur_ouvre(*anonyme.éditeur, copie_chaine("éditeur.kuri"))
 
     doit_fermer := faux
 
@@ -534,7 +550,7 @@ principale :: fonc ()
 
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
-            ajourne_configuration(*anonyme, anonyme.projet_ouvert.info_projet.chemin_config, anonyme.projet_ouvert)
+            ajourne_configuration(*anonyme)
         }
         tics_fichier += 1
 
@@ -550,7 +566,7 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it, donne_contexte_pour_raccourci(*anonyme))
+                    raccourci_commande := donne_raccourci_pour_évènement(*anonyme, it, donne_contexte_pour_raccourci(*anonyme))
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme)
                     }
