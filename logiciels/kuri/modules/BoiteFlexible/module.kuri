@@ -718,7 +718,7 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
                 }
 
                 position_curseur := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
-                décalage_flottance_x := rembourrage_x + position_curseur comme r32
+                décalage_flottance_x := rembourrage_x + position_curseur
                 décalage_flottance_y := rembourrage_y + (éditrice.curseur.ligne * hauteur_ligne) comme r32
 
                 définis_flottance(décalage_flottance_x, décalage_flottance_y)
