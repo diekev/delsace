@@ -1,5 +1,6 @@
 importe Chaine
 importe Fondation
+importe Math
 importe Périphériques
 importe Typographie
 importe Unicode
@@ -31,8 +32,16 @@ RappelsÉditionTexte :: struct {
 /** \nom ÉditriceTexte
  * \{ */
 
+ModeÉditionTexte :: énum {
+    UNE_SEULE_LIGNE
+    PLUSIEURS_LIGNES
+}
+
 ÉditriceTexte :: struct {
     texte_à_éditer: ChaineUTF32
+    lignes: [..]ChaineUTF32
+    mode: ModeÉditionTexte
+
     fonte: *Fonte
     rappels: *RappelsÉditionTexte
     curseur: CurseurTexte
@@ -40,18 +49,30 @@ RappelsÉditionTexte :: struct {
     curseur_est_affiché: bool
 }
 
-initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: chaine, rappels: *RappelsÉditionTexte)
+initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: chaine, rappels: *RappelsÉditionTexte, mode := ModeÉditionTexte.UNE_SEULE_LIGNE)
 {
     éditrice.texte_à_éditer = crée_chaine_utf32(texte)
-    éditrice.curseur.texte = *éditrice.texte_à_éditer
     éditrice.curseur.éditrice = éditrice
     éditrice.rappels = rappels
     éditrice.fonte = fonte
+    éditrice.mode = mode
+
+    si éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+        lignes := divise(texte, '\n')
+        pour lignes {
+            tableau_ajoute(*éditrice.lignes, crée_chaine_utf32(it))
+        }
+    }
 }
 
 détruit_données :: fonc (éditrice: *ÉditriceTexte)
 {
     détruit_chaine(éditrice.texte_à_éditer)
+
+    pour éditrice.lignes {
+        détruit_chaine(it)
+    }
+    déloge(éditrice.lignes)
 }
 
 démarre_édition :: fonc (éditrice: *ÉditriceTexte)
@@ -84,6 +105,28 @@ termine_édition :: fonc (empl éditrice: *ÉditriceTexte)
     rappels.sur_termine_clignotage_curseur(rappels, éditrice)
 }
 
+donne_lignes_pour_rendu :: fonc (éditrice: *ÉditriceTexte) -> []ChaineUTF32
+{
+    retourne éditrice.lignes
+}
+
+donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
+{
+    si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+        retourne converti_vers_chaine(éditrice.texte_à_éditer)
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour éditrice.lignes {
+        ajoute_au_tampon(*enchaineuse, it)
+        ajoute_au_tampon(*enchaineuse, "\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavier)
 {
     si touche.type == ToucheClavier.DÉBUT {
@@ -103,6 +146,22 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
 
     si touche.type == ToucheClavier.FLÈCHE_DROITE {
         définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
+        retourne
+    }
+
+    si touche.type == ToucheClavier.FLÈCHE_HAUT && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+        éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne - 1, éditrice.lignes.taille - 1)
+        ligne := donne_ligne_courante(*éditrice.curseur)
+        éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille)
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début)
+        retourne
+    }
+
+    si touche.type == ToucheClavier.FLÈCHE_BAS && éditrice.mode == ModeÉditionTexte.PLUSIEURS_LIGNES {
+        éditrice.curseur.ligne = restreint(0 comme z64, éditrice.curseur.ligne + 1, éditrice.lignes.taille - 1)
+        ligne := donne_ligne_courante(*éditrice.curseur)
+        éditrice.curseur.début = restreint(0 comme z64, éditrice.curseur.début, ligne.points_de_code.taille)
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début)
         retourne
     }
 
@@ -127,6 +186,28 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
     }
 }
 
+ajoute_ligne :: fonc (éditrice: *ÉditriceTexte)
+{
+    si éditrice.lignes {
+        ligne := éditrice.lignes[éditrice.curseur.ligne]
+        ligne = avance(ligne, éditrice.curseur.début comme z32)
+
+        indice_nouvelle_ligne := éditrice.curseur.ligne + 1
+
+        si indice_nouvelle_ligne == éditrice.lignes.taille {
+            tableau_ajoute(*éditrice.lignes, copie_chaine(ligne))
+        }
+        sinon {
+            tableau_insère_indice(*éditrice.lignes, copie_chaine(ligne), indice_nouvelle_ligne)
+        }
+
+        éditrice.lignes[éditrice.curseur.ligne].points_de_code.taille = éditrice.curseur.début
+
+        éditrice.curseur.ligne += 1
+        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -134,6 +215,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
  * \{ */
 
 CurseurTexte :: struct {
+    ligne: z64
     début: z64
     fin: z64
     ancre: z64
@@ -145,6 +227,15 @@ CurseurTexte :: struct {
 ModeDéplacementCurseur :: énum {
     GardeAncre
     DéplaceAncre
+}
+
+donne_ligne_courante :: fonc (curseur: *CurseurTexte) -> *ChaineUTF32
+{
+    si curseur.éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+        retourne *curseur.éditrice.texte_à_éditer
+    }
+
+    retourne *curseur.éditrice.lignes[curseur.ligne]
 }
 
 déplace_vers :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
@@ -177,8 +268,10 @@ définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur
 
 restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
 {
-    si position > curseur.texte.points_de_code.taille {
-        retourne curseur.texte.points_de_code.taille
+    texte := donne_ligne_courante(curseur)
+
+    si position > texte.points_de_code.taille {
+        retourne texte.points_de_code.taille
     }
     si position < 0 {
         retourne 0
@@ -188,16 +281,32 @@ restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
 
 efface :: fonc (curseur: *CurseurTexte)
 {
+    texte := donne_ligne_courante(curseur)
+
     si curseur.début == curseur.fin {
         si curseur.début == 0 {
+            si curseur.ligne >= 1 {
+                indice_ligne_courante := curseur.ligne
+
+                curseur.ligne -= 1
+                ligne_précédente := donne_ligne_courante(curseur)
+                curseur.début = ligne_précédente.points_de_code.taille
+                définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
+
+                tableau_ajoute(*ligne_précédente.points_de_code, ...texte.points_de_code)
+
+                déloge(texte.points_de_code)
+
+                tableau_supprime_indice(*curseur.éditrice.lignes, indice_ligne_courante)
+            }
             retourne
         }
 
-        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début - 1)
+        tableau_supprime_indice(*texte.points_de_code, curseur.début - 1)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
     }
     sinon {
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
+        tableau_supprime_entre(*texte.points_de_code, curseur.début, curseur.fin)
         définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
     }
 
@@ -206,15 +315,17 @@ efface :: fonc (curseur: *CurseurTexte)
 
 supprime :: fonc (curseur: *CurseurTexte)
 {
+    texte := donne_ligne_courante(curseur)
+
     si curseur.début == curseur.fin {
-        si curseur.début == curseur.texte.points_de_code.taille {
+        si curseur.début == texte.points_de_code.taille {
             retourne
         }
 
-        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début)
+        tableau_supprime_indice(*texte.points_de_code, curseur.début)
     }
     sinon {
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
+        tableau_supprime_entre(*texte.points_de_code, curseur.début, curseur.fin)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
@@ -223,12 +334,14 @@ supprime :: fonc (curseur: *CurseurTexte)
 
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
 {
+    texte := donne_ligne_courante(curseur)
+
     si curseur.début == curseur.fin {
-        tableau_insère_indice(*curseur.texte.points_de_code, point_de_code, curseur.début)
+        tableau_insère_indice(*texte.points_de_code, point_de_code, curseur.début)
     }
     sinon {
-        curseur.texte.points_de_code[curseur.début] = point_de_code
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début + 1, curseur.fin)
+        texte.points_de_code[curseur.début] = point_de_code
+        tableau_supprime_entre(*texte.points_de_code, curseur.début + 1, curseur.fin)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1)
@@ -244,9 +357,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
         retourne
     }
 
-    texte := mémoire(curseur.texte)
-
-    chn := converti_vers_chaine(texte)
+    chn := donne_tampon_texte_natif(curseur.éditrice)
     diffère déloge(chn)
 
     éditrice.rappels.sur_édition(éditrice.rappels, chn)
@@ -264,9 +375,7 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte)
         retourne
     }
 
-    texte := mémoire(curseur.texte)
-
-    chn := converti_vers_chaine(texte)
+    chn := donne_tampon_texte_natif(curseur.éditrice)
     diffère déloge(chn)
 
     éditrice.rappels.sur_fin_édition(éditrice.rappels, chn)
