@@ -633,10 +633,10 @@ static bool detecte_declarations_inutilisees(EspaceDeTravail &espace, AtomeFonct
 
 /* ******************************************************************************************** */
 
-static bool atome_est_pour_création_contexte(Compilatrice const &compilatrice,
+static bool atome_est_pour_création_contexte(EspaceDeTravail const &espace,
                                              AtomeFonction const *atome)
 {
-    auto interface = compilatrice.interface_kuri;
+    auto interface = espace.interface_kuri;
 
     /* atome->decl peut être nulle, vérifions d'abord que la fonction #création_contexte existe
      * déjà. */
@@ -684,7 +684,7 @@ static bool détecte_blocs_invalides(EspaceDeTravail &espace,
 
         /* La fonction #création_contexte n'a pas de retour, puisque ses instructions sont copiées
          * dans d'autres fonctions. */
-        if (atome_est_pour_création_contexte(espace.compilatrice(), atome)) {
+        if (atome_est_pour_création_contexte(espace, atome)) {
             continue;
         }
 

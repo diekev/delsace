@@ -114,6 +114,7 @@ int main(int argc, char **argv)
     ArgumentsCompilatrice arguments;
     arguments.importe_kuri = false;
     auto compilatrice = Compilatrice("", arguments);
+    auto espace = EspaceDeTravail(compilatrice, {}, "");
 
     auto contexte_lexage = ContexteLexage{
         compilatrice.gérante_chaine, compilatrice.table_identifiants, imprime_erreur};
@@ -132,22 +133,18 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    SyntaxeuseRI syntaxeuse(
-        &fichier, compilatrice.typeuse, *compilatrice.registre_ri, pré_syntaxeuse);
+    SyntaxeuseRI syntaxeuse(&fichier, espace.typeuse, *espace.registre_ri, pré_syntaxeuse);
     syntaxeuse.analyse();
 
     auto contexte_analyse = ContexteAnalyseRI();
 
     POUR (syntaxeuse.donne_fonctions()) {
-        contexte_analyse.analyse_ri(
-            *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
+        contexte_analyse.analyse_ri(espace, syntaxeuse.donne_constructrice(), it);
 
         if (est_test_enlignage) {
-            optimise_code(
-                *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
+            optimise_code(espace, syntaxeuse.donne_constructrice(), it);
 
-            contexte_analyse.analyse_ri(
-                *compilatrice.espace_de_travail_défaut, syntaxeuse.donne_constructrice(), it);
+            contexte_analyse.analyse_ri(espace, syntaxeuse.donne_constructrice(), it);
         }
 
         auto résultat = supprime_espaces_blanches_autour(imprime_fonction(it));
