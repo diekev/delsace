@@ -38,7 +38,7 @@ static NoeudExpression *crée_référence_pour_rubrique_employé(AssembleuseArbr
 
 Simplificatrice::Simplificatrice(Contexte *contexte)
     : m_contexte(contexte), espace(contexte->espace), assem(contexte->assembleuse),
-      typeuse(contexte->espace->compilatrice().typeuse)
+      typeuse(contexte->espace->typeuse)
 {
     m_expressions_blocs.empile_tableau();
 }
@@ -469,7 +469,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
                 auto appel = assem->crée_appel(
                     inst->lexème,
-                    espace->compilatrice().interface_kuri->decl_vérifie_typage_extraction_eini,
+                    espace->interface_kuri->decl_vérifie_typage_extraction_eini,
                     typeuse.type_rien);
                 appel->paramètres_résolus.ajoute(référence_rubrique);
                 appel->paramètres_résolus.ajoute(transtype_info_de);
@@ -833,7 +833,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             auto pousse_contexte = noeud->comme_pousse_contexte();
             simplifie(pousse_contexte->bloc);
 
-            auto contexte_courant = espace->compilatrice().globale_contexte_programme;
+            auto contexte_courant = espace->globale_contexte_programme;
             auto ref_contexte_courant = assem->crée_référence_déclaration(pousse_contexte->lexème,
                                                                           contexte_courant);
 
@@ -953,7 +953,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto littérale_chaine = assem->crée_littérale_chaine(noeud->lexème);
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-                auto fichier = compilatrice.fichier(noeud->lexème->fichier);
+                auto fichier = espace->fichier(noeud->lexème->fichier);
                 littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->chemin());
                 littérale_chaine->type = typeuse.type_chaine;
@@ -964,7 +964,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto littérale_chaine = assem->crée_littérale_chaine(noeud->lexème);
                 littérale_chaine->drapeaux |=
                     DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
-                auto fichier = compilatrice.fichier(noeud->lexème->fichier);
+                auto fichier = espace->fichier(noeud->lexème->fichier);
                 littérale_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(
                     fichier->module->chemin());
                 littérale_chaine->type = typeuse.type_chaine;
@@ -1751,7 +1751,7 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
             auto zéro = assem->crée_littérale_nul(expression->lexème);
             zéro->type = type_condition;
 
-            auto &registre = espace->compilatrice().opérateurs;
+            auto &registre = espace->opérateurs;
             registre->ajoute_opérateurs_basiques_au_besoin(typeuse, type_condition);
 
             auto op = type_primitif->table_opérateurs->opérateur_dif;
@@ -1824,7 +1824,7 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
             auto bloc = assem->crée_bloc_seul(inst->lexème, inst->bloc_parent);
             branche->bloc_si_vrai = bloc;
 
-            auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
+            auto panique = espace->interface_kuri->decl_panique_erreur;
             assert(panique);
 
             auto appel = assem->crée_appel(inst->lexème, panique, typeuse.type_rien);
@@ -1930,7 +1930,7 @@ NoeudExpression *Simplificatrice::simplifie_tente(NoeudInstructionTente *inst)
             auto bloc = assem->crée_bloc_seul(inst->lexème, bloc_si_erreur->bloc_parent);
             branche_si_erreur->bloc_si_vrai = bloc;
 
-            auto panique = espace->compilatrice().interface_kuri->decl_panique_erreur;
+            auto panique = espace->interface_kuri->decl_panique_erreur;
             assert(panique);
 
             auto appel = assem->crée_appel(inst->lexème, panique, typeuse.type_rien);
@@ -2057,7 +2057,7 @@ void Simplificatrice::simplifie_position_code_source(NoeudDirectiveIntrospection
      * À FAIRE : sécurité, n'utilise pas le chemin, mais détermine une manière fiable et robuste
      * d'obtenir le fichier, utiliser simplement le nom n'est pas fiable (d'autres fichiers du même
      * nom dans le module). */
-    auto const fichier = compilatrice.fichier(lexème_site->fichier);
+    auto const fichier = espace->fichier(lexème_site->fichier);
     auto valeur_chemin_fichier = assem->crée_littérale_chaine(lexème);
     valeur_chemin_fichier->drapeaux |= DrapeauxNoeud::LEXÈME_EST_RÉUTILISÉ_POUR_SUBSTITUTION;
     valeur_chemin_fichier->valeur = compilatrice.gérante_chaine->ajoute_chaine(fichier->chemin());

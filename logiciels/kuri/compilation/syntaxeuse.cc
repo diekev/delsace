@@ -678,7 +678,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
         if (module->bloc == nullptr) {
             module->bloc = m_contexte->assembleuse->empile_bloc(
                 lexème_courant(), nullptr, TypeBloc::MODULE);
-            module->bloc->bloc_parent = m_compilatrice.m_bloc_racine;
+            module->bloc->bloc_parent = m_contexte->espace->m_bloc_racine;
 
             if (module->nom() != ID::Kuri) {
                 /* Crée une rubrique pour l'import implicite du module Kuri afin de pouvoir accéder
@@ -690,7 +690,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
                                         ->crée_noeud<GenreNoeud::DÉCLARATION_MODULE>(
                                             lexème_ident_kuri)
                                         ->comme_déclaration_module();
-                noeud_module->module = m_compilatrice.module_kuri;
+                noeud_module->module = m_contexte->espace->module_kuri;
                 noeud_module->ident = ID::Kuri;
                 noeud_module->bloc_parent = module->bloc;
                 noeud_module->bloc_parent->ajoute_rubrique(noeud_module);
@@ -846,7 +846,7 @@ void Syntaxeuse::analyse_une_chose()
                 });
                 noeud->bloc_parent->ajoute_rubrique(noeud->comme_base_déclaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
-                    m_compilatrice.globale_contexte_programme =
+                    m_contexte->espace->globale_contexte_programme =
                         noeud->comme_déclaration_variable();
                 }
                 requiers_typage(noeud);
@@ -3063,13 +3063,13 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     /* Faisons ceci à la fin afin que le corps soit disponible lors de la création de la copie pour
      * les différents espaces de travail, évitant une potentielle concurrence critique. */
     if (noeud->ident == ID::__point_d_entree_systeme) {
-        m_compilatrice.fonction_point_d_entree = noeud;
+        m_contexte->espace->fonction_point_d_entree = noeud;
     }
     else if (noeud->ident == ID::__point_d_entree_dynamique) {
-        m_compilatrice.fonction_point_d_entree_dynamique = noeud;
+        m_contexte->espace->fonction_point_d_entree_dynamique = noeud;
     }
     else if (noeud->ident == ID::__point_de_sortie_dynamique) {
-        m_compilatrice.fonction_point_de_sortie_dynamique = noeud;
+        m_contexte->espace->fonction_point_de_sortie_dynamique = noeud;
     }
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux rubriques. */
@@ -3133,7 +3133,7 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
             directives.ajoute(noeud_directive);
         }
         else if (ident_directive == ID::interface) {
-            m_compilatrice.interface_kuri->mute_rubrique(noeud);
+            m_contexte->espace->interface_kuri->mute_rubrique(noeud);
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);
@@ -3141,7 +3141,7 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
         else if (ident_directive == ID::creation_contexte) {
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
             drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
-            m_compilatrice.interface_kuri->decl_creation_contexte = noeud;
+            m_contexte->espace->interface_kuri->decl_creation_contexte = noeud;
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);
             directives.ajoute(noeud_directive);
@@ -3645,7 +3645,7 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
         Lexème *lexème_rien = m_contexte->lexèmes_extra->crée_lexème(GenreLexème::RIEN, ID::rien);
 
         auto decl = crée_retour_défaut_fonction(
-            m_contexte->assembleuse, m_compilatrice.typeuse, lexème_rien);
+            m_contexte->assembleuse, m_contexte->espace->typeuse, lexème_rien);
         decl->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         résultat.ajoute(decl);
@@ -3721,10 +3721,10 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(Lexème const *lexè
     auto noeud_decl = m_contexte->assembleuse->crée_type_structure(lexème_nom);
 
     if (lexème_nom->ident == ID::InfoType) {
-        m_compilatrice.typeuse.type_info_type_ = noeud_decl;
+        m_contexte->espace->typeuse.type_info_type_ = noeud_decl;
     }
     else if (lexème_nom->ident == ID::ContexteProgramme) {
-        m_compilatrice.typeuse.type_contexte = noeud_decl;
+        m_contexte->espace->typeuse.type_contexte = noeud_decl;
     }
 
     empile_table_références();
@@ -3797,10 +3797,10 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         auto ident_directive = lexème_directive->ident;
 
         if (ident_directive == ID::interface) {
-            renseigne_type_interface(m_compilatrice.typeuse, noeud->ident, noeud);
+            renseigne_type_interface(m_contexte->espace->typeuse, noeud->ident, noeud);
             if (noeud->ident == ID::InfoType) {
-                m_compilatrice.typeuse.type_eini->rubriques[1].type =
-                    m_compilatrice.typeuse.type_pointeur_pour(noeud);
+                m_contexte->espace->typeuse.type_eini->rubriques[1].type =
+                    m_contexte->espace->typeuse.type_pointeur_pour(noeud);
             }
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);
