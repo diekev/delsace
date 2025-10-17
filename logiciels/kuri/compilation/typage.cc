@@ -385,8 +385,8 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_dff_adr = crée_opaque_défaut(type_n64, ID::dff_adr);
     type_adr_plt_nat = crée_opaque_défaut(type_n64, ID::adr_plt_nat);
     type_adr_plt_rel = crée_opaque_défaut(type_z64, ID::adr_plt_rel);
-    type_taille_mnat = crée_opaque_défaut(type_n64, ID::taille_mnat);
-    type_taille_mrel = crée_opaque_défaut(type_z64, ID::taille_mrel);
+    type_taille_nat = crée_opaque_défaut(type_n64, ID::taille_nat);
+    type_taille_rel = crée_opaque_défaut(type_z64, ID::taille_rel);
     type_nbr_nat = crée_opaque_défaut(type_n32, ID::nbr_nat);
     type_nbr_rel = crée_opaque_défaut(type_z32, ID::nbr_rel);
     type_nbf_flt = crée_opaque_défaut(type_r32, ID::nbf_flt);
