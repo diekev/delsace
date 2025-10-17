@@ -26,9 +26,15 @@
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
                                  OptionsDeCompilation opts,
                                  kuri::chaine nom_)
-    : nom(nom_), options(opts), m_compilatrice(compilatrice)
+    : nom(nom_), options(opts), typeuse(graphe_dépendance), m_compilatrice(compilatrice)
 {
     programme = Programme::crée_pour_espace(this);
+    registre_ri = mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse);
+
+    auto ops = opérateurs.verrou_ecriture();
+    enregistre_opérateurs_basiques(typeuse, *ops);
+
+    m_bloc_racine = compilatrice.gestionnaire_code->crée_bloc_racine(typeuse);
 
     POUR (nombre_de_tâches) {
         it = 0;
@@ -38,18 +44,53 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 EspaceDeTravail::~EspaceDeTravail()
 {
     mémoire::deloge("Programme", programme);
+    mémoire::deloge("RegistreSymboliqueRI", registre_ri);
+}
+
+Module *EspaceDeTravail::donne_module(const IdentifiantCode *nom_module) const
+{
+    return sys_module->module(nom_module);
+}
+
+const Fichier *EspaceDeTravail::fichier(int64_t index) const
+{
+    return sys_module->fichier(index);
+}
+
+Fichier *EspaceDeTravail::fichier(int64_t index)
+{
+    return sys_module->fichier(index);
+}
+
+Fichier *EspaceDeTravail::fichier(kuri::chaine_statique chemin) const
+{
+    return sys_module->fichier(chemin);
 }
 
 int64_t EspaceDeTravail::memoire_utilisee() const
 {
-    auto memoire = int64_t(0);
-    memoire += programme->mémoire_utilisée();
-    return memoire;
+    auto résultat = int64_t(0);
+    résultat += programme->mémoire_utilisée();
+    résultat += sys_module->mémoire_utilisée();
+    résultat += constructeurs_globaux->taille_mémoire();
+    résultat += registre_chaines_ri->mémoire_utilisée();
+    résultat += fonctions_parsées.taille_mémoire();
+    résultat += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
+    résultat += registre_annotations.mémoire_utilisée();
+    résultat += trie_structs_employées.mémoire_utilisée();
+    résultat += trie_types_entrée_sortie.mémoire_utilisée();
+    return résultat;
 }
 
 void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 {
     programme->rassemble_statistiques(stats);
+    sys_module->rassemble_stats(stats);
+    opérateurs->rassemble_statistiques(stats);
+    graphe_dépendance->rassemble_statistiques(stats);
+    typeuse.rassemble_statistiques(stats);
+    registre_ri->rassemble_statistiques(stats);
+    données_constantes_exécutions.rassemble_statistiques(stats);
 }
 
 void EspaceDeTravail::tache_ajoutee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère)
@@ -93,7 +134,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(GenreTâche genre_tach
                  * n'ont pas de RI, donc avançons jusqu'à GÉNÉRATION_CODE_TERMINÉE. */
                 if (nombre_de_tâches[size_t(GenreTâche::GENERATION_RI)] == 0) {
                     /* Notifie pour le changement de phase précédent. */
-                    change_de_phase(messagère, nouvelle_phase);
+                    change_de_phase(messagère, nouvelle_phase, __func__);
                     nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
                 }
             }
@@ -126,7 +167,7 @@ void EspaceDeTravail::progresse_phase_pour_tache_terminee(GenreTâche genre_tach
     }
 
     if (nouvelle_phase != phase) {
-        change_de_phase(messagère, nouvelle_phase);
+        change_de_phase(messagère, nouvelle_phase, __func__);
     }
 }
 
@@ -187,7 +228,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
 
     if (nouvelle_phase != phase) {
         id_phase += 1;
-        change_de_phase(messagère, nouvelle_phase);
+        change_de_phase(messagère, nouvelle_phase, __func__);
     }
 }
 
@@ -222,11 +263,13 @@ void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 }
 
 Message *EspaceDeTravail::change_de_phase(kuri::Synchrone<Messagère> &messagère,
-                                          PhaseCompilation nouvelle_phase)
+                                          PhaseCompilation nouvelle_phase,
+                                          kuri::chaine_statique fonction_appelante)
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
     if (nom == nom_espace) {                                                                      \
-        dbg() << __func__ << " : " << nouvelle_phase << ", id " << id_phase;                      \
+        dbg() << __func__ << " depuis " << fonction_appelante << " : " << nouvelle_phase          \
+              << ", id " << id_phase;                                                             \
     }
 
     if (phase == PhaseCompilation::COMPILATION_TERMINÉE) {
@@ -255,7 +298,7 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
         lexeme = noeud->comme_corps_fonction()->entête->lexème;
     }
 
-    auto const fichier = compilatrice().fichier(lexeme->fichier);
+    auto const fichier = this->fichier(lexeme->fichier);
     return SiteSource::cree(fichier, lexeme);
 }
 
@@ -269,7 +312,7 @@ Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fich
                                                int ligne,
                                                kuri::chaine_statique message) const
 {
-    const Fichier *f = m_compilatrice.fichier(chemin_fichier);
+    const Fichier *f = this->fichier(chemin_fichier);
     return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
 }
 
@@ -289,7 +332,7 @@ Erreur EspaceDeTravail::rapporte_info(kuri::chaine_statique chemin_fichier,
                                       int ligne,
                                       kuri::chaine_statique message) const
 {
-    const Fichier *f = m_compilatrice.fichier(chemin_fichier);
+    const Fichier *f = this->fichier(chemin_fichier);
     return ::rapporte_info(this, SiteSource(f, ligne - 1), message);
 }
 
@@ -323,7 +366,7 @@ Erreur EspaceDeTravail::rapporte_erreur(kuri::chaine_statique chemin_fichier,
                                         erreur::Genre genre) const
 {
     possède_erreur = true;
-    auto fichier = compilatrice().fichier(chemin_fichier);
+    auto fichier = this->fichier(chemin_fichier);
     return ::rapporte_erreur(this, SiteSource(fichier, ligne), message, genre);
 }
 
