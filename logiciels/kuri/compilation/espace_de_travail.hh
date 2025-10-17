@@ -6,14 +6,25 @@
 #include "utilitaires/synchrone.hh"
 
 #include "erreur.h"
+#include "graphe_dependance.hh"
+#include "interface_module_kuri.hh"
 #include "messagere.hh"
+#include "metaprogramme.hh"
+#include "operateurs.hh"
 #include "options.hh"
 #include "tache.hh"
+#include "typage.hh"
 
+#include "parsage/modules.hh"
+
+#include "representation_intermediaire/constructrice_ri.hh"
+
+struct AtomeGlobale;
 struct Compilatrice;
 struct MetaProgramme;
 struct NoeudDéclarationEntêteFonction;
 struct Programme;
+struct RegistreSymboliqueRI;
 struct SiteSource;
 struct Statistiques;
 struct UniteCompilation;
@@ -43,6 +54,7 @@ struct EspaceDeTravail {
   public:
     kuri::chaine nom{};
     OptionsDeCompilation options{};
+    int id = 0;
 
     /* Chaque espace a son propre module racine où sont ajoutés les fichiers et les chaines
      * ajoutées lors de la compilation. */
@@ -65,7 +77,72 @@ struct EspaceDeTravail {
     bool optimisations = false;
     mutable std::atomic<bool> possède_erreur{false};
 
+    kuri::Synchrone<InterfaceKuri> interface_kuri{};
+
+    kuri::Synchrone<SystèmeModule> sys_module{};
+
+    kuri::Synchrone<GrapheDépendance> graphe_dépendance{};
+
+    kuri::Synchrone<RegistreDesOpérateurs> opérateurs{};
+
+    Typeuse typeuse;
+
+    /* Globale pour __contexte_fil_principal, définie dans le module Kuri. */
+    NoeudDéclarationVariable *globale_contexte_programme = nullptr;
+
+    struct DonneesConstructeurGlobale {
+        AtomeGlobale *atome = nullptr;
+        NoeudExpression *expression = nullptr;
+        TransformationType transformation{};
+    };
+
+    using ConteneurConstructeursGlobales = kuri::tableau<DonneesConstructeurGlobale, int>;
+    kuri::Synchrone<ConteneurConstructeursGlobales> constructeurs_globaux{};
+
+    Module *module_kuri = nullptr;
+
+    // NOTE : données pour la RI.
+    // {
+    RegistreSymboliqueRI *registre_ri = nullptr;
+    kuri::Synchrone<RegistreChainesRI> registre_chaines_ri{};
+
+    /* Globale pour les annotations vides des rubriques des infos-type.
+     * Nous n'en créons qu'une seule dans ce cas afin d'économiser de la mémoire.
+     */
+    AtomeConstante *globale_annotations_vides = nullptr;
+
+    RegistreAnnotations registre_annotations{};
+
+    /* Un seul tableau pour toutes les structures n'ayant pas d'employées. */
+    AtomeConstante *tableau_structs_employées_vide = nullptr;
+    kuri::trie<AtomeConstante *, AtomeConstante *> trie_structs_employées{};
+
+    /* Trie pour les entrées et sorties des fonctions. Nous partageons les tableaux pour les
+     * entrées et sorties. */
+    kuri::trie<Type *, AtomeConstante *> trie_types_entrée_sortie{};
+
+    /* Un seul tableau pour toutes les fonctions n'ayant pas d'entrées. */
+    AtomeConstante *tableau_types_entrées_vide = nullptr;
+
+    /* Un seul tableau pour toutes les fonctions ne retournant « rien ». */
+    AtomeConstante *tableau_types_sorties_rien = nullptr;
+    // }
+
+    /* Pour les executions des métaprogrammes. */
+    std::mutex mutex_données_constantes_exécutions{};
+    DonnéesConstantesExécutions données_constantes_exécutions{};
+
+    NoeudBloc *m_bloc_racine = nullptr;
+
     Compilatrice &m_compilatrice;
+
+    /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
+     * typage_terminé. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
+    kuri::tableau<NoeudDéclarationEntêteFonction *> fonctions_parsées{};
+
+    // Données pour le gestionnaire de code.
+    kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
+    bool métaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
 
     EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
 
@@ -74,6 +151,13 @@ struct EspaceDeTravail {
     ~EspaceDeTravail();
 
     POINTEUR_NUL(EspaceDeTravail)
+
+    Module *donne_module(const IdentifiantCode *nom_module) const;
+
+    Fichier *fichier(int64_t index);
+    const Fichier *fichier(int64_t index) const;
+
+    Fichier *fichier(kuri::chaine_statique chemin) const;
 
     int64_t memoire_utilisee() const;
 
@@ -91,7 +175,8 @@ struct EspaceDeTravail {
     bool parsage_termine() const;
 
     Message *change_de_phase(kuri::Synchrone<Messagère> &messagère,
-                             PhaseCompilation nouvelle_phase);
+                             PhaseCompilation nouvelle_phase,
+                             kuri::chaine_statique fonction_appelante);
 
     PhaseCompilation phase_courante() const
     {
