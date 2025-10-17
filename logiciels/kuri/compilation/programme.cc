@@ -67,7 +67,7 @@ void Programme::ajoute_fonction(NoeudDéclarationEntêteFonction *fonction)
     if (!m_fonctions.insère(fonction)) {
         return;
     }
-    ajoute_fichier(m_espace->compilatrice().fichier(fonction->lexème->fichier));
+    ajoute_fichier(m_espace->fichier(fonction->lexème->fichier));
     m_éléments_sont_sales[FONCTIONS][POUR_TYPAGE] = true;
     m_éléments_sont_sales[FONCTIONS][POUR_RI] = true;
     if (fonction->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -103,7 +103,7 @@ void Programme::ajoute_globale(NoeudDéclarationVariable *globale)
     if (!m_globales.insère(globale)) {
         return;
     }
-    ajoute_fichier(m_espace->compilatrice().fichier(globale->lexème->fichier));
+    ajoute_fichier(m_espace->fichier(globale->lexème->fichier));
     m_éléments_sont_sales[GLOBALES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[GLOBALES][POUR_RI] = true;
     if (globale->possède_drapeau(DrapeauxNoeud::DÉPENDANCES_FURENT_RÉSOLUES)) {
@@ -994,6 +994,8 @@ void ConstructriceProgrammeFormeRI::génère_ri_fonction_init_globales(AtomeFonc
 
 void ConstructriceProgrammeFormeRI::génère_traces_d_appel()
 {
+    m_compilatrice_ri.commence_espace(&m_espace);
+
     POUR (m_résultat.fonctions) {
         if (it->sanstrace || it->est_externe) {
             continue;
@@ -1018,10 +1020,14 @@ void ConstructriceProgrammeFormeRI::génère_traces_d_appel()
         auto info_trace_appel = m_compilatrice_ri.crée_info_fonction_pour_trace_appel(it);
         ajoute_globale(info_trace_appel, true);
     }
+
+    m_compilatrice_ri.termine_espace();
 }
 
 void ConstructriceProgrammeFormeRI::génère_table_des_types()
 {
+    m_compilatrice_ri.commence_espace(&m_espace);
+
     AtomeGlobale *atome_table_des_types = nullptr;
     POUR (m_résultat.globales) {
         if (it->ident == ID::__table_des_types) {
@@ -1054,42 +1060,44 @@ void ConstructriceProgrammeFormeRI::génère_table_des_types()
         ajoute_globale(info_type, true);
     }
 
-    if (!atome_table_des_types) {
-        return;
-    }
+    if (atome_table_des_types) {
+        kuri::tableau<AtomeConstante *> table_des_types;
+        table_des_types.réserve(indice_type);
 
-    kuri::tableau<AtomeConstante *> table_des_types;
-    table_des_types.réserve(indice_type);
+        POUR (m_résultat.types) {
+            if (est_type_tuple_ou_fonction_init_tuple(it)) {
+                continue;
+            }
 
-    POUR (m_résultat.types) {
-        if (est_type_tuple_ou_fonction_init_tuple(it)) {
-            continue;
+            if (!it->atome_info_type) {
+                /* L'inclusion des globales des infos-type peut avoir ajouter des types qui
+                 * n'auront pas d'infos-type. Nous pouvons les ignorer car ce sont sans doute des
+                 * types auxiliaires (p.e. les types pour les tableaux de données constantes). */
+                continue;
+            }
+
+            table_des_types.ajoute(
+                m_compilatrice_ri.transtype_base_info_type(it->atome_info_type));
         }
 
-        if (!it->atome_info_type) {
-            /* L'inclusion des globales des infos-type peut avoir ajouter des types qui n'auront
-             * pas d'infos-type. Nous pouvons les ignorer car ce sont sans doute des types
-             * auxiliaires (p.e. les types pour les tableaux de données constantes). */
-            continue;
-        }
+        auto &typeuse = m_espace.typeuse;
+        auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+        auto ident = m_espace.compilatrice().donne_identifiant_pour_globale(
+            "données_table_des_types");
+        atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tranche_globale(
+            *ident, type_pointeur_info_type, std::move(table_des_types), true);
 
-        table_des_types.ajoute(m_compilatrice_ri.transtype_base_info_type(it->atome_info_type));
+        auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
+        auto rubriques_init = initialisateur->donne_atomes_rubriques();
+        auto atome_accès = rubriques_init[0]->comme_accès_indice_constant();
+        m_résultat.globales.ajoute(atome_accès->accédé->comme_globale());
+
+        auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
+                                                           static_cast<int>(indice_type));
+        m_résultat.types.ajoute(type_tableau_fixe);
     }
 
-    auto &typeuse = m_espace.compilatrice().typeuse;
-    auto type_pointeur_info_type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-    auto ident = m_espace.compilatrice().donne_identifiant_pour_globale("données_table_des_types");
-    atome_table_des_types->initialisateur = m_compilatrice_ri.crée_tranche_globale(
-        *ident, type_pointeur_info_type, std::move(table_des_types), true);
-
-    auto initialisateur = atome_table_des_types->initialisateur->comme_constante_structure();
-    auto rubriques_init = initialisateur->donne_atomes_rubriques();
-    auto atome_accès = rubriques_init[0]->comme_accès_indice_constant();
-    m_résultat.globales.ajoute(atome_accès->accédé->comme_globale());
-
-    auto type_tableau_fixe = typeuse.type_tableau_fixe(type_pointeur_info_type,
-                                                       static_cast<int>(indice_type));
-    m_résultat.types.ajoute(type_tableau_fixe);
+    m_compilatrice_ri.termine_espace();
 }
 
 void ConstructriceProgrammeFormeRI::tri_fonctions_et_globales()
