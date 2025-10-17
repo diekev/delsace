@@ -482,11 +482,7 @@ démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n
     emboiteuse := *app.emboiteuse
     rect := donne_rect(emboiteuse, id)
 
-    rectz: RectanglePosDim(z32)
-    rectz.x = rect.x comme z32
-    rectz.y = rect.y comme z32
-    rectz.largeur = rect.largeur comme z32
-    rectz.hauteur = rect.hauteur comme z32
+    rectz := convertis_type(rect, z32)
 
     initialise_éditrice(*rappels_édition_texte.éditrice, app.fonte, app.texte_à_dessiner, rappels_édition_texte)
 

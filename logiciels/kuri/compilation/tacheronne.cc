@@ -124,7 +124,7 @@ void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
     tâches[indice_file].enfile(tache);
 
     pique_taille.tâches[indice_file] = std::max(pique_taille.tâches[indice_file],
-                                               tâches[indice_file].taille());
+                                                tâches[indice_file].taille());
 }
 
 int64_t OrdonnanceuseTache::nombre_de_tâches_en_attente() const
