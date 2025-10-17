@@ -82,7 +82,7 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
         texte_avant_curseur := texte
         texte_avant_curseur.points_de_code.taille = curseur.fin
 
-        curseur_x := fonte.donne_largeur_texte(texte_avant_curseur)
+        curseur_x := fonte.donne_largeur_texte(texte_avant_curseur) comme z32
 
         ligne_curseur: Ligne(z32)
         ligne_curseur.p0.x = rect_texte.x + curseur_x
@@ -97,11 +97,11 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
     si curseur.début != curseur.fin {
         texte_avant_sélection := texte
         texte_avant_sélection.points_de_code.taille = curseur.début
-        largeur_avant_sélection := fonte.donne_largeur_texte(texte_avant_sélection)
+        largeur_avant_sélection := fonte.donne_largeur_texte(texte_avant_sélection) comme z32
 
         texte_jusque_fin_sélection := texte
         texte_jusque_fin_sélection.points_de_code.taille = curseur.fin
-        largeur_jusque_fin_sélection := fonte.donne_largeur_texte(texte_jusque_fin_sélection)
+        largeur_jusque_fin_sélection := fonte.donne_largeur_texte(texte_jusque_fin_sélection) comme z32
 
         rect_sélection := rect_texte
         rect_sélection.x += largeur_avant_sélection

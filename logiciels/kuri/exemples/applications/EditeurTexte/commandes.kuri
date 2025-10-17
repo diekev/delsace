@@ -126,23 +126,23 @@ commande_ouvrir_fichier :: fonc (anonyme: *Anonyme)
 
 commande_sélectionne_fichier_suivant :: fonc (anonyme: *Anonyme)
 {
-    anonyme.fichier_sélectionné += 1
+    avance_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet)
 }
 
 commande_sélectionne_fichier_précédent :: fonc (anonyme: *Anonyme)
 {
-    anonyme.fichier_sélectionné -= 1
+    recule_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet)
 }
 
 commande_ouvre_fichier_sélectionné :: fonc (anonyme: *Anonyme)
 {
     fichiers := donne_fichiers_pour_sélecteur(anonyme)
 
-    si anonyme.fichier_sélectionné < 0 || anonyme.fichier_sélectionné >= fichiers.taille {
+    si anonyme.sélecteur_fichier_projet.fichier_sélectionné < 0 || anonyme.sélecteur_fichier_projet.fichier_sélectionné >= fichiers.taille {
         retourne
     }
 
-    fichier := fichiers[anonyme.fichier_sélectionné]
+    fichier := fichiers[anonyme.sélecteur_fichier_projet.fichier_sélectionné]
     éditeur_ouvre(*anonyme.éditeur, fichier.chemin)
     anonyme.état = Anonyme.État.ÉDITION
 }
@@ -151,4 +151,53 @@ commande_sauvegarde :: fonc (anonyme: *Anonyme)
 {
     // À FAIRE : prompt
     éditeur_sauvegarde_fichier(*anonyme.éditeur, nul)
+}
+
+commande_ouvrir_projet :: fonc (anonyme: *Anonyme)
+{
+    anonyme.état = Anonyme.État.OUVERTURE_PROJET
+}
+
+commande_sélectionne_projet_suivant :: fonc (anonyme: *Anonyme)
+{
+    avance_sélecteur(anonyme, *anonyme.sélecteur_projet)
+}
+
+commande_sélectionne_projet_précédent :: fonc (anonyme: *Anonyme)
+{
+    recule_sélecteur(anonyme, *anonyme.sélecteur_projet)
+}
+
+commande_ouvre_projet_sélectionné :: fonc (anonyme: *Anonyme)
+{
+    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+
+    si anonyme.sélecteur_projet.fichier_sélectionné < 0 || anonyme.sélecteur_projet.fichier_sélectionné >= fichiers.taille {
+        retourne
+    }
+
+    fichier := fichiers[anonyme.sélecteur_projet.fichier_sélectionné]
+    // À FAIRE : erreur
+    saufsi ouvre_projet(anonyme, fichier.nom) {
+        imprimeln("Impossible d'ouvrir : % (%)", fichier.nom, fichier.chemin)
+    }
+    anonyme.état = Anonyme.État.PROJET_OUVERT
+}
+
+avance_sélecteur :: fonc (anonyme: *Anonyme, sélecteur: *SélecteurFichier)
+{
+    sélecteur.fichier_sélectionné += 1
+    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    si sélecteur.fichier_sélectionné >= fichiers.taille {
+        sélecteur.fichier_sélectionné = 0
+    }
+}
+
+recule_sélecteur :: fonc (anonyme: *Anonyme, sélecteur: *SélecteurFichier)
+{
+    sélecteur.fichier_sélectionné -= 1
+    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    si sélecteur.fichier_sélectionné < 0 {
+        sélecteur.fichier_sélectionné = fichiers.taille - 1
+    }
 }

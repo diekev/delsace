@@ -566,7 +566,7 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_tableau(
         if (decl_referee->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                           DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
             ValeurExpression valeur = type_tableau->taille;
-            ajoute_candidat_valeur(decl_referee->ident, typeuse.type_z64, valeur);
+            ajoute_candidat_valeur(decl_referee->ident, typeuse.type_taille_tableau, valeur);
         }
     }
 

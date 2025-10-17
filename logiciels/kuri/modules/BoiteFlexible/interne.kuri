@@ -771,7 +771,9 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
         si mémoire(courant) == ' ' || mémoire(courant) == '\n' {
             fragment := chaine(début, courant - début)
 
-            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+            si fragment.taille {
+                dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
+            }
 
             fragment.pointeur = courant
             fragment.taille = 1
@@ -816,7 +818,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
 {
     si boite.type == BoiteFlexible.Type.Texte {
         si direction == Direction.Horizontale {
-            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte) comme r32
+            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte)
             boite.largeur_texte = boite.largeur
 
             fragmente_texte(boite.emboiteuse, boite)
@@ -827,11 +829,9 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
             dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
 
             tantque premier_fragment < dernier_fragment {
-                largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte) comme r32
+                largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte)
                 premier_fragment.largeur = largeur_fragment
-                saufsi premier_fragment.est_espace_blanche {
-                    largeur_min = max(largeur_min, largeur_fragment)
-                }
+                largeur_min = max(largeur_min, largeur_fragment)
                 premier_fragment += 1
             }
 
@@ -847,7 +847,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
 
     si boite.type == BoiteFlexible.Type.TexteUTF32 {
         si direction == Direction.Horizontale {
-            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte_utf32) comme r32
+            boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte_utf32)
             boite.largeur_texte = boite.largeur
             boite.taille_min[direction] = boite.largeur_texte
             retourne
@@ -1404,7 +1404,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
             hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3])
 
-            rect.x = rect.x + boite.disposition.rembourrage.v[0] + curseur_x comme r32
+            rect.x = rect.x + boite.disposition.rembourrage.v[0] + curseur_x
             rect.y = rect.y + boite.disposition.rembourrage.v[1]
             rect.largeur = 1.0
             rect.hauteur = hauteur_disponible

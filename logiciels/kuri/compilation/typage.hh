@@ -219,8 +219,8 @@ struct Typeuse {
     NoeudDéclarationTypeOpaque *type_dff_adr = nullptr;
     NoeudDéclarationTypeOpaque *type_adr_plt_nat = nullptr;
     NoeudDéclarationTypeOpaque *type_adr_plt_rel = nullptr;
-    NoeudDéclarationTypeOpaque *type_taille_mnat = nullptr;
-    NoeudDéclarationTypeOpaque *type_taille_mrel = nullptr;
+    NoeudDéclarationTypeOpaque *type_taille_nat = nullptr;
+    NoeudDéclarationTypeOpaque *type_taille_rel = nullptr;
     NoeudDéclarationTypeOpaque *type_nbr_nat = nullptr;
     NoeudDéclarationTypeOpaque *type_nbr_rel = nullptr;
     NoeudDéclarationTypeOpaque *type_nbf_flt = nullptr;
@@ -229,6 +229,12 @@ struct Typeuse {
     NoeudDéclarationTypeComposé *type_chaine = nullptr;
 
     NoeudDéclarationType *type_tranche_octet = nullptr;
+
+    NoeudDéclarationType *type_entier_vers_pointeur_nat = nullptr;
+    NoeudDéclarationType *type_entier_vers_pointeur = nullptr;
+    NoeudDéclarationType *type_taille_tableau = nullptr;
+    NoeudDéclarationType *type_pointeur_vers_entier = nullptr;
+    NoeudDéclarationType *type_indexage = nullptr;
 
   private:
     std::mutex mutex_infos_types_vers_types{};

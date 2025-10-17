@@ -15,6 +15,15 @@ indicateur-ligne-courante CCCCCCFF
 
 [[raccourcis]]
 
+Ctrl-P                  ouvrir_projet
+Ctrl-O                  ouvrir_fichier
+
+[ouverture_projet]
+
+FlècheHaut              sélectionne_projet_précédent
+FlècheBas               sélectionne_projet_suivant
+Entrée                  ouvre_projet_sélectionné
+
 [ouverture_fichier]
 
 FlècheHaut              sélectionne_fichier_précédent
@@ -22,8 +31,6 @@ FlècheBas               sélectionne_fichier_suivant
 Entrée                  ouvre_fichier_sélectionné
 
 [édition]
-
-Ctrl-O                  ouvrir_fichier
 
 FlècheGauche            va_à_gauche
 FlècheDroite            va_à_droite

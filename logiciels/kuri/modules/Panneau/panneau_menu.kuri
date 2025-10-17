@@ -90,7 +90,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
 
     /* Calcul taille éléments. */
     hauteur_élément = métriques.donne_hauteur_caractère() comme z32
-    espaçage_élément = donne_largeur_texte(fonte, "0")
+    espaçage_élément = donne_largeur_texte(fonte, "0") comme z32
     décalage_élément_x = espaçage_élément * 2
     décalage_élément_y = (rect.hauteur - hauteur_élément) / 2
 
@@ -101,7 +101,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
     pour barre_de_menu.menus {
         élément: PanneauBarreDeMenu.Élément
         élément.décalage = décalage_élément
-        élément.largeur = donne_largeur_texte(fonte, it.texte)
+        élément.largeur = donne_largeur_texte(fonte, it.texte) comme z32
 
         éléments[indice_it] = élément
 
@@ -471,7 +471,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     hauteur_élément_texte := hauteur_de_ligne + 10
     hauteur_élément = hauteur_élément_texte
     hauteur_élément_séparateur := 10
-    espaçage_élément = donne_largeur_texte(ctx.fonte, "0")
+    espaçage_élément = donne_largeur_texte(ctx.fonte, "0") comme z32
     décalage_élément_x = espaçage_élément * 2
 
     tableau_redimensionne(éléments, menu.éléments.taille)
@@ -483,7 +483,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     /* Calcule la largeur du panneau et des éléments textes. */
     pour menu.éléments {
         élément: PanneauMenu.Élément
-        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte)
+        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte) comme z32
         si élément.largeur < largeur_requise {
             élément.largeur = largeur_requise
         }

@@ -216,13 +216,13 @@ donne_glyphe :: fonc (fonte: *Fonte, point_de_code: n32) -> *texture_glyph_t
 
 ContrainteChaine :: chaine | ChaineUTF16 | ChaineUTF32
 
-donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> z32
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: $T/ContrainteChaine) -> r32
 {
     glyphes := donne_glyphes(fonte, texte)
     retourne donne_largeur_glyphes(fonte, glyphes)
 }
 
-donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z32
+donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> r32
 {
     résultat := 0.0
     utilise_crénage := fonte.kerning
@@ -235,7 +235,7 @@ donne_largeur_glyphes :: fonc (fonte: *Fonte, glyphes: []*texture_glyph_t) -> z3
         dernier_glyphe = it
         résultat += it.advance_x
     }
-    retourne résultat comme z32
+    retourne résultat
 }
 
 donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32, position: r32) -> z64
@@ -263,7 +263,7 @@ donne_indice_caractère_pour_position :: fonc (fonte: *Fonte, texte: ChaineUTF32
     retourne -1
 }
 
-donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> z32
+donne_largeur_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16Unique) -> r32
 {
     retourne donne_largeur_texte(fonte, texte.donne_chaine_utf16())
 }

@@ -2343,7 +2343,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
             pour->decl_indice_it = assembleuse->crée_déclaration_variable(
-                &lexème_sentinel, typeuse.type_z64, ID::indice_it, nullptr);
+                &lexème_sentinel, typeuse.type_taille_tableau, ID::indice_it, nullptr);
 
             auto fonction = crée_entête_pour_initialisation_type(
                 type_élément, assembleuse, typeuse);

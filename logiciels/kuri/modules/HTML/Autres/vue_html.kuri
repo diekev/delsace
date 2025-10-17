@@ -990,7 +990,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
             rect: RectanglePosDim(r32)
             rect.y = 0
             rect.hauteur = métriques.donne_hauteur_ligne()
-            rect.largeur = fonte.donne_largeur_texte(texte) comme r32 + 2.0 * métriques.largeur_moyenne
+            rect.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne
 
             couleur := CouleurRVBAN8(255, 255, 255, 255)
             peintre.remplis_rectangle(rect, couleur)

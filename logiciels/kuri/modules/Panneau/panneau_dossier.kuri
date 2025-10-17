@@ -135,7 +135,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
 
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
     hauteur_onglets := hauteur_de_ligne + 10
-    espaçage_élément := donne_largeur_texte(fonte, "0")
+    espaçage_élément := donne_largeur_texte(fonte, "0") comme z32
 
     décalage_élément := 0
 
@@ -148,7 +148,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
     rect_central.réduis(1)
 
     pour * éléments {
-        largeur_texte := donne_largeur_texte(fonte, it.texte)
+        largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32
 
         it.rect.x = décalage_élément
         it.rect.y = rect_onglets.y

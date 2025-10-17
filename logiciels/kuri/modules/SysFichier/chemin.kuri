@@ -67,7 +67,7 @@ extension :: fonc (chemin: CheminFichier) -> chaine
     retourne sous_chaine(résultat, pos, résultat.taille)
 }
 
-nom_fichier :: fonc (chemin: &CheminFichier) -> chaine
+nom_fichier :: fonc (chemin: CheminFichier) -> chaine
 {
     résultat := nom_fichier_avec_extension(chemin)
 
