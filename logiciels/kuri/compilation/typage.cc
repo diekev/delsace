@@ -28,26 +28,6 @@
 /** \name Création de types de bases.
  * \{ */
 
-static TypeCompose *crée_type_eini()
-{
-    auto type = mémoire::loge<TypeCompose>("TypeCompose");
-    type->ident = ID::eini;
-    type->genre = GenreNoeud::EINI;
-    type->taille_octet = 16;
-    type->alignement = 8;
-    return type;
-}
-
-static TypeCompose *crée_type_chaine()
-{
-    auto type = mémoire::loge<TypeCompose>("TypeCompose");
-    type->ident = ID::chaine;
-    type->genre = GenreNoeud::CHAINE;
-    type->taille_octet = 16;
-    type->alignement = 8;
-    return type;
-}
-
 static Type *crée_type_entier(IdentifiantCode *ident, unsigned taille_octet, bool est_naturel)
 {
     auto type = mémoire::loge<Type>("Type");
@@ -410,9 +390,6 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_rien->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
                                  DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
 
-    type_eini = crée_type_eini();
-    type_chaine = crée_type_chaine();
-
     type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(*this, type_type_de_donnees_, nullptr);
 
@@ -422,19 +399,25 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     initialise_type_pointeur(type_ptr_nul, nullptr);
 
     auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur, 0});
+    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
-    rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info, 8});
+    rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info});
+    type_eini = alloc->m_noeuds_type_eini.ajoute_élément();
+    type_eini->ident = ID::eini;
     type_eini->rubriques = std::move(rubriques_eini);
     type_eini->nombre_de_rubriques_réelles = type_eini->rubriques.taille();
     type_eini->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    calcule_taille_type_composé(type_eini, false, 0);
 
     auto rubriques_chaine = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::pointeur, 0});
-    rubriques_chaine.ajoute({nullptr, type_z64, ID::taille, 8});
+    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::pointeur});
+    rubriques_chaine.ajoute({nullptr, type_z64, ID::taille});
+    type_chaine = alloc->m_noeuds_type_chaine.ajoute_élément();
+    type_chaine->ident = ID::chaine;
     type_chaine->rubriques = std::move(rubriques_chaine);
     type_chaine->nombre_de_rubriques_réelles = type_chaine->rubriques.taille();
     type_chaine->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    calcule_taille_type_composé(type_chaine, false, 0);
 }
 
 Typeuse::~Typeuse()
@@ -443,8 +426,6 @@ Typeuse::~Typeuse()
         mémoire::deloge("Type", ptr);
     }
 
-    mémoire::deloge("TypeCompose", type_chaine);
-    mémoire::deloge("TypeCompose", type_eini);
     mémoire::deloge("AllocatriceNoeud", alloc);
 }
 
@@ -1863,7 +1844,8 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
         type_union->taille_octet = taille_union;
         type_union->alignement = max_alignement;
     }
-    else if (type->est_type_structure() || type->est_type_tuple()) {
+    else if (type->est_type_structure() || type->est_type_tuple() || type->est_type_eini() ||
+             type->est_type_chaine()) {
         if (compacte) {
             calcule_taille_structure<true>(type, alignement_desire);
         }
