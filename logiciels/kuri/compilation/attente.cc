@@ -172,7 +172,7 @@ RAPPEL_POUR_EST_RÉSOLUE(déclaration)
     }
 
     // À FAIRE : est-ce nécessaire ?
-    if (déclaration_attendue == espace->compilatrice().interface_kuri->decl_creation_contexte) {
+    if (déclaration_attendue == espace->interface_kuri->decl_creation_contexte) {
         /* Pour crée_contexte, change l'attente pour attendre sur la RI corps car il
          * nous faut le code. */
         attente = Attente::sur_ri(&déclaration_attendue->comme_entête_fonction()->atome);

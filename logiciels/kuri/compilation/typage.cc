@@ -13,6 +13,7 @@
 #include "parsage/outils_lexemes.hh"
 
 #include "compilatrice.hh"
+#include "espace_de_travail.hh"
 #include "gestionnaire_code.hh"
 #include "graphe_dependance.hh"
 
@@ -448,25 +449,24 @@ Typeuse::~Typeuse()
     mémoire::deloge("AllocatriceNoeud", alloc);
 }
 
-void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice)
+void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace)
 {
     auto gestionnaire = compilatrice.gestionnaire_code;
-    auto espace = compilatrice.espace_de_travail_défaut;
 
     /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
      * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
      * autres pointeurs et les fonctions. */
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n8);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n16);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n32);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_n64);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z8);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z16);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z32);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_z64);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_ptr_rien);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_adresse_fonction);
-    gestionnaire->requiers_initialisation_type(espace, compilatrice.typeuse.type_tranche_octet);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_n8);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_n16);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_n32);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_n64);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_z8);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_z16);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_z32);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_z64);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_ptr_rien);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_adresse_fonction);
+    gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_tranche_octet);
 }
 
 Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)

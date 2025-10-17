@@ -128,9 +128,6 @@ class GestionnaireCode {
      */
     kuri::tableau<UniteCompilation *, int> unités_à_remettre_en_attente{};
 
-    kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
-    bool metaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
-
     struct InfoUnitéTemporisée {
         UniteCompilation *unité = nullptr;
         int cycles_à_temporiser = 0;
@@ -155,10 +152,6 @@ class GestionnaireCode {
 
     AllocatriceNoeud allocatrice_noeud{};
     AssembleuseArbre *m_assembleuse = nullptr;
-
-    /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
-     * typage_terminé. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
-    kuri::tableau<NoeudDéclarationEntêteFonction *> m_fonctions_parsées{};
 
     mutable StatistiquesGestion stats{};
 
@@ -277,7 +270,7 @@ class GestionnaireCode {
 
     NoeudBloc *crée_bloc_racine(Typeuse &typeuse);
 
-private:
+  private:
     void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
                                            OpérateurBinaire *opérateur_binaire);
 
@@ -314,12 +307,6 @@ private:
   public:
     /* Remplis les tâches. */
     void crée_tâches_pour_ordonnanceuse();
-
-  public:
-    const kuri::tableau<NoeudDéclarationEntêteFonction *> &fonctions_parsées() const
-    {
-        return m_fonctions_parsées;
-    }
 
     /* Appelé par la MachineVirtuelle quand l'interception de messages est terminée. Ceci notifie à
      * son tour la Messagère.
@@ -368,12 +355,10 @@ private:
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,
                                                       Programme *programme);
 
-    void tente_de_garantir_fonction_point_d_entrée(EspaceDeTravail *espace);
-
     void finalise_programme_avant_génération_code_machine(EspaceDeTravail *espace,
                                                           Programme *programme);
 
-    void flush_métaprogrammes_en_attente_de_crée_contexte();
+    void flush_métaprogrammes_en_attente_de_crée_contexte(EspaceDeTravail *espace);
 
     void garantie_typage_des_dépendances(DonnéesDépendance const &dépendances,
                                          EspaceDeTravail *espace);

@@ -405,6 +405,11 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         {
             auto type_fonction = type->comme_type_fonction();
 
+            // À FAIRE : infos type pour les types polymorphiques
+            if (type_fonction->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+                return nullptr;
+            }
+
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_élément();
             info_type->genre = GenreInfoType::FONCTION;
             info_type->taille_en_octet = type->taille_octet;
