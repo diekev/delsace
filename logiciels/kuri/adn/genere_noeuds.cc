@@ -1009,7 +1009,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = crée_info_type_pour(espace->compilatrice().typeuse, "
+            os << "\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
                   "racine_typee->type);\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
                   "(racine_typee->lexème) { n->nom = racine_typee->lexème->chaine; }\n";
@@ -1024,7 +1024,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\tconst auto lexeme = racine->lexème;\n";
         os << "\t// lexeme peut-être nul pour les blocs\n";
         os << "\tif (lexeme) {\n";
-        os << "\t\tconst auto fichier = espace->compilatrice().fichier(lexeme->fichier);\n";
+        os << "\t\tconst auto fichier = espace->fichier(lexeme->fichier);\n";
         os << "\t\tnoeud->chemin_fichier = fichier->chemin();\n";
         os << "\t\tnoeud->nom_fichier = fichier->nom();\n";
         os << "\t\tnoeud->numero_ligne = lexeme->ligne + 1;\n";
@@ -1146,7 +1146,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = convertis_info_type(espace->compilatrice().typeuse, "
+            os << "\t\t\tn->type = convertis_info_type(espace->typeuse, "
                   "racine_typee->type);\n";
 
             os << "\t\t\tnoeud = n;\n";
