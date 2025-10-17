@@ -54,7 +54,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
     métriques := donne_métriques_fonte(fonte)
     hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
     hauteur_élément = hauteur_de_ligne + 10
-    espaçage := donne_largeur_texte(fonte, "0")
+    espaçage := donne_largeur_texte(fonte, "0") comme z32
 
     panneau.éléments_visibles.taille = 0
 
@@ -82,7 +82,7 @@ ajourne_rect_élément :: fonc (panneau: *PanneauArborescence, élément: *Panne
     tableau_ajoute(*panneau.éléments_visibles, élément)
 
     élément.rect = rect_élément
-    élément.rect.largeur = donne_largeur_texte(fonte, élément.texte) + 2 * espaçage + rect_bouton.largeur + espaçage
+    élément.rect.largeur = donne_largeur_texte(fonte, élément.texte) comme z32 + 2 * espaçage + rect_bouton.largeur + espaçage
 
     élément.rect_bouton = rect_bouton
     élément.rect_bouton.x = élément.rect.x + espaçage

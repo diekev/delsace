@@ -91,7 +91,7 @@ principale :: fonc ()
         rect_texte.x = 10
         rect_texte.hauteur = 30
         rect_texte.y = hauteur comme r32 - rect_texte.hauteur
-        rect_texte.largeur = donne_largeur_texte(fonte, texte) comme r32
+        rect_texte.largeur = donne_largeur_texte(fonte, texte)
         dessine_texte(peintre, fonte, texte, rect_texte, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 
         peintre.termine_dessin()
