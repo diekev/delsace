@@ -437,7 +437,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
             if (expr->type->est_type_entier_constant() &&
                 inst->transformation.type == TypeTransformation::ENTIER_VERS_POINTEUR) {
-                expr->type = typeuse.type_z64;
+                expr->type = typeuse.type_entier_vers_pointeur;
                 return inst;
             }
 
@@ -674,8 +674,12 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                     appel->lexème, ref_rubrique, appel->paramètres_résolus[0]);
                 ajoute_expression(assignation);
 
+                auto type_chaine = typeuse.type_chaine;
+                auto rubrique_taille = type_chaine->rubriques[1];
+                auto type_taille = rubrique_taille.type;
+
                 ref_rubrique = assem->crée_référence_rubrique(
-                    appel->lexème, ref_temporaire, typeuse.type_z64, 1);
+                    appel->lexème, ref_temporaire, type_taille, 1);
                 assignation = assem->crée_assignation_variable(
                     appel->lexème, ref_rubrique, appel->paramètres_résolus[1]);
                 ajoute_expression(assignation);
@@ -1282,20 +1286,23 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
 
             /* condition */
             auto expr_taille = NoeudExpression::nul();
+            auto type_taille_tableau = typeuse.type_taille_tableau;
 
             if (type_itéré->est_type_tableau_fixe()) {
                 auto taille_tableau = type_itéré->comme_type_tableau_fixe()->taille;
                 expr_taille = assem->crée_littérale_entier(
-                    inst->lexème, typeuse.type_z64, static_cast<uint64_t>(taille_tableau));
+                    inst->lexème, type_taille_tableau, static_cast<uint64_t>(taille_tableau));
             }
             else {
                 expr_taille = assem->crée_référence_rubrique(
-                    inst->lexème, expression_iteree, typeuse.type_z64, 1);
+                    inst->lexème, expression_iteree, type_taille_tableau, 1);
             }
 
-            auto type_z64 = typeuse.type_z64;
             condition->condition = assem->crée_expression_binaire(
-                inst->lexème, type_z64->table_opérateurs->opérateur_seg, ref_index, expr_taille);
+                inst->lexème,
+                type_taille_tableau->table_opérateurs->opérateur_seg,
+                ref_index,
+                expr_taille);
 
             auto expr_pointeur = NoeudExpression::nul();
 
@@ -1773,8 +1780,9 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
         {
             /* x -> x.taille != 0 */
             auto ref_taille = assem->crée_référence_rubrique(
-                expression->lexème, expression, typeuse.type_z64, 1);
-            auto zéro = assem->crée_littérale_entier(expression->lexème, typeuse.type_z64, 0);
+                expression->lexème, expression, typeuse.type_taille_tableau, 1);
+            auto zéro = assem->crée_littérale_entier(
+                expression->lexème, typeuse.type_taille_tableau, 0);
             auto op = zéro->type->table_opérateurs->opérateur_dif;
             return assem->crée_expression_binaire(expression->lexème, op, ref_taille, zéro);
         }
@@ -2539,23 +2547,24 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
     // ptr - ptr => (ptr comme z64 - ptr comme z64) / taille_de(type_pointé)
     if (type1->est_type_pointeur() && type2->est_type_pointeur()) {
-        auto type_z64 = typeuse.type_z64;
+        auto type_pointeur_vers_entier = typeuse.type_pointeur_vers_entier;
         auto soustraction = assem->crée_expression_binaire(
             expr_bin->lexème,
-            type_z64->table_opérateurs->opérateur_sst,
-            comme_type(expr_bin->opérande_gauche, type_z64),
-            comme_type(expr_bin->opérande_droite, type_z64));
+            type_pointeur_vers_entier->table_opérateurs->opérateur_sst,
+            comme_type(expr_bin->opérande_gauche, type_pointeur_vers_entier),
+            comme_type(expr_bin->opérande_droite, type_pointeur_vers_entier));
 
         auto substitution = soustraction;
 
         auto type_pointé = type2->comme_type_pointeur()->type_pointé;
         if (type_pointé->taille_octet != 1) {
-            auto taille_de = assem->crée_littérale_entier(
-                expr_bin->lexème, type_z64, std::max(type_pointé->taille_octet, 1u));
+            auto taille_de = assem->crée_littérale_entier(expr_bin->lexème,
+                                                          type_pointeur_vers_entier,
+                                                          std::max(type_pointé->taille_octet, 1u));
 
             substitution = assem->crée_expression_binaire(
                 expr_bin->lexème,
-                type_z64->table_opérateurs->opérateur_div,
+                type_pointeur_vers_entier->table_opérateurs->opérateur_div,
                 soustraction,
                 taille_de);
         }
