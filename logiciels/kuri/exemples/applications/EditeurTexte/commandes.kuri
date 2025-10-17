@@ -127,11 +127,19 @@ commande_ouvrir_fichier :: fonc (anonyme: *Anonyme)
 commande_sélectionne_fichier_suivant :: fonc (anonyme: *Anonyme)
 {
     anonyme.fichier_sélectionné += 1
+    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    si anonyme.fichier_sélectionné >= fichiers.taille {
+        anonyme.fichier_sélectionné = 0
+    }
 }
 
 commande_sélectionne_fichier_précédent :: fonc (anonyme: *Anonyme)
 {
     anonyme.fichier_sélectionné -= 1
+    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    si anonyme.fichier_sélectionné < 0 {
+        anonyme.fichier_sélectionné = fichiers.taille - 1
+    }
 }
 
 commande_ouvre_fichier_sélectionné :: fonc (anonyme: *Anonyme)
