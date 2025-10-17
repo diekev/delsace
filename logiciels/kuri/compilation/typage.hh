@@ -230,6 +230,12 @@ struct Typeuse {
 
     NoeudDéclarationType *type_tranche_octet = nullptr;
 
+    NoeudDéclarationType *type_entier_vers_pointeur_nat = nullptr;
+    NoeudDéclarationType *type_entier_vers_pointeur = nullptr;
+    NoeudDéclarationType *type_taille_tableau = nullptr;
+    NoeudDéclarationType *type_pointeur_vers_entier = nullptr;
+    NoeudDéclarationType *type_indexage = nullptr;
+
   private:
     std::mutex mutex_infos_types_vers_types{};
     kuri::table_hachage<InfoType const *, Type const *> m_infos_types_vers_types{""};

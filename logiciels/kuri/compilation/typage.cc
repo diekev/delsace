@@ -414,6 +414,12 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_chaine->nombre_de_rubriques_réelles = type_chaine->rubriques.taille();
     type_chaine->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
     calcule_taille_type_composé(type_chaine, false, 0);
+
+    type_entier_vers_pointeur_nat = type_n64;
+    type_entier_vers_pointeur = type_z64;
+    type_taille_tableau = type_z64;
+    type_pointeur_vers_entier = type_z64;
+    type_indexage = type_z64;
 }
 
 Typeuse::~Typeuse()
