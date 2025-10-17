@@ -71,24 +71,24 @@ static Type *crée_type_bool()
     return type;
 }
 
-static Type *crée_type_adresse_fonction()
+static Type *crée_type_adresse_fonction(Typeuse &typeuse)
 {
     auto type = mémoire::loge<Type>("Type");
     type->ident = ID::adresse_fonction;
     type->genre = GenreNoeud::TYPE_ADRESSE_FONCTION;
-    type->taille_octet = 8;
-    type->alignement = 8;
+    type->taille_octet = typeuse.type_taille_nat->taille_octet;
+    type->alignement = typeuse.type_taille_nat->alignement;
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
     return type;
 }
 
 /** \} */
 
-static void initialise_type_pointeur(TypePointeur *résultat, Type *type_pointe_)
+static void initialise_type_pointeur(Typeuse &typeuse, TypePointeur *résultat, Type *type_pointe_)
 {
     résultat->type_pointé = type_pointe_;
-    résultat->taille_octet = 8;
-    résultat->alignement = 8;
+    résultat->taille_octet = typeuse.type_taille_nat->taille_octet;
+    résultat->alignement = typeuse.type_taille_nat->alignement;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
     if (type_pointe_) {
@@ -100,13 +100,15 @@ static void initialise_type_pointeur(TypePointeur *résultat, Type *type_pointe_
     }
 }
 
-static void initialise_type_référence(TypeReference *résultat, Type *type_pointe_)
+static void initialise_type_référence(Typeuse &typeuse,
+                                      TypeReference *résultat,
+                                      Type *type_pointe_)
 {
     assert(type_pointe_);
 
     résultat->type_pointé = type_pointe_;
-    résultat->taille_octet = 8;
-    résultat->alignement = 8;
+    résultat->taille_octet = typeuse.type_taille_nat->taille_octet;
+    résultat->alignement = typeuse.type_taille_nat->alignement;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
     if (type_pointe_->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
@@ -116,7 +118,8 @@ static void initialise_type_référence(TypeReference *résultat, Type *type_poi
     type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_REFERENCE;
 }
 
-static void initialise_type_fonction(TypeFonction *résultat,
+static void initialise_type_fonction(Typeuse &typeuse,
+                                     TypeFonction *résultat,
                                      kuri::tablet<Type *, 6> const &entrees,
                                      Type *sortie)
 {
@@ -126,8 +129,8 @@ static void initialise_type_fonction(TypeFonction *résultat,
     }
 
     résultat->type_sortie = sortie;
-    résultat->taille_octet = 8;
-    résultat->alignement = 8;
+    résultat->taille_octet = typeuse.type_taille_nat->taille_octet;
+    résultat->alignement = typeuse.type_taille_nat->alignement;
     marque_polymorphique(résultat);
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 }
@@ -164,9 +167,8 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
     résultat->rubriques = std::move(rubriques_);
     résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
     résultat->type_pointé = type_pointe_;
-    résultat->taille_octet = 24;
-    résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    calcule_taille_type_composé(résultat, false, 0);
 
     if (type_pointe_->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
@@ -184,9 +186,8 @@ static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
     résultat->rubriques = std::move(rubriques_);
     résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
     résultat->type_élément = type_élément;
-    résultat->taille_octet = 16;
-    résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    calcule_taille_type_composé(résultat, false, 0);
 
     if (type_élément->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
@@ -207,9 +208,8 @@ static void initialise_type_variadique(TypeVariadique *résultat,
 
     résultat->rubriques = std::move(rubriques_);
     résultat->nombre_de_rubriques_réelles = résultat->rubriques.taille();
-    résultat->taille_octet = 16;
-    résultat->alignement = 8;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
+    calcule_taille_type_composé(résultat, false, 0);
 }
 
 static void initialise_type_type_de_données(Typeuse &typeuse,
@@ -217,10 +217,10 @@ static void initialise_type_type_de_données(Typeuse &typeuse,
                                             Type *type_connu_)
 {
     résultat->ident = ID::type_de_données;
-    résultat->type_code_machine = typeuse.type_z64;
+    résultat->type_code_machine = typeuse.type_taille_rel;
     // un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
-    résultat->taille_octet = 8;
-    résultat->alignement = 8;
+    résultat->taille_octet = résultat->type_code_machine->taille_octet;
+    résultat->alignement = résultat->type_code_machine->alignement;
     résultat->type_connu = type_connu_;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
@@ -305,10 +305,6 @@ static Type *crée_type_pour_lexeme(GenreLexème lexeme)
         {
             return crée_type_rien();
         }
-        case GenreLexème::ADRESSE_FONCTION:
-        {
-            return crée_type_adresse_fonction();
-        }
         default:
         {
             return nullptr;
@@ -371,7 +367,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_nbr_rel = crée_opaque_défaut(type_z32, ID::nbr_rel);
     type_nbf_flt = crée_opaque_défaut(type_r32, ID::nbf_flt);
 
-    type_adresse_fonction = crée_type_pour_lexeme(GenreLexème::ADRESSE_FONCTION);
+    type_adresse_fonction = crée_type_adresse_fonction(*this);
     types_simples->ajoute(type_adresse_fonction);
 
     type_tranche_octet = crée_type_tranche(type_octet, true);
@@ -396,7 +392,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
     type_ptr_nul = alloc->m_noeuds_type_pointeur.ajoute_élément();
-    initialise_type_pointeur(type_ptr_nul, nullptr);
+    initialise_type_pointeur(*this, type_ptr_nul, nullptr);
 
     auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur});
@@ -544,7 +540,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
     }
 
     auto résultat = alloc->m_noeuds_type_pointeur.ajoute_élément();
-    initialise_type_pointeur(résultat, type);
+    initialise_type_pointeur(*this, résultat, type);
 
     if (insere_dans_graphe) {
         auto graphe = graphe_.verrou_ecriture();
@@ -576,7 +572,7 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
     }
 
     auto résultat = alloc->m_noeuds_type_référence.ajoute_élément();
-    initialise_type_référence(résultat, type);
+    initialise_type_référence(*this, résultat, type);
 
     auto graphe = graphe_.verrou_ecriture();
     graphe->connecte_type_type(résultat, type);
@@ -654,9 +650,9 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
-    rubriques.ajoute({nullptr, type_z64, ID::capacite, 16});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_z64, ID::taille});
+    rubriques.ajoute({nullptr, type_z64, ID::capacite});
 
     auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
     initialise_type_tableau_dynamique(type, type_pointe, std::move(rubriques));
@@ -685,8 +681,8 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur});
+    rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
     initialise_type_tranche(type, type_élément, std::move(rubriques));
@@ -712,8 +708,8 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur, 0});
-    rubriques.ajoute({nullptr, type_z64, ID::taille, 8});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();
     initialise_type_variadique(type, type_pointe, std::move(rubriques));
@@ -768,7 +764,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Typ
 
     /* Créons un nouveau type. */
     auto type = alloc->m_noeuds_type_fonction.ajoute_élément();
-    initialise_type_fonction(type, entrees, type_sortie);
+    initialise_type_fonction(*this, type, entrees, type_sortie);
 
     /* Insère le type dans le Trie. */
     auto noeud = std::get<Trie::Noeud *>(candidat);
@@ -1844,8 +1840,7 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
         type_union->taille_octet = taille_union;
         type_union->alignement = max_alignement;
     }
-    else if (type->est_type_structure() || type->est_type_tuple() || type->est_type_eini() ||
-             type->est_type_chaine()) {
+    else {
         if (compacte) {
             calcule_taille_structure<true>(type, alignement_desire);
         }
