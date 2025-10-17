@@ -814,8 +814,6 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_LOGUE_RETOUR:
         case OP_LOGUE_SORTIES:
         case OP_RETOURNE:
-        case OP_VÉRIFIE_CIBLE_BRANCHE:
-        case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
         case OP_PROFILE_DÉBUTE_APPEL:
         case OP_PROFILE_TERMINE_APPEL:
         case OP_INATTEIGNABLE:
@@ -962,8 +960,13 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_NOTIFIE_DÉPILAGE_VALEUR:
         case OP_NOTIFIE_EMPILAGE_VALEUR:
         case OP_SÉLECTION:
+        case OP_VÉRIFIE_CIBLE_BRANCHE:
         {
             return instruction_1d<int>(chunk, décalage, os);
+        }
+        case OP_VÉRIFIE_CIBLE_BRANCHE_CONDITION:
+        {
+            return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_APPEL_POINTEUR:
         {
@@ -991,7 +994,14 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         }
         case OP_VÉRIFIE_CIBLE_APPEL:
         {
-            return instruction_2d<int, int64_t>(chunk, décalage, os);
+            auto décalage_est_pointeur = décalage + 1;
+            auto est_pointeur = DésassembleuseValeur<bool>::donne_valeur(chunk,
+                                                                         décalage_est_pointeur);
+            if (est_pointeur) {
+                return instruction_1d<bool>(chunk, décalage, os);
+            }
+
+            return instruction_2d<bool, int64_t>(chunk, décalage, os);
         }
         case OP_APPEL:
         {
