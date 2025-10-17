@@ -712,7 +712,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto chaine = dépile<kuri::chaine_statique>();
         auto espace = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_chaine_compilation(espace, site, chaine);
+        auto espace_pour_site = m_métaprogramme->unité->espace;
+        compilatrice.ajoute_chaine_compilation(espace, espace_pour_site, site, chaine);
         return;
     }
 
@@ -732,7 +733,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace = dépile<EspaceDeTravail *>();
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_chaine_au_module(espace, site, module, chaine);
+        auto espace_pour_site = m_métaprogramme->unité->espace;
+        compilatrice.ajoute_chaine_au_module(espace, espace_pour_site, site, module, chaine);
         return;
     }
 
@@ -845,7 +847,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
         auto const site = donne_site_adresse_courante();
-        auto fichier = compilatrice.fichier(site->lexème->fichier);
+        auto espace = m_métaprogramme->unité->espace;
+        auto fichier = espace->fichier(site->lexème->fichier);
         auto module = fichier->module;
         empile(module);
         return;
@@ -868,7 +871,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
         auto code = dépile<NoeudCode *>();
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
-        const auto fichier = compilatrice.fichier(code->chemin_fichier);
+        auto espace = m_métaprogramme->unité->espace;
+        const auto fichier = espace->fichier(code->chemin_fichier);
         RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
         const auto module = fichier->module;
         empile(module);
@@ -878,12 +882,13 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_type)) {
         auto info_type = dépile<InfoType *>();
         RAPPORTE_ERREUR_SI_NUL(info_type, "Reçu un InfoType nul");
-        const auto decl = compilatrice.typeuse.decl_pour_info_type(info_type);
+        auto espace = m_métaprogramme->unité->espace;
+        const auto decl = espace->typeuse.decl_pour_info_type(info_type);
         if (!decl) {
             empile(nullptr);
             return;
         }
-        const auto fichier = compilatrice.fichier(decl->lexème->fichier);
+        const auto fichier = espace->fichier(decl->lexème->fichier);
         if (!fichier) {
             empile(nullptr);
             return;
@@ -1133,7 +1138,7 @@ void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
     frames = de->frames;
     ptr_données_constantes = métaprogramme->données_constantes.données();
     ptr_données_globales = métaprogramme->données_globales.données();
-    données_constantes = &compilatrice.données_constantes_exécutions;
+    données_constantes = &métaprogramme->unité->espace->données_constantes_exécutions;
 
     intervalle_adresses_globales.min = ptr_données_globales;
     intervalle_adresses_globales.max = ptr_données_globales +
@@ -2179,8 +2184,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
                                 taille,
                                 " octets alors que la dernière taille empilée était de ",
                                 données.taille,
-                                "\nNOTE : l'empilage fut fait ici: ",
+                                "\nNOTE : l'empilage fut fait ici : ",
                                 chaine_site_empilage,
+                                "\n",
+                                "\nNOTE : le pointeur programme est au déalage : ",
+                                frame->pointeur - frame->fonction->données_exécution->chunk.code,
                                 "\n");
         rapporte_erreur_exécution(message);
         return RésultatInterprétation::ERREUR;

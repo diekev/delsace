@@ -590,9 +590,11 @@ SyntaxeuseRI::SyntaxeuseRI(Fichier *fichier,
                            Typeuse &typeuse,
                            RegistreSymboliqueRI &registre,
                            PrésyntaxeuseRI &pré_syntaxeuse)
-    : BaseSyntaxeuseRI(fichier), m_typeuse(typeuse), m_constructrice(typeuse, registre),
-      m_présyntaxeuse(&pré_syntaxeuse)
+    : BaseSyntaxeuseRI(fichier), m_typeuse(typeuse), m_présyntaxeuse(&pré_syntaxeuse)
 {
+    m_constructrice.m_typeuse = &typeuse;
+    m_constructrice.m_registre = &registre;
+
     auto données_préparsage = pré_syntaxeuse.donne_données_préparsage();
     POUR (données_préparsage->structures) {
         crée_type_préparsé(it.données_types_nominal, GenreNoeud::DÉCLARATION_STRUCTURE);
