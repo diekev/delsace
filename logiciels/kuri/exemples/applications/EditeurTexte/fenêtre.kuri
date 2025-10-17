@@ -47,15 +47,29 @@ RaccourciCommande :: struct {
     contexte: chaine
 }
 
-donne_raccourci_pour_évènement :: fonc (projet: *Projet, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
 {
-    pour * projet.raccourcis {
-        si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.touche == évènement.touche && it.contexte == contexte {
-            retourne it
+    liste := *anonyme.raccourcis
+    si anonyme.projet_ouvert {
+        liste = *anonyme.projet_ouvert.raccourcis
+    }
+
+    tantque liste {
+        pour * liste.raccourcis {
+            si it.raccourci.modificateur == évènement.modificateurs && it.raccourci.touche == évènement.touche && it.contexte == contexte {
+                retourne it
+            }
         }
+
+        liste = liste.parent
     }
 
     retourne nul
+}
+
+ListeRaccourcis :: struct {
+    parent: *ListeRaccourcis
+    raccourcis: [..]RaccourciCommande
 }
 
 Projet :: struct {
@@ -65,10 +79,10 @@ Projet :: struct {
     /* Commandes de compilation. */
     commandes_de_compilation: [..]InfoCompilation
 
-    raccourcis: [..]RaccourciCommande
+    raccourcis: ListeRaccourcis
 
     /* Mémoire vive. */
-    info_projet: InfoProjet
+    info_projet: InfoVisiteFichier
     fichiers_disponibles: [..]InfoVisiteFichier
 }
 
@@ -80,8 +94,10 @@ InfoCompilation :: struct {
 info_fichier_config: InfoFichier
 info_config_projet: InfoFichier
 
-parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, projet: *Projet)
+parse_config_depuis_fichier :: fonc (anonyme: *Anonyme, chemin: chaine, projet: *Projet, raccourcis: *ListeRaccourcis)
 {
+    lexeuse := *anonyme.lexeuse
+
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_config
     lexeuse.ponctuations = __ponctuation_config
     lexeuse.mots_clés = __mots_clés_config
@@ -93,26 +109,26 @@ parse_config_depuis_fichier :: fonc (empl anonyme: *Anonyme, chemin: chaine, pro
     }
     diffère déloge(contenu)
 
-    initialise_lexeuse_pour_texte(*lexeuse, contenu)
+    initialise_lexeuse_pour_texte(lexeuse, contenu)
 
-    tantque !fini(*lexeuse) {
-        consomme_ponctuation(*lexeuse, "[[")
+    tantque !fini(lexeuse) {
+        consomme_ponctuation(lexeuse, "[[")
 
-        lexème := donne_lexème_suivant(*lexeuse)
+        lexème := donne_lexème_suivant(lexeuse)
 
-        consomme_ponctuation(*lexeuse, "]]")
+        consomme_ponctuation(lexeuse, "]]")
 
         si lexème.est_mot_clé("paramètres") {
-            parse_paramètres(*lexeuse)
+            parse_paramètres(lexeuse)
         }
         sinon si lexème.est_mot_clé("espace") {
-            parse_espace_de_travail(*lexeuse, projet)
+            parse_espace_de_travail(lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("compilation") {
-            parse_commandes_compilation(*lexeuse, projet)
+            parse_commandes_compilation(lexeuse, projet)
         }
         sinon si lexème.est_mot_clé("raccourcis") {
-            parse_raccourcis(*lexeuse, projet)
+            parse_raccourcis(lexeuse, raccourcis)
         }
         sinon {
             imprimeln("catégorie inconnue : %", lexème.donne_texte())
@@ -234,7 +250,7 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
     }
 }
 
-parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
+parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, raccourcis: *ListeRaccourcis)
 {
     contexte_courant := ""
 
@@ -268,14 +284,14 @@ parse_raccourcis :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
             imprimeln("Commande inconnue '%'", lexème.donne_texte())
         }
 
-        raccourci_commande := tableau_ajoute_élément(*projet.raccourcis)
+        raccourci_commande := tableau_ajoute_élément(*raccourcis.raccourcis)
         raccourci_commande.raccourci = raccourci
         raccourci_commande.commande = commande
         raccourci_commande.contexte = copie_chaine(contexte_courant)
     }
 }
 
-donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
+donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
 {
     résultat: RaccourciClavier
 
@@ -361,43 +377,50 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> RaccourciClavier, bool
     retourne résultat, vrai
 }
 
-ajourne_configuration :: fonc (anonyme: *Anonyme, chemin_config_projet: chaine, projet: *Projet)
+ajourne_configuration :: fonc (anonyme: *Anonyme)
 {
     chemin_config_globale := "globale.config-éditeur"
 
     info := donne_info_fichier(chemin_config_globale)
     si info.taille != info_fichier_config.taille || info.modification != info_fichier_config.modification {
-        parse_config_depuis_fichier(anonyme, chemin_config_globale, projet)
+        parse_config_depuis_fichier(anonyme, chemin_config_globale, nul, *anonyme.raccourcis)
         info_fichier_config = info
     }
 
-    si chemin_config_projet {
+    si anonyme.projet_ouvert {
+        projet := anonyme.projet_ouvert
+        chemin_config_projet := projet.info_projet.chemin
+        projet.raccourcis.parent = *anonyme.raccourcis
         info = donne_info_fichier(chemin_config_projet)
         si info.taille != info_config_projet.taille || info.modification != info_config_projet.modification {
-            parse_config_depuis_fichier(anonyme, chemin_config_projet, projet)
+            parse_config_depuis_fichier(anonyme, chemin_config_projet, projet, *projet.raccourcis)
             info_config_projet = info
         }
     }
-}
-
-InfoProjet :: struct {
-    nom_court: chaine
-    chemin_config: chaine
 }
 
 CheminsAnonyme :: struct {
     projets_utilisateur: CheminFichier
 }
 
+SélecteurFichier :: struct {
+    fichiers_filtrés: [..]InfoVisiteFichier
+    fichier_sélectionné: z64
+}
+
 Anonyme :: struct {
     chemins: CheminsAnonyme
-    infos_projets: [..]InfoProjet
+    infos_projets: [..]InfoVisiteFichier
 
+    raccourcis: ListeRaccourcis
     projet_ouvert: *Projet
 
     État :: énum {
+        DÉMARRAGE
         ÉDITION
         OUVERTURE_FICHIER
+        OUVERTURE_PROJET
+        PROJET_OUVERT
     }
     état: État
 
@@ -410,8 +433,8 @@ Anonyme :: struct {
     /* Pour la sélection de fichier. */
     éditrice_sélection_fichier: ÉditriceTexte
     rappels_édition_texte: RappelsÉditionTexteSélecteurFichier
-    fichiers_filtrés: [..]InfoVisiteFichier
-    fichier_sélectionné: z64
+    sélecteur_fichier_projet: SélecteurFichier
+    sélecteur_projet: SélecteurFichier
 
     /* XXX - supprime ça */
     textes_alloués_par_image: [..]chaine
@@ -435,10 +458,13 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
 
     charge_infos_projets :: fonc (info_fichier: InfoVisiteFichier, anonyme: *Anonyme) -> DécisionVisiteFichier
     {
-        info_projet := tableau_ajoute_élément(*anonyme.infos_projets)
-        info_projet.chemin_config = copie_chaine(info_fichier.chemin)
-        info_projet.nom_court = CheminFichier(info_projet.chemin_config).nom_fichier()
-
+        // À FAIRE : exclusions de fichiers
+        saufsi info_fichier.est_dossier {
+            info := tableau_ajoute_élément(*anonyme.infos_projets)
+            mémoire(info) = info_fichier
+            info.nom = copie_chaine(info.nom)
+            info.chemin = copie_chaine(info.chemin)
+        }
         retourne DécisionVisiteFichier.Continue
     }
 
@@ -450,9 +476,9 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
     // À FAIRE : fermeture du projet courant
     assert(anonyme.projet_ouvert == nul)
 
-    info_projet: InfoProjet
+    info_projet: InfoVisiteFichier
     pour anonyme.infos_projets {
-        si nom == it.nom_court {
+        si nom == it.nom {
             info_projet = it
             arrête
         }
@@ -462,11 +488,12 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
         retourne faux
     }
 
-    projet := loge(Projet)
+    anonyme.projet_ouvert = loge(Projet)
+    anonyme.projet_ouvert.info_projet = info_projet
 
     /* Ajourne les configuration. */
-    imprimeln("Ouverture de '%'", info_projet.chemin_config)
-    ajourne_configuration(anonyme, info_projet.chemin_config, projet)
+    imprimeln("Ouverture de '%'", info_projet.chemin)
+    ajourne_configuration(anonyme)
 
     /* Charge la liste de fichiers du projet. */
     charge_fichiers_projets :: fonc (info_fichier: InfoVisiteFichier, projet: *Projet) -> DécisionVisiteFichier
@@ -482,22 +509,18 @@ ouvre_projet :: fonc (anonyme: *Anonyme, nom: chaine) -> bool
     }
 
     // À FAIRE : protection contre les doublons
-    pour projet.chemins {
-        visite_fichiers(it, vrai, projet, charge_fichiers_projets)
+    pour anonyme.projet_ouvert.chemins {
+        visite_fichiers(it, vrai, anonyme.projet_ouvert, charge_fichiers_projets)
     }
 
-    projet.info_projet = info_projet
-
-    anonyme.projet_ouvert = projet
-
-    imprimeln("Projet '%' ouvert", info_projet.nom_court)
+    imprimeln("Projet '%' ouvert", info_projet.nom)
 
     retourne vrai
 }
 
 donne_contexte_pour_raccourci :: fonc (anonyme: *Anonyme) -> chaine
 {
-    si anonyme.état == Anonyme.État.ÉDITION {
+    si anonyme.projet_ouvert && anonyme.état == Anonyme.État.ÉDITION {
         retourne "édition"
     }
 
@@ -505,16 +528,45 @@ donne_contexte_pour_raccourci :: fonc (anonyme: *Anonyme) -> chaine
         retourne "ouverture_fichier"
     }
 
+    si anonyme.état == Anonyme.État.OUVERTURE_PROJET {
+        retourne "ouverture_projet"
+    }
+
     retourne ""
 }
 
 donne_fichiers_pour_sélecteur :: fonc (anonyme: *Anonyme) -> []InfoVisiteFichier
 {
-    fichiers := anonyme.projet_ouvert.fichiers_disponibles
-    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER && anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() != 0 {
-        fichiers = anonyme.fichiers_filtrés
+    résultat: []InfoVisiteFichier
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        si anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() {
+            résultat = anonyme.sélecteur_fichier_projet.fichiers_filtrés
+        }
+        sinon {
+            résultat = anonyme.projet_ouvert.fichiers_disponibles
+        }
     }
-    retourne fichiers
+    sinon si anonyme.état == Anonyme.État.OUVERTURE_PROJET {
+        si anonyme.éditrice_sélection_fichier.texte_à_éditer.taille() {
+            résultat = anonyme.sélecteur_projet.fichiers_filtrés
+        }
+        sinon {
+            résultat = anonyme.infos_projets
+        }
+    }
+    retourne résultat
+}
+
+donne_sélecteur :: fonc (anonyme: *Anonyme) -> *SélecteurFichier
+{
+    résultat: *SélecteurFichier
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        résultat = *anonyme.sélecteur_fichier_projet
+    }
+    sinon si anonyme.état == Anonyme.État.OUVERTURE_PROJET {
+        résultat = *anonyme.sélecteur_projet
+    }
+    retourne résultat
 }
 
 principale :: fonc ()
@@ -522,11 +574,7 @@ principale :: fonc ()
     anonyme: Anonyme
     initialise_anonyme(*anonyme)
 
-    _ := ouvre_projet(*anonyme, "kuri")
-
     fenêtre := crée_fenêtre(800, 600, "Éditeur Texte", vrai)
-
-    éditeur_ouvre(*anonyme.éditeur, copie_chaine("éditeur.kuri"))
 
     doit_fermer := faux
 
@@ -534,7 +582,7 @@ principale :: fonc ()
 
     tantque !doit_fermer {
         si tics_fichier % 60 == 0 {
-            ajourne_configuration(*anonyme, anonyme.projet_ouvert.info_projet.chemin_config, anonyme.projet_ouvert)
+            ajourne_configuration(*anonyme)
         }
         tics_fichier += 1
 
@@ -550,17 +598,17 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier {
                 si it.touche_pressée {
-                    raccourci_commande := donne_raccourci_pour_évènement(anonyme.projet_ouvert, it, donne_contexte_pour_raccourci(*anonyme))
+                    raccourci_commande := donne_raccourci_pour_évènement(*anonyme, it, donne_contexte_pour_raccourci(*anonyme))
                     si raccourci_commande {
                         raccourci_commande.commande(*anonyme)
                     }
-                    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+                    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER || anonyme.état == Anonyme.État.OUVERTURE_PROJET {
                         si it.touche == ToucheClavier.ENTRÉE {
                             continue
                         }
                         sur_touche_clavier(*anonyme.éditrice_sélection_fichier, InfoToucheClavier(it.touche, it.texte))
                     }
-                    sinon si it.texte != "" {
+                    sinon si anonyme.état == Anonyme.État.ÉDITION && it.texte != "" {
                         éditeur_insère_texte(*anonyme.éditeur, it.texte)
                     }
                 }
@@ -603,7 +651,7 @@ crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> Comma
 {
     commence_disposition(*anonyme.emboiteuse, largeur, hauteur)
 
-    si anonyme.état == Anonyme.État.ÉDITION {
+    si anonyme.projet_ouvert && anonyme.état == Anonyme.État.ÉDITION {
         dispose_rectangle()
         {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
@@ -623,7 +671,7 @@ crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> Comma
         }
         termine_rectangle()
     }
-    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+    sinon si anonyme.état == Anonyme.État.OUVERTURE_FICHIER || anonyme.état == Anonyme.État.OUVERTURE_PROJET {
         dispose_rectangle()
         {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
@@ -636,6 +684,30 @@ crée_interface :: fonc (anonyme: *Anonyme, largeur: z32, hauteur: z32) -> Comma
                 dessine_sélecteur_fichier(anonyme)
             }
             termine_rectangle()
+        }
+        termine_rectangle()
+    }
+    sinon si anonyme.état == Anonyme.État.PROJET_OUVERT {
+        dispose_rectangle()
+        {
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_alignement(AlignementEnfant.Milieu)
+            définis_arrière_plan(thème.arrière_plan)
+
+            config_texte := ConfigurationTexte(anonyme.fonte, thème.texte)
+            dispose_texte("Utiliser Ctrl-O pour ouvrir un fichier", config_texte)
+        }
+        termine_rectangle()
+    }
+    sinon {
+        dispose_rectangle()
+        {
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_alignement(AlignementEnfant.Milieu)
+            définis_arrière_plan(thème.arrière_plan)
+
+            config_texte := ConfigurationTexte(anonyme.fonte, thème.texte)
+            dispose_texte("Utiliser Ctrl-P pour ouvrir un projet", config_texte)
         }
         termine_rectangle()
     }
@@ -749,7 +821,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
 
                         position_curseur := fonte.donne_largeur_texte(texte_avant_curseur)
 
-                        définis_flottance(position_curseur comme r32, (it * hauteur_ligne) comme r32)
+                        définis_flottance(position_curseur, (it * hauteur_ligne) comme r32)
 
                         texte_sous_curseur := avance(texte_ligne, anonyme.éditeur.cx)
                         si texte_sous_curseur.taille() {
@@ -859,21 +931,35 @@ initialise_édition_sélection_fichier :: fonc (rappels: *RappelsÉditionTexteS�
 
 sur_édition_sélection_fichier :: fonc (empl rappels: *RappelsÉditionTexteSélecteurFichier, texte: chaine)
 {
-    anonyme.fichiers_filtrés.taille = 0
+    sélecteur := donne_sélecteur(anonyme)
 
-    pour anonyme.projet_ouvert.fichiers_disponibles {
-        si it.nom.commence_par(texte) {
-            tableau_ajoute(*anonyme.fichiers_filtrés, it)
+    sélecteur.fichiers_filtrés.taille = 0
+
+    si anonyme.état == Anonyme.État.OUVERTURE_FICHIER {
+        pour anonyme.projet_ouvert.fichiers_disponibles {
+            si it.nom.commence_par(texte) {
+                tableau_ajoute(*sélecteur.fichiers_filtrés, it)
+            }
+        }
+    }
+    sinon {
+        assert(anonyme.état == Anonyme.État.OUVERTURE_PROJET)
+        pour anonyme.infos_projets {
+            si it.nom.commence_par(texte) {
+                tableau_ajoute(*sélecteur.fichiers_filtrés, it)
+            }
         }
     }
 }
 
 dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
 {
-    assert(projet_ouvert != nul)
+    assert(anonyme.état == Anonyme.État.OUVERTURE_FICHIER || anonyme.état == Anonyme.État.OUVERTURE_PROJET)
 
     config_texte := ConfigurationTexte(fonte, thème.texte)
     config_texte_sélectionné := ConfigurationTexte(fonte, thème.texte_sélectionné)
+
+    sélecteur := donne_sélecteur(anonyme)
 
     dispose_rectangle()
     {
@@ -896,7 +982,7 @@ dessine_sélecteur_fichier :: fonc (empl anonyme: *Anonyme)
                 arrête
             }
 
-            si indice_it == fichier_sélectionné {
+            si indice_it == sélecteur.fichier_sélectionné {
                 dispose_texte(it.chemin, config_texte_sélectionné)
             }
             sinon {
