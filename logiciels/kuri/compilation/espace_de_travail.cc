@@ -13,6 +13,7 @@
 
 #include "compilatrice.hh"
 #include "coulisse.hh"
+#include "gestionnaire_code.hh"
 #include "programme.hh"
 
 #include "statistiques/statistiques.hh"
@@ -26,7 +27,7 @@
 EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
                                  OptionsDeCompilation opts,
                                  kuri::chaine nom_)
-    : nom(nom_), options(opts), typeuse(graphe_dépendance), m_compilatrice(compilatrice)
+    : nom(nom_), options(opts), typeuse(), m_compilatrice(compilatrice)
 {
     programme = Programme::crée_pour_espace(this);
     registre_ri = mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse);
