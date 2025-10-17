@@ -19,17 +19,17 @@ importe Unicode
  * \{ */
 
 PlateformeGuettage :: struct {
-    sur_commence_guettage: fonc(*PlateformeGuettage, *Guetteuse)(rien)
-    sur_termine_guettage: fonc(*PlateformeGuettage)(rien)
+    sur_commence_guettage: fonc (plateforme: *PlateformeGuettage, guetteuse: *Guetteuse)
+    sur_termine_guettage: fonc(plateforme: *PlateformeGuettage)
 }
 
 Guetteuse :: struct {
     plateforme: *PlateformeGuettage
-    sur_termine_guettage: fonc(*Guetteuse)(rien)
-    sur_clic: fonc(*Guetteuse, ClicSouris) -> ÉtatÉvènement
-    sur_déplacement_souris: fonc(*Guetteuse, ÉtatSouris) -> ÉtatÉvènement
-    sur_touche_clavier: fonc(*Guetteuse, InfoToucheClavier) -> ÉtatÉvènement
-    sur_destruction: fonc(*Guetteuse)(rien)
+    sur_termine_guettage: fonc (guetteuse: *Guetteuse)
+    sur_clic: fonc (guetteuse: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
+    sur_déplacement_souris: fonc (guetteuse: *Guetteuse, état: ÉtatSouris) -> ÉtatÉvènement
+    sur_touche_clavier: fonc (guetteuse: *Guetteuse, info: InfoToucheClavier) -> ÉtatÉvènement
+    sur_destruction: fonc (guetteuse: *Guetteuse)
 }
 
 commence_guettage :: fonc (guetteuse: *Guetteuse, plateforme: *PlateformeGuettage)
