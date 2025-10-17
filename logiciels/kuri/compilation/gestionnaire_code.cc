@@ -1478,8 +1478,8 @@ NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
     CREE_DECLARATION_TYPE_PLATEFORME(type_dff_adr);
     CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_nat);
     CREE_DECLARATION_TYPE_PLATEFORME(type_adr_plt_rel);
-    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mnat);
-    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_mrel);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_nat);
+    CREE_DECLARATION_TYPE_PLATEFORME(type_taille_rel);
     CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_nat);
     CREE_DECLARATION_TYPE_PLATEFORME(type_nbr_rel);
     CREE_DECLARATION_TYPE_PLATEFORME(type_nbf_flt);

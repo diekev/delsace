@@ -3352,11 +3352,11 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau)
             }
             ToutesLesBrisuresDeLigne {
                 saufsi it.est_espace_blanche {
-                    _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
+                    _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau)
                 }
 
                 ligne := enligneuse.ajoute_ligne()
@@ -3367,7 +3367,7 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
                     continue
                 }
 
-                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau comme r32)
+                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau)
             }
         }
     }
@@ -3869,7 +3869,7 @@ button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Cont
     box.fonte = détermine_fonte(box, ctx)
     line_height := donne_line_height(box, ctx)
     value := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_value)
-    box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value) comme r32
+    box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value)
     box.hauteur_intrinsèque = line_height
 }
 
@@ -4092,7 +4092,7 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
     résultat := 0.0
 
     pour box.fragments {
-        résultat += donne_largeur_texte(fonte, it.texte) comme r32
+        résultat += donne_largeur_texte(fonte, it.texte)
     }
 
     retourne résultat
