@@ -831,9 +831,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
             tantque premier_fragment < dernier_fragment {
                 largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte) comme r32
                 premier_fragment.largeur = largeur_fragment
-                saufsi premier_fragment.est_espace_blanche {
-                    largeur_min = max(largeur_min, largeur_fragment)
-                }
+                largeur_min = max(largeur_min, largeur_fragment)
                 premier_fragment += 1
             }
 
