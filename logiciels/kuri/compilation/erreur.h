@@ -64,12 +64,6 @@ const char *chaine_erreur(Genre genre);
 std::ostream &operator<<(std::ostream &os, Genre genre);
 
 void imprime_site(Enchaineuse &enchaineuse,
-                  const Compilatrice &compilatrice,
-                  const NoeudExpression *site);
-[[nodiscard]] kuri::chaine imprime_site(const Compilatrice &compilatrice,
-                                        const NoeudExpression *site);
-
-void imprime_site(Enchaineuse &enchaineuse,
                   const EspaceDeTravail &espace,
                   const NoeudExpression *site);
 [[nodiscard]] kuri::chaine imprime_site(EspaceDeTravail const &espace,
