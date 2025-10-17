@@ -147,8 +147,13 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
     }
 
     si touche.type == ToucheClavier.ENTRÉE {
-        termine_guettage(guetteuse)
-        retourne ÉtatÉvènement.PASSE_AU_PARENT
+        si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+            termine_guettage(guetteuse)
+        }
+        sinon {
+            ajoute_ligne(éditrice)
+        }
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     sur_touche_clavier(éditrice, touche)
