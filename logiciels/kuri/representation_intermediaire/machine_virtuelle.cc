@@ -2179,8 +2179,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
                                 taille,
                                 " octets alors que la dernière taille empilée était de ",
                                 données.taille,
-                                "\nNOTE : l'empilage fut fait ici: ",
+                                "\nNOTE : l'empilage fut fait ici : ",
                                 chaine_site_empilage,
+                                "\n",
+                                "\nNOTE : le pointeur programme est au déalage : ",
+                                frame->pointeur - frame->fonction->données_exécution->chunk.code,
                                 "\n");
         rapporte_erreur_exécution(message);
         return RésultatInterprétation::ERREUR;
