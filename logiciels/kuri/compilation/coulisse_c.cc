@@ -168,12 +168,12 @@ static bool est_infini(double v)
 
 struct InformationsDeDébogage {
   private:
-    Compilatrice *m_compilatrice = nullptr;
+    EspaceDeTravail *m_espace = nullptr;
     kuri::chaine_statique fichier_c_courant = "";
     NoeudDéclarationEntêteFonction const *m_fonction_courante = nullptr;
 
   public:
-    explicit InformationsDeDébogage(Compilatrice *compilatrice) : m_compilatrice(compilatrice)
+    explicit InformationsDeDébogage(EspaceDeTravail *espace) : m_espace(espace)
     {
     }
 
@@ -190,7 +190,7 @@ struct InformationsDeDébogage {
         // À FAIRE : fichier .chaines_ajoutées
         // À FAIRE : fonctions polymorphiques
         if (site && site->lexème) {
-            auto fichier_kuri = m_compilatrice->fichier(site->lexème->fichier);
+            auto fichier_kuri = m_espace->fichier(site->lexème->fichier);
             dbg() << fichier_kuri->chemin() << " " << (site->lexème->ligne + 1) << " -> "
                   << fichier_c_courant << " " << ligne;
         }
@@ -1199,7 +1199,7 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
 #if 0
     auto compilatrice = &espace.compilatrice();
     m_info_débogage = mémoire::loge<InformationsDeDébogage>("InformationsDeDébogage",
-                                                            compilatrice);
+                                                            &espace);
 #endif
 }
 

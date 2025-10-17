@@ -1131,11 +1131,11 @@ static void garantie_chemins_bibliothèques(Module *module)
 }
 
 static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
-    Compilatrice const &compilatrice, NoeudExpression *site)
+    EspaceDeTravail const *espace, NoeudExpression *site)
 {
     kuri::tablet<kuri::chaine_statique, 4> dossiers;
     if (site) {
-        const auto fichier = compilatrice.fichier(site->lexème->fichier);
+        const auto fichier = espace->fichier(site->lexème->fichier);
         auto module = fichier->module;
         garantie_chemins_bibliothèques(module);
         dossiers.ajoute(module->chemin_bibliothèque_32bits);
@@ -1149,11 +1149,11 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_32_bits(
 }
 
 static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
-    Compilatrice const &compilatrice, NoeudExpression *site)
+    EspaceDeTravail const *espace, NoeudExpression *site)
 {
     kuri::tablet<kuri::chaine_statique, 4> dossiers;
     if (site) {
-        const auto fichier = compilatrice.fichier(site->lexème->fichier);
+        const auto fichier = espace->fichier(site->lexème->fichier);
         const auto module = fichier->module;
         garantie_chemins_bibliothèques(module);
         dossiers.ajoute(module->chemin_bibliothèque_64bits);
@@ -1167,12 +1167,12 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_64_bits(
 }
 
 static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
-    Compilatrice const &compilatrice, NoeudExpression *site, int plateforme)
+    EspaceDeTravail const *espace, NoeudExpression *site, int plateforme)
 {
     if (plateforme == PLATEFORME_32_BIT) {
-        return dossiers_recherche_32_bits(compilatrice, site);
+        return dossiers_recherche_32_bits(espace, site);
     }
-    return dossiers_recherche_64_bits(compilatrice, site);
+    return dossiers_recherche_64_bits(espace, site);
 }
 
 static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
@@ -1236,7 +1236,7 @@ void GestionnaireBibliothèques::résoud_chemins_bibliothèque(EspaceDeTravail &
     };
 
     POUR (plateformes) {
-        auto dossiers = dossiers_recherche_plateforme(compilatrice, site, it);
+        auto dossiers = dossiers_recherche_plateforme(&espace, site, it);
         auto résultat = recherche_bibliothèque(espace, site, dossiers, noms);
 
         if (résultat.has_value()) {
