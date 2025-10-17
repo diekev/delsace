@@ -734,7 +734,7 @@ text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     si éditrice && éditrice.curseur_est_affiché {
         rect_curseur := donne_rect_texte_pour_input(box)
 
-        curseur_x: z32
+        curseur_x: r32
         si state == HTML.HTMLInputElement.State.Password {
             texte_avant_curseur := value
             texte_avant_curseur.unités.taille = éditrice.curseur.fin
@@ -746,7 +746,7 @@ text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
             curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
         }
 
-        rect_curseur.x = rect_curseur.x + curseur_x comme r32
+        rect_curseur.x = rect_curseur.x + curseur_x
         rect_curseur.largeur = 1.0
 
         rect_curseur = ctx.donne_rectangle_corrigé(rect_curseur)
@@ -900,7 +900,7 @@ select_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     pour box.fragments {
         commandes.dessine_texte(fonte, it.texte, rect, couleur, nul)
 
-        rect.x += donne_largeur_texte(fonte, it.texte) comme r32
+        rect.x += donne_largeur_texte(fonte, it.texte)
     }
 }
 
