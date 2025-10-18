@@ -4,6 +4,8 @@ importe InfosInterface
 CommandesDeRendu :: CommandesRendu.CommandesDeRendu
 dessine_commandes :: CommandesRendu.dessine_commandes
 
+Direction :: InfosInterface.Direction
+
 charge "interne"
 
 /* ------------------------------------------------------------------------- */
@@ -201,11 +203,6 @@ AlignementEnfant :: énum n8 {
     Début
     Milieu
     Fin
-}
-
-Direction :: énum n8 {
-    Horizontale
-    Verticale
 }
 
 Cotation :: struct {
@@ -759,6 +756,34 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
  * \{ */
+
+donne_cotation :: fonc (espace: EspaceDisponible) -> Cotation #enligne
+{
+    retourne Cotation(FIXE(espace.largeur comme z32), FIXE(espace.hauteur comme z32))
+}
+
+ajoute_défilage_vertical :: fonc (espace: *EspaceDisponible, largeur_barre: n32, couleur: CouleurRVBA)
+{
+    ajoute_défilage_vertical(largeur_barre comme r32, couleur)
+    espace.largeur = soustraction_sure(espace.largeur, largeur_barre)
+}
+
+soustraction_sure :: fonc (valeur: n32, à_soustraire: n32) -> n32 #enligne
+{
+    résultat: n32
+    si valeur >= à_soustraire {
+        résultat = valeur - à_soustraire
+    }
+    retourne résultat
+}
+
+ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
+{
+    définis_rembourrage(RembourrageUniforme(rembourrage comme r32))
+    espace.largeur = soustraction_sure(espace.largeur, (rembourrage * 2) comme n32)
+    espace.hauteur = soustraction_sure(espace.hauteur, (rembourrage * 2) comme n32)
+    retourne espace
+}
 
 dispose_séparateur_horizontal :: fonc (hauteur := 0)
 {

@@ -1,6 +1,7 @@
 /* Module pour définir des types communs à différents systèmes de définition d'interfaces graphiques. */
 
 importe Couleur
+importe Fondation
 
 RayonsRectangle :: struct {
     haut_gauche: r32
@@ -68,3 +69,51 @@ crée_couleurs_bordure_rectangle :: fonc (haut: CouleurRVBA, bas: CouleurRVBA, g
     résultat.droite = droite
     retourne résultat
 }
+
+Direction :: énum n8 {
+    Horizontale
+    Verticale
+
+    HORIZONTALE :: Horizontale
+    VERTICALE :: Verticale
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom EspaceDisponible
+ * \{ */
+
+EspaceDisponible :: struct {
+    largeur: n32
+    hauteur: n32
+}
+
+enlève_hauteur :: fonc (espace: EspaceDisponible, delta: n32) -> EspaceDisponible
+{
+    si espace.hauteur >= delta {
+        espace.hauteur -= delta
+    }
+    sinon {
+        espace.hauteur = 0
+    }
+    retourne espace
+}
+
+divise_espace :: fonc (espace: EspaceDisponible, direction: Direction, facteur: r32) -> (EspaceDisponible, EspaceDisponible)
+{
+    résultat1 := espace
+    résultat2 := espace
+
+    si direction == Direction.Horizontale {
+        résultat1.largeur = (espace.largeur comme r32 * facteur) comme n32
+        résultat2.largeur = espace.largeur - résultat1.largeur
+    }
+    sinon {
+        assert(direction == Direction.Verticale)
+        résultat1.hauteur = (espace.hauteur comme r32 * facteur) comme n32
+        résultat2.hauteur = espace.hauteur - résultat1.hauteur
+    }
+
+    retourne résultat1, résultat2
+}
+
+/** \} */
