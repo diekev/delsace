@@ -796,4 +796,24 @@ dispose_séparateur_horizontal :: fonc (hauteur := 0)
     }
 }
 
+dispose_barre_séparation_horizontale :: fonc (couleur: CouleurRVBA, hauteur: z32)
+{
+    dispose_rectangle()
+    {
+        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur)))
+        définis_arrière_plan(couleur)
+    }
+    termine_rectangle()
+}
+
+dispose_barre_séparation_verticale :: fonc (couleur: CouleurRVBA, largeur: z32)
+{
+    dispose_rectangle()
+    {
+        définis_disposition(cotation = Cotation(FIXE(largeur), CROISSANTE()))
+        définis_arrière_plan(couleur)
+    }
+    termine_rectangle()
+}
+
 /** \} */
