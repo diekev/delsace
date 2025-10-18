@@ -3,6 +3,7 @@ importe Couleur
 importe Fondation
 importe IGUMI
 importe Image
+importe InfosInterface
 importe Math
 importe OpenGL
 importe PeintureInterface
@@ -110,10 +111,10 @@ CommandeRemplisRectangleArrondi :: struct {
     type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ARRONDI
 
     couleur: CouleurRVBAN8
-    rayons: [4]r32
+    rayons: RayonsRectangle
 }
 
-remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), rayons: [4]r32, couleur: CouleurRVBAN8)
+remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), rayons: RayonsRectangle, couleur: CouleurRVBAN8)
 {
     résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
     résultat.rect = rect
@@ -126,7 +127,7 @@ remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: Rectangle
     résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
     résultat.rect = rect
     résultat.couleur = depuis_couleur_rvba(couleur)
-    résultat.rayons = [rayon, rayon, rayon, rayon]
+    résultat.rayons = crée_rayons_rectangle(rayon)
 }
 
 CommandeDessineRectangle :: struct {
@@ -154,12 +155,12 @@ CommandeDessineBordure :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_BORDURE
 
-    largeurs: [4]r32
-    couleurs: [4]CouleurRVBAN8
-    rayon: r32
+    largeurs: LargeursBordureRectangle
+    couleurs: CouleursBordureRectangle
+    rayons: RayonsRectangle
 }
 
-dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), largeurs: [4]r32, couleurs: [4]CouleurRVBAN8)
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 {
     résultat := crée_commande(commandes, CommandeDessineBordure)
     résultat.rect = rect
@@ -167,15 +168,13 @@ dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32
     résultat.couleurs = couleurs
 }
 
-dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleurs: [4]CouleurRVBA, largeurs: [4]r32, rayon: r32)
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleurs: CouleursBordureRectangle, largeurs: LargeursBordureRectangle, rayons: RayonsRectangle)
 {
     résultat := crée_commande(commandes, CommandeDessineBordure)
     résultat.rect = rect
-    pour couleurs {
-        résultat.couleurs[indice_it] = depuis_couleur_rvba(it)
-    }
+    résultat.couleurs = couleurs
     résultat.largeurs = largeurs
-    résultat.rayon = rayon
+    résultat.rayons = rayons
 }
 
 CommandeDessineImage :: struct {
@@ -439,14 +438,8 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
             DESSINE_BORDURE {
                 commande := base comme *CommandeDessineBordure
                 // À FAIRE : rayon
-
-                couleurs_peintre: [4]CouleurPeintre = ---
-                pour commande.couleurs {
-                    couleurs_peintre[indice_it] = it
-                }
-
                 rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
-                peintre.dessine_bordure(rect, commande.largeurs, couleurs_peintre)
+                peintre.dessine_bordure(rect, commande.largeurs, commande.couleurs)
             }
             DESSINE_IMAGE {
                 commande := base comme *CommandeDessineImage

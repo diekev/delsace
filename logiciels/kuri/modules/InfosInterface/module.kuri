@@ -1,0 +1,70 @@
+/* Module pour définir des types communs à différents systèmes de définition d'interfaces graphiques. */
+
+importe Couleur
+
+RayonsRectangle :: struct {
+    haut_gauche: r32
+    haut_droite: r32
+    bas_gauche: r32
+    bas_droite: r32
+}
+
+crée_rayons_rectangle :: fonc (rayon: r32) -> RayonsRectangle
+{
+    résultat: RayonsRectangle = ---
+    résultat.haut_gauche = rayon
+    résultat.haut_droite = rayon
+    résultat.bas_gauche = rayon
+    résultat.bas_droite = rayon
+    retourne résultat
+}
+
+restreint_rayons :: fonc (rayons: *RayonsRectangle, rayon_max: r32)
+{
+    si rayons.haut_gauche > rayon_max {
+        rayons.haut_gauche = rayon_max
+    }
+    si rayons.haut_droite > rayon_max {
+        rayons.haut_droite = rayon_max
+    }
+    si rayons.bas_gauche > rayon_max {
+        rayons.bas_gauche = rayon_max
+    }
+    si rayons.bas_droite > rayon_max {
+        rayons.bas_droite = rayon_max
+    }
+}
+
+LargeursBordureRectangle :: struct {
+    haut: r32
+    bas: r32
+    gauche: r32
+    droite: r32
+}
+
+CouleursBordureRectangle :: struct {
+    haut: CouleurRVBA
+    bas: CouleurRVBA
+    gauche: CouleurRVBA
+    droite: CouleurRVBA
+}
+
+crée_couleurs_bordure_rectangle :: fonc (haut: CouleurRVBAN8, bas: CouleurRVBAN8, gauche: CouleurRVBAN8, droite: CouleurRVBAN8) -> CouleursBordureRectangle
+{
+    résultat: CouleursBordureRectangle = ---
+    résultat.haut = vers_couleur_rvba(haut)
+    résultat.bas = vers_couleur_rvba(bas)
+    résultat.gauche = vers_couleur_rvba(gauche)
+    résultat.droite = vers_couleur_rvba(droite)
+    retourne résultat
+}
+
+crée_couleurs_bordure_rectangle :: fonc (haut: CouleurRVBA, bas: CouleurRVBA, gauche: CouleurRVBA, droite: CouleurRVBA) -> CouleursBordureRectangle
+{
+    résultat: CouleursBordureRectangle = ---
+    résultat.haut = haut
+    résultat.bas = bas
+    résultat.gauche = gauche
+    résultat.droite = droite
+    retourne résultat
+}

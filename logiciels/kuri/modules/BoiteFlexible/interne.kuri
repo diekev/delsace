@@ -1389,7 +1389,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
 
             config := boite.emboiteuse.bordures[boite.indice_bordure]
-            commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+            commandes.dessine_bordure(rect, donne_couleurs_bordure(config), donne_largeurs_bordure(config), crée_rayons_rectangle(boite.rectangle.rayon_coin))
 
             si boite_pour_ciselage {
                 commandes.termine_ciselage()

@@ -1,5 +1,6 @@
 importe Aléa
 importe CommandesRendu
+importe InfosInterface
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteDessin
@@ -328,11 +329,15 @@ inline_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_
                 est_dernier_fragment := fragment.type == Fragment.Type.RembourrageFin && fragment.box == base
 
                 si est_premier_fragment {
-                    rayons := [border_radius_top_left, 0.0, 0.0, border_radius_bottom_left]
+                    rayons: RayonsRectangle
+                    rayons.haut_gauche = border_radius_top_left
+                    rayons.bas_gauche =  border_radius_bottom_left
                     ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
                 }
                 sinon si est_dernier_fragment {
-                    rayons := [0.0, border_radius_top_right, border_radius_bottom_right, 0.0]
+                    rayons: RayonsRectangle
+                    rayons.haut_droite = border_radius_top_right
+                    rayons.bas_droite = border_radius_bottom_right
                     ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
                 }
                 sinon {
@@ -788,7 +793,12 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
         border_radius_bottom_right := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32
         border_radius_bottom_left := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32
 
-        rayons := [ border_radius_top_left, border_radius_top_right, border_radius_bottom_right, border_radius_bottom_left ]
+        rayons: RayonsRectangle = ---
+        rayons.haut_gauche = border_radius_top_left
+        rayons.bas_gauche = border_radius_bottom_left
+        rayons.haut_droite = border_radius_top_right
+        rayons.bas_droite = border_radius_bottom_right
+
         commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color)
     }
     sinon si box.parent == nul {
@@ -939,8 +949,16 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, box: *Box)
         retourne
     }
 
+    largeurs_bordure: LargeursBordureRectangle
+    largeurs_bordure.haut = largeurs[BorderEdge.Top]
+    largeurs_bordure.bas = largeurs[BorderEdge.Bottom]
+    largeurs_bordure.gauche = largeurs[BorderEdge.Left]
+    largeurs_bordure.droite = largeurs[BorderEdge.Right]
+
+    couleurs_bordure := crée_couleurs_bordure_rectangle(couleurs[BorderEdge.Top], couleurs[BorderEdge.Bottom], couleurs[BorderEdge.Left], couleurs[BorderEdge.Right])
+
     rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_bordure())
-    ctx.commandes.dessine_bordure(rect, largeurs, couleurs)
+    ctx.commandes.dessine_bordure(rect, largeurs_bordure, couleurs_bordure)
 }
 
 /** \} */

@@ -1,4 +1,5 @@
 importe CommandesRendu
+importe InfosInterface
 
 CommandesDeRendu :: CommandesRendu.CommandesDeRendu
 dessine_commandes :: CommandesRendu.dessine_commandes
@@ -261,6 +262,26 @@ ConfigurationRectangle :: struct {
 ConfigurationBordure :: struct {
     largeur: [4]r32
     couleur: [4]CouleurRVBA
+}
+
+donne_largeurs_bordure :: fonc (config: ConfigurationBordure) -> LargeursBordureRectangle
+{
+    résultat: LargeursBordureRectangle = ---
+    résultat.haut = config.largeur[IndiceRectangle.HAUT]
+    résultat.bas = config.largeur[IndiceRectangle.BAS]
+    résultat.gauche = config.largeur[IndiceRectangle.GAUCHE]
+    résultat.droite = config.largeur[IndiceRectangle.DROITE]
+    retourne résultat
+}
+
+donne_couleurs_bordure :: fonc (config: ConfigurationBordure) -> CouleursBordureRectangle
+{
+    résultat: CouleursBordureRectangle = ---
+    résultat.haut = config.couleur[IndiceRectangle.HAUT]
+    résultat.bas = config.couleur[IndiceRectangle.BAS]
+    résultat.gauche = config.couleur[IndiceRectangle.GAUCHE]
+    résultat.droite = config.couleur[IndiceRectangle.DROITE]
+    retourne résultat
 }
 
 Rembourrage :: struct {
