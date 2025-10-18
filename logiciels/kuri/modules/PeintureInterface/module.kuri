@@ -244,8 +244,9 @@ dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: Co
     peintre.rappel_dessine_segments(peintre, lignes, couleur)
 }
 
-dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul @inutilisée) -> rien #enligne
 {
+    // À FAIRE : utilisé effets
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
 }
 
