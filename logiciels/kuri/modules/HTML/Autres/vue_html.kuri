@@ -1,6 +1,7 @@
 importe Allocatrices
 importe Chaine
 importe CodecDonnées
+importe CommandesRendu
 importe Compilatrice
 importe Couleur
 CSS :: importe CSS
@@ -975,7 +976,7 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
 
     // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
 
-    CSS.dessine_commandes(peintre, commandes)
+    dessine_commandes(peintre, commandes, faux)
 
     document := page.donne_document()
     lien_survolé := document.donne_lien_survolé()

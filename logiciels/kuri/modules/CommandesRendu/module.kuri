@@ -1,0 +1,585 @@
+importe Chaine
+importe Couleur
+importe Fondation
+importe IGUMI
+importe Image
+importe Math
+importe OpenGL
+importe PeintureInterface
+importe Typographie
+
+/* ------------------------------------------------------------------------- */
+/** \nom CommandesDeRendu
+ * \{ */
+
+TypeCommandeDeRendu :: énum {
+    REMPLIS_RECTANGLE_ID
+    REMPLIS_RECTANGLE
+    REMPLIS_RECTANGLE_ARRONDI
+    DESSINE_RECTANGLE
+    DESSINE_RECTANGLE_ARRONDI
+    DESSINE_CERCLE
+    REMPLIS_CERCLE
+    DESSINE_BORDURE
+    DESSINE_IMAGE
+    DESSINE_TEXTE
+    DESSINE_TEXTE_UTF16
+    DESSINE_TEXTE_UTF32
+    DÉBUTE_SOUS_TAMPON
+    TERMINE_SOUS_TAMPON
+    DÉBUTE_CISELAGE
+    TERMINE_CISELAGE
+    DESSINE_PROCÉDURAL
+}
+
+CommandesDeRendu :: struct {
+    nombre_de_commandes: z32
+    commandes: [..]octet
+}
+
+détruit_commandes :: fonc (commandes: *CommandesDeRendu)
+{
+    si commandes {
+        déloge(commandes.commandes)
+        déloge(commandes)
+    }
+}
+
+réinitialise :: fonc (commandes: *CommandesDeRendu)
+{
+    commandes.nombre_de_commandes = 0
+    commandes.commandes.taille = 0
+}
+
+crée_commande :: fonc (commandes: *CommandesDeRendu, $T: type_de_données) -> *T
+{
+    commandes.nombre_de_commandes += 1
+
+    décalage := commandes.commandes.taille
+    tableau_redimensionne(commandes.commandes, décalage + (taille_de(T) comme z64))
+
+    résultat := *commandes.commandes[décalage] comme *T
+    init_de(T)(résultat)
+    résultat.taille_type = taille_de(T)
+    retourne résultat
+}
+
+BaseCommande :: struct {
+    type: TypeCommandeDeRendu
+    taille_type: n32
+    rect: RectanglePosDim(r32)
+}
+
+CommandeRemplisRectangleID :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID
+
+    id: n32
+}
+
+remplis_rectangle_id :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), id: n32)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleID)
+    résultat.rect = rect
+    résultat.id = id
+}
+
+CommandeRemplisRectangle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE
+
+    couleur: CouleurRVBAN8
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+remplis_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangle)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+}
+
+CommandeRemplisRectangleArrondi :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_RECTANGLE_ARRONDI
+
+    couleur: CouleurRVBAN8
+    rayons: [4]r32
+}
+
+remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), rayons: [4]r32, couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
+    résultat.rect = rect
+    résultat.rayons = rayons
+    résultat.couleur = couleur
+}
+
+remplis_rectangle_arrondi :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBA, rayon: r32)
+{
+    résultat := crée_commande(commandes, CommandeRemplisRectangleArrondi)
+    résultat.rect = rect
+    résultat.couleur = depuis_couleur_rvba(couleur)
+    résultat.rayons = [rayon, rayon, rayon, rayon]
+}
+
+CommandeDessineRectangle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_RECTANGLE
+
+    couleur: CouleurRVBAN8
+}
+
+dessine_rectangle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineRectangle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+CommandeDessineRectangleArrondi :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_RECTANGLE_ARRONDI
+
+    couleur: CouleurRVBAN8
+}
+
+CommandeDessineBordure :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_BORDURE
+
+    largeurs: [4]r32
+    couleurs: [4]CouleurRVBAN8
+    rayon: r32
+}
+
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), largeurs: [4]r32, couleurs: [4]CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineBordure)
+    résultat.rect = rect
+    résultat.largeurs = largeurs
+    résultat.couleurs = couleurs
+}
+
+dessine_bordure :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleurs: [4]CouleurRVBA, largeurs: [4]r32, rayon: r32)
+{
+    résultat := crée_commande(commandes, CommandeDessineBordure)
+    résultat.rect = rect
+    pour couleurs {
+        résultat.couleurs[indice_it] = depuis_couleur_rvba(it)
+    }
+    résultat.largeurs = largeurs
+    résultat.rayon = rayon
+}
+
+CommandeDessineImage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_IMAGE
+
+    image: NouvelleImage
+    rect_image: RectanglePosDim(r32)
+    paramètres: ParamètresRenduImage
+    teinte: CouleurRVBA
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, image: NouvelleImage, rect_image: RectanglePosDim(r32), teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+{
+    dessine_image(commandes, image, rect_image, rect_image, ParamètresRenduImage(), teinte)
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, image: NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+{
+    résultat := crée_commande(commandes, CommandeDessineImage)
+    résultat.image = image
+    résultat.rect_image = rect_image
+    résultat.rect = rect
+    résultat.paramètres = paramètres
+    résultat.teinte = teinte
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), image: NouvelleImage, teinte: CouleurRVBA)
+{
+    dessine_image(commandes, image, rect, rect, ParamètresRenduImage(), teinte)
+}
+
+dessine_image :: fonc (commandes: *CommandesDeRendu, tampon: TamponImageRVBA8Bit, rect: RectanglePosDim(r32), teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+{
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.RVBA_8
+    dessine_image(commandes, image, rect, rect, ParamètresRenduImage(), teinte)
+}
+
+CommandeDessineTexte :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE
+
+    fonte: *Fonte
+    texte: chaine
+    couleur: CouleurRVBAN8
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: chaine, rect: RectanglePosDim(r32), couleur: CouleurRVBA, effets: *EffetsTexte = nul)
+{
+    dessine_texte(commandes, fonte, texte, rect, depuis_couleur_rvba(couleur), effets)
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: chaine, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexte)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+CommandeDessineTexteUTF16 :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE_UTF16
+
+    fonte: *Fonte
+    texte: ChaineUTF16
+    couleur: CouleurRVBAN8
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: ChaineUTF16, rect: RectanglePosDim(r32), couleur: CouleurRVBA, effets: *EffetsTexte = nul)
+{
+    dessine_texte(commandes, fonte, texte, rect, depuis_couleur_rvba(couleur), effets)
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: ChaineUTF16, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexteUTF16)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+CommandeDessineTexteUTF32 :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_TEXTE_UTF32
+
+    fonte: *Fonte
+    texte: ChaineUTF32
+    couleur: CouleurRVBA
+    effets: EffetsTexte
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: ChaineUTF32, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
+{
+    dessine_texte(commandes, fonte, texte, rect, vers_couleur_rvba(couleur), effets)
+}
+
+dessine_texte :: fonc (commandes: *CommandesDeRendu, fonte: *Fonte, texte: ChaineUTF32, rect: RectanglePosDim(r32), couleur: CouleurRVBA, effets: *EffetsTexte = nul)
+{
+    résultat := crée_commande(commandes, CommandeDessineTexteUTF32)
+    résultat.fonte = fonte
+    résultat.texte = texte
+    résultat.rect = rect
+    résultat.couleur = couleur
+    si effets {
+        résultat.effets = mémoire(effets)
+    }
+}
+
+CommandeDébuteSousTampon :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DÉBUTE_SOUS_TAMPON
+}
+
+débute_sous_tampon :: fonc (commandes: *CommandesDeRendu)
+{
+    _ := crée_commande(commandes, CommandeDébuteSousTampon)
+}
+
+CommandeTermineSousTampon :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.TERMINE_SOUS_TAMPON
+
+    opacité: r32
+}
+
+termine_sous_tampon :: fonc (commandes: *CommandesDeRendu, opacité: r32)
+{
+    résultat := crée_commande(commandes, CommandeTermineSousTampon)
+    résultat.opacité = opacité
+}
+
+CommandeDébuteCiselage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DÉBUTE_CISELAGE
+}
+
+débute_ciselage :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32))
+{
+    résultat := crée_commande(commandes, CommandeDébuteCiselage)
+    résultat.rect = rect
+}
+
+CommandeTermineCiselage :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.TERMINE_CISELAGE
+}
+
+termine_ciselage :: fonc (commandes: *CommandesDeRendu)
+{
+    _ := crée_commande(commandes, CommandeTermineCiselage)
+}
+
+CommandeDessineCercle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_CERCLE
+
+    couleur: CouleurRVBAN8
+}
+
+dessine_cercle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeDessineCercle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+CommandeRemplisCercle :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.REMPLIS_CERCLE
+
+    couleur: CouleurRVBAN8
+}
+
+remplis_cercle :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), couleur: CouleurRVBAN8)
+{
+    résultat := crée_commande(commandes, CommandeRemplisCercle)
+    résultat.rect = rect
+    résultat.couleur = couleur
+}
+
+CommandeDessineProcédural :: struct {
+    empl base: BaseCommande
+    type = TypeCommandeDeRendu.DESSINE_PROCÉDURAL
+
+    procédure: fonc(*rien, RectanglePosDim(r32))(rien)
+    données_procédure: *rien
+}
+
+dessine_procédural :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien)
+{
+    résultat := crée_commande(commandes, CommandeDessineProcédural)
+    résultat.rect = rect
+    résultat.procédure = procédure
+    résultat.données_procédure = données_procédure
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PeintureInterface
+ * \{ */
+
+donne_rectangle_corrigé :: fonc (rect: RectanglePosDim(r32), hauteur_vue: r32, inverse_origine: bool) -> RectanglePosDim(r32) #enligne
+{
+    si inverse_origine {
+        rect.y = hauteur_vue - rect.y - rect.hauteur
+    }
+    retourne rect
+}
+
+dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inverse_origine := vrai)
+{
+    peintre.commence_dessin()
+
+    // active_gl_debug()
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    hauteur_vue := peintre.donne_taille_canevas().hauteur comme z32 comme r32
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+        discr base.type {
+            REMPLIS_RECTANGLE_ID {}
+            REMPLIS_RECTANGLE {
+                commande := base comme *CommandeRemplisRectangle
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.remplis_rectangle(rect, commande.couleur)
+            }
+            REMPLIS_RECTANGLE_ARRONDI {
+                commande := base comme *CommandeRemplisRectangleArrondi
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.remplis_rectangle_arrondi(rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_RECTANGLE {
+                commande := base comme *CommandeDessineRectangle
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_rectangle(rect, commande.couleur)
+            }
+            DESSINE_RECTANGLE_ARRONDI {
+                // commande := base comme *CommandeDessineRectangleArrondi
+                // rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                // peintre.dessine_rectangle_arrondi(rect, commande.rayons, commande.couleur)
+            }
+            DESSINE_BORDURE {
+                commande := base comme *CommandeDessineBordure
+                // À FAIRE : rayon
+
+                couleurs_peintre: [4]CouleurPeintre = ---
+                pour commande.couleurs {
+                    couleurs_peintre[indice_it] = it
+                }
+
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_bordure(rect, commande.largeurs, couleurs_peintre)
+            }
+            DESSINE_IMAGE {
+                commande := base comme *CommandeDessineImage
+                rect_image := donne_rectangle_corrigé(commande.rect_image, hauteur_vue, inverse_origine)
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_image(*commande.image, rect_image, rect, commande.paramètres, commande.teinte)
+            }
+            DESSINE_TEXTE {
+                commande := base comme *CommandeDessineTexte
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets)
+            }
+            DESSINE_TEXTE_UTF16 {
+                commande := base comme *CommandeDessineTexteUTF16
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets)
+            }
+            DESSINE_TEXTE_UTF32 {
+                commande := base comme *CommandeDessineTexteUTF32
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.dessine_texte(commande.fonte, commande.texte, rect, commande.couleur, *commande.effets)
+            }
+            DESSINE_CERCLE {
+                commande := base comme *CommandeDessineCercle
+
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+
+                cercle: Cercle(r32)
+                cercle.centre_x = rect.x + rect.largeur / 2
+                cercle.centre_y = rect.y + rect.hauteur / 2
+                cercle.rayon = max(rect.largeur, rect.hauteur) / 2.0
+
+                peintre.dessine_cercle(cercle, commande.couleur)
+            }
+            REMPLIS_CERCLE {
+                commande := base comme *CommandeRemplisCercle
+
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+
+                cercle: Cercle(r32)
+                cercle.centre_x = rect.x + rect.largeur / 2
+                cercle.centre_y = rect.y + rect.hauteur / 2
+                cercle.rayon = max(rect.largeur, rect.hauteur) / 2.0
+
+                peintre.remplis_cercle(cercle, commande.couleur)
+            }
+            DÉBUTE_SOUS_TAMPON {
+                // Fondation.imprimeln("%", base.type)
+                // IGUMI.commence_frame_buffer()
+            }
+            TERMINE_SOUS_TAMPON {
+                // commande := base comme *CommandeTermineSousTampon
+                // Fondation.imprimeln("%", base.type)
+                // IGUMI.termine_frame_buffer(commande.opacité)
+            }
+            DÉBUTE_CISELAGE {
+                commande := base comme *CommandeDébuteCiselage
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                peintre.définis_ciseau(rect)
+            }
+            TERMINE_CISELAGE {
+                peintre.restaure_ciseau()
+            }
+            DESSINE_PROCÉDURAL {
+                commande := base comme *CommandeDessineProcédural
+                rect := donne_rectangle_corrigé(commande.rect, hauteur_vue, inverse_origine)
+                commande.procédure(commande.données_procédure, rect)
+            }
+        }
+
+        début += base.taille_type
+    }
+
+    peintre.termine_dessin()
+}
+
+dessine_commandes_id :: fonc (peintre: *Peintre @inutilisée, commandes: *CommandesDeRendu, tampon_id: TamponImageGrise32Bit)
+{
+    IGUMI.réinitialise_données_id()
+
+    fbo: GLuint
+    glGenFramebuffers(1, *fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+
+    render_buf: GLuint
+    glGenRenderbuffers(1, *render_buf)
+    glBindRenderbuffer(GL_RENDERBUFFER, render_buf)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, tampon_id.largeur, tampon_id.hauteur)
+    vérifie_erreur("glRenderbufferStorage")
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf)
+    vérifie_erreur("glFramebufferRenderbuffer")
+
+    début := commandes.commandes.pointeur
+    fin := début + commandes.commandes.taille
+
+    IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES)
+    vérifie_erreur("commence_immédiat_id")
+
+    /* Remets à zéro au cas la mémoire est réutilisée par le pilote. */
+    IGUMI.quad_immédiat_id(0.0, 0.0, tampon_id.largeur comme r32, tampon_id.hauteur comme r32, 0)
+
+    tantque début < fin {
+        base := début comme *BaseCommande
+
+        si base.type == TypeCommandeDeRendu.REMPLIS_RECTANGLE_ID {
+            commande := base comme *CommandeRemplisRectangleID
+            rect := commande.rect
+            IGUMI.quad_immédiat_id(rect.x, rect.y, rect.largeur, rect.hauteur, commande.id)
+        }
+
+        début += base.taille_type
+    }
+
+    IGUMI.termine_immédiat_id()
+    vérifie_erreur("termine_immédiat_id")
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
+    vérifie_erreur("glBindFramebuffer")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo)
+    vérifie_erreur("glBindFramebuffer")
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0)
+    vérifie_erreur("glReadBuffer")
+    glReadPixels(0, 0, tampon_id.largeur, tampon_id.hauteur, GL_RED_INTEGER, GL_UNSIGNED_INT, tampon_id.données)
+    vérifie_erreur("glReadPixels")
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0)
+
+    glDeleteFramebuffers(1, *fbo)
+    glDeleteRenderbuffers(1, *render_buf)
+}
+
+/** \} */

@@ -1315,7 +1315,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                         rect.hauteur = métriques.donne_hauteur_ligne()
 
                         tantque premier_fragment < dernier_fragment {
-                            commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
+                            commandes.dessine_texte(boite.config_texte.fonte, premier_fragment.texte, rect, boite.config_texte.couleur)
                             premier_fragment += 1
 
                             rect.y += métriques.donne_hauteur_ligne()
@@ -1323,7 +1323,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     }
                 }
                 TexteUTF32 {
-                    commandes.dessine_texte(rect, boite.config_texte.fonte, boite.texte_utf32, boite.config_texte.couleur)
+                    commandes.dessine_texte(boite.config_texte.fonte, boite.texte_utf32, rect, boite.config_texte.couleur)
                 }
                 Image {
                     commandes.dessine_image(rect, boite.image, boite.teinte)
