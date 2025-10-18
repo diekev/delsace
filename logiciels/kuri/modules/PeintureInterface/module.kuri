@@ -81,7 +81,7 @@ Peintre :: struct {
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, couleur: CouleurRVBA)
-    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage)
+    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage, teinte: CouleurRVBA)
 
     /* Retourne la fonte utilisée pour le dessin de texte. */
     rappel_donne_fonte: fonc (peintre: *Peintre) -> *Fonte
@@ -264,15 +264,15 @@ dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle: Rect
     peintre.rappel_dessine_image(peintre, image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
     paramètres: ParamètresRenduImage
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres)
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres)
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
 }
 
 dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
@@ -771,8 +771,9 @@ dessine_image_dessin :: fonc (peintre: *PeintreDessin, image: *NouvelleImage, re
     dessine_image(*peintre.tampon_de_rendu, image, rect)
 }
 
-dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, paramètres: ParamètresRenduImage @inutilisée)
+dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, paramètres: ParamètresRenduImage @inutilisée, teinte: CouleurRVBA @inutilisée)
 {
+    // À FAIRE : utilise teinte
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_image)
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
@@ -1201,11 +1202,11 @@ dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleIma
     image_immédiat(image, rect, rect, paramètres, teinte)
 }
 
-dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage)
+dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte: CouleurRVBA)
 {
     rect_image := donne_rectangle_igumi(rectangle_image)
     rect := donne_rectangle_igumi(rectangle_sous_image)
-    image_immédiat(image, rect_image, rect, paramètres)
+    image_immédiat(image, rect_image, rect, paramètres, teinte)
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
