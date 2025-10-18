@@ -215,6 +215,11 @@ Cotation :: struct {
     hauteur_max: n32 = 0xffffffff
 }
 
+FIXE :: fonc (v: n32) -> z32
+{
+    retourne (v comme z32) | BIT_COTATION_FIXE
+}
+
 FIXE :: fonc (v: z32) -> z32
 {
     retourne v | BIT_COTATION_FIXE
@@ -433,6 +438,11 @@ définis_cotation :: fonc (cotation: Cotation)
 {
      assert(__boite_courante != nul)
     __boite_courante.disposition.cotation = cotation
+}
+
+définis_cotation :: fonc (largeur: z32, hauteur: z32) #enligne
+{
+    définis_cotation(Cotation(largeur, hauteur))
 }
 
 définis_rembourrage :: fonc (rembourrage: Rembourrage)
