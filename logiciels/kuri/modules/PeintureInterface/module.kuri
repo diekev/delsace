@@ -87,9 +87,6 @@ Peintre :: struct {
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, couleur: CouleurRVBA)
     rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage)
-    rappel_dessine_image_grise_8bit: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rect: RectanglePeintre)
-    rappel_dessine_image_rvba_8bit: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rect: RectanglePeintre)
-    rappel_dessine_image_rvba_32bit: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rect: RectanglePeintre)
 
     /* Retourne la fonte utilisée pour le dessin de texte. */
     rappel_donne_fonte: fonc (peintre: *Peintre) -> *Fonte
@@ -288,19 +285,34 @@ dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image
     peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_image_grise_8bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.Gris_8
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_8bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.RVBA_8
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_32bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.RVBA_32
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
 donne_fonte :: fonc (peintre: *Peintre) -> *Fonte #enligne
@@ -408,9 +420,6 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_sous_image = dessine_sous_image_dessin
-    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
-    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
-    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
     peintre.rappel_définis_ciseau = définis_ciseau_dessin
@@ -780,25 +789,6 @@ dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rec
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
 }
 
-dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
-{
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
-}
-
-dessine_image_rvba_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
-{
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
-}
-
-dessine_image_rvba_32bit_dessin :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
-{
-    // À FAIRE
-}
-
 donne_fonte_dessin :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
 {
     // À FAIRE
@@ -891,9 +881,6 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_igumi
     peintre.rappel_dessine_image = dessine_image_igumi
     peintre.rappel_dessine_sous_image = dessine_sous_image_igumi
-    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
-    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_igumi
-    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_igumi
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
     peintre.rappel_définis_ciseau = définis_ciseau_igumi
@@ -1237,27 +1224,6 @@ dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *Nouvel
     rect_image := donne_rectangle_igumi(rectangle_image)
     rect := donne_rectangle_igumi(rectangle_sous_image)
     image_immédiat(image, rect_image, rect, paramètres)
-}
-
-dessine_image_grise_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
-}
-
-dessine_image_rvba_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
-}
-
-dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
