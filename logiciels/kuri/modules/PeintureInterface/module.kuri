@@ -285,7 +285,7 @@ dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rectangl
     dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
     image: NouvelleImage
     image.données = tampon.données
@@ -295,7 +295,7 @@ dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle
     dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
     image: NouvelleImage
     image.données = tampon.données
