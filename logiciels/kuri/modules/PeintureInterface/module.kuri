@@ -13,8 +13,6 @@ importe Math
 importe OpenGL
 importe Typographie
 
-// À FAIRE : remplis_arrière_plan est redondant avec efface_cible_rendu
-
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre.
  * \{ */
@@ -53,9 +51,6 @@ Peintre :: struct {
 
     /* Termine le dessin en cours (vide les tampons courant, etc.) */
     rappel_termine_dessin: fonc (peintre: *Peintre)
-
-    /* Remplis la totalité du canevas avec la couleur donnée. */
-    rappel_remplis_arrière_plan: fonc (peintre: *Peintre, couleur: CouleurPeintre)
 
     /* Dessine le contour du rectangle avec la couleur donnée. */
     rappel_dessine_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre)
@@ -172,11 +167,6 @@ commence_dessin :: fonc (peintre: *Peintre) #enligne
 termine_dessin :: fonc (peintre: *Peintre) #enligne
 {
     peintre.rappel_termine_dessin(peintre)
-}
-
-remplis_arrière_plan :: fonc (peintre: *Peintre, couleur: CouleurPeintre) -> rien #enligne
-{
-    peintre.rappel_remplis_arrière_plan(peintre, couleur)
 }
 
 dessine_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
@@ -398,14 +388,13 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_fenêtre = définis_fenêtre_dessin
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin
-    peintre.rappel_efface_cible_rendu = remplis_arrière_plan_dessin
+    peintre.rappel_efface_cible_rendu = efface_cible_de_rendu_dessin
     peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_dessin
     peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_dessin
     peintre.rappel_définis_rayon_point = définis_rayon_point_dessin
     peintre.rappel_donne_rayon_point = donne_rayon_point_dessin
     peintre.rappel_commence_dessin = commence_dessin_dessin
     peintre.rappel_termine_dessin = termine_dessin_dessin
-    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
     peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
@@ -546,7 +535,7 @@ termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
 {
 }
 
-remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
+efface_cible_de_rendu_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
@@ -866,7 +855,6 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
     peintre.rappel_donne_rayon_point = donne_rayon_point_igumi
     peintre.rappel_commence_dessin = commence_dessin_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
-    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
     peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
     peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
@@ -1010,12 +998,6 @@ commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
     IGUMI.termine_immédiat()
-}
-
-remplis_arrière_plan_igumi :: fonc (peintre: *Peintre @inutilisée, couleur_peintre: CouleurPeintre)
-{
-    couleur := donne_couleur_igumi(couleur_peintre)
-    glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
 }
 
 dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
