@@ -180,7 +180,6 @@ RappelsInterface :: struct {
     sur_affichage_alerte: fonc (rappels: *RappelsInterface, texte: DOMString)
     sur_création_timeout: fonc (rappels: *RappelsInterface, algorithm: *Algorithm, durée: z32, doit_répéter: bool) -> z32
     sur_destruction_timeout: fonc (rappels: *RappelsInterface, indice: z32)
-    sur_request_animation_frame: fonc (rappels: *RappelsInterface)
     sur_défile_page_vers_fragment: fonc (rappels: *RappelsInterface)
     sur_donne_taille_écran: fonc (rappels: *RappelsInterface) -> TailleÉcranExposéWeb
     sur_édition_text_input_requise: fonc (rappels: *RappelsInterface, element: *HTMLInputElement)
@@ -360,15 +359,6 @@ détruit_timeout :: fonc (user_agent: *UserAgent, id: z32)
         retourne
     }
     rappels.sur_destruction_timeout(rappels, id)
-}
-
-request_animation_frame :: fonc (user_agent: *UserAgent)
-{
-    rappels := user_agent.rappels_interface
-    saufsi rappels && rappels.sur_request_animation_frame {
-        retourne
-    }
-    rappels.sur_request_animation_frame(rappels)
 }
 
 défile_page_vers_fragment :: fonc (user_agent: *UserAgent)
