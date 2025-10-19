@@ -83,6 +83,8 @@ ModificateurClavier :: énum_drapeau {
     MAJUSCULE
     OPTION
     ALT
+
+    CTRL_MAJ :: CONTROL | MAJUSCULE
 }
 
 ÉtatSouris :: struct {
