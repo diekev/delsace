@@ -106,7 +106,7 @@ BoiteFlexible :: struct {
     texte_utf32: ChaineUTF32
     image: NouvelleImage
     teinte: CouleurRVBA
-    couleur_curseur_texte: CouleurRVBA
+    couleur_curseur_texte := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
     données_procédure: *rien
