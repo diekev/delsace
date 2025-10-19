@@ -126,7 +126,7 @@ GuetteusePanneauBouton :: struct {
     sur_clic = guetteuse_bouton_sur_clic
 }
 
-guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
+guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteusePanneauBouton
 
@@ -145,7 +145,7 @@ guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
         termine_guettage(guetteuse)
     }
 
-    retourne
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 /** \} */
