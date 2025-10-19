@@ -1,15 +1,17 @@
-importe Allocatrices
+importe BoiteFlexible
 importe Chaine
 importe CodecDonnées
-importe Compilatrice
 importe Couleur
-CSS :: importe CSS
+importe CréationFenêtre
+importe ÉditionTexte
 importe Fondation
+importe Guettage
 importe HTML
 importe HTTP
-JS :: importe JavaScript
-importe OpenGL
+importe Image
+importe InfosInterface
 importe Math
+importe OpenGL
 importe PeintureInterface
 importe Périphériques
 importe Qt
@@ -17,965 +19,538 @@ importe SysFichier
 importe Temps
 importe Typographie
 
-DÉBOGUE_ALLOCATIONS :: faux
-
 CHAINE_USER_AGENT :: "Mozilla/5.0 (X11; Linux x86_64) Version/0.0 (KHTML, like Gecko) VueHTML/0.0"
-
-// #exécute compile_pour_débogage_avec_asan()
-
-/* ------------------------------------------------------------------------- */
-/** \nom Fonction principale.
- * \{ */
-
-allocatrice_gardée: AllocatriceGardée
-contexte_entrée: ContexteProgramme
-
-mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
-{
-    saufsi écris_fichier_entier("fuites_de_mémoire.txt", c) {
-        imprime("%\n", c)
-    }
-}
 
 principale :: fonc ()
 {
-    mémoire_entrée := mémoire_utilisée()
-
-    /* Nous ne pouvons pas utiliser un nouveau contexte car la fonction principale
-     * peut ne pas se terminer (lors des fermetures de fenêtres). */
-    __contexte_fil_principal.logueur = mon_logueur
-    contexte_entrée = __contexte_fil_principal
-
-    #si DÉBOGUE_ALLOCATIONS {
-        __contexte_fil_principal.allocatrice = allocation_gardée
-        __contexte_fil_principal.données_allocatrice = *allocatrice_gardée
+    succès, arguments := parse_arguments()
+    saufsi succès {
+        exit(1)
     }
 
-    diffère {
-        /* Restaure le contexte. */
-        __contexte_fil_principal = contexte_entrée
+    vue_html: VueHTML
+    vue_html.fonte = donne_fonte_défaut(14.0)
+    vue_html.nom_navigateur = "VueHTML"
+    vue_html.supporte_scripting = arguments.utilise_javascript
+    vue_html.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT)
+    initialise_user_agent(*vue_html)
 
-        imprime("mémoire_utilisée %\n", mémoire_utilisée() - mémoire_entrée)
+    fenêtre := crée_fenêtre(800, 600, "VueHTML", vrai)
 
-        #si DÉBOGUE_ALLOCATIONS {
-            imprime_liste_mémoire(*allocatrice_gardée)
+    rappels_user_agent: RappelsInterfaceVueHTML
+    initialise_rappels_interface(*rappels_user_agent, *vue_html, fenêtre)
+    définis_rappels_interface(*vue_html, *rappels_user_agent)
+
+    si arguments.chemin {
+        ouvre_page(*vue_html, arguments.chemin)
+    }
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre(fenêtre)
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            si vue_html.guetteuse {
+                évènement_sauvagardé := it
+                si vue_html.guetteuse_est_dans_page {
+                    clic := donne_clic_souris(it)
+                    corrige_souris_pour_page(*vue_html, *clic)
+                    it.état_souris = clic.état
+                }
+                si gère_évènement(vue_html.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
+                    continue
+                }
+                it = évènement_sauvagardé
+            } 
+
+            gère_évènement(*vue_html.emboiteuse, it)
         }
+
+        si vue_html.file_de_tâche {
+            tâche := vue_html.file_de_tâche[0]
+            tableau_supprime_indice(*vue_html.file_de_tâche, 0)
+            run(tâche.algorithm)
+        }
+
+        si vue_html.page_web.navigable {
+            document := donne_document(*vue_html.page_web)
+            si document {
+                // À FAIRE : meilleure mise en cache
+                saufsi vue_html.adresse_en_édition {
+                    chaine_url := url_serializer(document.url)
+                    si chaine_url != vue_html.adresse_courante {
+                        déloge(vue_html.adresse_courante)
+                        vue_html.adresse_courante = chaine_url
+                    }
+                    sinon {
+                        déloge(chaine_url)
+                    }
+                }
+
+                définis_titre_fenêtre(*vue_html, fenêtre, document)
+
+                window := document.realm.global_object comme *Window
+                exécute_animation_frames(window)
+            }
+        }
+
+        vue_html.page_est_survolée = faux
+
+        dessine_fenêtre(*vue_html, largeur, hauteur)
+
+        curseur := TypeCurseurSystème.FLÈCHE
+
+        si vue_html.page_est_survolée {
+            document := donne_document(*vue_html.page_web)
+            si document {
+                élément := document.noeud_survolé
+                si élément && élément.box {
+                    curseur_css := CSS.donne_curseur(élément.box)
+                    si curseur_css == CSS.CursorType.auto {
+                        si élément.local_name == HTML.TAG_input && is_text_entry_widget(élément comme *HTMLInputElement) {
+                            curseur = TypeCurseurSystème.TEXTE_VERTICAL
+                        }
+                    }
+                    sinon {
+                        curseur = CSS.donne_cursor_système(curseur_css)
+                    }
+                }
+            }
+        }
+
+        définis_curseur(fenêtre, curseur)
+
+        permute_tampons_fenêtre(fenêtre)
     }
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom VueHTML
+ * \{ */
+
+EntréeFileDeTâche :: struct {
+    source: SourceDeTâche
+    algorithm: *Algorithm
+}
+
+VueHTML :: struct {
+    empl base: UserAgent
+
+    avoirs: Avoirs
+
+    page_web: PageWeb
+    page_est_survolée: bool
+    rect_page: RectanglePosDim(r32)
+    adresse_courante: chaine
+    adresse_en_édition: bool
+    titre_fenêtre: chaine
+
+    emboiteuse: Emboiteuse
+    peintre: *Peintre
+    peintre_id: *Peintre
+    fonte: *Fonte
+
+    guetteuse: *Guetteuse
+    guetteuse_est_dans_page: bool
+
+    file_de_tâche: [..]EntréeFileDeTâche
+}
+
+ouvre_page :: fonc (vue_html: *VueHTML, chaine_uri: chaine)
+{
+    si est_un_fichier_régulier(CheminFichier(chaine_uri)) {
+        chaine_uri = enchaine("file://", chaine_uri)
+    }
+
+    uri := url_parser(vue_html, chaine_uri)
+    assert(uri != nul)
+
+    navigable := crée_un_fresh_top_level_traversable(vue_html, uri) comme *TraversableNavigable
+
+    vue_html.page_web = crée_page_web(navigable)
+}
+
+définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, document: *Document)
+{
+    titre := "VueHTML"
+
+    élément_title := document.donne_title_element()
+    si élément_title {
+        texte_titre := donne_contenu_texte_descandants(élément_title)
+        diffère détruit_chaine(texte_titre)
+
+        texte_filtré := supprime_espace_blanches_autour(texte_titre)
+        diffère détruit_chaine(texte_filtré)
+
+        titre = imprime_chaine("% - VueHTML", texte_filtré)
+    }
+
+    si titre != vue_html.titre_fenêtre {
+        déloge_si_logée(vue_html.titre_fenêtre)
+        vue_html.titre_fenêtre = titre
+        définis_titre_fenêtre(fenêtre, titre)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arguments
+ * \{ */
+
+Arguments :: struct {
+    utilise_javascript: bool
+    chemin: chaine
+}
+
+parse_arguments :: fonc () -> (bool, Arguments)
+{
+    résultat: Arguments
 
     arguments := arguments_ligne_commande()
 
-    utilise_javascript := faux
-    chemin_fichier: chaine
     si arguments.taille > 1 {
+        chemin_fichier: chaine
+
         si arguments.taille == 3 {
             si arguments[1] != "--js" {
                 imprime("Argument '%' inconnu\n", arguments[1])
-                exit(1)
+                retourne faux, résultat
             }
 
-            utilise_javascript = vrai
-            chemin_fichier = copie_chaine(arguments[2])
+            résultat.utilise_javascript = vrai
+            chemin_fichier = arguments[2]
         }
         sinon si arguments[1] == "--js" {
-            utilise_javascript = vrai
+            résultat.utilise_javascript = vrai
         }
         sinon {
-            chemin_fichier = copie_chaine(arguments[1])
-        }
-    }
-
-    diffère QT_détruit_tampon_rappels()
-
-    /* Création application. */
-    taille_arguments := arguments.taille comme z32
-    app := QT_cree_application(*taille_arguments, __arguments_ligne_commande.pointeur)
-    diffère QT_detruit_application(app)
-
-    rappel_fermeture: RappelFermetureApp
-    rappel_fermeture.mémoire_entrée = mémoire_entrée
-    QT_application_sur_fin_boucle_evenement(app, *rappel_fermeture)
-
-    QT_core_application_definis_nom_organisation(vers_qt("delsace"))
-    QT_core_application_definis_nom_application(vers_qt("HTML"))
-
-    initialise_évènements_personnalisés()
-
-    /* Création fenêtre. */
-    rappels_fenêtre: RappelsFenetrePrincipale
-    rappels_fenêtre.user_agent = loge(UserAgent)
-    rappels_fenêtre.user_agent.supporte_scripting = utilise_javascript
-    rappels_fenêtre.user_agent.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT)
-    rappel_fermeture.rappels_fenêtre = *rappels_fenêtre
-
-    fenêtre := QT_cree_fenetre_principale(*rappels_fenêtre)
-    diffère QT_detruit_fenetre_principale(fenêtre)
-
-    définis_titre_fenêtre(fenêtre, nul)
-    QT_widget_affiche_maximisee(fenêtre)
-
-    rappels_user_agent := crée_rappels_interface_qt(fenêtre)
-    initialise_user_agent(rappels_fenêtre.user_agent)
-    définis_rappels_interface(rappels_fenêtre.user_agent, rappels_user_agent)
-
-    si chemin_fichier {
-        évènement := loge(ÉvènementCréationOnglet)
-        évènement.uri = chemin_fichier
-
-        QT_application_poste_evenement_et_donnees(fenêtre, évènement_sur_création_onglet, évènement)
-    }
-
-    exécute(app)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Évènements
- * \{ */
-
-évènement_sur_création_onglet : z32 = -1
-évènement_sur_survole_élément : z32 = -1
-évènement_sur_requête_rendu : z32 = -1
-évènement_sur_tâche_manipulation_dom : z32 = -1
-évènement_sur_tâche_interaction_utilisateur : z32 = -1
-évènement_sur_tâche_réseautage : z32 = -1
-évènement_sur_tâche_navigation_et_traversée : z32 = -1
-évènement_sur_tâche_rendu : z32 = -1
-évènement_sur_tâche_parallèle : z32 = -1
-évènement_sur_tâche_traversable : z32 = -1
-
-ÉvènementCréationOnglet :: struct {
-    uri: chaine
-}
-
-initialise_évènements_personnalisés :: fonc ()
-{
-    évènement_sur_création_onglet = QT_enregistre_evenement_personnel()
-    évènement_sur_survole_élément = QT_enregistre_evenement_personnel()
-    évènement_sur_requête_rendu = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_manipulation_dom = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_interaction_utilisateur = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_réseautage = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_navigation_et_traversée = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_rendu = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel()
-}
-
-fenêtre_principale_sur_création_barre_menu :: fonc (base: *QT_Rappels_Fenetre_Principale, créatrice: *QT_Creatrice_Barre_Menu)
-{
-    rappels_fenêtre := base comme *RappelsFenetrePrincipale
-
-    créatrice.commence_menu_env("Débogage")
-
-    action := crée_action_pour_activer_javascript(rappels_fenêtre)
-    créatrice.ajoute_action_env(action)
-
-    action = crée_action_pour_dessin_tampon_id(rappels_fenêtre)
-    créatrice.ajoute_action_env(action)
-
-    créatrice.termine_menu_env()
-}
-
-crée_action_pour_dessin_tampon_id :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
-{
-    sur_rappel :: fonc (rappels: *RappelsFenetrePrincipale, action: *QT_Action)
-    {
-        vue_rendu_page := QT_glwidget_donne_rappels(rappels.widget_rendu) comme *VueRenduPage
-        vue_rendu_page.dessine_tampon_id = QT_action_est_coche(action)
-        QT_widget_ajourne(rappels.widget_rendu)
-    }
-
-    retourne crée_action_cochable(rappels_fenêtre, "Dessine Tampon ID", faux, sur_rappel)
-}
-
-crée_action_pour_activer_javascript :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale) -> *QT_Action
-{
-    sur_rappel :: fonc (rappels: *RappelsFenetrePrincipale, action: *QT_Action)
-    {
-        user_agent := rappels.user_agent
-        user_agent.supporte_scripting = QT_action_est_coche(action)
-    }
-
-    user_agent := rappels_fenêtre.user_agent
-    retourne crée_action_cochable(rappels_fenêtre, "Active JavaScript", user_agent.supporte_scripting, sur_rappel)
-}
-
-crée_action_cochable :: fonc (rappels_fenêtre: *RappelsFenetrePrincipale, nom: chaine, est_cochée: bool, sur_rappel: fonc(*RappelsFenetrePrincipale, *QT_Action)(rien)) -> *QT_Action
-{
-    RappelActionMenu :: struct {
-        empl base: QT_Rappel_Generique
-        action: *QT_Action
-        rappels_fenêtre: *RappelsFenetrePrincipale
-        sur_rappel_local: fonc(*RappelsFenetrePrincipale, *QT_Action)(rien)
-    }
-
-    envellope_rappel :: fonc (base: *QT_Rappel_Generique)
-    {
-        rappel := base comme *RappelActionMenu
-        rappel.sur_rappel_local(rappel.rappels_fenêtre, rappel.action)
-    }
-
-    résultat := QT_cree_action(vers_qt(nom), rappels_fenêtre.fenetre)
-    QT_action_definis_cochable(résultat, vrai)
-    QT_action_definis_coche(résultat, est_cochée)
-
-    rappel := QT_loge_rappel(RappelActionMenu)
-    rappel.rappels_fenêtre = rappels_fenêtre
-    rappel.sur_rappel = envellope_rappel
-    rappel.sur_rappel_local = sur_rappel
-    rappel.action = résultat
-    QT_action_sur_declenchage(résultat, rappel)
-
-    retourne résultat
-}
-
-sur_filtre_evenement_impl :: fonc (base: *QT_Rappels_Fenetre_Principale, event: *QT_Evenement) -> z32
-{
-    type := QT_evenement_donne_type(event) comme n32 comme z32
-
-    si type == évènement_sur_création_onglet {
-        rappels := base comme *RappelsFenetrePrincipale
-
-        message := QT_event_perso_donne_donnees(event) comme *ÉvènementCréationOnglet
-
-        chaine_uri := message.uri
-
-        si est_un_fichier_régulier(CheminFichier(message.uri)) {
-            chaine_uri = enchaine("file://", chaine_uri)
+            chemin_fichier = arguments[1]
         }
 
-        uri := url_parser(rappels.user_agent, chaine_uri)
-        assert(uri != nul)
-
-        navigable := crée_un_fresh_top_level_traversable(rappels.user_agent, uri) comme *TraversableNavigable
-
-        page_web := crée_page_web(navigable)
-        crée_widget_pour_page(rappels.fenetre, page_web)
-
-        déloge(message)
-
-        QT_evenement_accepte(event)
-        retourne 1
-    }
-
-    si type == évènement_sur_survole_élément {
-        rappels := base comme *RappelsFenetrePrincipale
-        document := donne_document(*rappels.page_web)
-
-        /* Restaure toujours le curseur pour éviter d'être bloqué avec un curseur quand
-         * nous passons d'un élément à un autre ayant le même curseur : ceci empilera un
-         * nouveau curseur et une restauration suivante nous renverraient sur le curseur
-         * du premier élément. */
-        QT_gui_application_restaure_curseur()
-
-        élément := document.noeud_survolé
-        si élément && élément.box {
-            curseur_système := CSS.donne_cursor_système(CSS.donne_curseur(élément.box))
-            QT_gui_application_definis_curseur(curseur_système)
-        }
-
-        QT_evenement_accepte(event)
-        retourne 1
-    }
-
-    si type == évènement_sur_requête_rendu {
-        rappels := base comme *RappelsFenetrePrincipale
-        QT_widget_ajourne(rappels.widget_rendu)
-        QT_evenement_accepte(event)
-        retourne 1
-    }
-
-    si type == évènement_sur_tâche_manipulation_dom ||
-       type == évènement_sur_tâche_interaction_utilisateur ||
-       type == évènement_sur_tâche_réseautage ||
-       type == évènement_sur_tâche_navigation_et_traversée ||
-       type == évènement_sur_tâche_rendu {
-        algorithm := QT_event_perso_donne_donnees(event) comme *Algorithm
-        algorithm.run()
-        QT_evenement_accepte(event)
-        retourne 1
-    }
-
-    retourne 0
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Sur fermeture application.
- * \{ */
-
-RappelFermetureApp :: struct {
-    empl base: QT_Rappel_Generique
-
-    rappels_fenêtre: *RappelsFenetrePrincipale
-    mémoire_entrée: z64
-
-    sur_rappel = sur_fermeture_application
-}
-
-sur_fermeture_application :: fonc (base: *QT_Rappel_Generique)
-{
-    rappel := base comme *RappelFermetureApp
-    détruit_user_agent(rappel.rappels_fenêtre.user_agent)
-    détruit_table_chaines_utf16_uniques()
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Données fenêtre principale.
- * \{ */
-
-WidgetsPage :: struct {
-    line_edit: *QT_LineEdit
-    bouton_avant: *QT_PushButton
-    bouton_arrière: *QT_PushButton
-    bouton_recharge: *QT_PushButton
-}
-
-RappelsFenetrePrincipale :: struct {
-    empl base: QT_Rappels_Fenetre_Principale
-
-    user_agent: *UserAgent
-
-    page_web: PageWeb
-    widgets_page: WidgetsPage
-    widget_rendu: *QT_OpenGLWidget
-    widget_arbre_de_disposition: *QT_TreeWidget
-    widget_arbre_dom: *QT_TreeWidget
-
-    /* Données rappels. */
-    sur_filtre_evenement = sur_filtre_evenement_impl
-    sur_creation_barre_menu = fenêtre_principale_sur_création_barre_menu
-}
-
-définis_titre_fenêtre :: fonc (fenêtre: *QT_Fenetre_Principale, document: *Document)
-{
-    saufsi document {
-        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Vue HTML"))
-        retourne
-    }
-
-    titre := document.donne_title_element()
-    saufsi titre {
-        QT_widget_definis_titre_fenetre(fenêtre, vers_qt("Document Sans Titre - Vue HTML"))
-        retourne
-    }
-
-    texte_titre := donne_contenu_texte_descandants(titre)
-    diffère détruit_chaine(texte_titre)
-
-    texte_filtré := supprime_espace_blanches_autour(texte_titre)
-    diffère détruit_chaine(texte_filtré)
-
-    texte_final := imprime_chaine("% - Vue HTML", texte_filtré)
-    diffère déloge(texte_final)
-
-    QT_widget_definis_titre_fenetre(fenêtre, vers_qt(texte_final))
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Widget page.
- * \{ */
-
-RappelsTab :: struct {
-    empl base: QT_Rappels_TabWidget
-
-    fenêtre: *QT_Fenetre_Principale
-
-    sur_changement_page = rappels_widget_page_sur_changement_indice
-    sur_destruction = rappels_widget_page_sur_destruction
-}
-
-rappels_widget_page_sur_changement_indice :: fonc (base: *QT_Rappels_TabWidget, indice: z32 @inutilisée)
-{
-    rappels := base comme *RappelsTab
-    fenêtre := rappels.fenêtre
-    rappels_fenêtre := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-
-    page := QT_tab_widget_donne_widget_courant(rappels.widget)
-
-    si page == (rappels_fenêtre.widget_arbre_de_disposition comme *QT_Widget) {
-        ajourne_widget_arbre_de_disposition(rappels_fenêtre)
-    }
-}
-
-rappels_widget_page_sur_destruction :: fonc (base: *QT_Rappels_TabWidget)
-{
-    rappels := base comme *RappelsTab
-    déloge(rappels)
-}
-
-crée_widget_pour_page :: fonc (fenêtre: *QT_Fenetre_Principale, page_web: PageWeb)
-{
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    rappels.page_web = page_web
-
-    widget := QT_cree_widget(nul, fenêtre)
-
-    barre_de_navigation := crée_barre_de_navigation(rappels.user_agent, *rappels.page_web, *rappels.widgets_page, widget)
-
-    rappels_tabs := loge(RappelsTab)
-    rappels_tabs.fenêtre = fenêtre
-    tabs := QT_cree_tab_widget(rappels_tabs, fenêtre)
-    QT_tab_widget_definis_tabs_fermable(tabs, 0)
-
-    widget_rendu := crée_widget_pour_rendu(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_rendu, "Rendu")
-    rappels.widget_rendu = widget_rendu
-
-    widget_source := crée_widget_vue_source(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_source, "Source")
-
-    widget_arbre := crée_widget_arbre_pour_dom(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_arbre, "DOM")
-
-    widget_texte := crée_widget_vue_texte(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_texte, "Texte")
-
-    widget_arbre_disposition := crée_widget_vue_arbre_de_disposition(fenêtre, tabs)
-    QT_tab_widget_ajoute_tab(tabs, widget_arbre_disposition, "Arbre de Disposition")
-
-    disposition := QT_cree_vbox_layout(widget)
-    QT_layout_ajoute_widget(disposition, barre_de_navigation)
-    QT_layout_ajoute_widget(disposition, tabs)
-
-    QT_fenetre_principale_definis_widget_central(fenêtre, widget)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Barre de navigation.
- * \{ */
-
-RappelChangementAdresse :: struct {
-    empl base: QT_Rappel_Generique
-
-    user_agent: *UserAgent
-    page_web: *PageWeb
-    line_edit: *QT_LineEdit
-}
-
-crée_rappel_changement_adresse :: fonc (user_agent: *UserAgent, page_web: *PageWeb, line_edit: *QT_LineEdit) -> *QT_Rappel_Generique
-{
-    résultat := QT_loge_rappel(RappelChangementAdresse)
-    résultat.sur_rappel = rappel_changement_adresse_sur_rappel
-    résultat.user_agent = user_agent
-    résultat.page_web = page_web
-    résultat.line_edit = line_edit
-    retourne résultat
-}
-
-rappel_changement_adresse_sur_rappel :: fonc (base: *QT_Rappel_Generique)
-{
-    rappel := base comme *RappelChangementAdresse
-
-    line_edit := rappel.line_edit
-    texte := QT_line_edit_donne_texte(line_edit).vers_kuri().copie_chaine()
-
-    si texte.est_vide() {
-        retourne
-    }
-
-    url := url_parser(rappel.user_agent, texte)
-    saufsi url {
-        retourne
-    }
-
-    page_web := rappel.page_web
-    document := page_web.donne_document()
-
-    params: ParamètresNavigationNavigable
-    params.url = url
-    params.source_document = document
-    navigate(rappel.user_agent, page_web.navigable, params)
-}
-
-QT_crée_push_button :: fonc (texte: chaine, icone: *QT_Icon, parent: QT_Generic_Widget) -> *QT_PushButton
-{
-    résultat := QT_cree_push_button(texte.vers_qt(), parent)
-    QT_push_button_definis_icone(résultat, icone)
-    retourne résultat
-}
-
-crée_barre_de_navigation :: fonc (user_agent: *UserAgent, page_web: *PageWeb, widgets: *WidgetsPage, parent: *QT_Widget) -> *QT_Widget
-{
-    widget := QT_cree_widget(nul, parent)
-    line_edit := QT_cree_line_edit(widget)
-
-    rappel_changement := crée_rappel_changement_adresse(user_agent, page_web, line_edit)
-    QT_line_edit_connecte_sur_pression_retour(line_edit, rappel_changement)
-
-    style := QT_application_donne_style()
-
-    icone_avant := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.ArrowForward)
-    diffère QT_detruit_icon(icone_avant)
-
-    icone_arrière := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.ArrowBack)
-    diffère QT_detruit_icon(icone_arrière)
-
-    icone_recharge := QT_style_donne_standard_icon(style, QT_Standard_Pixmap.BrowserReload)
-    diffère QT_detruit_icon(icone_recharge)
-
-    bouton_avant := QT_crée_push_button("", icone_avant, widget)
-    crée_rappel_pour_bouton_avant(user_agent, page_web, bouton_avant)
-
-    bouton_arrière := QT_crée_push_button("", icone_arrière, widget)
-    crée_rappel_pour_bouton_arrière(user_agent, page_web, bouton_arrière)
-
-    bouton_recharge := QT_crée_push_button("", icone_recharge, widget)
-    crée_rappel_pour_bouton_recharge(user_agent, page_web, bouton_recharge)
-
-    QT_widget_definis_actif(bouton_avant, faux)
-    QT_widget_definis_actif(bouton_arrière, faux)
-
-    disposition := QT_cree_hbox_layout(widget)
-    QT_layout_ajoute_widget(disposition, bouton_arrière)
-    QT_layout_ajoute_widget(disposition, bouton_avant)
-    QT_layout_ajoute_widget(disposition, bouton_recharge)
-    QT_layout_ajoute_widget(disposition, line_edit)
-
-    widgets.line_edit = line_edit
-    widgets.bouton_avant = bouton_avant
-    widgets.bouton_arrière = bouton_arrière
-    widgets.bouton_recharge = bouton_recharge
-
-    retourne widget
-}
-
-crée_rappel_pour_bouton_avant :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
-{
-    RappelTraversée :: struct {
-        empl base: QT_Rappel_Generique
-
-        user_agent: *UserAgent
-        page_web: *PageWeb
-    }
-
-    sur_traversée :: fonc (base: *QT_Rappel_Generique)
-    {
-        rappel := base comme *RappelTraversée
-        user_agent := rappel.user_agent
-        page_web := rappel.page_web
-        traversable := page_web.navigable
-
-        traverse_the_history_by_a_delta(user_agent, traversable, 1)
-    }
-
-    rappel := QT_loge_rappel(RappelTraversée)
-    rappel.sur_rappel = sur_traversée
-    rappel.user_agent = user_agent
-    rappel.page_web = page_web
-
-    QT_push_button_connecte_sur_clic(bouton, rappel)
-}
-
-crée_rappel_pour_bouton_arrière :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
-{
-    RappelTraversée :: struct {
-        empl base: QT_Rappel_Generique
-
-        user_agent: *UserAgent
-        page_web: *PageWeb
-    }
-
-    sur_traversée :: fonc (base: *QT_Rappel_Generique)
-    {
-        rappel := base comme *RappelTraversée
-        user_agent := rappel.user_agent
-        page_web := rappel.page_web
-        traversable := page_web.navigable
-
-        traverse_the_history_by_a_delta(user_agent, traversable, -1)
-    }
-
-    rappel := QT_loge_rappel(RappelTraversée)
-    rappel.sur_rappel = sur_traversée
-    rappel.user_agent = user_agent
-    rappel.page_web = page_web
-
-    QT_push_button_connecte_sur_clic(bouton, rappel)
-}
-
-crée_rappel_pour_bouton_recharge :: fonc (user_agent: *UserAgent, page_web: *PageWeb, bouton: *QT_PushButton)
-{
-    RappelTraversée :: struct {
-        empl base: QT_Rappel_Generique
-
-        user_agent: *UserAgent
-        page_web: *PageWeb
-    }
-
-    sur_traversée :: fonc (base: *QT_Rappel_Generique)
-    {
-        rappel := base comme *RappelTraversée
-        user_agent := rappel.user_agent
-        page_web := rappel.page_web
-        traversable := page_web.navigable
-
-        reload(user_agent, traversable, UserNavigationInvolvement.BrowserUI)
-    }
-
-    rappel := QT_loge_rappel(RappelTraversée)
-    rappel.sur_rappel = sur_traversée
-    rappel.user_agent = user_agent
-    rappel.page_web = page_web
-
-    QT_push_button_connecte_sur_clic(bouton, rappel)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom ÉditriceArborescence
- * \{ */
-
-WidgetArbre :: struct {
-    empl base: QT_Rappels_TreeWidget
-}
-
-crée_widget_arbre :: fonc (rappels: *QT_Rappels_TreeWidget, parent: QT_Generic_Widget) -> *QT_TreeWidget
-{
-    résultat := QT_cree_treewidget(rappels, parent)
-
-    QT_treewidget_definis_taille_icone(résultat, 20, 20)
-    QT_treewidget_definis_toutes_les_colonnes_montre_focus(résultat, 1)
-    QT_treewidget_definis_anime(résultat, 0)
-    QT_treewidget_definis_auto_defilement(résultat, 0)
-    QT_treewidget_definis_hauteurs_uniformes_lignes(résultat, 1)
-    QT_treewidget_definis_mode_selection(résultat, QT_Mode_Selection.SELECTION_UNIQUE)
-    QT_treewidget_definis_mode_drag_drop(résultat, QT_Mode_DragDrop.AUCUN_DRAG_DROP)
-    QT_treewidget_definis_activation_drag(résultat, 0)
-    QT_treewidget_definis_comportement_focus(résultat, QT_Comportement_Focus.AUCUN_FOCUS)
-    QT_treewidget_definis_comportement_menu_contextuel(résultat, QT_Comportement_Menu_Contextuel.MENU_PERSONNALISE)
-    QT_treewidget_definis_entete_visible(résultat, 1)
-
-    retourne résultat
-}
-
-RappelsArborescence :: struct {
-    empl base: QT_Rappels_TreeWidget
-
-    fenêtre_principale: *QT_Fenetre_Principale
-}
-
-crée_widget_arbre_pour_dom :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
-{
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    résultat := crée_widget_arbre(nul, parent)
-    rappels.widget_arbre_dom = résultat
-    ajourne_widget_arbre_dom(rappels)
-    retourne résultat
-}
-
-ajourne_widget_arbre_dom :: fonc (rappels: *RappelsFenetrePrincipale)
-{
-    QT_treewidget_efface(rappels.widget_arbre_dom)
-
-    document := donne_document(*rappels.page_web)
-    saufsi document {
-        retourne
-    }
-
-    arbre := rappels.widget_arbre_dom
-
-    item_document := QT_cree_treewidgetitem(nul, 0, nul)
-    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    texte := vers_qt("document")
-    QT_treewidgetitem_definis_texte(item_document, 0, *texte)
-    QT_treewidget_ajoute_item_racine(arbre, item_document)
-
-    pour document.enfants {
-        ajoute_item_pour_noeud(item_document, it)
-    }
-}
-
-ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *Node)
-{
-    texte := ""
-    diffère déloge(texte)
-
-    si noeud.est_élément() {
-        élément := noeud comme *Element
-
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
-
-        ajoute_au_tampon(*enchaineuse, "<", élément.local_name)
-
-        pour noeud.attributs {
-            ajoute_au_tampon(*enchaineuse, " ", it.local_name, "=\"", it.valeur, "\"")
-        }
-
-        ajoute_au_tampon(*enchaineuse, ">")
-
-        texte = chaine_depuis_enchaineuse(*enchaineuse)
-    }
-    sinon {
-        si noeud.est_texte() {
-            noeud_texte := noeud comme *Text
-            si est_espace_blanche_entre_élément(noeud_texte) {
-                retourne
+        si chemin_fichier {    
+            chemin_courant := tente donne_chemin_courant() piège nonatteignable
+            diffère déloge(chemin_courant.chn)
+
+            chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(chemin_fichier))
+
+            si est_un_fichier_régulier(chm_abs) {
+                résultat.chemin = chm_abs.chn
+            }
+            sinon {
+                résultat.chemin = copie_chaine(chemin_fichier)
+                déloge(chm_abs.chn)
             }
         }
-
-        texte = imprime_chaine("%", noeud.genre)
     }
 
-    item_noeud := QT_cree_treewidgetitem(nul, 0, nul)
-    QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    qtexte := vers_qt(texte)
-    QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
-
-    QT_treewidgetitem_ajoute_enfant(parent, item_noeud)
-
-    pour noeud.enfants {
-        ajoute_item_pour_noeud(item_noeud, it)
-    }
+    retourne vrai, résultat
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom VueSource
+/** \nom Avoir
  * \{ */
 
-crée_widget_vue_source :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
-{
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    contenu := donne_code_source(*rappels.page_web)
-
-    résultat := QT_cree_plain_text_edit(nul, parent)
-    QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
-    QT_plain_text_edit_definis_mode_retour_ligne(résultat, QT_Line_Wrap_Mode.AUCUN)
-    QT_plain_text_edit_definis_texte(résultat, contenu)
-    retourne résultat
+Avoir :: struct {
+    nom_court: chaine
+    image: NouvelleImage
+    largeur: n32
+    hauteur: n32
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom VueSource
+/** \nom Avoirs
  * \{ */
 
-crée_widget_vue_texte :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_PlainTextEdit
-{
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    document := donne_document(*rappels.page_web)
+Avoirs :: struct {
+    avoirs: [..]Avoir
+}
 
-    résultat := QT_cree_plain_text_edit(nul, parent)
-    QT_plain_text_edit_definis_lecture_seule(résultat, vrai)
-    QT_plain_text_edit_definis_mode_retour_ligne(résultat, QT_Line_Wrap_Mode.AUCUN)
-    si document {
-        body := document.donne_élément_body()
-        si body {
-            texte := extrait_texte_noeud(body)
-            diffère déloge(texte)
-            QT_plain_text_edit_definis_texte(résultat, texte)
+détruit_données :: fonc (avoirs: *Avoirs)
+{
+    pour avoirs.avoirs {
+        détruit_données_image(*it.image)
+        déloge_si_logée(it.nom_court)
+    }
+    déloge(avoirs.avoirs)
+}
+
+donne_avoir :: fonc (avoirs: *Avoirs, nom_court: chaine) -> *Avoir
+{
+    pour * avoirs.avoirs {
+        si it.nom_court == nom_court {
+            retourne it
         }
     }
-    retourne résultat
+    retourne nul
+}
+
+donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, cotation: n32) -> Avoir
+{
+    retourne donne_image_avec_taille(avoirs, nom_court, cotation, cotation)
+}
+
+donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n32, hauteur: n32) -> Avoir
+{
+    pour avoirs.avoirs {
+        si it.nom_court == nom_court && it.image.desc.largeur == largeur && it.image.desc.hauteur == hauteur {
+            retourne it
+        }
+    }
+
+    chemin := imprime_chaine("Icones/%.svg", nom_court)
+    diffère déloge(chemin)
+
+    résultat := tableau_ajoute_élément(*avoirs.avoirs)
+    résultat.nom_court = nom_court
+
+    _, contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    diffère déloge(contenu)
+
+    chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille))
+    diffère détruit_chaine_c(chaine_c)
+
+    image_svg: SVGImage
+    si SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
+        desc: DescriptriceImage
+        desc.largeur = largeur
+        desc.hauteur = hauteur
+        desc.format = FormatPixel.RVBA_8
+
+        résultat.image = crée_image(*desc)
+        SVG_image_ratisse(*image_svg, résultat.image.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
+
+        SVG_image_detruit(*image_svg)
+    }
+
+    retourne mémoire(résultat)
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Vue arbre de disposition
+/** \nom Interface
  * \{ */
 
-crée_widget_vue_arbre_de_disposition :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_TreeWidget
+dessine_fenêtre :: fonc (empl vue_html: *VueHTML, largeur: z32, hauteur: z32)
 {
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-
-    résultat := crée_widget_arbre(nul, parent)
-    rappels.widget_arbre_de_disposition = résultat
-    ajourne_widget_arbre_de_disposition(rappels)
-    retourne résultat
-}
-
-ajourne_widget_arbre_de_disposition :: fonc (rappels: *RappelsFenetrePrincipale)
-{
-    QT_treewidget_efface(rappels.widget_arbre_de_disposition)
-
-    document := donne_document(*rappels.page_web)
-    saufsi document {
-        retourne
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi vue_html.peintre {
+        peintre = crée_peintre_igumi(taille_canevas)
+        peintre_id = crée_peintre_igumi(taille_canevas)
     }
 
-    arbre := document.arbre_de_disposition
-    saufsi arbre {
-        retourne
-    }
-
-    widget := rappels.widget_arbre_de_disposition
-
-    item_document := QT_cree_treewidgetitem(nul, 0, nul)
-    QT_treewidgetitem_definis_indicateur_enfant(item_document, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    texte := donne_texte_item_pour_noeud(arbre.racine)
-    diffère déloge_si_logée(texte)
-    qtexte := vers_qt(texte)
-    QT_treewidgetitem_definis_texte(item_document, 0, *qtexte)
-    QT_treewidget_ajoute_item_racine(widget, item_document)
-
-    pour arbre.racine.enfants {
-        ajoute_item_pour_noeud(item_document, it)
-    }
-}
-
-ajoute_item_pour_noeud :: fonc (parent: *QT_TreeWidgetItem, noeud: *CSS.Box)
-{
-    item_noeud := QT_cree_treewidgetitem(nul, 0, nul)
-    QT_treewidgetitem_definis_indicateur_enfant(item_noeud, QT_Indicateur_Enfant_Arbre.INVISIBLE_SI_SANS_ENFANT)
-    texte := donne_texte_item_pour_noeud(noeud)
-    diffère déloge_si_logée(texte)
-    qtexte := vers_qt(texte)
-    QT_treewidgetitem_definis_texte(item_noeud, 0, *qtexte)
-
-    QT_treewidgetitem_ajoute_enfant(parent, item_noeud)
-
-    pour noeud.enfants {
-        ajoute_item_pour_noeud(item_noeud, it)
-    }
-}
-
-donne_texte_item_pour_noeud :: fonc (box: *CSS.Box) -> chaine
-{
-    si box.table_virtuelle.type == CSS.TextBox {
-        retourne "texte"
-    }
-
-    si box.table_virtuelle.type == CSS.BreakBox {
-        retourne "<br/>"
-    }
-
-    local_name := crée_chaine_utf16_unique("#anonyme")
-    si box.noeud && CSS.donne_élément(box) {
-        local_name = CSS.donne_élément(box).local_name
-    }
-
-    position_x := box.modèle_de_boite.marge.x
-    position_y := box.modèle_de_boite.marge.y
-    largeur := box.modèle_de_boite.marge.largeur
-    hauteur := box.modèle_de_boite.marge.hauteur
-
-    retourne imprime_chaine("% (%) [%x%] [%x%]", CSS.donne_nom_classe(box), local_name, position_x, position_y, largeur, hauteur)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom VueRendu
- * \{ */
-
-crée_widget_pour_rendu :: fonc (fenêtre: *QT_Fenetre_Principale, parent: QT_Generic_Widget) -> *QT_OpenGLWidget
-{
-    rappels := QT_fenetre_principale_donne_rappels(fenêtre) comme *RappelsFenetrePrincipale
-    résultat := crée_vue_rendu_page(fenêtre, parent, *rappels.page_web)
-    retourne résultat
-}
-
-VueRenduPage :: struct {
-    empl base: QT_Rappels_GLWidget
-
-    sur_destruction = vue_rendu_page_sur_destruction
-    sur_initialisation_gl = vue_rendu_page_sur_initialisation
-    sur_peinture_gl = vue_rendu_page_sur_peinture
-    sur_redimensionnement_gl = vue_rendu_page_sur_redimensionnement
-    sur_deplacement_souris = vue_rendu_page_sur_déplacement_souris
-    sur_pression_souris = vue_rendu_page_sur_pression_souris
-    sur_relachement_souris = vue_rendu_page_sur_relachement_souris
-    sur_molette_souris = vue_rendu_page_sur_molette_souris
-    sur_sortie = vue_rendu_page_sur_sortie
-    sur_relachement_cle = vue_rendu_page_sur_relachement_cle
-
-    fenêtre_principale: *QT_Fenetre_Principale
-    page: *PageWeb
-
-    hauteur: z32
-    largeur: z32
-
-    dessine_tampon_id: bool
-
-    peintre: *Peintre
-    peintre_id: *Peintre
-}
-
-crée_vue_rendu_page :: fonc (fenêtre_principale: *QT_Fenetre_Principale, parent: QT_Generic_Widget, page: *PageWeb) -> *QT_OpenGLWidget
-{
-    rappels := loge(VueRenduPage)
-    rappels.page = page
-    rappels.fenêtre_principale = fenêtre_principale
-    résultat := QT_cree_glwidget(rappels, parent)
-    QT_widget_definis_comportement_focus(résultat, QT_Focus_Policy.WheelFocus)
-    QT_widget_definis_trackage_souris(résultat, vrai)
-    retourne résultat
-}
-
-vue_rendu_page_sur_destruction :: fonc (rappels: *QT_Rappels_GLWidget)
-{
-    vue_rendu_page := rappels comme *VueRenduPage
-    si vue_rendu_page.peintre {
-        détruit_peintre(vue_rendu_page.peintre)
-    }
-    si vue_rendu_page.peintre_id {
-        détruit_peintre(vue_rendu_page.peintre_id)
-    }
-    déloge(vue_rendu_page)
-}
-
-vue_rendu_page_sur_initialisation :: fonc (base: *QT_Rappels_GLWidget @inutilisée)
-{
-    glewExperimental = 1
-    erreur_ := glewInit()
-
-    si erreur_ != 0 {
-        imprime("Erreur lors de l'initilisation de GLEW !\n")
-        retourne
-    }
-}
-
-vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
-{
-    /* Réinitialise les erreurs.
-     * Il semblerait que Qt génère une erreur entre les appels à cette fonction... :/ */
-    _ := glGetError()
-
-    vue_rendu_page := base comme *VueRenduPage
-
-    taille_canevas := Taille(largeur = Largeur(vue_rendu_page.largeur), hauteur = Hauteur(vue_rendu_page.hauteur))
-
-    saufsi vue_rendu_page.peintre {
-        vue_rendu_page.peintre = crée_peintre_igumi(taille_canevas)
-        // vue_rendu_page.peintre = crée_peintre_module_dessin(taille_canevas)
-    }
-
-    saufsi vue_rendu_page.peintre_id {
-        vue_rendu_page.peintre_id = crée_peintre_igumi(taille_canevas)
-    }
-
-    peintre := vue_rendu_page.peintre
     peintre.définis_taille_canevas(taille_canevas)
+    peintre_id.définis_taille_canevas(taille_canevas)
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glClearColor(1.0, 1.0, 1.0, 1.0)
+    commandes := crée_interface(vue_html, largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
+}
 
-    page := vue_rendu_page.page
+GRIS_157 := CouleurRVBA(0.157, 0.157, 0.157, 1.0)
+GRIS_227 := CouleurRVBA(0.227, 0.227, 0.227, 1.0)
+GRIS_275 := CouleurRVBA(0.275, 0.275, 0.275, 1.0)
+GRIS_325 := CouleurRVBA(0.325, 0.325, 0.325, 1.0)
 
-    // début_rendu := maintenant_précis()
+TEXTE_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0)
+TEXTE_INACTIF := CouleurRVBA(0.660, 0.660, 0.660, 1.0)
 
-    commandes := dessine(page, vue_rendu_page.largeur, vue_rendu_page.hauteur, vue_rendu_page.dessine_tampon_id)
+BOUTON_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0)
+BOUTON_INACTIF := CouleurRVBA(0.450, 0.450, 0.450, 1.0)
+
+ARRIÈRE_PLAN_PAGE := GRIS_157
+
+crée_interface :: fonc (vue_html: *VueHTML, largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    emboiteuse := *vue_html.emboiteuse
+
+    espace: EspaceDisponible = ---
+    espace.largeur = largeur comme n32
+    espace.hauteur = hauteur comme n32
+
+    commence_disposition(emboiteuse, largeur, hauteur)
+
+    dispose_rectangle()
+    {
+        définis_cotation(CROISSANTE(), CROISSANTE())
+        définis_direction(Direction.Verticale)
+
+        métriques := donne_métriques_fonte(vue_html.fonte)
+        hauteur_de_ligne := donne_hauteur_ligne(métriques) comme n32
+        rembourrage_barre : n32 = 8
+        rembourrage_entrée_recherche : n32 = 8
+        hauteur_barre_de_recherche : n32 = hauteur_de_ligne + 2 * (rembourrage_barre + rembourrage_entrée_recherche)
+
+        // barre de recherche
+        dispose_rectangle()
+        {
+            définis_cotation(CROISSANTE(), FIXE(hauteur_barre_de_recherche))
+            définis_arrière_plan(GRIS_227)
+            définis_alignement_vertical(AlignementEnfant.Milieu)
+            définis_séparation_enfant(rembourrage_barre comme r32)
+            définis_rembourrage(RembourrageUniforme(rembourrage_barre comme r32))
+
+            cotation_icone := hauteur_de_ligne + rembourrage_barre
+
+            couleur_reculer := TEXTE_INACTIF
+            couleur_avancer := TEXTE_INACTIF
+            couleur_recharger := TEXTE_INACTIF
+
+            action_reculer: TypeRappelSouris
+            action_avancer: TypeRappelSouris
+            action_recharger: TypeRappelSouris
+
+            si vue_html.page_web.navigable {
+                traversable := vue_html.page_web.navigable
+                indice_courant := traversable.current_session_history_entry_step comme z64
+                indice_max := traversable.session_history_entries.taille - 1
+
+                si indice_courant < indice_max {
+                    action_avancer = sur_pression_bouton_avancer
+                    couleur_avancer = TEXTE_ACTIF
+                }
+                si indice_courant > 0 {
+                    action_reculer = sur_pression_bouton_reculer
+                    couleur_reculer = TEXTE_ACTIF
+                }
+                si indice_max >= 0 {
+                    action_recharger = sur_pression_bouton_recharger
+                    couleur_recharger = TEXTE_ACTIF
+                }
+            }
+
+            icone_reculer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-reculer", cotation_icone)
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_reculer.image, couleur_reculer, cotation_icone, action_reculer, vue_html)
+
+            icone_avancer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-avancer", cotation_icone)
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_avancer.image, couleur_avancer, cotation_icone, action_avancer, vue_html)
+
+            icone_recharger := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-recharger", cotation_icone)
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_recharger.image, couleur_recharger, cotation_icone, action_recharger, vue_html)
+
+            dispose_rectangle()
+            {
+                définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne + 2 * rembourrage_entrée_recherche))
+                définis_rembourrage(RembourrageUniforme(rembourrage_entrée_recherche comme r32))
+                définis_arrière_plan(GRIS_157)
+                définis_couleur_curseur_texte(TEXTE_ACTIF)
+
+                sur_pression_souris(démarre_édition_texte_navigation, vue_html, 0)
+
+                texte := vue_html.adresse_courante
+                couleur_texte := TEXTE_ACTIF
+                si texte == "" {
+                    texte = "Saisir une adresse"
+                    couleur_texte = TEXTE_INACTIF
+                }
+
+                dispose_texte(texte, ConfigurationTexte(vue_html.fonte, couleur_texte))
+            }
+            termine_rectangle()
+        }
+        termine_rectangle()
+
+        // page
+        espace_page := enlève_hauteur(espace, hauteur_barre_de_recherche)
+        dispose_procédure(dessine_page, vue_html, cotation = donne_cotation(espace_page))
+        {
+            sur_pression_souris(sur_pression_souris_page, vue_html, 0)
+            sur_relâchement_souris(sur_relâchement_souris_page, vue_html, 0)
+            sur_molette_souris(sur_molette_souris_page, vue_html, 0)
+
+            si est_survolée() {
+                souris: ClicSouris
+                corrige_souris_pour_page(vue_html, *souris)
+                _ := gère_mouvement_souris(*vue_html.page_web, *souris)
+                vue_html.page_est_survolée = vrai
+            }
+        }
+        termine_procédure()
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(emboiteuse)
+}
+
+sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        page_web := vue_html.page_web
+        traversable := page_web.navigable
+        traverse_the_history_by_a_delta(vue_html, traversable, -1)
+
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+    retourne résultat
+}
+
+sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        page_web := vue_html.page_web
+        traversable := page_web.navigable
+        traverse_the_history_by_a_delta(vue_html, traversable, 1)
+
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+    retourne résultat
+}
+
+sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        page_web := vue_html.page_web
+        traversable := page_web.navigable
+        reload(vue_html, traversable, UserNavigationInvolvement.BrowserUI)
+
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+    retourne résultat
+}
+
+dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
+{
+    vue_html.rect_page = rect
+
+    IGUMI.quad_immédiat(rect.x, rect.y, rect.largeur, rect.hauteur, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+    IGUMI.termine_immédiat()
+
+    vue_html.peintre.définis_ciseau(rect)
+    diffère vue_html.peintre.restaure_ciseau()
+
+    largeur := rect.largeur comme z32
+    hauteur := rect.hauteur comme z32
+
+    page := *vue_html.page_web
+
+    arbre := donne_arbre_de_disposition(page)
+    si arbre && (arbre.hauteur_vue != hauteur || arbre.largeur_vue != largeur) {
+        redimensionne(page, largeur, hauteur)
+    }
+
+    dessine_tampon_id := faux
+    commandes := dessine(page, largeur, hauteur, dessine_tampon_id)
     saufsi commandes {
         retourne
     }
-
-    // imprime("temps de rendu : %\n", début_rendu.temps_écoulé_millisecondes())
-
-    CSS.dessine_commandes(peintre, commandes)
+    
+    dessine_commandes(vue_html.peintre, commandes, faux)
 
     document := page.donne_document()
     lien_survolé := document.donne_lien_survolé()
@@ -987,122 +562,213 @@ vue_rendu_page_sur_peinture :: fonc (base: *QT_Rappels_GLWidget)
             fonte := CSS.donne_fonte_défaut(document.globales_dessin)
             métriques := fonte.donne_métriques_fonte()
 
-            rect: RectanglePosDim(r32)
-            rect.y = 0
-            rect.hauteur = métriques.donne_hauteur_ligne()
-            rect.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne
+            rect_lien: RectanglePosDim(r32)
+            rect_lien.y = 0
+            rect_lien.hauteur = métriques.donne_hauteur_ligne()
+            rect_lien.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne
 
             couleur := CouleurRVBAN8(255, 255, 255, 255)
-            peintre.remplis_rectangle(rect, couleur)
+            vue_html.peintre.remplis_rectangle(rect_lien, couleur)
 
             couleur = CouleurRVBAN8(0, 0, 0, 255)
-            rect.x = métriques.largeur_moyenne
-            peintre.dessine_texte(fonte, texte, rect, couleur, nul)
+            rect_lien.x = métriques.largeur_moyenne
+            vue_html.peintre.dessine_texte(fonte, texte, rect_lien, couleur, nul)
 
-            peintre.termine_dessin()
+            vue_html.peintre.termine_dessin()
         }
     }
-
-    peintre.dessine_tampon_sur_écran()
-
-    commandes = dessine_tampon_id(page, vue_rendu_page.largeur, vue_rendu_page.hauteur)
-    assert(commandes != nul)
-
-    peintre = vue_rendu_page.peintre_id
-    CSS.dessine_commandes_id(peintre, commandes, CSS.donne_tampon_id(document.arbre_de_disposition))
-
-    /* Nous devrions faire ça plus haut mais il semblerait qu'il manque, ou qu'il y a une préemption, des ajournements. */
-    window := document.realm.global_object comme *Window
-    exécute_animation_frames(window)
 }
 
-vue_rendu_page_sur_redimensionnement :: fonc (rappels: *QT_Rappels_GLWidget, taille: QT_Taille)
+sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    vue_rendu_page := rappels comme *VueRenduPage
-    vue_rendu_page.largeur = taille.largeur
-    vue_rendu_page.hauteur = taille.hauteur
-    redimensionne(vue_rendu_page.page, taille.largeur, taille.hauteur)
+    résultat := ÉtatÉvènement.CONSOMMÉ
+    corrige_souris_pour_page(vue_html, *souris)
+    gère_pression_souris(*vue_html.page_web, *souris)
+    retourne résultat
 }
 
-vue_rendu_page_sur_déplacement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.DÉPLACÉE)
-    si gère_mouvement_souris(vue_rendu_page.page, *clic) {
-        QT_widget_ajourne(vue_rendu_page.widget)
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    corrige_souris_pour_page(vue_html, *souris)
+    si gère_relâchement_souris(*vue_html.page_web, *souris) {
+        résultat = ÉtatÉvènement.CONSOMMÉ
     }
+    retourne résultat
 }
 
-vue_rendu_page_sur_pression_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
+sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
-    gère_pression_souris(vue_rendu_page.page, *clic)
-}
-
-vue_rendu_page_sur_relachement_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_MouseEvent)
-{
-    vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clic_souris_depuis_évènement(event, ActionSouris.PRESSÉE)
-    si gère_relâchement_souris(vue_rendu_page.page, *clic) {
-        QT_widget_ajourne(vue_rendu_page.widget)
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    corrige_souris_pour_page(vue_html, *souris)
+    si gère_molette_souris(*vue_html.page_web, *souris) {
+        résultat = ÉtatÉvènement.CONSOMMÉ
     }
+    retourne résultat
 }
 
-vue_rendu_page_sur_molette_souris :: fonc (base: *QT_Rappels_GLWidget, event: *QT_WheelEvent)
+corrige_souris_pour_page :: fonc (vue_html: *VueHTML, souris: *ClicSouris)
 {
-    vue_rendu_page := base comme *VueRenduPage
-    clic := donne_clic_souris_depuis_évènement(event)
-    si gère_molette_souris(vue_rendu_page.page, *clic) {
-        QT_widget_ajourne(vue_rendu_page.widget)
-    }
-}
+    position := donne_position_souris(*vue_html.emboiteuse, vrai)
+    position.x -= vue_html.rect_page.x
+    position.y = vue_html.rect_page.hauteur - position.y + vue_html.rect_page.y
 
-vue_rendu_page_sur_sortie :: fonc (base: *QT_Rappels_GLWidget, event: *QT_Evenement @inutilisée)
-{
-    vue_rendu_page := base comme *VueRenduPage
-    gère_sortie_souris(vue_rendu_page.page)
-    QT_gui_application_restaure_curseur()
-}
-
-vue_rendu_page_sur_relachement_cle :: fonc (base: *QT_Rappels_GLWidget, event: *QT_KeyEvent)
-{
-    vue_rendu_page := base comme *VueRenduPage
-    touche := QT_key_event_donne_cle(event)
-
-    ajourne_rendu := faux
-
-    document := donne_document(vue_rendu_page.page)
-    si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical && document.arbre_de_disposition.défilement_vertical.est_visible {
-        barre := document.arbre_de_disposition.défilement_vertical
-        si touche == QT_Key.Home {
-            ajourne_rendu = CSS.définis_position_y(barre, 0.0)
-        }
-        sinon si touche == QT_Key.End {
-            ajourne_rendu = CSS.définis_position_y(barre, barre.hauteur - barre.rect.hauteur)
-        }
-        sinon si touche == QT_Key.PageDown {
-            ajourne_rendu = CSS.décale_par(barre, barre.rect.hauteur * 0.9)
-        }
-        sinon si touche == QT_Key.PageUp {
-            ajourne_rendu = CSS.décale_par(barre, -barre.rect.hauteur * 0.9)
-        }
-    }
-
-    si ajourne_rendu {
-        QT_widget_ajourne(vue_rendu_page.widget)
-    }
+    souris.état.où.x = position.x comme z32
+    souris.état.où.y = position.y comme z32
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom RappelsInterfaceQt
+/** \nom Utilitaires
  * \{ */
 
-RappelsInterfaceQt :: struct {
+donne_cotation_pour_texte :: fonc (fonte: *Fonte, texte: chaine) -> Cotation
+{
+    retourne Cotation(FIXE(largeur_texte comme z32), FIXE(hauteur_de_ligne))
+}
+
+dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, icone: NouvelleImage, teinte_icone: CouleurRVBA, taille_icone: n32, sur_pression: TypeRappelSouris = nul, données_sur_pression: *rien = nul)
+{
+    dispose_bouton(fonte, couleur, "", CouleurRVBA(), icone, teinte_icone, taille_icone, sur_pression, données_sur_pression)
+}
+
+dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, texte: chaine, couleur_texte: CouleurRVBA, icone: NouvelleImage, teinte_icone: CouleurRVBA, taille_icone: n32, sur_pression: TypeRappelSouris = nul, données_sur_pression: *rien = nul)
+{
+    largeur_texte := donne_largeur_texte(fonte, texte)
+    rembourrage := donne_largeur_texte(fonte, "0")
+    largeur_texte += rembourrage * 2
+
+    cotation := Cotation(FIXE(largeur_texte comme n32 + taille_icone), FIXE(taille_icone + rembourrage comme n32))
+    cotation_icone := Cotation(FIXE(taille_icone), FIXE(taille_icone))
+
+    dispose_rectangle()
+    {
+        définis_cotation(cotation)
+        définis_alignement(AlignementEnfant.Milieu)
+        définis_arrière_plan(couleur)
+
+        si sur_pression {
+            sur_pression_souris(sur_pression, données_sur_pression, 0)
+        }
+
+        si icone.données {
+            dispose_image(icone, cotation_icone, teinte_icone)
+        }
+
+        si texte {
+            dispose_texte(texte, ConfigurationTexte(fonte, couleur_texte))
+        }
+    }
+    termine_rectangle()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Édition Texte Navigation
+ * \{ */
+
+démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        rappels_édition_texte := loge(RappelsÉditionTexteNavigation)
+        rappels_édition_texte.sur_édition = sur_édition_texte_navigation
+        rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_navigation
+        rappels_édition_texte.vue_html = vue_html
+
+        rect := donne_rect(*vue_html.emboiteuse, id)
+        rectz := convertis_type(rect, z32)
+
+        éditrice := loge(ÉditriceTexte)
+        initialise_éditrice(éditrice, vue_html.fonte, vue_html.adresse_courante, rappels_édition_texte)
+
+        définis_éditrice_texte(*vue_html.emboiteuse, id, éditrice)
+
+        guetteuse := loge(GuetteuseÉditionTexteVueHTML)
+        guetteuse.rappels = rappels_édition_texte
+        guetteuse.vue_html = vue_html
+        guetteuse.éditrice = éditrice
+        guetteuse.id_boite = id
+        guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction
+
+        initialise_guetteuse_édition_texte(guetteuse, éditrice, rectz, rectz)
+
+        vue_html.adresse_en_édition = vrai
+        vue_html.guetteuse = guetteuse
+        vue_html.guetteuse_est_dans_page = faux
+
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+    retourne résultat
+}
+
+RappelsÉditionTexteNavigation :: struct {
+    empl base: RappelsÉditionTexte
+
+    vue_html: *VueHTML
+}
+
+sur_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine)
+{
+    déloge(vue_html.adresse_courante)
+    vue_html.adresse_courante = copie_chaine(chn)
+}
+
+sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine)
+{
+    déloge(vue_html.adresse_courante)
+    vue_html.adresse_courante = copie_chaine(chn)
+    vue_html.adresse_en_édition = faux
+
+    si vue_html.adresse_courante {
+        url := url_parser(vue_html, vue_html.adresse_courante)
+        si url {
+            page_web := vue_html.page_web
+            si page_web.navigable {
+                params: ParamètresNavigationNavigable
+                params.url = url
+                params.source_document = donne_document(*page_web)
+                navigate(vue_html, page_web.navigable, params)
+            }
+            sinon {
+                navigable := crée_un_fresh_top_level_traversable(vue_html, url) comme *TraversableNavigable
+                vue_html.page_web = crée_page_web(navigable)
+            }
+        }
+    }
+}
+
+GuetteuseÉditionTexteVueHTML :: struct {
+    empl get: GuetteuseÉditionTexte
+
+    vue_html: *VueHTML
+    rappels: *RappelsÉditionTexteNavigation
+    id_boite: n64
+}
+
+guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexteVueHTML)
+{
+    guetteuse.vue_html.guetteuse = nul
+    définis_éditrice_texte(*guetteuse.vue_html.emboiteuse, guetteuse.id_boite, nul)
+    déloge(guetteuse.rappels)
+    déloge(guetteuse.éditrice)
+    déloge(guetteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RappelsInterfaceVueHTML
+ * \{ */
+
+RappelsInterfaceVueHTML :: struct {
     empl base: RappelsInterface
-    fenêtre: *QT_Fenetre_Principale
+    
+    vue_html: *VueHTML
+    fenêtre: TypeFenêtre
+    window: *QT_Window
 
     files_parallèles: [..]FileParallèle
     files_parallèle_pour_traversable: [..]FileParallèle
@@ -1116,19 +782,21 @@ RappelsInterfaceQt :: struct {
     id_timer: z32
 }
 
-crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *RappelsInterfaceQt
+évènement_sur_tâche_parallèle := -1
+évènement_sur_tâche_traversable := -1
+
+initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_html: *VueHTML, fenêtre: TypeFenêtre)
 {
-    résultat := loge(RappelsInterfaceQt)
     résultat.fenêtre = fenêtre
+    résultat.window = donne_qt_window(fenêtre)
+    résultat.vue_html = vue_html
+
     résultat.sur_destruction = rappels_interface_sur_destruction
-    résultat.sur_élément_survolé = rappels_interface_sur_élément_survolé
-    résultat.sur_requête_rendu = rappels_interface_sur_requête_rendu
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
     résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
     résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
     résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle
     résultat.sur_tâche_traversable = rappels_interface_sur_tâche_traversable
-    résultat.sur_document_est_prêt = rappels_interface_sur_document_est_prêt
     résultat.sur_est_exécuté_sur_fil_principal = rappels_interface_sur_est_exécuté_sur_fil_principal
     résultat.sur_est_exécuté_en_parallèle = rappels_interface_sur_est_exécuté_en_parallèle
     résultat.sur_est_exécuté_sur_file_parallèle = rappels_interface_sur_est_exécuté_sur_file_parallèle
@@ -1136,10 +804,11 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
     résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte
     résultat.sur_création_timeout = rappels_interface_sur_création_timeout
     résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout
-    résultat.sur_request_animation_frame = rappels_interface_sur_request_animation_frame
 
-    // À FAIRE : paramétrise le nombre de threads
     nombres_de_threads := 2
+
+    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel()
 
     params: ParamètresFileParallèle
     params.type_évènement = évènement_sur_tâche_parallèle
@@ -1149,8 +818,6 @@ crée_rappels_interface_qt :: fonc (fenêtre: *QT_Fenetre_Principale) -> *Rappel
         file := crée_file_parallèle(params)
         tableau_ajoute(*résultat.files_parallèles, file)
     }
-
-    retourne résultat
 }
 
 file_parallèle_sur_évènement :: fonc (évènement: *QT_Evenement)
@@ -1159,10 +826,8 @@ file_parallèle_sur_évènement :: fonc (évènement: *QT_Evenement)
     run(algorithm)
 }
 
-rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
+rappels_interface_sur_destruction :: fonc (rappels: *RappelsInterfaceVueHTML)
 {
-    rappels := base comme *RappelsInterfaceQt
-
     pour rappels.files_parallèles {
         QT_thread_quit(it.thread)
         QT_thread_wait(it.thread)
@@ -1179,19 +844,6 @@ rappels_interface_sur_destruction :: fonc (base: *RappelsInterface)
 
     déloge(rappels.files_parallèle_pour_traversable)
     déloge(rappels.timers)
-    déloge(rappels)
-}
-
-rappels_interface_sur_élément_survolé :: fonc (base: *RappelsInterface)
-{
-    rappels := base comme *RappelsInterfaceQt
-    QT_application_poste_evenement(rappels.fenêtre, évènement_sur_survole_élément)
-}
-
-rappels_interface_sur_requête_rendu :: fonc (base: *RappelsInterface)
-{
-    rappels := base comme *RappelsInterfaceQt
-    QT_application_poste_evenement(rappels.fenêtre, évènement_sur_requête_rendu)
 }
 
 RappelsRequête :: struct {
@@ -1205,10 +857,8 @@ RappelsRequête :: struct {
     début_requête: Instantané
 }
 
-rappels_interface_sur_lancement_requête :: fonc (base: *RappelsInterface, requête: *Request) -> *Response
+rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML, requête: *Request) -> *Response
 {
-    rappels := base comme *RappelsInterfaceQt
-
     rappels_socket := crée_rappel_socket_pour_requête(requête)
     diffère déloge(rappels_socket)
 
@@ -1349,38 +999,20 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
     retourne rappels
 }
 
-rappels_interface_sur_spin_event_loop :: fonc (base: *RappelsInterface @inutilisée)
+rappels_interface_sur_spin_event_loop :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée)
 {
     QT_application_process_events()
 }
 
-rappels_interface_sur_enfile_une_tâche :: fonc (base: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm)
+rappels_interface_sur_enfile_une_tâche :: fonc (rappels: *RappelsInterfaceVueHTML, source: SourceDeTâche, algorithm: *Algorithm)
 {
-    rappels := base comme *RappelsInterfaceQt
-
-    discr source {
-        ManipulationDOM {
-            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_manipulation_dom, algorithm)
-        }
-        InteractionUtilisateur {
-            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_interaction_utilisateur, algorithm)
-        }
-        Réseautage {
-            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_réseautage, algorithm)
-        }
-        NavigationEtTraversée {
-            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_navigation_et_traversée, algorithm)
-        }
-        Rendu {
-            QT_application_poste_evenement_et_donnees(rappels.fenêtre, évènement_sur_tâche_rendu, algorithm)
-        }
-    }
+    tâche := tableau_ajoute_élément(*rappels.vue_html.file_de_tâche)
+    tâche.source = source
+    tâche.algorithm = algorithm
 }
 
-rappels_interface_sur_tâche_parallèle :: fonc (base: *RappelsInterface, algorithm: *Algorithm)
+rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm)
 {
-    rappels := base comme *RappelsInterfaceQt
-
     /* Donne la tâche au premier thread qui n'est pas le nôtre. */
     pour rappels.files_parallèles {
         si it.thread != QT_thread_courant() {
@@ -1392,60 +1024,30 @@ rappels_interface_sur_tâche_parallèle :: fonc (base: *RappelsInterface, algori
     panique("pas assez de threads")
 }
 
-rappels_interface_sur_tâche_traversable :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
+rappels_interface_sur_tâche_traversable :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable, algorithm: *Algorithm)
 {
-    rappels := base comme *RappelsInterfaceQt
     file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
     QT_application_poste_evenement_et_donnees(file.filtre_évènement, évènement_sur_tâche_traversable, algorithm)
 }
 
-rappels_interface_sur_document_est_prêt :: fonc (base: *RappelsInterface, document: *Document)
-{
-    rappels := base comme *RappelsInterfaceQt
-    définis_titre_fenêtre(rappels.fenêtre, document)
-    rappels_fenêtre := QT_fenetre_principale_donne_rappels(rappels.fenêtre) comme *RappelsFenetrePrincipale
-    ajourne_widget_arbre_dom(rappels_fenêtre)
-
-    chaine_url := url_serializer(document.url)
-    diffère déloge(chaine_url)
-
-    QT_line_edit_definis_texte(rappels_fenêtre.widgets_page.line_edit, chaine_url.vers_qt())
-
-    page_web := rappels_fenêtre.page_web
-    traversable := page_web.navigable
-
-    indice_courant := traversable.current_session_history_entry_step comme z64
-    indice_max := traversable.session_history_entries.taille - 1
-
-    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_avant, indice_courant < indice_max)
-    QT_widget_definis_actif(rappels_fenêtre.widgets_page.bouton_arrière, indice_courant > 0)
-
-    QT_widget_ajourne(rappels_fenêtre.widget_rendu)
-
-    QT_gui_application_restaure_curseur()
-}
-
-rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (base: *RappelsInterface @inutilisée) -> bool
+rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
 {
     retourne QT_thread_courant() == QT_application_thread()
 }
 
-rappels_interface_sur_est_exécuté_en_parallèle :: fonc (base: *RappelsInterface @inutilisée) -> bool
+rappels_interface_sur_est_exécuté_en_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
 {
     retourne QT_thread_courant() != QT_application_thread()
 }
 
-rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (base: *RappelsInterface, traversable: *TraversableNavigable) -> bool
+rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable) -> bool
 {
-    rappels := base comme *RappelsInterfaceQt
     file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
     retourne QT_thread_courant() == file.thread
 }
 
-rappels_interface_crée_file_parallèle_pour_traversable :: fonc (base: *RappelsInterface) -> z64
+rappels_interface_crée_file_parallèle_pour_traversable :: fonc (rappels: *RappelsInterfaceVueHTML) -> z64
 {
-    rappels := base comme *RappelsInterfaceQt
-
     résultat := rappels.files_parallèle_pour_traversable.taille
 
     params: ParamètresFileParallèle
@@ -1458,17 +1060,16 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (base: *Rappels
     retourne résultat
 }
 
-rappels_interface_sur_affichage_alerte :: fonc (base: *RappelsInterface, message: DOMString)
+rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString)
 {
-    rappels := base comme *RappelsInterfaceQt
-
     chn_message := converti_vers_chaine(message.donne_chaine_utf16())
     diffère déloge(chn_message)
 
-    _ := QT_message_box_affiche_avertissement(rappels.fenêtre, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
+    parent: QT_Generic_Widget
+    _ := QT_message_box_affiche_avertissement(parent, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
 }
 
-rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
+rappels_interface_sur_création_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
     RappelTimer :: struct {
         empl base: QT_Rappels_Timer
@@ -1490,8 +1091,6 @@ rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algori
     timer := QT_cree_timer(rappel_timer)
     QT_timer_definis_se_repete(timer, se_répète)
 
-    rappels := base comme *RappelsInterfaceQt
-
     id := rappels.id_timer
     rappels.id_timer += 1
 
@@ -1504,10 +1103,8 @@ rappels_interface_sur_création_timeout :: fonc (base: *RappelsInterface, algori
     retourne id
 }
 
-rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: z32)
+rappels_interface_sur_destruction_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, id: z32)
 {
-    rappels := base comme *RappelsInterfaceQt
-
     pour rappels.timers {
         si it.id == id {
             QT_timer_arrete(it.timer)
@@ -1515,13 +1112,6 @@ rappels_interface_sur_destruction_timeout :: fonc (base: *RappelsInterface, id: 
             retourne
         }
     }
-}
-
-rappels_interface_sur_request_animation_frame :: fonc (base: *RappelsInterface)
-{
-    rappels := base comme *RappelsInterfaceQt
-    window := QT_widget_donne_window_handle(rappels.fenêtre)
-    QT_window_request_update(window)
 }
 
 /** \} */

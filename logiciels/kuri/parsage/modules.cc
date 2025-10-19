@@ -234,7 +234,7 @@ RésultatFichier SystèmeModule::trouve_ou_crée_fichier(Module *module,
                                                       kuri::chaine_statique chemin)
 {
     POUR (module->fichiers) {
-        if (it->nom() == nom) {
+        if (it->chemin() == chemin) {
             return FichierExistant(it);
         }
     }

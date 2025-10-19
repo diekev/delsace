@@ -8,12 +8,11 @@ importe Couleur
 importe Dessin
 importe Fondation
 importe IGUMI
+importe InfosInterface
 importe Image
 importe Math
 importe OpenGL
 importe Typographie
-
-// À FAIRE : remplis_arrière_plan est redondant avec efface_cible_rendu
 
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre.
@@ -54,9 +53,6 @@ Peintre :: struct {
     /* Termine le dessin en cours (vide les tampons courant, etc.) */
     rappel_termine_dessin: fonc (peintre: *Peintre)
 
-    /* Remplis la totalité du canevas avec la couleur donnée. */
-    rappel_remplis_arrière_plan: fonc (peintre: *Peintre, couleur: CouleurPeintre)
-
     /* Dessine le contour du rectangle avec la couleur donnée. */
     rappel_dessine_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre)
     /* Remplis le rectangle avec la couleur donnée. */
@@ -65,10 +61,10 @@ Peintre :: struct {
     /* Dessine le contour du rectangle arrondi avec la couleur donnée. */
     rappel_dessine_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, rayon: r32, couleur: CouleurPeintre)
     /* Remplis le rectangle arrondi avec la couleur donnée. */
-    rappel_remplis_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, rayons: [4]r32, couleur: CouleurPeintre)
+    rappel_remplis_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, RayonsRectangle, couleur: CouleurPeintre)
 
     /* Dessine des bordures dans le rectangle spécifié. */
-    rappel_dessine_bordure: fonc (peintre: *Peintre, rect: RectanglePeintre, rayons: [4]r32, couleurs: [4]CouleurPeintre)
+    rappel_dessine_bordure: fonc (peintre: *Peintre, rect: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 
     /* Dessine le contour du cercle avec la couleur donnée. */
     rappel_dessine_cercle: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre)
@@ -86,10 +82,7 @@ Peintre :: struct {
 
     /* Dessine l'image dans le rectangle donné. */
     rappel_dessine_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, couleur: CouleurRVBA)
-    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage)
-    rappel_dessine_image_grise_8bit: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rect: RectanglePeintre)
-    rappel_dessine_image_rvba_8bit: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rect: RectanglePeintre)
-    rappel_dessine_image_rvba_32bit: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rect: RectanglePeintre)
+    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage, teinte: CouleurRVBA)
 
     /* Retourne la fonte utilisée pour le dessin de texte. */
     rappel_donne_fonte: fonc (peintre: *Peintre) -> *Fonte
@@ -107,7 +100,7 @@ Peintre :: struct {
 
     rappel_destruction: fonc (peintre: *Peintre)
 
-    ciseaux: [..]RectanglePeintre
+    ciseaux: [..]RectanglePosDim(r32)
 }
 
 détruit_peintre :: fonc (peintre: *Peintre)
@@ -177,11 +170,6 @@ termine_dessin :: fonc (peintre: *Peintre) #enligne
     peintre.rappel_termine_dessin(peintre)
 }
 
-remplis_arrière_plan :: fonc (peintre: *Peintre, couleur: CouleurPeintre) -> rien #enligne
-{
-    peintre.rappel_remplis_arrière_plan(peintre, couleur)
-}
-
 dessine_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_dessine_rectangle(peintre, rectangle, couleur)
@@ -202,12 +190,12 @@ remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintr
     peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, [rayon, rayon, rayon, rayon], couleur)
 }
 
-remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: [4]r32, couleur: CouleurPeintre) -> rien #enligne
+remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: RayonsRectangle, couleur: CouleurPeintre) -> rien #enligne
 {
     peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
 }
 
-dessine_bordure :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre) -> rien #enligne
+dessine_bordure :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle) -> rien #enligne
 {
     peintre.rappel_dessine_bordure(peintre, rectangle, largeurs, couleurs)
 }
@@ -257,8 +245,9 @@ dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: Co
     peintre.rappel_dessine_segments(peintre, lignes, couleur)
 }
 
-dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
+dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul @inutilisée) -> rien #enligne
 {
+    // À FAIRE : utilisé effets
     peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
 }
 
@@ -277,30 +266,45 @@ dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle: Rect
     peintre.rappel_dessine_image(peintre, image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
     paramètres: ParamètresRenduImage
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres)
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres)
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_image_grise_8bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.Gris_8
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_8bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.RVBA_8
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
-dessine_image :: fonc (peintre: *Peintre, image: TamponImageRVBA32Bit, rectangle: RectanglePeintre) -> rien #enligne
+dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_image_rvba_32bit(peintre, image, rectangle)
+    image: NouvelleImage
+    image.données = tampon.données
+    image.desc.largeur = tampon.largeur comme n32
+    image.desc.hauteur = tampon.hauteur comme n32
+    image.desc.format = FormatPixel.RVBA_32
+    dessine_image(peintre, *image, rectangle, teinte)
 }
 
 donne_fonte :: fonc (peintre: *Peintre) -> *Fonte #enligne
@@ -315,8 +319,14 @@ dessine_tampon_sur_écran :: fonc (peintre: *Peintre) -> rien #enligne
 
 définis_ciseau :: fonc (peintre: *Peintre, rectangle: RectanglePeintre) -> rien #enligne
 {
-    tableau_ajoute(*peintre.ciseaux, rectangle)
-    peintre.rappel_définis_ciseau(peintre, rectangle)
+    rect_r32 := donne_rectangle_igumi(rectangle)
+
+    si peintre.ciseaux {
+        rect_r32 = donne_intersection(rect_r32, peintre.ciseaux[peintre.ciseaux.taille - 1])
+    }
+
+    tableau_ajoute(*peintre.ciseaux, rect_r32)
+    peintre.rappel_définis_ciseau(peintre, rect_r32)
 }
 
 restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
@@ -386,14 +396,13 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
     peintre.rappel_définis_fenêtre = définis_fenêtre_dessin
     peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin
-    peintre.rappel_efface_cible_rendu = remplis_arrière_plan_dessin
+    peintre.rappel_efface_cible_rendu = efface_cible_de_rendu_dessin
     peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_dessin
     peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_dessin
     peintre.rappel_définis_rayon_point = définis_rayon_point_dessin
     peintre.rappel_donne_rayon_point = donne_rayon_point_dessin
     peintre.rappel_commence_dessin = commence_dessin_dessin
     peintre.rappel_termine_dessin = termine_dessin_dessin
-    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_dessin
     peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
     peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
@@ -408,9 +417,6 @@ initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
     peintre.rappel_dessine_image = dessine_image_dessin
     peintre.rappel_dessine_sous_image = dessine_sous_image_dessin
-    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_dessin
-    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_dessin
-    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_dessin
     peintre.rappel_donne_fonte = donne_fonte_dessin
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
     peintre.rappel_définis_ciseau = définis_ciseau_dessin
@@ -537,7 +543,7 @@ termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
 {
 }
 
-remplis_arrière_plan_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
+efface_cible_de_rendu_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     couleur := donne_couleur_dessin(couleur_peintre)
@@ -569,7 +575,7 @@ dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
 }
 
-remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayons: [4]r32, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayons: RayonsRectangle, couleur_peintre: CouleurPeintre)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rectangle := donne_rectangle_dessin(rectangle_peintre)
@@ -577,7 +583,7 @@ remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: 
     remplis_rectangle_arrondi(*peintre_dessin.tampon_de_rendu, rectangle, rayons, couleur)
 }
 
-dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: [4]r32, couleurs: [4]CouleurPeintre)
+dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 {
     peintre_dessin := peintre comme *PeintreDessin
     rectangle := donne_rectangle_dessin(rectangle_peintre)
@@ -590,7 +596,7 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
 
     /* Haut. */
     si largeurs[0] != 0 {
-        couleur := donne_couleur_dessin(couleurs[0])
+        couleur := donne_couleur_dessin(couleurs.haut)
 
         ligne: Ligne(z32)
         ligne.p0.x = rectangle.x
@@ -616,7 +622,7 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
 
     /* Droite. */
     si largeurs[1] != 0 {
-        couleur := donne_couleur_dessin(couleurs[1])
+        couleur := donne_couleur_dessin(couleurs.droite)
 
         ligne: Ligne(z32)
         ligne.p0.x = rectangle.x + rectangle.largeur
@@ -642,7 +648,7 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
 
     /* Bas. */
     si largeurs[2] != 0 {
-        couleur := donne_couleur_dessin(couleurs[2])
+        couleur := donne_couleur_dessin(couleurs.bas)
 
         ligne: Ligne(z32)
         ligne.p0.x = rectangle.x
@@ -668,7 +674,7 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
 
     /* Gauche. */
     si largeurs[3] != 0 {
-        couleur := donne_couleur_dessin(couleurs[3])
+        couleur := donne_couleur_dessin(couleurs.gauche)
 
         ligne: Ligne(z32)
         ligne.p0.x = rectangle.x
@@ -693,17 +699,24 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
     }
 }
 
-donne_largeurs_bordure_pour_dessin :: fonc (largeurs: [4]r32) -> [4]n32
+convertis_largeur_bordure_dessin :: fonc (largeur: r32) -> n32
 {
-    résultat: [4]n32
-    pour largeurs {
-        si it != 0.0 && it < 1.0 {
-            résultat[indice_it] = 1
-            continue
-        }
-
-        résultat[indice_it] = (it + 0.5) comme n32
+    si largeur <= 0.0 {
+        retourne 0
     }
+    si largeur <= 1.0 {
+        retourne 1
+    }
+    retourne (largeur + 0.5) comme n32
+}
+
+donne_largeurs_bordure_pour_dessin :: fonc (largeurs: LargeursBordureRectangle) -> [4]n32
+{
+    résultat: [4]n32 = ---
+    résultat[0] = convertis_largeur_bordure_dessin(largeurs.haut)
+    résultat[1] = convertis_largeur_bordure_dessin(largeurs.droite)
+    résultat[2] = convertis_largeur_bordure_dessin(largeurs.bas)
+    résultat[3] = convertis_largeur_bordure_dessin(largeurs.gauche)
     retourne résultat
 }
 
@@ -773,30 +786,12 @@ dessine_image_dessin :: fonc (peintre: *PeintreDessin, image: *NouvelleImage, re
     dessine_image(*peintre.tampon_de_rendu, image, rect)
 }
 
-dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, paramètres: ParamètresRenduImage @inutilisée)
+dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, paramètres: ParamètresRenduImage @inutilisée, teinte: CouleurRVBA @inutilisée)
 {
+    // À FAIRE : utilise teinte
     peintre_dessin := peintre comme *PeintreDessin
     rect := donne_rectangle_dessin(rectangle_image)
     dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
-}
-
-dessine_image_grise_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
-{
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
-}
-
-dessine_image_rvba_8bit_dessin :: fonc (peintre: *Peintre, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
-{
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
-}
-
-dessine_image_rvba_32bit_dessin :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit @inutilisée, rectangle_peintre: RectanglePeintre @inutilisée)
-{
-    // À FAIRE
 }
 
 donne_fonte_dessin :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
@@ -876,7 +871,6 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
     peintre.rappel_donne_rayon_point = donne_rayon_point_igumi
     peintre.rappel_commence_dessin = commence_dessin_igumi
     peintre.rappel_termine_dessin = termine_dessin_igumi
-    peintre.rappel_remplis_arrière_plan = remplis_arrière_plan_igumi
     peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
     peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
     peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
@@ -891,9 +885,6 @@ initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille
     peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_igumi
     peintre.rappel_dessine_image = dessine_image_igumi
     peintre.rappel_dessine_sous_image = dessine_sous_image_igumi
-    peintre.rappel_dessine_image_grise_8bit = dessine_image_grise_8bit_igumi
-    peintre.rappel_dessine_image_rvba_8bit = dessine_image_rvba_8bit_igumi
-    peintre.rappel_dessine_image_rvba_32bit = dessine_image_rvba_32bit_igumi
     peintre.rappel_donne_fonte = donne_fonte_igumi
     peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
     peintre.rappel_définis_ciseau = définis_ciseau_igumi
@@ -1025,12 +1016,6 @@ termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
     IGUMI.termine_immédiat()
 }
 
-remplis_arrière_plan_igumi :: fonc (peintre: *Peintre @inutilisée, couleur_peintre: CouleurPeintre)
-{
-    couleur := donne_couleur_igumi(couleur_peintre)
-    glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
-}
-
 dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
     rectangle := donne_rectangle_igumi(rectangle_peintre)
@@ -1076,7 +1061,7 @@ dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     contour_quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
 }
 
-remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: [4]r32, couleur_peintre: CouleurPeintre)
+remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: RayonsRectangle, couleur_peintre: CouleurPeintre)
 {
     rectangle := donne_rectangle_igumi(rectangle_peintre)
     couleur := donne_couleur_igumi(couleur_peintre)
@@ -1093,7 +1078,7 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
 }
 
-dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, largeurs: [4]r32, couleurs: [4]CouleurPeintre)
+dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 {
     rectangle := donne_rectangle_igumi(rectangle_peintre)
 
@@ -1101,64 +1086,52 @@ dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre
 
     /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
 
-    /* Haut. */
-    si largeurs[0] != 0.0 {
-        couleur := donne_couleur_igumi(couleurs[0])
-
-        x0 := rectangle.x + largeurs[3]
-        x1 := rectangle.x + rectangle.largeur - largeurs[1]
+    si largeurs.haut != 0.0 {
+        x0 := rectangle.x + largeurs.gauche
+        x1 := rectangle.x + rectangle.largeur - largeurs.droite
         x2 := rectangle.x + rectangle.largeur
         x3 := rectangle.x
 
-        y0 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y0 := rectangle.y + rectangle.hauteur - largeurs.haut
         y1 := rectangle.y + rectangle.hauteur
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.haut)
     }
 
-    /* Droite. */
-    si largeurs[1] != 0.0 {
-        couleur := donne_couleur_igumi(couleurs[1])
-
-        x0 := rectangle.x + rectangle.largeur - largeurs[1]
+    si largeurs.droite != 0.0 {
+        x0 := rectangle.x + rectangle.largeur - largeurs.droite
         x1 := rectangle.x + rectangle.largeur
 
-        y0 := rectangle.y + largeurs[2]
+        y0 := rectangle.y + largeurs.gauche
         y1 := rectangle.y
         y2 := rectangle.y + rectangle.hauteur
-        y3 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y3 := rectangle.y + rectangle.hauteur - largeurs.haut
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.droite)
     }
 
-    /* Bas. */
-    si largeurs[2] != 0.0 {
-        couleur := donne_couleur_igumi(couleurs[2])
-
+    si largeurs.bas != 0.0 {
         x0 := rectangle.x
         x1 := rectangle.x + rectangle.largeur
-        x2 := x1 - largeurs[1]
-        x3 := x0 + largeurs[3]
+        x2 := x1 - largeurs.droite
+        x3 := x0 + largeurs.gauche
 
         y0 := rectangle.y
-        y1 := rectangle.y + largeurs[2]
+        y1 := rectangle.y + largeurs.bas
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleur)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.bas)
     }
 
-    /* Gauche. */
-    si largeurs[3] != 0.0 {
-        couleur := donne_couleur_igumi(couleurs[3])
-
+    si largeurs.gauche != 0.0 {
         x0 := rectangle.x
-        x1 := rectangle.x + largeurs[3]
+        x1 := rectangle.x + largeurs.gauche
 
         y3 := rectangle.y
-        y2 := rectangle.y + largeurs[2]
-        y1 := rectangle.y + rectangle.hauteur - largeurs[0]
+        y2 := rectangle.y + largeurs.bas
+        y1 := rectangle.y + rectangle.hauteur - largeurs.haut
         y0 := rectangle.y + rectangle.hauteur
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleur)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.gauche)
     }
 }
 
@@ -1232,32 +1205,11 @@ dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleIma
     image_immédiat(image, rect, rect, paramètres, teinte)
 }
 
-dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage)
+dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte: CouleurRVBA)
 {
     rect_image := donne_rectangle_igumi(rectangle_image)
     rect := donne_rectangle_igumi(rectangle_sous_image)
-    image_immédiat(image, rect_image, rect, paramètres)
-}
-
-dessine_image_grise_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageGrise8Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
-}
-
-dessine_image_rvba_8bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA8Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
-}
-
-dessine_image_rvba_32bit_igumi :: fonc (peintre: *Peintre @inutilisée, image: TamponImageRVBA32Bit, rectangle_peintre: RectanglePeintre)
-{
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres)
+    image_immédiat(image, rect_image, rect, paramètres, teinte)
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte

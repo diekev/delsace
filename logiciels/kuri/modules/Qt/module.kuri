@@ -379,6 +379,7 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
         MAIN_OUVERTE { retourne QT_CursorShape.OPEN_HAND }
         MAIN_FERMÉE { retourne QT_CursorShape.CLOSED_HAND }
         TEXTE { retourne QT_CursorShape.IBEAM }
+        TEXTE_VERTICAL { retourne QT_CursorShape.IBEAM }
         CROIX { retourne QT_CursorShape.CROSS }
         REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL }
         REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW }

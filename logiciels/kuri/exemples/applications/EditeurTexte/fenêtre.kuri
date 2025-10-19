@@ -606,7 +606,7 @@ principale :: fonc ()
                         si it.touche == ToucheClavier.ENTRÉE {
                             continue
                         }
-                        sur_touche_clavier(*anonyme.éditrice_sélection_fichier, InfoToucheClavier(it.touche, it.texte))
+                        sur_touche_clavier(*anonyme.éditrice_sélection_fichier, donne_info_touche(it))
                     }
                     sinon si anonyme.état == Anonyme.État.ÉDITION && it.texte != "" {
                         éditeur_insère_texte(*anonyme.éditeur, it.texte)

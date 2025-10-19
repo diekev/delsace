@@ -261,13 +261,13 @@ dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *Cont
     }
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.débute_stacking_context()
+        ctx.commandes.débute_sous_tampon()
     }
 
     dessine(stacking_context.racine, ctx)
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.termine_stacking_context(opacité comme r32)
+        ctx.commandes.termine_sous_tampon(opacité comme r32)
     }
 
     pour stacking_context.enfants {

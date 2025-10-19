@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 5.2916665 5.2916668"
+   version="1.1"
+   id="svg2465"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="icone-historique-recharger.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview2467"
+     pagecolor="#808080"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     inkscape:zoom="22.627417"
+     inkscape:cx="8.8609319"
+     inkscape:cy="9.9878833"
+     inkscape:window-width="1920"
+     inkscape:window-height="1044"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g6339" />
+  <defs
+     id="defs2462" />
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g6339"
+       transform="matrix(0.84136745,0,0,0.84136745,0.43465171,0.4136506)">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:0.47170235;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 4.9113615,3.1438755 C 4.3590876,4.6867725 3.7496003,4.9718407 2.6360622,4.9602977 1.5838201,4.9493901 0.33805285,4.080069 0.33091794,2.5668339 0.32446123,1.1974377 1.3758615,0.35541865 2.5643917,0.34505286 3.9705116,0.33278935 4.6434351,1.4713574 4.6434351,1.4713574"
+         id="path4488"
+         sodipodi:nodetypes="csssc" />
+      <path
+         sodipodi:type="star"
+         style="fill:#ffffff;fill-opacity:0.647787;stroke:#ffffff;stroke-width:3;stroke-opacity:1"
+         id="path5941"
+         inkscape:flatsided="false"
+         sodipodi:sides="3"
+         sodipodi:cx="10.342831"
+         sodipodi:cy="7.7782421"
+         sodipodi:r1="0.34263703"
+         sodipodi:r2="0.17131852"
+         sodipodi:arg1="-0.93200061"
+         sodipodi:arg2="0.11519694"
+         inkscape:rounded="0"
+         inkscape:randomized="0"
+         d="M 10.547121,7.5031682 10.513014,7.7979339 10.478907,8.0926995 10.240686,7.9157791 10.002465,7.7388586 10.274793,7.6210134 Z"
+         transform="matrix(-0.12414201,0.33164294,-0.33164294,-0.12414201,8.4261883,-1.0875713)"
+         inkscape:transform-center-y="0.014180709"
+         inkscape:transform-center-x="0.035244873" />
+    </g>
+  </g>
+</svg>

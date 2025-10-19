@@ -750,6 +750,7 @@ remplis_tampon :: fonc (image: TamponImage($T), valeur: T)
 }
 
 TamponImageGrise8Bit :: TamponImage(n8)
+TamponImageGrise32Bit :: TamponImage(n32)
 TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
 TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
 

@@ -1221,14 +1221,15 @@ texture_atlas_new :: fonc (width: n64, height: n64, depth: n64) -> *texture_atla
     retourne self
 }
 
-texture_atlas_delete :: fonc (self: *texture_atlas_t)
+texture_atlas_delete :: fonc (atlas: *texture_atlas_t)
 {
-    assert(self != nul)
-    déloge(self.data)
-    déloge(self.glyph_scratch_buffer)
-    déloge(self.distance_byte_scratch_buffer)
-    déloge(self.distance_double_scratch_buffer)
-    déloge(self)
+    si atlas {
+        déloge(atlas.data)
+        déloge(atlas.glyph_scratch_buffer)
+        déloge(atlas.distance_byte_scratch_buffer)
+        déloge(atlas.distance_double_scratch_buffer)
+        déloge(atlas)
+    }
 }
 
 texture_atlas_set_region :: fonc (self: *texture_atlas_t,

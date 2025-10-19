@@ -4,6 +4,7 @@ importe Algorithmes // pour permute
 importe Couleur
 importe Fondation
 importe Image
+importe InfosInterface
 importe Math
 
 charge "tampon_texture"
@@ -350,19 +351,19 @@ remplis_rectangle_couleur_opaque :: fonc (tampon_de_rendu: *TamponDeRendu, rect:
     }
 }
 
-remplis_rectangle_arrondi :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), rayons: [4]r32, couleur: CouleurRVBAN8)
+remplis_rectangle_arrondi :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), rayons: RayonsRectangle, couleur: CouleurRVBAN8)
 {
     si couleur.a == 0 {
         retourne
     }
 
-    si rayons[0] == 0.0 && rayons[1] == 0.0 && rayons[2] == 0.0 && rayons[3] == 0.0 {
+    si rayons.haut_gauche == 0.0 && rayons.bas_gauche == 0.0 && rayons.haut_droite == 0.0 && rayons.bas_droite == 0.0 {
         remplis_rectangle(tampon_de_rendu, rect, couleur)
         retourne
     }
 
     /* À FAIRE : implémente proprement et optimise */
-    rayons_z32 := [rayons[0] comme z32, rayons[1] comme z32, rayons[2] comme z32, rayons[3] comme z32]
+    rayons_z32 := [rayons.haut_gauche comme z32, rayons.haut_droite comme z32, rayons.bas_droite comme z32, rayons.bas_gauche comme z32]
 
     cercle: Cercle(z32)
     /* Bas gauche. */

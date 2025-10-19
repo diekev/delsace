@@ -130,22 +130,58 @@ donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
 sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavier)
 {
     si touche.type == ToucheClavier.DÉBUT {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
+        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, 0)
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
+        }
         retourne
     }
 
     si touche.type == ToucheClavier.FIN {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
+        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.texte_à_éditer.taille())
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.texte_à_éditer.taille())
+        }
         retourne
     }
 
     si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
+        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.début - 1)
+        }
+        sinon si touche.modificateur == ModificateurClavier.CONTROL {
+            position := donne_position_mot_précédent(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position)
+        }
+        sinon si touche.modificateur == ModificateurClavier.CTRL_MAJ {
+            position := donne_position_mot_précédent(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position)
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.début - 1)
+        }
         retourne
     }
 
     si touche.type == ToucheClavier.FLÈCHE_DROITE {
-        définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
+        si touche.modificateur == ModificateurClavier.MAJUSCULE {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, éditrice.curseur.fin + 1)
+        }
+        sinon si touche.modificateur == ModificateurClavier.CONTROL {
+            position := donne_position_mot_suivant(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, position)
+        }
+        sinon si touche.modificateur == ModificateurClavier.CTRL_MAJ {
+            position := donne_position_mot_suivant(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position)
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.DéplaceAncre, éditrice.curseur.fin + 1)
+        }
         retourne
     }
 
@@ -166,12 +202,26 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
     }
 
     si touche.type == ToucheClavier.EFFACE {
-        efface(*éditrice.curseur)
+        si touche.modificateur == ModificateurClavier.CONTROL {
+            position := donne_position_mot_précédent(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position)
+            efface(*éditrice.curseur)
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            efface(*éditrice.curseur)
+        }
         retourne
     }
 
     si touche.type == ToucheClavier.SUPPRIMER {
-        supprime(*éditrice.curseur)
+        si touche.modificateur == ModificateurClavier.CONTROL {
+            position := donne_position_mot_suivant(*éditrice.curseur)
+            définis_position(*éditrice.curseur, ModeDéplacementCurseur.GardeAncre, position)
+            supprime(*éditrice.curseur)
+        }
+        sinon si touche.modificateur == ModificateurClavier.zéro {
+            supprime(*éditrice.curseur)
+        }
         retourne
     }
 
@@ -184,6 +234,24 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
 
         retourne
     }
+}
+
+// À FAIRE : permet de paramétriser
+est_séparation_mot :: fonc (rune: n32) -> bool
+{
+    si est_ascii_espace_blanche(rune) {
+        retourne vrai
+    }
+
+    ponctuations := "./#"
+
+    pour ponctuations {
+        si rune == it {
+            retourne vrai
+        }
+    }
+
+    retourne faux
 }
 
 ajoute_ligne :: fonc (éditrice: *ÉditriceTexte)
@@ -236,6 +304,63 @@ donne_ligne_courante :: fonc (curseur: *CurseurTexte) -> *ChaineUTF32
     }
 
     retourne *curseur.éditrice.lignes[curseur.ligne]
+}
+
+donne_position_mot_précédent :: fonc (curseur: *CurseurTexte) -> z64
+{
+    ligne := mémoire(donne_ligne_courante(curseur))
+    position := curseur.début
+
+    si position == ligne.taille() && ligne.taille() != 0 {
+        position -= 1
+    }
+
+    si position > 0 && est_séparation_mot(ligne[position - 1]) {
+        position -= 1
+    }
+
+    tantque position > 0 {
+        c := ligne[position]
+        si !est_séparation_mot(c) {
+            arrête
+        }
+
+        position -= 1
+    }
+
+    tantque position > 0 {
+        c := ligne[position]
+        si est_séparation_mot(c) {
+            position += 1
+            arrête
+        }
+
+        position -= 1
+    }
+
+    retourne position
+}
+
+donne_position_mot_suivant :: fonc (curseur: *CurseurTexte) -> z64
+{
+    ligne := mémoire(donne_ligne_courante(curseur))
+    position := curseur.début
+
+    eu_séparation := faux
+    tantque position < ligne.taille() {
+        c := ligne[position]
+        si eu_séparation && !est_séparation_mot(c) {
+            arrête
+        }
+
+        si est_séparation_mot(c) {
+            eu_séparation = vrai
+        }
+
+        position += 1
+    }
+
+    retourne position
 }
 
 déplace_vers :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
