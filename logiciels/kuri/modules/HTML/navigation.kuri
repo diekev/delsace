@@ -669,11 +669,6 @@ finalize_a_cross_document_navigation :: fonc (user_agent: *UserAgent, navigable:
 
     // 10. Apply the push/replace history step targetStep to traversable given historyHandling.
     _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling, user_involvement)
-
-    si user_agent {
-        document := history_entry.donne_document()
-        user_agent.document_est_prêt(document)
-    }
 }
 
 /** } */
@@ -990,11 +985,6 @@ finalize_a_same_document_navigation :: fonc (empl params: *FinalizeSameDocumentN
 
     // 6. Apply the push/replace history step targetStep to traversable given historyHandling and userInvolvement.
     _ := apply_the_push_replace_history_step(user_agent, target_step, traversable, history_handling, user_involvement)
-
-    si user_agent {
-        document := target_entry.donne_document()
-        user_agent.document_est_prêt(document)
-    }
 }
 
 /** \} */
@@ -1048,8 +1038,7 @@ crée_tâche_pour_reload_history_step :: fonc (user_agent: *UserAgent, traversab
         // 1. Apply the reload history step to traversable.
         _ := apply_the_reload_history_step(tâche.user_agent, tâche.traversable)
 
-        document := tâche.traversable.active_session_history_entry.donne_document()
-        tâche.user_agent.document_est_prêt(document)
+        _ := tâche.traversable.active_session_history_entry.donne_document()
     }
 
     tâche := crée_algorithm(sur_run, Tâche)
@@ -1132,8 +1121,7 @@ crée_tâche_pour_traverse_history_step :: fonc (user_agent: *UserAgent,
         // 5. Apply the traverse history step allSteps[targetStepIndex] to traversable, given sourceSnapshotParams, initiatorToCheck, and userInvolvement.
         _ := apply_the_traverse_history_step(user_agent, all_steps[target_step_index], traversable, tâche.source_snapshot_params, tâche.initiator_to_check, tâche.user_involvement)
 
-        document := tâche.traversable.active_session_history_entry.donne_document()
-        tâche.user_agent.document_est_prêt(document)
+        _ := tâche.traversable.active_session_history_entry.donne_document()
     }
 
     tâche := crée_algorithm(sur_run, Tâche)
