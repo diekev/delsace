@@ -106,6 +106,7 @@ BoiteFlexible :: struct {
     texte_utf32: ChaineUTF32
     image: NouvelleImage
     teinte: CouleurRVBA
+    couleur_curseur_texte := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
     données_procédure: *rien
@@ -770,10 +771,7 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
     tantque courant < fin {
         si mémoire(courant) == ' ' || mémoire(courant) == '\n' {
             fragment := chaine(début, courant - début)
-
-            si fragment.taille {
-                dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
-            }
+            dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
 
             fragment.pointeur = courant
             fragment.taille = 1
@@ -798,10 +796,7 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
     }
 
     fragment := chaine(début, courant - début)
-
-    si fragment.taille {
-        dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
-    }
+    dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux)
 
     boite.premier_fragment = premier_fragment
     boite.dernier_fragment = dernier_fragment
@@ -1315,7 +1310,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                         rect.hauteur = métriques.donne_hauteur_ligne()
 
                         tantque premier_fragment < dernier_fragment {
-                            commandes.dessine_texte(rect, boite.config_texte.fonte, premier_fragment.texte, boite.config_texte.couleur)
+                            commandes.dessine_texte(boite.config_texte.fonte, premier_fragment.texte, rect, boite.config_texte.couleur)
                             premier_fragment += 1
 
                             rect.y += métriques.donne_hauteur_ligne()
@@ -1323,7 +1318,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                     }
                 }
                 TexteUTF32 {
-                    commandes.dessine_texte(rect, boite.config_texte.fonte, boite.texte_utf32, boite.config_texte.couleur)
+                    commandes.dessine_texte(boite.config_texte.fonte, boite.texte_utf32, rect, boite.config_texte.couleur)
                 }
                 Image {
                     commandes.dessine_image(rect, boite.image, boite.teinte)
@@ -1389,7 +1384,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
 
             config := boite.emboiteuse.bordures[boite.indice_bordure]
-            commandes.dessine_bordure(rect, config.couleur, config.largeur, boite.rectangle.rayon_coin)
+            commandes.dessine_bordure(rect, donne_couleurs_bordure(config), donne_largeurs_bordure(config), crée_rayons_rectangle(boite.rectangle.rayon_coin))
 
             si boite_pour_ciselage {
                 commandes.termine_ciselage()
@@ -1409,7 +1404,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.largeur = 1.0
             rect.hauteur = hauteur_disponible
             
-            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+            couleur_barre := boite.couleur_curseur_texte
             commandes.remplis_rectangle(rect, couleur_barre)
         }
 

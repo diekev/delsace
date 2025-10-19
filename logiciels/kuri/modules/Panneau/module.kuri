@@ -17,6 +17,7 @@
 
 importe Couleur
 importe Fondation
+importe Guettage
 importe Périphériques
 importe PeintureInterface
 importe Typographie
@@ -40,49 +41,6 @@ ContexteAffichage :: struct {
     peintre: *Peintre
     fonte: *Fonte
     thème : *Thème = *__thème_défaut
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Guetteuse.
- * Les guetteuses servent à traquer les évènements survenant sur un panneau.
- * Quant un panneau veut traquer les évènements suite à un évènement, il peut
- * créer une guetteuse locale pour suivre les évènements suivants sans quitter
- * la fonction où la guetteuse fut créer.
- *
- * Les applications clientes sont responsable de créer les conditions nécessaires
- * au guettage via ContexteInterface.
- * \{ */
-
-Guetteuse :: struct {
-    contexte: *ContexteInterface
-
-    sur_termine_guettage: fonc (guetteuse: *Guetteuse)
-    sur_clic: fonc (guetteuse: *Guetteuse, clic: ClicSouris)
-    sur_déplacement_souris: fonc (guettuse: *Guetteuse, état: ÉtatSouris)
-    sur_touche_clavier: fonc (guetteuse: *Guetteuse, info: InfoToucheClavier)
-}
-
-commence_guettage :: fonc (guetteuse: *Guetteuse, ctx: *ContexteInterface)
-{
-    saufsi ctx.sur_commence_guettage {
-        retourne
-    }
-    guetteuse.contexte = ctx
-    ctx.sur_commence_guettage(ctx, guetteuse)
-}
-
-termine_guettage :: fonc (guetteuse: *Guetteuse)
-{
-    si guetteuse.sur_termine_guettage {
-        guetteuse.sur_termine_guettage(guetteuse)
-    }
-
-    saufsi guetteuse.contexte && guetteuse.contexte.sur_termine_guettage {
-        retourne
-    }
-    guetteuse.contexte.sur_termine_guettage(guetteuse.contexte)
 }
 
 /** \} */
@@ -132,6 +90,8 @@ détruit :: fonc (chronomètre: *Chronomètre)
  * curseur doit être définis.
  */
 ContexteInterface :: struct {
+    empl base: PlateformeGuettage
+
     fonte: *Fonte
 
     diviseurs: [..]*PanneauDiviseur
@@ -141,11 +101,6 @@ ContexteInterface :: struct {
     panneau_survolé: *Panneau
 
     rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: TypeCurseurSystème)
-
-    /* Doit commencer une boucle locale pour guetter les évènements. */
-    sur_commence_guettage: fonc (ctx: *ContexteInterface, guetteuse: *Guetteuse)
-    /* Termine la boucle locale commencée via sur_commence_guettage. */
-    sur_termine_guettage: fonc (ctx: *ContexteInterface)
 
     sur_création_chronomètre: fonc (ctx: *ContexteInterface, chrono: *Chronomètre) -> IDChronomètre
     sur_arrêt_chronomètre: fonc (ctx: *ContexteInterface, id: IDChronomètre)
