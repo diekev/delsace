@@ -215,14 +215,9 @@ Cotation :: struct {
     hauteur_max: n32 = 0xffffffff
 }
 
-FIXE :: fonc (v: n32) -> z32
+FIXE :: fonc (v: $T) -> z32
 {
     retourne (v comme z32) | BIT_COTATION_FIXE
-}
-
-FIXE :: fonc (v: z32) -> z32
-{
-    retourne v | BIT_COTATION_FIXE
 }
 
 CROISSANTE :: fonc () -> z32
