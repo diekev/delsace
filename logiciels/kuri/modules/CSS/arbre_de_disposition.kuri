@@ -122,6 +122,9 @@ ArbreDeDisposition :: struct {
     boxes_position_absolue: n32
 
     défilement_vertical: *BarreDeDéfilement
+
+    largeur_vue: z32
+    hauteur_vue: z32
 }
 
 détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
@@ -1298,6 +1301,8 @@ donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: 
     }
 
     document.ajournement_arbre = AjournementArbre.zéro
+    document.arbre_de_disposition.largeur_vue = largeur
+    document.arbre_de_disposition.hauteur_vue = hauteur
 
     retourne document.arbre_de_disposition
 }
@@ -1341,6 +1346,8 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     crée_box_pour_élément(*créatrice, nul, html)
     résultat.racine = html.box
+    résultat.largeur_vue = largeur
+    résultat.hauteur_vue = hauteur
 
     // imprime("Créé % box(s)\n", résultat.boxes.taille)
 
