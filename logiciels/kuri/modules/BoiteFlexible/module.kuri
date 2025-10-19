@@ -489,6 +489,12 @@ définis_direction :: fonc (direction: Direction)
     __boite_courante.disposition.direction = direction
 }
 
+définis_couleur_curseur_texte :: fonc (couleur: CouleurRVBA)
+{
+    assert(__boite_courante != nul)
+    __boite_courante.couleur_curseur_texte = couleur 
+}
+
 ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
     config := donne_configuration_bordure_courante()

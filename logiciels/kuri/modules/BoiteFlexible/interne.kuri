@@ -106,6 +106,7 @@ BoiteFlexible :: struct {
     texte_utf32: ChaineUTF32
     image: NouvelleImage
     teinte: CouleurRVBA
+    couleur_curseur_texte: CouleurRVBA
 
     procédure: fonc(*rien, RectanglePosDim(r32))(rien)
     données_procédure: *rien
@@ -1403,7 +1404,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.largeur = 1.0
             rect.hauteur = hauteur_disponible
             
-            couleur_barre := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
+            couleur_barre := boite.couleur_curseur_texte
             commandes.remplis_rectangle(rect, couleur_barre)
         }
 
