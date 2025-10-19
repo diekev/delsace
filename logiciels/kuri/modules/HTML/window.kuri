@@ -201,8 +201,6 @@ request_animation_frame :: fonc (window: *Window, callback: *JS.Object) -> z32
     animation_frame.id = window.id_suivant_animation_frame
     window.id_suivant_animation_frame += 1
 
-    user_agent.request_animation_frame()
-
     retourne animation_frame.id
 }
 
