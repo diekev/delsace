@@ -32,13 +32,15 @@ ajourne :: fonc (barre: *BarreDeDéfilement, largeur_vue: r32, hauteur_vue: r32,
 {
     hauteur_barre := hauteur_vue * hauteur_vue / hauteur_contenu
 
-    si barre.rect.hauteur == hauteur_barre {
-        retourne
-    }
-
     /* Ajourne la barre */
     largeur_barre := 12.0
-    barre.ratio = hauteur_vue / hauteur_contenu
+
+    si hauteur_contenu != 0 {
+        barre.ratio = hauteur_vue / hauteur_contenu
+    }
+    sinon {
+        barre.ratio = 0
+    }
 
     rect_barre: RectanglePosDim(r32)
     rect_barre.x = largeur_vue - largeur_barre
