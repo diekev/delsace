@@ -1,0 +1,210 @@
+importe Chaine
+importe Fondation
+importe OpenGL
+importe X11
+
+principale :: fonc ()
+{
+    display := XOpenDisplay(nul)
+
+    si display == nul {
+        imprime("Impossible display'ouvrir un display !\n")
+        exit(1)
+    }
+    diffère _ := XCloseDisplay(display)
+
+    id_écran := DefaultScreen(display)
+
+    version_glx_majeure: GLint = 0
+    version_glx_mineure: GLint = 0
+
+    si glXQueryVersion(display, *version_glx_majeure, *version_glx_mineure) == False {
+        imprimeln("Impossible de déterminer la version de GLX")
+        exit(1)
+    }
+
+    imprimeln("GLX version %.%", version_glx_majeure, version_glx_mineure)
+
+    attributs_glx: []GLenum = [
+        GLX_X_RENDERABLE    , True comme GLenum,
+        GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+        GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
+        GLX_RED_SIZE        , 8,
+        GLX_GREEN_SIZE      , 8,
+        GLX_BLUE_SIZE       , 8,
+        GLX_ALPHA_SIZE      , 8,
+        GLX_DEPTH_SIZE      , 24,
+        GLX_STENCIL_SIZE    , 8,
+        GLX_DOUBLEBUFFER    , True comme GLenum,
+        0
+    ]
+
+    nombre_de_tampons_de_frame: z32
+    configs_tampon_de_frame := glXChooseFBConfig(display, id_écran, attributs_glx.pointeur comme *GLint, *nombre_de_tampons_de_frame)
+    si configs_tampon_de_frame == nul {
+        imprimeln("Impossible d'obtenir un tampon de frame")
+        exit(1)
+    }
+    imprimeln("Trouvé % tampons de frame possible", nombre_de_tampons_de_frame)
+
+    // Prennons la configuration avec le plus d'échantillons
+    indice_meilleur_tampon : z64 = -1
+    indice_pire_tampon : z64 = -1
+    meilleur_nombre_d_échantillon := -1
+    pire_nombre_d_échantillon := 999
+    pour nombre_de_tampons_de_frame {
+        vi := glXGetVisualFromFBConfig(display, configs_tampon_de_frame[it])
+        si vi != nul {
+            tampons_échantillons: z32
+            échantillons: z32
+            _ := glXGetFBConfigAttrib(display, configs_tampon_de_frame[it], GLX_SAMPLE_BUFFERS comme GLint, *tampons_échantillons)
+            _ := glXGetFBConfigAttrib(display, configs_tampon_de_frame[it], GLX_SAMPLES comme GLint, *échantillons)
+
+            si indice_meilleur_tampon < 0 || (tampons_échantillons && échantillons > meilleur_nombre_d_échantillon) {
+                indice_meilleur_tampon = it;
+                meilleur_nombre_d_échantillon = échantillons;
+            }
+            si indice_pire_tampon < 0 || !tampons_échantillons || échantillons < pire_nombre_d_échantillon {
+                indice_pire_tampon = it;
+            }
+            pire_nombre_d_échantillon = échantillons;
+        }
+        _ := XFree(vi)
+    }
+
+    meilleur_tampon := configs_tampon_de_frame[indice_meilleur_tampon]
+    
+    visual := glXGetVisualFromFBConfig(display, meilleur_tampon)
+    saufsi visual {
+        imprimeln("Impossible de créer un XVisualInfo")
+        exit(1)
+    }
+
+    si id_écran != visual.screen {
+        imprimeln("L'écran du display (%) ne correspond pas à celui du visual (%)", id_écran, visual.screen)
+        exit(1)
+    }
+
+    parent := RootWindow(display, id_écran)
+    x := 0
+    y := 0
+    largeur: n32 = 640
+    hauteur: n32 = 480
+    largeur_bordure: n32 = 1
+    profondeur := visual.depth
+    classe := InputOutput comme n32
+    masque_valeur := (CWBackPixel | CWColormap | CWBorderPixel | CWEventMask) comme n64
+
+    attributs: XSetWindowAttributes
+    attributs.border_pixel = BlackPixel(display, id_écran);
+    attributs.background_pixel = WhitePixel(display, id_écran);
+    attributs.override_redirect = True;
+    attributs.colormap = XCreateColormap(display, parent, visual.visual, AllocNone);
+    attributs.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
+
+    window := XCreateWindow(display,
+                            parent,
+                            x, y,
+                            largeur, hauteur,
+                            largeur_bordure,
+                            profondeur,
+                            classe,
+                            visual.visual,
+                            masque_valeur,
+                            *attributs)
+
+    /* Création du contexte OpenGL. */
+    glXCreateContextAttribsARBProc :: fonc (display: *Display, config: GLXFBConfig, context: GLXContext, cond: Bool, attributs: *z32) -> GLXContext
+    glXCreateContextAttribsARB := glXGetProcAddressARB("glXCreateContextAttribsARB".pointeur comme *GLubyte) comme adresse_fonction comme glXCreateContextAttribsARBProc
+
+    context_attribs : []GLenum = [
+        GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+        GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+        GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        0,
+    ]
+
+    glxExts := glXQueryExtensionsString(display, id_écran)
+    extensions := convertis_chaine_c_statique(glxExts)
+    imprimeln("%", extensions)
+
+    context: GLXContext
+    si trouve_motif_dans_chaine(extensions, "GLX_ARB_create_context") != -1 {
+        context = glXCreateNewContext(display, meilleur_tampon, GLX_RGBA_TYPE comme z32, nul, True)
+    }
+    sinon {
+        context = glXCreateContextAttribsARB(display, meilleur_tampon, nul, 1, context_attribs.pointeur comme *z32)
+    }
+    _ := XSync(display, False)
+
+    // Verifying that context is a direct context
+    si !glXIsDirect(display, context) {
+        imprimeln("Contexte indirect")
+    }
+    sinon {
+        imprimeln("Contexte direct")
+    }
+    _ := glXMakeCurrent(display, window, context);
+
+    gl_donne_chaine :: fonc (name: GLenum) -> chaine
+    {
+        str := glGetString(name)
+        retourne convertis_chaine_c_statique(str comme *z8)
+    }
+
+    imprimeln("GL Vendor %", gl_donne_chaine(GL_VENDOR))
+    imprimeln("GL Renderer %", gl_donne_chaine(GL_RENDERER))
+    imprimeln("GL Version %", gl_donne_chaine(GL_VERSION))
+    imprimeln("GL Shading Language %", gl_donne_chaine(GL_SHADING_LANGUAGE_VERSION))
+
+    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False)
+    _ := XSetWMProtocols(display, window, *wm_delete_window, 1)
+
+    /* Montre la fenêtre. */
+    _ := XClearWindow(display, window)
+    _ := XMapRaised(display, window)
+
+    glClearColor(0.5, 0.6, 0.7, 1.0)
+
+    boucle {
+        e: _XEvent
+        _ := XNextEvent(display, *e)
+
+        si e.type == KeyPress {
+            arrête
+        }
+
+        si e.type == Expose {
+            attribs: XWindowAttributes
+            _ := XGetWindowAttributes(display, window, *attribs)
+            glViewport(0, 0, attribs.width, attribs.height)
+        }
+        sinon si e.type == ClientMessage {
+            data := e.xclient.data.l
+            atome := data[0] comme Atom
+            si atome == wm_delete_window {
+                arrête
+            }
+        }
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glBegin(GL_TRIANGLES);
+            glColor3f(  1.0,  0.0, 0.0)
+            glVertex3f( 0.0, -1.0, 0.0)
+            glColor3f(  0.0,  1.0, 0.0)
+            glVertex3f(-1.0,  1.0, 0.0)
+            glColor3f(  0.0,  0.0, 1.0)
+            glVertex3f( 1.0,  1.0, 0.0)
+        glEnd();
+
+        glXSwapBuffers(display, window);
+    }
+
+    glXDestroyContext(display, context)
+
+    _ := XFree(visual);
+    _ := XFreeColormap(display, attributs.colormap);
+    _ := XDestroyWindow(display, window);
+}
