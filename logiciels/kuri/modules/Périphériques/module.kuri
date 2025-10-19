@@ -129,6 +129,16 @@ ClicSouris :: struct {
 InfoToucheClavier :: struct {
     type: ToucheClavier
     texte: chaine
+    modificateur: ModificateurClavier
+}
+
+donne_info_touche :: fonc (évènement: Évènement) -> InfoToucheClavier
+{
+    résultat: InfoToucheClavier
+    résultat.type = évènement.touche
+    résultat.texte = évènement.texte
+    résultat.modificateur = évènement.modificateurs
+    retourne résultat
 }
 
 /** \} */
