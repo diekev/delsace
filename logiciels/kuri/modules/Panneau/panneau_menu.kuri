@@ -292,7 +292,7 @@ GuetteuseBarreDeMenu :: struct {
     sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris
 }
 
-guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
+guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu
     panneau := guetteuse.barre_de_menu
@@ -302,7 +302,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
         si indice_élément == -1 {
             pour panneau.menus_affichés {
                 si it.gère_clic_souris(clic) {
-                    retourne
+                    retourne ÉtatÉvènement.CONSOMMÉ
                 }
             }
         }
@@ -310,7 +310,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
     sinon si clic.action == ActionSouris.RELACHÉE {
         indice_élément := donne_élément_sous_souris(panneau, clic.état)
         si indice_élément != -1 {
-            retourne
+            retourne ÉtatÉvènement.PASSE_AU_PARENT
         }
 
         pour panneau.menus_affichés {
@@ -319,7 +319,7 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
             }
         }
         sansarrêt {
-            retourne
+            retourne ÉtatÉvènement.PASSE_AU_PARENT
         }
     }
 
@@ -327,9 +327,10 @@ guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
     définis_élément_pressé(panneau, -1, vrai)
     détruit_panneau_menu(panneau)
     termine_guettage(guetteuse)
+    retourne ÉtatÉvènement.PASSE_AU_PARENT
 }
 
-guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
+guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
     guetteuse := base comme *GuetteuseBarreDeMenu
     panneau := guetteuse.barre_de_menu
@@ -344,6 +345,8 @@ guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souri
             it.sur_déplacement_souris(it, souris)
         }
     }
+
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 /** \} */
