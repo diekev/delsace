@@ -374,55 +374,56 @@ guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
     notifie_fin_édition(*panneau.curseur)
 }
 
-guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris)
+guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
     saufsi état == ÉtatGuettageÉditionTexte.EnSélection {
-        retourne
+        retourne GuetteuseÉditionTexte.PASSE_AU_PARENT
     }
 
     indice := donne_position_curseur_pour_souris(panneau, souris)
     déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, indice)
+    retourne GuetteuseÉditionTexte.CONSOMMÉ
 }
 
-guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier)
+guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
     si touche.type == ToucheClavier.DÉBUT {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.FIN {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.texte.taille())
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.début - 1)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.FLÈCHE_DROITE {
         définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.fin + 1)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.EFFACE {
         efface(*panneau.curseur)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.SUPPRIMER {
         supprime(*panneau.curseur)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.type == ToucheClavier.ENTRÉE {
         termine_guettage(guetteuse)
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
 
     si touche.texte.taille != 0 {
@@ -432,11 +433,13 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
             insère(*panneau.curseur, point_de_code)
         }
 
-        retourne
+        retourne ÉtatÉvènement.CONSOMMÉ
     }
+
+    retourne ÉtatÉvènement.PASSE_AU_PARENT
 }
 
-guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
+guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
@@ -473,6 +476,8 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris)
             état = ÉtatGuettageÉditionTexte.EnÉdition
         }
     }
+
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 définis_position_curseur_pour_clic :: fonc (panneau: *PanneauÉditionTexte, souris: ÉtatSouris)
