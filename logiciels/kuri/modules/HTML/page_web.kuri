@@ -1,3 +1,4 @@
+importe CommandesRendu
 importe Périphériques
 importe PeintureInterface
 
@@ -45,7 +46,7 @@ donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
     retourne ""
 }
 
-dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: bool) -> *CSS.CommandesDeRendu
+dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: bool) -> *CommandesDeRendu
 {
     document := donne_document(page)
 
@@ -73,7 +74,7 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
         ctx.décalage_y = barre.rect.y / barre.ratio
     }
 
-    commandes: *CSS.CommandesDeRendu
+    commandes: *CommandesDeRendu
 
     si dessine_tampon_id {
         commandes = CSS.dessine_tampon_id_couleur(arbre, *ctx)
@@ -97,13 +98,13 @@ dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: 
             couleur.b *= 0.5
         }
 
-        CSS.remplis_rectangle(commandes, rect_barre, couleur)
+        remplis_rectangle(commandes, rect_barre, couleur)
     }
 
     retourne commandes
 }
 
-dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.CommandesDeRendu
+dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CommandesDeRendu
 {
     document := donne_document(page)
 
