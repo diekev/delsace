@@ -1,0 +1,188 @@
+importe Allocatrices
+importe Chaine
+importe Fondation
+importe Math
+
+/* ------------------------------------------------------------------------- */
+/** \nom Barre de menu.
+ * \{ */
+
+BarreDeMenu :: struct {
+    menus: [..]*Menu
+}
+
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: chaine) -> *Menu
+{
+    // À FAIRE : fuite de mémoire
+    texte_utf32 := crée_chaine_utf32(texte)
+    retourne ajoute_menu(barre_de_menu, arène, texte_utf32)
+}
+
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: ChaineUTF32) -> *Menu
+{
+    résultat := loge(arène, Menu)
+    résultat.texte = texte
+    tableau_ajoute(*barre_de_menu.menus, résultat)
+    retourne résultat
+}
+
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, texte: chaine) -> *Menu
+{
+    résultat := loge(Menu)
+    // À FAIRE : fuite de mémoire
+    texte_utf32 := crée_chaine_utf32(texte)
+    résultat.texte = texte_utf32
+    tableau_ajoute(*barre_de_menu.menus, résultat)
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Menu
+ * \{ */
+
+/* À FAIRE :
+ * - icones
+ * - raccouricis clavier
+ */
+Menu :: struct {
+    DonnéesÉlément :: union {
+        SousMenu: *Menu
+        Séparateur: z32
+        Action: *Bouton
+        Cochage: *BoutonCoche
+    }
+
+    Élément :: struct {
+        texte: ChaineUTF32
+        données: DonnéesÉlément
+    }
+
+    texte: ChaineUTF32
+    éléments: [..]Élément
+
+    est_ouvert: bool
+    est_pour_énum: bool
+
+    /* Position de création. */
+    x: r32
+    y: r32
+
+    rect: RectanglePosDim(r32)
+}
+
+ajoute_bouton :: fonc (menu: *Menu, bouton: *Bouton)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément(bouton.texte, bouton))
+}
+
+ajoute_bouton_coche :: fonc (menu: *Menu, bouton: *BoutonCoche)
+{
+    données: Menu.DonnéesÉlément
+    données.Cochage = bouton
+
+    tableau_ajoute(*menu.éléments, Menu.Élément(bouton.texte, données))
+}
+
+ajoute_séparateur :: fonc (menu: *Menu)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément(ChaineUTF32(), 0))
+}
+
+ajoute_menu :: fonc (menu: *Menu, sous_menu: *Menu)
+{
+    tableau_ajoute(*menu.éléments, Menu.Élément(sous_menu.texte, sous_menu))
+}
+
+gère_clic_souris :: fonc (élément: Menu.Élément)
+{
+    discr élément.données {
+        Action(bouton) {
+            si bouton.sur_clic {
+                bouton.sur_clic(bouton)
+            }
+        }
+        Cochage(bouton) {
+            bouton.sur_clic(bouton)
+        }
+        sinon {}
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Bouton
+ * \{ */
+
+Bouton :: struct {
+    // À FAIRE : métadonnées
+    texte: ChaineUTF32
+    icone: chaine
+    texte_pour_raccourci: chaine
+
+    sur_clic: fonc (bouton: *Bouton)
+    sur_est_cliquable: fonc (bouton: *Bouton, données: eini) -> bool
+}
+
+crée_bouton :: fonc (texte: chaine, sur_clic: fonc (bouton: *Bouton)) -> *Bouton
+{
+    résultat := loge(Bouton)
+    résultat.texte = crée_chaine_utf32(texte)
+    résultat.sur_clic = sur_clic
+    retourne résultat
+}
+
+est_cliquable :: fonc (bouton: *Bouton, données: eini) -> bool
+{
+    résultat := vrai
+    si bouton.sur_est_cliquable {
+        résultat = bouton.sur_est_cliquable(bouton, données)
+    }
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom BoutonCoche
+ * \{ */
+
+BoutonCoche :: struct {
+    empl base: Bouton
+
+    données: *rien
+    sur_donne_coche: fonc (données: *rien) -> bool
+    sur_définis_coche: fonc (données: *rien, est_coché: bool)
+}
+
+est_coché :: fonc (bouton: *BoutonCoche) -> bool
+{
+    saufsi bouton.sur_donne_coche {
+        retourne faux
+    }
+    retourne bouton.sur_donne_coche(bouton.données)
+}
+
+bouton_coche_sur_clic :: fonc (bouton: *BoutonCoche)
+{
+    saufsi bouton.sur_donne_coche && bouton.sur_définis_coche {
+        retourne
+    }
+
+    bouton.sur_définis_coche(bouton.données, !bouton.sur_donne_coche(bouton.données))
+}
+
+crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(*T)(bool), sur_définis_coche: fonc(*T, bool)(rien)) -> *BoutonCoche
+{
+    résultat := loge(BoutonCoche)
+    résultat.texte = texte
+    résultat.données = données
+    résultat.sur_donne_coche = sur_donne_coche
+    résultat.sur_définis_coche = sur_définis_coche
+    résultat.sur_clic = bouton_coche_sur_clic
+    retourne résultat
+}
+
+/** \} */
