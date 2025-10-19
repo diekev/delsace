@@ -172,7 +172,6 @@ RappelsInterface :: struct {
     sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm)
     sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm)
     sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
-    sur_document_est_prêt: fonc (rappels: *RappelsInterface, document: *Document)
     sur_est_exécuté_sur_fil_principal: fonc (rappels: *RappelsInterface) -> bool
     sur_est_exécuté_en_parallèle: fonc (rappels: *RappelsInterface) -> bool
     sur_est_exécuté_sur_file_parallèle: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable) -> bool
@@ -283,16 +282,6 @@ lance_sur_file_parallèle :: fonc (user_agent: *UserAgent, traversable: *Travers
     }
 
     rappels.sur_tâche_traversable(rappels, traversable, algorithm)
-}
-
-document_est_prêt :: fonc (user_agent: *UserAgent, document: *Document)
-{
-    rappels := user_agent.rappels_interface
-    saufsi rappels && rappels.sur_document_est_prêt {
-        retourne
-    }
-
-    rappels.sur_document_est_prêt(rappels, document)
 }
 
 est_exécuté_sur_fil_principal :: fonc (user_agent: *UserAgent) -> bool
