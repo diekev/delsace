@@ -1,7 +1,13 @@
 importe Allocatrices
+importe BoiteFlexible
 importe Chaine
+importe Couleur
 importe Fondation
+importe Guettage
+importe Image
 importe Math
+importe Périphériques
+importe Typographie
 
 /* ------------------------------------------------------------------------- */
 /** \nom Barre de menu.
@@ -183,6 +189,213 @@ crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(
     résultat.sur_définis_coche = sur_définis_coche
     résultat.sur_clic = bouton_coche_sur_clic
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Dessin avec BoiteFlexible
+ * \{ */
+
+ParamsDispositionBarreDeMenu :: struct {
+    hauteur: z32
+    arrière_plan: CouleurRVBA
+    arrière_plan_menu: CouleurRVBA
+    taille_bordure_bas: r32
+    couleur_bordure: CouleurRVBA
+    arrière_plan_menu_survolé: CouleurRVBA
+    couleur_texte_actif: CouleurRVBA
+    couleur_texte_inactif: CouleurRVBA
+    couleur_séparateur: CouleurRVBA
+    taille_séparateur: z32
+
+    sur_pression_entête_menu: TypeRappelSouris
+    données_sur_pression_entête_menu: *rien
+
+    donne_image_pour_icone: fonc (données_icone: *rien, icone: chaine) -> NouvelleImage
+    données_icone: *rien
+
+    données_est_cliquable: eini
+}
+
+dispose_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu,
+                               params: *ParamsDispositionBarreDeMenu,
+                               fonte: *Fonte) -> z32
+{
+    dispose_rectangle()
+    {
+        définis_arrière_plan(params.arrière_plan)
+        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(params.hauteur)))
+
+        si params.taille_bordure_bas != 0.0 {
+            ajoute_bordure_bas(params.taille_bordure_bas, params.couleur_bordure)
+        }
+
+        pour barre_de_menu.menus {
+            dispose_menu(it, params, fonte, indice_it comme z32)
+        }
+    }
+    termine_rectangle()
+
+    retourne params.hauteur
+}
+
+dispose_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte: *Fonte, indice_menu: z32)
+{
+    dispose_rectangle()
+    {
+        définis_cotation(Cotation(hauteur = FIXE(params.hauteur)))
+        définis_alignement(AlignementEnfant.Milieu)
+        définis_rembourrage(RembourrageUniforme(6))
+
+        si params.sur_pression_entête_menu {
+            sur_pression_souris(params.sur_pression_entête_menu, params.données_sur_pression_entête_menu, indice_menu)
+        }
+
+        si menu.est_ouvert || est_survolée() {
+            définis_arrière_plan(params.arrière_plan_menu_survolé)
+        }
+
+        si menu.est_ouvert {
+            dispose_éléments_menu(menu, params, fonte)
+        }
+
+        dispose_texte(menu.texte, ConfigurationTexte(fonte, params.couleur_texte_actif))
+    }
+    termine_rectangle()
+}
+
+dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte: *Fonte)
+{
+    dispose_rectangle()
+    {
+        définis_disposition(direction = Direction.Verticale)
+        si menu.est_pour_énum {
+            définis_flottance(menu.x, menu.y, ancrage = AncrageFlottante.HAUT_GAUCHE)
+        }
+        sinon {
+            définis_flottance(ancrage = AncrageFlottante.BAS_GAUCHE)
+        }
+        définis_arrière_plan(params.arrière_plan_menu)
+
+        menu.rect = donne_rect()
+
+        largeur_max_texte := 0
+        largeur_max_raccourci := 0
+        un_élément_possède_une_icone := faux
+        un_élément_possède_un_raccourci := faux
+        pour menu.éléments {
+            discr it.données {
+                Séparateur {
+                }
+                Action(bouton) {
+                    si bouton.icone && params.donne_image_pour_icone {
+                        un_élément_possède_une_icone = vrai
+                    }
+
+                    largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32
+                    si bouton.texte_pour_raccourci {
+                        largeur_raccourci := donne_largeur_texte(fonte, bouton.texte_pour_raccourci) comme z32
+                        si largeur_raccourci > largeur_max_raccourci {
+                            largeur_max_raccourci = largeur_raccourci
+                        }
+                        un_élément_possède_un_raccourci = vrai
+                    }
+                    si largeur_texte > largeur_max_texte {
+                        largeur_max_texte = largeur_texte
+                    }
+                }
+                sinon {
+                    largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32
+                    si largeur_texte > largeur_max_texte {
+                        largeur_max_texte = largeur_texte
+                    }
+                }
+            }
+        }
+
+        largeur_max_texte += largeur_max_raccourci
+
+        pour menu.éléments {
+            discr it.données {
+                Séparateur {
+                    dispose_barre_séparation_horizontale(params.couleur_séparateur, params.taille_séparateur)
+                }
+                Action(bouton) {
+                    est_activé := est_cliquable(bouton, params.données_est_cliquable)
+                    dispose_élément_menu(fonte, it.texte, bouton.texte_pour_raccourci, bouton.icone, largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, params)
+                }
+                sinon {
+                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, vrai, params)
+                }
+            }
+        }
+    }
+    termine_rectangle()
+}
+
+dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_raccourci: chaine, icone: chaine, largeur: z32, un_élément_possède_une_icone: bool, un_élément_possède_un_raccourci: bool, menu: *Menu, indice_élément: z32, est_activé: bool,
+                              params: *ParamsDispositionBarreDeMenu)
+{
+    rembourrage_horizontal := 8
+    cotation_icone := 0
+    cotation_élément := largeur + rembourrage_horizontal * 2
+    si un_élément_possède_une_icone {
+        cotation_icone = 16
+        cotation_élément += cotation_icone + rembourrage_horizontal
+    }
+    si un_élément_possède_un_raccourci {
+        cotation_élément += rembourrage_horizontal * 2
+    }
+
+    couleur_texte := params.couleur_texte_actif
+    saufsi est_activé {
+        couleur_texte = params.couleur_texte_inactif
+    }
+
+    dispose_rectangle()
+    {
+        sur_pression_souris(sur_élément_menu_cliqué, menu, indice_élément)
+
+        définis_disposition(cotation = Cotation(FIXE(cotation_élément)),
+                            rembourrage = RembourrageDifforme(rembourrage_horizontal comme r32, 8.0),
+                            séparation_enfant = rembourrage_horizontal comme r32)
+
+        si est_activé && est_survolée() {
+            définis_arrière_plan(params.arrière_plan_menu_survolé)
+        }
+
+        si un_élément_possède_une_icone {
+            dispose_rectangle()
+            {
+                définis_disposition(cotation = Cotation(FIXE(cotation_icone), FIXE(cotation_icone)))
+                si icone && params.donne_image_pour_icone {
+                    image_icone := params.donne_image_pour_icone(params.données_icone, icone)
+                    dispose_image(image_icone, Cotation(FIXE(cotation_icone), FIXE(cotation_icone)), couleur_texte)
+                }
+            }
+            termine_rectangle()
+        }
+
+        dispose_texte(texte, ConfigurationTexte(fonte, couleur_texte))
+
+        si texte_pour_raccourci {
+            dispose_séparateur_horizontal()
+            dispose_texte(texte_pour_raccourci, ConfigurationTexte(fonte, couleur_texte))
+        }
+    }
+    termine_rectangle()
+}
+
+sur_élément_menu_cliqué :: fonc (menu: *Menu, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
+{
+    si indice < 0 || indice >= menu.éléments.taille {
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
+    }
+
+    gère_clic_souris(menu.éléments[indice])
+    menu.est_ouvert = faux
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 /** \} */
