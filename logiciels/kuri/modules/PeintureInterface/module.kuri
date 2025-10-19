@@ -100,7 +100,7 @@ Peintre :: struct {
 
     rappel_destruction: fonc (peintre: *Peintre)
 
-    ciseaux: [..]RectanglePeintre
+    ciseaux: [..]RectanglePosDim(r32)
 }
 
 détruit_peintre :: fonc (peintre: *Peintre)
@@ -319,8 +319,14 @@ dessine_tampon_sur_écran :: fonc (peintre: *Peintre) -> rien #enligne
 
 définis_ciseau :: fonc (peintre: *Peintre, rectangle: RectanglePeintre) -> rien #enligne
 {
-    tableau_ajoute(*peintre.ciseaux, rectangle)
-    peintre.rappel_définis_ciseau(peintre, rectangle)
+    rect_r32 := donne_rectangle_igumi(rectangle)
+
+    si peintre.ciseaux {
+        rect_r32 = donne_intersection(rect_r32, peintre.ciseaux[peintre.ciseaux.taille - 1])
+    }
+
+    tableau_ajoute(*peintre.ciseaux, rect_r32)
+    peintre.rappel_définis_ciseau(peintre, rect_r32)
 }
 
 restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
