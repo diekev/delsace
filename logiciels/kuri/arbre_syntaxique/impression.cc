@@ -635,7 +635,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto structure = noeud->comme_type_structure();
             if (structure->ident) {
                 imprime_ident(enchaineuse, structure->ident);
-                enchaineuse << " :: struct";
+                enchaineuse << " :: ";
             }
             enchaineuse << "struct";
             imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
