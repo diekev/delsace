@@ -59,10 +59,24 @@ struct NoeudFormattageChaine : public NoeudFormattage {
 
 struct NoeudFormattageGroupe : public NoeudFormattage {
     kuri::tableau<NoeudFormattage *, int> noeuds{};
+
+    void ajoute(std::initializer_list<NoeudFormattage *> &&à_ajouter)
+    {
+        POUR (à_ajouter) {
+            noeuds.ajoute(it);
+        }
+    }
 };
 
 struct NoeudFormattageNoeuds : public NoeudFormattage {
     kuri::tableau<NoeudFormattage *, int> noeuds{};
+
+    void ajoute(std::initializer_list<NoeudFormattage *> &&à_ajouter)
+    {
+        POUR (à_ajouter) {
+            noeuds.ajoute(it);
+        }
+    }
 };
 
 struct GénératriceTexte {
@@ -118,6 +132,43 @@ void GénératriceTexte::génère_texte(NoeudFormattage const *noeud)
 void GénératriceTexte::ajoute_texte(kuri::chaine_statique texte)
 {
 }
+
+class Arène {
+    struct BlocMémoire {
+        void *adresse = nullptr;
+        int64_t taille = 0;
+        int64_t occupé = 0;
+    };
+
+    kuri::tableau<BlocMémoire> blocs{};
+
+  public:
+    ~ArèneMémoire()
+    {
+        POUR (blocs) {
+            mémoire::deloge("BlocMémoire", it.adresse);
+        }
+    }
+
+    template <typename T>
+    T *loge()
+    {
+        if (blocs.est_vide() ||
+            (blocs.dernier_élément().occupé + taille_de(T)) > blocs.dernier_élément().taille) {
+            auto bloc = BlocMémoire{};
+            bloc.taille = 1024 * 1024;
+            bloc.adresse = mémoire::loge_tableau<uint8_t>("BlocMémoire", bloc.taille);
+            blocs.ajoute(bloc);
+        }
+
+        auto &bloc = blocs.dernier_élément();
+
+        auto résultat = static_cast<T *>(bloc.adresse + bloc.occupé);
+        bloc.occupé += taille_de(T);
+        new (résultat) T;
+        return résulat;
+    }
+};
 
 static kuri::chaine_statique chaine_indentations_espace(int indentations)
 {
@@ -578,17 +629,53 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
     }
 }
 
-static void imprime_arbre(Enchaineuse &enchaineuse,
-                          ÉtatImpression état,
-                          NoeudExpression const *noeud)
+class Formatteuse {
+    Arène arène{};
+
+  public:
+    NoeudFormattage *formatte_noeud(ÉtatImpression état, NoeudExpression const *noeud);
+
+    NoeudFormattageChaine *crée_chaine(kuri::chaine_statique chaine)
+    {
+        auto résultat = arène.loge<NoeudFormattageChaine>();
+        résultat->chaine = chaine;
+        return résultat;
+    }
+
+    NoeudFormattage *crée_espace()
+    {
+        return crée_chaine(" ");
+    }
+
+    NoeudFormattageIdentifiant *crée_identifiant(IdentifiantCode const *ident)
+    {
+        auto résultat = arène.loge<NoeudFormattageIdentifiant>();
+        résultat->ident = ident;
+        return résultat;
+    }
+
+    NoeudFormattageGroupe *crée_groupe(std::initializer_list<NoeudFormattage *> &&noeuds)
+    {
+        auto résultat = arène.loge<NoeudFormattageGroupe>();
+        résultat->ajoute(noeuds);
+        return résultat;
+    }
+
+    NoeudFormattageChaine *crée_chaine_littérale(Lexème const *lexème)
+    {
+        // À FAIRE : guillemets
+        return crée_chaine(lexème->chaine);
+    }
+};
+
+NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpression const *noeud)
 {
     if (!noeud) {
-        return;
+        return nullptr;
     }
 
     if (état.préfére_substitution && noeud->substitution) {
-        imprime_arbre(enchaineuse, état, noeud->substitution);
-        return;
+        return formatte_noeud(état, noeud);
     }
 
     switch (noeud->genre) {
@@ -603,36 +690,42 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             /* VSCode n'insère pas proprement les fins de sections... */
             if (noeud->lexème->chaine == "/** } */") {
-                enchaineuse << "/** \\} */";
+                return crée_chaine("/** \\} */");
             }
             else {
-                enchaineuse << noeud->lexème->chaine;
+                résultat->chaine = noeud->lexème->chaine;
+                return crée_chaine(noeud->lexème->chaine);
             }
-
-            break;
         }
         case GenreNoeud::INSTRUCTION_IMPORTE:
         {
             auto inst = noeud->comme_importe();
-            imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_arbre(enchaineuse, état, inst->expression);
-            break;
+
+            auto texte = crée_chaine(noeud->lexème->chaine);
+            auto espace = crée_espace();
+            auto identifiant = formatte_noeud(état, inst->expression);
+
+            return crée_groupe({texte, espace, identifiant});
         }
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
             auto inst = noeud->comme_charge();
-            const auto lexème = inst->expression->lexème;
-            imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_lexème_chaine_littérale(enchaineuse, lexème);
-            break;
+
+            auto texte = crée_chaine(noeud->lexème->chaine);
+            auto espace = crée_espace();
+            auto identifiant = crée_chaine_littérale(inst->expression->lexème);
+
+            return crée_groupe({texte, espace, identifiant});
         }
         case GenreNoeud::DÉCLARATION_BIBLIOTHÈQUE:
         {
             auto déclaration = noeud->comme_déclaration_bibliothèque();
-            imprime_ident(enchaineuse, déclaration->ident);
-            enchaineuse << " :: #bibliothèque ";
-            imprime_lexème_chaine_littérale(enchaineuse, déclaration->lexème_nom_bibliothèque);
-            break;
+
+            auto ident = crée_identifiant(déclaration->ident);
+            auto directive = crée_chaine(" :: #bibliothèque ");
+            auto nom = crée_chaine_littérale(déclaration->lexème_nom_bibliothèque);
+
+            return crée_groupe({ident, directive, nom});
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
