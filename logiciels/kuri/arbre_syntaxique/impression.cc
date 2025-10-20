@@ -513,6 +513,10 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
     auto ignore_indentation = false;
 
     POUR_INDICE (*expressions) {
+        if (it->est_déclaration_module()) {
+            continue;
+        }
+
         /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
          * les variables capturées par les discriminations). */
         if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) && !état.préfére_substitution) {
