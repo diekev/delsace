@@ -359,7 +359,7 @@ dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := Coule
     boite.teinte = teinte
 }
 
-dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien, id := "", cotation := Cotation())
+dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation())
 {
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
@@ -379,7 +379,7 @@ termine_procédure :: fonc ()
 /** \nom Évènements
  * \{ */
 
-TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(ÉtatÉvènement)
+TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indice: z32) -> ÉtatÉvènement
 
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
