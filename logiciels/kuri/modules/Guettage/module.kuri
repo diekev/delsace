@@ -20,7 +20,7 @@ importe Unicode
 
 PlateformeGuettage :: struct {
     sur_commence_guettage: fonc (plateforme: *PlateformeGuettage, guetteuse: *Guetteuse)
-    sur_termine_guettage: fonc(plateforme: *PlateformeGuettage)
+    sur_termine_guettage: fonc (plateforme: *PlateformeGuettage)
 }
 
 Guetteuse :: struct {
