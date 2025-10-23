@@ -24,7 +24,7 @@ ExploratriceFichier :: struct {
 
     pile_dossiers: Pile(DonnéesDossierCourant)
 
-    filtre_chemin: fonc(CheminFichier)(bool)
+    filtre_chemin: fonc (chemin: CheminFichier) -> bool
 
     /* Pour la construction des chemins, afin de réutiliser la mémoire. */
     pile: Pile(chaine)

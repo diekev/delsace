@@ -1054,7 +1054,7 @@ BuiltInFunction :: struct {
 
     realm: *Realm
     initial_name: ECMAString
-    sur_call_or_construct: fonc(*ParamètresCallOrConstruct)(Valeur)
+    sur_call_or_construct: fonc (params: *ParamètresCallOrConstruct) -> Valeur
 
     /* Constructeurs défauts des classes. */
     constructor_kind: ConstructorKind

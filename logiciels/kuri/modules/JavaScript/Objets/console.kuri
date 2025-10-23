@@ -10,11 +10,11 @@
 
 FluxSortieConsole :: struct {
     /* Appelé quand la console associée est détruite. */
-    sur_destruction: fonc(*FluxSortieConsole)(rien)
+    sur_destruction: fonc (flux: *FluxSortieConsole)
     /* Appelé lors du logage. */
-    sur_log: fonc(*FluxSortieConsole, chaine)(rien)
+    sur_log: fonc (flux: *FluxSortieConsole, texte: chaine)
     /* Appelé sur console.clear() */
-    sur_efface: fonc(*FluxSortieConsole)(rien)
+    sur_efface: fonc (flux: *FluxSortieConsole)
 }
 
 #portée_fichier
