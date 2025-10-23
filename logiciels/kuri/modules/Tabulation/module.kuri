@@ -26,6 +26,8 @@ Alignement :: InfosInterface.Alignement
 
 Cellule :: struct {
     texte: chaine
+    commande: chaine
+    métadonnée: chaine
 }
 
 LigneTabuleuse :: struct {
@@ -153,6 +155,13 @@ ajoute_ligne :: fonc (empl tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 définis_alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
 {
     tabuleuse.alignements[idx] = align
+}
+
+définis_commande :: fonc (tabuleuse: *Tabuleuse, ligne: z64, colonne: z64, commande: chaine, métadonnée: chaine)
+{
+    cellule := *tabuleuse.lignes[ligne].colonnes[colonne]
+    cellule.commande = commande
+    cellule.métadonnée = métadonnée
 }
 
 imprime_table :: fonc (empl tabuleuse: *Tabuleuse) -> rien
