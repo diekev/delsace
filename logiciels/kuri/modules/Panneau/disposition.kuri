@@ -1,12 +1,8 @@
 importe Fondation
-
-DirectionDisposition :: énum {
-    HORIZONTAL
-    VERTICAL
-}
+importe InfosInterface
 
 Disposition :: struct {
-    direction: DirectionDisposition
+    direction: Direction
     rect: RectanglePosDim(z32)
     panneaux: [..]*Panneau
     besoin_ajournement_disposition := vrai
@@ -48,7 +44,7 @@ ajourne_disposition :: fonc (empl disposition: *Disposition)
 
     si besoin_ajournement_disposition {
         discr direction {
-            HORIZONTAL {
+            HORIZONTALE {
                 largeur_par_élément := rect.largeur / panneaux.taille comme z32
 
                 rect_panneau : RectanglePosDim(z32) = ---
@@ -62,7 +58,7 @@ ajourne_disposition :: fonc (empl disposition: *Disposition)
                     rect_panneau.x += largeur_par_élément
                 }
             }
-            VERTICAL {
+            VERTICALE {
                 hauteur_par_élément := rect.hauteur / panneaux.taille comme z32
 
                 rect_panneau : RectanglePosDim(z32) = ---
