@@ -6,12 +6,12 @@ AllocatricePile :: struct {
     taille : z64
 }
 
-est_aligné :: fonc(ptr: *rien, alignement: z64) -> bool
+est_aligné :: fonc (ptr: *rien, alignement: z64) -> bool
 {
     retourne (ptr comme z64 & (alignement - 1)) == 0
 }
 
-arrondis_pour_aligner :: fonc(n: z64, alignement: z64) -> z64
+arrondis_pour_aligner :: fonc (n: z64, alignement: z64) -> z64
 {
     reste := n % alignement
 
@@ -23,7 +23,7 @@ arrondis_pour_aligner :: fonc(n: z64, alignement: z64) -> z64
 }
 
 // NOTE: les arrondis ne fonctionnent pas vraiment pour les réallocations car nous ne retournons pas la taille arrondie du bloc
-loge_pile :: fonc(
+loge_pile :: fonc (
     alloc: *AllocatricePile,
     nouvelle_taille : z64) -> *rien
 {
