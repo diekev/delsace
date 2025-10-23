@@ -24,8 +24,12 @@ importe Unicode
 
 Alignement :: InfosInterface.Alignement
 
+Cellule :: struct {
+    texte: chaine
+}
+
 LigneTabuleuse :: struct {
-    colonnes: [..]chaine
+    colonnes: [..]Cellule
 }
 
 Tabuleuse :: struct {
@@ -96,14 +100,14 @@ ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
     ligne: LigneTabuleuse
 
     pour arg dans args {
-        chn := obtiens_chaine_pour_eini(tabuleuse, arg)
-        tableau_ajoute(*ligne.colonnes, chn)
+        cellule := tableau_ajoute_élément(*ligne.colonnes)
+        cellule.texte = donne_chaine_pour_eini(tabuleuse, arg)
     }
 
     ajoute_ligne(tabuleuse, ligne)
 }
 
-obtiens_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
+donne_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
     si arg.info.id == GenreInfoType.CHAINE {
         retourne arg.comme_chaine()
@@ -130,7 +134,8 @@ crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
     résultat: LigneTabuleuse
 
     pour arg dans args {
-        tableau_ajoute(*résultat.colonnes, arg)
+        cellule := tableau_ajoute_élément(*résultat.colonnes)
+        cellule.texte = arg
     }
 
     retourne résultat
@@ -159,8 +164,8 @@ imprime_table :: fonc (empl tabuleuse: *Tabuleuse) -> rien
     tableau_remplis_avec(tailles_max_colonnes, 0)
 
     pour ligne dans tabuleuse.lignes {
-        pour colonne, i dans ligne.colonnes {
-            taille_colonne := colonne.taille_unicode() comme r32
+        pour cellule, i dans ligne.colonnes {
+            taille_colonne := taille_unicode(cellule.texte) comme r32
 
             si tailles_max_colonnes[i] < taille_colonne {
                 tailles_max_colonnes[i] = taille_colonne
@@ -206,19 +211,19 @@ imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colon
 
 imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: *LigneTabuleuse, tailles_max_colonnes: []r32) -> rien
 {
-    pour colonne, i dans ligne.colonnes {
+    pour cellule, i dans ligne.colonnes {
         ajoute_au_tampon(enchaineuse, "| ")
 
         si tabuleuse.alignements[i] == Alignement.DROITE {
-            pour tailles_max_colonnes[i] comme z64 - colonne.taille_unicode() {
+            pour tailles_max_colonnes[i] comme z64 - taille_unicode(cellule.texte) {
                 ajoute_au_tampon(enchaineuse, " ")
             }
         }
 
-        ajoute_au_tampon(enchaineuse, colonne)
+        ajoute_au_tampon(enchaineuse, cellule.texte)
 
         si tabuleuse.alignements[i] == Alignement.GAUCHE {
-            pour tailles_max_colonnes[i] comme z64 - colonne.taille_unicode() {
+            pour tailles_max_colonnes[i] comme z64 - taille_unicode(cellule.texte) {
                 ajoute_au_tampon(enchaineuse, " ")
             }
         }
