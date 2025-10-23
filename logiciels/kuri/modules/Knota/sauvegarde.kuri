@@ -214,7 +214,7 @@ VersionnageGraphe :: struct {
     doit_lire_table_des_noms := vrai
     doit_corriger_type_paramètre_bouton := faux
 
-    versionnage_identifiant_noeud: fonc(chaine)(chaine)
+    versionnage_identifiant_noeud: fonc (chn: chaine) -> chaine
 }
 
 /** \} */
@@ -224,17 +224,17 @@ VersionnageGraphe :: struct {
  * \{ */
 
 ContexteLectureGraphe :: struct {
-    crée_noeud: fonc(*Graphe, chaine, chaine)(*Noeud)
+    crée_noeud: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine) -> *Noeud
 
     /* Optionnels. */
-    prépare_lecture_noeuds: fonc(*Graphe)(rien)
-    termine_lecture_noeuds: fonc(*Graphe)(rien)
+    prépare_lecture_noeuds: fonc (graphe: *Graphe)
+    termine_lecture_noeuds: fonc (graphe: *Graphe)
 
     /* Optionnels. */
-    prépare_lecture_connexions: fonc(*Graphe)(rien)
-    termine_lecture_connexions: fonc(*Graphe)(rien)
+    prépare_lecture_connexions: fonc (graphe: *Graphe)
+    termine_lecture_connexions: fonc (graphe: *Graphe)
 
-    crée_connexion: fonc(*Graphe, *PriseEntrée, *PriseSortie)(rien)
+    crée_connexion: fonc (graphe: *Graphe, entrée: *PriseEntrée, sortie: *PriseSortie)
 }
 
 crée_noeud_pour_lecture :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeud: chaine) -> *Noeud

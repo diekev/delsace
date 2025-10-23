@@ -65,7 +65,7 @@ principale :: fonc ()
 
 Document :: struct {
     nom: chaine
-    dessine_document: fonc(*App)(rien)
+    dessine_document: fonc (app: *App)
 }
 
 App :: struct {

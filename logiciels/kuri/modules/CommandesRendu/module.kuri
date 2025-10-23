@@ -374,11 +374,11 @@ CommandeDessineProcédural :: struct {
     empl base: BaseCommande
     type = TypeCommandeDeRendu.DESSINE_PROCÉDURAL
 
-    procédure: fonc(*rien, RectanglePosDim(r32))(rien)
+    procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32))
     données_procédure: *rien
 }
 
-dessine_procédural :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien)
+dessine_procédural :: fonc (commandes: *CommandesDeRendu, rect: RectanglePosDim(r32), procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien)
 {
     résultat := crée_commande(commandes, CommandeDessineProcédural)
     résultat.rect = rect

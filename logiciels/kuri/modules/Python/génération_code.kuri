@@ -258,7 +258,9 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
     enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
     si type.drapeaux.TYPE_EST_ÉNUM {
         enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n")
-        enchaineuse.ajoute_au_tampon("    résultat := donne_nom_énum_pour_valeur(info_énum, notre_instance comme z32)\n")
+
+        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum
+        enchaineuse.ajoute_au_tampon("    résultat := donne_nom_énum_pour_valeur(info_énum, notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), ")\n")
     }
     sinon {
         enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
@@ -267,6 +269,36 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
     enchaineuse.ajoute_au_tampon("}\n")
 
     retourne nom_fonction_str
+}
+
+donne_chaine_type_sousjacent :: fonc (type_énum: *InfoTypeÉnum) -> chaine
+{
+    type_sous_jacent := type_énum.type_sous_jacent
+    si type_sous_jacent == info_de(z8) {
+        retourne "z8"
+    }
+    si type_sous_jacent == info_de(z16) {
+        retourne "z16"
+    }
+    si type_sous_jacent == info_de(z32) {
+        retourne "z32"
+    }
+    si type_sous_jacent == info_de(z64) {
+        retourne "z64"
+    }
+    si type_sous_jacent == info_de(n8) {
+        retourne "n8"
+    }
+    si type_sous_jacent == info_de(n16) {
+        retourne "n16"
+    }
+    si type_sous_jacent == info_de(n32) {
+        retourne "n32"
+    }
+    si type_sous_jacent == info_de(n64) {
+        retourne "n64"
+    }
+    retourne "ERREUR TYPE SOUS JACENT"
 }
 
 /* https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_hash */
@@ -294,7 +326,8 @@ génère_fonction_hash :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) ->
         enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n")
         enchaineuse.ajoute_au_tampon("{\n")
         enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme z32\n") // À FAIRE : type sous-jacent vers Py_hash_t
+        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum
+        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), " comme Py_hash_t\n")
         enchaineuse.ajoute_au_tampon("}\n")
 
         retourne nom_fonction_hash
