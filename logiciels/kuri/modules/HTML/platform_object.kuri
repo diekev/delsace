@@ -89,13 +89,13 @@ Environment :: struct {
 EnvironmentSettings :: struct {
     empl base: Environment
 
-    sur_donne_realm_execution_context: fonc(*EnvironmentSettings)(*JS.ExecutionContext)
+    sur_donne_realm_execution_context: fonc (env: *EnvironmentSettings) -> *JS.ExecutionContext
     // sur_donne_module_map
-    sur_donne_api_base_url: fonc(*EnvironmentSettings)(*URL)
-    sur_donne_origin: fonc(*EnvironmentSettings)(Origin)
-    sur_donne_policy_container: fonc(*EnvironmentSettings)(*PolicyContainer)
-    sur_donne_cross_origin_isolated_capability: fonc(*EnvironmentSettings)(bool)
-    sur_donne_time_origin: fonc(*EnvironmentSettings)(r64)
+    sur_donne_api_base_url: fonc (env: *EnvironmentSettings) -> *URL
+    sur_donne_origin: fonc (env: *EnvironmentSettings) -> Origin
+    sur_donne_policy_container: fonc (env: *EnvironmentSettings) -> *PolicyContainer
+    sur_donne_cross_origin_isolated_capability: fonc (env: *EnvironmentSettings) -> bool
+    sur_donne_time_origin: fonc (env: *EnvironmentSettings) -> r64
 }
 
 donne_realm :: fonc (environment: *EnvironmentSettings) -> *JS.Realm

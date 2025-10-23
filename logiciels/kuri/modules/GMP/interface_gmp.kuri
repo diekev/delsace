@@ -68,9 +68,9 @@ __gmpf_get_str :: fonc (str: *z8, expptr: *mp_exp_t, base: z32, n_digits: n64, o
 
 // Gestion de la mémoire.
 
-TypeFonctionAllocation :: fonc(n64)(*rien)
-TypeFonctionRéallocation :: fonc(*rien, n64, n64)(*rien)
-TypeFonctionDésallocation :: fonc(*rien, n64)(rien)
+TypeFonctionAllocation :: fonc (taille: n64) -> *rien
+TypeFonctionRéallocation :: fonc (ptr: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
+TypeFonctionDésallocation :: fonc (ptr: *rien, taille: n64)
 
 __gmp_set_memory_functions :: fonc (
     alloc_func_ptr: TypeFonctionAllocation,

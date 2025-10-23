@@ -364,13 +364,13 @@ TableVirtuelleEventTarget :: struct {
     sur_destruction = event_target_sur_destruction
 
     /* https://dom.spec.whatwg.org/#get-the-parent */
-    sur_get_the_parent: fonc(*EventTarget, *Event)(*EventTarget) = event_target_sur_get_the_parent
+    sur_get_the_parent := event_target_sur_get_the_parent
     /* https://dom.spec.whatwg.org/#eventtarget-activation-behavior */
-    sur_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    sur_activation_behavior: fonc (target: *EventTarget, event: *Event)
     /* https://dom.spec.whatwg.org/#eventtarget-legacy-pre-activation-behavior */
-    sur_legacy_pre_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    sur_legacy_pre_activation_behavior: fonc (target: *EventTarget, event: *Event)
     /* https://dom.spec.whatwg.org/#eventtarget-legacy-canceled-activation-behavior */
-    sur_legacy_canceled_activation_behavior: fonc(*EventTarget, *Event)(rien)
+    sur_legacy_canceled_activation_behavior: fonc (target: *EventTarget, event: *Event)
 }
 
 event_target_sur_destruction :: fonc (base: *JS.Cellule)

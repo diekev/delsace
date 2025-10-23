@@ -14,8 +14,8 @@ NoeudSyntaxique :: struct {
     // noeuds *Body pour qu'ils contiennents leurs propres StatementList.
     appartient_à_fonction: bool
 
-    sur_exécution: fonc(*NoeudSyntaxique, *InterprèteArbre)(CompletionRecord)
-    sur_génération_code_binaire: fonc(*NoeudSyntaxique, &GénératriceCodeBinaire)(Optionnel(Registre))
+    sur_exécution: fonc (noeud: *NoeudSyntaxique, interprète: *InterprèteArbre) -> CompletionRecord
+    sur_génération_code_binaire: fonc (noeud: *NoeudSyntaxique, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre)
 }
 
 exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
@@ -6544,8 +6544,8 @@ VisiteEnfants :: énum {
 
 VisiteuseNoeud :: struct {
     arbre: *NoeudSyntaxique
-    rappel_pour_noeud: fonc(*VisiteuseNoeud, *NoeudSyntaxique, *InfoTypeStructure)(VisiteEnfants)
-    rappel_pour_tableau: fonc(*VisiteuseNoeud, [..]*NoeudSyntaxique)(rien)
+    rappel_pour_noeud: fonc (visiteuse: *VisiteuseNoeud, noeud: *NoeudSyntaxique, infos: *InfoTypeStructure) -> VisiteEnfants
+    rappel_pour_tableau: fonc (visiteuse: *VisiteuseNoeud, noeuds: [..]*NoeudSyntaxique)
     profondeur: z32
     direction_visite: DirectionVisiteNoeud
 }
