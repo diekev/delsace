@@ -241,8 +241,8 @@ décode_base64 :: fonc (chn: chaine) -> chaine
 }
 
 CodecBase64 :: struct {
-    encode: fonc(chaine)(chaine)
-    décode: fonc(chaine)(chaine)
+    encode: fonc (chn: chaine) -> chaine
+    décode: fonc (chn: chaine) -> chaine
 }
 
 crée_codec_base64 :: fonc () -> CodecBase64
@@ -403,7 +403,7 @@ imprime_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32)
     imprime_tableau(sortie_reçue, message = "Sortie reçue")
 }
 
-test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc([]z32)([..]z32)) -> bool
+test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc (tableau: []z32) -> [..]z32) -> bool
 {
     résultat := fonction_codec(entrée)
     diffère déloge(résultat)
@@ -575,13 +575,13 @@ encode_base96 :: fonc (message: []octet) -> chaine
 
 FluxEncodage :: struct {
     /* Écris une chaine native, encodée en UTF-8, dans le flux. */
-    écris_chaine: fonc(&FluxEncodage, chaine, bool)(rien)
+    écris_chaine: fonc (flux: &FluxEncodage, données: chaine, avec_encodage: bool)
 
     /* Écris un point de code UTF-32 dans le flux. */
-    écris_utf32: fonc(&FluxEncodage, n32, bool)(rien)
+    écris_utf32: fonc (flux: &FluxEncodage, point_de_code: n32, avec_encodage: bool)
 
     /* Écris un point de code UTF-8 dans le flux. */
-    écris_utf8: fonc(&FluxEncodage, z8, bool)(rien)
+    écris_utf8: fonc (flux: &FluxEncodage, caractère: z8, avec_encodage: bool)
 
     enchaineuse: *Enchaineuse
 }
