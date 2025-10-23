@@ -77,7 +77,7 @@ ParamètresAllocation :: struct {
     pos: PositionCodeSource
 }
 
-TypeFonctionAllocation :: fonc(&ParamètresAllocation, *BaseAllocatrice)(*rien)
+TypeFonctionAllocation :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 
 allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
@@ -1015,9 +1015,9 @@ __init_contexte_fil_exécution :: fonc () #sanstrace
 
 // Contexte pour les fonctions/modules C.
 ContexteKuri :: struct {
-    loge_memoire: fonc(*ContexteKuri, n64)(*rien)
-    reloge_memoire: fonc(*ContexteKuri, *rien, n64, n64)(*rien)
-    deloge_memoire: fonc(*ContexteKuri, *rien, n64)(rien)
+    loge_memoire: fonc (ctx: *ContexteKuri, taille: n64) -> *rien
+    reloge_memoire: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
+    deloge_memoire: fonc (ctx: *ContexteKuri, ancien_pointeur: *rien, ancienne_taille: n64)
 }
 
 loge_memoire_pour_contexte_kuri :: fonc (ctx: *ContexteKuri @inutilisée, taille: n64) -> *rien

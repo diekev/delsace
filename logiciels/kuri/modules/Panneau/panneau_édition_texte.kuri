@@ -370,7 +370,7 @@ guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
     empl guetteuse := base comme *GuetteuseÉditionTexte
     panneau.en_édition = faux
     panneau.curseur.début = panneau.curseur.fin
-    contexte.arrête_chronomètre(panneau.id_chronomètre)
+    // contexte.arrête_chronomètre(panneau.id_chronomètre)
     notifie_fin_édition(*panneau.curseur)
 }
 
@@ -379,12 +379,12 @@ guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, sour
     empl guetteuse := base comme *GuetteuseÉditionTexte
 
     saufsi état == ÉtatGuettageÉditionTexte.EnSélection {
-        retourne GuetteuseÉditionTexte.PASSE_AU_PARENT
+        retourne ÉtatÉvènement.PASSE_AU_PARENT
     }
 
     indice := donne_position_curseur_pour_souris(panneau, souris)
     déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, indice)
-    retourne GuetteuseÉditionTexte.CONSOMMÉ
+    retourne ÉtatÉvènement.CONSOMMÉ
 }
 
 guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier) -> ÉtatÉvènement
@@ -459,9 +459,9 @@ guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -
 
                 panneau.en_édition = vrai
 
-                chrono := crée_chronomètre_clignotage_curseur(panneau)
+                // chrono := crée_chronomètre_clignotage_curseur(panneau)
                 panneau.curseur_est_affiché = vrai
-                panneau.id_chronomètre = contexte.crée_chronomètre(chrono)
+                // panneau.id_chronomètre = contexte.crée_chronomètre(chrono)
 
                 définis_position_curseur_pour_clic(panneau, clic.état)
             }
