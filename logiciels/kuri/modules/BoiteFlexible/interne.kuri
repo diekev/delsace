@@ -108,7 +108,7 @@ BoiteFlexible :: struct {
     teinte: CouleurRVBA
     couleur_curseur_texte := CouleurRVBA(0.0, 0.0, 0.0, 1.0)
 
-    procédure: fonc(*rien, RectanglePosDim(r32))(rien)
+    procédure: fonc (données: *rien, rect: RectanglePosDim(r32))
     données_procédure: *rien
 
     flottance := FLOTTANCE_INVALIDE
@@ -251,7 +251,7 @@ ajoute_image :: fonc (boite: *BoiteFlexible, image: NouvelleImage) -> *BoiteFlex
     retourne enfant
 }
 
-ajoute_procédure :: fonc (boite: *BoiteFlexible, procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien) -> *BoiteFlexible
+ajoute_procédure :: fonc (boite: *BoiteFlexible, procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien) -> *BoiteFlexible
 {
     enfant := ajoute_enfant(boite)
     enfant.type = BoiteFlexible.Type.Procédure
