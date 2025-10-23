@@ -660,7 +660,7 @@ opérateur pour :: (bloc: *BlocDeMémoire) -> *Cellule
 
 TableVirtuelleCellule :: struct {
     classe: type_de_données
-    sur_destruction: fonc(*Cellule)(rien)
+    sur_destruction: fonc (cellule: *Cellule)
 }
 
 #portée_fichier
@@ -749,8 +749,8 @@ InfoValeurÀVisiter :: struct {
 }
 
 VisiteuseCellule :: struct {
-    sur_a_visité: fonc(*VisiteuseCellule, *Cellule)(rien)
-    sur_a_déjà_visité: fonc(*VisiteuseCellule, *Cellule)(bool)
+    sur_a_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule)
+    sur_a_déjà_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule) -> bool
 
     objets_visités: [..]*rien
     valeurs_à_visiter: [..]InfoValeurÀVisiter

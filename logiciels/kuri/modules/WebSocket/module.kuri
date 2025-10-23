@@ -189,7 +189,7 @@ Extrémité :: struct ($TypePrise: type_de_données, $est_cliente: bool) {
     sec_websocket_accept: chaine
 }
 
-crée_extrémité :: fonc (prise: *$TypePrise, $est_cliente: bool, sur_message: fonc(*TypePrise, OpCode, []octet)([..]octet)) -> Extrémité(TypePrise, est_cliente)
+crée_extrémité :: fonc (prise: *$TypePrise, $est_cliente: bool, sur_message: fonc (prise: *TypePrise, op_code: OpCode, données: []octet) -> [..]octet) -> Extrémité(TypePrise, est_cliente)
 {
     assert(sur_message != nul)
 
