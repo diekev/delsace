@@ -753,39 +753,39 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
 
 /* must be an algorithm accepting an integer representing the number of bytes transmitted */
 BaseProcessRequestBodyChunkLength :: struct {
-    sur_rappel: fonc(*BaseProcessRequestBodyChunkLength, n64)(rien)
-    sur_destruction: fonc (*BaseProcessRequestBodyChunkLength)(rien)
+    sur_rappel: fonc (base: *BaseProcessRequestBodyChunkLength, size: n64)
+    sur_destruction: fonc (base: *BaseProcessRequestBodyChunkLength)
 } 
 
 /* must be an algorithm accepting no arguments */
 BaseProcessRequestEndOfBody :: struct {
-    sur_rappel: fonc(*BaseProcessRequestEndOfBody)(rien)
-    sur_destruction: fonc (*BaseProcessRequestEndOfBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessRequestEndOfBody)
+    sur_destruction: fonc (base: *BaseProcessRequestEndOfBody)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessEarlyHintsResponse :: struct {
-    sur_rappel: fonc(*BaseProcessEarlyHintsResponse, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessEarlyHintsResponse)(rien)
+    sur_rappel: fonc (base: *BaseProcessEarlyHintsResponse, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessEarlyHintsResponse)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponse :: struct {
-    sur_rappel: fonc(*BaseProcessResponse, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessResponse)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponse, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessResponse)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponseEndOfBody :: struct {
-    sur_rappel: fonc(*BaseProcessResponseEndOfBody, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessResponseEndOfBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponseEndOfBody, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessResponseEndOfBody)
 }
 
 /* must be an algorithm accepting a response and null, failure, or a byte sequence */
 BaseProcessResponseConsumeBody :: struct {
     /* À FAIRE : null, failure, or a byte sequence  */
-    sur_rappel: fonc(*BaseProcessResponseConsumeBody, *Response, Optionnel([]octet))(rien)
-    sur_destruction: fonc (*BaseProcessResponseConsumeBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, données: Optionnel([]octet))
+    sur_destruction: fonc (base: *BaseProcessResponseConsumeBody)
 }
 
 FetchParams :: struct {

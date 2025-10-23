@@ -281,10 +281,10 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 Interpréteuse :: struct {
     type := type_de_données
     mv: *MachineVirtuelle
-    sur_exécute: fonc(*Interpréteuse, *NoeudSyntaxique)(CompletionRecord)
+    sur_exécute: fonc (interprète: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
     /* Appelé via la MachineVirtuelle quand le contexte change. */
-    sur_execution_context: fonc (*Interpréteuse, *ExecutionContext)(rien)
-    sur_destruction: fonc(*Interpréteuse)(rien)
+    sur_execution_context: fonc (interpréteuse: *Interpréteuse, ctx: *ExecutionContext)
+    sur_destruction: fonc (interpréteuse: *Interpréteuse)
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)

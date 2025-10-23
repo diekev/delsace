@@ -14,11 +14,11 @@ Parseuse :: struct {
     possède_erreur: bool
 
     /* Rappels. */
-    sur_prodéclaration_struct_ou_class: fonc(&Parseuse, *NoeudProdéclarationObjet)(rien)
-    sur_définition_classe: fonc(&Parseuse, *NoeudDéfinitionClasse)(rien)
-    sur_prodéclaration_énum: fonc(&Parseuse, *NoeudProdéclarationÉnum)(rien)
-    sur_identifiant: fonc(&Parseuse, chaine)(rien)
-    sur_inclusion: fonc(&Parseuse, chaine, bool)(rien)
+    sur_prodéclaration_struct_ou_class: fonc (parseuse: &Parseuse, noeud: *NoeudProdéclarationObjet)
+    sur_définition_classe: fonc (parseuse: &Parseuse, classe: *NoeudDéfinitionClasse)
+    sur_prodéclaration_énum: fonc (parseuse: &Parseuse, noeud: *NoeudProdéclarationÉnum)
+    sur_identifiant: fonc (parseuse: &Parseuse, texte: chaine)
+    sur_inclusion: fonc (parseuse: &Parseuse, texte: chaine, système: bool)
 
     contextes: [..]*DeclContext
 }

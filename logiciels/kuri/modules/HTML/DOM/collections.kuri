@@ -74,8 +74,8 @@ donne_item :: fonc (node_list: *NodeList, index: n32) -> *Node
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc(*HTMLCollectionFilter, *HTMLCollection, *Element)(bool)
-    sur_destruction: fonc(*HTMLCollectionFilter)(rien)
+    sur_filtre: fonc (filter: *HTMLCollectionFilter, collection: *HTMLCollection, element: *Element) -> bool
+    sur_destruction: fonc (filter: *HTMLCollectionFilter)
 }
 
 crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollectionFilter

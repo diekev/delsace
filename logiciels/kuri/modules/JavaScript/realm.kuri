@@ -163,10 +163,10 @@ create_intrinsics :: fonc (realm: *Realm)
  * \{ */
 
 ConfigurationRealm :: struct {
-    crée_objet_global: fonc(*ConfigurationRealm, *Realm)(*Object)
-    crée_host_instrinsics: fonc(*Realm)(rien)
-    donne_this_binding_global: fonc(*ConfigurationRealm)(*Object)
-    crée_propriétés_hôte_objet_global: fonc(*ConfigurationRealm, *Object)(rien)
+    crée_objet_global: fonc (config: *ConfigurationRealm, realm: *Realm) -> *Object
+    crée_host_instrinsics: fonc (realm: *Realm)
+    donne_this_binding_global: fonc (config: *ConfigurationRealm) -> *Object
+    crée_propriétés_hôte_objet_global: fonc (config: *ConfigurationRealm, global_object: *Object)
 }
 
 /** \} */

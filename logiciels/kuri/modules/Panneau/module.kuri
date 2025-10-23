@@ -23,7 +23,6 @@ importe PeintureInterface
 importe Typographie
 
 charge "animation"
-charge "menu"
 charge "panneau_arborescence"
 charge "panneau_bouton"
 charge "panneau_diviseur"

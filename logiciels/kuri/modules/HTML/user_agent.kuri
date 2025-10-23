@@ -91,11 +91,11 @@ sur_visite_cellules_hôte :: fonc (base: *JS.Hôte, visiteuse: *JS.VisiteuseCell
  * \{ */
 
 Algorithm :: struct {
-    sur_run: fonc(*Algorithm)(rien)
-    sur_destruction: fonc(*Algorithm)(rien)
+    sur_run: fonc (algorithm: *Algorithm)
+    sur_destruction: fonc (algorithm: *Algorithm)
 }
 
-crée_algorithm :: fonc (sur_run: fonc(*Algorithm)(rien), $T: type_de_données) -> *T
+crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_données) -> *T
 {
     sur_destruction :: fonc (base: *Algorithm)
     {

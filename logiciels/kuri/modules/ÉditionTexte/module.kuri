@@ -12,18 +12,18 @@ importe Unicode
 
 RappelsÉditionTexte :: struct {
     /* Appelé à chaque changement. */
-    sur_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    sur_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine)
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc(*RappelsÉditionTexte, chaine)(rien)
+    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine)
     /* Appelé au début de l'édition de texte.
      * Ceci permets aux applications clientes de démarrer un chronomètre
      * pour faire clignoter le curseur, via Éditrice.curseur_est_affiché.
      * Optionnel. */
-    sur_démarre_clignotage_curseur: fonc(*RappelsÉditionTexte, *ÉditriceTexte)(rien)
+    sur_démarre_clignotage_curseur: fonc (rappels: *RappelsÉditionTexte, éditrice: *ÉditriceTexte)
     /* Appelé à la fin de l'édition de texte pour terminer le choronomètre de
      * clignotage associé.
      * Optionnel, mais obligatoire si sur_démarre_clignotage_curseur existe. */
-    sur_termine_clignotage_curseur: fonc(*RappelsÉditionTexte, *ÉditriceTexte)(rien)
+    sur_termine_clignotage_curseur: fonc (rappels: *RappelsÉditionTexte, éditrice: *ÉditriceTexte)
 }
 
 /** \} */

@@ -3,7 +3,7 @@
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-operations-on-objects
  * \{ */
 
-TypeFonctionAllocationObjet :: fonc(*Realm)(*Object)
+TypeFonctionAllocationObjet :: fonc (realm: *Realm) -> *Object
 
 /* 7.3.1 MakeBasicObject ( internalSlotsList )
  * https://tc39.es/ecma262/multipage/abstract-operations.html#sec-makebasicobject */

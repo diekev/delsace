@@ -1026,7 +1026,7 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
 DonnéesCréationObjet :: struct {
     type_python: *PyTypeObject
     info_type: *InfoType
-    fonction: fonc(eini)(*PyObject)
+    fonction: fonc (valeur: eini) -> *PyObject
 }
 
 __table_création_objet: [..]DonnéesCréationObjet

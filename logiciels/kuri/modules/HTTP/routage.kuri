@@ -1,5 +1,5 @@
 
-TypeRappelRoute :: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+TypeRappelRoute :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 
 /* Fonction pour parser une chaine de caractère selon les types trouvées lors
  * de la compilation du programme parent.
@@ -141,11 +141,11 @@ calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
 }
 
 NouvelleRouteuse :: struct {
-    apparie_routes_get: fonc(chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
-    apparie_routes_post: fonc(chaine, *Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 
     // À FAIRE
-    rappel_page_non_trouvée: fonc(*Prise, &MessageClienteHTTP)(MessageServeuseHTTP)
+    rappel_page_non_trouvée: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 
     extension_fichiers: [..]chaine
 }

@@ -45,7 +45,7 @@ NaN : r64 : 0r7ff8000000000000
  * \{ */
 
 Hôte :: struct {
-    sur_visite_cellules: fonc(*Hôte, *VisiteuseCellule)(rien)
+    sur_visite_cellules: fonc (hôte: *Hôte, visiteuse: *VisiteuseCellule)
 }
 
 visite_cellules_hôte :: fonc (hôte: *Hôte, visiteuse: *VisiteuseCellule)

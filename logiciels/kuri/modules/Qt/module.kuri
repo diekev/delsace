@@ -417,7 +417,7 @@ QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
  * \{ */
 
 ParamètresFileParallèle :: struct {
-    sur_évènement: fonc(*QT_Evenement)(rien)
+    sur_évènement: fonc (event: *QT_Evenement)
     type_évènement: z32 = -1
 }
 
@@ -462,8 +462,8 @@ crée_file_parallèle_pour_tâches :: fonc () -> FileParallèle
 }
 
 QT_DonnéesTâche :: struct {
-    sur_exécution: fonc(*rien)(rien)
-    sur_tâche_finie: fonc(*rien)(rien)
+    sur_exécution: fonc (arg: *rien)
+    sur_tâche_finie: fonc (arg: *rien)
     données: *rien
 }
 
@@ -480,7 +480,7 @@ poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
     }
 }
 
-poste_tâche :: fonc (file: *FileParallèle, sur_exécution: fonc(*rien)(rien), données: *rien)
+poste_tâche :: fonc (file: *FileParallèle, sur_exécution: fonc (données: *rien), données: *rien)
 {
     poste_tâche(file, QT_DonnéesTâche(sur_exécution, données = données))
 }

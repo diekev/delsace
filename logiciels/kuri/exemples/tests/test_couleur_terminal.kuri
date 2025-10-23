@@ -1,4 +1,5 @@
 importe Fondation
+importe InfosInterface
 
 Couleur :: énum {
     BLANC
@@ -9,12 +10,6 @@ Couleur :: énum {
     MAGENTA
     ROUGE
     VERT
-}
-
-Alignement :: énum {
-    GAUCHE
-    DROIT
-    CENTRE
 }
 
 ChaineOptionnelle :: union {

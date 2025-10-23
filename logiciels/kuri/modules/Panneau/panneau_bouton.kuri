@@ -1,25 +1,4 @@
 /* ------------------------------------------------------------------------- */
-/** \nom Bouton
- * \{ */
-
-Bouton :: struct {
-    // À FAIRE : icone
-    // À FAIRE : métadonnées
-    texte: chaine
-    sur_clic: fonc (bouton: *Bouton)
-}
-
-crée_bouton :: fonc (texte: chaine, sur_clic: fonc (bouton: *Bouton)) -> *Bouton
-{
-    résultat := loge(Bouton)
-    résultat.texte = texte
-    résultat.sur_clic = sur_clic
-    retourne résultat
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Panneau Bouton
  * \{ */
 

@@ -50,9 +50,9 @@ ServeuseHTTP :: struct {
 
     rappel_méthode_non_autorisée: TypeRappelRoute
     rappel_page_non_trouvée: TypeRappelRoute
-    rappel_données_websocket: fonc(*Prise,[]octet)(rien)
+    rappel_données_websocket: fonc (prise: *Prise, données: []octet)
 
-    quand_connexion_http: fonc(*Prise)(rien)
+    quand_connexion_http: fonc (prise: *Prise)
 }
 
 crée_serveuse_http :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> *ServeuseHTTP

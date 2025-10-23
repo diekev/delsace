@@ -88,7 +88,7 @@ ParseuseHTTP :: struct {
 
     données: chaine
 
-    état_parsage: fonc(*ParseuseHTTP)(RésultatParsage)
+    état_parsage: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
     dernier_résultat: RésultatParsage
 

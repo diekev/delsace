@@ -8,7 +8,7 @@ Enveloppable :: struct {
     enveloppe: *Enveloppe
 
     /* Appelé lors de la création de l'enveloppe. */
-    sur_création_enveloppe: fonc(*Enveloppable, *Enveloppe)(rien)
+    sur_création_enveloppe: fonc (enveloppable: *Enveloppable, enveloppe: *Enveloppe)
 }
 
 /** \} */

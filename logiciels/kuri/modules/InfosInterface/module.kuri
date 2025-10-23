@@ -78,6 +78,17 @@ Direction :: énum n8 {
     VERTICALE :: Verticale
 }
 
+Alignement :: énum n8 {
+    Début
+    Milieu
+    Fin
+
+    GAUCHE :: Début
+    DROIT :: Fin
+    DROITE :: Fin
+    CENTRE :: Milieu
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom EspaceDisponible
  * \{ */

@@ -8,16 +8,16 @@ Environment :: struct {
 
     outer_environment: *Environment
 
-    sur_has_binding: fonc(*Environment, ECMAString, *z32)(bool)
-    sur_create_immutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(bool)
-    sur_create_mutable_binding: fonc(*Environment, *Realm, ECMAString, bool)(rien)
-    sur_initialize_binding: fonc(*Environment, ECMAString, Valeur)(rien)
-    sur_get_binding_value: fonc(*Environment, *Realm, ECMAString, bool)(Valeur)
-    sur_set_mutable_binding: fonc(*Environment, *Realm, ECMAString, Valeur, bool)(rien)
-    sur_with_base_object: fonc(*Environment)(Valeur)
-    sur_create_global_function_binding: fonc(*Environment, ECMAString, Valeur, bool)(rien)
-    sur_has_this_binding: fonc(*Environment)(bool)
-    sur_get_this_binding: fonc(*Environment, *Realm)(Valeur)
+    sur_has_binding: fonc (env: *Environment, name: ECMAString, indice: *z32) -> bool
+    sur_create_immutable_binding: fonc (env: *Environment, realm: *Realm, name: ECMAString, strict: bool) -> bool
+    sur_create_mutable_binding: fonc (env: *Environment, realm: *Realm, name: ECMAString, strict: bool)
+    sur_initialize_binding: fonc (env: *Environment, name: ECMAString, value: Valeur)
+    sur_get_binding_value: fonc (env: *Environment, realm: *Realm, name: ECMAString, strict: bool) -> Valeur
+    sur_set_mutable_binding: fonc (env: *Environment, realm: *Realm, name: ECMAString, value: Valeur, strict: bool)
+    sur_with_base_object: fonc (env: *Environment) -> Valeur
+    sur_create_global_function_binding: fonc (env: *Environment, name: ECMAString, value: Valeur, strict: bool)
+    sur_has_this_binding: fonc (env: *Environment) -> bool
+    sur_get_this_binding: fonc (env: *Environment, realm: *Realm) -> Valeur
 }
 
 has_binding :: fonc (environment: *Environment, nom: ECMAString, index : *z32 = nul) -> bool

@@ -14,8 +14,8 @@ importe Temps
 
 /* Structure pour paramétrer l'algorithme utiliser pour vérifier et créer une signature. */
 AlgorithmeSignature :: struct {
-    vérifie_signature: fonc(chaine, chaine, chaine)(bool)
-    crée_signature: fonc(chaine, chaine)(chaine)
+    vérifie_signature: fonc (clé: chaine, valeur: chaine, signature: chaine) -> bool
+    crée_signature: fonc (clé: chaine, valeur: chaine) -> chaine
 }
 
 /* Vérifie une signature en utilisant HMAC. */

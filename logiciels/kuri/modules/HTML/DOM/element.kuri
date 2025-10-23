@@ -10,14 +10,14 @@ TableVirtuelleElement :: struct {
     empl base: TableVirtuelleNoeud
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
-    sur_dépilement: fonc(*Element)(rien)
+    sur_dépilement: fonc (element: *Element)
 
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
      * La fonction doit retourner si oui ou non l'attribut fut géré. */
-    sur_changement_attribut: fonc(*Element, DOMString, *DOMString, *DOMString, Optionnel(DOMString))(bool) = element_sur_changement_attribut
+    sur_changement_attribut := element_sur_changement_attribut
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc(*Element, *CSS.RésolveuseStyle)(rien)
+    sur_applique_presentational_hints: fonc (element: *Element, résolveuse: *CSS.RésolveuseStyle)
 }
 
 #portée_export

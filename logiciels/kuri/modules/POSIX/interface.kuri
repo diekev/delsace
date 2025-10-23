@@ -427,13 +427,13 @@ SIGUSR2 :: 31 /* User-defined signal 2.  */
    (including both BSD and Linux).  */
 SIGWINCH :: 28 /* Window size change (4.3 BSD, Sun).  */
 
-signal :: fonc (numéro_signal: z32, rappel: fonc(z32)(rien)) -> rien #externe libc
+signal :: fonc (numéro_signal: z32, rappel: fonc (signal: z32)) -> rien #externe libc
 
 pid_t :: z32
 
 kill :: fonc (pid: pid_t, sig: z32) -> z32 #externe libc
 
-sighandler_t :: fonc(z32)(rien)
+sighandler_t :: fonc (signal: z32)
 sigset_t :: struct #externe {
     __val: [1024 / (8 * taille_de(n64))]n64
 }
@@ -448,7 +448,7 @@ sigaction_struct :: struct {
     sa_flags: z32
 
     /* Restore handler.  */
-    sa_restorer: fonc()(rien)
+    sa_restorer: fonc ()
 }
 
 sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc
@@ -621,7 +621,7 @@ realloc :: fonc (ptr: *rien, taille: n64) -> *rien #externe libc
 
 free :: fonc (ptr: *rien) -> rien #externe libc
 
-qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_comparaison: fonc(*rien, *rien)(z32)) -> rien #externe libc
+qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_comparaison: fonc (a: *rien, b: *rien) -> z32) -> rien #externe libc
 
 getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
 
