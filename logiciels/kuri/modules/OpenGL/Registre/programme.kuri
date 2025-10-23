@@ -1,4 +1,5 @@
 importe Algorithmes
+importe Chaine
 importe Ensemble
 importe Fondation
 importe ParsageCpp
@@ -166,6 +167,13 @@ principale :: fonc ()
         ajoute_au_tampon(*enchaineuse, "\n")
     }
 
+    // pour * extension dans parseuse.extensions {
+    //     imprimeln("% :", extension.nom)
+    //     pour commande dans extension.commandes {
+    //         imprimeln("   %", commande)
+    //     }
+    // }
+
     pour * commande dans parseuse.commandes {
         imprime_dans_enchaineuse(*enchaineuse, "% :: fonc (", commande.nom)
 
@@ -201,8 +209,16 @@ Paramètre :: struct {
 Commande :: struct {
     nom: chaine
     type_retour: chaine
+    est_extension: bool
 
     paramètres: [..]Paramètre
+}
+
+Extension :: struct {
+    nom: chaine
+    support: chaine
+    énums: [..]chaine
+    commandes: [..]chaine
 }
 
 Énumérant :: struct {
@@ -232,6 +248,9 @@ ParseuseRegistreGL :: struct {
 
     typedefs: [..]Typedef
     typedef_courant: *Typedef
+
+    extensions: [..]Extension
+    extension_courante: *Extension
 
     dans_commands: bool
     dans_proto: bool
@@ -274,8 +293,27 @@ début_élément_glx :: fonc (données: eini, élément: chaine, attributs: []At
             }
         }
     }
+    sinon si parseuse.dans_extension {
+        si élément == "command" {
+            pour attributs {
+                si it.nom == "name" {
+                    tableau_ajoute(*parseuse.extension_courante.commandes, it.valeur)
+                }
+            }
+        }
+    }
     sinon si élément == "extension" {
         parseuse.dans_extension = vrai
+        assert(parseuse.extension_courante == nul)
+        parseuse.extension_courante = tableau_ajoute_élément(*parseuse.extensions)
+        pour attributs {
+            si it.nom == "name" {
+                parseuse.extension_courante.nom = it.valeur
+            }
+            sinon si it.nom == "supported" {
+                parseuse.extension_courante.support = it.valeur
+            }
+        }
     }
     sinon si élément == "feature" {
         parseuse.dans_feature = vrai
@@ -363,12 +401,13 @@ fin_élément_glx :: fonc (données: eini, élément: chaine)
 {
     parseuse := données comme *ParseuseRegistreGL
 
-    // si parseuse.dans_extension {    
-    //     si élément == "extension" {
-    //         parseuse.dans_extension = faux
-    //     }
-    //     retourne
-    // }
+    si parseuse.dans_extension {    
+        si élément == "extension" {
+           parseuse.dans_extension = faux
+           parseuse.extension_courante = nul
+           retourne
+        }
+    }
 
     // si parseuse.dans_feature {
     //     si élément == "feature" {

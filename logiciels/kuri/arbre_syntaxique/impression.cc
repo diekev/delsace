@@ -513,6 +513,10 @@ static void imprime_bloc(Enchaineuse &enchaineuse,
     auto ignore_indentation = false;
 
     POUR_INDICE (*expressions) {
+        if (it->est_déclaration_module()) {
+            continue;
+        }
+
         /* Ignore les expressions ajoutées lors de la validation sémantique (par exemple,
          * les variables capturées par les discriminations). */
         if (it->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE) && !état.préfére_substitution) {
@@ -635,7 +639,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto structure = noeud->comme_type_structure();
             if (structure->ident) {
                 imprime_ident(enchaineuse, structure->ident);
-                enchaineuse << " :: struct";
+                enchaineuse << " :: ";
             }
             enchaineuse << "struct";
             imprime_paramètres_classe(enchaineuse, structure->bloc_constantes);
@@ -739,7 +743,13 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
 
             if (!entête->param_sortie->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
                 enchaineuse << " -> ";
-                imprime_tableau_expression(enchaineuse, état, entête->params_sorties, "", "");
+                if (entête->params_sorties.taille() > 1) {
+                    imprime_tableau_expression(
+                        enchaineuse, état, entête->params_sorties, "(", ")");
+                }
+                else {
+                    imprime_tableau_expression(enchaineuse, état, entête->params_sorties, "", "");
+                }
             }
 
             imprime_directives(enchaineuse, état, entête->directives);
@@ -929,7 +939,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto séparation_expression = kuri::chaine_statique(" := ");
 
             if (déclaration->expression_type) {
-                enchaineuse << ((déclaration->expression != nullptr) ? " : " : ": ");
+                enchaineuse << ": ";
                 imprime_arbre(enchaineuse, état, déclaration->expression_type);
                 séparation_expression = " = ";
             }
@@ -1503,9 +1513,32 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         case GenreNoeud::EXPRESSION_TYPE_FONCTION:
         {
             auto expression = noeud->comme_expression_type_fonction();
-            enchaineuse << "fonc";
-            imprime_tableau_expression(enchaineuse, état, expression->types_entrée, "(", ")");
-            imprime_tableau_expression(enchaineuse, état, expression->types_sortie, "(", ")");
+            enchaineuse << "fonc ";
+
+            auto virgule = kuri::chaine_statique("(");
+
+            POUR (expression->types_entrée) {
+                enchaineuse << virgule;
+                imprime_arbre(enchaineuse, état, it);
+                virgule = ", ";
+            }
+            if (expression->types_entrée.taille() == 0) {
+                enchaineuse << "(";
+            }
+            enchaineuse << ")";
+
+            if (expression->types_sortie.taille()) {
+                if (expression->types_sortie.taille() > 1) {
+                    enchaineuse << " -> ";
+                    imprime_tableau_expression(
+                        enchaineuse, état, expression->types_sortie, "(", ")");
+                }
+                else if (expression->types_sortie[0]->lexème->genre != GenreLexème::RIEN) {
+                    enchaineuse << " -> ";
+                    imprime_arbre(enchaineuse, état, expression->types_sortie[0]);
+                }
+            }
+
             break;
         }
         case GenreNoeud::EXPANSION_VARIADIQUE:
