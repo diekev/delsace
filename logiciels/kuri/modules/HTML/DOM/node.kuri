@@ -11,15 +11,15 @@ TableVirtuelleNoeud :: struct {
     sur_get_the_parent = node_sur_get_the_parent
 
     /* Appelé quand le noeud est insérer dans un noeud parent. */
-    sur_insertion: fonc(*Node)(rien)
+    sur_insertion: fonc (node: *Node)
     /* Appelé quand le noeud devinent connecté. */
-    sur_connexion: fonc(*Node)(rien)
+    sur_connexion: fonc (node: *Node)
     /* Appelé quand le noeud devinent déconnecté. */
-    sur_déconnexion: fonc(*Node)(rien)
+    sur_déconnexion: fonc (node: *Node)
     /* Appelé quand les enfants sont changés. */
-    sur_changement_enfants: fonc(*Node)(rien)
+    sur_changement_enfants: fonc (node: *Node)
     /* Appelé quand le document est devenu fully active. */
-    sur_document_fully_active: fonc(*Node)(rien)
+    sur_document_fully_active: fonc (node: *Node)
 }
 
 #portée_export
@@ -328,7 +328,7 @@ donne_racine :: fonc (noeud: *Node) -> *Node
     retourne résultat
 }
 
-rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc(*Text, eini)(rien), données: eini)
+rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc (texte: *Text, données: eini), données: eini)
 {
     pour noeud.enfants {
         si it.est_texte() {

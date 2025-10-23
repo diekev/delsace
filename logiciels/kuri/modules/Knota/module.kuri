@@ -59,7 +59,7 @@ ParamètresNoeud :: struct {
      * Ceci est remis à zéro après chaque exécution. */
     _fut_modifié : n64 = 0xffff_ffff_ffff_ffff
 
-    rappel_ajourne_état_paramètres: fonc(*ParamètresNoeud)(rien)
+    rappel_ajourne_état_paramètres: fonc (params: *ParamètresNoeud)
 }
 
 ajourne_état_paramètres :: fonc (params: *ParamètresNoeud)
@@ -338,25 +338,25 @@ TableVirtuelleNoeud :: struct {
     identifiant: chaine
 
     /* Crée une instance du noeud. */
-    crée_noeud: fonc()(*Noeud)
+    crée_noeud: fonc () -> *Noeud
 
     /* Initialise une instance du noeud. */
-    initialise: fonc(*Noeud)(rien)
+    initialise: fonc (noeud: *Noeud)
 
     /* Détruit l'instance du noeud. */
-    détruit: fonc(*Noeud)(rien)
+    détruit: fonc (noeud: *Noeud)
 
     /* Retourne le sous graphe du Noeud, si il y en a un. */
-    sous_graphe: fonc(*Noeud)(*Graphe)
+    sous_graphe: fonc (noeud: *Noeud) -> *Graphe
 
     /* Retourne la mémoire utilisée pour le cache du noeud. */
-    mémoire_utilisée_pour_cache: fonc(*Noeud)(MémoireUtilisée)
+    mémoire_utilisée_pour_cache: fonc (noeud: *Noeud) -> MémoireUtilisée
 
     /* L'info type du noeud. */
     info_type: *InfoTypeStructure
 
     /* Ajourne les informations du noeud. */
-    ajourne_informations: fonc(*Noeud)(rien)
+    ajourne_informations: fonc (noeud: *Noeud)
 }
 
 /** \} */
@@ -1730,7 +1730,7 @@ marque_noeud_visité :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)
     ensemble_ajoute(*noeuds_visités, noeud)
 }
 
-visite_graphe_en_aval :: fonc (visiteuse: &VisiteuseGraphe, rappel: fonc(*Noeud, *PriseEntrée)(rien))
+visite_graphe_en_aval :: fonc (visiteuse: &VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
 {
     tantque visiteuse.possède_noeuds_à_visiter() {
         noeud := visiteuse.dépile_noeud_à_visiter()
