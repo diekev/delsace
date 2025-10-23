@@ -17,18 +17,15 @@
  */
 
 importe Fondation
+importe InfosInterface
 importe Introspection
 importe SysFichier
 importe Unicode
 
+Alignement :: InfosInterface.Alignement
+
 LigneTabuleuse :: struct {
     colonnes: [..]chaine
-}
-
-Alignement :: énum z32 {
-    GAUCHE
-    DROITE
-    CENTRE
 }
 
 Tabuleuse :: struct {

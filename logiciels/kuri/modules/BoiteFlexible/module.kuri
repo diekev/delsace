@@ -6,6 +6,8 @@ dessine_commandes :: CommandesRendu.dessine_commandes
 
 Direction :: InfosInterface.Direction
 
+AlignementEnfant :: Alignement
+
 charge "interne"
 
 /* ------------------------------------------------------------------------- */
@@ -198,12 +200,6 @@ donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
 /* ------------------------------------------------------------------------- */
 /** \nom Disposition
  * \{ */
-
-AlignementEnfant :: énum n8 {
-    Début
-    Milieu
-    Fin
-}
 
 Cotation :: struct {
     largeur: z32
