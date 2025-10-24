@@ -213,6 +213,10 @@ Cotation :: struct {
 
 FIXE :: fonc (v: $T) -> z32
 {
+    #si T == r32 || T == r64 {
+        v = plafond(v)
+    }
+
     retourne (v comme z32) | BIT_COTATION_FIXE
 }
 
