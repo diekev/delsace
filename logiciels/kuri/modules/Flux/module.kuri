@@ -8,12 +8,12 @@ importe SysFichier
  * \{ */
 
 FluxOctets :: struct {
-    sur_positionne: fonc(*FluxOctets, PositionFichier)(rien)
-    sur_lis: fonc(*FluxOctets, []octet)(z64)
-    sur_ferme: fonc(*FluxOctets)(rien)
-    sur_est_à_la_fin: fonc(*FluxOctets)(bool)
-    sur_destruction: fonc(*FluxOctets)(rien)
-    sur_donne_position: fonc(*FluxOctets)(PositionFichier)
+    sur_positionne: fonc (flux: *FluxOctets, position: PositionFichier)
+    sur_lis: fonc (flux: *FluxOctets, données: []octet) -> z64
+    sur_ferme: fonc (flux: *FluxOctets)
+    sur_est_à_la_fin: fonc (flux: *FluxOctets) -> bool
+    sur_destruction: fonc (flux: *FluxOctets)
+    sur_donne_position: fonc (flux: *FluxOctets) -> PositionFichier
 }
 
 détruit :: fonc (flux: *FluxOctets)
