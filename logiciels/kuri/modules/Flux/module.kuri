@@ -188,6 +188,77 @@ flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
     retourne taille_à_lire
 }
 
+lis_chaine_nul_terminée :: fonc (flux: *FluxOctetsMémoire) -> chaine
+{
+    résultat: chaine
+
+    si flux.curseur.taille {
+        résultat.pointeur = flux.curseur.pointeur comme *z8
+
+        curseur := flux.curseur.pointeur
+        fin := curseur + flux.curseur.taille
+
+        tantque curseur < fin && mémoire(curseur) {
+            résultat.taille += 1
+            curseur += 1
+        }
+
+        // À FAIRE : erreur si fin de flux
+        flux.curseur = tableau_avance(flux.curseur, résultat.taille + 1)
+    }
+
+    retourne résultat
+}
+
+lis_tranche_octet :: fonc (flux: *FluxOctetsMémoire, taille: z64) -> []octet
+{
+    résultat := flux.curseur
+    si résultat.taille > taille {
+        résultat.taille = taille
+    }
+
+    flux.curseur = tableau_avance(flux.curseur, taille)
+
+    retourne résultat
+}
+
+décode_leb128_naturel :: fonc (flux: *FluxOctetsMémoire) -> n64
+{
+    résultat: n64
+    décalage: n64
+    valeur: n64
+
+    répète {
+        valeur_octet, _ := lis_petit_boutisme(flux, n8)
+        valeur = valeur_octet comme n64
+        résultat |= (valeur & 0x7f) << décalage;
+        décalage += 7;
+    } tantque ((valeur & 0x80) != 0)
+
+    retourne résultat
+}
+
+décode_leb128_relatif :: fonc (flux: *FluxOctetsMémoire) -> z64
+{
+    résultat: z64
+    décalage: z64
+    valeur: z8
+
+    répète {
+        valeur_octet, _ := lis_petit_boutisme(flux, n8)
+        valeur = valeur_octet comme z8
+        résultat |= (valeur & 0x7f) << décalage;
+        décalage += 7;
+    } tantque ((valeur & 0x80) != 0)
+
+    taille_en_bits := 64
+    si décalage < taille_en_bits && valeur & 0x40 {
+        résultat |= (~(0 comme n64) << décalage comme n64) comme z64
+    }
+
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
