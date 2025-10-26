@@ -1135,18 +1135,14 @@ CompilationUnit :: struct {
     debug_abbrev_offset: n64
     code_abbréviation: n64
 
-    indice_premier_die: z64
-    un_après_indice_dernier_die: z64
-
-    indice_premier_attribut: z64
-    un_après_indice_dernier_attribut: z64
+    dies: IndexageTranche
+    attributs: IndexageTranche
 }
 
 DebugInformationEntry :: struct {
     code_abbréviation: n64
 
-    indice_premier_attribut: z64
-    un_après_indice_dernier_attribut: z64
+    attributs: IndexageTranche
 }
 
 AttributDIE :: struct {
@@ -1268,26 +1264,17 @@ InformationsDébogageDWARF :: struct {
 
 donne_dies :: fonc (infos: *InformationsDébogageDWARF, unité: *CompilationUnit) -> []DebugInformationEntry
 {
-    résultat: []DebugInformationEntry = ---
-    résultat.pointeur = infos.dies.pointeur + unité.indice_premier_die
-    résultat.taille = unité.un_après_indice_dernier_die - unité.indice_premier_die
-    retourne résultat
+    retourne donne_tranche(infos.dies, unité.dies)
 }
 
 donne_attributs :: fonc (infos: *InformationsDébogageDWARF, unité: *CompilationUnit) -> []AttributDIE
 {
-    résultat: []AttributDIE = ---
-    résultat.pointeur = infos.attributs.pointeur + unité.indice_premier_attribut
-    résultat.taille = unité.un_après_indice_dernier_attribut - unité.indice_premier_attribut
-    retourne résultat
+    retourne donne_tranche(infos.attributs, unité.attributs)
 }
 
 donne_attributs :: fonc (infos: *InformationsDébogageDWARF, die: *DebugInformationEntry) -> []AttributDIE
 {
-    résultat: []AttributDIE = ---
-    résultat.pointeur = infos.attributs.pointeur + die.indice_premier_attribut
-    résultat.taille = die.un_après_indice_dernier_attribut - die.indice_premier_attribut
-    retourne résultat
+    retourne donne_tranche(infos.attributs, die.attributs)
 }
 
 parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDébogageDWARF
@@ -1368,11 +1355,11 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                     imprimeln("Attendu DW_TAG_compile_unit ou DW_TAG_partial_unit, obtenu : %", donne_chaine_pour_tag_abbréviation(abbréviation.tag))
                 }
 
-                unité.indice_premier_attribut = résultat.attributs.taille
+                unité.attributs.premier = résultat.attributs.taille
                 parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
-                unité.un_après_indice_dernier_attribut = résultat.attributs.taille
+                unité.attributs.un_après_dernier = résultat.attributs.taille
 
-                unité.indice_premier_die = résultat.dies.taille
+                unité.dies.premier = résultat.dies.taille
 
                 tantque est_valide(debug_info) {
                     position_flux := donne_position(debug_info)
@@ -1392,12 +1379,12 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                     die := tableau_ajoute_élément(*résultat.dies)
                     die.code_abbréviation = code_abbréviation
 
-                    die.indice_premier_attribut = résultat.attributs.taille
+                    die.attributs.premier = résultat.attributs.taille
                     parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
-                    die.un_après_indice_dernier_attribut = résultat.attributs.taille
+                    die.attributs.un_après_dernier = résultat.attributs.taille
                 }
 
-                unité.un_après_indice_dernier_die = résultat.dies.taille
+                unité.dies.un_après_dernier = résultat.dies.taille
             }
         }
     }
@@ -1646,8 +1633,7 @@ donne_tabuleuse_debug_info :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, ta
 TableAbbrévPourUnité :: struct {
     décalage: n64
 
-    indice_première_abbréviation: z64
-    un_après_indice_dernière_abbréviation: z64
+    abbréviations: IndexageTranche
 }
 
 AttributAbbréviation :: struct {
@@ -1661,8 +1647,7 @@ Abbréviation :: struct {
     tag: n64
     possède_enfants: bool
 
-    indice_premier_attribut: z64
-    un_après_indice_dernier_attribut: z64
+    attributs: IndexageTranche
 }
 
 TableAbbréviations :: struct {
@@ -1673,10 +1658,7 @@ TableAbbréviations :: struct {
 
 donne_attributs :: fonc (table: *TableAbbréviations, abbréviation: *Abbréviation) -> []AttributAbbréviation
 {
-    résultat: []AttributAbbréviation = ---
-    résultat.pointeur = table.attributs.pointeur + abbréviation.indice_premier_attribut
-    résultat.taille = abbréviation.un_après_indice_dernier_attribut - abbréviation.indice_premier_attribut
-    retourne résultat
+    retourne donne_tranche(table.attributs, abbréviation.attributs)
 }
 
 donne_abbréviation :: fonc (table: *TableAbbréviations, unité: *CompilationUnit, code: n64) -> *Abbréviation
@@ -1708,10 +1690,7 @@ donne_abbréviations :: fonc (table: *TableAbbréviations, unité: *CompilationU
         imprimeln("Impossible de trouver la table pour l'unité")
     }
 
-    résultat: []Abbréviation
-    résultat.pointeur = table.abbréviations.pointeur + table_pour_unité.indice_première_abbréviation
-    résultat.taille = table_pour_unité.un_après_indice_dernière_abbréviation - table_pour_unité.indice_première_abbréviation
-    retourne résultat
+    retourne donne_tranche(table.abbréviations, table_pour_unité.abbréviations)
 }
 
 parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbréviations)
@@ -1733,7 +1712,7 @@ parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbrév
             table_pour_unité := tableau_ajoute_élément(*résultat.tables_pour_unités)
             table_pour_unité.décalage = position.Début comme z64 comme n64
 
-            table_pour_unité.indice_première_abbréviation = résultat.abbréviations.taille
+            table_pour_unité.abbréviations.premier = résultat.abbréviations.taille
 
             tantque est_valide(debug_abbrev) {
                 code_abbréviation := décode_leb128_naturel(debug_abbrev)
@@ -1749,8 +1728,7 @@ parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbrév
                 abbréviation.code = code_abbréviation
                 abbréviation.tag = tag_abbréviation
                 abbréviation.possède_enfants = possède_enfant == DW_CHILDREN_yes
-                abbréviation.indice_premier_attribut = résultat.attributs.taille
-                abbréviation.un_après_indice_dernier_attribut = abbréviation.indice_premier_attribut
+                abbréviation.attributs.premier = résultat.attributs.taille
 
                 tantque est_valide(debug_abbrev) {
                     nom_attribut := décode_leb128_naturel(debug_abbrev)
@@ -1769,12 +1747,12 @@ parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbrév
                     attribut.nom = nom_attribut
                     attribut.forme = forme_attribut
                     attribut.valeur = valeur_attribut
-
-                    abbréviation.un_après_indice_dernier_attribut += 1
                 }
+
+                abbréviation.attributs.un_après_dernier = résultat.attributs.taille
             }
 
-            table_pour_unité.un_après_indice_dernière_abbréviation = résultat.abbréviations.taille
+            table_pour_unité.abbréviations.un_après_dernier = résultat.abbréviations.taille
         }     
     }
 
@@ -1789,7 +1767,7 @@ donne_tabuleuse_debug_abbrev :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, 
         initialise_tabuleuse(tabuleuse, "Code", "Tag", "Attributs", "Nom Attribut", "Forme Attribut")
 
         pour * table.abbréviations {
-            ajoute_ligne(tabuleuse, it.code, donne_chaine_pour_tag_abbréviation(it.tag), it.un_après_indice_dernier_attribut - it.indice_premier_attribut, "", "")
+            ajoute_ligne(tabuleuse, it.code, donne_chaine_pour_tag_abbréviation(it.tag), donne_taille(it.attributs), "", "")
 
             pour attribut dans donne_attributs(*table, it) {
                 ajoute_ligne(tabuleuse, "", "", "", donne_chaine_pour_nom_attribut(attribut.nom), donne_chaine_pour_forme_attribut(attribut.forme))
@@ -1836,6 +1814,14 @@ donne_taille :: fonc (indexage: IndexageTranche) -> z64 #enligne
     retourne indexage.un_après_dernier - indexage.premier
 }
 
+donne_tranche :: fonc (tableau: []$T, indexage: IndexageTranche) -> []T #enligne
+{
+    résultat: []T = ---
+    résultat.pointeur = tableau.pointeur + indexage.premier
+    résultat.taille = donne_taille(indexage)
+    retourne résultat
+}
+
 TupleAddressRange :: struct {
     segment: n64
     adresse: n64
@@ -1858,10 +1844,7 @@ TableAddressRanges :: struct {
 
 donne_tuples :: fonc (table: *TableAddressRanges, entrée: *EntréeAddressRange) -> []TupleAddressRange
 {
-    résultat: []TupleAddressRange
-    résultat.pointeur = table.tuples.pointeur + entrée.tuples.premier
-    résultat.taille = entrée.tuples.un_après_dernier - entrée.tuples.premier
-    retourne résultat
+    retourne donne_tranche(table.tuples, entrée.tuples)
 }
 
 parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
