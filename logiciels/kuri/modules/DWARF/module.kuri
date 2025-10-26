@@ -21,90 +21,85 @@ DW_UT_split_type : n8 : 0x06
 DW_UT_lo_user : n8 : 0x80
 DW_UT_hi_user : n8 : 0xff
 
-DW_TAG_array_type :: 0x01
-DW_TAG_class_type :: 0x02
-DW_TAG_entry_point :: 0x03
-DW_TAG_enumeration_type :: 0x04
-DW_TAG_formal_parameter :: 0x05
-// Reserved :: 0x06
-// Reserved :: 0x07
-DW_TAG_imported_declaration :: 0x08
-// Reserved :: 0x09
-DW_TAG_label :: 0x0a
-DW_TAG_lexical_block :: 0x0b
-// Reserved :: 0x0c
-DW_TAG_member :: 0x0d
-// Reserved :: 0x0e
-DW_TAG_pointer_type :: 0x0f
-DW_TAG_reference_type :: 0x10
-DW_TAG_compile_unit :: 0x11
-DW_TAG_string_type :: 0x12
-DW_TAG_structure_type :: 0x13
-// Reserved :: 0x14
-DW_TAG_subroutine_type :: 0x15
-DW_TAG_typedef :: 0x16
-DW_TAG_union_type :: 0x17
-DW_TAG_unspecified_parameters :: 0x18
-DW_TAG_variant :: 0x19
-DW_TAG_common_block :: 0x1a
-DW_TAG_common_inclusion :: 0x1b
-DW_TAG_inheritance :: 0x1c
-DW_TAG_inlined_subroutine :: 0x1d
-DW_TAG_module :: 0x1e
-DW_TAG_ptr_to_member_type :: 0x1f
-DW_TAG_set_type :: 0x20
-DW_TAG_subrange_type :: 0x21
-DW_TAG_with_stmt :: 0x22
-DW_TAG_access_declaration :: 0x23
-DW_TAG_base_type :: 0x24
-DW_TAG_catch_block :: 0x25
-DW_TAG_const_type :: 0x26
-DW_TAG_constant :: 0x27
-DW_TAG_enumerator :: 0x28
-DW_TAG_file_type :: 0x29
-DW_TAG_friend :: 0x2a
-DW_TAG_namelist :: 0x2b
-DW_TAG_namelist_item :: 0x2c
-DW_TAG_packed_type :: 0x2d
-DW_TAG_subprogram :: 0x2e
-DW_TAG_template_type_parameter :: 0x2f
-DW_TAG_template_value_parameter :: 0x30
-DW_TAG_thrown_type :: 0x31
-DW_TAG_try_block :: 0x32
-DW_TAG_variant_part :: 0x33
-DW_TAG_variable :: 0x34
-DW_TAG_volatile_type :: 0x35
-DW_TAG_dwarf_procedure :: 0x36
-DW_TAG_restrict_type :: 0x37
-DW_TAG_interface_type :: 0x38
-DW_TAG_namespace :: 0x39
-DW_TAG_imported_module :: 0x3a
-DW_TAG_unspecified_type :: 0x3b
-DW_TAG_partial_unit :: 0x3c
-DW_TAG_imported_unit :: 0x3d
-// Reserved :: 0x3e
-DW_TAG_condition :: 0x3f
-DW_TAG_shared_type :: 0x40
-DW_TAG_type_unit :: 0x41
-DW_TAG_rvalue_reference_type :: 0x42
-DW_TAG_template_alias :: 0x43
-DW_TAG_coarray_type :: 0x44
-DW_TAG_generic_subrange :: 0x45
-DW_TAG_dynamic_type :: 0x46
-DW_TAG_atomic_type :: 0x47
-DW_TAG_call_site :: 0x48
-DW_TAG_call_site_parameter :: 0x49
-DW_TAG_skeleton_unit :: 0x4a
-DW_TAG_immutable_type :: 0x4b
-DW_TAG_lo_user :: 0x4080
-DW_TAG_hi_user :: 0xffff
+DW_TAG_array_type : n32 : 0x01
+DW_TAG_class_type : n32 : 0x02
+DW_TAG_entry_point : n32 : 0x03
+DW_TAG_enumeration_type : n32 : 0x04
+DW_TAG_formal_parameter : n32 : 0x05
+// Reserved : n32 : 0x06
+// Reserved : n32 : 0x07
+DW_TAG_imported_declaration : n32 : 0x08
+// Reserved : n32 : 0x09
+DW_TAG_label : n32 : 0x0a
+DW_TAG_lexical_block : n32 : 0x0b
+// Reserved : n32 : 0x0c
+DW_TAG_member : n32 : 0x0d
+// Reserved : n32 : 0x0e
+DW_TAG_pointer_type : n32 : 0x0f
+DW_TAG_reference_type : n32 : 0x10
+DW_TAG_compile_unit : n32 : 0x11
+DW_TAG_string_type : n32 : 0x12
+DW_TAG_structure_type : n32 : 0x13
+// Reserved : n32 : 0x14
+DW_TAG_subroutine_type : n32 : 0x15
+DW_TAG_typedef : n32 : 0x16
+DW_TAG_union_type : n32 : 0x17
+DW_TAG_unspecified_parameters : n32 : 0x18
+DW_TAG_variant : n32 : 0x19
+DW_TAG_common_block : n32 : 0x1a
+DW_TAG_common_inclusion : n32 : 0x1b
+DW_TAG_inheritance : n32 : 0x1c
+DW_TAG_inlined_subroutine : n32 : 0x1d
+DW_TAG_module : n32 : 0x1e
+DW_TAG_ptr_to_member_type : n32 : 0x1f
+DW_TAG_set_type : n32 : 0x20
+DW_TAG_subrange_type : n32 : 0x21
+DW_TAG_with_stmt : n32 : 0x22
+DW_TAG_access_declaration : n32 : 0x23
+DW_TAG_base_type : n32 : 0x24
+DW_TAG_catch_block : n32 : 0x25
+DW_TAG_const_type : n32 : 0x26
+DW_TAG_constant : n32 : 0x27
+DW_TAG_enumerator : n32 : 0x28
+DW_TAG_file_type : n32 : 0x29
+DW_TAG_friend : n32 : 0x2a
+DW_TAG_namelist : n32 : 0x2b
+DW_TAG_namelist_item : n32 : 0x2c
+DW_TAG_packed_type : n32 : 0x2d
+DW_TAG_subprogram : n32 : 0x2e
+DW_TAG_template_type_parameter : n32 : 0x2f
+DW_TAG_template_value_parameter : n32 : 0x30
+DW_TAG_thrown_type : n32 : 0x31
+DW_TAG_try_block : n32 : 0x32
+DW_TAG_variant_part : n32 : 0x33
+DW_TAG_variable : n32 : 0x34
+DW_TAG_volatile_type : n32 : 0x35
+DW_TAG_dwarf_procedure : n32 : 0x36
+DW_TAG_restrict_type : n32 : 0x37
+DW_TAG_interface_type : n32 : 0x38
+DW_TAG_namespace : n32 : 0x39
+DW_TAG_imported_module : n32 : 0x3a
+DW_TAG_unspecified_type : n32 : 0x3b
+DW_TAG_partial_unit : n32 : 0x3c
+DW_TAG_imported_unit : n32 : 0x3d
+// Reserved : n32 : 0x3e
+DW_TAG_condition : n32 : 0x3f
+DW_TAG_shared_type : n32 : 0x40
+DW_TAG_type_unit : n32 : 0x41
+DW_TAG_rvalue_reference_type : n32 : 0x42
+DW_TAG_template_alias : n32 : 0x43
+DW_TAG_coarray_type : n32 : 0x44
+DW_TAG_generic_subrange : n32 : 0x45
+DW_TAG_dynamic_type : n32 : 0x46
+DW_TAG_atomic_type : n32 : 0x47
+DW_TAG_call_site : n32 : 0x48
+DW_TAG_call_site_parameter : n32 : 0x49
+DW_TAG_skeleton_unit : n32 : 0x4a
+DW_TAG_immutable_type : n32 : 0x4b
+DW_TAG_lo_user : n32 : 0x4080
+DW_TAG_hi_user : n32 : 0xffff
 
 donne_chaine_pour_tag_abbréviation :: fonc (tag: n64) -> chaine
-{
-    retourne donne_chaine_pour_tag_abbréviation(tag comme z64)
-}
-
-donne_chaine_pour_tag_abbréviation :: fonc (tag: z64) -> chaine
 #corps_texte {
     retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_TAG_array_type", "DW_TAG_", "tag", "DW_TAG_lo_user", "DW_TAG_hi_user")
 }
