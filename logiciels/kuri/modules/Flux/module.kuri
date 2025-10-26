@@ -18,8 +18,10 @@ FluxOctets :: struct {
 
 détruit :: fonc (flux: *FluxOctets)
 {
-    ferme(flux)
-    flux.sur_destruction(flux)
+    si flux {
+        ferme(flux)
+        flux.sur_destruction(flux)
+    }
 }
 
 ferme :: fonc (flux: *FluxOctets)
