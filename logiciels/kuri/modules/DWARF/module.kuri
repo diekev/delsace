@@ -305,6 +305,21 @@ donne_chaine_pour_forme_attribut :: fonc (forme: n64) -> chaine
     retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_FORM_addr", "DW_FORM_", "forme")
 }
 
+/* 7.25 Range List Entries for Non-contiguous Address Ranges */
+DW_RLE_end_of_list : n8 : 0x00
+DW_RLE_base_addressx : n8 : 0x01
+DW_RLE_startx_endx : n8 : 0x02
+DW_RLE_startx_length : n8 : 0x03
+DW_RLE_offset_pair : n8 : 0x04
+DW_RLE_base_address : n8 : 0x05
+DW_RLE_start_end : n8 : 0x06
+DW_RLE_start_length : n8 : 0x07
+
+donne_chaine_pour_entrée_range_list :: fonc (entrée: n8) -> chaine
+#corps_texte {
+    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_RLE_end_of_list", "DW_RLE_", "entrée")
+}
+
 DWARF64_UnitHeader :: struct {
     length: n64
     version: n16

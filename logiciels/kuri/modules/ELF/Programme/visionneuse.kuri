@@ -567,6 +567,9 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
         sinon si onglet.nom == ".debug_aranges" {
             donne_tabuleuse_debug_aranges(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
         }
+        sinon si onglet.nom == ".debug_rnglists" {
+            donne_tabuleuse_debug_rnglists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+        }
         sinon si onglet.nom == ".debug_str" {
             donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
         }
@@ -1640,7 +1643,7 @@ donne_tabuleuse_debug_info :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, ta
 /** \nom Table .debug_abbrev
  * \{ */
 
-TablePourUnité :: struct {
+TableAbbrévPourUnité :: struct {
     décalage: n64
 
     indice_première_abbréviation: z64
@@ -1663,7 +1666,7 @@ Abbréviation :: struct {
 }
 
 TableAbbréviations :: struct {
-    tables_pour_unités: [..]TablePourUnité
+    tables_pour_unités: [..]TableAbbrévPourUnité
     abbréviations: [..]Abbréviation
     attributs: [..]AttributAbbréviation
 }
@@ -1693,7 +1696,7 @@ donne_abbréviation :: fonc (abbréviations: []Abbréviation, code: n64) -> *Abb
 
 donne_abbréviations :: fonc (table: *TableAbbréviations, unité: *CompilationUnit) -> []Abbréviation
 {
-    table_pour_unité: TablePourUnité
+    table_pour_unité: TableAbbrévPourUnité
 
     pour table.tables_pour_unités {
         si it.décalage == unité.debug_abbrev_offset {
@@ -1828,6 +1831,11 @@ IndexageTranche :: struct {
     un_après_dernier: z64
 }
 
+donne_taille :: fonc (indexage: IndexageTranche) -> z64 #enligne
+{
+    retourne indexage.un_après_dernier - indexage.premier
+}
+
 TupleAddressRange :: struct {
     segment: n64
     adresse: n64
@@ -1929,6 +1937,170 @@ parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
             }
 
             entrée.tuples.un_après_dernier = résultat.tuples.taille
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_rnglists
+ * \{ */
+
+donne_tabuleuse_debug_rnglists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    si tabuleuse.lignes.taille == 0 {
+        table := parse_table_rnglists(fichier.fichier)
+        
+        initialise_tabuleuse(tabuleuse, "Version", "Taille Adresse", "Taille Sélecteur Segment", "Nombre de décalages", "Listes")
+
+        pour table.tables {
+            ajoute_ligne(tabuleuse, it.version, it.address_size, it.segment_selector_size, it.offset_entry_count, donne_taille(it.listes))
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+TableRNGListPourUnité :: struct {
+    décalage: n64
+
+    version: n16
+    address_size: n8
+    segment_selector_size: n8
+    offset_entry_count: n32
+
+    listes: IndexageTranche
+}
+
+EntréeRangeList :: struct {
+    code: n8 // DW_RLE_*
+    valeur1: n64
+    valeur2: n64
+}
+
+RangeList :: struct {
+    entrées: IndexageTranche
+}
+
+TableRangeLists :: struct {
+    tables: [..]TableRNGListPourUnité
+    entrées: [..]EntréeRangeList
+    listes: [..]RangeList
+}
+
+parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
+{
+    résultat: *TableRangeLists
+
+    section_rnglists := trouve_section(fichier, ".debug_rnglists")
+
+    si section_rnglists {
+        données_section_rnglists := donne_données_section(fichier, section_rnglists)
+
+        rnglists := crée_flux_octets(données_section_rnglists)
+        diffère détruit(rnglists)
+
+        résultat = loge(TableRangeLists)
+
+        tantque est_valide(rnglists) {
+            table := tableau_ajoute_élément(*résultat.tables)
+            table.décalage = donne_position(rnglists).Début comme z64 comme n64
+
+            length := parse_length_cie(rnglists)
+            position_après_length := donne_position(rnglists).Début comme z64
+
+            version, _ := lis_petit_boutisme(rnglists, n16)
+            si version != 5 {
+                imprimeln("Mauvaise version pour .debug_rnglists, voulu 5, obtenu : %", version)
+            }
+
+            address_size, _ := lis_petit_boutisme(rnglists, n8)
+            segment_selector_size, _ := lis_petit_boutisme(rnglists, n8)
+            offset_entry_count, _ := lis_petit_boutisme(rnglists, n32)
+
+            table.version = version
+            table.address_size = address_size
+            table.segment_selector_size = segment_selector_size
+            table.offset_entry_count = offset_entry_count
+
+            // À FAIRE : If the offset_entry_count is zero, then DW_FORM_rnglistx cannot be used to access
+            // a range list; DW_FORM_sec_offset must be used instead.
+
+            pour table.offset_entry_count {
+                _, _ := lis_petit_boutisme(rnglists, n32) // 32-bits
+            }
+
+            table.listes.premier = résultat.listes.taille
+
+            tantque est_valide(rnglists) {
+                position_flux := donne_position(rnglists)
+                taille_lue := (position_flux.Début comme z64 - position_après_length)
+                taille_restante := length comme z64 - taille_lue
+                si taille_restante == 0 {
+                    arrête
+                }
+
+                liste := tableau_ajoute_élément(*résultat.listes)
+                liste.entrées.premier = résultat.entrées.taille
+
+                tantque est_valide(rnglists) {
+                    code, _ := lis_petit_boutisme(rnglists, n8)
+
+                    si code == DW_RLE_end_of_list {
+                        // À FAIRE : A series of this kind of entry may be used for padding or alignment purposes.
+                        arrête
+                    }
+
+                    entrée := tableau_ajoute_élément(*résultat.entrées)
+                    entrée.code = code
+
+                    discr code {
+                        DW_RLE_base_addressx {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_startx_endx {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_startx_length {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_offset_pair {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_base_address {
+                            // À FAIRE : taille adresse
+                            adresse, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = adresse
+                        }
+                        DW_RLE_start_end {
+                            // À FAIRE : taille adresse
+                            start, _ := lis_petit_boutisme(rnglists, n64)
+                            end, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = start
+                            entrée.valeur2 = end
+                        }
+                        DW_RLE_start_length {
+                            // À FAIRE : taille adresse
+                            start, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = start
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        sinon {
+                            imprimeln("Code inconnu pour l'entrée de la RangeListe : %", code)
+                        }
+                    }
+                }
+
+                liste.entrées.un_après_dernier = résultat.entrées.taille
+            }
+
+            table.listes.un_après_dernier = résultat.listes.taille
         }
     }
 
