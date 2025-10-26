@@ -1,0 +1,1324 @@
+importe Allocatrices
+importe BoiteFlexible
+importe Chaine
+importe CréationFenêtre
+importe Couleur
+importe DWARF
+importe ELF
+importe Flux
+importe Fondation
+importe InfosInterface
+importe Guettage
+importe Krypto
+importe Math
+importe PeintureInterface
+importe Périphériques
+importe Sérialisation
+importe SysFichier
+importe Tabulation
+importe Triage
+importe Typographie
+
+principale :: fonc ()
+{
+    TAILLE_ARÈNE_TRANSIENTE :: 32 * 1024 * 1024
+    taille_mémoire_application := TAILLE_ARÈNE_TRANSIENTE
+    mémoire_application := loge_tableau(octet, taille_mémoire_application)
+
+    visionneuse: VisionneuseELF
+    diffère détruit_données(*visionneuse)
+
+    mémoire_arène_transiente := mémoire_application.pointeur
+    initialise_arène(*visionneuse.arène_transiente, mémoire_arène_transiente, TAILLE_ARÈNE_TRANSIENTE comme n64)
+
+    args := tableau_avance(arguments_ligne_commande())
+    pour args {
+        si est_un_fichier_régulier(CheminFichier(it)) {
+            ouvre_fichier_elf(*visionneuse, CheminFichier(it))
+        }
+    }
+
+    visionneuse.fonte = donne_fonte_défaut(16.0)
+    visionneuse.fonte_mono = donne_fonte("FiraCode-Regular", 14.0)
+
+    fenêtre := crée_fenêtre(800, 600, "VisionneuseELF", vrai)
+
+    doit_fermer := faux
+
+    tantque !doit_fermer {
+        évènements := ajourne_évènements_fenêtre(fenêtre)
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+        pour évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+            // si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
+            //     continue
+            // }
+
+            gère_évènement(*visionneuse.emboiteuse, it)
+        }
+
+        marque := donne_marque_stockage_temporaire()
+        diffère définis_marque_stockage_temporaire(marque)
+
+        dessine_fenêtre(*visionneuse, largeur, hauteur)
+
+        permute_tampons_fenêtre(fenêtre)
+
+        définis_curseur(fenêtre, donne_curseur(*visionneuse.emboiteuse))
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom Onglet
+ * \{ */
+
+Onglet :: struct {
+    nom: chaine
+    type_section: TypeSection
+    tabuleuse: Tabuleuse
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom VisionneuseELF
+ * \{ */
+
+DonnéesFichier :: struct {
+    fichier: *FichierELF
+    contenu: [..]octet
+
+    onglets: [..]Onglet
+
+    onglet_courant: z32
+}
+
+détruit_données :: fonc (fichier: *DonnéesFichier)
+{
+    déloge(fichier.contenu)
+
+    pour * fichier.onglets {
+        détruit_tabuleuse(*it.tabuleuse)
+    }
+    déloge(fichier.onglets)
+}
+
+donne_tabuleuse_informations :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        initialise_tabuleuse(tabuleuse, "Nom", "Valeur")
+        tabuleuse.alignements[0] = Alignement.GAUCHE
+        tabuleuse.alignements[1] = Alignement.DROITE
+
+        ajoute_ligne(tabuleuse, "Classe", entête.donne_classe_fichier())
+        ajoute_ligne(tabuleuse, "Données", entête.donne_encodage_fichier())
+        ajoute_ligne(tabuleuse, "Version", entête.donne_version_fichier())
+        ajoute_ligne(tabuleuse, "OS/ABI", entête.donne_chaine_ABI())
+        ajoute_ligne(tabuleuse, "Version ABI", entête.donne_version_ABI())
+        ajoute_ligne(tabuleuse, "Type", entête.donne_type_fichier_objet())
+        ajoute_ligne(tabuleuse, "Machine", entête.donne_chaine_architecture_cible())
+        ajoute_ligne(tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet())
+        ajoute_ligne(tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée())
+        ajoute_ligne(tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme())
+        ajoute_ligne(tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section())
+        ajoute_ligne(tabuleuse, "Fanions", entête.donne_fanions_processeur())
+        ajoute_ligne(tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête())
+        ajoute_ligne(tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme())
+        ajoute_ligne(tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme())
+        ajoute_ligne(tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section())
+        ajoute_ligne(tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section())
+        ajoute_ligne(tabuleuse, "Table d'indice des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines())
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+ 
+initialise_tailles_max_colonnes :: fonc (tabuleuse: *Tabuleuse, fonte: *Fonte)
+{
+    pour ligne dans tabuleuse.lignes {
+        pour cellule, indice_cellule dans ligne.colonnes {
+            taille_cellule := donne_largeur_texte(fonte, cellule.texte)
+
+            si tabuleuse.tailles_max_colonnes[indice_cellule] < taille_cellule {
+                tabuleuse.tailles_max_colonnes[indice_cellule] = taille_cellule
+            }
+        }
+    }
+}
+
+VisionneuseELF :: struct {
+    fichiers: [..]DonnéesFichier
+
+    arène_transiente: ArèneMémoire
+    fichier_courant: z32
+
+    peintre: *Peintre
+    fonte: *Fonte
+    fonte_mono: *Fonte
+    emboiteuse: Emboiteuse
+}
+
+détruit_données :: fonc (visionneuse: *VisionneuseELF)
+{
+    pour * visionneuse.fichiers {
+        détruit_données(it)
+    }
+
+    déloge(visionneuse.fichiers)
+}
+
+ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
+{
+    _, contenu := contenu_fichier_binaire(chemin)
+    fichier := loge(FichierELF)
+    initialise_fichier_elf(fichier, contenu)
+
+    visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32)
+
+    données_fichier := tableau_ajoute_élément(*visionneuse.fichiers)
+    données_fichier.fichier = fichier
+    données_fichier.contenu = contenu
+
+    onglet := tableau_ajoute_élément(*données_fichier.onglets)
+    onglet.nom = "Informations"
+
+    onglet = tableau_ajoute_élément(*données_fichier.onglets)
+    onglet.nom = "Sections"
+}
+
+supprime_fichier_à_l_indice :: fonc (visionneuse: *VisionneuseELF, indice: z32)
+{
+    fichier := *visionneuse.fichiers[indice]
+    détruit_données(fichier)
+    tableau_supprime_indice(*visionneuse.fichiers, indice)
+}
+
+donne_fichier_courant :: fonc (visionneuse: *VisionneuseELF) -> *DonnéesFichier
+{
+    retourne *visionneuse.fichiers[visionneuse.fichier_courant]
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Dessine fenêtre
+ * \{ */
+
+COULEUR_FOND := vers_couleur_rvba(CouleurRVBAN8(18, 18, 18, 255))
+COULEUR_ARRIÈRE_PLAN := vers_couleur_rvba(CouleurRVBAN8(22, 22, 22, 255))
+COULEUR_TEXTE := vers_couleur_rvba(CouleurRVBAN8(205, 170, 125, 255))
+COULEUR_TEXTE_SURVOLÉ := vers_couleur_rvba(CouleurRVBAN8(125, 170, 205, 255))
+
+config_texte_défaut: ConfigurationTexte
+config_texte_mono: ConfigurationTexte
+
+dessine_fenêtre :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteur: z32)
+{
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    saufsi peintre {
+        peintre = crée_peintre_igumi(taille_canevas)
+    }
+
+    peintre.définis_taille_canevas(taille_canevas)
+    peintre.efface_cible_rendu()
+
+    commandes := crée_interface(visionneuse, largeur, hauteur)
+    dessine_commandes(peintre, *commandes)
+}
+
+crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteur: z32) -> CommandesDeRendu
+{
+    réinitialise(*arène_transiente)
+
+    commence_disposition(*emboiteuse, largeur, hauteur)
+
+    config_texte_défaut = ConfigurationTexte(fonte, COULEUR_TEXTE)
+    config_texte_mono = ConfigurationTexte(fonte_mono, COULEUR_TEXTE)
+
+    espace: EspaceDisponible = ---
+    espace.largeur = largeur comme n32
+    espace.hauteur = hauteur comme n32
+
+    dispose_rectangle()
+    {
+        définis_arrière_plan(COULEUR_ARRIÈRE_PLAN)
+
+        si fichiers.taille == 0 {
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+            dispose_texte("Aucun fichier ouvert", config_texte_défaut)
+        }
+        sinon {
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+            dessine_panneau_fichier(visionneuse, espace)
+        }
+    }
+    termine_rectangle()
+
+    retourne termine_disposition(*emboiteuse)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom PanneauFichier
+ * \{ */
+
+dessine_panneau_fichier :: fonc (visionneuse: *VisionneuseELF, espace: EspaceDisponible)
+{
+    config_texte := config_texte_défaut
+    fonte := config_texte.fonte
+
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    rembourrage := 8
+    hauteur_de_ligne += rembourrage * 2
+
+    fichier := donne_fichier_courant(visionneuse)
+
+    dispose_rectangle()
+    {
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale)
+
+        dispose_rectangle()
+        {
+            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur_de_ligne)), direction = Direction.Horizontale)
+            définis_arrière_plan(COULEUR_FOND)
+
+            espace = enlève_hauteur(espace, hauteur_de_ligne comme n32)
+
+            pour fichier.onglets {
+                dispose_entête_panneau(fichier, it.nom, indice_it comme z32)
+            }
+        }
+        termine_rectangle()
+
+        onglet := *fichier.onglets[fichier.onglet_courant]
+
+        dispose_rectangle()
+        {
+            définis_cotation(CROISSANTE(), CROISSANTE())
+            espace = ajoute_rembourage(espace, rembourrage)
+
+            si onglet.nom == "Informations" {
+                définis_alignement(AlignementEnfant.Milieu)
+                dessine_panneau_informations(visionneuse, fichier, onglet, espace)
+            }
+            sinon si onglet.nom == "Sections" {
+                dessine_panneau_sections(visionneuse, fichier, onglet, espace)
+            }
+            sinon {
+                dessine_onglet_section(visionneuse, fichier, onglet, espace)
+            }
+        }
+        termine_rectangle()
+    }
+    termine_rectangle()
+}
+
+dispose_entête_panneau :: fonc (fichier: *DonnéesFichier, texte: chaine, indice: z32)
+{
+    config_texte := config_texte_défaut
+    fonte := config_texte.fonte
+
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    rembourrage := 8
+    hauteur_de_ligne += rembourrage * 2
+
+    dispose_rectangle()
+    {
+        largeur_texte := donne_largeur_texte(fonte, texte) comme z32
+        définis_disposition(cotation = Cotation(FIXE(largeur_texte + rembourrage * 4), FIXE(hauteur_de_ligne)),
+                            alignement_horizontal = AlignementEnfant.Milieu,
+                            alignement_vertical = AlignementEnfant.Milieu)
+
+        sur_pression_souris(définis_panneau_courant, fichier, indice)
+
+        si fichier.onglet_courant == indice {
+            définis_arrière_plan(COULEUR_ARRIÈRE_PLAN)
+        }
+
+        dispose_texte(texte, config_texte)
+    }
+    termine_rectangle()
+}
+
+définis_panneau_courant :: fonc (fichier: *DonnéesFichier, souris: ClicSouris, id: n64 @inutilisée, indice_panneau: z32) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        si indice_panneau >= 0 && indice_panneau < fichier.onglets.taille {
+            fichier.onglet_courant = indice_panneau
+            résultat = ÉtatÉvènement.CONSOMMÉ
+        }
+    }
+    retourne résultat
+}
+
+/** } */
+
+/* ------------------------------------------------------------------------- */
+/** \name PanneauInformation
+ * \{ */
+
+dessine_panneau_informations :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+{
+    donne_tabuleuse_informations(fichier, visionneuse.fonte, *onglet.tabuleuse)
+    dessine_tabuleuse(visionneuse, *onglet.tabuleuse, faux, config_texte_défaut, espace, 0)
+}
+
+dessine_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, dessine_titres: bool, config_texte: ConfigurationTexte, espace: EspaceDisponible, décalage: r32)
+{
+    fonte := config_texte.fonte
+
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne()
+    rembourrage := 8.0
+    hauteur_de_ligne += rembourrage
+
+    nombre_de_lignes_visibles := ((espace.hauteur comme r32) / hauteur_de_ligne) comme n32 + 2
+    lignes: []LigneTabuleuse = tabuleuse.lignes
+    saufsi dessine_titres {
+        lignes = tableau_avance(lignes, 1)
+    }
+    nombre_de_lignes_visibles = min(nombre_de_lignes_visibles, lignes.taille comme n32)
+
+    première_ligne_visible := (décalage / hauteur_de_ligne) comme n32
+    dernière_ligne_visible := première_ligne_visible + nombre_de_lignes_visibles
+
+    lignes_visibles: []LigneTabuleuse
+    lignes_visibles.pointeur = lignes.pointeur + première_ligne_visible
+    lignes_visibles.taille = nombre_de_lignes_visibles comme z64
+
+    espace_avant_première_ligne := hauteur_de_ligne * première_ligne_visible comme r32
+    espace_après_dernière_ligne := hauteur_de_ligne * (lignes.taille - dernière_ligne_visible comme z64) comme r32
+
+    dispose_rectangle()
+    {
+        définis_disposition(direction = Direction.Verticale)
+
+        si espace_avant_première_ligne > 0.0 {
+            dispose_rectangle()
+            {
+                définis_cotation(CROISSANTE(), FIXE(espace_avant_première_ligne))
+            }
+            termine_rectangle()
+        }
+
+        pour * lignes_visibles {
+            est_ligne_titre := dessine_titres && indice_it == 0 && première_ligne_visible == 0
+            dessine_ligne_tabuleuse(visionneuse, tabuleuse, it, est_ligne_titre, config_texte)
+        }
+
+        si espace_après_dernière_ligne > 0.0 {
+            dispose_rectangle()
+            {
+                définis_cotation(CROISSANTE(), FIXE(espace_après_dernière_ligne))
+            }
+            termine_rectangle()
+        }
+    }
+    termine_rectangle()
+}
+
+InfoCommande :: struct {
+    visionneuse: *VisionneuseELF
+    commande: chaine
+    métadonnée: chaine
+}
+
+dessine_ligne_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, ligne: *LigneTabuleuse, est_ligne_titre: bool, config_texte: ConfigurationTexte)
+{
+    fonte := config_texte.fonte
+
+    métriques := donne_métriques_fonte(fonte)
+    hauteur_de_ligne := métriques.donne_hauteur_ligne()
+    rembourrage := 8.0
+    hauteur_de_ligne += rembourrage
+
+    dispose_rectangle()
+    {
+        définis_disposition(direction = Direction.Horizontale)
+        
+        pour ligne.colonnes {
+            largeur_colonne := tabuleuse.tailles_max_colonnes[indice_it]
+            largeur_colonne += rembourrage * 2.0
+            alignement_colonne := tabuleuse.alignements[indice_it]
+
+            dispose_rectangle()
+            {
+                définis_disposition(cotation = Cotation(FIXE(largeur_colonne), FIXE(hauteur_de_ligne)))
+                définis_alignement_horizontal(alignement_colonne)
+                définis_rembourrage(RembourrageDifforme(rembourrage, rembourrage * 0.5))
+
+                si indice_it > 0 {
+                    ajoute_bordure_gauche(1.0, config_texte.couleur)
+                }
+
+                si est_ligne_titre {
+                    ajoute_bordure_bas(1.0, config_texte.couleur)
+                }
+
+                config := config_texte
+
+                si it.commande {
+                    si est_survolée() {
+                        config.couleur = COULEUR_TEXTE_SURVOLÉ
+                        définis_curseur(TypeCurseurSystème.MAIN_POINTANT)
+                    }
+
+                    info_commande := loge(*visionneuse.arène_transiente, InfoCommande)
+                    info_commande.visionneuse = visionneuse
+                    info_commande.commande = it.commande
+                    info_commande.métadonnée = it.métadonnée
+
+                    sur_pression_souris(sur_pression_entête_section, info_commande, 0)
+                }
+
+                dispose_texte(it.texte, config)
+            }
+            termine_rectangle()
+        }
+    }
+    termine_rectangle()
+}
+
+sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+
+    si clic.bouton == BoutonSouris.PRIMAIRE {
+        si commande == "affiche_données_section" {
+            fichier := donne_fichier_courant(visionneuse)
+            pour fichier.onglets {
+                si it.nom == métadonnée {
+                    fichier.onglet_courant = indice_it comme z32
+                    arrête
+                }
+            }
+            sansarrêt {
+                onglet := tableau_ajoute_élément(*fichier.onglets)
+                onglet.nom = métadonnée
+                section := trouve_section(fichier.fichier, onglet.nom)
+                onglet.type_section = donne_type_section(section)
+                fichier.onglet_courant = fichier.onglets.taille comme z32 - 1
+            }
+        }
+        sinon {
+            // À FAIRE : interface pour les erreurs
+            imprimeln("Commande inconnue : %", commande)
+        }
+
+        résultat = ÉtatÉvènement.CONSOMMÉ
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name PanneauVueTables
+ * \{ */
+
+dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+{
+    donne_tabuleuse_sections(fichier, visionneuse.fonte, *onglet.tabuleuse)
+
+    dispose_rectangle()
+    {
+        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte_défaut, espace, 0)
+    }
+    termine_rectangle()
+}
+
+dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+{
+    config_texte := config_texte_défaut
+
+    si onglet.type_section == TypeSection.TableSymbole {
+        donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse)
+    }
+    sinon si onglet.type_section == TypeSection.BitsProgramme {
+        si onglet.nom == ".comment" {
+            donne_tabuleuse_comment(fichier, visionneuse.fonte, *onglet.tabuleuse)
+        }
+        sinon si onglet.nom == ".rodata" {
+            donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, ".rodata")
+            config_texte = config_texte_mono
+        }
+        sinon si onglet.nom == ".eh_frame" {
+            donne_tabuleuse_eh_frame(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+        }
+        sinon si onglet.nom == ".debug_info" {
+            donne_tabuleuse_debug_info(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+        }
+        sinon si onglet.nom == ".debug_abbrev" {
+            donne_tabuleuse_debug_abbrev(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+        }
+        sinon si onglet.nom == ".debug_str" {
+            donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
+        }
+        sinon {
+            donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom)
+            config_texte = config_texte_mono
+        }
+    }
+    sinon si onglet.type_section == TypeSection.Dynamique {
+        donne_tabuleuse_dynamic(fichier, visionneuse.fonte, *onglet.tabuleuse)
+    }
+    sinon si onglet.type_section == TypeSection.Note {
+        donne_tabuleuse_note(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
+    }
+    sinon si onglet.type_section == TypeSection.TableChaine {
+        donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
+    }
+    sinon si onglet.type_section == TypeSection.Rel {
+        donne_tabuleuse_rel(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
+    }
+    sinon si onglet.type_section == TypeSection.Rela {
+        donne_tabuleuse_rela(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
+    }
+    sinon {
+        donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom)
+        config_texte = config_texte_mono
+    }
+
+    _, barre := dispose_rectangle_défilable(espace, COULEUR_FOND)
+    {
+        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte, espace, barre.défilage)
+    }
+    termine_rectangle_défilable()
+}
+
+/* ------------------------------------------------------------------------- */
+/** \name QAbstractTableModel pour afficher les sections.
+ * \{ */
+
+donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entête := entête_fichier(fichier.fichier)
+    // nom = "Sections"
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        initialise_tabuleuse(tabuleuse, "Nom", "Adresse", "Décalage", "Taille", "Alignement", "Type", "Drapeaux")
+
+        table_symbole := (fichier.contenu.pointeur + entête.e_shoff + entête.e_shstrndx * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+
+        indice_ligne : z64 = 1
+
+        noms_entêtes: [..]chaine
+        diffère déloge(noms_entêtes)
+
+        // @IPA
+        pour entête.e_shnum {
+            entête_section := (fichier.fichier.contenu.pointeur + entête.e_shoff + indice_it comme n32 * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+
+            nom_section_c := (fichier.fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
+            nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
+
+            tableau_ajoute(*noms_entêtes, nom_section)
+        }
+
+        indices_entêtes: [..]n32
+        diffère déloge(indices_entêtes)
+        tableau_redimensionne(indices_entêtes, noms_entêtes.taille)
+        tableau_iota(indices_entêtes, 0)
+
+        tri_rapide(indices_entêtes, noms_entêtes, compare_chaine)
+
+        pour indices_entêtes {
+            // @IPA
+            entête_section := (fichier.fichier.contenu.pointeur + entête.e_shoff + it * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+
+            nom_section_c := (fichier.fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
+            nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
+
+            si nom_section == "" {
+                continue
+            }
+
+            ajoute_ligne(tabuleuse,
+                         nom_section,
+                         entête_section.sh_addr,
+                         entête_section.sh_offset,
+                         entête_section.sh_size,
+                         entête_section.sh_addralign,
+                         entête_section.sh_type,
+                         entête_section.donne_drapeaux())
+
+            si entête_section.sh_size != 0 && donne_type_section(entête_section) != TypeSection.AucunBits {
+                définis_commande(tabuleuse, indice_ligne, 0, "affiche_données_section", nom_section)
+            }
+
+            indice_ligne += 1
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table Symboles.
+ * \{ */
+
+donne_tabuleuse_symboles :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        initialise_tabuleuse(tabuleuse, "Valeur", "Taille", "Type", "Lien", "Visibilité", "Section", "Nom")
+
+        table_potentielle := donne_table_des_symboles(fichier.fichier)
+        si table_potentielle.possède_valeur() {
+            table := table_potentielle.Quelque
+            nombre_de_symboles := donne_nombre_de_symboles(*table)
+
+            pour nombre_de_symboles {
+                symbole := donne_symbole(*table, indice_it)
+
+                nom_section := donne_nom_section_symbole(*table, symbole)
+                nom_symbole := donne_nom_symbole(*table, symbole)
+                ajoute_ligne(tabuleuse,
+                             symbole.st_value,
+                             symbole.st_size,
+                             symbole.donne_type(),
+                             symbole.donne_liaison(),
+                             symbole.donne_visibilité(),
+                             nom_section,
+                             nom_symbole)
+            }
+        }
+        sinon {
+            // À FAIRE : erreur
+            imprime("Aucune table de symbole trouvée.")
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table Comment.
+ * \{ */
+
+donne_tabuleuse_comment :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, ".comment")
+        si section && (section.sh_flags & DrapeauxSection.STRINGS comme n64) != 0 {
+            initialise_tabuleuse(tabuleuse, "Valeur")
+
+            données_section := donne_données_section(fichier.fichier, section)
+            chn_données := chaine(données_section.pointeur comme *z8, données_section.taille)
+
+            chns := divise(chn_données, '\0')
+            diffère déloge(chns)
+
+            pour chns {
+                ajoute_ligne(tabuleuse, it)
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table Dynamic.
+ * \{ */
+
+donne_tabuleuse_dynamic :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        entrées := donne_entrées_section_dynamic(fichier.fichier)
+        initialise_tabuleuse(tabuleuse, "Tag", "Valeur")
+
+        pour entrées {
+            nom_tag := donne_chaine_pour_dynamic_tag(it.d_tag)
+            valeur_entrée: chaine
+
+            si doit_utiliser_valeur(it) {
+                valeur_entrée = imprime_chaine_temp("%", it.d_un.d_val)
+            }
+            sinon {
+                ctx := contexte()
+                ctx.format_entier.base = 16
+                pousse_contexte ctx {
+                    valeur_entrée = imprime_chaine_temp("0x%", it.d_un.d_ptr)
+                }
+            }
+
+            ajoute_ligne(tabuleuse, nom_tag, valeur_entrée)
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table .note*
+ * \{ */
+
+donne_tabuleuse_note :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, nom_section)
+
+        si section {
+            données := donne_données_section(fichier.fichier, section)
+
+            initialise_tabuleuse(tabuleuse, "Nom", "Description", "Type")
+
+            curseur := données.pointeur
+
+            tantque curseur < (données.pointeur + données.taille) {
+                note := curseur comme *Elf64_Nhdr
+                curseur += taille_de(Elf64_Nhdr)
+
+                nom := chaine(curseur comme *z8, note.n_namesz)
+                curseur += donne_taille_alignée(note.n_namesz comme z64, 4)
+                si nom.taille != 0 && nom[nom.taille - 1] == '\0' {
+                    nom.taille -= 1
+                }
+
+                desc := chaine(curseur comme *z8, note.n_descsz)
+                curseur += donne_taille_alignée(note.n_descsz comme z64, 4)
+
+                si note.n_type == NT_GNU_BUILD_ID {
+                    condensat: Condensat
+                    condensat.données.pointeur = desc.pointeur
+                    condensat.données.taille = desc.taille
+
+                    desc = donne_chaine_hex(condensat)
+                }
+                sinon si note.n_type == NT_GNU_PROPERTY_TYPE_0 {
+                    enchaineuse: Enchaineuse
+                    initialise_enchaineuse(*enchaineuse)
+
+                    mots: []n32
+                    mots.pointeur = desc.pointeur comme *n32
+                    mots.taille = 4
+
+                    si mots[0] == GNU_PROPERTY_X86_ISA_1_USED {
+                        desc = "À FAIRE : GNU_PROPERTY_X86_ISA_1_USED"
+                    }
+                    sinon si mots[0] == GNU_PROPERTY_X86_ISA_1_NEEDED {
+                        desc = "À FAIRE : GNU_PROPERTY_X86_ISA_1_NEEDED"
+                    }
+                    sinon si mots[0] == GNU_PROPERTY_X86_FEATURE_1_AND {
+                        ajoute_au_tampon(*enchaineuse, "X86 Features: ")
+
+                        si mots.taille > 1 {
+                            si (mots[1] & GNU_PROPERTY_X86_ISA_1_V4) != 0 {
+                                ajoute_au_tampon(*enchaineuse, "ISA V4")
+                            }
+                            sinon si (mots[1] & GNU_PROPERTY_X86_ISA_1_V3) != 0 {
+                                ajoute_au_tampon(*enchaineuse, "ISA V4")
+                            }
+                            sinon si (mots[1] & GNU_PROPERTY_X86_ISA_1_V2) != 0 {
+                                ajoute_au_tampon(*enchaineuse, "ISA V2")
+                            }
+                            sinon si (mots[1] & GNU_PROPERTY_X86_ISA_1_BASELINE) != 0 {
+                                ajoute_au_tampon(*enchaineuse, "ISA BASELINE")
+                            }
+                        }
+
+                        si mots.taille > 2 {
+                            si (mots[2] & GNU_PROPERTY_X86_FEATURE_1_IBT) != 0 {
+                                ajoute_au_tampon(*enchaineuse, ", IBT")
+                            }
+                            si (mots[2] & GNU_PROPERTY_X86_FEATURE_1_SHSTK) != 0 {
+                                ajoute_au_tampon(*enchaineuse, ", SHSTK")
+                            }
+                        }
+
+                        desc = chaine_depuis_enchaineuse(*enchaineuse)
+                    }
+                }
+
+                ajoute_ligne(tabuleuse, nom, desc, donne_chaine_pour_note_type(note.n_type))
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table pour .rodata et les sections non-traitées spécifiquement.
+ * \{ */
+
+donne_tabuleuse_données_hex :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, nom_section)
+
+        si section {
+            données := donne_données_section(fichier.fichier, section)
+
+            initialise_tabuleuse(tabuleuse, "Décalage", "Données", "Texte")
+            tabuleuse.alignements[0] = Alignement.Fin
+
+            curseur := données.pointeur
+            début := curseur
+            fin := (données.pointeur + données.taille)
+
+            hex_depuis_char :: fonc (hex: z8) -> z8
+            {
+                retourne "0123456789ABCDEF"[hex]
+            }
+
+            tantque curseur < fin {
+                décalage := curseur - début
+
+                taille_sure : z64 = 16
+                si décalage + taille_sure > données.taille {
+                    taille_sure = données.taille - décalage
+                }
+
+                tampon_texte_données: TamponFixe(z8, 16 * 2 + 15 + 3)
+                texte := loge_chaine(taille_sure)
+
+                pour taille_sure {
+                    valeur := curseur[indice_it] comme z8
+
+                    si 31 <= valeur comme n8 <= 127 {
+                        texte[indice_it] = valeur
+                    }
+                    sinon {
+                        texte[indice_it] = '.'
+                    }
+
+                    ajoute(*tampon_texte_données, hex_depuis_char(((valeur >> 4) & 0x0F)))
+                    ajoute(*tampon_texte_données, hex_depuis_char(((valeur >> 0) & 0x0F)))
+
+                    si indice_it < taille_sure - 1 {
+                        si indice_it % 4 == 3 {
+                            ajoute(*tampon_texte_données, ' ')
+                        }
+                        ajoute(*tampon_texte_données, ' ')
+                    }
+                }
+
+                texte_données: chaine
+                texte_données.pointeur = *tampon_texte_données.données[0]
+                texte_données.taille = tampon_texte_données.curseur
+
+                ajoute_ligne(tabuleuse, décalage, copie_chaine(texte_données), texte)
+                curseur += taille_sure
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table .strtab/.shstrtab
+ * \{ */
+
+donne_tabuleuse_table_chaines :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, nom_section)
+
+        si section {
+            données := donne_données_section(fichier.fichier, section)
+
+            initialise_tabuleuse(tabuleuse, "Texte")
+
+            texte := chaine(données.pointeur comme *z8, données.taille)
+
+            chaines := divise(texte, '\0')
+            diffère déloge(chaines)
+
+            pour chaines {
+                ajoute_ligne(tabuleuse, it)
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table .rel
+ * \{ */
+
+donne_tabuleuse_rel :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, nom_section)
+
+        table_potentielle := donne_table_des_symboles(fichier.fichier)
+        si section && table_potentielle.possède_valeur() {
+            table := table_potentielle.Quelque
+
+            données := donne_données_section(fichier.fichier, section)
+            relas: []Elf64_Rel
+            relas.pointeur = données.pointeur comme *Elf64_Rel
+            relas.taille = données.taille / (taille_de(Elf64_Rel) comme z64)
+
+            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole")
+
+            pour relas {
+                type := ELF64_R_TYPE(it.r_info)
+                indice_symbole := ELF64_R_SYM(it.r_info)
+
+                symbole := donne_symbole(*table, indice_symbole comme z64)
+                nom_symbole := donne_nom_symbole(*table, symbole)
+
+                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole)
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name Table .rela
+ * \{ */
+
+donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+{
+    entête := entête_fichier(fichier.fichier)
+
+    si entête && tabuleuse.lignes.taille == 0 {
+        section := trouve_section(fichier.fichier, nom_section)
+
+        table_potentielle := donne_table_des_symboles(fichier.fichier)
+        si section && table_potentielle.possède_valeur() {
+            table := table_potentielle.Quelque
+
+            données := donne_données_section(fichier.fichier, section)
+            relas: []Elf64_Rela
+            relas.pointeur = données.pointeur comme *Elf64_Rela
+            relas.taille = données.taille / (taille_de(Elf64_Rela) comme z64)
+
+            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Addende")
+
+            pour relas {
+                type := ELF64_R_TYPE(it.r_info)
+                indice_symbole := ELF64_R_SYM(it.r_info)
+
+                symbole := donne_symbole(*table, indice_symbole comme z64)
+                nom_symbole := donne_nom_symbole(*table, symbole)
+
+                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole, it.r_addend)
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .eh_frame
+ * \{ */
+
+donne_tabuleuse_eh_frame :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    si tabuleuse.lignes.taille == 0 {
+        succès, données_eh_frame := parse_données_eh_frame(fichier.fichier)
+        si succès {
+            initialise_tabuleuse(tabuleuse, "Titre", "Valeur")
+
+            pour * cie dans données_eh_frame.cies {
+                ajoute_ligne(tabuleuse, "Length", cie.length)
+                ajoute_ligne(tabuleuse, "CIE ID", cie.cie_id)
+                ajoute_ligne(tabuleuse, "Version", cie.version)
+                ajoute_ligne(tabuleuse, "Augmentation String", cie.augmentation_string)
+                ajoute_ligne(tabuleuse, "Code Alignment Factor", cie.code_alignement_factor)
+                ajoute_ligne(tabuleuse, "Data Alignment Factor", cie.data_alignement_factor)
+                ajoute_ligne(tabuleuse, "Return Address Register", cie.return_address_register)
+                ajoute_ligne(tabuleuse, "Augmentation Data", cie.augmentation_data)
+                ajoute_ligne(tabuleuse, "Initial Instructions", cie.initial_instructions)
+
+                fdes := donne_fdes(*données_eh_frame, cie)
+
+                pour * fde, indice_fde dans fdes {
+                    ajoute_ligne(tabuleuse, "FDE", indice_fde)
+                    ajoute_ligne(tabuleuse, "Length", fde.length)
+                    ajoute_ligne(tabuleuse, "CIE Pointer", fde.cie_pointer)
+
+                    discr fde.pc_begin.représentation {
+                        INT_16 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données comme z16)
+                        }
+                        INT_32 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données comme z32)
+                        }
+                        INT_64 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données comme z64)
+                        }
+                        UINT_16 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données comme n16)
+                        }
+                        UINT_32 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données comme n32)
+                        }
+                        UINT_64 {
+                            ajoute_ligne(tabuleuse, "PC Begin", fde.pc_begin.données)
+                        }
+                    }
+
+                    ajoute_ligne(tabuleuse, "PC End", fde.pc_range)
+                    ajoute_ligne(tabuleuse, "Augmentation Data", fde.augmentation_data)
+                    ajoute_ligne(tabuleuse, "Instructions", fde.call_frame_instructions)
+                }
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte)
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_info
+ * \{ */
+
+donne_tabuleuse_debug_info :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    section_debug_info := trouve_section(fichier.fichier, ".debug_info")
+    section_debug_abbrev := trouve_section(fichier.fichier, ".debug_abbrev")
+
+    si section_debug_info && section_debug_abbrev && tabuleuse.lignes.taille == 0 {
+        données_debug_info := donne_données_section(fichier.fichier, section_debug_info)
+        données_debut_abbrev := donne_données_section(fichier.fichier, section_debug_abbrev)
+
+        debug_info := crée_flux_octets(données_debug_info)
+        diffère détruit(debug_info)
+
+        debug_abbrev := crée_flux_octets(données_debut_abbrev)
+        diffère détruit(debug_abbrev)
+
+        initialise_tabuleuse(tabuleuse, "Titre", "Valeur")
+
+        // À FAIRE : comprend la différence entre 32-bit et 64-bit
+        // et pourquoi les champs sont en 32-bit
+
+        unit_length := parse_length_cie(debug_info)
+        version, _ := lis_petit_boutisme(debug_info, n16)
+        unit_type := UnitType.compile
+
+        si version == 5 {
+            valeur_unit_type, _ := lis_petit_boutisme(debug_info, UnitType)
+            unit_type = valeur_unit_type
+        }
+
+        address_size: n8
+        debug_abbrev_offset: n64
+        si version == 5 {
+            valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
+            valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
+            address_size = valeur_address_size
+            debug_abbrev_offset = valeur_debug_abbrev_offset
+        }
+        sinon si version == 4 {
+            valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
+            valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
+            address_size = valeur_address_size
+            debug_abbrev_offset = valeur_debug_abbrev_offset
+        }
+
+        code_abbréviation, _ := lis_petit_boutisme(debug_info, z8)
+
+        ajoute_ligne(tabuleuse, "Unit Length", unit_length)
+        ajoute_ligne(tabuleuse, "Version", version)
+        ajoute_ligne(tabuleuse, "Unit Type", unit_type)
+        ajoute_ligne(tabuleuse, "address_size", address_size)
+        ajoute_ligne(tabuleuse, "debug_abbrev_offset", debug_abbrev_offset)
+        ajoute_ligne(tabuleuse, "code_abbréviation", code_abbréviation)
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_abbrev
+ * \{ */
+
+AttributAbbréviation :: struct {
+    nom: n64
+    forme: n64
+    valeur: z64 // NOTE : si forme == DW_FORM_implicit_const
+}
+
+Abbréviation :: struct {
+    code: n64
+    tag: n64
+    possède_enfants: bool
+
+    indice_premier_attribut: z64
+    un_après_indice_dernier_attribut: z64
+}
+
+TableAbbréviations :: struct {
+    abbréviations: [..]Abbréviation
+    attributs: [..]AttributAbbréviation
+}
+
+donne_attributs :: fonc (table: *TableAbbréviations, abbréviation: *Abbréviation) -> []AttributAbbréviation
+{
+    résultat: []AttributAbbréviation = ---
+    résultat.pointeur = table.attributs.pointeur + abbréviation.indice_premier_attribut
+    résultat.taille = abbréviation.un_après_indice_dernier_attribut - abbréviation.indice_premier_attribut
+    retourne résultat
+}
+
+parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbréviations)
+{
+    succès := vrai
+    résultat: TableAbbréviations
+
+    section_debug_abbrev := trouve_section(fichier, ".debug_abbrev")
+
+    si section_debug_abbrev {
+        données_debut_abbrev := donne_données_section(fichier, section_debug_abbrev)
+
+        debug_abbrev := crée_flux_octets(données_debut_abbrev)
+        diffère détruit(debug_abbrev)
+
+        tantque est_valide(debug_abbrev) {
+            code_abbréviation := décode_leb128_naturel(debug_abbrev)
+
+            si code_abbréviation == 0 {
+                imprimeln("Fin des abbréviations pour l'unité de compilation")
+                arrête
+            }
+
+            tag_abbréviation := décode_leb128_naturel(debug_abbrev)
+            possède_enfant, _ := lis_petit_boutisme(debug_abbrev, n8)
+
+            abbréviation := tableau_ajoute_élément(*résultat.abbréviations)
+            abbréviation.code = code_abbréviation
+            abbréviation.tag = tag_abbréviation
+            abbréviation.possède_enfants = possède_enfant == DW_CHILDREN_yes
+            abbréviation.indice_premier_attribut = résultat.attributs.taille
+            abbréviation.un_après_indice_dernier_attribut = abbréviation.indice_premier_attribut
+
+            tantque est_valide(debug_abbrev) {
+                nom_attribut := décode_leb128_naturel(debug_abbrev)
+                forme_attribut := décode_leb128_naturel(debug_abbrev)
+
+                si nom_attribut == 0 && forme_attribut == 0 {
+                    arrête
+                }
+
+                valeur_attribut: z64
+                si forme_attribut == DW_FORM_implicit_const {
+                    valeur_attribut = décode_leb128_relatif(debug_abbrev)
+                }
+
+                attribut := tableau_ajoute_élément(*résultat.attributs)
+                attribut.nom = nom_attribut
+                attribut.forme = forme_attribut
+                attribut.valeur = valeur_attribut
+
+                abbréviation.un_après_indice_dernier_attribut += 1
+            }
+        }
+    }
+
+    retourne succès, résultat
+}
+
+donne_tabuleuse_debug_abbrev :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    si tabuleuse.lignes.taille == 0 {
+        succès_table, table := parse_table_abbréviations(fichier.fichier)
+        
+        initialise_tabuleuse(tabuleuse, "Code", "Tag", "Attributs", "Nom Attribut", "Forme Attribut")
+
+        pour * table.abbréviations {
+            ajoute_ligne(tabuleuse, it.code, donne_chaine_pour_tag_abbréviation(it.tag), it.un_après_indice_dernier_attribut - it.indice_premier_attribut, "", "")
+
+            pour attribut dans donne_attributs(*table, it) {
+                ajoute_ligne(tabuleuse, "", "", "", donne_chaine_pour_nom_attribut(attribut.nom), donne_chaine_pour_forme_attribut(attribut.forme))
+            }
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires interface.
+ * \{ */
+
+dispose_rectangle_défilable :: fonc (espace_disponible: EspaceDisponible, couleur: CouleurRVBA, décalage_vertical := 0) -> (EspaceDisponible, *BarreDeDéfilement)
+{
+    /* Rectangle parent. */
+    dispose_rectangle()
+    définis_arrière_plan(couleur)
+    définis_disposition(cotation = donne_cotation(espace_disponible))
+    ajoute_défilage_vertical(*espace_disponible, 16, COULEUR_ARRIÈRE_PLAN)
+
+    barre := donne_barre_défilage_verticale()
+
+    si décalage_vertical > 0 {
+        définis_défilage(barre, décalage_vertical comme r32)
+    }
+
+    /* Rectangle enfant. */
+    dispose_rectangle()
+    définis_cotation(Cotation(FIXE(espace_disponible.largeur comme z32), hauteur_min = espace_disponible.hauteur))
+
+    retourne espace_disponible, barre
+}
+
+termine_rectangle_défilable :: fonc ()
+{
+    /* Rectangle enfant. */
+    termine_rectangle()
+    /* Rectangle parent. */
+    termine_rectangle()
+}
+
+/** \} */
