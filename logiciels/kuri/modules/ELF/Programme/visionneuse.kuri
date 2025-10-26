@@ -564,6 +564,9 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
         sinon si onglet.nom == ".debug_abbrev" {
             donne_tabuleuse_debug_abbrev(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
         }
+        sinon si onglet.nom == ".debug_aranges" {
+            donne_tabuleuse_debug_aranges(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+        }
         sinon si onglet.nom == ".debug_str" {
             donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
         }
@@ -1716,9 +1719,9 @@ parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbrév
     section_debug_abbrev := trouve_section(fichier, ".debug_abbrev")
 
     si section_debug_abbrev {
-        données_debut_abbrev := donne_données_section(fichier, section_debug_abbrev)
+        données_debug_abbrev := donne_données_section(fichier, section_debug_abbrev)
 
-        debug_abbrev := crée_flux_octets(données_debut_abbrev)
+        debug_abbrev := crée_flux_octets(données_debug_abbrev)
         diffère détruit(debug_abbrev)
 
         tantque est_valide(debug_abbrev) {
@@ -1792,6 +1795,144 @@ donne_tabuleuse_debug_abbrev :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, 
 
         initialise_tailles_max_colonnes(tabuleuse, fonte)
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_aranges
+ * \{ */
+
+donne_tabuleuse_debug_aranges :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    si tabuleuse.lignes.taille == 0 {
+        table := parse_table_aranges(fichier.fichier)
+        
+        initialise_tabuleuse(tabuleuse, "Version", "Décalage .debug_info", "Taille Adresse", "Taille sélecteur segment", "Tuples", "Segment", "Adresse", "Longueur")
+
+        pour * table.entrées {
+            tuples := donne_tuples(table, it)
+            ajoute_ligne(tabuleuse, it.version, it.debug_info_offset, it.address_size, it.segment_selector_size, tuples.taille, "", "", "")
+
+            pour tuple dans tuples {
+                ajoute_ligne(tabuleuse, "", "", "", "", "", tuple.segment, tuple.adresse, tuple.longueur)
+            }
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+IndexageTranche :: struct {
+    premier: z64
+    un_après_dernier: z64
+}
+
+TupleAddressRange :: struct {
+    segment: n64
+    adresse: n64
+    longueur: n64
+}
+
+EntréeAddressRange :: struct {
+    version: n16
+    debug_info_offset: n64
+    address_size: n8
+    segment_selector_size: n8
+
+    tuples: IndexageTranche
+}
+
+TableAddressRanges :: struct {
+    entrées: [..]EntréeAddressRange
+    tuples: [..]TupleAddressRange
+}
+
+donne_tuples :: fonc (table: *TableAddressRanges, entrée: *EntréeAddressRange) -> []TupleAddressRange
+{
+    résultat: []TupleAddressRange
+    résultat.pointeur = table.tuples.pointeur + entrée.tuples.premier
+    résultat.taille = entrée.tuples.un_après_dernier - entrée.tuples.premier
+    retourne résultat
+}
+
+parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
+{
+    résultat: *TableAddressRanges
+
+    section_aranges := trouve_section(fichier, ".debug_aranges")
+
+    si section_aranges {
+        données_section_aranges := donne_données_section(fichier, section_aranges)
+
+        aranges := crée_flux_octets(données_section_aranges)
+        diffère détruit(aranges)
+
+        résultat = loge(TableAddressRanges)
+
+        tantque est_valide(aranges) {
+            length := parse_length_cie(aranges)
+            position_après_length := donne_position(aranges).Début comme z64
+
+            version, _ := lis_petit_boutisme(aranges, n16)
+            si version != 2 {
+                imprimeln("Mauvaise version pour .debug_aranges, voulu 2, obtenu : %", version)
+            }
+
+            debug_info_offset, _ := lis_petit_boutisme(aranges, n32) // si 32bit, sinon, n64
+            address_size, _ := lis_petit_boutisme(aranges, n8)
+            segment_selector_size, _ := lis_petit_boutisme(aranges, n8)
+
+            entrée := tableau_ajoute_élément(*résultat.entrées)
+            entrée.version = version
+            entrée.debug_info_offset = debug_info_offset
+            entrée.address_size = address_size
+            entrée.segment_selector_size = segment_selector_size
+
+            assert(entrée.address_size == 8)
+            assert(entrée.segment_selector_size == 0 || entrée.segment_selector_size == 8)
+
+            taille_tuple := entrée.address_size * 2 + entrée.segment_selector_size
+            position := donne_position(aranges).Début comme z64 comme n64
+            delta := taille_tuple - position % taille_tuple
+            si delta != 0 {
+                positionne(aranges, PositionDébut((position + delta) comme z64))
+            }
+
+            entrée.tuples.premier = résultat.tuples.taille
+
+            tantque est_valide(aranges) {
+                position_flux := donne_position(aranges)
+                taille_lue := (position_flux.Début comme z64 - position_après_length)
+                taille_restante := length comme z64 - taille_lue
+                si taille_restante == 0 {
+                    arrête
+                }
+
+                segment: n64
+                si entrée.segment_selector_size != 0 {
+                    valeur_segment, _ := lis_petit_boutisme(aranges, n64)
+                    segment = valeur_segment
+                }
+
+                adresse, _ := lis_petit_boutisme(aranges, n64)
+                longueur, _ := lis_petit_boutisme(aranges, n64)
+
+                si segment == 0 && adresse == 0 && longueur == 0 {
+                    arrête
+                }
+
+                tuple := tableau_ajoute_élément(*résultat.tuples)
+                tuple.segment = segment
+                tuple.adresse = adresse
+                tuple.longueur = longueur
+            }
+
+            entrée.tuples.un_après_dernier = résultat.tuples.taille
+        }
+    }
+
+    retourne résultat
 }
 
 /** \} */
