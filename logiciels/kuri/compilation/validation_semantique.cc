@@ -3719,7 +3719,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
                              chaine_type(decl->type_sous_jacent),
-                             " ».");
+                             " ». ");
             e.ajoute_message("Les valeurs légales pour un tel type se trouvent entre ",
                              valeur_min(decl->type_sous_jacent),
                              " et ",
