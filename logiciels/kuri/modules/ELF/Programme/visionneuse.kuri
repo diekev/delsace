@@ -561,21 +561,27 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
         }
         sinon si onglet.nom == ".eh_frame" {
             donne_tabuleuse_eh_frame(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_info" {
             donne_tabuleuse_debug_info(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_abbrev" {
             donne_tabuleuse_debug_abbrev(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_aranges" {
             donne_tabuleuse_debug_aranges(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_rnglists" {
             donne_tabuleuse_debug_rnglists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_loclists" {
             donne_tabuleuse_debug_loclists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
         }
         sinon si onglet.nom == ".debug_str" {
             donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
