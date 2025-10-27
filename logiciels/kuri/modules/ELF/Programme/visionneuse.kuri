@@ -537,11 +537,11 @@ dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *Donné
 {
     donne_tabuleuse_sections(fichier, visionneuse.fonte, *onglet.tabuleuse)
 
-    dispose_rectangle()
+    _, barre := dispose_rectangle_défilable(espace, COULEUR_FOND)
     {
-        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte_défaut, espace, 0)
+        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte_défaut, espace, barre.défilage)
     }
-    termine_rectangle()
+    termine_rectangle_défilable()
 }
 
 dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
