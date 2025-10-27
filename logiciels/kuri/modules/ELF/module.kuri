@@ -711,7 +711,7 @@ parse_données_eh_frame :: fonc (fichier: *FichierELF) -> (succès: bool, donné
             diffère détruit(flux)
 
             tantque est_valide(flux) {
-                length := parse_length_cie(flux)
+                length, _ := parse_length_cie(flux)
                 si length == 0 {
                     arrête
                 }
@@ -766,7 +766,7 @@ parse_données_eh_frame :: fonc (fichier: *FichierELF) -> (succès: bool, donné
                 cie.un_après_indice_dernier_fde = cie.indice_premier_fde
 
                 tantque est_valide(flux) {
-                    length_fde := parse_length_cie(flux)
+                    length_fde, _ := parse_length_cie(flux)
                     si length_fde == 0 {
                         arrête
                     }
@@ -816,15 +816,17 @@ parse_données_eh_frame :: fonc (fichier: *FichierELF) -> (succès: bool, donné
     retourne succès, résultat
 }
 
-parse_length_cie :: fonc (flux: *FluxOctets) -> n64
+parse_length_cie :: fonc (flux: *FluxOctets) -> (n64, bool)
 {
+    est_32_bit := vrai
     length32, _ := lis_petit_boutisme(flux, n32)
     length: n64 = length32
     si length == 0xffffffff {
         extended_length, _ := lis_petit_boutisme(flux, n64)
         length = extended_length
+        est_32_bit = faux
     }
-    retourne length
+    retourne length, est_32_bit
 }
 
 PointeurEncodé :: struct {

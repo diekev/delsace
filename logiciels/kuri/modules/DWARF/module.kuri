@@ -213,10 +213,7 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
             diffère détruit(debug_line_str)
 
             tantque est_valide(debug_info) {
-                // À FAIRE : comprend la différence entre 32-bit et 64-bit
-                // et pourquoi les champs sont en 32-bit
-
-                unit_length := parse_length_cie(debug_info)
+                unit_length, est_32_bit := parse_length_cie(debug_info)
 
                 données_unité := lis_tranche_octet(debug_info, unit_length comme z64)
                 debug_info_unité := crée_flux_octets(données_unité)
@@ -238,12 +235,12 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                 debug_abbrev_offset: n64
                 si version == 5 {
                     valeur_address_size, _ := lis_petit_boutisme(debug_info_unité, n8)
-                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info_unité, n32)
+                    valeur_debug_abbrev_offset := lis_valeur_32_ou_64_bit(debug_info_unité, est_32_bit)
                     address_size = valeur_address_size
                     debug_abbrev_offset = valeur_debug_abbrev_offset
                 }
                 sinon si version == 4 {
-                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info_unité, n32)
+                    valeur_debug_abbrev_offset := lis_valeur_32_ou_64_bit(debug_info_unité, est_32_bit)
                     valeur_address_size, _ := lis_petit_boutisme(debug_info_unité, n8)
                     address_size = valeur_address_size
                     debug_abbrev_offset = valeur_debug_abbrev_offset
@@ -264,7 +261,7 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                 }
 
                 unité.attributs.premier = résultat.attributs.taille
-                parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size)
+                parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size, est_32_bit)
                 unité.attributs.un_après_dernier = résultat.attributs.taille
 
                 unité.dies.premier = résultat.dies.taille
@@ -281,7 +278,7 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                     die.code_abbréviation = code_abbréviation
 
                     die.attributs.premier = résultat.attributs.taille
-                    parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size)
+                    parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size, est_32_bit)
                     die.attributs.un_après_dernier = résultat.attributs.taille
                 }
 
@@ -298,7 +295,8 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                                        debug_info: *FluxOctetsMémoire,
                                        debug_str: *FluxOctetsMémoire,
                                        debug_line_str: *FluxOctetsMémoire,
-                                       address_size: n8)
+                                       address_size: n8,
+                                       est_32_bit: bool)
 {
     attributs := donne_attributs(*infos.abbréviations, abbréviation)
 
@@ -361,7 +359,7 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                 définis_valeur_constante_entière(attribut, valeur comme n64)
             }
             DW_FORM_strp {
-                décalage, _ := lis_petit_boutisme(debug_info, n32)
+                décalage := lis_valeur_32_ou_64_bit(debug_info, est_32_bit)
                 positionne(debug_str, PositionDébut(décalage comme z64))
                 valeur := lis_chaine_nul_terminée(debug_str)
                 définis_valeur_chaine(attribut, valeur)
@@ -397,23 +395,25 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                 panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
             }
             DW_FORM_sec_offset {
+                valeur := lis_valeur_32_ou_64_bit(debug_info, est_32_bit)
+                section: chaine
                 si it.nom == DW_AT_stmt_list {
-                    valeur, _ := lis_petit_boutisme(debug_info, n32)
-                    définis_valeur_décalage_section(attribut, valeur, ".debug_line")
+                    section = ".debug_line"
                 }
                 sinon si it.nom == DW_AT_ranges {
-                    valeur, _ := lis_petit_boutisme(debug_info, n32)
-                    définis_valeur_décalage_section(attribut, valeur, ".debug_rnglists")
+                    section = ".debug_rnglists"
                 }
                 sinon si it.nom == DW_AT_location {
-                    valeur, _ := lis_petit_boutisme(debug_info, n32)
-                    définis_valeur_décalage_section(attribut, valeur, ".debug_loclists")
+                    section = ".debug_loclists"
                 }
                 sinon si DW_AT_lo_user <= it.nom <= DW_AT_hi_user {
-                    _, _ := lis_petit_boutisme(debug_info, n32)
+                    /* Rien à faire tant que nous ne comprenons pas ces valeurs. */
                 }
                 sinon {
                     panique("sec_offset non-géré pour %", donne_chaine_pour_nom_attribut(it.nom))
+                }
+                si section {
+                    définis_valeur_décalage_section(attribut, valeur, section)
                 }
             }
             DW_FORM_exprloc {
@@ -440,7 +440,7 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                 panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
             }
             DW_FORM_line_strp {
-                décalage, _ := lis_petit_boutisme(debug_info, n32)
+                décalage := lis_valeur_32_ou_64_bit(debug_info, est_32_bit)
                 si debug_line_str {
                     positionne(debug_line_str, PositionDébut(décalage comme z64))
                     valeur := lis_chaine_nul_terminée(debug_line_str)
@@ -677,7 +677,7 @@ parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
         résultat = loge(TableAddressRanges)
 
         tantque est_valide(aranges) {
-            unit_length := parse_length_cie(aranges)
+            unit_length, est_32_bit := parse_length_cie(aranges)
             position_après_length := donne_position(aranges).Début comme z64
 
             données_unité := lis_tranche_octet(aranges, unit_length comme z64)
@@ -689,7 +689,7 @@ parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
                 imprimeln("Mauvaise version pour .debug_aranges, voulu 2, obtenu : %", version)
             }
 
-            debug_info_offset, _ := lis_petit_boutisme(aranges_unité, n32) // si 32bit, sinon, n64
+            debug_info_offset := lis_valeur_32_ou_64_bit(aranges_unité, est_32_bit)
             address_size, _ := lis_petit_boutisme(aranges_unité, n8)
             segment_selector_size, _ := lis_petit_boutisme(aranges_unité, n8)
 
@@ -789,7 +789,7 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
             table := tableau_ajoute_élément(*résultat.tables)
             table.décalage = donne_position(rnglists).Début comme z64 comme n64
 
-            unit_length := parse_length_cie(rnglists)
+            unit_length, est_32_bit := parse_length_cie(rnglists)
             données_unité := lis_tranche_octet(rnglists, unit_length comme z64)
             rnglists_unité := crée_flux_octets(données_unité)
             diffère détruit(rnglists_unité)
@@ -812,7 +812,7 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
             // a range list; DW_FORM_sec_offset must be used instead.
 
             pour table.offset_entry_count {
-                _, _ := lis_petit_boutisme(rnglists_unité, n32) // 32-bits
+                _ := lis_valeur_32_ou_64_bit(rnglists_unité, est_32_bit)
             }
 
             table.listes.premier = résultat.listes.taille
@@ -927,7 +927,7 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
             table := tableau_ajoute_élément(*résultat.tables)
             table.décalage = donne_position(loclists).Début comme z64 comme n64
 
-            unit_length := parse_length_cie(loclists)
+            unit_length, est_32_bit := parse_length_cie(loclists)
 
             données_unité := lis_tranche_octet(loclists, unit_length comme z64)
             loclists_unité := crée_flux_octets(données_unité)
@@ -951,7 +951,7 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
             // a location list; DW_FORM_sec_offset must be used instead.
 
             pour table.offset_entry_count {
-                _, _ := lis_petit_boutisme(loclists_unité, n32) // 32-bits
+                _ := lis_valeur_32_ou_64_bit(loclists_unité, est_32_bit)
             }
 
             table.listes.premier = résultat.listes.taille
@@ -1105,7 +1105,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
             table := tableau_ajoute_élément(*résultat.tables)
             table.décalage = donne_position(debug_line).Début comme z64 comme n64
 
-            unit_length := parse_length_cie(debug_line)
+            unit_length, est_32_bit := parse_length_cie(debug_line)
 
             données_unité := lis_tranche_octet(debug_line, unit_length comme z64)
             debug_line_unité := crée_flux_octets(données_unité)
@@ -1114,7 +1114,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
             version, _ := lis_petit_boutisme(debug_line_unité, n16)
 
             si version <= 4 {
-                header_length, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bits
+                header_length := lis_valeur_32_ou_64_bit(debug_line_unité, est_32_bit)
                 minimum_instruction_length, _ := lis_petit_boutisme(debug_line_unité, n8)
                 maximum_operations_per_instruction, _ := lis_petit_boutisme(debug_line_unité, n8)
                 default_is_stmt, _ := lis_petit_boutisme(debug_line_unité, n8)
@@ -1159,7 +1159,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
             sinon si version == 5 {
                 address_size, _ := lis_petit_boutisme(debug_line_unité, n8)
                 segment_selector_size, _ := lis_petit_boutisme(debug_line_unité, n8)
-                header_length, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bits
+                header_length := lis_valeur_32_ou_64_bit(debug_line_unité, est_32_bit)
                 minimum_instruction_length, _ := lis_petit_boutisme(debug_line_unité, n8)
                 maximum_operations_per_instruction, _ := lis_petit_boutisme(debug_line_unité, n8)
                 default_is_stmt, _ := lis_petit_boutisme(debug_line_unité, n8)
@@ -1181,7 +1181,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                         assert(format.form == DW_FORM_line_strp)
                         assert(debug_line_str != nul)
 
-                        décalage, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bit
+                        décalage := lis_valeur_32_ou_64_bit(debug_line_unité, est_32_bit)
                         positionne(debug_line_str, PositionDébut(décalage comme z64))
                         valeur := lis_chaine_nul_terminée(debug_line_str)
                         tableau_ajoute(*résultat.chaines, valeur)
@@ -1205,7 +1205,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                             si format.form == DW_FORM_line_strp {
                                 assert(debug_line_str != nul)
 
-                                décalage, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bit
+                                décalage := lis_valeur_32_ou_64_bit(debug_line_unité, est_32_bit)
                                 positionne(debug_line_str, PositionDébut(décalage comme z64))
                                 path_name = lis_chaine_nul_terminée(debug_line_str)
                             }
@@ -1331,6 +1331,20 @@ lis_tranche :: fonc (flux: *FluxOctetsMémoire, taille: z64, $T: type_de_donnée
     résultat: []T
     résultat.pointeur = tranche_octets.pointeur comme *T
     résultat.taille = tranche_octets.taille / taille_de(T) comme z64
+    retourne résultat
+}
+
+lis_valeur_32_ou_64_bit :: fonc (flux: *FluxOctetsMémoire, est_32_bit: bool) -> n64
+{
+    résultat: n64 = ---
+    si est_32_bit {
+        valeur32, _ := lis_petit_boutisme(flux, n32)
+        résultat = valeur32
+    }
+    sinon {
+        valeur64, _ := lis_petit_boutisme(flux, n64)
+        résultat = valeur64
+    }
     retourne résultat
 }
 
