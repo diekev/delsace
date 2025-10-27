@@ -579,6 +579,10 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
             donne_tabuleuse_debug_rnglists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
             config_texte = config_texte_mono
         }
+        sinon si onglet.nom == ".debug_line" {
+            donne_tabuleuse_debug_line(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
+            config_texte = config_texte_mono
+        }
         sinon si onglet.nom == ".debug_loclists" {
             donne_tabuleuse_debug_loclists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
             config_texte = config_texte_mono
@@ -1248,6 +1252,27 @@ donne_tabuleuse_debug_loclists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte
 
         pour table.tables {
             ajoute_ligne(tabuleuse, it.version, it.address_size, it.segment_selector_size, it.offset_entry_count, donne_taille(it.listes))
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte)
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_rnglists
+ * \{ */
+
+donne_tabuleuse_debug_line :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    si tabuleuse.lignes.taille == 0 {
+        table := parse_table_debug_line(fichier.fichier)
+        
+        initialise_tabuleuse(tabuleuse, "Version")
+
+        pour table.tables {
+            ajoute_ligne(tabuleuse, it.version)
         }
 
         initialise_tailles_max_colonnes(tabuleuse, fonte)

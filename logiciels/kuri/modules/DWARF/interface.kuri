@@ -321,6 +321,54 @@ donne_chaine_pour_entrée_location_list :: fonc (entrée: n8) -> chaine
     retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_LLE_end_of_list", "DW_LLE_", "entrée")
 }
 
+/* 7.22 Line Number Information */
+
+/* Table 7.25: Line number standard opcode encodings */
+DW_LNS_copy : n8 : 0x01
+DW_LNS_advance_pc : n8 : 0x02
+DW_LNS_advance_line : n8 : 0x03
+DW_LNS_set_file : n8 : 0x04
+DW_LNS_set_column : n8 : 0x05
+DW_LNS_negate_stmt : n8 : 0x06
+DW_LNS_set_basic_block : n8 : 0x07
+DW_LNS_const_add_pc : n8 : 0x08
+DW_LNS_fixed_advance_pc : n8 : 0x09
+DW_LNS_set_prologue_end : n8 : 0x0a
+DW_LNS_set_epilogue_begin : n8 : 0x0b
+DW_LNS_set_isa : n8 : 0x0c
+
+donne_chaine_pour_code_standard_numéro_ligne :: fonc (opcode: n8) -> chaine
+#corps_texte {
+    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_LNS_copy", "DW_LNS_", "opcode")
+}
+
+/* Table 7.26: Line number extended opcode encodings */
+DW_LNE_end_sequence : n8 : 0x01
+DW_LNE_set_address : n8 : 0x02
+DW_LNE_define_file : n8 : 0x03 // Seulement pour DWARF <= 4
+DW_LNE_set_discriminator : n8 : 0x04
+DW_LNE_lo_user : n8 : 0x80
+DW_LNE_hi_user : n8 : 0xff
+
+donne_chaine_pour_code_étendu_numéro_ligne :: fonc (opcode: n8) -> chaine
+#corps_texte {
+    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_LNE_end_sequence", "DW_LNE_", "opcode", "DW_LNE_lo_user", "DW_LNE_hi_user")
+}
+
+/* Table 7.27: Line number header entry format encodings */
+DW_LNCT_path : n16 : 0x1
+DW_LNCT_directory_index : n16 : 0x2
+DW_LNCT_timestamp : n16 : 0x3
+DW_LNCT_size : n16 : 0x4
+DW_LNCT_MD5 : n16 : 0x5
+DW_LNCT_lo_user : n16 : 0x2000
+DW_LNCT_hi_user : n16 : 0x3fff
+
+donne_chaine_pour_entrée_entête_numéro_ligne :: fonc (entête: n16) -> chaine
+#corps_texte {
+    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_LNCT_path", "DW_LNCT_", "entête", "DW_LNCT_lo_user", "DW_LNCT_hi_user")
+}
+
 /* 7.25 Range List Entries for Non-contiguous Address Ranges */
 DW_RLE_end_of_list : n8 : 0x00
 DW_RLE_base_addressx : n8 : 0x01

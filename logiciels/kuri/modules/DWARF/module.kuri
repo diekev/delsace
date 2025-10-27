@@ -451,8 +451,8 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
             DW_FORM_line_strp {
                 décalage, _ := lis_petit_boutisme(debug_info, n32)
                 si debug_line_str {
-                    positionne(debug_str, PositionDébut(décalage comme z64))
-                    valeur := lis_chaine_nul_terminée(debug_str)
+                    positionne(debug_line_str, PositionDébut(décalage comme z64))
+                    valeur := lis_chaine_nul_terminée(debug_line_str)
                     définis_valeur_chaine(attribut, valeur)
                 }
                 sinon {
@@ -1052,6 +1052,267 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Section .debug_line
+ * \{ */
+
+TableDebugLineUnité :: struct {
+    décalage: n64
+
+    version: n16
+    address_size: n8
+    segment_selector_size: n8
+    header_length: n64
+    minimum_instruction_length: n8
+    maximum_operations_per_instruction: n8
+    default_is_stmt: n8
+    line_base: z8
+    line_range: n8
+    opcode_base: n8
+    standard_opcode_lengths: []n8
+
+    include_directories: IndexageTranche
+
+    file_name_entry_format: IndexageTranche
+    file_names: IndexageTranche
+}
+
+FileEntryFormat :: struct {
+    content_type: n64 // DW_LNCT_*
+    form: n64 // DW_FORM_*
+}
+
+FileEntry :: struct {
+    path_name: chaine
+    directory: n64
+    timestamp: n64
+    size: n64
+}
+
+TableDebugLine :: struct {
+    tables: [..]TableDebugLineUnité
+    entry_formats: [..]FileEntryFormat
+    chaines: [..]chaine
+    file_entries: [..]FileEntry
+}
+
+parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
+{
+    résultat: *TableDebugLine
+
+    section_debug_line := trouve_section(fichier, ".debug_line")
+    section_debug_line_str := trouve_section(fichier, ".debug_line_str")
+
+    si section_debug_line {
+        données_section_debug_line := donne_données_section(fichier, section_debug_line)
+
+        debug_line := crée_flux_octets(données_section_debug_line)
+        diffère détruit(debug_line)
+
+        debug_line_str: *FluxOctetsMémoire
+        si section_debug_line_str {
+            données_debug_line_str := donne_données_section(fichier, section_debug_line_str)
+            debug_line_str = crée_flux_octets(données_debug_line_str)
+        }
+        diffère détruit(debug_line_str)
+
+        résultat = loge(TableDebugLine)
+
+        tantque est_valide(debug_line) {
+            table := tableau_ajoute_élément(*résultat.tables)
+            table.décalage = donne_position(debug_line).Début comme z64 comme n64
+
+            unit_length := parse_length_cie(debug_line)
+
+            données_unité := lis_tranche_octet(debug_line, unit_length comme z64)
+            debug_line_unité := crée_flux_octets(données_unité)
+            diffère détruit(debug_line_unité)
+
+            version, _ := lis_petit_boutisme(debug_line_unité, n16)
+
+            si version <= 4 {
+                header_length, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bits
+                minimum_instruction_length, _ := lis_petit_boutisme(debug_line_unité, n8)
+                maximum_operations_per_instruction, _ := lis_petit_boutisme(debug_line_unité, n8)
+                default_is_stmt, _ := lis_petit_boutisme(debug_line_unité, n8)
+                line_base, _ := lis_petit_boutisme(debug_line_unité, z8)
+                line_range, _ := lis_petit_boutisme(debug_line_unité, n8)
+                opcode_base, _ := lis_petit_boutisme(debug_line_unité, n8)
+                standard_opcode_lengths := lis_tranche(debug_line_unité, opcode_base comme z64, n8)
+
+                include_directories := parse_séquence_chaines_nul_terminées(résultat, debug_line_unité)
+
+                file_names: IndexageTranche
+                file_names.premier = résultat.file_entries.taille
+                boucle {
+                    path_name := lis_chaine_nul_terminée(debug_line_unité)
+                    si path_name == "" {
+                        arrête
+                    }
+                    directory := décode_leb128_naturel(debug_line_unité)
+                    timestamp := décode_leb128_naturel(debug_line_unité)
+                    size := décode_leb128_naturel(debug_line_unité)
+
+                    entrée := tableau_ajoute_élément(*résultat.file_entries)
+                    entrée.path_name = path_name
+                    entrée.directory = directory
+                    entrée.timestamp = timestamp
+                    entrée.size = size
+                }
+                file_names.un_après_dernier = résultat.file_entries.taille
+
+                table.version = version
+                table.header_length = header_length
+                table.minimum_instruction_length = minimum_instruction_length
+                table.maximum_operations_per_instruction = maximum_operations_per_instruction
+                table.default_is_stmt = default_is_stmt
+                table.line_base = line_base
+                table.line_range = line_range
+                table.opcode_base = opcode_base
+                table.standard_opcode_lengths = standard_opcode_lengths
+                table.include_directories = include_directories
+                table.file_names = file_names
+            }
+            sinon si version == 5 {
+                address_size, _ := lis_petit_boutisme(debug_line_unité, n8)
+                segment_selector_size, _ := lis_petit_boutisme(debug_line_unité, n8)
+                header_length, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bits
+                minimum_instruction_length, _ := lis_petit_boutisme(debug_line_unité, n8)
+                maximum_operations_per_instruction, _ := lis_petit_boutisme(debug_line_unité, n8)
+                default_is_stmt, _ := lis_petit_boutisme(debug_line_unité, n8)
+                line_base, _ := lis_petit_boutisme(debug_line_unité, z8)
+                line_range, _ := lis_petit_boutisme(debug_line_unité, n8)
+                opcode_base, _ := lis_petit_boutisme(debug_line_unité, n8)
+                standard_opcode_lengths := lis_tranche(debug_line_unité, opcode_base comme z64 - 1, n8)
+
+                directory_entry_format_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                directory_entry_format := parse_séquence_entry_format(résultat, debug_line_unité, directory_entry_format_count)
+                assert(directory_entry_format_count == 1)
+
+                directories_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                directories : IndexageTranche
+                directories.premier = résultat.chaines.taille
+                pour directories_count {
+                    pour format dans directory_entry_format {
+                        assert(format.content_type == DW_LNCT_path)
+                        assert(format.form == DW_FORM_line_strp)
+                        assert(debug_line_str != nul)
+
+                        décalage, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bit
+                        positionne(debug_line_str, PositionDébut(décalage comme z64))
+                        valeur := lis_chaine_nul_terminée(debug_line_str)
+                        tableau_ajoute(*résultat.chaines, valeur)
+                    }
+                }
+                directories.un_après_dernier = résultat.chaines.taille
+
+                file_name_entry_format_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                file_name_entry_format := parse_séquence_entry_format(résultat, debug_line_unité, file_name_entry_format_count)
+                assert(file_name_entry_format.taille == 2)
+
+                file_names_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                file_names : IndexageTranche
+                file_names.premier = résultat.file_entries.taille
+                pour file_names_count {
+                    path_name: chaine
+                    directory: n64
+
+                    pour format dans file_name_entry_format {
+                        si format.content_type == DW_LNCT_path {
+                            si format.form == DW_FORM_line_strp {
+                                assert(debug_line_str != nul)
+
+                                décalage, _ := lis_petit_boutisme(debug_line_unité, n32) // si 32-bit
+                                positionne(debug_line_str, PositionDébut(décalage comme z64))
+                                path_name = lis_chaine_nul_terminée(debug_line_str)
+                            }
+                            sinon {
+                                panique("forme non-supporté : %", donne_chaine_pour_forme_attribut(format.form))
+                            }
+                        }
+                        sinon si format.content_type == DW_LNCT_directory_index {
+                            si format.form == DW_FORM_udata {
+                                directory = décode_leb128_naturel(debug_line_unité)
+                            }
+                            sinon {
+                                panique("forme non-supporté : %", donne_chaine_pour_forme_attribut(format.form))
+                            }
+                        }
+                        sinon {
+                            panique("content_type non-supporté : %", donne_chaine_pour_entrée_entête_numéro_ligne(format.content_type comme n16))
+                        }
+                    }
+
+                    entrée := tableau_ajoute_élément(*résultat.file_entries)
+                    entrée.path_name = path_name
+                    entrée.directory = directory
+                }
+                file_names.un_après_dernier = résultat.file_entries.taille
+
+                table.version = version
+                table.address_size = address_size
+                table.segment_selector_size = segment_selector_size
+                table.header_length = header_length
+                table.minimum_instruction_length = minimum_instruction_length
+                table.maximum_operations_per_instruction = maximum_operations_per_instruction
+                table.default_is_stmt = default_is_stmt
+                table.line_base = line_base
+                table.line_range = line_range
+                table.opcode_base = opcode_base
+                table.standard_opcode_lengths = standard_opcode_lengths
+                table.include_directories = directories
+                table.file_names = file_names
+
+                // Line Number Program
+
+                // o, _ := lis_petit_boutisme(debug_line_unité, n8)
+                // imprimeln("%", donne_chaine_pour_code_standard_numéro_ligne(o))
+            }
+            sinon {
+                imprimeln("Version non-supporté pour .debug_line")
+                continue
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+parse_séquence_entry_format :: fonc (table: *TableDebugLine, debug_line: *FluxOctetsMémoire, compte: n8) -> []FileEntryFormat
+{
+    résultat: IndexageTranche
+    résultat.premier = table.entry_formats.taille
+
+    pour compte {
+        entry_format := tableau_ajoute_élément(*table.entry_formats)
+        entry_format.content_type = décode_leb128_naturel(debug_line)
+        entry_format.form = décode_leb128_naturel(debug_line)
+    }
+
+    résultat.un_après_dernier = table.entry_formats.taille
+    retourne donne_tranche(table.entry_formats, résultat)
+}
+
+parse_séquence_chaines_nul_terminées :: fonc (table: *TableDebugLine, debug_line: *FluxOctetsMémoire) -> IndexageTranche
+{
+    résultat: IndexageTranche
+    résultat.premier = table.chaines.taille
+
+    boucle {
+        chn := lis_chaine_nul_terminée(debug_line)
+        si chn == "" {
+            arrête
+        }
+        imprimeln("%", chn)
+        tableau_ajoute(*table.chaines, chn)
+    }
+
+    résultat.un_après_dernier = table.chaines.taille
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
  * \{ */
 
@@ -1078,6 +1339,15 @@ lis_tableau_préfixé_taille_uleb128 :: fonc (flux: *FluxOctetsMémoire) -> []oc
 {
     taille := décode_leb128_naturel(flux)
     retourne lis_tranche_octet(flux, taille comme z64)
+}
+
+lis_tranche :: fonc (flux: *FluxOctetsMémoire, taille: z64, $T: type_de_données) -> []T
+{
+    tranche_octets := lis_tranche_octet(flux, taille)
+    résultat: []T
+    résultat.pointeur = tranche_octets.pointeur comme *T
+    résultat.taille = tranche_octets.taille / taille_de(T) comme z64
+    retourne résultat
 }
 
 /** \} */
