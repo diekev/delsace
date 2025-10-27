@@ -309,17 +309,8 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
 
         discr it.forme {
             DW_FORM_addr {
-                si address_size == 4 {
-                    valeur, _ := lis_petit_boutisme(debug_info, n32)
-                    définis_valeur_adresse(attribut, valeur)
-                }
-                sinon si address_size == 8 {
-                    valeur, _ := lis_petit_boutisme(debug_info, n64)
-                    définis_valeur_adresse(attribut, valeur)
-                }
-                sinon {
-                    panique("taille adresse non-géré %", address_size)
-                }
+                valeur := lis_adresse(debug_info, address_size)
+                définis_valeur_adresse(attribut, valeur)
             }
             DW_FORM_data2 {
                 valeur, _ := lis_petit_boutisme(debug_info, n16)
@@ -858,21 +849,14 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
                             entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         DW_RLE_base_address {
-                            // À FAIRE : taille adresse
-                            adresse, _ := lis_petit_boutisme(rnglists_unité, n64)
-                            entrée.valeur1 = adresse
+                            entrée.valeur1 = lis_adresse(rnglists_unité, address_size)
                         }
                         DW_RLE_start_end {
-                            // À FAIRE : taille adresse
-                            start, _ := lis_petit_boutisme(rnglists_unité, n64)
-                            end, _ := lis_petit_boutisme(rnglists_unité, n64)
-                            entrée.valeur1 = start
-                            entrée.valeur2 = end
+                            entrée.valeur1 = lis_adresse(rnglists_unité, address_size)
+                            entrée.valeur2 = lis_adresse(rnglists_unité, address_size)
                         }
                         DW_RLE_start_length {
-                            // À FAIRE : taille adresse
-                            start, _ := lis_petit_boutisme(rnglists_unité, n64)
-                            entrée.valeur1 = start
+                            entrée.valeur1 = lis_adresse(rnglists_unité, address_size)
                             entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         sinon {
