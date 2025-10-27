@@ -1,335 +1,905 @@
-importe Fondation
-importe Introspection
+importe ELF
+importe Flux
+importe SysFichier
 
-UnitType :: énum n8 {
-    compile :: 0x01
-    type :: 0x02
-    partial :: 0x03
-    skeleton :: 0x04
-    split_compile :: 0x05
-    split_type :: 0x06
-    lo_user :: 0x80
-    hi_user :: 0xff
+charge "interface"
+
+/* ------------------------------------------------------------------------- */
+/** \nom IndexageTranche
+ * \{ */
+
+IndexageTranche :: struct {
+    premier: z64
+    un_après_dernier: z64
 }
 
-DW_UT_compile : n8 : 0x01
-DW_UT_type : n8 : 0x02
-DW_UT_partial : n8 : 0x03
-DW_UT_skeleton : n8 : 0x04
-DW_UT_split_compile : n8 : 0x05
-DW_UT_split_type : n8 : 0x06
-DW_UT_lo_user : n8 : 0x80
-DW_UT_hi_user : n8 : 0xff
-
-DW_TAG_array_type : n32 : 0x01
-DW_TAG_class_type : n32 : 0x02
-DW_TAG_entry_point : n32 : 0x03
-DW_TAG_enumeration_type : n32 : 0x04
-DW_TAG_formal_parameter : n32 : 0x05
-// Reserved : n32 : 0x06
-// Reserved : n32 : 0x07
-DW_TAG_imported_declaration : n32 : 0x08
-// Reserved : n32 : 0x09
-DW_TAG_label : n32 : 0x0a
-DW_TAG_lexical_block : n32 : 0x0b
-// Reserved : n32 : 0x0c
-DW_TAG_member : n32 : 0x0d
-// Reserved : n32 : 0x0e
-DW_TAG_pointer_type : n32 : 0x0f
-DW_TAG_reference_type : n32 : 0x10
-DW_TAG_compile_unit : n32 : 0x11
-DW_TAG_string_type : n32 : 0x12
-DW_TAG_structure_type : n32 : 0x13
-// Reserved : n32 : 0x14
-DW_TAG_subroutine_type : n32 : 0x15
-DW_TAG_typedef : n32 : 0x16
-DW_TAG_union_type : n32 : 0x17
-DW_TAG_unspecified_parameters : n32 : 0x18
-DW_TAG_variant : n32 : 0x19
-DW_TAG_common_block : n32 : 0x1a
-DW_TAG_common_inclusion : n32 : 0x1b
-DW_TAG_inheritance : n32 : 0x1c
-DW_TAG_inlined_subroutine : n32 : 0x1d
-DW_TAG_module : n32 : 0x1e
-DW_TAG_ptr_to_member_type : n32 : 0x1f
-DW_TAG_set_type : n32 : 0x20
-DW_TAG_subrange_type : n32 : 0x21
-DW_TAG_with_stmt : n32 : 0x22
-DW_TAG_access_declaration : n32 : 0x23
-DW_TAG_base_type : n32 : 0x24
-DW_TAG_catch_block : n32 : 0x25
-DW_TAG_const_type : n32 : 0x26
-DW_TAG_constant : n32 : 0x27
-DW_TAG_enumerator : n32 : 0x28
-DW_TAG_file_type : n32 : 0x29
-DW_TAG_friend : n32 : 0x2a
-DW_TAG_namelist : n32 : 0x2b
-DW_TAG_namelist_item : n32 : 0x2c
-DW_TAG_packed_type : n32 : 0x2d
-DW_TAG_subprogram : n32 : 0x2e
-DW_TAG_template_type_parameter : n32 : 0x2f
-DW_TAG_template_value_parameter : n32 : 0x30
-DW_TAG_thrown_type : n32 : 0x31
-DW_TAG_try_block : n32 : 0x32
-DW_TAG_variant_part : n32 : 0x33
-DW_TAG_variable : n32 : 0x34
-DW_TAG_volatile_type : n32 : 0x35
-DW_TAG_dwarf_procedure : n32 : 0x36
-DW_TAG_restrict_type : n32 : 0x37
-DW_TAG_interface_type : n32 : 0x38
-DW_TAG_namespace : n32 : 0x39
-DW_TAG_imported_module : n32 : 0x3a
-DW_TAG_unspecified_type : n32 : 0x3b
-DW_TAG_partial_unit : n32 : 0x3c
-DW_TAG_imported_unit : n32 : 0x3d
-// Reserved : n32 : 0x3e
-DW_TAG_condition : n32 : 0x3f
-DW_TAG_shared_type : n32 : 0x40
-DW_TAG_type_unit : n32 : 0x41
-DW_TAG_rvalue_reference_type : n32 : 0x42
-DW_TAG_template_alias : n32 : 0x43
-DW_TAG_coarray_type : n32 : 0x44
-DW_TAG_generic_subrange : n32 : 0x45
-DW_TAG_dynamic_type : n32 : 0x46
-DW_TAG_atomic_type : n32 : 0x47
-DW_TAG_call_site : n32 : 0x48
-DW_TAG_call_site_parameter : n32 : 0x49
-DW_TAG_skeleton_unit : n32 : 0x4a
-DW_TAG_immutable_type : n32 : 0x4b
-DW_TAG_lo_user : n32 : 0x4080
-DW_TAG_hi_user : n32 : 0xffff
-
-donne_chaine_pour_tag_abbréviation :: fonc (tag: n64) -> chaine
-#corps_texte {
-    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_TAG_array_type", "DW_TAG_", "tag", "DW_TAG_lo_user", "DW_TAG_hi_user")
+donne_taille :: fonc (indexage: IndexageTranche) -> z64 #enligne
+{
+    retourne indexage.un_après_dernier - indexage.premier
 }
 
-DW_CHILDREN_no : n8 : 0x0
-DW_CHILDREN_yes : n8 : 0x1
-
-DW_AT_sibling : n32 : 0x01
-DW_AT_location : n32 : 0x02
-DW_AT_name : n32 : 0x03
-// Reserved : n32 : 0x04
-// Reserved : n32 : 0x05
-// Reserved : n32 : 0x06
-// Reserved : n32 : 0x07
-// Reserved : n32 : 0x08
-DW_AT_ordering : n32 : 0x09
-// Reserved : n32 : 0x0a
-DW_AT_byte_size : n32 : 0x0b
-// Reserved : n32 : 0x0c
-DW_AT_bit_size : n32 : 0x0d
-// Reserved : n32 : 0x0e
-// Reserved : n32 : 0x0f
-DW_AT_stmt_list : n32 : 0x10
-DW_AT_low_pc : n32 : 0x11
-DW_AT_high_pc : n32 : 0x12
-DW_AT_language : n32 : 0x13
-// Reserved : n32 : 0x14
-DW_AT_discr : n32 : 0x15
-DW_AT_discr_value : n32 : 0x16
-DW_AT_visibility : n32 : 0x17
-DW_AT_import : n32 : 0x18
-DW_AT_string_length : n32 : 0x19
-DW_AT_common_reference : n32 : 0x1a
-DW_AT_comp_dir : n32 : 0x1b
-DW_AT_const_value : n32 : 0x1c
-DW_AT_containing_type : n32 : 0x1d
-DW_AT_default_value : n32 : 0x1e
-// Reserved : n32 : 0x1f
-DW_AT_inline : n32 : 0x20
-DW_AT_is_optional : n32 : 0x21
-DW_AT_lower_bound : n32 : 0x22
-// Reserved : n32 : 0x23
-// Reserved : n32 : 0x24
-DW_AT_producer : n32 : 0x25
-// Reserved : n32 : 0x26
-DW_AT_prototyped : n32 : 0x27
-// Reserved : n32 : 0x28
-// Reserved : n32 : 0x29
-DW_AT_return_addr : n32 : 0x2a
-// Reserved : n32 : 0x2b
-DW_AT_start_scope : n32 : 0x2c
-// Reserved : n32 : 0x2d
-DW_AT_bit_stride : n32 : 0x2e
-DW_AT_upper_bound : n32 : 0x2f
-// Reserved : n32 : 0x30
-DW_AT_abstract_origin : n32 : 0x31
-DW_AT_accessibility : n32 : 0x32
-DW_AT_address_class : n32 : 0x33
-DW_AT_artificial : n32 : 0x34
-DW_AT_base_types : n32 : 0x35
-DW_AT_calling_convention : n32 : 0x36
-DW_AT_count : n32 : 0x37
-DW_AT_data_member_location : n32 : 0x38
-DW_AT_decl_column : n32 : 0x39
-DW_AT_decl_file : n32 : 0x3a
-DW_AT_decl_line : n32 : 0x3b
-DW_AT_declaration : n32 : 0x3c
-DW_AT_discr_list : n32 : 0x3d
-DW_AT_encoding : n32 : 0x3e
-DW_AT_external : n32 : 0x3f
-DW_AT_frame_base : n32 : 0x40
-DW_AT_friend : n32 : 0x41
-DW_AT_identifier_case : n32 : 0x42
-// Reserved : n32 : 0x43
-DW_AT_namelist_item : n32 : 0x44
-DW_AT_priority : n32 : 0x45
-DW_AT_segment : n32 : 0x46
-DW_AT_specification : n32 : 0x47
-DW_AT_static_link : n32 : 0x48
-DW_AT_type : n32 : 0x49
-DW_AT_use_location : n32 : 0x4a
-DW_AT_variable_parameter : n32 : 0x4b
-DW_AT_virtuality : n32 : 0x4c
-DW_AT_vtable_elem_location : n32 : 0x4d
-DW_AT_allocated : n32 : 0x4e
-DW_AT_associated : n32 : 0x4f
-DW_AT_data_location : n32 : 0x50
-DW_AT_byte_stride : n32 : 0x51
-DW_AT_entry_pc : n32 : 0x52
-DW_AT_use_UTF8 : n32 : 0x53
-DW_AT_extension : n32 : 0x54
-DW_AT_ranges : n32 : 0x55
-DW_AT_trampoline : n32 : 0x56
-DW_AT_call_column : n32 : 0x57
-DW_AT_call_file : n32 : 0x58
-DW_AT_call_line : n32 : 0x59
-DW_AT_description : n32 : 0x5a
-DW_AT_binary_scale : n32 : 0x5b
-DW_AT_decimal_scale : n32 : 0x5c
-DW_AT_small : n32 : 0x5d
-DW_AT_decimal_sign : n32 : 0x5e
-DW_AT_digit_count : n32 : 0x5f
-DW_AT_picture_string : n32 : 0x60
-DW_AT_mutable : n32 : 0x61
-DW_AT_threads_scaled : n32 : 0x62
-DW_AT_explicit : n32 : 0x63
-DW_AT_object_pointer : n32 : 0x64
-DW_AT_endianity : n32 : 0x65
-DW_AT_elemental : n32 : 0x66
-DW_AT_pure : n32 : 0x67
-DW_AT_recursive : n32 : 0x68
-DW_AT_signature : n32 : 0x69
-DW_AT_main_subprogram : n32 : 0x6a
-DW_AT_data_bit_offset : n32 : 0x6b
-DW_AT_const_expr : n32 : 0x6c
-DW_AT_enum_class : n32 : 0x6d
-DW_AT_linkage_name : n32 : 0x6e
-DW_AT_string_length_bit_size : n32 : 0x6f
-DW_AT_string_length_byte_size : n32 : 0x70
-DW_AT_rank : n32 : 0x71
-DW_AT_str_offsets_base : n32 : 0x72
-DW_AT_addr_base : n32 : 0x73
-DW_AT_rnglists_base : n32 : 0x74
-// Reserved : n32 : 0x75
-DW_AT_dwo_name : n32 : 0x76
-DW_AT_reference : n32 : 0x77
-DW_AT_rvalue_reference : n32 : 0x78
-DW_AT_macros : n32 : 0x79
-DW_AT_call_all_calls : n32 : 0x7a
-DW_AT_call_all_source_calls : n32 : 0x7b
-DW_AT_call_all_tail_calls : n32 : 0x7c
-DW_AT_call_return_pc : n32 : 0x7d
-DW_AT_call_value : n32 : 0x7e
-DW_AT_call_origin : n32 : 0x7f
-DW_AT_call_parameter : n32 : 0x80
-DW_AT_call_pc : n32 : 0x81
-DW_AT_call_tail_call : n32 : 0x82
-DW_AT_call_target : n32 : 0x83
-DW_AT_call_target_clobbered : n32 : 0x84
-DW_AT_call_data_location : n32 : 0x85
-DW_AT_call_data_value : n32 : 0x86
-DW_AT_noreturn : n32 : 0x87
-DW_AT_alignment : n32 : 0x88
-DW_AT_export_symbols : n32 : 0x89
-DW_AT_deleted : n32 : 0x8a
-DW_AT_defaulted : n32 : 0x8b
-DW_AT_loclists_base : n32 : 0x8c
-DW_AT_lo_user : n32 : 0x2000
-DW_AT_hi_user : n32 : 0x3fff
-
-donne_chaine_pour_nom_attribut :: fonc (nom: n64) -> chaine
-#corps_texte {
-    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_AT_sibling", "DW_AT_", "nom", "DW_AT_lo_user", "DW_AT_hi_user")
+donne_tranche :: fonc (tableau: []$T, indexage: IndexageTranche) -> []T #enligne
+{
+    résultat: []T = ---
+    résultat.pointeur = tableau.pointeur + indexage.premier
+    résultat.taille = donne_taille(indexage)
+    retourne résultat
 }
 
-DW_FORM_addr : n32 : 0x01
-// Reserved : n32 : 0x02
-DW_FORM_block2 : n32 : 0x03
-DW_FORM_block4 : n32 : 0x04
-DW_FORM_data2 : n32 : 0x05
-DW_FORM_data4 : n32 : 0x06
-DW_FORM_data8 : n32 : 0x07
-DW_FORM_string : n32 : 0x08
-DW_FORM_block : n32 : 0x09
-DW_FORM_block1 : n32 : 0x0a
-DW_FORM_data1 : n32 : 0x0b
-DW_FORM_flag : n32 : 0x0c
-DW_FORM_sdata : n32 : 0x0d
-DW_FORM_strp : n32 : 0x0e
-DW_FORM_udata : n32 : 0x0f
-DW_FORM_ref_addr : n32 : 0x10
-DW_FORM_ref1 : n32 : 0x11
-DW_FORM_ref2 : n32 : 0x12
-DW_FORM_ref4 : n32 : 0x13
-DW_FORM_ref8 : n32 : 0x14
-DW_FORM_ref_udata : n32 : 0x15
-DW_FORM_indirect : n32 : 0x16
-DW_FORM_sec_offset : n32 : 0x17
-DW_FORM_exprloc : n32 : 0x18
-DW_FORM_flag_present : n32 : 0x19
-DW_FORM_strx : n32 : 0x1a
-DW_FORM_addrx : n32 : 0x1b
-DW_FORM_ref_sup4 : n32 : 0x1c
-DW_FORM_strp_sup : n32 : 0x1d
-DW_FORM_data16 : n32 : 0x1e
-DW_FORM_line_strp : n32 : 0x1f
-DW_FORM_ref_sig8 : n32 : 0x20
-DW_FORM_implicit_const : n32 : 0x21
-DW_FORM_loclistx : n32 : 0x22
-DW_FORM_rnglistx : n32 : 0x23
-DW_FORM_ref_sup8 : n32 : 0x24
-DW_FORM_strx1 : n32 : 0x25
-DW_FORM_strx2 : n32 : 0x26
-DW_FORM_strx3 : n32 : 0x27
-DW_FORM_strx4 : n32 : 0x28
-DW_FORM_addrx1 : n32 : 0x29
-DW_FORM_addrx2 : n32 : 0x2a
-DW_FORM_addrx3 : n32 : 0x2b
-DW_FORM_addrx4 : n32 : 0x2c
+/** \} */
 
-donne_chaine_pour_forme_attribut :: fonc (forme: n64) -> chaine
-#corps_texte {
-    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_FORM_addr", "DW_FORM_", "forme")
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_info
+ * \{ */
 
-/* 7.25 Range List Entries for Non-contiguous Address Ranges */
-DW_RLE_end_of_list : n8 : 0x00
-DW_RLE_base_addressx : n8 : 0x01
-DW_RLE_startx_endx : n8 : 0x02
-DW_RLE_startx_length : n8 : 0x03
-DW_RLE_offset_pair : n8 : 0x04
-DW_RLE_base_address : n8 : 0x05
-DW_RLE_start_end : n8 : 0x06
-DW_RLE_start_length : n8 : 0x07
-
-donne_chaine_pour_entrée_range_list :: fonc (entrée: n8) -> chaine
-#corps_texte {
-    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_RLE_end_of_list", "DW_RLE_", "entrée")
-}
-
-DWARF64_UnitHeader :: struct {
-    length: n64
+CompilationUnit :: struct {
     version: n16
-    unit_type: n8
-}
-
-DWARF64_CompilationUnit :: struct {
-    header: DWARF64_UnitHeader
+    unit_type: UnitType
     address_size: n8
     debug_abbrev_offset: n64
+    code_abbréviation: n64
+
+    dies: IndexageTranche
+    attributs: IndexageTranche
 }
 
+DebugInformationEntry :: struct {
+    code_abbréviation: n64
 
+    attributs: IndexageTranche
+}
+
+AttributDIE :: struct {
+    /* Pointeur vers la table pour accéder plus facilement aux valeurs. */
+    table: *TableValeursAttributs
+    nom: n64
+    indice_valeur: z64
+    type: TypeValeurAttributDIE
+}
+
+TypeValeurAttributDIE :: énum {
+    ADRESSE
+    CHAINE
+    CONSTANTE_ENTIÈRE
+    CONSTANTE_IMPLICITE
+    DÉCALAGE_SECTION
+    RÉFÉRENCE_DIE
+    DRAPEAU
+    EXPR_LOC
+    BLOC
+}
+
+DécalageSection :: struct {
+    décalage: n64
+    section: chaine
+}
+
+TableValeursAttributs :: struct {
+    adresses: [..]n64
+    chaines: [..]chaine
+    constantes_entières: [..]n64
+    constantes_implicites: [..]z64
+    décalages_sections: [..]DécalageSection
+    références: [..]n64
+    drapeaux: [..]bool
+    exprs_locs: [..][]octet
+    blocs: [..][]octet
+}
+
+définis_valeur_adresse :: fonc (attribut: *AttributDIE, adresse: n64)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.adresses.taille
+    tableau_ajoute(*table.adresses, adresse)
+    attribut.type = TypeValeurAttributDIE.ADRESSE
+}
+
+définis_valeur_chaine :: fonc (attribut: *AttributDIE, texte: chaine)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.chaines.taille
+    tableau_ajoute(*table.chaines, texte)
+    attribut.type = TypeValeurAttributDIE.CHAINE
+}
+
+définis_valeur_constante_entière :: fonc (attribut: *AttributDIE, constante: n64)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.constantes_entières.taille
+    tableau_ajoute(*table.constantes_entières, constante)
+    attribut.type = TypeValeurAttributDIE.CONSTANTE_ENTIÈRE
+}
+
+définis_valeur_constante_implicite :: fonc (attribut: *AttributDIE, constante: z64)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.constantes_implicites.taille
+    tableau_ajoute(*table.constantes_implicites, constante)
+    attribut.type = TypeValeurAttributDIE.CONSTANTE_IMPLICITE
+}
+
+définis_valeur_décalage_section :: fonc (attribut: *AttributDIE, décalage: n64, section: chaine)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.décalages_sections.taille
+    tableau_ajoute(*table.décalages_sections, DécalageSection(décalage, section))
+    attribut.type = TypeValeurAttributDIE.DÉCALAGE_SECTION
+}
+
+définis_valeur_référence :: fonc (attribut: *AttributDIE, référence: n64)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.références.taille
+    tableau_ajoute(*table.références, référence)
+    attribut.type = TypeValeurAttributDIE.RÉFÉRENCE_DIE
+}
+
+définis_valeur_drapeau :: fonc (attribut: *AttributDIE, drapeau: bool)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.drapeaux.taille
+    tableau_ajoute(*table.drapeaux, drapeau)
+    attribut.type = TypeValeurAttributDIE.DRAPEAU
+}
+
+définis_valeur_exprloc :: fonc (attribut: *AttributDIE, expr_loc: []octet)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.exprs_locs.taille
+    tableau_ajoute(*table.exprs_locs, expr_loc)
+    attribut.type = TypeValeurAttributDIE.EXPR_LOC
+}
+
+définis_valeur_bloc :: fonc (attribut: *AttributDIE, bloc: []octet)
+{
+    table := attribut.table
+    attribut.indice_valeur = table.blocs.taille
+    tableau_ajoute(*table.blocs, bloc)
+    attribut.type = TypeValeurAttributDIE.BLOC
+}
+
+InformationsDébogageDWARF :: struct {
+    valeurs_attributs: TableValeursAttributs
+    abbréviations: TableAbbréviations
+    unités_de_compilation: [..]CompilationUnit
+    dies: [..]DebugInformationEntry
+    attributs: [..]AttributDIE
+}
+
+donne_dies :: fonc (infos: *InformationsDébogageDWARF, unité: *CompilationUnit) -> []DebugInformationEntry
+{
+    retourne donne_tranche(infos.dies, unité.dies)
+}
+
+donne_attributs :: fonc (infos: *InformationsDébogageDWARF, unité: *CompilationUnit) -> []AttributDIE
+{
+    retourne donne_tranche(infos.attributs, unité.attributs)
+}
+
+donne_attributs :: fonc (infos: *InformationsDébogageDWARF, die: *DebugInformationEntry) -> []AttributDIE
+{
+    retourne donne_tranche(infos.attributs, die.attributs)
+}
+
+parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDébogageDWARF
+{
+    section_debug_info := trouve_section(fichier, ".debug_info")
+    section_debug_abbrev := trouve_section(fichier, ".debug_abbrev")
+    section_debug_string := trouve_section(fichier, ".debug_str")
+    section_debug_line_str := trouve_section(fichier, ".debug_line_str")
+
+    résultat: *InformationsDébogageDWARF
+    
+    si section_debug_info && section_debug_abbrev && section_debug_string {
+        succès_table, table_abbréviations := parse_table_abbréviations(fichier)
+        si succès_table {
+            résultat = loge(InformationsDébogageDWARF)
+            résultat.abbréviations = table_abbréviations
+
+            données_debug_info := donne_données_section(fichier, section_debug_info)
+            données_debug_str := donne_données_section(fichier, section_debug_string)
+
+            debug_info := crée_flux_octets(données_debug_info)
+            diffère détruit(debug_info)
+
+            debug_str := crée_flux_octets(données_debug_str)
+            diffère détruit(debug_str)
+
+            debug_line_str: *FluxOctetsMémoire
+            si section_debug_line_str {
+                données_debug_line_str := donne_données_section(fichier, section_debug_line_str)
+                debug_line_str = crée_flux_octets(données_debug_line_str)
+            }
+            diffère détruit(debug_line_str)
+
+            tantque est_valide(debug_info) {
+                // À FAIRE : comprend la différence entre 32-bit et 64-bit
+                // et pourquoi les champs sont en 32-bit
+
+                unit_length := parse_length_cie(debug_info)
+                position_après_length := donne_position(debug_info).Début comme z64
+                version, _ := lis_petit_boutisme(debug_info, n16)
+                unit_type := UnitType.compile
+
+                si version == 5 {
+                    valeur_unit_type, _ := lis_petit_boutisme(debug_info, UnitType)
+                    unit_type = valeur_unit_type
+                }
+
+                si unit_type != UnitType.compile {
+                    panique("Type d'unité non-gérée : %", unit_type)
+                }
+
+                address_size: n8
+                debug_abbrev_offset: n64
+                si version == 5 {
+                    valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
+                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
+                    address_size = valeur_address_size
+                    debug_abbrev_offset = valeur_debug_abbrev_offset
+                }
+                sinon si version == 4 {
+                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
+                    valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
+                    address_size = valeur_address_size
+                    debug_abbrev_offset = valeur_debug_abbrev_offset
+                }
+
+                code_abbréviation := décode_leb128_naturel(debug_info)
+
+                unité := tableau_ajoute_élément(*résultat.unités_de_compilation)
+                unité.version = version
+                unité.unit_type = unit_type
+                unité.address_size = address_size
+                unité.debug_abbrev_offset = debug_abbrev_offset
+                unité.code_abbréviation = code_abbréviation
+
+                abbréviation := donne_abbréviation(*table_abbréviations, unité, code_abbréviation)
+                si abbréviation.tag != DW_TAG_compile_unit && abbréviation.tag != DW_TAG_partial_unit {
+                    imprimeln("Attendu DW_TAG_compile_unit ou DW_TAG_partial_unit, obtenu : %", donne_chaine_pour_tag_abbréviation(abbréviation.tag))
+                }
+
+                unité.attributs.premier = résultat.attributs.taille
+                parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
+                unité.attributs.un_après_dernier = résultat.attributs.taille
+
+                unité.dies.premier = résultat.dies.taille
+
+                tantque est_valide(debug_info) {
+                    position_flux := donne_position(debug_info)
+                    taille_lue := (position_flux.Début comme z64 - position_après_length)
+                    taille_restante := unit_length comme z64 - taille_lue
+                    si taille_restante == 0 {
+                        arrête
+                    }
+
+                    code_abbréviation = décode_leb128_naturel(debug_info)
+                    si code_abbréviation == 0 {
+                        continue
+                    }
+
+                    abbréviation = donne_abbréviation(*table_abbréviations, unité, code_abbréviation)
+
+                    die := tableau_ajoute_élément(*résultat.dies)
+                    die.code_abbréviation = code_abbréviation
+
+                    die.attributs.premier = résultat.attributs.taille
+                    parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
+                    die.attributs.un_après_dernier = résultat.attributs.taille
+                }
+
+                unité.dies.un_après_dernier = résultat.dies.taille
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
+                                       abbréviation: *Abbréviation,
+                                       debug_info: *FluxOctetsMémoire,
+                                       debug_str: *FluxOctetsMémoire,
+                                       debug_line_str: *FluxOctetsMémoire,
+                                       address_size: n8)
+{
+    attributs := donne_attributs(*infos.abbréviations, abbréviation)
+
+    pour attributs {
+        attribut := tableau_ajoute_élément(*infos.attributs)
+        attribut.nom = it.nom
+        attribut.table = *infos.valeurs_attributs
+
+        discr it.forme {
+            DW_FORM_addr {
+                si address_size == 4 {
+                    valeur, _ := lis_petit_boutisme(debug_info, n32)
+                    définis_valeur_adresse(attribut, valeur)
+                }
+                sinon si address_size == 8 {
+                    valeur, _ := lis_petit_boutisme(debug_info, n64)
+                    définis_valeur_adresse(attribut, valeur)
+                }
+                sinon {
+                    panique("taille adresse non-géré %", address_size)
+                }
+            }
+            DW_FORM_data2 {
+                valeur, _ := lis_petit_boutisme(debug_info, n16)
+                définis_valeur_constante_entière(attribut, valeur)
+            }
+            DW_FORM_data4 {
+                valeur, _ := lis_petit_boutisme(debug_info, n32)
+                définis_valeur_constante_entière(attribut, valeur)
+            }
+            DW_FORM_data8 {
+                valeur, _ := lis_petit_boutisme(debug_info, n64)
+                définis_valeur_constante_entière(attribut, valeur)
+            }
+            DW_FORM_string {
+                valeur, _ := lis_chaine_nul_terminée(debug_info)
+                définis_valeur_chaine(attribut, valeur)
+            }
+            DW_FORM_block {
+                bloc_length := décode_leb128_naturel(debug_info)
+                bloc_data := lis_tranche_octet(debug_info, bloc_length comme z64)
+                définis_valeur_bloc(attribut, bloc_data)
+            }
+            DW_FORM_block1 {
+                bloc_length, _ := lis_petit_boutisme(debug_info, n8)
+                bloc_data := lis_tranche_octet(debug_info, bloc_length comme z64)
+                définis_valeur_bloc(attribut, bloc_data)
+            }
+            DW_FORM_block2 {
+                bloc_length, _ := lis_petit_boutisme(debug_info, n16)
+                bloc_data := lis_tranche_octet(debug_info, bloc_length comme z64)
+                définis_valeur_bloc(attribut, bloc_data)
+            }
+            DW_FORM_block4 {
+                bloc_length, _ := lis_petit_boutisme(debug_info, n32)
+                bloc_data := lis_tranche_octet(debug_info, bloc_length comme z64)
+                définis_valeur_bloc(attribut, bloc_data)
+            }
+            DW_FORM_data1 {
+                valeur, _ := lis_petit_boutisme(debug_info, n8)
+                définis_valeur_constante_entière(attribut, valeur)
+            }
+            DW_FORM_flag {
+                valeur, _ := lis_petit_boutisme(debug_info, n8)
+                définis_valeur_drapeau(attribut, valeur != 0x0)
+            }
+            DW_FORM_sdata {
+                valeur := décode_leb128_relatif(debug_info)
+                définis_valeur_constante_entière(attribut, valeur comme n64)
+            }
+            DW_FORM_strp {
+                décalage, _ := lis_petit_boutisme(debug_info, n32)
+                positionne(debug_str, PositionDébut(décalage comme z64))
+                valeur := lis_chaine_nul_terminée(debug_str)
+                définis_valeur_chaine(attribut, valeur)
+            }
+            DW_FORM_udata {
+                valeur := décode_leb128_naturel(debug_info)
+                définis_valeur_constante_entière(attribut, valeur)
+            }
+            DW_FORM_ref_addr {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_ref1 {
+                valeur, _ := lis_petit_boutisme(debug_info, n8)
+                définis_valeur_référence(attribut, valeur)
+            }
+            DW_FORM_ref2 {
+                valeur, _ := lis_petit_boutisme(debug_info, n16)
+                définis_valeur_référence(attribut, valeur)
+            }
+            DW_FORM_ref4 {
+                valeur, _ := lis_petit_boutisme(debug_info, n32)
+                définis_valeur_référence(attribut, valeur)
+            }
+            DW_FORM_ref8 {
+                valeur, _ := lis_petit_boutisme(debug_info, n64)
+                définis_valeur_référence(attribut, valeur)
+            }
+            DW_FORM_ref_udata {
+                valeur := décode_leb128_naturel(debug_info)
+                définis_valeur_référence(attribut, valeur)
+            }
+            DW_FORM_indirect {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_sec_offset {
+                si it.nom == DW_AT_stmt_list {
+                    valeur, _ := lis_petit_boutisme(debug_info, n32)
+                    définis_valeur_décalage_section(attribut, valeur, ".debug_line")
+                }
+                sinon si it.nom == DW_AT_ranges {
+                    valeur, _ := lis_petit_boutisme(debug_info, n32)
+                    définis_valeur_décalage_section(attribut, valeur, ".debug_rnglists")
+                }
+                sinon si it.nom == DW_AT_location {
+                    valeur, _ := lis_petit_boutisme(debug_info, n32)
+                    définis_valeur_décalage_section(attribut, valeur, ".debug_loclists")
+                }
+                sinon si DW_AT_lo_user <= it.nom <= DW_AT_hi_user {
+                    _, _ := lis_petit_boutisme(debug_info, n32)
+                }
+                sinon {
+                    panique("sec_offset non-géré pour %", donne_chaine_pour_nom_attribut(it.nom))
+                }
+            }
+            DW_FORM_exprloc {
+                exprloc_length := décode_leb128_naturel(debug_info)
+                exprloc_data := lis_tranche_octet(debug_info, exprloc_length comme z64)
+                définis_valeur_exprloc(attribut, exprloc_data)
+            }
+            DW_FORM_flag_present {
+                définis_valeur_drapeau(attribut, vrai)
+            }
+            DW_FORM_strx {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_addrx {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_ref_sup4 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_strp_sup {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_data16 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_line_strp {
+                décalage, _ := lis_petit_boutisme(debug_info, n32)
+                si debug_line_str {
+                    positionne(debug_str, PositionDébut(décalage comme z64))
+                    valeur := lis_chaine_nul_terminée(debug_str)
+                    définis_valeur_chaine(attribut, valeur)
+                }
+                sinon {
+                    // À FAIRE : erreur
+                }
+            }
+            DW_FORM_ref_sig8 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_implicit_const {
+                définis_valeur_constante_implicite(attribut, it.valeur)
+            }
+            DW_FORM_loclistx {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_rnglistx {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_ref_sup8 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_strx1 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_strx2 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_strx3 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_strx4 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_addrx1 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_addrx2 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_addrx3 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            DW_FORM_addrx4 {
+                panique("forme attribut non-géré %", donne_chaine_pour_forme_attribut(it.forme))
+            }
+            sinon {
+                panique("forme d'attribut inconnu : %", it.forme)
+            }
+        }
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_abbrev
+ * \{ */
+
+TableAbbrévPourUnité :: struct {
+    décalage: n64
+
+    abbréviations: IndexageTranche
+}
+
+AttributAbbréviation :: struct {
+    nom: n64
+    forme: n64
+    valeur: z64 // NOTE : si forme == DW_FORM_implicit_const
+}
+
+Abbréviation :: struct {
+    code: n64
+    tag: n64
+    possède_enfants: bool
+
+    attributs: IndexageTranche
+}
+
+TableAbbréviations :: struct {
+    tables_pour_unités: [..]TableAbbrévPourUnité
+    abbréviations: [..]Abbréviation
+    attributs: [..]AttributAbbréviation
+}
+
+donne_attributs :: fonc (table: *TableAbbréviations, abbréviation: *Abbréviation) -> []AttributAbbréviation
+{
+    retourne donne_tranche(table.attributs, abbréviation.attributs)
+}
+
+donne_abbréviation :: fonc (table: *TableAbbréviations, unité: *CompilationUnit, code: n64) -> *Abbréviation
+{
+    abbréviations := donne_abbréviations(table, unité)
+    retourne donne_abbréviation(abbréviations, code)
+}
+
+// À FAIRE(langage) : retour d'une adresse locale
+donne_abbréviation :: fonc (abbréviations: []Abbréviation, code: n64) -> *Abbréviation
+{
+    assert(code > 0)
+    résultat := *abbréviations[code - 1]
+    assert(résultat.code == code)
+    retourne résultat
+}
+
+donne_abbréviations :: fonc (table: *TableAbbréviations, unité: *CompilationUnit) -> []Abbréviation
+{
+    table_pour_unité: TableAbbrévPourUnité
+
+    pour table.tables_pour_unités {
+        si it.décalage == unité.debug_abbrev_offset {
+            table_pour_unité = it
+            arrête
+        }
+    }
+    sansarrêt {
+        imprimeln("Impossible de trouver la table pour l'unité")
+    }
+
+    retourne donne_tranche(table.abbréviations, table_pour_unité.abbréviations)
+}
+
+parse_table_abbréviations :: fonc (fichier: *FichierELF) -> (bool, TableAbbréviations)
+{
+    succès := vrai
+    résultat: TableAbbréviations
+
+    section_debug_abbrev := trouve_section(fichier, ".debug_abbrev")
+
+    si section_debug_abbrev {
+        données_debug_abbrev := donne_données_section(fichier, section_debug_abbrev)
+
+        debug_abbrev := crée_flux_octets(données_debug_abbrev)
+        diffère détruit(debug_abbrev)
+
+        tantque est_valide(debug_abbrev) {
+            position := donne_position(debug_abbrev)
+
+            table_pour_unité := tableau_ajoute_élément(*résultat.tables_pour_unités)
+            table_pour_unité.décalage = position.Début comme z64 comme n64
+
+            table_pour_unité.abbréviations.premier = résultat.abbréviations.taille
+
+            tantque est_valide(debug_abbrev) {
+                code_abbréviation := décode_leb128_naturel(debug_abbrev)
+
+                si code_abbréviation == 0 {
+                    arrête
+                }
+
+                tag_abbréviation := décode_leb128_naturel(debug_abbrev)
+                possède_enfant, _ := lis_petit_boutisme(debug_abbrev, n8)
+
+                abbréviation := tableau_ajoute_élément(*résultat.abbréviations)
+                abbréviation.code = code_abbréviation
+                abbréviation.tag = tag_abbréviation
+                abbréviation.possède_enfants = possède_enfant == DW_CHILDREN_yes
+                abbréviation.attributs.premier = résultat.attributs.taille
+
+                tantque est_valide(debug_abbrev) {
+                    nom_attribut := décode_leb128_naturel(debug_abbrev)
+                    forme_attribut := décode_leb128_naturel(debug_abbrev)
+
+                    si nom_attribut == 0 && forme_attribut == 0 {
+                        arrête
+                    }
+
+                    valeur_attribut: z64
+                    si forme_attribut == DW_FORM_implicit_const {
+                        valeur_attribut = décode_leb128_relatif(debug_abbrev)
+                    }
+
+                    attribut := tableau_ajoute_élément(*résultat.attributs)
+                    attribut.nom = nom_attribut
+                    attribut.forme = forme_attribut
+                    attribut.valeur = valeur_attribut
+                }
+
+                abbréviation.attributs.un_après_dernier = résultat.attributs.taille
+            }
+
+            table_pour_unité.abbréviations.un_après_dernier = résultat.abbréviations.taille
+        }     
+    }
+
+    retourne succès, résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_aranges
+ * \{ */
+
+TupleAddressRange :: struct {
+    segment: n64
+    adresse: n64
+    longueur: n64
+}
+
+EntréeAddressRange :: struct {
+    version: n16
+    debug_info_offset: n64
+    address_size: n8
+    segment_selector_size: n8
+
+    tuples: IndexageTranche
+}
+
+TableAddressRanges :: struct {
+    entrées: [..]EntréeAddressRange
+    tuples: [..]TupleAddressRange
+}
+
+donne_tuples :: fonc (table: *TableAddressRanges, entrée: *EntréeAddressRange) -> []TupleAddressRange
+{
+    retourne donne_tranche(table.tuples, entrée.tuples)
+}
+
+parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
+{
+    résultat: *TableAddressRanges
+
+    section_aranges := trouve_section(fichier, ".debug_aranges")
+
+    si section_aranges {
+        données_section_aranges := donne_données_section(fichier, section_aranges)
+
+        aranges := crée_flux_octets(données_section_aranges)
+        diffère détruit(aranges)
+
+        résultat = loge(TableAddressRanges)
+
+        tantque est_valide(aranges) {
+            length := parse_length_cie(aranges)
+            position_après_length := donne_position(aranges).Début comme z64
+
+            version, _ := lis_petit_boutisme(aranges, n16)
+            si version != 2 {
+                imprimeln("Mauvaise version pour .debug_aranges, voulu 2, obtenu : %", version)
+            }
+
+            debug_info_offset, _ := lis_petit_boutisme(aranges, n32) // si 32bit, sinon, n64
+            address_size, _ := lis_petit_boutisme(aranges, n8)
+            segment_selector_size, _ := lis_petit_boutisme(aranges, n8)
+
+            entrée := tableau_ajoute_élément(*résultat.entrées)
+            entrée.version = version
+            entrée.debug_info_offset = debug_info_offset
+            entrée.address_size = address_size
+            entrée.segment_selector_size = segment_selector_size
+
+            assert(entrée.address_size == 8)
+            assert(entrée.segment_selector_size == 0 || entrée.segment_selector_size == 8)
+
+            taille_tuple := entrée.address_size * 2 + entrée.segment_selector_size
+            position := donne_position(aranges).Début comme z64 comme n64
+            delta := taille_tuple - position % taille_tuple
+            si delta != 0 {
+                positionne(aranges, PositionDébut((position + delta) comme z64))
+            }
+
+            entrée.tuples.premier = résultat.tuples.taille
+
+            tantque est_valide(aranges) {
+                position_flux := donne_position(aranges)
+                taille_lue := (position_flux.Début comme z64 - position_après_length)
+                taille_restante := length comme z64 - taille_lue
+                si taille_restante == 0 {
+                    arrête
+                }
+
+                segment: n64
+                si entrée.segment_selector_size != 0 {
+                    valeur_segment, _ := lis_petit_boutisme(aranges, n64)
+                    segment = valeur_segment
+                }
+
+                adresse, _ := lis_petit_boutisme(aranges, n64)
+                longueur, _ := lis_petit_boutisme(aranges, n64)
+
+                si segment == 0 && adresse == 0 && longueur == 0 {
+                    arrête
+                }
+
+                tuple := tableau_ajoute_élément(*résultat.tuples)
+                tuple.segment = segment
+                tuple.adresse = adresse
+                tuple.longueur = longueur
+            }
+
+            entrée.tuples.un_après_dernier = résultat.tuples.taille
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_rnglists
+ * \{ */
+
+TableRNGListPourUnité :: struct {
+    décalage: n64
+
+    version: n16
+    address_size: n8
+    segment_selector_size: n8
+    offset_entry_count: n32
+
+    listes: IndexageTranche
+}
+
+EntréeRangeList :: struct {
+    code: n8 // DW_RLE_*
+    valeur1: n64
+    valeur2: n64
+}
+
+RangeList :: struct {
+    entrées: IndexageTranche
+}
+
+TableRangeLists :: struct {
+    tables: [..]TableRNGListPourUnité
+    entrées: [..]EntréeRangeList
+    listes: [..]RangeList
+}
+
+parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
+{
+    résultat: *TableRangeLists
+
+    section_rnglists := trouve_section(fichier, ".debug_rnglists")
+
+    si section_rnglists {
+        données_section_rnglists := donne_données_section(fichier, section_rnglists)
+
+        rnglists := crée_flux_octets(données_section_rnglists)
+        diffère détruit(rnglists)
+
+        résultat = loge(TableRangeLists)
+
+        tantque est_valide(rnglists) {
+            table := tableau_ajoute_élément(*résultat.tables)
+            table.décalage = donne_position(rnglists).Début comme z64 comme n64
+
+            length := parse_length_cie(rnglists)
+            position_après_length := donne_position(rnglists).Début comme z64
+
+            version, _ := lis_petit_boutisme(rnglists, n16)
+            si version != 5 {
+                imprimeln("Mauvaise version pour .debug_rnglists, voulu 5, obtenu : %", version)
+            }
+
+            address_size, _ := lis_petit_boutisme(rnglists, n8)
+            segment_selector_size, _ := lis_petit_boutisme(rnglists, n8)
+            offset_entry_count, _ := lis_petit_boutisme(rnglists, n32)
+
+            table.version = version
+            table.address_size = address_size
+            table.segment_selector_size = segment_selector_size
+            table.offset_entry_count = offset_entry_count
+
+            // À FAIRE : If the offset_entry_count is zero, then DW_FORM_rnglistx cannot be used to access
+            // a range list; DW_FORM_sec_offset must be used instead.
+
+            pour table.offset_entry_count {
+                _, _ := lis_petit_boutisme(rnglists, n32) // 32-bits
+            }
+
+            table.listes.premier = résultat.listes.taille
+
+            tantque est_valide(rnglists) {
+                position_flux := donne_position(rnglists)
+                taille_lue := (position_flux.Début comme z64 - position_après_length)
+                taille_restante := length comme z64 - taille_lue
+                si taille_restante == 0 {
+                    arrête
+                }
+
+                liste := tableau_ajoute_élément(*résultat.listes)
+                liste.entrées.premier = résultat.entrées.taille
+
+                tantque est_valide(rnglists) {
+                    code, _ := lis_petit_boutisme(rnglists, n8)
+
+                    si code == DW_RLE_end_of_list {
+                        // À FAIRE : A series of this kind of entry may be used for padding or alignment purposes.
+                        arrête
+                    }
+
+                    entrée := tableau_ajoute_élément(*résultat.entrées)
+                    entrée.code = code
+
+                    discr code {
+                        DW_RLE_base_addressx {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_startx_endx {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_startx_length {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_offset_pair {
+                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        DW_RLE_base_address {
+                            // À FAIRE : taille adresse
+                            adresse, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = adresse
+                        }
+                        DW_RLE_start_end {
+                            // À FAIRE : taille adresse
+                            start, _ := lis_petit_boutisme(rnglists, n64)
+                            end, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = start
+                            entrée.valeur2 = end
+                        }
+                        DW_RLE_start_length {
+                            // À FAIRE : taille adresse
+                            start, _ := lis_petit_boutisme(rnglists, n64)
+                            entrée.valeur1 = start
+                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                        }
+                        sinon {
+                            imprimeln("Code inconnu pour l'entrée de la RangeListe : %", code)
+                        }
+                    }
+                }
+
+                liste.entrées.un_après_dernier = résultat.entrées.taille
+            }
+
+            table.listes.un_après_dernier = résultat.listes.taille
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
