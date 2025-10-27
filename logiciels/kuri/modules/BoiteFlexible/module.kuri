@@ -330,9 +330,14 @@ termine_rectangle :: fonc ()
     __boite_courante = __boite_courante.parent
 }
 
+DrapeauxTexte :: énum_drapeau {
+    SANS_FRAGMENTS
+}
+
 ConfigurationTexte :: struct {
     fonte: *Fonte
     couleur: CouleurRVBA
+    drapeaux: DrapeauxTexte
 }
 
 dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
