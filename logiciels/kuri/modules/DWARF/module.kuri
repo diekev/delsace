@@ -903,3 +903,196 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table .debug_loclists
+ * \{ */
+
+TableLocListPourUnité :: struct {
+    décalage: n64
+
+    version: n16
+    address_size: n8
+    segment_selector_size: n8
+    offset_entry_count: n32
+
+    listes: IndexageTranche
+}
+
+EntréeLocList :: struct {
+    code: n8 // DW_LLE_*
+    valeur1: n64
+    valeur2: n64
+    description: []octet
+}
+
+LocList :: struct {
+    entrées: IndexageTranche
+}
+
+TableLocLists :: struct {
+    tables: [..]TableLocListPourUnité
+    entrées: [..]EntréeLocList
+    listes: [..]LocList
+}
+
+parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
+{
+    résultat: *TableLocLists
+
+    section_loclists := trouve_section(fichier, ".debug_loclists")
+
+    si section_loclists {
+        données_section_loclists := donne_données_section(fichier, section_loclists)
+
+        loclists := crée_flux_octets(données_section_loclists)
+        diffère détruit(loclists)
+
+        résultat = loge(TableLocLists)
+
+        tantque est_valide(loclists) {
+            table := tableau_ajoute_élément(*résultat.tables)
+            table.décalage = donne_position(loclists).Début comme z64 comme n64
+
+            unit_length := parse_length_cie(loclists)
+            position_après_length := donne_position(loclists).Début comme z64
+
+            version, _ := lis_petit_boutisme(loclists, n16)
+            si version != 5 {
+                imprimeln("Mauvaise version pour .debug_loclists, voulu 5, obtenu : %", version)
+            }
+
+            address_size, _ := lis_petit_boutisme(loclists, n8)
+            segment_selector_size, _ := lis_petit_boutisme(loclists, n8)
+            offset_entry_count, _ := lis_petit_boutisme(loclists, n32)
+
+            table.version = version
+            table.address_size = address_size
+            table.segment_selector_size = segment_selector_size
+            table.offset_entry_count = offset_entry_count
+
+            // À FAIRE : If the offset_entry_count is zero, then DW_FORM_loclistx cannot be used to access
+            // a location list; DW_FORM_sec_offset must be used instead.
+
+            pour table.offset_entry_count {
+                _, _ := lis_petit_boutisme(loclists, n32) // 32-bits
+            }
+
+            table.listes.premier = résultat.listes.taille
+
+            tantque est_valide(loclists) {
+                position_flux := donne_position(loclists)
+                taille_lue := (position_flux.Début comme z64 - position_après_length)
+                taille_restante := unit_length comme z64 - taille_lue
+                si taille_restante == 0 {
+                    arrête
+                }
+
+                liste: *LocList = nul
+
+                tantque est_valide(loclists) {
+                    code, _ := lis_petit_boutisme(loclists, n8)
+
+                    // imprimeln("%", donne_chaine_pour_entrée_location_list(code))
+
+                    si code == DW_LLE_end_of_list {
+                        // À FAIRE : A series of this kind of entry may be used for padding or alignment purposes.
+                        arrête
+                    }
+
+                    si liste == nul {
+                        liste = tableau_ajoute_élément(*résultat.listes)
+                        liste.entrées.premier = résultat.entrées.taille
+                    }
+
+                    entrée := tableau_ajoute_élément(*résultat.entrées)
+                    entrée.code = code
+
+                    discr code {
+                        DW_LLE_base_addressx {
+                            entrée.valeur1 = décode_leb128_naturel(loclists)
+                        }
+                        DW_LLE_startx_endx {
+                            entrée.valeur1 = décode_leb128_naturel(loclists)
+                            entrée.valeur2 = décode_leb128_naturel(loclists)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        DW_LLE_startx_length {
+                            entrée.valeur1 = décode_leb128_naturel(loclists)
+                            entrée.valeur2 = décode_leb128_naturel(loclists)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        DW_LLE_offset_pair {
+                            entrée.valeur1 = décode_leb128_naturel(loclists)
+                            entrée.valeur2 = décode_leb128_naturel(loclists)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        DW_LLE_default_location {
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        DW_LLE_base_address {
+                            entrée.valeur1 = lis_adresse(loclists, address_size)
+                        }
+                        DW_LLE_start_end {
+                            entrée.valeur1 = lis_adresse(loclists, address_size)
+                            entrée.valeur2 = lis_adresse(loclists, address_size)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        DW_LLE_start_length {
+                            entrée.valeur1 = lis_adresse(loclists, address_size)
+                            entrée.valeur2 = décode_leb128_naturel(loclists)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                        }
+                        sinon {
+                            panique("Code inconnu pour l'entrée de la LocListe : %", code)
+                        }
+                    }
+
+                    // imprimeln("%", mémoire(entrée))
+                }
+
+                si liste {
+                    liste.entrées.un_après_dernier = résultat.entrées.taille
+                    liste = nul
+                }
+            }
+
+            table.listes.un_après_dernier = résultat.listes.taille
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+lis_adresse :: fonc (flux: *FluxOctetsMémoire, taille_adresse: n32) -> n64
+{
+    résultat: n64
+
+    si taille_adresse == 4 {
+        adresse, _ := lis_petit_boutisme(flux, n32)
+        résultat = adresse
+    }
+    sinon si taille_adresse == 8 {
+        adresse, _ := lis_petit_boutisme(flux, n64)
+        résultat = adresse
+    }
+    sinon {
+        panique("taille adresse non-supportée : %", taille_adresse)
+    }
+
+    retourne résultat
+}
+
+lis_tableau_préfixé_taille_uleb128 :: fonc (flux: *FluxOctetsMémoire) -> []octet
+{
+    taille := décode_leb128_naturel(flux)
+    retourne lis_tranche_octet(flux, taille comme z64)
+}
+
+/** \} */

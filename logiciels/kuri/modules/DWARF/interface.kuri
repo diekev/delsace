@@ -305,6 +305,22 @@ donne_chaine_pour_forme_attribut :: fonc (forme: n64) -> chaine
     retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_FORM_addr", "DW_FORM_", "forme")
 }
 
+/* 7.7.3 Location Lists */
+DW_LLE_end_of_list : n8 : 0x00
+DW_LLE_base_addressx : n8 : 0x01
+DW_LLE_startx_endx : n8 : 0x02
+DW_LLE_startx_length : n8 : 0x03
+DW_LLE_offset_pair : n8 : 0x04
+DW_LLE_default_location : n8 : 0x05
+DW_LLE_base_address : n8 : 0x06
+DW_LLE_start_end : n8 : 0x07
+DW_LLE_start_length : n8 : 0x08
+
+donne_chaine_pour_entrée_location_list :: fonc (entrée: n8) -> chaine
+#corps_texte {
+    retourne corps_fonction_chaine_pour_constantes(#chemin_de_ce_fichier, "DW_LLE_end_of_list", "DW_LLE_", "entrée")
+}
+
 /* 7.25 Range List Entries for Non-contiguous Address Ranges */
 DW_RLE_end_of_list : n8 : 0x00
 DW_RLE_base_addressx : n8 : 0x01
