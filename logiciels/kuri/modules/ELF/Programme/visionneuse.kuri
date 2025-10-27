@@ -393,10 +393,13 @@ dessine_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, 
 
     première_ligne_visible := (décalage / hauteur_de_ligne) comme n32
     dernière_ligne_visible := première_ligne_visible + nombre_de_lignes_visibles
+    si dernière_ligne_visible > lignes.taille comme n32 {
+        dernière_ligne_visible = lignes.taille comme n32
+    }
 
     lignes_visibles: []LigneTabuleuse
     lignes_visibles.pointeur = lignes.pointeur + première_ligne_visible
-    lignes_visibles.taille = nombre_de_lignes_visibles comme z64
+    lignes_visibles.taille = (dernière_ligne_visible - première_ligne_visible) comme z64
 
     espace_avant_première_ligne := hauteur_de_ligne * première_ligne_visible comme r32
     espace_après_dernière_ligne := hauteur_de_ligne * (lignes.taille - dernière_ligne_visible comme z64) comme r32
