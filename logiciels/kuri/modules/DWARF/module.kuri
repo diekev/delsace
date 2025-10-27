@@ -217,12 +217,16 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                 // et pourquoi les champs sont en 32-bit
 
                 unit_length := parse_length_cie(debug_info)
-                position_après_length := donne_position(debug_info).Début comme z64
-                version, _ := lis_petit_boutisme(debug_info, n16)
+
+                données_unité := lis_tranche_octet(debug_info, unit_length comme z64)
+                debug_info_unité := crée_flux_octets(données_unité)
+                diffère détruit(debug_info_unité)
+
+                version, _ := lis_petit_boutisme(debug_info_unité, n16)
                 unit_type := UnitType.compile
 
                 si version == 5 {
-                    valeur_unit_type, _ := lis_petit_boutisme(debug_info, UnitType)
+                    valeur_unit_type, _ := lis_petit_boutisme(debug_info_unité, UnitType)
                     unit_type = valeur_unit_type
                 }
 
@@ -233,19 +237,19 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                 address_size: n8
                 debug_abbrev_offset: n64
                 si version == 5 {
-                    valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
-                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
+                    valeur_address_size, _ := lis_petit_boutisme(debug_info_unité, n8)
+                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info_unité, n32)
                     address_size = valeur_address_size
                     debug_abbrev_offset = valeur_debug_abbrev_offset
                 }
                 sinon si version == 4 {
-                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info, n32)
-                    valeur_address_size, _ := lis_petit_boutisme(debug_info, n8)
+                    valeur_debug_abbrev_offset, _ := lis_petit_boutisme(debug_info_unité, n32)
+                    valeur_address_size, _ := lis_petit_boutisme(debug_info_unité, n8)
                     address_size = valeur_address_size
                     debug_abbrev_offset = valeur_debug_abbrev_offset
                 }
 
-                code_abbréviation := décode_leb128_naturel(debug_info)
+                code_abbréviation := décode_leb128_naturel(debug_info_unité)
 
                 unité := tableau_ajoute_élément(*résultat.unités_de_compilation)
                 unité.version = version
@@ -260,20 +264,13 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                 }
 
                 unité.attributs.premier = résultat.attributs.taille
-                parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
+                parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size)
                 unité.attributs.un_après_dernier = résultat.attributs.taille
 
                 unité.dies.premier = résultat.dies.taille
 
-                tantque est_valide(debug_info) {
-                    position_flux := donne_position(debug_info)
-                    taille_lue := (position_flux.Début comme z64 - position_après_length)
-                    taille_restante := unit_length comme z64 - taille_lue
-                    si taille_restante == 0 {
-                        arrête
-                    }
-
-                    code_abbréviation = décode_leb128_naturel(debug_info)
+                tantque est_valide(debug_info_unité) {
+                    code_abbréviation = décode_leb128_naturel(debug_info_unité)
                     si code_abbréviation == 0 {
                         continue
                     }
@@ -284,7 +281,7 @@ parse_informations_débogage :: fonc (fichier: *FichierELF) -> *InformationsDéb
                     die.code_abbréviation = code_abbréviation
 
                     die.attributs.premier = résultat.attributs.taille
-                    parse_attributs_abbréviations(résultat, abbréviation, debug_info, debug_str, debug_line_str, address_size)
+                    parse_attributs_abbréviations(résultat, abbréviation, debug_info_unité, debug_str, debug_line_str, address_size)
                     die.attributs.un_après_dernier = résultat.attributs.taille
                 }
 
@@ -689,17 +686,21 @@ parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
         résultat = loge(TableAddressRanges)
 
         tantque est_valide(aranges) {
-            length := parse_length_cie(aranges)
+            unit_length := parse_length_cie(aranges)
             position_après_length := donne_position(aranges).Début comme z64
 
-            version, _ := lis_petit_boutisme(aranges, n16)
+            données_unité := lis_tranche_octet(aranges, unit_length comme z64)
+            aranges_unité := crée_flux_octets(données_unité)
+            diffère détruit(aranges_unité)
+
+            version, _ := lis_petit_boutisme(aranges_unité, n16)
             si version != 2 {
                 imprimeln("Mauvaise version pour .debug_aranges, voulu 2, obtenu : %", version)
             }
 
-            debug_info_offset, _ := lis_petit_boutisme(aranges, n32) // si 32bit, sinon, n64
-            address_size, _ := lis_petit_boutisme(aranges, n8)
-            segment_selector_size, _ := lis_petit_boutisme(aranges, n8)
+            debug_info_offset, _ := lis_petit_boutisme(aranges_unité, n32) // si 32bit, sinon, n64
+            address_size, _ := lis_petit_boutisme(aranges_unité, n8)
+            segment_selector_size, _ := lis_petit_boutisme(aranges_unité, n8)
 
             entrée := tableau_ajoute_élément(*résultat.entrées)
             entrée.version = version
@@ -711,30 +712,23 @@ parse_table_aranges :: fonc (fichier: *FichierELF) -> *TableAddressRanges
             assert(entrée.segment_selector_size == 0 || entrée.segment_selector_size == 8)
 
             taille_tuple := entrée.address_size * 2 + entrée.segment_selector_size
-            position := donne_position(aranges).Début comme z64 comme n64
+            position := (donne_position(aranges_unité).Début comme z64) comme n64 + position_après_length comme n64
             delta := taille_tuple - position % taille_tuple
             si delta != 0 {
-                positionne(aranges, PositionDébut((position + delta) comme z64))
+                positionne(aranges_unité, PositionRelative(delta comme z64))
             }
 
             entrée.tuples.premier = résultat.tuples.taille
 
-            tantque est_valide(aranges) {
-                position_flux := donne_position(aranges)
-                taille_lue := (position_flux.Début comme z64 - position_après_length)
-                taille_restante := length comme z64 - taille_lue
-                si taille_restante == 0 {
-                    arrête
-                }
-
+            tantque est_valide(aranges_unité) {
                 segment: n64
                 si entrée.segment_selector_size != 0 {
-                    valeur_segment, _ := lis_petit_boutisme(aranges, n64)
+                    valeur_segment, _ := lis_petit_boutisme(aranges_unité, n64)
                     segment = valeur_segment
                 }
 
-                adresse, _ := lis_petit_boutisme(aranges, n64)
-                longueur, _ := lis_petit_boutisme(aranges, n64)
+                adresse, _ := lis_petit_boutisme(aranges_unité, n64)
+                longueur, _ := lis_petit_boutisme(aranges_unité, n64)
 
                 si segment == 0 && adresse == 0 && longueur == 0 {
                     arrête
@@ -804,17 +798,19 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
             table := tableau_ajoute_élément(*résultat.tables)
             table.décalage = donne_position(rnglists).Début comme z64 comme n64
 
-            length := parse_length_cie(rnglists)
-            position_après_length := donne_position(rnglists).Début comme z64
+            unit_length := parse_length_cie(rnglists)
+            données_unité := lis_tranche_octet(rnglists, unit_length comme z64)
+            rnglists_unité := crée_flux_octets(données_unité)
+            diffère détruit(rnglists_unité)
 
-            version, _ := lis_petit_boutisme(rnglists, n16)
+            version, _ := lis_petit_boutisme(rnglists_unité, n16)
             si version != 5 {
                 imprimeln("Mauvaise version pour .debug_rnglists, voulu 5, obtenu : %", version)
             }
 
-            address_size, _ := lis_petit_boutisme(rnglists, n8)
-            segment_selector_size, _ := lis_petit_boutisme(rnglists, n8)
-            offset_entry_count, _ := lis_petit_boutisme(rnglists, n32)
+            address_size, _ := lis_petit_boutisme(rnglists_unité, n8)
+            segment_selector_size, _ := lis_petit_boutisme(rnglists_unité, n8)
+            offset_entry_count, _ := lis_petit_boutisme(rnglists_unité, n32)
 
             table.version = version
             table.address_size = address_size
@@ -825,24 +821,17 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
             // a range list; DW_FORM_sec_offset must be used instead.
 
             pour table.offset_entry_count {
-                _, _ := lis_petit_boutisme(rnglists, n32) // 32-bits
+                _, _ := lis_petit_boutisme(rnglists_unité, n32) // 32-bits
             }
 
             table.listes.premier = résultat.listes.taille
 
-            tantque est_valide(rnglists) {
-                position_flux := donne_position(rnglists)
-                taille_lue := (position_flux.Début comme z64 - position_après_length)
-                taille_restante := length comme z64 - taille_lue
-                si taille_restante == 0 {
-                    arrête
-                }
-
+            tantque est_valide(rnglists_unité) {
                 liste := tableau_ajoute_élément(*résultat.listes)
                 liste.entrées.premier = résultat.entrées.taille
 
-                tantque est_valide(rnglists) {
-                    code, _ := lis_petit_boutisme(rnglists, n8)
+                tantque est_valide(rnglists_unité) {
+                    code, _ := lis_petit_boutisme(rnglists_unité, n8)
 
                     si code == DW_RLE_end_of_list {
                         // À FAIRE : A series of this kind of entry may be used for padding or alignment purposes.
@@ -854,37 +843,37 @@ parse_table_rnglists :: fonc (fichier: *FichierELF) -> *TableRangeLists
 
                     discr code {
                         DW_RLE_base_addressx {
-                            entrée.valeur1 = décode_leb128_naturel(rnglists)
+                            entrée.valeur1 = décode_leb128_naturel(rnglists_unité)
                         }
                         DW_RLE_startx_endx {
-                            entrée.valeur1 = décode_leb128_naturel(rnglists)
-                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                            entrée.valeur1 = décode_leb128_naturel(rnglists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         DW_RLE_startx_length {
-                            entrée.valeur1 = décode_leb128_naturel(rnglists)
-                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                            entrée.valeur1 = décode_leb128_naturel(rnglists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         DW_RLE_offset_pair {
-                            entrée.valeur1 = décode_leb128_naturel(rnglists)
-                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                            entrée.valeur1 = décode_leb128_naturel(rnglists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         DW_RLE_base_address {
                             // À FAIRE : taille adresse
-                            adresse, _ := lis_petit_boutisme(rnglists, n64)
+                            adresse, _ := lis_petit_boutisme(rnglists_unité, n64)
                             entrée.valeur1 = adresse
                         }
                         DW_RLE_start_end {
                             // À FAIRE : taille adresse
-                            start, _ := lis_petit_boutisme(rnglists, n64)
-                            end, _ := lis_petit_boutisme(rnglists, n64)
+                            start, _ := lis_petit_boutisme(rnglists_unité, n64)
+                            end, _ := lis_petit_boutisme(rnglists_unité, n64)
                             entrée.valeur1 = start
                             entrée.valeur2 = end
                         }
                         DW_RLE_start_length {
                             // À FAIRE : taille adresse
-                            start, _ := lis_petit_boutisme(rnglists, n64)
+                            start, _ := lis_petit_boutisme(rnglists_unité, n64)
                             entrée.valeur1 = start
-                            entrée.valeur2 = décode_leb128_naturel(rnglists)
+                            entrée.valeur2 = décode_leb128_naturel(rnglists_unité)
                         }
                         sinon {
                             imprimeln("Code inconnu pour l'entrée de la RangeListe : %", code)
@@ -955,16 +944,19 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
             table.décalage = donne_position(loclists).Début comme z64 comme n64
 
             unit_length := parse_length_cie(loclists)
-            position_après_length := donne_position(loclists).Début comme z64
 
-            version, _ := lis_petit_boutisme(loclists, n16)
+            données_unité := lis_tranche_octet(loclists, unit_length comme z64)
+            loclists_unité := crée_flux_octets(données_unité)
+            diffère détruit(loclists_unité)
+
+            version, _ := lis_petit_boutisme(loclists_unité, n16)
             si version != 5 {
                 imprimeln("Mauvaise version pour .debug_loclists, voulu 5, obtenu : %", version)
             }
 
-            address_size, _ := lis_petit_boutisme(loclists, n8)
-            segment_selector_size, _ := lis_petit_boutisme(loclists, n8)
-            offset_entry_count, _ := lis_petit_boutisme(loclists, n32)
+            address_size, _ := lis_petit_boutisme(loclists_unité, n8)
+            segment_selector_size, _ := lis_petit_boutisme(loclists_unité, n8)
+            offset_entry_count, _ := lis_petit_boutisme(loclists_unité, n32)
 
             table.version = version
             table.address_size = address_size
@@ -975,23 +967,16 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
             // a location list; DW_FORM_sec_offset must be used instead.
 
             pour table.offset_entry_count {
-                _, _ := lis_petit_boutisme(loclists, n32) // 32-bits
+                _, _ := lis_petit_boutisme(loclists_unité, n32) // 32-bits
             }
 
             table.listes.premier = résultat.listes.taille
 
-            tantque est_valide(loclists) {
-                position_flux := donne_position(loclists)
-                taille_lue := (position_flux.Début comme z64 - position_après_length)
-                taille_restante := unit_length comme z64 - taille_lue
-                si taille_restante == 0 {
-                    arrête
-                }
-
+            tantque est_valide(loclists_unité) {
                 liste: *LocList = nul
 
-                tantque est_valide(loclists) {
-                    code, _ := lis_petit_boutisme(loclists, n8)
+                tantque est_valide(loclists_unité) {
+                    code, _ := lis_petit_boutisme(loclists_unité, n8)
 
                     // imprimeln("%", donne_chaine_pour_entrée_location_list(code))
 
@@ -1010,38 +995,38 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
 
                     discr code {
                         DW_LLE_base_addressx {
-                            entrée.valeur1 = décode_leb128_naturel(loclists)
+                            entrée.valeur1 = décode_leb128_naturel(loclists_unité)
                         }
                         DW_LLE_startx_endx {
-                            entrée.valeur1 = décode_leb128_naturel(loclists)
-                            entrée.valeur2 = décode_leb128_naturel(loclists)
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.valeur1 = décode_leb128_naturel(loclists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(loclists_unité)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         DW_LLE_startx_length {
-                            entrée.valeur1 = décode_leb128_naturel(loclists)
-                            entrée.valeur2 = décode_leb128_naturel(loclists)
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.valeur1 = décode_leb128_naturel(loclists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(loclists_unité)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         DW_LLE_offset_pair {
-                            entrée.valeur1 = décode_leb128_naturel(loclists)
-                            entrée.valeur2 = décode_leb128_naturel(loclists)
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.valeur1 = décode_leb128_naturel(loclists_unité)
+                            entrée.valeur2 = décode_leb128_naturel(loclists_unité)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         DW_LLE_default_location {
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         DW_LLE_base_address {
-                            entrée.valeur1 = lis_adresse(loclists, address_size)
+                            entrée.valeur1 = lis_adresse(loclists_unité, address_size)
                         }
                         DW_LLE_start_end {
-                            entrée.valeur1 = lis_adresse(loclists, address_size)
-                            entrée.valeur2 = lis_adresse(loclists, address_size)
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.valeur1 = lis_adresse(loclists_unité, address_size)
+                            entrée.valeur2 = lis_adresse(loclists_unité, address_size)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         DW_LLE_start_length {
-                            entrée.valeur1 = lis_adresse(loclists, address_size)
-                            entrée.valeur2 = décode_leb128_naturel(loclists)
-                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists)
+                            entrée.valeur1 = lis_adresse(loclists_unité, address_size)
+                            entrée.valeur2 = décode_leb128_naturel(loclists_unité)
+                            entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité)
                         }
                         sinon {
                             panique("Code inconnu pour l'entrée de la LocListe : %", code)
