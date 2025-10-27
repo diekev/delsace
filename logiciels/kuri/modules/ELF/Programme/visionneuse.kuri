@@ -471,6 +471,7 @@ dessine_ligne_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabul
                 }
 
                 config := config_texte
+                config.drapeaux.SANS_FRAGMENTS = vrai
 
                 si it.commande {
                     si est_survolée() {
