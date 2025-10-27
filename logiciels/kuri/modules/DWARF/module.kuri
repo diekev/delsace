@@ -327,8 +327,7 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                 définis_valeur_chaine(attribut, valeur)
             }
             DW_FORM_block {
-                bloc_length := décode_leb128_naturel(debug_info)
-                bloc_data := lis_tranche_octet(debug_info, bloc_length comme z64)
+                bloc_data := lis_tableau_préfixé_taille_uleb128(debug_info)
                 définis_valeur_bloc(attribut, bloc_data)
             }
             DW_FORM_block1 {
@@ -417,8 +416,7 @@ parse_attributs_abbréviations :: fonc (infos: *InformationsDébogageDWARF,
                 }
             }
             DW_FORM_exprloc {
-                exprloc_length := décode_leb128_naturel(debug_info)
-                exprloc_data := lis_tranche_octet(debug_info, exprloc_length comme z64)
+                exprloc_data := lis_tableau_préfixé_taille_uleb128(debug_info)
                 définis_valeur_exprloc(attribut, exprloc_data)
             }
             DW_FORM_flag_present {
