@@ -14,7 +14,7 @@ importe Compilatrice
         ajoute_fichier_à_la_compilation(espace, "console.kuri")
     }
     {
-        options := compilatrice_obtiens_options()
+        options := compilatrice_donne_options()
         options.résultat = RésultatCompilation.RIEN
         compilatrice_ajourne_options(options)
     }

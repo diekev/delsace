@@ -59,7 +59,7 @@ fonction compilatrice_chemin_module(Module * module) -> chaine_statique
  */
 
 /* Retourne les options de compilations de l'espace défaut de compilation. */
-fonction compilatrice_obtiens_options() -> OptionsDeCompilation *
+fonction compilatrice_donne_options() -> OptionsDeCompilation *
 @compilatrice
 
 /* Ajourne les options de compilations de l'espace défaut de compilation. */

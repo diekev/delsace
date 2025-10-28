@@ -694,7 +694,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_obtiens_options)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_options)) {
         auto options = compilatrice.options_compilation();
         empile(options);
         return;
