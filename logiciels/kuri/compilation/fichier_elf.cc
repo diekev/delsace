@@ -146,7 +146,7 @@ struct FichierPagé {
 
 struct TableDeChaines {
   private:
-    kuri::tableau<kuri::chaine_statique> m_chaines;
+    kuri::tableau<kuri::chaine_statique> m_chaines{};
     uint64_t taille_totale = 0;
 
   public:
@@ -301,7 +301,8 @@ void FichierELF::écris_vers(kuri::chaine_statique chemin) const
 
     if (m_données_constantes) {
         auto section_rodata = donne_section(".rodata");
-        section_rodata->entête->sh_size = m_données_constantes->taille_données_tableaux_constants;
+        section_rodata->entête->sh_size = Elf64_Xword(
+            m_données_constantes->taille_données_tableaux_constants);
         section_rodata->entête->sh_addralign = m_données_constantes->alignement_désiré;
     }
 
