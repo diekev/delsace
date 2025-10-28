@@ -4276,33 +4276,10 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     auto type_struct = decl;
 
-#undef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-#undef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
-
-#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-    auto rembourrage_total = 0u;
-#endif
     POUR (type_struct->rubriques) {
         if (it.possède_drapeau(RubriqueTypeComposé::EST_UN_EMPLOI)) {
             type_struct->types_employés.ajoute(&it);
         }
-
-#ifdef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
-        auto reste_décalage = it.decalage % 64;
-        if (reste_décalage && (reste_décalage + it.type->taille_octet) > 64) {
-            espace->rapporte_avertissement(it.decl, "Le rubrique franchis une ligne de cache");
-        }
-#endif
-
-#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-        /* Revise cette logique ? */
-        if (it.rembourrage && it.type->taille_octet < rembourrage_total) {
-            espace->rapporte_avertissement(
-                it.decl, "Le rubrique pourrait être stocké dans du rembourrage existant");
-        }
-
-        rembourrage_total += it.rembourrage;
-#endif
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
