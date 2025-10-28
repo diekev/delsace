@@ -336,6 +336,8 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
     /* Crée les tâches pour les données requise de la typeuse. */
     Typeuse::crée_tâches_précompilation(*this, espace);
 
+    messagère->ajoute_message_espace_créé(espace, espace);
+
     return espace;
 }
 
