@@ -37,7 +37,7 @@ fonction compilatrice_module_racine_compilation() -> Module *
 @compilatrice
 
 /* Retourne le module ayant défini le code, ou nul si aucun ne l'a défini. */
-fonction compilatrice_module_pour_code(NoeudCode * code) -> Module *
+fonction compilatrice_module_pour_code(EspaceDeTravail *espace, NoeudCode * code) -> Module *
 @compilatrice
 
 /* Retourne le module ayant défini le type, ou nul si aucun ne l'a défini

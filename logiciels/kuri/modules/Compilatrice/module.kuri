@@ -92,6 +92,11 @@ désactive_compilation_espace_défaut :: fonc ()
     compilatrice_ajourne_options(options)
 }
 
+compilatrice_module_pour_code :: fonc (code: *NoeudCode) -> *Module
+{
+    retourne compilatrice_module_pour_code(compilatrice_espace_courant(), code)
+}
+
 // ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour les tests unitaires
 

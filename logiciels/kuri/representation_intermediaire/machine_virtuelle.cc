@@ -885,7 +885,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
         auto code = dépile<NoeudCode *>();
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
-        auto espace = m_métaprogramme->unité->espace;
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         const auto fichier = espace->fichier(code->chemin_fichier);
         RAPPORTE_ERREUR_SI_NUL(fichier, "Aucun fichier correspond au noeud code");
         const auto module = fichier->module;
