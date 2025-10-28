@@ -39,8 +39,13 @@ FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
     }
     else if (type.est_pointeur()) {
         const auto type_pointeur = type.comme_pointeur();
-        os << "*";
-        os << *type_pointeur->type_pointe;
+        if (type_pointeur->type_pointe->est_nominal("EspaceDeTravail")) {
+            os << "EspaceDeTravail";
+        }
+        else {
+            os << "*";
+            os << *type_pointeur->type_pointe;
+        }
     }
     else if (type.est_nominal()) {
         const auto type_nominal = type.comme_nominal();

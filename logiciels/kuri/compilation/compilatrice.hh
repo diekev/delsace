@@ -178,6 +178,8 @@ struct Compilatrice {
                                                   kuri::chaine_statique nom,
                                                   kuri::chaine_statique dossier);
 
+    EspaceDeTravail *donne_espace_de_travail(int id) const;
+
     /* ********************************************************************** */
 
     ContexteLexage contexte_lexage(EspaceDeTravail *espace);

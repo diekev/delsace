@@ -12,7 +12,7 @@ importe Triage
 
     ajoute_fichier_à_la_compilation(espace, fichier)
 
-    espaces: [..]*EspaceDeTravail
+    espaces: [..]EspaceDeTravail
     diffère déloge(espaces)
 
     ensemble_ajoute(*espaces, espace)

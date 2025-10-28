@@ -708,7 +708,7 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
     retourne vrai
 }
 
-génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: *EspaceDeTravail)
+génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: EspaceDeTravail)
 {
     discr compilatrice.génère_interface_python() {
         Quelque(source) {

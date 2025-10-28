@@ -634,7 +634,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     /* Détermine ici si nous avons une fonction de l'IPA pour prendre en compte les appels via des
      * pointeurs de fonctions. */
     if (EST_FONCTION_COMPILATRICE(compilatrice_espace_courant)) {
-        empile(m_métaprogramme->unité->espace);
+        empile(m_métaprogramme->unité->espace->id);
         return;
     }
 
@@ -651,22 +651,24 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_commence_interception)) {
-        auto espace_recu = dépile<EspaceDeTravail *>();
-        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
+        auto id_espace_reçu = dépile<int>();
+        auto espace_reçu = compilatrice.donne_espace_de_travail(id_espace_reçu);
+        RAPPORTE_ERREUR_SI_NUL(espace_reçu, "Reçu un espace de travail nul");
 
         auto &messagère = compilatrice.messagère;
-        messagère->commence_interception(espace_recu, m_métaprogramme);
+        messagère->commence_interception(espace_reçu, m_métaprogramme);
 
-        espace_recu->metaprogramme = m_métaprogramme;
-        static_cast<void>(espace_recu);
+        espace_reçu->metaprogramme = m_métaprogramme;
+        static_cast<void>(espace_reçu);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_termine_interception)) {
-        auto espace_recu = dépile<EspaceDeTravail *>();
-        RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
+        auto id_espace_reçu = dépile<int>();
+        auto espace_reçu = compilatrice.donne_espace_de_travail(id_espace_reçu);
+        RAPPORTE_ERREUR_SI_NUL(espace_reçu, "Reçu un espace de travail nul");
 
-        if (espace_recu->metaprogramme != m_métaprogramme) {
+        if (espace_reçu->metaprogramme != m_métaprogramme) {
             auto const site = donne_site_adresse_courante();
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
@@ -675,15 +677,15 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
                 "Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
         }
 
-        espace_recu->metaprogramme = nullptr;
+        espace_reçu->metaprogramme = nullptr;
 
-        compilatrice.messagère->termine_interception(espace_recu, m_métaprogramme);
+        compilatrice.messagère->termine_interception(espace_reçu, m_métaprogramme);
 
         /* Ne passons pas par la messagère car il est possible que le GestionnaireCode soit
          * vérrouiller par quelqu'un, et par le passé la Messagère prévenait le GestionnaireCode,
          * causant un verrou mort. */
         auto &gestionnaire = compilatrice.gestionnaire_code;
-        gestionnaire->interception_message_terminée(espace_recu);
+        gestionnaire->interception_message_terminée(espace_reçu);
         return;
     }
 
@@ -712,7 +714,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_chaine_à_la_compilation)) {
         auto const site = donne_site_adresse_courante();
         auto chaine = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         auto espace_pour_site = m_métaprogramme->unité->espace;
         compilatrice.ajoute_chaine_compilation(espace, espace_pour_site, site, chaine);
@@ -722,7 +725,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(ajoute_fichier_à_la_compilation)) {
         auto const site = donne_site_adresse_courante();
         auto chaine = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         compilatrice.ajoute_fichier_compilation(espace, chaine, site);
         return;
@@ -732,7 +736,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto const site = donne_site_adresse_courante();
         auto chaine = dépile<kuri::chaine_statique>();
         auto module = dépile<Module *>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(module, "Reçu un module nul");
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         auto espace_pour_site = m_métaprogramme->unité->espace;
@@ -746,13 +751,13 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         RAPPORTE_ERREUR_SI_NUL(options, "Reçu des options nulles");
         auto dossier = compilatrice.espace_de_travail_défaut->module->chemin();
         auto espace = compilatrice.démarre_un_espace_de_travail(*options, nom, dossier);
-        empile(espace);
+        empile(espace->id);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(espace_défaut_compilation)) {
         auto espace = compilatrice.espace_défaut_compilation();
-        empile(espace);
+        empile(espace->id);
         return;
     }
 
@@ -761,7 +766,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         /* Dans les noeuds codes, les lignes commencent à 1. */
         auto ligne = dépile<int>() - 1;
         auto fichier = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur(fichier, ligne, message);
         m_métaprogramme->a_rapporté_une_erreur = true;
@@ -779,7 +785,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         params.texte_ligne = dépile<kuri::chaine_statique>();
         params.chemin_fichier = dépile<kuri::chaine_statique>();
         params.message = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_erreur_externe(params);
         m_métaprogramme->a_rapporté_une_erreur = true;
@@ -793,7 +800,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         /* Dans les noeuds codes, les lignes commencent à 1. */
         auto ligne = dépile<int>() - 1;
         auto fichier = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement(fichier, ligne, message);
         return;
@@ -808,7 +816,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         params.texte_ligne = dépile<kuri::chaine_statique>();
         params.chemin_fichier = dépile<kuri::chaine_statique>();
         params.message = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_avertissement_externe(params);
         return;
@@ -819,7 +828,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         /* Dans les noeuds codes, les lignes commencent à 1. */
         auto ligne = dépile<int>() - 1;
         auto fichier = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_info(fichier, ligne, message);
         return;
@@ -834,14 +844,16 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         params.texte_ligne = dépile<kuri::chaine_statique>();
         params.chemin_fichier = dépile<kuri::chaine_statique>();
         params.message = dépile<kuri::chaine_statique>();
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         espace->rapporte_info_externe(params);
         return;
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_possède_erreur)) {
-        auto espace = dépile<EspaceDeTravail *>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(compilatrice.possède_erreur(espace));
         return;

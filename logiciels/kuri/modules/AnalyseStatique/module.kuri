@@ -50,7 +50,7 @@ VérificatriceNasa :: struct {
         genre: GenreViolation
     }
 
-    espace: *EspaceDeTravail
+    espace: EspaceDeTravail = -1
     avertissement_est_erreur := faux
 
     violations_directives: [..]Violation
@@ -84,7 +84,7 @@ imprime_diagnostique :: fonc (vérificatrice: *VérificatriceNasa)
     imprime("% violations\n", vérificatrice.violations_directives.taille)
 }
 
-initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: *EspaceDeTravail)
+initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: EspaceDeTravail)
 {
     vérificatrice.espace = espace
 }

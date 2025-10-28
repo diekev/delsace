@@ -620,7 +620,7 @@ RAPPEL_POUR_COMMENTAIRE(message)
         }
     }
 
-    résultat << " (espace \"" << message->espace->nom
+    résultat << " (espace \"" << message->espace
              << "\"); message reçu : " << (message->message_reçu ? "oui" : "non") << "; adresse "
              << message;
 

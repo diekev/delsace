@@ -55,7 +55,7 @@ compilatrice_rapporte_erreur :: fonc (message: chaine, pos := #position_code_sou
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := #position_code_source) #sansretour
+compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, message: chaine, pos := #position_code_source) #sansretour
 {
     compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
 }
@@ -65,7 +65,7 @@ compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine) #sansre
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
+compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
 {
     compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
@@ -80,7 +80,7 @@ compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
     compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
-compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
+compilatrice_rapporte_avertissement :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
     compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
 }

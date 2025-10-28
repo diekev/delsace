@@ -18,7 +18,7 @@ void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace,
 
     auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_OUVERT;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = chemin;
 
     envoie_message(message);
@@ -32,7 +32,7 @@ void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::ch
 
     auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_FERMÉ;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = chemin;
 
     envoie_message(message);
@@ -46,7 +46,7 @@ void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *m
 
     auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_OUVERT;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = module->chemin();
     message->module = module;
 
@@ -61,7 +61,7 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
 
     auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_FERMÉ;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = module->chemin();
     message->module = module;
 
@@ -73,8 +73,8 @@ void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeT
     if (entreceveurs != 0) {
         auto message = messages_espace_créé.ajoute_élément();
         message->genre = GenreMessage::ESPACE_CRÉÉ;
-        message->espace = espace;
-        message->nouvel_espace = nouvel_espace;
+        message->espace = espace->id;
+        message->nouvel_espace = nouvel_espace->id;
 
         envoie_message(message);
     }
@@ -88,7 +88,7 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudEx
 
     auto message = messages_typage_code.ajoute_élément();
     message->genre = GenreMessage::TYPAGE_CODE_TERMINÉ;
-    message->espace = espace;
+    message->espace = espace->id;
 
     /* Les messages de typages ne sont pas directement envoyés. */
 
@@ -111,7 +111,7 @@ Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 
     auto message = messages_phase_compilation.ajoute_élément();
     message->genre = GenreMessage::PHASE_COMPILATION;
-    message->espace = espace;
+    message->espace = espace->id;
     message->phase = espace->phase_courante();
 
     envoie_message(message);

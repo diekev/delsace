@@ -341,6 +341,18 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
     return espace;
 }
 
+EspaceDeTravail *Compilatrice::donne_espace_de_travail(int id) const
+{
+    EspaceDeTravail *résultat = nullptr;
+    POUR ((*espaces_de_travail.verrou_lecture())) {
+        if (it->id == id) {
+            résultat = it;
+            break;
+        }
+    }
+    return résultat;
+}
+
 ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
 {
     auto rappel_erreur = [this, espace](SiteSource site, kuri::chaine message) {
