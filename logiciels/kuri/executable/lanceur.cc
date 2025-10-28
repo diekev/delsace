@@ -552,9 +552,10 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
     }
 
     auto résultat = ArgumentsCompilatrice();
-    auto arguments_pour_métaprogrammes = false;
+    auto dans_arguments_pour_métaprogrammes = false;
 
     auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
+    auto arguments_pour_métaprogrammes = kuri::tableau<kuri::chaine_statique>();
 
     while (true) {
         auto arg = parseuse_arguments.donne_argument_suivant();
@@ -562,8 +563,8 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
             break;
         }
 
-        if (arguments_pour_métaprogrammes) {
-            résultat.arguments_pour_métaprogrammes.ajoute(arg.value());
+        if (dans_arguments_pour_métaprogrammes) {
+            arguments_pour_métaprogrammes.ajoute(arg.value());
             continue;
         }
 
@@ -601,7 +602,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
             }
             case ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES:
             {
-                arguments_pour_métaprogrammes = true;
+                dans_arguments_pour_métaprogrammes = true;
                 break;
             }
         }
@@ -646,16 +647,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     }
 
     kuri::chemin_systeme::change_chemin_courant(dossier);
-
-    info() << "Lancement de la compilation à partir du fichier '" << chemin_fichier << "'...";
-
-    auto module = compilatrice.espace_de_travail_défaut->module;
-
-    auto fichier_racine = compilatrice.espace_de_travail_défaut->sys_module->crée_fichier(
-        module, chemin.nom_fichier_sans_extension(), chemin);
-
-    compilatrice.gestionnaire_code->requiers_chargement(espace_défaut,
-                                                        static_cast<Fichier *>(fichier_racine));
 
     auto nombre_tacheronnes = std::thread::hardware_concurrency();
 
@@ -874,7 +865,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto compilatrice = Compilatrice(opt_racine_kuri.value(), opt_arguments.value());
+    auto arguments = opt_arguments.value();
+    arguments.fichier_entrée_compilation = chemin_fichier.nom_fichier();
+
+    auto compilatrice = Compilatrice(opt_racine_kuri.value(), arguments);
 
     if (!compile_fichier(compilatrice, chemin_fichier)) {
         return 1;
