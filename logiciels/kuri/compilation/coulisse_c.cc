@@ -22,6 +22,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "fichier_elf.hh"
 #include "intrinseques.hh"
 #include "programme.hh"
 #include "typage.hh"
@@ -2776,6 +2777,18 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
             return ErreurCoulisse{message};
         }
     }
+
+    // auto &repr_inter = *args.ri_programme;
+    // const DonnéesConstantes *données_constantes = nullptr;
+    // auto opt_données_constantes = repr_inter.donne_données_constantes();
+    // if (opt_données_constantes.has_value()) {
+    //     données_constantes = opt_données_constantes.value();
+    // }
+    // auto fichier_elf = FichierELF::crée_fichier_objet();
+    // if (données_constantes) {
+    //     fichier_elf->écris_données_constantes(données_constantes);
+    // }
+    // fichier_elf->écris_vers("/tmp/fichier_objet_test.o");
 
     return {};
 #endif
