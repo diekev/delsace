@@ -129,6 +129,7 @@ struct ConstructriceRI {
     AtomeConstanteTailleDe *crée_constante_taille_de(Type const *pointeur_type);
     AtomeIndexTableType *crée_indice_table_type(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
+    AtomeConstante *crée_n32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);
     AtomeConstanteNulle *crée_constante_nulle(Type const *type);
     AtomeConstanteRéelle *crée_constante_nombre_réel(Type const *type, double valeur);
