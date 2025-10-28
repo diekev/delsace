@@ -42,6 +42,7 @@ enum class GenreInfoType : int32_t {
 struct InfoType {
     GenreInfoType genre{};
     uint32_t taille_en_octet = 0;
+    uint32_t alignement = 0;
     uint32_t indice_dans_table_des_types = 0;
 };
 
@@ -124,7 +125,7 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeEntier, infos_types_entiers)                                                        \
     O(InfoTypeÉnum, infos_types_énums)                                                            \
     O(InfoTypeFonction, infos_types_fonctions)                                                    \
-    O(InfoTypeRubriqueStructure, infos_types_rubriques_structures)                                    \
+    O(InfoTypeRubriqueStructure, infos_types_rubriques_structures)                                \
     O(InfoTypeStructure, infos_types_structures)                                                  \
     O(InfoTypePointeur, infos_types_pointeurs)                                                    \
     O(InfoTypeTableau, infos_types_tableaux)                                                      \
@@ -138,7 +139,7 @@ struct InfoTypeVariadique : public InfoType {
     O(Annotation const *, annotations)                                                            \
     O(char, valeurs_énums)                                                                        \
     O(kuri::chaine_statique, noms_énums)                                                          \
-    O(InfoTypeRubriqueStructure *, rubriques)                                                         \
+    O(InfoTypeRubriqueStructure *, rubriques)                                                     \
     O(InfoType *, tableau_info_type)                                                              \
     O(InfoTypeStructure *, structs_employées)
 
