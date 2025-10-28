@@ -1,4 +1,5 @@
 importe Compilatrice
+importe Ensemble
 importe Fondation
 importe Triage
 
@@ -11,12 +12,18 @@ importe Triage
 
     ajoute_fichier_à_la_compilation(espace, fichier)
 
+    espaces: [..]*EspaceDeTravail
+    diffère déloge(espaces)
+
+    ensemble_ajoute(*espaces, espace)
+
     boucle {
         message := compilatrice_attend_message()
         diffère compilatrice_message_reçu(message)
 
-        si message.espace != espace {
-            continue
+        si message.genre == GenreMessage.ESPACE_CRÉÉ {
+            message_espace := message comme *MessageEspaceCréé
+            ensemble_ajoute(*espaces, message_espace.nouvel_espace)
         }
 
         // si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
@@ -34,7 +41,16 @@ importe Triage
             phase := message comme *MessagePhaseCompilation
 
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
-                arrête
+                pour espaces {
+                    si it == message.espace {
+                        tableau_supprime_indice(*espaces, indice_it)
+                        arrête
+                    }
+                }
+
+                si espaces.taille == 0 {
+                    arrête
+                }
             }
         }
     }
@@ -117,19 +133,23 @@ calcule_rembourrage :: fonc (types: []*InfoType) -> n32
     alignement_max: n32
 
     pour types {
-        rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
-        résultat += rembourrage
+        si it.alignement != 0 {
+            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
+            résultat += rembourrage
 
-        taille_courante += rembourrage
-        taille_courante += it.taille_en_octet
+            taille_courante += rembourrage
+            taille_courante += it.taille_en_octet
 
-        si it.alignement > alignement_max {
-            alignement_max = it.alignement
+            si it.alignement > alignement_max {
+                alignement_max = it.alignement
+            }
         }
     }
 
-    rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
-    résultat += rembourrage
+    si alignement_max != 0 {
+        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
+        résultat += rembourrage
+    }
 
     retourne résultat
 }
