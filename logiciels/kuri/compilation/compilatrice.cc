@@ -298,6 +298,7 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
 
     espace->module_kuri = espace->sys_module->initialise_module_kuri(racine_modules_kuri,
                                                                      arguments.importe_kuri);
+
     if (espace->module_kuri) {
         espace->module_kuri->importé = true;
 
@@ -313,12 +314,29 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
 
     espace->module = espace->sys_module->crée_module_fichier_racine_compilation(dossier);
 
+    if (espaces_de_travail->taille() == 0) {
+        auto chemin = racine_modules_kuri / "MétaprogrammeDéfaut";
+        auto module = espace->sys_module->trouve_ou_crée_module(ID::MétaprogrammeDéfaut, chemin);
+        module->importé = true;
+        espace->sys_module->crée_fichier(module, "module", chemin / "module.kuri");
+        POUR (module->fichiers) {
+            if (it->fut_chargé) {
+                gestionnaire_code->requiers_lexage(espace, it);
+            }
+            else {
+                gestionnaire_code->requiers_chargement(espace, it);
+            }
+        }
+    }
+
     espaces_de_travail->ajoute(espace);
     espace->id = espaces_de_travail->taille();
     gestionnaire_code->espace_créé(espace);
 
     /* Crée les tâches pour les données requise de la typeuse. */
     Typeuse::crée_tâches_précompilation(*this, espace);
+
+    messagère->ajoute_message_espace_créé(espace, espace);
 
     return espace;
 }
