@@ -455,6 +455,11 @@ AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
     return crée_constante_nombre_entier(m_typeuse->type_z32, valeur);
 }
 
+AtomeConstante *ConstructriceRI::crée_n32(uint64_t valeur)
+{
+    return crée_constante_nombre_entier(m_typeuse->type_n32, valeur);
+}
+
 AtomeConstante *ConstructriceRI::crée_z64(uint64_t valeur)
 {
     return crée_constante_nombre_entier(m_typeuse->type_z64, valeur);
@@ -4626,7 +4631,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
 AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType index,
                                                                    Type const *pour_type)
 {
-    auto rubriques = kuri::tableau<AtomeConstante *>(3);
+    auto rubriques = kuri::tableau<AtomeConstante *>(4);
     remplis_rubriques_de_bases_info_type(rubriques, index, pour_type);
     return m_constructrice.crée_constante_structure(m_espace->typeuse.type_info_type_,
                                                     std::move(rubriques));
@@ -4636,20 +4641,21 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
                                                           GenreInfoType index,
                                                           Type const *pour_type)
 {
-    assert(valeurs.taille() == 3);
+    assert(valeurs.taille() == 4);
     valeurs[0] = m_constructrice.crée_z32(uint32_t(index));
     /* Puisque nous pouvons générer du code pour des architectures avec adressages en 32 ou 64
      * bits, et puisque nous pouvons exécuter sur une machine avec une architecture différente de
      * la cible de compilation, nous générons les constantes pour les taille_de lors de l'émission
      * du code machine. */
     valeurs[1] = m_constructrice.crée_constante_taille_de(pour_type);
+    valeurs[2] = m_constructrice.crée_n32(pour_type->alignement);
     // L'index dans la table des types sera mis en place lors de la génération du code machine.
-    valeurs[2] = m_constructrice.crée_indice_table_type(pour_type);
+    valeurs[3] = m_constructrice.crée_indice_table_type(pour_type);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
 {
-    auto valeurs = kuri::tableau<AtomeConstante *>(3);
+    auto valeurs = kuri::tableau<AtomeConstante *>(4);
     remplis_rubriques_de_bases_info_type(valeurs, index, pour_type);
     return crée_globale_info_type(m_espace->typeuse.type_info_type_, std::move(valeurs));
 }

@@ -15,6 +15,10 @@ tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> 
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Tri rapide des éléments d'un tableau.
+ * \{ */
+
 tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc(T, T)(z32))
 {
     premier := éléments.pointeur
@@ -69,3 +73,68 @@ partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T
     permute(j, position_pivot)
     retourne j
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tri rapide des indices des éléments d'un tableau selon les éléments.
+ * \{ */
+
+tri_rapide :: fonc (indices: []$I, éléments: []$T, $Comparaison: fonc(T, T)(z32))
+{
+    assert(indices.taille == éléments.taille)
+
+    premier_indice := indices.pointeur
+    dernier_indice := premier_indice + indices.taille
+
+    tri_rapide(premier_indice, dernier_indice, éléments, Comparaison)
+}
+
+tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc(T, T)(z32))
+{
+    si distance(premier_indice, dernier_indice) <= 1 {
+        /* Retourne si la tranche est vide ou invalide. */
+        retourne
+    }
+
+    /* Détermine le pivot. */
+    pivot_indice := partition_tri_rapide(premier_indice, dernier_indice, éléments, Comparaison)
+
+    /* Appel récursif. Les éléments dont la valeur retournée pa \a Comparaison
+     * est plus petite que celle du pivot sont placés à gauche, les autres à
+     * droite. */
+    tri_rapide(premier_indice, pivot_indice, éléments, Comparaison)
+    tri_rapide(pivot_indice + 1, dernier_indice, éléments, Comparaison)
+}
+
+/* Basée sur https://www.geeksforgeeks.org/quick-sort-in-c/ */
+partition_tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc(T, T)(z32)) -> *I
+{
+    /* Le pivot est l'élément médian. */
+    position_pivot := premier_indice // + distance(premier, dernier) / 2
+    pivot := éléments[mémoire(position_pivot)]
+
+    i := premier_indice
+    j := dernier_indice - 1
+
+    boucle {
+        tantque i < dernier_indice && Comparaison(éléments[mémoire(i)], pivot) <= 0 {
+            i += 1
+        }
+
+        tantque j > premier_indice && Comparaison(éléments[mémoire(j)], pivot) > 0 {
+            j -= 1
+        }
+
+        si i >= j {
+            arrête
+        }
+
+        permute(i, j)
+    }
+
+    permute(j, position_pivot)
+    retourne j
+}
+
+/** \} */
