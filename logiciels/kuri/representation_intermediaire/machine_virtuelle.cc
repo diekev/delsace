@@ -930,6 +930,11 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         empile(arguments);
         return;
     }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_fichier_entrée_compilation)) {
+        empile(compilatrice.arguments.fichier_entrée_compilation);
+        return;
+    }
 }
 
 void MachineVirtuelle::empile_fonction_non_interne(AtomeFonction *ptr_fonction)

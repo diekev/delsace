@@ -1,0 +1,9 @@
+importe Compilatrice
+importe Fondation
+
+#exécute {
+    espace := espace_défaut_compilation()
+    fichier := compilatrice_donne_fichier_entrée_compilation()
+    imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
+    ajoute_fichier_à_la_compilation(espace, fichier)
+}

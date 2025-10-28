@@ -171,3 +171,11 @@ fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []
 /* Retourne la liste des arguments passés à la ligne de commande de la compilatrice Kuri après "--". */
 fonction compilatrice_donne_arguments_ligne_de_commande() -> chaine_statique []
 @compilatrice
+
+/* --------------------------------------------------------------------------
+ * Accès au fichier d'entrée de la compilation.
+ */
+
+/* Retourne la liste des arguments passés à la ligne de commande de la compilatrice Kuri après "--". */
+fonction compilatrice_donne_fichier_entrée_compilation() -> chaine_statique
+@compilatrice
