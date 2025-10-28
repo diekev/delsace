@@ -1009,8 +1009,14 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
+            os << "\t\t\tif (racine_typee->est_déclaration_type()) {\n";
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
+                  "racine_typee->comme_déclaration_type());\n";
+            os << "\t\t\t}\n";
+            os << "\t\t\telse {\n";
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
                   "racine_typee->type);\n";
+            os << "\t\t\t}\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
                   "(racine_typee->lexème) { n->nom = racine_typee->lexème->chaine; }\n";
 
