@@ -8,6 +8,7 @@
     MODULE_FERMÉ
     TYPAGE_CODE_TERMINÉ
     PHASE_COMPILATION
+    ESPACE_CRÉÉ
 }
 
 énum PhaseCompilation {
@@ -44,4 +45,8 @@ struct MessageTypageCodeTerminé : Message {
 
 struct MessagePhaseCompilation : Message {
     PhaseCompilation phase [code]
+}
+
+struct MessageEspaceCréé : Message {
+    EspaceDeTravail * nouvel_espace [code]
 }
