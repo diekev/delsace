@@ -419,15 +419,6 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
     ajoute_fichier_a_la_compilation(espace, c, espace->module, site);
 }
 
-Message const *Compilatrice::attend_message()
-{
-    auto messagère_ = messagère.verrou_ecriture();
-    if (!messagère_->possède_message()) {
-        return nullptr;
-    }
-    return messagère_->defile();
-}
-
 EspaceDeTravail *Compilatrice::espace_défaut_compilation()
 {
     return espace_de_travail_défaut;

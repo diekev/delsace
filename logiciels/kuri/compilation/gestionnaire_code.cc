@@ -2325,7 +2325,10 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
              * À FAIRE : même si un message est ajouté, purge_message provoque
              * une compilation infinie. */
             if (!espace->options.continue_si_erreur) {
-                m_compilatrice->messagère->purge_messages();
+                if (espace->metaprogramme) {
+                    std::unique_lock verrou(espace->metaprogramme->mutex_file_message);
+                    espace->metaprogramme->file_message.efface();
+                }
             }
 
             espace->change_de_phase(
@@ -2496,17 +2499,18 @@ void GestionnaireCode::flush_métaprogrammes_en_attente_de_crée_contexte(Espace
 
 void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
 {
-    m_compilatrice->messagère->termine_interception(espace);
-
     kuri::tableau<UniteCompilation *> nouvelles_unités;
     nouvelles_unités.réserve(unités_en_attente.taille());
 
     POUR (unités_en_attente) {
-        if (it->donne_raison_d_être() == RaisonDÊtre::ENVOIE_MESSAGE) {
-            continue;
+        if (it->espace == espace) {
+            it->supprime_attentes_sur_messages();
+
+            if (it->donne_raison_d_être() == RaisonDÊtre::ENVOIE_MESSAGE) {
+                continue;
+            }
         }
 
-        it->supprime_attentes_sur_messages();
         nouvelles_unités.ajoute(it);
     }
 

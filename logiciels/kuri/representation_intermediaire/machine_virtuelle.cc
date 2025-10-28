@@ -639,13 +639,13 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
-        auto message = compilatrice.attend_message();
-
-        if (!message) {
+        std::unique_lock verrou(m_métaprogramme->mutex_file_message);
+        if (m_métaprogramme->file_message.est_vide()) {
             résultat = RésultatInterprétation::PASSE_AU_SUIVANT;
             return;
         }
 
+        auto message = m_métaprogramme->file_message.defile();
         empile(message);
         return;
     }
@@ -655,7 +655,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         RAPPORTE_ERREUR_SI_NUL(espace_recu, "Reçu un espace de travail nul");
 
         auto &messagère = compilatrice.messagère;
-        messagère->commence_interception(espace_recu);
+        messagère->commence_interception(espace_recu, m_métaprogramme);
 
         espace_recu->metaprogramme = m_métaprogramme;
         static_cast<void>(espace_recu);
@@ -676,6 +676,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         }
 
         espace_recu->metaprogramme = nullptr;
+
+        compilatrice.messagère->termine_interception(espace_recu, m_métaprogramme);
 
         /* Ne passons pas par la messagère car il est possible que le GestionnaireCode soit
          * vérrouiller par quelqu'un, et par le passé la Messagère prévenait le GestionnaireCode,
