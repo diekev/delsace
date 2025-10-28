@@ -30,6 +30,7 @@ Annotation :: struct #interface {
 InfoType :: struct #interface {
     id: GenreInfoType
     taille_en_octet: n32
+    alignement: n32
     indice_dans_table_des_types: n32
 }
 

@@ -38,7 +38,7 @@ appel_pointeur_fonction_interne :: fonc () -> z32
 
 appel_pointeur_fonction_externe :: fonc () -> bool
 {
-    ptr := compilatrice_obtiens_options
+    ptr := compilatrice_donne_options
     options := ptr()
     retourne options.niveau_optimisation == NiveauOptimisation.AUCUN
 }

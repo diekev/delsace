@@ -19,6 +19,7 @@ struct Messagère {
     kuri::tableau_page<MessageModule> messages_modules{};
     kuri::tableau_page<MessageTypageCodeTerminé> messages_typage_code{};
     kuri::tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
+    kuri::tableau_page<MessageEspaceCréé> messages_espace_créé{};
 
     int64_t pic_de_message = 0;
 
@@ -41,6 +42,7 @@ struct Messagère {
     void ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine_statique chemin);
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module);
+    void ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeTravail *nouvelle_espace);
     Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
     Message *ajoute_message_phase_compilation(EspaceDeTravail *espace);
 

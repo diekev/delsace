@@ -1532,3 +1532,60 @@ est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Génération d'une fonction qui retourne une chaine pour une valeur
+ * constante. Utilisée principalement pour les interfaces de bibliothèques C.
+ * \{ */
+
+#portée_export
+
+corps_fonction_chaine_pour_constantes :: fonc (fichier: chaine, sentinelle: chaine, préfixe: chaine, nom_argument: chaine, première_constante_utilisateur := "", dernière_constante_utilisateur := "") -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    imprime_corps_fonction_chaine_pour_constantes(*enchaineuse, fichier, sentinelle, préfixe, nom_argument, première_constante_utilisateur, dernière_constante_utilisateur)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+imprime_corps_fonction_chaine_pour_constantes :: fonc (enchaineuse: *Enchaineuse, fichier: chaine, sentinelle: chaine, préfixe: chaine, nom_argument: chaine, première_constante_utilisateur: chaine, dernière_constante_utilisateur: chaine)
+{
+    lexèmes := compilatrice_lèxe_fichier(fichier)
+
+    sentinelle_trouvée := faux
+
+    pour lexèmes {
+        si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
+            continue
+        }
+
+        si it.texte == sentinelle {
+            sentinelle_trouvée = vrai
+        }
+
+        saufsi sentinelle_trouvée {
+            continue
+        }
+
+        saufsi it.texte.commence_par(préfixe) {
+            continue
+        }
+
+        nom_type := it.texte.avance(préfixe.taille)
+
+        ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\" }\n")
+    }
+
+    si première_constante_utilisateur && dernière_constante_utilisateur {
+        ajoute_au_tampon(enchaineuse, "si ", première_constante_utilisateur, " <= ", nom_argument, " <= ", dernière_constante_utilisateur, "{\n")
+        ajoute_au_tampon(enchaineuse, "    retourne \"constante utilisateur\"\n")
+        ajoute_au_tampon(enchaineuse, "}\n")
+    }
+
+    ajoute_au_tampon(enchaineuse, "    imprimeln(\"% : %\", #nom_de_cette_fonction, ", nom_argument, ")\n")
+    ajoute_au_tampon(enchaineuse, "    retourne \"ERREUR VALEUR INCONNUE\"\n")
+}
+
+/** \} */

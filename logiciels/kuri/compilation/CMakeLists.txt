@@ -61,6 +61,7 @@ set(SOURCES
     environnement.hh
     erreur.h
     espace_de_travail.hh
+    fichier_elf.hh
     gestionnaire_code.hh
     graphe_dependance.hh
     interface_module_kuri.hh
@@ -94,6 +95,7 @@ set(SOURCES
     environnement.cc
     erreur.cc
     espace_de_travail.cc
+    fichier_elf.cc
     gestionnaire_code.cc
     graphe_dependance.cc
     interface_module_kuri.cc

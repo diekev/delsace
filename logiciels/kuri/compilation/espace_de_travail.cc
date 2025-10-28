@@ -313,7 +313,7 @@ Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fich
                                                kuri::chaine_statique message) const
 {
     const Fichier *f = this->fichier(chemin_fichier);
-    return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
+    return ::rapporte_avertissement(this, SiteSource(f, ligne), message);
 }
 
 Erreur EspaceDeTravail::rapporte_avertissement_externe(ParamètresErreurExterne const &params) const

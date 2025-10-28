@@ -68,6 +68,18 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
     envoie_message(message);
 }
 
+void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeTravail *nouvel_espace)
+{
+    if (interception_commencée) {
+        auto message = messages_espace_créé.ajoute_élément();
+        message->genre = GenreMessage::ESPACE_CRÉÉ;
+        message->espace = espace;
+        message->nouvel_espace = nouvel_espace;
+
+        envoie_message(message);
+    }
+}
+
 Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
     if (!interception_commencée) {

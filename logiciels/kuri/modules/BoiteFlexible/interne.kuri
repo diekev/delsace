@@ -1062,7 +1062,7 @@ fragmente_texte :: fonc (boite: *BoiteFlexible)
         premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment
         dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1
 
-        si boite.largeur >= boite.largeur_texte {
+        si boite.largeur >= boite.largeur_texte || boite.config_texte.drapeaux.SANS_FRAGMENTS {
             premier_fragment.texte = boite.texte
             boite.dernier_fragment = boite.premier_fragment
             retourne

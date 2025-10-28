@@ -16,7 +16,7 @@ charge "options"
 
 compile_pour_production :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.niveau_optimisation = NiveauOptimisation.O3
     options.résultat = RésultatCompilation.EXÉCUTABLE
     compilatrice_ajourne_options(options)
@@ -24,7 +24,7 @@ compile_pour_production :: fonc ()
 
 compile_pour_débogage :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.DÉBOGAGE
     compilatrice_ajourne_options(options)
@@ -32,7 +32,7 @@ compile_pour_débogage :: fonc ()
 
 compile_pour_débogage_avec_asan :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.DÉBOGAGE
     options.utilise_asan = vrai
@@ -41,7 +41,7 @@ compile_pour_débogage_avec_asan :: fonc ()
 
 compile_pour_profilage :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.PROFILAGE
     compilatrice_ajourne_options(options)
@@ -87,7 +87,7 @@ compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *No
 
 désactive_compilation_espace_défaut :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.RIEN
     compilatrice_ajourne_options(options)
 }

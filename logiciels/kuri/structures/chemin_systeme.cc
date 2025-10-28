@@ -112,7 +112,11 @@ chaine_statique chemin_systeme::nom_fichier() const
     auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
     auto distance = std::distance(debut, pos);
     auto taille = std::distance(pos, fin);
-    return {donnees.pointeur() + distance + 1, taille - 1};
+    if (distance != 0) {
+        distance += 1;
+        taille -= 1;
+    }
+    return {donnees.pointeur() + distance, taille};
 }
 
 chaine_statique chemin_systeme::nom_fichier_sans_extension() const
