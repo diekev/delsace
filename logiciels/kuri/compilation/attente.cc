@@ -618,6 +618,11 @@ RAPPEL_POUR_COMMENTAIRE(message)
             résultat << " " << message_phase->phase;
             break;
         }
+        case GenreMessage::ESPACE_CRÉÉ:
+        {
+            résultat << " espace créé";
+            break;
+        }
     }
 
     résultat << " (espace \"" << message->espace
