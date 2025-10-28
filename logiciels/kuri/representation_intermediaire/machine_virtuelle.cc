@@ -695,7 +695,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_obtiens_options)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_options)) {
         auto options = compilatrice.options_compilation();
         empile(options);
         return;
@@ -929,6 +929,11 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         kuri::tableau_statique<kuri::chaine_statique> arguments =
             compilatrice.arguments.arguments_pour_métaprogrammes;
         empile(arguments);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_fichier_entrée_compilation)) {
+        empile(compilatrice.arguments.fichier_entrée_compilation);
         return;
     }
 }

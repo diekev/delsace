@@ -61,6 +61,7 @@ struct GestionnaireChainesAjoutées {
 
 /* Options passées sur la ligne de commande. */
 struct ArgumentsCompilatrice {
+    kuri::chaine_statique fichier_entrée_compilation{};
     bool active_tests = false;
     bool profile_metaprogrammes = false;
     bool debogue_execution = false;

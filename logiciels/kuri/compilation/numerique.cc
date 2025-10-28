@@ -11,7 +11,7 @@ bool est_hors_des_limites(int64_t valeur, Type *type)
 {
     if (type->est_type_entier_naturel()) {
         if (type->taille_octet == 1) {
-            return valeur >= std::numeric_limits<unsigned char>::max();
+            return valeur > std::numeric_limits<unsigned char>::max();
         }
 
         if (type->taille_octet == 2) {
