@@ -866,7 +866,7 @@ int main(int argc, char *argv[])
     }
 
     auto arguments = opt_arguments.value();
-    arguments.fichier_entrée_compilation = chemin_fichier;
+    arguments.fichier_entrée_compilation = chemin_fichier.nom_fichier();
 
     auto compilatrice = Compilatrice(opt_racine_kuri.value(), arguments);
 
