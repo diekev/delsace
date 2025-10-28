@@ -3,9 +3,9 @@ importe Compilatrice
 #exécute {
     {
         options: OptionsDeCompilation
-        options.nom_sortie = "fenêtre"
-        espace := démarre_un_espace_de_travail("fenêtre", *options)
-        ajoute_fichier_à_la_compilation(espace, "fenêtre.kuri")
+        options.nom_sortie = "visionneuse"
+        espace := démarre_un_espace_de_travail("visionneuse", *options)
+        ajoute_fichier_à_la_compilation(espace, "visionneuse.kuri")
     }
     {
         options: OptionsDeCompilation
