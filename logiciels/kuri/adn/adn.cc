@@ -355,6 +355,7 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
     }
 
     const auto est_chaine_litterale = m_nom_code.nom() == "NoeudCodeLittéraleChaine";
+    const auto est_corps_fonction = m_nom_code.nom() == "NoeudCodeCorpsFonction";
 
     POUR (m_rubriques) {
         if (it.type->est_pointeur() &&
@@ -404,6 +405,11 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 
         os << "\n";
     }
+
+    if (est_corps_fonction) {
+        os << "\tnoeuds: [..]*NoeudCode\n";
+    }
+
     os << "}\n\n";
 }
 
