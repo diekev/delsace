@@ -1075,8 +1075,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 noeud->type = m_espace->typeuse.type_rien;
             }
             else {
-                noeud->type = expressions->a(expressions->taille() - 1)->type;
-                if (noeud->type == nullptr) {
+                auto expression = expressions->dernier_élément();
+                if (((expression->genre_valeur & GenreValeur::DROITE) != 0) && expression->type) {
+                    noeud->type = expression->type;
+                }
+                else {
                     noeud->type = m_espace->typeuse.type_rien;
                 }
             }
