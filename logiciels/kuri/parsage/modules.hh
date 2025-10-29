@@ -256,6 +256,8 @@ struct SystèmeModule {
 
     Module *crée_module_fichier_racine_compilation(kuri::chaine_statique dossier);
 
+    Module *donne_module(kuri::chaine_statique chemin);
+
     Module *trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);
 
     Module *crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin);

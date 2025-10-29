@@ -882,6 +882,17 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
+    if (EST_FONCTION_COMPILATRICE(compilatrice_donne_module)) {
+        auto chemin = dépile<kuri::chaine_statique>();
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+
+        auto module = espace->sys_module->donne_module(chemin);
+        empile(module);
+        return;
+    }
+
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_code)) {
         auto code = dépile<NoeudCode *>();
         RAPPORTE_ERREUR_SI_NUL(code, "Reçu un noeud code nul");
