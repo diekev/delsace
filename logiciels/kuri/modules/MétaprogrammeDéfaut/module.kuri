@@ -34,7 +34,7 @@ importe Triage
         //         continue
         //     }
 
-        //     vérifie_rembourrage_excessif(code)
+        //     vérifie_imprime(code)
         // }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
@@ -59,6 +59,134 @@ importe Triage
 }
 
 #portée_fichier
+
+vérifie_imprime :: fonc (code: *NoeudCode)
+{
+    si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
+        corps := code comme *NoeudCodeCorpsFonction
+        si corps.entête.nom == "principale" {
+            imprimeln("corps de %", corps.entête.nom)
+            vérifie_bloc_fonction(corps.bloc)
+        }
+    }
+}
+
+vérifie_bloc_fonction :: fonc (code: *NoeudCode)
+{
+    discr code.genre {
+        DÉCLARATION_VARIABLE {
+            code_déclaration := code comme *NoeudCodeDéclarationVariable
+            si code_déclaration.expression {
+                vérifie_bloc_fonction(code_déclaration.expression)
+            }
+        }
+        EXPRESSION_ASSIGNATION_VARIABLE {
+            assignation := code comme *NoeudCodeAssignation
+            vérifie_bloc_fonction(assignation.assignée)
+            vérifie_bloc_fonction(assignation.expression)
+        }
+        OPÉRATEUR_BINAIRE {
+            binaire := code comme *NoeudCodeExpressionBinaire
+            vérifie_bloc_fonction(binaire.opérande_gauche)
+            vérifie_bloc_fonction(binaire.opérande_droite)
+        }
+        OPÉRATEUR_UNAIRE {
+            unaire := code comme *NoeudCodeExpressionUnaire
+            vérifie_bloc_fonction(unaire.opérande)
+        }
+        INSTRUCTION_SI {
+            code_si := code comme *NoeudCodeSi
+
+            vérifie_bloc_fonction(code_si.condition)
+            vérifie_bloc_fonction(code_si.bloc_si_vrai)
+
+            si code_si.bloc_si_faux {
+                vérifie_bloc_fonction(code_si.bloc_si_faux)
+            }
+        }
+        INSTRUCTION_COMPOSÉE {
+            bloc := code comme *NoeudCodeBloc
+
+            pour bloc.expressions {
+                vérifie_bloc_fonction(it)
+            }
+        }
+        INSTRUCTION_RETOUR {
+            ret := code comme *NoeudCodeExpressionUnaire
+            si ret.opérande {
+                vérifie_bloc_fonction(ret.opérande)
+            }
+        }
+        INSTRUCTION_BOUCLE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(code_boucle.bloc)
+        }
+        INSTRUCTION_TANTQUE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(code_boucle.bloc)
+        }
+        INSTRUCTION_RÉPÈTE {
+            code_boucle := code comme *NoeudCodeBoucle
+            vérifie_bloc_fonction(code_boucle.bloc)
+        }
+        EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+        }
+        EXPRESSION_PARENTHÈSE {
+            paren := code comme *NoeudCodeExpressionUnaire
+            vérifie_bloc_fonction(paren.opérande)
+        }
+        EXPRESSION_APPEL {
+            appel := code comme *NoeudCodeAppel
+
+            si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+                référence := appel.expression comme *NoeudCodeRéférenceDéclaration
+                // À FAIRE(langage) : convertis la déclaration
+                si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
+                    format := appel.paramètres[0]
+                    si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
+                        chn := (format comme *NoeudCodeLittéraleChaine).valeur
+
+                        nombre_de_pourcentages := 0
+                        pour chn {
+                            si it == '%' {
+                                nombre_de_pourcentages += 1
+                            }
+                        }
+
+                        si nombre_de_pourcentages != appel.paramètres.taille - 1 {
+                            compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
+                        }
+                    }
+                }
+            }
+        }
+        EXPRESSION_CONSTRUCTION_STRUCTURE {
+            appel := code comme *NoeudCodeAppel
+            pour appel.paramètres {
+                // @Incomplet : vérifie si nous avons une assignation
+                vérifie_bloc_fonction(it)
+            }
+        }
+        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
+        }
+        EXPRESSION_COMME {
+            expr_comme := code comme *NoeudCodeComme
+            vérifie_bloc_fonction(expr_comme.expression)
+        }
+        /*
+        EXPRESSION_VIRGULE {
+            virgule := code comme *NoeudCodeVirgule
+
+            pour virgule.expressions {
+                vérifie_bloc_fonction(it)
+            }
+        }
+        */
+        sinon {
+            imprimeln("noeud non-géré %", code.genre)
+        }
+    }
+}
 
 vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
 {
