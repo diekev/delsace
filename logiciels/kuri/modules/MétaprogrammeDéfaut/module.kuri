@@ -1,12 +1,15 @@
+AS :: importe AnalyseStatique
 importe Compilatrice
-importe Ensemble
 importe Fondation
-importe Triage
+importe GreffeMétaprogramme
 
 #exécute {
     espace := espace_défaut_compilation()
     fichier := compilatrice_donne_fichier_entrée_compilation()
     imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
+
+    greffons: [..]*GreffonMétaprogramme
+    tableau_ajoute(*greffons, AS.donne_greffon())
 
     compilatrice_commence_interception(espace)
 
@@ -15,7 +18,7 @@ importe Triage
     espaces: [..]EspaceDeTravail
     diffère déloge(espaces)
 
-    ensemble_ajoute(*espaces, espace)
+    tableau_ajoute(*espaces, espace)
 
     boucle {
         message := compilatrice_attend_message()
@@ -23,19 +26,12 @@ importe Triage
 
         si message.genre == GenreMessage.ESPACE_CRÉÉ {
             message_espace := message comme *MessageEspaceCréé
-            ensemble_ajoute(*espaces, message_espace.nouvel_espace)
+            tableau_ajoute(*espaces, message_espace.nouvel_espace)
         }
 
-        // si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
-        //     message_code := message comme *MessageTypageCodeTerminé
-        //     code := message_code.code
-
-        //     saufsi code {
-        //         continue
-        //     }
-
-        //     vérifie_imprime(code)
-        // }
+        pour greffons {
+            gère_message(it, message)
+        }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
             phase := message comme *MessagePhaseCompilation
@@ -56,253 +52,9 @@ importe Triage
     }
 
     compilatrice_termine_interception(espace)
-}
 
-#portée_fichier
-
-vérifie_imprime :: fonc (code: *NoeudCode)
-{
-    si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-        corps := code comme *NoeudCodeCorpsFonction
-        si corps.entête.nom == "principale" {
-            pour noeud dans corps.noeuds {
-                si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
-                    appel := noeud comme *NoeudCodeAppel
-
-                    si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-                        référence := appel.expression comme *NoeudCodeRéférenceDéclaration
-                        // À FAIRE(langage) : convertis la déclaration
-                        si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
-                            format := appel.paramètres[0]
-                            si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
-                                chn := (format comme *NoeudCodeLittéraleChaine).valeur
-
-                                nombre_de_pourcentages := 0
-                                pour chn {
-                                    si it == '%' {
-                                        nombre_de_pourcentages += 1
-                                    }
-                                }
-
-                                si nombre_de_pourcentages != appel.paramètres.taille - 1 {
-                                    compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    pour greffons {
+        détruit(it)
     }
-}
-
-vérifie_bloc_fonction :: fonc (code: *NoeudCode)
-{
-    discr code.genre {
-        DÉCLARATION_VARIABLE {
-            code_déclaration := code comme *NoeudCodeDéclarationVariable
-            si code_déclaration.expression {
-                vérifie_bloc_fonction(code_déclaration.expression)
-            }
-        }
-        EXPRESSION_ASSIGNATION_VARIABLE {
-            assignation := code comme *NoeudCodeAssignation
-            vérifie_bloc_fonction(assignation.assignée)
-            vérifie_bloc_fonction(assignation.expression)
-        }
-        OPÉRATEUR_BINAIRE {
-            binaire := code comme *NoeudCodeExpressionBinaire
-            vérifie_bloc_fonction(binaire.opérande_gauche)
-            vérifie_bloc_fonction(binaire.opérande_droite)
-        }
-        OPÉRATEUR_UNAIRE {
-            unaire := code comme *NoeudCodeExpressionUnaire
-            vérifie_bloc_fonction(unaire.opérande)
-        }
-        INSTRUCTION_SI {
-            code_si := code comme *NoeudCodeSi
-
-            vérifie_bloc_fonction(code_si.condition)
-            vérifie_bloc_fonction(code_si.bloc_si_vrai)
-
-            si code_si.bloc_si_faux {
-                vérifie_bloc_fonction(code_si.bloc_si_faux)
-            }
-        }
-        INSTRUCTION_COMPOSÉE {
-            bloc := code comme *NoeudCodeBloc
-
-            pour bloc.expressions {
-                vérifie_bloc_fonction(it)
-            }
-        }
-        INSTRUCTION_RETOUR {
-            ret := code comme *NoeudCodeExpressionUnaire
-            si ret.opérande {
-                vérifie_bloc_fonction(ret.opérande)
-            }
-        }
-        INSTRUCTION_BOUCLE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(code_boucle.bloc)
-        }
-        INSTRUCTION_TANTQUE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(code_boucle.bloc)
-        }
-        INSTRUCTION_RÉPÈTE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(code_boucle.bloc)
-        }
-        EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-        }
-        EXPRESSION_PARENTHÈSE {
-            paren := code comme *NoeudCodeExpressionUnaire
-            vérifie_bloc_fonction(paren.opérande)
-        }
-        EXPRESSION_APPEL {
-            appel := code comme *NoeudCodeAppel
-
-            si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-                référence := appel.expression comme *NoeudCodeRéférenceDéclaration
-                // À FAIRE(langage) : convertis la déclaration
-                si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
-                    format := appel.paramètres[0]
-                    si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
-                        chn := (format comme *NoeudCodeLittéraleChaine).valeur
-
-                        nombre_de_pourcentages := 0
-                        pour chn {
-                            si it == '%' {
-                                nombre_de_pourcentages += 1
-                            }
-                        }
-
-                        si nombre_de_pourcentages != appel.paramètres.taille - 1 {
-                            compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
-                        }
-                    }
-                }
-            }
-        }
-        EXPRESSION_CONSTRUCTION_STRUCTURE {
-            appel := code comme *NoeudCodeAppel
-            pour appel.paramètres {
-                // @Incomplet : vérifie si nous avons une assignation
-                vérifie_bloc_fonction(it)
-            }
-        }
-        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-        }
-        EXPRESSION_COMME {
-            expr_comme := code comme *NoeudCodeComme
-            vérifie_bloc_fonction(expr_comme.expression)
-        }
-        /*
-        EXPRESSION_VIRGULE {
-            virgule := code comme *NoeudCodeVirgule
-
-            pour virgule.expressions {
-                vérifie_bloc_fonction(it)
-            }
-        }
-        */
-        sinon {
-            imprimeln("noeud non-géré %", code.genre)
-        }
-    }
-}
-
-vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
-{
-    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
-
-        pour type.rubriques {
-            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
-            }
-
-            // À FAIRE : tableaux fixes, etc.
-            reste_décalage := it.décalage % 64
-            si reste_décalage comme n32 + it.id.taille_en_octet > 64 {
-                avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom)
-                compilatrice_rapporte_avertissement(code, avertissement)
-                déloge(avertissement)
-            }
-        }
-    }
-}
-
-vérifie_rembourrage_excessif :: fonc (code: *NoeudCode)
-{
-    REMBOURRAGE_PERMIS : n32 : 24
-
-    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
-
-        types_rubriques: [..]*InfoType
-        diffère déloge(types_rubriques)
-
-        pour type.rubriques {
-            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
-            }
-            tableau_ajoute(*types_rubriques, it.id)
-        }
-
-        rembourrage_courant := calcule_rembourrage(types_rubriques)
-        tri_rapide(types_rubriques, tri_types_par_alignement_décroissant)
-        rembourrage_optimal := calcule_rembourrage(types_rubriques)
-
-        si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > REMBOURRAGE_PERMIS {
-            avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal)
-            compilatrice_rapporte_avertissement(code, avertissement)
-            déloge(avertissement)
-        }
-    }
-}
-
-tri_types_par_alignement_décroissant :: fonc (a: *InfoType, b: *InfoType) -> z32
-{
-    si a.alignement > b.alignement {
-        retourne 1
-    }
-
-    si b.alignement > a.alignement {
-        retourne -1
-    }
-
-    retourne 0
-}
-
-calcule_rembourrage :: fonc (types: []*InfoType) -> n32
-{
-    résultat: n32
-    taille_courante: n32
-
-    alignement_max: n32
-
-    pour types {
-        si it.alignement != 0 {
-            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
-            résultat += rembourrage
-
-            taille_courante += rembourrage
-            taille_courante += it.taille_en_octet
-
-            si it.alignement > alignement_max {
-                alignement_max = it.alignement
-            }
-        }
-    }
-
-    si alignement_max != 0 {
-        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
-        résultat += rembourrage
-    }
-
-    retourne résultat
+    déloge(greffons)
 }
