@@ -598,7 +598,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
     }
 
     si code_erreur == CodeErreurCompilationPython.FONCTION_INIT_REQUIERS_STRUCTURE {
-        saufsi fonction_ne_retourne_que(fonction, info_de(bool)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.BOOLÉEN {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_INIT, ContexteErreurPython(fonction))
             retourne
         }
@@ -606,7 +606,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         type_python.ajoute_méthode_init(compilatrice.système_type, fonction)
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_NEW_REQUIERS_STRUCTURE {
-        saufsi fonction_ne_retourne_que(fonction, info_de(bool)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.BOOLÉEN {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_NEW, ContexteErreurPython(fonction))
             retourne
         }
@@ -619,7 +619,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(chaine)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.CHAINE {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_REPR, ContexteErreurPython(fonction))
             retourne
         }
@@ -632,7 +632,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(chaine)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.CHAINE {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_STR, ContexteErreurPython(fonction))
             retourne
         }
