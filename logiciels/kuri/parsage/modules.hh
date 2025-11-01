@@ -62,10 +62,8 @@ enum class FonctionnalitéLangage : uint16_t {
     SI_STATIQUE = (1 << 7),
     /* Le fichier contient des directives #cuisine. */
     CUISINE = (1 << 8),
-    /* Le fichier contient des directives #pré_exécutable. */
-    PRÉ_EXÉCUTABLE = (1 << 9),
     /* Le fichier contient des directives #insère. */
-    INSÈRE = (1 << 10),
+    INSÈRE = (1 << 9),
 };
 DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
@@ -195,9 +193,6 @@ struct Module {
     /* Pour le #GestionnaireCode afin de savoir si nous devons vérifier qu'il reste des fichiers à
      * parser. */
     bool fichiers_sont_sales = true;
-    bool exécution_directive_requise = false;
-
-    NoeudDirectivePréExécutable *directive_pré_exécutable = nullptr;
 
     Module(kuri::chaine chm) : chemin_(chm)
     {

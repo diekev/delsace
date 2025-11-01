@@ -1917,7 +1917,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : une " << noeud->genre << " se retrouve dans la RI !\n"
