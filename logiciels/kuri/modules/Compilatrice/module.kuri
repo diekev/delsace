@@ -98,6 +98,19 @@ compilatrice_module_pour_code :: fonc (code: *NoeudCode) -> *Module
 }
 
 // ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour les messages
+
+est_message_phase :: fonc (message: *Message, phase: PhaseCompilation) -> bool
+{
+    résultat := faux
+    si message.genre == GenreMessage.PHASE_COMPILATION {
+        message_phase := message comme *MessagePhaseCompilation
+        résultat = message_phase.phase == phase
+    }
+    retourne résultat
+}
+
+// ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour les tests unitaires
 
 compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := #position_code_source)
