@@ -17,41 +17,41 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 35 [0 0 0]
         Block <div.contenant> <8, 8> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 19 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Text <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
-            Block <span.contenu> <8, 8> CH [0 0 4.80] 327 [4.80 0 0] CV [0 0 0] 19 [0 0 0]
+            Block <span.contenu> <8, 8> CH [0 0 4.80] 331.66 [4.80 0 0] CV [0 0 0] 19 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (12.80,8 0x19)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (12.80,8 0x19)
-                frag 2 Normal de Text début 1 fin 2 rect (12.80,8 40x19)
+                frag 2 Normal de Text début 1 fin 2 rect (12.80,8 40.58x19)
                     "Trier"
-                frag 3 Normal de Text début 2 fin 3 rect (52.80,8 5x19)
+                frag 3 Normal de Text début 2 fin 3 rect (53.38,8 5.09x19)
                     " "
-                frag 4 Normal de Text début 3 fin 4 rect (57.80,8 26x19)
+                frag 4 Normal de Text début 3 fin 4 rect (58.47,8 26.66x19)
                     "ces"
-                frag 5 Normal de Text début 4 fin 5 rect (83.80,8 5x19)
+                frag 5 Normal de Text début 4 fin 5 rect (85.13,8 5.09x19)
                     " "
-                frag 6 Normal de Text début 5 fin 6 rect (88.80,8 71x19)
+                frag 6 Normal de Text début 5 fin 6 rect (90.22,8 71.42x19)
                     "résultats"
-                frag 7 Normal de Text début 6 fin 7 rect (159.80,8 5x19)
+                frag 7 Normal de Text début 6 fin 7 rect (161.64,8 5.09x19)
                     " "
-                frag 8 Normal de Text début 7 fin 8 rect (164.80,8 27x19)
+                frag 8 Normal de Text début 7 fin 8 rect (166.74,8 27.45x19)
                     "par"
-                frag 9 Normal de Text début 8 fin 9 rect (191.80,8 5x19)
+                frag 9 Normal de Text début 8 fin 9 rect (194.19,8 5.09x19)
                     " "
-                frag 10 Normal de Text début 9 fin 10 rect (196.80,8 44x19)
+                frag 10 Normal de Text début 9 fin 10 rect (199.28,8 44.67x19)
                     "ordre"
-                frag 11 Normal de Text début 10 fin 11 rect (240.80,8 5x19)
+                frag 11 Normal de Text début 10 fin 11 rect (243.96,8 5.09x19)
                     " "
-                frag 12 Normal de Text début 11 fin 12 rect (245.80,8 19x19)
+                frag 12 Normal de Text début 11 fin 12 rect (249.05,8 19.72x19)
                     "de"
-                frag 13 Normal de Text début 12 fin 13 rect (264.80,8 5x19)
+                frag 13 Normal de Text début 12 fin 13 rect (268.77,8 5.09x19)
                     " "
-                frag 14 Normal de Text début 13 fin 14 rect (269.80,8 65x19)
+                frag 14 Normal de Text début 13 fin 14 rect (273.86,8 65.5x19)
                     "passage"
-                frag 15 Normal de Text début 14 fin 15 rect (334.80,8 5x19)
+                frag 15 Normal de Text début 14 fin 15 rect (339.36,8 5.09x19)
                     " "
-                frag 16 RembourrageFin de Inline début 0 fin 0 rect (339.80,8 0x19)
-                frag 17 MargeFin de Inline début 0 fin 0 rect (339.80,8 0x19)
-                Inline <(anonyme)> <12.80, 8> CH [0 0 0] 327 [0 0 0] CV [0 0 0] 19 [0 0 0]
-                    Text <(anonyme)> <12.80, 8> CH [0 0 0] 327 [0 0 0] CV [0 0 0] 19 [0 0 0]
+                frag 16 RembourrageFin de Inline début 0 fin 0 rect (344.46,8 0x19)
+                frag 17 MargeFin de Inline début 0 fin 0 rect (344.46,8 0x19)
+                Inline <(anonyme)> <12.80, 8> CH [0 0 0] 331.66 [0 0 0] CV [0 0 0] 19 [0 0 0]
+                    Text <(anonyme)> <12.80, 8> CH [0 0 0] 331.66 [0 0 0] CV [0 0 0] 19 [0 0 0]
             Inline <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 Text <(anonyme)> <0, 0> CH [0 0 0] 0 [0 0 0] CV [0 0 0] 0 [0 0 0]
         Block <(anonyme)> <8, 27> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]

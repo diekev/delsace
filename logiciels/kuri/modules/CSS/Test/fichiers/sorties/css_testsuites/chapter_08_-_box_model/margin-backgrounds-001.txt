@@ -17,76 +17,76 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 120 [0 0 0]
         Block <p> <8, 16> CH [0 0 0] 1904 [0 0 0] CV [16 0 0] 19 [0 0 16]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,16 0x19)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,16 0x19)
-            frag 2 Normal de Text début 0 fin 1 rect (8,16 33x19)
+            frag 2 Normal de Text début 0 fin 1 rect (8,16 33.55x19)
                 "Test"
-            frag 3 Normal de Text début 1 fin 2 rect (41,16 5x19)
+            frag 3 Normal de Text début 1 fin 2 rect (41.55,16 5.09x19)
                 " "
-            frag 4 Normal de Text début 2 fin 3 rect (46,16 53x19)
+            frag 4 Normal de Text début 2 fin 3 rect (46.65,16 53.92x19)
                 "passes"
-            frag 5 Normal de Text début 3 fin 4 rect (99,16 5x19)
+            frag 5 Normal de Text début 3 fin 4 rect (100.57,16 5.09x19)
                 " "
-            frag 6 Normal de Text début 4 fin 5 rect (104,16 11x19)
+            frag 6 Normal de Text début 4 fin 5 rect (105.66,16 11.05x19)
                 "if"
-            frag 7 Normal de Text début 5 fin 6 rect (115,16 5x19)
+            frag 7 Normal de Text début 5 fin 6 rect (116.71,16 5.09x19)
                 " "
-            frag 8 Normal de Text début 6 fin 7 rect (120,16 43x19)
+            frag 8 Normal de Text début 6 fin 7 rect (121.80,16 43.34x19)
                 "there"
-            frag 9 Normal de Text début 7 fin 8 rect (163,16 5x19)
+            frag 9 Normal de Text début 7 fin 8 rect (165.15,16 5.09x19)
                 " "
-            frag 10 Normal de Text début 8 fin 9 rect (168,16 13x19)
+            frag 10 Normal de Text début 8 fin 9 rect (170.24,16 13.34x19)
                 "is"
-            frag 11 Normal de Text début 9 fin 10 rect (181,16 5x19)
+            frag 11 Normal de Text début 9 fin 10 rect (183.59,16 5.09x19)
                 " "
-            frag 12 Normal de Text début 10 fin 11 rect (186,16 9x19)
+            frag 12 Normal de Text début 10 fin 11 rect (188.68,16 9.55x19)
                 "a"
-            frag 13 Normal de Text début 11 fin 12 rect (195,16 5x19)
+            frag 13 Normal de Text début 11 fin 12 rect (198.23,16 5.09x19)
                 " "
-            frag 14 Normal de Text début 12 fin 13 rect (200,16 45x19)
+            frag 14 Normal de Text début 12 fin 13 rect (203.32,16 45.05x19)
                 "white"
-            frag 15 Normal de Text début 13 fin 14 rect (245,16 5x19)
+            frag 15 Normal de Text début 13 fin 14 rect (248.37,16 5.09x19)
                 " "
-            frag 16 Normal de Text début 14 fin 15 rect (250,16 96x19)
+            frag 16 Normal de Text début 14 fin 15 rect (253.46,16 96.89x19)
                 "background"
-            frag 17 Normal de Text début 15 fin 16 rect (346,16 5x19)
+            frag 17 Normal de Text début 15 fin 16 rect (350.35,16 5.09x19)
                 " "
-            frag 18 Normal de Text début 16 fin 17 rect (351,16 69x19)
+            frag 18 Normal de Text début 16 fin 17 rect (355.45,16 69.11x19)
                 "between"
-            frag 19 Normal de Text début 17 fin 18 rect (420,16 5x19)
+            frag 19 Normal de Text début 17 fin 18 rect (424.55,16 5.09x19)
                 " "
-            frag 20 Normal de Text début 18 fin 19 rect (425,16 26x19)
+            frag 20 Normal de Text début 18 fin 19 rect (429.65,16 26.22x19)
                 "the"
-            frag 21 Normal de Text début 19 fin 20 rect (451,16 5x19)
+            frag 21 Normal de Text début 19 fin 20 rect (455.87,16 5.09x19)
                 " "
-            frag 22 Normal de Text début 20 fin 21 rect (456,16 35x19)
+            frag 22 Normal de Text début 20 fin 21 rect (460.96,16 35.16x19)
                 "blue"
-            frag 23 Normal de Text début 21 fin 22 rect (491,16 5x19)
+            frag 23 Normal de Text début 21 fin 22 rect (496.12,16 5.09x19)
                 " "
-            frag 24 Normal de Text début 22 fin 23 rect (496,16 43x19)
+            frag 24 Normal de Text début 22 fin 23 rect (501.21,16 43.52x19)
                 "outer"
-            frag 25 Normal de Text début 23 fin 24 rect (539,16 5x19)
+            frag 25 Normal de Text début 23 fin 24 rect (544.73,16 5.09x19)
                 " "
-            frag 26 Normal de Text début 24 fin 25 rect (544,16 28x19)
+            frag 26 Normal de Text début 24 fin 25 rect (549.82,16 28.92x19)
                 "box"
-            frag 27 Normal de Text début 25 fin 26 rect (572,16 5x19)
+            frag 27 Normal de Text début 25 fin 26 rect (578.74,16 5.09x19)
                 " "
-            frag 28 Normal de Text début 26 fin 27 rect (577,16 30x19)
+            frag 28 Normal de Text début 26 fin 27 rect (583.84,16 30.11x19)
                 "and"
-            frag 29 Normal de Text début 27 fin 28 rect (607,16 5x19)
+            frag 29 Normal de Text début 27 fin 28 rect (613.95,16 5.09x19)
                 " "
-            frag 30 Normal de Text début 28 fin 29 rect (612,16 26x19)
+            frag 30 Normal de Text début 28 fin 29 rect (619.04,16 26.22x19)
                 "the"
-            frag 31 Normal de Text début 29 fin 30 rect (638,16 5x19)
+            frag 31 Normal de Text début 29 fin 30 rect (645.26,16 5.09x19)
                 " "
-            frag 32 Normal de Text début 30 fin 31 rect (643,16 56x19)
+            frag 32 Normal de Text début 30 fin 31 rect (650.35,16 56.88x19)
                 "orange"
-            frag 33 Normal de Text début 31 fin 32 rect (699,16 5x19)
+            frag 33 Normal de Text début 31 fin 32 rect (707.23,16 5.09x19)
                 " "
-            frag 34 Normal de Text début 32 fin 33 rect (704,16 34x19)
+            frag 34 Normal de Text début 32 fin 33 rect (712.32,16 34.02x19)
                 "box."
-            frag 35 RembourrageFin de Inline début 0 fin 0 rect (738,16 0x19)
-            frag 36 MargeFin de Inline début 0 fin 0 rect (738,16 0x19)
-            Inline <(anonyme)> <8, 16> CH [0 0 0] 730 [0 0 0] CV [0 0 0] 19 [0 0 0]
-                Text <(anonyme)> <8, 16> CH [0 0 0] 730 [0 0 0] CV [0 0 0] 19 [0 0 0]
+            frag 35 RembourrageFin de Inline début 0 fin 0 rect (746.34,16 0x19)
+            frag 36 MargeFin de Inline début 0 fin 0 rect (746.34,16 0x19)
+            Inline <(anonyme)> <8, 16> CH [0 0 0] 738.34 [0 0 0] CV [0 0 0] 19 [0 0 0]
+                Text <(anonyme)> <8, 16> CH [0 0 0] 738.34 [0 0 0] CV [0 0 0] 19 [0 0 0]
         Block <(anonyme)> <8, 51> CH [0 0 0] 1904 [0 0 0] CV [0 0 0] 0 [0 0 0]
             frag 0 MargeDébut de Inline début 0 fin 0 rect (8,51 0x0)
             frag 1 RembourrageDébut de Inline début 0 fin 0 rect (8,51 0x0)
@@ -105,16 +105,16 @@ Block <html> <0, 0> CH [0 0 0] 1920 [0 0 0] CV [0 0 0] 120 [0 0 0]
             Block <div> <29, 72> CH [20 0 0] 1862 [0 0 20] CV [20 0 0] 19 [0 0 20]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (29,72 0x19)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (29,72 0x19)
-                frag 2 Normal de Text début 0 fin 1 rect (29,72 43x19)
+                frag 2 Normal de Text début 0 fin 1 rect (29,72 43.61x19)
                     "Filler"
-                frag 3 Normal de Text début 1 fin 2 rect (72,72 5x19)
+                frag 3 Normal de Text début 1 fin 2 rect (72.61,72 5.09x19)
                     " "
-                frag 4 Normal de Text début 2 fin 3 rect (77,72 34x19)
+                frag 4 Normal de Text début 2 fin 3 rect (77.70,72 34.37x19)
                     "Text"
-                frag 5 RembourrageFin de Inline début 0 fin 0 rect (111,72 0x19)
-                frag 6 MargeFin de Inline début 0 fin 0 rect (111,72 0x19)
-                Inline <(anonyme)> <29, 72> CH [0 0 0] 82 [0 0 0] CV [0 0 0] 19 [0 0 0]
-                    Text <(anonyme)> <29, 72> CH [0 0 0] 82 [0 0 0] CV [0 0 0] 19 [0 0 0]
+                frag 5 RembourrageFin de Inline début 0 fin 0 rect (112.07,72 0x19)
+                frag 6 MargeFin de Inline début 0 fin 0 rect (112.07,72 0x19)
+                Inline <(anonyme)> <29, 72> CH [0 0 0] 83.07 [0 0 0] CV [0 0 0] 19 [0 0 0]
+                    Text <(anonyme)> <29, 72> CH [0 0 0] 83.07 [0 0 0] CV [0 0 0] 19 [0 0 0]
             Block <(anonyme)> <9, 111> CH [0 0 0] 1902 [0 0 0] CV [0 0 0] 0 [0 0 0]
                 frag 0 MargeDébut de Inline début 0 fin 0 rect (9,111 0x0)
                 frag 1 RembourrageDébut de Inline début 0 fin 0 rect (9,111 0x0)

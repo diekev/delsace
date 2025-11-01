@@ -183,7 +183,8 @@ bouton_coche_sur_clic :: fonc (bouton: *BoutonCoche)
 crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(*T)(bool), sur_définis_coche: fonc(*T, bool)(rien)) -> *BoutonCoche
 {
     résultat := loge(BoutonCoche)
-    résultat.texte = texte
+    // À FAIRE : fuite de mémoire
+    résultat.texte = crée_chaine_utf32(texte)
     résultat.données = données
     résultat.sur_donne_coche = sur_donne_coche
     résultat.sur_définis_coche = sur_définis_coche

@@ -198,8 +198,7 @@ CheminsNuanceurs :: struct {
 
 donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
 {
-    module := compilatrice_module_courant()
-    chemin_module := CheminFichier(compilatrice_chemin_module(module))
+    chemin_module := CheminFichier(#chemin_de_ce_module)
 
     résultat: CheminsNuanceurs
     résultat.chemin_vertex_texte = (chemin_module / "nuanceurs/nuanceur_texte_vertex.glsl").chn

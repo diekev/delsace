@@ -12,13 +12,13 @@
 void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace,
                                               kuri::chaine_statique chemin)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return;
     }
 
     auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_OUVERT;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = chemin;
 
     envoie_message(message);
@@ -26,13 +26,13 @@ void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace,
 
 void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine_statique chemin)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return;
     }
 
     auto message = messages_fichiers.ajoute_élément();
     message->genre = GenreMessage::FICHIER_FERMÉ;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = chemin;
 
     envoie_message(message);
@@ -40,13 +40,13 @@ void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::ch
 
 void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return;
     }
 
     auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_OUVERT;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = module->chemin();
     message->module = module;
 
@@ -55,13 +55,13 @@ void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *m
 
 void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return;
     }
 
     auto message = messages_modules.ajoute_élément();
     message->genre = GenreMessage::MODULE_FERMÉ;
-    message->espace = espace;
+    message->espace = espace->id;
     message->chemin = module->chemin();
     message->module = module;
 
@@ -70,11 +70,11 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
 
 void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeTravail *nouvel_espace)
 {
-    if (interception_commencée) {
+    if (entreceveurs != 0) {
         auto message = messages_espace_créé.ajoute_élément();
         message->genre = GenreMessage::ESPACE_CRÉÉ;
-        message->espace = espace;
-        message->nouvel_espace = nouvel_espace;
+        message->espace = espace->id;
+        message->nouvel_espace = nouvel_espace->id;
 
         envoie_message(message);
     }
@@ -82,13 +82,13 @@ void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeT
 
 Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return nullptr;
     }
 
     auto message = messages_typage_code.ajoute_élément();
     message->genre = GenreMessage::TYPAGE_CODE_TERMINÉ;
-    message->espace = espace;
+    message->espace = espace->id;
 
     /* Les messages de typages ne sont pas directement envoyés. */
 
@@ -97,19 +97,21 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudEx
 
 void Messagère::envoie_message(Message *message)
 {
-    file_message.enfile(message);
-    pic_de_message = std::max(file_message.taille(), pic_de_message);
+    POUR (métaprogrammes) {
+        std::unique_lock verrou(it->mutex_file_message);
+        it->file_message.enfile(message);
+    }
 }
 
 Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
 {
-    if (!interception_commencée) {
+    if (entreceveurs == 0) {
         return nullptr;
     }
 
     auto message = messages_phase_compilation.ajoute_élément();
     message->genre = GenreMessage::PHASE_COMPILATION;
-    message->espace = espace;
+    message->espace = espace->id;
     message->phase = espace->phase_courante();
 
     envoie_message(message);
@@ -124,31 +126,30 @@ int64_t Messagère::mémoire_utilisée() const
     résultat += messages_modules.mémoire_utilisée();
     résultat += messages_typage_code.mémoire_utilisée();
     résultat += messages_phase_compilation.mémoire_utilisée();
-    résultat += pic_de_message * taille_de(void *);
     return résultat;
 }
 
-Message const *Messagère::defile()
+void Messagère::commence_interception(EspaceDeTravail * /*espace*/, MetaProgramme *métaprogramme)
 {
-    if (!interception_commencée) {
-        return nullptr;
+    entreceveurs += 1;
+    métaprogrammes.ajoute(métaprogramme);
+}
+
+void Messagère::termine_interception(EspaceDeTravail * /*espace*/, MetaProgramme *métaprogramme)
+{
+    assert(entreceveurs >= 1);
+    entreceveurs -= 1;
+
+    {
+        std::unique_lock verrou(métaprogramme->mutex_file_message);
+        métaprogramme->file_message.efface();
     }
 
-    return file_message.defile();
-}
-
-void Messagère::commence_interception(EspaceDeTravail * /*espace*/)
-{
-    interception_commencée = true;
-}
-
-void Messagère::termine_interception(EspaceDeTravail * /*espace*/)
-{
-    interception_commencée = false;
-    purge_messages();
-}
-
-void Messagère::purge_messages()
-{
-    file_message.efface();
+    POUR_INDICE (métaprogrammes) {
+        if (it == métaprogramme) {
+            std::swap(métaprogrammes[indice_it], métaprogrammes[métaprogrammes.taille() - 1]);
+            métaprogrammes.supprime_dernier();
+            break;
+        }
+    }
 }

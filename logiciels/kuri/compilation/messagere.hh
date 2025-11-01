@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "structures/file.hh"
 #include "structures/tableau_page.hh"
 
 #include "message.hh"
 
 struct Compilatrice;
 struct EspaceDeTravail;
+struct MetaProgramme;
 struct Module;
 struct NoeudExpression;
 
@@ -21,13 +21,11 @@ struct Messagère {
     kuri::tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
     kuri::tableau_page<MessageEspaceCréé> messages_espace_créé{};
 
-    int64_t pic_de_message = 0;
+    kuri::tableau<MetaProgramme *> métaprogrammes{};
 
-    bool interception_commencée = false;
+    int entreceveurs = 0;
 
     Compilatrice *m_compilatrice = nullptr;
-
-    kuri::file<Message const *> file_message{};
 
   public:
     Messagère() = default;
@@ -48,17 +46,9 @@ struct Messagère {
 
     int64_t mémoire_utilisée() const;
 
-    inline bool possède_message() const
-    {
-        return !file_message.est_vide();
-    }
+    void commence_interception(EspaceDeTravail *espace, MetaProgramme *métaprogramme);
 
-    Message const *defile();
+    void termine_interception(EspaceDeTravail *espace, MetaProgramme *métaprogramme);
 
-    void commence_interception(EspaceDeTravail *espace);
-
-    void termine_interception(EspaceDeTravail *espace);
-
-    void purge_messages();
     void envoie_message(Message *message);
 };

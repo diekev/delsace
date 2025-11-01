@@ -9,6 +9,7 @@
 
 #include "structures/chaine.hh"
 #include "structures/ensemble.hh"
+#include "structures/file.hh"
 
 struct AtomeFonction;
 struct DonnéesExécution;
@@ -40,7 +41,8 @@ struct AdresseDonnéesExécution {
 // Ces patchs sont utilisés pour écrire au bon endroit les adresses des constantes ou des globales
 // dans les données d'exécution des métaprogrammes. Par exemple, les pointeurs des infos types des
 // rubriques des structures sont écris dans un tableau constant, et le pointeur du tableau constant
-// doit être écris dans la zone mémoire où se trouve le tableau de rubriques de l'InfoTypeStructure.
+// doit être écris dans la zone mémoire où se trouve le tableau de rubriques de
+// l'InfoTypeStructure.
 struct PatchDonnéesConstantes {
     AdresseDonnéesExécution destination{};
     AdresseDonnéesExécution source{};
@@ -169,6 +171,9 @@ struct MetaProgramme {
     kuri::ensemble<AtomeFonction *> cibles_appels{};
 
     ComportementMétaprogramme comportement{};
+
+    std::mutex mutex_file_message{};
+    kuri::file<Message const *> file_message{};
 
   private:
     /* Les logs d'empilage peuvent être très lourds. Nous ne devrions les préserver que si les

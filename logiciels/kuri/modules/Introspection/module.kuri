@@ -851,9 +851,6 @@ trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionInstrospection($T), in
 /* Utile pour les métaprogrammes pour générer le code pour envelopper des fonctions spécifiques
  * dans des fonctions génériques insérables dans un tableau de FonctionInstrospection. */
 CréatriceTableFonction :: struct {
-    /* L'annotation code qu'une fonction doit avoir pour être considérée. */
-    annotation_désirée: chaine
-
     /* Nom du tableau globale contenant les FonctionIntropection. */
     nom_table_fonctions: chaine
 
@@ -895,10 +892,6 @@ DonnéesFonctionPourTableFonction :: struct {
 
 créatrice_est_valide :: fonc (créatrice: &CréatriceTableFonction) -> bool
 {
-    saufsi créatrice.annotation_désirée {
-        retourne faux
-    }
-
     saufsi créatrice.nom_table_fonctions {
         retourne faux
     }
@@ -926,14 +919,11 @@ ajoute_module :: fonc (créatrice: &CréatriceTableFonction, nom_module: chaine)
     }
 }
 
-crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
+crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: []*NoeudCodeEntêteFonction)
 {
     saufsi créatrice.créatrice_est_valide() {
         retourne
     }
-
-    fonctions := fonctions_parsées_avec_annotation(créatrice.annotation_désirée)
-    diffère déloge(fonctions)
 
     saufsi fonctions {
         retourne

@@ -82,7 +82,7 @@ imprime_table :: fonc (table: *Table) -> rien
     ligne_titre: LigneTabuleuse
 
     pour colonne dans table.desc_colonnes {
-        tableau_ajoute(*ligne_titre.colonnes, colonne.nom)
+        tableau_ajoute(*ligne_titre.colonnes, Cellule(colonne.nom))
     }
 
     tabuleuse := crée_tabuleuse(ligne_titre)
@@ -99,12 +99,12 @@ imprime_table :: fonc (table: *Table) -> rien
             discr colonne.genre {
                 CHAINE {
                     chn := désérialise_chaine(ligne, décalage)
-                    tableau_ajoute(*ligne_tabuleuse.colonnes, chn)
+                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn))
                 }
                 ENTIER {
                     entier := désérialise_entier(ligne, décalage)
-                    chn := obtiens_chaine_pour_eini(*tabuleuse, entier)
-                    tableau_ajoute(*ligne_tabuleuse.colonnes, chn)
+                    chn := donne_chaine_pour_eini(*tabuleuse, entier)
+                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn))
                 }
             }
 

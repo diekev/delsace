@@ -4,4 +4,4 @@ génère_fonctions_de_parsages :: fonc ()
     génère_initialisation_routes()
 }
 
-#pré_exécutable génère_fonctions_de_parsages()
+// #pré_exécutable génère_fonctions_de_parsages()

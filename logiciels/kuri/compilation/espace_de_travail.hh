@@ -76,6 +76,7 @@ struct EspaceDeTravail {
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
     mutable std::atomic<bool> possède_erreur{false};
+    mutable std::atomic<int> erreurs_rapportées{0};
 
     kuri::Synchrone<InterfaceKuri> interface_kuri{};
 
@@ -135,10 +136,6 @@ struct EspaceDeTravail {
     NoeudBloc *m_bloc_racine = nullptr;
 
     Compilatrice &m_compilatrice;
-
-    /* Toutes les fonctions parsées et typées lors de la compilation, qui ont traversées
-     * typage_terminé. Accessible via les métaprogrammes, via compilatrice_fonctions_parsées(). */
-    kuri::tableau<NoeudDéclarationEntêteFonction *> fonctions_parsées{};
 
     // Données pour le gestionnaire de code.
     kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};

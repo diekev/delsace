@@ -751,4 +751,4 @@ génère_initialisation_mysql :: fonc ()
     crée_table_fonctions(créatrice_table_fonctions)
 }
 
-#pré_exécutable génère_initialisation_mysql()
+// #pré_exécutable génère_initialisation_mysql()

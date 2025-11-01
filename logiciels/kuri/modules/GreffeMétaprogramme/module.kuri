@@ -1,0 +1,20 @@
+importe Compilatrice
+
+GreffonMétaprogramme :: struct {
+    sur_message: fonc (greffon: *GreffonMétaprogramme, message: *Message)
+    sur_destruction: fonc (greffon: *GreffonMétaprogramme)
+}
+
+gère_message :: fonc (greffon: *GreffonMétaprogramme, message: *Message)
+{
+    si greffon.sur_message {
+        greffon.sur_message(greffon, message)
+    }
+}
+
+détruit :: fonc (greffon: *GreffonMétaprogramme)
+{
+    si greffon.sur_destruction {
+        greffon.sur_destruction(greffon)
+    }
+}

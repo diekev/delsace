@@ -412,7 +412,9 @@ génère_opérateurs_vecteurs :: fonc ()
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(résultat)
 
-    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), résultat)
+    espace := compilatrice_espace_courant()
+    module := compilatrice_donne_module(espace, #chemin_de_ce_module)
+    ajoute_chaine_au_module(espace, module, résultat)
 }
 
 #exécute génère_opérateurs_vecteurs()

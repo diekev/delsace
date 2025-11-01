@@ -1133,13 +1133,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                 m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::AJOUTE_FINI;
                 return noeud;
             }
-            else if (directive == ID::pre_executable) {
-                auto expression = analyse_expression({}, GenreLexème::INCONNU);
-                auto noeud = m_contexte->assembleuse->crée_pré_exécutable(lexème, expression);
-                noeud->ident = directive;
-                m_fichier->fonctionnalités_utilisées |= FonctionnalitéLangage::PRÉ_EXÉCUTABLE;
-                return noeud;
-            }
             else if (directive == ID::nom_de_cette_fonction ||
                      directive == ID::chemin_de_ce_fichier ||
                      directive == ID::chemin_de_ce_module ||

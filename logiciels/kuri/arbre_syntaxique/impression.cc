@@ -1574,13 +1574,6 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             imprime_arbre(enchaineuse, état, directive->expression);
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
-        {
-            auto directive = noeud->comme_pré_exécutable();
-            enchaineuse << "#pré_exécutable ";
-            imprime_arbre(enchaineuse, état, directive->expression);
-            break;
-        }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
             auto directive = noeud->comme_directive_instrospection();

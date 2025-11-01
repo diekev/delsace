@@ -97,6 +97,24 @@ Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_sta
     return module;
 }
 
+Module *SystèmeModule::donne_module(kuri::chaine_statique chemin)
+{
+    auto chemin_normalisé = kuri::chaine(chemin);
+
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] !=
+                                             kuri::chemin_systeme::séparateur_préféré()) {
+        chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
+    }
+
+    POUR_TABLEAU_PAGE (modules) {
+        if (it.chemin() == chemin_normalisé) {
+            return &it;
+        }
+    }
+
+    return nullptr;
+}
+
 Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
 {
     auto chemin_normalisé = kuri::chaine(chemin);
