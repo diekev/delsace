@@ -383,7 +383,7 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
     génère_code_support_kuri(ipa, système_type)
 
     /* Copie le fichier de support C++. */
-    chemin_module := compilatrice_chemin_module(compilatrice_module_courant())
+    chemin_module := #chemin_de_ce_module
     chemin_fichier_support := CheminFichier(chemin_module) / "support_ipa_cpp.h"
     diffère détruit_chemin(chemin_fichier_support)
 
