@@ -618,9 +618,14 @@ RAPPEL_POUR_COMMENTAIRE(message)
             résultat << " " << message_phase->phase;
             break;
         }
+        case GenreMessage::ESPACE_CRÉÉ:
+        {
+            résultat << " espace créé";
+            break;
+        }
     }
 
-    résultat << " (espace \"" << message->espace->nom
+    résultat << " (espace \"" << message->espace
              << "\"); message reçu : " << (message->message_reçu ? "oui" : "non") << "; adresse "
              << message;
 

@@ -329,11 +329,6 @@ void FichierELF::écris_vers(kuri::chaine_statique chemin) const
 
                 auto tableau = tableau_constant.tableau->donne_données();
                 fichier.écris(tableau);
-
-                if (tableau_constant.tableau->possède_drapeau(
-                        DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
-                    fichier.écris_octet(0x0);
-                }
             }
         }
     }

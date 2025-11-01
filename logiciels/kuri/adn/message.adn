@@ -27,7 +27,7 @@ struct Message {
     GenreMessage genre [code]
     // À FAIRE : supprime ceci en ayant deux structures comme pour les noeuds
     bool message_reçu [code]
-    EspaceDeTravail * espace [code]
+    int espace [code]
 }
 
 struct MessageFichier : Message {
@@ -48,5 +48,5 @@ struct MessagePhaseCompilation : Message {
 }
 
 struct MessageEspaceCréé : Message {
-    EspaceDeTravail * nouvel_espace [code]
+    int nouvel_espace [code]
 }
