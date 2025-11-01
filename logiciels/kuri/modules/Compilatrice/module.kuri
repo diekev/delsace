@@ -157,22 +157,6 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
     retourne faux
 }
 
-fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> [..]*NoeudCodeEntêteFonction
-{
-    fonctions := compilatrice_fonctions_parsées()
-    résultat: [..]*NoeudCodeEntêteFonction
-
-    pour fonctions {
-        si !fonction_possède_annotation(it, annotation) {
-            continue
-        }
-
-        tableau_ajoute(*résultat, it)
-    }
-
-    retourne résultat
-}
-
 // ---------------------------------------------------------------------------------------
 // Fonctions auxilliaires pour travailler sur les fonctions
 

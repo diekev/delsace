@@ -10,6 +10,7 @@ importe GreffeMétaprogramme
 
     greffons: [..]*GreffonMétaprogramme
     tableau_ajoute(*greffons, AS.donne_greffon())
+    // tableau_ajoute(*greffons, Fondation.donne_greffon())
 
     compilatrice_commence_interception(espace)
 
