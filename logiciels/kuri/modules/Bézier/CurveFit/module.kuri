@@ -83,7 +83,9 @@ compile_bibliothèqe :: fonc ()
         #dépendance_bibliothèque libcurve_fit_nd libcmath
     »
 
-    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), sources_extra)
+    espace := compilatrice_espace_courant()
+    module := compilatrice_donne_module(espace, #chemin_de_ce_module)
+    ajoute_chaine_au_module(espace, module, sources_extra)
 }
 
 #exécute compile_bibliothèqe()

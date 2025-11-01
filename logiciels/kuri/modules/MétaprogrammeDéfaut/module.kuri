@@ -1,21 +1,25 @@
+AS :: importe AnalyseStatique
 importe Compilatrice
-importe Ensemble
 importe Fondation
-importe Triage
+importe GreffeMétaprogramme
 
 #exécute {
     espace := espace_défaut_compilation()
     fichier := compilatrice_donne_fichier_entrée_compilation()
     imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
 
+    greffons: [..]*GreffonMétaprogramme
+    tableau_ajoute(*greffons, AS.donne_greffon())
+    // tableau_ajoute(*greffons, Fondation.donne_greffon())
+
     compilatrice_commence_interception(espace)
 
     ajoute_fichier_à_la_compilation(espace, fichier)
 
-    espaces: [..]*EspaceDeTravail
+    espaces: [..]EspaceDeTravail
     diffère déloge(espaces)
 
-    ensemble_ajoute(*espaces, espace)
+    tableau_ajoute(*espaces, espace)
 
     boucle {
         message := compilatrice_attend_message()
@@ -23,19 +27,12 @@ importe Triage
 
         si message.genre == GenreMessage.ESPACE_CRÉÉ {
             message_espace := message comme *MessageEspaceCréé
-            ensemble_ajoute(*espaces, message_espace.nouvel_espace)
+            tableau_ajoute(*espaces, message_espace.nouvel_espace)
         }
 
-        // si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
-        //     message_code := message comme *MessageTypageCodeTerminé
-        //     code := message_code.code
-
-        //     saufsi code {
-        //         continue
-        //     }
-
-        //     vérifie_rembourrage_excessif(code)
-        // }
+        pour greffons {
+            gère_message(it, message)
+        }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
             phase := message comme *MessagePhaseCompilation
@@ -56,100 +53,9 @@ importe Triage
     }
 
     compilatrice_termine_interception(espace)
-}
 
-#portée_fichier
-
-vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
-{
-    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
-
-        pour type.rubriques {
-            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
-            }
-
-            // À FAIRE : tableaux fixes, etc.
-            reste_décalage := it.décalage % 64
-            si reste_décalage comme n32 + it.id.taille_en_octet > 64 {
-                avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom)
-                compilatrice_rapporte_avertissement(code, avertissement)
-                déloge(avertissement)
-            }
-        }
+    pour greffons {
+        détruit(it)
     }
-}
-
-vérifie_rembourrage_excessif :: fonc (code: *NoeudCode)
-{
-    REMBOURRAGE_PERMIS : n32 : 24
-
-    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
-
-        types_rubriques: [..]*InfoType
-        diffère déloge(types_rubriques)
-
-        pour type.rubriques {
-            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
-            }
-            tableau_ajoute(*types_rubriques, it.id)
-        }
-
-        rembourrage_courant := calcule_rembourrage(types_rubriques)
-        tri_rapide(types_rubriques, tri_types_par_alignement_décroissant)
-        rembourrage_optimal := calcule_rembourrage(types_rubriques)
-
-        si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > REMBOURRAGE_PERMIS {
-            avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal)
-            compilatrice_rapporte_avertissement(code, avertissement)
-            déloge(avertissement)
-        }
-    }
-}
-
-tri_types_par_alignement_décroissant :: fonc (a: *InfoType, b: *InfoType) -> z32
-{
-    si a.alignement > b.alignement {
-        retourne 1
-    }
-
-    si b.alignement > a.alignement {
-        retourne -1
-    }
-
-    retourne 0
-}
-
-calcule_rembourrage :: fonc (types: []*InfoType) -> n32
-{
-    résultat: n32
-    taille_courante: n32
-
-    alignement_max: n32
-
-    pour types {
-        si it.alignement != 0 {
-            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
-            résultat += rembourrage
-
-            taille_courante += rembourrage
-            taille_courante += it.taille_en_octet
-
-            si it.alignement > alignement_max {
-                alignement_max = it.alignement
-            }
-        }
-    }
-
-    si alignement_max != 0 {
-        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
-        résultat += rembourrage
-    }
-
-    retourne résultat
+    déloge(greffons)
 }
