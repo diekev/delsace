@@ -293,7 +293,9 @@ compile_interfaces_idl :: fonc () -> chaine
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse)
-    ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), source)
+    espace := compilatrice_espace_courant()
+    module := compilatrice_donne_module(espace, #chemin_de_ce_module)
+    ajoute_chaine_au_module(espace, module, source)
     déloge(source)
 
     ajoute_au_tampon(*enchaineuse, "    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)\n\n")
