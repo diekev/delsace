@@ -9,7 +9,7 @@ importe SysFichier
     - bug dans l'impression de nombre réels dans les méta-programmes
 
  */
-convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
+convertis_vers_glsl :: fonc (espace: EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
 {
     bloc := corps.bloc
     entête := corps.entête
@@ -50,7 +50,7 @@ convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, corps: *NoeudCodeCorpsFon
     _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
 }
 
-convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
+convertis_vers_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
 {
     saufsi type {
         ajoute_au_tampon(enchaineuse, "<type nul !>")
@@ -81,7 +81,7 @@ convertis_vers_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse
     compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, "impossible de convertir le type vers GLSL")
 }
 
-converti_code_glsl :: fonc (espace: *EspaceDeTravail, enchaineuse: *Enchaineuse, code: *NoeudCode, profondeur: z32)
+converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, code: *NoeudCode, profondeur: z32)
 {
     si code == nul {
         retourne
