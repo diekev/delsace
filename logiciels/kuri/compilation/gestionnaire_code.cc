@@ -1841,10 +1841,6 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
         return true;
     }
 
-    if (noeud->est_pré_exécutable()) {
-        return true;
-    }
-
     return false;
 }
 
@@ -1926,9 +1922,6 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
      * pour éviter de prévenir trop tôt un métaprogramme. */
     TACHE_TERMINEE(TYPAGE);
 
-    if (noeud->est_entête_fonction()) {
-        espace->fonctions_parsées.ajoute(noeud->comme_entête_fonction());
-    }
     TERMINE_STAT(TYPAGE_TERMINÉ);
 }
 
@@ -2296,7 +2289,10 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
              * À FAIRE : même si un message est ajouté, purge_message provoque
              * une compilation infinie. */
             if (!espace->options.continue_si_erreur) {
-                m_compilatrice->messagère->purge_messages();
+                if (espace->metaprogramme) {
+                    std::unique_lock verrou(espace->metaprogramme->mutex_file_message);
+                    espace->metaprogramme->file_message.efface();
+                }
             }
 
             espace->change_de_phase(
@@ -2384,35 +2380,6 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
     }
 
     if (!espace->peut_generer_code_final()) {
-        return;
-    }
-
-    auto modules = programme->modules_utilisés();
-    auto executions_requises = false;
-    auto executions_en_cours = false;
-    modules.pour_chaque_element([&](Module *module) {
-        auto exécute = module->directive_pré_exécutable;
-        if (!exécute) {
-            return;
-        }
-
-        if (!module->exécution_directive_requise) {
-            /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
-             * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
-             * dans l'espace demandant son exécution afin que le compte de tâches d'exécution dans
-             * l'espace soit cohérent. */
-            exécute->métaprogramme->programme->change_d_espace(espace);
-            requiers_compilation_métaprogramme(espace, exécute->métaprogramme);
-            module->exécution_directive_requise = true;
-            executions_requises = true;
-        }
-
-        /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
-         * le code machine. */
-        executions_en_cours |= !exécute->métaprogramme->fut_exécuté();
-    });
-
-    if (executions_requises || executions_en_cours) {
         return;
     }
 

@@ -1934,7 +1934,7 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     if (type->est_type_type_de_données()) {
-        return type->comme_type_type_de_données()->type_code_machine;
+        return type_entier_sous_jacent(type->comme_type_type_de_données()->type_code_machine);
     }
 
     if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -1960,7 +1960,8 @@ Type const *donne_type_primitif(Type const *type)
         }
 
         if (type->est_type_type_de_données()) {
-            return type->comme_type_type_de_données()->type_code_machine;
+            type = type->comme_type_type_de_données()->type_code_machine;
+            continue;
         }
 
         if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {

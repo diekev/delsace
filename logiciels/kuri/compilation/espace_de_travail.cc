@@ -75,7 +75,6 @@ int64_t EspaceDeTravail::memoire_utilisee() const
     résultat += sys_module->mémoire_utilisée();
     résultat += constructeurs_globaux->taille_mémoire();
     résultat += registre_chaines_ri->mémoire_utilisée();
-    résultat += fonctions_parsées.taille_mémoire();
     résultat += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
     résultat += registre_annotations.mémoire_utilisée();
     résultat += trie_structs_employées.mémoire_utilisée();
