@@ -171,4 +171,4 @@ initialise_nombre_réel :: fonc ()
 
 importe Compilatrice
 
-#pré_exécutable ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), "importe GMP; #ajoute_init initialise_nombre_réel()\n")
+// #pré_exécutable ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), "importe GMP; #ajoute_init initialise_nombre_réel()\n")

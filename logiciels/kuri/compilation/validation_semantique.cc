@@ -483,25 +483,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             ajoute_init->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
-        {
-            auto pre_executable = noeud->comme_pré_exécutable();
-            auto fichier = m_espace->fichier(pre_executable->lexème->fichier);
-            auto module = fichier->module;
-            if (module->directive_pré_exécutable) {
-                m_espace
-                    ->rapporte_erreur(
-                        noeud, "Le module possède déjà une directive d'exécution pré-exécutable")
-                    .ajoute_message("La première directive fut déclarée ici :")
-                    .ajoute_site(module->directive_pré_exécutable);
-                return CodeRetourValidation::Erreur;
-            }
-            module->directive_pré_exécutable = pre_executable;
-            /* NOTE : le métaprogramme ne sera exécuté qu'à la fin de la génération de code. */
-            crée_métaprogramme_pour_directive(pre_executable);
-            pre_executable->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            break;
-        }
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
             if (noeud->bloc_parent->type_bloc == TypeBloc::SI_STATIQUE) {
@@ -1075,8 +1056,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 noeud->type = m_espace->typeuse.type_rien;
             }
             else {
-                noeud->type = expressions->a(expressions->taille() - 1)->type;
-                if (noeud->type == nullptr) {
+                auto expression = expressions->dernier_élément();
+                if (((expression->genre_valeur & GenreValeur::DROITE) != 0) && expression->type) {
+                    noeud->type = expression->type;
+                }
+                else {
                     noeud->type = m_espace->typeuse.type_rien;
                 }
             }

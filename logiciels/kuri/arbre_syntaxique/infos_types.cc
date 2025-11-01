@@ -442,6 +442,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::OPAQUE);
             info_type->nom = donne_nom_hiérarchique(type_opaque);
+            info_type->type_opacifié = crée_info_type_pour(typeuse, type_opaque->type_opacifié);
 
             type->info_type = info_type;
             break;
