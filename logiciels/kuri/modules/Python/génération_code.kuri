@@ -274,29 +274,33 @@ génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> 
 donne_chaine_type_sousjacent :: fonc (type_énum: *InfoTypeÉnum) -> chaine
 {
     type_sous_jacent := type_énum.type_sous_jacent
-    si type_sous_jacent == info_de(z8) {
-        retourne "z8"
+    si type_sous_jacent.est_signé {
+        si type_sous_jacent.taille_en_octet == 1 {
+            retourne "z8"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 2 {
+            retourne "z16"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 4 {
+            retourne "z32"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 8 {
+            retourne "z64"
+        }
     }
-    si type_sous_jacent == info_de(z16) {
-        retourne "z16"
-    }
-    si type_sous_jacent == info_de(z32) {
-        retourne "z32"
-    }
-    si type_sous_jacent == info_de(z64) {
-        retourne "z64"
-    }
-    si type_sous_jacent == info_de(n8) {
-        retourne "n8"
-    }
-    si type_sous_jacent == info_de(n16) {
-        retourne "n16"
-    }
-    si type_sous_jacent == info_de(n32) {
-        retourne "n32"
-    }
-    si type_sous_jacent == info_de(n64) {
-        retourne "n64"
+    sinon {
+        si type_sous_jacent.taille_en_octet == 1 {
+            retourne "n8"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 2 {
+            retourne "n16"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 4 {
+            retourne "n32"
+        }
+        sinon si type_sous_jacent.taille_en_octet == 8 {
+            retourne "n64"
+        }
     }
     retourne "ERREUR TYPE SOUS JACENT"
 }
