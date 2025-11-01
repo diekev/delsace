@@ -1559,9 +1559,6 @@ std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_co
         it.rembourrage = rembourrage;
 
         auto taille_tableau = it.tableau->donne_données().taille();
-        if (it.tableau->possède_drapeau(DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
-            taille_tableau += 1;
-        }
         m_données_constantes.taille_données_tableaux_constants += taille_tableau + rembourrage;
     }
 
