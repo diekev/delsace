@@ -1978,9 +1978,6 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
      * pour éviter de prévenir trop tôt un métaprogramme. */
     TACHE_TERMINEE(TYPAGE);
 
-    if (noeud->est_entête_fonction()) {
-        espace->fonctions_parsées.ajoute(noeud->comme_entête_fonction());
-    }
     TERMINE_STAT(TYPAGE_TERMINÉ);
 }
 

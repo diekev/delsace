@@ -118,9 +118,6 @@ struct Compilatrice {
 
     Broyeuse *broyeuse = nullptr;
 
-    /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
-    kuri::tableau<kuri::tableau<NoeudCodeEntêteFonction *>> m_tableaux_code_fonctions{};
-
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
     kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexèmes{};
 
@@ -226,7 +223,6 @@ struct Compilatrice {
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
-    kuri::tableau_statique<NoeudCodeEntêteFonction *> fonctions_parsees(EspaceDeTravail *espace);
     MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entete);
 
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */

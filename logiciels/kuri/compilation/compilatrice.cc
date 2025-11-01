@@ -205,11 +205,6 @@ int64_t Compilatrice::memoire_utilisee() const
         résultat += it.taille_mémoire();
     }
 
-    résultat += m_tableaux_code_fonctions.taille_mémoire();
-    POUR (m_tableaux_code_fonctions) {
-        résultat += it.taille_mémoire();
-    }
-
     résultat += m_états_libres.taille_mémoire();
     POUR (m_états_libres) {
         résultat += taille_de(ÉtatRésolutionAppel);
@@ -484,25 +479,6 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     auto tableau = converti_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexèmes.ajoute(tableau);
     return m_tableaux_lexèmes.dernier_élément();
-}
-
-kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parsees(
-    EspaceDeTravail *espace)
-{
-    auto convertisseuse = donne_convertisseuse_noeud_code_disponible();
-    auto entêtes = espace->fonctions_parsées;
-    auto résultat = kuri::tableau<NoeudCodeEntêteFonction *>();
-    résultat.réserve(entêtes.taille());
-    POUR (entêtes) {
-        if (it->est_opérateur || it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-            continue;
-        }
-        auto code_entête = convertisseuse->convertis_noeud_syntaxique(espace, it);
-        résultat.ajoute(code_entête->comme_entête_fonction());
-    }
-    m_tableaux_code_fonctions.ajoute(résultat);
-    dépose_convertisseuse(convertisseuse);
-    return m_tableaux_code_fonctions.dernier_élément();
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(

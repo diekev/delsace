@@ -161,14 +161,6 @@ fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
 @compilatrice
 
 /* --------------------------------------------------------------------------
- * Accès aux fonctions.
- */
-
-/* Retourne un tableau de toutes les fonctions parsées au moment de l'appel à cette fonction. */
-fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []
-@compilatrice
-
-/* --------------------------------------------------------------------------
  * Accès aux arguments de la ligne de commande pour les métaprogrammes.
  */
 

@@ -875,13 +875,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_fonctions_parsées)) {
-        auto espace = m_métaprogramme->unité->espace;
-        auto fonctions = compilatrice.fonctions_parsees(espace);
-        empile(fonctions);
-        return;
-    }
-
     if (EST_FONCTION_COMPILATRICE(compilatrice_donne_module)) {
         auto chemin = dépile<kuri::chaine_statique>();
         auto id_espace_reçu = dépile<int>();
