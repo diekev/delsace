@@ -39,8 +39,13 @@ FluxSortieKuri &operator<<(FluxSortieKuri &os, Type const &type)
     }
     else if (type.est_pointeur()) {
         const auto type_pointeur = type.comme_pointeur();
-        os << "*";
-        os << *type_pointeur->type_pointe;
+        if (type_pointeur->type_pointe->est_nominal("EspaceDeTravail")) {
+            os << "EspaceDeTravail";
+        }
+        else {
+            os << "*";
+            os << *type_pointeur->type_pointe;
+        }
     }
     else if (type.est_nominal()) {
         const auto type_nominal = type.comme_nominal();
@@ -350,6 +355,7 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
     }
 
     const auto est_chaine_litterale = m_nom_code.nom() == "NoeudCodeLittéraleChaine";
+    const auto est_corps_fonction = m_nom_code.nom() == "NoeudCodeCorpsFonction";
 
     POUR (m_rubriques) {
         if (it.type->est_pointeur() &&
@@ -399,6 +405,11 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 
         os << "\n";
     }
+
+    if (est_corps_fonction) {
+        os << "\tnoeuds: [..]*NoeudCode\n";
+    }
+
     os << "}\n\n";
 }
 
