@@ -32,12 +32,16 @@ fonction compilatrice_racine_installation_kuri() -> chaine_statique
 fonction compilatrice_module_courant() -> Module *
 @compilatrice
 
+/* Retourne une poignée vers le module du chemin donné dans l'espace de travail. */
+fonction compilatrice_donne_module(EspaceDeTravail *espace, chaine_statique chemin) -> Module *
+@compilatrice
+
 /* Retourne le module racine de la compilation. */
 fonction compilatrice_module_racine_compilation() -> Module *
 @compilatrice
 
 /* Retourne le module ayant défini le code, ou nul si aucun ne l'a défini. */
-fonction compilatrice_module_pour_code(NoeudCode * code) -> Module *
+fonction compilatrice_module_pour_code(EspaceDeTravail *espace, NoeudCode * code) -> Module *
 @compilatrice
 
 /* Retourne le module ayant défini le type, ou nul si aucun ne l'a défini
@@ -154,14 +158,6 @@ fonction démarre_un_espace_de_travail(chaine_statique nom, OptionsDeCompilation
 
 /* Lèxe le fichier d'entrée et retourne un tableau de léxèmes, le tableau devra être délogé par le programme */
 fonction compilatrice_lèxe_fichier(chaine_statique fichier) -> Lexème []
-@compilatrice
-
-/* --------------------------------------------------------------------------
- * Accès aux fonctions.
- */
-
-/* Retourne un tableau de toutes les fonctions parsées au moment de l'appel à cette fonction. */
-fonction compilatrice_fonctions_parsées() -> NoeudCodeEntêteFonction * []
 @compilatrice
 
 /* --------------------------------------------------------------------------

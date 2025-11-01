@@ -408,7 +408,9 @@ crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
     }
 
     texte := chaine_depuis_enchaineuse(*enchaineuse)
-    Compilatrice.ajoute_chaine_au_module(Compilatrice.compilatrice_espace_courant(), Compilatrice.compilatrice_module_courant(), texte)
+    espace := Compilatrice.compilatrice_espace_courant()
+    module := Compilatrice.compilatrice_donne_module(espace, #chemin_de_ce_module)
+    Compilatrice.ajoute_chaine_au_module(espace, module, texte)
     déloge(texte)
 }
 
