@@ -49,7 +49,7 @@ ParamètresGénérationInterface :: struct {
     dossier_pilote: chaine
 }
 
-génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterface, fichier_racine: chaine, espace_cible: *EspaceDeTravail)
+génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterface, fichier_racine: chaine, espace_cible: EspaceDeTravail)
 {
     options := OptionsDeCompilation()
     options.résultat = RésultatCompilation.RIEN
@@ -590,7 +590,7 @@ type_depuis_résultat :: fonc (info: *InfoType) -> *InfoTypeStructure
     retourne info_union.type_le_plus_grand comme *InfoTypeStructure //  À FAIRE : ce peut ne pas être une structure
 }
 
-crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail, fonction: *NoeudCodeEntêteFonction)
+crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInterface, espace: EspaceDeTravail, fonction: *NoeudCodeEntêteFonction)
 {
     données := parse_fonction(paramètres, fonction)
 
@@ -614,7 +614,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
     ajoute_chaine_à_la_compilation(espace, interface)
 }
 
-crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
+crée_interface_pour_initialisations_routes :: fonc (paramètres: *ParamètresGénérationInterface, espace: EspaceDeTravail)
 {
     si paramètres.données_fonctions.taille == 0 {
         retourne
@@ -759,7 +759,7 @@ génère_corps_fonction_appariement :: fonc (enchaineuse: *Enchaineuse, données
     imprime_dans_enchaineuse(enchaineuse, "\t}\n")
 }
 
-crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail)
+crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: EspaceDeTravail)
 {
     saufsi paramètres.génère_pilote {
         retourne
@@ -814,7 +814,7 @@ génère_code_pour_structure :: fonc (infos: *InfoTypeStructure, enchaineuse: *E
     ajoute_au_tampon(enchaineuse, "}\n\n")
 }
 
-génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: *EspaceDeTravail @inutilisée, enchaineuse: *Enchaineuse)
+génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, espace: EspaceDeTravail @inutilisée, enchaineuse: *Enchaineuse)
 {
     nom_type_pilote := enchaine("Pilote", paramètres.type_serveuse)
     diffère déloge(nom_type_pilote)
