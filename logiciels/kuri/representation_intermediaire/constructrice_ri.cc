@@ -1926,7 +1926,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : une " << noeud->genre << " se retrouve dans la RI !\n"
@@ -4940,29 +4939,29 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
 
     AtomeConstante *constante_chaine;
 
-    if (chaine.taille() == 0) {
-        constante_chaine = m_constructrice.crée_initialisation_défaut_pour_type(type_chaine);
-    }
-    else {
-        auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse.type_z8,
-                                                                static_cast<int>(chaine.taille()));
-        auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
-            type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
-        tableau->drapeaux |= DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE;
+    auto taille_chaine_avec_terminateur = static_cast<int>(chaine.taille() + 1);
 
-        auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
-        auto globale_tableau = m_constructrice.crée_globale(
-            *ident, type_tableau, tableau, false, true);
-        auto pointeur_chaine = m_constructrice.crée_accès_indice_constant(globale_tableau, 0);
-        auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
+    auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse.type_z8,
+                                                            taille_chaine_avec_terminateur);
 
-        auto rubriques = kuri::tableau<AtomeConstante *>(2);
-        rubriques[0] = pointeur_chaine;
-        rubriques[1] = taille_chaine;
+    auto caractères = kuri::tableau<char>(taille_chaine_avec_terminateur);
+    memcpy(caractères.données(), chaine.pointeur(), size_t(chaine.taille()));
+    caractères[caractères.taille() - 1] = 0;
 
-        constante_chaine = m_constructrice.crée_constante_structure(type_chaine,
-                                                                    std::move(rubriques));
-    }
+    auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
+        type_tableau, std::move(caractères));
+
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
+    auto globale_tableau = m_constructrice.crée_globale(
+        *ident, type_tableau, tableau, false, true);
+    auto pointeur_chaine = m_constructrice.crée_accès_indice_constant(globale_tableau, 0);
+    auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
+
+    auto rubriques = kuri::tableau<AtomeConstante *>(2);
+    rubriques[0] = pointeur_chaine;
+    rubriques[1] = taille_chaine;
+
+    constante_chaine = m_constructrice.crée_constante_structure(type_chaine, std::move(rubriques));
 
     table_chaines->insère_constante_pour_chaine(chaine, constante_chaine);
 

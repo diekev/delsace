@@ -25,7 +25,7 @@ static void génère_code_kuri(const kuri::tableau<Protéine *> &protéines, Flu
     os << "// ----------------------------------------------------------------------------\n";
     os << "// Prodéclarations de types opaques pour certains types non manipulable directement\n";
     os << "\n";
-    os << "EspaceDeTravail :: struct #externe;\n";
+    os << "EspaceDeTravail :: z32;\n";
     os << "Module :: struct #externe;\n";
     os << "\n";
     os << "// ----------------------------------------------------------------------------\n";

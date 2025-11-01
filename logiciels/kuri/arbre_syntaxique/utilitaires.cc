@@ -466,13 +466,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             ajoute_noeud_arbre_aplatis(arbre_aplatis, ajoute_fini);
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
-        {
-            auto pre_executable = racine->comme_pré_exécutable();
-            aplatis_arbre(pre_executable->expression, arbre_aplatis, position);
-            ajoute_noeud_arbre_aplatis(arbre_aplatis, pre_executable);
-            break;
-        }
         case GenreNoeud::INSTRUCTION_COMPOSÉE:
         {
             auto bloc = racine->comme_bloc();

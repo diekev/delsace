@@ -328,6 +328,31 @@ est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeSt
     retourne faux
 }
 
+est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
+{
+    si info.nom == nom {
+        retourne vrai
+    }
+
+    pour info.structs_employées {
+        si est_struct_ou_employeuse_de(it, nom) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_type_structure_nommée :: fonc (info: *InfoType, nom: chaine) -> bool
+{
+    résultat := faux
+    si info.id == GenreInfoType.STRUCTURE {
+        info_structure := info comme *InfoTypeStructure
+        résultat = info_structure.nom == nom
+    }
+    retourne résultat
+}
+
 est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
 {
     si info == nul {
