@@ -2661,16 +2661,6 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
             os << char_depuis_hex(octet & 0x0f);
             virgule = ", ";
         }
-
-        if (it.tableau->possède_drapeau(DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
-            compteur++;
-            os << virgule;
-            if ((compteur % 20) == 0) {
-                os << "\n";
-            }
-            os << "0x00";
-            virgule = ", ";
-        }
     }
     os << "};\n";
 }
