@@ -18,7 +18,9 @@ génère_script :: fonc ()
             /* Superflux. */
             "Kuri",
             /* En développement. */
-            "GVDB"
+            "GVDB",
+            /* Déjà inclus. */
+            "MétaprogrammeDéfaut",
         ]
 
         nom_fichier := chemin.nom_fichier()
