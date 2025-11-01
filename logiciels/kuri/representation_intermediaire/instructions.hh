@@ -79,12 +79,8 @@ enum class DrapeauxAtome : uint16_t {
     RI_FUT_GÉNÉRÉE = (1 << 3),
     EST_UTILISÉ = (1 << 4),
     FUT_RÉINSÉRÉ_APRÈS_FSAU = (1 << 5),
-    /* Les chaines constantes sont suffixées avec '\0' pour être directement compatible avec C.
-     * Or, les atomes de données constantes ne copient pas les caractères des chaines, mais ne font
-     * que pointer vers ceux-ci. Nous devrons donc ajouter le caractère '\0' dans les coulisses. */
-    DONNÉES_CONSTANTES_SONT_POUR_CHAINE = (1 << 6),
-    EST_CHARGE = (1 << 7),
-    EST_STOCKE = (1 << 8),
+    EST_CHARGE = (1 << 6),
+    EST_STOCKE = (1 << 7),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxAtome)
 

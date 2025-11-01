@@ -3,7 +3,7 @@ importe Fondation
 
 variable_globale: z32
 
-attend_compilation_terminée :: fonc (espace: *EspaceDeTravail)
+attend_compilation_terminée :: fonc (espace: EspaceDeTravail)
 {
     boucle {
         message := compilatrice_attend_message()
