@@ -76,6 +76,7 @@ struct EspaceDeTravail {
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
     mutable std::atomic<bool> possède_erreur{false};
+    mutable std::atomic<int> erreurs_rapportées{0};
 
     kuri::Synchrone<InterfaceKuri> interface_kuri{};
 

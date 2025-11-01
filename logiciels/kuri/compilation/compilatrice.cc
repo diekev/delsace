@@ -280,7 +280,10 @@ void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
         m_code_erreur = genre;
     }
 
-    dbg() << message;
+    if (espace->erreurs_rapportées == 0) {
+        dbg() << message;
+        espace->erreurs_rapportées += 1;
+    }
 }
 
 bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
