@@ -821,4 +821,4 @@ génère_initialisation_json :: fonc ()
     crée_table_fonctions(créatrice_table_fonctions)
 }
 
-#pré_exécutable génère_initialisation_json()
+// #pré_exécutable génère_initialisation_json()
