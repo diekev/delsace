@@ -246,7 +246,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     }
 
     saufsi ajoute_avec_séparateur(*tampon, #nom_de_cette_fonction) {
-        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture")
+        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture", #nom_de_cette_fonction)
         retourne faux
     }
 
@@ -265,12 +265,12 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
         contenu.taille = tampon_courant.occupé
 
         octets_écris := tente écris(*fichier, contenu) piège err {
-            imprimeln("[%] impossible d'écrire dans le fichier '%' : %", chemin, err)
+            imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err)
             retourne faux
         }
 
         si octets_écris != contenu.taille {
-            imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", chemin, contenu.taille, octets_écris)
+            imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévions écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris)
             retourne faux
         }
 
@@ -280,7 +280,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     discr ferme(*fichier) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin)
+                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
             }
         }
         sinon {}
@@ -289,7 +289,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     discr renomme(CheminFichier(chemin_temporaire), CheminFichier(chemin)) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin)
+                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
                 retourne faux
             }
         }
