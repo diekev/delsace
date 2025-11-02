@@ -154,7 +154,7 @@ parse_paramètres :: fonc (lexeuse: *SimpleLexeuse)
         }
 
         symbole := donne_symbole(lexeuse).donne_texte()
-        nombre_couleur := donne_nombre(lexeuse).nombre
+        nombre_couleur := donne_nombre(lexeuse).nombre.naturel
 
         r := (nombre_couleur >> 24 & 0xff) comme r32 / 255.0
         v := (nombre_couleur >> 16 & 0xff) comme r32 / 255.0
