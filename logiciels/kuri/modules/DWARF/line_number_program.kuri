@@ -1,0 +1,210 @@
+StateMachine :: struct {
+    address: n64
+    op_index: n64
+    isa: n64
+    discriminator: n64
+    file: n64 = 1
+    line: n64 = 1
+    column: n64
+    is_stmt: bool
+    basic_block: bool
+    end_sequence: bool
+    prologue_end: bool
+    epilogue_begin: bool
+}
+
+initialise_programme :: fonc (state: *StateMachine, table: *TableDebugLineUnité)
+{
+    init_de(StateMachine)(state)
+    state.is_stmt = table.default_is_stmt != 0
+}
+
+exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDebugLineUnité)
+{
+    machine: StateMachine
+    initialise_programme(*machine, table)
+
+    tantque est_valide(flux) {
+        opcode, _ := lis_petit_boutisme(flux, n8)
+
+        si opcode == 0 {
+            données := lis_tableau_préfixé_taille_uleb128(flux)
+
+            flux_local: FluxOctetsMémoire
+            initialise_flux_octets_mémoire(*flux_local, données)
+            opcode_local, _ := lis_petit_boutisme(*flux_local, n8)
+
+            si opcode_local == DW_LNS_advance_pc {
+                // The DW_LNS_advance_pc opcode takes a single unsigned LEB128 operand
+                // as the operation advance and modifies the address and op_index registers as
+                // specified in Section 6.2.5.1 on page 160.
+                operation_advance := décode_leb128_naturel(*flux_local)
+
+                new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
+                new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
+
+                machine.address = new_address
+                machine.op_index = new_op_index
+            }
+            sinon si opcode_local == DW_LNS_copy {
+                // The DW_LNS_copy opcode takes no operands.
+
+                // It appends a row to the matrix using the current values of the state machine registers.
+                ajoute_ligne_matrice(*machine, table)
+
+                // Then it sets the discriminator register to 0, and sets the basic_block, prologue_end and
+                // epilogue_begin registers to “false.”
+                machine.discriminator = 0
+                machine.basic_block = faux
+                machine.prologue_end = faux
+                machine.epilogue_begin = faux
+            }
+            sinon si opcode_local == DW_LNS_set_file {
+                // The DW_LNS_set_file opcode takes a single unsigned LEB128 operand and
+                // stores it in the file register of the state machine.
+                opérande := décode_leb128_naturel(*flux_local)
+                machine.file = opérande
+            }
+            sinon si opcode_local != 0 {
+                chn_opcode := donne_chaine_pour_code_standard_numéro_ligne(opcode_local)
+                panique("opcode non-implémenté : %", chn_opcode)
+            }
+        }
+        sinon si opcode == DW_LNS_copy {
+            // The DW_LNS_copy opcode takes no operands.
+
+            // It appends a row to the matrix using the current values of the state machine registers.
+            ajoute_ligne_matrice(*machine, table)
+
+            // Then it sets the discriminator register to 0, and sets the basic_block, prologue_end and
+            // epilogue_begin registers to “false.”
+            machine.discriminator = 0
+            machine.basic_block = faux
+            machine.prologue_end = faux
+            machine.epilogue_begin = faux
+        }
+        sinon si opcode == DW_LNS_advance_pc {
+            // The DW_LNS_advance_pc opcode takes a single unsigned LEB128 operand
+            // as the operation advance and modifies the address and op_index registers as
+            // specified in Section 6.2.5.1 on page 160.
+            operation_advance := décode_leb128_naturel(flux)
+
+            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
+            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
+
+            machine.address = new_address
+            machine.op_index = new_op_index
+        }
+        sinon si opcode == DW_LNS_advance_line {
+            // The DW_LNS_advance_line opcode takes a single signed LEB128 operand
+            // and adds that value to the line register of the state machine.
+            opérande := décode_leb128_relatif(flux)
+            machine.line = (machine.line comme z64 + opérande) comme n64
+        }
+        sinon si opcode == DW_LNS_set_file {
+            // The DW_LNS_set_file opcode takes a single unsigned LEB128 operand and
+            // stores it in the file register of the state machine.
+            opérande := décode_leb128_naturel(flux)
+            machine.file = opérande
+        }
+        sinon si opcode == DW_LNS_set_column {
+            // The DW_LNS_set_column opcode takes a single unsigned LEB128 operand
+            // and stores it in the column register of the state machine.
+            opérande := décode_leb128_naturel(flux)
+            machine.column = opérande
+        }
+        sinon si opcode == DW_LNS_negate_stmt {
+            // The DW_LNS_negate_stmt opcode takes no operands. It sets the is_stmt.
+            // register of the state machine to the logical negation of its current value.
+            machine.is_stmt = !machine.is_stmt    
+        }
+        sinon si opcode == DW_LNS_set_basic_block {
+            // The DW_LNS_set_basic_block opcode takes no operands. It sets the
+            // basic_block register of the state machine to “true.”
+            machine.basic_block = vrai
+        }
+        sinon si opcode == DW_LNS_const_add_pc {
+            // The DW_LNS_const_add_pc opcode takes no operands. It advances the
+            // address and op_index registers by the increments corresponding to special
+            // opcode 255.
+            adjusted_opcode := 255 - table.opcode_base
+            operation_advance := adjusted_opcode / table.line_range
+
+            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
+            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
+
+            machine.address = new_address
+            machine.op_index = new_op_index
+        }
+        sinon si opcode == DW_LNS_fixed_advance_pc {
+            // The DW_LNS_fixed_advance_pc opcode takes a single uhalf (unencoded)
+            // operand and adds it to the address register of the state machine and sets the
+            // op_index register to 0. This is the only standard opcode whose operand is not
+            // a variable length number. It also does not multiply the operand by the
+            // minimum_instruction_length field of the header
+            opérande, _ := lis_petit_boutisme(flux, n16)
+            machine.address += opérande
+            machine.op_index = 0
+        }
+        sinon si opcode == DW_LNS_set_prologue_end {
+            // The DW_LNS_set_prologue_end opcode takes no operands. It sets the
+            // prologue_end register to “true.”
+            machine.prologue_end = vrai
+        }
+        sinon si opcode == DW_LNS_set_epilogue_begin {
+            // The DW_LNS_set_epilogue_begin opcode takes no operands. It sets the
+            // epilogue_begin register to “true.”
+            machine.epilogue_begin = vrai
+        }
+        sinon si opcode == DW_LNS_set_isa {
+            // The DW_LNS_set_isa opcode takes a single unsigned LEB128 operand and
+            // stores that value in the isa register of the state machine.
+            opérande := décode_leb128_naturel(flux)
+            machine.isa = opérande
+        }
+        sinon si opcode >= table.opcode_base {
+            // 6.2.5.1 Special Opcodes
+            adjusted_opcode := opcode - table.opcode_base
+            operation_advance := adjusted_opcode / table.line_range
+
+            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
+            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
+
+            // Each ubyte special opcode has the following effect on the state machine:
+            // 1. Add a signed integer to the line register.
+            line_increment := table.line_base + (adjusted_opcode % table.line_range) comme z8
+            machine.line = (machine.line comme z64 + line_increment) comme n64
+
+            // 2. Modify the operation pointer by incrementing the address and op_index registers as described below.
+            machine.address = new_address
+            machine.op_index = new_op_index
+
+            // 3. Append a row to the matrix using the current values of the state machine registers.
+            ajoute_ligne_matrice(*machine, table)
+
+            // 4. Set the basic_block register to “false.”
+            machine.basic_block = faux
+
+            // 5. Set the prologue_end register to “false.”
+            machine.prologue_end = faux
+
+            // 6. Set the epilogue_begin register to “false.”
+            machine.epilogue_begin = faux
+
+            // 7. Set the discriminator register to 0
+            machine.discriminator = 0
+        }
+        sinon {
+            chn_opcode := donne_chaine_pour_code_standard_numéro_ligne(opcode)
+            panique("opcode non-implémenté : %", chn_opcode)
+        }
+    }
+}
+
+ajoute_ligne_matrice :: fonc (machine: *StateMachine, table: *TableDebugLineUnité)
+{
+    si machine.file != 0 {
+        file_name := donne_file_name(table, machine.file - 1)
+        imprimeln("%, %, line : %, column %", machine.address, file_name, machine.line, machine.column)
+    }
+}
