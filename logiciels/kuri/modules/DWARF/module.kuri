@@ -1306,7 +1306,6 @@ parse_séquence_chaines_nul_terminées :: fonc (table: *TableDebugLine, debug_li
         si chn == "" {
             arrête
         }
-        imprimeln("%", chn)
         tableau_ajoute(*table.chaines, chn)
     }
 
