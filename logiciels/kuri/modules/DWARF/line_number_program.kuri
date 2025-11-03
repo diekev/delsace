@@ -88,12 +88,7 @@ exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDe
             // as the operation advance and modifies the address and op_index registers as
             // specified in Section 6.2.5.1 on page 160.
             operation_advance := décode_leb128_naturel(flux)
-
-            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
-            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
-
-            machine.address = new_address
-            machine.op_index = new_op_index
+            applique_avancée_opération(*machine, operation_advance, table)
         }
         sinon si opcode == DW_LNS_advance_line {
             // The DW_LNS_advance_line opcode takes a single signed LEB128 operand
@@ -129,12 +124,7 @@ exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDe
             // opcode 255.
             adjusted_opcode := 255 - table.opcode_base
             operation_advance := adjusted_opcode / table.line_range
-
-            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
-            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
-
-            machine.address = new_address
-            machine.op_index = new_op_index
+            applique_avancée_opération(*machine, operation_advance, table)
         }
         sinon si opcode == DW_LNS_fixed_advance_pc {
             // The DW_LNS_fixed_advance_pc opcode takes a single uhalf (unencoded)
@@ -167,17 +157,13 @@ exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDe
             adjusted_opcode := opcode - table.opcode_base
             operation_advance := adjusted_opcode / table.line_range
 
-            new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
-            new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
-
             // Each ubyte special opcode has the following effect on the state machine:
             // 1. Add a signed integer to the line register.
             line_increment := table.line_base + (adjusted_opcode % table.line_range) comme z8
             machine.line = (machine.line comme z64 + line_increment) comme n64
 
             // 2. Modify the operation pointer by incrementing the address and op_index registers as described below.
-            machine.address = new_address
-            machine.op_index = new_op_index
+            applique_avancée_opération(*machine, operation_advance, table)
 
             // 3. Append a row to the matrix using the current values of the state machine registers.
             ajoute_ligne_matrice(*machine, table)
@@ -199,6 +185,16 @@ exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDe
             panique("opcode non-implémenté : %", chn_opcode)
         }
     }
+}
+
+// Étape numéro 2 de 6.2.5.1
+applique_avancée_opération :: fonc (machine: *StateMachine, operation_advance: n64, table: *TableDebugLineUnité)
+{
+    new_address := machine.address + table.minimum_instruction_length * ((machine.op_index + operation_advance) / table.maximum_operations_per_instruction)
+    new_op_index := (machine.op_index + operation_advance) % table.maximum_operations_per_instruction
+
+    machine.address = new_address
+    machine.op_index = new_op_index
 }
 
 ajoute_ligne_matrice :: fonc (machine: *StateMachine, table: *TableDebugLineUnité)
