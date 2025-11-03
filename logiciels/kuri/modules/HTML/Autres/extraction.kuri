@@ -119,7 +119,7 @@ principale :: fonc ()
     }
 
     si éléments.taille == 0 {
-        imprimeln("Aucun élément trouvé", éléments.taille)
+        imprimeln("Aucun élément trouvé")
         exit(0)
     }
 
