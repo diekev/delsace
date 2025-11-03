@@ -1064,6 +1064,12 @@ TableDebugLineUnité :: struct {
 donne_file_name :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
 {
     file_entries := donne_file_entries(table.table, table)
+
+    si file_entries.taille == 0 && indice == 0 {
+        // À FAIRE : prends DW_AT_name du DEI de l'unité de compilation.
+        retourne "primary_file"
+    }
+
     retourne file_entries[indice].path_name
 }
 
