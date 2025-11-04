@@ -199,6 +199,9 @@ parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succ�
                     si argument_suivant == "vrai" || argument_suivant == "faux" {
                         valeur_pour_arg = consomme(*args)
                     }
+                    sinon {
+                        valeur_pour_arg = "vrai"
+                    }
                 }
                 sinon {
                     valeur_pour_arg = consomme(*args)
@@ -208,7 +211,7 @@ parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succ�
 
         valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique_pour_arg)
         saufsi parse_valeur(valeur_pour_arg, valeur_rubrique) {
-            imprimeln("Impossible de parser la valeur de '%'", arg_orig)
+            imprimeln("Impossible de parser la valeur de '%', la valeur est '%'", arg_orig, valeur_pour_arg)
             succès = faux
             arrête
         }
