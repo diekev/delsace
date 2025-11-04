@@ -64,12 +64,33 @@ ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
 
     infos := info_de(T)
     pour infos.rubriques {
-        si it.drapeaux.EST_CONSTANTE {
+        si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
             continue
         }
 
         ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
     }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+toutes_les_valeurs_sont_renseignées :: fonc (valeurs: ValeurEstRenseignée($T)) -> bool
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat := vrai\n")
+
+    infos := info_de(T)
+    pour infos.rubriques {
+        si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "résultat &&= valeurs.", it.nom, "\n")
+    }
+
+    ajoute_au_tampon(*enchaineuse, "retourne résultat")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
