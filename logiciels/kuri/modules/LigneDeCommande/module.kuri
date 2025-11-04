@@ -233,6 +233,21 @@ imprime_infos_arguments :: fonc ($T: type_de_données)
     }
 }
 
+parse_argument_chemin :: fonc () -> chaine
+{
+    résultat: chaine
+
+    arguments := arguments_ligne_commande()
+    si arguments.taille == 2 {
+        résultat = arguments[1]
+    }
+    sinon {
+        imprime("Utilisation : % CHEMIN\n", arguments[0])
+    }
+
+    retourne résultat
+}
+
 #portée_fichier
 
 donne_rubrique_pour_argument_anonyme :: fonc (infos: *InfoTypeStructure, arg: chaine) -> *InfoTypeRubriqueStructure
