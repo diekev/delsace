@@ -349,7 +349,7 @@ ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: &IPA, foncti
     }
 }
 
-génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
+génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTravail)
 {
     table_ipa := construit_table_ipa(génératrice)
     diffère détruit_données_table_ipa(*table_ipa)
@@ -380,7 +380,7 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC)
     génère_code_c(système_type, *table_ipa, CheminFichier(chaine_chemin_entête_c))
     génère_code_cpp(génératrice, CheminFichier(chaine_chemin_entête_cpp))
     génère_code_source_cpp(génératrice, CheminFichier(chaine_chemin_source_cpp))
-    génère_code_support_kuri(ipa, système_type)
+    génère_code_support_kuri(espace, ipa, système_type)
 
     /* Copie le fichier de support C++. */
     chemin_module := #chemin_de_ce_module
@@ -1435,7 +1435,7 @@ static void imprime_erreur()
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_support_kuri :: fonc (ipa: &IPA, système_type: *SystèmeTypeC)
+génère_code_support_kuri :: fonc (espace: EspaceDeTravail, ipa: &IPA, système_type: *SystèmeTypeC)
 {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
@@ -1456,7 +1456,7 @@ TableauGénériqueIPA :: struct {
 }
 »
 
-    modules_utilisés := détermine_modules_utilisés(ipa)
+    modules_utilisés := détermine_modules_utilisés(espace, ipa)
     diffère détruit(*modules_utilisés)
 
     _ := génère_instructions_importe(*modules_utilisés, *enchaineuse)
@@ -1702,10 +1702,10 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
     }
 }
 
-détermine_modules_utilisés :: fonc (ipa: &IPA) -> EnsembleDeModules
+détermine_modules_utilisés :: fonc (espace: EspaceDeTravail, ipa: &IPA) -> EnsembleDeModules
 {
     résultat: EnsembleDeModules
-    initialise_ensemble_de_modules(*résultat)
+    initialise_ensemble_de_modules(espace, *résultat)
 
     pour ipa.types {
         module := compilatrice_module_pour_type(it.infos)
