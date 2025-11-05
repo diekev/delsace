@@ -506,12 +506,12 @@ détruit :: fonc (compilatrice: &CompilatriceModulePython)
     détruit(compilatrice.système_type)
 }
 
-crée_compilatrice_pour_un_module :: fonc (nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
+crée_compilatrice_pour_un_module :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
 {
     compilatrice: CompilatriceModulePython
     compilatrice.chose_à_générer = chose_à_générer
     compilatrice.module.nom = nom_module
-    initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
+    initialise_ensemble_de_modules(espace, *compilatrice.modules_kuri_à_importer)
     retourne compilatrice
 }
 
