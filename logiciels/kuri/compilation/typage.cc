@@ -877,7 +877,7 @@ TypePolymorphique *Typeuse::crée_polymorphique(IdentifiantCode *ident)
     // pour le moment un ident nul est utilisé pour les types polymorphiques des
     // structures dans les types des fonction (foo :: fonc (p: Polymorphe(T = $T)),
     // donc ne déduplique pas ces types pour éviter les problèmes quand nous validons
-    // ces expresssions, car les données associées doivent être spécifiques à chaque
+    // ces expressions, car les données associées doivent être spécifiques à chaque
     // déclaration
     if (ident) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_polymorphique) {
