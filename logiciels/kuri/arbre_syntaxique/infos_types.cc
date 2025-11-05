@@ -129,10 +129,21 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
     }
 
     switch (type->genre) {
-        case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
         {
             return nullptr;
+        }
+        case GenreNoeud::POLYMORPHIQUE:
+        {
+            auto type_polymorphique = type->comme_type_polymorphique();
+            auto info_type = allocatrice_infos_types.infos_types_polymorphiques.ajoute_élément();
+            initialise_entête_info_type(info_type, type, GenreInfoType::POLYMORPHIQUE);
+            if (type_polymorphique->ident) {
+                info_type->ident = type_polymorphique->ident->nom;
+            }
+            type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
+            break;
         }
         case GenreNoeud::OCTET:
         {
@@ -438,11 +449,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         {
             auto type_fonction = type->comme_type_fonction();
 
-            // À FAIRE : infos type pour les types polymorphiques
-            if (type_fonction->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                return nullptr;
-            }
-
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::FONCTION);
 
@@ -650,6 +656,11 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             return nullptr;
         }
         case GenreInfoType::OPAQUE:
+        {
+            // À FAIRE
+            return nullptr;
+        }
+        case GenreInfoType::POLYMORPHIQUE:
         {
             // À FAIRE
             return nullptr;

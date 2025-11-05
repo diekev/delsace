@@ -1087,7 +1087,8 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
         ÉNUM,
         EINI,
         VARIADIQUE,
-        ADRESSE_FONCTION {
+        ADRESSE_FONCTION,
+        POLYMORPHIQUE {
             retourne faux
         }
     }

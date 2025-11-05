@@ -37,6 +37,7 @@ enum class GenreInfoType : int32_t {
     TRANCHE = 16,
     TABLEAU_FIXE = 17,
     ADRESSE_FONCTION = 18,
+    POLYMORPHIQUE = 19,
 };
 
 struct InfoType {
@@ -120,6 +121,10 @@ struct InfoTypeVariadique : public InfoType {
     InfoType *type_élément = nullptr;
 };
 
+struct InfoTypePolymorphique : public InfoType {
+    kuri::chaine_statique ident{};
+};
+
 #define ENUMERE_TYPES_INFO_TYPE(O)                                                                \
     O(InfoType, infos_types)                                                                      \
     O(InfoTypeEntier, infos_types_entiers)                                                        \
@@ -133,7 +138,8 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeTranche, infos_types_tranches)                                                      \
     O(InfoTypeUnion, infos_types_unions)                                                          \
     O(InfoTypeOpaque, infos_types_opaques)                                                        \
-    O(InfoTypeVariadique, infos_types_variadiques)
+    O(InfoTypeVariadique, infos_types_variadiques)                                                \
+    O(InfoTypePolymorphique, infos_types_polymorphiques)
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE(O)                                                         \
     O(Annotation const *, annotations)                                                            \

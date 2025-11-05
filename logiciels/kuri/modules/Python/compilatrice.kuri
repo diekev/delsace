@@ -462,6 +462,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         ADRESSE_FONCTION {
             compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers Python pour le moment")
         }
+        POLYMORPHIQUE {
+            compilatrice_rapporte_erreur("Les types « polymorphiques » ne sont pas convertibles vers Python pour le moment")
+        }
     }
 
     si type_python && type_python.nom_type_kuri.taille == 0 {

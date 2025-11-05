@@ -594,7 +594,8 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
         CHAINE,
         RIEN,
         EINI,
-        VARIADIQUE {
+        VARIADIQUE,
+        POLYMORPHIQUE {
             // À FAIRE
         }
         FONCTION,

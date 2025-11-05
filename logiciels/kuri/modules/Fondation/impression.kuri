@@ -764,6 +764,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur)
         }
         VARIADIQUE {}
+        POLYMORPHIQUE {}
     }
 }
 
@@ -1084,6 +1085,10 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") 
         }
         ADRESSE_FONCTION {
             ajoute_au_tampon(enchaineuse, "adresse_fonction")
+        }
+        POLYMORPHIQUE {
+            info_poly := info comme *InfoTypePolymorphique
+            ajoute_au_tampon(enchaineuse, info_poly.ident)
         }
     }
 }

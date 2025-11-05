@@ -322,6 +322,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         EINI {}
         VARIADIQUE {}
         ADRESSE_FONCTION {}
+        POLYMORPHIQUE {}
     }
 }
 

@@ -406,6 +406,7 @@ ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 }
@@ -505,6 +506,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 
@@ -617,6 +619,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 
