@@ -853,6 +853,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
             dbg() << imprime_site(site_);
             dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
             dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+            dbg() << "L'opérateur est " << op;
         });
 
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
