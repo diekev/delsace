@@ -562,7 +562,6 @@ struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
     @genre_valeur INVALIDE
 }
 
-// À FAIRE(poly) : opérateurs polymorphiques
 struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     @genre DÉCLARATION_ENTÊTE_FONCTION
     @comme entête_fonction
