@@ -533,6 +533,10 @@ ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoTy
 
 ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
+    si fonction.est_polymorphique {
+        retourne
+    }
+
     annotation_python := annotation_pour_python(fonction)
 
     discr annotation_python {
