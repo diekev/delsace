@@ -2500,14 +2500,6 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
     }
 
     switch (type->genre) {
-        case GenreNoeud::EINI:
-        {
-            break;
-        }
-        case GenreNoeud::CHAINE:
-        {
-            break;
-        }
         case GenreNoeud::RIEN:
         case GenreNoeud::BOOL:
         case GenreNoeud::OCTET:
@@ -2532,17 +2524,12 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
             break;
         }
         case GenreNoeud::DÉCLARATION_UNION:
-        {
-            auto type_union = type->comme_type_union();
-            POUR (type_union->rubriques) {
-                visite_type(it.type, rappel);
-            }
-            break;
-        }
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
-            auto type_structure = type->comme_type_structure();
-            POUR (type_structure->rubriques) {
+            auto type_composé = type->comme_type_composé();
+            POUR (type_composé->rubriques) {
                 visite_type(it.type, rappel);
             }
             break;
