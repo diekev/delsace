@@ -164,7 +164,8 @@ génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoType
         OPAQUE,
         TRANCHE,
         TABLEAU_FIXE,
-        VARIADIQUE {}
+        VARIADIQUE,
+        POLYMORPHIQUE {}
         STRUCTURE {
             type_structure := rubrique.id comme *InfoTypeStructure
 
@@ -240,7 +241,8 @@ type_possède_une_cellule :: fonc (info: *InfoType, types_en_visite: *[..]*InfoT
         RIEN,
         ÉNUM,
         OCTET,
-        TYPE_DE_DONNÉES {
+        TYPE_DE_DONNÉES,
+        POLYMORPHIQUE {
             retourne faux
         }
         TABLEAU {
@@ -940,7 +942,8 @@ type_est_intéressant_pour_visite :: fonc (info: *InfoType, est_récurif: bool) 
         RIEN,
         ÉNUM,
         OCTET,
-        TYPE_DE_DONNÉES {
+        TYPE_DE_DONNÉES,
+        POLYMORPHIQUE {
             retourne faux
         }
         TABLEAU {

@@ -23,6 +23,7 @@ using Type = NoeudDéclarationType;
     O(type_info_type_tableau_fixe, ID::InfoTypeTableauFixe)                                       \
     O(type_info_type_tranche, ID::InfoTypeTranche)                                                \
     O(type_info_type_pointeur, ID::InfoTypePointeur)                                              \
+    O(type_info_type_polymorphique, ID::InfoTypePolymorphique)                                    \
     O(type_info_type_fonction, ID::InfoTypeFonction)
 
 #define ENUMERE_TYPE_INTERFACE_HORS_INFOS_TYPES(O)                                                \

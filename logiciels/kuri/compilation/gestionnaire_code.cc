@@ -1774,15 +1774,29 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
             return;
         }
 
-        if (module_du_fichier->importe_module(module->nom())) {
+        auto info_module_importé = module_du_fichier->donne_info_module_importé(module->nom());
+        if (info_module_importé) {
+            /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
+             * de générer ces instructions redondantes. */
             if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
-                /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
-                 * de générer ces instructions redondantes. */
-                espace->rapporte_info(inst, "Import superflux du module");
+                auto source_import_préexistant = info_module_importé->site;
+                if (source_import_préexistant != nullptr) {
+                    auto fichier_import_préexistant = espace->fichier(
+                        source_import_préexistant->lexème->fichier);
+                    if (fichier_import_préexistant->source != SourceFichier::CHAINE_AJOUTÉE) {
+                        auto rapport_info = espace->rapporte_info(inst,
+                                                                  "Import superflux du module");
+                        rapport_info.ajoute_message("Le module fut déjà importé ici :\n");
+                        rapport_info.ajoute_site(source_import_préexistant);
+                    }
+                }
+                else {
+                    espace->rapporte_info(inst, "Import superflux du module");
+                }
             }
         }
         else {
-            module_du_fichier->modules_importés.insère({module, inst->est_employé});
+            module_du_fichier->modules_importés.insère({module, inst, inst->est_employé});
         }
 
         auto noeud_déclaration = inst->noeud_déclaration;
