@@ -17,6 +17,7 @@ importe Chaine
 importe Fondation
 importe HTML
 JS :: importe JavaScript
+importe LigneCommande
 importe SysFichier
 
 StatistiquesParsage :: struct {
@@ -86,10 +87,8 @@ mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
-
-    si args.taille != 2 {
-        imprime("Utilisation: % [FICHIER|DOSSIER]\n", args[0])
+    chemin := parse_argument_chemin()
+    saufsi chemin {
         exit(1)
     }
 
@@ -108,7 +107,7 @@ principale :: fonc ()
     pousse_contexte nouveau_contexte {
         diffère détruit_chaines_internées()
 
-        chm := CheminFichier(args[1])
+        chm := CheminFichier(chemin)
         statistiques: StatistiquesParsage
 
         si est_un_dossier(chm) {
