@@ -1964,7 +1964,8 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
     UniteCompilation *unité_pour_noeud_code = nullptr;
 
     /* Envoi un message, nous attendrons dessus si nécessaire. */
-    const auto message = m_compilatrice->messagère->ajoute_message_typage_code(espace, noeud);
+    const auto message = m_compilatrice->messagère->ajoute_message_typage_code(
+        espace, noeud, unité);
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
@@ -2038,11 +2039,6 @@ void GestionnaireCode::optimisation_terminée(UniteCompilation *unité)
 void GestionnaireCode::envoi_message_terminé(UniteCompilation *unité)
 {
     unité->définis_état(UniteCompilation::État::COMPILATION_TERMINÉE);
-}
-
-void GestionnaireCode::message_reçu(Message const *message)
-{
-    const_cast<Message *>(message)->message_reçu = true;
 }
 
 void GestionnaireCode::execution_terminée(UniteCompilation *unité)

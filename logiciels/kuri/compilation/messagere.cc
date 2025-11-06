@@ -21,7 +21,7 @@ void Messagère::ajoute_message_fichier_ouvert(EspaceDeTravail *espace,
     message->espace = espace->id;
     message->chemin = chemin;
 
-    envoie_message(message);
+    envoie_message(message, nullptr);
 }
 
 void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::chaine_statique chemin)
@@ -35,7 +35,7 @@ void Messagère::ajoute_message_fichier_fermé(EspaceDeTravail *espace, kuri::ch
     message->espace = espace->id;
     message->chemin = chemin;
 
-    envoie_message(message);
+    envoie_message(message, nullptr);
 }
 
 void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module)
@@ -50,7 +50,7 @@ void Messagère::ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *m
     message->chemin = module->chemin();
     message->module = module;
 
-    envoie_message(message);
+    envoie_message(message, nullptr);
 }
 
 void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module)
@@ -65,7 +65,7 @@ void Messagère::ajoute_message_module_fermé(EspaceDeTravail *espace, Module *m
     message->chemin = module->chemin();
     message->module = module;
 
-    envoie_message(message);
+    envoie_message(message, nullptr);
 }
 
 void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeTravail *nouvel_espace)
@@ -76,11 +76,13 @@ void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeT
         message->espace = espace->id;
         message->nouvel_espace = nouvel_espace->id;
 
-        envoie_message(message);
+        envoie_message(message, nullptr);
     }
 }
 
-Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud)
+Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace,
+                                               NoeudExpression *noeud,
+                                               UniteCompilation *unité)
 {
     if (entreceveurs == 0) {
         return nullptr;
@@ -91,15 +93,27 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace, NoeudEx
     message->espace = espace->id;
 
     /* Les messages de typages ne sont pas directement envoyés. */
+    // À FAIRE : envoie le message directement, vérifie que le message possède son code avant de le
+    // passer aux métaprogrammes.
+
+    unité->nombre_de_messages_sur_lesquels_on_attend += entreceveurs;
 
     return message;
 }
 
-void Messagère::envoie_message(Message *message)
+void Messagère::envoie_message(Message *message, UniteCompilation *unité)
 {
+    InfoMessage info_message;
+    info_message.message = message;
+    info_message.unité = unité;
+
     POUR (métaprogrammes) {
         std::unique_lock verrou(it->mutex_file_message);
-        it->file_message.enfile(message);
+        it->file_message.enfile(info_message);
+
+        if (info_message.unité && message->genre != GenreMessage::TYPAGE_CODE_TERMINÉ) {
+            info_message.unité->nombre_de_messages_sur_lesquels_on_attend += 1;
+        }
     }
 }
 
@@ -114,7 +128,7 @@ Message *Messagère::ajoute_message_phase_compilation(EspaceDeTravail *espace)
     message->espace = espace->id;
     message->phase = espace->phase_courante();
 
-    envoie_message(message);
+    envoie_message(message, nullptr);
 
     return message;
 }

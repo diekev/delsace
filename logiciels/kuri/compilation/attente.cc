@@ -27,11 +27,13 @@ struct UniteCompilation;
 
 #define NOM_RAPPEL_POUR_COMMENTAIRE(__nom__) commentaire_pour_##__nom__
 #define RAPPEL_POUR_COMMENTAIRE(__nom__)                                                          \
-    kuri::chaine NOM_RAPPEL_POUR_COMMENTAIRE(__nom__)(Attente const &attente)
+    kuri::chaine NOM_RAPPEL_POUR_COMMENTAIRE(__nom__)(UniteCompilation const *unité,              \
+                                                      Attente const &attente)
 
 #define NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__) est_résolue_sur_##__nom__
 #define RAPPEL_POUR_EST_RÉSOLUE(__nom__)                                                          \
-    bool NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__)(EspaceDeTravail * espace, Attente & attente)
+    bool NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__)(                                                    \
+        EspaceDeTravail * espace, UniteCompilation const *unité, Attente &attente)
 
 #define NOM_RAPPEL_POUR_ERREUR(__nom__) émets_erreur_pour_attente_sur_##__nom__
 #define RAPPEL_POUR_ERREUR(__nom__)                                                               \
@@ -625,17 +627,24 @@ RAPPEL_POUR_COMMENTAIRE(message)
         }
     }
 
-    résultat << " (espace \"" << message->espace
-             << "\"); message reçu : " << (message->message_reçu ? "oui" : "non") << "; adresse "
-             << message;
+    résultat << " (espace \"" << message->espace << "\");";
+
+    résultat << "  " << unité->nombre_de_messages_sur_lesquels_on_attend;
+    if (unité->nombre_de_messages_sur_lesquels_on_attend > 1) {
+        résultat << " entreceveurs restants;";
+    }
+    else {
+        résultat << " entreceveur restant;";
+    }
+
+    résultat << " adresse " << message;
 
     return résultat.chaine();
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(message)
 {
-    auto données = attente.message();
-    return données.message->message_reçu;
+    return unité->nombre_de_messages_sur_lesquels_on_attend == 0;
 }
 
 InfoTypeAttente info_type_attente_sur_message = {NOM_RAPPEL_POUR_UNITÉ(message),
@@ -942,7 +951,7 @@ InfoTypeAttente info_type_attente_sur_info_type = {NOM_RAPPEL_POUR_UNITÉ(info_t
 /** \name Attente.
  * \{ */
 
-kuri::chaine Attente::donne_commentaire() const
+kuri::chaine Attente::donne_commentaire(UniteCompilation const *unité) const
 {
     if (!info) {
         return "Aucune info pour le commentaire de l'attente.";
@@ -951,7 +960,7 @@ kuri::chaine Attente::donne_commentaire() const
         return "Aucune manière d'obtenir un commentaire pour l'attente.";
     }
 
-    return info->commentaire(*this);
+    return info->commentaire(unité, *this);
 }
 
 /** \} */

@@ -144,6 +144,8 @@ struct UniteCompilation {
      * d'être est pour le typage. */
     ArbreAplatis *arbre_aplatis = nullptr;
 
+    int nombre_de_messages_sur_lesquels_on_attend = 0;
+
     explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
     {
     }

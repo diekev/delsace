@@ -176,7 +176,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
     auto attente = première_attente_bloquée();
     assert(attente);
     auto attendue = unité_pour_attente(*attente);
-    auto commentaire = attente->donne_commentaire();
+    auto commentaire = attente->donne_commentaire(this);
 
     if (!attendue) {
         fc << "    " << commentaire << " est bloquée !\n";
@@ -198,7 +198,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
 
         attente = attendue->première_attente_bloquée_ou_non();
         fc << "    " << commentaire << " attend sur ";
-        commentaire = attente->donne_commentaire();
+        commentaire = attente->donne_commentaire(attendue);
         fc << commentaire << '\n';
 
         unités_visitées.insère(attendue);
@@ -209,10 +209,12 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
     return fc.chaine();
 }
 
-static bool attente_est_résolue(EspaceDeTravail *espace, Attente &attente)
+static bool attente_est_résolue(EspaceDeTravail *espace,
+                                UniteCompilation const *unité,
+                                Attente &attente)
 {
     if (attente.info && attente.info->est_résolue) {
-        return attente.info->est_résolue(espace, attente);
+        return attente.info->est_résolue(espace, unité, attente);
     }
     return true;
 }
@@ -243,7 +245,7 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
             break;
         }
 
-        if (!attente_est_résolue(espace, it)) {
+        if (!attente_est_résolue(espace, this, it)) {
             toutes_les_attentes_sont_résolues = false;
             continue;
         }
@@ -368,7 +370,7 @@ void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *u
 {
     POUR (unité->donne_attentes()) {
         if (it.info && it.info->commentaire) {
-            enchaineuse << "---- " << it.info->commentaire(it) << '\n';
+            enchaineuse << "---- " << it.info->commentaire(unité, it) << '\n';
         }
         else {
             enchaineuse << "---- attente sans commentaire\n";

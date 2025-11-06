@@ -79,10 +79,6 @@ fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void
 fonction compilatrice_attend_message() -> Message *
 @compilatrice
 
-/* Indique à la compilatrice que le message fut reçu. */
-fonction compilatrice_message_reçu(Message *message) -> void
-@compilatrice
-
 /* Indique à la compilatrice que nous souhaitons recevoir des messages. */
 fonction compilatrice_commence_interception(EspaceDeTravail * espace)
 @compilatrice

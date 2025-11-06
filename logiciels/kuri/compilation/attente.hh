@@ -49,11 +49,11 @@ struct InfoTypeAttente {
     ConditionBlocageAttente (*condition_blocage)(Attente const &attente);
 
     /* Rappel pour retourner un commentaire décrivant ce sur quoi l'on attend. */
-    kuri::chaine (*commentaire)(Attente const &attente);
+    kuri::chaine (*commentaire)(UniteCompilation const *unité, Attente const &attente);
 
     /* Rappel pour retourner si l'attente est résolue, que la compilation de l'unité peut
      * reprendre. */
-    bool (*est_résolue)(EspaceDeTravail *espace, Attente &attente);
+    bool (*est_résolue)(EspaceDeTravail *espace, UniteCompilation const *unité, Attente &attente);
 
     /* Rappel pour émettre erreur selon l'attente. */
     void (*émets_erreur)(UniteCompilation const *unité, Attente const &attente);
@@ -421,7 +421,7 @@ struct Attente {
         return std::get<AttenteSurSynthétisationOpérateur>(attente).valeur;
     }
 
-    kuri::chaine donne_commentaire() const;
+    kuri::chaine donne_commentaire(UniteCompilation const *unité) const;
 };
 
 /** \} */

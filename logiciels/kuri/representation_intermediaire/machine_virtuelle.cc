@@ -868,13 +868,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_message_reçu)) {
-        auto message = dépile<Message *>();
-        RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
-        compilatrice.gestionnaire_code->message_reçu(message);
-        return;
-    }
-
     if (EST_FONCTION_COMPILATRICE(compilatrice_donne_module)) {
         auto chemin = dépile<kuri::chaine_statique>();
         auto id_espace_reçu = dépile<int>();
