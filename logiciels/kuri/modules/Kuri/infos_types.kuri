@@ -20,6 +20,7 @@ GenreInfoType :: énum z32 {
     TRANCHE :: 16
     TABLEAU_FIXE :: 17
     ADRESSE_FONCTION :: 18
+    POLYMORPHIQUE :: 19
 }
 
 Annotation :: struct #interface {
@@ -283,6 +284,12 @@ InfoTypeVariadique :: struct #interface {
     empl base: InfoType
 
     type_élément: *InfoType
+}
+
+InfoTypePolymorphique :: struct #interface {
+    empl base: InfoType
+
+    ident: chaine
 }
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool

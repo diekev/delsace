@@ -73,7 +73,7 @@ test_copie_mem :: fonc () -> rien
         chn[i] = c
     }
 
-    imprime("Chaine : ", chn, '\n')
+    imprimeln("Chaine : %", chn)
 
     a: []octet
     a.pointeur = *chn[3]
@@ -84,7 +84,7 @@ test_copie_mem :: fonc () -> rien
 
     copie_mem(a, b, 7)
 
-    imprime("Chaine : ", chn, '\n')
+    imprimeln("Chaine : %", chn)
 }
 
 principale :: fonc ()
