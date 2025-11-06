@@ -876,7 +876,9 @@ CréatriceTableFonction :: struct {
      * devrait être manuellement ajoutées. */
     modules_importés: [..]chaine
 
-    module: *Module
+    nom_module: chaine
+
+    espace: EspaceDeTravail
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -946,7 +948,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     créatrice.ajoute_module("Introspection")
 
     pour données_fonctions {
-        module := compilatrice_module_pour_code(it.fonction)
+        module := compilatrice_module_pour_code(créatrice.espace, it.fonction)
         saufsi module {
             continue
         }
@@ -965,24 +967,22 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
         it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, it)
     }
 
-    nom_module := compilatrice_nom_module(créatrice.module)
-
     /* Création de la fonction d'initialisation. */
     ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
     si créatrice.initialise_types_de_bases {
         ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*")
-        si nom_module {
-            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        si créatrice.nom_module {
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
         }
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n")
     }
 
     pour données_fonctions {
         ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*")
-        si nom_module {
-            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        si créatrice.nom_module {
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
         }
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
         nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(it.fonction))
@@ -1002,7 +1002,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     diffère déloge(sources)
 
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+    ajoute_chaine_à_la_compilation(créatrice.espace, sources)
 }
 
 génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction, préfixe: chaine) -> chaine
@@ -1024,80 +1024,6 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
     ajoute_au_tampon(enchaineuse, "}\n")
 
     retourne nom_enveloppe
-}
-
-// ----------------------------------------------------------------------------
-// Fonction pour parser les arguments de la ligne de commandes depuis une
-// structure.
-//
-// Les arguments doivent avoir la forme "--nom valeur" ou "-nom valeur" où nom est le nom d'un
-// rubrique de la structure.
-//
-// Par exemple pour une structure :
-//
-// Arguments :: struct {
-//  option: chaine
-//  nombre: z32
-// }
-//
-// la ligne de commande devra avoir l'une des formes suivantes :
-//
-// ./programme --option une_chaine --nombre 2
-// ./programme -option une_chaine -nombre 2
-//
-// Il est possible de référer une rubrique via le premier caractère de son nom :
-// 
-// ./programme -o une_chaine -n 2
-//
-// Toutefois ceci ne fonctionnera que si une seula rubrique commence par cette lettre.
-// 
-// Il est possible de renseigner une fonction pour décrire les options via le paramètre "rapporte_aide".
-// Si un argument nommé "aide" est rencontré, cette fonction est appelée et le programme se terminera.
-// Si cette fonction n'est pas renseignée (nul est passé), nous tenterons de parser un argument nommé "aide".
-//
-// Optionnellement, un et un seul rubrique de la structure peut être « anonyme » :
-// il n'y a pas besoin d'avoir le nom de la rubrique comme argument.
-// L'anonymat se fait via une annotation "@anonyme" sur la rubrique.
-//
-// Par exemple pour une structure :
-//
-// Arguments :: struct {
-//  option: chaine @anonyme
-//  nombre: z32
-// }
-//
-// la ligne de commande pourra avoir la forme :
-//
-// ./programme une_chaine --nombre 2
-//
-// Ici, Arguments.option aura la valeur "une_chaine"
-//
-// La valeur de l'argument anonyme n'a pas besoin d'être le premier de la liste.
-
-ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
-    // #assert info_de(T).id == GenreInfoType.STRUCTURE
-
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    infos := info_de(T)
-    pour infos.rubriques {
-        si it.drapeaux.EST_CONSTANTE {
-            continue
-        }
-
-        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
-    }
-
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
-consomme :: fonc (tableau: *[]$T) -> T
-{
-    résultat := tableau.pointeur[0]
-    tableau.pointeur += 1
-    tableau.taille -= 1
-    retourne résultat
 }
 
 parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
@@ -1161,176 +1087,13 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
         ÉNUM,
         EINI,
         VARIADIQUE,
-        ADRESSE_FONCTION {
+        ADRESSE_FONCTION,
+        POLYMORPHIQUE {
             retourne faux
         }
     }
 
     retourne faux
-}
-
-RapporteuseAide :: struct {
-}
-
-explique_argument :: fonc (rapporteuse: *RapporteuseAide @inutilisée, nom: chaine, texte: chaine)
-{
-    imprimeln("  -% : %", nom, texte)
-}
-
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine) -> Résultat(T, chaine)
-{
-    retourne parse_arguments_ligne_commande(T, args, nul)
-}
-
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, args: []chaine, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
-{
-    infos := info_de(T)
-    résultat: T
-    valeur_est_renseignée: ValeurEstRenseignée(T)
-    infos_renseignements := info_de(ValeurEstRenseignée(T))
-
-    tantque args.taille != 0 {
-        arg := consomme(*args)
-
-        saufsi arg.commence_par("-") {
-            rubrique_anonyme: *InfoTypeRubriqueStructure
-            pour infos.rubriques {
-                saufsi it.possède_annotation("anonyme") {
-                    continue
-                }
-
-                si rubrique_anonyme {
-                    retourne imprime_chaine("Plusieurs rubriques anonymes détectées pour la valeur '%' !", arg)
-                }
-
-                rubrique_anonyme = it
-            }
-
-            saufsi rubrique_anonyme {
-                retourne imprime_chaine("Aucune rubrique anonyme pour recevoir la valeur '%'\n", arg)
-            }
-
-            valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique_anonyme)
-
-            valeur_renseignée := eini_depuis_info_rubrique(valeur_est_renseignée, trouve_info_rubrique(infos_renseignements, rubrique_anonyme.nom))
-
-            si valeur_renseignée.comme_bool() {
-                retourne imprime_chaine("Argument dupliqué pour la rubrique anonyme '%'", rubrique_anonyme.nom)
-            }
-
-            saufsi parse_valeur(arg, valeur_rubrique) {
-                retourne imprime_chaine("Impossible de parser la valeur pour la rubrique anonyme '%'", rubrique_anonyme.nom)
-            }
-
-            valeur_renseignée.assigne_bool(vrai)
-            continue
-        }
-
-        si arg.commence_par("--") {
-            arg = avance(arg, 2)
-        }
-        sinon {
-            arg = avance(arg, 1)
-        }
-
-        si arg == "aide" {
-            si rapporte_aide {
-                rapporteuse: RapporteuseAide
-                rapporte_aide(*rapporteuse)
-                exit(0)
-            }
-        }
-
-        rubrique := trouve_info_rubrique(infos, arg)
-        saufsi rubrique {
-            si arg.taille == 1 {
-                pour infos.rubriques {
-                    si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                        continue
-                    }
-
-                    si it.nom[0] == arg[0] {
-                        si rubrique {
-                            rubrique = nul
-                            arrête
-                        }
-                        rubrique = it
-                    }
-                }
-            }
-
-            saufsi rubrique {
-                retourne imprime_chaine("Argument '%' inconnu", arg)
-            }
-        }
-
-        valeur_renseignée := eini_depuis_info_rubrique(valeur_est_renseignée, trouve_info_rubrique(infos_renseignements, rubrique.nom))
-
-        si valeur_renseignée.comme_bool() {
-            retourne imprime_chaine("Argument dupliqué pour '%'", arg)
-        }
-
-        saufsi args {
-            retourne imprime_chaine("Argument manquant après '%'", arg)
-        }
-
-        valeur_arg := consomme(*args)
-        valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique)
-
-        saufsi parse_valeur(valeur_arg, valeur_rubrique) {
-            retourne imprime_chaine("Impossible de parser la valeur de '%'", arg)
-        }
-
-        valeur_renseignée.assigne_bool(vrai)
-    }
-
-    retourne résultat
-}
-
-parse_arguments_ligne_commande :: fonc ($T: type_de_données) -> Résultat(T, chaine)
-{
-    retourne parse_arguments_ligne_commande(T, nul)
-}
-
-parse_arguments_ligne_commande :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> Résultat(T, chaine)
-{
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
-
-    args := arguments_ligne_commande()
-
-    /* Saute le nom du programme. */
-    _ := consomme(*args)
-
-    retourne parse_arguments_ligne_commande(T, args, rapporte_aide)
-}
-
-parse_arguments_ligne_commande2 :: fonc ($T: type_de_données) -> (bool, T)
-{
-    retourne parse_arguments_ligne_commande2(T, nul)
-}
-
-parse_arguments_ligne_commande2 :: fonc ($T: type_de_données, rapporte_aide: fonc(*RapporteuseAide)(rien)) -> (bool, T)
-{
-    args := arguments_ligne_commande()
-
-    /* Saute le nom du programme. */
-    _ := consomme(*args)
-
-    résultat := parse_arguments_ligne_commande(T, args, rapporte_aide)
-
-    discr résultat {
-        Ok(t) {
-            retourne vrai, t
-        }
-        Erreur(e) {
-            imprimeln("%", e)
-            retourne faux, T()
-        }
-        sinon {
-            imprimeln("Impossible de parser les arguments, erreur inconnue")
-            retourne faux, T()
-        }
-    }
 }
 
 /* ------------------------------------------------------------------------- */

@@ -200,9 +200,9 @@ EnsembleDeModules :: struct {
     chemin_modules_kuri: CheminFichier
 }
 
-initialise_ensemble_de_modules :: fonc (liste: *EnsembleDeModules)
+initialise_ensemble_de_modules :: fonc (espace: EspaceDeTravail, liste: *EnsembleDeModules)
 {
-    liste.module_racine_compilation = compilatrice_module_racine_compilation()
+    liste.module_racine_compilation = compilatrice_module_racine_compilation(espace)
 
     racine_kuri := compilatrice_racine_installation_kuri()
     chemin_racine := CheminFichier(racine_kuri)
