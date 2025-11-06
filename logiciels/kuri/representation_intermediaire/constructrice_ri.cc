@@ -853,6 +853,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
             dbg() << imprime_site(site_);
             dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
             dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+            dbg() << "L'opérateur est " << op;
         });
 
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
@@ -4158,10 +4159,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     switch (type->genre) {
-        case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
         {
-            assert_rappel(false, []() { dbg() << "Obtenu un type tuple ou polymophique"; });
+            assert_rappel(false, []() { dbg() << "Obtenu un type tuple"; });
             break;
         }
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
@@ -4240,6 +4240,23 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             type->atome_info_type = crée_globale_info_type(
                 m_espace->typeuse.type_info_type_pointeur, std::move(valeurs));
+            break;
+        }
+        case GenreNoeud::POLYMORPHIQUE:
+        {
+            auto type_polymorphique = type->comme_type_polymorphique();
+            auto ident = kuri::chaine_statique();
+            if (type_polymorphique->ident) {
+                ident = type_polymorphique->ident->nom;
+            }
+
+            /* { rubriques basiques, ident } */
+            auto valeurs = kuri::tableau<AtomeConstante *>(2);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::POLYMORPHIQUE, type);
+            valeurs[1] = crée_constante_pour_chaine(ident);
+
+            type->atome_info_type = crée_globale_info_type(
+                m_espace->typeuse.type_info_type_polymorphique, std::move(valeurs));
             break;
         }
         case GenreNoeud::DÉCLARATION_ÉNUM:

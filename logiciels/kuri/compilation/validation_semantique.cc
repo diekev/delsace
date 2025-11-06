@@ -1228,12 +1228,16 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto type_info_type = Type::nul();
 
             switch (type->genre) {
-                case GenreNoeud::POLYMORPHIQUE:
                 case GenreNoeud::TUPLE:
                 {
                     assert_rappel(false, [&]() {
                         dbg() << "Type illégal pour info type : " << chaine_type(expr->type);
                     });
+                    break;
+                }
+                case GenreNoeud::POLYMORPHIQUE:
+                {
+                    type_info_type = m_espace->typeuse.type_info_type_polymorphique;
                     break;
                 }
                 case GenreNoeud::EINI:

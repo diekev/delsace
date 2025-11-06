@@ -1,19 +1,18 @@
 /* Triage des blocs « importe » des fichiers .kuri */
 
 importe Fondation
+importe LigneDeCommande
 importe OutilsMaintenance
 importe SysFichier
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
-
-    si args.taille < 2 {
-        imprime("Utilisation : % FICHIER\n", args[0])
+    chemin := parse_argument_chemin()
+    saufsi chemin {
         exit(1)
     }
 
     extensions := [ ".kuri" ]
-    chm := CheminFichier(args[1])
+    chm := CheminFichier(chemin)
     exécute_rappel(chm, extensions, tri_imports_pour_fichier)
 }
