@@ -562,7 +562,6 @@ struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
     @genre_valeur INVALIDE
 }
 
-// À FAIRE(poly) : opérateurs polymorphiques
 struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     @genre DÉCLARATION_ENTÊTE_FONCTION
     @comme entête_fonction
@@ -601,6 +600,8 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     uint8_t niveau_optimisation;
 
     bool est_opérateur [code copie]
+    // À FAIRE : expose les drapeaux_fonction
+    bool est_polymorphique [code]
 
     /* Le paramètre de sortie :
      * soit le paramètre déclaré pour les fonctions ne retournant qu'une seule valeur

@@ -349,6 +349,7 @@ donne_type_pour_chaine :: fonc (type: chaine) -> TypeValeur
 InformationAttribut :: struct {
     nom: chaine
     type: TypeValeur
+    location: z32
     adresse: z32
 }
 
@@ -394,7 +395,7 @@ désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
     glUseProgram(0)
 }
 
-ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur)
+ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur, location: z32)
 {
     pour programme.attributs {
         si it.nom == nom {
@@ -406,6 +407,7 @@ ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: Ty
     attribut := tableau_ajoute_élément(*programme.attributs)
     attribut.nom = copie_chaine(nom)
     attribut.type = type
+    attribut.location = location
     attribut.adresse = -1
 }
 
@@ -513,7 +515,7 @@ parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: ch
             consomme_symbole(lexeuse, "location")
             consomme_ponctuation(lexeuse, "=")
 
-            lexème_location := donne_nombre(lexeuse)
+            location := donne_nombre(lexeuse).nombre.naturel comme z32
 
             consomme_ponctuation(lexeuse, ")")
 
@@ -522,7 +524,7 @@ parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: ch
                 lexème_type := donne_mot_clé(lexeuse)
                 lexème_nom := donne_symbole(lexeuse)
 
-                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()))
+                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()), location)
             }
             sinon si lexème.est_mot_clé("out") {
                 continue

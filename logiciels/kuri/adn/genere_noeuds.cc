@@ -1044,6 +1044,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
                 os << source_création_tableau_noeuds_code;
             }
+            else if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
+                os << "n->est_polymorphique = "
+                      "racine_typee->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);\n";
+            }
 
             os << "\t\t\tnoeud = n;\n";
             os << "\t\t\tbreak;\n";

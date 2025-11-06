@@ -19,18 +19,24 @@
 
 /* ************************************************************************** */
 
-bool Module::importe_module(IdentifiantCode *nom_module) const
+ModuleImporté const *Module::donne_info_module_importé(IdentifiantCode *nom_module) const
 {
-    bool importe = false;
-    pour_chaque_élément(modules_importés, [nom_module, &importe](ModuleImporté const &module_) {
+    ModuleImporté const *résultat = nullptr;
+    pour_chaque_élément(modules_importés, [nom_module, &résultat](ModuleImporté const &module_) {
         if (module_.module->nom() == nom_module) {
-            importe = true;
+            résultat = &module_;
             return kuri::DécisionItération::Arrête;
         }
 
         return kuri::DécisionItération::Continue;
     });
-    return importe;
+    return résultat;
+}
+
+bool Module::importe_module(IdentifiantCode *nom_module) const
+{
+    auto info_module = donne_info_module_importé(nom_module);
+    return info_module != nullptr;
 }
 
 void Module::ajoute_fichier(Fichier *fichier)
@@ -231,7 +237,7 @@ Module *SystèmeModule::crée_module(IdentifiantCode *nom, kuri::chaine_statique
     auto dm = modules.ajoute_élément(chemin);
     dm->nom_ = nom;
     if (importe_kuri) {
-        dm->modules_importés.insère({module_kuri, true});
+        dm->modules_importés.insère({module_kuri, nullptr, true});
     }
     return dm;
 }

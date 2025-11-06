@@ -2,6 +2,7 @@ importe Algorithmes
 importe Chaine
 importe Ensemble
 importe Fondation
+importe LigneDeCommande
 importe ParsageCpp
 importe SimpleLexage
 importe SysFichier
@@ -9,13 +10,10 @@ importe XML
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
-    si args.taille == 1 {
-        imprimeln("UTILISATION : % FICHIER.xml", args[0])
-        exit(0)
+    fichier_source := parse_argument_chemin()
+    saufsi fichier_source {
+        exit(1)
     }
-
-    fichier_source := args[1]
 
     chemin_fichier_source := CheminFichier(fichier_source)
 

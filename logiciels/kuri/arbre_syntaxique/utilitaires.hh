@@ -297,6 +297,7 @@ enum class DrapeauxTypes : uint32_t {
     UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
     INITIALISATION_TYPE_FUT_REQUISE = (1u << 10),
     POSSEDE_TYPE_TRANCHE = (1u << 11),
+    INFOS_TYPE_SONT_COMPLÈTES = (1u << 12),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxTypes)
 

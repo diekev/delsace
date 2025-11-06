@@ -175,7 +175,6 @@ execute_fichier(exemples/applications/BDD/spec test_specs_bdd)
 compile_fichier_principale(exemples/applications/EditeurTexte)
 compile_fichier_principale(exemples/applications/Eliza)
 compile_fichier(exemples/applications/Tetris tetris)
-compile_fichier_principale(exemples/applications/NASA)
 
 compile_fichier(exemples/applications base64)
 compile_fichier(exemples/applications calendrier_républicain)

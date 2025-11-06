@@ -10,6 +10,7 @@ importe HTML
 importe HTTP
 importe Image
 importe InfosInterface
+importe LigneDeCommande
 importe Math
 importe OpenGL
 importe PeintureInterface
@@ -207,52 +208,30 @@ définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, doc
  * \{ */
 
 Arguments :: struct {
-    utilise_javascript: bool
-    chemin: chaine
+    utilise_javascript: bool @NomArgument "js"
+    chemin: chaine @anonyme
 }
 
 parse_arguments :: fonc () -> (bool, Arguments)
 {
-    résultat: Arguments
+    args_ok, résultat, _ := parse_ligne_de_commande(Arguments)
 
-    arguments := arguments_ligne_commande()
+    si résultat.chemin {    
+        chemin_courant := tente donne_chemin_courant() piège nonatteignable
+        diffère déloge(chemin_courant.chn)
 
-    si arguments.taille > 1 {
-        chemin_fichier: chaine
+        chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(résultat.chemin))
 
-        si arguments.taille == 3 {
-            si arguments[1] != "--js" {
-                imprime("Argument '%' inconnu\n", arguments[1])
-                retourne faux, résultat
-            }
-
-            résultat.utilise_javascript = vrai
-            chemin_fichier = arguments[2]
-        }
-        sinon si arguments[1] == "--js" {
-            résultat.utilise_javascript = vrai
+        si est_un_fichier_régulier(chm_abs) {
+            résultat.chemin = chm_abs.chn
         }
         sinon {
-            chemin_fichier = arguments[1]
-        }
-
-        si chemin_fichier {    
-            chemin_courant := tente donne_chemin_courant() piège nonatteignable
-            diffère déloge(chemin_courant.chn)
-
-            chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(chemin_fichier))
-
-            si est_un_fichier_régulier(chm_abs) {
-                résultat.chemin = chm_abs.chn
-            }
-            sinon {
-                résultat.chemin = copie_chaine(chemin_fichier)
-                déloge(chm_abs.chn)
-            }
+            résultat.chemin = copie_chaine(résultat.chemin)
+            déloge(chm_abs.chn)
         }
     }
 
-    retourne vrai, résultat
+    retourne args_ok, résultat
 }
 
 /** \} */

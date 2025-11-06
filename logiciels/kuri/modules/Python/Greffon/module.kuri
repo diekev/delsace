@@ -1,0 +1,517 @@
+/*
+
+Génération de code Kuri pour créer un module Python depuis du code Kuri.
+
+*/
+
+importe Chaine
+importe Compilatrice
+importe Fondation
+importe GreffeMétaprogramme
+importe SysFichier
+
+charge "compilatrice"
+charge "génération_code"
+
+GreffonPython :: struct {
+    empl base: GreffonMétaprogramme
+
+    compilatrice: CompilatriceModulePython
+    filtre: fonc (entête: *NoeudCodeEntêteFonction) -> bool
+    code_généré: bool
+}
+
+donne_greffon :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer, filtre: fonc (entête: *NoeudCodeEntêteFonction) -> bool) -> *GreffonMétaprogramme
+{
+    résultat := loge(GreffonPython)
+    résultat.sur_message = greffon_python_sur_message
+    résultat.sur_destruction = greffon_python_sur_destruction
+    résultat.filtre = filtre
+    résultat.compilatrice = crée_compilatrice_pour_un_module(espace, nom_module, chose_à_générer)
+    retourne résultat
+}
+
+greffon_python_sur_message :: fonc (greffon: *GreffonPython, message: *Message)
+{
+    si greffon.code_généré {
+        retourne
+    }
+
+    si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+        message_typage := message comme *MessageTypageCodeTerminé
+        code := message_typage.code
+
+        si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+            entête := code comme *NoeudCodeEntêteFonction
+            si greffon.filtre == nul || greffon.filtre(entête) {
+                ajoute_fonction_si_annotée(greffon.compilatrice, entête)
+            }
+        }
+    }
+    sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
+        génère_code(greffon.compilatrice)
+        greffon.code_généré = vrai
+    }
+}
+
+greffon_python_sur_destruction :: fonc (greffon: *GreffonPython)
+{
+    détruit(greffon.compilatrice)
+    déloge(greffon)
+}
+
+// À FAIRE : gère proprement les chaines, les chaines C ne sont jamais détruites !
+
+ModulePython :: struct {
+    nom: chaine
+    méthodes: [..]MéthodePython
+    constantes_nombre_entier: [..]ConstanteNombreEntier
+    constantes_chaine: [..]ConstanteChaine
+}
+
+détruit :: fonc (module: &ModulePython)
+{
+    pour module.méthodes {
+        détruit(it)
+    }
+
+    déloge(module.méthodes)
+    déloge(module.constantes_nombre_entier)
+    déloge(module.constantes_chaine)
+}
+
+ConstanteNombreEntier :: struct {
+    nom: chaine
+    valeur: z64
+}
+
+ConstanteChaine :: struct {
+    nom: chaine
+    valeur: chaine
+}
+
+ajoute_constante_nombre_entier :: fonc (module: &ModulePython, nom: chaine, valeur: z64)
+{
+    tableau_ajoute(*module.constantes_nombre_entier, ConstanteNombreEntier(nom, valeur))
+}
+
+ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: chaine)
+{
+    tableau_ajoute(*module.constantes_chaine, ConstanteChaine(nom, valeur))
+}
+
+ParamètreMéthodePython :: struct {
+    nom: chaine
+    type: *TypePython
+    /* Les types Python n'ont pas d'information sur s'ils sont pointeur ou non.
+     * Par défaut, nous stockons une instance de notre type par valeur dans le
+     * PyObject que nous créons pour notre type (sauf si TOUJOURS_COMME_POINTEUR
+     * est vrai). Ceci nous sers à déterminer, lors des appels de nos fonctions,
+     * si nous devrions passer la valeur par pointeur ou par valeur. */
+    param_originel_est_pointeur: bool
+
+    /* Pour les fonctions qui retourne Résultat() */
+    type_est_résultat: bool
+    type_erreur: *TypePython
+
+    valeur_défaut: *NoeudCode
+}
+
+MéthodePython :: struct {
+    nom: chaine
+    /* Nom unique pour éviter les problèmes de redéfinition de fonction. */
+    nom_enveloppe: chaine
+    paramètres_entrée: [..]ParamètreMéthodePython
+    paramètres_sortie: [..]ParamètreMéthodePython
+    /* Vrai si le premier paramètre ("self") de la fonction Kuri est un pointeur. */
+    param_self_est_pointeur := faux
+}
+
+détruit :: fonc (méthode: &MéthodePython)
+{
+    déloge(méthode.nom_enveloppe)
+    déloge(méthode.paramètres_entrée)
+    déloge(méthode.paramètres_sortie)
+}
+
+ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
+{
+    saufsi méthode.paramètres_sortie {
+        retourne vrai
+    }
+
+    premier_param := méthode.paramètres_sortie[0]
+    retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == nul
+}
+
+convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -> ParamètreMéthodePython
+{
+    valeur_défaut: *NoeudCode
+    si param.genre == GenreNoeud.DÉCLARATION_VARIABLE {
+        déclaration := param comme *NoeudCodeDéclarationVariable
+        si déclaration.expression && !est_valeur_défaut_supportée(déclaration.expression) {
+            compilatrice_rapporte_erreur(param, "Valeur défaut non supportée par Python")
+        }
+        valeur_défaut = déclaration.expression
+    }
+    résultat: ParamètreMéthodePython
+    résultat.nom = param.nom
+    résultat.valeur_défaut = valeur_défaut
+    résultat.type = système_type.convertis_vers_type_python(param.type)
+    résultat.param_originel_est_pointeur = param.type.id == GenreInfoType.POINTEUR
+    retourne résultat
+}
+
+est_valeur_défaut_supportée :: fonc (expression: *NoeudCode) -> bool
+{
+    discr expression.genre {
+        EXPRESSION_LITTÉRALE_NUL,
+        EXPRESSION_LITTÉRALE_BOOLÉEN,
+        EXPRESSION_LITTÉRALE_NOMBRE_ENTIER,
+        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL,
+        EXPRESSION_LITTÉRALE_CHAINE,
+        EXPRESSION_LITTÉRALE_CARACTÈRE {
+            retourne vrai
+        }
+        sinon {
+            retourne faux
+        }
+    }
+}
+
+// ignore_premier_paramètre est pour les fonctions d'allocation, etc.
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre := faux) -> MéthodePython
+{
+    résultat: MéthodePython
+    résultat.nom = entête.nom
+    résultat.nom_enveloppe = imprime_chaine("enveloppe_python_%%", entête.nom, entête)
+
+    pour entête.params {
+        si indice_it == 0 && ignore_premier_paramètre {
+            si it.type.id == GenreInfoType.POINTEUR {
+                résultat.param_self_est_pointeur = vrai
+            }
+            continue
+        }
+
+        param := convertis_paramètre(it, système_type)
+        tableau_ajoute(*résultat.paramètres_entrée, param)
+    }
+
+    pour entête.params_sorties {
+        param := convertis_paramètre(it, système_type)
+        tableau_ajoute(*résultat.paramètres_sortie, param)
+    }
+
+    retourne résultat
+}
+
+ajoute_fonction :: fonc (module: &ModulePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    méthode := méthode_python_depuis_entête(fonction, système_type)
+    tableau_ajoute(*module.méthodes, méthode)
+}
+
+// ---------------------------------------------------
+
+/* Pour chaque type Python, nous enregistrons certaines fonctions permettant de les convertir ou discriminer. */
+FonctionsTypePython :: struct {
+    pour_discrimination: chaine // PyLong_Check, etc.
+    pour_extraction_valeur: chaine // PyLong_AsLong, etc.
+    pour_construction: chaine // PyLong_FromLong, etc.
+    pour_valeur_unicode_enum: chaine
+}
+
+init_fonctions_type_base :: fonc (fonctions: &FonctionsTypePython, pour_discrimination: chaine, pour_extraction: chaine, pour_construction: chaine)
+{
+    fonctions.pour_discrimination = copie_chaine(pour_discrimination)
+    fonctions.pour_extraction_valeur = copie_chaine(pour_extraction)
+    fonctions.pour_construction = copie_chaine(pour_construction)
+}
+
+/* Entiers relatifs. */
+
+init_fonctions_type_z8 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ8", "PyLong_FromLong")
+}
+
+init_fonctions_type_z16 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ16", "PyLong_FromLong")
+}
+
+init_fonctions_type_z32 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ32", "PyLong_FromLong")
+}
+
+init_fonctions_type_z64 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsLong", "PyLong_FromLong")
+}
+
+/* Entiers naturels. */
+
+init_fonctions_type_n8 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN8", "PyLong_FromN8")
+}
+
+init_fonctions_type_n16 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN16", "PyLong_FromN16")
+}
+
+init_fonctions_type_n32 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN32", "PyLong_FromN32")
+}
+
+init_fonctions_type_n64 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN64", "PyLong_FromN64")
+}
+
+/* Booléen. */
+
+init_fonctions_type_bool :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyBool_Check", "PyBool_AsBool", "PyBool_FromBool")
+}
+
+/* Réel. */
+
+init_fonctions_type_r16 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR16", "PyFloat_FromDouble")
+}
+
+init_fonctions_type_r32 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR32", "PyFloat_FromDouble")
+}
+
+init_fonctions_type_r64 :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsDouble", "PyFloat_FromDouble")
+}
+
+/* Chaine. */
+
+init_fonctions_type_chaine :: fonc (fonctions: &FonctionsTypePython)
+{
+    init_fonctions_type_base(fonctions, "PyUnicode_Check", "PyUnicode_AsChaine", "PyUnicode_FromChaine")
+}
+
+/* Structures, unions, énums, etc. */
+
+init_fonctions_type_structure :: fonc (fonctions: &FonctionsTypePython, nom: chaine)
+{
+    fonctions.pour_discrimination = enchaine("Py", nom, "_Check")
+    fonctions.pour_extraction_valeur = enchaine("Py", nom, "_As", nom)
+    fonctions.pour_construction = enchaine("Py", nom, "_From", nom)
+}
+
+init_fonctions_type_énum :: fonc (fonctions: &FonctionsTypePython, nom: chaine, type_énum: *InfoTypeÉnum)
+{
+    init_fonctions_type_structure(fonctions, nom)
+    fonctions.pour_valeur_unicode_enum = fonction_PyUnicodeEnum_Value_pour_info(type_énum)
+}
+
+fonction_PyUnicodeEnum_Value_pour_info :: fonc (info_énum: *InfoTypeÉnum) -> chaine
+{
+    info := info_énum.type_sous_jacent
+
+    si info.est_signé {
+        si info.taille_en_octet == 1 {
+            retourne "PyUnicodeEnum_Value_z8"
+        }
+        si info.taille_en_octet == 2 {
+            retourne "PyUnicodeEnum_Value_z16"
+        }
+        si info.taille_en_octet == 4 {
+            retourne "PyUnicodeEnum_Value_z32"
+        }
+        si info.taille_en_octet == 8 {
+            retourne "PyUnicodeEnum_Value_z64"
+        }
+    }
+    sinon {
+        si info.taille_en_octet == 1 {
+            retourne "PyUnicodeEnum_Valuen_n8"
+        }
+        si info.taille_en_octet == 2 {
+            retourne "PyUnicodeEnum_Value_n16"
+        }
+        si info.taille_en_octet == 4 {
+            retourne "PyUnicodeEnum_Value_n32"
+        }
+        si info.taille_en_octet == 8 {
+            retourne "PyUnicodeEnum_Value_n64"
+        }
+    }
+    retourne "PyUnicodeEnum_Value"
+}
+
+// ---------------------------------------------------
+
+ConfidentialitéType :: énum {
+    /* Les rubriques du type peuvent être accédées. */
+    ACCESSIBLE
+    /* Les rubriques du type peuvent être mutées, ceci implique qu'elles sont également ACCESSIBLE. */
+    MUTABLE
+    /* Les rubriques du type ne sont pas ni accessible, ni mutable. */
+    OPAQUE
+}
+
+confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> ConfidentialitéType
+{
+    pour annotations {
+        si it.nom == "privé" {
+            retourne ConfidentialitéType.OPAQUE
+        }
+
+        si it.nom == "mutable" {
+            retourne ConfidentialitéType.MUTABLE
+        }
+
+        si it.nom == "accessible" {
+            retourne ConfidentialitéType.ACCESSIBLE
+        }
+    }
+
+    /* Par défaut, les rubriques sont opaques. */
+    retourne ConfidentialitéType.OPAQUE
+}
+
+RubriqueType :: struct {
+    nom: chaine
+    confidentialité: ConfidentialitéType
+    type: *TypePython
+}
+
+DrapeauxType :: énum_drapeau {
+    TYPE_EST_UNION
+    TYPE_EST_ÉNUM
+    TYPE_EST_TABLEAU
+    TYPE_EST_ITÉRATEUR
+    /* Indique qu'un pointeur est stocké dans la rubrique "notre_instance" du type Python. */
+    TOUJOURS_COMME_POINTEUR
+    /* Pour les types composés, le programme devra définir une fonction de rafinage
+     * appelée « rafine_type_{nom_du_type}. */
+    REQUIERS_RAFINAGE
+    /* Pour les dérivées de Résultat() */
+    TYPE_EST_RÉSULTAT
+    /* Pour les dérivées de Optionnel() */
+    TYPE_EST_OPTIONNEL
+}
+
+TypePython :: struct {
+    /* Le nom, à être utilisé dans le code Kuri généré pour les paramètres, rubriques, etc. */
+    nom: chaine
+    /* Le nom mais sans les points, à être utilisé pour les fonctions, ou nom de structures. */
+    nom_sauf: chaine
+    type_kuri: *InfoType
+
+    nom_type_kuri: chaine
+
+    /* Si le type est un type de base, qui ne doit avoir un PyTypeObject associé. */
+    est_basique: bool
+
+    drapeaux: DrapeauxType
+
+    fonctions: FonctionsTypePython
+
+    confidentialité: ConfidentialitéType
+
+    rubriques: [..]RubriqueType
+
+    méthodes: [..]MéthodePython
+
+    new: MéthodePython
+    init: MéthodePython
+    repr: MéthodePython
+    str: MéthodePython
+    hash: MéthodePython
+
+    /* Données pour la génération de code, mises en place lors de celle-ci. */
+
+    /* Le nom de la globale qui défini les informations sur le PyTypeObject correspondant. */
+    nom_globale_type: chaine
+
+    /* Type de base du type. */
+    base: *TypePython
+
+    /* Type des éléments pour les tableaux. */
+    type_élément: *TypePython
+
+    /* Type de l'objet itéré pour les itérateurs. */
+    type_itéré: *TypePython
+    type_itérateur: *TypePython
+
+    /* Si le type dérive de Résultat. */
+    type_ok: *TypePython
+    type_erreur: *TypePython
+
+    /* Si le type dérive de Optionnel. */
+    type_quelque: *TypePython
+
+    /* Interne, pour généré le code d'initialisation des types dans l'ordre d'héritage. */
+    code_pour_init_module_fut_généré: bool
+}
+
+détruit :: fonc (type: *TypePython)
+{
+    détruit(type.new)
+    détruit(type.init)
+    détruit(type.repr)
+    détruit(type.str)
+    détruit(type.hash)
+    déloge(type.fonctions.pour_discrimination)
+    déloge(type.fonctions.pour_construction)
+    déloge(type.fonctions.pour_extraction_valeur)
+    déloge(type.rubriques)
+    pour type.méthodes {
+        détruit(it)
+    }
+    déloge(type.méthodes)
+    si type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ITÉRATEUR {
+        déloge(type.nom)
+    }
+    déloge(type.nom_globale_type)
+    déloge(type.nom_sauf)
+    déloge(type.nom_type_kuri)
+    déloge(type)
+}
+
+ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    méthode := méthode_python_depuis_entête(fonction, système_type, vrai)
+    tableau_ajoute(*type.méthodes, méthode)
+}
+
+ajoute_méthode_new :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.new = méthode_python_depuis_entête(fonction, système_type, vrai)
+}
+
+ajoute_méthode_init :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.init = méthode_python_depuis_entête(fonction, système_type, vrai)
+}
+
+ajoute_méthode_repr :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.repr = méthode_python_depuis_entête(fonction, système_type)
+}
+
+ajoute_méthode_str :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.str = méthode_python_depuis_entête(fonction, système_type)
+}
+
+ajoute_méthode_hash :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+{
+    type.hash = méthode_python_depuis_entête(fonction, système_type)
+}

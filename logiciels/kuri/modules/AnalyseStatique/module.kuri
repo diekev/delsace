@@ -49,29 +49,27 @@ vérifie_imprime :: fonc (code: *NoeudCode)
 {
     si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
         corps := code comme *NoeudCodeCorpsFonction
-        si corps.entête.nom == "principale" {
-            pour noeud dans corps.noeuds {
-                si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
-                    appel := noeud comme *NoeudCodeAppel
+        pour noeud dans corps.noeuds {
+            si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
+                appel := noeud comme *NoeudCodeAppel
 
-                    si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-                        référence := appel.expression comme *NoeudCodeRéférenceDéclaration
-                        // À FAIRE(langage) : convertis la déclaration
-                        si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
-                            format := appel.paramètres[0]
-                            si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
-                                chn := (format comme *NoeudCodeLittéraleChaine).valeur
+                si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+                    référence := appel.expression comme *NoeudCodeRéférenceDéclaration
+                    // À FAIRE(langage) : convertis la déclaration
+                    si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
+                        format := appel.paramètres[0]
+                        si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
+                            chn := (format comme *NoeudCodeLittéraleChaine).valeur
 
-                                nombre_de_pourcentages := 0
-                                pour chn {
-                                    si it == '%' {
-                                        nombre_de_pourcentages += 1
-                                    }
+                            nombre_de_pourcentages := 0
+                            pour chn {
+                                si it == '%' {
+                                    nombre_de_pourcentages += 1
                                 }
+                            }
 
-                                si nombre_de_pourcentages != appel.paramètres.taille - 1 {
-                                    compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
-                                }
+                            si nombre_de_pourcentages != appel.paramètres.taille - 1 {
+                                compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
                             }
                         }
                     }
@@ -324,6 +322,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         EINI {}
         VARIADIQUE {}
         ADRESSE_FONCTION {}
+        POLYMORPHIQUE {}
     }
 }
 

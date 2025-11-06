@@ -399,13 +399,14 @@ ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
             EINI,
             RIEN,
             TYPE_DE_DONNÉES,
-            UNION,
+            UNION {}
             OPAQUE {
                 info_opaque := info_type comme *InfoTypeOpaque
                 valeur_courante.info = info_opaque.type_opacifié
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 }
@@ -498,13 +499,14 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
             EINI,
             RIEN,
             TYPE_DE_DONNÉES,
-            UNION,
+            UNION {}
             OPAQUE {
                 info_opaque := info_type comme *InfoTypeOpaque
                 valeur_courante.info = info_opaque.type_opacifié
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 
@@ -610,13 +612,14 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
             EINI,
             RIEN,
             TYPE_DE_DONNÉES,
-            UNION,
+            UNION {}
             OPAQUE {
                 info_opaque := info_type comme *InfoTypeOpaque
                 valeur_courante.info = info_opaque.type_opacifié
                 tableau_ajoute(*traversée, valeur_courante)
             }
             VARIADIQUE {}
+            POLYMORPHIQUE {}
         }
     }
 

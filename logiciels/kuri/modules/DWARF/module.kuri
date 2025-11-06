@@ -3,6 +3,7 @@ importe Flux
 importe SysFichier
 
 charge "interface"
+charge "line_number_program"
 
 /* ------------------------------------------------------------------------- */
 /** \nom IndexageTranche
@@ -1038,6 +1039,8 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
  * \{ */
 
 TableDebugLineUnité :: struct {
+    table: *TableDebugLine
+
     décalage: n64
 
     version: n16
@@ -1058,6 +1061,18 @@ TableDebugLineUnité :: struct {
     file_names: IndexageTranche
 }
 
+donne_file_name :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
+{
+    file_entries := donne_file_entries(table.table, table)
+
+    si file_entries.taille == 0 && indice == 0 {
+        // À FAIRE : prends DW_AT_name du DEI de l'unité de compilation.
+        retourne "primary_file"
+    }
+
+    retourne file_entries[indice].path_name
+}
+
 FileEntryFormat :: struct {
     content_type: n64 // DW_LNCT_*
     form: n64 // DW_FORM_*
@@ -1075,6 +1090,11 @@ TableDebugLine :: struct {
     entry_formats: [..]FileEntryFormat
     chaines: [..]chaine
     file_entries: [..]FileEntry
+}
+
+donne_file_entries :: fonc (table: *TableDebugLine, table_unité: *TableDebugLineUnité) -> []FileEntry
+{
+    retourne donne_tranche(table.file_entries, table_unité.file_names)
 }
 
 parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
@@ -1101,6 +1121,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
 
         tantque est_valide(debug_line) {
             table := tableau_ajoute_élément(*résultat.tables)
+            table.table = résultat
             table.décalage = donne_position(debug_line).Début comme z64 comme n64
 
             unit_length, est_32_bit := parse_length_cie(debug_line)
@@ -1153,6 +1174,8 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                 table.standard_opcode_lengths = standard_opcode_lengths
                 table.include_directories = include_directories
                 table.file_names = file_names
+
+                exécute_line_number_program(debug_line_unité, table)
             }
             sinon si version == 5 {
                 address_size, _ := lis_petit_boutisme(debug_line_unité, n8)
@@ -1170,7 +1193,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                 directory_entry_format := parse_séquence_entry_format(résultat, debug_line_unité, directory_entry_format_count)
                 assert(directory_entry_format_count == 1)
 
-                directories_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                directories_count := décode_leb128_naturel(debug_line_unité)
                 directories : IndexageTranche
                 directories.premier = résultat.chaines.taille
                 pour directories_count {
@@ -1191,7 +1214,7 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                 file_name_entry_format := parse_séquence_entry_format(résultat, debug_line_unité, file_name_entry_format_count)
                 assert(file_name_entry_format.taille == 2)
 
-                file_names_count, _ := lis_petit_boutisme(debug_line_unité, n8)
+                file_names_count := décode_leb128_naturel(debug_line_unité)
                 file_names : IndexageTranche
                 file_names.premier = résultat.file_entries.taille
                 pour file_names_count {
@@ -1244,10 +1267,9 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
                 table.include_directories = directories
                 table.file_names = file_names
 
-                // Line Number Program
-
-                // o, _ := lis_petit_boutisme(debug_line_unité, n8)
-                // imprimeln("%", donne_chaine_pour_code_standard_numéro_ligne(o))
+                si résultat.tables.taille == 1 {
+                    exécute_line_number_program(debug_line_unité, table)
+                }
             }
             sinon {
                 imprimeln("Version non-supporté pour .debug_line")
@@ -1284,7 +1306,6 @@ parse_séquence_chaines_nul_terminées :: fonc (table: *TableDebugLine, debug_li
         si chn == "" {
             arrête
         }
-        imprimeln("%", chn)
         tableau_ajoute(*table.chaines, chn)
     }
 

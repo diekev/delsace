@@ -3,6 +3,7 @@
 importe Chaine
 importe ELF
 importe Fondation
+importe LigneDeCommande
 importe SysFichier
 importe Tabulation
 
@@ -10,27 +11,26 @@ principale :: fonc ()
 {
     diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
 
-    discr parse_arguments() {
-        Quelque(arguments) {
-            chm := CheminFichier(arguments.fichier)
-            _, contenu := contenu_fichier_binaire(chm)
-            diffère déloge(contenu)
+    args_ok, arguments, _ := parse_ligne_de_commande(Arguments)
+    saufsi args_ok && arguments.fichier {
+        imprime("Utilisation : % FICHIER [OPTIONS...]\n", donne_nom_programme())
+        retourne
+    }
 
-            fichier := crée_fichier_elf(contenu)
+    chm := CheminFichier(arguments.fichier)
+    _, contenu := contenu_fichier_binaire(chm)
+    diffère déloge(contenu)
 
-            imprime_entête_fichier(*fichier)
+    fichier := crée_fichier_elf(contenu)
 
-            si arguments.sections {
-                imprime_noms_sections(*fichier)
-            }
+    imprime_entête_fichier(*fichier)
 
-            si arguments.symboles {
-                imprime_symboles(*fichier)
-            }
-        }
-        sinon {
-            exit(1)
-        }
+    si arguments.sections {
+        imprime_noms_sections(*fichier)
+    }
+
+    si arguments.symboles {
+        imprime_symboles(*fichier)
     }
 }
 
@@ -40,45 +40,9 @@ principale :: fonc ()
 
 Arguments :: struct {
     /* Chemin du fichier. */
-    fichier: chaine
-
-    /* Imprime les sections du fichier. */
-    sections: bool
-
-    /* Imprime les symboles du fichier. */
-    symboles: bool
-}
-
-parse_arguments :: fonc () -> Optionnel(Arguments)
-{
-    args := arguments_ligne_commande()
-
-    si args.taille == 1 {
-        imprime("Utilisation : % FICHIER [OPTIONS...]\n", args[0])
-        retourne
-    }
-
-    résultat: Arguments
-
-    indice := 1
-    tantque indice < args.taille {
-        arg := args[indice]
-        indice += 1
-
-        si arg == "--sections" {
-            résultat.sections = vrai
-            continue
-        }
-
-        si arg == "--symboles" {
-            résultat.symboles = vrai
-            continue
-        }
-
-        résultat.fichier = arg
-    }
-
-    retourne résultat
+    fichier: chaine @anonyme @Aide "Le fichier à parser."
+    sections: bool @Aide "Imprime le noms des sections."
+    symboles: bool @Aide "Imprime les symbles du fichier."
 }
 
 /** \} */

@@ -2,6 +2,7 @@
 
 importe Fondation
 importe Internet
+importe LigneDeCommande
 importe OpenSSL
 importe SysFichier
 
@@ -50,15 +51,13 @@ lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
-
-    si args.taille != 2 {
-        imprime_err("Utilisation : % URL\n", args[0])
+    chemin := parse_argument_chemin()
+    saufsi chemin {
         exit(1)
     }
 
     // connecte vers la page
-    uri := tente parse_uri_standard(args[1]) piège err {
+    uri := tente parse_uri_standard(chemin) piège err {
         imprime("Erreur lors du parsage de l'URI : %\n", err)
         exit(1)
     }
