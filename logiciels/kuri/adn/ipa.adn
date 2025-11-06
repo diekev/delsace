@@ -37,7 +37,7 @@ fonction compilatrice_donne_module(EspaceDeTravail *espace, chaine_statique chem
 @compilatrice
 
 /* Retourne le module racine de la compilation. */
-fonction compilatrice_module_racine_compilation() -> Module *
+fonction compilatrice_module_racine_compilation(EspaceDeTravail *espace) -> Module *
 @compilatrice
 
 /* Retourne le module ayant défini le code, ou nul si aucun ne l'a défini. */

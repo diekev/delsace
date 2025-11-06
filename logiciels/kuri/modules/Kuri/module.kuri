@@ -254,9 +254,13 @@ reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code
 
 déloge :: fonc (chn: &chaine, pos := #position_code_source)
 {
-    déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
-    chn.pointeur = nul
-    chn.taille = 0
+    /* Les chaines nulles peuvent avoir un pointeur valide car elles pointent
+     * vers une chaine ne contenant qu'un caractère nul. */
+    si chn.taille != 0 {
+        déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
+        chn.pointeur = nul
+        chn.taille = 0
+    }
 }
 
 déloge_si_logée :: fonc (chn: &chaine, pos := #position_code_source)
