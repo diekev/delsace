@@ -2,58 +2,30 @@ importe Chaine
 importe Compilatrice
 importe Fondation
 importe JavaScript
+importe LigneDeCommande
 importe SysFichier
 importe Temps
 
 Arguments :: struct {
-    utilise_code_binaire: bool
-    fichier: Optionnel(chaine)
-}
-
-parse_arguments :: fonc () -> Optionnel(Arguments)
-{
-    args := arguments_ligne_commande()
-
-    résultat: Arguments
-
-    pour args {
-        si indice_it == 0 {
-            continue
-        }
-
-        si it == "-b" {
-            résultat.utilise_code_binaire = vrai
-        }
-        sinon {
-            si indice_it != args.taille - 1 {
-                imprime("Mauvaise ligne de commande\n")
-                imprime("Utilisation : % [-b] [FICHIER]\n", args[0])
-                retourne
-            }
-
-            résultat.fichier = it
-        }
-    }
-
-    retourne résultat
+    utilise_code_binaire: bool @NomArgument "b"
+    fichier: chaine @anonyme
 }
 
 principale :: fonc ()
 {
-    args_opt := parse_arguments()
-    saufsi args_opt.possède_valeur() {
+    args_ok, args, _ := parse_ligne_de_commande(Arguments)
+    saufsi args_ok {
+        imprimeln("Utilisation : % [-b] [FICHIER]", donne_nom_programme())
         exit(1)
     }
-
-    args := args_opt.Quelque
 
     stats: StatistiquesTests
     diffère détruit_données_stats(*stats)
 
     début := maintenant_précis()
 
-    si args.fichier.possède_valeur() {
-        évalue_test(CheminFichier(args.fichier.Quelque), *stats, args.utilise_code_binaire)
+    si args.fichier {
+        évalue_test(CheminFichier(args.fichier), *stats, args.utilise_code_binaire)
     }
     sinon pour ExploratriceFichier(CheminFichier("fichiers")) {
         si it.extension() == ".js" {
