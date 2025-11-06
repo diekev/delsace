@@ -69,6 +69,7 @@ DEFINIS_OPERATEURS_DRAPEAU(FonctionnalitéLangage)
 
 struct ModuleImporté {
     Module *module = nullptr;
+    NoeudExpression *site = nullptr;
     bool est_employé = false;
 };
 
@@ -199,6 +200,8 @@ struct Module {
     }
 
     EMPECHE_COPIE(Module);
+
+    ModuleImporté const *donne_info_module_importé(IdentifiantCode *nom_module) const;
 
     /**
      * Retourne vrai si l'un des fichiers du module importe un module du nom spécifié.
