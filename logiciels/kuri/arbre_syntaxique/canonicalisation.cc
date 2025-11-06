@@ -1718,7 +1718,10 @@ NoeudExpression *Simplificatrice::simplifie_expression_pour_expression_logique(
     NoeudExpression *expression)
 {
     auto type_condition = expression->type;
-    auto type_primitif = donne_type_primitif(type_condition);
+    const Type *type_primitif = type_condition;
+    if (type_condition->genre != GenreNoeud::ENUM_DRAPEAU) {
+        type_primitif = donne_type_primitif(type_condition);
+    }
 
     switch (type_primitif->genre) {
         case GenreNoeud::ENTIER_NATUREL:
