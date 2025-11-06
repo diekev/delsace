@@ -945,7 +945,10 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     }
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_racine_compilation)) {
-        auto module = compilatrice.espace_de_travail_défaut->module;
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
+        RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
+        auto module = espace->module;
         empile(module);
         return;
     }
