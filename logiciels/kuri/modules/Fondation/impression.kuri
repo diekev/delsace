@@ -1280,7 +1280,8 @@ donne_greffon :: fonc () -> *GreffonMétaprogramme
     résultat.sur_destruction = greffon_impression_sur_destruction
 
     données := tableau_ajoute_élément(*résultat.données_pour_espace)
-    données.créatrice_table_fonctions.module = compilatrice_module_courant()
+    données.créatrice_table_fonctions.espace = compilatrice_espace_courant()
+    données.créatrice_table_fonctions.nom_module = "Fondation"
     données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
     données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
     données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
@@ -1294,7 +1295,9 @@ greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *M
 {
     si message.genre == GenreMessage.ESPACE_CRÉÉ {
         données := tableau_ajoute_élément(*greffon.données_pour_espace)
-        données.créatrice_table_fonctions.module = compilatrice_module_courant()
+        message_espace := message comme *MessageEspaceCréé
+        données.créatrice_table_fonctions.espace = message_espace.nouvel_espace
+        données.créatrice_table_fonctions.nom_module = "Fondation"
         données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
         données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
         données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
@@ -1310,8 +1313,11 @@ greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *M
         }
     }
     sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
-        données := greffon.données_pour_espace[message.espace - 1]
-        crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions)
+        données := *greffon.données_pour_espace[message.espace - 1]
+        saufsi données.table_créée {
+            crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions)
+            données.table_créée = vrai
+        }
     }
 }
 
@@ -1324,8 +1330,12 @@ greffon_impression_sur_destruction :: fonc (greffon: *GreffonImpression)
     déloge(greffon)
 }
 
+#portée_export // À FAIRE : génère le code dans ce module
+
 TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
 __fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
+
+#portée_fichier
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {
@@ -1341,7 +1351,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
     type_premier_paramètre := fonction.params[0].type
     type_deuxième_paramètre := fonction.params[1].type
 
-    si type_premier_paramètre != info_de(*Enchaineuse) {
+    saufsi est_type_pointeur_vers_struct_nommé(type_premier_paramètre, "Enchaineuse") {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *Enchaineuse ».")
     }
 
@@ -1354,6 +1364,22 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
     résultat: DonnéesFonctionPourTableFonction
     résultat.fonction = fonction
     résultat.info_type = pointeur.type_pointé
+    retourne résultat
+}
+
+est_type_pointeur_vers_struct_nommé :: fonc (type: *InfoType, nom: chaine) -> bool
+{
+    résultat := faux
+
+    si type.id == GenreInfoType.POINTEUR {
+        type_pointeur := type comme *InfoTypePointeur
+
+        si type_pointeur.type_pointé && type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+            type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+            résultat = type_structure.nom == nom
+        }
+    }
+
     retourne résultat
 }
 

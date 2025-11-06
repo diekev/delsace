@@ -876,7 +876,9 @@ CréatriceTableFonction :: struct {
      * devrait être manuellement ajoutées. */
     modules_importés: [..]chaine
 
-    module: *Module
+    nom_module: chaine
+
+    espace: EspaceDeTravail
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
@@ -946,7 +948,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     créatrice.ajoute_module("Introspection")
 
     pour données_fonctions {
-        module := compilatrice_module_pour_code(it.fonction)
+        module := compilatrice_module_pour_code(créatrice.espace, it.fonction)
         saufsi module {
             continue
         }
@@ -965,24 +967,22 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
         it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, it)
     }
 
-    nom_module := compilatrice_nom_module(créatrice.module)
-
     /* Création de la fonction d'initialisation. */
     ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
     ajoute_au_tampon(*enchaineuse, "{\n")
 
     si créatrice.initialise_types_de_bases {
         ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*")
-        si nom_module {
-            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        si créatrice.nom_module {
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
         }
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n")
     }
 
     pour données_fonctions {
         ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*")
-        si nom_module {
-            ajoute_au_tampon(*enchaineuse, nom_module, ".")
+        si créatrice.nom_module {
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
         }
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
         nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(it.fonction))
@@ -1002,7 +1002,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     diffère déloge(sources)
 
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), sources)
+    ajoute_chaine_à_la_compilation(créatrice.espace, sources)
 }
 
 génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction, préfixe: chaine) -> chaine
