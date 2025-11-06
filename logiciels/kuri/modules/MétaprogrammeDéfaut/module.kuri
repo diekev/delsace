@@ -23,7 +23,6 @@ importe GreffeMétaprogramme
 
     boucle {
         message := compilatrice_attend_message()
-        diffère compilatrice_message_reçu(message)
 
         si message.genre == GenreMessage.ESPACE_CRÉÉ {
             message_espace := message comme *MessageEspaceCréé

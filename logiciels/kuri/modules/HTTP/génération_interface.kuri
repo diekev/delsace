@@ -63,8 +63,6 @@ génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterf
 
     boucle {
         message := compilatrice_attend_message()
-        diffère compilatrice_message_reçu(message)
-
         si message.espace != espace {
             continue
         }
