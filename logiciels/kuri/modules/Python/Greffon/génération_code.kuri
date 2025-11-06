@@ -667,7 +667,7 @@ génère_corps_fonction_construction_objet :: fonc (enchaineuse: *Enchaineuse, t
     si type.drapeaux.TYPE_EST_OPTIONNEL {
         enchaineuse.ajoute_au_tampon("    discr valeur {\n")
         enchaineuse.ajoute_au_tampon("        Quelque(r) {\n")
-        si type.type_quelque.type_kuri == info_de(ErreurPython) {
+        si type.type_quelque.nom == "ErreurPython" {
             /* Relance l'erreur. */
             enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Erreur(r)\n")
         }

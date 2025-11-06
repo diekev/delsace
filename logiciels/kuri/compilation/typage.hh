@@ -156,6 +156,7 @@ struct Typeuse {
     Type *type_info_type_tableau_fixe = nullptr;
     Type *type_info_type_tranche = nullptr;
     Type *type_info_type_pointeur = nullptr;
+    Type *type_info_type_polymorphique = nullptr;
     Type *type_info_type_enum = nullptr;
     Type *type_info_type_fonction = nullptr;
     Type *type_info_type_opaque = nullptr;
