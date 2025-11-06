@@ -462,6 +462,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         ADRESSE_FONCTION {
             compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers Python pour le moment")
         }
+        POLYMORPHIQUE {
+            compilatrice_rapporte_erreur("Les types « polymorphiques » ne sont pas convertibles vers Python pour le moment")
+        }
     }
 
     si type_python && type_python.nom_type_kuri.taille == 0 {
@@ -489,6 +492,7 @@ ChoseÀGénérer :: énum {
 }
 
 CompilatriceModulePython :: struct {
+    espace: EspaceDeTravail
     module: ModulePython
     chose_à_générer: ChoseÀGénérer
 
@@ -506,12 +510,13 @@ détruit :: fonc (compilatrice: &CompilatriceModulePython)
     détruit(compilatrice.système_type)
 }
 
-crée_compilatrice_pour_un_module :: fonc (nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
+crée_compilatrice_pour_un_module :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
 {
     compilatrice: CompilatriceModulePython
+    compilatrice.espace = espace
     compilatrice.chose_à_générer = chose_à_générer
     compilatrice.module.nom = nom_module
-    initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
+    initialise_ensemble_de_modules(espace, *compilatrice.modules_kuri_à_importer)
     retourne compilatrice
 }
 
@@ -528,6 +533,10 @@ ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoTy
 
 ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
+    si fonction.est_polymorphique {
+        retourne
+    }
+
     annotation_python := annotation_pour_python(fonction)
 
     discr annotation_python {
@@ -566,13 +575,13 @@ ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fo
 
 ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
     compilatrice.module.ajoute_fonction(compilatrice.système_type, fonction)
 }
 
 ajoute_fonction_pour_méthode :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
     type_paramètre := type_premier_paramètre(fonction)
     type_python := convertis_vers_type_python(compilatrice.système_type, type_paramètre)
     type_python.ajoute_méthode(compilatrice.système_type, fonction)
@@ -645,7 +654,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(z64)) {
+        si fonction.params_sorties.taille != 1 || !est_type_z64(fonction.params_sorties[0].type) {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_HASH, ContexteErreurPython(fonction))
             retourne
         }
@@ -653,7 +662,19 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         type_python.ajoute_méthode_hash(compilatrice.système_type, fonction)
     }
 
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
+}
+
+est_type_z64 :: fonc (info: *InfoType) -> bool
+{
+    résultat := faux
+
+    si info.id == GenreInfoType.ENTIER {
+        info_entier := info comme *InfoTypeEntier
+        résultat = info_entier.taille_en_octet == 8 && info_entier.est_signé
+    }
+
+    retourne résultat
 }
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> Optionnel(chaine)
@@ -708,12 +729,12 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
     retourne vrai
 }
 
-génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: EspaceDeTravail)
+génère_code :: fonc (compilatrice: &CompilatriceModulePython)
 {
     discr compilatrice.génère_interface_python() {
         Quelque(source) {
             diffère déloge(source)
-            ajoute_chaine_à_la_compilation(espace, source)
+            ajoute_chaine_à_la_compilation(compilatrice.espace, source)
         }
         sinon {}
     }

@@ -62,7 +62,7 @@ principale :: fonc ()
     }
 
     si args.taille != 2 {
-        imprime("Usage: s <portnum>\n", args[0])
+        imprime("Usage: % <portnum>\n", args[0])
         exit(0)
     }
 
