@@ -329,6 +329,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             type_python = système.crée_type_python_pour(info, info_struct.nom)
             init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
 
+            si possède_annotation(info_struct, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
+
             si info_struct.structs_employées {
                 type_base := système.convertis_vers_type_python(info_struct.structs_employées[0])
                 type_python.base = type_base
@@ -357,6 +361,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             type_python = système.crée_type_python_pour(info, info_union.nom)
             init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
             type_python.drapeaux.TYPE_EST_UNION = vrai
+
+            si possède_annotation(info_union, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
 
             si est_type_résultat(info_union) {
                 type_python.drapeaux.TYPE_EST_RÉSULTAT = vrai
