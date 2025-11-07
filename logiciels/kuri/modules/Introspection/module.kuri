@@ -867,7 +867,7 @@ CréatriceTableFonction :: struct {
     /* Génére la fonction d'enveloppe de la fonction spécifique ; enveloppe qui sera ajoutée
      * au tableau globale de FonctionIntropection.
      * Le rappel doit retourner le nom de la fonction enveloppe. */
-    génère_fonction_enveloppe: fonc(*Enchaineuse, DonnéesFonctionPourTableFonction)(chaine)
+    génère_fonction_enveloppe: fonc(*Enchaineuse, EspaceDeTravail, DonnéesFonctionPourTableFonction)(chaine)
 
     /* Les modules devant être importés pour que le code généré puisse compiler.
      * Utiliser ajoute_module() plutôt que ceci directement afin de s'assurer qu'un
@@ -964,7 +964,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
 
     /* Création des enveloppes pour les fonctions de parsage. */
     pour & données_fonctions {
-        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, it)
+        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, créatrice.espace, it)
     }
 
     /* Création de la fonction d'initialisation. */
@@ -985,7 +985,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
             ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
         }
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
-        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(it.fonction))
+        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(créatrice.espace, it.fonction))
         imprime_type(*enchaineuse, it.info_type, nom_module_fonction)
         ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n")
         déloge(it.nom_fonction_enveloppe)
