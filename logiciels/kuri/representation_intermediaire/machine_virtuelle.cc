@@ -693,7 +693,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto const site = donne_site_adresse_courante();
         auto chemin_recu = dépile<kuri::chaine_statique>();
         auto espace = m_métaprogramme->unité->espace;
-        auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
+        auto lexemes = compilatrice.lexe_fichier(espace, espace, chemin_recu, site);
         empile(lexemes);
         return;
     }
@@ -728,7 +728,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto id_espace_reçu = dépile<int>();
         auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_fichier_compilation(espace, chaine, site);
+        auto espace_pour_site = m_métaprogramme->unité->espace;
+        compilatrice.ajoute_fichier_compilation(espace, espace_pour_site, chaine, site);
         return;
     }
 
