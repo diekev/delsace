@@ -268,6 +268,13 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 {
     type_python := système.trouve_type(info)
     si type_python {
+        si info.id == GenreInfoType.STRUCTURE {
+            info_struct := info comme *InfoTypeStructure
+            // À FAIRE(langage) : nous pouvons avoir des types non-validés ou avec des informations partielles
+            si possède_annotation(info_struct, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
+        }
         retourne type_python
     }
 
