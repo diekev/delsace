@@ -959,7 +959,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     }
 
     pour créatrice.modules_importés {
-        ajoute_au_tampon(*enchaineuse, it, " :: importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
