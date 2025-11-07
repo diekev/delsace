@@ -626,6 +626,8 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
 #define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
     if (!pointeur) {                                                                              \
         rapporte_erreur_exécution(message);                                                       \
+        résultat = RésultatInterprétation::ERREUR;                                                \
+        return;                                                                                   \
     }
 
 void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
@@ -1772,6 +1774,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto résultat = RésultatInterprétation::OK;
                 empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_compilatrice(ptr_fonction, résultat);
+                if (résultat == RésultatInterprétation::ERREUR) {
+                    return résultat;
+                }
                 dépile_fonction_non_interne(ptr_fonction);
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
@@ -1803,6 +1808,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                     auto résultat = RésultatInterprétation::OK;
                     empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_compilatrice(ptr_fonction, résultat);
+                    if (résultat == RésultatInterprétation::ERREUR) {
+                        return résultat;
+                    }
                     dépile_fonction_non_interne(ptr_fonction);
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
