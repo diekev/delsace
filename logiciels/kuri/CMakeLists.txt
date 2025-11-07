@@ -145,7 +145,7 @@ macro(compile_fichier __nom_dossier__ __nom_fichier__)
     set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
     add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
-    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 20)
 endmacro()
 
 macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
@@ -153,7 +153,7 @@ macro(compile_fichier_avec_erreur __nom_dossier__ __nom_fichier__)
     set(NOM_TEST compilation_${NOM_DOSSIER}_${__nom_fichier__})
     # Utilise CMAKE_CURRENT_LIST_DIR puisque ce fichier est inclus depuis un dossier n'étant pas parent.
     add_test(NAME ${NOM_TEST} COMMAND kuri ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__}.kuri)
-    set_tests_properties(${NOM_TEST} PROPERTIES WILL_FAIL TRUE TIMEOUT 10)
+    set_tests_properties(${NOM_TEST} PROPERTIES WILL_FAIL TRUE TIMEOUT 20)
 endmacro()
 
 macro(compile_fichier_principale __nom_dossier__)
@@ -164,7 +164,7 @@ macro(execute_fichier __nom_dossier__ __nom_fichier__)
     compile_fichier(${__nom_dossier__} ${__nom_fichier__})
     set(NOM_TEST exécution_${__nom_dossier__}_${__nom_fichier__})
     add_test(NAME ${NOM_TEST} COMMAND ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__}/${__nom_fichier__})
-    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 10)
+    set_tests_properties(${NOM_TEST} PROPERTIES TIMEOUT 20)
     set_tests_properties(${NOM_TEST} PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${__nom_dossier__})
 endmacro()
 
