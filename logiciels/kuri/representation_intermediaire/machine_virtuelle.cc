@@ -2232,7 +2232,13 @@ NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
     if (frame->fonction->est_externe) {
         frame--;
     }
-    return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(frame->pointeur);
+    /* NOTE : l'adresse est celle de l'instruction suivante, nous devons reculer pour avoir une
+     * adresse dans l'instruction courante. */
+    auto adresse = frame->pointeur;
+    if (adresse > frame->fonction->données_exécution->chunk.code) {
+        adresse -= 1;
+    }
+    return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(adresse);
 }
 
 bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,
