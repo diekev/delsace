@@ -1,0 +1,17 @@
+// 4.10.19.5 Enabling and disabling form controls: the disabled attribute
+// https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#enabling-and-disabling-form-controls:-the-disabled-attribute
+is_disabled :: fonc (element: *Element) -> bool
+{
+    // A form control is disabled if any of the following are true:
+    résultat := faux
+
+    // the element is a button, input, select, textarea, or À FAIRE form-associated custom element,
+    // and the disabled attribute is specified on this element (regardless of its value); or
+    si element.local_name == TAG_button || element.local_name == TAG_input || element.local_name == TAG_select || element.local_name == TAG_textarea {
+        résultat = possède_attribut(element, ATTR_disabled)
+    }
+
+    // À FAIRE the element is a descendant of a fieldset element whose disabled attribute is specified, and is not a descendant of that fieldset element's first legend element child, if any.
+
+    retourne résultat
+}

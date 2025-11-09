@@ -1263,7 +1263,8 @@ table_virtuelle_button_element := TableVirtuelleElement(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
-    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
+    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints,
+    sur_activation_behavior = button_element_sur_activation_behavior
 )
 
 button_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
@@ -1327,6 +1328,144 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Element, résol
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_right_radius, rayon_bordure)
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_left_radius, rayon_bordure)
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_right_radius, rayon_bordure)
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element */
+button_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    element := target comme *HTMLButtonElement
+
+    // 1. If element is disabled, then return.
+    si is_disabled(element) {
+        retourne
+    }
+
+    // 2. If element's node document is not fully active, then return.
+    saufsi est_fully_active(element.document) {
+        retourne
+    }
+
+    // 3. If element has a form owner:
+    form_owner := donne_form_owner(element)
+    si form_owner {
+        // 1. If element is a submit button, then submit element's form owner from element
+        //    with userInvolvement set to event's user navigation involvement, and return.
+        si is_submit_button(element) {
+            submit(form_owner, element, user_involvement = donne_user_navigation_involvement(event))
+            retourne
+        }
+
+        // 2. If element's type attribute is in the Reset Button state, then reset element's
+        //    form owner, and return.
+        state := donne_button_element_state(element)
+        si state == ButtonElementState.RESET {
+            panique("reset button non-implémenté")
+        }
+
+        // 3. If element's type attribute is in the Auto state, then return.
+        si state == ButtonElementState.AUTO {
+            retourne
+        }
+    }
+
+    // 4. Let target be the result of running element's get the commandfor-associated element.
+    panique("non-implémenté")
+
+    // 5. If target is not null:
+
+        // 1. Let command be element's command attribute.
+
+        // 2. If command is in the Unknown state, then return.
+
+        // 3. Let isPopover be true if target's popover attribute is not in the No Popover state; otherwise false.
+
+        // 4. If isPopover is false and command is not in the Custom state:
+
+            // 1. Assert: target's namespace is the HTML namespace.
+
+            // 2. If this standard does not define is valid command steps for target's local name, then return.
+
+            // 3. Otherwise, if the result of running target's corresponding is valid command steps given command is false, then return.
+
+        // 5. Let continue be the result of firing an event named command at target, using CommandEvent, with its command attribute initialized to command, its source attribute initialized to element, and its cancelable attribute initialized to true.
+
+        // 6. If continue is false, then return.
+
+        // 7. If target is not connected, then return.
+
+        // 8. If command is in the Custom state, then return.
+
+        // 9. If command is in the Hide Popover state:
+
+            // 1. If the result of running check popover validity given target, true, false, and null is true, then run the hide popover algorithm given target, true, true, false, and element.
+
+        // 10. Otherwise, if command is in the Toggle Popover state:
+
+            // 1. If the result of running check popover validity given target, false, false, and null is true, then run the show popover algorithm given target, false, and this.
+
+            // 2. Otherwise, if the result of running check popover validity given target, true, false, and null is true, then run the hide popover algorithm given target, true, true, false, and element.
+
+        // 11. Otherwise, if command is in the Show Popover state:
+
+            // 1. If the result of running check popover validity given target, false, false, and null is true, then run the show popover algorithm given target, false, and this.
+
+        // 12. Otherwise, if this standard defines command steps for target's local name, then run the corresponding command steps given target, element, and command.
+
+    // 6. Otherwise, run the popover target attribute activation behavior given element and event's target.
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element */
+is_submit_button :: fonc (button: *HTMLButtonElement) -> bool
+{
+    // A button element is said to be a submit button if any of the following are true:
+    résultat := faux
+
+    // the type attribute is in the Auto state, both the command and commandfor content attributes are not present,
+    // and the parent node is not a select element; or
+    state := donne_button_element_state(button)
+    si state == ButtonElementState.AUTO {
+        si !possède_attribut(button, ATTR_command) && !possède_attribut(button, ATTR_commandfor) {
+            si button.parent.genre != GenreNoeud.Element || (button.parent comme *Element).local_name != TAG_select {
+                résultat = vrai
+            }
+        }
+    }
+    // the type attribute is in the Submit Button state.
+    sinon si state == ButtonElementState.SUBMIT {
+        résultat = vrai
+    }
+
+    retourne résultat
+}
+
+ButtonElementState :: énum {
+    AUTO
+    SUBMIT
+    RESET
+    BUTTON
+}
+
+donne_button_element_state :: fonc (button: *HTMLButtonElement) -> ButtonElementState
+{
+    // The attribute's missing value default and invalid value default are both the Auto state.
+    résultat := ButtonElementState.AUTO
+
+    opt_attr := donne_attribut(button, ATTR_type)
+    si opt_attr.possède_valeur() {
+        attr := opt_attr.Quelque
+
+        si attr == ATTR_submit {
+            résultat = ButtonElementState.SUBMIT
+        }
+        sinon si attr == ATTR_reset {
+            résultat = ButtonElementState.RESET
+        }
+        sinon si attr == ATTR_button {
+            résultat = ButtonElementState.BUTTON
+        }
+    }
+
+    retourne résultat
 }
 
 /** \} */
