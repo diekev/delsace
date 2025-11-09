@@ -626,6 +626,8 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
 #define RAPPORTE_ERREUR_SI_NUL(pointeur, message)                                                 \
     if (!pointeur) {                                                                              \
         rapporte_erreur_exécution(message);                                                       \
+        résultat = RésultatInterprétation::ERREUR;                                                \
+        return;                                                                                   \
     }
 
 void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
@@ -693,7 +695,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto const site = donne_site_adresse_courante();
         auto chemin_recu = dépile<kuri::chaine_statique>();
         auto espace = m_métaprogramme->unité->espace;
-        auto lexemes = compilatrice.lexe_fichier(espace, chemin_recu, site);
+        auto lexemes = compilatrice.lexe_fichier(espace, espace, chemin_recu, site);
         empile(lexemes);
         return;
     }
@@ -728,7 +730,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto id_espace_reçu = dépile<int>();
         auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
-        compilatrice.ajoute_fichier_compilation(espace, chaine, site);
+        auto espace_pour_site = m_métaprogramme->unité->espace;
+        compilatrice.ajoute_fichier_compilation(espace, espace_pour_site, chaine, site);
         return;
     }
 
@@ -856,15 +859,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(compilatrice.possède_erreur(espace));
-        return;
-    }
-
-    if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
-        auto const site = donne_site_adresse_courante();
-        auto espace = m_métaprogramme->unité->espace;
-        auto fichier = espace->fichier(site->lexème->fichier);
-        auto module = fichier->module;
-        empile(module);
         return;
     }
 
@@ -1771,6 +1765,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 auto résultat = RésultatInterprétation::OK;
                 empile_fonction_non_interne(ptr_fonction);
                 appel_fonction_compilatrice(ptr_fonction, résultat);
+                if (résultat == RésultatInterprétation::ERREUR) {
+                    return résultat;
+                }
                 dépile_fonction_non_interne(ptr_fonction);
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
@@ -1802,6 +1799,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                     auto résultat = RésultatInterprétation::OK;
                     empile_fonction_non_interne(ptr_fonction);
                     appel_fonction_compilatrice(ptr_fonction, résultat);
+                    if (résultat == RésultatInterprétation::ERREUR) {
+                        return résultat;
+                    }
                     dépile_fonction_non_interne(ptr_fonction);
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
@@ -2231,7 +2231,13 @@ NoeudExpression const *MachineVirtuelle::donne_site_adresse_courante() const
     if (frame->fonction->est_externe) {
         frame--;
     }
-    return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(frame->pointeur);
+    /* NOTE : l'adresse est celle de l'instruction suivante, nous devons reculer pour avoir une
+     * adresse dans l'instruction courante. */
+    auto adresse = frame->pointeur;
+    if (adresse > frame->fonction->données_exécution->chunk.code) {
+        adresse -= 1;
+    }
+    return frame->fonction->données_exécution->chunk.donne_site_pour_adresse(adresse);
 }
 
 bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,

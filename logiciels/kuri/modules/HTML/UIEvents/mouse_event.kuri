@@ -23,4 +23,7 @@ table_virtuelle_mouse_event := TableVirtuellePlatformObject(
 
 #portée_export
 
+// À FAIRE : implémente
+PointerEvent :: MouseEvent
+
 /** \} */

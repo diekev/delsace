@@ -9,6 +9,7 @@ importe GreffeMétaprogramme
     imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
 
     greffons: [..]*GreffonMétaprogramme
+    diffère détruit_greffons(*greffons)
     tableau_ajoute(*greffons, AS.donne_greffon())
     tableau_ajoute(*greffons, Fondation.donne_greffon())
 
@@ -53,9 +54,4 @@ importe GreffeMétaprogramme
     }
 
     compilatrice_termine_interception(espace)
-
-    pour greffons {
-        détruit(it)
-    }
-    déloge(greffons)
 }

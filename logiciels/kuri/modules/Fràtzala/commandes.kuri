@@ -213,7 +213,11 @@ trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte
                 continue
             }
 
-            si souris.état.modificateur != ModificateurClavier.zéro && !a_valeur(it.modificateur, souris.état.modificateur) {
+            si possède_valeur(it.modificateur) && !a_valeur(it.modificateur, souris.état.modificateur) {
+                continue
+            }
+
+            si !possède_valeur(it.modificateur) && souris.état.modificateur != ModificateurClavier.zéro {
                 continue
             }
 

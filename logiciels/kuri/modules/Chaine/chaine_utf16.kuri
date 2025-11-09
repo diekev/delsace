@@ -230,7 +230,13 @@ converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 
 converti_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
 {
-    retourne imprime_chaine("%", chn)
+    // À FAIRE(langage) : la compilation n'attend pas sur les messages
+    // retourne imprime_chaine("%", chn)
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    flux_sortie := crée_flux_sortie(*enchaineuse)
+    formatte_chaine_utf16(*chn, flux_sortie)
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool

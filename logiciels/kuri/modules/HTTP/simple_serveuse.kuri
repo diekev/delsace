@@ -116,7 +116,7 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
     }
 
     chaine_message := chaine_pour_message_serveuse(réponse.message)
-    imprimeln("%", chaine_message)
+    // imprimeln("%", chaine_message)
 
     si send(requête.prise, chaine_message.pointeur, chaine_message.taille comme n64, 0) == -1 {
         perror(ChaineC("send".pointeur))

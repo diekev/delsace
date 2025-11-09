@@ -1383,7 +1383,7 @@ est_type_pointeur_vers_struct_nommé :: fonc (type: *InfoType, nom: chaine) -> b
     retourne résultat
 }
 
-génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
+génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, espace: EspaceDeTravail, données: DonnéesFonctionPourTableFonction) -> chaine
 {
     nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom)
 
@@ -1391,7 +1391,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *")
 
-    module := compilatrice_module_pour_code(données.fonction)
+    module := compilatrice_module_pour_code(espace, données.fonction)
     nom_module := compilatrice_nom_module(module)
     imprime_type(enchaineuse, données.info_type, nom_module)
     ajoute_au_tampon(enchaineuse, "\n")

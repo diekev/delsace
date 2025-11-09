@@ -11,6 +11,8 @@ importe POSIX
 /** \nom Échantillonnage de courbe de Bézier.
  * \{ */
 
+UTILISE_ANALYSEUR_DIFFÉRENTIEL :: vrai
+
 échantillonne_courbe_bézier :: fonc (p0: Point2D(r32), p1: Point2D(r32), p2: Point2D(r32), p3: Point2D(r32), échantillons: []Point2D(r32))
 {
     si échantillons.taille == 0 {
@@ -19,24 +21,59 @@ importe POSIX
 
     début := échantillons.pointeur comme *r32
 
-    échantillonne_courbe_bézier(p0.x, p1.x, p2.x, p3.x, début, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
-    échantillonne_courbe_bézier(p0.y, p1.y, p2.y, p3.y, début + 1, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
+    #si UTILISE_ANALYSEUR_DIFFÉRENTIEL {
+        échantillonne_courbe_bézier(p0.x, p1.x, p2.x, p3.x, début, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
+        échantillonne_courbe_bézier(p0.y, p1.y, p2.y, p3.y, début + 1, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
+    }
+    sinon {
+        t := 0.0
+        dt := 1.0 / (échantillons.taille comme r32 - 1)
+
+        pour échantillons.taille {
+            x := échantillonne_courbe_bézier(p0.x, p1.x, p2.x, p3.x, t)
+            y := échantillonne_courbe_bézier(p0.y, p1.y, p2.y, p3.y, t)
+
+            échantillons[indice_it] = Point2D(r32)(x, y)
+
+            t += dt
+        }
+    }
 }
 
-échantillonne_courbe_bézier :: fonc (point_a: r32, point_b: r32, point_c: r32, point_d: r32, décalage: r32) -> r32
+UTILISE_FORMULE_FACTORISÉE :: vrai
+
+échantillonne_courbe_bézier :: fonc (point_a: r32, point_b: r32, point_c: r32, point_d: r32, t: r32) -> r32
 {
-    u := 1.0 - t
-    u² := u * u
-    u³ := u² * u
-
     t² := t * t
-    t³ := d² * t
+    t³ := t² * t
 
-    a := u³ * point_a
-    b := 3.0 * u² * t * point_b
-    c := 3.0 * u * u² * point_c
-    d := t³ * point_d
-    retourne a + b + c + d
+    #si UTILISE_FORMULE_FACTORISÉE {
+        // (1 - t)^3 * x0 + 3 * (1 - t)^2 * t * x1 + (1 - t) * t^2 * x2 + t^3 * x3
+        u := 1.0 - t
+        u² := u * u
+        u³ := u² * u
+
+        a := u³ * point_a
+        b := 3.0 * u² * t * point_b
+        c := 3.0 * u * t² * point_c
+        d := t³ * point_d
+        retourne a + b + c + d
+    }
+    sinon {
+        // Développement (et simplification) de la formule factorisée :
+        // (3 * x1 + x3 - 3 * x2 - x0) * t^3 + (3 * x0 + 3 * x2 - 6 * x1) * t^2 + (3 * x1 - 3 * x0) * t + x0
+        x0 := point_a
+        x1 := point_b
+        x2 := point_c
+        x3 := point_d
+
+        a := 3.0 * x1 + x3 - 3.0 * x2 - x0
+        b := 3.0 * x0 + 3.0 * x2 - 6.0 * x1
+        c := 3.0 * x1 - 3.0 * x0
+        d := x0
+
+        retourne a * t³ + b * t² + c * t + d
+    }
 }
 
 décale_pointeur :: fonc (ptr: *rien, stride: z32) -> *rien #enligne

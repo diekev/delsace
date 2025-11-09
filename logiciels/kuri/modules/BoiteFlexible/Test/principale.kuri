@@ -460,7 +460,7 @@ sur_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chai
     app.texte_à_dessiner = copie_chaine(chn)
 }
 
-sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine)
+sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
     déloge_si_logée(app.texte_à_dessiner)
     app.texte_à_dessiner = copie_chaine(chn)

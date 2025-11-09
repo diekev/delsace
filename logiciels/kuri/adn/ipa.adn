@@ -28,10 +28,6 @@ fonction compilatrice_racine_installation_kuri() -> chaine_statique
  * Accès aux modules.
  */
 
-/* Retourne le module où se trouve l'appel à cette fonction. */
-fonction compilatrice_module_courant() -> Module *
-@compilatrice
-
 /* Retourne une poignée vers le module du chemin donné dans l'espace de travail. */
 fonction compilatrice_donne_module(EspaceDeTravail *espace, chaine_statique chemin) -> Module *
 @compilatrice

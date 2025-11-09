@@ -95,6 +95,11 @@ InfoTypeRubriqueStructure :: struct #interface {
     décalage: z32 // décalage en octets dans la structure
     drapeaux: Drapeaux
     annotations: []*Annotation
+
+ 	chemin_fichier: chaine
+    nom_fichier: chaine
+    numéro_ligne: z32
+    numéro_colonne: z32
 }
 
 possède_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> bool

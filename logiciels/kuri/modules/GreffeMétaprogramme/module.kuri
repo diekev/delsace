@@ -1,4 +1,5 @@
 importe Compilatrice
+importe Fondation // pour déloge(tableau)
 
 GreffonMétaprogramme :: struct {
     sur_message: fonc (greffon: *GreffonMétaprogramme, message: *Message)
@@ -10,6 +11,17 @@ gère_message :: fonc (greffon: *GreffonMétaprogramme, message: *Message)
     si greffon.sur_message {
         greffon.sur_message(greffon, message)
     }
+}
+
+détruit_greffons :: fonc (greffons: *[..]*GreffonMétaprogramme)
+{
+    tmp := mémoire(greffons)
+    diffère mémoire(greffons) = tmp
+
+    pour tmp {
+        détruit(it)
+    }
+    déloge(tmp)
 }
 
 détruit :: fonc (greffon: *GreffonMétaprogramme)

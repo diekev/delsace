@@ -17,7 +17,7 @@ importe Chaine
 importe Fondation
 importe HTML
 JS :: importe JavaScript
-importe LigneCommande
+importe LigneDeCommande
 importe SysFichier
 
 StatistiquesParsage :: struct {
@@ -120,7 +120,7 @@ principale :: fonc ()
             parse_page_et_accumule_stats(chm, statistiques)
         }
         sinon {
-            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
             exit(1)
         }
 

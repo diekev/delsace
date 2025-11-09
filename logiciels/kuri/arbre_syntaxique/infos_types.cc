@@ -10,6 +10,7 @@
 #include "utilitaires/log.hh"
 
 #include "cas_genre_noeud.hh"
+#include "espace_de_travail.hh"
 #include "noeud_code.hh"
 #include "utilitaires.hh"
 
@@ -81,6 +82,7 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
 }
 
 static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_types,
+                                       EspaceDeTravail *espace,
                                        InfoTypeRubriqueStructure *info_type_rubrique,
                                        RubriqueTypeComposé const &rubrique)
 {
@@ -96,6 +98,13 @@ static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_t
                               annotations);
         }
         info_type_rubrique->annotations = allocatrice_infos_types.donne_tranche(annotations);
+
+        const auto lexème = rubrique.decl->lexème;
+        const auto fichier = espace->fichier(lexème->fichier);
+        info_type_rubrique->chemin_fichier = fichier->chemin();
+        info_type_rubrique->nom_fichier = fichier->nom();
+        info_type_rubrique->numéro_ligne = lexème->ligne + 1;
+        info_type_rubrique->numéro_colonne = lexème->colonne;
     }
 }
 
@@ -106,7 +115,9 @@ static void initialise_entête_info_type(InfoType *info_type, Type *type, GenreI
     info_type->alignement = type->alignement;
 }
 
-InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *type)
+InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
+                                                       Typeuse &typeuse,
+                                                       Type *type)
 {
     auto crée_info_type_entier = [this](Type *type_local, bool est_signe) {
         auto info_type = allocatrice_infos_types.infos_types_entiers.ajoute_élément();
@@ -187,7 +198,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::TABLEAU);
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
             type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
@@ -199,7 +211,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
             auto info_type = allocatrice_infos_types.infos_types_tranches.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::TRANCHE);
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_élément);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_élément);
 
             type->info_type = info_type;
             type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
@@ -215,8 +228,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             // type nul pour les types variadiques des fonctions externes (p.e. printf(const char
             // *, ...))
             if (type_variadique->type_pointé) {
-                info_type->type_élément = crée_info_type_pour(typeuse,
-                                                              type_variadique->type_pointé);
+                info_type->type_élément = crée_info_type_pour(
+                    espace, typeuse, type_variadique->type_pointé);
             }
 
             type->info_type = info_type;
@@ -230,7 +243,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_tableaux_fixes.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::TABLEAU_FIXE);
             info_type->nombre_éléments = uint32_t(type_tableau->taille);
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
             type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
@@ -288,7 +302,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         {
             auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::POINTEUR);
-            info_type->type_pointé = crée_info_type_pour(typeuse, type_déréférencé_pour(type));
+            info_type->type_pointé = crée_info_type_pour(
+                espace, typeuse, type_déréférencé_pour(type));
             info_type->est_référence = type->est_type_référence();
 
             type->info_type = info_type;
@@ -316,7 +331,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                     auto polymorphe = const_cast<NoeudDéclarationClasse *>(
                         type_struct->polymorphe_de_base);
                     info_type->polymorphe_de_base = static_cast<InfoTypeStructure *>(
-                        crée_info_type_pour(typeuse, polymorphe));
+                        crée_info_type_pour(espace, typeuse, polymorphe));
                 }
 
                 auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
@@ -333,8 +348,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
 
                     auto info_type_rubrique =
                         allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
-                    info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
-                    remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
+                    info_type_rubrique->info = crée_info_type_pour(espace, typeuse, it.type);
+                    remplis_rubrique_info_type(
+                        allocatrice_infos_types, espace, info_type_rubrique, it);
                     rubriques.ajoute(info_type_rubrique);
                 }
 
@@ -347,7 +363,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
                 structs_employées.réserve(type_struct->types_employés.taille());
                 POUR (type_struct->types_employés) {
-                    auto info_struct_employe = crée_info_type_pour(typeuse, it->type);
+                    auto info_struct_employe = crée_info_type_pour(espace, typeuse, it->type);
                     structs_employées.ajoute(
                         static_cast<InfoTypeStructure *>(info_struct_employe));
                 }
@@ -373,7 +389,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
 
                 info_type->type_le_plus_grand = crée_info_type_pour(
-                    typeuse, type_union->type_le_plus_grand);
+                    espace, typeuse, type_union->type_le_plus_grand);
                 info_type->décalage_indice = type_union->décalage_indice;
                 info_type->nom = donne_nom_hiérarchique(type_union);
                 info_type->est_polymorphique = type_union->est_polymorphe;
@@ -382,7 +398,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                     auto polymorphe = const_cast<NoeudDéclarationClasse *>(
                         type_union->polymorphe_de_base);
                     info_type->polymorphe_de_base = static_cast<InfoTypeUnion *>(
-                        crée_info_type_pour(typeuse, polymorphe));
+                        crée_info_type_pour(espace, typeuse, polymorphe));
                 }
 
                 auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
@@ -391,8 +407,9 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 POUR (type_union->rubriques) {
                     auto info_type_rubrique =
                         allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
-                    info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
-                    remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
+                    info_type_rubrique->info = crée_info_type_pour(espace, typeuse, it.type);
+                    remplis_rubrique_info_type(
+                        allocatrice_infos_types, espace, info_type_rubrique, it);
                     rubriques.ajoute(info_type_rubrique);
                 }
 
@@ -425,7 +442,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
 
                 info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
-                    crée_info_type_pour(typeuse, type_enum->type_sous_jacent));
+                    crée_info_type_pour(espace, typeuse, type_enum->type_sous_jacent));
 
                 auto noms = kuri::tablet<kuri::chaine_statique, 6>();
                 noms.réserve(type_enum->rubriques.taille());
@@ -456,7 +473,7 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             types_entrée.réserve(type_fonction->types_entrées.taille());
 
             POUR (type_fonction->types_entrées) {
-                types_entrée.ajoute(crée_info_type_pour(typeuse, it));
+                types_entrée.ajoute(crée_info_type_pour(espace, typeuse, it));
             }
 
             auto types_sortie = kuri::tablet<InfoType *, 6>();
@@ -467,12 +484,12 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 types_sortie.réserve(tuple->rubriques.taille());
 
                 POUR (tuple->rubriques) {
-                    types_sortie.ajoute(crée_info_type_pour(typeuse, it.type));
+                    types_sortie.ajoute(crée_info_type_pour(espace, typeuse, it.type));
                 }
             }
             else {
                 types_sortie.réserve(1);
-                types_sortie.ajoute(crée_info_type_pour(typeuse, type_sortie));
+                types_sortie.ajoute(crée_info_type_pour(espace, typeuse, type_sortie));
             }
 
             info_type->types_entrée = allocatrice_infos_types.donne_tranche(types_entrée);
@@ -489,7 +506,8 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::OPAQUE);
             info_type->nom = donne_nom_hiérarchique(type_opaque);
-            info_type->type_opacifié = crée_info_type_pour(typeuse, type_opaque->type_opacifié);
+            info_type->type_opacifié = crée_info_type_pour(
+                espace, typeuse, type_opaque->type_opacifié);
 
             type->info_type = info_type;
             type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
