@@ -862,15 +862,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_module_courant)) {
-        auto const site = donne_site_adresse_courante();
-        auto espace = m_métaprogramme->unité->espace;
-        auto fichier = espace->fichier(site->lexème->fichier);
-        auto module = fichier->module;
-        empile(module);
-        return;
-    }
-
     if (EST_FONCTION_COMPILATRICE(compilatrice_message_reçu)) {
         auto message = dépile<Message *>();
         RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
