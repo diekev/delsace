@@ -1,0 +1,348 @@
+importe Bézier
+importe Couleur
+importe CréationFenêtre
+importe Fondation
+importe IGUMI
+importe Math
+importe Périphériques
+importe PeintureInterface
+importe Typographie
+
+charge "commun"
+
+TypeOutil :: énum {
+    TEST
+    PLUME
+    PLUME_DE_COURBURE
+    PLUME_DE_FORME_LIBRE
+}
+
+LARGEUR_POINT :: 10.0
+
+ÉtatApplication :: struct {
+    fonte: *Fonte
+
+    est_initialisé: bool
+
+    type_outil: TypeOutil
+    plume: Plume
+    plume_de_courbure: PlumeDeCourbure
+    plume_de_forme_libre: PlumeDeFormeLibre
+
+    points: [4]Vec2
+    nombre_de_points: z32
+
+    doit_fermer := faux
+    mode_sélection_point := faux
+    point_sélectionné := -1
+}
+
+#assert type_de(ajourne_application) == type_de(TYPE_ajourne_application)
+ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *EntréeApplication) #racine #sansbroyage #exporte
+{
+    empl état_app := mémoire_app.données.pointeur comme *ÉtatApplication
+
+    saufsi état_app.est_initialisé {
+        fonte = donne_fonte("Alegreya-Regular", 20.0)
+        état_app.est_initialisé = vrai
+    }
+
+    pour entrée.évènements {
+        si it.type == TypeÉvènement.Fermeture {
+            retourne
+        }
+
+        si it.touche_pressée && it.touche == ToucheClavier.O {
+            // À FAIRE(modules) : fonction générique pour avance une énumération
+            type_outil_entier := type_outil comme z32
+            type_outil_entier += 1
+            si type_outil_entier >= TypeOutil.nombre_éléments {
+                type_outil_entier = 0
+            }
+            type_outil = type_outil_entier comme TypeOutil
+        }
+
+        outil_gère_évènement(état_app, it, entrée.dernière_souris)
+    }
+
+    peintre := entrée.peintre
+
+    si type_outil == TypeOutil.TEST {
+        // dessine_segment_bézier(état_app, peintre)
+    }
+    sinon si type_outil == TypeOutil.PLUME {
+        dessine_chemin(peintre, plume.chemin)
+    }
+    sinon si type_outil == TypeOutil.PLUME_DE_COURBURE {
+        dessine_chemin(peintre, plume_de_courbure.chemin)
+    }
+    sinon {
+        pour plume_de_forme_libre.points.taille - 2 {
+            p0 := plume_de_forme_libre.points[it]
+            p1 := plume_de_forme_libre.points[it + 1]
+
+            peintre.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0))
+        }
+
+        dessine_chemin(peintre, plume_de_forme_libre.chemin)
+    }
+
+    taille_canevas := donne_taille_canevas(peintre)
+    hauteur := taille_canevas.hauteur comme z32
+
+    texte := imprime_chaine_temp("Outil : % (pressez O pour outil suivant)", type_outil)
+    rect_texte: RectanglePosDim(r32)
+    rect_texte.x = 10
+    rect_texte.hauteur = 30
+    rect_texte.y = hauteur comme r32 - rect_texte.hauteur
+    rect_texte.largeur = donne_largeur_texte(fonte, texte)
+    dessine_texte(peintre, fonte, texte, rect_texte, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+
+    termine_dessin(peintre)
+}
+
+outil_gère_évènement :: fonc (empl état_app: *ÉtatApplication, évènement: Évènement, dernière_souris: ÉtatSouris)
+{
+    discr type_outil {
+        TEST {
+            outil_test_gère_évènement(état_app, évènement)
+        }
+        PLUME {
+            outil_plume_gère_évènement(*plume, évènement, dernière_souris)
+        }
+        PLUME_DE_COURBURE {
+            outil_plume_de_courbure_gère_évènement(*plume_de_courbure, évènement, dernière_souris)
+        }
+        PLUME_DE_FORME_LIBRE {
+            outil_plume_de_forme_libregère_évènement(*plume_de_forme_libre, évènement)
+        }
+    }
+}
+
+outil_test_gère_évènement :: fonc (empl état_app: *ÉtatApplication, it: Évènement)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                si nombre_de_points < 4 {
+
+                    si point_sélectionné == -1 {
+                        points[nombre_de_points].x = souris_x
+                        points[nombre_de_points].y = souris_y
+
+                        points[nombre_de_points + 1].x = souris_x
+                        points[nombre_de_points + 1].y = souris_y
+
+                        point_sélectionné = nombre_de_points + 1
+                        nombre_de_points += 2
+                    }
+                    sinon {
+                        points[point_sélectionné].x = souris_x
+                        points[point_sélectionné].y = souris_y
+                        point_sélectionné = -1
+                    }
+                }
+                sinon {
+                    mode_sélection_point = vrai
+                    point_sélectionné = -1
+                    pour p, index_point dans points {
+                        dx := p.x - souris_x
+                        dy := p.y - souris_y
+
+                        si (dx * dx + dy * dy) < (LARGEUR_POINT * LARGEUR_POINT) {
+                            point_sélectionné = index_point comme z32
+                        }
+                    }
+                }
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                si mode_sélection_point {
+                    point_sélectionné = -1
+                    mode_sélection_point = faux
+                }
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                si point_sélectionné != -1 {
+                    souris_x := it.état_souris.où.x comme r32
+                    souris_y := it.état_souris.où.y comme r32
+                    points[point_sélectionné].x = souris_x
+                    points[point_sélectionné].y = souris_y
+                }
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            si point_sélectionné != -1 {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                points[point_sélectionné].x = souris_x
+                points[point_sélectionné].y = souris_y
+            }
+        }
+    }
+}
+
+dessine_segment_bézier :: fonc (empl état_app: *ÉtatApplication, peintre: *Peintre @inutilisée)
+{
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+
+    pour nombre_de_points {
+        x := points[it].x - LARGEUR_POINT * 0.5
+        y := points[it].y - LARGEUR_POINT * 0.5
+        IGUMI.quad_immédiat(x, y, LARGEUR_POINT, LARGEUR_POINT, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+    }
+
+    si nombre_de_points >= 2 {
+        IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+        IGUMI.segment_immédiat(points[0].x, points[0].y, points[1].x, points[1].y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        si nombre_de_points == 4 {
+            IGUMI.segment_immédiat(points[2].x, points[2].y, points[3].x, points[3].y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+            delta := 1.0 / 32.0
+            t := 0.0
+            pour 32 {
+                p0 := calcule_point_sur_courbe(points[0], points[1], t, points[2], points[3])
+                p1 := calcule_point_sur_courbe(points[0], points[1], t + delta, points[2], points[3])
+
+                IGUMI.segment_immédiat(p0.x, p0.y, p1.x, p1.y, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+                t += delta
+            }
+        }
+    }
+
+    IGUMI.termine_immédiat()
+}
+
+outil_plume_gère_évènement :: fonc (plume: *Plume, it: Évènement, dernière_souris: ÉtatSouris)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                commence_ajout_noeud(plume, souris_x, souris_y)
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                termine_ajout_noeud(plume)
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                continue_ajout_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            souris_x := it.état_souris.où.x comme r32
+            souris_y := it.état_souris.où.y comme r32
+            continue_déplacement_dernier_noeud(plume, souris_x, souris_y)
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée || it.est_répétée {
+            si it.touche == ToucheClavier.ESPACE {
+                souris_x := dernière_souris.où.x comme r32
+                souris_y := dernière_souris.où.y comme r32
+                commence_déplacement_dernier_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                termine_déplacement_dernier_noeud(plume)
+            }
+        }
+    }
+}
+
+outil_plume_de_courbure_gère_évènement :: fonc (plume: *PlumeDeCourbure, it: Évènement, dernière_souris: ÉtatSouris)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
+            }
+        }
+        sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+            souris_x := it.état_souris.où.x comme r32
+            souris_y := it.état_souris.où.y comme r32
+            continue_déplacement_dernier_noeud(plume, souris_x, souris_y)
+        }
+    }
+    sinon si it.type == TypeÉvènement.Clavier {
+        si it.touche_pressée || it.est_répétée {
+            si it.touche == ToucheClavier.ESPACE {
+                souris_x := dernière_souris.où.x comme r32
+                souris_y := dernière_souris.où.y comme r32
+                commence_déplacement_dernier_noeud(plume, souris_x, souris_y)
+            }
+        }
+        sinon {
+            si it.touche == ToucheClavier.ESPACE {
+                termine_déplacement_dernier_noeud(plume)
+            }
+        }
+    }
+}
+
+outil_plume_de_forme_libregère_évènement :: fonc (plume: *PlumeDeFormeLibre, it: Évènement)
+{
+    si it.type == TypeÉvènement.Souris {
+        si it.bouton_souris == BoutonSouris.GAUCHE {
+            si it.action_souris == ActionSouris.PRESSÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
+            }
+            sinon si it.action_souris == ActionSouris.DÉPLACÉE {
+                souris_x := it.état_souris.où.x comme r32
+                souris_y := it.état_souris.où.y comme r32
+                ajoute_point(plume, souris_x, souris_y)
+            }
+            sinon si it.action_souris == ActionSouris.RELACHÉE {
+                termine_tracé(plume)
+            }
+        }
+    }
+}
+
+dessine_forme_sixième :: fonc (largeur: z32, hauteur: z32)
+{
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+
+    TAILLE_LIGNE :: 500.0
+
+    vx := (largeur comme r32) * 0.5
+    vy := (hauteur comme r32 - TAILLE_LIGNE) * 0.5
+
+    IGUMI.segment_immédiat(vx, vy, vx, vy + TAILLE_LIGNE, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+    hx := (largeur comme r32 - TAILLE_LIGNE) * 0.5
+    hy := (hauteur comme r32) * 0.5
+
+    IGUMI.segment_immédiat(hx, hy, hx + TAILLE_LIGNE, hy, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+    pour 25 {
+        p0 := Vec2(vx, vy + (it comme r32) * 10.0)
+        p1 := Vec2(vx + ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p1 = Vec2(vx - ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p0 = Vec2(vx, vy + TAILLE_LIGNE - (it comme r32) * 10.0)
+        p1 = Vec2(vx + ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+
+        p1 = Vec2(vx - ((it + 1) comme r32) * 10.0, vy + TAILLE_LIGNE * 0.5)
+        segment_immédiat(p0, p1, CouleurRVBA(0.91, 0.09, 0.09, 1.0))
+    }
+}
+
+segment_immédiat :: fonc (p0: Vec2, p1: Vec2, couleur: CouleurRVBA)
+{
+    IGUMI.segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur)
+}
