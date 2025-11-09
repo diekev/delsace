@@ -14,7 +14,7 @@ RappelsÉditionTexte :: struct {
     /* Appelé à chaque changement. */
     sur_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine)
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine)
+    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, chn: chaine, fut_causée_par_touche_entrée: bool)
     /* Appelé au début de l'édition de texte.
      * Ceci permets aux applications clientes de démarrer un chronomètre
      * pour faire clignoter le curseur, via Éditrice.curseur_est_affiché.
@@ -85,13 +85,13 @@ démarre_édition :: fonc (éditrice: *ÉditriceTexte)
     }
 }
 
-termine_édition :: fonc (empl éditrice: *ÉditriceTexte)
+termine_édition :: fonc (empl éditrice: *ÉditriceTexte, fut_causée_par_touche_entrée: bool)
 {
     en_édition = faux
     curseur_est_affiché = faux
 
     curseur.début = curseur.fin
-    notifie_fin_édition(*éditrice.curseur)
+    notifie_fin_édition(*éditrice.curseur, fut_causée_par_touche_entrée)
     
     saufsi rappels {
         retourne
@@ -488,7 +488,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
     éditrice.rappels.sur_édition(éditrice.rappels, chn)
 }
 
-notifie_fin_édition :: fonc (curseur: *CurseurTexte)
+notifie_fin_édition :: fonc (curseur: *CurseurTexte, fut_causée_par_touche_entrée: bool)
 {
     saufsi curseur.fut_modifié {
         retourne
@@ -503,7 +503,7 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte)
     chn := donne_tampon_texte_natif(curseur.éditrice)
     diffère déloge(chn)
 
-    éditrice.rappels.sur_fin_édition(éditrice.rappels, chn)
+    éditrice.rappels.sur_fin_édition(éditrice.rappels, chn, fut_causée_par_touche_entrée)
 }
 
 /** \} */

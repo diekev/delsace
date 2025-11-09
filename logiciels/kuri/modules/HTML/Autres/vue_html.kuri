@@ -695,7 +695,7 @@ sur_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNaviga
     vue_html.adresse_courante = copie_chaine(chn)
 }
 
-sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine)
+sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
     déloge(vue_html.adresse_courante)
     vue_html.adresse_courante = copie_chaine(chn)
