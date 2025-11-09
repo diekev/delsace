@@ -2477,6 +2477,8 @@ void Syntaxeuse::analyse_annotations(kuri::tableau<Annotation, int> &annotations
         }
 
         annotations.ajoute(annotation);
+
+        ignore_point_virgule_implicite();
     }
 }
 
