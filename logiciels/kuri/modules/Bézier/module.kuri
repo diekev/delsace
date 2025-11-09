@@ -23,18 +23,18 @@ importe POSIX
     échantillonne_courbe_bézier(p0.y, p1.y, p2.y, p3.y, début + 1, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32)
 }
 
-échantillonne_courbe_bézier :: fonc (point_a: r32, point_b: r32, point_c: r32, point_d: r32, décalage: r32) -> r32
+échantillonne_courbe_bézier :: fonc (point_a: r32, point_b: r32, point_c: r32, point_d: r32, t: r32) -> r32
 {
     u := 1.0 - t
     u² := u * u
     u³ := u² * u
 
     t² := t * t
-    t³ := d² * t
+    t³ := t² * t
 
     a := u³ * point_a
     b := 3.0 * u² * t * point_b
-    c := 3.0 * u * u² * point_c
+    c := 3.0 * u * t² * point_c
     d := t³ * point_d
     retourne a + b + c + d
 }
