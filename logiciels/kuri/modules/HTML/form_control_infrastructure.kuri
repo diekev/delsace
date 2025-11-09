@@ -375,20 +375,12 @@ mutate_action_url :: fonc (form: *HTMLFormElement, entry_list: *EntryList, parse
 {
     assert(parsed_action == params.url)
 
-    // À FAIRE Let pairs be the result of converting to a list of name-value pairs with entry list.
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    // Let pairs be the result of converting to a list of name-value pairs with entry list.
+    pairs := convert_an_entry_list_to_a_list(entry_list)
+    diffère déloge(pairs)
 
-    séparateur := ""
-    pour entry_list.entries {
-        ajoute_au_tampon(*enchaineuse, séparateur, it.name, "=", it.value)
-        séparateur = "&"
-    }
-
-    pairs := chaine_depuis_enchaineuse(*enchaineuse)
-
-    // À FAIRE : Let query be the result of running the application/x-www-form-urlencoded serializer with pairs and encoding.
-    query := pairs
+    // Let query be the result of running the application/x-www-form-urlencoded serializer with pairs and encoding.
+    query := run_application_x_www_form_urlencode_serializer(pairs)
 
     // Set parsed action's query component to query.
     parsed_action.query = query
@@ -572,6 +564,40 @@ construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element =
 
     // 9. Return a clone of entry list.
     retourne entry_list
+}
+
+/* 4.10.22.6 Converting an entry list to a list of name-value pairs
+ * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#convert-to-a-list-of-name-value-pairs */
+NameValuePair :: struct {
+    name: chaine
+    value: chaine
+}
+
+convert_an_entry_list_to_a_list :: fonc (entry_list: *EntryList) -> [..]NameValuePair
+{
+    // 1. Let list be an empty list of name-value pairs.
+    list: [..]NameValuePair
+
+    // 2. For each entry of entry list:
+    pour entry dans entry_list.entries {
+        // À FAIRE : assainissement
+        // 1. Let name be entry's name, with every occurrence of U+000D (CR) not followed by U+000A (LF),
+        //    and every occurrence of U+000A (LF) not preceded by U+000D (CR), replaced by a string consisting
+        //    of U+000D (CR) and U+000A (LF).
+        name := entry.name
+
+        // 2. If entry's value is a File object, then let value be entry's value's name. Otherwise, let value be entry's value.
+        value := entry.value
+
+        // 3. Replace every occurrence of U+000D (CR) not followed by U+000A (LF), and every occurrence of U+000A (LF)
+        //    not preceded by U+000D (CR), in value, by a string consisting of U+000D (CR) and U+000A (LF).
+
+        // 4. Append to list a new name-value pair whose name is name and whose value is value.
+        tableau_ajoute(*list, NameValuePair(name, value))
+    }
+
+    // 3. Return list.
+    retourne list
 }
 
 /** \} */
