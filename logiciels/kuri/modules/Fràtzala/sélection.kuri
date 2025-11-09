@@ -57,7 +57,7 @@ donne_fin_active :: fonc (chemin: *CheminSélection) -> Optionnel(Point2D(r32))
 }
 
 RappelRafraichissementSélection :: struct {
-    sur_rafraichissement: fonc(*RappelRafraichissementSélection, []ÉtatSélectionÉlément)(rien)
+    sur_rafraichissement: fonc (rappel: *RappelRafraichissementSélection, état: []ÉtatSélectionÉlément)
 }
 
 /** \} */
@@ -224,7 +224,7 @@ GéométrieSélection :: struct {
 
     // filter(pred)
 
-    sur_destruction: fonc(*GéométrieSélection)(rien)
+    sur_destruction: fonc (géométrie: *GéométrieSélection)
 }
 
 grandis_chemin :: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, point: Point2D(r32))
@@ -254,13 +254,13 @@ détruit_géométrie :: fonc (géométrie: *GéométrieSélection)
 
 AdaptriceÉléments :: struct {
     /* Doit retourner le nombre d'éléments sélectionnable. */
-    donne_nombre_éléments: fonc(*AdaptriceÉléments)(z64)
+    donne_nombre_éléments: fonc (adaptrice: *AdaptriceÉléments) -> z64
     /* Doit retourner le rectangle de sélection de l'élément à l'indice donné.
      * L'indice est dans [0, donne_nombre_élément() - 1] */
-    donne_rectangle: fonc(*AdaptriceÉléments, z64)(RectanglePosDim(r32))
+    donne_rectangle: fonc (adaptrice: *AdaptriceÉléments, z64) -> RectanglePosDim(r32)
     /* Doit retourner si l'éléème à l'indice donné intersecte le rectangle.
      * L'indice est dans [0, donne_nombre_élément() - 1] */
-    intersecte_rectangle: fonc(*AdaptriceÉléments, z64, RectanglePosDim(r32))(bool)
+    intersecte_rectangle: fonc (adaptrice: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool
 }
 
 /** \} */
