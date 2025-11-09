@@ -3,7 +3,7 @@ importe Compilatrice
 importe Fondation
 importe HTML
 JS :: importe JavaScript
-importe LigneCommande
+importe LigneDeCommande
 importe SysFichier
 importe Temps
 
@@ -21,7 +21,7 @@ principale :: fonc ()
     chm := CheminFichier(chemin)
 
     saufsi est_fichier_html(chm) {
-        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
         exit(1)
     }
 

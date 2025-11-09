@@ -928,6 +928,35 @@ static bool est_corps_texte(NoeudExpression *noeud)
     return false;
 }
 
+static void dbg_imprime_appartenance_bloc(NoeudBloc const *bloc)
+{
+    if (bloc->appartiens_à_fonction) {
+        dbg() << "Le bloc appartiens à " << nom_humainement_lisible(bloc->appartiens_à_fonction)
+              << "\n"
+              << *bloc->appartiens_à_fonction;
+    }
+    else if (bloc->appartiens_à_boucle) {
+        dbg() << "Le bloc appartiens à une boucle";
+    }
+    else if (bloc->appartiens_à_diffère) {
+        dbg() << "Le bloc appartiens à une instruction diffère";
+    }
+    else if (bloc->appartiens_à_discr) {
+        dbg() << "Le bloc appartiens à une instruction discr";
+    }
+    else if (bloc->appartiens_à_tente) {
+        dbg() << "Le bloc appartiens à une instruction tente";
+    }
+    else if (bloc->appartiens_à_type) {
+        dbg() << "Le bloc appartiens à " << nom_humainement_lisible(bloc->appartiens_à_type)
+              << "\n"
+              << *bloc->appartiens_à_type;
+    }
+    else {
+        dbg() << "Le bloc n'apparties à personne";
+    }
+}
+
 static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_fonction,
                                   NoeudDéclarationEntêteFonction *nouvelle_fonction)
 {
@@ -947,17 +976,21 @@ static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_f
 
     /* Remplace les références à ancienne_fonction dans nouvelle_fonction->corps par
      * nouvelle_fonction. */
-    visite_noeud(nouvelle_fonction->corps,
-                 PreferenceVisiteNoeud::ORIGINAL,
-                 false,
-                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
-                     if (noeud->est_bloc()) {
-                         auto bloc = noeud->comme_bloc();
-                         assert(bloc->appartiens_à_fonction == ancienne_fonction);
-                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
-                     }
-                     return DecisionVisiteNoeud::CONTINUE;
-                 });
+    visite_noeud(
+        nouvelle_fonction->corps,
+        PreferenceVisiteNoeud::ORIGINAL,
+        false,
+        [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+            if (noeud->est_bloc()) {
+                auto bloc = noeud->comme_bloc();
+                if (bloc->appartiens_à_fonction) {
+                    assert_rappel(bloc->appartiens_à_fonction == ancienne_fonction,
+                                  [&]() { dbg_imprime_appartenance_bloc(bloc); });
+                    const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
+                }
+            }
+            return DecisionVisiteNoeud::CONTINUE;
+        });
 }
 
 static void définis_fonction_courante_pour_corps_texte(NoeudDéclarationCorpsFonction *corps)

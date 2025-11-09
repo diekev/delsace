@@ -251,7 +251,7 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
         enchaineuse.imprime_dans_enchaineuse("\t\t% {\n", it.nom)
         enchaineuse.imprime_dans_enchaineuse("\t\t\t__valeur := résultat.%\n", it.nom)
 
-        si type_rubrique == info_de(Redirection) {
+        si est_type_structure_nommée(type_rubrique, "Redirection") {
             // crée une redirection
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = redirige(__valeur.chemin_redirection)\n")
         }
@@ -259,13 +259,13 @@ construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
             // rends les données pour une page HTML
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = rends_page_ex(*%.rendeuse_page, __valeur.page_à_rendre, __valeur)\n", paramètres.nom_serveuse)
         }
-        sinon si type_rubrique == info_de(ErreurHTTP) {
+        sinon si est_type_structure_nommée(type_rubrique, "ErreurHTTP") {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_erreur_http(__valeur)\n")
         }
-        sinon si type_rubrique == info_de(CodeEtContenuHTPP) {
+        sinon si est_type_structure_nommée(type_rubrique, "CodeEtContenuHTPP") {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = crée_message_avec_contenu(__valeur.code, __valeur.contenu)\n")
         }
-        sinon si type_rubrique == info_de(ChangementProtocole) {
+        sinon si est_type_structure_nommée(type_rubrique, "ChangementProtocole") {
             enchaineuse.imprime_dans_enchaineuse("\t\t\tmessage_serveuse = message_depuis_changement_protocole(__valeur)\n")
         }
 
@@ -315,15 +315,15 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
     si type.id == GenreInfoType.STRUCTURE {
         info_struct := type comme *InfoTypeStructure
 
-        si est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire) {
+        si est_struct_ou_employeuse_de(info_struct, paramètres.type_formulaire.nom) {
             retourne ClassificationParamètre.EST_TYPE_FORMULAIRE
         }
 
-        si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRoutage)) {
+        si est_struct_ou_employeuse_de(info_struct, "ParamètresRoutage") {
             retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_ROUTAGE
         }
 
-        si est_struct_ou_employeuse_de(info_struct, info_de(ParamètresRequête)) {
+        si est_struct_ou_employeuse_de(info_struct, "ParamètresRequête") {
             retourne ClassificationParamètre.EST_TYPE_PARAMÈTRE_REQUÊTE
         }
     }
@@ -525,7 +525,11 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
     }
 
     type_union := type comme *InfoTypeUnion
-    saufsi type_union.polymorphe_de_base == info_de(RésultatServeuseHTTP) {
+    si type_union.polymorphe_de_base == nul {
+        retourne faux
+    }
+
+    si type_union.polymorphe_de_base.nom != "RésultatServeuseHTTP($T)" {
         retourne faux
     }
 
@@ -537,7 +541,7 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
 
         type_rubrique := it.id
 
-        si type_rubrique == info_de(Redirection) {
+        si est_type_structure_nommée(type_rubrique, "Redirection") {
             continue
         }
 
@@ -545,15 +549,15 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
             continue
         }
 
-        si type_rubrique == info_de(CodeEtContenuHTPP) {
+        si est_type_structure_nommée(type_rubrique, "CodeEtContenuHTPP") {
             continue
         }
 
-        si type_rubrique == info_de(ErreurHTTP) {
+        si est_type_structure_nommée(type_rubrique, "ErreurHTTP") {
             continue
         }
 
-        si type_rubrique == info_de(ChangementProtocole) {
+        si est_type_structure_nommée(type_rubrique, "ChangementProtocole") {
             continue
         }
 
@@ -565,23 +569,11 @@ est_type_résultat :: fonc (paramètres: *ParamètresGénérationInterface, fonc
 
 est_type_rendu_page :: fonc (paramètres: *ParamètresGénérationInterface, type: *InfoType) -> bool
 {
-    si paramètres.type_rendu_page == type {
-        retourne vrai
-    }
-
     si type.id != GenreInfoType.STRUCTURE {
         retourne faux
     }
-
     type_struct := type comme *InfoTypeStructure
-
-    pour type_struct.structs_employées {
-        si it == paramètres.type_rendu_page {
-            retourne vrai
-        }
-    }
-
-    retourne faux
+    retourne est_struct_ou_employeuse_de(type_struct, paramètres.type_rendu_page.nom)
 }
 
 type_depuis_résultat :: fonc (info: *InfoType) -> *InfoTypeStructure
@@ -664,7 +656,7 @@ génère_fonction_appariement_route :: fonc (enchaineuse: *Enchaineuse, données
 
     // À FAIRE : sors les éléments des fonctions, et passe les en paramètres afin d'éviter la redondance ; compare directement le premier élément avec "/"
 
-    imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> bool, %\n", données_fonction.méthode, nom_fonction_rappel, type_paramètres_route.nom)
+    imprime_dans_enchaineuse(enchaineuse, "apparie_route_%_% :: fonc (chemin: chaine) -> (bool, %)\n", données_fonction.méthode, nom_fonction_rappel, type_paramètres_route.nom)
     imprime_dans_enchaineuse(enchaineuse, "{\n")
     imprime_dans_enchaineuse(enchaineuse, "\tparamètres : % = ---\n", type_paramètres_route.nom)
     imprime_dans_enchaineuse(enchaineuse, "\téléments := divise_url(chemin)\n")
