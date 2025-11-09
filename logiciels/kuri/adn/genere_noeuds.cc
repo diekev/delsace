@@ -876,7 +876,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
               "&gérante_chaine, NoeudCode *racine);\n\n";
         os << "\tNoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression "
               "*racine);\n\n";
-        os << "\tInfoType *crée_info_type_pour(Typeuse &typeuse, Type *type);\n\n";
+        os << "\tInfoType *crée_info_type_pour(EspaceDeTravail *espace, Typeuse &typeuse, Type "
+              "*type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
         os << "\tint64_t mémoire_utilisée() const;\n";
@@ -1031,11 +1032,11 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
             os << "\t\t\tif (racine_typee->est_déclaration_type()) {\n";
-            os << "\t\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace, espace->typeuse, "
                   "racine_typee->comme_déclaration_type());\n";
             os << "\t\t\t}\n";
             os << "\t\t\telse {\n";
-            os << "\t\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace, espace->typeuse, "
                   "racine_typee->type);\n";
             os << "\t\t\t}\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
