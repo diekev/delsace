@@ -305,6 +305,7 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
     }
 
     // 16. Let scheme be the scheme of parsed action.
+    scheme := parsed_action.scheme
 
     // 17. Let enctype be the submitter element's enctype.
 
@@ -333,16 +334,40 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
 
     // À FAIRE 25. If form document equals targetNavigable's active document, and form document has not yet completely loaded, then set historyHandling to "replace".
 
-    // À FAIRE : 26. Select the appropriate row in the table below based on scheme as given by the first cell of each row. Then, select the appropriate cell on that row based on method as given in the first cell of each column. Then, jump to the steps named in that cell and defined below the table.
-    assert(method == ATTR_get)
-
+    // 26. Select the appropriate row in the table below based on scheme as given by the first cell of each row.
+    //     Then, select the appropriate cell on that row based on method as given in the first cell of each column.
+    //     Then, jump to the steps named in that cell and defined below the table.
     params: ParamètresNavigationNavigable
     params.url = parsed_action
     params.source_document = form.document
     params.history_handling = history_handling
     params.user_involvement = user_involvement
     params.form_data_entry_list = entry_list
-    mutate_action_url(form, entry_list, parsed_action, target_navigable, params)
+
+    si scheme == "http" || scheme == "https" || scheme == "data" {
+        si method == ATTR_get {
+            mutate_action_url(form, entry_list, parsed_action, target_navigable, params)
+        }
+        sinon si method == ATTR_post {
+            si scheme == "data" {
+                plan_to_navigate(form, target_navigable, params)
+            }
+            sinon {
+                // Submit as entity body
+            }
+        }
+    }
+    sinon si scheme == "ftp" || scheme == "javascript" {
+        plan_to_navigate(form, target_navigable, params)
+    }
+    sinon si scheme == "mailto" {
+        si method == ATTR_get {
+            // Mail with headers
+        }
+        sinon si method == ATTR_post {
+            // Mail as body
+        }
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#submit-mutate-action */
