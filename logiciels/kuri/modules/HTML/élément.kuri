@@ -1416,6 +1416,8 @@ button_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Ev
     // 6. Otherwise, run the popover target attribute activation behavior given element and event's target.
 }
 
+#portée_module
+
 /* https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element */
 is_submit_button :: fonc (button: *HTMLButtonElement) -> bool
 {
@@ -2700,6 +2702,27 @@ is_submittable_element :: fonc (élément: *Element) -> bool
     }
 
     retourne is_form_associated_custom_element(élément)
+}
+
+#portée_module
+
+is_submit_button :: fonc (element: *Element) -> bool
+{
+    saufsi is_submittable_element(element) {
+        retourne faux
+    }
+
+    si element.local_name == TAG_button {
+        retourne is_submit_button(element comme *HTMLButtonElement)
+    }
+
+    si element.local_name == TAG_input {
+        input := element comme *HTMLInputElement
+        state := donne_state(input)
+        retourne state == HTMLInputElement.State.Submit_Button
+    }
+
+    retourne faux
 }
 
 /* https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-element */

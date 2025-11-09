@@ -1,5 +1,3 @@
-#portée_module
-
 /* ------------------------------------------------------------------------- */
 /** \nom 4.10.18 Form control infrastructure
  * \{ */
@@ -22,6 +20,8 @@ donne_form_owner :: fonc (élément: *Element) -> *HTMLFormElement
 }
 
 /** \} */
+
+#portée_module
 
 /* ------------------------------------------------------------------------- */
 /** \nom 4.10.19 Attributes common to form controls
@@ -85,6 +85,109 @@ donne_action :: fonc (élément: *Element) -> DOMString
 /** \nom 4.10.22 Form submission
  * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#form-submission-2
  * \{ */
+
+/* 4.10.22.2 Implicit submission
+ * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission */
+donne_default_button :: fonc (form_element: *HTMLFormElement) -> *Element
+{
+    // A form element's default button is the first submit button in tree order whose form owner
+    // is that form element.
+    pour Descendants(form_element) {
+        si est_élément(it) && is_submit_button(it comme *Element) && donne_form_owner(it comme *Element) == form_element {
+            retourne it comme *Element
+        }
+    }
+
+    retourne nul
+}
+
+#portée_export
+
+gère_soumission_implicite :: fonc (form_element: *HTMLFormElement)
+{
+    // If the user agent supports letting the user submit a form implicitly (for example, on some platforms hitting
+    // the "enter" key while a text control is focused implicitly submits the form), then doing so for a form,
+    // whose default button has activation behavior and is not disabled, must cause the user agent to fire a
+    // click event at that default button.
+    default_button := donne_default_button(form_element)
+    si default_button {
+        si possède_activation_behavior(default_button) && !is_disabled(default_button) {
+            _ := fire_a_click_event(default_button)
+        }
+    }
+    sinon {
+        // If the form has no submit button, then the implicit submission mechanism must perform the following steps:
+
+        // 1. If the form has more than one field that blocks implicit submission, then return.
+        //
+        // For the purpose of the previous paragraph, an element is a field that blocks implicit submission of a form
+        // element if it is an input element whose form owner is that form element and whose type attribute is in one
+        // of the following states: Text, Search, Telephone, URL, Email, Password, Date, Month, Week, Time, Local Date
+        // and Time, Number
+        nombre_de_champs_bloquants := 0
+        pour Descendants(form_element) {
+            si est_élément(it) {
+                element := it comme *Element
+                si element.local_name == TAG_input {
+                    state := donne_state(element comme *HTMLInputElement)
+                    discr state {
+                        Text, Search, Telephone, URL, Email, Password, Date, Month, Week, Time, Local_Date_and_Time, Number {
+                            nombre_de_champs_bloquants += 1
+                            si nombre_de_champs_bloquants > 1 {
+                                retourne
+                            }
+                        }
+                        sinon {}
+                    }
+                }
+            }
+        }
+
+        // 2. Submit the form element from the form element itself with userInvolvement set to "activation".
+        submit(form_element, form_element, user_involvement = UserNavigationInvolvement.Activation)
+    }
+}
+
+#portée_module
+
+fire_a_synthetic_pointer_event :: fonc (e: EventType, target: *EventTarget, not_trusted : *bool = nul) -> bool
+{
+    // 1. Let event be the result of creating an event using PointerEvent.
+    event := crée_platform_object(target, PointerEvent)
+
+    // 2. Initialize event's type attribute to e.
+    event.type = e
+
+    // 3. Initialize event's bubbles and cancelable attributes to true.
+    event.bubbles = vrai
+    // À FAIRE event.cancelable = vrai
+
+    // 4. Set event's composed flag.
+    event.composed = vrai
+
+    // 5. If the not trusted flag is set, initialize event's isTrusted attribute to false.
+    si not_trusted && mémoire(not_trusted) {
+        event.is_trusted = faux
+    }
+    sinon {
+        event.is_trusted = vrai
+    }
+
+    // À FAIRE : 6. Initialize event's ctrlKey, shiftKey, altKey, and metaKey attributes according to the current state of the key input device, if any (false for any keys that are not available).
+
+    // 7. Initialize event's view attribute to target's node document's Window object, if any, and null otherwise.
+
+    // 8. event's getModifierState() method is to return values appropriately describing the current state of the key input device.
+
+    // 9. Return the result of dispatching event at target.
+    retourne dispatch(event, target)
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#fire-a-click-event */
+fire_a_click_event :: fonc (target: *EventTarget) -> bool
+{
+    retourne fire_a_synthetic_pointer_event(EventType.click, target)
+}
 
 /* 4.10.22.3 Form submission algorithm
  * https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
