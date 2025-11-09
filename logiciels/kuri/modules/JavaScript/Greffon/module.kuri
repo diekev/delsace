@@ -1,0 +1,267 @@
+importe Compilatrice
+importe Ensemble
+importe Fondation
+importe GreffeMétaprogramme
+
+GreffonJS :: struct {
+    empl base: GreffonMétaprogramme
+
+    types_en_visite: [..]*InfoType
+}
+
+donne_greffon_visite_cellules :: fonc () -> *GreffonMétaprogramme
+{
+    résultat := loge(GreffonJS)
+    résultat.sur_message = greffon_js_sur_message
+    résultat.sur_destruction = greffon_js_sur_destruction
+    retourne résultat
+}
+
+#portée_fichier
+
+greffon_js_sur_message :: fonc (greffon: *GreffonJS, message: *Message)
+{
+    si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+        message_typage := message comme *MessageTypageCodeTerminé
+        code := message_typage.code
+        si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
+            déclaration := code comme *NoeudCodeStructure
+            type := déclaration.type comme *InfoTypeStructure
+
+            greffon.types_en_visite.taille = 0
+            si type_possède_une_cellule(type, *greffon.types_en_visite) {
+                génère_fonction_visite(type)
+            }
+        }
+    }
+}
+
+greffon_js_sur_destruction :: fonc (greffon: *GreffonJS)
+{
+    déloge(greffon.types_en_visite)
+    déloge(greffon)
+}
+
+
+// importe Compilatrice
+
+// alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
+// {
+//     #exécute génère_fonction_visite(info_de(T))
+
+//     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
+//     init_de(T)(résultat)
+//     assert((résultat comme *Cellule).table != nul)
+//     assert((résultat comme *Cellule).table.classe == T)
+//     retourne résultat
+// }
+
+// alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
+// #corps_texte {
+//     génère_fonction_visite(info_de(T))
+
+//     texte := «
+//     assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
+//     résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
+//     init_de(T)(résultat)
+//     assert((résultat comme *Cellule).table != nul)
+//     assert((résultat comme *Cellule).table.classe == T)
+//     retourne résultat
+// »
+//     retourne copie_chaine(texte)
+// }
+
+__structures_connues: [..]*InfoTypeStructure
+
+génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
+{
+    imprimeln("------------------ %", infos.nom)
+
+    // saufsi est_struct_ou_employeuse_de(infos, info_de(Cellule)) {
+    //     compilatrice_rapporte_erreur("Allocation d'une structure qui n'est pas une cellule.")
+    // }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    traversée: [..]*InfoTypeStructure
+    diffère déloge(traversée)
+
+    tableau_ajoute(*traversée, infos)
+
+    types_en_visite: [..]*InfoType
+    diffère déloge(types_en_visite)
+
+    tantque traversée {
+        infos_courante := enlève_dernier_élément(*traversée)
+        si ensemble_ne_fut_pas_ajouté(*__structures_connues, infos_courante) {
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, "\n", infos_courante.nom, "_visite_cellule :: fonc (v: *VisiteuseCellule, c: *", infos_courante.nom, ")\n{\n")
+
+        pour infos_courante.rubriques {
+            si it.id.id == GenreInfoType.STRUCTURE && (it.id comme *InfoTypeStructure).nom == "Cellule" {
+                continue
+            }
+
+            types_en_visite.taille = 0
+            saufsi type_possède_une_cellule(it.id, *types_en_visite) {
+                continue
+            }
+
+            si it.drapeaux.EST_UN_EMPLOI {
+                ajoute_au_tampon(*enchaineuse, "    ", (it.id comme *InfoTypeStructure).nom, "_visite_cellule(v, c)\n")
+                continue
+            }
+
+            types_en_visite.taille = 0
+            génère_visite_rubrique(*enchaineuse, it, *types_en_visite, *traversée)
+        }
+
+        ajoute_au_tampon(*enchaineuse, "}\n")
+    }
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn)
+    si chn {
+        imprime("%\n", chn)
+    }
+
+    // ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), chn)
+}
+
+génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoTypeRubriqueStructure, types_en_visite: *[..]*InfoType, traversée: *[..]*InfoTypeStructure)
+{
+    discr rubrique.id.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES,
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE,
+        POLYMORPHIQUE {}
+        STRUCTURE {
+            type_structure := rubrique.id comme *InfoTypeStructure
+
+            si type_structure.nom == "TasDeMémoire" || type_structure.nom == "MachineVirtuelle" {
+                imprimeln("Ignore %", type_structure.nom)
+                retourne
+            }
+
+            saufsi type_possède_une_cellule(type_structure, types_en_visite) {
+                imprimeln("Ignore %", type_structure.nom)
+                retourne
+            }
+
+            tableau_ajoute(traversée, type_structure)
+            ajoute_au_tampon(enchaineuse, "    ", type_structure.nom, "_visite_cellule(v, *c.", rubrique.nom, ")\n")
+        }
+        TABLEAU {
+            info_tableau := rubrique.id comme *InfoTypeTableau
+            type_élément := info_tableau.type_pointé
+
+            saufsi type_possède_une_cellule(type_élément, types_en_visite) {
+                retourne
+            }
+
+            si type_élément.id == GenreInfoType.POINTEUR {
+                type_élément = (type_élément comme *InfoTypePointeur).type_pointé
+            }
+
+            assert(type_élément.id == GenreInfoType.STRUCTURE)
+            type_structure := type_élément comme *InfoTypeStructure
+            tableau_ajoute(traversée, type_structure)
+            
+            ajoute_au_tampon(enchaineuse, "    pour c.", rubrique.nom, " {\n")
+            ajoute_au_tampon(enchaineuse, "        ", type_structure.nom, "_visite_cellule(v, it)\n")
+            ajoute_au_tampon(enchaineuse, "    }\n")
+        }
+        POINTEUR {
+            type_pointé := (rubrique.id comme *InfoTypePointeur).type_pointé
+
+            si type_pointé.id == GenreInfoType.STRUCTURE {
+                type_structure := type_pointé comme *InfoTypeStructure
+                si est_struct_ou_employeuse_de(type_structure, "Cellule") {
+                    ajoute_au_tampon(enchaineuse, "    visite_cellule(v, c.", rubrique.nom, ")\n")
+                    retourne
+                }
+
+                saufsi type_possède_une_cellule(type_pointé, types_en_visite) {
+                    retourne
+                }
+
+                tableau_ajoute(traversée, type_pointé comme *InfoTypeStructure)
+                tableau_ajoute(traversée, type_structure)
+
+                ajoute_au_tampon(enchaineuse, "    ", type_structure.nom, "_visite_cellule(v, c.", rubrique.nom, ")\n")
+                retourne
+            }
+
+            // À FAIRE : notifie ignore
+        }
+    }
+}
+
+type_possède_une_cellule :: fonc (info: *InfoType, types_en_visite: *[..]*InfoType) -> bool
+{
+    si ensemble_ne_fut_pas_ajouté(types_en_visite, info) {
+        retourne faux
+    }
+
+    discr info.id {
+        ENTIER,
+        RÉEL,
+        BOOLÉEN,
+        CHAINE,
+        ADRESSE_FONCTION,
+        FONCTION,
+        EINI,
+        RIEN,
+        ÉNUM,
+        OCTET,
+        TYPE_DE_DONNÉES,
+        POLYMORPHIQUE {
+            retourne faux
+        }
+        TABLEAU {
+            info_tableau := info comme *InfoTypeTableau
+            retourne type_possède_une_cellule(info_tableau.type_pointé, types_en_visite)
+        }
+        POINTEUR {
+            info_pointeur := info comme *InfoTypePointeur
+            retourne type_possède_une_cellule(info_pointeur.type_pointé, types_en_visite)
+        }
+        UNION,
+        OPAQUE,
+        TRANCHE,
+        TABLEAU_FIXE,
+        VARIADIQUE {}
+        STRUCTURE {
+            structure := info comme *InfoTypeStructure
+            si est_struct_ou_employeuse_de(structure, "Cellule") {
+                retourne vrai
+            }
+
+            pour structure.rubriques {
+                si type_possède_une_cellule(it.id, types_en_visite) {
+                    retourne vrai
+                }
+            }
+
+            retourne faux
+        }
+    }
+
+    retourne faux
+}

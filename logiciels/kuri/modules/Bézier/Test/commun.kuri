@@ -1,0 +1,11 @@
+MémoireApplication :: struct {
+    données: []octet
+}
+
+EntréeApplication :: struct {
+    évènements: []Évènement
+    peintre: *Peintre
+    dernière_souris: ÉtatSouris
+}
+
+TYPE_ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *EntréeApplication)

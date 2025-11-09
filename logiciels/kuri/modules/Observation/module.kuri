@@ -35,7 +35,7 @@ imprime_message_observable :: fonc (message: *MessageObservable)
 Observable :: struct {
     observatrices: [..]*Observatrice
     est_en_diffusion := vrai
-}
+} @ToujoursPointeur
 
 détruit_données_observable :: fonc (observable: *Observable)
 {
@@ -110,7 +110,7 @@ Observatrice :: struct {
     est_observante := vrai
 
     rappel_sur_reception_message: fonc (observatrice: *Observatrice, message: *MessageObservable)
-}
+} @ToujoursPointeur
 
 détruit_données_observatrice :: fonc (observatrice: *Observatrice)
 {

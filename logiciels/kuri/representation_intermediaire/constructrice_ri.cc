@@ -4346,7 +4346,6 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             POUR (type_union->rubriques) {
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-                auto valeurs = kuri::tableau<AtomeConstante *>(5);
                 auto globale_rubrique = crée_info_type_rubrique_structure(it, site);
                 valeurs_rubriques.ajoute(globale_rubrique);
             }
@@ -4708,8 +4707,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_rubrique_structure(
 {
     auto type_struct_rubrique = m_espace->typeuse.type_info_type_rubrique_structure;
 
-    /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-    auto valeurs = kuri::tableau<AtomeConstante *>(5);
+    auto valeurs = kuri::tableau<AtomeConstante *>(9);
     valeurs[0] = crée_constante_pour_chaine(rubrique.nom->nom);
     valeurs[1] = crée_info_type_avec_transtype(rubrique.type, site);
     valeurs[2] = m_constructrice.crée_z32(rubrique.decalage);
@@ -4727,9 +4725,21 @@ AtomeGlobale *CompilatriceRI::crée_info_type_rubrique_structure(
         else {
             valeurs[4] = crée_tableau_annotations_pour_info_rubrique({});
         }
+
+        const auto lexème = rubrique.decl->lexème;
+        const auto fichier = m_espace->fichier(lexème->fichier);
+        valeurs[5] = crée_constante_pour_chaine(fichier->chemin());
+        valeurs[6] = crée_constante_pour_chaine(fichier->nom());
+        valeurs[7] = m_constructrice.crée_z32(uint64_t(lexème->ligne + 1));
+        valeurs[8] = m_constructrice.crée_z32(uint64_t(lexème->colonne));
     }
     else {
         valeurs[4] = crée_tableau_annotations_pour_info_rubrique({});
+
+        valeurs[5] = crée_constante_pour_chaine("");
+        valeurs[6] = crée_constante_pour_chaine("");
+        valeurs[7] = m_constructrice.crée_z32(0);
+        valeurs[8] = m_constructrice.crée_z32(0);
     }
 
     return crée_globale_info_type(type_struct_rubrique, std::move(valeurs));
