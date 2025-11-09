@@ -663,7 +663,7 @@ void Tacheronne::exécute_métaprogrammes()
 
                 auto tampon = kuri::chaine(résultat.pointeur(), résultat.taille());
 
-                if (*tampon.end() != '\n') {
+                if (tampon.taille() == 0 || tampon[tampon.taille() - 1] != '\n') {
                     tampon.ajoute('\n');
                 }
 

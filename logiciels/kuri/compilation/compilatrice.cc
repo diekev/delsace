@@ -152,6 +152,7 @@ std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *esp
 }
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+                                                   EspaceDeTravail *espace_pour_site,
                                                    kuri::chaine_statique nom,
                                                    Module *module,
                                                    NoeudExpression const *site)
@@ -161,7 +162,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         chemin = enchaine(chemin, ".kuri");
     }
 
-    auto opt_chemin = determine_chemin_absolu(espace, chemin, site);
+    auto opt_chemin = determine_chemin_absolu(espace_pour_site, chemin, site);
     if (!opt_chemin.has_value()) {
         return;
     }
@@ -426,10 +427,11 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 }
 
 void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                              EspaceDeTravail *espace_pour_site,
                                               kuri::chaine_statique c,
                                               const NoeudExpression *site)
 {
-    ajoute_fichier_a_la_compilation(espace, c, espace->module, site);
+    ajoute_fichier_a_la_compilation(espace, espace_pour_site, c, espace->module, site);
 }
 
 EspaceDeTravail *Compilatrice::espace_défaut_compilation()
@@ -449,10 +451,11 @@ static kuri::tableau<kuri::Lexème> converti_tableau_lexemes(
 }
 
 kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail *espace,
+                                                                EspaceDeTravail *espace_pour_site,
                                                                 kuri::chaine_statique chemin_donne,
                                                                 NoeudExpression const *site)
 {
-    auto opt_chemin = determine_chemin_absolu(espace, chemin_donne, site);
+    auto opt_chemin = determine_chemin_absolu(espace_pour_site, chemin_donne, site);
     if (!opt_chemin.has_value()) {
         return {nullptr, 0};
     }
