@@ -1,0 +1,107 @@
+importe Chaine
+importe CréationFenêtre
+importe Couleur
+importe Fondation
+importe PeintureInterface
+importe Périphériques
+importe POSIX
+importe SysFichier
+
+charge "commun"
+
+principale :: fonc ()
+{
+    fenêtre := crée_fenêtre(1280, 720, "Bézier")
+
+    chemin_code_app := "./code_test_dessin.so"
+    code_app := charge_code_app(chemin_code_app)
+
+    largeur, hauteur := donne_taille_fenêtre(fenêtre)
+
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    peintre := crée_peintre_igumi(taille_canevas)
+
+    mémoire_application: MémoireApplication
+    mémoire_application.données = loge_tableau(octet, 32 * 1024 * 1024)
+
+    doit_fermer := faux
+    tantque !doit_fermer {
+        info_code_app := donne_info_fichier(chemin_code_app)
+        si info_code_app != code_app.info {
+            décharge_code_app(*code_app)
+            code_app = charge_code_app(chemin_code_app)
+        }
+
+        évènements := ajourne_évènements_fenêtre(fenêtre)
+
+        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+        taille_canevas = Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+        peintre.définis_taille_canevas(taille_canevas)
+
+        dernière_souris := donne_état_souris(fenêtre)
+
+        pour * évènements {
+            si it.type == TypeÉvènement.Fermeture {
+                doit_fermer = vrai
+                arrête
+            }
+
+
+            it.état_souris.où.y = hauteur - it.état_souris.où.y
+        }
+
+        marque := donne_marque_stockage_temporaire()
+        diffère définis_marque_stockage_temporaire(marque)
+
+        peintre.efface_cible_rendu(CouleurRVBA(0.09, 0.09, 0.09, 1.0))
+
+        entrée_app: EntréeApplication
+        entrée_app.évènements = évènements
+        entrée_app.peintre = peintre
+        entrée_app.dernière_souris = dernière_souris
+
+        si code_app.est_valide {
+            code_app.ajourne_application(*mémoire_application, *entrée_app)
+        }
+
+        permute_tampons_fenêtre(fenêtre)
+    }
+}
+
+CodeApplication :: struct {
+    greffon: *rien // NOTE : retourné par dlopen
+    info: InfoFichier
+
+    ajourne_application: TYPE_ajourne_application
+
+    est_valide: bool
+}
+
+charge_code_app :: fonc (chemin: chaine) -> CodeApplication
+{
+    résultat: CodeApplication
+
+    résultat.info = donne_info_fichier(chemin)
+
+    résultat.greffon = dlopen(chemin, RTLD_LAZY)
+    si résultat.greffon {
+        résultat.ajourne_application = dlsym_func(résultat.greffon, "ajourne_application") comme TYPE_ajourne_application
+
+        si résultat.ajourne_application {
+            résultat.est_valide = vrai
+        }
+    }
+    sinon {
+        imprime("%\n", convertis_chaine_c_statique(dlerror()))
+    }
+
+    retourne résultat
+}
+
+décharge_code_app :: fonc (code_app: *CodeApplication)
+{
+    si code_app.greffon {
+        _ := dlclose(code_app.greffon)
+    }
+    init_de(CodeApplication)(code_app)
+}
