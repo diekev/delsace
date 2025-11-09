@@ -95,7 +95,7 @@ Prise :: struct {
 
     /* Rectangle pour l'interface. */
     rectangle: RectanglePosDim(r32) // @mutable
-}
+} @ToujoursPointeur
 
 PriseEntrée :: struct {
     empl base: Prise
@@ -176,7 +176,7 @@ Connexion :: struct {
     prise_entrée: *PriseEntrée @accessible
     prise_sortie: *PriseSortie @accessible
     active: bool
-}
+} @ToujoursPointeur
 
 donne_noeud_entrée :: fonc (connexion: *Connexion) -> *Noeud
 {
@@ -206,7 +206,7 @@ ConnexionInteractive :: struct {
     /* Position de la souris lors de la création. */
     x: r32 @mutable
     y: r32 @mutable
-}
+} @ToujoursPointeur
 
 /** \} */
 
@@ -556,7 +556,7 @@ Noeud :: struct {
 
     mémoire_vive: MémoireVive
     cache: CacheUtilisateur
-}
+} @ToujoursPointeur
 
 identifiant :: fonc (noeud: *Noeud) -> chaine
 {
@@ -1626,7 +1626,7 @@ opérateur < :: (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
 CatégorisationNoeuds :: struct {
     type_graphe: *InfoTypeStructure
     catégories: [..]CatégorieNoeud @accessible
-}
+} @ToujoursPointeur
 
 catérorisations_noeuds : [..]CatégorisationNoeuds = ---
 /* Nous utilisons notre propre allocatrices ici car nous ne pouvons pas utiliser

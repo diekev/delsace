@@ -402,7 +402,7 @@ TableParamètres :: struct {
         est_activable_depuis_interface: bool
         est_étiquette: bool
         non_nul: bool
-    }
+    } @ToujoursPointeur
 
     InformationDessin :: union {
         AjouteEspaceur: EspaçageTableParamètre
@@ -415,7 +415,7 @@ TableParamètres :: struct {
     paramètres: [..]*Paramètre @accessible
 
     struct_paramètres: *ParamètresNoeud
-}
+} @ToujoursPointeur
 
 /* Pour les noeuds n'ayant aucun paramètre. */
 crée_table_paramètres_vide :: fonc () -> *TableParamètres
