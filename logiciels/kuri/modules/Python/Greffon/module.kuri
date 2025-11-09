@@ -17,11 +17,11 @@ GreffonPython :: struct {
     empl base: GreffonMétaprogramme
 
     compilatrice: CompilatriceModulePython
-    filtre: fonc (entête: *NoeudCodeEntêteFonction) -> bool
+    filtre: fonc (espace: EspaceDeTravail, entête: *NoeudCodeEntêteFonction) -> bool
     code_généré: bool
 }
 
-donne_greffon :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer, filtre: fonc (entête: *NoeudCodeEntêteFonction) -> bool) -> *GreffonMétaprogramme
+donne_greffon :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer, filtre: fonc (espace: EspaceDeTravail, entête: *NoeudCodeEntêteFonction) -> bool) -> *GreffonMétaprogramme
 {
     résultat := loge(GreffonPython)
     résultat.sur_message = greffon_python_sur_message
@@ -43,7 +43,7 @@ greffon_python_sur_message :: fonc (greffon: *GreffonPython, message: *Message)
 
         si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
             entête := code comme *NoeudCodeEntêteFonction
-            si greffon.filtre == nul || greffon.filtre(entête) {
+            si greffon.filtre == nul || greffon.filtre(message.espace, entête) {
                 ajoute_fonction_si_annotée(greffon.compilatrice, entête)
             }
         }
