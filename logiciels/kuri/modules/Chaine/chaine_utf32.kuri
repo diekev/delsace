@@ -49,7 +49,18 @@ réinitialise :: fonc (chn: &ChaineUTF32) #enligne
 
 converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 {
-    retourne imprime_chaine("%", chn)
+    // À FAIRE(langage) : la compilation n'attend pas sur les messages
+    // retourne imprime_chaine("%", chn)
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    séquence: [4]n8
+    pour chn.points_de_code {
+        taille := point_de_code_vers_utf8(it, *séquence[0])
+
+        tmp  := chaine(*séquence[0] comme *z8, taille)
+        ajoute_au_tampon(*enchaineuse, tmp)
+    }
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
