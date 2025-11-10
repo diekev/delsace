@@ -245,7 +245,7 @@ OpérationMélange :: énum {
     Superpose
 }
 
-TypeFonction :: fonc(r32, r32, r32, r32)(r32)
+TypeFonction :: fonc (a: r32, alpha_a: r32, b: r32, alpha_b: r32) -> r32
 
 fonctions_de_mélange : [OpérationMélange.nombre_éléments]TypeFonction = [
     copie,
