@@ -319,9 +319,9 @@ séquence_hammersley_2d :: fonc (n: n32, r: *r64)
 importe Compilatrice
 
 // À FAIRE: #portée_fichier
-__fonctions_génération_données_aléatoires: [..]FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+__fonctions_génération_données_aléatoires: [..]FonctionInstrospection(fonc (gén: &GénératriceDonnéesAléatoire, valeur: eini))
 
-trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc(&GénératriceDonnéesAléatoire, eini)(rien))
+trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc (gén: &GénératriceDonnéesAléatoire, valeur: eini))
 {
     retourne trouve_fonction_pour_type(__fonctions_génération_données_aléatoires, info)
 }

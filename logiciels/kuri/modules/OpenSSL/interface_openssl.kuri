@@ -83,7 +83,7 @@ TLS1_1_VERSION  : n16 : 0x0302
 TLS1_2_VERSION  : n16 : 0x0303
 TLS_MAX_VERSION : n16 : TLS1_2_VERSION
 
-pem_password_cb :: fonc(*z8, z32, z32, *rien)(z32)
+pem_password_cb :: fonc (arg0: *z8, arg1: z32, arg2: z32, arg3: *rien) -> z32
 
 SSL_CTRL_SET_TMP_DH :: 3
 SSL_CTRL_MODE :: 33
@@ -136,10 +136,10 @@ BIO_FLAGS_SHOULD_RETRY :: 0x08
 
 BIO_meth_new :: fonc (type: z32, name: ChaineC) -> *BIO_METHOD #externe libssl
 BIO_meth_free :: fonc (biom: *BIO_METHOD) -> rien #externe libssl
-BIO_meth_set_create :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO)(z32)) -> rien #externe libssl
-BIO_meth_set_write :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
-BIO_meth_set_read :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, *octet, z32)(z32)) -> rien #externe libssl
-BIO_meth_set_ctrl :: fonc (bio: *BIO_METHOD, cb: fonc(*BIO, z32, z64, *rien)(z64)) -> rien #externe libssl
+BIO_meth_set_create :: fonc (bio: *BIO_METHOD, cb: fonc (bio: *BIO) -> z32) -> rien #externe libssl
+BIO_meth_set_write :: fonc (bio: *BIO_METHOD, cb: fonc (bio: *BIO, données: *octet, taille: z32) -> z32) -> rien #externe libssl
+BIO_meth_set_read :: fonc (bio: *BIO_METHOD, cb: fonc (bio: *BIO, données: *octet, taille: z32) -> z32) -> rien #externe libssl
+BIO_meth_set_ctrl :: fonc (bio: *BIO_METHOD, cb: fonc (bio: *BIO, arg1: z32, arg2: z64, arg3: *rien) -> z64) -> rien #externe libssl
 
 BIO_new :: fonc (type: *BIO_METHOD) -> *BIO #externe libssl
 BIO_new_mem_buf :: fonc (buf: *rien, len: z32) -> *BIO #externe libssl
@@ -235,5 +235,5 @@ X509_FILETYPE_DEFAULT :: 3
 SSL_FILETYPE_PEM  :: X509_FILETYPE_PEM
 SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1
 
-ERR_print_errors_cb :: fonc (cb : fonc(ChaineC,n64,*rien)(z32), u : *rien) -> rien #externe libssl
+ERR_print_errors_cb :: fonc (cb : fonc (chn: ChaineC, arg1: n64, arg2: *rien) -> z32, u : *rien) -> rien #externe libssl
 ERR_clear_error :: fonc () #externe libssl
