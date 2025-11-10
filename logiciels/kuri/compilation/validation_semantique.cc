@@ -4556,7 +4556,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     }
 
-    if (!fonction_courante()) {
+    if (!fonction_courante() && !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
         simplifie_arbre(m_contexte, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -4843,7 +4843,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
         }
     }
 
-    if (!fonction_courante()) {
+    if (!fonction_courante() && !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
         simplifie_arbre(m_contexte, decl);
 
         POUR (decls_et_refs) {
