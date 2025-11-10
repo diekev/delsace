@@ -1293,6 +1293,10 @@ struct Convertisseuse {
 
     kuri::ensemble<dls::chaine> commentaires_imprimés{};
 
+    /* Les fonctions peuvent être prodéclarées plusieurs fois en C/C++, nous ne voulons les
+     * déclarer qu'une seule dans le code généré. */
+    kuri::ensemble<dls::chaine> fonctions_déjà_déclarées{};
+
     dls::chaine nom_bibliothèque_sûr{};
 
     Configuration *config = nullptr;
@@ -2628,27 +2632,32 @@ struct Convertisseuse {
             {
                 auto fonction = static_cast<DéclarationFonction *>(syntaxème);
 
-                imprime_tab(os);
-                os << fonction->nom << " :: fonc ";
+                if (!fonctions_déjà_déclarées.possède(fonction->nom)) {
+                    fonctions_déjà_déclarées.insère(fonction->nom);
 
-                kuri::chaine_statique virgule = "(";
-                POUR (fonction->paramètres) {
-                    if (it->est_variadique) {
-                        os << virgule << it->nom << ": ...";
+                    imprime_tab(os);
+                    os << fonction->nom << " :: fonc ";
+
+                    kuri::chaine_statique virgule = "(";
+                    POUR (fonction->paramètres) {
+                        if (it->est_variadique) {
+                            os << virgule << it->nom << ": ...";
+                        }
+                        else {
+                            os << virgule << it->nom << ": "
+                               << converti_type(it->type_c.value(), typedefs);
+                        }
+                        virgule = ", ";
                     }
-                    else {
-                        os << virgule << it->nom << ": "
-                           << converti_type(it->type_c.value(), typedefs);
+
+                    if (fonction->paramètres.taille() == 0) {
+                        os << virgule;
                     }
-                    virgule = ", ";
+
+                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
+                    os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 }
 
-                if (fonction->paramètres.taille() == 0) {
-                    os << virgule;
-                }
-
-                os << ") -> " << converti_type(fonction->type_sortie, typedefs);
-                os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 break;
             }
             case TypeSyntaxème::DÉCLARATION_VARIABLE:
