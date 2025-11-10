@@ -488,7 +488,7 @@ Lectrice :: struct {
     données_fichier: [..]octet
     curseur: *octet
 
-    sur_rapporte_erreur: fonc(*Lectrice, chaine, ...eini)(rien)
+    sur_rapporte_erreur: fonc (lectrice: *Lectrice, format: chaine, args: ...eini)
 }
 
 initialise_lectrice :: fonc (lectrice: *Lectrice, données_fichier: [..]octet)

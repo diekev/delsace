@@ -460,7 +460,7 @@ ContexteParsageEntête :: struct {
 }
 
 ClienteEntête :: struct {
-    sur_reception_cookie: fonc (*ClienteEntête, chaine, chaine, AttributsCookie)(rien)
+    sur_reception_cookie: fonc (cliente: *ClienteEntête, nom: chaine, valeur: chaine, attributs: AttributsCookie)
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2 */

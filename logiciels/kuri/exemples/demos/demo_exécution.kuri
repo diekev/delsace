@@ -31,7 +31,7 @@ fonction_retournée :: fonc ()
     imprime("cette fonction fut retournée depuis un exécution !\n")
 }
 
-retourne_fonction :: fonc () -> fonc()(rien)
+retourne_fonction :: fonc () -> fonc ()
 {
     retourne fonction_retournée
 }

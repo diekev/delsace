@@ -44,6 +44,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     PortéeSymbole m_portée = PortéeSymbole::EXPORT;
 
+    // À FAIRE : supprime ceci et utilise un paramètre pour passer cette information.
+    bool m_nous_sommes_dans_type = false;
+
   public:
     Syntaxeuse(Contexte *contexte, UniteCompilation const *unite);
 
@@ -138,6 +141,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                            NoeudDirectiveFonction *directive);
 
     NoeudInstructionImporte *analyse_importe(Lexème const *lexème, Lexème const *lexème_référence);
+
+    NoeudExpression *parse_expression_type(GenreLexème lexème_final);
 
     void recycle_référence(NoeudExpressionRéférence *référence);
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);

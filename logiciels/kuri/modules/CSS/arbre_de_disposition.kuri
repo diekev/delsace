@@ -1944,14 +1944,14 @@ InfoLigneDeBase :: struct {
 TableVirtuelleBox :: struct {
     type: type_de_données
 
-    sur_mesure: fonc (*Box, *ContexteDeFormattage, ModeDeFormattage, PersonnalisationCotation, AvailableSpace)(rien)
-    sur_dessin: fonc (*Box, *ContexteDessin)(rien)
-    sur_dessin_fragment: fonc (*Box, *Fragment, *LignesTenante, *ContexteDessin)(rien)
-    sur_dessin_tampon_id: fonc (*Box, *ContexteDessin)(rien)
-    sur_dessin_fragment_tampon_id: fonc (*Box, *Fragment, *ContexteDessin)(rien)
-    sur_divise_en_lignes: fonc (*Box, *Enligneuse, ModeDeFormattage)(rien)
-    sur_correction_hiérarchie: fonc(*Box, *CréatriceArbre)(rien)
-    sur_donne_baseline: fonc(*Box)(Optionnel(InfoLigneDeBase))
+    sur_mesure: fonc (box: *Box, ctx: *ContexteDeFormattage, mode: ModeDeFormattage, personnalisation: PersonnalisationCotation, space: AvailableSpace)
+    sur_dessin: fonc (box: *Box, ctx_dessin: *ContexteDessin)
+    sur_dessin_fragment: fonc (box: *Box, fragment: *Fragment, lignes_tenante: *LignesTenante, ctx_dessin: *ContexteDessin)
+    sur_dessin_tampon_id: fonc (box: *Box, ctx_dessin: *ContexteDessin)
+    sur_dessin_fragment_tampon_id: fonc (box: *Box, fragment: *Fragment, ctx_dessin: *ContexteDessin)
+    sur_divise_en_lignes: fonc (box: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
+    sur_correction_hiérarchie: fonc (box: *Box, créatrice: *CréatriceArbre)
+    sur_donne_baseline: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
 }
 
 __table_box_base := TableVirtuelleBox(type = Box)
@@ -3613,8 +3613,8 @@ ReplacedBox :: struct {
     table_virtuelle = *__table_replaced_box
 
     /* Rappels spécifiques. */
-    sur_calcul_dimensions_intrinsèques: fonc(*ReplacedBox,*ContexteDeFormattage)(rien)
-    
+    sur_calcul_dimensions_intrinsèques: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
+
     ratio_intrinsèque: Optionnel(r32)
     largeur_intrinsèque: Optionnel(r32)
     hauteur_intrinsèque: Optionnel(r32)

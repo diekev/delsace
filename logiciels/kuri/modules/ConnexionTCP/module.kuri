@@ -181,7 +181,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
     discr prise.type {
         RAPPEL {
-            ptr_rappel := prise.données_utilisateur(fonc(*Contexte)(rien))
+            ptr_rappel := prise.données_utilisateur(fonc (ctx: *Contexte))
             rappel := mémoire(ptr_rappel)
             rappel(prise.contexte_)
 

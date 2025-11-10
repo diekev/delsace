@@ -208,7 +208,7 @@ anonyme11 :: énum n32 {
 }
 
 _pthread_cleanup_buffer :: struct #externe {
-    __routine: fonc(*rien)(rien)
+    __routine: fonc (arg: *rien)
     __arg: *rien
     __canceltype: z32
     __prev: *_pthread_cleanup_buffer
@@ -224,7 +224,7 @@ anonyme13 :: énum n32 {
     PTHREAD_CANCEL_ASYNCHRONOUS
 }
 
-pthread_create :: fonc (__newthread: *pthread_t, __attr: *pthread_attr_t, __start_routine: fonc(*rien)(*rien), __arg: *rien) -> z32 #externe libpthread
+pthread_create :: fonc (__newthread: *pthread_t, __attr: *pthread_attr_t, __start_routine: fonc (arg: *rien) -> *rien, __arg: *rien) -> z32 #externe libpthread
 pthread_exit :: fonc (__retval: *rien) -> rien #externe libpthread
 pthread_join :: fonc (__th: pthread_t, __thread_return: **rien) -> z32 #externe libpthread
 pthread_tryjoin_np :: fonc (__th: pthread_t, __thread_return: **rien) -> z32 #externe libpthread
@@ -267,7 +267,7 @@ pthread_setconcurrency :: fonc (__level: z32) -> z32 #externe libpthread
 pthread_yield :: fonc () -> z32 #externe libpthread
 pthread_setaffinity_np :: fonc (__th: pthread_t, __cpusetsize: n64, __cpuset: *cpu_set_t) -> z32 #externe libpthread
 pthread_getaffinity_np :: fonc (__th: pthread_t, __cpusetsize: n64, __cpuset: *cpu_set_t) -> z32 #externe libpthread
-pthread_once :: fonc (__once_control: *pthread_once_t, __init_routine: fonc()(rien)) -> z32 #externe libpthread
+pthread_once :: fonc (__once_control: *pthread_once_t, __init_routine: fonc ()) -> z32 #externe libpthread
 pthread_setcancelstate :: fonc (__state: z32, __oldstate: *z32) -> z32 #externe libpthread
 pthread_setcanceltype :: fonc (__type: z32, __oldtype: *z32) -> z32 #externe libpthread
 pthread_cancel :: fonc (__th: pthread_t) -> z32 #externe libpthread
@@ -285,18 +285,18 @@ pthread_testcancel :: fonc () -> rien #externe libpthread
     }
 
     __pthread_cleanup_frame :: struct #externe {
-        __cancel_routine : fonc(*rien)(rien)
+        __cancel_routine : fonc (arg: *rien)
         __cancel_arg : *rien
         __do_it : z32
         __cancel_type : z32
     }
 
     __pthread_cleanup_class :: struct #externe {
-        __cancel_routine : fonc(*rien)(rien)
+        __cancel_routine : fonc (arg: *rien)
         __cancel_arg : *rien
         __do_it : z32
         __cancel_type : z32
-#!enligne __pthread_cleanup_class :: fonc (this : *__pthread_cleanup_class, __fct : fonc(*rien)(rien), __arg : *rien) -> rien #externe libpthread
+#!enligne __pthread_cleanup_class :: fonc (this : *__pthread_cleanup_class, __fct : fonc (arg: *rien), __arg : *rien) -> rien #externe libpthread
 {
 }
 
@@ -389,12 +389,12 @@ pthread_barrierattr_init :: fonc (__attr: *pthread_barrierattr_t) -> z32 #extern
 pthread_barrierattr_destroy :: fonc (__attr: *pthread_barrierattr_t) -> z32 #externe libpthread
 pthread_barrierattr_getpshared :: fonc (__attr: *pthread_barrierattr_t, __pshared: *z32) -> z32 #externe libpthread
 pthread_barrierattr_setpshared :: fonc (__attr: *pthread_barrierattr_t, __pshared: z32) -> z32 #externe libpthread
-pthread_key_create :: fonc (__key: *n32, __destr_function: fonc(*rien)(rien)) -> z32 #externe libpthread
+pthread_key_create :: fonc (__key: *n32, __destr_function: fonc (arg: *rien)) -> z32 #externe libpthread
 pthread_key_delete :: fonc (__key: n32) -> z32 #externe libpthread
 pthread_getspecific :: fonc (__key: n32) -> *rien #externe libpthread
 pthread_setspecific :: fonc (__key: n32, __pointer: *rien) -> z32 #externe libpthread
 pthread_getcpuclockid :: fonc (__thread_id: pthread_t, __clock_id: *__clockid_t) -> z32 #externe libpthread
-pthread_atfork :: fonc (__prepare: fonc()(rien), __parent: fonc()(rien), __child: fonc()(rien)) -> z32 #externe libpthread
+pthread_atfork :: fonc (__prepare: fonc (), __parent: fonc (), __child: fonc ()) -> z32 #externe libpthread
 
 
 /* ------------------------------------------------------------------------- */

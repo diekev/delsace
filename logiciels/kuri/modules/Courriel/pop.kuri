@@ -50,10 +50,10 @@ InterfaceServeuseCourriel :: struct {
     données: *rien
 
     /* Doit retourner vrai si un utilisateur avec ce nom (une adresse courriel) existe */
-    utilisateur_existe: fonc(InterfaceServeuseCourriel, chaine)(bool)
+    utilisateur_existe: fonc (interface: InterfaceServeuseCourriel, adresse: chaine) -> bool
 
     /* Doit retourner vrai si la paire mot de passe, utilisateur est corecte */
-    authentifie_utilisateur: fonc(InterfaceServeuseCourriel, chaine, chaine)(bool)
+    authentifie_utilisateur: fonc (interface: InterfaceServeuseCourriel, utilisateur: chaine, mot_de_passe: chaine) -> bool
 }
 
 SessionPOP :: struct {

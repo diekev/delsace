@@ -2,7 +2,7 @@
 /** \nom Fonction pour envelopper les rappels afin de ne pas avoir à transtyper manuellement.
  * \{ */
 
-sur_destruction_générique :: fonc ($TypePanneau: type_de_données) -> fonc(*Panneau)(rien)
+sur_destruction_générique :: fonc ($TypePanneau: type_de_données) -> fonc (panneau: *Panneau) -> rien
 {
     rappel_sur_destruction :: fonc (panneau: *Panneau) -> rien
     {

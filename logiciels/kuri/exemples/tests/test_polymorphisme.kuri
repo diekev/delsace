@@ -5,7 +5,7 @@ cas à supporter :
 
     [x] fonc (a: $T, b: T)
     [x] fonc (a: *$T, b : *T)
-    [x] fonc (a: $T, b: $U, fonc (T, U)($V))
+    [x] fonc (a: $T, b: $U, fonc(T, U)($V))
     [x] fonc (a: $T, b: ...T)
     [x] fonc (a: $T, b: ...*T)
     [x] fonc (a: *Table($E), element: E), où Table est une structure polymorphique

@@ -8,7 +8,7 @@ importe Fondation
 
 /* Génère N valeur de la suite Prouet-Thue-Morse.
  * \param rappel: une fonction qui reçoie vrai ou faux selon la suite. */
-génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc(bool)(rien))
+génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc (v: bool))
 {
     pour n {
         x := compte_nombre_de_bits_actifs(it)
@@ -20,7 +20,7 @@ génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc(bool)(rien))
  * N premières valeurs de la suite Prouet-Thue-Morse.
  * \param rappel: une fonction qui reçoie le compte de « B » à chaque fois
  * qu'un « A » est généré selon la suite. */
-génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a :: fonc (n: n32, rappel: fonc(z32)(rien))
+génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a :: fonc (n: n32, rappel: fonc (v: z32))
 {
     compte_courant := 0
 

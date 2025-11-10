@@ -31,7 +31,7 @@ FluxVidéo :: struct {
     cache_image_initialisé: bool
 
     sur_paquet_vidéo := flux_vidéo_sur_paquet_vidéo_défaut
-    sur_paquet_audio: fonc(*FluxVidéo, *AVPacket)(rien)
+    sur_paquet_audio: fonc (flux: *FluxVidéo, packet: *AVPacket)
 }
 
 détruit_données_flux_vidéo :: fonc (flux: *FluxVidéo)

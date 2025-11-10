@@ -405,7 +405,7 @@ PropriétésLargeur :: struct {
     right: *ValeurDeStyle
 }
 
-TypeFonctionCalculLargeur :: fonc(*ArgumentsDimensionnement,*PropriétésLargeur)(rien)
+TypeFonctionCalculLargeur :: fonc (args: *ArgumentsDimensionnement, propriétés: *PropriétésLargeur)
 
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonction_de_calcul: TypeFonctionCalculLargeur)
 {
@@ -672,7 +672,7 @@ PropriétésHauteur :: struct {
     bottom: *ValeurDeStyle
 }
 
-TypeFonctionCalculHauteur :: fonc(*ArgumentsDimensionnement,*PropriétésHauteur)(ÉtatCalculHauteur)
+TypeFonctionCalculHauteur :: fonc (args: *ArgumentsDimensionnement, propriétés: *PropriétésHauteur) -> ÉtatCalculHauteur
 
 calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonction_de_calcul: TypeFonctionCalculHauteur) -> ÉtatCalculHauteur
 {

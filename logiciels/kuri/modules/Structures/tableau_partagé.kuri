@@ -1,4 +1,4 @@
-TableauPartagé :: struct ($T: type_de_données, $CopieValeur: fonc(T)(T), $DétruitValeur: fonc(T)(T)) {
+TableauPartagé :: struct ($T: type_de_données, $CopieValeur: fonc (élément: T) -> T, $DétruitValeur: fonc (élément: T) -> T) {
     valeurs: [..]T
     compte_de_référence: *z32
 
@@ -6,7 +6,7 @@ TableauPartagé :: struct ($T: type_de_données, $CopieValeur: fonc(T)(T), $Dét
     valeur_constante: T
 }
 
-crée_tableau_partagé :: fonc ($T: type_de_données, $CopieValeur: fonc(T)(T), $DétruitValeur: fonc(T)(T)) -> TableauPartagé(T, CopieValeur, DétruitValeur)
+crée_tableau_partagé :: fonc ($T: type_de_données, $CopieValeur: fonc (élément: T) -> T, $DétruitValeur: fonc (élément: T) -> T) -> TableauPartagé(T, CopieValeur, DétruitValeur)
 {
     résultat: TableauPartagé(T)
     résultat.compte_de_référence = loge(z32)
@@ -68,7 +68,7 @@ rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D))
     tableau.référence()
 }
 
-rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc(*T)(T))
+rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc (élément: *T) -> T)
 {
     si tableau.nombre_de_références() == 1 {
         retourne

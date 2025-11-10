@@ -189,7 +189,7 @@ traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc(*Node, $T)(Décision
 }
 
 /* Version de traverse_noeud sans données utilisateur spécifique. */
-traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc(*Node)(DécisionTraversée))
+traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc (node: *Node) -> DécisionTraversée)
 {
     pour noeud.enfants {
         décision := rappel_traverse(it)

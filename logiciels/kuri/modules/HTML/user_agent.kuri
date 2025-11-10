@@ -109,13 +109,13 @@ crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_donn
     retourne résultat
 }
 
-crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc(*T)(rien)) -> *Algorithm
+crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc (params: *T)) -> *Algorithm
 {
     Tâche :: struct {
         empl base: Algorithm
 
         params: T
-        fonction: fonc(*T)(rien)
+        fonction: fonc (params: *T)
     }
 
     sur_run :: fonc (base: *Algorithm)

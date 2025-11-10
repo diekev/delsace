@@ -116,8 +116,8 @@ opérateur == :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
 
 /* must be an algorithm accepting a Document */
 CommitEarlyHints :: struct {
-    sur_rappel: fonc(*CommitEarlyHints, *Document)(rien)
-    sur_destruction: fonc (*CommitEarlyHints)(rien)
+    sur_rappel: fonc (ceh: *CommitEarlyHints, document: *Document)
+    sur_destruction: fonc (ceh: *CommitEarlyHints)
 }
 
 run :: fonc (commit_early_hints: *CommitEarlyHints, document: *Document)
@@ -3032,7 +3032,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
             user_agent: *UserAgent
         }
 
-        crée_objet_global :: fonc(base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
+        crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
         {
             configuration := base comme *ConfigurationRealmDocument
             tas_de_mémoire := JS.donne_tas_de_mémoire(realm)

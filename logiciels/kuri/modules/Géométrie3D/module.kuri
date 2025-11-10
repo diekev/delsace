@@ -22,24 +22,13 @@ libtbb :: #bibliothèque "tbb"
  * les applications clientes afin de créer la géométrie. */
 CréatriceGéométrie :: struct {
     /* Débute un nouvel objet dont le nom est passé en paramètre */
-    commence_nouvel_objet: fonc(*CréatriceGéométrie, chaine)(rien)
+    commence_nouvel_objet: fonc (créatrice: *CréatriceGéométrie, nom: chaine)
 
-    /* Ajout un point à la géométrie de sortie.
-     * Paramètres :
-     * - données utilisateurs
-     * - coordonnée x du point
-     * - coordonnée y du point
-     * - coordonnée z du point
-     */
-    ajoute_point: fonc(*CréatriceGéométrie, r32, r32, r32)(rien)
+    /* Ajout un point à la géométrie de sortie. */
+    ajoute_point: fonc (créatrice: *CréatriceGéométrie, x: r32, y: r32, z: r32)
 
-    /* Ajoute un polygone à la géométrie de sortie.
-     * Paramètres :
-     * - données utilisateurs
-     * - pointeur vers une liste d'indices de points formant le polygone
-     * - nombre d'indices de points formant le polygone
-     */
-    ajoute_polygone: fonc(*CréatriceGéométrie, *z32, z32)(rien)
+    /* Ajoute un polygone à la géométrie de sortie. */
+    ajoute_polygone: fonc (créatrice: *CréatriceGéométrie, indices: *z32, nombre_d_indices: z32)
 }
 
 /* Chargement de données depuis des fichiers .obj */

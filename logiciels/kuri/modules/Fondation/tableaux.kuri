@@ -155,7 +155,7 @@ tableau_copie :: fonc (tabl: []$T) -> [..]T
     retourne tmp
 }
 
-tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc(T)(T)) -> [..]T
+tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc (v: T) -> T) -> [..]T
 {
     résultat: [..]T
     tableau_réserve(*résultat, tabl.taille)
@@ -227,7 +227,7 @@ tableau_supprime_entre :: fonc (tableau: *[..]$T, indice_début: z64, indice_fin
     tableau.taille = pointeur_début - tableau.pointeur
 }
 
-tableau_supprime_si :: fonc (tableau: *[..]$T, prédicat: fonc(T)(bool))
+tableau_supprime_si :: fonc (tableau: *[..]$T, prédicat: fonc (v: T) -> bool)
 {
     temp := mémoire(tableau)
 
@@ -329,7 +329,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T)
     déloge(tableau)
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc(T)(rien))
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
@@ -338,7 +338,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc(&T)(rien))
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: &T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
@@ -347,7 +347,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_él�
     déloge(tableau)
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc(*T)(rien))
+déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: *T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {

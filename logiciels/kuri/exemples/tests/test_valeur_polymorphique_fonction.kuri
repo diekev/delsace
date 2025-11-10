@@ -25,7 +25,7 @@ fonction_rappel :: fonc ()
     imprime("Impression depuis fonction rappel !\n")
 }
 
-test_valeur_fonction :: fonc ($Fonction: fonc()(rien))
+test_valeur_fonction :: fonc ($Fonction: fonc ())
 {
     Fonction()
 }

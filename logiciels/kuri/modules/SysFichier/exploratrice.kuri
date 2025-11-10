@@ -100,7 +100,7 @@ dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
 
 // -----------------------------------------------------------------------
 
-pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc(CheminFichier, *T)(rien))
+pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc (chemin: CheminFichier, données: *T))
 {
     exploratrice := crée_exploratrice_fichier(chemin)
     diffère détruit(exploratrice)
@@ -172,12 +172,12 @@ FichiersÀVisiter :: énum_drapeau {
     Dossiers
 }
 
-visite_fichiers :: fonc (dossier: CheminFichier, récursif: bool, données: $T, procédure: fonc(InfoVisiteFichier, T)(DécisionVisiteFichier), fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
+visite_fichiers :: fonc (dossier: CheminFichier, récursif: bool, données: $T, procédure: fonc (info: InfoVisiteFichier, données: T) -> DécisionVisiteFichier, fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
 {
     visite_fichiers(dossier.chn, récursif, données, procédure, fichiers_à_visiter)
 }
 
-visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procédure: fonc(InfoVisiteFichier, T)(DécisionVisiteFichier), fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
+visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procédure: fonc (info: InfoVisiteFichier, données: T) -> DécisionVisiteFichier, fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
 {
     dossiers_à_visiter: Pile(CheminFichier)
     diffère détruit(dossiers_à_visiter)

@@ -770,7 +770,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         user_agent: *UserAgent
     }
 
-    crée_objet_global :: fonc(base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
+    crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
     {
         configuration := base comme *ConfigurationRealmBrowsingContext
 

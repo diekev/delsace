@@ -305,7 +305,7 @@ DistanceVoronoi :: énum {
     MINKOVSKY
 }
 
-fonction_distance_pour_voronoi :: fonc (distance: DistanceVoronoi) -> fonc(r32, r32, r32, r32)(r32)
+fonction_distance_pour_voronoi :: fonc (distance: DistanceVoronoi) -> fonc (x: r32, y: r32, z: r32, exposant: r32) -> r32
 {
     discr distance {
         RÉELLE {
@@ -411,7 +411,7 @@ voronoi :: fonc (params: ParamètresBruitVoronoi, x: r32, y: r32, z: r32, da: *r
 
 ParamètresBruitVoronoi :: struct {
     table_locale: []z32
-    fonction_distance: fonc(r32, r32, r32, r32)(r32)
+    fonction_distance: fonc (x: r32, y: r32, z: r32, exposant: r32) -> r32
     /* Pour le cas général de la distance de Minkovsky */
     exposant: r32
 }

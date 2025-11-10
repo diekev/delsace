@@ -106,7 +106,7 @@ RésultatRecherche :: struct {
  * seront activés.
  * Autrement, le résultat retourné n'aura aucun drapeau activé.
  */
-ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel: fonc(T, T)(bool)) -> RésultatRecherche
+ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel: fonc (a: T, b: T) -> bool) -> RésultatRecherche
 {
     résultat: RésultatRecherche
 

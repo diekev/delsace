@@ -10,5 +10,8 @@
     ],
     "modules_à_importer": [
         "POSIX"
+    ],
+    "types_à_ignorer": [
+        "timeval"
     ]
 }

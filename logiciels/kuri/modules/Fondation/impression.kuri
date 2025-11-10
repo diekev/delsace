@@ -1332,7 +1332,7 @@ greffon_impression_sur_destruction :: fonc (greffon: *GreffonImpression)
 
 #portée_export // À FAIRE : génère le code dans ce module
 
-TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
+TypeFonctionFormattage :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 __fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
 
 #portée_fichier

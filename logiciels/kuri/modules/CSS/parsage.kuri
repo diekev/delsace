@@ -357,7 +357,7 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
  * \{ */
 
 /* 5.4.1 Parse something according to a CSS grammar */
-parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc([]ComponentValue)(Optionnel(*ValeurDeStyle))) -> Optionnel(*ValeurDeStyle)
+parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)) -> Optionnel(*ValeurDeStyle)
 {
     // 1. Normalize input, and set input to the result.
     chn_input := input.donne_chaine_utf16().converti_vers_chaine()
@@ -2608,9 +2608,9 @@ InfoTypePropriété :: struct {
     drapeaux: DrapeauxPropriété
     genre_valeur_calculée: GenreValeurCalculée
     id: IDPropriété
-    fonction_de_parsage: fonc([]ComponentValue)(Optionnel(*ValeurDeStyle))
-    sur_parsage_shorthand: fonc(*ContexteParsageShorthand, []ComponentValue)(bool)
-    sur_calcul_style: fonc(*DéclarationPropriété, *Style, *ContexteCalculStyle)(rien)
+    fonction_de_parsage: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)
+    sur_parsage_shorthand: fonc (ctx: *ContexteParsageShorthand, value: []ComponentValue) -> bool
+    sur_calcul_style: fonc (déclaration: *DéclarationPropriété, style: *Style, ctx: *ContexteCalculStyle)
 }
 
 NOMBRE_PROPRIÉTÉS_SHORTHAND :: 26

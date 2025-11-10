@@ -1,6 +1,6 @@
 importe Compilatrice
 
-donne_commande_pour_nom :: fonc (nom: chaine) -> fonc(*Anonyme)(rien)
+donne_commande_pour_nom :: fonc (nom: chaine) -> fonc (anonyme: *Anonyme)
 #corps_texte {
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
