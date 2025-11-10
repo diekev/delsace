@@ -57,10 +57,10 @@ Codec :: struct ($T: type_de_données) {
     est_alphanumérique : fonc (caractère: T) -> bool
 
     // converti vers un codec de base (UTF-8)
-    en_utf8 :: fonc (T, &[4]n8)(z32)
+    en_utf8 :: fonc (caractère: T, séquence: &[4]n8) -> z32
 
     // est_valide dans ce codec
-    est_valide :: fonc ([]octet, z64)(bool)
+    est_valide :: fonc (données: []octet, taille: z64) -> bool
 }
 
 // génère les fonctions par un métaprogramme, est_espace_blanche, ...
