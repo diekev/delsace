@@ -2707,6 +2707,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
         bloc_constantes_polymorphiques.depile();
+        dépile_état();
         return résultat;
     }
 
