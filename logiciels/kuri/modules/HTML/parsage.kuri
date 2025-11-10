@@ -1,5 +1,5 @@
 
-TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
+TypeFonctionModeInsertion :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
 Parseuse :: struct {
     mode_insertion: TypeFonctionModeInsertion

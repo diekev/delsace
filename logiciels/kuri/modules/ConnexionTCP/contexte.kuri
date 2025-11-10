@@ -169,9 +169,9 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
     }
 
     fichier := Fichier(TypePoignéeFichier(fd))
-    prise := crée_prise_interne(ctx, fichier, info_de(fonc(*Contexte)(rien)))
+    prise := crée_prise_interne(ctx, fichier, info_de(fonc (ctx: *Contexte)))
     prise.type = TypePrise.RAPPEL
-    ptr_fonc := prise.données_utilisateur(fonc(*Contexte)(rien))
+    ptr_fonc := prise.données_utilisateur(fonc (ctx: *Contexte))
     mémoire(ptr_fonc) = rappel
 
     si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {

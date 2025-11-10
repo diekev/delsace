@@ -90,6 +90,7 @@ struct Configuration {
     kuri::tableau<RubriqueEmployée> rubriques_employées{};
     kuri::ensemble<dls::chaine> fonctions_à_ignorer{};
     kuri::ensemble<dls::chaine> fichiers_à_inclure{};
+    kuri::ensemble<dls::chaine> types_à_ignorer{};
 };
 
 static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -278,6 +279,7 @@ static auto analyse_configuration(const char *chemin)
 
     config.fonctions_à_ignorer = parse_ensemble_de_chaines(dico, "fonctions_à_ignorer");
     config.fichiers_à_inclure = parse_ensemble_de_chaines(dico, "fichiers_à_inclure");
+    config.types_à_ignorer = parse_ensemble_de_chaines(dico, "types_à_ignorer");
 
     return config;
 }
@@ -743,16 +745,17 @@ static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs con
     auto nombre_args = clang_getNumArgTypes(type);
 
     auto flux = std::stringstream();
-    flux << "fonc(";
+    flux << "fonc (";
 
     for (int i = 0; i < nombre_args; i++) {
         if (i > 0) {
             flux << ", ";
         }
+        flux << "arg" << i << ": ";
         flux << converti_type(clang_getArgType(type, uint32_t(i)), typedefs);
     }
 
-    flux << ")(" << converti_type(clang_getResultType(type), typedefs) << ")";
+    flux << ") -> " << converti_type(clang_getResultType(type), typedefs);
 
     return flux.str();
 }
@@ -1293,6 +1296,10 @@ struct Convertisseuse {
 
     kuri::ensemble<dls::chaine> commentaires_imprimés{};
 
+    /* Les fonctions peuvent être prodéclarées plusieurs fois en C/C++, nous ne voulons les
+     * déclarer qu'une seule dans le code généré. */
+    kuri::ensemble<dls::chaine> fonctions_déjà_déclarées{};
+
     dls::chaine nom_bibliothèque_sûr{};
 
     Configuration *config = nullptr;
@@ -1493,8 +1500,13 @@ struct Convertisseuse {
                     enfants_filtres.ajoute(enfant);
                 }
 
+                auto nom_structure = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                if (config->types_à_ignorer.possède(nom_structure)) {
+                    return;
+                }
+
                 auto structure = syntaxeuse.crée<DéclarationStruct>(cursor);
-                structure->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                structure->nom = nom_structure;
 
                 if (!enfants_filtres.est_vide()) {
                     syntaxeuse.noeud_courant.empile(structure);
@@ -1544,8 +1556,13 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_UnionDecl:
             {
+                auto nom_union = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                if (config->types_à_ignorer.possède(nom_union)) {
+                    return;
+                }
+
                 auto union_ = syntaxeuse.crée<DéclarationUnion>(cursor);
-                union_->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                union_->nom = nom_union;
 
                 syntaxeuse.noeud_courant.empile(union_);
                 converti_enfants(cursor, trans_unit, flux_sortie);
@@ -2628,27 +2645,32 @@ struct Convertisseuse {
             {
                 auto fonction = static_cast<DéclarationFonction *>(syntaxème);
 
-                imprime_tab(os);
-                os << fonction->nom << " :: fonc ";
+                if (!fonctions_déjà_déclarées.possède(fonction->nom)) {
+                    fonctions_déjà_déclarées.insère(fonction->nom);
 
-                kuri::chaine_statique virgule = "(";
-                POUR (fonction->paramètres) {
-                    if (it->est_variadique) {
-                        os << virgule << it->nom << ": ...";
+                    imprime_tab(os);
+                    os << fonction->nom << " :: fonc ";
+
+                    kuri::chaine_statique virgule = "(";
+                    POUR (fonction->paramètres) {
+                        if (it->est_variadique) {
+                            os << virgule << it->nom << ": ...";
+                        }
+                        else {
+                            os << virgule << it->nom << ": "
+                               << converti_type(it->type_c.value(), typedefs);
+                        }
+                        virgule = ", ";
                     }
-                    else {
-                        os << virgule << it->nom << ": "
-                           << converti_type(it->type_c.value(), typedefs);
+
+                    if (fonction->paramètres.taille() == 0) {
+                        os << virgule;
                     }
-                    virgule = ", ";
+
+                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
+                    os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 }
 
-                if (fonction->paramètres.taille() == 0) {
-                    os << virgule;
-                }
-
-                os << ") -> " << converti_type(fonction->type_sortie, typedefs);
-                os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 break;
             }
             case TypeSyntaxème::DÉCLARATION_VARIABLE:
@@ -2709,14 +2731,22 @@ struct Convertisseuse {
                 if (typedef_->type_fonction) {
                     auto fonction = typedef_->type_fonction;
 
-                    kuri::chaine_statique virgule = "fonc(";
-                    POUR (fonction->paramètres) {
-                        if (it->est_variadique) {
-                            std::cerr << donne_type_spelling(typedef_->type_défini) << "\n";
-                            os << virgule << "...";
+                    kuri::chaine_statique virgule = "fonc (";
+                    POUR_INDICE (fonction->paramètres) {
+                        os << virgule;
+                        if (it->nom.taille()) {
+                            os << it->nom << ": ";
                         }
                         else {
-                            os << virgule << converti_type(it->type_c.value(), typedefs);
+                            os << "arg" << indice_it << ": ";
+                        }
+
+                        if (it->est_variadique) {
+                            // std::cerr << donne_type_spelling(typedef_->type_défini) << "\n";
+                            os << "...";
+                        }
+                        else {
+                            os << converti_type(it->type_c.value(), typedefs);
                         }
                         virgule = ", ";
                     }
@@ -2725,7 +2755,7 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ")(" << converti_type(fonction->type_sortie, typedefs) << ")";
+                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
                 }
                 else {
                     os << converti_type(typedef_->type_source, typedefs);

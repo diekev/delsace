@@ -232,7 +232,7 @@ ajourne_moyenne :: fonc (m: $T, n: z64, valeur: T, type_moyenne: TypeMoyenne) ->
     retourne 0
 }
 
-moyenne_quasi_arithmétique :: fonc (données: []$T, primitive: fonc(T)(T), dérivée: fonc(T)(T)) -> T
+moyenne_quasi_arithmétique :: fonc (données: []$T, primitive: fonc (valeur: T) -> T, dérivée: fonc (valeur: T) -> T) -> T
 {
     si données.taille == 0 {
         retourne 0.0
