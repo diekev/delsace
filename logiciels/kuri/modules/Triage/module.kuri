@@ -1,6 +1,6 @@
 importe Algorithmes
 
-tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> rien
+tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc (a: T, b: T) -> bool) -> rien
 {
     pour i dans 0 ... éléments.taille - 2 {
         index_min : z64 = i
@@ -19,7 +19,7 @@ tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc(T, T)(bool)) -> 
 /** \nom Tri rapide des éléments d'un tableau.
  * \{ */
 
-tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc(T, T)(z32))
+tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc (a: T, b: T) -> z32)
 {
     premier := éléments.pointeur
     dernier := premier + éléments.taille
@@ -27,7 +27,7 @@ tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc(T, T)(z32))
     tri_rapide(premier, dernier, Comparaison)
 }
 
-tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32))
+tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc (a: T, b: T) -> z32)
 {
     si distance(premier, dernier) <= 1 {
         /* Retourne si la tranche est vide ou invalide. */
@@ -45,7 +45,7 @@ tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32))
 }
 
 /* Basée sur https://www.geeksforgeeks.org/quick-sort-in-c/ */
-partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T)(z32)) -> *T
+partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc (a: T, b: T) -> z32) -> *T
 {
     /* Le pivot est l'élément médian. */
     position_pivot := premier // + distance(premier, dernier) / 2
@@ -80,7 +80,7 @@ partition_tri_rapide :: fonc (premier: *$T, dernier: *T, $Comparaison: fonc(T, T
 /** \nom Tri rapide des indices des éléments d'un tableau selon les éléments.
  * \{ */
 
-tri_rapide :: fonc (indices: []$I, éléments: []$T, $Comparaison: fonc(T, T)(z32))
+tri_rapide :: fonc (indices: []$I, éléments: []$T, $Comparaison: fonc (a: T, b: T) -> z32)
 {
     assert(indices.taille == éléments.taille)
 
@@ -90,7 +90,7 @@ tri_rapide :: fonc (indices: []$I, éléments: []$T, $Comparaison: fonc(T, T)(z3
     tri_rapide(premier_indice, dernier_indice, éléments, Comparaison)
 }
 
-tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc(T, T)(z32))
+tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc (a: T, b: T) -> z32)
 {
     si distance(premier_indice, dernier_indice) <= 1 {
         /* Retourne si la tranche est vide ou invalide. */
@@ -108,7 +108,7 @@ tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $
 }
 
 /* Basée sur https://www.geeksforgeeks.org/quick-sort-in-c/ */
-partition_tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc(T, T)(z32)) -> *I
+partition_tri_rapide :: fonc (premier_indice: *$I, dernier_indice: *I, éléments: []$T, $Comparaison: fonc (a: T, b: T) -> z32) -> *I
 {
     /* Le pivot est l'élément médian. */
     position_pivot := premier_indice // + distance(premier, dernier) / 2

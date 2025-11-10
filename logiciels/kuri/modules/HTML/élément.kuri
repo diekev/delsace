@@ -3658,7 +3658,7 @@ HTMLScriptElement :: struct {
     // result : "uninitialized", null, scipt, import map parse result
     result: *Script
 
-    steps_to_run_when_the_result_is_ready: fonc(*HTMLScriptElement)(rien)
+    steps_to_run_when_the_result_is_ready: fonc (script: *HTMLScriptElement)
 }
 
 donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -4124,8 +4124,8 @@ mark_as_ready :: fonc (el: *HTMLScriptElement, result : *Script = nul)
 }
 
 ScriptFetchComplete :: struct {
-    sur_run: fonc(*ScriptFetchComplete, *Script)(rien)
-    sur_destruction: fonc(*ScriptFetchComplete)(rien)
+    sur_run: fonc (base: *ScriptFetchComplete, script: *Script)
+    sur_destruction: fonc (base: *ScriptFetchComplete)
 }
 
 crée_script_fetch_on_complete :: fonc ($T: type_de_données) -> *T
