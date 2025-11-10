@@ -28,7 +28,7 @@ ContexteDeFormattage :: struct {
     type: type_de_données
     parent: *ContexteDeFormattage
 
-    sur_formatte: fonc(*ContexteDeFormattage, *BlockBox, ModeDeFormattage, AvailableSpace)(rien)
+    sur_formatte: fonc (ctx: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, space: AvailableSpace)
 
     globales: *GlobalesDessin
     arbre: *ArbreDeDisposition

@@ -83,7 +83,7 @@ fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
 Tâche :: struct {
     id_tâche: pthread_t
 
-    rappel: fonc(*rien)(*rien)
+    rappel: fonc (arg: *rien) -> *rien
     données_rappel: *rien
 
     id: z32
@@ -103,7 +103,7 @@ lance_tâche :: fonc (tâche_: *rien) -> *rien
     retourne nul
 }
 
-crée_tâche :: fonc (rappel: fonc(*rien)(*rien), données_rappel: *rien) -> *Tâche
+crée_tâche :: fonc (rappel: fonc (arg: *rien) -> *rien, données_rappel: *rien) -> *Tâche
 {
     tâche := loge(Tâche)
     tâche.données_rappel = données_rappel

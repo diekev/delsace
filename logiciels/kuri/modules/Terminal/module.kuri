@@ -103,8 +103,8 @@ DécisionBoucleLEIB :: énum {
 // Lis Exécute Imprime Boucle
 // Read Execute Print Loop
 LEIB :: struct {
-    rappel_chaine_prompt: fonc(*LEIB)(chaine)
-    rappel_exécute: fonc(*LEIB, chaine)(DécisionBoucleLEIB)
+    rappel_chaine_prompt: fonc (leib: *LEIB) -> chaine
+    rappel_exécute: fonc (leib: *LEIB, commande: chaine) -> DécisionBoucleLEIB
 }
 
 lance :: fonc (leib: *LEIB)

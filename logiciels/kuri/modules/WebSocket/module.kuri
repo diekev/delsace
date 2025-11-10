@@ -183,7 +183,7 @@ Extrémité :: struct ($TypePrise: type_de_données, $est_cliente: bool) {
     parseuse: ParseuseFrame
     message_à_continuer: *Message
     prise: *TypePrise
-    sur_message: fonc (*TypePrise, OpCode, []octet)([..]octet)
+    sur_message: fonc (prise: *TypePrise, op: OpCode, données: []octet) -> [..]octet
 
     sec_websocket_key: [24]octet
     sec_websocket_accept: chaine
