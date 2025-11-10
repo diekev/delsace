@@ -3400,6 +3400,9 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
         eu_parenthèse = true;
     }
 
+    auto ancien_nous_sommes_dans_type = m_nous_sommes_dans_type;
+    m_nous_sommes_dans_type = true;
+
     while (!fini()) {
         auto decl_sortie = analyse_expression({}, GenreLexème::VIRGULE);
 
@@ -3430,6 +3433,8 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
 
         consomme();
     }
+
+    m_nous_sommes_dans_type = ancien_nous_sommes_dans_type;
 
     auto const nombre_de_valeurs_retournées = résultat.taille();
     if (nombre_de_valeurs_retournées == 0) {
