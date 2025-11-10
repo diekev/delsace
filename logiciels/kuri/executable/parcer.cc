@@ -90,6 +90,7 @@ struct Configuration {
     kuri::tableau<RubriqueEmployée> rubriques_employées{};
     kuri::ensemble<dls::chaine> fonctions_à_ignorer{};
     kuri::ensemble<dls::chaine> fichiers_à_inclure{};
+    kuri::ensemble<dls::chaine> types_à_ignorer{};
 };
 
 static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
@@ -278,6 +279,7 @@ static auto analyse_configuration(const char *chemin)
 
     config.fonctions_à_ignorer = parse_ensemble_de_chaines(dico, "fonctions_à_ignorer");
     config.fichiers_à_inclure = parse_ensemble_de_chaines(dico, "fichiers_à_inclure");
+    config.types_à_ignorer = parse_ensemble_de_chaines(dico, "types_à_ignorer");
 
     return config;
 }
@@ -1497,8 +1499,13 @@ struct Convertisseuse {
                     enfants_filtres.ajoute(enfant);
                 }
 
+                auto nom_structure = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                if (config->types_à_ignorer.possède(nom_structure)) {
+                    return;
+                }
+
                 auto structure = syntaxeuse.crée<DéclarationStruct>(cursor);
-                structure->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                structure->nom = nom_structure;
 
                 if (!enfants_filtres.est_vide()) {
                     syntaxeuse.noeud_courant.empile(structure);
@@ -1548,8 +1555,13 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_UnionDecl:
             {
+                auto nom_union = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                if (config->types_à_ignorer.possède(nom_union)) {
+                    return;
+                }
+
                 auto union_ = syntaxeuse.crée<DéclarationUnion>(cursor);
-                union_->nom = determine_nom_anomyme(cursor, typedefs, nombre_anonymes);
+                union_->nom = nom_union;
 
                 syntaxeuse.noeud_courant.empile(union_);
                 converti_enfants(cursor, trans_unit, flux_sortie);
