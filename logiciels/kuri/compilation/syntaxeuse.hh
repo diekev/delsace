@@ -101,6 +101,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     PortéeSymbole m_portée = PortéeSymbole::EXPORT;
 
+    // À FAIRE : supprime ceci et utilise un paramètre pour passer cette information.
+    bool m_nous_sommes_dans_type = false;
+
     kuri::pile<TableRéférences *> m_pile_tables_références{};
     kuri::tableau<TableRéférences *> m_tables_références{};
     bool m_désactive_réutilisation_référence = false;
@@ -199,6 +202,8 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                            NoeudDirectiveFonction *directive);
 
     NoeudInstructionImporte *analyse_importe(Lexème const *lexème, Lexème const *lexème_référence);
+
+    NoeudExpression *parse_expression_type(GenreLexème lexème_final);
 
     void empile_table_références();
     void dépile_table_références();
