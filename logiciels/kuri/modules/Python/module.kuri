@@ -482,7 +482,7 @@ BasePyBuffer :: struct {
     /* Nombre de fois que le tampon fut exporté. */
     exports: z32
 
-    remplis_champs_requis_py_buffer: fonc (*BasePyBuffer, *Py_buffer)(rien)
+    remplis_champs_requis_py_buffer: fonc (base_buffer: *BasePyBuffer, buffer: *Py_buffer)
 }
 
 /* Détermine la chaine de formattage pour un type de données, selon
