@@ -70,7 +70,7 @@ list_cons :: fonc (data: *rien, root: *LIST) -> *LIST #externe libmysqlclient
 list_reverse :: fonc (root: *LIST) -> *LIST #externe libmysqlclient
 list_free :: fonc (root: *LIST, free_data: n32) -> rien #externe libmysqlclient
 list_length :: fonc (root: *LIST) -> n32 #externe libmysqlclient
-list_walk :: fonc (root: *LIST, action: fonc(*rien, *rien)(z32), argument: *n8) -> z32 #externe libmysqlclient
+list_walk :: fonc (root: *LIST, action: fonc (a: *rien, b: *rien) -> z32, argument: *n8) -> z32 #externe libmysqlclient
 // A list of all MySQL protocol commands.
 enum_server_command :: énum n32 {
     // Currently refused by the server. See ::dispatch_command. Also used internally to mark the start of a session.
@@ -384,9 +384,9 @@ st_mysql_client_plugin :: struct #externe {
     version: [3]n32
     license: *z8
     mysql_api: *rien
-    init: fonc(*z8, n64, z32, *__va_list_tag)(z32)
-    deinit: fonc()(z32)
-    options: fonc(*z8, *rien)(z32)
+    init: fonc (arg0: *z8, arg1: n64, arg2: z32, arg3: *__va_list_tag) -> z32
+    deinit: fonc () -> z32
+    options: fonc (arg0: *z8, données: *rien) -> z32
 }
 
 MYSQL_PLUGIN_VIO_INFO :: struct #externe {
@@ -414,15 +414,15 @@ net_async_status :: énum n32 {
 // Provides plugin access to communication channel
 MYSQL_PLUGIN_VIO :: struct #externe {
     // Plugin provides a pointer reference and this function sets it to the contents of any incoming packet. Returns the packet length, or -1 if the plugin should terminate.
-    read_packet: fonc(*MYSQL_PLUGIN_VIO, **n8)(z32)
+    read_packet: fonc (plug: *MYSQL_PLUGIN_VIO, arg: **n8) -> z32
     // Plugin provides a buffer with data and the length and this function sends it as a packet. Returns 0 on success, 1 on failure.
-    write_packet: fonc(*MYSQL_PLUGIN_VIO, *n8, z32)(z32)
+    write_packet: fonc (plug: *MYSQL_PLUGIN_VIO, arg1: *n8, arg2: z32) -> z32
     // Fills in a MYSQL_PLUGIN_VIO_INFO structure, providing the information about the connection.
-    info: fonc(*MYSQL_PLUGIN_VIO, *MYSQL_PLUGIN_VIO_INFO)(rien)
+    info: fonc (plug: *MYSQL_PLUGIN_VIO, info: *MYSQL_PLUGIN_VIO_INFO)
     // Non blocking version of read_packet. This function points buf to starting position of incoming packet. When this function returns NET_ASYNC_NOT_READY plugin should call this function again until all incoming packets are read. If return code is NET_ASYNC_COMPLETE, plugin can do further processing of read packets.
-    read_packet_nonblocking: fonc(*MYSQL_PLUGIN_VIO, **n8, *z32)(net_async_status)
+    read_packet_nonblocking: fonc (plug: *MYSQL_PLUGIN_VIO, arg1: **n8, arg2: *z32) -> net_async_status
     // Non blocking version of write_packet. Sends data available in pkt of length pkt_len to server in asynchrnous way.
-    write_packet_nonblocking: fonc(*MYSQL_PLUGIN_VIO, *n8, z32, *z32)(net_async_status)
+    write_packet_nonblocking: fonc (plug: *MYSQL_PLUGIN_VIO, arg1: *n8, arg2: z32, arg3: *z32) -> net_async_status
 }
 
 // Do not not pull in the server header "my_inttypes.h" from client code. IWYU pragma: no_include "my_inttypes.h"
@@ -607,10 +607,10 @@ st_mysql_options :: struct #externe {
     // 0 - never report, 1 - always report (default)
     report_data_truncation: bool
     // function pointers for local infile support
-    local_infile_init: fonc(**rien, *z8, *rien)(z32)
-    local_infile_read: fonc(*rien, *z8, n32)(z32)
-    local_infile_end: fonc(*rien)(rien)
-    local_infile_error: fonc(*rien, *z8, n32)(z32)
+    local_infile_init: fonc (arg0: **rien, arg1: *z8, arg2: *rien) -> z32
+    local_infile_read: fonc (arg0: *rien, arg1: *z8, arg2: n32) -> z32
+    local_infile_end: fonc (arg0: *rien)
+    local_infile_error: fonc (arg0: *rien, arg1: *z8, arg2: n32) -> z32
     local_infile_userdata: *rien
     extension: *st_mysql_options_extention
 }
@@ -755,7 +755,7 @@ MYSQL_RPL :: struct #externe {
     // Size of gtid set data
     gtid_set_encoded_size: n64
     // Callback function which is called
-    fix_gtid_set: fonc(*MYSQL_RPL, *n8)(rien)
+    fix_gtid_set: fonc (rpl: *MYSQL_RPL, arg: *n8)
     gtid_set_arg: *rien
     // GTID set data or an argument for
     size: n64
@@ -782,9 +782,9 @@ MYSQL_BIND :: struct #externe {
     error: *bool
     // for the current data position
     row_ptr: *n8
-    store_param_func: fonc(*NET, *MYSQL_BIND)(rien)
-    fetch_result: fonc(*MYSQL_BIND, *MYSQL_FIELD, **n8)(rien)
-    skip_result: fonc(*MYSQL_BIND, *MYSQL_FIELD, **n8)(rien)
+    store_param_func: fonc (net: *NET, bind: *MYSQL_BIND)
+    fetch_result: fonc (bind: *MYSQL_BIND, field: *MYSQL_FIELD, arg: **n8)
+    skip_result: fonc (bind: *MYSQL_BIND, field: *MYSQL_FIELD, arg: **n8)
     // output buffer length, must be set when fetching str/binary
     buffer_length: n64
     // offset position for char/binary fetch
@@ -829,7 +829,7 @@ MYSQL_STMT :: struct #externe {
     // current row in cached result
     data_cursor: *MYSQL_ROWS
     // mysql_stmt_fetch() calls this function to fetch one row (it's different for buffered, unbuffered and cursor fetch).
-    read_row_func: fonc(*MYSQL_STMT, **n8)(z32)
+    read_row_func: fonc (stmt: *MYSQL_STMT, arg: **n8) -> z32
     // copy of mysql->affected_rows after statement execution
     affected_rows: n64
     // copy of mysql->insert_id
@@ -875,11 +875,11 @@ auth_plugin_t :: struct #externe {
     version: [3]n32
     license: *z8
     mysql_api: *rien
-    init: fonc(*z8, n64, z32, *__va_list_tag)(z32)
-    deinit: fonc()(z32)
-    options: fonc(*z8, *rien)(z32)
-    authenticate_user: fonc(*MYSQL_PLUGIN_VIO, *MYSQL)(z32)
-    authenticate_user_nonblocking: fonc(*MYSQL_PLUGIN_VIO, *MYSQL, *z32)(net_async_status)
+    init: fonc (arg0: *z8, arg1: n64, arg2: z32, arg3: *__va_list_tag) -> z32
+    deinit: fonc () -> z32
+    options: fonc (arg0: *z8, arg1: *rien) -> z32
+    authenticate_user: fonc (vio: *MYSQL_PLUGIN_VIO, mysql: *MYSQL) -> z32
+    authenticate_user_nonblocking: fonc (vio: *MYSQL_PLUGIN_VIO, mysql: *MYSQL, arg: *z32) -> net_async_status
 }
 
 enum_stmt_attr_type :: énum n32 {
@@ -996,7 +996,7 @@ mysql_select_db_nonblocking :: fonc (mysql: *MYSQL, db: *z8, error: *bool) -> ne
 mysql_get_character_set_info :: fonc (mysql: *MYSQL, charset: *MY_CHARSET_INFO) -> rien #externe libmysqlclient
 mysql_session_track_get_first :: fonc (mysql: *MYSQL, type: enum_session_state_type, data: **z8, length: *n64) -> z32 #externe libmysqlclient
 mysql_session_track_get_next :: fonc (mysql: *MYSQL, type: enum_session_state_type, data: **z8, length: *n64) -> z32 #externe libmysqlclient
-mysql_set_local_infile_handler :: fonc (mysql: *MYSQL, local_infile_init: fonc(**rien, *z8, *rien)(z32), local_infile_read: fonc(*rien, *z8, n32)(z32), local_infile_end: fonc(*rien)(rien), local_infile_error: fonc(*rien, *z8, n32)(z32), xx: *rien) -> rien #externe libmysqlclient
+mysql_set_local_infile_handler :: fonc (mysql: *MYSQL, local_infile_init: fonc (arg0: **rien, arg1: *z8, arg2: *rien) -> z32, local_infile_read: fonc (arg0: *rien, arg1: *z8, arg2: n32) -> z32, local_infile_end: fonc (arg0: *rien), local_infile_error: fonc (arg0: *rien, arg1: *z8, arg2: n32) -> z32, xx: *rien) -> rien #externe libmysqlclient
 mysql_set_local_infile_default :: fonc (mysql: *MYSQL) -> rien #externe libmysqlclient
 mysql_shutdown :: fonc (mysql: *MYSQL, shutdown_level: mysql_enum_shutdown_level) -> z32 #externe libmysqlclient
 mysql_dump_debug_info :: fonc (mysql: *MYSQL) -> z32 #externe libmysqlclient
