@@ -245,7 +245,7 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     retourne type_python
 }
 
-crée_type_python_pour_basique :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc(&FonctionsTypePython)(rien)) -> *TypePython
+crée_type_python_pour_basique :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc (arg: &FonctionsTypePython)) -> *TypePython
 {
     résultat := système.crée_type_python_pour(info, nom)
     résultat.est_basique = vrai
