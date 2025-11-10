@@ -745,16 +745,17 @@ static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs con
     auto nombre_args = clang_getNumArgTypes(type);
 
     auto flux = std::stringstream();
-    flux << "fonc(";
+    flux << "fonc (";
 
     for (int i = 0; i < nombre_args; i++) {
         if (i > 0) {
             flux << ", ";
         }
+        flux << "arg" << i << ": ";
         flux << converti_type(clang_getArgType(type, uint32_t(i)), typedefs);
     }
 
-    flux << ")(" << converti_type(clang_getResultType(type), typedefs) << ")";
+    flux << ") -> " << converti_type(clang_getResultType(type), typedefs);
 
     return flux.str();
 }
@@ -2730,14 +2731,22 @@ struct Convertisseuse {
                 if (typedef_->type_fonction) {
                     auto fonction = typedef_->type_fonction;
 
-                    kuri::chaine_statique virgule = "fonc(";
-                    POUR (fonction->paramètres) {
-                        if (it->est_variadique) {
-                            std::cerr << donne_type_spelling(typedef_->type_défini) << "\n";
-                            os << virgule << "...";
+                    kuri::chaine_statique virgule = "fonc (";
+                    POUR_INDICE (fonction->paramètres) {
+                        os << virgule;
+                        if (it->nom.taille()) {
+                            os << it->nom << ": ";
                         }
                         else {
-                            os << virgule << converti_type(it->type_c.value(), typedefs);
+                            os << "arg" << indice_it << ": ";
+                        }
+
+                        if (it->est_variadique) {
+                            // std::cerr << donne_type_spelling(typedef_->type_défini) << "\n";
+                            os << "...";
+                        }
+                        else {
+                            os << converti_type(it->type_c.value(), typedefs);
                         }
                         virgule = ", ";
                     }
@@ -2746,7 +2755,7 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ")(" << converti_type(fonction->type_sortie, typedefs) << ")";
+                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
                 }
                 else {
                     os << converti_type(typedef_->type_source, typedefs);
