@@ -216,7 +216,7 @@ skip_ascii_whitespace :: fonc (input: ChaineUTF16, position: *PositionVariable)
 }
 
 /* https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points */
-collect_a_sequence_of_code_points :: fonc (input: ChaineUTF16, position: *PositionVariable, condition: fonc(n16)(bool)) -> ChaineUTF16
+collect_a_sequence_of_code_points :: fonc (input: ChaineUTF16, position: *PositionVariable, condition: fonc (unité: n16) -> bool) -> ChaineUTF16
 {
     // 1. Let result be the empty string.
     result: ChaineUTF16
