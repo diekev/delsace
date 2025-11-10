@@ -1188,7 +1188,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
 
             if (apparie(GenreLexème::DOUBLE_POINTS)) {
                 consomme();
-                noeud_decl_param->expression_type = analyse_expression({}, lexème_final);
+                noeud_decl_param->expression_type = parse_expression_type(lexème_final);
                 /* Nous avons une déclaration de valeur polymorphique, retournons-la. */
                 noeud_decl_param->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
                 return noeud_decl_param;
@@ -1374,8 +1374,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         consomme();
                         auto noeud = m_contexte->assembleuse->crée_type_opaque(gauche->lexème);
                         m_est_déclaration_type_opaque = true;
-                        noeud->expression_type = analyse_expression(données_précédence,
-                                                                    lexème_final);
+                        noeud->expression_type = parse_expression_type(lexème_final);
                         m_est_déclaration_type_opaque = false;
                         noeud->bloc_parent->ajoute_rubrique(noeud);
                         recycle_référence(gauche->comme_référence_déclaration());
@@ -1434,7 +1433,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 auto decl = m_contexte->assembleuse->crée_déclaration_variable_multiple(
                     lexème, nullptr, nullptr, m_noeud_expression_virgule);
                 analyse_annotations(decl->annotations);
-                decl->expression_type = analyse_expression(données_précédence, lexème_final);
+                decl->expression_type = parse_expression_type(lexème_final);
                 analyse_annotations(decl->annotations);
 
                 if (m_contexte->assembleuse->bloc_courant()->type_bloc == TypeBloc::IMPÉRATIF) {
@@ -1449,7 +1448,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 auto decl = m_contexte->assembleuse->crée_déclaration_variable(
                     gauche->comme_référence_déclaration());
                 recycle_référence(gauche->comme_référence_déclaration());
-                decl->expression_type = analyse_expression(données_précédence, lexème_final);
+                decl->expression_type = parse_expression_type(lexème_final);
                 if (m_contexte->assembleuse->bloc_courant()->type_bloc == TypeBloc::IMPÉRATIF) {
                     decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
                 }
@@ -1640,6 +1639,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
+            /* parse_expression_type ne peut pas être utilisé ici car la précédence utilisée
+             * pourrait nous faire parser des expressions invalides. */
             auto expression_type = analyse_expression_primaire(GenreLexème::INCONNU);
             return m_contexte->assembleuse->crée_comme(lexème, gauche, expression_type);
         }
@@ -2338,16 +2339,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_crochet_ouvrant(Lexème const *l
         consomme();
         consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
 
-        auto expression_type = analyse_expression({PRÉCÉDENCE_TYPE, Associativité::GAUCHE},
-                                                  lexème_final);
+        auto expression_type = parse_expression_type(lexème_final);
         return m_contexte->assembleuse->crée_expression_type_tableau_dynamique(lexème,
                                                                                expression_type);
     }
 
     if (apparie(GenreLexème::CROCHET_FERMANT)) {
         consomme();
-        auto expression_type = analyse_expression({PRÉCÉDENCE_TYPE, Associativité::GAUCHE},
-                                                  lexème_final);
+        auto expression_type = parse_expression_type(lexème_final);
         return m_contexte->assembleuse->crée_expression_type_tranche(lexème, expression_type);
     }
 
@@ -2366,8 +2365,7 @@ NoeudExpressionTypeTableauFixe *Syntaxeuse::parse_type_tableau_fixe(Lexème cons
     consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
 
     /* Nous avons l'expression d'un type tableau fixe. */
-    auto expression_type = analyse_expression({PRÉCÉDENCE_TYPE, Associativité::GAUCHE},
-                                              lexème_final);
+    auto expression_type = parse_expression_type(lexème_final);
 
     if (expression_entre_crochets->possède_drapeau(
             DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
@@ -2503,7 +2501,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
 
     if (lexème->genre != GenreLexème::ERREUR) {
         if (!apparie(GenreLexème::ACCOLADE_OUVRANTE)) {
-            noeud_decl->expression_type = analyse_expression_primaire(GenreLexème::INCONNU);
+            noeud_decl->expression_type = parse_expression_type(GenreLexème::INCONNU);
         }
     }
 
@@ -2666,32 +2664,33 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
     ignore_point_virgule_implicite();
 
-    sauvegarde_position_lexème();
-
     auto lexème_suivant_défini_fonction = false;
-    while (!fini()) {
-        auto lexème_spéculatif = lexème_courant();
-        if (lexème_spéculatif->genre == GenreLexème::DIRECTIVE) {
-            lexème_suivant_défini_fonction = true;
+    if (!m_nous_sommes_dans_type) {
+        sauvegarde_position_lexème();
+
+        while (!fini()) {
+            auto lexème_spéculatif = lexème_courant();
+            if (lexème_spéculatif->genre == GenreLexème::DIRECTIVE) {
+                lexème_suivant_défini_fonction = true;
+                break;
+            }
+
+            if (lexème_spéculatif->genre == GenreLexème::POUSSE_CONTEXTE) {
+                lexème_suivant_défini_fonction = true;
+                break;
+            }
+
+            if (lexème_spéculatif->genre == GenreLexème::ACCOLADE_OUVRANTE) {
+                lexème_suivant_défini_fonction = true;
+                break;
+            }
+
             break;
         }
 
-        if (lexème_spéculatif->genre == GenreLexème::POUSSE_CONTEXTE) {
-            lexème_suivant_défini_fonction = true;
-            break;
-        }
-
-        if (lexème_spéculatif->genre == GenreLexème::ACCOLADE_OUVRANTE) {
-            lexème_suivant_défini_fonction = true;
-            break;
-        }
-
-        break;
+        restaure_position_lexème();
     }
 
-    restaure_position_lexème();
-
-    // À FAIRE : nous_sommes_dans_une_déclaration_de_type
     if (!lexème_suivant_défini_fonction) {
         /* dépile le bloc des paramètres */
         m_contexte->assembleuse->dépile_bloc();
@@ -4006,6 +4005,18 @@ NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
     consomme();
 
     return noeud;
+}
+
+NoeudExpression *Syntaxeuse::parse_expression_type(GenreLexème lexème_final)
+{
+    auto ancien_nous_sommes_dans_type = m_nous_sommes_dans_type;
+    m_nous_sommes_dans_type = true;
+
+    auto résultat = analyse_expression({PRÉCÉDENCE_TYPE, Associativité::GAUCHE}, lexème_final);
+
+    m_nous_sommes_dans_type = ancien_nous_sommes_dans_type;
+
+    return résultat;
 }
 
 void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
