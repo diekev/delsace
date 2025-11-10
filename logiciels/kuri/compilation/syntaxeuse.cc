@@ -1170,18 +1170,11 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
             auto noeud_decl_param = m_contexte->assembleuse->crée_déclaration_constante(
                 lexème, nullptr, nullptr);
             noeud->déclaration_référée = noeud_decl_param;
-
-            if (!bloc_constantes_polymorphiques.est_vide()) {
-                auto bloc_constantes = bloc_constantes_polymorphiques.haut();
-
-                if (bloc_constantes->declaration_pour_ident(noeud->ident) != nullptr) {
-                    recule();
-                    rapporte_erreur("redéfinition du type polymorphique");
-                }
-
-                bloc_constantes->ajoute_rubrique(noeud_decl_param);
+            if (constantes_polymorphiques_est_ouvert > 0) {
+                constantes_polymorphiques.ajoute(noeud_decl_param);
             }
             else if (!m_est_déclaration_type_opaque) {
+                recule();
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
                                 "structure, ou de la déclaration d'un type opaque");
             }
@@ -2627,7 +2620,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     auto bloc_paramètres = m_contexte->assembleuse->empile_bloc(
         lexème_bloc, nullptr, TypeBloc::PARAMÈTRES);
 
-    bloc_constantes_polymorphiques.empile(bloc_constantes);
+    constantes_polymorphiques_est_ouvert += 1;
 
     /* analyse les paramètres de la fonction */
     auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -2704,8 +2697,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         copie_tablet_tableau(params, résultat->types_entrée);
         copie_tablet_tableau(params_sortie, résultat->types_sortie);
 
-        // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
-        bloc_constantes_polymorphiques.depile();
+        constantes_polymorphiques_est_ouvert -= 1;
+
         dépile_état();
         return résultat;
     }
@@ -2731,10 +2724,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     noeud->bloc_paramètres = bloc_paramètres;
     bloc_paramètres->appartiens_à_fonction = noeud;
 
-    auto bloc_constantes_courant = bloc_constantes_polymorphiques.depile();
-    assert_rappel(bloc_constantes_courant == bloc_constantes,
-                  [&]() { dbg() << erreur::imprime_site(*m_unité->espace, noeud); });
-    if (bloc_constantes->nombre_de_rubriques() != 0) {
+    if (transfère_constantes_polymorphiques(bloc_constantes)) {
         noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
     }
 
@@ -3192,7 +3182,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         noeud->bloc_paramètres = m_contexte->assembleuse->empile_bloc(
             lexème_bloc, noeud, TypeBloc::PARAMÈTRES);
 
-        bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
+        constantes_polymorphiques_est_ouvert += 1;
 
         /* analyse les paramètres de la fonction */
         auto params = kuri::tablet<NoeudExpression *, 16>();
@@ -3219,8 +3209,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
 
         copie_tablet_tableau(params, noeud->params);
 
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->nombre_de_rubriques() != 0) {
+        if (transfère_constantes_polymorphiques(noeud->bloc_constantes)) {
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
         }
 
@@ -3640,13 +3629,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
     noeud->bloc_constantes = m_contexte->assembleuse->empile_bloc(
         lexème_courant(), nullptr, TypeBloc::CONSTANTES);
 
-    bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
-    SUR_SORTIE_PORTEE {
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
-        if (bloc_constantes->nombre_de_rubriques() != 0) {
-            noeud->est_polymorphe = true;
-        }
-    };
+    constantes_polymorphiques_est_ouvert += 1;
 
     consomme();
 
@@ -3667,6 +3650,10 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
     }
 
     consomme();
+
+    if (transfère_constantes_polymorphiques(noeud->bloc_constantes)) {
+        noeud->est_polymorphe = true;
+    }
 }
 
 void Syntaxeuse::analyse_rubriques_structure_ou_union(NoeudDéclarationClasse *decl_struct)
@@ -4034,4 +4021,16 @@ void Syntaxeuse::imprime_ligne_source(const Lexème *lexème, kuri::chaine_stati
     Enchaineuse enchaineuse;
     imprime_ligne_avec_message(enchaineuse, SiteSource::cree(m_fichier, lexème), message);
     dbg() << enchaineuse.chaine();
+}
+
+bool Syntaxeuse::transfère_constantes_polymorphiques(NoeudBloc *bloc)
+{
+    auto résultat = constantes_polymorphiques.taille() != 0;
+    POUR (constantes_polymorphiques) {
+        bloc->ajoute_rubrique(it);
+    }
+    constantes_polymorphiques_est_ouvert -= 1;
+    assert(constantes_polymorphiques_est_ouvert >= 0);
+    constantes_polymorphiques.efface();
+    return résultat;
 }

@@ -35,8 +35,10 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     bool m_est_déclaration_type_opaque = false;
 
-    /* Bloc courant recevant les constantes polymorphiques. */
-    kuri::pile<NoeudBloc *> bloc_constantes_polymorphiques{};
+    /* Accumulateur pour les constantes polymorphiques. Il doit être vidé lors des parsages des
+     * fonctions et des types. */
+    int constantes_polymorphiques_est_ouvert = 0;
+    kuri::tableau<NoeudDéclarationConstante *> constantes_polymorphiques{};
 
     kuri::pile<NoeudDéclarationEntêteFonction *> fonctions_courantes{};
 
@@ -146,4 +148,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void recycle_référence(NoeudExpressionRéférence *référence);
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
+
+    bool transfère_constantes_polymorphiques(NoeudBloc *bloc);
 };

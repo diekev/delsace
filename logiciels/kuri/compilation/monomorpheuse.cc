@@ -856,6 +856,10 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
         erreur_référence_inconnue(reference);
         return nullptr;
     }
+    if (!item->type) {
+        erreur_référence_inconnue(reference);
+        return nullptr;
+    }
 
     if (item->type->est_type_type_de_données()) {
         return item->type->comme_type_type_de_données()->type_connu;

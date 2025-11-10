@@ -799,7 +799,7 @@ marque_param_modifié :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètr
 
 /* À FAIRE(langage) : impossible d'avoir un paramètre de sous-type dans un type de fonction polymorphique.
  * Le paramètre $TP devrait être TableParamètres.Paramètre, mais ceci échoue. */
-définis_valeur_param :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: $T, lecture_valeur: fonc($TP)(T), définition_valeur: fonc(TP, T)(rien))
+définis_valeur_param :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: $T, lecture_valeur: fonc (param: $TP) -> T, définition_valeur: fonc (param: TP, valeur: T))
 {
     ancienne_valeur := lecture_valeur(param)
     si ancienne_valeur == nouvelle_valeur {
