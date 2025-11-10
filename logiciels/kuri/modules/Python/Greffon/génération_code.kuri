@@ -29,7 +29,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
     /* Déclare les fonctions get/set. */
     pour type.rubriques {
         type_rubrique := it.type
-        // get : fonc (*PyObject, *rien)(*PyObject)
+        // get : fonc (object: *PyObject, data: *rien) -> *PyObject
 
         enchaineuse.ajoute_au_tampon("get_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, closure: *rien@inutilisée) -> *PyObject\n")
         enchaineuse.ajoute_au_tampon("{\n")
@@ -53,7 +53,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         enchaineuse.ajoute_au_tampon("}\n")
 
         si it.confidentialité == ConfidentialitéType.MUTABLE {
-            // set : fonc (*PyObject, *PyObject, *rien)(z32)
+            // set : fonc (instance: *PyObject, valeur: *PyObject, data: *rien) -> z32
             // retourne 0 pour un succès
             // retourne -1 pour une erreur
             enchaineuse.ajoute_au_tampon("set_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32\n")

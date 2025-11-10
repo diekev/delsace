@@ -17,7 +17,7 @@ donne_argument :: fonc (params: *ParamètresObjectCall, indice: z64) -> Valeur
     retourne params.arguments[indice]
 }
 
-TypeFonctionObjectCall :: fonc(*ParamètresObjectCall)(Valeur)
+TypeFonctionObjectCall :: fonc (params: *ParamètresObjectCall) -> Valeur
 
 ParamètresObjectConstruct :: struct {
     object: *Object
@@ -34,7 +34,7 @@ donne_argument :: fonc (params: *ParamètresObjectConstruct, indice: z64) -> Val
     retourne params.arguments[indice]
 }
 
-TypeFonctionObjectConstruct :: fonc(*ParamètresObjectConstruct)(Valeur)
+TypeFonctionObjectConstruct :: fonc (params: *ParamètresObjectConstruct) -> Valeur
 
 TableVirtuelleObject :: struct {
     empl base_virtuelle_cellule: TableVirtuelleCellule
