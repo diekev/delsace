@@ -305,7 +305,7 @@ DistanceVoronoi :: énum {
     MINKOVSKY
 }
 
-fonction_distance_pour_voronoi :: fonc (distance: DistanceVoronoi) -> fonc(r32, r32, r32, r32)(r32)
+fonction_distance_pour_voronoi :: fonc (distance: DistanceVoronoi) -> fonc (x: r32, y: r32, z: r32, exposant: r32) -> r32
 {
     discr distance {
         RÉELLE {
