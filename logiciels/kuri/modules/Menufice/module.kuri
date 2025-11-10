@@ -180,7 +180,7 @@ bouton_coche_sur_clic :: fonc (bouton: *BoutonCoche)
     bouton.sur_définis_coche(bouton.données, !bouton.sur_donne_coche(bouton.données))
 }
 
-crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc(*T)(bool), sur_définis_coche: fonc(*T, bool)(rien)) -> *BoutonCoche
+crée_bouton_coche :: fonc (texte: chaine, données: *$T, sur_donne_coche: fonc (bouton: *T) -> bool, sur_définis_coche: fonc (bouton: *T, est_coché: bool)) -> *BoutonCoche
 {
     résultat := loge(BoutonCoche)
     // À FAIRE : fuite de mémoire
