@@ -214,9 +214,9 @@ est_sur_sélectionné :: fonc (sélection: *ÉtatSélection, point: Point2D(r32)
 GéométrieSélection :: struct {
     // m2v: fonc (*GéométrieSélection, Point2D(r32)) -> Point2D(r32)
 
-    sur_grandis_chemin: fonc (*GéométrieSélection, *CheminSélection, Point2D(r32))(rien)
+    sur_grandis_chemin: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, point: Point2D(r32))
 
-    sur_domaine_sélection: fonc (*GéométrieSélection, *CheminSélection, *[..]z32)([..]z32)
+    sur_domaine_sélection: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, points: *[..]z32) -> [..]z32
 
     // step(dir, vpoint)
 

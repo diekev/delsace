@@ -173,7 +173,7 @@ SSL_CTX_set_client_CA_list :: fonc (contexte_ssl: *SSL_CTX, ca_list: *STACK_OF_X
 
 SSL_CTX_load_verify_locations :: fonc (ctx: *SSL_CTX, CAfile: ChaineC, CApath: ChaineC) -> z32 #externe libssl
 
-verify_callback_type :: fonc (z32, *X509_STORE_CTX)(z32)
+verify_callback_type :: fonc (arg0: z32, ctx: *X509_STORE_CTX) -> z32
 SSL_CTX_set_verify :: fonc (ctx: *SSL_CTX, mode: z32, cb: verify_callback_type) -> rien #externe libssl
 
 // ceci est un macro en C
