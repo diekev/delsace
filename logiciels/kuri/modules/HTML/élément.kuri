@@ -470,14 +470,6 @@ unblock_rendering_on :: fonc (el: *Element)
 
     // 2. Remove el from document's render-blocking element set.
     tableau_supprime_valeur(*document.render_blocking_elements, el)
-
-    // @inspécifié
-    si document.render_blocking_elements.taille == 0 {
-        ua := document.donne_user_agent()
-        si ua {
-            requiers_rendu(ua)
-        }
-    }
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
