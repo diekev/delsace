@@ -2207,15 +2207,15 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
-            auto type_de_donnees = noeud->type->comme_type_type_de_données();
-
-            if (type_de_donnees->type_connu) {
-                empile_valeur(m_constructrice.crée_constante_type(type_de_donnees->type_connu),
-                              noeud);
-                return;
+            auto type_de_données = noeud->type->comme_type_type_de_données();
+            Type *type = type_de_données;
+            if (type_de_données->type_connu) {
+                type = type_de_données->type_connu;
             }
 
-            empile_valeur(m_constructrice.crée_constante_type(type_de_donnees), noeud);
+            crée_info_type(type, noeud);
+
+            empile_valeur(m_constructrice.crée_constante_type(type), noeud);
             break;
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:

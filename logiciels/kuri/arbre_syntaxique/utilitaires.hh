@@ -332,6 +332,8 @@ enum {
 
     /* Référence rubrique. */
     PEUT_ÊTRE_APPEL_UNIFORME,
+
+    EXPRESSION_TYPE_VIENT_DE_TYPE_DE,
 };
 
 /* Le genre d'une valeur, gauche, droite, ou transcendantale.

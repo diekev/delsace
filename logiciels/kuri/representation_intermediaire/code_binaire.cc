@@ -1776,8 +1776,13 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         case Atome::Genre::CONSTANTE_TYPE:
         {
             auto type = atome->comme_constante_type()->donne_type();
-            assert_rappel(type->atome_info_type,
-                          [&]() { dbg() << "Pas d'atome_info_type pour " << chaine_type(type); });
+            assert_rappel(type->atome_info_type, [&]() {
+                dbg() << "Pas d'atome_info_type pour " << chaine_type(type) << " (" << type << ")";
+                if (fonction_courante) {
+                    dbg() << "... dans la fonction " << fonction_courante->ident->nom;
+                    dbg() << erreur::imprime_site(*espace, fonction_courante);
+                }
+            });
             chunk.émets_référence_globale(nullptr, type->atome_info_type->index);
             break;
         }

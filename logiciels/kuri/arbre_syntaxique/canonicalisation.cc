@@ -255,6 +255,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             /* change simplement le genre du noeud car le type de l'expression est le type de sa
              * sous expression */
             noeud->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE;
+            noeud->aide_génération_code = EXPRESSION_TYPE_VIENT_DE_TYPE_DE;
             return noeud;
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
