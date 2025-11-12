@@ -744,6 +744,19 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
 }
 
+crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Response
+{
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
+    diffère détruit_chemin(chemin_parent_ci_fichier)
+
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html"
+    diffère détruit_chemin(chemin_fichier)
+
+    _, contenu := contenu_fichier_texte(chemin_fichier)
+    résultat := crée_réponse_pour_fichier(request, "text/html", contenu, 0)
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1812,7 +1825,7 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
 
     // 7. If request’s redirect count is 20, then return a network error.
     si request.redirect_count == 20 {
-        retourne network_error(request)
+        retourne crée_réponse_pour_trop_de_redirections(request)
     }
 
     // 8. Increase request’s redirect count by 1.
