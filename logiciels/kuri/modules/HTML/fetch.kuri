@@ -1797,7 +1797,10 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
         retourne response
     }
 
-    // À FAIRE 5. If locationURL is failure, then return a network error.
+    // 5. If locationURL is failure, then return a network error.
+    si is_failure(location_url) {
+        retourne network_error(request)
+    }
 
     // 6. If locationURL’s scheme is not an HTTP(S) scheme, then return a network error.
     saufsi is_http_scheme(location_url.scheme) {
