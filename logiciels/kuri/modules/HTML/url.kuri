@@ -301,6 +301,12 @@ shorten_path :: fonc (url: *URL)
     url.path = path
 }
 
+is_failure :: fonc (url: *URL) -> bool
+{
+    // À FAIRE : retourne une valeur plus spécifique du parseuse
+    retourne url == nul
+}
+
 /* https://url.spec.whatwg.org/#special-scheme */
 SchémaSpécial :: struct {
     nom: ChaineASCII
@@ -577,7 +583,7 @@ url_parser :: fonc (user_agent: *UserAgent, input: ChaineUTF16, base : *URL = nu
     url := basic_url_parser(input, base = base)
 
     // 2. If url is failure, return failure.
-    saufsi url {
+    si is_failure(url) {
         retourne nul
     }
 
