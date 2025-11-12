@@ -301,10 +301,21 @@ shorten_path :: fonc (url: *URL)
     url.path = path
 }
 
+#portée_fichier
+
+__failure_url: URL = --- #mémoire_globale
+
+#portée_export
+
+donne_failure_url :: fonc () -> *URL
+{
+    retourne *__failure_url
+}
+
 is_failure :: fonc (url: *URL) -> bool
 {
     // À FAIRE : retourne une valeur plus spécifique du parseuse
-    retourne url == nul
+    retourne url == *__failure_url
 }
 
 /* https://url.spec.whatwg.org/#special-scheme */
@@ -584,7 +595,7 @@ url_parser :: fonc (user_agent: *UserAgent, input: ChaineUTF16, base : *URL = nu
 
     // 2. If url is failure, return failure.
     si is_failure(url) {
-        retourne nul
+        retourne donne_failure_url()
     }
 
     // 3. If url’s scheme is not "blob", return url.
@@ -777,10 +788,11 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
             arrête
         }
 
+        assert(résultat_parsage == RésultatParsageURL.Échec)
         si résultat != url {
             détruit_url(résultat)
         }
-        retourne nul
+        retourne donne_failure_url()
     }
 
     // 10. Return url.

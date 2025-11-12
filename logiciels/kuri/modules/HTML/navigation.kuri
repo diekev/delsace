@@ -1597,7 +1597,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         location_url = donne_location_url(response, user_agent, current_url.fragment)
 
         // 15. If locationURL is failure or null, then break.
-        si is_failure(location_url) {
+        si is_failure(location_url) || location_url == nul {
             arrête
         }
 
