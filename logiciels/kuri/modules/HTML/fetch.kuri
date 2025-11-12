@@ -1741,7 +1741,10 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
                     sur_next_manual_redirect :: fonc (base: *Algorithm)
                     {
                         empl params := base comme *NextManualRedirect
-                        _ := http_redirect_fetch(user_agent, fetch_params, response)
+                        nouvelle_réponse := http_redirect_fetch(user_agent, fetch_params, response)
+                        si fetch_params.process_response {
+                            fetch_params.process_response.sur_rappel(fetch_params.process_response, nouvelle_réponse)
+                        }
                     }
 
                     next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect)
