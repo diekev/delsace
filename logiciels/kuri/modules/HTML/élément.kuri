@@ -470,14 +470,6 @@ unblock_rendering_on :: fonc (el: *Element)
 
     // 2. Remove el from document's render-blocking element set.
     tableau_supprime_valeur(*document.render_blocking_elements, el)
-
-    // @inspécifié
-    si document.render_blocking_elements.taille == 0 {
-        ua := document.donne_user_agent()
-        si ua {
-            requiers_rendu(ua)
-        }
-    }
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
@@ -2930,7 +2922,7 @@ create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOpt
     url := encoding_parse_a_url(user_agent, options.href, options.base_url)
 
     // 4. If url is failure, then return null.
-    saufsi url {
+    si is_failure(url) {
         retourne nul
     }
 
@@ -3478,7 +3470,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
 
         // 3. If url is failure, then fire an event named error at the element and
         //    jump to the step below labeled fallback.
-        saufsi url {
+        si is_failure(url) {
             queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
             object_représente_fallback(object)
             retourne
@@ -3846,7 +3838,7 @@ prépare :: fonc (el: *HTMLScriptElement)
         url := encoding_parse_a_url(src, el.document)
 
         // 6. If url is failure, then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
-        saufsi url {
+        si is_failure(url) {
             queue_a_task_to_fire_error_at_element(user_agent, el)
             retourne
         }
