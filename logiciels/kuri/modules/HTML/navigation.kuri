@@ -3021,7 +3021,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // 3. Let permissionsPolicy be the result of creating a permissions policy from a response
     // given navigationParams's navigable's container, navigationParams's origin, and navigationParams's response. [PERMISSIONSPOLICY]
     container := donne_container(navigation_params.navigable)
-    permissions_policy := create_a_permissions_policy_for_a_navigable_from_respone(container, navigation_params.origin, navigation_params.response)
+    permissions_policy := create_a_permissions_policy_for_a_navigable_from_response(container, navigation_params.origin, navigation_params.response)
 
     // 4. Let creationURL be navigationParams's response's URL.
     creation_url := navigation_params.response.donne_url()
