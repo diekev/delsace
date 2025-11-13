@@ -95,6 +95,17 @@ static const char *copie_déclaration_référée = R"(
             }
 )";
 
+const auto source_création_tableau_noeuds_code = R"(
+            if (racine_typee == racine) {
+                auto noeuds_statique = mémoire::loge_tableau<NoeudCode *>("", this->noeuds.taille());
+                n->noeuds = kuri::tableau_statique(noeuds_statique, this->noeuds.taille());
+                POUR (this->noeuds) {
+                    *noeuds_statique++ = it;
+                }
+                this->noeuds.efface();
+            }
+)";
+
 static const IdentifiantADN &type_nominal_rubrique_pour_noeud_code(Type *type)
 {
     if (type->est_tableau()) {
@@ -801,6 +812,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     génère_déclaration_fonctions_discrimination(os, nom_noeud, nom_comme);
                 }
             }
+            else if (nom_code.nom() == "NoeudCodeCorpsFonction") {
+                os << "    kuri::tableau_statique<NoeudCode *> noeuds{};\n";
+            }
 
             os << "};\n\n";
         }
@@ -862,10 +876,12 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
               "&gérante_chaine, NoeudCode *racine);\n\n";
         os << "\tNoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression "
               "*racine);\n\n";
-        os << "\tInfoType *crée_info_type_pour(Typeuse &typeuse, Type *type);\n\n";
+        os << "\tInfoType *crée_info_type_pour(EspaceDeTravail *espace, Typeuse &typeuse, Type "
+              "*type);\n\n";
         os << "\tType *convertis_info_type(Typeuse &typeuse, InfoType *type);\n\n";
         os << "\tvoid rassemble_statistiques(Statistiques &stats) const;\n\n";
         os << "\tint64_t mémoire_utilisée() const;\n";
+        os << "\tkuri::tableau<NoeudCode *> noeuds{};\n";
 
         os << "};\n\n";
     }
@@ -885,6 +901,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\t\treturn nullptr;\n";
         os << "\t}\n";
         os << "\tif (racine->noeud_code) {\n";
+        os << "\t\tthis->noeuds.ajoute(racine->noeud_code);\n";
         os << "\t\treturn racine->noeud_code;\n";
         os << "\t}\n";
         os << "\tNoeudCode *noeud = nullptr;\n";
@@ -907,8 +924,13 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
+            if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
+                os << "\t\t\tthis->noeuds.efface();\n";
+            }
+
             os << "\t\t\tauto n = noeuds_code_" << it->accede_nom_comme()
                << ".ajoute_élément();\n";
+            os << "\t\t\tthis->noeuds.ajoute(n);\n";
             // Renseigne directement le noeud code afin d'éviter les boucles infinies résultant en
             // des surempilages d'appels quand nous convertissons notamment les entêtes et les
             // corps de fonctions qui se référencent mutuellement.
@@ -1009,10 +1031,24 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 });
 
             os << "\t\t\tn->genre = racine_typee->genre;\n";
-            os << "\t\t\tn->type = crée_info_type_pour(espace->typeuse, "
+            os << "\t\t\tif (racine_typee->est_déclaration_type()) {\n";
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace, espace->typeuse, "
+                  "racine_typee->comme_déclaration_type());\n";
+            os << "\t\t\t}\n";
+            os << "\t\t\telse {\n";
+            os << "\t\t\t\tn->type = crée_info_type_pour(espace, espace->typeuse, "
                   "racine_typee->type);\n";
+            os << "\t\t\t}\n";
             os << "\t\t\tif (racine_typee->ident) { n->nom = racine_typee->ident->nom; } else if "
                   "(racine_typee->lexème) { n->nom = racine_typee->lexème->chaine; }\n";
+
+            if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
+                os << source_création_tableau_noeuds_code;
+            }
+            else if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
+                os << "n->est_polymorphique = "
+                      "racine_typee->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);\n";
+            }
 
             os << "\t\t\tnoeud = n;\n";
             os << "\t\t\tbreak;\n";
@@ -1751,7 +1787,7 @@ int main(int argc, char **argv)
             }
         }
         {
-            // Génère le fichier de message pour le module Compilatrice
+            // Génère le fichier de code pour le module Compilatrice
             // Apparemment, ce n'est pas possible de le faire via CMake
             nom_fichier_sortie.remplace_nom_fichier("../modules/Compilatrice/code.kuri");
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));

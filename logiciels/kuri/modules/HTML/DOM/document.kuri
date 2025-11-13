@@ -723,10 +723,6 @@ has_no_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> boo
 définis_ajournement_arbre :: fonc (document: *Document, ajournement: CSS.AjournementArbre)
 {
     document.ajournement_arbre |= ajournement
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
 }
 
 #portée_export
@@ -908,6 +904,41 @@ is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
 /** \nom 1.1. Trees
  * https://dom.spec.whatwg.org/#trees
  * \{ */
+
+/* https://dom.spec.whatwg.org/#concept-tree-descendant */
+Descendants :: struct {
+    node: *Node
+}
+
+opérateur pour :: (descendants: Descendants) -> *Node
+{
+    assert(descendants.node != nul)
+
+    traversée: [..]*Node
+    diffère déloge(traversée)
+
+    pour > descendants.node.enfants {
+        tableau_ajoute(*traversée, it)
+    }
+
+    indice_node := 0
+
+    tantque traversée {
+        node := traversée[traversée.taille - 1]
+        traversée.taille -= 1
+
+        `it = node
+        `indice_it = indice_node
+
+        #corps_boucle
+
+        indice_node += 1
+
+        pour > node.enfants {
+            tableau_ajoute(*traversée, it)
+        }
+    }
+}
 
 /* https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
  * An inclusive descendant is an object or one of its descendants. */

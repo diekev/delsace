@@ -67,7 +67,7 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
 
 ParamètreBouton :: struct {
     texte: chaine
-    rappel: fonc(*Noeud)(rien)
+    rappel: fonc (noeud: *Noeud)
 }
 
 ValeurDéfautParamètre :: union {
@@ -191,7 +191,7 @@ TypeParamètre :: énum {
 InfoCréationParamètre :: struct {
     infos: *InfoType
     type: TypeParamètre
-    rappel_valeur_défault: fonc(eini)(ValeurDéfautParamètre)
+    rappel_valeur_défault: fonc (valeur: eini) -> ValeurDéfautParamètre
 }
 
 détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Optionnel(InfoCréationParamètre)
@@ -402,7 +402,7 @@ TableParamètres :: struct {
         est_activable_depuis_interface: bool
         est_étiquette: bool
         non_nul: bool
-    }
+    } @ToujoursPointeur
 
     InformationDessin :: union {
         AjouteEspaceur: EspaçageTableParamètre
@@ -415,7 +415,7 @@ TableParamètres :: struct {
     paramètres: [..]*Paramètre @accessible
 
     struct_paramètres: *ParamètresNoeud
-}
+} @ToujoursPointeur
 
 /* Pour les noeuds n'ayant aucun paramètre. */
 crée_table_paramètres_vide :: fonc () -> *TableParamètres

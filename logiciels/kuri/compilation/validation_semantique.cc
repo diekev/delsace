@@ -483,25 +483,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             ajoute_init->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
-        {
-            auto pre_executable = noeud->comme_pré_exécutable();
-            auto fichier = m_espace->fichier(pre_executable->lexème->fichier);
-            auto module = fichier->module;
-            if (module->directive_pré_exécutable) {
-                m_espace
-                    ->rapporte_erreur(
-                        noeud, "Le module possède déjà une directive d'exécution pré-exécutable")
-                    .ajoute_message("La première directive fut déclarée ici :")
-                    .ajoute_site(module->directive_pré_exécutable);
-                return CodeRetourValidation::Erreur;
-            }
-            module->directive_pré_exécutable = pre_executable;
-            /* NOTE : le métaprogramme ne sera exécuté qu'à la fin de la génération de code. */
-            crée_métaprogramme_pour_directive(pre_executable);
-            pre_executable->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            break;
-        }
         case GenreNoeud::INSTRUCTION_CHARGE:
         {
             if (noeud->bloc_parent->type_bloc == TypeBloc::SI_STATIQUE) {
@@ -1075,7 +1056,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 noeud->type = m_espace->typeuse.type_rien;
             }
             else {
-                noeud->type = expressions->a(expressions->taille() - 1)->type;
+                auto expression = expressions->dernier_élément();
+                if (((expression->genre_valeur & GenreValeur::DROITE) != 0) && expression->type) {
+                    noeud->type = expression->type;
+                }
+                else {
+                    noeud->type = m_espace->typeuse.type_rien;
+                }
             }
 
             if (inst->appartiens_à_tente) {
@@ -1246,12 +1233,16 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto type_info_type = Type::nul();
 
             switch (type->genre) {
-                case GenreNoeud::POLYMORPHIQUE:
                 case GenreNoeud::TUPLE:
                 {
                     assert_rappel(false, [&]() {
                         dbg() << "Type illégal pour info type : " << chaine_type(expr->type);
                     });
+                    break;
+                }
+                case GenreNoeud::POLYMORPHIQUE:
+                {
+                    type_info_type = m_espace->typeuse.type_info_type_polymorphique;
                     break;
                 }
                 case GenreNoeud::EINI:
@@ -3719,7 +3710,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                 decl_expr, "Valeur hors des limites pour le type de l'énumération");
             e.ajoute_message("Le type des données de l'énumération est « ",
                              chaine_type(decl->type_sous_jacent),
-                             " ».");
+                             " ». ");
             e.ajoute_message("Les valeurs légales pour un tel type se trouvent entre ",
                              valeur_min(decl->type_sous_jacent),
                              " et ",
@@ -4273,33 +4264,10 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     auto type_struct = decl;
 
-#undef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-#undef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
-
-#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-    auto rembourrage_total = 0u;
-#endif
     POUR (type_struct->rubriques) {
         if (it.possède_drapeau(RubriqueTypeComposé::EST_UN_EMPLOI)) {
             type_struct->types_employés.ajoute(&it);
         }
-
-#ifdef AVERTIS_SUR_FRANCHISSEMENT_LIGNE_DE_CACHE
-        auto reste_décalage = it.decalage % 64;
-        if (reste_décalage && (reste_décalage + it.type->taille_octet) > 64) {
-            espace->rapporte_avertissement(it.decl, "Le rubrique franchis une ligne de cache");
-        }
-#endif
-
-#ifdef AVERTIS_SUR_REMBOURRAGE_SUPERFLUX
-        /* Revise cette logique ? */
-        if (it.rembourrage && it.type->taille_octet < rembourrage_total) {
-            espace->rapporte_avertissement(
-                it.decl, "Le rubrique pourrait être stocké dans du rembourrage existant");
-        }
-
-        rembourrage_total += it.rembourrage;
-#endif
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -4587,7 +4555,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     }
 
-    if (!fonction_courante()) {
+    if (!fonction_courante() && !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
         simplifie_arbre(m_contexte, decl);
 
         TENTE(valide_symbole_externe(decl, TypeSymbole::VARIABLE_GLOBALE))
@@ -4874,7 +4842,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
         }
     }
 
-    if (!fonction_courante()) {
+    if (!fonction_courante() && !decl->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
         simplifie_arbre(m_contexte, decl);
 
         POUR (decls_et_refs) {

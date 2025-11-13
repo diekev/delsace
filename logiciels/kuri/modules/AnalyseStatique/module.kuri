@@ -3,6 +3,175 @@
 
 importe Compilatrice
 importe Fondation
+importe GreffeMétaprogramme
+importe Triage
+
+GreffonAnalyse :: struct {
+    empl base: GreffonMétaprogramme
+
+    vérifie_imprimeuses := vrai
+    vérifie_dépassement_ligne_de_cache := faux
+    vérifie_rembourrage_excessif := faux
+}
+
+donne_greffon :: fonc () -> *GreffonMétaprogramme
+{
+    résultat := loge(GreffonAnalyse)
+    résultat.sur_message = greffon_analyse_sur_message
+    résultat.sur_destruction = greffon_analyse_sur_destruction
+    retourne résultat
+}
+
+#portée_fichier
+
+greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message)
+{
+    si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+        message_typage := message comme *MessageTypageCodeTerminé
+        si greffon.vérifie_imprimeuses {
+            vérifie_imprime(message_typage.code)
+        }
+        si greffon.vérifie_dépassement_ligne_de_cache {
+            vérifie_dépassement_ligne_de_cache(message_typage.code)
+        }
+        si greffon.vérifie_rembourrage_excessif {
+            vérifie_rembourrage_excessif(message_typage.code)
+        }
+    }
+}
+
+greffon_analyse_sur_destruction :: fonc (greffon: *GreffonAnalyse)
+{
+    déloge(greffon)
+}
+
+vérifie_imprime :: fonc (code: *NoeudCode)
+{
+    si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
+        corps := code comme *NoeudCodeCorpsFonction
+        pour noeud dans corps.noeuds {
+            si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
+                appel := noeud comme *NoeudCodeAppel
+
+                si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+                    référence := appel.expression comme *NoeudCodeRéférenceDéclaration
+                    // À FAIRE(langage) : convertis la déclaration
+                    si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
+                        format := appel.paramètres[0]
+                        si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
+                            chn := (format comme *NoeudCodeLittéraleChaine).valeur
+
+                            nombre_de_pourcentages := 0
+                            pour chn {
+                                si it == '%' {
+                                    nombre_de_pourcentages += 1
+                                }
+                            }
+
+                            si nombre_de_pourcentages != appel.paramètres.taille - 1 {
+                                compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
+{
+    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
+        déclaration := code comme *NoeudCodeStructure
+        type := déclaration.type comme *InfoTypeStructure
+
+        pour type.rubriques {
+            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+                continue
+            }
+
+            // À FAIRE : tableaux fixes, etc.
+            reste_décalage := it.décalage % 64
+            si reste_décalage comme n32 + it.id.taille_en_octet > 64 {
+                avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom)
+                compilatrice_rapporte_avertissement(code, avertissement)
+                déloge(avertissement)
+            }
+        }
+    }
+}
+
+vérifie_rembourrage_excessif :: fonc (code: *NoeudCode)
+{
+    REMBOURRAGE_PERMIS : n32 : 24
+
+    si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
+        déclaration := code comme *NoeudCodeStructure
+        type := déclaration.type comme *InfoTypeStructure
+
+        types_rubriques: [..]*InfoType
+        diffère déloge(types_rubriques)
+
+        pour type.rubriques {
+            si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+                continue
+            }
+            tableau_ajoute(*types_rubriques, it.id)
+        }
+
+        rembourrage_courant := calcule_rembourrage(types_rubriques)
+        tri_rapide(types_rubriques, tri_types_par_alignement_décroissant)
+        rembourrage_optimal := calcule_rembourrage(types_rubriques)
+
+        si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > REMBOURRAGE_PERMIS {
+            avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal)
+            compilatrice_rapporte_avertissement(code, avertissement)
+            déloge(avertissement)
+        }
+    }
+}
+
+tri_types_par_alignement_décroissant :: fonc (a: *InfoType, b: *InfoType) -> z32
+{
+    si a.alignement > b.alignement {
+        retourne 1
+    }
+
+    si b.alignement > a.alignement {
+        retourne -1
+    }
+
+    retourne 0
+}
+
+calcule_rembourrage :: fonc (types: []*InfoType) -> n32
+{
+    résultat: n32
+    taille_courante: n32
+
+    alignement_max: n32
+
+    pour types {
+        si it.alignement != 0 {
+            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
+            résultat += rembourrage
+
+            taille_courante += rembourrage
+            taille_courante += it.taille_en_octet
+
+            si it.alignement > alignement_max {
+                alignement_max = it.alignement
+            }
+        }
+    }
+
+    si alignement_max != 0 {
+        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
+        résultat += rembourrage
+    }
+
+    retourne résultat
+}
 
 /*
 
@@ -50,7 +219,7 @@ VérificatriceNasa :: struct {
         genre: GenreViolation
     }
 
-    espace: *EspaceDeTravail
+    espace: EspaceDeTravail = -1
     avertissement_est_erreur := faux
 
     violations_directives: [..]Violation
@@ -84,7 +253,7 @@ imprime_diagnostique :: fonc (vérificatrice: *VérificatriceNasa)
     imprime("% violations\n", vérificatrice.violations_directives.taille)
 }
 
-initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: *EspaceDeTravail)
+initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: EspaceDeTravail)
 {
     vérificatrice.espace = espace
 }
@@ -153,6 +322,7 @@ vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceN
         EINI {}
         VARIADIQUE {}
         ADRESSE_FONCTION {}
+        POLYMORPHIQUE {}
     }
 }
 

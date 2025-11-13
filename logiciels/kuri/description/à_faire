@@ -1,3 +1,13 @@
+IPA
+-------------
+Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
+Remplace *Module par un ID
+
+// À FAIRE(langage) : la compilation n'attend pas sur les messages
+// retourne imprime_chaine("%", chn)
+
+// À FAIRE(langage) : permet d'avoir un #corps_texte sur une fonction possèdant plusieurs retours
+// donne_changement_structures :: fonc (a: $T, b: T) -> (changement: Changement(T), fut_changée: bool)
 
 /* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
 

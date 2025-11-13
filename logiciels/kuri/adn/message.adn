@@ -8,6 +8,7 @@
     MODULE_FERMÉ
     TYPAGE_CODE_TERMINÉ
     PHASE_COMPILATION
+    ESPACE_CRÉÉ
 }
 
 énum PhaseCompilation {
@@ -26,7 +27,7 @@ struct Message {
     GenreMessage genre [code]
     // À FAIRE : supprime ceci en ayant deux structures comme pour les noeuds
     bool message_reçu [code]
-    EspaceDeTravail * espace [code]
+    int espace [code]
 }
 
 struct MessageFichier : Message {
@@ -44,4 +45,8 @@ struct MessageTypageCodeTerminé : Message {
 
 struct MessagePhaseCompilation : Message {
     PhaseCompilation phase [code]
+}
+
+struct MessageEspaceCréé : Message {
+    int nouvel_espace [code]
 }

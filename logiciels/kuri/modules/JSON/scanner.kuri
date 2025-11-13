@@ -73,13 +73,13 @@ ScannerJSON :: struct {
     nombre_réel: r64
     booléen: bool
 
-    rappel_copie_chaine: fonc(chaine)(chaine)
+    rappel_copie_chaine: fonc (chn: chaine) -> chaine
 
     erreur_: Erreur
     possède_erreur: bool
 }
 
-initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine: fonc(chaine)(chaine))
+initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine: fonc (chn: chaine) -> chaine)
 {
     scanner.script = script
     scanner.position = 0
@@ -821,4 +821,4 @@ génère_initialisation_json :: fonc ()
     crée_table_fonctions(créatrice_table_fonctions)
 }
 
-#pré_exécutable génère_initialisation_json()
+// #pré_exécutable génère_initialisation_json()

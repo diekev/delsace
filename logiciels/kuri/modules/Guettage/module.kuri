@@ -20,7 +20,7 @@ importe Unicode
 
 PlateformeGuettage :: struct {
     sur_commence_guettage: fonc (plateforme: *PlateformeGuettage, guetteuse: *Guetteuse)
-    sur_termine_guettage: fonc(plateforme: *PlateformeGuettage)
+    sur_termine_guettage: fonc (plateforme: *PlateformeGuettage)
 }
 
 Guetteuse :: struct {
@@ -105,6 +105,7 @@ GuetteuseÉditionTexte :: struct {
     rect_texte: RectanglePosDim(z32)
 
     état: ÉtatGuettageÉditionTexte
+    fin_guettage_fut_causé_par_touche_entrée: bool
 
     sur_termine_guettage = guetteuse_édition_texte_sur_termine_guettage
     sur_déplacement_souris = guetteuse_édition_texte_sur_déplacement_souris
@@ -122,7 +123,7 @@ initialise_guetteuse_édition_texte :: fonc (guetteuse: *GuetteuseÉditionTexte,
 guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
 {
     empl guetteuse := base comme *GuetteuseÉditionTexte
-    éditrice.termine_édition()
+    éditrice.termine_édition(fin_guettage_fut_causé_par_touche_entrée)
 }
 
 guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
@@ -148,6 +149,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
 
     si touche.type == ToucheClavier.ENTRÉE {
         si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+            guetteuse.fin_guettage_fut_causé_par_touche_entrée = vrai
             termine_guettage(guetteuse)
         }
         sinon {

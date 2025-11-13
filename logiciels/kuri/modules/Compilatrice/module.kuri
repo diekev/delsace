@@ -16,7 +16,7 @@ charge "options"
 
 compile_pour_production :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.niveau_optimisation = NiveauOptimisation.O3
     options.résultat = RésultatCompilation.EXÉCUTABLE
     compilatrice_ajourne_options(options)
@@ -24,7 +24,7 @@ compile_pour_production :: fonc ()
 
 compile_pour_débogage :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.DÉBOGAGE
     compilatrice_ajourne_options(options)
@@ -32,7 +32,7 @@ compile_pour_débogage :: fonc ()
 
 compile_pour_débogage_avec_asan :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.DÉBOGAGE
     options.utilise_asan = vrai
@@ -41,7 +41,7 @@ compile_pour_débogage_avec_asan :: fonc ()
 
 compile_pour_profilage :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.EXÉCUTABLE
     options.compilation_pour = CompilationPour.PROFILAGE
     compilatrice_ajourne_options(options)
@@ -55,7 +55,7 @@ compilatrice_rapporte_erreur :: fonc (message: chaine, pos := #position_code_sou
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, message: chaine, pos := #position_code_source) #sansretour
+compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, message: chaine, pos := #position_code_source) #sansretour
 {
     compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
 }
@@ -65,7 +65,7 @@ compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine) #sansre
     compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
-compilatrice_rapporte_erreur :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
+compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
 {
     compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
@@ -80,16 +80,34 @@ compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
     compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
 }
 
-compilatrice_rapporte_avertissement :: fonc (espace: *EspaceDeTravail, site: *NoeudCode, message: chaine)
+compilatrice_rapporte_avertissement :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
     compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
 }
 
 désactive_compilation_espace_défaut :: fonc ()
 {
-    options := compilatrice_obtiens_options()
+    options := compilatrice_donne_options()
     options.résultat = RésultatCompilation.RIEN
     compilatrice_ajourne_options(options)
+}
+
+compilatrice_module_pour_code :: fonc (code: *NoeudCode) -> *Module
+{
+    retourne compilatrice_module_pour_code(compilatrice_espace_courant(), code)
+}
+
+// ----------------------------------------------------------------------------
+// Fonctions auxilliaires pour les messages
+
+est_message_phase :: fonc (message: *Message, phase: PhaseCompilation) -> bool
+{
+    résultat := faux
+    si message.genre == GenreMessage.PHASE_COMPILATION {
+        message_phase := message comme *MessagePhaseCompilation
+        résultat = message_phase.phase == phase
+    }
+    retourne résultat
 }
 
 // ----------------------------------------------------------------------------
@@ -139,22 +157,6 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
     retourne faux
 }
 
-fonctions_parsées_avec_annotation :: fonc (annotation: chaine) -> [..]*NoeudCodeEntêteFonction
-{
-    fonctions := compilatrice_fonctions_parsées()
-    résultat: [..]*NoeudCodeEntêteFonction
-
-    pour fonctions {
-        si !fonction_possède_annotation(it, annotation) {
-            continue
-        }
-
-        tableau_ajoute(*résultat, it)
-    }
-
-    retourne résultat
-}
-
 // ---------------------------------------------------------------------------------------
 // Fonctions auxilliaires pour travailler sur les fonctions
 
@@ -198,9 +200,9 @@ EnsembleDeModules :: struct {
     chemin_modules_kuri: CheminFichier
 }
 
-initialise_ensemble_de_modules :: fonc (liste: *EnsembleDeModules)
+initialise_ensemble_de_modules :: fonc (espace: EspaceDeTravail, liste: *EnsembleDeModules)
 {
-    liste.module_racine_compilation = compilatrice_module_racine_compilation()
+    liste.module_racine_compilation = compilatrice_module_racine_compilation(espace)
 
     racine_kuri := compilatrice_racine_installation_kuri()
     chemin_racine := CheminFichier(racine_kuri)

@@ -91,11 +91,11 @@ sur_visite_cellules_hôte :: fonc (base: *JS.Hôte, visiteuse: *JS.VisiteuseCell
  * \{ */
 
 Algorithm :: struct {
-    sur_run: fonc(*Algorithm)(rien)
-    sur_destruction: fonc(*Algorithm)(rien)
+    sur_run: fonc (algorithm: *Algorithm)
+    sur_destruction: fonc (algorithm: *Algorithm)
 }
 
-crée_algorithm :: fonc (sur_run: fonc(*Algorithm)(rien), $T: type_de_données) -> *T
+crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_données) -> *T
 {
     sur_destruction :: fonc (base: *Algorithm)
     {
@@ -109,13 +109,13 @@ crée_algorithm :: fonc (sur_run: fonc(*Algorithm)(rien), $T: type_de_données) 
     retourne résultat
 }
 
-crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc(*T)(rien)) -> *Algorithm
+crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc (params: *T)) -> *Algorithm
 {
     Tâche :: struct {
         empl base: Algorithm
 
         params: T
-        fonction: fonc(*T)(rien)
+        fonction: fonc (params: *T)
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -168,7 +168,6 @@ RappelsInterface :: struct {
     sur_envoie_message_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, WS.OpCode, [..]octet)
     sur_spin_event_loop: fonc (rappels: *RappelsInterface)
     sur_élément_survolé: fonc (rappels: *RappelsInterface)
-    sur_requête_rendu: fonc (rappels: *RappelsInterface)
     sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm)
     sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm)
     sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
@@ -212,16 +211,6 @@ notifie_élément_survolé :: fonc (user_agent: *UserAgent)
     }
 
     rappels.sur_élément_survolé(rappels)
-}
-
-requiers_rendu :: fonc (user_agent: *UserAgent)
-{
-    rappels := user_agent.rappels_interface
-    saufsi rappels && rappels.sur_requête_rendu {
-        retourne
-    }
-
-    rappels.sur_requête_rendu(rappels)
 }
 
 lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response

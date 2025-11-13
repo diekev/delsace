@@ -1,16 +1,17 @@
+importe Chaine
 importe Fondation
+importe LigneDeCommande
 importe Processus
 importe SysFichier
 
 principale :: fonc ()
 {
-    arguments := arguments_ligne_commande()
-    si arguments.taille != 2 {
-        imprimeln("Utilisation : % CHEMIN")
+    chemin_donnée := parse_argument_chemin()
+    saufsi chemin_donnée {
         exit(1)
     }
 
-    chemins := donne_fichiers_du_dossier(arguments[1], vrai)
+    chemins := donne_fichiers_du_dossier(chemin_donnée, vrai)
     diffère déloge_tableau_et_ses_éléments(chemins)
 
     fichiers_javascript: [..]chaine

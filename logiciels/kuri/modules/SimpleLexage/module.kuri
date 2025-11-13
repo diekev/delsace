@@ -66,6 +66,12 @@ TypeLexème :: énum n8 {
     ChaineLittérale
 }
 
+Nombre :: union {
+    réel: r64
+    naturel: n64
+    relatif: n64
+}
+
 Lexème :: struct {
     type: TypeLexème
 
@@ -74,7 +80,7 @@ Lexème :: struct {
 
     // Pour les nombres littéraux.
     suffixe: chaine
-    nombre: n64
+    nombre: Nombre
 }
 
 donne_texte :: fonc (lexème: Lexème) -> chaine
@@ -681,7 +687,7 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
     résultat.type = donne_type_lexème_symbole(lexeuse, résultat.donne_texte(), drapeaux_résultat)
     si résultat.type == TypeLexème.Nombre {
         assert(drapeaux_résultat.ChiffreHexadécimal != faux)
-        résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
+        résultat.nombre.naturel = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     retourne résultat
 }
@@ -769,13 +775,13 @@ donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
     résultat := Lexème(type = TypeLexème.Nombre, début = début_lexème, fin = fin_lexème)
     si drapeaux_accumulés.DébutePartDécimale {
         nombre_parsé := tente extrait_r64(résultat.donne_texte()) piège nonatteignable
-        résultat.nombre = nombre_parsé comme n64
+        résultat.nombre.réel = nombre_parsé
     }
     sinon si drapeaux_accumulés.ChiffreHexadécimal && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
-        résultat.nombre = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
+        résultat.nombre.naturel = tente parse_hexadécimal_n64(résultat.donne_texte()) piège nonatteignable
     }
     sinon {
-        résultat.nombre = tente extrait_n64(résultat.donne_texte()) piège nonatteignable
+        résultat.nombre.naturel = tente extrait_n64(résultat.donne_texte()) piège nonatteignable
     }
 
     début_lexème = lexeuse.début
@@ -1098,7 +1104,7 @@ initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse)
 __ponctuation_kuri := [
     "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
     "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>=",
-    "@"
+    "@", "$"
 ]
 
 __commentaires_ligne_singulière_kuri := [ "//" ]

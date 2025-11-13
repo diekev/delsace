@@ -455,6 +455,11 @@ AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
     return crée_constante_nombre_entier(m_typeuse->type_z32, valeur);
 }
 
+AtomeConstante *ConstructriceRI::crée_n32(uint64_t valeur)
+{
+    return crée_constante_nombre_entier(m_typeuse->type_n32, valeur);
+}
+
 AtomeConstante *ConstructriceRI::crée_z64(uint64_t valeur)
 {
     return crée_constante_nombre_entier(m_typeuse->type_z64, valeur);
@@ -848,6 +853,7 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
             dbg() << imprime_site(site_);
             dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
             dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+            dbg() << "L'opérateur est " << op;
         });
 
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
@@ -1912,7 +1918,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
          * l'environnement d'exécution */
         case GenreNoeud::DIRECTIVE_AJOUTE_FINI:
         case GenreNoeud::DIRECTIVE_AJOUTE_INIT:
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : une " << noeud->genre << " se retrouve dans la RI !\n"
@@ -4167,10 +4172,9 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     switch (type->genre) {
-        case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
         {
-            assert_rappel(false, []() { dbg() << "Obtenu un type tuple ou polymophique"; });
+            assert_rappel(false, []() { dbg() << "Obtenu un type tuple"; });
             break;
         }
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
@@ -4251,6 +4255,23 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
                 m_espace->typeuse.type_info_type_pointeur, std::move(valeurs));
             break;
         }
+        case GenreNoeud::POLYMORPHIQUE:
+        {
+            auto type_polymorphique = type->comme_type_polymorphique();
+            auto ident = kuri::chaine_statique();
+            if (type_polymorphique->ident) {
+                ident = type_polymorphique->ident->nom;
+            }
+
+            /* { rubriques basiques, ident } */
+            auto valeurs = kuri::tableau<AtomeConstante *>(2);
+            valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::POLYMORPHIQUE, type);
+            valeurs[1] = crée_constante_pour_chaine(ident);
+
+            type->atome_info_type = crée_globale_info_type(
+                m_espace->typeuse.type_info_type_polymorphique, std::move(valeurs));
+            break;
+        }
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
@@ -4325,7 +4346,6 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
 
             POUR (type_union->rubriques) {
                 /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-                auto valeurs = kuri::tableau<AtomeConstante *>(5);
                 auto globale_rubrique = crée_info_type_rubrique_structure(it, site);
                 valeurs_rubriques.ajoute(globale_rubrique);
             }
@@ -4621,7 +4641,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
 AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType index,
                                                                    Type const *pour_type)
 {
-    auto rubriques = kuri::tableau<AtomeConstante *>(3);
+    auto rubriques = kuri::tableau<AtomeConstante *>(4);
     remplis_rubriques_de_bases_info_type(rubriques, index, pour_type);
     return m_constructrice.crée_constante_structure(m_espace->typeuse.type_info_type_,
                                                     std::move(rubriques));
@@ -4631,20 +4651,21 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
                                                           GenreInfoType index,
                                                           Type const *pour_type)
 {
-    assert(valeurs.taille() == 3);
+    assert(valeurs.taille() == 4);
     valeurs[0] = m_constructrice.crée_z32(uint32_t(index));
     /* Puisque nous pouvons générer du code pour des architectures avec adressages en 32 ou 64
      * bits, et puisque nous pouvons exécuter sur une machine avec une architecture différente de
      * la cible de compilation, nous générons les constantes pour les taille_de lors de l'émission
      * du code machine. */
     valeurs[1] = m_constructrice.crée_constante_taille_de(pour_type);
+    valeurs[2] = m_constructrice.crée_n32(pour_type->alignement);
     // L'index dans la table des types sera mis en place lors de la génération du code machine.
-    valeurs[2] = m_constructrice.crée_indice_table_type(pour_type);
+    valeurs[3] = m_constructrice.crée_indice_table_type(pour_type);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
 {
-    auto valeurs = kuri::tableau<AtomeConstante *>(3);
+    auto valeurs = kuri::tableau<AtomeConstante *>(4);
     remplis_rubriques_de_bases_info_type(valeurs, index, pour_type);
     return crée_globale_info_type(m_espace->typeuse.type_info_type_, std::move(valeurs));
 }
@@ -4681,8 +4702,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_rubrique_structure(
 {
     auto type_struct_rubrique = m_espace->typeuse.type_info_type_rubrique_structure;
 
-    /* { nom: chaine, info : *InfoType, décalage, drapeaux } */
-    auto valeurs = kuri::tableau<AtomeConstante *>(5);
+    auto valeurs = kuri::tableau<AtomeConstante *>(9);
     valeurs[0] = crée_constante_pour_chaine(rubrique.nom->nom);
     valeurs[1] = crée_info_type_avec_transtype(rubrique.type, site);
     valeurs[2] = m_constructrice.crée_z32(rubrique.decalage);
@@ -4700,9 +4720,21 @@ AtomeGlobale *CompilatriceRI::crée_info_type_rubrique_structure(
         else {
             valeurs[4] = crée_tableau_annotations_pour_info_rubrique({});
         }
+
+        const auto lexème = rubrique.decl->lexème;
+        const auto fichier = m_espace->fichier(lexème->fichier);
+        valeurs[5] = crée_constante_pour_chaine(fichier->chemin());
+        valeurs[6] = crée_constante_pour_chaine(fichier->nom());
+        valeurs[7] = m_constructrice.crée_z32(uint64_t(lexème->ligne + 1));
+        valeurs[8] = m_constructrice.crée_z32(uint64_t(lexème->colonne));
     }
     else {
         valeurs[4] = crée_tableau_annotations_pour_info_rubrique({});
+
+        valeurs[5] = crée_constante_pour_chaine("");
+        valeurs[6] = crée_constante_pour_chaine("");
+        valeurs[7] = m_constructrice.crée_z32(0);
+        valeurs[8] = m_constructrice.crée_z32(0);
     }
 
     return crée_globale_info_type(type_struct_rubrique, std::move(valeurs));
@@ -4925,29 +4957,29 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
 
     AtomeConstante *constante_chaine;
 
-    if (chaine.taille() == 0) {
-        constante_chaine = m_constructrice.crée_initialisation_défaut_pour_type(type_chaine);
-    }
-    else {
-        auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse.type_z8,
-                                                                static_cast<int>(chaine.taille()));
-        auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
-            type_tableau, const_cast<char *>(chaine.pointeur()), chaine.taille());
-        tableau->drapeaux |= DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE;
+    auto taille_chaine_avec_terminateur = static_cast<int>(chaine.taille() + 1);
 
-        auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
-        auto globale_tableau = m_constructrice.crée_globale(
-            *ident, type_tableau, tableau, false, true);
-        auto pointeur_chaine = m_constructrice.crée_accès_indice_constant(globale_tableau, 0);
-        auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
+    auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse.type_z8,
+                                                            taille_chaine_avec_terminateur);
 
-        auto rubriques = kuri::tableau<AtomeConstante *>(2);
-        rubriques[0] = pointeur_chaine;
-        rubriques[1] = taille_chaine;
+    auto caractères = kuri::tableau<char>(taille_chaine_avec_terminateur);
+    memcpy(caractères.données(), chaine.pointeur(), size_t(chaine.taille()));
+    caractères[caractères.taille() - 1] = 0;
 
-        constante_chaine = m_constructrice.crée_constante_structure(type_chaine,
-                                                                    std::move(rubriques));
-    }
+    auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
+        type_tableau, std::move(caractères));
+
+    auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
+    auto globale_tableau = m_constructrice.crée_globale(
+        *ident, type_tableau, tableau, false, true);
+    auto pointeur_chaine = m_constructrice.crée_accès_indice_constant(globale_tableau, 0);
+    auto taille_chaine = m_constructrice.crée_z64(static_cast<uint64_t>(chaine.taille()));
+
+    auto rubriques = kuri::tableau<AtomeConstante *>(2);
+    rubriques[0] = pointeur_chaine;
+    rubriques[1] = taille_chaine;
+
+    constante_chaine = m_constructrice.crée_constante_structure(type_chaine, std::move(rubriques));
 
     table_chaines->insère_constante_pour_chaine(chaine, constante_chaine);
 

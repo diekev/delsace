@@ -22,6 +22,7 @@
 #include "environnement.hh"
 #include "erreur.h"
 #include "espace_de_travail.hh"
+#include "fichier_elf.hh"
 #include "intrinseques.hh"
 #include "programme.hh"
 #include "typage.hh"
@@ -2660,16 +2661,6 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
             os << char_depuis_hex(octet & 0x0f);
             virgule = ", ";
         }
-
-        if (it.tableau->possède_drapeau(DrapeauxAtome::DONNÉES_CONSTANTES_SONT_POUR_CHAINE)) {
-            compteur++;
-            os << virgule;
-            if ((compteur % 20) == 0) {
-                os << "\n";
-            }
-            os << "0x00";
-            virgule = ", ";
-        }
     }
     os << "};\n";
 }
@@ -2776,6 +2767,18 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
             return ErreurCoulisse{message};
         }
     }
+
+    // auto &repr_inter = *args.ri_programme;
+    // const DonnéesConstantes *données_constantes = nullptr;
+    // auto opt_données_constantes = repr_inter.donne_données_constantes();
+    // if (opt_données_constantes.has_value()) {
+    //     données_constantes = opt_données_constantes.value();
+    // }
+    // auto fichier_elf = FichierELF::crée_fichier_objet();
+    // if (données_constantes) {
+    //     fichier_elf->écris_données_constantes(données_constantes);
+    // }
+    // fichier_elf->écris_vers("/tmp/fichier_objet_test.o");
 
     return {};
 #endif

@@ -1,0 +1,57 @@
+AS :: importe AnalyseStatique
+importe Compilatrice
+importe Fondation
+importe GreffeMétaprogramme
+
+#exécute {
+    espace := espace_défaut_compilation()
+    fichier := compilatrice_donne_fichier_entrée_compilation()
+    imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
+
+    greffons: [..]*GreffonMétaprogramme
+    diffère détruit_greffons(*greffons)
+    tableau_ajoute(*greffons, AS.donne_greffon())
+    tableau_ajoute(*greffons, Fondation.donne_greffon())
+
+    compilatrice_commence_interception(espace)
+
+    ajoute_fichier_à_la_compilation(espace, fichier)
+
+    espaces: [..]EspaceDeTravail
+    diffère déloge(espaces)
+
+    tableau_ajoute(*espaces, espace)
+
+    boucle {
+        message := compilatrice_attend_message()
+        diffère compilatrice_message_reçu(message)
+
+        si message.genre == GenreMessage.ESPACE_CRÉÉ {
+            message_espace := message comme *MessageEspaceCréé
+            tableau_ajoute(*espaces, message_espace.nouvel_espace)
+        }
+
+        pour greffons {
+            gère_message(it, message)
+        }
+
+        si message.genre == GenreMessage.PHASE_COMPILATION {
+            phase := message comme *MessagePhaseCompilation
+
+            si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
+                pour espaces {
+                    si it == message.espace {
+                        tableau_supprime_indice(*espaces, indice_it)
+                        arrête
+                    }
+                }
+
+                si espaces.taille == 0 {
+                    arrête
+                }
+            }
+        }
+    }
+
+    compilatrice_termine_interception(espace)
+}

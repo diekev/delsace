@@ -74,7 +74,6 @@ int64_t EspaceDeTravail::memoire_utilisee() const
     résultat += sys_module->mémoire_utilisée();
     résultat += constructeurs_globaux->taille_mémoire();
     résultat += registre_chaines_ri->mémoire_utilisée();
-    résultat += fonctions_parsées.taille_mémoire();
     résultat += métaprogrammes_en_attente_de_crée_contexte.taille_mémoire();
     résultat += registre_annotations.mémoire_utilisée();
     résultat += trie_structs_employées.mémoire_utilisée();
@@ -313,7 +312,7 @@ Erreur EspaceDeTravail::rapporte_avertissement(kuri::chaine_statique chemin_fich
                                                kuri::chaine_statique message) const
 {
     const Fichier *f = this->fichier(chemin_fichier);
-    return ::rapporte_avertissement(this, SiteSource(f, ligne - 1), message);
+    return ::rapporte_avertissement(this, SiteSource(f, ligne), message);
 }
 
 Erreur EspaceDeTravail::rapporte_avertissement_externe(ParamètresErreurExterne const &params) const

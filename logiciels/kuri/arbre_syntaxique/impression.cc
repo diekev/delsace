@@ -1667,13 +1667,6 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
             imprime_arbre(enchaineuse, état, directive->expression);
             break;
         }
-        case GenreNoeud::DIRECTIVE_PRÉ_EXÉCUTABLE:
-        {
-            auto directive = noeud->comme_pré_exécutable();
-            enchaineuse << "#pré_exécutable ";
-            imprime_arbre(enchaineuse, état, directive->expression);
-            break;
-        }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
             auto directive = noeud->comme_directive_instrospection();

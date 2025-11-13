@@ -37,11 +37,13 @@ enum class GenreInfoType : int32_t {
     TRANCHE = 16,
     TABLEAU_FIXE = 17,
     ADRESSE_FONCTION = 18,
+    POLYMORPHIQUE = 19,
 };
 
 struct InfoType {
     GenreInfoType genre{};
     uint32_t taille_en_octet = 0;
+    uint32_t alignement = 0;
     uint32_t indice_dans_table_des_types = 0;
 };
 
@@ -75,6 +77,11 @@ struct InfoTypeRubriqueStructure {
     int32_t décalage = 0;  // décalage en octets dans la structure
     int drapeaux = 0;
     kuri::tranche<const Annotation *> annotations{};
+
+    kuri ::chaine_statique chemin_fichier{};
+    kuri ::chaine_statique nom_fichier{};
+    int numéro_ligne = 0;
+    int numéro_colonne = 0;
 };
 
 struct InfoTypeStructure : public InfoType {
@@ -119,12 +126,16 @@ struct InfoTypeVariadique : public InfoType {
     InfoType *type_élément = nullptr;
 };
 
+struct InfoTypePolymorphique : public InfoType {
+    kuri::chaine_statique ident{};
+};
+
 #define ENUMERE_TYPES_INFO_TYPE(O)                                                                \
     O(InfoType, infos_types)                                                                      \
     O(InfoTypeEntier, infos_types_entiers)                                                        \
     O(InfoTypeÉnum, infos_types_énums)                                                            \
     O(InfoTypeFonction, infos_types_fonctions)                                                    \
-    O(InfoTypeRubriqueStructure, infos_types_rubriques_structures)                                    \
+    O(InfoTypeRubriqueStructure, infos_types_rubriques_structures)                                \
     O(InfoTypeStructure, infos_types_structures)                                                  \
     O(InfoTypePointeur, infos_types_pointeurs)                                                    \
     O(InfoTypeTableau, infos_types_tableaux)                                                      \
@@ -132,13 +143,14 @@ struct InfoTypeVariadique : public InfoType {
     O(InfoTypeTranche, infos_types_tranches)                                                      \
     O(InfoTypeUnion, infos_types_unions)                                                          \
     O(InfoTypeOpaque, infos_types_opaques)                                                        \
-    O(InfoTypeVariadique, infos_types_variadiques)
+    O(InfoTypeVariadique, infos_types_variadiques)                                                \
+    O(InfoTypePolymorphique, infos_types_polymorphiques)
 
 #define ENUME_TYPES_TRANCHES_INFO_TYPE(O)                                                         \
     O(Annotation const *, annotations)                                                            \
     O(char, valeurs_énums)                                                                        \
     O(kuri::chaine_statique, noms_énums)                                                          \
-    O(InfoTypeRubriqueStructure *, rubriques)                                                         \
+    O(InfoTypeRubriqueStructure *, rubriques)                                                     \
     O(InfoType *, tableau_info_type)                                                              \
     O(InfoTypeStructure *, structs_employées)
 

@@ -744,6 +744,19 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
 }
 
+crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Response
+{
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
+    diffère détruit_chemin(chemin_parent_ci_fichier)
+
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html"
+    diffère détruit_chemin(chemin_fichier)
+
+    _, contenu := contenu_fichier_texte(chemin_fichier)
+    résultat := crée_réponse_pour_fichier(request, "text/html", contenu, 0)
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -753,39 +766,39 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
 
 /* must be an algorithm accepting an integer representing the number of bytes transmitted */
 BaseProcessRequestBodyChunkLength :: struct {
-    sur_rappel: fonc(*BaseProcessRequestBodyChunkLength, n64)(rien)
-    sur_destruction: fonc (*BaseProcessRequestBodyChunkLength)(rien)
+    sur_rappel: fonc (base: *BaseProcessRequestBodyChunkLength, size: n64)
+    sur_destruction: fonc (base: *BaseProcessRequestBodyChunkLength)
 } 
 
 /* must be an algorithm accepting no arguments */
 BaseProcessRequestEndOfBody :: struct {
-    sur_rappel: fonc(*BaseProcessRequestEndOfBody)(rien)
-    sur_destruction: fonc (*BaseProcessRequestEndOfBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessRequestEndOfBody)
+    sur_destruction: fonc (base: *BaseProcessRequestEndOfBody)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessEarlyHintsResponse :: struct {
-    sur_rappel: fonc(*BaseProcessEarlyHintsResponse, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessEarlyHintsResponse)(rien)
+    sur_rappel: fonc (base: *BaseProcessEarlyHintsResponse, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessEarlyHintsResponse)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponse :: struct {
-    sur_rappel: fonc(*BaseProcessResponse, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessResponse)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponse, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessResponse)
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponseEndOfBody :: struct {
-    sur_rappel: fonc(*BaseProcessResponseEndOfBody, *Response)(rien)
-    sur_destruction: fonc (*BaseProcessResponseEndOfBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponseEndOfBody, response: *Response)
+    sur_destruction: fonc (base: *BaseProcessResponseEndOfBody)
 }
 
 /* must be an algorithm accepting a response and null, failure, or a byte sequence */
 BaseProcessResponseConsumeBody :: struct {
     /* À FAIRE : null, failure, or a byte sequence  */
-    sur_rappel: fonc(*BaseProcessResponseConsumeBody, *Response, Optionnel([]octet))(rien)
-    sur_destruction: fonc (*BaseProcessResponseConsumeBody)(rien)
+    sur_rappel: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, données: Optionnel([]octet))
+    sur_destruction: fonc (base: *BaseProcessResponseConsumeBody)
 }
 
 FetchParams :: struct {
@@ -972,31 +985,30 @@ fetch :: fonc (user_agent: *UserAgent,
     timing_info.render_blocking = request.drapeaux.RENDER_BLOCKING == vrai
 
     // 8. Let fetchParams be a new fetch params whose
-    //    request is request,
-    //    timing info is timingInfo,
-    //    process request body chunk length is processRequestBodyChunkLength,
-    //    process request end-of-body is processRequestEndOfBody,
-    //    process early hints response is processEarlyHintsResponse,
-    //    process response is processResponse,
-    //    process response consume body is processResponseConsumeBody,
-    //    process response end-of-body is processResponseEndOfBody,
-    //    task destination is taskDestination, and
-    //    cross-origin isolated capability is crossOriginIsolatedCapability.
     fetch_params := loge(FetchParams)
     // À FAIRE : trouve quand détruire ces fetch_params
     // diffère détruit_fetch_params(fetch_params)
-
-    fetch_params.request = request
-    fetch_params.timing_info = timing_info
-    fetch_params.process_request_body_chunk_length = process_request_body_chunk_length
-    fetch_params.process_request_end_of_body = process_request_end_of_body
-    fetch_params.process_early_hints_response = process_early_hints_response
-    fetch_params.process_response = process_response
-    fetch_params.process_response_end_of_body = process_response_end_of_body
-    fetch_params.process_response_consume_body = process_response_consume_body
-    fetch_params.task_destination = task_destination
-    fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability
     fetch_params.controller = loge(FetchController)
+    //    request is request,
+    fetch_params.request = request
+    //    timing info is timingInfo,
+    fetch_params.timing_info = timing_info
+    //    process request body chunk length is processRequestBodyChunkLength,
+    fetch_params.process_request_body_chunk_length = process_request_body_chunk_length
+    //    process request end-of-body is processRequestEndOfBody,
+    fetch_params.process_request_end_of_body = process_request_end_of_body
+    //    process early hints response is processEarlyHintsResponse,
+    fetch_params.process_early_hints_response = process_early_hints_response
+    //    process response is processResponse,
+    fetch_params.process_response = process_response
+    //    process response consume body is processResponseConsumeBody,
+    fetch_params.process_response_consume_body = process_response_consume_body
+    //    process response end-of-body is processResponseEndOfBody,
+    fetch_params.process_response_end_of_body = process_response_end_of_body
+    //    task destination is taskDestination, and
+    fetch_params.task_destination = task_destination
+    //    cross-origin isolated capability is crossOriginIsolatedCapability.
+    fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability
 
     // 9. If request’s body is a byte sequence, then set request’s body to request’s body as a body.
 
@@ -1741,7 +1753,10 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
                     sur_next_manual_redirect :: fonc (base: *Algorithm)
                     {
                         empl params := base comme *NextManualRedirect
-                        _ := http_redirect_fetch(user_agent, fetch_params, response)
+                        nouvelle_réponse := http_redirect_fetch(user_agent, fetch_params, response)
+                        si fetch_params.process_response {
+                            fetch_params.process_response.sur_rappel(fetch_params.process_response, nouvelle_réponse)
+                        }
                     }
 
                     next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect)
@@ -1797,7 +1812,10 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
         retourne response
     }
 
-    // À FAIRE 5. If locationURL is failure, then return a network error.
+    // 5. If locationURL is failure, then return a network error.
+    si is_failure(location_url) {
+        retourne network_error(request)
+    }
 
     // 6. If locationURL’s scheme is not an HTTP(S) scheme, then return a network error.
     saufsi is_http_scheme(location_url.scheme) {
@@ -1806,7 +1824,7 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
 
     // 7. If request’s redirect count is 20, then return a network error.
     si request.redirect_count == 20 {
-        retourne network_error(request)
+        retourne crée_réponse_pour_trop_de_redirections(request)
     }
 
     // 8. Increase request’s redirect count by 1.

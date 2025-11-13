@@ -60,6 +60,7 @@ struct GestionnaireChainesAjoutées {
 
 /* Options passées sur la ligne de commande. */
 struct ArgumentsCompilatrice {
+    kuri::chaine_statique fichier_entrée_compilation{};
     bool active_tests = false;
     bool profile_metaprogrammes = false;
     bool debogue_execution = false;
@@ -117,9 +118,6 @@ struct Compilatrice {
 
     Broyeuse *broyeuse = nullptr;
 
-    /* Tous les tableaux créés pour les appels à #compilatrice_fonctions_parsées. */
-    kuri::tableau<kuri::tableau<NoeudCodeEntêteFonction *>> m_tableaux_code_fonctions{};
-
     /* Tous les tableaux créés pour les appels à #compilatrice_lèxe_fichier. */
     kuri::tableau<kuri::tableau<kuri::Lexème>> m_tableaux_lexèmes{};
 
@@ -167,6 +165,7 @@ struct Compilatrice {
     /* ********************************************************************** */
 
     void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+                                         EspaceDeTravail *espace_pour_site,
                                          kuri::chaine_statique chemin,
                                          Module *module,
                                          NoeudExpression const *site);
@@ -176,6 +175,8 @@ struct Compilatrice {
     EspaceDeTravail *démarre_un_espace_de_travail(OptionsDeCompilation const &options,
                                                   kuri::chaine_statique nom,
                                                   kuri::chaine_statique dossier);
+
+    EspaceDeTravail *donne_espace_de_travail(int id) const;
 
     /* ********************************************************************** */
 
@@ -216,15 +217,15 @@ struct Compilatrice {
                                  Module *module,
                                  kuri::chaine_statique c);
     void ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                    EspaceDeTravail *espace_pour_site,
                                     kuri::chaine_statique c,
                                     const NoeudExpression *site);
-    const Message *attend_message();
     EspaceDeTravail *espace_défaut_compilation();
     kuri::tableau_statique<kuri::Lexème> lexe_fichier(EspaceDeTravail *espace,
+                                                      EspaceDeTravail *espace_pour_site,
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
-    kuri::tableau_statique<NoeudCodeEntêteFonction *> fonctions_parsees(EspaceDeTravail *espace);
     MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entete);
 
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */

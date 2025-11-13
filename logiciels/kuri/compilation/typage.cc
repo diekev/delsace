@@ -877,7 +877,7 @@ TypePolymorphique *Typeuse::crée_polymorphique(IdentifiantCode *ident)
     // pour le moment un ident nul est utilisé pour les types polymorphiques des
     // structures dans les types des fonction (foo :: fonc (p: Polymorphe(T = $T)),
     // donc ne déduplique pas ces types pour éviter les problèmes quand nous validons
-    // ces expresssions, car les données associées doivent être spécifiques à chaque
+    // ces expressions, car les données associées doivent être spécifiques à chaque
     // déclaration
     if (ident) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_polymorphique) {
@@ -1941,7 +1941,7 @@ Type const *type_entier_sous_jacent(Type const *type)
     }
 
     if (type->est_type_type_de_données()) {
-        return type->comme_type_type_de_données()->type_code_machine;
+        return type_entier_sous_jacent(type->comme_type_type_de_données()->type_code_machine);
     }
 
     if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -1967,7 +1967,8 @@ Type const *donne_type_primitif(Type const *type)
         }
 
         if (type->est_type_type_de_données()) {
-            return type->comme_type_type_de_données()->type_code_machine;
+            type = type->comme_type_type_de_données()->type_code_machine;
+            continue;
         }
 
         if (type->est_type_entier_naturel() || type->est_type_entier_relatif()) {
@@ -2499,14 +2500,6 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
     }
 
     switch (type->genre) {
-        case GenreNoeud::EINI:
-        {
-            break;
-        }
-        case GenreNoeud::CHAINE:
-        {
-            break;
-        }
         case GenreNoeud::RIEN:
         case GenreNoeud::BOOL:
         case GenreNoeud::OCTET:
@@ -2531,17 +2524,12 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
             break;
         }
         case GenreNoeud::DÉCLARATION_UNION:
-        {
-            auto type_union = type->comme_type_union();
-            POUR (type_union->rubriques) {
-                visite_type(it.type, rappel);
-            }
-            break;
-        }
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
-            auto type_structure = type->comme_type_structure();
-            POUR (type_structure->rubriques) {
+            auto type_composé = type->comme_type_composé();
+            POUR (type_composé->rubriques) {
                 visite_type(it.type, rappel);
             }
             break;

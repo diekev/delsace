@@ -6,6 +6,8 @@ dessine_commandes :: CommandesRendu.dessine_commandes
 
 Direction :: InfosInterface.Direction
 
+AlignementEnfant :: Alignement
+
 charge "interne"
 
 /* ------------------------------------------------------------------------- */
@@ -199,12 +201,6 @@ donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
 /** \nom Disposition
  * \{ */
 
-AlignementEnfant :: énum n8 {
-    Début
-    Milieu
-    Fin
-}
-
 Cotation :: struct {
     largeur: z32
     hauteur: z32
@@ -217,6 +213,10 @@ Cotation :: struct {
 
 FIXE :: fonc (v: $T) -> z32
 {
+    #si T == r32 || T == r64 {
+        v = plafond(v)
+    }
+
     retourne (v comme z32) | BIT_COTATION_FIXE
 }
 
@@ -330,9 +330,14 @@ termine_rectangle :: fonc ()
     __boite_courante = __boite_courante.parent
 }
 
+DrapeauxTexte :: énum_drapeau {
+    SANS_FRAGMENTS
+}
+
 ConfigurationTexte :: struct {
     fonte: *Fonte
     couleur: CouleurRVBA
+    drapeaux: DrapeauxTexte
 }
 
 dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
@@ -359,7 +364,7 @@ dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := Coule
     boite.teinte = teinte
 }
 
-dispose_procédure :: fonc (procédure: fonc(*rien, RectanglePosDim(r32))(rien), données_procédure: *rien, id := "", cotation := Cotation())
+dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation())
 {
     assert(__boite_courante != nul)
     boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
@@ -379,7 +384,7 @@ termine_procédure :: fonc ()
 /** \nom Évènements
  * \{ */
 
-TypeRappelSouris :: fonc(*rien, ClicSouris, n64, z32)(ÉtatÉvènement)
+TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indice: z32) -> ÉtatÉvènement
 
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {

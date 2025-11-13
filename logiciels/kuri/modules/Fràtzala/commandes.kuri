@@ -85,9 +85,9 @@ Commande :: struct {
     action_souris: Optionnel(ActionSouris)
     modificateur: Optionnel(ModificateurClavier)
 
-    exécute: fonc(*ContexteExécutionCommande)(RésultatExécutionCommande)
-    exécute_modal: fonc(*ContexteExécutionCommande)(rien)
-    termine_modal: fonc(*ContexteExécutionCommande)(rien)
+    exécute: fonc (ctx: *ContexteExécutionCommande) -> RésultatExécutionCommande
+    exécute_modal: fonc (ctx: *ContexteExécutionCommande)
+    termine_modal: fonc (ctx: *ContexteExécutionCommande)
     sur_donne_nom: fonc (données_utilisateur: eini) -> chaine
     sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool
 }
@@ -213,7 +213,11 @@ trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte
                 continue
             }
 
-            si souris.état.modificateur != ModificateurClavier.zéro && !a_valeur(it.modificateur, souris.état.modificateur) {
+            si possède_valeur(it.modificateur) && !a_valeur(it.modificateur, souris.état.modificateur) {
+                continue
+            }
+
+            si !possède_valeur(it.modificateur) && souris.état.modificateur != ModificateurClavier.zéro {
                 continue
             }
 

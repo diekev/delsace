@@ -116,8 +116,8 @@ opérateur == :: (ongoing: OngoingNavigationType, chn: chaine) -> bool
 
 /* must be an algorithm accepting a Document */
 CommitEarlyHints :: struct {
-    sur_rappel: fonc(*CommitEarlyHints, *Document)(rien)
-    sur_destruction: fonc (*CommitEarlyHints)(rien)
+    sur_rappel: fonc (ceh: *CommitEarlyHints, document: *Document)
+    sur_destruction: fonc (ceh: *CommitEarlyHints)
 }
 
 run :: fonc (commit_early_hints: *CommitEarlyHints, document: *Document)
@@ -154,6 +154,8 @@ NavigationParams :: struct {
     navigation_timing_type: NavigationTimingType
     
     about_base_url: *URL
+
+    user_involvement: UserNavigationInvolvement
 }
 
 /* À FAIRE https://html.spec.whatwg.org/multipage/browsing-the-web.html#non-fetch-scheme-navigation-params */
@@ -170,10 +172,18 @@ est_navigation_params :: fonc (navigation_params: *NavigationParams) -> bool
 
 détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
 {
-    détruit_fetch_controller(navigation_params.fetch_controller)
-    détruit_response(navigation_params.response)
-    détruit_request(navigation_params.request)
-    déloge(navigation_params)
+    si navigation_params {
+        si navigation_params.fetch_controller {
+            détruit_fetch_controller(navigation_params.fetch_controller)
+        }
+        si navigation_params.response {
+            détruit_response(navigation_params.response)
+        }
+        si navigation_params.request {
+            détruit_request(navigation_params.request)
+        }
+        déloge(navigation_params)
+    }
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#source-snapshot-params */
@@ -591,6 +601,7 @@ navigate_parallel_steps :: fonc (params: *NavigateParallelStepsParams)
     history_entry_population_params.navigation_id = navigation_id
     history_entry_population_params.navigation_params = navigation_params
     history_entry_population_params.completion_steps = completion_steps
+    history_entry_population_params.user_involvement = user_involvement
 
     attempt_to_populate_the_history_entry_document(*history_entry_population_params)
 }
@@ -1152,6 +1163,7 @@ HistoryEntryPopulationParams :: struct {
     csp_navigation_type := "other"
     allow_post := faux
     completion_steps : *Algorithm = nul
+    user_involvement: UserNavigationInvolvement
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#attempt-to-populate-the-history-entry's-document */
@@ -1167,6 +1179,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     navigation_params := params.navigation_params
     completion_steps := params.completion_steps
     csp_navigation_type := params.csp_navigation_type
+    user_involvement := params.user_involvement
 
     // 1. Assert: this is running in parallel.
     assert(user_agent.est_exécuté_en_parallèle())
@@ -1178,6 +1191,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     // 4. Let documentResource be entry's document state's resource.
 
     // 5. If navigationParams is null, then:
+    réponse_si_erreur: *Response
     si navigation_params == nul {
         // 1. If documentResource is a string, then set navigationParams to the result of creating navigation params from a srcdoc resource given entry, navigable, targetSnapshotParams, navigationId, and navTimingType.
 
@@ -1186,7 +1200,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type)
+        navigation_params, réponse_si_erreur = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type)
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -1209,6 +1223,9 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         source_snapshot_params: SourceSnapshotParams
         navigable: *Navigable
         navigation_id: Optionnel(NavigationID)
+        nav_timing_type: NavigationTimingType
+        user_involvement: UserNavigationInvolvement
+        réponse_si_erreur: *Response
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -1224,6 +1241,9 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         user_agent := tâche.user_agent
         navigable := tâche.navigable
         navigation_id := tâche.navigation_id
+        nav_timing_type := tâche.nav_timing_type
+        user_involvement := tâche.user_involvement
+        réponse_si_erreur := tâche.réponse_si_erreur
 
         // 1. If navigable's ongoing navigation no longer equals navigationId, then run completionSteps and abort these steps.
         si navigable.ongoing_navigation != navigation_id {
@@ -1249,15 +1269,18 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         //    À FAIRE : the result of checking a navigation response's adherence to `X-Frame-Options` given navigationParams's response, navigable, navigationParams's policy container's CSP list, and navigationParams's origin is false,
         // then:
         sinon si navigation_params == nul {
-            panique("non-implémenté")
+            // 1. Set entry's document state's document to the result of creating a document for inline content that doesn't have a DOM,
+            //    given navigable, null, navTimingType, and userInvolvement.
+            //    À FAIRE : The inline content should indicate to the user the sort of error that occurred.
+            navigation_id_nul: Optionnel(NavigationID)
+            entry.document_state.document = load_a_document_for_inline_content_that_doesnt_have_a_dom(user_agent, navigable, navigation_id_nul, nav_timing_type, user_involvement, réponse_si_erreur)
 
-            // 1. Set entry's document state's document to the result of creating a document for inline content that doesn't have a DOM, given navigable, null, and navTimingType. The inline content should indicate to the user the sort of error that occurred.
-
-            // 2. Make document unsalvageable given entry's document state's document and "navigation-failure".
+            // À FAIRE : 2. Make document unsalvageable given entry's document state's document and "navigation-failure".
 
             // 3. Set saveExtraDocumentState to false.
+            save_extra_document_state = faux
 
-            // 4. If navigationParams is not null, then:
+            // À FAIRE : 4. If navigationParams is not null, then:
 
                 // 1. Run the environment discarding steps for navigationParams's reserved environment.
 
@@ -1333,11 +1356,15 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
     tâche.entry = entry
     tâche.navigation_params = navigation_params
     tâche.source_snapshot_params = source_snapshot_params
+    tâche.nav_timing_type = nav_timing_type
+    tâche.user_involvement = user_involvement
+    tâche.réponse_si_erreur = réponse_si_erreur
 
     user_agent.queue_a_globask_task(SourceDeTâche.NavigationEtTraversée, navigable.donne_active_window(), tâche)
 }
 
-/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching */
+/* https://html.spec.whatwg.org/multipage/browsing-the-web.html#create-navigation-params-by-fetching
+ * NOTE : la réponse retounée n'est pas spécifiée. Nous l'utilisons pour afficher une erreur à l'utilisateur. */
 create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
@@ -1345,7 +1372,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               target_snapshot_params: &TargetSnapshotParams @inutilisée,
                                               navigation_id: Optionnel(NavigationID),
                                               csp_navigation_type: chaine,
-                                              nav_timing_type: NavigationTimingType) -> *NavigationParams
+                                              nav_timing_type: NavigationTimingType) -> (*NavigationParams, *Response)
 {
     // 1. Assert: this is running in parallel.
     assert(user_agent.est_exécuté_en_parallèle())
@@ -1597,7 +1624,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
         location_url = donne_location_url(response, user_agent, current_url.fragment)
 
         // 15. If locationURL is failure or null, then break.
-        si location_url == nul {
+        si is_failure(location_url) || location_url == nul {
             arrête
         }
 
@@ -1661,6 +1688,9 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     //     locationURL is failure; or
     //     locationURL is a URL whose scheme is a fetch scheme,
     //     then return null.
+    si est_network_error(response) || is_failure(location_url) || (location_url != nul && is_http_scheme(location_url.scheme)) {
+        retourne nul, response
+    }
 
     // 24. Assert: locationURL is null and response is not a network error.
     assert(location_url == nul && !est_network_error(response))
@@ -1703,7 +1733,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
     si entry.document_state.about_base_url {
         résultat.about_base_url = copie_url(entry.document_state.about_base_url)
     }
-    retourne résultat
+    retourne résultat, nul
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#loading-a-document */
@@ -2991,7 +3021,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // 3. Let permissionsPolicy be the result of creating a permissions policy from a response
     // given navigationParams's navigable's container, navigationParams's origin, and navigationParams's response. [PERMISSIONSPOLICY]
     container := donne_container(navigation_params.navigable)
-    permissions_policy := create_a_permissions_policy_for_a_navigable_from_respone(container, navigation_params.origin, navigation_params.response)
+    permissions_policy := create_a_permissions_policy_for_a_navigable_from_response(container, navigation_params.origin, navigation_params.response)
 
     // 4. Let creationURL be navigationParams's response's URL.
     creation_url := navigation_params.response.donne_url()
@@ -3032,7 +3062,7 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
             user_agent: *UserAgent
         }
 
-        crée_objet_global :: fonc(base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
+        crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
         {
             configuration := base comme *ConfigurationRealmDocument
             tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
@@ -3103,7 +3133,9 @@ create_and_initialize_a_document_object :: fonc (user_agent: *UserAgent, type: c
     // was created via cross-origin redirects navigationParams's response's has cross-origin redirects
     // during-loading navigation ID for WebDriver BiDi navigationParams's id
     // URL creationURL
-    document.url = copie_url(creation_url)
+    si creation_url {
+        document.url = copie_url(creation_url)
+    }
     // current document readiness "loading"
     document.current_document_readiness = "loading"
     // about base URL navigationParams's about base URL
@@ -3242,6 +3274,81 @@ load_a_text_document :: fonc (user_agent: *UserAgent, navigation_params: *Naviga
     pre.ajoute_enfant(noeud_texte)
 
     // 4. Return document.
+    retourne document
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 7.5.7 Loading a document for inline content that doesn't have a DOM
+ * https://html.spec.whatwg.org/multipage/document-lifecycle.html#navigate-ua-inline
+ * \{ */
+
+load_a_document_for_inline_content_that_doesnt_have_a_dom :: fonc (user_agent: *UserAgent,
+                                                                   navigable: *Navigable,
+                                                                   navigation_id: Optionnel(NavigationID),
+                                                                   nav_timing_type: NavigationTimingType,
+                                                                   user_involvement: UserNavigationInvolvement,
+                                                                   réponse_si_erreur: *Response) -> *Document
+{
+    // 1. Let origin be a new opaque origin.
+    origin := crée_nouvelle_origin_opaque()
+
+    // À FAIRE : 2. Let coop be a new opener policy.
+
+    // À FAIRE : 3. Let coopEnforcementResult be a new opener policy enforcement result with
+    // url     response's URL
+    // origin    origin
+    // opener policy   coop
+
+    // 4. Let navigationParams be a new navigation params with
+    navigation_params := loge(NavigationParams)
+    // id            navigationId
+    navigation_params.id = navigation_id
+    // navigable     navigable
+    navigation_params.navigable = navigable
+    // request       null
+    navigation_params.request = nul
+    // response      a new response
+    si réponse_si_erreur {
+        navigation_params.response = réponse_si_erreur
+    }
+    sinon {
+        navigation_params.response = loge(Response)
+    }
+    // origin        origin
+    navigation_params.origin = origin
+    // fetch controller      null
+    navigation_params.fetch_controller = nul
+    // commit early hints     null
+    navigation_params.commit_early_hints = nul
+    // COOP enforcement result     coopEnforcementResult
+    // reserved environment null
+    navigation_params.reserved_environment = nul
+    // policy container     a new policy container
+    navigation_params.policy_container = loge(PolicyContainer)
+    // final sandboxing flag set    an empty set
+    navigation_params.final_sandboxing_flag = SandboxingFlags.zéro
+    // opener policy    coop
+    // navigation timing type    navTimingType
+    navigation_params.navigation_timing_type = nav_timing_type
+    // about base URL    null
+    navigation_params.about_base_url = nul
+    // user involvement    userInvolvement
+    navigation_params.user_involvement = user_involvement
+
+    // 5. Let document be the result of creating and initializing a Document object given "html", "text/html", and navigationParams.
+    document := create_and_initialize_a_document_object(user_agent, "html", "text/html", navigation_params)
+
+    // À FAIRE : 6. Either associate document with a custom rendering that is not rendered using the normal Document rendering rules,
+    //    or mutate document until it represents the content the user agent wants to render.
+
+    // 7. Act as if the user agent had stopped parsing document.
+    parseuse: Parseuse
+    parseuse.document = document
+    stop_parsing(*parseuse)
+
+    // 8. Return document.
     retourne document
 }
 

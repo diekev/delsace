@@ -2,6 +2,7 @@
 
 importe Chaine
 importe Compilatrice // pour les fonctions de formattages
+importe GreffeMétaprogramme
 importe Introspection
 importe Math // pour abs, ça fait beaucoup...
 importe Numérique
@@ -763,6 +764,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur)
         }
         VARIADIQUE {}
+        POLYMORPHIQUE {}
     }
 }
 
@@ -1084,6 +1086,10 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") 
         ADRESSE_FONCTION {
             ajoute_au_tampon(enchaineuse, "adresse_fonction")
         }
+        POLYMORPHIQUE {
+            info_poly := info comme *InfoTypePolymorphique
+            ajoute_au_tampon(enchaineuse, info_poly.ident)
+        }
     }
 }
 
@@ -1255,8 +1261,81 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 // ------------------------------------
 // Fonctions de formattages
 
-TypeFonctionFormattage :: fonc(*Enchaineuse, eini)(rien)
+GreffonImpression :: struct {
+    empl base: GreffonMétaprogramme
+
+    DonnéesPourEspace :: struct {
+        créatrice_table_fonctions: CréatriceTableFonction
+        table_créée := faux
+        fonctions: [..]*NoeudCodeEntêteFonction
+    }
+
+    données_pour_espace: [..]DonnéesPourEspace
+}
+
+donne_greffon :: fonc () -> *GreffonMétaprogramme
+{
+    résultat := loge(GreffonImpression)
+    résultat.sur_message = greffon_impression_sur_message
+    résultat.sur_destruction = greffon_impression_sur_destruction
+
+    données := tableau_ajoute_élément(*résultat.données_pour_espace)
+    données.créatrice_table_fonctions.espace = compilatrice_espace_courant()
+    données.créatrice_table_fonctions.nom_module = "Fondation"
+    données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
+    données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
+    données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+
+    retourne résultat
+}
+
+#portée_fichier
+
+greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *Message)
+{
+    si message.genre == GenreMessage.ESPACE_CRÉÉ {
+        données := tableau_ajoute_élément(*greffon.données_pour_espace)
+        message_espace := message comme *MessageEspaceCréé
+        données.créatrice_table_fonctions.espace = message_espace.nouvel_espace
+        données.créatrice_table_fonctions.nom_module = "Fondation"
+        données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
+        données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
+        données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+    }
+    sinon si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
+        message_typage := message comme *MessageTypageCodeTerminé
+        si message_typage.code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+            entête := message_typage.code comme *NoeudCodeEntêteFonction
+            si fonction_possède_annotation(entête, "FormattageImpression") {
+                données := *greffon.données_pour_espace[message.espace - 1]
+                tableau_ajoute(*données.fonctions, entête)
+            }
+        }
+    }
+    sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
+        données := *greffon.données_pour_espace[message.espace - 1]
+        saufsi données.table_créée {
+            crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions)
+            données.table_créée = vrai
+        }
+    }
+}
+
+greffon_impression_sur_destruction :: fonc (greffon: *GreffonImpression)
+{
+    pour greffon.données_pour_espace {
+        déloge(it.fonctions)
+    }
+    déloge(greffon.données_pour_espace)
+    déloge(greffon)
+}
+
+#portée_export // À FAIRE : génère le code dans ce module
+
+TypeFonctionFormattage :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 __fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
+
+#portée_fichier
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {
@@ -1272,7 +1351,7 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
     type_premier_paramètre := fonction.params[0].type
     type_deuxième_paramètre := fonction.params[1].type
 
-    si type_premier_paramètre != info_de(*Enchaineuse) {
+    saufsi est_type_pointeur_vers_struct_nommé(type_premier_paramètre, "Enchaineuse") {
         compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *Enchaineuse ».")
     }
 
@@ -1288,7 +1367,23 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
     retourne résultat
 }
 
-génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
+est_type_pointeur_vers_struct_nommé :: fonc (type: *InfoType, nom: chaine) -> bool
+{
+    résultat := faux
+
+    si type.id == GenreInfoType.POINTEUR {
+        type_pointeur := type comme *InfoTypePointeur
+
+        si type_pointeur.type_pointé && type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
+            type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
+            résultat = type_structure.nom == nom
+        }
+    }
+
+    retourne résultat
+}
+
+génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, espace: EspaceDeTravail, données: DonnéesFonctionPourTableFonction) -> chaine
 {
     nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom)
 
@@ -1296,7 +1391,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     ajoute_au_tampon(enchaineuse, "{\n")
     ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *")
 
-    module := compilatrice_module_pour_code(données.fonction)
+    module := compilatrice_module_pour_code(espace, données.fonction)
     nom_module := compilatrice_nom_module(module)
     imprime_type(enchaineuse, données.info_type, nom_module)
     ajoute_au_tampon(enchaineuse, "\n")
@@ -1309,17 +1404,3 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
 
     retourne nom_enveloppe
 }
-
-exécute_pré_exécutable :: fonc ()
-{
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    créatrice_table_fonctions.annotation_désirée = "FormattageImpression"
-    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
-    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
-
-    crée_table_fonctions(créatrice_table_fonctions)
-}
-
-#pré_exécutable exécute_pré_exécutable()

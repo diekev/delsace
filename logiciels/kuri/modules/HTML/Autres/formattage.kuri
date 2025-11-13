@@ -7,6 +7,7 @@ importe Compilatrice
 importe Fondation
 importe HTML
 JS :: importe JavaScript
+importe LigneDeCommande
 importe SysFichier
 importe Temps
 
@@ -16,17 +17,15 @@ importe Temps
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
-
-    si args.taille != 2 {
-        imprime("Utilisation: % FICHIER\n", args[0])
+    chemin := parse_argument_chemin()
+    saufsi chemin {
         exit(1)
     }
 
-    chm := CheminFichier(args[1])
+    chm := CheminFichier(chemin)
 
     saufsi est_fichier_html(chm) {
-        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", args[1])
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
         exit(1)
     }
 

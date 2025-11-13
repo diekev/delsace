@@ -921,6 +921,35 @@ static bool est_corps_texte(NoeudExpression *noeud)
     return false;
 }
 
+static void dbg_imprime_appartenance_bloc(NoeudBloc const *bloc)
+{
+    if (bloc->appartiens_à_fonction) {
+        dbg() << "Le bloc appartiens à " << nom_humainement_lisible(bloc->appartiens_à_fonction)
+              << "\n"
+              << *bloc->appartiens_à_fonction;
+    }
+    else if (bloc->appartiens_à_boucle) {
+        dbg() << "Le bloc appartiens à une boucle";
+    }
+    else if (bloc->appartiens_à_diffère) {
+        dbg() << "Le bloc appartiens à une instruction diffère";
+    }
+    else if (bloc->appartiens_à_discr) {
+        dbg() << "Le bloc appartiens à une instruction discr";
+    }
+    else if (bloc->appartiens_à_tente) {
+        dbg() << "Le bloc appartiens à une instruction tente";
+    }
+    else if (bloc->appartiens_à_type) {
+        dbg() << "Le bloc appartiens à " << nom_humainement_lisible(bloc->appartiens_à_type)
+              << "\n"
+              << *bloc->appartiens_à_type;
+    }
+    else {
+        dbg() << "Le bloc n'apparties à personne";
+    }
+}
+
 static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_fonction,
                                   NoeudDéclarationEntêteFonction *nouvelle_fonction)
 {
@@ -940,17 +969,21 @@ static void échange_corps_entêtes(NoeudDéclarationEntêteFonction *ancienne_f
 
     /* Remplace les références à ancienne_fonction dans nouvelle_fonction->corps par
      * nouvelle_fonction. */
-    visite_noeud(nouvelle_fonction->corps,
-                 PreferenceVisiteNoeud::ORIGINAL,
-                 false,
-                 [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
-                     if (noeud->est_bloc()) {
-                         auto bloc = noeud->comme_bloc();
-                         assert(bloc->appartiens_à_fonction == ancienne_fonction);
-                         const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
-                     }
-                     return DecisionVisiteNoeud::CONTINUE;
-                 });
+    visite_noeud(
+        nouvelle_fonction->corps,
+        PreferenceVisiteNoeud::ORIGINAL,
+        false,
+        [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
+            if (noeud->est_bloc()) {
+                auto bloc = noeud->comme_bloc();
+                if (bloc->appartiens_à_fonction) {
+                    assert_rappel(bloc->appartiens_à_fonction == ancienne_fonction,
+                                  [&]() { dbg_imprime_appartenance_bloc(bloc); });
+                    const_cast<NoeudBloc *>(bloc)->appartiens_à_fonction = nouvelle_fonction;
+                }
+            }
+            return DecisionVisiteNoeud::CONTINUE;
+        });
 }
 
 static void définis_fonction_courante_pour_corps_texte(NoeudDéclarationCorpsFonction *corps)
@@ -1762,15 +1795,29 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
             return;
         }
 
-        if (module_du_fichier->importe_module(module->nom())) {
+        auto info_module_importé = module_du_fichier->donne_info_module_importé(module->nom());
+        if (info_module_importé) {
+            /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
+             * de générer ces instructions redondantes. */
             if (fichier->source != SourceFichier::CHAINE_AJOUTÉE) {
-                /* Ignore les fichiers de chaines ajoutées afin de permettre aux métaprogrammes
-                 * de générer ces instructions redondantes. */
-                espace->rapporte_info(inst, "Import superflux du module");
+                auto source_import_préexistant = info_module_importé->site;
+                if (source_import_préexistant != nullptr) {
+                    auto fichier_import_préexistant = espace->fichier(
+                        source_import_préexistant->lexème->fichier);
+                    if (fichier_import_préexistant->source != SourceFichier::CHAINE_AJOUTÉE) {
+                        auto rapport_info = espace->rapporte_info(inst,
+                                                                  "Import superflux du module");
+                        rapport_info.ajoute_message("Le module fut déjà importé ici :\n");
+                        rapport_info.ajoute_site(source_import_préexistant);
+                    }
+                }
+                else {
+                    espace->rapporte_info(inst, "Import superflux du module");
+                }
             }
         }
         else {
-            module_du_fichier->modules_importés.insère({module, inst->est_employé});
+            module_du_fichier->modules_importés.insère({module, inst, inst->est_employé});
         }
 
         auto noeud_déclaration = inst->noeud_déclaration;
@@ -1897,10 +1944,6 @@ static bool doit_déterminer_les_dépendances(NoeudExpression *noeud)
         return true;
     }
 
-    if (noeud->est_pré_exécutable()) {
-        return true;
-    }
-
     return false;
 }
 
@@ -1982,9 +2025,6 @@ void GestionnaireCode::typage_terminé(UniteCompilation *unité)
      * pour éviter de prévenir trop tôt un métaprogramme. */
     TACHE_TERMINEE(TYPAGE);
 
-    if (noeud->est_entête_fonction()) {
-        espace->fonctions_parsées.ajoute(noeud->comme_entête_fonction());
-    }
     TERMINE_STAT(TYPAGE_TERMINÉ);
 }
 
@@ -2325,7 +2365,10 @@ bool GestionnaireCode::plus_rien_n_est_à_faire()
              * À FAIRE : même si un message est ajouté, purge_message provoque
              * une compilation infinie. */
             if (!espace->options.continue_si_erreur) {
-                m_compilatrice->messagère->purge_messages();
+                if (espace->metaprogramme) {
+                    std::unique_lock verrou(espace->metaprogramme->mutex_file_message);
+                    espace->metaprogramme->file_message.efface();
+                }
             }
 
             espace->change_de_phase(
@@ -2409,35 +2452,6 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
         return;
     }
 
-    auto modules = programme->modules_utilisés();
-    auto executions_requises = false;
-    auto executions_en_cours = false;
-    modules.pour_chaque_element([&](Module *module) {
-        auto exécute = module->directive_pré_exécutable;
-        if (!exécute) {
-            return;
-        }
-
-        if (!module->exécution_directive_requise) {
-            /* L'espace du programme est celui qui a créé le métaprogramme lors de la validation de
-             * code, mais nous devons avoir le métaprogramme (qui hérite de l'espace du programme)
-             * dans l'espace demandant son exécution afin que le compte de tâches d'exécution dans
-             * l'espace soit cohérent. */
-            exécute->métaprogramme->programme->change_d_espace(espace);
-            requiers_compilation_métaprogramme(espace, exécute->métaprogramme);
-            module->exécution_directive_requise = true;
-            executions_requises = true;
-        }
-
-        /* Nous devons attendre la fin de l'exécution de ces métaprogrammes avant de pouvoir généré
-         * le code machine. */
-        executions_en_cours |= !exécute->métaprogramme->fut_exécuté();
-    });
-
-    if (executions_requises || executions_en_cours) {
-        return;
-    }
-
     /* Requiers la génération de RI pour les fonctions ajoute_fini et ajoute_init. */
     auto decl_ajoute_fini = espace->interface_kuri->decl_fini_execution_kuri;
     auto decl_ajoute_init = espace->interface_kuri->decl_init_execution_kuri;
@@ -2496,17 +2510,18 @@ void GestionnaireCode::flush_métaprogrammes_en_attente_de_crée_contexte(Espace
 
 void GestionnaireCode::interception_message_terminée(EspaceDeTravail *espace)
 {
-    m_compilatrice->messagère->termine_interception(espace);
-
     kuri::tableau<UniteCompilation *> nouvelles_unités;
     nouvelles_unités.réserve(unités_en_attente.taille());
 
     POUR (unités_en_attente) {
-        if (it->donne_raison_d_être() == RaisonDÊtre::ENVOIE_MESSAGE) {
-            continue;
+        if (it->espace == espace) {
+            it->supprime_attentes_sur_messages();
+
+            if (it->donne_raison_d_être() == RaisonDÊtre::ENVOIE_MESSAGE) {
+                continue;
+            }
         }
 
-        it->supprime_attentes_sur_messages();
         nouvelles_unités.ajoute(it);
     }
 

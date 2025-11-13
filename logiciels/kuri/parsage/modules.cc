@@ -19,18 +19,24 @@
 
 /* ************************************************************************** */
 
-bool Module::importe_module(IdentifiantCode *nom_module) const
+ModuleImporté const *Module::donne_info_module_importé(IdentifiantCode *nom_module) const
 {
-    bool importe = false;
-    pour_chaque_élément(modules_importés, [nom_module, &importe](ModuleImporté const &module_) {
+    ModuleImporté const *résultat = nullptr;
+    pour_chaque_élément(modules_importés, [nom_module, &résultat](ModuleImporté const &module_) {
         if (module_.module->nom() == nom_module) {
-            importe = true;
+            résultat = &module_;
             return kuri::DécisionItération::Arrête;
         }
 
         return kuri::DécisionItération::Continue;
     });
-    return importe;
+    return résultat;
+}
+
+bool Module::importe_module(IdentifiantCode *nom_module) const
+{
+    auto info_module = donne_info_module_importé(nom_module);
+    return info_module != nullptr;
 }
 
 void Module::ajoute_fichier(Fichier *fichier)
@@ -95,6 +101,24 @@ Module *SystèmeModule::crée_module_fichier_racine_compilation(kuri::chaine_sta
     auto module = crée_module(ID::chaine_vide, chemin_normalisé);
     module->importé = true;
     return module;
+}
+
+Module *SystèmeModule::donne_module(kuri::chaine_statique chemin)
+{
+    auto chemin_normalisé = kuri::chaine(chemin);
+
+    if (chemin_normalisé.taille() > 0 && chemin_normalisé[chemin_normalisé.taille() - 1] !=
+                                             kuri::chemin_systeme::séparateur_préféré()) {
+        chemin_normalisé = enchaine(chemin_normalisé, kuri::chemin_systeme::séparateur_préféré());
+    }
+
+    POUR_TABLEAU_PAGE (modules) {
+        if (it.chemin() == chemin_normalisé) {
+            return &it;
+        }
+    }
+
+    return nullptr;
 }
 
 Module *SystèmeModule::trouve_ou_crée_module(IdentifiantCode *nom, kuri::chaine_statique chemin)
@@ -213,7 +237,7 @@ Module *SystèmeModule::crée_module(IdentifiantCode *nom, kuri::chaine_statique
     auto dm = modules.ajoute_élément(chemin);
     dm->nom_ = nom;
     if (importe_kuri) {
-        dm->modules_importés.insère({module_kuri, true});
+        dm->modules_importés.insère({module_kuri, nullptr, true});
     }
     return dm;
 }

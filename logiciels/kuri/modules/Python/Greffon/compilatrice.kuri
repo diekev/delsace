@@ -245,7 +245,7 @@ crée_type_python_pour :: fonc (système: &SystèmeType, info: *InfoType, nom: c
     retourne type_python
 }
 
-crée_type_python_pour_basique :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc(&FonctionsTypePython)(rien)) -> *TypePython
+crée_type_python_pour_basique :: fonc (système: &SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc (arg: &FonctionsTypePython)) -> *TypePython
 {
     résultat := système.crée_type_python_pour(info, nom)
     résultat.est_basique = vrai
@@ -268,6 +268,13 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
 {
     type_python := système.trouve_type(info)
     si type_python {
+        si info.id == GenreInfoType.STRUCTURE {
+            info_struct := info comme *InfoTypeStructure
+            // À FAIRE(langage) : nous pouvons avoir des types non-validés ou avec des informations partielles
+            si possède_annotation(info_struct, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
+        }
         retourne type_python
     }
 
@@ -329,6 +336,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             type_python = système.crée_type_python_pour(info, info_struct.nom)
             init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
 
+            si possède_annotation(info_struct, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
+
             si info_struct.structs_employées {
                 type_base := système.convertis_vers_type_python(info_struct.structs_employées[0])
                 type_python.base = type_base
@@ -357,6 +368,10 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
             type_python = système.crée_type_python_pour(info, info_union.nom)
             init_fonctions_type_structure(type_python.fonctions, type_python.nom_sauf)
             type_python.drapeaux.TYPE_EST_UNION = vrai
+
+            si possède_annotation(info_union, "ToujoursPointeur") {
+                type_python.drapeaux |= DrapeauxType.TOUJOURS_COMME_POINTEUR
+            }
 
             si est_type_résultat(info_union) {
                 type_python.drapeaux.TYPE_EST_RÉSULTAT = vrai
@@ -462,6 +477,9 @@ convertis_vers_type_python :: fonc (système: &SystèmeType, info: *InfoType) ->
         ADRESSE_FONCTION {
             compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers Python pour le moment")
         }
+        POLYMORPHIQUE {
+            compilatrice_rapporte_erreur("Les types « polymorphiques » ne sont pas convertibles vers Python pour le moment")
+        }
     }
 
     si type_python && type_python.nom_type_kuri.taille == 0 {
@@ -489,6 +507,7 @@ ChoseÀGénérer :: énum {
 }
 
 CompilatriceModulePython :: struct {
+    espace: EspaceDeTravail
     module: ModulePython
     chose_à_générer: ChoseÀGénérer
 
@@ -506,12 +525,13 @@ détruit :: fonc (compilatrice: &CompilatriceModulePython)
     détruit(compilatrice.système_type)
 }
 
-crée_compilatrice_pour_un_module :: fonc (nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
+crée_compilatrice_pour_un_module :: fonc (espace: EspaceDeTravail, nom_module: chaine, chose_à_générer: ChoseÀGénérer) -> CompilatriceModulePython
 {
     compilatrice: CompilatriceModulePython
+    compilatrice.espace = espace
     compilatrice.chose_à_générer = chose_à_générer
     compilatrice.module.nom = nom_module
-    initialise_ensemble_de_modules(*compilatrice.modules_kuri_à_importer)
+    initialise_ensemble_de_modules(espace, *compilatrice.modules_kuri_à_importer)
     retourne compilatrice
 }
 
@@ -528,6 +548,10 @@ ajoute_type :: fonc (compilatrice: &CompilatriceModulePython, type_kuri: *InfoTy
 
 ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
+    si fonction.est_polymorphique {
+        retourne
+    }
+
     annotation_python := annotation_pour_python(fonction)
 
     discr annotation_python {
@@ -566,13 +590,13 @@ ajoute_fonction_si_annotée :: fonc (compilatrice: &CompilatriceModulePython, fo
 
 ajoute_fonction_sans_annotation :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
     compilatrice.module.ajoute_fonction(compilatrice.système_type, fonction)
 }
 
 ajoute_fonction_pour_méthode :: fonc (compilatrice: &CompilatriceModulePython, fonction: *NoeudCodeEntêteFonction)
 {
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
     type_paramètre := type_premier_paramètre(fonction)
     type_python := convertis_vers_type_python(compilatrice.système_type, type_paramètre)
     type_python.ajoute_méthode(compilatrice.système_type, fonction)
@@ -598,7 +622,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
     }
 
     si code_erreur == CodeErreurCompilationPython.FONCTION_INIT_REQUIERS_STRUCTURE {
-        saufsi fonction_ne_retourne_que(fonction, info_de(bool)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.BOOLÉEN {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_INIT, ContexteErreurPython(fonction))
             retourne
         }
@@ -606,7 +630,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         type_python.ajoute_méthode_init(compilatrice.système_type, fonction)
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_NEW_REQUIERS_STRUCTURE {
-        saufsi fonction_ne_retourne_que(fonction, info_de(bool)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.BOOLÉEN {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_NEW, ContexteErreurPython(fonction))
             retourne
         }
@@ -619,7 +643,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(chaine)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.CHAINE {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_REPR, ContexteErreurPython(fonction))
             retourne
         }
@@ -632,7 +656,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(chaine)) {
+        si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.CHAINE {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_STR, ContexteErreurPython(fonction))
             retourne
         }
@@ -645,7 +669,7 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
             retourne
         }
 
-        saufsi fonction_ne_retourne_que(fonction, info_de(z64)) {
+        si fonction.params_sorties.taille != 1 || !est_type_z64(fonction.params_sorties[0].type) {
             rapporte_erreur(CodeErreurCompilationPython.TYPE_RETOUR_HASH, ContexteErreurPython(fonction))
             retourne
         }
@@ -653,7 +677,19 @@ ajoute_fonction_type :: fonc (compilatrice: &CompilatriceModulePython, code_erre
         type_python.ajoute_méthode_hash(compilatrice.système_type, fonction)
     }
 
-    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(fonction))
+    ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction))
+}
+
+est_type_z64 :: fonc (info: *InfoType) -> bool
+{
+    résultat := faux
+
+    si info.id == GenreInfoType.ENTIER {
+        info_entier := info comme *InfoTypeEntier
+        résultat = info_entier.taille_en_octet == 8 && info_entier.est_signé
+    }
+
+    retourne résultat
 }
 
 génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython) -> Optionnel(chaine)
@@ -708,12 +744,12 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
     retourne vrai
 }
 
-génère_code :: fonc (compilatrice: &CompilatriceModulePython, espace: *EspaceDeTravail)
+génère_code :: fonc (compilatrice: &CompilatriceModulePython)
 {
     discr compilatrice.génère_interface_python() {
         Quelque(source) {
             diffère déloge(source)
-            ajoute_chaine_à_la_compilation(espace, source)
+            ajoute_chaine_à_la_compilation(compilatrice.espace, source)
         }
         sinon {}
     }

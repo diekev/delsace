@@ -149,6 +149,7 @@ std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *esp
 }
 
 void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+                                                   EspaceDeTravail *espace_pour_site,
                                                    kuri::chaine_statique nom,
                                                    Module *module,
                                                    NoeudExpression const *site)
@@ -158,7 +159,7 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
         chemin = enchaine(chemin, ".kuri");
     }
 
-    auto opt_chemin = determine_chemin_absolu(espace, chemin, site);
+    auto opt_chemin = determine_chemin_absolu(espace_pour_site, chemin, site);
     if (!opt_chemin.has_value()) {
         return;
     }
@@ -202,11 +203,6 @@ int64_t Compilatrice::memoire_utilisee() const
 
     résultat += m_tableaux_lexèmes.taille_mémoire();
     POUR (m_tableaux_lexèmes) {
-        résultat += it.taille_mémoire();
-    }
-
-    résultat += m_tableaux_code_fonctions.taille_mémoire();
-    POUR (m_tableaux_code_fonctions) {
         résultat += it.taille_mémoire();
     }
 
@@ -280,7 +276,10 @@ void Compilatrice::rapporte_erreur(EspaceDeTravail const *espace,
         m_code_erreur = genre;
     }
 
-    dbg() << message;
+    if (espace->erreurs_rapportées == 0) {
+        dbg() << message;
+        espace->erreurs_rapportées += 1;
+    }
 }
 
 bool Compilatrice::possède_erreur(const EspaceDeTravail *espace) const
@@ -298,6 +297,7 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
 
     espace->module_kuri = espace->sys_module->initialise_module_kuri(racine_modules_kuri,
                                                                      arguments.importe_kuri);
+
     if (espace->module_kuri) {
         espace->module_kuri->importé = true;
 
@@ -313,6 +313,21 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
 
     espace->module = espace->sys_module->crée_module_fichier_racine_compilation(dossier);
 
+    if (espaces_de_travail->taille() == 0) {
+        auto chemin = racine_modules_kuri / "MétaprogrammeDéfaut";
+        auto module = espace->sys_module->trouve_ou_crée_module(ID::MétaprogrammeDéfaut, chemin);
+        module->importé = true;
+        espace->sys_module->crée_fichier(module, "module", chemin / "module.kuri");
+        POUR (module->fichiers) {
+            if (it->fut_chargé) {
+                gestionnaire_code->requiers_lexage(espace, it);
+            }
+            else {
+                gestionnaire_code->requiers_chargement(espace, it);
+            }
+        }
+    }
+
     espaces_de_travail->ajoute(espace);
     espace->id = espaces_de_travail->taille();
     gestionnaire_code->espace_créé(espace);
@@ -320,7 +335,21 @@ EspaceDeTravail *Compilatrice::démarre_un_espace_de_travail(OptionsDeCompilatio
     /* Crée les tâches pour les données requise de la typeuse. */
     Typeuse::crée_tâches_précompilation(*this, espace);
 
+    messagère->ajoute_message_espace_créé(espace, espace);
+
     return espace;
+}
+
+EspaceDeTravail *Compilatrice::donne_espace_de_travail(int id) const
+{
+    EspaceDeTravail *résultat = nullptr;
+    POUR ((*espaces_de_travail.verrou_lecture())) {
+        if (it->id == id) {
+            résultat = it;
+            break;
+        }
+    }
+    return résultat;
 }
 
 ContexteLexage Compilatrice::contexte_lexage(EspaceDeTravail *espace)
@@ -395,19 +424,11 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 }
 
 void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
+                                              EspaceDeTravail *espace_pour_site,
                                               kuri::chaine_statique c,
                                               const NoeudExpression *site)
 {
-    ajoute_fichier_a_la_compilation(espace, c, espace->module, site);
-}
-
-Message const *Compilatrice::attend_message()
-{
-    auto messagère_ = messagère.verrou_ecriture();
-    if (!messagère_->possède_message()) {
-        return nullptr;
-    }
-    return messagère_->defile();
+    ajoute_fichier_a_la_compilation(espace, espace_pour_site, c, espace->module, site);
 }
 
 EspaceDeTravail *Compilatrice::espace_défaut_compilation()
@@ -427,10 +448,11 @@ static kuri::tableau<kuri::Lexème> converti_tableau_lexemes(
 }
 
 kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail *espace,
+                                                                EspaceDeTravail *espace_pour_site,
                                                                 kuri::chaine_statique chemin_donne,
                                                                 NoeudExpression const *site)
 {
-    auto opt_chemin = determine_chemin_absolu(espace, chemin_donne, site);
+    auto opt_chemin = determine_chemin_absolu(espace_pour_site, chemin_donne, site);
     if (!opt_chemin.has_value()) {
         return {nullptr, 0};
     }
@@ -460,25 +482,6 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
     auto tableau = converti_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexèmes.ajoute(tableau);
     return m_tableaux_lexèmes.dernier_élément();
-}
-
-kuri::tableau_statique<NoeudCodeEntêteFonction *> Compilatrice::fonctions_parsees(
-    EspaceDeTravail *espace)
-{
-    auto convertisseuse = donne_convertisseuse_noeud_code_disponible();
-    auto entêtes = espace->fonctions_parsées;
-    auto résultat = kuri::tableau<NoeudCodeEntêteFonction *>();
-    résultat.réserve(entêtes.taille());
-    POUR (entêtes) {
-        if (it->est_opérateur || it->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-            continue;
-        }
-        auto code_entête = convertisseuse->convertis_noeud_syntaxique(espace, it);
-        résultat.ajoute(code_entête->comme_entête_fonction());
-    }
-    m_tableaux_code_fonctions.ajoute(résultat);
-    dépose_convertisseuse(convertisseuse);
-    return m_tableaux_code_fonctions.dernier_élément();
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(

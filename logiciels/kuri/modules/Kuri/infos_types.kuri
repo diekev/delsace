@@ -20,6 +20,7 @@ GenreInfoType :: énum z32 {
     TRANCHE :: 16
     TABLEAU_FIXE :: 17
     ADRESSE_FONCTION :: 18
+    POLYMORPHIQUE :: 19
 }
 
 Annotation :: struct #interface {
@@ -30,6 +31,7 @@ Annotation :: struct #interface {
 InfoType :: struct #interface {
     id: GenreInfoType
     taille_en_octet: n32
+    alignement: n32
     indice_dans_table_des_types: n32
 }
 
@@ -93,6 +95,11 @@ InfoTypeRubriqueStructure :: struct #interface {
     décalage: z32 // décalage en octets dans la structure
     drapeaux: Drapeaux
     annotations: []*Annotation
+
+ 	chemin_fichier: chaine
+    nom_fichier: chaine
+    numéro_ligne: z32
+    numéro_colonne: z32
 }
 
 possède_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> bool
@@ -284,6 +291,12 @@ InfoTypeVariadique :: struct #interface {
     type_élément: *InfoType
 }
 
+InfoTypePolymorphique :: struct #interface {
+    empl base: InfoType
+
+    ident: chaine
+}
+
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
     si info.id != GenreInfoType.POINTEUR {
@@ -325,6 +338,31 @@ est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeSt
     }
 
     retourne faux
+}
+
+est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
+{
+    si info.nom == nom {
+        retourne vrai
+    }
+
+    pour info.structs_employées {
+        si est_struct_ou_employeuse_de(it, nom) {
+            retourne vrai
+        }
+    }
+
+    retourne faux
+}
+
+est_type_structure_nommée :: fonc (info: *InfoType, nom: chaine) -> bool
+{
+    résultat := faux
+    si info.id == GenreInfoType.STRUCTURE {
+        info_structure := info comme *InfoTypeStructure
+        résultat = info_structure.nom == nom
+    }
+    retourne résultat
 }
 
 est_pointeur_de :: fonc (info: *InfoType) -> *InfoType

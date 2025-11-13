@@ -10,6 +10,7 @@
 #include "utilitaires/log.hh"
 
 #include "cas_genre_noeud.hh"
+#include "espace_de_travail.hh"
 #include "noeud_code.hh"
 #include "utilitaires.hh"
 
@@ -81,6 +82,7 @@ static void copie_annotations(kuri::tableau<Annotation, int> const &source,
 }
 
 static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_types,
+                                       EspaceDeTravail *espace,
                                        InfoTypeRubriqueStructure *info_type_rubrique,
                                        RubriqueTypeComposé const &rubrique)
 {
@@ -96,15 +98,30 @@ static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_t
                               annotations);
         }
         info_type_rubrique->annotations = allocatrice_infos_types.donne_tranche(annotations);
+
+        const auto lexème = rubrique.decl->lexème;
+        const auto fichier = espace->fichier(lexème->fichier);
+        info_type_rubrique->chemin_fichier = fichier->chemin();
+        info_type_rubrique->nom_fichier = fichier->nom();
+        info_type_rubrique->numéro_ligne = lexème->ligne + 1;
+        info_type_rubrique->numéro_colonne = lexème->colonne;
     }
 }
 
-InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *type)
+static void initialise_entête_info_type(InfoType *info_type, Type *type, GenreInfoType genre)
 {
-    auto crée_info_type_entier = [this](uint32_t taille_en_octet, bool est_signe) {
+    info_type->genre = genre;
+    info_type->taille_en_octet = type->taille_octet;
+    info_type->alignement = type->alignement;
+}
+
+InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
+                                                       Typeuse &typeuse,
+                                                       Type *type)
+{
+    auto crée_info_type_entier = [this](Type *type_local, bool est_signe) {
         auto info_type = allocatrice_infos_types.infos_types_entiers.ajoute_élément();
-        info_type->genre = GenreInfoType::ENTIER;
-        info_type->taille_en_octet = taille_en_octet;
+        initialise_entête_info_type(info_type, type_local, GenreInfoType::ENTIER);
         info_type->est_signé = est_signe;
 
         return info_type;
@@ -117,50 +134,62 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         return nullptr;
     }
 
-    if (type->info_type != nullptr) {
+    if (type->info_type != nullptr &&
+        type->possède_drapeau(DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES)) {
         return type->info_type;
     }
 
     switch (type->genre) {
-        case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::TUPLE:
         {
             return nullptr;
         }
+        case GenreNoeud::POLYMORPHIQUE:
+        {
+            auto type_polymorphique = type->comme_type_polymorphique();
+            auto info_type = allocatrice_infos_types.infos_types_polymorphiques.ajoute_élément();
+            initialise_entête_info_type(info_type, type, GenreInfoType::POLYMORPHIQUE);
+            if (type_polymorphique->ident) {
+                info_type->ident = type_polymorphique->ident->nom;
+            }
+            type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
+            break;
+        }
         case GenreNoeud::OCTET:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::OCTET;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::OCTET);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::BOOL:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::BOOLÉEN;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::BOOLÉEN);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::CHAINE:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::CHAINE;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::CHAINE);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::EINI:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::EINI;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::EINI);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -168,11 +197,12 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto type_tableau = type->comme_type_tableau_dynamique();
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux.ajoute_élément();
-            info_type->genre = GenreInfoType::TABLEAU;
-            info_type->taille_en_octet = type->taille_octet;
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
+            initialise_entête_info_type(info_type, type, GenreInfoType::TABLEAU);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::TYPE_TRANCHE:
@@ -180,11 +210,12 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto type_tableau = type->comme_type_tranche();
 
             auto info_type = allocatrice_infos_types.infos_types_tranches.ajoute_élément();
-            info_type->genre = GenreInfoType::TRANCHE;
-            info_type->taille_en_octet = type->taille_octet;
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_élément);
+            initialise_entête_info_type(info_type, type, GenreInfoType::TRANCHE);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_élément);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::VARIADIQUE:
@@ -192,17 +223,17 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto type_variadique = type->comme_type_variadique();
 
             auto info_type = allocatrice_infos_types.infos_types_variadiques.ajoute_élément();
-            info_type->genre = GenreInfoType::VARIADIQUE;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::VARIADIQUE);
 
             // type nul pour les types variadiques des fonctions externes (p.e. printf(const char
             // *, ...))
             if (type_variadique->type_pointé) {
-                info_type->type_élément = crée_info_type_pour(typeuse,
-                                                              type_variadique->type_pointé);
+                info_type->type_élément = crée_info_type_pour(
+                    espace, typeuse, type_variadique->type_pointé);
             }
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
@@ -210,162 +241,186 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto type_tableau = type->comme_type_tableau_fixe();
 
             auto info_type = allocatrice_infos_types.infos_types_tableaux_fixes.ajoute_élément();
-            info_type->genre = GenreInfoType::TABLEAU_FIXE;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::TABLEAU_FIXE);
             info_type->nombre_éléments = uint32_t(type_tableau->taille);
-            info_type->type_élément = crée_info_type_pour(typeuse, type_tableau->type_pointé);
+            info_type->type_élément = crée_info_type_pour(
+                espace, typeuse, type_tableau->type_pointé);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::ENTIER_CONSTANT:
         {
-            type->info_type = crée_info_type_entier(4, true);
+            type->info_type = crée_info_type_entier(type, true);
+            type->info_type->taille_en_octet = 4;
+            type->info_type->alignement = 4;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::ENTIER_NATUREL:
         {
-            type->info_type = crée_info_type_entier(type->taille_octet, false);
+            type->info_type = crée_info_type_entier(type, false);
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::ENTIER_RELATIF:
         {
-            type->info_type = crée_info_type_entier(type->taille_octet, true);
+            type->info_type = crée_info_type_entier(type, true);
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::RÉEL:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::RÉEL;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::RÉEL);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::RIEN:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::RIEN;
-            info_type->taille_en_octet = 0;
+            initialise_entête_info_type(info_type, type, GenreInfoType::RIEN);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::TYPE_DE_DONNÉES;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::TYPE_DE_DONNÉES);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::POINTEUR:
         case GenreNoeud::RÉFÉRENCE:
         {
             auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_élément();
-            info_type->genre = GenreInfoType::POINTEUR;
-            info_type->type_pointé = crée_info_type_pour(typeuse, type_déréférencé_pour(type));
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::POINTEUR);
+            info_type->type_pointé = crée_info_type_pour(
+                espace, typeuse, type_déréférencé_pour(type));
             info_type->est_référence = type->est_type_référence();
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_struct = type->comme_type_structure();
 
-            auto info_type = allocatrice_infos_types.infos_types_structures.ajoute_élément();
-            type->info_type = info_type;
+            if (!type->info_type) {
+                auto info_type = allocatrice_infos_types.infos_types_structures.ajoute_élément();
+                type->info_type = info_type;
+            }
 
-            info_type->genre = GenreInfoType::STRUCTURE;
-            info_type->taille_en_octet = type->taille_octet;
+            auto info_type = static_cast<InfoTypeStructure *>(type->info_type);
+            initialise_entête_info_type(info_type, type, GenreInfoType::STRUCTURE);
             info_type->nom = donne_nom_hiérarchique(type_struct);
             info_type->est_polymorphique = type_struct->est_polymorphe;
 
-            if (type_struct->polymorphe_de_base) {
-                auto polymorphe = const_cast<NoeudDéclarationClasse *>(
-                    type_struct->polymorphe_de_base);
-                info_type->polymorphe_de_base = static_cast<InfoTypeStructure *>(
-                    crée_info_type_pour(typeuse, polymorphe));
-            }
+            if (type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
 
-            auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
-            rubriques.réserve(type_struct->rubriques.taille());
-
-            POUR (type_struct->rubriques) {
-                if (it.nom == ID::chaine_vide) {
-                    continue;
+                if (type_struct->polymorphe_de_base) {
+                    auto polymorphe = const_cast<NoeudDéclarationClasse *>(
+                        type_struct->polymorphe_de_base);
+                    info_type->polymorphe_de_base = static_cast<InfoTypeStructure *>(
+                        crée_info_type_pour(espace, typeuse, polymorphe));
                 }
 
-                if (it.possède_drapeau(RubriqueTypeComposé::PROVIENT_D_UN_EMPOI)) {
-                    continue;
+                auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
+                rubriques.réserve(type_struct->rubriques.taille());
+
+                POUR (type_struct->rubriques) {
+                    if (it.nom == ID::chaine_vide) {
+                        continue;
+                    }
+
+                    if (it.possède_drapeau(RubriqueTypeComposé::PROVIENT_D_UN_EMPOI)) {
+                        continue;
+                    }
+
+                    auto info_type_rubrique =
+                        allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
+                    info_type_rubrique->info = crée_info_type_pour(espace, typeuse, it.type);
+                    remplis_rubrique_info_type(
+                        allocatrice_infos_types, espace, info_type_rubrique, it);
+                    rubriques.ajoute(info_type_rubrique);
                 }
 
-                auto info_type_rubrique =
-                    allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
-                info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
-                remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
-                rubriques.ajoute(info_type_rubrique);
+                info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
+
+                auto annotations = kuri::tablet<const Annotation *, 6>();
+                copie_annotations(type_struct->annotations, annotations);
+                info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
+
+                auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
+                structs_employées.réserve(type_struct->types_employés.taille());
+                POUR (type_struct->types_employés) {
+                    auto info_struct_employe = crée_info_type_pour(espace, typeuse, it->type);
+                    structs_employées.ajoute(
+                        static_cast<InfoTypeStructure *>(info_struct_employe));
+                }
+                info_type->structs_employées = allocatrice_infos_types.donne_tranche(
+                    structs_employées);
             }
-
-            info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
-
-            auto annotations = kuri::tablet<const Annotation *, 6>();
-            copie_annotations(type_struct->annotations, annotations);
-            info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
-
-            auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
-            structs_employées.réserve(type_struct->types_employés.taille());
-            POUR (type_struct->types_employés) {
-                auto info_struct_employe = crée_info_type_pour(typeuse, it->type);
-                structs_employées.ajoute(static_cast<InfoTypeStructure *>(info_struct_employe));
-            }
-            info_type->structs_employées = allocatrice_infos_types.donne_tranche(
-                structs_employées);
 
             break;
         }
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
+            if (!type->info_type) {
+                auto info_type = allocatrice_infos_types.infos_types_unions.ajoute_élément();
+                type->info_type = info_type;
+            }
 
-            auto info_type = allocatrice_infos_types.infos_types_unions.ajoute_élément();
-            info_type->genre = GenreInfoType::UNION;
+            auto info_type = static_cast<InfoTypeUnion *>(type->info_type);
+            initialise_entête_info_type(info_type, type_union, GenreInfoType::UNION);
             info_type->est_sûre = !type_union->est_nonsure;
-            info_type->type_le_plus_grand = crée_info_type_pour(typeuse,
-                                                                type_union->type_le_plus_grand);
-            info_type->décalage_indice = type_union->décalage_indice;
-            info_type->taille_en_octet = type_union->taille_octet;
-            info_type->nom = donne_nom_hiérarchique(type_union);
-            info_type->est_polymorphique = type_union->est_polymorphe;
 
-            if (type_union->polymorphe_de_base) {
-                auto polymorphe = const_cast<NoeudDéclarationClasse *>(
-                    type_union->polymorphe_de_base);
-                info_type->polymorphe_de_base = static_cast<InfoTypeUnion *>(
-                    crée_info_type_pour(typeuse, polymorphe));
+            if (type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
+
+                info_type->type_le_plus_grand = crée_info_type_pour(
+                    espace, typeuse, type_union->type_le_plus_grand);
+                info_type->décalage_indice = type_union->décalage_indice;
+                info_type->nom = donne_nom_hiérarchique(type_union);
+                info_type->est_polymorphique = type_union->est_polymorphe;
+
+                if (type_union->polymorphe_de_base) {
+                    auto polymorphe = const_cast<NoeudDéclarationClasse *>(
+                        type_union->polymorphe_de_base);
+                    info_type->polymorphe_de_base = static_cast<InfoTypeUnion *>(
+                        crée_info_type_pour(espace, typeuse, polymorphe));
+                }
+
+                auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
+                rubriques.réserve(type_union->rubriques.taille());
+
+                POUR (type_union->rubriques) {
+                    auto info_type_rubrique =
+                        allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
+                    info_type_rubrique->info = crée_info_type_pour(espace, typeuse, it.type);
+                    remplis_rubrique_info_type(
+                        allocatrice_infos_types, espace, info_type_rubrique, it);
+                    rubriques.ajoute(info_type_rubrique);
+                }
+
+                info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
+
+                auto annotations = kuri::tablet<const Annotation *, 6>();
+                copie_annotations(type_union->annotations, annotations);
+                info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
+
+                type->info_type = info_type;
             }
-
-            auto rubriques = kuri::tablet<InfoTypeRubriqueStructure *, 6>();
-            rubriques.réserve(type_union->rubriques.taille());
-
-            POUR (type_union->rubriques) {
-                auto info_type_rubrique =
-                    allocatrice_infos_types.infos_types_rubriques_structures.ajoute_élément();
-                info_type_rubrique->info = crée_info_type_pour(typeuse, it.type);
-                remplis_rubrique_info_type(allocatrice_infos_types, info_type_rubrique, it);
-                rubriques.ajoute(info_type_rubrique);
-            }
-
-            info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
-
-            auto annotations = kuri::tablet<const Annotation *, 6>();
-            copie_annotations(type_union->annotations, annotations);
-            info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
-
-            type->info_type = info_type;
             break;
         }
         case GenreNoeud::DÉCLARATION_ÉNUM:
@@ -373,52 +428,52 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
         case GenreNoeud::ERREUR:
         {
             auto type_enum = static_cast<TypeEnum *>(type);
-
-            auto info_type = allocatrice_infos_types.infos_types_énums.ajoute_élément();
-            info_type->genre = GenreInfoType::ÉNUM;
-            info_type->nom = donne_nom_hiérarchique(type_enum);
-            info_type->est_drapeau = type_enum->est_type_enum_drapeau();
-            info_type->taille_en_octet = type_enum->taille_octet;
-            info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
-                crée_info_type_pour(typeuse, type_enum->type_sous_jacent));
-
-            auto noms = kuri::tablet<kuri::chaine_statique, 6>();
-            noms.réserve(type_enum->rubriques.taille());
-
-            POUR (type_enum->rubriques) {
-                if (it.est_implicite()) {
-                    continue;
-                }
-
-                noms.ajoute(it.nom->nom);
+            if (!type->info_type) {
+                auto info_type = allocatrice_infos_types.infos_types_énums.ajoute_élément();
+                type->info_type = info_type;
             }
 
-            auto valeurs = donne_tableau_valeurs_énum(typeuse, *type_enum);
+            auto info_type = static_cast<InfoTypeÉnum *>(type->info_type);
+            initialise_entête_info_type(info_type, type_enum, GenreInfoType::ÉNUM);
+            info_type->nom = donne_nom_hiérarchique(type_enum);
+            info_type->est_drapeau = type_enum->est_type_enum_drapeau();
 
-            info_type->noms = allocatrice_infos_types.donne_tranche(noms);
-            info_type->valeurs = allocatrice_infos_types.donne_tranche(valeurs);
+            if (type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+                type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
 
-            type->info_type = info_type;
+                info_type->type_sous_jacent = static_cast<InfoTypeEntier *>(
+                    crée_info_type_pour(espace, typeuse, type_enum->type_sous_jacent));
+
+                auto noms = kuri::tablet<kuri::chaine_statique, 6>();
+                noms.réserve(type_enum->rubriques.taille());
+
+                POUR (type_enum->rubriques) {
+                    if (it.est_implicite()) {
+                        continue;
+                    }
+
+                    noms.ajoute(it.nom->nom);
+                }
+
+                auto valeurs = donne_tableau_valeurs_énum(typeuse, *type_enum);
+
+                info_type->noms = allocatrice_infos_types.donne_tranche(noms);
+                info_type->valeurs = allocatrice_infos_types.donne_tranche(valeurs);
+            }
             break;
         }
         case GenreNoeud::FONCTION:
         {
             auto type_fonction = type->comme_type_fonction();
 
-            // À FAIRE : infos type pour les types polymorphiques
-            if (type_fonction->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-                return nullptr;
-            }
-
             auto info_type = allocatrice_infos_types.infos_types_fonctions.ajoute_élément();
-            info_type->genre = GenreInfoType::FONCTION;
-            info_type->taille_en_octet = type->taille_octet;
+            initialise_entête_info_type(info_type, type, GenreInfoType::FONCTION);
 
             auto types_entrée = kuri::tablet<InfoType *, 6>();
             types_entrée.réserve(type_fonction->types_entrées.taille());
 
             POUR (type_fonction->types_entrées) {
-                types_entrée.ajoute(crée_info_type_pour(typeuse, it));
+                types_entrée.ajoute(crée_info_type_pour(espace, typeuse, it));
             }
 
             auto types_sortie = kuri::tablet<InfoType *, 6>();
@@ -429,18 +484,19 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
                 types_sortie.réserve(tuple->rubriques.taille());
 
                 POUR (tuple->rubriques) {
-                    types_sortie.ajoute(crée_info_type_pour(typeuse, it.type));
+                    types_sortie.ajoute(crée_info_type_pour(espace, typeuse, it.type));
                 }
             }
             else {
                 types_sortie.réserve(1);
-                types_sortie.ajoute(crée_info_type_pour(typeuse, type_sortie));
+                types_sortie.ajoute(crée_info_type_pour(espace, typeuse, type_sortie));
             }
 
             info_type->types_entrée = allocatrice_infos_types.donne_tranche(types_entrée);
             info_type->types_sortie = allocatrice_infos_types.donne_tranche(types_sortie);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::DÉCLARATION_OPAQUE:
@@ -448,19 +504,22 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(Typeuse &typeuse, Type *
             auto type_opaque = type->comme_type_opaque();
 
             auto info_type = allocatrice_infos_types.infos_types_opaques.ajoute_élément();
-            info_type->genre = GenreInfoType::OPAQUE;
+            initialise_entête_info_type(info_type, type, GenreInfoType::OPAQUE);
             info_type->nom = donne_nom_hiérarchique(type_opaque);
-            info_type->type_opacifié = crée_info_type_pour(typeuse, type_opaque->type_opacifié);
+            info_type->type_opacifié = crée_info_type_pour(
+                espace, typeuse, type_opaque->type_opacifié);
 
             type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
             break;
         }
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             auto info_type = allocatrice_infos_types.infos_types.ajoute_élément();
-            info_type->genre = GenreInfoType::ADRESSE_FONCTION;
-            info_type->taille_en_octet = type->taille_octet;
-            return info_type;
+            initialise_entête_info_type(info_type, type, GenreInfoType::ADRESSE_FONCTION);
+            type->info_type = info_type;
+            type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
+            break;
         }
         CAS_POUR_NOEUDS_HORS_TYPES:
         {
@@ -615,6 +674,11 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             return nullptr;
         }
         case GenreInfoType::OPAQUE:
+        {
+            // À FAIRE
+            return nullptr;
+        }
+        case GenreInfoType::POLYMORPHIQUE:
         {
             // À FAIRE
             return nullptr;

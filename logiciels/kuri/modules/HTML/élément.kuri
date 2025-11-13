@@ -470,14 +470,6 @@ unblock_rendering_on :: fonc (el: *Element)
 
     // 2. Remove el from document's render-blocking element set.
     tableau_supprime_valeur(*document.render_blocking_elements, el)
-
-    // @inspécifié
-    si document.render_blocking_elements.taille == 0 {
-        ua := document.donne_user_agent()
-        si ua {
-            requiers_rendu(ua)
-        }
-    }
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#potentially-render-blocking */
@@ -921,6 +913,8 @@ donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvol
  * https://html.spec.whatwg.org/multipage/links.html#following-hyperlinks
  * \{ */
 
+#portée_module
+
 /* https://html.spec.whatwg.org/multipage/links.html#cannot-navigate */
 cannot_navigate :: fonc (element: *Element) -> bool
 {
@@ -1263,7 +1257,8 @@ table_virtuelle_button_element := TableVirtuelleElement(
     classe = HTMLButtonElement,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = html_element_sur_changement_attribut,
-    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints
+    sur_applique_presentational_hints = button_element_sur_applique_presentational_hints,
+    sur_activation_behavior = button_element_sur_activation_behavior
 )
 
 button_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
@@ -1327,6 +1322,146 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Element, résol
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_bottom_right_radius, rayon_bordure)
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_left_radius, rayon_bordure)
     ajoute_propriété_pour_dimension(résolveuse, CSS.PROP_border_top_right_radius, rayon_bordure)
+}
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element */
+button_element_sur_activation_behavior :: fonc (target: *EventTarget, event: *Event)
+{
+    element := target comme *HTMLButtonElement
+
+    // 1. If element is disabled, then return.
+    si is_disabled(element) {
+        retourne
+    }
+
+    // 2. If element's node document is not fully active, then return.
+    saufsi est_fully_active(element.document) {
+        retourne
+    }
+
+    // 3. If element has a form owner:
+    form_owner := donne_form_owner(element)
+    si form_owner {
+        // 1. If element is a submit button, then submit element's form owner from element
+        //    with userInvolvement set to event's user navigation involvement, and return.
+        si is_submit_button(element) {
+            submit(form_owner, element, user_involvement = donne_user_navigation_involvement(event))
+            retourne
+        }
+
+        // 2. If element's type attribute is in the Reset Button state, then reset element's
+        //    form owner, and return.
+        state := donne_button_element_state(element)
+        si state == ButtonElementState.RESET {
+            panique("reset button non-implémenté")
+        }
+
+        // 3. If element's type attribute is in the Auto state, then return.
+        si state == ButtonElementState.AUTO {
+            retourne
+        }
+    }
+
+    // 4. Let target be the result of running element's get the commandfor-associated element.
+    panique("non-implémenté")
+
+    // 5. If target is not null:
+
+        // 1. Let command be element's command attribute.
+
+        // 2. If command is in the Unknown state, then return.
+
+        // 3. Let isPopover be true if target's popover attribute is not in the No Popover state; otherwise false.
+
+        // 4. If isPopover is false and command is not in the Custom state:
+
+            // 1. Assert: target's namespace is the HTML namespace.
+
+            // 2. If this standard does not define is valid command steps for target's local name, then return.
+
+            // 3. Otherwise, if the result of running target's corresponding is valid command steps given command is false, then return.
+
+        // 5. Let continue be the result of firing an event named command at target, using CommandEvent, with its command attribute initialized to command, its source attribute initialized to element, and its cancelable attribute initialized to true.
+
+        // 6. If continue is false, then return.
+
+        // 7. If target is not connected, then return.
+
+        // 8. If command is in the Custom state, then return.
+
+        // 9. If command is in the Hide Popover state:
+
+            // 1. If the result of running check popover validity given target, true, false, and null is true, then run the hide popover algorithm given target, true, true, false, and element.
+
+        // 10. Otherwise, if command is in the Toggle Popover state:
+
+            // 1. If the result of running check popover validity given target, false, false, and null is true, then run the show popover algorithm given target, false, and this.
+
+            // 2. Otherwise, if the result of running check popover validity given target, true, false, and null is true, then run the hide popover algorithm given target, true, true, false, and element.
+
+        // 11. Otherwise, if command is in the Show Popover state:
+
+            // 1. If the result of running check popover validity given target, false, false, and null is true, then run the show popover algorithm given target, false, and this.
+
+        // 12. Otherwise, if this standard defines command steps for target's local name, then run the corresponding command steps given target, element, and command.
+
+    // 6. Otherwise, run the popover target attribute activation behavior given element and event's target.
+}
+
+#portée_module
+
+/* https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element */
+is_submit_button :: fonc (button: *HTMLButtonElement) -> bool
+{
+    // A button element is said to be a submit button if any of the following are true:
+    résultat := faux
+
+    // the type attribute is in the Auto state, both the command and commandfor content attributes are not present,
+    // and the parent node is not a select element; or
+    state := donne_button_element_state(button)
+    si state == ButtonElementState.AUTO {
+        si !possède_attribut(button, ATTR_command) && !possède_attribut(button, ATTR_commandfor) {
+            si button.parent.genre != GenreNoeud.Element || (button.parent comme *Element).local_name != TAG_select {
+                résultat = vrai
+            }
+        }
+    }
+    // the type attribute is in the Submit Button state.
+    sinon si state == ButtonElementState.SUBMIT {
+        résultat = vrai
+    }
+
+    retourne résultat
+}
+
+ButtonElementState :: énum {
+    AUTO
+    SUBMIT
+    RESET
+    BUTTON
+}
+
+donne_button_element_state :: fonc (button: *HTMLButtonElement) -> ButtonElementState
+{
+    // The attribute's missing value default and invalid value default are both the Auto state.
+    résultat := ButtonElementState.AUTO
+
+    opt_attr := donne_attribut(button, ATTR_type)
+    si opt_attr.possède_valeur() {
+        attr := opt_attr.Quelque
+
+        si attr == ATTR_submit {
+            résultat = ButtonElementState.SUBMIT
+        }
+        sinon si attr == ATTR_reset {
+            résultat = ButtonElementState.RESET
+        }
+        sinon si attr == ATTR_button {
+            résultat = ButtonElementState.BUTTON
+        }
+    }
+
+    retourne résultat
 }
 
 /** \} */
@@ -1597,295 +1732,9 @@ table_virtuelle_form_element := TableVirtuelleElement(
     sur_changement_attribut = html_element_sur_changement_attribut
 )
 
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-form-submit */
-submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_submit_method := faux, user_involvement := UserNavigationInvolvement.None)
-{
-    // 1. If form cannot navigate, then return.
-    si cannot_navigate(form) {
-        imprime("[%] cannot_navigate\n", #nom_de_cette_fonction)
-        retourne
-    }
-
-    // 2. If form's constructing entry list is true, then return.
-    si form.constructing_entry_list {
-        retourne
-    }
-
-    // 3. Let form document be form's node document.
-    form_document := form.document
-
-    // 4. If form document's active sandboxing flag set has its sandboxed forms browsing context flag set, then return.
-    si form_document.active_sandboxing_flags.Forms {
-        retourne
-    }
-
-    // 5. If submitted from submit() method is false, then:
-    saufsi submitted_from_submit_method {
-        // 1. If form's firing submission events is true, then return.
-        si form.firing_submission_events {
-            retourne
-        }
-
-        // 2. Set form's firing submission events to true.
-        form.firing_submission_events = vrai
-
-        // 3. For each element field in the list of submittable elements whose form owner is form, set field's user validity to true.
-
-        // 4. If the submitter element's no-validate state is false, then interactively validate the constraints of form and examine the result. If the result is negative (i.e., the constraint validation concluded that there were invalid fields and probably informed the user of this), then:
-
-            // 1. Set form's firing submission events to false.
-
-            // 2. Return.
-
-        // 5. Let submitterButton be null if submitter is form. Otherwise, let submitterButton be submitter.
-
-        // 6. Let shouldContinue be the result of firing an event named submit at form using SubmitEvent, with the submitter attribute initialized to submitterButton, the bubbles attribute initialized to true, and the cancelable attribute initialized to true.
-
-        // 7. Set form's firing submission events to false.
-        form.firing_submission_events = faux
-
-        // 8. If shouldContinue is false, then return.
-
-        // 9. If form cannot navigate, then return.
-        si cannot_navigate(form) {
-            retourne
-        }
-    }
-
-    // À FAIRE : 6. Let encoding be the result of picking an encoding for the form.
-
-    // 7. Let entry list be the result of constructing the entry list with form, submitter, and encoding.
-    // @fuite-de-mémoire (ceci est passé à navigate() via une tâche
-    entry_list := construct_the_entry_list(form, submitter)
-
-    // 8. Assert: entry list is not null.
-    assert(entry_list != nul)
-
-    // 9. If form cannot navigate, then return.
-    si cannot_navigate(form) {
-        retourne
-    }
-
-    // 10. Let method be the submitter element's method.
-    method := donne_method(submitter)
-
-    // 11. If method is dialog, then:
-    si method == ATTR_dialog {
-        imprime("[%] À FAIRE : dialog\n", #nom_de_cette_fonction)
-        // If form does not have an ancestor dialog element, then return.
-
-        // Let subject be form's nearest ancestor dialog element.
-
-        // Let result be null.
-
-        // If submitter is an input element whose type attribute is in the Image Button state, then:
-
-        // Let (x, y) be the selected coordinate.
-
-        // Set result to the concatenation of x, ",", and y.
-
-        // Otherwise, if submitter has a value, then set result to that value.
-
-        // Close the dialog subject with result.
-
-        // Return.
-        retourne
-    }
-
-    // 12. Let action be the submitter element's action.
-    action := copie_chaine(donne_action(submitter).donne_chaine_utf16())
-    diffère détruit_chaine(action)
-
-    // 13. If action is the empty string, let action be the URL of the form document.
-    si action.est_vide() {
-        chn_action := url_serializer(form.document.url)
-        action = crée_chaine_utf16(chn_action)
-        déloge(chn_action)
-    }
-
-    // 14. Let parsed action be the result of encoding-parsing a URL given action, relative to submitter's node document.
-    parsed_action := encoding_parse_a_url(action, submitter.document)
-
-    // 15. If parsed action is failure, then return.
-    saufsi parsed_action {
-        retourne
-    }
-
-    // 16. Let scheme be the scheme of parsed action.
-
-    // 17. Let enctype be the submitter element's enctype.
-
-    // 18. Let formTarget be null.
-    form_target := crée_chaine_utf16_unique_vide()
-
-    // À FAIRE : 19. If the submitter element is a submit button and it has a formtarget attribute, then set formTarget to the formtarget attribute value.
-
-    // 20. Let target be the result of getting an element's target given submitter's form owner and formTarget.
-    target := get_an_element_s_target(donne_form_owner(submitter), form_target)
-    // si ce n'est pas vide il faut implémenter les deux étapes suivantes
-    assert(target.est_vide())
-
-    // 21. Let noopener be the result of getting an element's noopener with form, parsed action, and target.
-
-    // 22. Let targetNavigable be the first return value of applying the rules for choosing a navigable given target, form's node navigable, and noopener.
-    target_navigable := form.donne_node_navigable()
-
-    // 23. If targetNavigable is null, then return.
-    saufsi target_navigable {
-        retourne
-    }
-
-    // 24. Let historyHandling be "auto".
-    history_handling := NavigationHistoryBehavior.AUTO
-
-    // À FAIRE 25. If form document equals targetNavigable's active document, and form document has not yet completely loaded, then set historyHandling to "replace".
-
-    // À FAIRE : 26. Select the appropriate row in the table below based on scheme as given by the first cell of each row. Then, select the appropriate cell on that row based on method as given in the first cell of each column. Then, jump to the steps named in that cell and defined below the table.
-    assert(method == ATTR_get)
-
-    params: ParamètresNavigationNavigable
-    params.url = parsed_action
-    params.source_document = form.document
-    params.history_handling = history_handling
-    params.user_involvement = user_involvement
-    params.form_data_entry_list = entry_list
-    mutate_action_url(form, entry_list, parsed_action, target_navigable, params)
-}
-
 #portée_module
 
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-form-data-set */
-EntryList :: struct {
-    Entry :: struct {
-        name: chaine
-        value: chaine
-    }
-
-    entries: [..]Entry
-}
-
-détruit_entry_list :: fonc (entry_list: *EntryList)
-{
-    pour entry_list.entries {
-        déloge(it.name)
-        déloge(it.value)
-    }
-
-    déloge(entry_list.entries)
-    déloge(entry_list)
-}
-
-#portée_fichier
-
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-the-form-data-set */
-construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element = nul @inutilisée) -> *EntryList
-{
-    // 1. If form's constructing entry list is true, then return null.
-    si form.constructing_entry_list {
-        retourne nul
-    }
-
-    // 2. Set form's constructing entry list to true.
-    form.constructing_entry_list = vrai
-
-    // 3. Let controls be a list of all the submittable elements whose form owner is form, in tree order.
-    controls := donne_submittable_elements(form)
-    diffère déloge(controls)
-
-    // 4. Let entry list be a new empty entry list.
-    entry_list := loge(EntryList)
-
-    // 5. For each element field in controls, in tree order:
-    pour field dans controls {
-        si field.table.classe == HTMLInputElement {
-            name := field.donne_attribut_ou_chaine_vide(ATTR_name)
-            saufsi name.est_vide() {
-                entry := tableau_ajoute_élément(*entry_list.entries)
-                entry.name = converti_vers_chaine(name.donne_chaine_utf16())
-                entry.value = converti_vers_chaine(donne_value(field comme *HTMLInputElement))
-            }
-        }
-
-        // À FAIRE If any of the following are true:
-
-        // field has a datalist element ancestor;
-
-        // field is disabled;
-
-        // field is a button but it is not submitter;
-
-        // field is an input element whose type attribute is in the Checkbox state and whose checkedness is false; or
-
-        // field is an input element whose type attribute is in the Radio Button state and whose checkedness is false,
-
-        // then continue.
-
-        // If the field element is an input element whose type attribute is in the Image Button state, then:
-
-        // If the field element is not submitter, then continue.
-
-        // If the field element has a name attribute specified and its value is not the empty string, let name be that value followed by U+002E (.). Otherwise, let name be the empty string.
-
-        // Let namex be the concatenation of name and U+0078 (x).
-
-        // Let namey be the concatenation of name and U+0079 (y).
-
-        // Let (x, y) be the selected coordinate.
-
-        // Create an entry with namex and x, and append it to entry list.
-
-        // Create an entry with namey and y, and append it to entry list.
-
-        // Continue.
-
-        // If the field is a form-associated custom element, then perform the entry construction algorithm given field and entry list, then continue.
-
-        // If either the field element does not have a name attribute specified, or its name attribute's value is the empty string, then continue.
-
-        // Let name be the value of the field element's name attribute.
-
-        // If the field element is a select element, then for each option element in the select element's list of options whose selectedness is true and that is not disabled, create an entry with name and the value of the option element, and append it to entry list.
-
-        // Otherwise, if the field element is an input element whose type attribute is in the Checkbox state or the Radio Button state, then:
-
-        // If the field element has a value attribute specified, then let value be the value of that attribute; otherwise, let value be the string "on".
-
-        // Create an entry with name and value, and append it to entry list.
-
-        // Otherwise, if the field element is an input element whose type attribute is in the File Upload state, then:
-
-        // If there are no selected files, then create an entry with name and a new File object with an empty name, application/octet-stream as type, and an empty body, and append it to entry list.
-
-        // Otherwise, for each file in selected files, create an entry with name and a File object representing the file, and append it to entry list.
-
-        // Otherwise, if the field element is an input element whose type attribute is in the Hidden state and name is an ASCII case-insensitive match for "_charset_":
-
-        // Let charset be the name of encoding.
-
-        // Create an entry with name and charset, and append it to entry list.
-
-        // Otherwise, create an entry with name and the value of the field element, and append it to entry list.
-
-        // If the element has a dirname attribute, that attribute's value is not the empty string, and the element is an auto-directionality form-associated element:
-
-        // Let dirname be the value of the element's dirname attribute.
-
-        // Let dir be the string "ltr" if the directionality of the element is 'ltr', and "rtl" otherwise (i.e., when the directionality of the element is 'rtl').
-
-        // Create an entry with dirname and dir, and append it to entry list.
-    }
-
-    // À FAIRE 6. Let form data be a new FormData object associated with entry list.
-
-    // 7. Fire an event named formdata at form using FormDataEvent, with the formData attribute initialized to form data and the bubbles attribute initialized to true.
-
-    // 8. Set form's constructing entry list to false.
-    form.constructing_entry_list = faux
-
-    // 9. Return a clone of entry list.
-    retourne entry_list
-}
-
+/* https://html.spec.whatwg.org/multipage/forms.html#category-submit */
 donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Element
 {
     résultat: [..]*Element
@@ -1915,112 +1764,6 @@ donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Element
     }
 
     retourne résultat
-}
-
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-action */
-donne_action :: fonc (élément: *Element) -> DOMString
-{
-    résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formaction)
-    si résultat.est_vide() {
-        form_owner := donne_form_owner(élément)
-        assert(form_owner != nul)
-        résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_action)
-    }
-    retourne résultat
-}
-
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#concept-fs-method */
-donne_method :: fonc (élément: *Element) -> DOMString
-{
-    résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formmethod)
-    si résultat.est_vide() {
-        form_owner := donne_form_owner(élément)
-        assert(form_owner != nul)
-        résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_method)
-    }
-
-    /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fs-method */
-    si résultat.est_vide() {
-        retourne ATTR_get
-    }
-
-    si résultat != ATTR_get && résultat != ATTR_post && résultat != ATTR_dialog {
-        retourne ATTR_get
-    }
-
-    retourne résultat
-}
-
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#submit-mutate-action */
-mutate_action_url :: fonc (form: *HTMLFormElement, entry_list: *EntryList, parsed_action: *URL, target_navigable: *Navigable, params: ParamètresNavigationNavigable)
-{
-    assert(parsed_action == params.url)
-
-    // À FAIRE Let pairs be the result of converting to a list of name-value pairs with entry list.
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    séparateur := ""
-    pour entry_list.entries {
-        ajoute_au_tampon(*enchaineuse, séparateur, it.name, "=", it.value)
-        séparateur = "&"
-    }
-
-    pairs := chaine_depuis_enchaineuse(*enchaineuse)
-
-    // À FAIRE : Let query be the result of running the application/x-www-form-urlencoded serializer with pairs and encoding.
-    query := pairs
-
-    // Set parsed action's query component to query.
-    parsed_action.query = query
-
-    // Plan to navigate to parsed action.
-    plan_to_navigate(form, target_navigable, params)
-}
-
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#plan-to-navigate */
-plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, params: ParamètresNavigationNavigable)
-{
-    // À FAIRE 1. Let referrerPolicy be the empty string.
-
-    // 2. If the form element's link types include the noreferrer keyword, then set referrerPolicy to "no-referrer".
-
-    // 3. If the form has a non-null planned navigation, remove it from its task queue.
-    assert(form.planned_navigation == nul)
-
-    // 4. Queue an element task on the DOM manipulation task source given the form element and the following steps:
-    Tâche :: struct {
-        empl base: Algorithm
-
-        form: *HTMLFormElement
-        target_navigable: *Navigable
-        params: ParamètresNavigationNavigable
-    }
-
-    sur_run :: fonc (base: *Algorithm)
-    {
-        empl tâche := base comme *Tâche
-
-        // 1. Set the form's planned navigation to null.
-        form.planned_navigation = nul
-
-        // 2. Navigate targetNavigable to url using the form element's node document,
-        //    with historyHandling set to historyHandling, userInvolvement set to userInvolvement,
-        //    sourceElement set to submitter, referrerPolicy set to referrerPolicy,
-        //    documentResource set to postResource, and formDataEntryList set to entry list.
-        navigate(params.source_document.donne_user_agent(), target_navigable, params)
-    }
-
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.form = form
-    tâche.target_navigable = target_navigable
-    tâche.params = params
-
-    user_agent := params.source_document.donne_user_agent()
-    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, form, tâche)
-
-    // 5. Set the form's planned navigation to the just-queued task.
-    form.planned_navigation = tâche
 }
 
 /** \} */
@@ -2610,23 +2353,6 @@ sont_dans_même_radio_button_group :: fonc (a: *HTMLInputElement, b: *HTMLInputE
     retourne vrai
 }
 
-/* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#form-owner */
-donne_form_owner :: fonc (élément: *Element) -> *HTMLFormElement
-{
-    // À FAIRE : respecte le standard
-
-    parent := élément.parent
-    tantque parent != nul {
-        si parent.table.classe == HTMLFormElement {
-            retourne parent comme *HTMLFormElement
-        }
-
-        parent = parent.parent
-    }
-
-    retourne nul
-}
-
 /* https://html.spec.whatwg.org/multipage/input.html#dom-input-value */
 définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
 {
@@ -2970,6 +2696,27 @@ is_submittable_element :: fonc (élément: *Element) -> bool
     retourne is_form_associated_custom_element(élément)
 }
 
+#portée_module
+
+is_submit_button :: fonc (element: *Element) -> bool
+{
+    saufsi is_submittable_element(element) {
+        retourne faux
+    }
+
+    si element.local_name == TAG_button {
+        retourne is_submit_button(element comme *HTMLButtonElement)
+    }
+
+    si element.local_name == TAG_input {
+        input := element comme *HTMLInputElement
+        state := donne_state(input)
+        retourne state == HTMLInputElement.State.Submit_Button
+    }
+
+    retourne faux
+}
+
 /* https://html.spec.whatwg.org/multipage/custom-elements.html#form-associated-custom-element */
 is_form_associated_custom_element :: fonc (élément: *Element @inutilisée) -> bool
 {
@@ -3175,7 +2922,7 @@ create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOpt
     url := encoding_parse_a_url(user_agent, options.href, options.base_url)
 
     // 4. If url is failure, then return null.
-    saufsi url {
+    si is_failure(url) {
         retourne nul
     }
 
@@ -3723,7 +3470,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
 
         // 3. If url is failure, then fire an event named error at the element and
         //    jump to the step below labeled fallback.
-        saufsi url {
+        si is_failure(url) {
             queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object)
             object_représente_fallback(object)
             retourne
@@ -3903,7 +3650,7 @@ HTMLScriptElement :: struct {
     // result : "uninitialized", null, scipt, import map parse result
     result: *Script
 
-    steps_to_run_when_the_result_is_ready: fonc(*HTMLScriptElement)(rien)
+    steps_to_run_when_the_result_is_ready: fonc (script: *HTMLScriptElement)
 }
 
 donne_src :: fonc (script: *HTMLScriptElement) -> DOMString
@@ -4091,7 +3838,7 @@ prépare :: fonc (el: *HTMLScriptElement)
         url := encoding_parse_a_url(src, el.document)
 
         // 6. If url is failure, then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
-        saufsi url {
+        si is_failure(url) {
             queue_a_task_to_fire_error_at_element(user_agent, el)
             retourne
         }
@@ -4369,8 +4116,8 @@ mark_as_ready :: fonc (el: *HTMLScriptElement, result : *Script = nul)
 }
 
 ScriptFetchComplete :: struct {
-    sur_run: fonc(*ScriptFetchComplete, *Script)(rien)
-    sur_destruction: fonc(*ScriptFetchComplete)(rien)
+    sur_run: fonc (base: *ScriptFetchComplete, script: *Script)
+    sur_destruction: fonc (base: *ScriptFetchComplete)
 }
 
 crée_script_fetch_on_complete :: fonc ($T: type_de_données) -> *T

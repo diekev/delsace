@@ -1,5 +1,5 @@
 
-TypeFonctionModeInsertion :: fonc(*Parseuse, Lexème)(rien)
+TypeFonctionModeInsertion :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
 Parseuse :: struct {
     mode_insertion: TypeFonctionModeInsertion
@@ -2687,7 +2687,7 @@ ferme_la_cellule :: fonc (parseuse: *Parseuse)
  * https://html.spec.whatwg.org/multipage/parsing.html#the-end
  * \{ */
 
-#portée_fichier
+#portée_module
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#stop-parsing */
 stop_parsing :: fonc (empl parseuse: *Parseuse)
