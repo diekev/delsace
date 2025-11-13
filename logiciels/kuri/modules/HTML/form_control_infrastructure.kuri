@@ -300,7 +300,7 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
     parsed_action := encoding_parse_a_url(action, submitter.document)
 
     // 15. If parsed action is failure, then return.
-    saufsi parsed_action {
+    si is_failure(parsed_action) {
         retourne
     }
 
