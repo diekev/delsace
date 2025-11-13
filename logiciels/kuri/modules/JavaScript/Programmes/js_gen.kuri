@@ -264,6 +264,37 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
     pour __infos_expressions_binaire {
         si parseuse.apparie(it.lexème) {
             parseuse.début += it.lexème.taille
+
+            si it.lexème == "is" {
+                si apparie(parseuse, "not") {
+                    parseuse.début += 3
+
+                    si apparie(parseuse, "an") {
+                        parseuse.début += 2
+
+                        si apparie(parseuse, "Object") {
+                            parseuse.début += 6
+
+                            op := loge(ExpressionComparaisonType)
+                            op.op = "!="
+                            op.gauche = résultat
+                            op.droite = "Object"
+                            retourne op
+                        }
+                        sinon {
+                            rapporte_erreur(parseuse, "attendu 'Object'", donne_lexème_suivant(parseuse))
+                        }
+                    }
+                    sinon {
+                        op := loge(ExpressionBinaire)
+                        op.op = "!="
+                        op.gauche = résultat
+                        op.droite = parse_expression(parseuse)
+                        retourne op
+                    }
+                }
+            }
+
             op := loge(ExpressionBinaire)
             op.op = it.op
             op.gauche = résultat
@@ -789,6 +820,15 @@ ExpressionBinaire :: struct {
     droite: *Expression
 }
 
+ExpressionComparaisonType :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    op: chaine
+    gauche: *Expression
+    droite: chaine
+}
+
 ExpressionEither :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -838,6 +878,17 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 génératrice.imprime_expression(expression.gauche)
                 génératrice.ajoute_chaine(" ", expression.op, " ")
                 génératrice.imprime_expression(expression.droite)
+            }
+        }
+        ExpressionComparaisonType {
+            expression := base comme *ExpressionComparaisonType
+
+            si expression.op == "!=" {
+                ajoute_chaine(génératrice, "!")
+            }
+            génératrice.imprime_expression(expression.gauche)
+            si expression.droite == "Object" {
+                génératrice.ajoute_chaine(".est_object()")
             }
         }
         ExpressionAppel {
