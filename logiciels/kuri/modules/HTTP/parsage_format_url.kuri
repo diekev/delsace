@@ -157,6 +157,107 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
     retourne RésultatParsageFormatURL.Succès, données, résultat
 } @FonctionLongue
 
+ChainesParsées :: struct ($T: type_de_données) #corps_texte {
+    info := info_de(T)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    si info.rubriques.taille == 0 {
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ")
+        imprime_type(*enchaineuse, info)
+        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.")
+
+        message := chaine_depuis_enchaineuse(*enchaineuse)
+        compilatrice_rapporte_erreur(message)
+    }
+
+    pour info.rubriques {
+        si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+            continue
+        }
+        ajoute_au_tampon(*enchaineuse, it.nom, ": chaine\n")
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T), ChainesParsées(T))
+{
+    #assert info_de(T).id == GenreInfoType.STRUCTURE
+
+    parseuse := ParseuseChaine(texte)
+
+    données: DonnéesRésultat(T = T)
+    résultat: ChainesParsées(T)
+
+    info := info_de(T)
+
+    pointeurs: [..]InfoDonnées
+    diffère déloge(pointeurs)
+
+    pour info.rubriques {
+        id : InfoDonnées = ---
+        id.info = it
+        id.ptr_résultat = (*résultat comme *z8 + it.décalage)
+
+        tableau_ajoute(*pointeurs, id)
+    }
+
+    info_données := info_de(type_de(données))
+    pour info_données.rubriques {
+        id := trouve_info_données(pointeurs, it.nom)
+
+        si id {
+            id.ptr_données = (*données comme *bool + it.décalage)
+        }
+    }
+
+    tantque !fini(*parseuse) {
+        pos := trouve_prochain(*parseuse, '=')
+
+        si pos <= 0 {
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+        }
+
+        nom := sous_chaine_jusque_indice(*parseuse, pos)
+        résoud_échappement_url_localement(nom)
+
+        positionne(*parseuse, pos + 1)
+
+        si fini(*parseuse) {
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+        }
+
+        pos = trouve_prochain(*parseuse, '&')
+
+        si pos <= 0 {
+            pos = parseuse.chn.taille
+        }
+
+        valeur := sous_chaine_jusque_indice(*parseuse, pos)
+        résoud_échappement_url_localement(valeur)
+
+        positionne(*parseuse, pos + 1)
+
+        id := trouve_info_données(pointeurs, nom)
+
+        saufsi id {
+            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat
+        }
+
+        // Vérifions que nous n'avons pas encore parsé cette rubrique.
+        si mémoire(id.ptr_données) {
+            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat
+        }
+
+        mémoire(id.ptr_résultat comme *chaine) = valeur
+        mémoire(id.ptr_données) = vrai
+    }
+
+    retourne RésultatParsageFormatURL.Succès, données, résultat
+} @FonctionLongue
+
 /* DonnéesRésultat
  *
  * Cette structure polymorphique est monomorphée à partir du type passé en paramètre

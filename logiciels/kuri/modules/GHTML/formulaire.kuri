@@ -10,72 +10,146 @@ parse_mot_de_passe :: fonc (chn: chaine) -> (bool, MotDePasse)
     retourne vrai, MotDePasse(chn)
 } @ParsageURL
 
-/*
-    À PARAMÉTRER
-    - traduction
-    - labels
-    - requis ou non
-    - nom du bouton
-    - caché ou non
- */
+
+InfoControleFormulaire :: struct {
+    type: chaine
+    nom: chaine
+    label: chaine
+    lieutenant: chaine
+
+    est_numérique: bool
+    est_requis: bool
+    force_sans_label: bool
+}
+
+parse_infos_controles_formulaire :: fonc (info_struct: *InfoTypeStructure) -> [..]InfoControleFormulaire
+{
+    résultat: [..]InfoControleFormulaire
+
+    pour info_struct.rubriques {
+        si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
+            continue
+        }
+
+        controle: InfoControleFormulaire
+        controle.nom = it.nom
+
+        pour annotation dans it.annotations {
+            si annotation.nom == "Label" {
+                controle.label = annotation.valeur
+            }
+            sinon si annotation.nom == "Type" {
+                // À FAIRE : valide le type.
+                controle.type = annotation.valeur
+            }
+            sinon si annotation.nom == "Requis" {
+                controle.est_requis = vrai
+            }
+            sinon si annotation.nom == "Lieutenant" {
+                controle.lieutenant = annotation.valeur
+            }
+            sinon si annotation.nom == "SansLabel" {
+                controle.force_sans_label = vrai
+            }
+            sinon si annotation.nom == "Numérique" {
+                controle.est_numérique = vrai
+            }
+        }
+
+        saufsi controle.type {
+            controle.type = "text"
+        }
+        sinon saufsi est_type_controle_valide(controle.type) {
+            imprimeln("Type de controle '%' invalide pour '%.%'", controle.type, info_struct.nom, it.nom)
+            continue
+        }
+
+        si controle.force_sans_label == faux && controle.label == "" {
+            controle.label = convertis_casse_serpent_pour_interface(controle.nom)
+        }
+
+        tableau_ajoute(*résultat, controle)
+    }
+
+    retourne résultat
+}
+
+est_type_controle_valide :: fonc (type: chaine) -> bool
+{
+    types := ["text", "search", "url", "tel", "email", "password", "date", "month", "week", "time", "datetime-local", "number", "range", "color", "file", "image", "button", "submit", "reset", "hidden"]
+    retourne fait_partie_de(type, ...types)
+}
 
 génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine, méthode: chaine, cible: chaine) -> chaine
 {
+    si valeur.info.id != GenreInfoType.STRUCTURE {
+        retourne ""
+    }
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    imprime_dans_enchaineuse(*enchaineuse, "<form method='%' action='%'>\n", méthode, cible)
-    ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
-    imprime_dans_enchaineuse(*enchaineuse, "<legend>%</legend>\n", nom_formulaire)
+    controles := parse_infos_controles_formulaire(valeur.info comme *InfoTypeStructure)
+    diffère déloge(controles)
 
-    info := valeur.info comme *InfoTypeStructure
+    ajoute_au_tampon(*enchaineuse, "<form")
 
-    pour rubrique dans info.rubriques {
-        valeur_rubrique := eini_depuis_info_rubrique(valeur, rubrique)
-        ajoute_tag_pour_valeur(*enchaineuse, valeur_rubrique, rubrique.nom)
+    si méthode {
+        imprime_dans_enchaineuse(*enchaineuse, " method='%'", méthode)
     }
 
-    imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
+    si cible {
+        imprime_dans_enchaineuse(*enchaineuse, " action='%'", cible)
+    }
 
-    ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    ajoute_au_tampon(*enchaineuse, ">\n")
+
+    si nom_formulaire {
+        ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
+        imprime_dans_enchaineuse(*enchaineuse, "<legend>%</legend>\n", nom_formulaire)
+    }
+
+    pour controles {
+        ajoute_au_tampon(*enchaineuse, "<div>\n")
+
+        si it.force_sans_label == faux && it.label {
+            ajoute_au_tampon(*enchaineuse, "<label for='", it.nom, "'>", it.label, "</label><br>\n")
+        }
+
+        imprime_dans_enchaineuse(*enchaineuse, "<input type='%' name='%'", it.type, it.nom)
+
+        si it.lieutenant {
+            ajoute_au_tampon(*enchaineuse, " placeholder='", it.lieutenant, "'")
+        }
+
+        si it.est_numérique {
+            /* https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/ */
+            ajoute_au_tampon(*enchaineuse, " inputmethod='numeric' pattern='[0-9]*'")
+        }
+
+        si it.est_requis {
+            ajoute_au_tampon(*enchaineuse, " required")
+        }
+
+        ajoute_au_tampon(*enchaineuse, ">\n")
+        ajoute_au_tampon(*enchaineuse, "</div>\n")
+    }
+
+    si nom_formulaire {
+        imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
+    }
+    sinon {
+        // À FAIRE : paramétrisation
+        ajoute_au_tampon(*enchaineuse, "<button>Sauvegarder</button>\n")
+    }
+
+    si nom_formulaire {
+        ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    }
+
     ajoute_au_tampon(*enchaineuse, "</form>\n")
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
-
-ajoute_tag_pour_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, nom: chaine)
-{
-    // imprime("<p class=erreur_formulaire id=erreur_% style='display:none'>Ce champs est obligatoire</p>\n", rubrique.nom)
-
-    ajoute_au_tampon(enchaineuse, "<div>\n")
-    ajoute_au_tampon(enchaineuse, "<label for='", nom, "'>")
-
-    convertis_casse_serpent_pour_interface(enchaineuse, nom)
-
-    ajoute_au_tampon(enchaineuse, "</label><br>\n")
-
-    type_input := "text"
-
-    extras := ""
-
-    discr valeur.info.id {
-        ENTIER {
-            // https://technology.blog.gov.uk/2020/02/24/why-the-gov-uk-design-system-team-changed-the-input-type-for-numbers/
-            // type_input = "text"
-            extras = "inputmethod='numeric' pattern='[0-9]*"
-        }
-        STRUCTURE {
-            si valeur.info == info_de(MotDePasse) {
-                type_input = "password"
-            }
-            sinon si valeur.info == info_de(AdresseCourriel) {
-                type_input = "email"
-            }
-        }
-        sinon {
-        }
-    }
-
-    imprime_dans_enchaineuse(enchaineuse, "<input type='%' name='%' % required>\n", type_input, nom, extras)
-    ajoute_au_tampon(enchaineuse, "</div>\n")
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    // imprimeln("%", résultat)
+    retourne résultat
 }

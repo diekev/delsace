@@ -723,10 +723,6 @@ has_no_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> boo
 définis_ajournement_arbre :: fonc (document: *Document, ajournement: CSS.AjournementArbre)
 {
     document.ajournement_arbre |= ajournement
-    user_agent := document.donne_user_agent()
-    si user_agent {
-        user_agent.requiers_rendu()
-    }
 }
 
 #portée_export

@@ -55,7 +55,7 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
     url_record := url_parser(user_agent, url, base = base_url)
 
     // 3. If urlRecord is failure, then throw a "SyntaxError" DOMException.
-    saufsi url_record {
+    si is_failure(url_record) {
         throw_dom_exception(interpréteuse, "SyntaxError", "Invalid URL")
         retourne JS.js_undefined
     }

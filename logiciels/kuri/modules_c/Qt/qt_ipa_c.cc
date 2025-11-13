@@ -2105,8 +2105,21 @@ uint32_t QT_key_event_donne_modificateurs_natifs(QT_KeyEvent *event)
 QT_Chaine QT_key_event_donne_texte(QT_KeyEvent *event)
 {
     static char tampon[128];
+    static int64_t occupé = 0;
+
     auto qevent = vers_qt(event);
-    return crée_qt_chaine_tampon(qevent->text(), tampon, sizeof(tampon));
+    auto text = qevent->text();
+
+    auto résultat = QT_Chaine{};
+    if (text.size() <= 128) {
+        if ((occupé + int64_t(text.size())) > 128) {
+            occupé = 0;
+        }
+        résultat = crée_qt_chaine_tampon(text, tampon + occupé, sizeof(tampon) - size_t(occupé));
+        occupé += résultat.taille;
+    }
+
+    return résultat;
 }
 
 /** \} */
