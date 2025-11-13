@@ -1,3 +1,4 @@
+importe Chaine
 importe Fondation
 importe LigneDeCommande
 importe Processus
@@ -5,12 +6,12 @@ importe SysFichier
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
-    saufsi chemin {
+    chemin_donnée := parse_argument_chemin()
+    saufsi chemin_donnée {
         exit(1)
     }
 
-    chemins := donne_fichiers_du_dossier(chemin, vrai)
+    chemins := donne_fichiers_du_dossier(chemin_donnée, vrai)
     diffère déloge_tableau_et_ses_éléments(chemins)
 
     fichiers_javascript: [..]chaine
