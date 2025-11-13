@@ -24,9 +24,22 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
-    imprime_dans_enchaineuse(*enchaineuse, "<form method='%' action='%'>\n", méthode, cible)
-    ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
-    imprime_dans_enchaineuse(*enchaineuse, "<legend>%</legend>\n", nom_formulaire)
+    ajoute_au_tampon(*enchaineuse, "<form")
+
+    si méthode {
+        imprime_dans_enchaineuse(*enchaineuse, " method='%'", méthode)
+    }
+
+    si cible {
+        imprime_dans_enchaineuse(*enchaineuse, " action='%'", cible)
+    }
+
+    ajoute_au_tampon(*enchaineuse, ">\n")
+
+    si nom_formulaire {
+        ajoute_au_tampon(*enchaineuse, "<fieldset>\n")
+        imprime_dans_enchaineuse(*enchaineuse, "<legend>%</legend>\n", nom_formulaire)
+    }
 
     info := valeur.info comme *InfoTypeStructure
 
@@ -35,9 +48,18 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
         ajoute_tag_pour_valeur(*enchaineuse, valeur_rubrique, rubrique.nom)
     }
 
-    imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
+    si nom_formulaire {
+        imprime_dans_enchaineuse(*enchaineuse, "<input type=submit value='%'>", nom_formulaire)
+    }
+    sinon {
+        // À FAIRE : paramétrisation
+        ajoute_au_tampon(*enchaineuse, "<button>Sauvegarder</button>\n")
+    }
 
-    ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    si nom_formulaire {
+        ajoute_au_tampon(*enchaineuse, "</fieldset>\n")
+    }
+
     ajoute_au_tampon(*enchaineuse, "</form>\n")
 
     retourne chaine_depuis_enchaineuse(*enchaineuse)
