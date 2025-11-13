@@ -7,6 +7,7 @@ GreffonJS :: struct {
     empl base: GreffonMétaprogramme
 
     types_en_visite: [..]*InfoType
+    structures_connues: [..]*InfoTypeStructure
 }
 
 donne_greffon_visite_cellules :: fonc () -> *GreffonMétaprogramme
@@ -30,7 +31,7 @@ greffon_js_sur_message :: fonc (greffon: *GreffonJS, message: *Message)
 
             greffon.types_en_visite.taille = 0
             si type_possède_une_cellule(type, *greffon.types_en_visite) {
-                génère_fonction_visite(type)
+                génère_fonction_visite(greffon, type)
             }
         }
     }
@@ -39,6 +40,7 @@ greffon_js_sur_message :: fonc (greffon: *GreffonJS, message: *Message)
 greffon_js_sur_destruction :: fonc (greffon: *GreffonJS)
 {
     déloge(greffon.types_en_visite)
+    déloge(greffon.structures_connues)
     déloge(greffon)
 }
 
@@ -71,10 +73,12 @@ greffon_js_sur_destruction :: fonc (greffon: *GreffonJS)
 //     retourne copie_chaine(texte)
 // }
 
-__structures_connues: [..]*InfoTypeStructure
-
-génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
+génère_fonction_visite :: fonc (greffon: *GreffonJS, infos: *InfoTypeStructure)
 {
+    si doit_ignorer_structure(infos) {
+        retourne
+    }
+
     imprimeln("------------------ %", infos.nom)
 
     // saufsi est_struct_ou_employeuse_de(infos, info_de(Cellule)) {
@@ -94,7 +98,7 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
 
     tantque traversée {
         infos_courante := enlève_dernier_élément(*traversée)
-        si ensemble_ne_fut_pas_ajouté(*__structures_connues, infos_courante) {
+        si ensemble_ne_fut_pas_ajouté(*greffon.structures_connues, infos_courante) {
             continue
         }
 
@@ -129,6 +133,61 @@ génère_fonction_visite :: fonc (infos: *InfoTypeStructure)
     }
 
     // ajoute_chaine_au_module(compilatrice_espace_courant(), compilatrice_module_courant(), chn)
+}
+
+doit_ignorer_structure :: fonc (infos: *InfoTypeStructure) -> bool
+{
+    à_ignorer := [
+        "BlocDeMémoire",
+        "BlocDeMémoire.EntréeListeLibre",
+        "ÉtatRegistres",
+        "TasDeMémoire",
+        "InterprèteCodeBinaire",
+    ]
+
+    pour à_ignorer {
+        si infos.nom == it {
+            retourne vrai
+        }
+    }
+
+    si est_struct_ou_employeuse_de(infos, "Algorithm") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "ArbreDeDisposition") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessRequestBodyChunkLength") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessRequestEndOfBody") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessEarlyHintsResponse") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessEarlyHintsResponse") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessResponse") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessResponseEndOfBody") {
+        retourne vrai
+    }
+
+    si est_struct_ou_employeuse_de(infos, "BaseProcessResponseConsumeBody") {
+        retourne vrai
+    }
+
+    retourne faux
 }
 
 génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoTypeRubriqueStructure, types_en_visite: *[..]*InfoType, traversée: *[..]*InfoTypeStructure)
@@ -201,7 +260,6 @@ génère_visite_rubrique :: fonc (enchaineuse: *Enchaineuse, rubrique: *InfoType
                     retourne
                 }
 
-                tableau_ajoute(traversée, type_pointé comme *InfoTypeStructure)
                 tableau_ajoute(traversée, type_structure)
 
                 ajoute_au_tampon(enchaineuse, "    ", type_structure.nom, "_visite_cellule(v, c.", rubrique.nom, ")\n")

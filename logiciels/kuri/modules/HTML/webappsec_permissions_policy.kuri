@@ -14,7 +14,7 @@ create_a_permissions_policy_for_a_navigable :: fonc (container: *Element @inutil
 }
 
 /* https://w3c.github.io/webappsec-permissions-policy/#create-from-response */
-create_a_permissions_policy_for_a_navigable_from_respone :: fonc (container: *Element, origin: Origin, response: *Response @inutilisée, report_only := faux @inutilisée) -> PermissionsPolicy
+create_a_permissions_policy_for_a_navigable_from_response :: fonc (container: *Element, origin: Origin, response: *Response @inutilisée, report_only := faux @inutilisée) -> PermissionsPolicy
 {
     imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
