@@ -261,11 +261,61 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
 
     parseuse.consomme_espaces_blanches()
 
+    si apparie(parseuse, ".") {
+        parseuse.début += 1
+
+        expression := loge(ExpressionAccèsRubrique)
+        expression.gauche = résultat
+        expression.droite = donne_lexème_suivant(parseuse)
+        retourne expression
+    }
+
     pour __infos_expressions_binaire {
         si parseuse.apparie(it.lexème) {
             parseuse.début += it.lexème.taille
+
+            opération := it.op
+
+            si it.lexème == "is" {
+                si apparie(parseuse, "not") {
+                    opération = "!="
+                    parseuse.début += 3
+                }
+
+                si consomme_phrase(parseuse, "an Object") {
+                    op := loge(ExpressionComparaisonType)
+                    op.op = opération
+                    op.gauche = résultat
+                    op.droite = "Object"
+                    retourne op
+                }
+
+                si consomme_phrase(parseuse, "a Number") {
+                    op := loge(ExpressionComparaisonType)
+                    op.op = opération
+                    op.gauche = résultat
+                    op.droite = "Number"
+                    retourne op
+                }
+
+                si consomme_phrase(parseuse, "a String") {
+                    op := loge(ExpressionComparaisonType)
+                    op.op = opération
+                    op.gauche = résultat
+                    op.droite = "String"
+                    retourne op
+                }
+
+                si consomme_phrase(parseuse, "a throw completion") {
+                    op := loge(ExpressionVérificationException)
+                    op.op = opération
+                    op.gauche = résultat
+                    retourne op
+                }
+            }
+
             op := loge(ExpressionBinaire)
-            op.op = it.op
+            op.op = opération
             op.gauche = résultat
             op.droite = parse_expression(parseuse)
             retourne op
@@ -281,6 +331,8 @@ InfoVariable :: struct {
 }
 
 __infos_variables := [
+    InfoVariable("+∞𝔽", "R64_INFINITÉ"),
+    InfoVariable("-∞𝔽", "R64_INFINITÉ_NÉGATIVE"),
     InfoVariable("+∞", "R64_INFINITÉ"),
     InfoVariable("-∞", "R64_INFINITÉ_NÉGATIVE"),
     InfoVariable("-1𝔽", "-1.0"),
@@ -491,6 +543,28 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
         retourne résultat
     }
 
+    texte_restant := chaine(parseuse.début, parseuse.fin - parseuse.début)
+    si commence_par(texte_restant, "[[") {
+        texte_restant = avance(texte_restant, 2)
+        parseuse.début += 2
+        résultat.taille += 2
+
+        tantque texte_restant.taille != 0 {
+            si commence_par(texte_restant, "]]") {
+                parseuse.début += 2
+                résultat.taille += 2
+                arrête
+            }
+            texte_restant = avance(texte_restant, 1)
+            parseuse.début += 1
+            résultat.taille += 1
+        }
+
+        imprimeln("%", résultat)
+
+        retourne résultat
+    }
+
     tantque parseuse.début < parseuse.fin {
         c := mémoire(parseuse.début)
         si ('a' <= c <= 'z') || ('A' <= c <= 'Z') || ('0' <= c <= '9') {
@@ -519,6 +593,16 @@ apparie :: fonc (parseuse: *Parseuse, texte: chaine) -> bool
 
     chn := chaine(parseuse.début, texte.taille)
     retourne chn == texte
+}
+
+consomme_phrase :: fonc (parseuse: *Parseuse, phrase: chaine) -> bool
+{
+    résultat := faux
+    si apparie(parseuse, phrase) {
+        parseuse.début += phrase.taille
+        résultat = vrai
+    }
+    retourne résultat
 }
 
 consomme_caractère :: fonc (parseuse: *Parseuse, c: z8) -> bool
@@ -789,6 +873,31 @@ ExpressionBinaire :: struct {
     droite: *Expression
 }
 
+ExpressionComparaisonType :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    op: chaine
+    gauche: *Expression
+    droite: chaine
+}
+
+ExpressionVérificationException :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    op: chaine
+    gauche: *Expression
+}
+
+ExpressionAccèsRubrique :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    gauche: *Expression
+    droite: chaine
+}
+
 ExpressionEither :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -839,6 +948,36 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 génératrice.ajoute_chaine(" ", expression.op, " ")
                 génératrice.imprime_expression(expression.droite)
             }
+        }
+        ExpressionComparaisonType {
+            expression := base comme *ExpressionComparaisonType
+
+            si expression.op == "!=" {
+                ajoute_chaine(génératrice, "!")
+            }
+            génératrice.imprime_expression(expression.gauche)
+            si expression.droite == "Object" {
+                génératrice.ajoute_chaine(".est_object()")
+            }
+            sinon si expression.droite == "Number" {
+                génératrice.ajoute_chaine(".est_nombre()")
+            }
+            sinon si expression.droite == "String" {
+                génératrice.ajoute_chaine(".est_chaine()")
+            }
+        }
+        ExpressionVérificationException {
+            expression := base comme *ExpressionVérificationException
+
+            si expression.op == "!=" {
+                ajoute_chaine(génératrice, "!")
+            }
+            génératrice.ajoute_chaine("possède_exception(interpréteuse)")
+        }
+        ExpressionAccèsRubrique {
+            expression := base comme *ExpressionAccèsRubrique
+            génératrice.imprime_expression(expression.gauche)
+            génératrice.ajoute_chaine(".", expression.droite)
         }
         ExpressionAppel {
             appel := base comme *ExpressionAppel
