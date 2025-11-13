@@ -261,6 +261,15 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
 
     parseuse.consomme_espaces_blanches()
 
+    si apparie(parseuse, ".") {
+        parseuse.début += 1
+
+        expression := loge(ExpressionAccèsRubrique)
+        expression.gauche = résultat
+        expression.droite = donne_lexème_suivant(parseuse)
+        retourne expression
+    }
+
     pour __infos_expressions_binaire {
         si parseuse.apparie(it.lexème) {
             parseuse.début += it.lexème.taille
@@ -513,6 +522,28 @@ donne_lexème_suivant :: fonc (parseuse: *Parseuse) -> chaine
                 arrête
             }
         }
+
+        retourne résultat
+    }
+
+    texte_restant := chaine(parseuse.début, parseuse.fin - parseuse.début)
+    si commence_par(texte_restant, "[[") {
+        texte_restant = avance(texte_restant, 2)
+        parseuse.début += 2
+        résultat.taille += 2
+
+        tantque texte_restant.taille != 0 {
+            si commence_par(texte_restant, "]]") {
+                parseuse.début += 2
+                résultat.taille += 2
+                arrête
+            }
+            texte_restant = avance(texte_restant, 1)
+            parseuse.début += 1
+            résultat.taille += 1
+        }
+
+        imprimeln("%", résultat)
 
         retourne résultat
     }
@@ -841,6 +872,14 @@ ExpressionVérificationException :: struct {
     gauche: *Expression
 }
 
+ExpressionAccèsRubrique :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    gauche: *Expression
+    droite: chaine
+}
+
 ExpressionEither :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -910,6 +949,11 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
                 ajoute_chaine(génératrice, "!")
             }
             génératrice.ajoute_chaine("possède_exception(interpréteuse)")
+        }
+        ExpressionAccèsRubrique {
+            expression := base comme *ExpressionAccèsRubrique
+            génératrice.imprime_expression(expression.gauche)
+            génératrice.ajoute_chaine(".", expression.droite)
         }
         ExpressionAppel {
             appel := base comme *ExpressionAppel
