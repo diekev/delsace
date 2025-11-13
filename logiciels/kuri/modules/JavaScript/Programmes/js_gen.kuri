@@ -265,38 +265,33 @@ parse_expression :: fonc (parseuse: *Parseuse) -> *Expression
         si parseuse.apparie(it.lexème) {
             parseuse.début += it.lexème.taille
 
+            opération := it.op
+
             si it.lexème == "is" {
                 si apparie(parseuse, "not") {
+                    opération = "!="
                     parseuse.début += 3
 
-                    si apparie(parseuse, "an") {
-                        parseuse.début += 2
+                }
 
-                        si apparie(parseuse, "Object") {
-                            parseuse.début += 6
+                si consomme_phrase(parseuse, "an Object") {
+                    op := loge(ExpressionComparaisonType)
+                    op.op = opération
+                    op.gauche = résultat
+                    op.droite = "Object"
+                    retourne op
+                }
 
-                            op := loge(ExpressionComparaisonType)
-                            op.op = "!="
-                            op.gauche = résultat
-                            op.droite = "Object"
-                            retourne op
-                        }
-                        sinon {
-                            rapporte_erreur(parseuse, "attendu 'Object'", donne_lexème_suivant(parseuse))
-                        }
-                    }
-                    sinon {
-                        op := loge(ExpressionBinaire)
-                        op.op = "!="
-                        op.gauche = résultat
-                        op.droite = parse_expression(parseuse)
-                        retourne op
-                    }
+                si consomme_phrase(parseuse, "a throw completion") {
+                    op := loge(ExpressionVérificationException)
+                    op.op = opération
+                    op.gauche = résultat
+                    retourne op
                 }
             }
 
             op := loge(ExpressionBinaire)
-            op.op = it.op
+            op.op = opération
             op.gauche = résultat
             op.droite = parse_expression(parseuse)
             retourne op
@@ -550,6 +545,15 @@ apparie :: fonc (parseuse: *Parseuse, texte: chaine) -> bool
 
     chn := chaine(parseuse.début, texte.taille)
     retourne chn == texte
+}
+
+consomme_phrase :: fonc (parseuse: *Parseuse, phrase: chaine) -> bool
+{
+    résultat := faux
+    si apparie(parseuse, phrase) {
+        parseuse.début += phrase.taille
+    }
+    retourne résultat
 }
 
 consomme_caractère :: fonc (parseuse: *Parseuse, c: z8) -> bool
@@ -829,6 +833,14 @@ ExpressionComparaisonType :: struct {
     droite: chaine
 }
 
+ExpressionVérificationException :: struct {
+    empl base: Expression
+    type = #type_de_cette_structure
+
+    op: chaine
+    gauche: *Expression
+}
+
 ExpressionEither :: struct {
     empl base: Expression
     type = #type_de_cette_structure
@@ -890,6 +902,14 @@ imprime_expression :: fonc (génératrice: *GénératriceCode, base: *Expression
             si expression.droite == "Object" {
                 génératrice.ajoute_chaine(".est_object()")
             }
+        }
+        ExpressionVérificationException {
+            expression := base comme *ExpressionVérificationException
+
+            si expression.op == "!=" {
+                ajoute_chaine(génératrice, "!")
+            }
+            génératrice.ajoute_chaine("possède_exception(interpréteuse)")
         }
         ExpressionAppel {
             appel := base comme *ExpressionAppel
