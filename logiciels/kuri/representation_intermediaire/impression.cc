@@ -130,12 +130,6 @@ static void imprime_atome_ex(Atome const *atome,
                << atome->comme_constante_booléenne()->valeur;
             break;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            os << chaine_type(atome->type, options) << ' '
-               << atome->comme_constante_type()->type_de_données->indice_dans_table_types;
-            break;
-        }
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
             os << chaine_type(atome->type, options) << ' '
@@ -249,13 +243,6 @@ static void imprime_atome_ex(Atome const *atome,
             auto const init_tableau = atome->comme_initialisation_tableau();
             os << chaine_type(atome->type, options) << " init_tableau ";
             imprime_atome_ex(init_tableau->valeur, os, options, true);
-            break;
-        }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            auto const indice_table = atome->comme_indice_table_type();
-            os << chaine_type(atome->type, options) << " indice_de("
-               << chaine_type(indice_table->type_de_données, options) << ")";
             break;
         }
         case Atome::Genre::NON_INITIALISATION:
