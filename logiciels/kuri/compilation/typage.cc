@@ -218,10 +218,12 @@ static void initialise_type_type_de_données(Typeuse &typeuse,
                                             Type *type_connu_)
 {
     résultat->ident = ID::type_de_données;
-    résultat->type_code_machine = typeuse.type_taille_rel;
+    résultat->type_code_machine = typeuse.type_pointeur_pour(typeuse.type_info_type_);
     // un type 'type' est un genre de pointeur déguisé, donc donnons lui les mêmes caractéristiques
-    résultat->taille_octet = résultat->type_code_machine->taille_octet;
-    résultat->alignement = résultat->type_code_machine->alignement;
+    if (résultat->type_code_machine) {
+        résultat->taille_octet = résultat->type_code_machine->taille_octet;
+        résultat->alignement = résultat->type_code_machine->alignement;
+    }
     résultat->type_connu = type_connu_;
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
@@ -2125,12 +2127,6 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     }
 
     if (type->est_type_bool()) {
-        return true;
-    }
-
-    if (type->est_type_type_de_données()) {
-        /* Les type_de_données doivent pouvoir être utilisé pour indexer la table des types, car
-         * leurs valeurs dépends de l'index du type dans ladite table. */
         return true;
     }
 

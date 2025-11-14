@@ -648,8 +648,10 @@ void Tacheronne::exécute_métaprogrammes()
                         type,
                         pointeur,
                         it->données_exécution->détectrice_fuite_de_mémoire);
-                    résultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
-                    it->directive->substitution = résultat;
+                    if (résultat) {
+                        résultat->drapeaux |= DrapeauxNoeud::NOEUD_PROVIENT_DE_RESULTAT_DIRECTIVE;
+                        it->directive->substitution = résultat;
+                    }
                 }
             }
             else if (it->corps_texte) {
@@ -891,9 +893,11 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            auto type_de_donnees = *reinterpret_cast<Type **>(pointeur);
-            type_de_donnees = espace->typeuse.type_type_de_donnees(type_de_donnees);
-            return assembleuse->crée_référence_type(lexeme, type_de_donnees);
+            // auto info_type = *reinterpret_cast<InfoType **>(pointeur);
+            espace->rapporte_erreur(directive,
+                                    "Il n'est pour le moment pas possible de retourner un "
+                                    "type_de_données depuis un métaprogramme");
+            return nullptr;
         }
         case GenreNoeud::FONCTION:
         {

@@ -52,7 +52,16 @@ void renseigne_type_interface(Typeuse &typeuse, const IdentifiantCode *ident, Ty
         return;                                                                                   \
     }
 
-    ENUMERE_TYPE_INTERFACE_MODULE_KURI(INIT_TYPE)
+    ENUMERE_TYPE_INTERFACE_HORS_INFOS_TYPES(INIT_TYPE)
+
+#define INIT_INFO_TYPE(rubrique, nom)                                                             \
+    if (ident == nom) {                                                                           \
+        typeuse.rubrique = type;                                                                  \
+        type->drapeaux_type |= DrapeauxTypes::EST_TYPE_INFO_TYPE;                                 \
+        return;                                                                                   \
+    }
+
+    ENUMERE_TYPE_INFO_TYPES(INIT_INFO_TYPE)
 
 #undef INIT_TYPE
 }
