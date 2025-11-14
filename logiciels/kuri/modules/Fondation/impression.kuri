@@ -722,7 +722,12 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         }
         TYPE_DE_DONNÉES {
             // XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
+            x := mémoire(valeur.pointeur comme *type_de_données)
+            infos_x := x comme *InfoType
+            imprime_dans_enchaineuse(enchaineuse, "%", infos_x.id)
+            ajoute_au_tampon(enchaineuse, " (")
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
+            ajoute_au_tampon(enchaineuse, ")")
         }
         UNION {
             info_arg := valeur.info comme *InfoTypeUnion

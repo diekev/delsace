@@ -58,7 +58,7 @@ Instruction :: struct {
 
 donne_taille_octet :: fonc (instruction: *Instruction) -> n32
 {
-    infos := __table_des_types[instruction.type]
+    infos := instruction.type comme *InfoType
     résultat := infos.taille_en_octet
 
     si instruction.type == InstructionAppel {
@@ -79,7 +79,7 @@ donne_taille_octet :: fonc (instruction: *Instruction) -> n32
 
 imprime_instruction :: fonc (instruction: *Instruction, indice: z64)
 {
-    infos := __table_des_types[instruction.type] comme *InfoTypeStructure
+    infos := instruction.type comme *InfoTypeStructure
  
     nom := infos.nom
     si nom.commence_par("Instruction") {
