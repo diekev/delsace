@@ -1201,7 +1201,7 @@ donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
         exit(1)
     }
 
-    résultat := __table_des_types[type] comme *InfoTypeStructure
+    résultat := type comme *InfoTypeStructure
     assert(est_struct_ou_employeuse_de(résultat, infos))
     retourne résultat
 }

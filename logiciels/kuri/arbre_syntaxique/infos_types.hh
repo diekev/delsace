@@ -44,7 +44,6 @@ struct InfoType {
     GenreInfoType genre{};
     uint32_t taille_en_octet = 0;
     uint32_t alignement = 0;
-    uint32_t indice_dans_table_des_types = 0;
 };
 
 struct InfoTypeEntier : public InfoType {
