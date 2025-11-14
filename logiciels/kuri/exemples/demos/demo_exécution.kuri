@@ -96,8 +96,9 @@ principale :: fonc ()
     vec := #exécute retourne_structure()
     imprime("structure : %\n", vec)
 
-    type := #exécute retourne_type()
-    imprime("type : %\n", type)
+    // À FAIRE : retour de types
+    // type := #exécute retourne_type()
+    // imprime("type : %\n", type)
 
     fn := #exécute retourne_fonction()
     imprime("fonction : ")
