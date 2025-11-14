@@ -38,17 +38,6 @@ AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
     mémoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
 }
 
-Type const *AtomeConstanteType::donne_type() const
-{
-    if (type_de_données->est_type_type_de_données()) {
-        auto type_type_de_données = type_de_données->comme_type_type_de_données();
-        if (type_type_de_données->type_connu) {
-            return type_type_de_données->type_connu;
-        }
-    }
-    return type_de_données;
-}
-
 const Type *AtomeGlobale::donne_type_alloué() const
 {
     return type->comme_type_pointeur()->type_pointé;
@@ -674,7 +663,6 @@ void VisiteuseAtome::visite_atome(Atome *racine,
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
-        case Atome::Genre::CONSTANTE_TYPE:
         case Atome::Genre::CONSTANTE_RÉELLE:
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
@@ -682,7 +670,6 @@ void VisiteuseAtome::visite_atome(Atome *racine,
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::NON_INITIALISATION:
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             /* Pas de sous-atome. */
             break;
