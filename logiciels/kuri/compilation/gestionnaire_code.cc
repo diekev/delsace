@@ -430,6 +430,9 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                     if (type_de_donnees->type_connu) {
                         ajoute_type(type_de_donnees->type_connu);
                     }
+                    else {
+                        ajoute_type(type_de_donnees);
+                    }
                 }
                 else {
                     ajoute_type(noeud->type);
@@ -629,6 +632,20 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 auto info_de = noeud->comme_info_de();
                 ajoute_info_de(
                     info_de->expression->type->comme_type_type_de_données()->type_connu);
+            }
+            else if (noeud->est_référence_type()) {
+                if (noeud->type &&
+                    ((noeud->position & PositionCodeNoeud::EXPRESSION_TYPE) ==
+                         PositionCodeNoeud::AUCUNE ||
+                     noeud->aide_génération_code == EXPRESSION_TYPE_VIENT_DE_TYPE_DE)) {
+                    auto type_de_données = noeud->type->comme_type_type_de_données();
+                    if (type_de_données->type_connu) {
+                        ajoute_info_de(type_de_données->type_connu);
+                    }
+                    else {
+                        ajoute_info_de(type_de_données);
+                    }
+                }
             }
 
             return DecisionVisiteNoeud::CONTINUE;
@@ -2251,8 +2268,9 @@ void GestionnaireCode::fonction_initialisation_type_créée(UniteCompilation *un
         }
     }
 
-    détermine_dépendances(fonction, unité->espace, nullptr, nullptr);
-    détermine_dépendances(fonction->corps, unité->espace, nullptr, nullptr);
+    /* Passe l'unité pour avoir les attentes sur les dépendances. */
+    détermine_dépendances(fonction, unité->espace, unité, nullptr);
+    détermine_dépendances(fonction->corps, unité->espace, unité, nullptr);
 
     assert(toutes_les_entêtes_à_valider_le_sont());
 
