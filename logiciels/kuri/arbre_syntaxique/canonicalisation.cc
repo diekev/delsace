@@ -255,6 +255,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             /* change simplement le genre du noeud car le type de l'expression est le type de sa
              * sous expression */
             noeud->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE;
+            noeud->aide_génération_code = EXPRESSION_TYPE_VIENT_DE_TYPE_DE;
             return noeud;
         }
         case GenreNoeud::DIRECTIVE_CUISINE:
@@ -987,6 +988,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             else if (noeud->ident == ID::type_de_cette_fonction ||
                      noeud->ident == ID::type_de_cette_structure) {
                 noeud->substitution = assem->crée_référence_type(noeud->lexème, noeud->type);
+                noeud->substitution->aide_génération_code = EXPRESSION_TYPE_VIENT_DE_TYPE_DE;
             }
             else if (noeud->ident == ID::position_code_source) {
                 simplifie_position_code_source(noeud->comme_directive_instrospection());

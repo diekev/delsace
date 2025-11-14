@@ -3799,8 +3799,16 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
         if (ident_directive == ID::interface) {
             renseigne_type_interface(m_contexte->espace->typeuse, noeud->ident, noeud);
             if (noeud->ident == ID::InfoType) {
-                m_contexte->espace->typeuse.type_eini->rubriques[1].type =
-                    m_contexte->espace->typeuse.type_pointeur_pour(noeud);
+                auto type_pointeur_info_type = m_contexte->espace->typeuse.type_pointeur_pour(
+                    noeud);
+                m_contexte->espace->typeuse.type_eini->rubriques[1].type = type_pointeur_info_type;
+                auto type_type_de_données = m_contexte->espace->typeuse.type_type_de_donnees_;
+                type_type_de_données->type_code_machine = type_pointeur_info_type;
+                type_type_de_données->type_code_machine = type_pointeur_info_type;
+                type_type_de_données->taille_octet =
+                    type_type_de_données->type_code_machine->taille_octet;
+                type_type_de_données->alignement =
+                    type_type_de_données->type_code_machine->alignement;
             }
             auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
                 lexème_directive);

@@ -105,6 +105,8 @@ std::ostream &operator<<(std::ostream &os, PositionCodeNoeud const position)
     SI_DRAPEAU_UTILISE(EXPRESSION_BLOC_SI)
     SI_DRAPEAU_UTILISE(EXPRESSION_TEST_DISCRIMINATION)
     SI_DRAPEAU_UTILISE(DROITE_CONTRAINTE_POLYMORPHIQUE)
+    SI_DRAPEAU_UTILISE(EXPRESSION_INFO_DE)
+    SI_DRAPEAU_UTILISE(EXPRESSION_TYPE)
 
     auto virgule = "";
 
@@ -522,7 +524,9 @@ static void aplatis_arbre(NoeudExpression *racine,
              * la déclaration n'est dans aucun bloc. */
             if (!opaque->expression_type->possède_drapeau(
                     DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-                aplatis_arbre(opaque->expression_type, arbre_aplatis, position);
+                aplatis_arbre(opaque->expression_type,
+                              arbre_aplatis,
+                              position | PositionCodeNoeud::EXPRESSION_TYPE);
             }
             ajoute_noeud_arbre_aplatis(arbre_aplatis, racine);
             break;
@@ -535,7 +539,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                 expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
 
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
 
@@ -550,7 +555,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                 expr->expression, arbre_aplatis, position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
 
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
 
@@ -566,7 +572,8 @@ static void aplatis_arbre(NoeudExpression *racine,
                           position | PositionCodeNoeud::DROITE_ASSIGNATION);
             aplatis_arbre(constante->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, constante);
             break;
         }
@@ -598,7 +605,8 @@ static void aplatis_arbre(NoeudExpression *racine,
             aplatis_arbre(expr->expression, arbre_aplatis, position);
             aplatis_arbre(expr->expression_type,
                           arbre_aplatis,
-                          position | PositionCodeNoeud::DROITE_ASSIGNATION);
+                          position | PositionCodeNoeud::DROITE_ASSIGNATION |
+                              PositionCodeNoeud::EXPRESSION_TYPE);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
             break;
         }
@@ -732,7 +740,9 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto tableau = racine->comme_construction_tableau_typé();
             tableau->position |= position;
-            aplatis_arbre(tableau->expression_type, arbre_aplatis, position);
+            aplatis_arbre(tableau->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             aplatis_arbre(tableau->expression, arbre_aplatis, position);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, tableau);
             break;
@@ -1016,21 +1026,27 @@ static void aplatis_arbre(NoeudExpression *racine,
         {
             auto expr = racine->comme_expression_type_tableau_fixe();
             aplatis_arbre(expr->expression_taille, arbre_aplatis, position);
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TABLEAU_DYNAMIQUE:
         {
             auto expr = racine->comme_expression_type_tableau_dynamique();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
             break;
         }
         case GenreNoeud::EXPRESSION_TYPE_TRANCHE:
         {
             auto expr = racine->comme_expression_type_tranche();
-            aplatis_arbre(expr->expression_type, arbre_aplatis, position);
+            aplatis_arbre(expr->expression_type,
+                          arbre_aplatis,
+                          position | PositionCodeNoeud::EXPRESSION_TYPE);
             ajoute_noeud_arbre_aplatis(arbre_aplatis, expr);
             break;
         }
@@ -2277,12 +2293,19 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::ERREUR:
         {
             auto valeur_défaut = assembleuse->crée_littérale_entier(&lexème_sentinel, type, 0);
+            crée_assignation(assembleuse, ref_param, valeur_défaut);
+            break;
+        }
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        {
+            auto valeur_défaut = assembleuse->crée_littérale_nul(&lexème_sentinel);
+            // valeur_défaut->type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
+            valeur_défaut->type = typeuse.type_type_de_donnees_;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
