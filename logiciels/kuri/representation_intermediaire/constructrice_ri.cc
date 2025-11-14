@@ -421,18 +421,6 @@ AtomeConstanteEntière *ConstructriceRI::crée_constante_nombre_entier(Type cons
     return m_constante_entière.ajoute_élément(type, valeur);
 }
 
-AtomeConstanteType *ConstructriceRI::crée_constante_type(Type const *pointeur_type)
-{
-#ifdef DEDUPLIQUE_CONSTANTE
-    POUR_TABLEAU_PAGE (m_constante_type) {
-        if (it.type_de_données == pointeur_type) {
-            return &it;
-        }
-    }
-#endif
-    return m_constante_type.ajoute_élément(m_typeuse->type_type_de_donnees_, pointeur_type);
-}
-
 AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *pointeur_type)
 {
 #ifdef DEDUPLIQUE_CONSTANTE
@@ -443,11 +431,6 @@ AtomeConstanteTailleDe *ConstructriceRI::crée_constante_taille_de(Type const *p
     }
 #endif
     return m_taille_de.ajoute_élément(m_typeuse->type_n32, pointeur_type);
-}
-
-AtomeIndexTableType *ConstructriceRI::crée_indice_table_type(const Type *pointeur_type)
-{
-    return m_indice_table_type.ajoute_élément(m_typeuse->type_n32, pointeur_type);
 }
 
 AtomeConstante *ConstructriceRI::crée_z32(uint64_t valeur)
@@ -705,6 +688,9 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
                             << ", type source : " << chaine_type(valeur->type) << " ("
                             << valeur->type << ")\n"
                             << imprime_site(site_);
+                      if (m_fonction_courante) {
+                          dbg() << "Dans la fonction " << m_fonction_courante->nom;
+                      }
                   });
 
     auto inst = m_stocke_mem.ajoute_élément(site_, ou, valeur);
@@ -2207,15 +2193,26 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
-            auto type_de_donnees = noeud->type->comme_type_type_de_données();
-
-            if (type_de_donnees->type_connu) {
-                empile_valeur(m_constructrice.crée_constante_type(type_de_donnees->type_connu),
-                              noeud);
-                return;
+            auto type_de_données = noeud->type->comme_type_type_de_données();
+            Type *type = type_de_données;
+            if (type_de_données->type_connu) {
+                type = type_de_données->type_connu;
             }
 
-            empile_valeur(m_constructrice.crée_constante_type(type_de_donnees), noeud);
+            // À FAIRE : évite d'avoir plusieurs niveaux de types_de_données pour les
+            // types_de_données
+            while (type->est_type_type_de_données()) {
+                type_de_données = type->comme_type_type_de_données();
+                if (!type_de_données->type_connu) {
+                    break;
+                }
+                type = type_de_données->type_connu;
+            }
+
+            auto info_type = crée_info_type_avec_transtype(type, noeud);
+            auto valeur = m_constructrice.crée_transtype_constant(
+                m_espace->typeuse.type_type_de_donnees_, info_type);
+            empile_valeur(valeur, noeud);
             break;
         }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
@@ -4594,8 +4591,14 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
     }
 
     // À FAIRE : il nous faut toutes les informations du type pour pouvoir générer les informations
-    assert_rappel(type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [type]() {
+    assert_rappel(type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE), [&]() {
         dbg() << "Info type pour " << chaine_type(type) << " est incomplet";
+        if (site) {
+            dbg() << erreur::imprime_site(*m_espace, site);
+            if (m_fonction_courante) {
+                dbg() << "Dans la fonction : " << m_fonction_courante->nom;
+            }
+        }
     });
 
     type->atome_info_type->est_info_type_de = type;
@@ -4628,7 +4631,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
 AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType index,
                                                                    Type const *pour_type)
 {
-    auto rubriques = kuri::tableau<AtomeConstante *>(4);
+    auto rubriques = kuri::tableau<AtomeConstante *>(3);
     remplis_rubriques_de_bases_info_type(rubriques, index, pour_type);
     return m_constructrice.crée_constante_structure(m_espace->typeuse.type_info_type_,
                                                     std::move(rubriques));
@@ -4638,7 +4641,7 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
                                                           GenreInfoType index,
                                                           Type const *pour_type)
 {
-    assert(valeurs.taille() == 4);
+    assert(valeurs.taille() == 3);
     valeurs[0] = m_constructrice.crée_z32(uint32_t(index));
     /* Puisque nous pouvons générer du code pour des architectures avec adressages en 32 ou 64
      * bits, et puisque nous pouvons exécuter sur une machine avec une architecture différente de
@@ -4646,13 +4649,11 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
      * du code machine. */
     valeurs[1] = m_constructrice.crée_constante_taille_de(pour_type);
     valeurs[2] = m_constructrice.crée_n32(pour_type->alignement);
-    // L'index dans la table des types sera mis en place lors de la génération du code machine.
-    valeurs[3] = m_constructrice.crée_indice_table_type(pour_type);
 }
 
 AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
 {
-    auto valeurs = kuri::tableau<AtomeConstante *>(4);
+    auto valeurs = kuri::tableau<AtomeConstante *>(3);
     remplis_rubriques_de_bases_info_type(valeurs, index, pour_type);
     return crée_globale_info_type(m_espace->typeuse.type_info_type_, std::move(valeurs));
 }
