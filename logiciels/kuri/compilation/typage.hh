@@ -119,8 +119,6 @@ struct Trie {
     Noeud *ajoute_enfant(Noeud *parent, Type const *type, bool est_sortie);
 };
 
-// À FAIRE(table type) : il peut y avoir une concurrence critique pour l'assignation d'index aux
-// types
 struct Typeuse {
     kuri::Synchrone<GrapheDépendance> &graphe_;
 
