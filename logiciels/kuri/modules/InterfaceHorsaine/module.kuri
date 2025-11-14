@@ -280,6 +280,7 @@ convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, t
 /* Informations sur l'IPA. */
 IPA :: struct {
     types: [..]*TypeIPA
+    table_des_types: TableDeHachage(*InfoType, z64)
     fonctions: [..]MéthodeIPA
 
     espace_de_nom: chaine
@@ -291,6 +292,7 @@ détruit_données_ipa :: fonc (ipa: &IPA)
 {
     déloge_tableau_et_ses_éléments(ipa.types, détruit_type_ipa)
     déloge_tableau_et_ses_éléments(ipa.fonctions, détruit_données_méthode_ipa)
+    détruit_données(*ipa.table_des_types)
 }
 
 initialise_ipa :: fonc (espace_de_nom: chaine, nom_module: chaine, dossier_sortie: chaine) -> IPA
@@ -325,11 +327,13 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         retourne type_existant
     }
 
+    indice_dans_table_des_types := ipa.types.taille
+
     résultat := loge(TypeIPA)
     résultat.infos = type
-    /* À FAIRE(langage) : table des types. */
-    type.indice_dans_table_des_types = (ipa.types.taille + 1) comme n32
     tableau_ajoute(*ipa.types, résultat)
+
+    table_insère_si_non_existant(*ipa.table_des_types, type, indice_dans_table_des_types)
 
     discr type.id {
         ENTIER,
@@ -438,14 +442,12 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 
 trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 {
-    /* À FAIRE(langage) : table des types. */
-    indice := (type.indice_dans_table_des_types comme z64) - 1
-
-    si indice < 0 || indice >= ipa.types.taille {
-        retourne nul
+    résultat: *TypeIPA
+    trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(ipa.table_des_types, type)
+    si trouvée {
+        résultat = ipa.types[indice_dans_table_des_types]
     }
-
-    retourne ipa.types[indice]
+    retourne résultat
 }
 
 ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)

@@ -31,8 +31,6 @@ enum class PartageMémoire : uint8_t;
     O(CONSTANTE_STRUCTURE, AtomeConstanteStructure, constante_structure)                          \
     O(CONSTANTE_TABLEAU_FIXE, AtomeConstanteTableauFixe, constante_tableau)                       \
     O(CONSTANTE_DONNÉES_CONSTANTES, AtomeConstanteDonnéesConstantes, données_constantes)          \
-    O(CONSTANTE_TYPE, AtomeConstanteType, constante_type)                                         \
-    O(CONSTANTE_INDICE_TABLE_TYPE, AtomeIndexTableType, indice_table_type)                        \
     O(CONSTANTE_TAILLE_DE, AtomeConstanteTailleDe, taille_de)                                     \
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
@@ -257,34 +255,6 @@ struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
     {
         return {données.pointeur, données.taille};
     }
-};
-
-struct AtomeConstanteType : public AtomeConstante {
-    Type const *type_de_données = nullptr;
-
-    AtomeConstanteType(Type const *type_, Type const *type_de_données_)
-        : type_de_données(type_de_données_)
-    {
-        type = type_;
-        genre_atome = Genre::CONSTANTE_TYPE;
-    }
-
-    EMPECHE_COPIE(AtomeConstanteType);
-
-    Type const *donne_type() const;
-};
-
-struct AtomeIndexTableType : public AtomeConstante {
-    Type const *type_de_données = nullptr;
-
-    AtomeIndexTableType(Type const *type_, Type const *type_de_données_)
-        : type_de_données(type_de_données_)
-    {
-        type = type_;
-        genre_atome = Genre::CONSTANTE_INDICE_TABLE_TYPE;
-    }
-
-    EMPECHE_COPIE(AtomeIndexTableType);
 };
 
 struct AtomeConstanteTailleDe : public AtomeConstante {

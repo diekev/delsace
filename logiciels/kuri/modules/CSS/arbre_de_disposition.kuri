@@ -2328,13 +2328,13 @@ décale_contenu :: fonc (box: *Box, x: r32, y: r32)
 
 donne_nom_classe :: fonc (box: *Box) -> chaine
 {
-    infos := __table_des_types[box.table_virtuelle.type] comme *InfoTypeStructure
+    infos := box.table_virtuelle.type comme *InfoTypeStructure
     retourne infos.nom
 }
 
 donne_taille_en_octet :: fonc (box: *Box) -> n32
 {
-    infos := __table_des_types[box.table_virtuelle.type] comme *InfoTypeStructure
+    infos := box.table_virtuelle.type comme *InfoTypeStructure
     retourne infos.taille_en_octet
 }
 

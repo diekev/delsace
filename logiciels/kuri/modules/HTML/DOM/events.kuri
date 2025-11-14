@@ -1081,7 +1081,7 @@ est_élément :: fonc (event_target: *EventTarget) -> *Element
         retourne nul
     }
 
-    infos := __table_des_types[table.classe] comme *InfoTypeStructure
+    infos := table.classe comme *InfoTypeStructure
     saufsi est_struct_ou_employeuse_de(infos, info_de(Element)) {
         retourne nul
     }
@@ -1096,7 +1096,7 @@ est_node :: fonc (event_target: *EventTarget) -> *Node
         retourne nul
     }
 
-    infos := __table_des_types[table.classe] comme *InfoTypeStructure
+    infos := table.classe comme *InfoTypeStructure
     saufsi est_struct_ou_employeuse_de(infos, info_de(Node)) {
         retourne nul
     }

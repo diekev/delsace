@@ -6552,7 +6552,7 @@ VisiteuseNoeud :: struct {
 
 donne_info_pour_type_noeud :: fonc (racine: *NoeudSyntaxique) -> *InfoTypeStructure
 {
-    résultat := __table_des_types[racine.type] comme *InfoTypeStructure
+    résultat := racine.type comme *InfoTypeStructure
     assert(est_struct_ou_employeuse_de(résultat, info_de(NoeudSyntaxique)))
     retourne résultat
 }

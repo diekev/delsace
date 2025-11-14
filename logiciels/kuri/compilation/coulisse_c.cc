@@ -34,7 +34,7 @@
  * des tableaux d'octets pour toutes les structures. */
 #define TOUTES_LES_STRUCTURES_SONT_DES_TABLEAUX_FIXES
 
-#undef IMPRIME_COMMENTAIRE
+#define IMPRIME_COMMENTAIRE
 
 /* Noms de base pour le code généré. Une seule lettre pour minimiser le code. */
 static const char *nom_base_chaine = "C";
@@ -454,6 +454,11 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
             /* Aucun typedef. */
             return;
         }
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        {
+            type_c.typedef_ = "intptr_t";
+            break;
+        }
         case GenreNoeud::ENTIER_CONSTANT:
         {
             type_c.typedef_ = "int32_t";
@@ -521,11 +526,6 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
                 type_c.typedef_ = "int64_t";
             }
 
-            break;
-        }
-        case GenreNoeud::TYPE_DE_DONNÉES:
-        {
-            type_c.typedef_ = "int64_t";
             break;
         }
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
@@ -1279,20 +1279,10 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
         {
             return "0";
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            auto type = atome->comme_constante_type()->donne_type();
-            return enchaine(type->indice_dans_table_types);
-        }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto type = atome->comme_taille_de()->type_de_données;
             return enchaine(type->taille_octet);
-        }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            auto type = atome->comme_indice_table_type()->type_de_données;
-            return enchaine(type->indice_dans_table_types);
         }
         case Atome::Genre::CONSTANTE_RÉELLE:
         {
@@ -2147,6 +2137,10 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
         }
 
         type = type_tableau;
+    }
+
+    if (type->est_type_type_de_données()) {
+        type = m_espace.typeuse.type_type_de_donnees_;
     }
 
     if (type->est_type_union()) {

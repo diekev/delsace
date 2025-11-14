@@ -1773,15 +1773,6 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             chunk.émets_constante(int64_t(0));
             break;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            // utilisation du pointeur directement au lieu de l'index car la table de type
-            // n'est pas implémentée, et il y a des concurrences critiques entre les
-            // métaprogrammes
-            auto type = atome->comme_constante_type()->type_de_données;
-            chunk.émets_constante(reinterpret_cast<int64_t>(type));
-            break;
-        }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto type = atome->comme_taille_de()->type_de_données;
@@ -1922,14 +1913,6 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
 
             break;
         }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
-             * être ici. */
-            assert_rappel(false,
-                          []() { dbg() << "CONSTANTE_INDICE_TABLE_TYPE dans le code binaire."; });
-            break;
-        }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
         {
             break;
@@ -2033,27 +2016,10 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             *reinterpret_cast<int64_t *>(destination) = int64_t(0);
             break;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            // utilisation du pointeur directement au lieu de l'index car la table de type
-            // n'est pas implémentée, et il y a des concurrences critiques entre les
-            // métaprogrammes
-            auto type = atome->comme_constante_type()->type_de_données;
-            assigne(destination, type);
-            break;
-        }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto type = atome->comme_taille_de()->type_de_données;
             assigne(destination, type->taille_octet);
-            break;
-        }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            /* Nous utilisons directement InfoType* créer pour les NoeudCode. Nous ne devions pas
-             * être ici. */
-            assert_rappel(false,
-                          []() { dbg() << "CONSTANTE_INDICE_TABLE_TYPE dans le code binaire."; });
             break;
         }
         case Atome::Genre::CONSTANTE_RÉELLE:

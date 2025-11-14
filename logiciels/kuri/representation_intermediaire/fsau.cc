@@ -1264,16 +1264,6 @@ struct ConvertisseuseFSAU {
                 ATOME_NON_IMPLEMENTE;
                 return nullptr;
             }
-            case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-            {
-                ATOME_NON_IMPLEMENTE;
-                return nullptr;
-            }
-            case Atome::Genre::CONSTANTE_TYPE:
-            {
-                ATOME_NON_IMPLEMENTE;
-                return nullptr;
-            }
             case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
             {
                 ATOME_NON_IMPLEMENTE;

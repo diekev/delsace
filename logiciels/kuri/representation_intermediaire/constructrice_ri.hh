@@ -125,9 +125,7 @@ struct ConstructriceRI {
     AtomeConstanteBooléenne *crée_constante_booléenne(bool valeur);
     AtomeConstanteCaractère *crée_constante_caractère(Type const *type, uint64_t valeur);
     AtomeConstanteEntière *crée_constante_nombre_entier(Type const *type, uint64_t valeur);
-    AtomeConstanteType *crée_constante_type(Type const *pointeur_type);
     AtomeConstanteTailleDe *crée_constante_taille_de(Type const *pointeur_type);
-    AtomeIndexTableType *crée_indice_table_type(Type const *pointeur_type);
     AtomeConstante *crée_z32(uint64_t valeur);
     AtomeConstante *crée_n32(uint64_t valeur);
     AtomeConstante *crée_z64(uint64_t valeur);

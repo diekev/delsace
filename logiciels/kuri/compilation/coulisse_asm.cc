@@ -2027,18 +2027,6 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
             assembleuse.push_immédiate_64(0);
             return;
         }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            auto constante_type = atome->comme_constante_type();
-            auto type = constante_type->donne_type();
-            assembleuse.push_immédiate_64(type->indice_dans_table_types);
-            return;
-        }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            VERIFIE_NON_ATTEINT;
-            return;
-        }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         {
             auto constante_taille_de = atome->comme_taille_de();
@@ -2159,8 +2147,6 @@ bool est_initialisateur_supporté(Atome const *atome)
         case Atome::Genre::FONCTION:
         case Atome::Genre::TRANSTYPE_CONSTANT:
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
-        case Atome::Genre::CONSTANTE_TYPE:
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         case Atome::Genre::CONSTANTE_TAILLE_DE:
         case Atome::Genre::CONSTANTE_RÉELLE:
         case Atome::Genre::CONSTANTE_STRUCTURE:
@@ -2219,21 +2205,6 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         case Atome::Genre::CONSTANTE_NULLE:
         {
             enchaineuse << chaine_indentations_espace(profondeur) << "dq 0" << NOUVELLE_LIGNE;
-            return;
-        }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            auto constante_type = initialisateur->comme_constante_type();
-            auto type = constante_type->donne_type();
-            enchaineuse << chaine_indentations_espace(profondeur) << "dq "
-                        << type->indice_dans_table_types << NOUVELLE_LIGNE;
-            return;
-        }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            auto type = initialisateur->comme_indice_table_type()->type_de_données;
-            enchaineuse << chaine_indentations_espace(profondeur) << "dd "
-                        << type->indice_dans_table_types << NOUVELLE_LIGNE;
             return;
         }
         case Atome::Genre::CONSTANTE_TAILLE_DE:
@@ -4046,14 +4017,6 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
             auto caractère = source->comme_constante_caractère();
             auto registre = registres.donne_registre_entier_inoccupé();
             assembleuse.mov(registre, AssembleuseASM::Immédiate64{caractère->valeur}, 8);
-            src = registre;
-        }
-        else if (source->est_constante_type()) {
-            auto constante_type = source->comme_constante_type();
-            auto type = constante_type->donne_type();
-            auto registre = registres.donne_registre_entier_inoccupé();
-            assembleuse.mov(
-                registre, AssembleuseASM::Immédiate64{type->indice_dans_table_types}, 8);
             src = registre;
         }
         else if (source->est_instruction()) {

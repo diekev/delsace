@@ -473,7 +473,7 @@ est_classe :: fonc (cellule: *Cellule, info: *InfoTypeStructure) -> bool
 
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
-    résultat := __table_des_types[racine.table.classe] comme *InfoTypeStructure
+    résultat := racine.table.classe comme *InfoTypeStructure
     assert(résultat != nul)
     assert(résultat.id == GenreInfoType.STRUCTURE)
     assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))

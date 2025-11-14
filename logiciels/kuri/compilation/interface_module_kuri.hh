@@ -13,19 +13,21 @@ struct Typeuse;
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
-#define ENUMERE_TYPE_INTERFACE_MODULE_KURI(O)                                                     \
+#define ENUMERE_TYPE_INFO_TYPES(O)                                                                \
     O(type_info_type_, ID::InfoType)                                                              \
     O(type_info_type_enum, ID::InfoTypeEnum)                                                      \
     O(type_info_type_structure, ID::InfoTypeStructure)                                            \
     O(type_info_type_union, ID::InfoTypeUnion)                                                    \
-    O(type_info_type_rubrique_structure, ID::InfoTypeRubriqueStructure)                           \
     O(type_info_type_entier, ID::InfoTypeEntier)                                                  \
     O(type_info_type_tableau, ID::InfoTypeTableau)                                                \
     O(type_info_type_tableau_fixe, ID::InfoTypeTableauFixe)                                       \
     O(type_info_type_tranche, ID::InfoTypeTranche)                                                \
     O(type_info_type_pointeur, ID::InfoTypePointeur)                                              \
     O(type_info_type_polymorphique, ID::InfoTypePolymorphique)                                    \
-    O(type_info_type_fonction, ID::InfoTypeFonction)                                              \
+    O(type_info_type_fonction, ID::InfoTypeFonction)
+
+#define ENUMERE_TYPE_INTERFACE_HORS_INFOS_TYPES(O)                                                \
+    O(type_info_type_rubrique_structure, ID::InfoTypeRubriqueStructure)                           \
     O(type_position_code_source, ID::PositionCodeSource)                                          \
     O(type_info_fonction_trace_appel, ID::InfoFonctionTraceAppel)                                 \
     O(type_trace_appel, ID::TraceAppel)                                                           \
@@ -36,6 +38,10 @@ using Type = NoeudDéclarationType;
     O(type_info_type_variadique, ID::InfoTypeVariadique)                                          \
     O(type_contexte, ID::ContexteProgramme)                                                       \
     O(type_annotation, ID::Annotation)
+
+#define ENUMERE_TYPE_INTERFACE_MODULE_KURI(O)                                                     \
+    ENUMERE_TYPE_INFO_TYPES(O)                                                                    \
+    ENUMERE_TYPE_INTERFACE_HORS_INFOS_TYPES(O)
 
 #define ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(Op)                                               \
     Op(decl_panique, ID::panique) Op(decl_panique_memoire, ID::panique_hors_memoire)              \
