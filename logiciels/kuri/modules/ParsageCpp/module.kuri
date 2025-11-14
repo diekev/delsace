@@ -39,8 +39,8 @@ imprime_arbre :: fonc (node: *ASTNode)
     rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode)
     {
         pour tableau {
-            info := __table_des_types[it.genre]
-            rappel_pour_noeud(visiteuse, it, info comme *InfoTypeStructure)
+            info := it.genre comme *InfoTypeStructure
+            rappel_pour_noeud(visiteuse, it, info)
         }
     }
 
