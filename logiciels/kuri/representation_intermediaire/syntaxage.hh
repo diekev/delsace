@@ -987,22 +987,6 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         return impl()->crée_taille_de(lexème_taille_de, type_de_données);
     }
 
-    if (apparie(ID::indice_de)) {
-        auto const lexème_indice_de = m_lexème_courant;
-        consomme();
-
-        CONSOMME_LEXEME(
-            PARENTHESE_OUVRANTE, "Attendu une parenthèse ouvrante après « indice_de »", {});
-
-        auto type_de_données = analyse_type();
-
-        CONSOMME_LEXEME(PARENTHESE_FERMANTE,
-                        "Attendu une parenthèse fermante après le type de « indice_de »",
-                        {});
-
-        return impl()->crée_indice_de(lexème_indice_de, type_de_données);
-    }
-
     if (apparie(ID::transtype)) {
         auto const lexème_transtype = m_lexème_courant;
         consomme();
@@ -1363,8 +1347,6 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     DescriptionAtome crée_taille_de(Lexème const *lexème, LexèmesType const &type);
 
-    DescriptionAtome crée_indice_de(Lexème const *lexème, LexèmesType const &type);
-
     DescriptionAtome crée_transtypage_constant(Lexème const *lexème,
                                                DescriptionAtome const &atome_transtypé,
                                                LexèmesType const &type_destination);
@@ -1541,8 +1523,6 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
     Atome *crée_indexage_constant(Type *type, Lexème const *lexème_nombre, Atome *globale);
 
     Atome *crée_taille_de(Lexème const *lexème, Type *type);
-
-    Atome *crée_indice_de(Lexème const *lexème, Type *type);
 
     Atome *crée_transtypage_constant(Lexème const *lexème,
                                      Atome *atome_transtypé,

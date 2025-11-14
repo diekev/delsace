@@ -206,6 +206,11 @@ struct Programme {
         return m_types.possède(type);
     }
 
+    bool possède_info_de(Type *type) const
+    {
+        return m_info_de.possède(type);
+    }
+
     bool possède_init_types(Type *type) const
     {
         return m_init_de.possède(type);
@@ -224,6 +229,11 @@ struct Programme {
     kuri::tableau_statique<Type *> types() const
     {
         return m_types.donne_éléments();
+    }
+
+    kuri::tableau_statique<Type *> info_de() const
+    {
+        return m_info_de.donne_éléments();
     }
 
     kuri::tableau_statique<Type *> init_types() const

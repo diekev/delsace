@@ -68,7 +68,6 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::GLOBALE:
         case Atome::Genre::FONCTION:
         case Atome::Genre::CONSTANTE_NULLE:
-        case Atome::Genre::CONSTANTE_TYPE:
         case Atome::Genre::CONSTANTE_RÉELLE:
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
@@ -81,7 +80,6 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         case Atome::Genre::INITIALISATION_TABLEAU:
         case Atome::Genre::NON_INITIALISATION:
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
         {
             break;
         }
