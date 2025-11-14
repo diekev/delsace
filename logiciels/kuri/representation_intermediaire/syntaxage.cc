@@ -78,11 +78,6 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
             os << "taille_de(" << chaine_type(desc.desc_type) << ")";
             break;
         }
-        case Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE:
-        {
-            os << "indice_de(" << chaine_type(desc.desc_type) << ")";
-            break;
-        }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             os << "index constant";
@@ -101,11 +96,6 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
         {
             os << "constante booléenne";
-            break;
-        }
-        case Atome::Genre::CONSTANTE_TYPE:
-        {
-            os << "constante type";
             break;
         }
         case Atome::Genre::INITIALISATION_TABLEAU:
@@ -289,11 +279,6 @@ DescriptionAtome PrésyntaxeuseRI::crée_indexage_constant(const LexèmesType &t
 DescriptionAtome PrésyntaxeuseRI::crée_taille_de(const Lexème *lexème, const LexèmesType &type)
 {
     return {Atome::Genre::CONSTANTE_TAILLE_DE, lexème, type};
-}
-
-DescriptionAtome PrésyntaxeuseRI::crée_indice_de(const Lexème *lexème, const LexèmesType &type)
-{
-    return {Atome::Genre::CONSTANTE_INDICE_TABLE_TYPE, lexème, type};
 }
 
 DescriptionAtome PrésyntaxeuseRI::crée_transtypage_constant(
@@ -832,11 +817,6 @@ Atome *SyntaxeuseRI::crée_indexage_constant(Type *type,
 Atome *SyntaxeuseRI::crée_taille_de(const Lexème *lexème, Type *type)
 {
     return m_constructrice.crée_constante_taille_de(type);
-}
-
-Atome *SyntaxeuseRI::crée_indice_de(const Lexème *lexème, Type *type)
-{
-    return m_constructrice.crée_indice_table_type(type);
 }
 
 Atome *SyntaxeuseRI::crée_transtypage_constant(const Lexème *lexème,
