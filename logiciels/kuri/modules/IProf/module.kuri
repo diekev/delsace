@@ -165,14 +165,6 @@ Prof_Zone_Stack :: struct {
 
 // report functions
 
-// number of unique zones allowed in the entire application
-// @TODO: remove MAX_PROFILING_ZONES and make it dynamic
-MAX_PROFILING_ZONES :: 512
-
-NUM_VALUES :: 4
-NUM_TITLE :: 2
-NUM_HEADER :: (NUM_VALUES+1)
-
 Prof_Report_Record :: struct {
     indent: z32
     name: chaine
