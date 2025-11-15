@@ -919,8 +919,9 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
 
             // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
 
+            auto type_llvm = convertis_type_llvm(type_accede);
             return llvm::ConstantExpr::getInBoundsGetElementPtr(
-                nullptr, llvm::cast<llvm::Constant>(accede), index_array);
+                type_llvm, llvm::cast<llvm::Constant>(accede), index_array);
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
@@ -1214,15 +1215,21 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             llvm::SmallVector<llvm::Value *, 2> liste_index;
 
+            auto type_llvm = convertis_type_llvm(
+                inst_accès->accédé->type->comme_type_pointeur()->type_pointé);
+
             auto accédé = inst_accès->accédé;
             if (accédé->est_instruction()) {
-                // dbg() << accédé->comme_instruction()->genre << " " << *valeur_accede->getType();
+                // dbg() << accédé->comme_instruction()->genre << " " <<
+                // *valeur_accédée->getType();
 
                 auto type_accédé = inst_accès->donne_type_accédé();
                 if (type_accédé->est_type_pointeur()) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
                     valeur_accédée = m_builder.CreateLoad(
                         valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
+                    type_llvm = convertis_type_llvm(
+                        type_accédé->comme_type_pointeur()->type_pointé);
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
@@ -1230,14 +1237,17 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 }
             }
             else {
-                // dbg() << inst_acces->accédé->genre_atome << '\n';
+                // dbg() << inst_accès->accédé->genre_atome << '\n';
                 /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
                 liste_index.push_back(m_builder.getInt32(0));
             }
 
             liste_index.push_back(valeur_index);
 
-            auto type_llvm = convertis_type_llvm(inst->type);
+            // dbg() << chaine_type(inst_accès->accédé->type);
+            // dbg() << "--> " << *type_llvm;
+            // dbg() << "--> " << *valeur_accédée->getType();
+            // dbg() << "--> " << *valeur_accédée->getType()->getScalarType();
             auto valeur = m_builder.CreateInBoundsGEP(type_llvm, valeur_accédée, liste_index);
             // dbg() << "--> " << *valeur->getType();
             définis_valeur_instruction(inst, valeur);
@@ -1290,7 +1300,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             liste_index.push_back(m_builder.getInt32(index_membre));
 
-            auto type_llvm = convertis_type_llvm(inst->type);
+            auto type_llvm = convertis_type_llvm(type_déréférencé_pour(accédé->type));
+            // dbg() << "--> " << *type_llvm;
+            // dbg() << "--> " << *valeur_accédée->getType();
+            // dbg() << "--> " << *valeur_accédée->getType()->getScalarType();
             auto résultat = m_builder.CreateInBoundsGEP(type_llvm, valeur_accédée, liste_index);
 
             définis_valeur_instruction(inst, résultat);
@@ -1804,6 +1817,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         }
         case GenreIntrinsèque::LIS_COMPTEUR_TEMPOREL:
         {
+            valeur_retour = m_builder.CreateIntrinsic(llvm::Intrinsic::readcyclecounter, {}, {});
             break;
         }
     }
@@ -1819,7 +1833,7 @@ static llvm::ArrayRef<T> donne_tableau_typé(const AtomeConstanteDonnéesConstan
 {
     auto const données = constante->donne_données();
     auto pointeur_données = reinterpret_cast<T const *>(données.begin());
-    return {pointeur_données, size_t(taille_données)};
+    return {pointeur_données, size_t(taille_données) / sizeof(T)};
 }
 
 llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
