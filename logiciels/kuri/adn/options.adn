@@ -55,7 +55,7 @@ struct OptionsDeCompilation {
 
     chaine_statique nom_sortie = "a.out"
 
-    TypeCoulisse coulisse = .C
+    TypeCoulisse coulisse = .LLVM
     RésultatCompilation résultat = .EXÉCUTABLE
     ArchitectureCible architecture = .X64
     NiveauOptimisation niveau_optimisation = .AUCUN

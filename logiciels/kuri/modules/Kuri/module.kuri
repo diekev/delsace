@@ -262,9 +262,9 @@ déloge :: fonc (chn: &chaine, pos := #position_code_source)
 
 déloge_si_logée :: fonc (chn: &chaine, pos := #position_code_source)
 {
-    saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
-        déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
-    }
+    // saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
+    //     déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos)
+    // }
     chn.pointeur = nul
     chn.taille = 0
 }

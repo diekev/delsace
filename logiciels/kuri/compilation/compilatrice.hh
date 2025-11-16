@@ -76,7 +76,7 @@ struct ArgumentsCompilatrice {
     bool verbeux = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
-    TypeCoulisse coulisse = TypeCoulisse::C;
+    TypeCoulisse coulisse = TypeCoulisse::LLVM;
 
     /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */
     kuri::chemin_systeme chemin_fichier_utilises{};

@@ -2806,6 +2806,8 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 #    define DEBOGUE_IR
 #endif
 
+#define DEBOGUE_IR
+
 #ifdef DEBOGUE_IR
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t index)
