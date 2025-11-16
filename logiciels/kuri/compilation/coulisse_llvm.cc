@@ -531,8 +531,8 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
-                // À FAIRE TYPE_ADRESSE_FONCTION
-                ditype = nullptr;
+                auto type_pointé = donne_type(espace->typeuse.type_octet);
+                ditype = dibuilder->createPointerType(type_pointé, 8 * type->taille_octet);
                 break;
             }
             case GenreNoeud::FONCTION:
@@ -672,23 +672,73 @@ struct InfoDébogageLLVM {
             case GenreNoeud::DÉCLARATION_UNION:
             {
                 // À FAIRE : createUnionType
-                // auto type_struct = type->comme_type_union();
+                auto type_union = type->comme_type_union();
 
-                // if (type_struct->type_structure) {
-                //     type_llvm = convertis_type_llvm(type_struct->type_structure);
-                //     break;
-                // }
+                if (type_union->type_structure) {
+                    ditype = donne_type(type_union->type_structure);
+                }
+                else {
+                    assert(type_union->est_nonsure);
 
-                // assert(type_struct->est_nonsure);
+                    auto scope = unit;
+                    auto name = llvm::StringRef("");
+                    if (type->ident) {
+                        name = vers_string_ref(type->ident);
+                    }
+                    else {
+                        name = vers_string_ref("union_nonsure");
+                    }
 
-                // auto nom_nonsur = enchaine("union_nonsure.", type_struct->ident->nom);
+                    auto fichier = donne_fichier(type);
+                    auto numéro_ligne = uint32_t(0);
+                    if (type->lexème) {
+                        numéro_ligne = uint32_t(type->lexème->ligne + 1);
+                    }
+                    auto taille_en_bits = 8 * type->taille_octet;
+                    auto alignement_en_bits = 8 * type->taille_octet;
+                    // À FAIRE : llvm::DINode::DIFlags
+                    auto flags = llvm::DINode::DIFlags(0);
 
-                // // création d'une structure ne contenant que le membre le plus grand
-                // auto type_le_plus_grand = type_struct->type_le_plus_grand;
+                    auto éléments = std::vector<llvm::Metadata *>();
 
-                // auto type_max_llvm = convertis_type_llvm(type_le_plus_grand);
-                // type_llvm = llvm::StructType::create(
-                //     m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
+                    POUR (type_union->donne_rubriques_pour_code_machine()) {
+                        auto nom_rubrique = vers_string_ref(it.nom);
+
+                        auto numéro_ligne_rubrique = uint32_t(0);
+                        if (it.decl) {
+                            numéro_ligne_rubrique = uint32_t(it.decl->lexème->ligne + 1);
+                        }
+
+                        auto taille_rubrique = 8 * it.type->taille_octet;
+                        auto alignement_rubrique = 8 * it.type->alignement;
+                        auto décalage_rubrique = 8 * it.type->alignement;
+                        // À FAIRE : llvm::DINode::DIFlags
+                        auto flags_rubrique = llvm::DINode::DIFlags(0);
+                        auto type_rubrique = donne_type(it.type);
+
+                        auto rubrique = dibuilder->createMemberType(scope,
+                                                                    nom_rubrique,
+                                                                    fichier,
+                                                                    numéro_ligne_rubrique,
+                                                                    taille_rubrique,
+                                                                    alignement_rubrique,
+                                                                    décalage_rubrique,
+                                                                    flags_rubrique,
+                                                                    type_rubrique);
+                        éléments.push_back(rubrique);
+                    }
+
+                    auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
+                    ditype = dibuilder->createUnionType(scope,
+                                                        name,
+                                                        fichier,
+                                                        numéro_ligne,
+                                                        taille_en_bits,
+                                                        alignement_en_bits,
+                                                        flags,
+                                                        node_array_éléments);
+                }
+
                 break;
             }
             case GenreNoeud::DÉCLARATION_STRUCTURE:
@@ -729,7 +779,58 @@ struct InfoDébogageLLVM {
             case GenreNoeud::ERREUR:
             case GenreNoeud::ENUM_DRAPEAU:
             {
-                // À FAIRE : dibuilder->createEnumerationType();
+                auto type_énum = type->comme_type_énum();
+                auto scope = unit;
+                auto name = vers_string_ref(type_énum->ident);
+                auto fichier = donne_fichier(type);
+                auto numéro_ligne = uint32_t(type->lexème->ligne + 1);
+                auto taille_en_bits = 8 * type->taille_octet;
+                auto alignement_en_bits = 8 * type->alignement;
+                auto type_sous_jacent = donne_type(type_énum->type_sous_jacent);
+
+                auto éléments = std::vector<llvm::Metadata *>();
+
+                auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
+                    llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
+
+                table_types.insère(type, type_struct_tmp);
+
+                POUR (type_énum->donne_rubriques_pour_code_machine()) {
+                    auto nom_rubrique = vers_string_ref(it.nom);
+
+                    auto numéro_ligne_rubrique = uint32_t(0);
+                    if (it.decl) {
+                        numéro_ligne_rubrique = uint32_t(it.decl->lexème->ligne + 1);
+                    }
+
+                    auto taille_rubrique = 8 * it.type->taille_octet;
+                    auto alignement_rubrique = 8 * it.type->alignement;
+                    auto décalage_rubrique = uint32_t(0);
+                    // À FAIRE : llvm::DINode::DIFlags
+                    auto flags_rubrique = llvm::DINode::DIFlags(0);
+                    auto type_rubrique = donne_type(it.type);
+
+                    auto rubrique = dibuilder->createMemberType(scope,
+                                                                nom_rubrique,
+                                                                fichier,
+                                                                numéro_ligne_rubrique,
+                                                                taille_rubrique,
+                                                                alignement_rubrique,
+                                                                décalage_rubrique,
+                                                                flags_rubrique,
+                                                                type_rubrique);
+                    éléments.push_back(rubrique);
+                }
+                auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
+
+                ditype = dibuilder->createEnumerationType(scope,
+                                                          name,
+                                                          fichier,
+                                                          numéro_ligne,
+                                                          taille_en_bits,
+                                                          alignement_en_bits,
+                                                          node_array_éléments,
+                                                          type_sous_jacent);
                 break;
             }
             case GenreNoeud::DÉCLARATION_OPAQUE:
@@ -797,13 +898,12 @@ struct InfoDébogageLLVM {
         auto flags = llvm::DINode::DIFlags(0);
         auto derived_from = static_cast<llvm::DIType *>(nullptr);
 
-        auto éléments = std::vector<llvm::Metadata *>();
-        auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
-
         auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
             llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
 
         table_types.insère(type, type_struct_tmp);
+
+        auto éléments = std::vector<llvm::Metadata *>();
 
         POUR (type->donne_rubriques_pour_code_machine()) {
             auto nom_rubrique = vers_string_ref(it.nom);
@@ -832,7 +932,7 @@ struct InfoDébogageLLVM {
             éléments.push_back(rubrique);
         }
 
-        node_array_éléments = dibuilder->getOrCreateArray(éléments);
+        auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
         auto type_struct = dibuilder->createStructType(scope,
                                                        name,
                                                        fichier,
@@ -2558,6 +2658,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
     if (m_info_débogage) {
         m_info_débogage->dibuilder->finalizeSubprogram(info_débogage_fonction);
+        // fonction->print(llvm::errs());
     }
 
     if (manager_fonctions) {
