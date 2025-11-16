@@ -527,7 +527,8 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::TUPLE:
             {
-                return convertis_type_composé(type->comme_type_tuple(), "tuple");
+                ditype = convertis_type_composé(type->comme_type_tuple(), "tuple");
+                break;
             }
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
@@ -542,11 +543,13 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::EINI:
             {
-                return convertis_type_composé(type->comme_type_eini(), "eini");
+                ditype = convertis_type_composé(type->comme_type_eini(), "eini");
+                break;
             }
             case GenreNoeud::CHAINE:
             {
-                return convertis_type_composé(type->comme_type_chaine(), "chaine");
+                ditype = convertis_type_composé(type->comme_type_chaine(), "chaine");
+                break;
             }
             case GenreNoeud::RIEN:
             {
@@ -671,11 +674,11 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::DÉCLARATION_UNION:
             {
-                // À FAIRE : createUnionType
                 auto type_union = type->comme_type_union();
 
                 if (type_union->type_structure) {
-                    ditype = donne_type(type_union->type_structure);
+                    ditype = convertis_type_composé(
+                        type_union->type_structure, type_union, "union");
                 }
                 else {
                     assert(type_union->est_nonsure);
@@ -743,7 +746,8 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::DÉCLARATION_STRUCTURE:
             {
-                return convertis_type_composé(type->comme_type_structure(), "struct");
+                ditype = convertis_type_composé(type->comme_type_structure(), "struct");
+                break;
             }
             case GenreNoeud::VARIADIQUE:
             {
@@ -756,11 +760,13 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::TABLEAU_DYNAMIQUE:
             {
-                return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
+                ditype = convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
+                break;
             }
             case GenreNoeud::TYPE_TRANCHE:
             {
-                return convertis_type_composé(type->comme_type_tranche(), "tranche");
+                ditype = convertis_type_composé(type->comme_type_tranche(), "tranche");
+                break;
             }
             case GenreNoeud::TABLEAU_FIXE:
             {
@@ -847,10 +853,7 @@ struct InfoDébogageLLVM {
             }
         }
 
-        if (ditype == nullptr) {
-            dbg() << "À FAIRE : type nul pour " << chaine_type(type);
-        }
-
+        table_types.efface(type);
         table_types.insère(type, ditype);
         return ditype;
     }
@@ -878,6 +881,13 @@ struct InfoDébogageLLVM {
     llvm::DIType *convertis_type_composé(NoeudDéclarationTypeComposé const *type,
                                          kuri::chaine_statique nom_classe)
     {
+        return convertis_type_composé(type, type, nom_classe);
+    }
+
+    llvm::DIType *convertis_type_composé(NoeudDéclarationTypeComposé const *type,
+                                         NoeudDéclarationTypeComposé const *vrai_type,
+                                         kuri::chaine_statique nom_classe)
+    {
         auto scope = unit;
         auto name = llvm::StringRef("");
         if (type->ident) {
@@ -901,7 +911,7 @@ struct InfoDébogageLLVM {
         auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
             llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
 
-        table_types.insère(type, type_struct_tmp);
+        table_types.insère(vrai_type, type_struct_tmp);
 
         auto éléments = std::vector<llvm::Metadata *>();
 
@@ -2553,10 +2563,9 @@ void GénératriceCodeLLVM::génère_code()
     génère_code_pour_constructeur_global(point_d_entrée_dynamique, "llvm.global_ctors");
     génère_code_pour_constructeur_global(point_de_sortie_dynamique, "llvm.global_dtors");
 
-    // À FAIRE : double free.
-    // if (m_info_débogage) {
-    //     m_info_débogage->dibuilder->finalize();
-    // }
+    if (m_info_débogage) {
+        m_info_débogage->dibuilder->finalize();
+    }
 }
 
 void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
