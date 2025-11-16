@@ -715,7 +715,8 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            type_llvm = llvm::Type::getInt64Ty(m_contexte_llvm);
+            auto type_i8 = convertis_type_llvm(m_espace.typeuse.type_z8);
+            type_llvm = type_i8->getPointerTo();
             break;
         }
         case GenreNoeud::RÉEL:
