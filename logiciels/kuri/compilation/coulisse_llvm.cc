@@ -20,6 +20,8 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+#include <llvm/IR/DIBuilder.h>
+#include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
@@ -491,6 +493,383 @@ void DonnéesModule::ajourne_globales()
 
 /* ************************************************************************** */
 
+struct InfoDébogageLLVM {
+    EspaceDeTravail *espace = nullptr;
+    llvm::DICompileUnit *unit = nullptr;
+    llvm::DIFile *fichier_racine = nullptr;
+    llvm::DIBuilder *dibuilder = nullptr;
+    kuri::table_hachage<Type const *, llvm::DIType *> table_types{"Table types DWARF"};
+    kuri::table_hachage<Fichier const *, llvm::DIFile *> table_fichiers{"Table fichiers DWARF"};
+
+    ~InfoDébogageLLVM()
+    {
+        delete dibuilder;
+    }
+
+    llvm::DIType *donne_type(Type const *type)
+    {
+        auto ditype = table_types.valeur_ou(type, nullptr);
+
+        if (ditype != nullptr) {
+            return ditype;
+        }
+
+        if (type == nullptr) {
+            return nullptr;
+        }
+
+        switch (type->genre) {
+            case GenreNoeud::POLYMORPHIQUE:
+            {
+                ditype = nullptr;
+                table_types.insère(type, ditype);
+                break;
+            }
+            case GenreNoeud::TUPLE:
+            {
+                return convertis_type_composé(type->comme_type_tuple(), "tuple");
+            }
+            case GenreNoeud::TYPE_ADRESSE_FONCTION:
+            {
+                // À FAIRE TYPE_ADRESSE_FONCTION
+                ditype = nullptr;
+                break;
+            }
+            case GenreNoeud::FONCTION:
+            {
+                ditype = donne_type_fonction(type->comme_type_fonction());
+                break;
+            }
+            case GenreNoeud::EINI:
+            {
+                return convertis_type_composé(type->comme_type_eini(), "eini");
+            }
+            case GenreNoeud::CHAINE:
+            {
+                return convertis_type_composé(type->comme_type_chaine(), "chaine");
+            }
+            case GenreNoeud::RIEN:
+            {
+                auto nom = llvm::StringRef("rien");
+                auto taille_en_bits = uint64_t(0);
+                auto encodage = uint32_t(0);
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::BOOL:
+            {
+                auto nom = llvm::StringRef("bool");
+                auto taille_en_bits = uint64_t(8);
+                auto encodage = llvm::dwarf::DW_ATE_boolean;
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::OCTET:
+            {
+                auto nom = llvm::StringRef("octet");
+                auto taille_en_bits = uint64_t(8);
+                auto encodage = llvm::dwarf::DW_ATE_unsigned_char;
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::ENTIER_CONSTANT:
+            {
+                auto nom = llvm::StringRef("entier_constant");
+                auto taille_en_bits = uint64_t(32);
+                auto encodage = llvm::dwarf::DW_ATE_signed;
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::ENTIER_NATUREL:
+            {
+                auto nom = llvm::StringRef();
+                auto taille_en_bits = 8 * type->taille_octet;
+                auto encodage = llvm::dwarf::DW_ATE_unsigned;
+
+                if (type->taille_octet == 1) {
+                    nom = llvm::StringRef("n8");
+                    encodage = llvm::dwarf::DW_ATE_unsigned_char;
+                }
+                else if (type->taille_octet == 2) {
+                    nom = llvm::StringRef("n16");
+                }
+                else if (type->taille_octet == 4) {
+                    nom = llvm::StringRef("n32");
+                }
+                else if (type->taille_octet == 8) {
+                    nom = llvm::StringRef("n64");
+                }
+
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::ENTIER_RELATIF:
+            {
+                auto nom = llvm::StringRef();
+                auto taille_en_bits = 8 * type->taille_octet;
+                auto encodage = llvm::dwarf::DW_ATE_signed;
+
+                if (type->taille_octet == 1) {
+                    nom = llvm::StringRef("z8");
+                    encodage = llvm::dwarf::DW_ATE_signed_char;
+                }
+                else if (type->taille_octet == 2) {
+                    nom = llvm::StringRef("z16");
+                }
+                else if (type->taille_octet == 4) {
+                    nom = llvm::StringRef("z32");
+                }
+                else if (type->taille_octet == 8) {
+                    nom = llvm::StringRef("z64");
+                }
+
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::TYPE_DE_DONNÉES:
+            {
+                auto nom = llvm::StringRef("type_de_données");
+                auto taille_en_bits = 8 * type->taille_octet;
+                auto encodage = llvm::dwarf::DW_ATE_unsigned;
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::RÉEL:
+            {
+                auto nom = llvm::StringRef();
+                auto taille_en_bits = 8 * type->taille_octet;
+                auto encodage = llvm::dwarf::DW_ATE_float;
+
+                if (type->taille_octet == 2) {
+                    nom = "r16";
+                    encodage = llvm::dwarf::DW_ATE_unsigned;
+                }
+                else if (type->taille_octet == 4) {
+                    nom = "r32";
+                }
+                else if (type->taille_octet == 8) {
+                    nom = "r64";
+                }
+
+                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                break;
+            }
+            case GenreNoeud::RÉFÉRENCE:
+            case GenreNoeud::POINTEUR:
+            {
+                auto type_deref = type_déréférencé_pour(type);
+
+                // Les pointeurs vers rien (void) ne sont pas valides avec LLVM
+                // @Incomplet : LLVM n'a pas de pointeur nul
+                if (!type_deref || type_deref->est_type_rien()) {
+                    type_deref = espace->typeuse.type_z8;
+                }
+
+                auto ditypederef = donne_type(type_deref);
+                ditype = dibuilder->createPointerType(ditypederef, 8 * type->taille_octet);
+                break;
+            }
+            case GenreNoeud::DÉCLARATION_UNION:
+            {
+                // À FAIRE : createUnionType
+                // auto type_struct = type->comme_type_union();
+
+                // if (type_struct->type_structure) {
+                //     type_llvm = convertis_type_llvm(type_struct->type_structure);
+                //     break;
+                // }
+
+                // assert(type_struct->est_nonsure);
+
+                // auto nom_nonsur = enchaine("union_nonsure.", type_struct->ident->nom);
+
+                // // création d'une structure ne contenant que le membre le plus grand
+                // auto type_le_plus_grand = type_struct->type_le_plus_grand;
+
+                // auto type_max_llvm = convertis_type_llvm(type_le_plus_grand);
+                // type_llvm = llvm::StructType::create(
+                //     m_contexte_llvm, {type_max_llvm}, vers_string_ref(nom_nonsur));
+                break;
+            }
+            case GenreNoeud::DÉCLARATION_STRUCTURE:
+            {
+                return convertis_type_composé(type->comme_type_structure(), "struct");
+            }
+            case GenreNoeud::VARIADIQUE:
+            {
+                auto type_var = type->comme_type_variadique();
+                /* Utilisons le type tranche afin que le code IR LLVM utilise le type final. */
+                if (type_var->type_tranche != nullptr) {
+                    ditype = donne_type(type_var->type_tranche);
+                }
+                break;
+            }
+            case GenreNoeud::TABLEAU_DYNAMIQUE:
+            {
+                return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
+            }
+            case GenreNoeud::TYPE_TRANCHE:
+            {
+                return convertis_type_composé(type->comme_type_tranche(), "tranche");
+            }
+            case GenreNoeud::TABLEAU_FIXE:
+            {
+                auto type_tableau = type->comme_type_tableau_fixe();
+
+                auto size = uint64_t(type_tableau->taille);
+                auto alignement_en_bits = 8 * type->alignement;
+                auto type_élément = donne_type(type_déréférencé_pour(type));
+                auto subscript = llvm::DINodeArray{};
+
+                ditype = dibuilder->createArrayType(
+                    size, alignement_en_bits, type_élément, subscript);
+                break;
+            }
+            case GenreNoeud::DÉCLARATION_ÉNUM:
+            case GenreNoeud::ERREUR:
+            case GenreNoeud::ENUM_DRAPEAU:
+            {
+                // À FAIRE : dibuilder->createEnumerationType();
+                break;
+            }
+            case GenreNoeud::DÉCLARATION_OPAQUE:
+            {
+                auto type_opaque = type->comme_type_opaque();
+                ditype = donne_type(type_opaque->type_opacifié);
+                break;
+            }
+            CAS_POUR_NOEUDS_HORS_TYPES:
+            {
+                assert_rappel(false,
+                              [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
+                break;
+            }
+        }
+
+        if (ditype == nullptr) {
+            dbg() << "À FAIRE : type nul pour " << chaine_type(type);
+        }
+
+        table_types.insère(type, ditype);
+        return ditype;
+    }
+
+    llvm::DISubroutineType *donne_type_fonction(TypeFonction const *type)
+    {
+        auto ditype = table_types.valeur_ou(type, nullptr);
+        if (ditype != nullptr) {
+            return static_cast<llvm::DISubroutineType *>(ditype);
+        }
+
+        auto types = std::vector<llvm::Metadata *>();
+
+        types.push_back(donne_type(type->type_sortie));
+
+        POUR (type->types_entrées) {
+            types.push_back(donne_type(it));
+        }
+
+        auto ref_array_types = dibuilder->getOrCreateTypeArray(types);
+
+        return dibuilder->createSubroutineType(ref_array_types);
+    }
+
+    llvm::DIType *convertis_type_composé(NoeudDéclarationTypeComposé const *type,
+                                         kuri::chaine_statique nom_classe)
+    {
+        auto scope = unit;
+        auto name = llvm::StringRef("");
+        if (type->ident) {
+            name = vers_string_ref(type->ident);
+        }
+        else {
+            name = vers_string_ref(nom_classe);
+        }
+
+        auto fichier = donne_fichier(type);
+        auto numéro_ligne = uint32_t(0);
+        if (type->lexème) {
+            numéro_ligne = uint32_t(type->lexème->ligne + 1);
+        }
+        auto taille_en_bits = 8 * type->taille_octet;
+        auto alignement_en_bits = 8 * type->taille_octet;
+        // À FAIRE : llvm::DINode::DIFlags
+        auto flags = llvm::DINode::DIFlags(0);
+        auto derived_from = static_cast<llvm::DIType *>(nullptr);
+
+        auto éléments = std::vector<llvm::Metadata *>();
+        auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
+
+        auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
+            llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
+
+        table_types.insère(type, type_struct_tmp);
+
+        POUR (type->donne_rubriques_pour_code_machine()) {
+            auto nom_rubrique = vers_string_ref(it.nom);
+
+            auto numéro_ligne_rubrique = uint32_t(0);
+            if (it.decl) {
+                numéro_ligne_rubrique = uint32_t(it.decl->lexème->ligne + 1);
+            }
+
+            auto taille_rubrique = 8 * it.type->taille_octet;
+            auto alignement_rubrique = 8 * it.type->alignement;
+            auto décalage_rubrique = 8 * it.type->alignement;
+            // À FAIRE : llvm::DINode::DIFlags
+            auto flags_rubrique = llvm::DINode::DIFlags(0);
+            auto type_rubrique = donne_type(it.type);
+
+            auto rubrique = dibuilder->createMemberType(scope,
+                                                        nom_rubrique,
+                                                        fichier,
+                                                        numéro_ligne_rubrique,
+                                                        taille_rubrique,
+                                                        alignement_rubrique,
+                                                        décalage_rubrique,
+                                                        flags_rubrique,
+                                                        type_rubrique);
+            éléments.push_back(rubrique);
+        }
+
+        node_array_éléments = dibuilder->getOrCreateArray(éléments);
+        auto type_struct = dibuilder->createStructType(scope,
+                                                       name,
+                                                       fichier,
+                                                       numéro_ligne,
+                                                       taille_en_bits,
+                                                       alignement_en_bits,
+                                                       flags,
+                                                       derived_from,
+                                                       node_array_éléments);
+
+        llvm::TempMDNode fwd_decl(type_struct_tmp);
+        dibuilder->replaceTemporary(std::move(fwd_decl), type_struct);
+
+        return type_struct;
+    }
+
+    llvm::DIFile *donne_fichier(NoeudExpression const *site)
+    {
+        /* Certains types de bases n'ont pas de lexèmes. */
+        if (site == nullptr || site->lexème == nullptr) {
+            return fichier_racine;
+        }
+
+        auto fichier_kuri = espace->fichier(site->lexème->fichier);
+        auto fichier_dwarf = table_fichiers.valeur_ou(fichier_kuri, nullptr);
+        if (fichier_dwarf != nullptr) {
+            return fichier_dwarf;
+        }
+
+        auto nom_fichier = vers_string_ref(fichier_kuri->nom());
+        auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
+        fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+        table_fichiers.insère(fichier_kuri, fichier_dwarf);
+        return fichier_dwarf;
+    }
+};
+
 struct GénératriceCodeLLVM {
   private:
     kuri::tableau<llvm::Value *> table_valeurs{};
@@ -504,6 +883,7 @@ struct GénératriceCodeLLVM {
 
     llvm::Function *m_fonction_courante = nullptr;
     llvm::Module *m_module = nullptr;
+    InfoDébogageLLVM *m_info_débogage = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
     llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
@@ -555,16 +935,37 @@ struct GénératriceCodeLLVM {
     llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 };
 
+#undef COMPILE_INFO_DEBOGAGE
+
 GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module)
     : m_espace(espace), données_module(module), m_module(module.module),
       m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
+#ifdef COMPILE_INFO_DEBOGAGE
+    m_info_débogage = mémoire::loge<InfoDébogageLLVM>("InfoDébogageLLVM");
+    m_info_débogage->espace = &espace;
+    m_info_débogage->dibuilder = new llvm::DIBuilder(*m_module);
+
+    auto langage = llvm::dwarf::DW_LANG_C;
+    // À FAIRE : fichier racine pour l'unité de compilation.
+    auto fichier_racine = m_info_débogage->dibuilder->createFile("racine.kuri", ".");
+    auto producer = llvm::StringRef("Compilateur Kuri");
+    auto est_optimisé = false;
+    auto ligne_de_commande = llvm::StringRef("");
+    auto version_runtime = uint32_t(0);
+    m_info_débogage->fichier_racine = fichier_racine;
+
+    m_info_débogage->unit = m_info_débogage->dibuilder->createCompileUnit(
+        langage, fichier_racine, producer, est_optimisé, ligne_de_commande, version_runtime);
+#endif
+
     initialise_optimisation(espace.options.niveau_optimisation);
 }
 
 GénératriceCodeLLVM::~GénératriceCodeLLVM()
 {
     delete manager_fonctions;
+    mémoire::deloge("InfoDébogageLLVM", m_info_débogage);
 }
 
 /**
@@ -2051,6 +2452,11 @@ void GénératriceCodeLLVM::génère_code()
 
     génère_code_pour_constructeur_global(point_d_entrée_dynamique, "llvm.global_ctors");
     génère_code_pour_constructeur_global(point_de_sortie_dynamique, "llvm.global_dtors");
+
+    // À FAIRE : double free.
+    // if (m_info_débogage) {
+    //     m_info_débogage->dibuilder->finalize();
+    // }
 }
 
 void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
@@ -2060,6 +2466,29 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     }
 
     auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
+    auto info_débogage_fonction = static_cast<llvm::DISubprogram *>(nullptr);
+    if (m_info_débogage) {
+        auto scope = m_info_débogage->unit;
+        auto linkage_name = vers_string_ref(atome_fonc->nom);
+        auto name = linkage_name;
+        auto numéro_ligne = uint32_t(0);
+        auto numéro_ligne_scope = uint32_t(0);
+        auto fichier = m_info_débogage->fichier_racine;
+        if (atome_fonc->decl) {
+            if (atome_fonc->decl->ident) {
+                name = vers_string_ref(atome_fonc->decl->ident->nom);
+            }
+            auto site = atome_fonc->decl;
+            fichier = m_info_débogage->donne_fichier(site);
+            numéro_ligne = uint32_t(site->lexème->ligne + 1);
+            numéro_ligne_scope = uint32_t(site->lexème->ligne + 1);
+        }
+        auto type_subroutine = m_info_débogage->donne_type_fonction(
+            atome_fonc->type->comme_type_fonction());
+        info_débogage_fonction = m_info_débogage->dibuilder->createFunction(
+            scope, name, linkage_name, fichier, numéro_ligne, type_subroutine, numéro_ligne_scope);
+        fonction->setSubprogram(info_débogage_fonction);
+    }
 
     m_fonction_courante = fonction;
 
@@ -2125,6 +2554,10 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         }
 
         génère_code_pour_instruction(inst);
+    }
+
+    if (m_info_débogage) {
+        m_info_débogage->dibuilder->finalizeSubprogram(info_débogage_fonction);
     }
 
     if (manager_fonctions) {
@@ -2247,6 +2680,8 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
 }
 
 #ifndef NDEBUG
+#    define DEBOGUE_IR
+#elif defined(COMPILE_INFO_DEBOGAGE)
 #    define DEBOGUE_IR
 #endif
 
