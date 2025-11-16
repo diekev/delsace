@@ -1834,7 +1834,7 @@ static llvm::ArrayRef<T> donne_tableau_typé(const AtomeConstanteDonnéesConstan
 {
     auto const données = constante->donne_données();
     auto pointeur_données = reinterpret_cast<T const *>(données.begin());
-    return {pointeur_données, size_t(taille_données) / sizeof(T)};
+    return {pointeur_données, size_t(taille_données)};
 }
 
 llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
@@ -1843,6 +1843,11 @@ llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
     auto const type_tableau = constante->type->comme_type_tableau_fixe();
     auto const taille_tableau = type_tableau->taille;
     auto const type_élément = type_tableau->type_pointé;
+
+    if (constante->possède_drapeau(DrapeauxAtome::EST_POUR_VALEURS_ÉNUMS)) {
+        auto données = donne_tableau_typé<int8_t>(constante, taille_tableau);
+        return llvm::ConstantDataArray::get(m_contexte_llvm, données);
+    }
 
     if (type_élément->est_type_entier_relatif() || type_élément->est_type_entier_constant()) {
         if (type_élément->taille_octet == 1) {
