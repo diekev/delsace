@@ -2496,8 +2496,19 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     auto type_llvm = convertis_type_llvm(type);
     auto nom_globale = vers_string_ref(globale->ident);
     auto liaison = donne_liaison_globale(données_module, globale);
-    auto résultat = new llvm::GlobalVariable(
-        *m_module, type_llvm, globale->est_constante, liaison, nullptr, nom_globale);
+    auto thread_local_mode = llvm::GlobalValue::ThreadLocalMode::NotThreadLocal;
+    // if (globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
+    //     thread_local_mode = llvm::GlobalValue::ThreadLocalMode::GeneralDynamicTLSModel;
+    // }
+
+    auto résultat = new llvm::GlobalVariable(*m_module,
+                                             type_llvm,
+                                             globale->est_constante,
+                                             liaison,
+                                             nullptr,
+                                             nom_globale,
+                                             nullptr,
+                                             thread_local_mode);
 
     définis_les_propriétés_globales(résultat, globale);
 
