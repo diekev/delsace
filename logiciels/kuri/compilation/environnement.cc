@@ -174,6 +174,9 @@ static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation 
 
 using TableauOptions = kuri::tablet<kuri::chaine_statique, 16>;
 
+static kuri::chaine_statique chaines_versions_dwarf[6] = {
+    "-gdwarf-5", "-gdwarf-5", "-gdwarf-2", "-gdwarf-3", "-gdwarf-4", "-gdwarf-5"};
+
 static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
                                                OptionsDeCompilation const &options)
 {
@@ -192,11 +195,15 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
                 résultat.ajoute("-fsanitize=address");
             }
 
+            auto version_dwarf = donne_version_dwarf(options);
+            résultat.ajoute(chaines_versions_dwarf[version_dwarf]);
             break;
         }
         case CompilationPour::PROFILAGE:
         {
             résultat.ajoute("-pg");
+            auto version_dwarf = donne_version_dwarf(options);
+            résultat.ajoute(chaines_versions_dwarf[version_dwarf]);
             break;
         }
     }
@@ -704,4 +711,17 @@ bool exécute_commande_externe(kuri::chaine_statique commande)
         return false;
     }
     return true;
+}
+
+uint32_t donne_version_dwarf(OptionsDeCompilation const &options)
+{
+    if (options.version_dwarf < 2) {
+        return 2;
+    }
+
+    if (options.version_dwarf > 5) {
+        return 5;
+    }
+
+    return options.version_dwarf;
 }

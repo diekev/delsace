@@ -173,7 +173,10 @@ ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
 {
     tampon: TamponChemin
 
-    saufsi ajoute(*tampon, système_chemin_dossier_temporaire()) {
+    chemin_dossier_tmp := système_chemin_dossier_temporaire()
+    diffère détruit_chemin(chemin_dossier_tmp)
+
+    saufsi ajoute(*tampon, chemin_dossier_tmp) {
         imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction)
         retourne faux
     }
@@ -246,7 +249,10 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 {
     tampon: TamponChemin
 
-    saufsi ajoute(*tampon, système_chemin_dossier_temporaire()) {
+    chemin_dossier_tmp := système_chemin_dossier_temporaire()
+    diffère détruit_chemin(chemin_dossier_tmp)
+
+    saufsi ajoute(*tampon, chemin_dossier_tmp) {
         imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction)
         retourne faux
     }
