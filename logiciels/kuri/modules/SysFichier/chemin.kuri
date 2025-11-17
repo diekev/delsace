@@ -315,6 +315,10 @@ chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichie
 
 crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
+    si est_absolu(feuille) {
+        retourne copie_chemin(feuille)
+    }
+
     // divise selon le séparateur du système
     pile: Pile(chaine)
     diffère détruit(pile)

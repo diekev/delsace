@@ -7,11 +7,11 @@ charge "interface_exétron"
 // ------------------------------------------
 // FilExecution
 
-FilExecution :: pthread_t
+TypeFilExécution :: pthread_t
 
-crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rien) -> *FilExecution
+crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rien) -> *TypeFilExécution
 {
-    résultat := loge(FilExecution)
+    résultat := loge(TypeFilExécution)
 
     ret := pthread_create(résultat, nul, rappel, données)
     si ret != 0 {
@@ -21,17 +21,17 @@ crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rie
     retourne résultat
 }
 
-join :: fonc (fil: *FilExecution) -> bool
+join :: fonc (fil: *TypeFilExécution) -> bool
 {
     retourne pthread_join(mémoire(fil), nul) == 0
 }
 
-détache :: fonc (fil: *FilExecution)
+détache :: fonc (fil: *TypeFilExécution)
 {
     _ := pthread_detach(fil)
 }
 
-détruit :: fonc (fil: &*FilExecution)
+détruit :: fonc (fil: &*TypeFilExécution)
 {
     déloge(fil)
     fil = nul

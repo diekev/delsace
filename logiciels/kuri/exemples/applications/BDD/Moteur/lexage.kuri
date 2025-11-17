@@ -1,5 +1,3 @@
-importe Fondation
-
 Position :: struct {
     ligne: z32
     colonne: z32

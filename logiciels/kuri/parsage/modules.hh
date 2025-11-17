@@ -99,6 +99,7 @@ struct Fichier {
     kuri::tableau<Lexème, int> lexèmes{};
 
     kuri::chaine nom_{""};
+    kuri::chaine nom_avec_extension{""};
     kuri::chaine chemin_{""};
 
     int64_t id_ = 0;
@@ -151,6 +152,11 @@ struct Fichier {
     kuri::chaine_statique nom() const
     {
         return nom_;
+    }
+
+    kuri::chaine_statique donne_nom_avec_extension() const
+    {
+        return nom_avec_extension;
     }
 
     int64_t id() const

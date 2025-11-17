@@ -15,7 +15,7 @@ GigaTonne :: #opaque n32
 
 Mètre :: r32
 Kilogramme :: r32
-KiloGramme :: r32
+// KiloGramme :: r32
 Joules :: r32
 
 MWh :: r64

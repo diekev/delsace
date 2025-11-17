@@ -1,5 +1,3 @@
-importe Fondation
-
 ASA :: struct {
     instructions: [..]*Instruction
 }

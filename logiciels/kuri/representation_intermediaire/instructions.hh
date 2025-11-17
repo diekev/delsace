@@ -77,6 +77,7 @@ enum class DrapeauxAtome : uint8_t {
     RI_FUT_GÉNÉRÉE = (1 << 3),
     EST_UTILISÉ = (1 << 4),
     FUT_RÉINSÉRÉ_APRÈS_FSAU = (1 << 5),
+    EST_POUR_VALEURS_ÉNUMS = (1 << 6),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxAtome)
 
@@ -229,6 +230,7 @@ struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
     };
 
     Données données{};
+    uint32_t alignement_désiré = 0;
 
     AtomeConstanteDonnéesConstantes(Type const *type_)
     {
@@ -254,6 +256,16 @@ struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
     kuri::tableau_statique<char> donne_données() const
     {
         return {données.pointeur, données.taille};
+    }
+
+    void définis_alignement(uint32_t alignement)
+    {
+        alignement_désiré = alignement;
+    }
+
+    uint32_t donne_alignement() const
+    {
+        return alignement_désiré;
     }
 };
 

@@ -1,6 +1,3 @@
-importe Fondation
-importe Sérialisation
-importe SysFichier
 importe Tabulation
 
 // --------------------------------------------------------

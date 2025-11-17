@@ -16,7 +16,7 @@ détruit_chaine :: fonc (chn: &ChaineUTF16)
     déloge(chn.unités)
 }
 
-est_vide :: fonc (chn: &ChaineUTF16) -> bool #enligne
+est_vide :: fonc (chn: ChaineUTF16) -> bool #enligne
 {
     retourne chn.unités.taille == 0
 }
@@ -85,7 +85,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF
     retourne vrai
 }
 
-compare_ascii_insensible_à_la_casse :: fonc (chn: &ChaineUTF16, chaine_native: chaine) -> bool
+compare_ascii_insensible_à_la_casse :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
     chn2 := crée_chaine_utf16(chaine_native)
     diffère détruit_chaine(chn2)
@@ -528,7 +528,7 @@ commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> 
     retourne vrai
 }
 
-transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc (point_de_code: n32) -> n32)
+transforme_chaine :: fonc (chn: ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc (point_de_code: n32) -> n32)
 {
     tableau_réserve(*résultat.unités, chn.taille())
 
@@ -537,14 +537,14 @@ transforme_chaine :: fonc (chn: &ChaineUTF16, résultat: *ChaineUTF16, transform
     }
 }
 
-transforme_texte_en_majuscule :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+transforme_texte_en_majuscule :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat: ChaineUTF16
     transforme_chaine(chn, *résultat, transforme_point_de_code_en_majuscule)
     retourne résultat
 }
 
-transforme_texte_en_minuscule :: fonc (chn: &ChaineUTF16) -> ChaineUTF16
+transforme_texte_en_minuscule :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat: ChaineUTF16
     transforme_chaine(chn, *résultat, transforme_point_de_code_en_minuscule)
