@@ -5,7 +5,7 @@
 
 #include <functional>
 #ifndef _MSC_VER
-#include <sys/wait.h>
+#    include <sys/wait.h>
 #endif
 #include <thread>
 
@@ -26,7 +26,7 @@ struct PouleDeTâches {
     virtual void ajoute_tâche(std::function<void()> &&tâche) = 0;
 
     /* Attends que toutes les tâches sont finies. */
-    virtual void attends_sur_tâches() = 0;
+    virtual bool attends_sur_tâches() = 0;
 };
 
 /** \} */
@@ -43,7 +43,7 @@ struct PouleDeTâchesEnSérie final : public PouleDeTâches {
   public:
     void ajoute_tâche(std::function<void()> &&tâche) override;
 
-    void attends_sur_tâches() override;
+    bool attends_sur_tâches() override;
 };
 
 /** \} */
@@ -62,7 +62,7 @@ struct PouleDeTâchesSousProcessus final : public PouleDeTâches {
   public:
     void ajoute_tâche(std::function<void()> &&tâche) override;
 
-    void attends_sur_tâches() override;
+    bool attends_sur_tâches() override;
 };
 
 /** \} */
@@ -79,7 +79,7 @@ struct PouleDeTâchesMoultFils final : public PouleDeTâches {
   public:
     void ajoute_tâche(std::function<void()> &&tâche) override;
 
-    void attends_sur_tâches() override;
+    bool attends_sur_tâches() override;
 };
 
 /** \} */

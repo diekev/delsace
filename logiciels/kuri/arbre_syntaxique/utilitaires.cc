@@ -1541,8 +1541,7 @@ HiérarchieDeNoms donne_hiérarchie_nom(NoeudDéclarationSymbole const *symbole)
             }
         }
 
-        if (bloc->bloc_parent == nullptr) {
-            /* Bloc du module. */
+        if (bloc->type_bloc == TypeBloc::MODULE) {
             résultat.ident_module = bloc->ident;
             break;
         }
