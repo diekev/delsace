@@ -110,5 +110,7 @@ struct ErreurCommandeExterne {
  * ne fut pas exécutée avec succès.
  * En cas de succès, ne retourne rien.
  */
-std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(kuri::chaine_statique commande,
-                                                                     bool verbeux);
+std::optional<ErreurCommandeExterne> exécute_commande_externe_erreur(
+    kuri::chaine_statique commande, bool verbeux);
+
+uint32_t donne_version_dwarf(OptionsDeCompilation const &options);
