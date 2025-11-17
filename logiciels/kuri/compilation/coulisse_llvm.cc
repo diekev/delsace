@@ -1052,6 +1052,9 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
       m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
 #ifdef COMPILE_INFO_DEBOGAGE
+    m_module->addModuleFlag(
+        llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
+
     m_info_débogage = mémoire::loge<InfoDébogageLLVM>("InfoDébogageLLVM");
     m_info_débogage->espace = &espace;
     m_info_débogage->dibuilder = new llvm::DIBuilder(*m_module);
