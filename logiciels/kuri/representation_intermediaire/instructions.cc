@@ -586,6 +586,31 @@ bool est_instruction_comparaison(Atome const *atome)
     return est_opérateur_comparaison(op_binaire->op);
 }
 
+bool est_volatile(Atome const *atome)
+{
+    auto résultat = false;
+    if (atome->est_instruction()) {
+        auto const inst = atome->comme_instruction();
+        if (inst->est_alloc()) {
+            auto const alloc = inst->comme_alloc();
+            if (alloc->site && alloc->site->possède_drapeau(DrapeauxNoeud::EST_VOLATILE)) {
+                résultat = true;
+            }
+        }
+        else if (inst->est_acces_rubrique()) {
+            auto const accès = inst->comme_acces_rubrique();
+            auto const &rubrique = accès->donne_rubrique_accédé();
+            résultat = rubrique.decl &&
+                       rubrique.decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE);
+        }
+    }
+    else if (atome->est_globale()) {
+        auto const globale = atome->comme_globale();
+        résultat = globale->decl && globale->decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE);
+    }
+    return résultat;
+}
+
 AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique)
 {
     AccèsRubriqueFusionné résultat;
