@@ -2944,7 +2944,10 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
         poule_de_tâches.ajoute_tâche([&]() { crée_fichier_objet(it); });
     }
 
-    poule_de_tâches.attends_sur_tâches();
+    if (!poule_de_tâches.attends_sur_tâches()) {
+        return ErreurCoulisse{"La génération de code n'a pas pu se terminé (peut-être que le "
+                              "sous-processus crasha)."};
+    }
 
     POUR (m_modules) {
         if (it->erreur_fichier_objet.taille() == 0) {
