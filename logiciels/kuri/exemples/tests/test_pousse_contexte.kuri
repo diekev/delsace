@@ -23,17 +23,12 @@ principale :: fonc ()
     pousse_contexte nouveau_contexte {
         empreinte3 := empreinte_contexte()
         diffère déloge(empreinte3)
-
-        si empreinte1 == empreinte3 {
-            exit(1)
-        }
+        assert(empreinte1 != empreinte3)
     }
 
     empreinte2 := empreinte_contexte()
     diffère déloge(empreinte2)
 
     /* Nous devons avoir le même contexte qu'au début. */
-    si empreinte1 != empreinte2 {
-        exit(1)
-    }
+    assert(empreinte1 == empreinte2)
 }
