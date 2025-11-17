@@ -824,6 +824,8 @@ Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
  */
 bool est_instruction_comparaison(Atome const *atome);
 
+bool est_volatile(Atome const *atome);
+
 struct AccèsRubriqueFusionné {
     Atome *accédé = nullptr;
     uint32_t décalage = 0;
