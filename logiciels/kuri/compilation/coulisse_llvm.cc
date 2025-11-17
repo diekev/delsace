@@ -2607,13 +2607,17 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         auto type_subroutine = m_info_débogage->donne_type_fonction(
             atome_fonc->type->comme_type_fonction());
 
+        auto flags = llvm::DINode::FlagZero;
+        auto spflags = llvm::DISubprogram::SPFlagDefinition;
         info_débogage_fonction = m_info_débogage->dibuilder->createFunction(fichier,
                                                                             name,
                                                                             linkage_name,
                                                                             fichier,
                                                                             numéro_ligne,
                                                                             type_subroutine,
-                                                                            numéro_ligne_scope);
+                                                                            numéro_ligne_scope,
+                                                                            flags,
+                                                                            spflags);
         fonction->setSubprogram(info_débogage_fonction);
     }
 
