@@ -4883,6 +4883,12 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
         return CodeRetourValidation::Erreur;
     }
 
+    auto decl_prec = trouve_dans_bloc(decl->bloc_parent, decl, nullptr, fonction_courante());
+    if (decl_prec != nullptr && decl_prec != decl) {
+        rapporte_erreur_redéfinition_symbole(decl, decl_prec);
+        return CodeRetourValidation::Erreur;
+    }
+
     /* Utilise la subsitution si existante (p.e. pour #exécute). */
     if (expression->substitution) {
         expression = expression->substitution;
