@@ -1641,12 +1641,13 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargée;
             auto valeur = génère_code_pour_atome(charge, false);
+            auto volatile_ = est_volatile(charge);
             assert(valeur != nullptr);
 
             émets_position_courante(inst->site);
 
             auto type_llvm = convertis_type_llvm(inst_charge->type);
-            auto load = m_builder.CreateLoad(type_llvm, valeur, "");
+            auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
             load->setAlignment(llvm::Align(charge->type->alignement));
             définis_valeur_instruction(inst, load);
             break;
@@ -1656,6 +1657,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_stocke = inst->comme_stocke_mem();
             auto valeur = génère_code_pour_atome(inst_stocke->source, false);
             auto ou = inst_stocke->destination;
+            auto volatile_ = est_volatile(ou);
             auto valeur_ou = génère_code_pour_atome(ou, false);
 
             émets_position_courante(inst->site);
@@ -1673,7 +1675,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             /* Crash si l'alignement n'est pas renseigné. */
             auto alignement = llvm::MaybeAlign(inst_stocke->source->type->alignement);
-            m_builder.CreateAlignedStore(valeur, valeur_ou, alignement);
+            m_builder.CreateAlignedStore(valeur, valeur_ou, alignement, volatile_);
             break;
         }
         case GenreInstruction::LABEL:
