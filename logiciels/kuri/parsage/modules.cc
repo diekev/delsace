@@ -272,6 +272,7 @@ FichierNeuf SystèmeModule::crée_fichier(Module *module,
 {
     auto df = fichiers.ajoute_élément();
     df->nom_ = nom;
+    df->nom_avec_extension = kuri::chemin_systeme(chemin).nom_fichier();
     df->chemin_ = chemin;
     df->id_ = fichiers.taille() - 1;
     df->module = module;
