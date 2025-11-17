@@ -2,7 +2,7 @@ ChaineUTF32 :: struct {
     points_de_code: [..]n32
 }
 
-copie_chaine :: fonc (chn: &ChaineUTF32) -> ChaineUTF32
+copie_chaine :: fonc (chn: ChaineUTF32) -> ChaineUTF32
 {
     résultat : ChaineUTF32 = ---
     résultat.points_de_code = tableau_copie(chn.points_de_code)

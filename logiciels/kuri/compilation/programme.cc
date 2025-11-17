@@ -1554,9 +1554,12 @@ std::optional<const DonnéesConstantes *> ProgrammeRepreInter::donne_données_co
     auto alignement_désiré = 1u;
     POUR (m_données_constantes.tableaux_constants) {
         auto décalage = m_données_constantes.taille_données_tableaux_constants;
-        auto type_élément = donne_type_élément(it.tableau);
-        auto rembourrage = décalage % type_élément->alignement;
-        alignement_désiré = std::max(alignement_désiré, type_élément->alignement);
+        auto alignement_tableau = it.tableau->donne_alignement();
+        if (alignement_tableau == 0) {
+            alignement_tableau = 1;
+        }
+        auto rembourrage = décalage % alignement_tableau;
+        alignement_désiré = std::max(alignement_désiré, alignement_tableau);
         décalage += rembourrage;
 
         it.décalage_dans_données_constantes = décalage;
