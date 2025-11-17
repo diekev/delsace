@@ -885,7 +885,7 @@ struct InfoDébogageLLVM {
                                          NoeudDéclarationTypeComposé const *vrai_type,
                                          kuri::chaine_statique nom_classe)
     {
-        auto scope = unit;
+        // auto scope = unit;
         auto name = llvm::StringRef("");
         if (type->ident) {
             name = vers_string_ref(type->ident);
@@ -927,7 +927,7 @@ struct InfoDébogageLLVM {
             auto flags_rubrique = llvm::DINode::DIFlags(0);
             auto type_rubrique = donne_type(it.type);
 
-            auto rubrique = dibuilder->createMemberType(scope,
+            auto rubrique = dibuilder->createMemberType(fichier,
                                                         nom_rubrique,
                                                         fichier,
                                                         numéro_ligne_rubrique,
@@ -940,7 +940,7 @@ struct InfoDébogageLLVM {
         }
 
         auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
-        auto type_struct = dibuilder->createStructType(scope,
+        auto type_struct = dibuilder->createStructType(fichier,
                                                        name,
                                                        fichier,
                                                        numéro_ligne,
@@ -2589,7 +2589,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
     auto info_débogage_fonction = static_cast<llvm::DISubprogram *>(nullptr);
     if (m_info_débogage) {
-        auto scope = m_info_débogage->unit;
+        // auto scope = m_info_débogage->unit;
         auto linkage_name = vers_string_ref(atome_fonc->nom);
         auto name = linkage_name;
         auto numéro_ligne = uint32_t(0);
@@ -2606,8 +2606,14 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         }
         auto type_subroutine = m_info_débogage->donne_type_fonction(
             atome_fonc->type->comme_type_fonction());
-        info_débogage_fonction = m_info_débogage->dibuilder->createFunction(
-            scope, name, linkage_name, fichier, numéro_ligne, type_subroutine, numéro_ligne_scope);
+
+        info_débogage_fonction = m_info_débogage->dibuilder->createFunction(fichier,
+                                                                            name,
+                                                                            linkage_name,
+                                                                            fichier,
+                                                                            numéro_ligne,
+                                                                            type_subroutine,
+                                                                            numéro_ligne_scope);
         fonction->setSubprogram(info_débogage_fonction);
     }
 
