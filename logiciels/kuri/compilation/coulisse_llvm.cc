@@ -1049,7 +1049,8 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
     if (espace.options.compilation_pour == CompilationPour::DÉBOGAGE) {
         m_module->addModuleFlag(
             llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
-        m_module->addModuleFlag(llvm::Module::Max, "Dwarf Version", 5);
+        m_module->addModuleFlag(
+            llvm::Module::Max, "Dwarf Version", donne_version_dwarf(espace.options));
 
         m_info_débogage = mémoire::loge<InfoDébogageLLVM>("InfoDébogageLLVM");
         m_info_débogage->espace = &espace;
