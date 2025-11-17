@@ -493,6 +493,12 @@ void DonnéesModule::ajourne_globales()
 
 /* ************************************************************************** */
 
+struct InfoPositionDébogage {
+    llvm::DIFile *file = nullptr;
+    uint32_t ligne = 0;
+    uint32_t colonne = 0;
+};
+
 struct InfoDébogageLLVM {
     EspaceDeTravail *espace = nullptr;
     llvm::DICompileUnit *unit = nullptr;
@@ -975,6 +981,21 @@ struct InfoDébogageLLVM {
         table_fichiers.insère(fichier_kuri, fichier_dwarf);
         return fichier_dwarf;
     }
+
+    InfoPositionDébogage donne_info_position(NoeudExpression const *site)
+    {
+        auto résultat = InfoPositionDébogage{};
+        résultat.file = fichier_racine;
+
+        /* Certains types de bases n'ont pas de lexèmes. */
+        if (site != nullptr && site->lexème != nullptr) {
+            résultat.file = donne_fichier(site);
+            résultat.ligne = uint32_t(site->lexème->ligne + 1);
+            résultat.colonne = uint32_t(site->lexème->colonne + 1);
+        }
+
+        return résultat;
+    }
 };
 
 struct GénératriceCodeLLVM {
@@ -1040,6 +1061,8 @@ struct GénératriceCodeLLVM {
 
     llvm::Function *donne_ou_crée_déclaration_fonction(AtomeFonction const *fonction);
     llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
+
+    void émets_position_courante(NoeudExpression const *site);
 };
 
 GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module)
@@ -1558,6 +1581,8 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
 
 void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *inst)
 {
+    émets_position_courante(inst->site);
+
     // auto incrémentation_temp = Logueuse::IncrémenteuseTemporaire();
     // dbg() << __func__;
 
@@ -1565,7 +1590,28 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = inst->comme_alloc();
-            crée_allocation(alloc);
+            auto alloca_inst = crée_allocation(alloc);
+
+            auto info_débogage_fonction = m_fonction_courante->getSubprogram();
+            if (info_débogage_fonction) {
+                auto alloc_name = vers_string_ref(alloc->ident);
+                auto pos = m_info_débogage->donne_info_position(alloc->site);
+                auto type_alloc = m_info_débogage->donne_type(alloc->donne_type_alloué());
+                auto dibuilder = m_info_débogage->dibuilder;
+                auto D = dibuilder->createAutoVariable(
+                    info_débogage_fonction, alloc_name, pos.file, pos.ligne, type_alloc, true);
+
+                dibuilder->insertDeclare(
+                    alloca_inst,
+                    D,
+                    dibuilder->createExpression(),
+                    llvm::DILocation::get(info_débogage_fonction->getContext(),
+                                          pos.ligne,
+                                          0,
+                                          info_débogage_fonction),
+                    m_builder.GetInsertBlock());
+            }
+
             break;
         }
         case GenreInstruction::APPEL:
@@ -1576,6 +1622,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
+            émets_position_courante(inst->site);
             m_builder.CreateBr(table_blocs[inst_branche->label->id]);
             break;
         }
@@ -1585,6 +1632,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto condition = génère_code_pour_atome(inst_branche->condition, false);
             auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai->id];
             auto bloc_si_faux = table_blocs[inst_branche->label_si_faux->id];
+            émets_position_courante(inst->site);
             m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
             break;
         }
@@ -1594,6 +1642,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto charge = inst_charge->chargée;
             auto valeur = génère_code_pour_atome(charge, false);
             assert(valeur != nullptr);
+
+            émets_position_courante(inst->site);
 
             auto type_llvm = convertis_type_llvm(inst_charge->type);
             auto load = m_builder.CreateLoad(type_llvm, valeur, "");
@@ -1607,6 +1657,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto valeur = génère_code_pour_atome(inst_stocke->source, false);
             auto ou = inst_stocke->destination;
             auto valeur_ou = génère_code_pour_atome(ou, false);
+
+            émets_position_courante(inst->site);
 
             assert_rappel(!adresse_est_nulle(valeur_ou), [&]() {
                 dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
@@ -1638,6 +1690,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         {
             auto inst_un = inst->comme_op_unaire();
             auto valeur = génère_code_pour_atome(inst_un->valeur, false);
+
+            émets_position_courante(inst->site);
 
             switch (inst_un->op) {
                 case OpérateurUnaire::Genre::Positif:
@@ -1676,6 +1730,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto valeur_gauche = génère_code_pour_atome(gauche, false);
             auto valeur_droite = génère_code_pour_atome(droite, false);
 
+            émets_position_courante(inst->site);
+
             llvm::Value *valeur = nullptr;
 
             if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal &&
@@ -1712,6 +1768,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
                 auto valeur_retour = génère_code_pour_atome(atome, false);
+                émets_position_courante(inst->site);
                 m_builder.CreateRet(valeur_retour);
             }
             else {
@@ -1812,6 +1869,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             liste_index.push_back(m_builder.getInt32(index_membre));
 
+            émets_position_courante(inst->site);
+
             auto type_llvm = convertis_type_llvm(type_déréférencé_pour(accédé->type));
             // dbg() << "--> " << *type_llvm;
             // dbg() << "--> " << *valeur_accédée->getType();
@@ -1830,6 +1889,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto const type_llvm = convertis_type_llvm(type_vers);
             auto const cast_op = convertis_type_transtypage(
                 inst_transtype->op, type_de, type_vers);
+            émets_position_courante(inst->site);
             auto const résultat = m_builder.CreateCast(cast_op, valeur, type_llvm);
             définis_valeur_instruction(inst, résultat);
             break;
@@ -1845,6 +1905,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto const condition = génère_code_pour_atome(sélection->condition, false);
             auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, false);
             auto const si_faux = génère_code_pour_atome(sélection->si_faux, false);
+            émets_position_courante(inst->site);
             auto const résultat = m_builder.CreateSelect(condition, si_vrai, si_faux);
             définis_valeur_instruction(inst, résultat);
             break;
@@ -1875,6 +1936,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
                                        valeur_fonction);
 
+    émets_position_courante(inst_appel->site);
     auto call_inst = m_builder.CreateCall(callee, arguments);
 
     llvm::Value *résultat = call_inst;
@@ -2517,6 +2579,19 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     return résultat;
 }
 
+void GénératriceCodeLLVM::émets_position_courante(NoeudExpression const *site)
+{
+    if (m_fonction_courante) {
+        auto info_débogage_fonction = m_fonction_courante->getSubprogram();
+        if (info_débogage_fonction) {
+            auto pos = m_info_débogage->donne_info_position(site);
+            auto loc = llvm::DILocation::get(
+                info_débogage_fonction->getContext(), pos.ligne, 0, info_débogage_fonction);
+            m_builder.SetCurrentDebugLocation(loc);
+        }
+    }
+}
+
 void GénératriceCodeLLVM::génère_code()
 {
     if (données_module.donne_données_constantes()) {
@@ -2647,16 +2722,38 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
     auto valeurs_args = fonction->arg_begin();
 
-    for (auto &param : atome_fonc->params_entrée) {
+    POUR_INDICE (atome_fonc->params_entrée) {
+        auto arg_name = vers_string_ref(it->ident);
         auto valeur = &(*valeurs_args++);
-        valeur->setName(vers_string_ref(param->ident));
+        valeur->setName(arg_name);
 
-        auto alloc = crée_allocation(param);
+        auto alloc = crée_allocation(it);
+
+        if (info_débogage_fonction) {
+            auto pos = m_info_débogage->donne_info_position(it->site);
+            auto type_param = m_info_débogage->donne_type(it->donne_type_alloué());
+            auto dibuilder = m_info_débogage->dibuilder;
+            auto D = dibuilder->createParameterVariable(info_débogage_fonction,
+                                                        arg_name,
+                                                        uint32_t(indice_it),
+                                                        pos.file,
+                                                        pos.ligne,
+                                                        type_param,
+                                                        true);
+
+            dibuilder->insertDeclare(
+                alloc,
+                D,
+                dibuilder->createExpression(),
+                llvm::DILocation::get(
+                    info_débogage_fonction->getContext(), pos.ligne, 0, info_débogage_fonction),
+                m_builder.GetInsertBlock());
+        }
 
         auto store = m_builder.CreateStore(valeur, alloc);
         store->setAlignment(alloc->getAlign());
 
-        définis_valeur_instruction(param, alloc);
+        définis_valeur_instruction(it, alloc);
     }
 
     /* crée une variable local pour la valeur de sortie */
