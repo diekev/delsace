@@ -553,10 +553,7 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::RIEN:
             {
-                auto nom = llvm::StringRef("rien");
-                auto taille_en_bits = uint64_t(0);
-                auto encodage = uint32_t(0);
-                ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
+                ditype = nullptr;
                 break;
             }
             case GenreNoeud::BOOL:
