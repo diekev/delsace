@@ -1069,7 +1069,7 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
     : m_espace(espace), données_module(module), m_module(module.module),
       m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
-    if (espace.options.compilation_pour == CompilationPour::DÉBOGAGE) {
+    if (true || espace.options.compilation_pour == CompilationPour::DÉBOGAGE) {
         m_module->addModuleFlag(
             llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
         m_module->addModuleFlag(
@@ -3009,7 +3009,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         generatrice.génère_code();
     }
 
-    if (espace.options.valide_ir_llvm) {
+    if (true || espace.options.valide_ir_llvm) {
         POUR_INDICE (m_modules) {
             auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
             if (opt_erreur_validation.has_value()) {
