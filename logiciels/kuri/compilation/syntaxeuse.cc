@@ -3869,7 +3869,6 @@ void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariab
             /* Une #parséante ne doit pas être visible. */
             déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
             déclaration->drapeaux &= ~(DrapeauxNoeud::EST_LOCALE);
-            déclaration->bloc_parent->ajoute_rubrique(déclaration);
             est_variable_locale = false;
             directives |= DirectiveDeVariable::PARSÉANTE;
             continue;

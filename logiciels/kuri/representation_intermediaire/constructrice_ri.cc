@@ -3184,6 +3184,18 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
         }
     }
 
+    if (dst->est_type_entier_relatif()) {
+        if (src->est_type_bool()) {
+            return TypeTranstypage::AUGMENTE_RELATIF;
+        }
+    }
+
+    if (dst->est_type_entier_naturel()) {
+        if (src->est_type_bool()) {
+            return TypeTranstypage::AUGMENTE_NATUREL;
+        }
+    }
+
     assert_rappel(false, [&]() {
         dbg() << "Type transtypage défaut non-géré : " << chaine_type(src_originale) << " -> "
               << chaine_type(dst_originale) << "\n"
