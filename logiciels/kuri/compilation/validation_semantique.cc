@@ -4549,7 +4549,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     {
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__VALIDATION_FINALE);
 
-        if (!decl->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+        if (!decl->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) ||
+            decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
             /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
              * syntaxeuse. */
             if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -4823,7 +4824,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
             decl_var->type = variable->type;
 
-            if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
+            if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) ||
+                decl->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
                 /* Les globales et les valeurs polymorphiques sont ajoutées au bloc parent par la
                  * syntaxeuse. */
                 if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -4884,6 +4886,12 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
             return CodeRetourValidation::OK;
         }
         rapporte_erreur("Impossible de ne pas initialiser une constante.", decl);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto decl_prec = trouve_dans_bloc(decl->bloc_parent, decl, nullptr, fonction_courante());
+    if (decl_prec != nullptr && decl_prec != decl) {
+        rapporte_erreur_redéfinition_symbole(decl, decl_prec);
         return CodeRetourValidation::Erreur;
     }
 

@@ -18,11 +18,12 @@ void PouleDeTâchesEnSérie::ajoute_tâche(std::function<void()> &&tâche)
     m_tâches.ajoute(tâche);
 }
 
-void PouleDeTâchesEnSérie::attends_sur_tâches()
+bool PouleDeTâchesEnSérie::attends_sur_tâches()
 {
     POUR (m_tâches) {
         it();
     }
+    return true;
 }
 
 /** \} */
@@ -46,8 +47,10 @@ void PouleDeTâchesSousProcessus::ajoute_tâche(std::function<void()> &&tâche)
 #endif
 }
 
-void PouleDeTâchesSousProcessus::attends_sur_tâches()
+bool PouleDeTâchesSousProcessus::attends_sur_tâches()
 {
+    auto résultat = true;
+
 #ifndef _MSC_VER
     POUR (m_enfants) {
         int etat;
@@ -56,14 +59,18 @@ void PouleDeTâchesSousProcessus::attends_sur_tâches()
         }
 
         if (!WIFEXITED(etat)) {
+            résultat = false;
             continue;
         }
 
         if (WEXITSTATUS(etat) != EXIT_SUCCESS) {
+            résultat = false;
             continue;
         }
     }
 #endif
+
+    return résultat;
 }
 
 /** \} */
@@ -78,12 +85,13 @@ void PouleDeTâchesMoultFils::ajoute_tâche(std::function<void()> &&tâche)
     m_threads.ajoute(thread);
 }
 
-void PouleDeTâchesMoultFils::attends_sur_tâches()
+bool PouleDeTâchesMoultFils::attends_sur_tâches()
 {
     POUR (m_threads) {
         it->join();
         delete it;
     }
+    return true;
 }
 
 /** \} */
