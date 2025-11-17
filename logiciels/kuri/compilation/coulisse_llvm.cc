@@ -1042,33 +1042,31 @@ struct GénératriceCodeLLVM {
     llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 };
 
-#undef COMPILE_INFO_DEBOGAGE
-
 GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesModule &module)
     : m_espace(espace), données_module(module), m_module(module.module),
       m_contexte_llvm(m_module->getContext()), m_builder(m_contexte_llvm)
 {
-#ifdef COMPILE_INFO_DEBOGAGE
-    m_module->addModuleFlag(
-        llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
-    m_module->addModuleFlag(llvm::Module::Max, "Dwarf Version", 5);
+    if (espace.options.compilation_pour == CompilationPour::DÉBOGAGE) {
+        m_module->addModuleFlag(
+            llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
+        m_module->addModuleFlag(llvm::Module::Max, "Dwarf Version", 5);
 
-    m_info_débogage = mémoire::loge<InfoDébogageLLVM>("InfoDébogageLLVM");
-    m_info_débogage->espace = &espace;
-    m_info_débogage->dibuilder = new llvm::DIBuilder(*m_module);
+        m_info_débogage = mémoire::loge<InfoDébogageLLVM>("InfoDébogageLLVM");
+        m_info_débogage->espace = &espace;
+        m_info_débogage->dibuilder = new llvm::DIBuilder(*m_module);
 
-    auto langage = llvm::dwarf::DW_LANG_C;
-    // À FAIRE : fichier racine pour l'unité de compilation.
-    auto fichier_racine = m_info_débogage->dibuilder->createFile("racine.kuri", ".");
-    auto producer = llvm::StringRef("Compilateur Kuri");
-    auto est_optimisé = false;
-    auto ligne_de_commande = llvm::StringRef("");
-    auto version_runtime = uint32_t(0);
-    m_info_débogage->fichier_racine = fichier_racine;
+        auto langage = llvm::dwarf::DW_LANG_C;
+        // À FAIRE : fichier racine pour l'unité de compilation.
+        auto fichier_racine = m_info_débogage->dibuilder->createFile("racine.kuri", ".");
+        auto producer = llvm::StringRef("Compilateur Kuri");
+        auto est_optimisé = false;
+        auto ligne_de_commande = llvm::StringRef("");
+        auto version_runtime = uint32_t(0);
+        m_info_débogage->fichier_racine = fichier_racine;
 
-    m_info_débogage->unit = m_info_débogage->dibuilder->createCompileUnit(
-        langage, fichier_racine, producer, est_optimisé, ligne_de_commande, version_runtime);
-#endif
+        m_info_débogage->unit = m_info_débogage->dibuilder->createCompileUnit(
+            langage, fichier_racine, producer, est_optimisé, ligne_de_commande, version_runtime);
+    }
 
     initialise_optimisation(espace.options.niveau_optimisation);
 }
