@@ -22,7 +22,7 @@ monde_vers_ecran :: fonc (monde: RectanglePur(r32), ecran: RectanglePur(r32)) ->
     retourne mve
 }
 
-mappage :: fonc (mve: &MondeVersEcran, x: r64, y: r64) -> Point2D(r32)
+mappage :: fonc (mve: MondeVersEcran, x: r64, y: r64) -> Point2D(r32)
 {
     pos_ecran: Point2D(r32)
 
@@ -32,7 +32,7 @@ mappage :: fonc (mve: &MondeVersEcran, x: r64, y: r64) -> Point2D(r32)
     retourne pos_ecran
 }
 
-mappage :: fonc (mve: &MondeVersEcran, p: &Point2D(r32)) -> Point2D(r32)
+mappage :: fonc (mve: MondeVersEcran, p: Point2D(r32)) -> Point2D(r32)
 {
     retourne mappage(mve, p.x, p.y)
 }
@@ -43,7 +43,7 @@ dessine_point_rayon :: fonc (
     canevas: [..]z8,
     hauteur: z32,
     largeur: z32,
-    p: &Point2D(r32),
+    p: Point2D(r32),
     rayon_point: z32) -> rien
 {
 }
