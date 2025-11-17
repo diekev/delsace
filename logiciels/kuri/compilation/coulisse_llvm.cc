@@ -2810,13 +2810,6 @@ static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
     return chemin_fichier_objet_temporaire_pour(nom_de_base);
 }
 
-#ifndef NDEBUG
-#    define DEBOGUE_IR
-#elif defined(COMPILE_INFO_DEBOGAGE)
-#    define DEBOGUE_IR
-#endif
-
-#ifdef DEBOGUE_IR
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
 static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t index)
 {
@@ -2848,7 +2841,6 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
     return exécute_commande_externe_erreur(commande, true);
 }
-#endif
 
 CoulisseLLVM::~CoulisseLLVM()
 {
@@ -2918,18 +2910,18 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         generatrice.génère_code();
     }
 
-#ifdef DEBOGUE_IR
-    POUR_INDICE (m_modules) {
-        auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
-        if (opt_erreur_validation.has_value()) {
-            auto erreur_validation = opt_erreur_validation.value();
-            auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
-                                           "La commande a retourné :\n\n",
-                                           erreur_validation.message);
-            return ErreurCoulisse{message_erreur};
+    if (espace.options.valide_ir_llvm) {
+        POUR_INDICE (m_modules) {
+            auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
+            if (opt_erreur_validation.has_value()) {
+                auto erreur_validation = opt_erreur_validation.value();
+                auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
+                                               "La commande a retourné :\n\n",
+                                               erreur_validation.message);
+                return ErreurCoulisse{message_erreur};
+            }
         }
     }
-#endif
 
     return {};
 }
