@@ -703,7 +703,7 @@ void GestionnaireCode::garantie_typage_des_dépendances(
 
     /* Requiers le typage de toutes les déclarations utilisées. */
     kuri::pour_chaque_élément(données_dépendances.globales_utilisées, [&](auto &globale) {
-        if (!globale->unité) {
+        if (!globale->unité && !globale->possède_drapeau(DrapeauxNoeud::EST_PARSÉANTE)) {
             requiers_typage(espace, const_cast<NoeudDéclarationVariable *>(globale));
         }
         return kuri::DécisionItération::Continue;

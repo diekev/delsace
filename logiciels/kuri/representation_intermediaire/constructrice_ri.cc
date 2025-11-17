@@ -3184,6 +3184,18 @@ static TypeTranstypage donne_type_transtypage_pour_défaut(Type const *src,
         }
     }
 
+    if (dst->est_type_entier_relatif()) {
+        if (src->est_type_bool()) {
+            return TypeTranstypage::AUGMENTE_RELATIF;
+        }
+    }
+
+    if (dst->est_type_entier_naturel()) {
+        if (src->est_type_bool()) {
+            return TypeTranstypage::AUGMENTE_NATUREL;
+        }
+    }
+
     assert_rappel(false, [&]() {
         dbg() << "Type transtypage défaut non-géré : " << chaine_type(src_originale) << " -> "
               << chaine_type(dst_originale) << "\n"
@@ -4279,9 +4291,11 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             auto tampon_valeurs_énum = donne_tableau_valeurs_énum(m_espace->typeuse, *type_enum);
 
             auto type_tableau = m_espace->typeuse.type_tableau_fixe(
-                type_enum->type_sous_jacent, int32_t(tampon_valeurs_énum.taille()));
+                m_espace->typeuse.type_octet, int32_t(tampon_valeurs_énum.taille()));
             auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
                 type_tableau, std::move(tampon_valeurs_énum));
+            tableau->définis_alignement(type_enum->type_sous_jacent->alignement);
+            tableau->drapeaux |= DrapeauxAtome::EST_POUR_VALEURS_ÉNUMS;
 
             kuri::tableau<AtomeConstante *> noms_enum;
             noms_enum.réserve(type_enum->rubriques.taille());
@@ -4971,6 +4985,7 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
 
     auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
         type_tableau, std::move(caractères));
+    tableau->définis_alignement(1);
 
     auto ident = m_compilatrice.donne_identifiant_pour_globale("texte_chaine");
     auto globale_tableau = m_constructrice.crée_globale(
@@ -5528,6 +5543,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
 
             auto tableau = m_constructrice.crée_constante_tableau_données_constantes(
                 type_tableau_fixe, std::move(données_constantes));
+            tableau->définis_alignement(type_tableau_fixe->type_pointé->alignement);
 
             empile_valeur(tableau, expr);
             return;
