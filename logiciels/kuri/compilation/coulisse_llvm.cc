@@ -975,7 +975,7 @@ struct InfoDébogageLLVM {
             return fichier_dwarf;
         }
 
-        auto nom_fichier = vers_string_ref(fichier_kuri->nom());
+        auto nom_fichier = vers_string_ref(fichier_kuri->donne_nom_avec_extension());
         auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
         fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
         table_fichiers.insère(fichier_kuri, fichier_dwarf);
