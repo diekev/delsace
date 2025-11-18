@@ -560,6 +560,7 @@ void Syntaxeuse::quand_commence()
         m_contexte->assembleuse->bloc_courant(récipiente->bloc_paramètres);
 
         fonctions_courantes.empile(récipiente);
+        m_fonction_courante_retourne_plusieurs_valeurs = récipiente->params_sorties.taille() > 1;
         récipiente->corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF, false);
         récipiente->corps->est_corps_texte = false;
         récipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
@@ -2772,7 +2773,8 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         ignore_point_virgule_implicite();
 
         auto ancien_état_retour = m_fonction_courante_retourne_plusieurs_valeurs;
-        m_fonction_courante_retourne_plusieurs_valeurs = noeud->params_sorties.taille() > 1;
+        m_fonction_courante_retourne_plusieurs_valeurs = noeud->params_sorties.taille() > 1 &&
+                                                         noeud->corps->est_corps_texte == false;
 
         auto noeud_corps = noeud->corps;
         fonctions_courantes.empile(noeud);

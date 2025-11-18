@@ -51,7 +51,25 @@ init_vecteur :: fonc ()
     imprimeln("v : %", v)
 }
 
+test_retour_multiple :: fonc ()
+{
+    a, b, c := retourne_plusieurs_valeurs()
+    assert(a == 123)
+    assert(b == faux)
+    assert(c == 4.56)
+}
+
+retourne_plusieurs_valeurs :: fonc () -> (z32, bool, r32)
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "retourne 123, faux, 4.56\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 principale :: fonc ()
 #corps_texte {
-    retourne copie_chaine("init_vecteur(); test_ajoute();")
+    retourne copie_chaine("init_vecteur(); test_ajoute(); test_retour_multiple();")
 }
