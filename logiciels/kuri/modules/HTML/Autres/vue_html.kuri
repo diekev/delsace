@@ -883,17 +883,11 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         sérialise_requête(*enchaineuse, uri)
 
         ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
-        ajoute_au_tampon(*enchaineuse, "Host: ")
-        ajoute_au_tampon(*enchaineuse, uri.host.Quelque)
-        ajoute_au_tampon(*enchaineuse, "\r\n")
 
         pour rappels.requête.header_list {
             ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n")
         }
 
-        ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-        ajoute_au_tampon(*enchaineuse, "User-Agent: ", CHAINE_USER_AGENT, "\r\n")
-        ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
         ajoute_au_tampon(*enchaineuse, "\r\n")
 
         texte_requête := chaine_depuis_enchaineuse(*enchaineuse)
