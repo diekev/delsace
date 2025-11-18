@@ -2956,13 +2956,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 return;
             }
 
-            // mémoire(*expr) = ...
-            if (inst_mem->expression->genre_valeur == GenreValeur::DROITE &&
-                !inst_mem->expression->est_comme()) {
-                empile_valeur(valeur, noeud);
-                return;
-            }
-
             empile_valeur(m_constructrice.crée_charge_mem(noeud, valeur), noeud);
             break;
         }
