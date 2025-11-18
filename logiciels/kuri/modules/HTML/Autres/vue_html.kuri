@@ -878,7 +878,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         uri := rappels.requête.donne_url_courant()
 
-        ajoute_au_tampon(*enchaineuse, "GET ")
+        ajoute_au_tampon(*enchaineuse, rappels.requête.method, " ")
         sérialise_chemin(*enchaineuse, uri)
         sérialise_requête(*enchaineuse, uri)
 
