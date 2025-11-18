@@ -3,6 +3,9 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
+// À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
+diffère { Prof_End() }
+
 // À FAIRE(langage) : la compilation n'attend pas sur les messages
 // retourne imprime_chaine("%", chn)
 
