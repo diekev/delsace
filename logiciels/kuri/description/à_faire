@@ -3,17 +3,15 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
+// À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
+diffère { Prof_End() }
+
 // À FAIRE(langage) : la compilation n'attend pas sur les messages
 // retourne imprime_chaine("%", chn)
-
-// À FAIRE(langage) : permet d'avoir un #corps_texte sur une fonction possèdant plusieurs retours
-// donne_changement_structures :: fonc (a: $T, b: T) -> (changement: Changement(T), fut_changée: bool)
 
 /* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
 
 pas d'erreur pour foo(a = a = 13)
-
-#corps_texte pour les opérateurs
 
 opérateur non trouvé s'il y a une attente non résolue
     => l'erreur devrait être sur l'attente de l'opérateur

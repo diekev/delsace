@@ -485,11 +485,15 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
             }
 
             auto const résultat_transtype = crée_transtypage_implicite_si_possible(
-                feuilles->expressions[j],
+                expression_valide->référence,
                 type,
                 RaisonTranstypageImplicite::POUR_TEST_DISCRIMINATION);
             if (!est_ok(résultat_transtype)) {
                 return résultat_transtype;
+            }
+
+            if (expression_valide->référence != feuille && !feuille->est_appel()) {
+                feuilles->expressions[j] = expression_valide->référence;
             }
         }
     }

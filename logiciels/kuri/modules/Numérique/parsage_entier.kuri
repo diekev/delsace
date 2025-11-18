@@ -80,6 +80,7 @@ consomme_nombre_entier :: fonc (chn: chaine) -> (succès: bool, résultat: z64, 
     est_négatif := faux
     si chn[0] == '-' {
         chn = avance(chn, 1)
+        est_négatif = vrai
     }
     
     si chn.taille == 0 {
@@ -107,7 +108,7 @@ consomme_nombre_entier :: fonc (chn: chaine) -> (succès: bool, résultat: z64, 
     }
 
     si est_négatif {
-        résultat *= -1
+        résultat = -résultat
     }
 
     retourne vrai, résultat, chn

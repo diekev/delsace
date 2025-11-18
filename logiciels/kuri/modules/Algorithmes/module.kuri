@@ -1,3 +1,4 @@
+importe Fondation
 importe Math
 
 charge "tableaux"
@@ -590,17 +591,13 @@ ajuste_tas :: fonc (premier: *$T, indice_trou: z64, longueur: z64, value: T, com
             deuxième_enfant -= 1
         }
 
-        // À FAIRE(langage) : erreur de compilation
-        // mémoire(premier + indice_trou) = mémoire(premier + deuxième_enfant)
-        premier[indice_trou] = premier[deuxième_enfant]
+        mémoire(premier + indice_trou) = mémoire(premier + deuxième_enfant)
         indice_trou = deuxième_enfant
     }
 
     si ((longueur & 1) == 0 && deuxième_enfant == (longueur - 2) / 2) {
         deuxième_enfant = 2 * (deuxième_enfant + 1)
-        // À FAIRE(langage) : erreur de compilation
-        // mémoire(premier + indice_trou) = mémoire(premier + (deuxième_enfant - 1))
-        premier[indice_trou] = premier[deuxième_enfant - 1]
+        mémoire(premier + indice_trou) = mémoire(premier + (deuxième_enfant - 1))
         indice_trou = deuxième_enfant - 1;
     }
 
@@ -611,15 +608,11 @@ enfile_tas :: fonc (premier: *$T, indice_trou: z64, indice_tête: z64, value: T,
 {
     parent := (indice_trou - 1) / 2;
     tantque (indice_trou > indice_tête && comp(mémoire(premier + parent), value)) {
-        // À FAIRE(langage) : erreur de compilation
-        // mémoire(premier + indice_trou) = mémoire(premier + parent)
-        premier[indice_trou] = premier[parent]
+        mémoire(premier + indice_trou) = mémoire(premier + parent)
         indice_trou = parent;
         parent = (indice_trou - 1) / 2
     }
-    // À FAIRE(langage) : erreur de compilation
-    // mémoire(premier + indice_trou) = value
-    premier[indice_trou] = value
+    mémoire(premier + indice_trou) = value
 }
 
 défile_tas :: fonc (premier: *$T, dernier: *T, résultat: *T, comp: fonc (a: T, b: T) -> bool)

@@ -456,6 +456,13 @@ ajoute_entête :: fonc (request: *Request, nom: chaine, valeur: chaine)
     tableau_ajoute(*request.header_list, entête)
 }
 
+ajoute_entête_si_inexistante :: fonc (request: *Request, nom: chaine, valeur: chaine)
+{
+    saufsi possède_entête(request, nom) {
+        ajoute_entête(request, nom, valeur)
+    }
+}
+
 /* https://fetch.spec.whatwg.org/#subresource-request */
 is_subressource :: fonc (request: *Request) -> bool
 {
@@ -1501,7 +1508,7 @@ queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 4.2 Scheme Fetch
+/** \nom 4.3 Scheme Fetch
  * https://fetch.spec.whatwg.org/#scheme-fetch
  * \{ */
 
@@ -1696,7 +1703,7 @@ scheme_fetch_blob :: fonc (request: *Request) -> *Response
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 4.3 HTTP Fetch
+/** \nom 4.4 HTTP Fetch
  * https://fetch.spec.whatwg.org/#http-fetch
  * \{ */
 
@@ -1711,18 +1718,33 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
     internal_response: *Response
 
     // 3. If request’s service-workers mode is "all", then:
-    si request.service_workers_mode == Request.ServiceWorkersMode.All {
-        /* À FAIRE : standardise */
-        response = user_agent.lance_requête(fetch_params.request)
-
-        si response {
-            internal_response = response
-        }
-    }
+    // si request.service_workers_mode == Request.ServiceWorkersMode.All {
+    //     /* À FAIRE : service workers */
+    // }
 
     // 4. If response is null, then:
     si response == nul {
-        panique("non-implémenté")
+        // 1. If makeCORSPreflight is true and one of these conditions is true:
+        //    There is no method cache entry match for request’s method using request, and either request’s method is not a CORS-safelisted method or request’s use-CORS-preflight flag is set.
+        //    There is at least one item in the CORS-unsafe request-header names with request’s header list for which there is no header-name cache entry match using request.
+        // Then:
+
+            // 1. Let preflightResponse be the result of running CORS-preflight fetch given request.
+
+            // 2. If preflightResponse is a network error, then return preflightResponse.
+
+        // 2. If request’s redirect mode is "follow", then set request’s service-workers mode to "none".
+        si request.redirect_mode == Request.RedirectMode.Follow {
+            request.service_workers_mode = Request.ServiceWorkersMode.None
+        }
+
+        // 3. Set response and internalResponse to the result of running HTTP-network-or-cache fetch given fetchParams.
+        response = http_network_or_cache_fetch(user_agent, fetch_params)
+        internal_response = response
+
+        // 4. If request’s response tainting is "cors" and a CORS check for request and response returns failure, then return a network error.
+
+        // 5. If the TAO check for request and response returns failure, then set request’s timing allow failed flag.
     }
 
     // 5. If either request’s response tainting or response’s type is "opaque",
@@ -1783,13 +1805,12 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
 
     // 7. Return response.
     retourne response
-
 }
 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom 4.4. HTTP-redirect fetch
+/** \nom 4.5. HTTP-redirect fetch
  * https://fetch.spec.whatwg.org/#http-redirect-fetch
  * \{ */
 
@@ -1876,6 +1897,51 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
     // À FAIRE : retourne une réponse
     main_fetch(user_agent, fetch_params, recursive)
     retourne nul
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 4.6. HTTP-network-or-cache fetch
+ * https://fetch.spec.whatwg.org/#http-network-or-cache-fetch
+ * \{ */
+
+http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
+{
+    // À FAIRE : standardise
+    request := fetch_params.request
+
+    uri := donne_url_courant(request)
+
+    si possède_valeur(uri.host) {
+        chaine_host: chaine
+        si possède_valeur(uri.port) && !est_port_défaut(uri.scheme, uri.port.Quelque) {
+            chaine_host = imprime_chaine("%:%", uri.host.Quelque, uri.port.Quelque) // @FuiteDeMémoire
+        }
+        sinon {
+            chaine_host = copie_chaine(uri.host.Quelque) // @FuiteDeMémoire
+        }
+        ajoute_entête_si_inexistante(request, "Host", chaine_host)
+    }
+
+    ajoute_entête_si_inexistante(request, "Accept-Encoding", "identity")
+
+    si request.drapeaux.KEEPALIVE {
+        ajoute_entête_si_inexistante(request, "Connection", "keep-alive")
+    }
+    sinon {
+        ajoute_entête_si_inexistante(request, "Connection", "close")
+    }
+
+    chaine_user_agent := converti_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)) // @FuiteDeMémoire
+    saufsi chaine_user_agent {
+        chaine_user_agent = "Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0"
+    }
+
+    ajoute_entête_si_inexistante(request, "User-Agent", chaine_user_agent)
+
+    response := lance_requête(user_agent, request)
+    retourne response
 }
 
 /** \} */
