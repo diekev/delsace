@@ -3349,6 +3349,8 @@ void Syntaxeuse::analyse_directives_opérateur(NoeudDéclarationEntêteFonction 
 {
     kuri::tablet<NoeudDirectiveFonction *, 6> directives;
 
+    ignore_point_virgule_implicite();
+
     while (!fini() && apparie(GenreLexème::DIRECTIVE)) {
         consomme();
 
@@ -3367,11 +3369,19 @@ void Syntaxeuse::analyse_directives_opérateur(NoeudDéclarationEntêteFonction 
                 lexème_directive);
             directives.ajoute(noeud_directive);
         }
+        else if (directive == ID::corps_texte) {
+            noeud->corps->est_corps_texte = true;
+            auto noeud_directive = m_contexte->assembleuse->crée_directive_fonction(
+                lexème_directive);
+            directives.ajoute(noeud_directive);
+        }
         else {
             rapporte_erreur("Directive d'opérateur inconnue.");
         }
 
         consomme();
+
+        ignore_point_virgule_implicite();
     }
 
     kuri::copie_tablet_tableau(directives, noeud->directives);

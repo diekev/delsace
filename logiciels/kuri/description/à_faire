@@ -13,8 +13,6 @@ Remplace *Module par un ID
 
 pas d'erreur pour foo(a = a = 13)
 
-#corps_texte pour les opérateurs
-
 opérateur non trouvé s'il y a une attente non résolue
     => l'erreur devrait être sur l'attente de l'opérateur
 
