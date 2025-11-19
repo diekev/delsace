@@ -416,11 +416,6 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
             return CastOps::UIToFP;
         case TypeTranstypage::BITS:
-            if (type_de->est_type_bool() && est_type_entier(type_vers)) {
-                /* LLVM représente les bool avec i1, nous devons transtyper en augmentant la taille
-                 * du type. */
-                return CastOps::ZExt;
-            }
             return CastOps::BitCast;
     }
 
@@ -1217,7 +1212,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         }
         case GenreNoeud::BOOL:
         {
-            type_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
+            type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
             break;
         }
         case GenreNoeud::OCTET:
@@ -1634,6 +1629,11 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai->id];
             auto bloc_si_faux = table_blocs[inst_branche->label_si_faux->id];
             émets_position_courante(inst->site);
+
+            condition = m_builder.CreateCast(llvm::Instruction::CastOps::Trunc,
+                                             condition,
+                                             llvm::Type::getInt1Ty(m_module->getContext()));
+
             m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
             break;
         }
@@ -1751,6 +1751,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 });
 
                 valeur = m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite);
+
+                valeur = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                              valeur,
+                                              llvm::Type::getInt8Ty(m_module->getContext()));
             }
             else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal_Reel &&
                      inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
