@@ -23,6 +23,7 @@
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/InlineAsm.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/InitializePasses.h>
@@ -1910,6 +1911,19 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             émets_position_courante(inst->site);
             auto const résultat = m_builder.CreateSelect(condition, si_vrai, si_faux);
             définis_valeur_instruction(inst, résultat);
+            break;
+        }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            auto chaine_asm = vers_string_ref("int3");
+            auto contraintes = vers_string_ref("~{dirflag},~{fpsr},~{flags}");
+            auto type_fonction = llvm::FunctionType::get(
+                llvm::Type::getVoidTy(m_module->getContext()), false);
+            auto inst_asm = llvm::InlineAsm::get(
+                type_fonction, chaine_asm, contraintes, true, false, llvm::InlineAsm::AD_ATT);
+            llvm::ArrayRef<llvm::Value *> args = llvm::None;
+            auto appel = m_builder.CreateCall(inst_asm, args);
+            appel->addFnAttr(llvm::Attribute::NoUnwind);
             break;
         }
     }

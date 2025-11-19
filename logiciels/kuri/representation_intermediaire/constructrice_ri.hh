@@ -225,6 +225,9 @@ struct ConstructriceRI {
                                                  bool crée_seulement = false);
     InstructionSélection *crée_sélection(NoeudExpression const *site, bool crée_seulement);
 
+    InstructionArrêtDébug *crée_arrêt_débug(NoeudExpression const *site,
+                                            bool crée_seulement = false);
+
     void insère(Instruction *inst);
 
     Typeuse &typeuse()
