@@ -2596,6 +2596,35 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
 
     résultat->setAlignment(llvm::Align(type->alignement));
     table_globales.insère(globale, résultat);
+
+    if (m_info_débogage) {
+        auto dibuilder = m_info_débogage->dibuilder;
+
+        auto linkage_name = nom_globale;
+        auto name = nom_globale;
+        auto numéro_ligne = uint32_t(0);
+        auto numéro_ligne_scope = uint32_t(0);
+        auto fichier = m_info_débogage->fichier_racine;
+        if (globale->decl) {
+            auto site = globale->decl;
+            fichier = m_info_débogage->donne_fichier(site);
+            numéro_ligne = uint32_t(site->lexème->ligne + 1);
+            numéro_ligne_scope = uint32_t(site->lexème->ligne + 1);
+        }
+
+        auto type_dwarf = m_info_débogage->donne_type(type);
+
+        // À FAIRE : paramètres supplémentaires
+        // bool isDefined = true,
+        // DIExpression *Expr = nullptr
+        // MDNode *Decl = nullptr,
+        // MDTuple *TemplateParams = nullptr,
+        // uint32_t AlignInBits = 0,
+        // DINodeArray Annotations = nullptr
+        dibuilder->createGlobalVariableExpression(
+            fichier, name, linkage_name, fichier, numéro_ligne, type_dwarf, false);
+    }
+
     return résultat;
 }
 
