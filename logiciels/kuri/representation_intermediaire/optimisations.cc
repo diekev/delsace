@@ -165,7 +165,8 @@ struct CopieuseInstruction {
                 auto accès = inst->comme_acces_rubrique();
                 auto accedé = copie_atome(accès->accédé);
                 auto index = accès->index;
-                return constructrice.crée_référence_rubrique(inst->site, inst->type, accedé, index);
+                return constructrice.crée_référence_rubrique(
+                    inst->site, inst->type, accedé, index);
             }
             case GenreInstruction::TRANSTYPE:
             {
@@ -214,6 +215,10 @@ struct CopieuseInstruction {
             case GenreInstruction::INATTEIGNABLE:
             {
                 return constructrice.crée_inatteignable(inst->site, false);
+            }
+            case GenreInstruction::ARRÊT_DÉBUG:
+            {
+                return constructrice.crée_arrêt_débug(inst->site, false);
             }
             case GenreInstruction::SÉLECTION:
             {
@@ -457,6 +462,7 @@ struct Substitutrice {
             case GenreInstruction::ALLOCATION:
             case GenreInstruction::LABEL:
             case GenreInstruction::INATTEIGNABLE:
+            case GenreInstruction::ARRÊT_DÉBUG:
             {
                 return instruction;
             }
