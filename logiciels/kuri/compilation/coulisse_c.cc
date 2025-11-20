@@ -1830,6 +1830,11 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             table_valeurs[inst->numero] = nom;
             break;
         }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            os << "  asm(\"int3\");\n";
+            break;
+        }
     }
 }
 
