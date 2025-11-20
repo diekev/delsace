@@ -76,6 +76,11 @@ inline bool adresse_est_nulle(void *adresse)
 /** \name Utilitaires locaux.
  * \{ */
 
+static inline bool est_type_machine_pointeur(Type const *type)
+{
+    return type->est_type_pointeur() || type->est_type_référence();
+}
+
 static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *fonction)
 {
     if (!fonction->decl) {
@@ -1442,7 +1447,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
             auto type_accede = acces->donne_type_accédé();
-            if (!type_accede->est_type_pointeur()) {
+            if (!est_type_machine_pointeur(type_accede)) {
                 auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
                 index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
             }
@@ -1804,12 +1809,12 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 // *valeur_accédée->getType();
 
                 auto type_accédé = inst_accès->donne_type_accédé();
-                if (type_accédé->est_type_pointeur()) {
+                if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
                     valeur_accédée = m_builder.CreateLoad(
                         valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
-                    type_llvm = convertis_type_llvm(
-                        type_accédé->comme_type_pointeur()->type_pointé);
+                    auto type_pointé = type_déréférencé_pour(type_accédé);
+                    type_llvm = convertis_type_llvm(type_pointé);
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
@@ -1857,11 +1862,11 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 else if (inst_accédée->est_acces_rubrique()) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
-                else if (type_accédé->est_type_pointeur()) {
+                else if (est_type_machine_pointeur(type_accédé)) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
-                else if (inst_accédée->est_appel() && (inst_accédée->type->est_type_pointeur() ||
-                                                       inst_accédée->type->est_type_référence())) {
+                else if (inst_accédée->est_appel() &&
+                         est_type_machine_pointeur(inst_accédée->type)) {
                     liste_index.push_back(m_builder.getInt32(0));
                 }
                 else if (inst_accédée->est_acces_index()) {
