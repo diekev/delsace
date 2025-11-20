@@ -3240,6 +3240,10 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
     résultat->module = new llvm::Module(vers_string_ref(nom_module), *résultat->contexte_llvm);
     résultat->module->setDataLayout(m_machine_cible->createDataLayout());
     résultat->module->setTargetTriple(triplet_cible);
+    résultat->module->addModuleFlag(llvm::Module::Error, "wchar_size", 4);
+    résultat->module->setPICLevel(llvm::PICLevel::BigPIC);
+    résultat->module->setPIELevel(llvm::PIELevel::Large);
+    résultat->module->setFramePointer(llvm::FramePointerKind::All);
 
     résultat->chemin_fichier_objet = chemin_fichier_objet_llvm(int32_t(m_modules.taille()));
 
