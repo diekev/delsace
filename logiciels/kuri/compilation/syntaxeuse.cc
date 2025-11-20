@@ -1333,6 +1333,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
                 noeud->ident = directive;
                 return noeud;
             }
+            else if (directive == ID::arrêt_débug) {
+                auto noeud = m_contexte->assembleuse->crée_arrêt_débug(lexème);
+                return noeud;
+            }
             else {
                 /* repositionne le lexème courant afin que les messages d'erreurs pointent au bon
                  * endroit */

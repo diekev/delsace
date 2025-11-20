@@ -1082,6 +1082,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_ARRÊTE:
         case GenreNoeud::INSTRUCTION_CONTINUE:
         case GenreNoeud::INSTRUCTION_REPRENDS:
+        case GenreNoeud::ARRÊT_DÉBUG:
         /* NOTE : taille_de doit persister jusque dans la RI. */
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {
