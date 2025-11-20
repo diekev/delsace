@@ -443,6 +443,7 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         case GenreNoeud::DIRECTIVE_CORPS_BOUCLE:
+        case GenreNoeud::ARRÊT_DÉBUG:
         {
             arbre_aplatis.ajoute(racine);
             break;

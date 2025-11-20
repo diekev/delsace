@@ -932,7 +932,26 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             auto expr_mémoire = noeud->comme_mémoire();
             simplifie(expr_mémoire->expression);
-            return expr_mémoire;
+
+            auto expr_déréférencée = expr_mémoire->expression;
+            if (expr_déréférencée->est_référence_déclaration() ||
+                expr_déréférencée->est_référence_rubrique()) {
+                return expr_mémoire;
+            }
+
+            auto temporaire = crée_déclaration_variable(
+                expr_déréférencée->lexème, expr_déréférencée->type, expr_déréférencée);
+            temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème,
+                                                                    temporaire);
+            ajoute_expression(temporaire);
+
+            auto nouvelle_mémoire = assem->crée_mémoire(expr_mémoire->lexème, ref_temporaire);
+            nouvelle_mémoire->type = expr_mémoire->type;
+
+            expr_mémoire->substitution = nouvelle_mémoire;
+
+            return expr_mémoire->substitution;
         }
         case GenreNoeud::DIRECTIVE_INTROSPECTION:
         {
@@ -1047,6 +1066,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         case GenreNoeud::INSTRUCTION_ARRÊTE:
         case GenreNoeud::INSTRUCTION_CONTINUE:
         case GenreNoeud::INSTRUCTION_REPRENDS:
+        case GenreNoeud::ARRÊT_DÉBUG:
         /* NOTE : taille_de doit persister jusque dans la RI. */
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         {

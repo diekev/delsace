@@ -24,6 +24,20 @@ Vecteur :: struct ($T: type_de_données) #corps_texte {
     retourne copie_chaine("x: T; y: T; z: T;")
 }
 
+opérateur + :: (a: Vecteur($T), b: Vecteur(T)) -> Vecteur(T)
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "résultat := a\n")
+    ajoute_au_tampon(*enchaineuse, "résultat.x += b.x\n")
+    ajoute_au_tampon(*enchaineuse, "résultat.y += b.y\n")
+    ajoute_au_tampon(*enchaineuse, "résultat.z += b.z\n")
+    ajoute_au_tampon(*enchaineuse, "retourne résultat\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
 init_vecteur :: fonc ()
 {
     v : Vecteur(T = z32) = ---
@@ -32,9 +46,30 @@ init_vecteur :: fonc ()
     v.z = 2
 
     imprime("v : %\n", v)
+
+    v += v
+    imprimeln("v : %", v)
+}
+
+test_retour_multiple :: fonc ()
+{
+    a, b, c := retourne_plusieurs_valeurs()
+    assert(a == 123)
+    assert(b == faux)
+    assert(c == 4.56)
+}
+
+retourne_plusieurs_valeurs :: fonc () -> (z32, bool, r32)
+#corps_texte {
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    ajoute_au_tampon(*enchaineuse, "retourne 123, faux, 4.56\n")
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
 }
 
 principale :: fonc ()
 #corps_texte {
-    retourne copie_chaine("/* init_vecteur(); */ test_ajoute();")
+    retourne copie_chaine("init_vecteur(); test_ajoute(); test_retour_multiple();")
 }

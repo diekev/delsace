@@ -76,7 +76,7 @@ struct OptionsDeCompilation {
     bool préfixe_bibliothèque_système = vrai
 
     /* Options pour DWARF. */
-    uint32_t version_dwarf = 5
+    uint32_t version_dwarf = 4
 
     /* Options pour LLVM. */
     bool valide_ir_llvm = faux

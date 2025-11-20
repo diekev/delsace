@@ -1573,6 +1573,11 @@ struct AssembleuseASM {
         ajoute_instruction(__func__);
     }
 
+    void int3()
+    {
+        ajoute_instruction(__func__);
+    }
+
     void cbw()
     {
         ajoute_instruction(__func__);
@@ -2567,6 +2572,11 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
         case GenreInstruction::INATTEIGNABLE:
         {
             assembleuse.ud2();
+            break;
+        }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            assembleuse.int3();
             break;
         }
         case GenreInstruction::SÉLECTION:

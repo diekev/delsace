@@ -1618,6 +1618,11 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             imprime_ident(enchaineuse, directive->bibliothèque_dépendue->ident);
             break;
         }
+        case GenreNoeud::ARRÊT_DÉBUG:
+        {
+            enchaineuse << "#arrêt_débug";
+            break;
+        }
         CAS_POUR_NOEUDS_TYPES_FONDAMENTAUX:
         {
             break;

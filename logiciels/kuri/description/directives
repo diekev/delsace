@@ -19,6 +19,7 @@ Directives pour le compilateur
 #portée_module          indique que les symboles suivants ne sont visibles que dans le module
 #portée_fichier         indique que les symboles suivants ne sont visibles que dans le fichier courant
 #inemployé              après « importe », indique que les symboles du modules ne sont accessibles que via un accès de membre
+#arrêt_débug            insère une instruction de piège pour les débogueurs dans le code machine ; n'a aucun effet sur les métaprogrammes.
 
 Directive pour la métaprogrammation
 
