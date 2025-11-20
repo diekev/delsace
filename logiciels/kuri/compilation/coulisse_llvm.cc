@@ -1760,6 +1760,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                      inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
                 valeur = m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite);
+
+                valeur = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                              valeur,
+                                              llvm::Type::getInt8Ty(m_module->getContext()));
             }
             else {
                 auto inst_llvm = inst_llvm_depuis_opérateur(inst_bin->op);
@@ -1909,7 +1913,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::SÉLECTION:
         {
             auto sélection = inst->comme_sélection();
-            auto const condition = génère_code_pour_atome(sélection->condition, false);
+            auto condition = génère_code_pour_atome(sélection->condition, false);
+            condition = m_builder.CreateCast(llvm::Instruction::CastOps::Trunc,
+                                             condition,
+                                             llvm::Type::getInt1Ty(m_module->getContext()));
             auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, false);
             auto const si_faux = génère_code_pour_atome(sélection->si_faux, false);
             émets_position_courante(inst->site);
