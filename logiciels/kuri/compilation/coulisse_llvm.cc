@@ -2670,7 +2670,8 @@ void GénératriceCodeLLVM::génère_code()
             globale->setInitializer(valeur_initialisateur);
         }
         else {
-            globale->setInitializer(llvm::ConstantAggregateZero::get(globale->getType()));
+            auto type_llvm_globale = convertis_type_llvm(it->donne_type_alloué());
+            globale->setInitializer(llvm::ConstantAggregateZero::get(type_llvm_globale));
         }
     }
 
