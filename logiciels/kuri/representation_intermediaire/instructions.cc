@@ -820,6 +820,7 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                 case GenreInstruction::BRANCHE:
                 case GenreInstruction::LABEL:
                 case GenreInstruction::INATTEIGNABLE:
+                case GenreInstruction::ARRÊT_DÉBUG:
                 {
                     /* Pas de sous-atome. */
                     break;

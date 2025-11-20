@@ -402,6 +402,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         case GenreNoeud::INSTRUCTION_DIFFÈRE:
         case GenreNoeud::DIRECTIVE_FONCTION:
         case GenreNoeud::EXPRESSION_SÉLECTION:
+        case GenreNoeud::ARRÊT_DÉBUG:
         {
             break;
         }
