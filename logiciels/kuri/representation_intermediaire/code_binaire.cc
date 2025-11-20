@@ -1715,6 +1715,10 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_inatteignable(inst_inatteignable->site);
             break;
         }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            break;
+        }
         case GenreInstruction::SÉLECTION:
         {
             auto sélection = instruction->comme_sélection();
