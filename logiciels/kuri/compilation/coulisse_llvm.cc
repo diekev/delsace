@@ -718,7 +718,7 @@ struct InfoDébogageLLVM {
 
                         auto taille_rubrique = 8 * it.type->taille_octet;
                         auto alignement_rubrique = 8 * it.type->alignement;
-                        auto décalage_rubrique = 8 * it.type->alignement;
+                        auto décalage_rubrique = 8 * it.decalage;
                         // À FAIRE : llvm::DINode::DIFlags
                         auto flags_rubrique = llvm::DINode::DIFlags(0);
                         auto type_rubrique = donne_type(it.type);
@@ -929,7 +929,7 @@ struct InfoDébogageLLVM {
 
             auto taille_rubrique = 8 * it.type->taille_octet;
             auto alignement_rubrique = 8 * it.type->alignement;
-            auto décalage_rubrique = 8 * it.type->alignement;
+            auto décalage_rubrique = 8 * it.decalage;
             // À FAIRE : llvm::DINode::DIFlags
             auto flags_rubrique = llvm::DINode::DIFlags(0);
             auto type_rubrique = donne_type(it.type);
