@@ -22,6 +22,7 @@
     case GenreNoeud::DIRECTIVE_FONCTION:                                                          \
     case GenreNoeud::DIRECTIVE_INTROSPECTION:                                                     \
     case GenreNoeud::DIRECTIVE_INSÈRE:                                                            \
+    case GenreNoeud::ARRÊT_DÉBUG:                                                                 \
     case GenreNoeud::EXPANSION_VARIADIQUE:                                                        \
     case GenreNoeud::EXPRESSION_APPEL:                                                            \
     case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:                                             \

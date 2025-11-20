@@ -23,6 +23,7 @@
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/InlineAsm.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/InitializePasses.h>
@@ -415,11 +416,6 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
             return CastOps::UIToFP;
         case TypeTranstypage::BITS:
-            if (type_de->est_type_bool() && est_type_entier(type_vers)) {
-                /* LLVM représente les bool avec i1, nous devons transtyper en augmentant la taille
-                 * du type. */
-                return CastOps::ZExt;
-            }
             return CastOps::BitCast;
     }
 
@@ -1216,7 +1212,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         }
         case GenreNoeud::BOOL:
         {
-            type_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
+            type_llvm = llvm::Type::getInt8Ty(m_contexte_llvm);
             break;
         }
         case GenreNoeud::OCTET:
@@ -1633,6 +1629,11 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai->id];
             auto bloc_si_faux = table_blocs[inst_branche->label_si_faux->id];
             émets_position_courante(inst->site);
+
+            condition = m_builder.CreateCast(llvm::Instruction::CastOps::Trunc,
+                                             condition,
+                                             llvm::Type::getInt1Ty(m_module->getContext()));
+
             m_builder.CreateCondBr(condition, bloc_si_vrai, bloc_si_faux);
             break;
         }
@@ -1750,11 +1751,19 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 });
 
                 valeur = m_builder.CreateICmp(cmp, valeur_gauche, valeur_droite);
+
+                valeur = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                              valeur,
+                                              llvm::Type::getInt8Ty(m_module->getContext()));
             }
             else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal_Reel &&
                      inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
                 valeur = m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite);
+
+                valeur = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                              valeur,
+                                              llvm::Type::getInt8Ty(m_module->getContext()));
             }
             else {
                 auto inst_llvm = inst_llvm_depuis_opérateur(inst_bin->op);
@@ -1904,12 +1913,28 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::SÉLECTION:
         {
             auto sélection = inst->comme_sélection();
-            auto const condition = génère_code_pour_atome(sélection->condition, false);
+            auto condition = génère_code_pour_atome(sélection->condition, false);
+            condition = m_builder.CreateCast(llvm::Instruction::CastOps::Trunc,
+                                             condition,
+                                             llvm::Type::getInt1Ty(m_module->getContext()));
             auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, false);
             auto const si_faux = génère_code_pour_atome(sélection->si_faux, false);
             émets_position_courante(inst->site);
             auto const résultat = m_builder.CreateSelect(condition, si_vrai, si_faux);
             définis_valeur_instruction(inst, résultat);
+            break;
+        }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            auto chaine_asm = vers_string_ref("int3");
+            auto contraintes = vers_string_ref("~{dirflag},~{fpsr},~{flags}");
+            auto type_fonction = llvm::FunctionType::get(
+                llvm::Type::getVoidTy(m_module->getContext()), false);
+            auto inst_asm = llvm::InlineAsm::get(
+                type_fonction, chaine_asm, contraintes, true, false, llvm::InlineAsm::AD_ATT);
+            llvm::ArrayRef<llvm::Value *> args = llvm::None;
+            auto appel = m_builder.CreateCall(inst_asm, args);
+            appel->addFnAttr(llvm::Attribute::NoUnwind);
             break;
         }
     }
@@ -2561,9 +2586,9 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
     auto nom_globale = vers_string_ref(globale->ident);
     auto liaison = donne_liaison_globale(données_module, globale);
     auto thread_local_mode = llvm::GlobalValue::ThreadLocalMode::NotThreadLocal;
-    // if (globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
-    //     thread_local_mode = llvm::GlobalValue::ThreadLocalMode::GeneralDynamicTLSModel;
-    // }
+    if (globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
+        thread_local_mode = llvm::GlobalValue::ThreadLocalMode::GeneralDynamicTLSModel;
+    }
 
     auto résultat = new llvm::GlobalVariable(*m_module,
                                              type_llvm,
@@ -2578,6 +2603,35 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
 
     résultat->setAlignment(llvm::Align(type->alignement));
     table_globales.insère(globale, résultat);
+
+    if (m_info_débogage) {
+        auto dibuilder = m_info_débogage->dibuilder;
+
+        auto linkage_name = nom_globale;
+        auto name = nom_globale;
+        auto numéro_ligne = uint32_t(0);
+        auto numéro_ligne_scope = uint32_t(0);
+        auto fichier = m_info_débogage->fichier_racine;
+        if (globale->decl) {
+            auto site = globale->decl;
+            fichier = m_info_débogage->donne_fichier(site);
+            numéro_ligne = uint32_t(site->lexème->ligne + 1);
+            numéro_ligne_scope = uint32_t(site->lexème->ligne + 1);
+        }
+
+        auto type_dwarf = m_info_débogage->donne_type(type);
+
+        // À FAIRE : paramètres supplémentaires
+        // bool isDefined = true,
+        // DIExpression *Expr = nullptr
+        // MDNode *Decl = nullptr,
+        // MDTuple *TemplateParams = nullptr,
+        // uint32_t AlignInBits = 0,
+        // DINodeArray Annotations = nullptr
+        dibuilder->createGlobalVariableExpression(
+            fichier, name, linkage_name, fichier, numéro_ligne, type_dwarf, false);
+    }
+
     return résultat;
 }
 
@@ -2623,7 +2677,8 @@ void GénératriceCodeLLVM::génère_code()
             globale->setInitializer(valeur_initialisateur);
         }
         else {
-            globale->setInitializer(llvm::ConstantAggregateZero::get(globale->getType()));
+            auto type_llvm_globale = convertis_type_llvm(it->donne_type_alloué());
+            globale->setInitializer(llvm::ConstantAggregateZero::get(type_llvm_globale));
         }
     }
 
