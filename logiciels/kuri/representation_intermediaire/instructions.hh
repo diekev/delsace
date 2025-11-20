@@ -59,7 +59,8 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(ACCÈDE_INDICE, InstructionAccèdeIndex, acces_index)                                         \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
     O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
-    O(SÉLECTION, InstructionSélection, sélection)
+    O(SÉLECTION, InstructionSélection, sélection)                                                 \
+    O(ARRÊT_DÉBUG, InstructionArrêtDébug, arrêt_débug)
 
 #define PREDECLARE_CLASSE_INSTRUCTION(genre_, nom_classe, ident) struct nom_classe;
 ENUMERE_GENRE_INSTRUCTION(PREDECLARE_CLASSE_INSTRUCTION)
@@ -766,6 +767,16 @@ struct InstructionSélection : public Instruction {
     Atome *condition = nullptr;
     Atome *si_vrai = nullptr;
     Atome *si_faux = nullptr;
+};
+
+struct InstructionArrêtDébug : public Instruction {
+    explicit InstructionArrêtDébug(NoeudExpression const *site_)
+    {
+        site = site_;
+        genre = GenreInstruction::ARRÊT_DÉBUG;
+    }
+
+    EMPECHE_COPIE(InstructionArrêtDébug);
 };
 
 bool est_valeur_constante(Atome const *atome);
