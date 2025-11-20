@@ -1247,6 +1247,14 @@ struct NoeudDirectiveCorpsBoucle : NoeudExpression {
     @genre_valeur INVALIDE
 }
 
+/* Directive #arrêt_débug. */
+struct NoeudArrêtDébug : NoeudExpression {
+    @genre ARRÊT_DÉBUG
+    @comme arrêt_débug
+    @code  NoeudCodeArrêtDébug
+    @genre_valeur INVALIDE
+}
+
 struct NoeudExpressionVirgule : NoeudExpression {
     @genre EXPRESSION_VIRGULE
     @comme virgule
