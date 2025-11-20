@@ -1640,6 +1640,11 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             INSTRUCTION_NON_IMPLEMENTEE;
             break;
         }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            INSTRUCTION_NON_IMPLEMENTEE;
+            break;
+        }
     }
     return nullptr;
 }

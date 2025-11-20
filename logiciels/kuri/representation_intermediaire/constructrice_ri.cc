@@ -1486,6 +1486,16 @@ InstructionSélection *ConstructriceRI::crée_sélection(NoeudExpression const *
     return résultat;
 }
 
+InstructionArrêtDébug *ConstructriceRI::crée_arrêt_débug(NoeudExpression const *site,
+                                                         bool crée_seulement)
+{
+    auto résultat = m_arrêt_débug.ajoute_élément(site);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
+}
+
 void ConstructriceRI::insère(Instruction *inst)
 {
     m_fonction_courante->instructions.ajoute(inst);
@@ -2973,6 +2983,11 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             inst->si_faux = valeur_si_faux;
 
             empile_valeur(inst, noeud);
+            break;
+        }
+        case GenreNoeud::ARRÊT_DÉBUG:
+        {
+            m_constructrice.crée_arrêt_débug(noeud);
             break;
         }
     }
