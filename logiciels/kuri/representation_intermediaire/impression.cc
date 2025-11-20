@@ -433,6 +433,11 @@ static void imprime_instruction_ex(Instruction const *inst,
             imprime_atome_ex(sélection->si_faux, os, options, true);
             break;
         }
+        case GenreInstruction::ARRÊT_DÉBUG:
+        {
+            os << "arrêt_débug\n";
+            break;
+        }
     }
 }
 
