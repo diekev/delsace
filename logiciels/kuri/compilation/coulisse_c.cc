@@ -1614,7 +1614,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             if (valeur.pointeur()[0] == '&') {
                 /* Puisque les tableaux fixes sont des structures qui ne sont que, à travers le
                  * code généré, accédées via '.', nous devons déréférencer la variable ici, mais
-                 * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport au
+                 * toujours prendre l'adresse. La prise d'adresse se fera alors par rapport à la
                  * rubrique de la structure qui est le tableau, et sert également à proprement
                  * générer le code pour les indexages. */
                 if (est_pointeur_vers_tableau_fixe(
