@@ -3125,6 +3125,7 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
 
     switch (options.niveau_optimisation) {
         case NiveauOptimisation::AUCUN:
+            builder.DisableUnrollLoops = true;
             break;
         case NiveauOptimisation::O0:
             ajoute_passes_pour_optimisation(builder, 0, 0);
