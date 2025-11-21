@@ -1867,6 +1867,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
+            case OP_COPIE_MÉMOIRE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto adresse_ou = dépile<void *>();
+                auto adresse_de = dépile<void *>();
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+                break;
+            }
             case OP_INIT_LOCALE_ZÉRO:
             {
                 auto index = LIS_4_OCTETS();

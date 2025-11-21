@@ -1818,6 +1818,15 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
             os << "  asm(\"int3\");\n";
             break;
         }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            auto const copie_mémoire = inst->comme_copie_mémoire();
+            auto const destination = génère_code_pour_atome(copie_mémoire->destination, os, false);
+            auto const source = génère_code_pour_atome(copie_mémoire->source, os, false);
+            os << "  memcpy(" << destination << ", " << source << ", " << copie_mémoire->taille
+               << ");\n";
+            break;
+        }
     }
 }
 

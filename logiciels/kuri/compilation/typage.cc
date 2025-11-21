@@ -1905,6 +1905,11 @@ bool est_type_sse2(Type const *type)
     return type->est_déclaration_classe() && type->comme_déclaration_classe()->est_sse2;
 }
 
+bool stockage_type_doit_utiliser_memcpy(Type const *type)
+{
+    return type->est_type_tableau_fixe() || type->taille_octet > 64;
+}
+
 /* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre)

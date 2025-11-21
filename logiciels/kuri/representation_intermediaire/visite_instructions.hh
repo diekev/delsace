@@ -90,6 +90,13 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
             rappel(sélection->si_faux);
             break;
         }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            auto copie_mémoire = inst->comme_copie_mémoire();
+            rappel(copie_mémoire->destination);
+            rappel(copie_mémoire->source);
+            break;
+        }
         case GenreInstruction::ALLOCATION:
         case GenreInstruction::BRANCHE:
         case GenreInstruction::LABEL:

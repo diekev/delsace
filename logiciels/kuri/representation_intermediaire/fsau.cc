@@ -84,7 +84,7 @@ struct TableDesRelations {
     O(ADRESSE_DE, ValeurAdresseDe, adresse_de)                                                    \
     O(APPEL, ValeurAppel, appel)                                                                  \
     O(ACCÈS_RUBRIQUE, ValeurAccèsRubrique, accès_rubrique)                                        \
-    O(ACCÈS_INDICE, ValeurAccèsIndice, accès_indice)                                               \
+    O(ACCÈS_INDICE, ValeurAccèsIndice, accès_indice)                                              \
     O(ÉCRIS_INDICE, ValeurÉcrisIndice, écris_index)                                               \
     O(OPÉRATEUR_BINAIRE, ValeurOpérateurBinaire, opérateur_binaire)                               \
     O(OPÉRATEUR_UNAIRE, ValeurOpérateurUnaire, opérateur_unaire)                                  \
@@ -1645,6 +1645,11 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
             INSTRUCTION_NON_IMPLEMENTEE;
             break;
         }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            INSTRUCTION_NON_IMPLEMENTEE;
+            break;
+        }
     }
     return nullptr;
 }
@@ -2586,7 +2591,8 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
             auto atome_valeur = rièrevertis_en_ri(valeur_valeur, constructrice, true);
             assert_rappel(atome_valeur,
                           [&]() { dbg() << "Genre valeur valeur : " << valeur_valeur->genre; });
-            auto accès_indice = constructrice.crée_accès_indice(nullptr, atome_accédée, atome_index);
+            auto accès_indice = constructrice.crée_accès_indice(
+                nullptr, atome_accédée, atome_index);
             return constructrice.crée_stocke_mem(nullptr, accès_indice, atome_valeur);
         }
         case GenreValeur::APPEL:

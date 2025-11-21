@@ -755,6 +755,15 @@ void Chunk::émets_rembourrage(uint32_t rembourrage)
     émets(rembourrage);
 }
 
+void Chunk::émets_copie_mémoire(const NoeudExpression *site, uint32_t taille_octet)
+{
+    émets_notifie_dépilage(site, 8); /* Adresse destination. */
+    émets_notifie_dépilage(site, 8); /* Adresse source. */
+
+    émets_entête_op(OP_COPIE_MÉMOIRE, site);
+    émets(taille_octet);
+}
+
 /* ************************************************************************** */
 
 template <typename T>
@@ -965,6 +974,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_INCRÉMENTE:
         case OP_DÉCRÉMENTE:
         case OP_REMBOURRAGE:
+        case OP_COPIE_MÉMOIRE:
         case OP_NOTIFIE_DÉPILAGE_VALEUR:
         case OP_NOTIFIE_EMPILAGE_VALEUR:
         case OP_SÉLECTION:
@@ -1726,6 +1736,14 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             génère_code_pour_atome(sélection->si_vrai, chunk);
             génère_code_pour_atome(sélection->condition, chunk);
             chunk.émets_sélection(sélection->site, sélection->type);
+            break;
+        }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            auto copie_mémoire = instruction->comme_copie_mémoire();
+            génère_code_pour_atome(copie_mémoire->source, chunk);
+            génère_code_pour_atome(copie_mémoire->destination, chunk);
+            chunk.émets_copie_mémoire(copie_mémoire->site, copie_mémoire->taille);
             break;
         }
     }

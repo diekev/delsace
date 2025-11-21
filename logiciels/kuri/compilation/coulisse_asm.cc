@@ -1985,7 +1985,7 @@ struct GénératriceCodeASM {
                                    AssembleuseASM &assembleuse);
 
     void génère_code_pour_accès_indice(InstructionAccèsIndice const *accès,
-                                      AssembleuseASM &assembleuse);
+                                       AssembleuseASM &assembleuse);
 
     void génère_code_pour_transtype(InstructionTranstype const *transtype,
                                     AssembleuseASM &assembleuse);
@@ -2580,6 +2580,11 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             break;
         }
         case GenreInstruction::SÉLECTION:
+        {
+            VERIFIE_NON_ATTEINT;
+            break;
+        }
+        case GenreInstruction::COPIE_MÉMOIRE:
         {
             VERIFIE_NON_ATTEINT;
             break;
@@ -3499,7 +3504,7 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
 }
 
 void GénératriceCodeASM::génère_code_pour_accès_indice(InstructionAccèsIndice const *accès,
-                                                      AssembleuseASM &assembleuse)
+                                                       AssembleuseASM &assembleuse)
 {
     auto const atome_indice = donne_source_charge_ou_atome(accès->indice);
 

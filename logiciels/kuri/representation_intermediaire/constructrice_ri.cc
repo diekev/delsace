@@ -740,6 +740,19 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
     return inst;
 }
 
+InstructionCopieMémoire *ConstructriceRI::crée_copie_mémoire(NoeudExpression const *site_,
+                                                             Atome *destination,
+                                                             Atome *source,
+                                                             uint32_t taille,
+                                                             bool crée_seulement)
+{
+    auto résultat = m_copie_mémoire.ajoute_élément(site_, destination, source, taille);
+    if (!crée_seulement) {
+        insère(résultat);
+    }
+    return résultat;
+}
+
 InstructionAppel *ConstructriceRI::crée_appel(NoeudExpression const *site_, Atome *appelé)
 {
     auto inst = m_appel.ajoute_élément(site_, appelé);
@@ -881,8 +894,8 @@ Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
 }
 
 InstructionAccèsIndice *ConstructriceRI::crée_accès_indice(NoeudExpression const *site_,
-                                                          Atome *accédé,
-                                                          Atome *index)
+                                                           Atome *accédé,
+                                                           Atome *index)
 {
     auto type_élément = static_cast<Type const *>(nullptr);
     if (accédé->est_constante_tableau() || accédé->est_données_constantes()) {
@@ -922,9 +935,9 @@ InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(
 }
 
 InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExpression const *site_,
-                                                                    Atome *accédé,
-                                                                    int index,
-                                                                    bool crée_seulement)
+                                                                   Atome *accédé,
+                                                                   int index,
+                                                                   bool crée_seulement)
 {
     assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_référence(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
@@ -5298,6 +5311,23 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
     pointeur->drapeaux &= ~DrapeauxAtome::EST_UTILISÉ;
 
     assert_rappel(expression->type, [&]() { dbg() << "Aucun type pour " << expression->genre; });
+
+    if (stockage_type_doit_utiliser_memcpy(variable->type) &&
+        (expression->est_référence_déclaration() || expression->est_référence_rubrique())) {
+        auto ancienne_expression_gauche = expression_gauche;
+        expression_gauche = false;
+        génère_ri_pour_noeud(expression, nullptr);
+        expression_gauche = ancienne_expression_gauche;
+
+        auto valeur = depile_valeur();
+
+        m_constructrice.crée_copie_mémoire(
+            variable, pointeur, valeur, variable->type->taille_octet);
+
+        ajourne_indice_rubrique_union(variable);
+
+        return;
+    }
 
     if (transformation.type == TypeTransformation::INUTILE) {
         génère_ri_pour_expression_droite(expression, pointeur);

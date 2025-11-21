@@ -218,6 +218,17 @@ InstructionStockeMem::InstructionStockeMem(NoeudExpression const *site_,
     this->source = valeur_;
 }
 
+InstructionCopieMémoire::InstructionCopieMémoire(NoeudExpression const *site_,
+                                                 Atome *destination_,
+                                                 Atome *source_,
+                                                 uint32_t taille_)
+    : InstructionCopieMémoire(site_)
+{
+    this->destination = destination_;
+    this->source = source_;
+    this->taille = taille_;
+}
+
 InstructionLabel::InstructionLabel(NoeudExpression const *site_, int id_) : InstructionLabel(site_)
 {
     this->id = id_;
@@ -538,7 +549,8 @@ bool instruction_est_racine(Instruction const *inst)
                        GenreInstruction::LABEL,
                        GenreInstruction::RETOUR,
                        GenreInstruction::STOCKE_MÉMOIRE,
-                       GenreInstruction::INATTEIGNABLE);
+                       GenreInstruction::INATTEIGNABLE,
+                       GenreInstruction::COPIE_MÉMOIRE);
 }
 
 static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
@@ -814,6 +826,13 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                     visite_atome(sélection->condition, rappel);
                     visite_atome(sélection->si_vrai, rappel);
                     visite_atome(sélection->si_faux, rappel);
+                    break;
+                }
+                case GenreInstruction::COPIE_MÉMOIRE:
+                {
+                    auto const copie_mémoire = inst->comme_copie_mémoire();
+                    visite_atome(copie_mémoire->destination, rappel);
+                    visite_atome(copie_mémoire->source, rappel);
                     break;
                 }
                 case GenreInstruction::ALLOCATION:

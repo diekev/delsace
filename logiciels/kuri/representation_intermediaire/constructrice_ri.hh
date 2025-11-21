@@ -176,6 +176,11 @@ struct ConstructriceRI {
     InstructionChargeMem *crée_charge_mem(NoeudExpression const *site_,
                                           Atome *ou,
                                           bool crée_seulement = false);
+    InstructionCopieMémoire *crée_copie_mémoire(NoeudExpression const *site_,
+                                                Atome *destination,
+                                                Atome *source,
+                                                uint32_t taille,
+                                                bool crée_seulement = false);
     InstructionAppel *crée_appel(NoeudExpression const *site_, Atome *appelé);
     InstructionAppel *crée_appel(NoeudExpression const *site_,
                                  Atome *appelé,
@@ -196,17 +201,17 @@ struct ConstructriceRI {
                                Atome *valeur_droite);
 
     InstructionAccèsIndice *crée_accès_indice(NoeudExpression const *site_,
-                                             Atome *accédé,
-                                             Atome *index);
+                                              Atome *accédé,
+                                              Atome *index);
     InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                       Type const *type,
-                                                       Atome *accédé,
-                                                       int index,
-                                                       bool crée_seulement = false);
+                                                      Type const *type,
+                                                      Atome *accédé,
+                                                      int index,
+                                                      bool crée_seulement = false);
     InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                       Atome *accédé,
-                                                       int index,
-                                                       bool crée_seulement = false);
+                                                      Atome *accédé,
+                                                      int index,
+                                                      bool crée_seulement = false);
     Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index);

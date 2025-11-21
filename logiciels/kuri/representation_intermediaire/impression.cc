@@ -433,6 +433,17 @@ static void imprime_instruction_ex(Instruction const *inst,
             imprime_atome_ex(sélection->si_faux, os, options, true);
             break;
         }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            auto const copie_mémoire = inst->comme_copie_mémoire();
+            os << "copie_mémoire ";
+            imprime_atome_ex(copie_mémoire->destination, os, options, true);
+            os << ", ";
+            imprime_atome_ex(copie_mémoire->source, os, options, true);
+            os << ", ";
+            os << copie_mémoire->taille;
+            break;
+        }
         case GenreInstruction::ARRÊT_DÉBUG:
         {
             os << "arrêt_débug\n";

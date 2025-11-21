@@ -230,6 +230,15 @@ struct CopieuseInstruction {
                 nouvelle_sélection->si_faux = sélection->si_faux;
                 return nouvelle_sélection;
             }
+            case GenreInstruction::COPIE_MÉMOIRE:
+            {
+                auto const copie_mémoire = inst->comme_copie_mémoire();
+                auto destination = copie_atome(copie_mémoire->destination);
+                auto source = copie_atome(copie_mémoire->source);
+                auto nouvelle_copie_mémoire = constructrice.crée_copie_mémoire(
+                    inst->site, destination, source, copie_mémoire->taille, false);
+                return nouvelle_copie_mémoire;
+            }
         }
 
         assert(false);
@@ -457,6 +466,13 @@ struct Substitutrice {
                 sélection->si_vrai = valeur_substituée(sélection->si_vrai);
                 sélection->si_faux = valeur_substituée(sélection->si_faux);
                 return sélection;
+            }
+            case GenreInstruction::COPIE_MÉMOIRE:
+            {
+                auto const copie_mémoire = instruction->comme_copie_mémoire();
+                copie_mémoire->destination = valeur_substituée(copie_mémoire->destination);
+                copie_mémoire->source = valeur_substituée(copie_mémoire->source);
+                return copie_mémoire;
             }
             case GenreInstruction::BRANCHE:
             case GenreInstruction::ALLOCATION:

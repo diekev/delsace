@@ -51,6 +51,7 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
     O(OPÉRATION_UNAIRE, InstructionOpUnaire, op_unaire)                                           \
     O(CHARGE_MÉMOIRE, InstructionChargeMem, charge)                                               \
     O(STOCKE_MÉMOIRE, InstructionStockeMem, stocke_mem)                                           \
+    O(COPIE_MÉMOIRE, InstructionCopieMémoire, copie_mémoire)                                      \
     O(LABEL, InstructionLabel, label)                                                             \
     O(BRANCHE, InstructionBranche, branche)                                                       \
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
@@ -604,6 +605,25 @@ struct InstructionStockeMem : public Instruction {
     EMPECHE_COPIE(InstructionStockeMem);
 
     InstructionStockeMem(NoeudExpression const *site_, Atome *ou_, Atome *valeur_);
+};
+
+struct InstructionCopieMémoire : public Instruction {
+    explicit InstructionCopieMémoire(NoeudExpression const *site_)
+    {
+        site = site_;
+        genre = GenreInstruction::COPIE_MÉMOIRE;
+    }
+
+    Atome *destination = nullptr;
+    Atome *source = nullptr;
+    uint32_t taille = 0;
+
+    EMPECHE_COPIE(InstructionCopieMémoire);
+
+    InstructionCopieMémoire(NoeudExpression const *site_,
+                            Atome *destination_,
+                            Atome *source_,
+                            uint32_t taille_);
 };
 
 struct InstructionLabel : public Instruction {

@@ -1884,6 +1884,22 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             appel->addFnAttr(llvm::Attribute::NoUnwind);
             break;
         }
+        case GenreInstruction::COPIE_MÉMOIRE:
+        {
+            auto const copie_mémoire = inst->comme_copie_mémoire();
+            auto type = copie_mémoire->destination->type->comme_type_pointeur()->type_pointé;
+            auto volatile_ = est_volatile(copie_mémoire->source) ||
+                             est_volatile(copie_mémoire->destination);
+
+            auto source = génère_code_pour_atome(copie_mémoire->source, false);
+            auto destination = génère_code_pour_atome(copie_mémoire->destination, false);
+
+            auto alignement = llvm::MaybeAlign(type->alignement);
+
+            m_builder.CreateMemCpy(
+                destination, alignement, source, alignement, copie_mémoire->taille, volatile_);
+            break;
+        }
     }
 }
 
@@ -2733,11 +2749,13 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         auto valeur = &(*valeurs_args++);
         valeur->setName(arg_name);
 
+        auto type_alloué = it->donne_type_alloué();
+
         auto alloc = crée_allocation(it);
 
         if (info_débogage_fonction) {
             auto pos = m_info_débogage->donne_info_position(it->site);
-            auto type_param = m_info_débogage->donne_type(it->donne_type_alloué());
+            auto type_param = m_info_débogage->donne_type(type_alloué);
             auto dibuilder = m_info_débogage->dibuilder;
             auto D = dibuilder->createParameterVariable(info_débogage_fonction,
                                                         arg_name,
@@ -2756,8 +2774,17 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
                 m_builder.GetInsertBlock());
         }
 
-        auto store = m_builder.CreateStore(valeur, alloc);
-        store->setAlignment(alloc->getAlign());
+        auto alignement = alloc->getAlign();
+#if 0
+        if (stockage_type_doit_utiliser_memcpy(type_alloué)) {
+            m_builder.CreateMemCpy(
+                alloc, alignement, valeur, alignement, type_alloué->taille_octet);
+        }
+        else
+#endif
+        {
+            m_builder.CreateAlignedStore(valeur, alloc, alignement);
+        }
 
         définis_valeur_instruction(it, alloc);
     }

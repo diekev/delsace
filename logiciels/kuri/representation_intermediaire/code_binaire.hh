@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCÈS_INDICE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈS_INDICE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -131,7 +131,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_DÉBUTE_APPEL)                                            \
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)                                           \
     ENUMERE_CODE_OPERATION_EX(OP_INATTEIGNABLE)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)
+    ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)                                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_MÉMOIRE)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -385,6 +386,8 @@ struct Chunk {
 
     void émets_rembourrage(uint32_t rembourrage);
     void rétrécis_capacité_sur_taille();
+
+    void émets_copie_mémoire(const NoeudExpression *site, uint32_t taille_octet);
 };
 
 [[nodiscard]] kuri::chaine désassemble(Chunk const &chunk, kuri::chaine_statique nom);
