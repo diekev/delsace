@@ -1015,7 +1015,6 @@ struct GénératriceCodeLLVM {
     InfoDébogageLLVM *m_info_débogage = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
-    llvm::legacy::FunctionPassManager *manager_fonctions = nullptr;
 
     /* Pour le débogage. */
     int m_nombre_fonctions_compilées = 0;
@@ -1031,8 +1030,6 @@ struct GénératriceCodeLLVM {
     void génère_code();
 
   private:
-    void initialise_optimisation(NiveauOptimisation optimisation);
-
     llvm::Type *convertis_type_llvm(Type const *type);
 
     llvm::FunctionType *convertis_type_fonction(TypeFonction const *type);
@@ -1092,69 +1089,11 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
         m_info_débogage->unit = m_info_débogage->dibuilder->createCompileUnit(
             langage, fichier_racine, producer, est_optimisé, ligne_de_commande, version_runtime);
     }
-
-    initialise_optimisation(espace.options.niveau_optimisation);
 }
 
 GénératriceCodeLLVM::~GénératriceCodeLLVM()
 {
-    delete manager_fonctions;
     mémoire::deloge("InfoDébogageLLVM", m_info_débogage);
-}
-
-/**
- * Ajoute les passes d'optimisation au manageur en fonction du niveau
- * d'optimisation.
- */
-static void ajoute_passes(llvm::legacy::FunctionPassManager &manager_fonctions,
-                          uint32_t niveau_optimisation,
-                          uint32_t niveau_taille)
-{
-    llvm::PassManagerBuilder builder;
-    builder.OptLevel = niveau_optimisation;
-    builder.SizeLevel = niveau_taille;
-    builder.DisableUnrollLoops = (niveau_optimisation == 0);
-
-    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
-     * http://llvm.org/docs/Vectorizers.html */
-    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-
-    builder.populateFunctionPassManager(manager_fonctions);
-}
-
-/**
- * Initialise le manageur de passes fonctions du contexte selon le niveau
- * d'optimisation.
- */
-void GénératriceCodeLLVM::initialise_optimisation(NiveauOptimisation optimisation)
-{
-    if (manager_fonctions == nullptr) {
-        manager_fonctions = new llvm::legacy::FunctionPassManager(m_module);
-    }
-
-    switch (optimisation) {
-        case NiveauOptimisation::AUCUN:
-            break;
-        case NiveauOptimisation::O0:
-            ajoute_passes(*manager_fonctions, 0, 0);
-            break;
-        case NiveauOptimisation::O1:
-            ajoute_passes(*manager_fonctions, 1, 0);
-            break;
-        case NiveauOptimisation::O2:
-            ajoute_passes(*manager_fonctions, 2, 0);
-            break;
-        case NiveauOptimisation::Os:
-            ajoute_passes(*manager_fonctions, 2, 1);
-            break;
-        case NiveauOptimisation::Oz:
-            ajoute_passes(*manager_fonctions, 2, 2);
-            break;
-        case NiveauOptimisation::O3:
-            ajoute_passes(*manager_fonctions, 3, 0);
-            break;
-    }
 }
 
 llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
@@ -2848,10 +2787,6 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         // fonction->print(llvm::errs());
     }
 
-    if (manager_fonctions) {
-        manager_fonctions->run(*m_fonction_courante);
-    }
-
     m_fonction_courante = nullptr;
 }
 
@@ -3084,7 +3019,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
 }
 
 std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
-    const ArgsCréationFichiersObjets & /*args*/)
+    const ArgsCréationFichiersObjets &args)
 {
 #ifndef NDEBUG
     auto poule_de_tâches = kuri::PouleDeTâchesEnSérie{};
@@ -3097,7 +3032,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
 #endif
 
     POUR (m_modules) {
-        poule_de_tâches.ajoute_tâche([&]() { crée_fichier_objet(it); });
+        poule_de_tâches.ajoute_tâche([&]() { crée_fichier_objet(it, args.espace->options); });
     }
 
     if (!poule_de_tâches.attends_sur_tâches()) {
@@ -3150,7 +3085,58 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
     return {};
 }
 
-void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
+/**
+ * Ajoute les passes d'optimisation au manageur en fonction du niveau
+ * d'optimisation.
+ */
+static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
+                                            int niveau_optimisation,
+                                            int niveau_taille)
+{
+    builder.OptLevel = niveau_optimisation;
+    builder.SizeLevel = niveau_taille;
+    builder.DisableUnrollLoops = (niveau_optimisation == 0);
+
+    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+     * http://llvm.org/docs/Vectorizers.html */
+    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+}
+
+static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
+                        llvm::legacy::PassManager &pm,
+                        OptionsDeCompilation const &options)
+{
+    llvm::PassManagerBuilder builder;
+
+    switch (options.niveau_optimisation) {
+        case NiveauOptimisation::AUCUN:
+            break;
+        case NiveauOptimisation::O0:
+            ajoute_passes_pour_optimisation(builder, 0, 0);
+            break;
+        case NiveauOptimisation::O1:
+            ajoute_passes_pour_optimisation(builder, 1, 0);
+            break;
+        case NiveauOptimisation::O2:
+            ajoute_passes_pour_optimisation(builder, 2, 0);
+            break;
+        case NiveauOptimisation::Os:
+            ajoute_passes_pour_optimisation(builder, 2, 1);
+            break;
+        case NiveauOptimisation::Oz:
+            ajoute_passes_pour_optimisation(builder, 2, 2);
+            break;
+        case NiveauOptimisation::O3:
+            ajoute_passes_pour_optimisation(builder, 3, 0);
+            break;
+    }
+
+    builder.populateModulePassManager(pm);
+    builder.populateFunctionPassManager(fpm);
+}
+
+void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module, OptionsDeCompilation const &options)
 {
     std::error_code ec;
     llvm::raw_fd_ostream dest(
@@ -3162,15 +3148,27 @@ void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module)
         return;
     }
 
-    llvm::legacy::PassManager pass;
+    llvm::legacy::PassManager passes_pour_modules;
+    llvm::legacy::FunctionPassManager passes_pour_fonctions(module->module);
+
+    crée_passes(passes_pour_fonctions, passes_pour_modules, options);
+
+    passes_pour_fonctions.doInitialization();
+    POUR (*module->module) {
+        if (!it.isDeclaration()) {
+            passes_pour_fonctions.run(it);
+        }
+    }
+    passes_pour_fonctions.doFinalization();
+
     auto type_fichier = llvm::CGFT_ObjectFile;
 
-    if (m_machine_cible->addPassesToEmitFile(pass, dest, nullptr, type_fichier)) {
+    if (m_machine_cible->addPassesToEmitFile(passes_pour_modules, dest, nullptr, type_fichier)) {
         module->erreur_fichier_objet = "La machine cible ne peut pas émettre ce type de fichier";
         return;
     }
 
-    pass.run(*module->module);
+    passes_pour_modules.run(*module->module);
     dest.flush();
     if (!kuri::chemin_systeme::existe(module->chemin_fichier_objet)) {
         module->erreur_fichier_objet = enchaine(
