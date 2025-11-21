@@ -2615,13 +2615,11 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
         auto linkage_name = nom_globale;
         auto name = nom_globale;
         auto numéro_ligne = uint32_t(0);
-        auto numéro_ligne_scope = uint32_t(0);
         auto fichier = m_info_débogage->fichier_racine;
         if (globale->decl) {
             auto site = globale->decl;
             fichier = m_info_débogage->donne_fichier(site);
             numéro_ligne = uint32_t(site->lexème->ligne + 1);
-            numéro_ligne_scope = uint32_t(site->lexème->ligne + 1);
         }
 
         auto type_dwarf = m_info_débogage->donne_type(type);
