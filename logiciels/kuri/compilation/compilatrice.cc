@@ -485,10 +485,10 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 }
 
 MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
-    NoeudDéclarationEntêteFonction const *entete)
+    NoeudDéclarationEntêteFonction const *entête)
 {
     POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
-        if (it.fonction == entete) {
+        if (it.fonction == entête) {
             return &it;
         }
     }

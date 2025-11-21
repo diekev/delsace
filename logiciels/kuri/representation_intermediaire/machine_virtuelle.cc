@@ -1617,7 +1617,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 FAIS_TRANSTYPE_DIMINUE(char, short, int, int64_t)
                 break;
             }
-            case OP_AUGMENTE_REEL:
+            case OP_AUGMENTE_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1629,7 +1629,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_DIMINUE_REEL:
+            case OP_DIMINUE_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1980,7 +1980,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(adresse_rubrique);
                 break;
             }
-            case OP_ACCÈDE_INDICE:
+            case OP_ACCÈS_INDICE:
             {
                 auto taille_données = LIS_4_OCTETS();
                 auto adresse = dépile<char *>();

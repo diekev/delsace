@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈS_INDICE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -56,7 +56,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_INIT_LOCALE_ZÉRO)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RÉEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
@@ -87,7 +87,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_DEC_DROITE_LOGIQUE)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_DEC_GAUCHE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_NATUREL)                                                 \
-    ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_REEL)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RÉEL)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RELATIF)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE_REEL)                                                     \
@@ -345,7 +345,7 @@ struct Chunk {
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel);
-    void émets_accès_index(NoeudExpression const *site, Type const *type);
+    void émets_accès_indice(NoeudExpression const *site, Type const *type);
 
     void émets_branche(NoeudExpression const *site,
                        kuri::tableau<PatchLabel> &patchs_labels,

@@ -23,42 +23,42 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
 
             break;
         }
-        case GenreInstruction::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MÉMOIRE:
         {
             auto charge = inst->comme_charge();
             rappel(charge->chargée);
             break;
         }
-        case GenreInstruction::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MÉMOIRE:
         {
             auto stocke = inst->comme_stocke_mem();
             rappel(stocke->source);
             rappel(stocke->destination);
             break;
         }
-        case GenreInstruction::OPERATION_UNAIRE:
+        case GenreInstruction::OPÉRATION_UNAIRE:
         {
             auto op = inst->comme_op_unaire();
             rappel(op->valeur);
             break;
         }
-        case GenreInstruction::OPERATION_BINAIRE:
+        case GenreInstruction::OPÉRATION_BINAIRE:
         {
             auto op = inst->comme_op_binaire();
             rappel(op->valeur_droite);
             rappel(op->valeur_gauche);
             break;
         }
-        case GenreInstruction::ACCÈDE_INDICE:
+        case GenreInstruction::ACCÈS_INDICE:
         {
-            auto acces = inst->comme_acces_index();
-            rappel(acces->index);
+            auto acces = inst->comme_accès_indice();
+            rappel(acces->indice);
             rappel(acces->accédé);
             break;
         }
-        case GenreInstruction::ACCEDE_RUBRIQUE:
+        case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto acces = inst->comme_acces_rubrique();
+            auto acces = inst->comme_accès_rubrique();
             rappel(acces->accédé);
             break;
         }

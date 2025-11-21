@@ -195,15 +195,15 @@ struct ConstructriceRI {
                                Atome *valeur_gauche,
                                Atome *valeur_droite);
 
-    InstructionAccèdeIndex *crée_accès_index(NoeudExpression const *site_,
+    InstructionAccèsIndice *crée_accès_indice(NoeudExpression const *site_,
                                              Atome *accédé,
                                              Atome *index);
-    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
+    InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                        Type const *type,
                                                        Atome *accédé,
                                                        int index,
                                                        bool crée_seulement = false);
-    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
+    InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                        Atome *accédé,
                                                        int index,
                                                        bool crée_seulement = false);
@@ -217,7 +217,7 @@ struct ConstructriceRI {
                           TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccèdeIndexConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
+    AccèsIndiceConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
@@ -353,7 +353,7 @@ struct CompilatriceRI {
     void génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void génère_ri_pour_fonction_métaprogramme(EspaceDeTravail *espace,
                                                NoeudDéclarationEntêteFonction *fonction);
-    AtomeFonction *genere_fonction_init_globales_et_appel(
+    AtomeFonction *génère_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         kuri::tableau_statique<AtomeGlobale *> globales,
         AtomeFonction *fonction_pour);
@@ -411,7 +411,7 @@ struct CompilatriceRI {
                                        Type const *type,
                                        Atome *argument);
 
-    AtomeFonction *genere_fonction_init_globales_et_appel(
+    AtomeFonction *génère_fonction_init_globales_et_appel(
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
     void génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place = nullptr);

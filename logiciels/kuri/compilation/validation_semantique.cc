@@ -222,19 +222,19 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
     assert(m_assembleuse->bloc_courant() == nullptr);
 
     // crée une fonction pour l'exécution
-    auto decl_entete = m_assembleuse->crée_entête_fonction(directive->lexème);
-    auto decl_corps = decl_entete->corps;
+    auto decl_entête = m_assembleuse->crée_entête_fonction(directive->lexème);
+    auto decl_corps = decl_entête->corps;
 
-    decl_entete->bloc_parent = directive->bloc_parent;
+    decl_entête->bloc_parent = directive->bloc_parent;
     decl_corps->bloc_parent = directive->bloc_parent;
 
     m_assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entete->bloc_constantes = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entete, TypeBloc::CONSTANTES);
-    decl_entete->bloc_paramètres = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entete, TypeBloc::PARAMÈTRES);
+    decl_entête->bloc_constantes = m_assembleuse->empile_bloc(
+        directive->lexème, decl_entête, TypeBloc::CONSTANTES);
+    decl_entête->bloc_paramètres = m_assembleuse->empile_bloc(
+        directive->lexème, decl_entête, TypeBloc::PARAMÈTRES);
 
-    decl_entete->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+    decl_entête->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
                                        DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
 
     // le type de la fonction est fonc () -> (type_expression)
@@ -259,14 +259,14 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
                 "__ret0");
             decl_sortie->type = it.type;
             decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            decl_entete->params_sorties.ajoute(decl_sortie);
+            decl_entête->params_sorties.ajoute(decl_sortie);
         }
 
-        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
+        decl_entête->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
-        decl_entete->param_sortie->ident =
+        decl_entête->param_sortie->ident =
             m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
-        decl_entete->param_sortie->type = type_expression;
+        decl_entête->param_sortie->type = type_expression;
     }
     else {
         auto decl_sortie = m_assembleuse->crée_déclaration_variable(
@@ -275,19 +275,19 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
         decl_sortie->type = type_expression;
         decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-        decl_entete->params_sorties.ajoute(decl_sortie);
-        decl_entete->param_sortie = m_assembleuse->crée_déclaration_variable(
+        decl_entête->params_sorties.ajoute(decl_sortie);
+        decl_entête->param_sortie = m_assembleuse->crée_déclaration_variable(
             directive->lexème, nullptr, nullptr);
-        decl_entete->param_sortie->type = type_expression;
+        decl_entête->param_sortie->type = type_expression;
     }
 
     auto types_entrees = kuri::tablet<Type *, 6>(0);
 
     auto type_fonction = m_espace->typeuse.type_fonction(types_entrees, type_expression);
-    decl_entete->type = type_fonction;
+    decl_entête->type = type_fonction;
 
     decl_corps->bloc = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entete, TypeBloc::IMPÉRATIF);
+        directive->lexème, decl_entête, TypeBloc::IMPÉRATIF);
 
     auto lexème_retourne = m_contexte->lexèmes_extra->crée_lexème(
         directive->lexème, GenreLexème::RETOURNE, "retourne");
@@ -316,7 +316,7 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
 
         /* besoin de valider pour mettre en place les informations de retour */
         auto ancienne_racine = m_unité->noeud;
-        m_unité->noeud = decl_entete;
+        m_unité->noeud = decl_entête;
         valide_expression_retour(expr_ret);
         m_unité->noeud = ancienne_racine;
     }
@@ -326,13 +326,13 @@ MetaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiv
 
     decl_corps->bloc->ajoute_expression(expr_ret);
 
-    simplifie_arbre(m_contexte, decl_entete);
+    simplifie_arbre(m_contexte, decl_entête);
 
-    decl_entete->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+    decl_entête->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     decl_corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     auto metaprogramme = m_compilatrice.crée_metaprogramme(m_espace);
-    metaprogramme->fonction = decl_entete;
+    metaprogramme->fonction = decl_entête;
     metaprogramme->directive = directive;
     directive->métaprogramme = metaprogramme;
     return metaprogramme;
@@ -2339,8 +2339,8 @@ RésultatValidation Sémanticienne::valide_définition_unique_fonction(
         return CodeRetourValidation::OK;
     }
 
-    auto entete_existante = decl_existante->comme_entête_fonction();
-    POUR (*entete_existante->ensemble_de_surchages.verrou_lecture()) {
+    auto entête_existante = decl_existante->comme_entête_fonction();
+    POUR (*entête_existante->ensemble_de_surchages.verrou_lecture()) {
         if (it == decl || !it->est_entête_fonction()) {
             continue;
         }
@@ -3484,16 +3484,16 @@ static MéthodeRetourFonction détermine_méthode_retour_fonction(NoeudDéclarat
 
 RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFonction *decl)
 {
-    auto entete = decl->entête;
+    auto entête = decl->entête;
 
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
-        !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+        !entête->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
         // nous ferons l'analyse sémantique plus tard
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         return CodeRetourValidation::OK;
     }
 
-    decl->type = entete->type;
+    decl->type = entête->type;
 
     auto est_corps_texte = decl->est_corps_texte;
 
@@ -3511,7 +3511,7 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
         case MéthodeRetourFonction::RETOURNE_MANQUANT:
         {
             /* si aucune instruction de retour -> vérifie qu'aucun type n'a été spécifié */
-            auto type_fonc = entete->type->comme_type_fonction();
+            auto type_fonc = entête->type->comme_type_fonction();
             auto type_sortie = type_fonc->type_sortie;
             if (type_sortie->est_type_union() && !type_sortie->comme_type_union()->est_nonsure) {
                 if (peut_construire_union_via_rien(type_sortie->comme_type_union())) {
@@ -3531,41 +3531,41 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
             }
 
             if (decl->aide_génération_code != REQUIERS_RETOUR_UNION_VIA_RIEN &&
-                entete != m_espace->interface_kuri->decl_creation_contexte) {
+                entête != m_espace->interface_kuri->decl_creation_contexte) {
                 decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
             }
             break;
         }
     }
 
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS)) {
-        imprime_arbre_formatté(entete);
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_FUT_REQUIS)) {
+        imprime_arbre_formatté(entête);
     }
 
-    simplifie_arbre(m_contexte, entete);
+    simplifie_arbre(m_contexte, entête);
 
     if (est_corps_texte) {
         /* À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
          * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
          * la fonction soit validée afin de le compiler.
          */
-        auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entete);
+        auto metaprogramme = m_compilatrice.metaprogramme_pour_fonction(entête);
         m_compilatrice.gestionnaire_code->requiers_compilation_métaprogramme(m_espace,
                                                                              metaprogramme);
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
-    avertis_déclarations_inutilisées(*m_espace, *entete);
+    avertis_déclarations_inutilisées(*m_espace, *entête);
 
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
-        imprime_arbre(entete, std::cerr, 0);
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_FUT_REQUIS)) {
+        imprime_arbre(entête, std::cerr, 0);
     }
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)) {
-        imprime_arbre_substitue(entete, std::cerr, 0);
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_ASA_CANONIQUE_FUT_REQUIS)) {
+        imprime_arbre_substitue(entête, std::cerr, 0);
     }
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS)) {
-        imprime_arbre_canonique_formatté(entete);
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_FORMAT_CANONIQUE_FUT_REQUIS)) {
+        imprime_arbre_canonique_formatté(entête);
     }
 
     return CodeRetourValidation::OK;
@@ -3573,30 +3573,30 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
 
 RésultatValidation Sémanticienne::valide_opérateur(NoeudDéclarationCorpsFonction *decl)
 {
-    auto entete = decl->entête;
-    decl->type = entete->type;
+    auto entête = decl->entête;
+    decl->type = entête->type;
 
     TENTE(valide_arbre_aplatis(decl));
 
     auto inst_ret = derniere_instruction(decl->bloc, false);
 
     if (inst_ret == nullptr &&
-        (!entete->est_opérateur_pour() && !est_assignation_composée(entete->lexème->genre))) {
+        (!entête->est_opérateur_pour() && !est_assignation_composée(entête->lexème->genre))) {
         rapporte_erreur("Instruction de retour manquante", decl, erreur::Genre::TYPE_DIFFERENTS);
         return CodeRetourValidation::Erreur;
     }
 
-    if (est_assignation_composée(entete->lexème->genre)) {
+    if (est_assignation_composée(entête->lexème->genre)) {
         decl->aide_génération_code = REQUIERS_CODE_EXTRA_RETOUR;
     }
 
     /* La simplification des corps des opérateurs « pour » se fera lors de la simplification de la
      * boucle « pour » utilisant ledit corps. */
-    if (!entete->est_opérateur_pour()) {
-        simplifie_arbre(m_contexte, entete);
+    if (!entête->est_opérateur_pour()) {
+        simplifie_arbre(m_contexte, entête);
     }
 
-    avertis_déclarations_inutilisées(*m_espace, *entete);
+    avertis_déclarations_inutilisées(*m_espace, *entête);
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     return CodeRetourValidation::OK;

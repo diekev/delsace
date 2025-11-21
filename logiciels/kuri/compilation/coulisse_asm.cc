@@ -55,7 +55,7 @@ inline bool est_adresse_locale(Atome const *atome)
 
     auto inst = atome->comme_instruction();
 
-    if (inst->est_alloc() || inst->est_acces_rubrique() || inst->est_acces_index()) {
+    if (inst->est_alloc() || inst->est_accès_rubrique() || inst->est_accès_indice()) {
         return true;
     }
 
@@ -80,9 +80,9 @@ static Atome const *donne_source_charge_ou_atome(Atome const *atome)
     return atome;
 }
 
-inline bool est_accès_index(Atome const *atome)
+inline bool est_accès_indice(Atome const *atome)
 {
-    return atome->est_instruction() && atome->comme_instruction()->est_acces_index();
+    return atome->est_instruction() && atome->comme_instruction()->est_accès_indice();
 }
 
 /** \} */
@@ -1984,7 +1984,7 @@ struct GénératriceCodeASM {
     void génère_code_pour_retourne(const InstructionRetour *inst_retour,
                                    AssembleuseASM &assembleuse);
 
-    void génère_code_pour_accès_index(InstructionAccèdeIndex const *accès,
+    void génère_code_pour_accès_indice(InstructionAccèsIndice const *accès,
                                       AssembleuseASM &assembleuse);
 
     void génère_code_pour_transtype(InstructionTranstype const *transtype,
@@ -2136,7 +2136,7 @@ void GénératriceCodeASM::génère_code_pour_atome_opérande(Atome const *opér
 
     génère_code_pour_atome(atome, assembleuse, utilisation);
 
-    if (est_accès_index(atome)) {
+    if (est_accès_indice(atome)) {
         // auto registre = registres.donne_registre_entier_inoccupé();
         // assembleuse.mov(registre, valeur_atome, 8);
         // valeur_atome = AssembleuseASM::Mémoire(registre);
@@ -2407,7 +2407,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             auto registre = registres.donne_registre_entier_inoccupé();
 
-            auto adresse = m_adresses_locales[inst->numero];
+            auto adresse = m_adresses_locales[inst->numéro];
             assembleuse.lea(registre, adresse);
             assembleuse.push(registre, 8);
 
@@ -2424,7 +2424,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             auto inst_branche = inst->comme_branche();
 
             /* N'émettons pas de saut si la cible est la prochaine instruction. */
-            if (inst_branche->label->numero == inst->numero + 1) {
+            if (inst_branche->label->numéro == inst->numéro + 1) {
                 return;
             }
 
@@ -2437,12 +2437,12 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_branche_condition(inst_branche, assembleuse);
             break;
         }
-        case GenreInstruction::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MÉMOIRE:
         {
             génère_code_pour_charge_mémoire(inst->comme_charge(), assembleuse, utilisation);
             break;
         }
-        case GenreInstruction::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MÉMOIRE:
         {
             génère_code_pour_stocke_mémoire(inst->comme_stocke_mem(), assembleuse);
             break;
@@ -2457,7 +2457,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             assembleuse.label(inst_label->id);
             break;
         }
-        case GenreInstruction::OPERATION_UNAIRE:
+        case GenreInstruction::OPÉRATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
 
@@ -2530,7 +2530,7 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
 
             break;
         }
-        case GenreInstruction::OPERATION_BINAIRE:
+        case GenreInstruction::OPÉRATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
             génère_code_pour_opération_binaire(inst_bin, assembleuse, utilisation);
@@ -2541,14 +2541,14 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_retourne(inst->comme_retour(), assembleuse);
             break;
         }
-        case GenreInstruction::ACCÈDE_INDICE:
+        case GenreInstruction::ACCÈS_INDICE:
         {
-            génère_code_pour_accès_index(inst->comme_acces_index(), assembleuse);
+            génère_code_pour_accès_indice(inst->comme_accès_indice(), assembleuse);
             break;
         }
-        case GenreInstruction::ACCEDE_RUBRIQUE:
+        case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto const accès = inst->comme_acces_rubrique();
+            auto const accès = inst->comme_accès_rubrique();
             auto const accédé = accès->accédé;
             // À FAIRE : accès fusionné
 
@@ -2605,7 +2605,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
         appel->appelé->type->comme_type_fonction());
 
     auto type_retour = appel->type;
-    auto adresse_retour = m_adresses_locales[appel->numero];
+    auto adresse_retour = m_adresses_locales[appel->numéro];
 
     POUR_INDICE (appel->args) {
         auto classement_arg = classement.arguments[indice_it];
@@ -2789,7 +2789,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     if (!type_retour->est_type_rien()) {
         auto registre = registres.donne_registre_entier_inoccupé();
 
-        auto adresse = m_adresses_locales[appel->numero];
+        auto adresse = m_adresses_locales[appel->numéro];
         assembleuse.lea(registre, adresse);
         assembleuse.push(registre, 8);
 
@@ -3121,7 +3121,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
         assembleuse.cmp(opérande_gauche, opérande_droite, type_gauche->taille_octet);
         gen_code(registre_résultat, registre);
 
-        // table_valeurs[inst_bin->numero] = registre_résultat;
+        // table_valeurs[inst_bin->numéro] = registre_résultat;
         registres.réinitialise();
         registres.marque_registre_occupé(registre_résultat);
     };
@@ -3171,7 +3171,7 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
 
         assembleuse.empile(registre_résultat, inst_bin->type->taille_octet);
 
-        // table_valeurs[inst_bin->numero] = registre_résultat;
+        // table_valeurs[inst_bin->numéro] = registre_résultat;
         registres.réinitialise();
         registres.marque_registre_occupé(registre_résultat);
     };
@@ -3498,10 +3498,10 @@ void GénératriceCodeASM::génère_code_pour_retourne(const InstructionRetour *
     assembleuse.ret();
 }
 
-void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeIndex const *accès,
+void GénératriceCodeASM::génère_code_pour_accès_indice(InstructionAccèsIndice const *accès,
                                                       AssembleuseASM &assembleuse)
 {
-    auto const atome_index = donne_source_charge_ou_atome(accès->index);
+    auto const atome_indice = donne_source_charge_ou_atome(accès->indice);
 
     génère_code_pour_atome(accès->accédé, assembleuse, UtilisationAtome::AUCUNE);
 
@@ -3516,14 +3516,14 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
             dbg() << "L'instruction est de genre " << accès->accédé->comme_instruction()->genre;
         });
 
-    auto index = registres.donne_registre_entier_inoccupé();
+    auto registre = registres.donne_registre_entier_inoccupé();
 
     /* Corrige l'index pour prendre en compte la taille du type. */
     auto const type_pointeur = accès->accédé->type->comme_type_pointeur();
     auto type_accédé = type_pointeur->type_pointé;
 
-    if (atome_index->est_constante_entière()) {
-        auto const constante = atome_index->comme_constante_entière();
+    if (atome_indice->est_constante_entière()) {
+        auto const constante = atome_indice->comme_constante_entière();
         // À FAIRE : si la constante == 0, nous pouvons retourner ici,
         //           car la bonne adresse est déjà sur la pile.
 
@@ -3539,22 +3539,22 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
         }
 
         auto décalage = constante->valeur * type_accédé->taille_octet;
-        assembleuse.mov(index, AssembleuseASM::Immédiate64{décalage}, 8);
+        assembleuse.mov(registre, AssembleuseASM::Immédiate64{décalage}, 8);
     }
     else {
-        registres.marque_registre_occupé(index);
-        auto ancien_registre = index;
+        registres.marque_registre_occupé(registre);
+        auto ancien_registre = registre;
         auto doit_restaurer_rax = false;
-        if (index != Registre::RAX) {
+        if (registre != Registre::RAX) {
             if (registres.registre_est_occupé(Registre::RAX)) {
                 doit_restaurer_rax = true;
-                assembleuse.mov(index, Registre::RAX, 8);
+                assembleuse.mov(registre, Registre::RAX, 8);
             }
-            index = Registre::RAX;
+            registre = Registre::RAX;
         }
 
-        génère_code_pour_atome(atome_index, assembleuse, UtilisationAtome::AUCUNE);
-        charge_atome_dans_registre(atome_index, accès->index, index, assembleuse);
+        génère_code_pour_atome(atome_indice, assembleuse, UtilisationAtome::AUCUNE);
+        charge_atome_dans_registre(atome_indice, accès->indice, registre, assembleuse);
 
         if (type_accédé->est_type_tableau_fixe()) {
             type_accédé = type_accédé->comme_type_tableau_fixe()->type_pointé;
@@ -3576,7 +3576,7 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
             assembleuse.mov(tmp, Registre::RAX, 8);
             assembleuse.mov(Registre::RAX, ancien_registre, 8);
             assembleuse.mov(ancien_registre, tmp, 8);
-            index = ancien_registre;
+            registre = ancien_registre;
         }
     }
 
@@ -3590,7 +3590,7 @@ void GénératriceCodeASM::génère_code_pour_accès_index(InstructionAccèdeInd
         }
     }
 
-    assembleuse.add(accédé, index, 8);
+    assembleuse.add(accédé, registre, 8);
     assembleuse.push(accédé);
 }
 
@@ -3643,7 +3643,7 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             assembleuse.push(registre);
             break;
         }
-        case TypeTranstypage::AUGMENTE_REEL:
+        case TypeTranstypage::AUGMENTE_RÉEL:
         {
             VERIFIE_NON_ATTEINT;
             break;
@@ -3668,7 +3668,7 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             assembleuse.push(registre2);
             break;
         }
-        case TypeTranstypage::DIMINUE_REEL:
+        case TypeTranstypage::DIMINUE_RÉEL:
         {
             auto registre1 = registres.donne_registre_réel_inoccupé();
             auto registre2 = registres.donne_registre_réel_inoccupé();
@@ -3864,10 +3864,10 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
 
     auto génère_code_branche = [&](auto &&méthode_si_vrai, auto &&méthode_si_faux) {
         /* Ne générons qu'un seul saut si possible. */
-        if (si_vrai->numero == inst_branche->numero + 1) {
+        if (si_vrai->numéro == inst_branche->numéro + 1) {
             (assembleuse.*méthode_si_faux)(si_faux->id);
         }
-        else if (si_faux->numero == inst_branche->numero + 1) {
+        else if (si_faux->numéro == inst_branche->numéro + 1) {
             (assembleuse.*méthode_si_vrai)(si_vrai->id);
         }
         else {
@@ -3939,10 +3939,10 @@ void GénératriceCodeASM::génère_code_pour_branche_condition(
     assembleuse.test(condition, condition);
 
     /* Ne générons qu'un seul saut si possible. */
-    if (si_vrai->numero == inst_branche->numero + 1) {
+    if (si_vrai->numéro == inst_branche->numéro + 1) {
         assembleuse.jump_si_zéro(inst_branche->label_si_faux->id);
     }
-    else if (si_faux->numero == inst_branche->numero + 1) {
+    else if (si_faux->numéro == inst_branche->numéro + 1) {
         assembleuse.jump_si_non_zéro(inst_branche->label_si_vrai->id);
     }
     else {
@@ -4078,7 +4078,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
         src = AssembleuseASM::Mémoire{registre};
     }
 
-    // if (est_accès_index(inst_stocke->destination)) {
+    // if (est_accès_indice(inst_stocke->destination)) {
     //     auto registre = registres.donne_registre_entier_inoccupé();
     //     assembleuse.mov(registre, dest, 8);
     //     dest = AssembleuseASM::Mémoire(registre);
@@ -4103,7 +4103,7 @@ void GénératriceCodeASM::génère_code_pour_stocke_mémoire(InstructionStockeM
     // auto const atome_source = donne_source_charge_ou_atome(inst_stocke->source);
     // auto src = génère_code_pour_atome(atome_source, assembleuse, UtilisationAtome::AUCUNE);
 
-    // if (est_accès_index(atome_source)) {
+    // if (est_accès_indice(atome_source)) {
     //     auto registre = registres.donne_registre_entier_inoccupé();
     //     assembleuse.mov(registre, src, 8);
     //     src = AssembleuseASM::Mémoire(registre);
@@ -4451,14 +4451,14 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         auto type_alloué = it->donne_type_alloué();
 
         if (classement_arg.est_en_mémoire) {
-            m_adresses_locales[it->numero] = AssembleuseASM::Mémoire(Registre::RBP,
+            m_adresses_locales[it->numéro] = AssembleuseASM::Mémoire(Registre::RBP,
                                                                      décalage_argument_mémoire);
             décalage_argument_mémoire += int32_t(type_alloué->taille_octet);
             continue;
         }
 
         auto adresse = alloue_variable(type_alloué);
-        m_adresses_locales[it->numero] = adresse;
+        m_adresses_locales[it->numéro] = adresse;
 
         auto taille_en_octet = type_alloué->taille_octet;
 
@@ -4500,16 +4500,16 @@ void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonc
         auto type_pointe = alloc->donne_type_alloué();
 
         if (!type_pointe->est_type_rien()) {
-            m_adresses_locales[alloc->numero] = alloue_variable(alloc);
+            m_adresses_locales[alloc->numéro] = alloue_variable(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            m_adresses_locales[it->numero] = alloue_variable(it->comme_alloc());
+            m_adresses_locales[it->numéro] = alloue_variable(it->comme_alloc());
         }
         else if (it->est_appel() && !it->type->est_type_rien()) {
-            m_adresses_locales[it->numero] = alloue_variable(it->type);
+            m_adresses_locales[it->numéro] = alloue_variable(it->type);
         }
     }
 

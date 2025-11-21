@@ -24,7 +24,7 @@
 /* À FAIRE : nous ne pouvons copier les rubriques des blocs (de constantes ou autres) car la copie
  * des rubriques des blocs peut créer des doublons lorsque le noeud sera validé car la validation
  * sémantique ajoute les rubriques pour les déclarations de variables. */
-static const char *copie_extra_entete_fonction = R"(
+static const char *copie_extra_entête_fonction = R"(
             /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
              * sont placés par la Syntaxeuse directement dans les rubriques. */
             POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
@@ -185,7 +185,7 @@ struct GeneratriceCodeCPP {
         }
     }
 
-    void genere_fichier_entete_arbre_syntaxique(FluxSortieCPP &os)
+    void génère_fichier_entête_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
         inclus(os, "utilitaires/macros.hh");
@@ -283,7 +283,7 @@ struct GeneratriceCodeCPP {
               "std::function<DecisionVisiteNoeud(NoeudExpression const *)> const &rappel);\n\n";
     }
 
-    void genere_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
+    void génère_fichier_source_arbre_syntaxique(FluxSortieCPP &os)
     {
         inclus(os, "noeud_expression.hh");
         inclus(os, "utilitaires/log.hh");
@@ -299,9 +299,9 @@ struct GeneratriceCodeCPP {
             it->génère_code_cpp(os, false);
         }
 
-        genere_impression_arbre_syntaxique(os);
-        genere_visite_noeud(os);
-        genere_copie_noeud(os);
+        génère_impression_arbre_syntaxique(os);
+        génère_visite_noeud(os);
+        génère_copie_noeud(os);
 
         os << "void imprime_genre_noeud_pour_assert(const NoeudExpression *noeud)\n";
         os << "{\n";
@@ -310,7 +310,7 @@ struct GeneratriceCodeCPP {
         os << "}\n\n";
     }
 
-    void genere_impression_arbre_syntaxique(FluxSortieCPP &os)
+    void génère_impression_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "void imprime_arbre_substitue(const NoeudExpression *racine, Enchaineuse &os, int "
               "profondeur)\n";
@@ -408,7 +408,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << implémentations_supplémentaires;
     }
 
-    void genere_visite_noeud(FluxSortieCPP &os)
+    void génère_visite_noeud(FluxSortieCPP &os)
     {
         os << "void visite_noeud(NoeudExpression const *racine, PreferenceVisiteNoeud preference, "
               "bool ignore_blocs_non_traversables_des_si_statiques, "
@@ -503,7 +503,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "}\n";
     }
 
-    void genere_copie_noeud(FluxSortieCPP &os)
+    void génère_copie_noeud(FluxSortieCPP &os)
     {
         os << "NoeudExpression *Copieuse::copie_noeud(const NoeudExpression *racine)\n";
         os << "{\n";
@@ -529,9 +529,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             /* Les corps sont créés directement avec les entêtes. */
             if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
-                os << "\t\t\tauto copie_entete = "
+                os << "\t\t\tauto copie_entête = "
                       "trouve_copie(orig->entête)->comme_entête_fonction();\n";
-                os << "\t\t\tnracine = copie_entete->corps;\n";
+                os << "\t\t\tnracine = copie_entête->corps;\n";
             }
             else {
                 os << "\t\t\tnracine = assem->crée_noeud<GenreNoeud::" << nom_genre
@@ -644,13 +644,13 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
             });
 
             if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
-                os << copie_extra_entete_fonction << "\n";
+                os << copie_extra_entête_fonction << "\n";
                 os << "\t\tif (orig->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {\n";
                 os << copie_extra_entête_opérateur_pour << "\n";
                 os << "\t\t}\n";
             }
             else if (nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
-                os << copie_extra_entete_fonction << "\n";
+                os << copie_extra_entête_fonction << "\n";
                 os << copie_extra_entête_opérateur_pour << "\n";
             }
             else if (nom_genre.nom() == "DÉCLARATION_STRUCTURE") {
@@ -676,7 +676,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "}\n";
     }
 
-    void genere_fichier_entete_noeud_code(FluxSortieCPP &os)
+    void génère_fichier_entête_noeud_code(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
         inclus(os, "noeud_expression.hh");
@@ -754,8 +754,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 if (nom_rubrique.nom() == "lexème") {
                     os << "\tkuri::chaine_statique chemin_fichier{};\n";
                     os << "\tkuri::chaine_statique nom_fichier{};\n";
-                    os << "\tint numero_ligne = 0;\n";
-                    os << "\tint numero_colonne = 0;\n";
+                    os << "\tint numéro_ligne = 0;\n";
+                    os << "\tint numéro_colonne = 0;\n";
                     continue;
                 }
 
@@ -886,7 +886,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "};\n\n";
     }
 
-    void genere_fichier_source_noeud_code(FluxSortieCPP &os)
+    void génère_fichier_source_noeud_code(FluxSortieCPP &os)
     {
         inclus(os, "noeud_code.hh");
         inclus_système(os, "iostream");
@@ -1063,8 +1063,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\t\tconst auto fichier = espace->fichier(lexeme->fichier);\n";
         os << "\t\tnoeud->chemin_fichier = fichier->chemin();\n";
         os << "\t\tnoeud->nom_fichier = fichier->nom();\n";
-        os << "\t\tnoeud->numero_ligne = lexeme->ligne + 1;\n";
-        os << "\t\tnoeud->numero_colonne = lexeme->colonne;\n";
+        os << "\t\tnoeud->numéro_ligne = lexeme->ligne + 1;\n";
+        os << "\t\tnoeud->numéro_colonne = lexeme->colonne;\n";
         os << "\t}\n";
         os << "\treturn noeud;\n";
         os << "}\n\n";
@@ -1266,7 +1266,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         }
     }
 
-    void genere_fichier_source_assembleuse(FluxSortieCPP &os)
+    void génère_fichier_source_assembleuse(FluxSortieCPP &os)
     {
         inclus(os, "assembleuse.hh");
 
@@ -1334,7 +1334,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         }
     }
 
-    void genere_fichier_entete_assembleuse(FluxSortieCPP &os)
+    void génère_fichier_entête_assembleuse(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
         inclus(os, "allocatrice.hh");
@@ -1395,10 +1395,10 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         }
 
         if (genre == GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION) {
-            auto entete = noeud->comme_entête_fonction();
-            entete->corps->lexème = lexeme;
-            entete->corps->ident = lexeme->ident;
-            entete->corps->bloc_parent = entete->bloc_parent;
+            auto entête = noeud->comme_entête_fonction();
+            entête->corps->lexème = lexeme;
+            entête->corps->ident = lexeme->ident;
+            entête->corps->bloc_parent = entête->bloc_parent;
         }
 
         if (genre == GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE) {
@@ -1459,7 +1459,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         os << "};\n";
     }
 
-    void genere_fichier_source_allocatrice(FluxSortieCPP &os)
+    void génère_fichier_source_allocatrice(FluxSortieCPP &os)
     {
         inclus(os, "allocatrice.hh");
         inclus(os, "statistiques/statistiques.hh");
@@ -1581,7 +1581,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
         os << "}\n";
     }
 
-    void genere_fichier_entete_allocatrice(FluxSortieCPP &os)
+    void génère_fichier_entête_allocatrice(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
         inclus(os, "structures/tableau_page.hh");
@@ -1631,15 +1631,15 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
             if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION" ||
                 nom_genre.nom() == "DÉCLARATION_OPÉRATEUR_POUR") {
                 if (nom_genre.nom() == "DÉCLARATION_ENTÊTE_FONCTION") {
-                    os << "\t\t\t\tauto entete = m_noeuds_entête_fonction.ajoute_élément();\n";
+                    os << "\t\t\t\tauto entête = m_noeuds_entête_fonction.ajoute_élément();\n";
                 }
                 else {
-                    os << "\t\t\t\tauto entete = m_noeuds_opérateur_pour.ajoute_élément();\n";
+                    os << "\t\t\t\tauto entête = m_noeuds_opérateur_pour.ajoute_élément();\n";
                 }
                 os << "\t\t\t\tauto corps  = m_noeuds_corps_fonction.ajoute_élément();\n";
-                os << "\t\t\t\tentete->corps = corps;\n";
-                os << "\t\t\t\tcorps->entête = entete;\n";
-                os << "\t\t\t\treturn entete;\n";
+                os << "\t\t\t\tentête->corps = corps;\n";
+                os << "\t\t\t\tcorps->entête = entête;\n";
+                os << "\t\t\t\treturn entête;\n";
             }
             else if (nom_genre.nom() == "DÉCLARATION_CORPS_FONCTION") {
                 os << "\t\t\t\treturn nullptr;\n";
@@ -1690,7 +1690,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
 };
 
 struct GeneratriceCodeKuri {
-    void genere_fichier_kuri_noeud_code(FluxSortieKuri &os,
+    void génère_fichier_kuri_noeud_code(FluxSortieKuri &os,
                                         kuri::tableau<Protéine *> const &protéines)
     {
         // Les structures Kuri pour NoeudCode
@@ -1770,18 +1770,18 @@ int main(int argc, char **argv)
     if (nom_fichier_sortie.nom_fichier() == "noeud_expression.cc") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_source_arbre_syntaxique(flux);
+        generatrice.génère_fichier_source_arbre_syntaxique(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "noeud_expression.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_entete_arbre_syntaxique(flux);
+        generatrice.génère_fichier_entête_arbre_syntaxique(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "noeud_code.cc") {
         {
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
             auto flux = FluxSortieCPP(fichier_sortie);
-            generatrice.genere_fichier_source_noeud_code(flux);
+            generatrice.génère_fichier_source_noeud_code(flux);
             if (!remplace_si_différent(nom_fichier_tmp, argv[1])) {
                 return 1;
             }
@@ -1793,33 +1793,33 @@ int main(int argc, char **argv)
             std::ofstream fichier_sortie(vers_std_path(nom_fichier_sortie));
             auto flux = FluxSortieKuri(fichier_sortie);
             GeneratriceCodeKuri generatrice_kuri;
-            generatrice_kuri.genere_fichier_kuri_noeud_code(flux, syntaxeuse.protéines);
+            generatrice_kuri.génère_fichier_kuri_noeud_code(flux, syntaxeuse.protéines);
         }
     }
     else if (nom_fichier_sortie.nom_fichier() == "noeud_code.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_entete_noeud_code(flux);
+        generatrice.génère_fichier_entête_noeud_code(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "assembleuse.cc") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_source_assembleuse(flux);
+        generatrice.génère_fichier_source_assembleuse(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "assembleuse.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_entete_assembleuse(flux);
+        generatrice.génère_fichier_entête_assembleuse(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "allocatrice.cc") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_source_allocatrice(flux);
+        generatrice.génère_fichier_source_allocatrice(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "allocatrice.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));
         auto flux = FluxSortieCPP(fichier_sortie);
-        generatrice.genere_fichier_entete_allocatrice(flux);
+        generatrice.génère_fichier_entête_allocatrice(flux);
     }
     else if (nom_fichier_sortie.nom_fichier() == "prodeclaration.hh") {
         std::ofstream fichier_sortie(vers_std_path(nom_fichier_tmp));

@@ -511,12 +511,12 @@ void Chunk::émets_appel_pointeur(NoeudExpression const *site,
     émets_empilage_retour_appel(site, inst_appel);
 }
 
-void Chunk::émets_accès_index(NoeudExpression const *site, Type const *type)
+void Chunk::émets_accès_indice(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
     émets_notifie_dépilage(site, 8); /* adresse */
     émets_notifie_dépilage(site, 8); /* index */
-    émets_entête_op(OP_ACCÈDE_INDICE, site);
+    émets_entête_op(OP_ACCÈS_INDICE, site);
     émets(type->taille_octet);
     émets_notifie_empilage(site, 8); /* nouvelle_adresse */
 }
@@ -642,9 +642,9 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
         {
             return OP_NATUREL_VERS_REEL;
         }
-        case TypeTranstypage::AUGMENTE_REEL:
+        case TypeTranstypage::AUGMENTE_RÉEL:
         {
-            return OP_AUGMENTE_REEL;
+            return OP_AUGMENTE_RÉEL;
         }
         case TypeTranstypage::AUGMENTE_NATUREL:
         case TypeTranstypage::AUGMENTE_NATUREL_VERS_RELATIF:
@@ -656,9 +656,9 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
         {
             return OP_AUGMENTE_RELATIF;
         }
-        case TypeTranstypage::DIMINUE_REEL:
+        case TypeTranstypage::DIMINUE_RÉEL:
         {
-            return OP_DIMINUE_REEL;
+            return OP_DIMINUE_RÉEL;
         }
         case TypeTranstypage::DIMINUE_NATUREL:
         case TypeTranstypage::DIMINUE_NATUREL_VERS_RELATIF:
@@ -955,7 +955,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_REFERENCE_GLOBALE:
         case OP_RÉFÉRENCE_LOCALE:
         case OP_REFERENCE_RUBRIQUE:
-        case OP_ACCÈDE_INDICE:
+        case OP_ACCÈS_INDICE:
         case OP_COMPLEMENT_REEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
@@ -1032,8 +1032,8 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_DIMINUE_NATUREL:
         case OP_AUGMENTE_RELATIF:
         case OP_DIMINUE_RELATIF:
-        case OP_AUGMENTE_REEL:
-        case OP_DIMINUE_REEL:
+        case OP_AUGMENTE_RÉEL:
+        case OP_DIMINUE_RÉEL:
         case OP_NATUREL_VERS_REEL:
         case OP_RELATIF_VERS_REEL:
         case OP_REEL_VERS_NATUREL:
@@ -1389,7 +1389,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
     fonction->numérote_instructions();
 
     POUR (fonction->params_entrée) {
-        m_indice_locales[it->numero] = chunk.ajoute_locale(it);
+        m_indice_locales[it->numéro] = chunk.ajoute_locale(it);
     }
 
     /* crée une variable local pour la valeur de sortie */
@@ -1398,13 +1398,13 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         auto type_pointe = alloc->donne_type_alloué();
 
         if (!type_pointe->est_type_rien()) {
-            m_indice_locales[alloc->numero] = chunk.ajoute_locale(alloc);
+            m_indice_locales[alloc->numéro] = chunk.ajoute_locale(alloc);
         }
     }
 
     POUR (fonction->instructions) {
         if (it->est_alloc()) {
-            m_indice_locales[it->numero] = chunk.ajoute_locale(it->comme_alloc());
+            m_indice_locales[it->numéro] = chunk.ajoute_locale(it->comme_alloc());
         }
     }
 
@@ -1498,7 +1498,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_référence_locale(alloc->site, donne_indice_locale(alloc));
             break;
         }
-        case GenreInstruction::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MÉMOIRE:
         {
             auto charge = instruction->comme_charge();
 
@@ -1512,7 +1512,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_charge(charge->site, charge->type);
             break;
         }
-        case GenreInstruction::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MÉMOIRE:
         {
             auto stocke = instruction->comme_stocke_mem();
 
@@ -1624,10 +1624,10 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             auto opt_op_transtype = converti_type_transtypage(transtype->op);
             if (opt_op_transtype.has_value()) {
                 auto op_transtype = opt_op_transtype.value();
-                if (op_transtype == OP_AUGMENTE_REEL) {
+                if (op_transtype == OP_AUGMENTE_RÉEL) {
                     chunk.émets_transtype(transtype->site, op_transtype, 4, 8);
                 }
-                else if (op_transtype == OP_DIMINUE_REEL) {
+                else if (op_transtype == OP_DIMINUE_RÉEL) {
                     chunk.émets_transtype(transtype->site, op_transtype, 8, 4);
                 }
                 else {
@@ -1640,28 +1640,28 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             break;
         }
-        case GenreInstruction::ACCÈDE_INDICE:
+        case GenreInstruction::ACCÈS_INDICE:
         {
-            auto index = instruction->comme_acces_index();
-            auto type_pointeur = index->type->comme_type_pointeur();
-            génère_code_pour_atome(index->index, chunk);
-            génère_code_pour_atome(index->accédé, chunk);
+            auto acccès = instruction->comme_accès_indice();
+            auto type_pointeur = acccès->type->comme_type_pointeur();
+            génère_code_pour_atome(acccès->indice, chunk);
+            génère_code_pour_atome(acccès->accédé, chunk);
 
-            if (index->accédé->genre_atome == Atome::Genre::INSTRUCTION) {
-                auto type_accede = index->donne_type_accédé();
+            if (acccès->accédé->genre_atome == Atome::Genre::INSTRUCTION) {
+                auto type_accédé = acccès->donne_type_accédé();
 
                 // l'accédé est le pointeur vers le pointeur, donc déréférence-le
-                if (type_accede->est_type_pointeur()) {
-                    chunk.émets_charge(index->site, type_pointeur);
+                if (type_accédé->est_type_pointeur()) {
+                    chunk.émets_charge(acccès->site, type_pointeur);
                 }
             }
 
-            chunk.émets_accès_index(index->site, type_pointeur->type_pointé);
+            chunk.émets_accès_indice(acccès->site, type_pointeur->type_pointé);
             break;
         }
-        case GenreInstruction::ACCEDE_RUBRIQUE:
+        case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto rubrique = instruction->comme_acces_rubrique();
+            auto rubrique = instruction->comme_accès_rubrique();
             auto accès_fusionné = fusionne_accès_rubriques(rubrique);
 
             if (est_allocation(accès_fusionné.accédé)) {
@@ -1675,7 +1675,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_référence_rubrique(rubrique->site, accès_fusionné.décalage);
             break;
         }
-        case GenreInstruction::OPERATION_UNAIRE:
+        case GenreInstruction::OPÉRATION_UNAIRE:
         {
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
@@ -1683,7 +1683,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             chunk.émets_operation_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
-        case GenreInstruction::OPERATION_BINAIRE:
+        case GenreInstruction::OPÉRATION_BINAIRE:
         {
             auto op_binaire = instruction->comme_op_binaire();
             auto type_gauche = op_binaire->valeur_gauche->type;
@@ -1769,7 +1769,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
             auto type_pointeur = indice_constant->type->comme_type_pointeur();
             chunk.émets_constante(indice_constant->index);
             génère_code_pour_atome(indice_constant->accédé, chunk);
-            chunk.émets_accès_index(nullptr, type_pointeur->type_pointé);
+            chunk.émets_accès_indice(nullptr, type_pointeur->type_pointé);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -2200,7 +2200,7 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
 
 int CompilatriceCodeBinaire::donne_indice_locale(const InstructionAllocation *alloc) const
 {
-    return m_indice_locales[alloc->numero];
+    return m_indice_locales[alloc->numéro];
 }
 
 ContexteGénérationCodeBinaire CompilatriceCodeBinaire::contexte() const

@@ -43,7 +43,7 @@ const Type *AtomeGlobale::donne_type_alloué() const
     return type->comme_type_pointeur()->type_pointé;
 }
 
-const Type *AccèdeIndexConstant::donne_type_accédé() const
+const Type *AccèsIndiceConstant::donne_type_accédé() const
 {
     return accédé->type->comme_type_pointeur()->type_pointé;
 }
@@ -95,22 +95,22 @@ int32_t AtomeFonction::numérote_instructions() const
     int32_t résultat = 0;
 
     POUR (params_entrée) {
-        it->numero = résultat++;
+        it->numéro = résultat++;
     }
 
     if (!param_sortie->type->est_type_rien()) {
-        param_sortie->numero = résultat++;
+        param_sortie->numéro = résultat++;
 
         if (decl && decl->params_sorties.taille() > 1) {
             POUR (decl->params_sorties) {
                 auto inst = it->comme_déclaration_variable()->atome->comme_instruction();
-                inst->numero = résultat++;
+                inst->numéro = résultat++;
             }
         }
     }
 
     POUR (instructions) {
-        it->numero = résultat++;
+        it->numéro = résultat++;
     }
 
     return résultat;
@@ -240,18 +240,18 @@ InstructionBrancheCondition::InstructionBrancheCondition(NoeudExpression const *
     this->label_si_faux = label_si_faux_;
 }
 
-InstructionAccèdeRubrique::InstructionAccèdeRubrique(NoeudExpression const *site_,
-                                                     Type const *type_,
-                                                     Atome *accede_,
-                                                     int indice_)
-    : InstructionAccèdeRubrique(site_)
+InstructionAccèsRubrique::InstructionAccèsRubrique(NoeudExpression const *site_,
+                                                   Type const *type_,
+                                                   Atome *accede_,
+                                                   int indice_)
+    : InstructionAccèsRubrique(site_)
 {
     this->type = type_;
     this->accédé = accede_;
-    this->index = indice_;
+    this->indice = indice_;
 }
 
-const Type *InstructionAccèdeRubrique::donne_type_accédé() const
+const Type *InstructionAccèsRubrique::donne_type_accédé() const
 {
     auto type_accédé = accédé->type;
     if (type_accédé->est_type_référence()) {
@@ -260,7 +260,7 @@ const Type *InstructionAccèdeRubrique::donne_type_accédé() const
     return type_accédé->comme_type_pointeur()->type_pointé;
 }
 
-const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé() const
+const RubriqueTypeComposé &InstructionAccèsRubrique::donne_rubrique_accédé() const
 {
     auto type_adressé = donne_type_accédé();
     type_adressé = donne_type_primitif(type_adressé);
@@ -272,21 +272,21 @@ const RubriqueTypeComposé &InstructionAccèdeRubrique::donne_rubrique_accédé(
         type_composé = type_composé->comme_type_union()->type_structure;
     }
 
-    return type_composé->rubriques[index];
+    return type_composé->rubriques[indice];
 }
 
-InstructionAccèdeIndex::InstructionAccèdeIndex(NoeudExpression const *site_,
+InstructionAccèsIndice::InstructionAccèsIndice(NoeudExpression const *site_,
                                                Type const *type_,
                                                Atome *accede_,
                                                Atome *indice_)
-    : InstructionAccèdeIndex(site_)
+    : InstructionAccèsIndice(site_)
 {
     this->type = type_;
     this->accédé = accede_;
-    this->index = indice_;
+    this->indice = indice_;
 }
 
-const Type *InstructionAccèdeIndex::donne_type_accédé() const
+const Type *InstructionAccèsIndice::donne_type_accédé() const
 {
     return accédé->type->comme_type_pointeur()->type_pointé;
 }
@@ -386,13 +386,13 @@ bool est_stockage_vers(Instruction const *inst0, Instruction const *inst1)
 
 bool est_accès_rubrique_ou_index(Instruction const *inst0, Instruction const *inst1)
 {
-    if (inst0->est_acces_rubrique()) {
-        auto accès = inst0->comme_acces_rubrique();
+    if (inst0->est_accès_rubrique()) {
+        auto accès = inst0->comme_accès_rubrique();
         return accès->accédé == inst1;
     }
 
-    if (inst0->est_acces_index()) {
-        auto accès = inst0->comme_acces_index();
+    if (inst0->est_accès_indice()) {
+        auto accès = inst0->comme_accès_indice();
         return accès->accédé == inst1;
     }
 
@@ -537,7 +537,7 @@ bool instruction_est_racine(Instruction const *inst)
                        GenreInstruction::BRANCHE_CONDITION,
                        GenreInstruction::LABEL,
                        GenreInstruction::RETOUR,
-                       GenreInstruction::STOCKE_MEMOIRE,
+                       GenreInstruction::STOCKE_MÉMOIRE,
                        GenreInstruction::INATTEIGNABLE);
 }
 
@@ -597,8 +597,8 @@ bool est_volatile(Atome const *atome)
                 résultat = true;
             }
         }
-        else if (inst->est_acces_rubrique()) {
-            auto const accès = inst->comme_acces_rubrique();
+        else if (inst->est_accès_rubrique()) {
+            auto const accès = inst->comme_accès_rubrique();
             auto const &rubrique = accès->donne_rubrique_accédé();
             résultat = rubrique.decl &&
                        rubrique.decl->possède_drapeau(DrapeauxNoeud::EST_VOLATILE);
@@ -611,7 +611,7 @@ bool est_volatile(Atome const *atome)
     return résultat;
 }
 
-AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique)
+AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèsRubrique const *accès_rubrique)
 {
     AccèsRubriqueFusionné résultat;
 
@@ -626,11 +626,11 @@ AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique con
         }
 
         auto inst = accès_rubrique->accédé->comme_instruction();
-        if (!inst->est_acces_rubrique()) {
+        if (!inst->est_accès_rubrique()) {
             break;
         }
 
-        accès_rubrique = inst->comme_acces_rubrique();
+        accès_rubrique = inst->comme_accès_rubrique();
     }
 
     return résultat;
@@ -751,42 +751,42 @@ void VisiteuseAtome::visite_atome(Atome *racine,
 
                     break;
                 }
-                case GenreInstruction::CHARGE_MEMOIRE:
+                case GenreInstruction::CHARGE_MÉMOIRE:
                 {
                     auto charge = inst->comme_charge();
                     visite_atome(charge->chargée, rappel);
                     break;
                 }
-                case GenreInstruction::STOCKE_MEMOIRE:
+                case GenreInstruction::STOCKE_MÉMOIRE:
                 {
                     auto stocke = inst->comme_stocke_mem();
                     visite_atome(stocke->source, rappel);
                     visite_atome(stocke->destination, rappel);
                     break;
                 }
-                case GenreInstruction::OPERATION_UNAIRE:
+                case GenreInstruction::OPÉRATION_UNAIRE:
                 {
                     auto op = inst->comme_op_unaire();
                     visite_atome(op->valeur, rappel);
                     break;
                 }
-                case GenreInstruction::OPERATION_BINAIRE:
+                case GenreInstruction::OPÉRATION_BINAIRE:
                 {
                     auto op = inst->comme_op_binaire();
                     visite_atome(op->valeur_droite, rappel);
                     visite_atome(op->valeur_gauche, rappel);
                     break;
                 }
-                case GenreInstruction::ACCÈDE_INDICE:
+                case GenreInstruction::ACCÈS_INDICE:
                 {
-                    auto acces = inst->comme_acces_index();
-                    visite_atome(acces->index, rappel);
+                    auto acces = inst->comme_accès_indice();
+                    visite_atome(acces->indice, rappel);
                     visite_atome(acces->accédé, rappel);
                     break;
                 }
-                case GenreInstruction::ACCEDE_RUBRIQUE:
+                case GenreInstruction::ACCÈS_RUBRIQUE:
                 {
-                    auto acces = inst->comme_acces_rubrique();
+                    auto acces = inst->comme_accès_rubrique();
                     visite_atome(acces->accédé, rappel);
                     break;
                 }

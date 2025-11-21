@@ -552,12 +552,12 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
-    auto entete = donne_entête_fonction(noeud);
-    if (entete) {
+    auto entête = donne_entête_fonction(noeud);
+    if (entête) {
         constructrice_ri.commence_espace(unite->espace);
         analyseuse_ri->analyse_ri(*unite->espace,
                                   constructrice_ri.donne_constructrice(),
-                                  entete->atome->comme_fonction());
+                                  entête->atome->comme_fonction());
         constructrice_ri.termine_espace();
     }
 
@@ -568,20 +568,20 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
-    auto entete = donne_entête_fonction(noeud);
-    assert(entete);
+    auto entête = donne_entête_fonction(noeud);
+    assert(entête);
 
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 
     /* N'optimise pas cette fonction car le manque de retour supprime tout le code. */
-    if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+    if (entête == unite->espace->interface_kuri->decl_creation_contexte) {
         return;
     }
 
     optimise_code(
-        *unite->espace, constructrice_ri.donne_constructrice(), entete->atome->comme_fonction());
+        *unite->espace, constructrice_ri.donne_constructrice(), entête->atome->comme_fonction());
 }
 
 void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)

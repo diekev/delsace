@@ -60,7 +60,7 @@ static void imprime_nom_instruction(Instruction const *inst, Enchaineuse &os)
         }
     }
 
-    os << "%" << inst->numero;
+    os << "%" << inst->numéro;
 }
 
 static void imprime_atome_ex(Atome const *atome,
@@ -119,7 +119,7 @@ static void imprime_atome_ex(Atome const *atome,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto acces = static_cast<AccèdeIndexConstant const *>(atome);
+            auto acces = static_cast<AccèsIndiceConstant const *>(atome);
             imprime_atome_ex(acces->accédé, os, options, true);
             os << '[' << acces->index << ']';
             break;
@@ -326,7 +326,7 @@ static void imprime_instruction_ex(Instruction const *inst,
         case GenreInstruction::BRANCHE:
         {
             auto inst_branche = inst->comme_branche();
-            os << "branche %" << inst_branche->label->numero << '\n';
+            os << "branche %" << inst_branche->label->numéro << '\n';
             break;
         }
         case GenreInstruction::BRANCHE_CONDITION:
@@ -334,11 +334,11 @@ static void imprime_instruction_ex(Instruction const *inst,
             auto inst_branche = inst->comme_branche_cond();
             os << "si ";
             imprime_atome_ex(inst_branche->condition, os, options, true);
-            os << " alors %" << inst_branche->label_si_vrai->numero << " sinon %"
-               << inst_branche->label_si_faux->numero << '\n';
+            os << " alors %" << inst_branche->label_si_vrai->numéro << " sinon %"
+               << inst_branche->label_si_faux->numéro << '\n';
             break;
         }
-        case GenreInstruction::CHARGE_MEMOIRE:
+        case GenreInstruction::CHARGE_MÉMOIRE:
         {
             auto inst_charge = inst->comme_charge();
             auto charge = inst_charge->chargée;
@@ -347,7 +347,7 @@ static void imprime_instruction_ex(Instruction const *inst,
             imprime_atome_ex(charge, os, options, true);
             break;
         }
-        case GenreInstruction::STOCKE_MEMOIRE:
+        case GenreInstruction::STOCKE_MÉMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
             auto ou = inst_stocke->destination;
@@ -364,14 +364,14 @@ static void imprime_instruction_ex(Instruction const *inst,
             os << "label " << inst_label->id;
             break;
         }
-        case GenreInstruction::OPERATION_UNAIRE:
+        case GenreInstruction::OPÉRATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
             os << chaine_pour_genre_op(inst_un->op) << ' ';
             imprime_atome_ex(inst_un->valeur, os, options, true);
             break;
         }
-        case GenreInstruction::OPERATION_BINAIRE:
+        case GenreInstruction::OPÉRATION_BINAIRE:
         {
             auto inst_bin = inst->comme_op_binaire();
             os << chaine_pour_genre_op(inst_bin->op) << ' ';
@@ -392,21 +392,21 @@ static void imprime_instruction_ex(Instruction const *inst,
             os << '\n';
             break;
         }
-        case GenreInstruction::ACCÈDE_INDICE:
+        case GenreInstruction::ACCÈS_INDICE:
         {
-            auto inst_acces = inst->comme_acces_index();
+            auto inst_acces = inst->comme_accès_indice();
             os << "index ";
             imprime_atome_ex(inst_acces->accédé, os, options, true);
             os << ", ";
-            imprime_atome_ex(inst_acces->index, os, options, true);
+            imprime_atome_ex(inst_acces->indice, os, options, true);
             break;
         }
-        case GenreInstruction::ACCEDE_RUBRIQUE:
+        case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto inst_acces = inst->comme_acces_rubrique();
+            auto inst_acces = inst->comme_accès_rubrique();
             os << "rubrique ";
             imprime_atome_ex(inst_acces->accédé, os, options, true);
-            os << ", " << inst_acces->index;
+            os << ", " << inst_acces->indice;
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -572,8 +572,8 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 [[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst)
 {
     Enchaineuse sortie;
-    if (inst->est_acces_rubrique()) {
-        auto inst_acces = inst->comme_acces_rubrique();
+    if (inst->est_accès_rubrique()) {
+        auto inst_acces = inst->comme_accès_rubrique();
         sortie << "Nous accédons à ";
         if (inst_acces->accédé->est_instruction()) {
             sortie << inst_acces->accédé->comme_instruction()->genre << '\n';

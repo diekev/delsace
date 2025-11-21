@@ -56,7 +56,7 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
 
         os << "\n";
 
-        genere_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
+        génère_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
 
         POUR (protéines) {
             auto protéine_énum = it->comme_enum();
@@ -86,7 +86,7 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
     inclus(os, "intrinseques.hh");
     inclus_système(os, "iostream");
 
-    genere_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
+    génère_déclaration_identifiants_code(protéines, os, pour_entête, "intrinsèques");
 
     POUR (protéines) {
         auto protéine_énum = it->comme_enum();

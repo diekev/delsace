@@ -1279,7 +1279,7 @@ static dls::chaine donne_nom_constante_énum_sans_préfixe(dls::chaine const &no
 struct Convertisseuse {
     Syntaxeuse syntaxeuse{};
     kuri::chemin_systeme fichier_source{};
-    kuri::chemin_systeme fichier_entete{};
+    kuri::chemin_systeme fichier_entête{};
 
     int profondeur = 0;
     /* pour les structures, unions, et énumérations anonymes */
@@ -1397,9 +1397,9 @@ struct Convertisseuse {
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libQt5Gui\n";
                 flux_sortie << "\n";
-                flux_sortie << "libqt_entetes :: #bibliothèque \"qt_entetes\"\n";
+                flux_sortie << "libqt_entêtes :: #bibliothèque \"qt_entêtes\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
-                            << " libqt_entetes\n";
+                            << " libqt_entêtes\n";
                 flux_sortie << "\n";
             }
         }
@@ -1412,7 +1412,7 @@ struct Convertisseuse {
 
     bool doit_ignorer_fichier(kuri::chemin_systeme chemin_fichier)
     {
-        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entete) {
+        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entête) {
             return false;
         }
 
@@ -3019,14 +3019,14 @@ int main(int argc, char **argv)
     }
 
     auto fichier_source = kuri::chemin_systeme(config.fichier.c_str());
-    auto fichier_entete = fichier_source;
-    fichier_entete = fichier_entete.remplace_extension(".hh");
+    auto fichier_entête = fichier_source;
+    fichier_entête = fichier_entête.remplace_extension(".hh");
 
-    if (!kuri::chemin_systeme::existe(fichier_entete)) {
-        fichier_entete = fichier_entete.remplace_extension(".h");
+    if (!kuri::chemin_systeme::existe(fichier_entête)) {
+        fichier_entête = fichier_entête.remplace_extension(".h");
 
-        if (!kuri::chemin_systeme::existe(fichier_entete)) {
-            fichier_entete = "";
+        if (!kuri::chemin_systeme::existe(fichier_entête)) {
+            fichier_entête = "";
         }
     }
 
@@ -3061,7 +3061,7 @@ int main(int argc, char **argv)
 
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
-    convertisseuse.fichier_entete = fichier_entete;
+    convertisseuse.fichier_entête = fichier_entête;
     convertisseuse.nom_bibliothèque_sûr = config.nom_bibliothèque;
     POUR (convertisseuse.nom_bibliothèque_sûr) {
         if (it == '.' || it == '-') {

@@ -2093,7 +2093,7 @@ void Simplificatrice::simplifie_position_code_source(NoeudDirectiveIntrospection
     /* PositionCodeSource.ligne */
     auto pos = position_lexeme(*lexème_site);
     auto valeur_ligne = assem->crée_littérale_entier(
-        lexème, typeuse.type_z32, static_cast<unsigned>(pos.numero_ligne));
+        lexème, typeuse.type_z32, static_cast<unsigned>(pos.numéro_ligne));
 
     /* PositionCodeSource.colonne */
     auto valeur_colonne = assem->crée_littérale_entier(
