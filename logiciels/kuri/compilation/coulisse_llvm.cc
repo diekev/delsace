@@ -65,6 +65,8 @@
 #    pragma GCC diagnostic ignored "-Wmismatched-new-delete"
 #endif
 
+// À FAIRE : ne génère pas de couple zext/trunc si les comparaisons sont pour des branches
+
 inline bool adresse_est_nulle(void *adresse)
 {
     /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
