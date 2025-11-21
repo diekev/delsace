@@ -37,6 +37,7 @@
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
+#include <llvm/Transforms/Instrumentation/AddressSanitizer.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #if defined(__GNUC__)
@@ -2514,6 +2515,10 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
         résultat->addFnAttr(llvm::Attribute::AttrKind::AlwaysInline);
     }
 
+    if (m_espace.options.utilise_asan) {
+        résultat->addFnAttr(llvm::Attribute::SanitizeAddress);
+    }
+
     return résultat;
 }
 
@@ -3103,6 +3108,13 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
     builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 }
 
+static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
+                                    llvm::legacy::PassManagerBase &pm)
+{
+    pm.add(llvm::createAddressSanitizerFunctionPass());
+    pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
+}
+
 static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
                         llvm::legacy::PassManager &pm,
                         OptionsDeCompilation const &options)
@@ -3130,6 +3142,12 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
         case NiveauOptimisation::O3:
             ajoute_passes_pour_optimisation(builder, 3, 0);
             break;
+    }
+
+    if (options.utilise_asan) {
+        builder.addExtension(llvm::PassManagerBuilder::EP_OptimizerLast, ajoute_passes_pour_asan);
+        builder.addExtension(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
+                             ajoute_passes_pour_asan);
     }
 
     builder.populateModulePassManager(pm);
