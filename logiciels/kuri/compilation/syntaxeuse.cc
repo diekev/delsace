@@ -2010,32 +2010,32 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::ESP_UNAIRE:
             {
-                if (noeud->prend_référence) {
+                if (noeud->prends_référence) {
                     rapporte_erreur("redéfinition d'une prise de référence");
                 }
 
-                if (noeud->prend_pointeur) {
+                if (noeud->prends_pointeur) {
                     rapporte_erreur("définition d'une prise de référence alors qu'une prise de "
                                     "pointeur fut spécifiée");
                 }
 
-                noeud->prend_référence = true;
+                noeud->prends_référence = true;
                 consomme();
                 break;
             }
             case GenreLexème::FOIS:
             case GenreLexème::FOIS_UNAIRE:
             {
-                if (noeud->prend_pointeur) {
+                if (noeud->prends_pointeur) {
                     rapporte_erreur("redéfinition d'une prise de pointeur");
                 }
 
-                if (noeud->prend_référence) {
+                if (noeud->prends_référence) {
                     rapporte_erreur("définition d'une prise de pointeur alors qu'une prise de "
                                     "référence fut spécifiée");
                 }
 
-                noeud->prend_pointeur = true;
+                noeud->prends_pointeur = true;
                 consomme();
                 break;
             }

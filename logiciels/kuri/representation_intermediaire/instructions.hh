@@ -709,8 +709,8 @@ struct InstructionAccèsIndice : public Instruction {
     O(DIMINUE_RELATIF_VERS_NATUREL, diminue_relatif_vers_naturel)                                 \
     O(POINTEUR_VERS_ENTIER, pointeur_vers_entier)                                                 \
     O(ENTIER_VERS_POINTEUR, entier_vers_pointeur)                                                 \
-    O(REEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
-    O(REEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
+    O(RÉEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
+    O(RÉEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
     O(ENTIER_RELATIF_VERS_REEL, relatif_vers_réel)                                                \
     O(ENTIER_NATUREL_VERS_REEL, naturel_vers_réel)                                                \
     O(BITS, transtype_bits)

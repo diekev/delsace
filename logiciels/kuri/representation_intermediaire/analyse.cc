@@ -1179,9 +1179,9 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
                                                     int début_recherche)
 {
     for (int i = début_recherche; i < bloc->instructions.taille() - 1; i++) {
-        auto decalage = est_appel_initialisation(bloc->instructions[i], alloc);
-        if (decalage != 0) {
-            return i - (decalage - 1);
+        auto décalage = est_appel_initialisation(bloc->instructions[i], alloc);
+        if (décalage != 0) {
+            return i - (décalage - 1);
         }
 
         if (est_accès_rubrique_ou_index(bloc->instructions[i], alloc)) {

@@ -605,7 +605,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
     émets_notifie_empilage(site, taille_type);
 }
 
-static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
+static octet_t convertis_op_binaire(OpérateurBinaire::Genre genre)
 {
 #define ENUMERE_GENRE_OPBINAIRE_EX(genre, id, op_code)                                            \
     case OpérateurBinaire::Genre::genre:                                                          \
@@ -617,7 +617,7 @@ static octet_t converti_op_binaire(OpérateurBinaire::Genre genre)
     return static_cast<octet_t>(-1);
 }
 
-static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
+static std::optional<octet_t> convertis_type_transtypage(TypeTranstypage genre)
 {
     switch (genre) {
         case TypeTranstypage::BITS:
@@ -626,11 +626,11 @@ static std::optional<octet_t> converti_type_transtypage(TypeTranstypage genre)
         {
             break;
         }
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
         {
             return OP_REEL_VERS_RELATIF;
         }
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
         {
             return OP_REEL_VERS_NATUREL;
         }
@@ -692,7 +692,7 @@ void Chunk::émets_operation_binaire(NoeudExpression const *site,
     émets_notifie_dépilage(site, taille_octet);
     émets_notifie_dépilage(site, taille_octet);
 
-    auto op_comp = converti_op_binaire(op);
+    auto op_comp = convertis_op_binaire(op);
     émets_entête_op(op_comp, site);
     émets(taille_octet);
 
@@ -1073,7 +1073,7 @@ kuri::chaine désassemble(const Chunk &chunk, kuri::chaine_statique nom)
     return enchaineuse.chaine();
 }
 
-ffi_type *converti_type_ffi(Type const *type)
+ffi_type *convertis_type_ffi(Type const *type)
 {
     switch (type->genre) {
         case GenreNoeud::POLYMORPHIQUE:
@@ -1201,14 +1201,14 @@ ffi_type *converti_type_ffi(Type const *type)
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            return converti_type_ffi(type_opaque->type_opacifié);
+            return convertis_type_ffi(type_opaque->type_opacifié);
         }
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
 
             if (type_union->est_nonsure) {
-                return converti_type_ffi(type_union->type_le_plus_grand);
+                return convertis_type_ffi(type_union->type_le_plus_grand);
             }
 
             // non supporté
@@ -1218,7 +1218,7 @@ ffi_type *converti_type_ffi(Type const *type)
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         {
-            return converti_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
+            return convertis_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
@@ -1356,10 +1356,10 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         donnees_externe.types_entrées.réserve(type_fonction->types_entrées.taille());
 
         POUR (type_fonction->types_entrées) {
-            donnees_externe.types_entrées.ajoute(converti_type_ffi(it));
+            donnees_externe.types_entrées.ajoute(convertis_type_ffi(it));
         }
 
-        auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
+        auto type_ffi_sortie = convertis_type_ffi(type_fonction->type_sortie);
         auto nombre_arguments = static_cast<unsigned>(donnees_externe.types_entrées.taille());
         auto ptr_types_entrees = donnees_externe.types_entrées.données();
 
@@ -1621,7 +1621,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
 
             génère_code_pour_atome(valeur, chunk);
 
-            auto opt_op_transtype = converti_type_transtypage(transtype->op);
+            auto opt_op_transtype = convertis_type_transtypage(transtype->op);
             if (opt_op_transtype.has_value()) {
                 auto op_transtype = opt_op_transtype.value();
                 if (op_transtype == OP_AUGMENTE_RÉEL) {
@@ -1861,8 +1861,8 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
                 CODE_FONCTION, 0, m_atome_fonction_courante};
 
             POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
-                auto destination_rubrique = destination + it.decalage;
-                auto décalage_rubrique = décalage + int(it.decalage);
+                auto destination_rubrique = destination + it.décalage;
+                auto décalage_rubrique = décalage + int(it.décalage);
 
                 génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
@@ -2097,8 +2097,8 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto type_composé = type->comme_type_composé();
 
             POUR_INDICE (type_composé->donne_rubriques_pour_code_machine()) {
-                auto destination_rubrique = destination + it.decalage;
-                auto décalage_rubrique = décalage + int(it.decalage);
+                auto destination_rubrique = destination + it.décalage;
+                auto décalage_rubrique = décalage + int(it.décalage);
                 génère_code_atome_constant(tableau_valeur[indice_it],
                                            adressage_destination,
                                            destination_rubrique,

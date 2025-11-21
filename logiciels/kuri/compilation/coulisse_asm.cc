@@ -249,7 +249,7 @@ class ConstructriceHuitoctets {
     uint32_t indice_huitoctet = 0;
 
   public:
-    static void construit_huitoctets(Typeuse &typeuse,
+    static void construis_huitoctets(Typeuse &typeuse,
                                      Type const *type,
                                      kuri::tablet<Huitoctet, 4> &résultat)
     {
@@ -260,14 +260,14 @@ class ConstructriceHuitoctets {
         constructrice.résultat = résultat;
         constructrice.données.redimensionne(résultat.taille());
 
-        constructrice.construit_huitoctets_récursif(typeuse, type);
+        constructrice.construis_huitoctets_récursif(typeuse, type);
         constructrice.assigne_classes_huitoctets();
 
         résultat = constructrice.résultat;
     }
 
   private:
-    void construit_huitoctets_récursif(Typeuse &typeuse, Type const *type);
+    void construis_huitoctets_récursif(Typeuse &typeuse, Type const *type);
 
     void assigne_classes_huitoctets();
 
@@ -311,7 +311,7 @@ class ConstructriceHuitoctets {
     }
 };
 
-void ConstructriceHuitoctets::construit_huitoctets_récursif(Typeuse &typeuse, Type const *type)
+void ConstructriceHuitoctets::construis_huitoctets_récursif(Typeuse &typeuse, Type const *type)
 {
     switch (type->genre) {
         case GenreNoeud::RIEN:
@@ -340,7 +340,7 @@ void ConstructriceHuitoctets::construit_huitoctets_récursif(Typeuse &typeuse, T
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto const type_opaque = type->comme_type_opaque();
-            construit_huitoctets_récursif(typeuse, type_opaque->type_opacifié);
+            construis_huitoctets_récursif(typeuse, type_opaque->type_opacifié);
             return;
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
@@ -356,13 +356,13 @@ void ConstructriceHuitoctets::construit_huitoctets_récursif(Typeuse &typeuse, T
             auto décalage = uint32_t(0);
 
             POUR (type_composé->donne_rubriques_pour_code_machine()) {
-                if (it.decalage != décalage) {
-                    auto rembourrage = it.decalage - décalage;
+                if (it.décalage != décalage) {
+                    auto rembourrage = it.décalage - décalage;
                     ajoute_rembourrage(rembourrage);
                     décalage += rembourrage;
                 }
 
-                construit_huitoctets_récursif(typeuse, it.type);
+                construis_huitoctets_récursif(typeuse, it.type);
                 décalage += it.type->taille_octet;
             }
 
@@ -376,17 +376,17 @@ void ConstructriceHuitoctets::construit_huitoctets_récursif(Typeuse &typeuse, T
         {
             auto type_union = type->comme_type_union();
             if (type_union->est_nonsure) {
-                construit_huitoctets_récursif(typeuse, type_union->type_le_plus_grand);
+                construis_huitoctets_récursif(typeuse, type_union->type_le_plus_grand);
                 return;
             }
-            construit_huitoctets_récursif(typeuse, type_union->type_structure);
+            construis_huitoctets_récursif(typeuse, type_union->type_structure);
             return;
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto const type_tableau_fixe = type->comme_type_tableau_fixe();
             for (int i = 0; i < type_tableau_fixe->taille; i++) {
-                construit_huitoctets_récursif(typeuse, type_tableau_fixe->type_pointé);
+                construis_huitoctets_récursif(typeuse, type_tableau_fixe->type_pointé);
             }
             return;
         }
@@ -473,7 +473,7 @@ static void détermine_classe_argument_aggrégé(Typeuse &typeuse,
     // 4. Each field of an object is classified recursively so that always two fields are
     //    considered. The resulting class is calculated according to the classes of the
     //    fields in the eightbyte:
-    ConstructriceHuitoctets::construit_huitoctets(typeuse, type, huitoctets);
+    ConstructriceHuitoctets::construis_huitoctets(typeuse, type, huitoctets);
 
     // 5. Then a post merger cleanup is done:
     auto classe_précédente = ClasseArgument::NO_CLASS;
@@ -2304,8 +2304,8 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
             auto nombre_rembourrage = 0;
 
             POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
-                if (it.decalage != décalage) {
-                    auto rembourrage = it.decalage - décalage;
+                if (it.décalage != décalage) {
+                    auto rembourrage = it.décalage - décalage;
                     enchaineuse << chaine_indentations_espace(profondeur + 1) << "at "
                                 << nom_structure << ".rembourrage" << nombre_rembourrage;
 
@@ -2555,10 +2555,10 @@ void GénératriceCodeASM::génère_code_pour_instruction(const Instruction *ins
             génère_code_pour_atome(accédé, assembleuse, UtilisationAtome::AUCUNE);
 
             auto const &rubrique = accès->donne_rubrique_accédé();
-            if (rubrique.decalage != 0) {
+            if (rubrique.décalage != 0) {
                 auto registre = registres.donne_registre_entier_inoccupé();
                 assembleuse.pop(registre, 8);
-                assembleuse.add(registre, AssembleuseASM::Immédiate64{rubrique.decalage}, 8);
+                assembleuse.add(registre, AssembleuseASM::Immédiate64{rubrique.décalage}, 8);
                 assembleuse.push(registre, 8);
                 registres.marque_registre_inoccupé(registre);
             }
@@ -3698,8 +3698,8 @@ void GénératriceCodeASM::génère_code_pour_transtype(InstructionTranstype con
             }
             break;
         }
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
         {
             if (type_de->taille_octet == 2) {
                 VERIFIE_NON_ATTEINT;
@@ -4236,8 +4236,8 @@ static void déclare_structure(TypeCompose const *type,
     POUR (type->donne_rubriques_pour_code_machine()) {
         auto nom_rubrique = broyeuse.broye_nom_simple(it.nom);
 
-        if (it.decalage != décalage) {
-            auto rembourrage = it.decalage - décalage;
+        if (it.décalage != décalage) {
+            auto rembourrage = it.décalage - décalage;
 
             enchaineuse << TABULATION << ".rembourrage" << nombre_rembourrage << " resb "
                         << rembourrage << NOUVELLE_LIGNE;

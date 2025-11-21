@@ -116,7 +116,7 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
             retourne copie_chaine(chn)
         }
         chn_utf32(chn) {
-            retourne converti_vers_chaine(chn)
+            retourne convertis_vers_chaine(chn)
         }
         sinon {
             retourne copie_chaine("")
@@ -173,7 +173,7 @@ crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 
 /* Crée une ChaineInternée depuis une chaine native, mais convertis en UTF-32 afin
  * d'éviter les comparaisons coûteuse entre chaine et ChaineUTF32. */
-crée_chaine_internée_converti_utf32 :: fonc (chn: chaine) -> *ChaineInternée
+crée_chaine_internée_convertis_utf32 :: fonc (chn: chaine) -> *ChaineInternée
 {
     chaine_existante := trouve_chaine_internée(chn)
 

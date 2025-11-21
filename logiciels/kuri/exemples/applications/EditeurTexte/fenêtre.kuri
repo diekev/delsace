@@ -772,7 +772,7 @@ dessine_texte :: fonc (empl anonyme: *Anonyme)
             }
             sinon si anonyme.éditeur.texte_possède_lexeuse {
                 // XXX - @Vitesse
-                texte := converti_vers_chaine(anonyme.éditeur.lignes_rendu[indice_ligne])
+                texte := convertis_vers_chaine(anonyme.éditeur.lignes_rendu[indice_ligne])
                 tableau_ajoute(*anonyme.textes_alloués_par_image, texte)
 
                 définis_texte_courant(*anonyme.éditeur.lexeuse, texte)

@@ -152,7 +152,7 @@ chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
     chn.taille += nombre_octets comme z8
 }
 
-converti_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
+convertis_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
 {
     retourne chaine(*chn.données[0], chn.taille)
 }
@@ -182,7 +182,7 @@ opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
             continue
         }
 
-        `it = converti_utf8_utf32(*ptr_source[curseur]) comme n32
+        `it = convertis_utf8_utf32(*ptr_source[curseur]) comme n32
         `indice_it = indice
 
         #corps_boucle
@@ -1050,7 +1050,7 @@ point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaine)
         point_de_code = 0xFFFD
     }
     sinon {
-        point_de_code = converti_utf8_utf32(ptr_source, no) comme n32
+        point_de_code = convertis_utf8_utf32(ptr_source, no) comme n32
     }
 
     curseur += no comme z32

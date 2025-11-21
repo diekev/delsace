@@ -360,7 +360,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             assert(interface->decl_dls_depuis_r64);
             ajoute_fonction(interface->decl_dls_depuis_r64);
         }
-        else if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
+        else if (transformation.type == TypeTransformation::CONSTRUIS_EINI) {
             ajoute_info_de(type);
         }
         else if (transformation.type == TypeTransformation::EXTRAIT_EINI) {

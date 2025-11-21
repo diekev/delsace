@@ -412,9 +412,9 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
             return CastOps::PtrToInt;
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
             return CastOps::IntToPtr;
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
             return CastOps::FPToSI;
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
             return CastOps::FPToUI;
         case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
             return CastOps::SIToFP;
@@ -718,7 +718,7 @@ struct InfoDébogageLLVM {
 
                         auto taille_rubrique = 8 * it.type->taille_octet;
                         auto alignement_rubrique = 8 * it.type->alignement;
-                        auto décalage_rubrique = 8 * it.decalage;
+                        auto décalage_rubrique = 8 * it.décalage;
                         // À FAIRE : llvm::DINode::DIFlags
                         auto flags_rubrique = llvm::DINode::DIFlags(0);
                         auto type_rubrique = donne_type(it.type);
@@ -929,7 +929,7 @@ struct InfoDébogageLLVM {
 
             auto taille_rubrique = 8 * it.type->taille_octet;
             auto alignement_rubrique = 8 * it.type->alignement;
-            auto décalage_rubrique = 8 * it.decalage;
+            auto décalage_rubrique = 8 * it.décalage;
             // À FAIRE : llvm::DINode::DIFlags
             auto flags_rubrique = llvm::DINode::DIFlags(0);
             auto type_rubrique = donne_type(it.type);

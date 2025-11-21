@@ -324,7 +324,7 @@ struct Chunk {
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_globale_externe(const NoeudExpression *site, const void *adresse);
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
-    void émets_référence_rubrique(NoeudExpression const *site, unsigned decalage);
+    void émets_référence_rubrique(NoeudExpression const *site, unsigned décalage);
     void émets_référence_rubrique_locale(NoeudExpression const *site,
                                          int pointeur,
                                          uint32_t décalage);
@@ -388,7 +388,7 @@ struct Chunk {
 };
 
 [[nodiscard]] kuri::chaine désassemble(Chunk const &chunk, kuri::chaine_statique nom);
-int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, Enchaineuse &os);
+int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaineuse &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
@@ -468,4 +468,4 @@ class CompilatriceCodeBinaire {
                                          int décalage) const;
 };
 
-ffi_type *converti_type_ffi(Type const *type);
+ffi_type *convertis_type_ffi(Type const *type);

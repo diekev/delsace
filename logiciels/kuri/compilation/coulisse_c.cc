@@ -1775,7 +1775,7 @@ void GénératriceCodeC::génère_code_pour_instruction(const Instruction *inst,
                                       valeur_accédée,
                                       nom_variable_tableau_fixe,
                                       "[",
-                                      rubrique.decalage,
+                                      rubrique.décalage,
                                       "])");
 #else
             valeur_accédée = enchaine(valeur_accédée,

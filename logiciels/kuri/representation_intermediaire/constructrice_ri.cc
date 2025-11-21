@@ -1202,8 +1202,8 @@ ValeurConstanteEntière applique_transtype(Type const *type_source,
         case TypeTranstypage::DIMINUE_RÉEL:
         case TypeTranstypage::POINTEUR_VERS_ENTIER:
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
-        case TypeTranstypage::REEL_VERS_ENTIER_RELATIF:
-        case TypeTranstypage::REEL_VERS_ENTIER_NATUREL:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
+        case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
         case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
         case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
         {
@@ -2825,7 +2825,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto expr = inst->expression;
 
             if (expression_gauche &&
-                inst->transformation.type == TypeTransformation::DEREFERENCE) {
+                inst->transformation.type == TypeTransformation::DÉRÉFERENCE) {
                 génère_ri_pour_noeud(expr);
                 /* déréférence l'adresse du pointeur */
                 empile_valeur(m_constructrice.crée_charge_mem(noeud, depile_valeur()), noeud);
@@ -3238,10 +3238,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             break;
         }
-        case TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE:
+        case TypeTransformation::PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE:
         {
             assert_rappel(false, [&]() {
-                dbg() << "PREND_REFERENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !";
+                dbg() << "PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !";
             });
             break;
         }
@@ -3250,7 +3250,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
             break;
         }
-        case TypeTransformation::CONVERTI_ENTIER_CONSTANT:
+        case TypeTransformation::CONVERTIS_ENTIER_CONSTANT:
         {
             // valeur est déjà une constante, change simplement le type
             if (est_valeur_constante(valeur)) {
@@ -3289,7 +3289,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             });
             break;
         }
-        case TypeTransformation::CONSTRUIT_UNION:
+        case TypeTransformation::CONSTRUIS_UNION:
         {
             auto type_union = transformation.type_cible->comme_type_union();
 
@@ -3344,7 +3344,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             break;
         }
         case TypeTransformation::EXTRAIT_UNION:
-        case TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION:
+        case TypeTransformation::EXTRAIT_UNION_SANS_VÉRIFICATION:
         {
             auto type_union = noeud->type->comme_type_union();
 
@@ -3352,7 +3352,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             if (!type_union->est_nonsure) {
                 auto sans_vru =
-                    transformation.type == TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION ||
+                    transformation.type == TypeTransformation::EXTRAIT_UNION_SANS_VÉRIFICATION ||
                     (m_fonction_courante->decl &&
                      m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU));
                 if (!sans_vru) {
@@ -3394,7 +3394,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::CONVERTI_VERS_PTR_RIEN:
+        case TypeTransformation::CONVERTIS_VERS_PTR_RIEN:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
@@ -3405,7 +3405,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::CONVERTI_VERS_TYPE_CIBLE:
+        case TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
@@ -3480,7 +3480,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::ENTIER_VERS_REEL:
+        case TypeTransformation::ENTIER_VERS_RÉEL:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
@@ -3492,19 +3492,19 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
-        case TypeTransformation::REEL_VERS_ENTIER:
+        case TypeTransformation::RÉEL_VERS_ENTIER:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             auto type_transtypage = transformation.type_cible->est_type_entier_naturel() ?
-                                        TypeTranstypage::REEL_VERS_ENTIER_NATUREL :
-                                        TypeTranstypage::REEL_VERS_ENTIER_RELATIF;
+                                        TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL :
+                                        TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF;
 
             valeur = m_constructrice.crée_transtype(
                 noeud, transformation.type_cible, valeur, type_transtypage);
             break;
         }
-        case TypeTransformation::REDUIT_TAILLE_TYPE:
+        case TypeTransformation::RÉDUIS_TAILLE_TYPE:
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
@@ -3527,7 +3527,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::CONSTRUIT_EINI:
+        case TypeTransformation::CONSTRUIS_EINI:
         {
             auto alloc_eini = place;
 
@@ -3590,7 +3590,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             break;
         }
-        case TypeTransformation::CONSTRUIT_TRANCHE_OCTET:
+        case TypeTransformation::CONSTRUIS_TRANCHE_OCTET:
         {
             auto valeur_pointeur = static_cast<Atome *>(nullptr);
             auto valeur_taille = static_cast<Atome *>(nullptr);
@@ -3718,7 +3718,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE:
+        case TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE:
         {
             if (m_fonction_courante == nullptr) {
                 auto valeur_tableau_fixe = static_cast<AtomeConstante *>(valeur);
@@ -3741,7 +3741,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
             break;
         }
-        case TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE:
+        case TypeTransformation::CONVERTIS_TABLEAU_DYNAMIQUE_VERS_TRANCHE:
         {
             if (m_fonction_courante == nullptr) {
                 assert_rappel(false, []() {
@@ -3787,24 +3787,24 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 noeud, valeur, m_espace->interface_kuri->decl_dls_depuis_r64);
             break;
         }
-        case TypeTransformation::PREND_REFERENCE:
+        case TypeTransformation::PRENDS_RÉFÉRENCE:
         {
             // RÀF : valeur doit déjà être un pointeur
             break;
         }
-        case TypeTransformation::DEREFERENCE:
+        case TypeTransformation::DÉRÉFERENCE:
         {
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             break;
         }
-        case TypeTransformation::CONVERTI_VERS_BASE:
+        case TypeTransformation::CONVERTIS_VERS_BASE:
         {
             valeur = crée_transtype_entre_base_et_dérivé(
                 noeud, valeur, transformation, OpérateurBinaire::Genre::Addition);
             break;
         }
-        case TypeTransformation::CONVERTI_VERS_DÉRIVÉ:
+        case TypeTransformation::CONVERTIS_VERS_DÉRIVÉ:
         {
             valeur = crée_transtype_entre_base_et_dérivé(
                 noeud, valeur, transformation, OpérateurBinaire::Genre::Soustraction);
@@ -4728,7 +4728,7 @@ AtomeGlobale *CompilatriceRI::crée_info_type_rubrique_structure(
     auto valeurs = kuri::tableau<AtomeConstante *>(9);
     valeurs[0] = crée_constante_pour_chaine(rubrique.nom->nom);
     valeurs[1] = crée_info_type_avec_transtype(rubrique.type, site);
-    valeurs[2] = m_constructrice.crée_z32(rubrique.decalage);
+    valeurs[2] = m_constructrice.crée_z32(rubrique.décalage);
     valeurs[3] = m_constructrice.crée_z32(static_cast<unsigned>(rubrique.drapeaux));
 
     if (rubrique.decl) {

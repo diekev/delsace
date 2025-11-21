@@ -619,7 +619,7 @@ AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèsRubrique cons
         auto const &rubrique = accès_rubrique->donne_rubrique_accédé();
 
         résultat.accédé = accès_rubrique->accédé;
-        résultat.décalage += rubrique.decalage;
+        résultat.décalage += rubrique.décalage;
 
         if (!accès_rubrique->accédé->est_instruction()) {
             break;

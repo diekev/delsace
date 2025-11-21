@@ -2354,7 +2354,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             // il nous faut créer une boucle sur le tableau.
             // pour * tableau { initialise_type(it); }
             auto pour = assembleuse->crée_pour(&lexème_sentinel, variable, ref_résultat);
-            pour->prend_pointeur = true;
+            pour->prends_pointeur = true;
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
@@ -2386,7 +2386,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
 
             auto comme = assembleuse->crée_comme(&lexème_sentinel, prise_adresse, nullptr);
             comme->type = typeuse.type_pointeur_pour(type_opacifié);
-            comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, comme->type};
+            comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, comme->type};
 
             auto fonc_init = crée_entête_pour_initialisation_type(
                 type_opacifié, assembleuse, typeuse);
@@ -2530,7 +2530,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 
             auto comme_type_opacifie = assembleuse->crée_comme(
                 &lexème_sentinel, ref_param, nullptr);
-            comme_type_opacifie->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+            comme_type_opacifie->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                                                    type_pointeur_opacifié};
             comme_type_opacifie->type = type_pointeur_opacifié;
 
@@ -2603,7 +2603,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 /* Stocke directement dans le paramètre. */
                 auto transtype = assembleuse->crée_comme(&lexème_sentinel, ref_param, nullptr);
                 transtype->transformation = TransformationType{
-                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                    TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                     typeuse.type_pointeur_pour(rubrique.type)};
                 transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
@@ -2632,7 +2632,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                     &lexème_sentinel, ref_param, nullptr);
                 param_comme_structure->type = type_pointeur_type_structure;
                 param_comme_structure->transformation = TransformationType{
-                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
+                    TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_pointeur_type_structure};
 
                 if (rubrique.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »

@@ -401,7 +401,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 {
     auto chaine = kuri::chaine(c.pointeur(), c.taille());
 
-    auto decalage = chaines_ajoutées_à_la_compilation->ajoute(
+    auto décalage = chaines_ajoutées_à_la_compilation->ajoute(
         kuri::chaine(c.pointeur(), c.taille()));
 
     /* Les fichiers sont comparés selon leurs chemins, donc il nous faut un chemin unique pour
@@ -416,7 +416,7 @@ void Compilatrice::ajoute_chaine_au_module(EspaceDeTravail *espace,
 
     auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat));
     fichier->source = SourceFichier::CHAINE_AJOUTÉE;
-    fichier->décalage_fichier = decalage;
+    fichier->décalage_fichier = décalage;
     fichier->espace_pour_site = espace_pour_site;
     fichier->site = site;
     fichier->charge_tampon(TamponSource(chaine));
@@ -436,7 +436,7 @@ EspaceDeTravail *Compilatrice::espace_défaut_compilation()
     return espace_de_travail_défaut;
 }
 
-static kuri::tableau<kuri::Lexème> converti_tableau_lexemes(
+static kuri::tableau<kuri::Lexème> convertis_tableau_lexemes(
     kuri::tableau<Lexème, int> const &lexemes)
 {
     auto résultat = kuri::tableau<kuri::Lexème>(lexemes.taille());
@@ -466,7 +466,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     if (std::holds_alternative<FichierExistant>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
-        auto tableau = converti_tableau_lexemes(fichier->lexèmes);
+        auto tableau = convertis_tableau_lexemes(fichier->lexèmes);
         m_tableaux_lexèmes.ajoute(tableau);
         return m_tableaux_lexèmes.dernier_élément();
     }
@@ -479,7 +479,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
         contexte_lexage(espace), fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    auto tableau = converti_tableau_lexemes(fichier->lexèmes);
+    auto tableau = convertis_tableau_lexemes(fichier->lexèmes);
     m_tableaux_lexèmes.ajoute(tableau);
     return m_tableaux_lexèmes.dernier_élément();
 }

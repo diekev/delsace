@@ -740,13 +740,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             if (type->est_type_référence()) {
                 type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
-                    expr->opérande, TransformationType(TypeTransformation::DEREFERENCE));
+                    expr->opérande, TransformationType(TypeTransformation::DÉRÉFERENCE));
             }
 
             if (type->est_type_entier_constant()) {
                 type = m_espace->typeuse.type_z32;
                 crée_transtypage_implicite_au_besoin(
-                    expr->opérande, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type});
+                    expr->opérande, {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type});
             }
 
             auto operateurs = m_espace->opérateurs.verrou_lecture();
@@ -860,7 +860,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             if (type->est_type_référence()) {
                 type = type_déréférencé_pour(type);
                 crée_transtypage_implicite_au_besoin(
-                    négation->opérande, TransformationType(TypeTransformation::DEREFERENCE));
+                    négation->opérande, TransformationType(TypeTransformation::DÉRÉFERENCE));
             }
 
             if (!est_expression_convertible_en_bool(opérande)) {
@@ -883,7 +883,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
 
             if (type_gauche->est_type_référence()) {
                 crée_transtypage_implicite_au_besoin(
-                    expr->opérande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
+                    expr->opérande_gauche, TransformationType(TypeTransformation::DÉRÉFERENCE));
                 type_gauche = type_déréférencé_pour(type_gauche);
             }
 
@@ -959,7 +959,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
                 crée_transtypage_implicite_au_besoin(
                     expr->opérande_droite,
-                    {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_cible});
+                    {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_cible});
             }
             else {
                 TENTE(crée_transtypage_implicite_si_possible(
@@ -1129,13 +1129,13 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                     type_début = type_fin;
                     début->type = type_début;
                     crée_transtypage_implicite_au_besoin(
-                        inst->début, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
+                        inst->début, {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_début});
                 }
                 else if (type_fin->est_type_entier_constant() && est_type_entier(type_début)) {
                     type_fin = type_début;
                     fin->type = type_fin;
                     crée_transtypage_implicite_au_besoin(
-                        inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_fin});
+                        inst->fin, {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_fin});
                 }
                 else {
                     rapporte_erreur_type_opération(type_début, type_fin, noeud);
@@ -1145,9 +1145,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             else if (type_début->est_type_entier_constant()) {
                 type_début = m_espace->typeuse.type_z32;
                 crée_transtypage_implicite_au_besoin(
-                    inst->début, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
+                    inst->début, {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_début});
                 crée_transtypage_implicite_au_besoin(
-                    inst->fin, {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_début});
+                    inst->fin, {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_début});
             }
 
             if (!type_début->est_type_entier_naturel() && !type_début->est_type_entier_relatif() &&
@@ -1203,7 +1203,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 type_feuille = m_espace->typeuse.type_z32;
                 crée_transtypage_implicite_au_besoin(
                     feuilles->expressions[0],
-                    {TypeTransformation::CONVERTI_ENTIER_CONSTANT, type_feuille});
+                    {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_feuille});
             }
 
             for (auto i = 1; i < feuilles->expressions.taille(); ++i) {
@@ -1480,7 +1480,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                         type_tableau_fixe->type_pointé);
                     crée_transtypage_implicite_au_besoin(
                         expr->expression,
-                        {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE, type_expr});
+                        {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE, type_expr});
                 }
                 else if (type_expr->est_type_tableau_dynamique()) {
                     auto type_tableau_dynamique = type_expr->comme_type_tableau_dynamique();
@@ -1488,7 +1488,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                         type_tableau_dynamique->type_pointé);
                     crée_transtypage_implicite_au_besoin(
                         expr->expression,
-                        {TypeTransformation::CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_expr});
+                        {TypeTransformation::CONVERTIS_TABLEAU_DYNAMIQUE_VERS_TRANCHE, type_expr});
                 }
 
                 expr->type = type_expr;
@@ -4511,12 +4511,12 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
                     decl->type = m_espace->typeuse.type_z32;
                     crée_transtypage_implicite_au_besoin(
                         decl->expression,
-                        {TypeTransformation::CONVERTI_ENTIER_CONSTANT, decl->type});
+                        {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, decl->type});
                 }
                 else if (type_de_l_expression->est_type_référence()) {
                     decl->type = type_de_l_expression->comme_type_référence()->type_pointé;
                     crée_transtypage_implicite_au_besoin(
-                        decl->expression, TransformationType(TypeTransformation::DEREFERENCE));
+                        decl->expression, TransformationType(TypeTransformation::DÉRÉFERENCE));
                 }
                 else {
                     decl->type = type_de_l_expression;
@@ -4674,14 +4674,14 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                 variable->type = m_espace->typeuse.type_z32;
                 donnees.variables.ajoute(variable);
                 donnees.transformations.ajoute(
-                    {TypeTransformation::CONVERTI_ENTIER_CONSTANT, variable->type});
+                    {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, variable->type});
             }
             else {
                 if (type_de_l_expression->est_type_référence()) {
                     variable->type = type_de_l_expression->comme_type_référence()->type_pointé;
                     donnees.variables.ajoute(variable);
                     donnees.transformations.ajoute(
-                        TransformationType(TypeTransformation::DEREFERENCE));
+                        TransformationType(TypeTransformation::DÉRÉFERENCE));
                 }
                 else {
                     if (type_de_l_expression->est_type_rien()) {
@@ -4796,7 +4796,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
                 if (var->type->est_type_entier_constant()) {
                     var->type = m_espace->typeuse.type_z32;
-                    transformation = {TypeTransformation::CONVERTI_ENTIER_CONSTANT, var->type};
+                    transformation = {TypeTransformation::CONVERTIS_ENTIER_CONSTANT, var->type};
                 }
             }
 
@@ -5033,8 +5033,8 @@ RésultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
         }
 
         crée_transtypage_implicite_au_besoin(inst->assignée,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
-        transformation = TransformationType(TypeTransformation::DEREFERENCE);
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
+        transformation = TransformationType(TypeTransformation::DÉRÉFERENCE);
     }
     else if (var_est_reference) {
         // déréférence var
@@ -5054,7 +5054,7 @@ RésultatValidation Sémanticienne::valide_assignation(NoeudAssignation *inst)
         }
 
         crée_transtypage_implicite_au_besoin(inst->assignée,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
     }
     else if (expr_est_reference) {
         // déréférence expr
@@ -5169,8 +5169,8 @@ RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignation
             }
 
             crée_transtypage_implicite_au_besoin(
-                var, TransformationType(TypeTransformation::DEREFERENCE));
-            transformation = TransformationType(TypeTransformation::DEREFERENCE);
+                var, TransformationType(TypeTransformation::DÉRÉFERENCE));
+            transformation = TransformationType(TypeTransformation::DÉRÉFERENCE);
         }
         else if (var_est_reference) {
             // déréférence var
@@ -5190,7 +5190,7 @@ RésultatValidation Sémanticienne::valide_assignation_multiple(NoeudAssignation
             }
 
             crée_transtypage_implicite_au_besoin(
-                var, TransformationType(TypeTransformation::DEREFERENCE));
+                var, TransformationType(TypeTransformation::DÉRÉFERENCE));
         }
         else if (expr_est_reference) {
             // déréférence expr
@@ -5490,7 +5490,7 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
         return;
     }
 
-    if (transformation.type == TypeTransformation::CONVERTI_ENTIER_CONSTANT) {
+    if (transformation.type == TypeTransformation::CONVERTIS_ENTIER_CONSTANT) {
         expression->type = const_cast<Type *>(transformation.type_cible);
         /* Assigne récusirvement le type à tous les entiers constants.
          * Nous pourrions avoir une expression complexe (parenthèse + opérateurs, etc.). */
@@ -5508,22 +5508,22 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     auto type_cible = transformation.type_cible;
 
     if (type_cible == nullptr) {
-        if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
+        if (transformation.type == TypeTransformation::CONSTRUIS_EINI) {
             type_cible = m_espace->typeuse.type_eini;
         }
-        else if (transformation.type == TypeTransformation::CONVERTI_VERS_PTR_RIEN) {
+        else if (transformation.type == TypeTransformation::CONVERTIS_VERS_PTR_RIEN) {
             type_cible = m_espace->typeuse.type_ptr_rien;
         }
-        else if (transformation.type == TypeTransformation::PREND_REFERENCE) {
+        else if (transformation.type == TypeTransformation::PRENDS_RÉFÉRENCE) {
             type_cible = m_espace->typeuse.type_reference_pour(expression->type);
         }
-        else if (transformation.type == TypeTransformation::DEREFERENCE) {
+        else if (transformation.type == TypeTransformation::DÉRÉFERENCE) {
             type_cible = type_déréférencé_pour(expression->type);
         }
-        else if (transformation.type == TypeTransformation::CONSTRUIT_TRANCHE_OCTET) {
+        else if (transformation.type == TypeTransformation::CONSTRUIS_TRANCHE_OCTET) {
             type_cible = m_espace->typeuse.type_tranche_octet;
         }
-        else if (transformation.type == TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE) {
+        else if (transformation.type == TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE) {
             auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
             type_cible = m_espace->typeuse.type_tableau_dynamique(type_tableau_fixe->type_pointé);
         }
@@ -5536,15 +5536,15 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
 
     auto tfm = transformation;
 
-    if (transformation.type == TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE) {
+    if (transformation.type == TypeTransformation::PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE) {
         auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
         noeud_comme->bloc_parent = expression->bloc_parent;
         noeud_comme->type = m_espace->typeuse.type_reference_pour(expression->type);
-        noeud_comme->transformation = TransformationType(TypeTransformation::PREND_REFERENCE);
+        noeud_comme->transformation = TransformationType(TypeTransformation::PRENDS_RÉFÉRENCE);
         noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
         expression = noeud_comme;
-        tfm.type = TypeTransformation::CONVERTI_VERS_BASE;
+        tfm.type = TypeTransformation::CONVERTIS_VERS_BASE;
     }
 
     auto noeud_comme = m_assembleuse->crée_comme(expression->lexème, expression, nullptr);
@@ -5869,7 +5869,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
     }
 }
 
-static bool est_decalage_bits(GenreLexème genre)
+static bool est_décalage_bits(GenreLexème genre)
 {
     return est_élément(genre,
                        GenreLexème::DECALAGE_DROITE,
@@ -5893,7 +5893,7 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
             type_gauche_est_référence = true;
             type_gauche = type_gauche->comme_type_référence()->type_pointé;
             crée_transtypage_implicite_au_besoin(
-                expr->opérande_gauche, TransformationType(TypeTransformation::DEREFERENCE));
+                expr->opérande_gauche, TransformationType(TypeTransformation::DÉRÉFERENCE));
         }
     }
 
@@ -5938,18 +5938,18 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
         }
     }
 
-    if (est_decalage_bits(expr->lexème->genre)) {
-        auto résultat_decalage = évalue_expression(
+    if (est_décalage_bits(expr->lexème->genre)) {
+        auto résultat_décalage = évalue_expression(
             m_espace, expr->bloc_parent, expr->opérande_droite);
         /* Un résultat erroné veut dire que l'expression n'est pas constante.
          * À FAIRE : granularise pour différencier les expressions non-constantes des erreurs
          * réelles. */
-        if (!résultat_decalage.est_erroné) {
+        if (!résultat_décalage.est_erroné) {
             auto const bits_max = nombre_de_bits_pour_type(type_gauche);
-            auto const decalage = résultat_decalage.valeur.entière();
-            if (résultat_decalage.valeur.entière() >= bits_max) {
+            auto const décalage = résultat_décalage.valeur.entière();
+            if (résultat_décalage.valeur.entière() >= bits_max) {
                 m_espace->rapporte_erreur(expr, "Décalage binaire trop grand pour le type")
-                    .ajoute_message("Le nombre de bits de décalage est de ", decalage, "\n")
+                    .ajoute_message("Le nombre de bits de décalage est de ", décalage, "\n")
                     .ajoute_message("Alors que le nombre maximum de bits de décalage est de ",
                                     bits_max - 1,
                                     " pour le type ",
@@ -6057,13 +6057,13 @@ RésultatValidation Sémanticienne::valide_assignation_logique(
     if (type_gauche->est_type_référence()) {
         type_gauche = type_déréférencé_pour(type_gauche);
         crée_transtypage_implicite_au_besoin(logique->opérande_gauche,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
     }
 
     if (type_droite->est_type_référence()) {
         type_droite = type_déréférencé_pour(type_droite);
         crée_transtypage_implicite_au_besoin(logique->opérande_droite,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
     }
 
     if (!type_gauche->est_type_bool()) {
@@ -6249,15 +6249,15 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto const aide_génération_code = static_cast<char>(typage_itérande.genre_de_boucle);
 
     if (aide_génération_code == BOUCLE_POUR_OPÉRATEUR &&
-        (inst->prend_référence || inst->prend_pointeur ||
+        (inst->prends_référence || inst->prends_pointeur ||
          inst->lexème_op != GenreLexème::INFERIEUR)) {
-        if (inst->prend_pointeur) {
+        if (inst->prends_pointeur) {
             m_espace->rapporte_erreur(
                 inst,
                 "Il est impossible de prendre une référence vers la variable itérée d'une "
                 "boucle sur un type non standard.");
         }
-        else if (inst->prend_référence) {
+        else if (inst->prends_référence) {
             m_espace->rapporte_erreur(
                 inst,
                 "Il est impossible de prendre l'adresse de la variable itérée d'une "
@@ -6285,10 +6285,10 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     /* il faut attendre de vérifier que le type est itérable avant de prendre cette
      * indication en compte */
-    if (inst->prend_référence) {
+    if (inst->prends_référence) {
         type_itérateur = m_espace->typeuse.type_reference_pour(type_itérateur);
     }
-    else if (inst->prend_pointeur) {
+    else if (inst->prends_pointeur) {
         type_itérateur = m_espace->typeuse.type_pointeur_pour(type_itérateur);
     }
 
@@ -6694,7 +6694,7 @@ RésultatValidation Sémanticienne::valide_expression_comme(NoeudComme *expr)
         auto ancienne_expression = expr->expression;
 
         crée_transtypage_implicite_au_besoin(expr->expression,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
         résultat = cherche_transformation_pour_transtypage(expr->expression->type, expr->type);
         if (std::holds_alternative<Attente>(résultat)) {
             return std::get<Attente>(résultat);

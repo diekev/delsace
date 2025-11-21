@@ -722,7 +722,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto virgule = assembleuse->crée_virgule(lexeme);
 
             POUR (tuple->rubriques) {
-                auto pointeur_rubrique = pointeur + it.decalage;
+                auto pointeur_rubrique = pointeur + it.décalage;
                 virgule->expressions.ajoute(
                     noeud_syntaxique_depuis_résultat(espace,
                                                      directive,
@@ -806,7 +806,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                                                    type_structure);
 
             POUR (type_structure->donne_rubriques_pour_code_machine()) {
-                auto pointeur_rubrique = pointeur + it.decalage;
+                auto pointeur_rubrique = pointeur + it.décalage;
                 auto noeud_rubrique = noeud_syntaxique_depuis_résultat(
                     espace,
                     directive,
@@ -912,7 +912,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
              * opaque */
             auto comme = assembleuse->crée_comme(lexeme, expr, nullptr);
             comme->type = type_opaque;
-            comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
+            comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_opaque};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
             return comme;
         }
@@ -967,7 +967,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = espace->typeuse.crée_type_tranche(type_tableau->type_pointé);
-            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+            comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
@@ -1005,7 +1005,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = type_tranche;
-            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+            comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 

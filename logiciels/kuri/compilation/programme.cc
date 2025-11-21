@@ -699,7 +699,7 @@ struct ConstructriceProgrammeFormeRI {
     {
     }
 
-    std::optional<ProgrammeRepreInter> construit_représentation_intermédiaire_programme();
+    std::optional<ProgrammeRepreInter> construis_représentation_intermédiaire_programme();
 
   private:
     void ajoute_fonction(AtomeFonction *fonction);
@@ -732,7 +732,7 @@ struct ConstructriceProgrammeFormeRI {
 };
 
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
-    construit_représentation_intermédiaire_programme()
+    construis_représentation_intermédiaire_programme()
 {
     m_résultat.fonctions.réserve(m_programme.fonctions().taille() + m_programme.types().taille());
     m_résultat.globales.réserve(m_programme.globales().taille());
@@ -1464,7 +1464,7 @@ std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
     EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme)
 {
     auto constructrice = ConstructriceProgrammeFormeRI(espace, compilatrice_ri, programme);
-    return constructrice.construit_représentation_intermédiaire_programme();
+    return constructrice.construis_représentation_intermédiaire_programme();
 }
 
 /* Cette fonction n'existe que parce que la principale peut ajouter des globales pour les
