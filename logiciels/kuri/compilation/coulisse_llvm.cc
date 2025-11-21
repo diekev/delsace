@@ -3100,8 +3100,8 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
                                             int niveau_optimisation,
                                             int niveau_taille)
 {
-    builder.OptLevel = niveau_optimisation;
-    builder.SizeLevel = niveau_taille;
+    builder.OptLevel = uint32_t(niveau_optimisation);
+    builder.SizeLevel = uint32_t(niveau_taille);
     builder.DisableUnrollLoops = (niveau_optimisation == 0);
 
     /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
