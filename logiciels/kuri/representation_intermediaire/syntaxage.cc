@@ -658,7 +658,7 @@ Type *SyntaxeuseRI::crée_type_variadique(const Lexème *lexème, Type *type_él
 
 Type *SyntaxeuseRI::crée_type_type_de_données(const Lexème *lexème, Type *type)
 {
-    return m_typeuse.type_type_de_donnees(type);
+    return m_typeuse.type_type_de_données(type);
 }
 
 Type *SyntaxeuseRI::crée_type_nomimal(kuri::tableau_statique<Lexème *> lexèmes)

@@ -9,31 +9,31 @@ namespace kuri {
 
 template <typename T, class Mutex = std::shared_mutex>
 class Synchrone {
-    T m_donnee{}; /* CRUCIAL : non-mutable ! */
+    T m_donnée{}; /* CRUCIAL : non-mutable ! */
     mutable Mutex m_mutex{};
 
   public:
-    class PointeurVerrouille {
+    class PointeurVerrouillé {
         Synchrone *m_parent;
 
       public:
-        PointeurVerrouille() = delete;
+        PointeurVerrouillé() = delete;
 
-        explicit PointeurVerrouille(Synchrone *parent) : m_parent(parent)
+        explicit PointeurVerrouillé(Synchrone *parent) : m_parent(parent)
         {
             if (m_parent) {
                 m_parent->m_mutex.lock();
             }
         }
 
-        PointeurVerrouille(const PointeurVerrouille &rhs) : m_parent(rhs.m_parent)
+        PointeurVerrouillé(const PointeurVerrouillé &rhs) : m_parent(rhs.m_parent)
         {
             if (m_parent) {
                 m_parent->m_mutex.lock();
             }
         }
 
-        const PointeurVerrouille &operator=(const PointeurVerrouille &rhs)
+        const PointeurVerrouillé &operator=(const PointeurVerrouillé &rhs)
         {
             if (this != &rhs) {
                 if (m_parent) {
@@ -50,12 +50,12 @@ class Synchrone {
             return *this;
         }
 
-        PointeurVerrouille(PointeurVerrouille &&rhs) : m_parent(rhs.m_parent)
+        PointeurVerrouillé(PointeurVerrouillé &&rhs) : m_parent(rhs.m_parent)
         {
             rhs.m_parent = nullptr;
         }
 
-        PointeurVerrouille &operator=(PointeurVerrouille &&rhs)
+        PointeurVerrouillé &operator=(PointeurVerrouillé &&rhs)
         {
             if (this != &rhs) {
                 if (m_parent) {
@@ -69,7 +69,7 @@ class Synchrone {
             return *this;
         }
 
-        ~PointeurVerrouille()
+        ~PointeurVerrouillé()
         {
             if (m_parent) {
                 m_parent->m_mutex.unlock();
@@ -78,51 +78,51 @@ class Synchrone {
 
         T *operator->()
         {
-            return m_parent ? &m_parent->m_donnee : nullptr;
+            return m_parent ? &m_parent->m_donnée : nullptr;
         }
 
         T &operator*()
         {
-            return m_parent->m_donnee;
+            return m_parent->m_donnée;
         }
     };
 
-    /* Cet opérateur va appelé PointeurVerrouille::operator->() de manière
+    /* Cet opérateur va appelé PointeurVerrouillé::operator->() de manière
      * transitive. Quand cet opérateur sera créé, un objet de type
-     * PointeurVerrouille sera créé, puis son opérateur '->' sera appelé, enfin,
+     * PointeurVerrouillé sera créé, puis son opérateur '->' sera appelé, enfin,
      * quand tout sera fini, l'objet sera détruit. Ce méchanisme, ctor/dtor, est
      * utilisé pour synchroniser le pointeur. */
-    PointeurVerrouille operator->()
+    PointeurVerrouillé operator->()
     {
-        return PointeurVerrouille(this);
+        return PointeurVerrouillé(this);
     }
 
-    PointeurVerrouille verrou_ecriture()
+    PointeurVerrouillé verrou_écriture()
     {
-        return PointeurVerrouille(this);
+        return PointeurVerrouillé(this);
     }
 
-    class ConstPointeurVerrouille {
+    class ConstPointeurVerrouillé {
         const Synchrone *m_parent;
 
       public:
-        ConstPointeurVerrouille() = delete;
+        ConstPointeurVerrouillé() = delete;
 
-        explicit ConstPointeurVerrouille(const Synchrone *parent) : m_parent(parent)
+        explicit ConstPointeurVerrouillé(const Synchrone *parent) : m_parent(parent)
         {
             if (m_parent) {
                 m_parent->m_mutex.lock_shared();
             }
         }
 
-        ConstPointeurVerrouille(const ConstPointeurVerrouille &rhs) : m_parent(rhs.m_parent)
+        ConstPointeurVerrouillé(const ConstPointeurVerrouillé &rhs) : m_parent(rhs.m_parent)
         {
             if (m_parent) {
                 m_parent->m_mutex.lock_shared();
             }
         }
 
-        const ConstPointeurVerrouille &operator=(const ConstPointeurVerrouille &rhs)
+        const ConstPointeurVerrouillé &operator=(const ConstPointeurVerrouillé &rhs)
         {
             if (this != &rhs) {
                 if (m_parent) {
@@ -139,12 +139,12 @@ class Synchrone {
             return *this;
         }
 
-        ConstPointeurVerrouille(ConstPointeurVerrouille &&rhs) : m_parent(rhs.m_parent)
+        ConstPointeurVerrouillé(ConstPointeurVerrouillé &&rhs) : m_parent(rhs.m_parent)
         {
             rhs.m_parent = nullptr;
         }
 
-        ConstPointeurVerrouille &operator=(ConstPointeurVerrouille &&rhs)
+        ConstPointeurVerrouillé &operator=(ConstPointeurVerrouillé &&rhs)
         {
             if (this != &rhs) {
                 if (m_parent) {
@@ -158,7 +158,7 @@ class Synchrone {
             return *this;
         }
 
-        ~ConstPointeurVerrouille()
+        ~ConstPointeurVerrouillé()
         {
             if (m_parent) {
                 m_parent->m_mutex.unlock_shared();
@@ -167,34 +167,34 @@ class Synchrone {
 
         T const *operator->() const
         {
-            return m_parent ? &m_parent->m_donnee : nullptr;
+            return m_parent ? &m_parent->m_donnée : nullptr;
         }
 
         T const &operator*() const
         {
-            return m_parent->m_donnee;
+            return m_parent->m_donnée;
         }
     };
 
-    /* Cet opérateur va appelé ConstPointeurVerrouille::operator->() de manière
+    /* Cet opérateur va appelé ConstPointeurVerrouillé::operator->() de manière
      * transitive. Quand cet opérateur sera créé, un objet de type
-     * ConstPointeurVerrouille sera créé, puis son opérateur '->' sera appelé,
+     * ConstPointeurVerrouillé sera créé, puis son opérateur '->' sera appelé,
      * enfin, quand tout sera fini, l'objet sera détruit. Ce méchanisme,
      * ctor/dtor, est utilisé pour synchroniser le pointeur. */
-    ConstPointeurVerrouille operator->() const
+    ConstPointeurVerrouillé operator->() const
     {
-        return ConstPointeurVerrouille(this);
+        return ConstPointeurVerrouillé(this);
     }
 
-    ConstPointeurVerrouille verrou_lecture() const
+    ConstPointeurVerrouillé verrou_lecture() const
     {
-        return ConstPointeurVerrouille(this);
+        return ConstPointeurVerrouillé(this);
     }
 
     Synchrone() = default;
 
   private:
-    Synchrone(const Synchrone &rhs, const ConstPointeurVerrouille &) : m_donnee(rhs.m_donnee)
+    Synchrone(const Synchrone &rhs, const ConstPointeurVerrouillé &) : m_donnée(rhs.m_donnée)
     {
     }
 
@@ -205,22 +205,22 @@ class Synchrone {
     }
 
     Synchrone(Synchrone &&rhs) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : m_donnee(std::move(rhs.m_donnee))
+        : m_donnée(std::move(rhs.m_donnée))
     {
     }
 
     template <typename... Args>
-    Synchrone(Args... args) : m_donnee(args...)
+    Synchrone(Args... args) : m_donnée(args...)
     {
     }
 
     explicit Synchrone(const T &rhs) noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : m_donnee(rhs)
+        : m_donnée(rhs)
     {
     }
 
     explicit Synchrone(T &&rhs) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : m_donnee(std::move(rhs))
+        : m_donnée(std::move(rhs))
     {
     }
 
@@ -230,11 +230,11 @@ class Synchrone {
         /* Fais en sorte que les verroux sont acquis dans le bon ordre. */
         if (std::less<void *>()(this, &rhs)) {
             auto g1 = operator->(), g2 = rhs.operator->();
-            m_donnee = rhs.m_donnee;
+            m_donnée = rhs.m_donnée;
         }
         else if (std::less<void *>()(&rhs, this)) {
             auto g1 = rhs.operator->(), g2 = operator->();
-            m_donnee = rhs.m_donnee;
+            m_donnée = rhs.m_donnée;
         }
 
         return *this;
@@ -245,11 +245,11 @@ class Synchrone {
         /* Fais en sorte que les verroux sont acquis dans le bon ordre. */
         if (std::less<void *>()(this, &rhs)) {
             auto g1 = operator->(), g2 = rhs.operator->();
-            m_donnee = std::move(rhs.m_donnee);
+            m_donnée = std::move(rhs.m_donnée);
         }
         else if (std::less<void *>()(&rhs, this)) {
             auto g1 = rhs.operator->(), g2 = operator->();
-            m_donnee = std::move(rhs.m_donnee);
+            m_donnée = std::move(rhs.m_donnée);
         }
 
         return *this;
@@ -258,7 +258,7 @@ class Synchrone {
     const Synchrone &operator=(const T &rhs)  // noexcept(std::is_nothrow_assignable<T>::value)
     {
         auto g1 = operator->();
-        m_donnee = rhs;
+        m_donnée = rhs;
 
         return *this;
     }
@@ -266,7 +266,7 @@ class Synchrone {
     const Synchrone &operator=(T &&rhs) noexcept(std::is_nothrow_move_assignable<T>::value)
     {
         auto g1 = operator->();
-        m_donnee = std::move(rhs);
+        m_donnée = std::move(rhs);
 
         return *this;
     }
@@ -276,11 +276,11 @@ class Synchrone {
         /* Fais en sorte que les verroux sont acquis dans le bon ordre. */
         if (std::less<void *>()(this, &rhs)) {
             auto g1 = operator->(), g2 = rhs.operator->();
-            std::swap(m_donnee, rhs.m_donnee);
+            std::swap(m_donnée, rhs.m_donnée);
         }
         else if (std::less<void *>()(&rhs, this)) {
             auto g1 = rhs.operator->(), g2 = operator->();
-            std::swap(m_donnee, rhs.m_donnee);
+            std::swap(m_donnée, rhs.m_donnée);
         }
     }
 
@@ -293,14 +293,14 @@ class Synchrone {
     void avec_verrou_lecture(Fonction &&fonction) const
     {
         operator->();
-        fonction(m_donnee);
+        fonction(m_donnée);
     }
 
     template <typename Fonction>
-    void avec_verrou_ecriture(Fonction &&fonction)
+    void avec_verrou_écriture(Fonction &&fonction)
     {
         operator->();
-        fonction(m_donnee);
+        fonction(m_donnée);
     }
 };
 

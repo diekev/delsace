@@ -99,7 +99,7 @@ static void ajoute_broyage_paramètres(Enchaineuse &enchaineuse,
     enchaineuse << "_E" << entête->params.taille() << "_";
 
     for (auto i = 0; i < entête->params.taille(); ++i) {
-        auto param = entête->parametre_entree(i);
+        auto param = entête->paramètre_entrée(i);
 
         auto nom_ascii = param->ident->nom_broye;
         enchaineuse << nom_ascii.taille();
@@ -621,7 +621,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
         });
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
+        auto param = decl->paramètre_entrée(i);
         broye_nom_simple(param->ident);
         nom_broyé_type(param->type);
     }
