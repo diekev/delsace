@@ -262,7 +262,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
     marque_instructions_utilisées(atome->instructions);
     marque_instructions_utilisées(atome->instructions);
 
-    kuri::tableau<InstructionAllocation *> allocs_inutilisees;
+    kuri::tableau<InstructionAllocation *> allocs_inutilisées;
 
     POUR (atome->params_entrees) {
         if (it->nombre_utilisations != 0) {
@@ -275,13 +275,13 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
          * site propre, celui de la fonction est utilisé), ajoutons-la à la liste des
          * allocations non-utilisées pour avoir un avertissement. */
         if (!decl_alloc || !decl_alloc->est_déclaration_variable()) {
-            allocs_inutilisees.ajoute(alloc);
+            allocs_inutilisées.ajoute(alloc);
             continue;
         }
 
         auto decl_var = decl_alloc->comme_déclaration_variable();
         if (!possède_annotation(decl_var, "inutilisée")) {
-            allocs_inutilisees.ajoute(it);
+            allocs_inutilisées.ajoute(it);
         }
     }
 
@@ -295,16 +295,16 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
             continue;
         }
 
-        allocs_inutilisees.ajoute(alloc);
+        allocs_inutilisées.ajoute(alloc);
     }
 
 #    if 0
-    if (allocs_inutilisees.taille() != 0) {
+    if (allocs_inutilisées.taille() != 0) {
         dbg() << imprime_fonction(atome, false, true);
     }
 #    endif
 
-    POUR (allocs_inutilisees) {
+    POUR (allocs_inutilisées) {
         if (it->etat & EST_PARAMETRE_FONCTION) {
             espace.rapporte_info(it->site, "Paramètre inutilisé");
         }
@@ -947,7 +947,7 @@ static bool est_comparaison_ordonnée_naturel_zéro(InstructionOpBinaire const *
     auto const opérande_gauche = op_binaire->valeur_gauche;
 
     /* Détecte naturel >= 0. */
-    if (genre == OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
+    if (genre == OpérateurBinaire::Genre::Comp_Sup_Égal_Nat) {
         return est_constante_entière_zéro(opérande_droite) &&
                opérande_gauche->type->est_type_entier_naturel();
     }
@@ -1200,14 +1200,14 @@ static bool supprime_allocations_temporaires(Graphe const &g, Bloc *bloc)
             continue;
         }
 
-        auto est_utilisee_uniquement_pour_charge_et_stocke = true;
+        auto est_utilisée_uniquement_pour_charge_et_stocke = true;
         g.visite_utilisateurs(inst0, [&](Atome const *utilisateur) {
             if (utilisateur != inst1 && utilisateur != inst2) {
-                est_utilisee_uniquement_pour_charge_et_stocke = false;
+                est_utilisée_uniquement_pour_charge_et_stocke = false;
             }
         });
 
-        if (!est_utilisee_uniquement_pour_charge_et_stocke) {
+        if (!est_utilisée_uniquement_pour_charge_et_stocke) {
             continue;
         }
 
@@ -1497,7 +1497,7 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
     return constructrice.crée_constante_nombre_entier(inst->type, résultat)
 
-#define APPLIQUE_OPERATION_REEL(nom)                                                              \
+#define APPLIQUE_OPERATION_RÉEL(nom)                                                              \
     auto résultat = Calculatrice::applique_opération_réel<nom>(                                   \
         opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
     return constructrice.crée_constante_nombre_réel(inst->type, résultat)
@@ -1507,7 +1507,7 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         opérande_gauche->comme_constante_entière(), opérande_droite->comme_constante_entière());  \
     return constructrice.crée_constante_booléenne(résultat)
 
-#define APPLIQUE_COMPARAISON_REEL(nom)                                                            \
+#define APPLIQUE_COMPARAISON_RÉEL(nom)                                                            \
     auto résultat = Calculatrice::applique_comparaison_réel<nom>(                                 \
         opérande_gauche->comme_constante_réelle(), opérande_droite->comme_constante_réelle());    \
     return constructrice.crée_constante_booléenne(résultat)
@@ -1523,103 +1523,103 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         {
             APPLIQUE_OPERATION_ENTIER(Addition);
         }
-        case OpérateurBinaire::Genre::Addition_Reel:
+        case OpérateurBinaire::Genre::Addition_Réel:
         {
-            APPLIQUE_OPERATION_REEL(Addition);
+            APPLIQUE_OPERATION_RÉEL(Addition);
         }
         case OpérateurBinaire::Genre::Soustraction:
         {
             APPLIQUE_OPERATION_ENTIER(Soustraction);
         }
-        case OpérateurBinaire::Genre::Soustraction_Reel:
+        case OpérateurBinaire::Genre::Soustraction_Réel:
         {
-            APPLIQUE_OPERATION_REEL(Soustraction);
+            APPLIQUE_OPERATION_RÉEL(Soustraction);
         }
         case OpérateurBinaire::Genre::Multiplication:
         {
             // À FAIRE : pourquoi pouvons-nous avoir des nombres réels ?
             if (inst->valeur_gauche->est_constante_réelle()) {
-                APPLIQUE_OPERATION_REEL(Multiplication);
+                APPLIQUE_OPERATION_RÉEL(Multiplication);
             }
             else {
                 APPLIQUE_OPERATION_ENTIER(Multiplication);
             }
         }
-        case OpérateurBinaire::Genre::Multiplication_Reel:
+        case OpérateurBinaire::Genre::Multiplication_Réel:
         {
-            APPLIQUE_OPERATION_REEL(Multiplication);
+            APPLIQUE_OPERATION_RÉEL(Multiplication);
         }
         case OpérateurBinaire::Genre::Division_Naturel:
         case OpérateurBinaire::Genre::Division_Relatif:
         {
             APPLIQUE_OPERATION_ENTIER(Division);
         }
-        case OpérateurBinaire::Genre::Division_Reel:
+        case OpérateurBinaire::Genre::Division_Réel:
         {
-            APPLIQUE_OPERATION_REEL(Division);
+            APPLIQUE_OPERATION_RÉEL(Division);
         }
         case OpérateurBinaire::Genre::Reste_Naturel:
         case OpérateurBinaire::Genre::Reste_Relatif:
         {
             APPLIQUE_OPERATION_ENTIER(Modulo);
         }
-        case OpérateurBinaire::Genre::Comp_Egal:
+        case OpérateurBinaire::Genre::Comp_Égal:
         {
             if (opérande_gauche->est_constante_booléenne()) {
                 APPLIQUE_COMPARAISON_BOOL(Égal);
             }
             APPLIQUE_COMPARAISON_ENTIER(Égal);
         }
-        case OpérateurBinaire::Genre::Comp_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Égal_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(Égal);
+            APPLIQUE_COMPARAISON_RÉEL(Égal);
         }
-        case OpérateurBinaire::Genre::Comp_Inegal:
+        case OpérateurBinaire::Genre::Comp_Inégal:
         {
             if (opérande_gauche->est_constante_booléenne()) {
                 APPLIQUE_COMPARAISON_BOOL(Différent);
             }
             APPLIQUE_COMPARAISON_ENTIER(Différent);
         }
-        case OpérateurBinaire::Genre::Comp_Inegal_Reel:
+        case OpérateurBinaire::Genre::Comp_Inégal_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(Différent);
+            APPLIQUE_COMPARAISON_RÉEL(Différent);
         }
         case OpérateurBinaire::Genre::Comp_Inf:
         case OpérateurBinaire::Genre::Comp_Inf_Nat:
         {
             APPLIQUE_COMPARAISON_ENTIER(Inférieur);
         }
-        case OpérateurBinaire::Genre::Comp_Inf_Reel:
+        case OpérateurBinaire::Genre::Comp_Inf_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(Inférieur);
+            APPLIQUE_COMPARAISON_RÉEL(Inférieur);
         }
-        case OpérateurBinaire::Genre::Comp_Inf_Egal:
-        case OpérateurBinaire::Genre::Comp_Inf_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Inf_Égal:
+        case OpérateurBinaire::Genre::Comp_Inf_Égal_Nat:
         {
             APPLIQUE_COMPARAISON_ENTIER(InférieurÉgal);
         }
-        case OpérateurBinaire::Genre::Comp_Inf_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Inf_Égal_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(InférieurÉgal);
+            APPLIQUE_COMPARAISON_RÉEL(InférieurÉgal);
         }
         case OpérateurBinaire::Genre::Comp_Sup:
         case OpérateurBinaire::Genre::Comp_Sup_Nat:
         {
             APPLIQUE_COMPARAISON_ENTIER(Supérieur);
         }
-        case OpérateurBinaire::Genre::Comp_Sup_Reel:
+        case OpérateurBinaire::Genre::Comp_Sup_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(Supérieur);
+            APPLIQUE_COMPARAISON_RÉEL(Supérieur);
         }
-        case OpérateurBinaire::Genre::Comp_Sup_Egal:
-        case OpérateurBinaire::Genre::Comp_Sup_Egal_Nat:
+        case OpérateurBinaire::Genre::Comp_Sup_Égal:
+        case OpérateurBinaire::Genre::Comp_Sup_Égal_Nat:
         {
             APPLIQUE_COMPARAISON_ENTIER(SupérieurÉgal);
         }
-        case OpérateurBinaire::Genre::Comp_Sup_Egal_Reel:
+        case OpérateurBinaire::Genre::Comp_Sup_Égal_Réel:
         {
-            APPLIQUE_COMPARAISON_REEL(SupérieurÉgal);
+            APPLIQUE_COMPARAISON_RÉEL(SupérieurÉgal);
         }
         case OpérateurBinaire::Genre::Et_Binaire:
         {
