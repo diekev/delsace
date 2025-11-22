@@ -6,7 +6,7 @@
 #include <iosfwd>
 
 struct EspaceDeTravail;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 #define ENUMERE_TACHES_POSSIBLES(O)                                                               \
     O(CHARGER, CHARGEMENT, "chargement", 0)                                                       \
@@ -43,7 +43,7 @@ std::ostream &operator<<(std::ostream &os, GenreTâche genre);
 
 struct Tâche {
     GenreTâche genre = GenreTâche::DORS;
-    UniteCompilation *unité = nullptr;
+    UnitéCompilation *unité = nullptr;
     EspaceDeTravail *espace = nullptr;
 
     static Tâche dors(EspaceDeTravail *espace_);

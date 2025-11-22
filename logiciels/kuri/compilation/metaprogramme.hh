@@ -18,7 +18,7 @@ struct IdentifiantCode;
 struct Fichier;
 struct Programme;
 struct Statistiques;
-struct UniteCompilation;
+struct UnitéCompilation;
 using Type = NoeudDéclarationType;
 
 enum {
@@ -127,7 +127,7 @@ std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état);
 /** \name MétaProgramme.
  * \{ */
 
-struct MetaProgramme {
+struct MétaProgramme {
     enum class RésultatExécution : int {
         ERREUR,
         SUCCÈS,
@@ -145,7 +145,7 @@ struct MetaProgramme {
     /* la fonction qui sera exécutée */
     NoeudDéclarationEntêteFonction *fonction = nullptr;
 
-    UniteCompilation *unité = nullptr;
+    UnitéCompilation *unité = nullptr;
 
     ÉtatMétaprogramme état = ÉtatMétaprogramme::EN_COMPILATION;
     bool a_rapporté_une_erreur = false;
@@ -186,7 +186,7 @@ struct MetaProgramme {
     kuri::chaine m_nom_pour_fichier_log{};
 
   public:
-    ~MetaProgramme();
+    ~MétaProgramme();
 
     bool ajoutera_du_code() const
     {

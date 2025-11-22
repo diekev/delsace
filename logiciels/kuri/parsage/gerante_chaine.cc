@@ -44,7 +44,7 @@ kuri::chaine_statique GeranteChaine::chaine_pour_adresse(int64_t adresse) const
     return {&tampon_courant->donnees[adresse_naturelle], int64_t(taille)};
 }
 
-int64_t GeranteChaine::memoire_utilisee() const
+int64_t GeranteChaine::mémoire_utilisée() const
 {
     return enchaineuse.mémoire_utilisée();
 }

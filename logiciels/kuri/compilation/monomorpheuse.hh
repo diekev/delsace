@@ -83,7 +83,7 @@ struct DonnéesErreurGenreType {
 
 /* Erreur interne : nous ne gérons pas un opérateur qui défini un type. */
 struct DonnéesErreurOpérateurNonGéré {
-    GenreLexème lexeme{};
+    GenreLexème lexème{};
 };
 
 /* Erreur interne : nous n'avons pas découvert une référence à une déclaration polymorphique. */
@@ -277,7 +277,7 @@ class Monomorpheuse {
 
     /* Ajout de candidats. */
 
-    void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionRéférence *reference,
+    void ajoute_candidat_depuis_référence_déclaration(const NoeudExpressionRéférence *référence,
                                                       const Type *type_reçu);
     void ajoute_candidats_depuis_type_fonction(
         const NoeudExpressionTypeFonction *decl_type_fonction,
@@ -314,7 +314,7 @@ class Monomorpheuse {
 
     Type *résoud_type_final_impl(const NoeudExpression *expression_polymorphique);
 
-    Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionRéférence *reference);
+    Type *résoud_type_final_pour_référence_déclaration(const NoeudExpressionRéférence *référence);
     Type *résoud_type_final_pour_type_fonction(
         const NoeudExpressionTypeFonction *decl_type_fonction);
     Type *résoud_type_final_pour_construction_structure(
@@ -346,7 +346,7 @@ class Monomorpheuse {
     void erreur_genre_type(const NoeudExpression *site,
                            const Type *type_reçu,
                            kuri::chaine_statique message);
-    void erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexème lexeme);
+    void erreur_opérateur_non_géré(const NoeudExpression *site, GenreLexème lexème);
     void erreur_référence_inconnue(const NoeudExpression *site);
     void erreur_monomorphisation_inconnue(const NoeudExpression *site,
                                           const kuri::tablet<ItemMonomorphisation, 6> &items,

@@ -163,7 +163,7 @@ struct NoeudInstructionCharge : NoeudExpression {
     @code  NoeudCodeCharge
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression * expression [code enfant construction]
 }
 
@@ -214,7 +214,7 @@ struct NoeudInstructionImporte : NoeudExpression {
     @code  NoeudCodeImporte
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression * expression [code enfant construction]
     NoeudModule * noeud_déclaration [code enfant]
     bool est_employé
@@ -292,7 +292,7 @@ struct NoeudModule : NoeudDéclaration {
     @genre_valeur INVALIDE
 
     Module *module [code copie]
-    UniteCompilation *unité
+    UnitéCompilation *unité
 }
 
 struct NoeudDéclarationSymbole : NoeudDéclaration {
@@ -316,7 +316,7 @@ struct NoeudDéclarationBibliothèque : NoeudDéclarationSymbole {
     @genre DÉCLARATION_BIBLIOTHÈQUE
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     Bibliothèque *bibliothèque
     Lexème const *lexème_nom_bibliothèque [copie]
 }
@@ -325,7 +325,7 @@ struct BaseDéclarationVariable : NoeudDéclarationSymbole {
     @comme base_déclaration_variable
     @code  NoeudCodeBaseDéclarationVariable
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
 
     NoeudExpression * expression [code enfant construction]
     NoeudExpression * expression_type [code enfant construction]
@@ -355,7 +355,7 @@ struct NoeudDéclarationVariableMultiple : BaseDéclarationVariable {
     @genre_valeur INVALIDE
 
     NoeudExpression * valeur [code enfant construction]
-    DonneesAssignations [compressé] données_decl
+    DonnéesAssignations [compressé] données_decl
 }
 
 struct NoeudDéclarationConstante : BaseDéclarationVariable {
@@ -386,7 +386,7 @@ struct NoeudAssignationMultiple : NoeudExpression {
     NoeudExpressionVirgule *assignées [code enfant construction]
     NoeudExpression *expression [code enfant construction]
 
-    DonneesAssignations [compressé] données_exprs
+    DonnéesAssignations [compressé] données_exprs
 }
 
 struct NoeudInstructionRetour : NoeudExpression {
@@ -405,7 +405,7 @@ struct NoeudInstructionRetourMultiple : NoeudInstructionRetour {
     @code  NoeudCodeInstructionRetourMultiple
     @genre_valeur INVALIDE
 
-    DonneesAssignations [compressé] données_exprs
+    DonnéesAssignations [compressé] données_exprs
 }
 
 struct NoeudExpressionRéférence : NoeudExpression {
@@ -568,7 +568,7 @@ struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     @code  NoeudCodeEntêteFonction
     @genre_valeur DROITE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudDéclarationCorpsFonction *corps [code enfant]
 
     // Ceux-ci ne peuvent pas être des NoeudDéclarationVariables car la structure est partagée avec les types
@@ -624,7 +624,7 @@ struct NoeudDéclarationCorpsFonction : NoeudDéclarationSymbole {
     @code  NoeudCodeCorpsFonction
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudDéclarationEntêteFonction *entête [code]
     NoeudBloc *bloc [code enfant]
     bool est_corps_texte [copie]
@@ -672,7 +672,7 @@ struct NoeudDéclarationType : NoeudDéclarationSymbole {
     @code  NoeudCodeDéclarationType
     @genre_valeur DROITE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
 
     InfoType * info_type [mutable]
     AtomeGlobale *atome_info_type [mutable]
@@ -736,7 +736,7 @@ struct NoeudDéclarationClasse : NoeudDéclarationTypeComposé {
      * dans le contexte du site. */
     NoeudExpression *site_monomorphisation
 
-    MetaProgramme *métaprogramme_corps_texte
+    MétaProgramme *métaprogramme_corps_texte
 
     bool est_externe [copie]
     bool est_sse2 [copie]
@@ -1033,7 +1033,7 @@ struct NoeudSiStatique : NoeudExpression {
     @code  NoeudCodeSiStatique
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression *condition [code enfant construction]
     NoeudBloc *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
@@ -1215,10 +1215,10 @@ struct NoeudDirectiveExécute : NoeudExpression {
     @code  NoeudCodeDirectiveExécute
     @genre_valeur DROITE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression *expression [code enfant construction]
 
-    MetaProgramme *métaprogramme
+    MétaProgramme *métaprogramme
 }
 
 struct NoeudDirectiveCuisine : NoeudDirectiveExécute {
@@ -1301,7 +1301,7 @@ struct NoeudDirectiveDépendanceBibliothèque : NoeudExpression {
     @code  NoeudCodeDépendanceBibliothèque
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpressionRéférence *bibliothèque_dépendante [code enfant construction]
     NoeudExpressionRéférence *bibliothèque_dépendue [code enfant construction]
 }
@@ -1312,7 +1312,7 @@ struct NoeudDirectiveAjouteInit : NoeudExpression {
     @code NoeudCodeAjouteInit
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression *expression [code enfant construction]
 }
 
@@ -1322,7 +1322,7 @@ struct NoeudDirectiveAjouteFini : NoeudExpression {
     @code NoeudCodeAjouteFini
     @genre_valeur INVALIDE
 
-    UniteCompilation * unité
+    UnitéCompilation * unité
     NoeudExpression *expression [code enfant construction]
 }
 

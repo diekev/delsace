@@ -13,12 +13,12 @@
 #    pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
-#define GABARIT_OPERATION_ARITHMETIQUE(nom, lexeme_op)                                            \
+#define GABARIT_OPERATION_ARITHMETIQUE(nom, lexème_op)                                            \
     struct nom {                                                                                  \
         template <typename T>                                                                     \
         static T applique_opération(T a, T b)                                                     \
         {                                                                                         \
-            return a lexeme_op b;                                                                 \
+            return a lexème_op b;                                                                 \
         }                                                                                         \
     }
 
@@ -35,12 +35,12 @@ GABARIT_OPERATION_ARITHMETIQUE(ConjonctionBinaire, &);
 
 #undef GABARIT_OPERATION_ARITHMETIQUE
 
-#define GABARIT_OPERATION_COMPARAISON(nom, lexeme_op)                                             \
+#define GABARIT_OPERATION_COMPARAISON(nom, lexème_op)                                             \
     struct nom {                                                                                  \
         template <typename T>                                                                     \
         static bool applique_opération(T a, T b)                                                  \
         {                                                                                         \
-            return a lexeme_op b;                                                                 \
+            return a lexème_op b;                                                                 \
         }                                                                                         \
     }
 

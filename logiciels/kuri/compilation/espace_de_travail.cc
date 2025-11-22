@@ -67,7 +67,7 @@ Fichier *EspaceDeTravail::fichier(kuri::chaine_statique chemin) const
     return sys_module->fichier(chemin);
 }
 
-int64_t EspaceDeTravail::memoire_utilisee() const
+int64_t EspaceDeTravail::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
     résultat += programme->mémoire_utilisée();
@@ -241,7 +241,7 @@ bool EspaceDeTravail::peut_génèrer_code_final() const
         return true;
     }
 
-    if (NOMBRE_DE_TACHES(EXECUTION) == 1 && metaprogramme) {
+    if (NOMBRE_DE_TACHES(EXECUTION) == 1 && métaprogramme) {
         return true;
     }
 
@@ -292,13 +292,13 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
         return {};
     }
 
-    auto lexeme = noeud->lexème;
-    if (!lexeme && noeud->est_corps_fonction()) {
-        lexeme = noeud->comme_corps_fonction()->entête->lexème;
+    auto lexème = noeud->lexème;
+    if (!lexème && noeud->est_corps_fonction()) {
+        lexème = noeud->comme_corps_fonction()->entête->lexème;
     }
 
-    auto const fichier = this->fichier(lexeme->fichier);
-    return SiteSource::cree(fichier, lexeme);
+    auto const fichier = this->fichier(lexème->fichier);
+    return SiteSource::crée(fichier, lexème);
 }
 
 Erreur EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,

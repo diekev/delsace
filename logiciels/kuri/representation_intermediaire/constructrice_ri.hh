@@ -15,7 +15,7 @@ class Broyeuse;
 struct Annotation;
 struct Compilatrice;
 struct ConstructriceRI;
-struct DonneesAssignations;
+struct DonnéesAssignations;
 
 using TypeEnum = NoeudEnum;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
@@ -212,7 +212,7 @@ struct ConstructriceRI {
                                                       Atome *accédé,
                                                       int index,
                                                       bool crée_seulement = false);
-    Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
+    Instruction *crée_référence_rubrique_et_charge(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index);
 
@@ -456,7 +456,7 @@ struct CompilatriceRI {
     void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,
                                              Atome *place);
     void génère_ri_pour_assignation_variable(
-        kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs);
+        kuri::tableau_compresse<DonnéesAssignations, int> const &données_exprs);
 
     void transforme_valeur(NoeudExpression const *noeud,
                            Atome *valeur,

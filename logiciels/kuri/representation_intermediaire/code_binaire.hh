@@ -25,7 +25,7 @@ struct IdentifiantCode;
 struct Instruction;
 struct InstructionAllocation;
 struct InstructionAppel;
-struct MetaProgramme;
+struct MétaProgramme;
 struct ProgrammeRepreInter;
 using Type = NoeudDéclarationType;
 
@@ -45,7 +45,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_REEL)                                                     \
+    ENUMERE_CODE_OPERATION_EX(OP_AJOUTE_RÉEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL)                                                           \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_EXTERNE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_APPEL_COMPILATRICE)                                              \
@@ -64,24 +64,24 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_STRUCTURE_CONSTANTE)                                             \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_CHARGE_LOCALE)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL)                                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_EGAL_REEL)                                                  \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL)                                                     \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INEGAL_REEL)                                                \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_ÉGAL)                                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_ÉGAL_RÉEL)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INÉGAL)                                                     \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INÉGAL_RÉEL)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INF)                                                        \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_EGAL)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_EGAL_NATUREL)                                           \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_EGAL_REEL)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_ÉGAL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_ÉGAL_NATUREL)                                           \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_ÉGAL_RÉEL)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_NATUREL)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_REEL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_INF_RÉEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP)                                                        \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_EGAL)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_EGAL_NATUREL)                                           \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_EGAL_REEL)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_ÉGAL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_ÉGAL_NATUREL)                                           \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_ÉGAL_RÉEL)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_NATUREL)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_REEL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_COMP_SUP_RÉEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_COMPLEMENT_ENTIER)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_COMPLEMENT_REEL)                                                 \
+    ENUMERE_CODE_OPERATION_EX(OP_COMPLEMENT_RÉEL)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_CONSTANTE)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_DEC_DROITE_ARITHM)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_DEC_DROITE_LOGIQUE)                                              \
@@ -90,17 +90,17 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RÉEL)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RELATIF)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE)                                                          \
-    ENUMERE_CODE_OPERATION_EX(OP_DIVISE_REEL)                                                     \
+    ENUMERE_CODE_OPERATION_EX(OP_DIVISE_RÉEL)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE_RELATIF)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_ET_BINAIRE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_MULTIPLIE)                                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_MULTIPLIE_REEL)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_MULTIPLIE_RÉEL)                                                  \
     ENUMERE_CODE_OPERATION_EX(OP_NON_BINAIRE)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_OU_BINAIRE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_OU_EXCLUSIF)                                                     \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_GLOBALE_EXTERNE)                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_REFERENCE_RUBRIQUE)                                              \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_GLOBALE)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_GLOBALE_EXTERNE)                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_RUBRIQUE)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_RUBRIQUE_LOCALE)                                       \
     ENUMERE_CODE_OPERATION_EX(OP_RÉFÉRENCE_LOCALE)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_RESTE_NATUREL)                                                   \
@@ -108,11 +108,11 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_RETOURNE)                                                        \
     ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT)                                                       \
     ENUMERE_CODE_OPERATION_EX(OP_DÉCRÉMENTE)                                                      \
-    ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_REEL)                                                  \
-    ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_NATUREL)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_REEL_VERS_RELATIF)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_NATUREL_VERS_REEL)                                               \
-    ENUMERE_CODE_OPERATION_EX(OP_RELATIF_VERS_REEL)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_SOUSTRAIT_RÉEL)                                                  \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉEL_VERS_NATUREL)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_RÉEL_VERS_RELATIF)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_NATUREL_VERS_RÉEL)                                               \
+    ENUMERE_CODE_OPERATION_EX(OP_RELATIF_VERS_RÉEL)                                               \
     ENUMERE_CODE_OPERATION_EX(OP_REMBOURRAGE)                                                     \
     ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_CHARGE)                                        \
     ENUMERE_CODE_OPERATION_EX(OP_VÉRIFIE_ADRESSAGE_ASSIGNE)                                       \
@@ -142,12 +142,12 @@ enum : octet_t {
 
 #define NOMBRE_OP_CODE (OP_LOGUE_RETOUR + 1)
 
-kuri::chaine_statique chaine_code_operation(octet_t code_operation);
+kuri::chaine_statique chaine_code_opération(octet_t code_opération);
 
 enum : octet_t {
     CONSTANTE_ENTIER_NATUREL = 1,
     CONSTANTE_ENTIER_RELATIF = 2,
-    CONSTANTE_NOMBRE_REEL = 4,
+    CONSTANTE_NOMBRE_RÉEL = 4,
     BITS_8 = 8,
     BITS_16 = 16,
     BITS_32 = 32,
@@ -204,12 +204,12 @@ struct drapeau_pour_constante<uint64_t> {
 
 template <>
 struct drapeau_pour_constante<float> {
-    static constexpr octet_t valeur = CONSTANTE_NOMBRE_REEL | BITS_32;
+    static constexpr octet_t valeur = CONSTANTE_NOMBRE_RÉEL | BITS_32;
 };
 
 template <>
 struct drapeau_pour_constante<double> {
-    static constexpr octet_t valeur = CONSTANTE_NOMBRE_REEL | BITS_64;
+    static constexpr octet_t valeur = CONSTANTE_NOMBRE_RÉEL | BITS_64;
 };
 
 struct PatchLabel {
@@ -362,10 +362,10 @@ struct Chunk {
                                int indice_label_si_vrai,
                                int indice_label_si_faux);
 
-    void émets_operation_unaire(NoeudExpression const *site,
+    void émets_opération_unaire(NoeudExpression const *site,
                                 OpérateurUnaire::Genre op,
                                 Type const *type);
-    void émets_operation_binaire(NoeudExpression const *site,
+    void émets_opération_binaire(NoeudExpression const *site,
                                  OpérateurBinaire::Genre op,
                                  Type const *type_résultat,
                                  Type const *type_gauche,
@@ -423,7 +423,7 @@ class CompilatriceCodeBinaire {
 
     /* Le métaprogramme pour lequel nous devons générer du code. Il est là avant pour stocker les
      * adresses des globales qu'il utilise. */
-    MetaProgramme *métaprogramme = nullptr;
+    MétaProgramme *métaprogramme = nullptr;
 
     /* Patchs pour les labels, puisque nous d'abord générer le code des branches avant de connaître
      * les adresses cibles des sauts, nous utilisons ces patchs pour insérer les adresses au bon
@@ -440,7 +440,7 @@ class CompilatriceCodeBinaire {
     bool émets_profilage = false;
 
   public:
-    CompilatriceCodeBinaire(EspaceDeTravail *espace_, MetaProgramme *metaprogramme_);
+    CompilatriceCodeBinaire(EspaceDeTravail *espace_, MétaProgramme *métaprogramme_);
 
     EMPECHE_COPIE(CompilatriceCodeBinaire);
 
@@ -451,7 +451,7 @@ class CompilatriceCodeBinaire {
 
     void génère_code_pour_instruction(Instruction const *instruction,
                                       Chunk &chunk,
-                                      bool pour_operande);
+                                      bool pour_opérande);
     void génère_code_atome_constant(const AtomeConstante *atome,
                                     const AdresseDonnéesExécution &adressage_destination,
                                     octet_t *destination,

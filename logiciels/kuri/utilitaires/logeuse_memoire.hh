@@ -38,8 +38,8 @@ inline constexpr int64_t calcule_memoire(int64_t nombre)
 }
 
 struct logeuse_mémoire {
-    std::atomic_int64_t memoire_consommee = 0;
-    std::atomic_int64_t memoire_allouee = 0;
+    std::atomic_int64_t mémoire_consommee = 0;
+    std::atomic_int64_t mémoire_allouee = 0;
     std::atomic_int64_t nombre_allocations = 0;
     std::atomic_int64_t nombre_reallocations = 0;
     std::atomic_int64_t nombre_deallocations = 0;
@@ -146,14 +146,14 @@ struct logeuse_mémoire {
 
     inline void ajoute_memoire(int64_t taille)
     {
-        this->memoire_allouee += taille;
-        this->memoire_consommee = std::max(this->memoire_allouee.load(),
-                                           this->memoire_consommee.load());
+        this->mémoire_allouee += taille;
+        this->mémoire_consommee = std::max(this->mémoire_allouee.load(),
+                                           this->mémoire_consommee.load());
     }
 
     inline void enleve_memoire(int64_t taille)
     {
-        this->memoire_allouee -= taille;
+        this->mémoire_allouee -= taille;
     }
 
     void *loge_generique(const char *message, int64_t taille);

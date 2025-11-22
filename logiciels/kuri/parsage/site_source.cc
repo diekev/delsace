@@ -5,13 +5,13 @@
 
 #include "lexemes.hh"
 
-SiteSource SiteSource::cree(const Fichier *fichier, const Lexème *lexeme)
+SiteSource SiteSource::crée(const Fichier *fichier, const Lexème *lexème)
 {
     SiteSource site;
     site.fichier = fichier;
-    site.indice_ligne = lexeme->ligne;
-    site.indice_colonne = lexeme->colonne;
+    site.indice_ligne = lexème->ligne;
+    site.indice_colonne = lexème->colonne;
     site.indice_colonne_min = site.indice_colonne;
-    site.indice_colonne_max = static_cast<int>(site.indice_colonne + lexeme->chaine.taille());
+    site.indice_colonne_max = static_cast<int>(site.indice_colonne + lexème->chaine.taille());
     return site;
 }

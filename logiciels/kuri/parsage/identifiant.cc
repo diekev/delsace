@@ -48,7 +48,7 @@ int64_t TableIdentifiant::taille() const
     return table.taille();
 }
 
-int64_t TableIdentifiant::memoire_utilisee() const
+int64_t TableIdentifiant::mémoire_utilisée() const
 {
     auto memoire = int64_t(0);
     memoire += identifiants.mémoire_utilisée();

@@ -272,19 +272,19 @@ static auto inst_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
     switch (genre) {
         case Genre::Addition:
             return llvm::Instruction::Add;
-        case Genre::Addition_Reel:
+        case Genre::Addition_Réel:
             return llvm::Instruction::FAdd;
         case Genre::Soustraction:
             return llvm::Instruction::Sub;
-        case Genre::Soustraction_Reel:
+        case Genre::Soustraction_Réel:
             return llvm::Instruction::FSub;
         case Genre::Multiplication:
             return llvm::Instruction::Mul;
-        case Genre::Multiplication_Reel:
+        case Genre::Multiplication_Réel:
             return llvm::Instruction::FMul;
         case Genre::Division_Naturel:
             return llvm::Instruction::UDiv;
-        case Genre::Division_Reel:
+        case Genre::Division_Réel:
             return llvm::Instruction::FDiv;
         case Genre::Division_Relatif:
             return llvm::Instruction::SDiv;
@@ -305,22 +305,22 @@ static auto inst_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
         case Genre::Dec_Droite_Logique:
             return llvm::Instruction::LShr;
         case Genre::Invalide:
-        case Genre::Comp_Egal:
-        case Genre::Comp_Inegal:
+        case Genre::Comp_Égal:
+        case Genre::Comp_Inégal:
         case Genre::Comp_Inf:
-        case Genre::Comp_Inf_Egal:
+        case Genre::Comp_Inf_Égal:
         case Genre::Comp_Sup:
-        case Genre::Comp_Sup_Egal:
+        case Genre::Comp_Sup_Égal:
         case Genre::Comp_Inf_Nat:
-        case Genre::Comp_Inf_Egal_Nat:
+        case Genre::Comp_Inf_Égal_Nat:
         case Genre::Comp_Sup_Nat:
-        case Genre::Comp_Sup_Egal_Nat:
-        case Genre::Comp_Egal_Reel:
-        case Genre::Comp_Inegal_Reel:
-        case Genre::Comp_Inf_Reel:
-        case Genre::Comp_Inf_Egal_Reel:
-        case Genre::Comp_Sup_Reel:
-        case Genre::Comp_Sup_Egal_Reel:
+        case Genre::Comp_Sup_Égal_Nat:
+        case Genre::Comp_Égal_Réel:
+        case Genre::Comp_Inégal_Réel:
+        case Genre::Comp_Inf_Réel:
+        case Genre::Comp_Inf_Égal_Réel:
+        case Genre::Comp_Sup_Réel:
+        case Genre::Comp_Sup_Égal_Réel:
         case Genre::Indexage:
             break;
     }
@@ -333,47 +333,47 @@ static auto cmp_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
     using Genre = OpérateurBinaire::Genre;
 
     switch (genre) {
-        case Genre::Comp_Egal:
+        case Genre::Comp_Égal:
             return llvm::CmpInst::Predicate::ICMP_EQ;
-        case Genre::Comp_Inegal:
+        case Genre::Comp_Inégal:
             return llvm::CmpInst::Predicate::ICMP_NE;
         case Genre::Comp_Inf:
             return llvm::CmpInst::Predicate::ICMP_SLT;
-        case Genre::Comp_Inf_Egal:
+        case Genre::Comp_Inf_Égal:
             return llvm::CmpInst::Predicate::ICMP_SLE;
         case Genre::Comp_Sup:
             return llvm::CmpInst::Predicate::ICMP_SGT;
-        case Genre::Comp_Sup_Egal:
+        case Genre::Comp_Sup_Égal:
             return llvm::CmpInst::Predicate::ICMP_SGE;
         case Genre::Comp_Inf_Nat:
             return llvm::CmpInst::Predicate::ICMP_ULT;
-        case Genre::Comp_Inf_Egal_Nat:
+        case Genre::Comp_Inf_Égal_Nat:
             return llvm::CmpInst::Predicate::ICMP_ULE;
         case Genre::Comp_Sup_Nat:
             return llvm::CmpInst::Predicate::ICMP_UGT;
-        case Genre::Comp_Sup_Egal_Nat:
+        case Genre::Comp_Sup_Égal_Nat:
             return llvm::CmpInst::Predicate::ICMP_UGE;
-        case Genre::Comp_Egal_Reel:
+        case Genre::Comp_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OEQ;
-        case Genre::Comp_Inegal_Reel:
+        case Genre::Comp_Inégal_Réel:
             return llvm::CmpInst::Predicate::FCMP_ONE;
-        case Genre::Comp_Inf_Reel:
+        case Genre::Comp_Inf_Réel:
             return llvm::CmpInst::Predicate::FCMP_OLT;
-        case Genre::Comp_Inf_Egal_Reel:
+        case Genre::Comp_Inf_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OLE;
-        case Genre::Comp_Sup_Reel:
+        case Genre::Comp_Sup_Réel:
             return llvm::CmpInst::Predicate::FCMP_OGT;
-        case Genre::Comp_Sup_Egal_Reel:
+        case Genre::Comp_Sup_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OGE;
         case Genre::Invalide:
         case Genre::Addition:
-        case Genre::Addition_Reel:
+        case Genre::Addition_Réel:
         case Genre::Soustraction:
-        case Genre::Soustraction_Reel:
+        case Genre::Soustraction_Réel:
         case Genre::Multiplication:
-        case Genre::Multiplication_Reel:
+        case Genre::Multiplication_Réel:
         case Genre::Division_Naturel:
-        case Genre::Division_Reel:
+        case Genre::Division_Réel:
         case Genre::Division_Relatif:
         case Genre::Reste_Naturel:
         case Genre::Reste_Relatif:
@@ -419,9 +419,9 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
             return CastOps::FPToSI;
         case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
             return CastOps::FPToUI;
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        case TypeTranstypage::ENTIER_RELATIF_VERS_RÉEL:
             return CastOps::SIToFP;
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        case TypeTranstypage::ENTIER_NATUREL_VERS_RÉEL:
             return CastOps::UIToFP;
         case TypeTranstypage::BITS:
             return CastOps::BitCast;
@@ -1037,7 +1037,7 @@ struct GénératriceCodeLLVM {
 
     llvm::FunctionType *convertis_type_fonction(TypeFonction const *type);
 
-    llvm::StructType *convertis_type_composé(TypeCompose const *type, kuri::chaine_statique nom);
+    llvm::StructType *convertis_type_composé(TypeComposé const *type, kuri::chaine_statique nom);
 
     llvm::Value *génère_code_pour_atome(Atome const *atome, bool pour_globale);
 
@@ -1326,7 +1326,7 @@ llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction 
     return llvm::FunctionType::get(type_sortie_llvm, paramètres, est_variadique);
 }
 
-llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeCompose const *type,
+llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeComposé const *type,
                                                               kuri::chaine_statique classe)
 {
     auto nom = type->ident ? enchaine(classe, ".", type->ident->nom) : kuri::chaine(classe);
@@ -1684,8 +1684,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             llvm::Value *valeur = nullptr;
 
-            if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal &&
-                inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
+            if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Égal &&
+                inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Égal_Nat) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
@@ -1703,8 +1703,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                                               valeur,
                                               llvm::Type::getInt8Ty(m_module->getContext()));
             }
-            else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal_Reel &&
-                     inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
+            else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Égal_Réel &&
+                     inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Égal_Réel) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
                 valeur = m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite);
 

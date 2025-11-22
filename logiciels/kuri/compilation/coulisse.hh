@@ -84,7 +84,7 @@ struct Coulisse {
 
     static Coulisse *crée_pour_options(OptionsDeCompilation options);
 
-    static Coulisse *crée_pour_metaprogramme();
+    static Coulisse *crée_pour_métaprogramme();
 
     static void détruit(Coulisse *coulisse);
 

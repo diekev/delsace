@@ -18,7 +18,7 @@
 /** \name AllocatriceInfosType.
  * \{ */
 
-int64_t AllocatriceInfosType::memoire_utilisee() const
+int64_t AllocatriceInfosType::mémoire_utilisée() const
 {
     auto memoire = int64_t(0);
 #define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) memoire += nom__.mémoire_utilisée();
@@ -624,7 +624,7 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             auto type_pointé = convertis_info_type(typeuse, info_type_pointeur->type_pointé);
 
             if (info_type_pointeur->est_référence) {
-                return typeuse.type_reference_pour(type_pointé);
+                return typeuse.type_référence_pour(type_pointé);
             }
 
             return typeuse.type_pointeur_pour(type_pointé);

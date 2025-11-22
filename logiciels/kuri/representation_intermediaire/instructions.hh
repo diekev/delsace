@@ -731,8 +731,8 @@ struct InstructionAccèsIndice : public Instruction {
     O(ENTIER_VERS_POINTEUR, entier_vers_pointeur)                                                 \
     O(RÉEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
     O(RÉEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
-    O(ENTIER_RELATIF_VERS_REEL, relatif_vers_réel)                                                \
-    O(ENTIER_NATUREL_VERS_REEL, naturel_vers_réel)                                                \
+    O(ENTIER_RELATIF_VERS_RÉEL, relatif_vers_réel)                                                \
+    O(ENTIER_NATUREL_VERS_RÉEL, naturel_vers_réel)                                                \
     O(BITS, transtype_bits)
 
 enum TypeTranstypage {

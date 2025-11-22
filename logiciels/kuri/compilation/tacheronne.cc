@@ -109,16 +109,16 @@ OrdonnanceuseTache::OrdonnanceuseTache(Compilatrice *compilatrice) : m_compilatr
 {
 }
 
-void OrdonnanceuseTache::crée_tâche_pour_unité(UniteCompilation *unite)
+void OrdonnanceuseTache::crée_tâche_pour_unité(UnitéCompilation *unité)
 {
-    assert(unite);
-    assert(unite->espace);
+    assert(unité);
+    assert(unité->espace);
 
-    const auto indice_file = file_pour_raison_d_être(unite->donne_raison_d_être());
+    const auto indice_file = file_pour_raison_d_être(unité->donne_raison_d_être());
 
     auto tache = Tâche{};
-    tache.unité = unite;
-    tache.espace = unite->espace;
+    tache.unité = unité;
+    tache.espace = unité->espace;
     tache.genre = static_cast<GenreTâche>(indice_file + 2);
 
     tâches[indice_file].enfile(tache);
@@ -156,12 +156,12 @@ Tâche OrdonnanceuseTache::tâche_suivante(Tâche &tache_terminee, DrapeauxTache
         }
     }
 
-    auto unite = tache_terminee.unité;
+    auto unité = tache_terminee.unité;
     auto espace = EspaceDeTravail::nul();
 
     // unité peut-être nulle pour les tâches DORS du début de la compilation
-    if (unite) {
-        espace = unite->espace;
+    if (unité) {
+        espace = unité->espace;
     }
     else {
         espace = tache_terminee.espace;
@@ -207,7 +207,7 @@ void OrdonnanceuseTache::supprime_toutes_les_tâches()
 }
 
 void OrdonnanceuseTache::supprime_toutes_les_tâches_pour_espace(const EspaceDeTravail *espace,
-                                                                UniteCompilation::État état)
+                                                                UnitéCompilation::État état)
 {
     auto predicat = [&](Tâche const &tache) { return tache.espace == espace; };
     POUR (tâches) {
@@ -263,7 +263,7 @@ bool Tacheronne::gère_tâche()
 
         if (tâche.unité) {
             tâche.unité->définis_état(
-                UniteCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
+                UnitéCompilation::État::EN_COURS_DE_TRAITEMENT_PAR_TACHERONNE);
         }
 
         switch (tâche.genre) {
@@ -325,8 +325,8 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::LEXAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_LEXER));
-                auto unite = tâche.unité;
-                auto fichier = unite->fichier;
+                auto unité = tâche.unité;
+                auto fichier = unité->fichier;
 
                 if (!fichier->fut_lexé) {
                     fichier->mutex.lock();
@@ -334,7 +334,7 @@ bool Tacheronne::gère_tâche()
                     if (!fichier->en_lexage) {
                         fichier->en_lexage = true;
                         auto debut_lexage = kuri::chrono::compte_seconde();
-                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unite->espace),
+                        auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unité->espace),
                                                fichier);
                         lexeuse.performe_lexage();
                         temps_lexage += debut_lexage.temps();
@@ -357,13 +357,13 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::PARSAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
-                auto unite = tâche.unité;
+                auto unité = tâche.unité;
                 auto debut_parsage = kuri::chrono::compte_seconde();
                 auto contexte = Contexte{};
-                this->initialise_contexte(&contexte, unite->espace);
-                auto syntaxeuse = Syntaxeuse(&contexte, unite);
+                this->initialise_contexte(&contexte, unité->espace);
+                auto syntaxeuse = Syntaxeuse(&contexte, unité);
                 syntaxeuse.analyse();
-                unite->fichier->fut_parsé = true;
+                unité->fichier->fut_parsé = true;
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 temps_parsage += debut_parsage.temps();
                 break;
@@ -371,9 +371,9 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::TYPAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
-                auto unite = tâche.unité;
+                auto unité = tâche.unité;
                 auto debut_validation = kuri::chrono::compte_seconde();
-                gère_unité_pour_typage(unite);
+                gère_unité_pour_typage(unité);
                 temps_validation += debut_validation.temps();
                 break;
             }
@@ -469,22 +469,22 @@ bool Tacheronne::gère_tâche()
                 assert(drapeau_est_actif(drapeaux,
                                          DrapeauxTacheronne::PEUT_CREER_FONCTION_INIT_TYPE));
 
-                auto unite = tâche.unité;
-                auto espace = unite->espace;
-                auto type = unite->type;
+                auto unité = tâche.unité;
+                auto espace = unité->espace;
+                auto type = unité->type;
                 assert(type);
 
                 auto contexte = Contexte{};
                 this->initialise_contexte(&contexte, espace);
 
                 crée_noeud_initialisation_type(&contexte, type);
-                compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+                compilatrice.gestionnaire_code->tâche_unité_terminée(unité);
                 break;
             }
             case GenreTâche::CALCULE_TAILLE_TYPE:
             {
-                auto unite = tâche.unité;
-                auto type = unite->type;
+                auto unité = tâche.unité;
+                auto type = unité->type;
                 assert(type);
                 calcule_taille_type_composé(type->comme_type_composé(), false, 0);
                 break;
@@ -511,51 +511,51 @@ bool Tacheronne::gère_tâche()
     return false;
 }
 
-void Tacheronne::gère_unité_pour_typage(UniteCompilation *unite)
+void Tacheronne::gère_unité_pour_typage(UnitéCompilation *unité)
 {
     auto contexte = Contexte{};
-    this->initialise_contexte(&contexte, unite->espace);
+    this->initialise_contexte(&contexte, unité->espace);
 
     auto sémanticienne = compilatrice.donne_sémanticienne_disponible(&contexte);
-    auto résultat = sémanticienne->valide(unite);
+    auto résultat = sémanticienne->valide(unité);
     if (est_erreur(résultat)) {
-        assert(unite->espace->possède_erreur);
+        assert(unité->espace->possède_erreur);
         compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
     if (est_attente(résultat)) {
-        compilatrice.gestionnaire_code->mets_en_attente(unite, std::get<Attente>(résultat));
+        compilatrice.gestionnaire_code->mets_en_attente(unité, std::get<Attente>(résultat));
         compilatrice.dépose_sémanticienne(sémanticienne);
         return;
     }
 
     CHRONO_TYPAGE(sémanticienne->donne_stats_typage().finalisation, FINALISATION__FINALISATION);
-    compilatrice.gestionnaire_code->tâche_unité_terminée(unite);
+    compilatrice.gestionnaire_code->tâche_unité_terminée(unité);
     compilatrice.dépose_sémanticienne(sémanticienne);
 }
 
-bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
+bool Tacheronne::gère_unité_pour_ri(UnitéCompilation *unité)
 {
-    auto noeud = unite->noeud;
+    auto noeud = unité->noeud;
 
     if (noeud->type == nullptr && !noeud->est_déclaration_variable_multiple()) {
-        unite->espace->rapporte_erreur(
+        unité->espace->rapporte_erreur(
             noeud, "Erreur interne: type nul sur une déclaration avant la génération de RI");
         return false;
     }
 
-    if (unite->est_pour_generation_ri_principale_mp()) {
-        constructrice_ri.génère_ri_pour_fonction_métaprogramme(unite->espace,
+    if (unité->est_pour_generation_ri_principale_mp()) {
+        constructrice_ri.génère_ri_pour_fonction_métaprogramme(unité->espace,
                                                                noeud->comme_entête_fonction());
     }
     else {
-        constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
+        constructrice_ri.génère_ri_pour_noeud(unité->espace, noeud);
     }
 
     auto entête = donne_entête_fonction(noeud);
     if (entête) {
-        constructrice_ri.commence_espace(unite->espace);
-        analyseuse_ri->analyse_ri(*unite->espace,
+        constructrice_ri.commence_espace(unité->espace);
+        analyseuse_ri->analyse_ri(*unité->espace,
                                   constructrice_ri.donne_constructrice(),
                                   entête->atome->comme_fonction());
         constructrice_ri.termine_espace();
@@ -565,9 +565,9 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
     return true;
 }
 
-void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
+void Tacheronne::gère_unité_pour_optimisation(UnitéCompilation *unité)
 {
-    auto noeud = unite->noeud;
+    auto noeud = unité->noeud;
     auto entête = donne_entête_fonction(noeud);
     assert(entête);
 
@@ -576,25 +576,25 @@ void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
     }
 
     /* N'optimise pas cette fonction car le manque de retour supprime tout le code. */
-    if (entête == unite->espace->interface_kuri->decl_creation_contexte) {
+    if (entête == unité->espace->interface_kuri->decl_creation_contexte) {
         return;
     }
 
     optimise_code(
-        *unite->espace, constructrice_ri.donne_constructrice(), entête->atome->comme_fonction());
+        *unité->espace, constructrice_ri.donne_constructrice(), entête->atome->comme_fonction());
 }
 
-void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
+void Tacheronne::gère_unité_pour_exécution(UnitéCompilation *unité)
 {
     if (!mv) {
         mv = mémoire::loge<MachineVirtuelle>("MachineVirtuelle", compilatrice);
     }
 
-    auto metaprogramme = unite->metaprogramme;
-    assert(metaprogramme->fonction->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE));
+    auto métaprogramme = unité->métaprogramme;
+    assert(métaprogramme->fonction->possède_drapeau(DrapeauxNoeud::RI_FUT_GENEREE));
 
-    metaprogramme->données_exécution = mv->loge_données_exécution();
-    mv->ajoute_métaprogramme(metaprogramme);
+    métaprogramme->données_exécution = mv->loge_données_exécution();
+    mv->ajoute_métaprogramme(métaprogramme);
 
     exécute_métaprogrammes();
 }
@@ -607,7 +607,7 @@ void Tacheronne::exécute_métaprogrammes()
         auto espace = it->unité->espace;
 
         // À FAIRE : précision des messages d'erreurs
-        if (it->résultat == MetaProgramme::RésultatExécution::ERREUR) {
+        if (it->résultat == MétaProgramme::RésultatExécution::ERREUR) {
             if (!espace->possède_erreur) {
                 /* Ne rapporte qu'une seule erreur. */
                 espace->rapporte_erreur(it->directive,
@@ -692,7 +692,7 @@ void Tacheronne::exécute_métaprogrammes()
 NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
     EspaceDeTravail *espace,
     NoeudDirectiveExécute *directive,
-    Lexème const *lexeme,
+    Lexème const *lexème,
     Type *type,
     octet_t *pointeur,
     DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire)
@@ -719,14 +719,14 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         {
             // pour les tuples de retours, nous les convertissons en expression-virgule
             auto tuple = type->comme_type_tuple();
-            auto virgule = assembleuse->crée_virgule(lexeme);
+            auto virgule = assembleuse->crée_virgule(lexème);
 
             POUR (tuple->rubriques) {
                 auto pointeur_rubrique = pointeur + it.décalage;
                 virgule->expressions.ajoute(
                     noeud_syntaxique_depuis_résultat(espace,
                                                      directive,
-                                                     lexeme,
+                                                     lexème,
                                                      it.type,
                                                      pointeur_rubrique,
                                                      détectrice_fuites_de_mémoire));
@@ -753,7 +753,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = static_cast<uint64_t>(*reinterpret_cast<int64_t *>(pointeur));
             }
 
-            return assembleuse->crée_littérale_entier(lexeme, type, valeur);
+            return assembleuse->crée_littérale_entier(lexème, type, valeur);
         }
         case GenreNoeud::DÉCLARATION_ÉNUM:
         case GenreNoeud::ENUM_DRAPEAU:
@@ -774,12 +774,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = *reinterpret_cast<uint64_t *>(pointeur);
             }
 
-            return assembleuse->crée_littérale_entier(lexeme, type, valeur);
+            return assembleuse->crée_littérale_entier(lexème, type, valeur);
         }
         case GenreNoeud::BOOL:
         {
             auto valeur = *reinterpret_cast<bool *>(pointeur);
-            auto noeud_syntaxique = assembleuse->crée_littérale_bool(lexeme);
+            auto noeud_syntaxique = assembleuse->crée_littérale_bool(lexème);
             noeud_syntaxique->valeur = valeur;
             noeud_syntaxique->type = type;
             return noeud_syntaxique;
@@ -796,13 +796,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 valeur = *reinterpret_cast<double *>(pointeur);
             }
 
-            return assembleuse->crée_littérale_réel(lexeme, type, valeur);
+            return assembleuse->crée_littérale_réel(lexème, type, valeur);
         }
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         {
             auto type_structure = type->comme_type_structure();
 
-            auto construction_structure = assembleuse->crée_construction_structure(lexeme,
+            auto construction_structure = assembleuse->crée_construction_structure(lexème,
                                                                                    type_structure);
 
             POUR (type_structure->donne_rubriques_pour_code_machine()) {
@@ -810,7 +810,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 auto noeud_rubrique = noeud_syntaxique_depuis_résultat(
                     espace,
                     directive,
-                    lexeme,
+                    lexème,
                     it.type,
                     pointeur_rubrique,
                     détectrice_fuites_de_mémoire);
@@ -822,12 +822,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         case GenreNoeud::DÉCLARATION_UNION:
         {
             auto type_union = type->comme_type_union();
-            auto construction_union = assembleuse->crée_construction_structure(lexeme, type_union);
+            auto construction_union = assembleuse->crée_construction_structure(lexème, type_union);
 
             if (type_union->est_nonsure) {
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
-                                                             lexeme,
+                                                             lexème,
                                                              type_union->type_le_plus_grand,
                                                              pointeur,
                                                              détectrice_fuites_de_mémoire);
@@ -847,7 +847,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
 
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
-                                                             lexeme,
+                                                             lexème,
                                                              type_donnees,
                                                              pointeur_donnees,
                                                              détectrice_fuites_de_mémoire);
@@ -868,7 +868,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
                 const_cast<char *>(chaine.pointeur()));
 
-            auto lit_chaine = assembleuse->crée_littérale_chaine(lexeme);
+            auto lit_chaine = assembleuse->crée_littérale_chaine(lexème);
             lit_chaine->valeur = compilatrice.gérante_chaine->ajoute_chaine(chaine);
             lit_chaine->type = type;
 
@@ -896,21 +896,21 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             }
 
             return assembleuse->crée_référence_déclaration(
-                lexeme, const_cast<NoeudDéclarationEntêteFonction *>(fonction->decl));
+                lexème, const_cast<NoeudDéclarationEntêteFonction *>(fonction->decl));
         }
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
             auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                          directive,
-                                                         lexeme,
+                                                         lexème,
                                                          type_opaque->type_opacifié,
                                                          pointeur,
                                                          détectrice_fuites_de_mémoire);
 
             /* comme dans la simplification de l'arbre, ceci doit être un transtypage vers le type
              * opaque */
-            auto comme = assembleuse->crée_comme(lexeme, expr, nullptr);
+            auto comme = assembleuse->crée_comme(lexème, expr, nullptr);
             comme->type = type_opaque;
             comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_opaque};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
@@ -920,7 +920,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         {
             auto type_tableau = type->comme_type_tableau_fixe();
 
-            auto virgule = assembleuse->crée_virgule(lexeme);
+            auto virgule = assembleuse->crée_virgule(lexème);
             virgule->expressions.réserve(type_tableau->taille);
 
             for (auto i = 0; i < type_tableau->taille; ++i) {
@@ -928,14 +928,14 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                       static_cast<unsigned>(i);
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
-                                                             lexeme,
+                                                             lexème,
                                                              type_tableau->type_pointé,
                                                              pointeur_valeur,
                                                              détectrice_fuites_de_mémoire);
                 virgule->expressions.ajoute(expr);
             }
 
-            auto construction = assembleuse->crée_construction_tableau(lexeme, virgule);
+            auto construction = assembleuse->crée_construction_tableau(lexème, virgule);
             construction->type = type_tableau;
             return construction;
         }
@@ -959,13 +959,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 type_tableau->type_pointé, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
-                                                                 lexeme,
+                                                                 lexème,
                                                                  type_tableau_fixe,
                                                                  pointeur_donnees,
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
-            auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
+            auto comme = assembleuse->crée_comme(lexème, construction, nullptr);
             comme->type = espace->typeuse.crée_type_tranche(type_tableau->type_pointé);
             comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
@@ -997,13 +997,13 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 type_tranche->type_élément, static_cast<int>(taille_donnees));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
-                                                                 lexeme,
+                                                                 lexème,
                                                                  type_tableau_fixe,
                                                                  pointeur_donnees,
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
-            auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
+            auto comme = assembleuse->crée_comme(lexème, construction, nullptr);
             comme->type = type_tranche;
             comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};

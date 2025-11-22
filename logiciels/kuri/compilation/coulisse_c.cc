@@ -377,7 +377,7 @@ struct ConvertisseuseTypeC {
     void génère_typedef(const Type *type, Enchaineuse &enchaineuse);
 
     void génère_typedef_pour_type_composé(TypeC &type_c,
-                                          const TypeCompose *type_composé,
+                                          const TypeComposé *type_composé,
                                           Enchaineuse &enchaineuse);
 
     /* Pour la génération de code pour les types, nous devons d'abord nous assurer que tous les
@@ -728,7 +728,7 @@ static kuri::chaine_statique donne_préfixe_struct_pour_type(
 }
 
 void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
-                                                           const TypeCompose *type_composé,
+                                                           const TypeComposé *type_composé,
                                                            Enchaineuse &enchaineuse)
 {
     if (type_composé->est_type_tableau_dynamique() || type_composé->est_type_tranche()) {

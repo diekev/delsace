@@ -125,11 +125,11 @@ struct Simplificatrice {
                                                         NoeudExpression *expression);
 
     NoeudExpression *simplifie_opérateur_binaire(NoeudExpressionBinaire *expr_bin,
-                                                 bool pour_operande);
+                                                 bool pour_opérande);
     NoeudExpression *simplifie_arithmétique_pointeur(NoeudExpressionBinaire *expr_bin);
     NoeudSi *crée_condition_boucle(NoeudExpression *inst, GenreNoeud genre_noeud);
     NoeudExpression *crée_expression_pour_op_chainée(
-        kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexeme_op_logique);
+        kuri::tableau<NoeudExpressionBinaire> &comparaisons, const Lexème *lexème_op_logique);
 
     /* remplace la dernière expression d'un bloc par une assignation afin de pouvoir simplifier les
      * conditions à droite des assigations */
@@ -137,9 +137,9 @@ struct Simplificatrice {
 
     NoeudExpression *crée_retourne_union_via_rien(NoeudDéclarationEntêteFonction *entête,
                                                   NoeudBloc *bloc_d_insertion,
-                                                  const Lexème *lexeme_reference);
+                                                  const Lexème *lexème_référence);
 
-    NoeudExpressionAppel *crée_appel_fonction_init(Lexème const *lexeme,
+    NoeudExpressionAppel *crée_appel_fonction_init(Lexème const *lexème,
                                                    NoeudExpression *expression_à_initialiser);
 
     NoeudExpression *simplifie_expression_logique(NoeudExpressionLogique *logique);

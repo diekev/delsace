@@ -24,9 +24,9 @@
 #include "impression.hh"
 #include "instructions.hh"
 
-kuri::chaine_statique chaine_code_operation(octet_t code_operation)
+kuri::chaine_statique chaine_code_opération(octet_t code_opération)
 {
-    switch (code_operation) {
+    switch (code_opération) {
 #define ENUMERE_CODE_OPERATION_EX(code)                                                           \
     case code:                                                                                    \
         return #code;
@@ -374,14 +374,14 @@ void Chunk::émets_charge_locale(NoeudExpression const *site, int pointeur, Type
 
 void Chunk::émets_référence_globale(NoeudExpression const *site, int pointeur)
 {
-    émets_entête_op(OP_REFERENCE_GLOBALE, site);
+    émets_entête_op(OP_RÉFÉRENCE_GLOBALE, site);
     émets(pointeur);
     émets_notifie_empilage(site, 8); /* adresse */
 }
 
 void Chunk::émets_référence_globale_externe(const NoeudExpression *site, const void *adresse)
 {
-    émets_entête_op(OP_REFERENCE_GLOBALE_EXTERNE, site);
+    émets_entête_op(OP_RÉFÉRENCE_GLOBALE_EXTERNE, site);
     émets(adresse);
     émets_notifie_empilage(site, 8); /* adresse */
 }
@@ -396,7 +396,7 @@ void Chunk::émets_référence_locale(NoeudExpression const *site, int pointeur)
 void Chunk::émets_référence_rubrique(NoeudExpression const *site, unsigned décalage)
 {
     émets_notifie_dépilage(site, 8); /* adresse */
-    émets_entête_op(OP_REFERENCE_RUBRIQUE, site);
+    émets_entête_op(OP_RÉFÉRENCE_RUBRIQUE, site);
     émets(décalage);
     émets_notifie_empilage(site, 8); /* adresse rubrique */
 }
@@ -580,7 +580,7 @@ void Chunk::émets_branche_si_zéro(NoeudExpression const *site,
     patchs_labels.ajoute({indice_label_si_faux, static_cast<int>(compte - 4)});
 }
 
-void Chunk::émets_operation_unaire(NoeudExpression const *site,
+void Chunk::émets_opération_unaire(NoeudExpression const *site,
                                    OpérateurUnaire::Genre op,
                                    Type const *type)
 {
@@ -591,7 +591,7 @@ void Chunk::émets_operation_unaire(NoeudExpression const *site,
 
     if (op == OpérateurUnaire::Genre::Négation) {
         if (type->est_type_réel()) {
-            émets_entête_op(OP_COMPLEMENT_REEL, site);
+            émets_entête_op(OP_COMPLEMENT_RÉEL, site);
         }
         else {
             émets_entête_op(OP_COMPLEMENT_ENTIER, site);
@@ -628,19 +628,19 @@ static std::optional<octet_t> convertis_type_transtypage(TypeTranstypage genre)
         }
         case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
         {
-            return OP_REEL_VERS_RELATIF;
+            return OP_RÉEL_VERS_RELATIF;
         }
         case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
         {
-            return OP_REEL_VERS_NATUREL;
+            return OP_RÉEL_VERS_NATUREL;
         }
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        case TypeTranstypage::ENTIER_RELATIF_VERS_RÉEL:
         {
-            return OP_RELATIF_VERS_REEL;
+            return OP_RELATIF_VERS_RÉEL;
         }
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        case TypeTranstypage::ENTIER_NATUREL_VERS_RÉEL:
         {
-            return OP_NATUREL_VERS_REEL;
+            return OP_NATUREL_VERS_RÉEL;
         }
         case TypeTranstypage::AUGMENTE_RÉEL:
         {
@@ -675,7 +675,7 @@ static std::optional<octet_t> convertis_type_transtypage(TypeTranstypage genre)
     return {};
 }
 
-void Chunk::émets_operation_binaire(NoeudExpression const *site,
+void Chunk::émets_opération_binaire(NoeudExpression const *site,
                                     OpérateurBinaire::Genre op,
                                     Type const *type_résultat,
                                     Type const *type_gauche,
@@ -825,7 +825,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
 
     auto instruction = chunk.code[décalage];
 
-    os << chaine_code_operation(instruction);
+    os << chaine_code_opération(instruction);
 
     switch (instruction) {
         case OP_LOGUE_RETOUR:
@@ -900,13 +900,13 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
                     os << " n64";
                     break;
                 }
-                case CONSTANTE_NOMBRE_REEL | BITS_32:
+                case CONSTANTE_NOMBRE_RÉEL | BITS_32:
                 {
                     LIS_CONSTANTE(float);
                     os << " r32";
                     break;
                 }
-                case CONSTANTE_NOMBRE_REEL | BITS_64:
+                case CONSTANTE_NOMBRE_RÉEL | BITS_64:
                 {
                     LIS_CONSTANTE(double);
                     os << " r64";
@@ -926,32 +926,32 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
             return décalage + taille_structure + 4;
         }
         case OP_AJOUTE:
-        case OP_AJOUTE_REEL:
+        case OP_AJOUTE_RÉEL:
         case OP_SOUSTRAIT:
-        case OP_SOUSTRAIT_REEL:
+        case OP_SOUSTRAIT_RÉEL:
         case OP_MULTIPLIE:
-        case OP_MULTIPLIE_REEL:
+        case OP_MULTIPLIE_RÉEL:
         case OP_DIVISE:
         case OP_DIVISE_RELATIF:
-        case OP_DIVISE_REEL:
+        case OP_DIVISE_RÉEL:
         case OP_RESTE_NATUREL:
         case OP_RESTE_RELATIF:
-        case OP_COMP_EGAL:
-        case OP_COMP_INEGAL:
+        case OP_COMP_ÉGAL:
+        case OP_COMP_INÉGAL:
         case OP_COMP_INF:
-        case OP_COMP_INF_EGAL:
+        case OP_COMP_INF_ÉGAL:
         case OP_COMP_SUP:
-        case OP_COMP_SUP_EGAL:
+        case OP_COMP_SUP_ÉGAL:
         case OP_COMP_INF_NATUREL:
-        case OP_COMP_INF_EGAL_NATUREL:
+        case OP_COMP_INF_ÉGAL_NATUREL:
         case OP_COMP_SUP_NATUREL:
-        case OP_COMP_SUP_EGAL_NATUREL:
-        case OP_COMP_EGAL_REEL:
-        case OP_COMP_INEGAL_REEL:
-        case OP_COMP_INF_REEL:
-        case OP_COMP_INF_EGAL_REEL:
-        case OP_COMP_SUP_REEL:
-        case OP_COMP_SUP_EGAL_REEL:
+        case OP_COMP_SUP_ÉGAL_NATUREL:
+        case OP_COMP_ÉGAL_RÉEL:
+        case OP_COMP_INÉGAL_RÉEL:
+        case OP_COMP_INF_RÉEL:
+        case OP_COMP_INF_ÉGAL_RÉEL:
+        case OP_COMP_SUP_RÉEL:
+        case OP_COMP_SUP_ÉGAL_RÉEL:
         case OP_ET_BINAIRE:
         case OP_OU_BINAIRE:
         case OP_OU_EXCLUSIF:
@@ -961,11 +961,11 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_BRANCHE:
         case OP_ASSIGNE:
         case OP_CHARGE:
-        case OP_REFERENCE_GLOBALE:
+        case OP_RÉFÉRENCE_GLOBALE:
         case OP_RÉFÉRENCE_LOCALE:
-        case OP_REFERENCE_RUBRIQUE:
+        case OP_RÉFÉRENCE_RUBRIQUE:
         case OP_ACCÈS_INDICE:
-        case OP_COMPLEMENT_REEL:
+        case OP_COMPLEMENT_RÉEL:
         case OP_COMPLEMENT_ENTIER:
         case OP_NON_BINAIRE:
         case OP_VÉRIFIE_ADRESSAGE_ASSIGNE:
@@ -994,7 +994,7 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         {
             décalage += 1;
             auto op = chunk.code[décalage];
-            os << ' ' << chaine_code_operation(op) << '\n';
+            os << ' ' << chaine_code_opération(op) << '\n';
             return décalage + 1;
         }
         case OP_ASSIGNE_LOCALE:
@@ -1044,15 +1044,15 @@ int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaine
         case OP_DIMINUE_RELATIF:
         case OP_AUGMENTE_RÉEL:
         case OP_DIMINUE_RÉEL:
-        case OP_NATUREL_VERS_REEL:
-        case OP_RELATIF_VERS_REEL:
-        case OP_REEL_VERS_NATUREL:
-        case OP_REEL_VERS_RELATIF:
+        case OP_NATUREL_VERS_RÉEL:
+        case OP_RELATIF_VERS_RÉEL:
+        case OP_RÉEL_VERS_NATUREL:
+        case OP_RÉEL_VERS_RELATIF:
         {
             return instruction_2d<int, int>(chunk, décalage, os);
         }
         case OP_LOGUE_APPEL:
-        case OP_REFERENCE_GLOBALE_EXTERNE:
+        case OP_RÉFÉRENCE_GLOBALE_EXTERNE:
         {
             return instruction_1d<void *>(chunk, décalage, os);
         }
@@ -1253,14 +1253,14 @@ ffi_type *convertis_type_ffi(Type const *type)
 /* ************************************************************************** */
 
 CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
-                                                 MetaProgramme *metaprogramme_)
+                                                 MétaProgramme *métaprogramme_)
     : espace(espace_), données_exécutions(&espace_->données_constantes_exécutions),
-      métaprogramme(metaprogramme_)
+      métaprogramme(métaprogramme_)
 {
     vérifie_adresses = espace->compilatrice().arguments.debogue_execution;
     notifie_empilage = espace->compilatrice().arguments.debogue_execution;
     émets_stats_ops = espace->compilatrice().arguments.émets_stats_ops_exécution;
-    émets_profilage = espace->compilatrice().arguments.profile_metaprogrammes;
+    émets_profilage = espace->compilatrice().arguments.profile_métaprogrammes;
 }
 
 bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
@@ -1443,7 +1443,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
 
 void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *instruction,
                                                            Chunk &chunk,
-                                                           bool pour_operande)
+                                                           bool pour_opérande)
 {
     switch (instruction->genre) {
         case GenreInstruction::LABEL:
@@ -1504,7 +1504,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
         case GenreInstruction::ALLOCATION:
         {
             auto alloc = instruction->comme_alloc();
-            assert(pour_operande);
+            assert(pour_opérande);
             chunk.émets_référence_locale(alloc->site, donne_indice_locale(alloc));
             break;
         }
@@ -1574,7 +1574,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             /* Évite de générer deux fois le code pour les appels : une fois dans la boucle sur les
              * instructions, une fois pour l'opérande. Les fonctions retournant « rien » ne peuvent
              * être opérandes. */
-            if (!appel->type->est_type_rien() && !pour_operande) {
+            if (!appel->type->est_type_rien() && !pour_opérande) {
                 return;
             }
 
@@ -1690,7 +1690,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             auto op_unaire = instruction->comme_op_unaire();
             auto type = op_unaire->valeur->type;
             génère_code_pour_atome(op_unaire->valeur, chunk);
-            chunk.émets_operation_unaire(op_unaire->site, op_unaire->op, type);
+            chunk.émets_opération_unaire(op_unaire->site, op_unaire->op, type);
             break;
         }
         case GenreInstruction::OPÉRATION_BINAIRE:
@@ -1714,7 +1714,7 @@ void CompilatriceCodeBinaire::génère_code_pour_instruction(Instruction const *
             génère_code_pour_atome(op_binaire->valeur_droite, chunk);
 
             auto type_droite = op_binaire->valeur_droite->type;
-            chunk.émets_operation_binaire(
+            chunk.émets_opération_binaire(
                 op_binaire->site, op_binaire->op, op_binaire->type, type_gauche, type_droite);
 
             break;

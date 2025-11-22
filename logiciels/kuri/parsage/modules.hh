@@ -25,7 +25,7 @@
 struct Enchaineuse;
 struct EspaceDeTravail;
 struct IdentifiantCode;
-struct MetaProgramme;
+struct MétaProgramme;
 struct Module;
 struct NoeudBloc;
 struct NoeudDirectiveInsère;
@@ -120,7 +120,7 @@ struct Fichier {
     bool fut_parsé = false;
 
     Module *module = nullptr;
-    MetaProgramme *métaprogramme_corps_texte = nullptr;
+    MétaProgramme *métaprogramme_corps_texte = nullptr;
     NoeudDirectiveInsère *directve_insère = nullptr;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
