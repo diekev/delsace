@@ -295,7 +295,7 @@ void SystèmeModule::rassemble_stats(Statistiques &stats) const
         entrée.chemin = it.chemin();
         entrée.nom = it.nom();
         entrée.nombre_lignes = it.tampon().nombre_lignes();
-        entrée.mémoire_tampons = it.tampon().taille_donnees();
+        entrée.mémoire_tampons = it.tampon().taille_données();
         entrée.mémoire_lexèmes = it.lexèmes.taille_mémoire();
         entrée.nombre_lexèmes = it.lexèmes.taille();
         entrée.temps_chargement = it.temps_chargement;

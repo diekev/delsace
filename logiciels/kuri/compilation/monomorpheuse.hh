@@ -332,7 +332,7 @@ class Monomorpheuse {
 
     /* Erreurs. */
 
-    void ajoute_erreur(const NoeudExpression *site, DonnéesErreur donnees);
+    void ajoute_erreur(const NoeudExpression *site, DonnéesErreur données);
     void erreur_interne(const NoeudExpression *site, kuri::chaine message);
     void erreur_contrainte(const NoeudExpression *site,
                            ÉtatRésolutionContrainte résultat,

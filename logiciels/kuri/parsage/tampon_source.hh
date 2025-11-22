@@ -48,7 +48,7 @@ class TamponSource {
     /**
      * Retourne un pointeur vers le début du tampon.
      */
-    const char *debut() const noexcept;
+    const char *début() const noexcept;
 
     /**
      * Retourne un pointeur vers la fin du tampon.
@@ -59,9 +59,9 @@ class TamponSource {
 
     int64_t nombre_lignes() const noexcept;
 
-    int64_t taille_donnees() const noexcept;
+    int64_t taille_données() const noexcept;
 
-    TamponSource sous_tampon(size_t debut, size_t fin) const;
+    TamponSource sous_tampon(size_t début, size_t fin) const;
 
     kuri::chaine const &chaine() const;
 

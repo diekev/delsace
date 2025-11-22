@@ -66,8 +66,8 @@ struct EspaceDeTravail {
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDéclarationEntêteFonction *fonction_principale = nullptr;
 
-    NoeudDéclarationEntêteFonction *fonction_point_d_entree = nullptr;
-    NoeudDéclarationEntêteFonction *fonction_point_d_entree_dynamique = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entrée = nullptr;
+    NoeudDéclarationEntêteFonction *fonction_point_d_entrée_dynamique = nullptr;
     NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Le métaprogramme controlant la compilation dans cette espace. */
