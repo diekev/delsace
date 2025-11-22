@@ -69,7 +69,7 @@ class TamponSource {
     /**
      * Construit le vecteur contenant les données de chaque ligne du tampon.
      */
-    void construit_lignes();
-    void construit_lignes_lent();
-    void construit_lignes_avx();
+    void construis_lignes();
+    void construis_lignes_lent();
+    void construis_lignes_avx();
 };

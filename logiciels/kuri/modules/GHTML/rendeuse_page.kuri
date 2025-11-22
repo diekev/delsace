@@ -59,10 +59,10 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         retourne enchaine("Impossible de lire le fichier « ", nom_court, " », de chemin « ", fichier.chemin, " »")
     }
 
-    lexeuse := construit_lexeuse(fichier.données)
+    lexeuse := construis_lexeuse(fichier.données)
     lexeuse.performe_lexage()
 
-    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes)
     syntaxeuse.performe_syntaxage()
 
     si syntaxeuse.erreurs {

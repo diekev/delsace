@@ -364,7 +364,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             assert(interface->decl_dls_depuis_r64);
             ajoute_fonction(interface->decl_dls_depuis_r64);
         }
-        else if (transformation.type == TypeTransformation::CONSTRUIT_EINI) {
+        else if (transformation.type == TypeTransformation::CONSTRUIS_EINI) {
             ajoute_info_de(type);
         }
         else if (transformation.type == TypeTransformation::EXTRAIT_EINI) {
@@ -747,8 +747,8 @@ static bool doit_ajouter_les_dépendances_au_programme(NoeudExpression *noeud, P
     }
 
     if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entête;
-        return programme->possède(entete);
+        auto entête = noeud->comme_corps_fonction()->entête;
+        return programme->possède(entête);
     }
 
     if (noeud->est_déclaration_variable()) {
@@ -827,16 +827,16 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
     if (noeud->est_entête_fonction() &&
         noeud->comme_entête_fonction()->possède_drapeau(DrapeauxNoeudFonction::EST_RACINE)) {
         DÉBUTE_STAT(AJOUTE_RACINES);
-        auto entete = noeud->comme_entête_fonction();
+        auto entête = noeud->comme_entête_fonction();
         POUR (programmes_en_cours) {
             if (it->espace() != espace) {
                 continue;
             }
 
-            it->ajoute_racine(entete);
+            it->ajoute_racine(entête);
 
-            if (entete->corps && !entete->corps->unité) {
-                requiers_typage(espace, entete->corps);
+            if (entête->corps && !entête->corps->unité) {
+                requiers_typage(espace, entête->corps);
             }
         }
         TERMINE_STAT(AJOUTE_RACINES);
@@ -1211,9 +1211,9 @@ void GestionnaireCode::ajoute_attentes_pour_noeud_code(NoeudExpression *noeud,
         }
 
         if (racine->est_entête_fonction()) {
-            auto entete = racine->comme_entête_fonction();
+            auto entête = racine->comme_entête_fonction();
 
-            POUR ((*entete->bloc_constantes->rubriques.verrou_ecriture())) {
+            POUR ((*entête->bloc_constantes->rubriques.verrou_ecriture())) {
                 if (it->type) {
                     types_utilisés.insère(it->type);
                 }
@@ -1890,7 +1890,7 @@ void GestionnaireCode::parsage_fichier_terminé(UniteCompilation *unité)
 static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
 {
     if (noeud->est_entête_fonction()) {
-        auto entete = noeud->comme_entête_fonction();
+        auto entête = noeud->comme_entête_fonction();
         /* La génération de RI pour les fonctions comprend également leurs corps, or le corps
          * n'est peut-être pas encore typé. Les fonctions externes n'ayant pas de corps (même si le
          * pointeur vers le corps est valide), nous devons quand même les envoyer vers la RI afin
@@ -1900,19 +1900,19 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
-               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
-               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
-               entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
-               !entete->est_opérateur_pour();
+        return !entête->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+               !entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) &&
+               !entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
+               entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE) &&
+               !entête->est_opérateur_pour();
     }
 
     if (noeud->est_corps_fonction()) {
-        auto entete = noeud->comme_corps_fonction()->entête;
+        auto entête = noeud->comme_corps_fonction()->entête;
 
         /* Puisque les métaprogrammes peuvent ajouter des chaines à la compilation, nous devons
          * attendre la génération de code final avant de générer la RI pour ces fonctions. */
-        if (est_élément(entete->ident,
+        if (est_élément(entête->ident,
                         ID::init_execution_kuri,
                         ID::fini_execution_kuri,
                         ID::init_globales_kuri)) {
@@ -1923,11 +1923,11 @@ static bool noeud_requiers_generation_ri(NoeudExpression *noeud)
          * est possible que les métaprogrammes arrivent ici après le typage, notamment pour les
          * #corps_textes.
          */
-        return !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
-               !entete->est_opérateur_pour() &&
-               !entete->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
-               (!entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
-                entete->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
+        return !entête->possède_drapeau(DrapeauxNoeudFonction::EST_MÉTAPROGRAMME) &&
+               !entête->est_opérateur_pour() &&
+               !entête->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO) &&
+               (!entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE) ||
+                entête->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION));
     }
 
     if (noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE) && !noeud->est_type_structure() &&
@@ -2500,7 +2500,7 @@ void GestionnaireCode::finalise_programme_avant_génération_code_machine(Espace
         return;
     }
 
-    if (!espace->peut_generer_code_final()) {
+    if (!espace->peut_génèrer_code_final()) {
         return;
     }
 

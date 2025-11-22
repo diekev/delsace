@@ -450,7 +450,7 @@ void Lexeuse::consomme_espaces_blanches()
             }
             default:
             {
-                auto rune = unicode::converti_utf32(m_début, nombre_octet);
+                auto rune = unicode::convertis_utf32(m_début, nombre_octet);
 
                 if (rune == 0) {
                     rapporte_erreur_caractère_unicode();
@@ -642,7 +642,7 @@ Lexème Lexeuse::donne_lexème_suivant()
         }
         default:
         {
-            auto rune = unicode::converti_utf32(m_début, nombre_octet);
+            auto rune = unicode::convertis_utf32(m_début, nombre_octet);
 
             if (rune == 0) {
                 rapporte_erreur_caractère_unicode();
@@ -736,7 +736,7 @@ Lexème Lexeuse::lèxe_chaine_littérale_guillemet()
 
     while (!this->fini()) {
         nombre_octet = unicode::nombre_octets(m_début);
-        auto c = unicode::converti_utf32(m_début, nombre_octet);
+        auto c = unicode::convertis_utf32(m_début, nombre_octet);
 
         if (c == GUILLEMET_OUVRANT) {
             ++profondeur;
@@ -831,7 +831,7 @@ Lexème Lexeuse::lèxe_identifiant()
             continue;
         }
 
-        auto rune = unicode::converti_utf32(m_début, nombre_octet);
+        auto rune = unicode::convertis_utf32(m_début, nombre_octet);
 
         if (rune == 0) {
             rapporte_erreur_caractère_unicode();

@@ -363,7 +363,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
         {
             auto type_tuple = type->comme_type_tuple();
             POUR (type_tuple->rubriques) {
-                lis_valeur(pointeur + it.decalage, it.type, os);
+                lis_valeur(pointeur + it.décalage, it.type, os);
             }
             break;
         }
@@ -436,7 +436,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
                 os << virgule;
                 os << it.nom << " = ";
 
-                auto pointeur_rubrique = pointeur + it.decalage;
+                auto pointeur_rubrique = pointeur + it.décalage;
                 lis_valeur(pointeur_rubrique, it.type, os);
 
                 virgule = ", ";
@@ -1034,7 +1034,7 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     auto pointeur_arguments = pointeur_pile - taille_argument;
 
     auto pointeurs_arguments = kuri::tablet<void *, 12>();
-    auto decalage_argument = 0u;
+    auto décalage_argument = 0u;
 
     if (ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_VARIADIQUE)) {
         auto nombre_arguments_fixes = static_cast<unsigned>(type_fonction->types_entrées.taille() -
@@ -1046,18 +1046,18 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
 
         POUR (inst_appel->args) {
             auto type_primitif = donne_type_primitif(it->type);
-            auto type_ffi = converti_type_ffi(type_primitif);
+            auto type_ffi = convertis_type_ffi(type_primitif);
             données_externe.types_entrées.ajoute(type_ffi);
 
-            auto ptr = &pointeur_arguments[decalage_argument];
+            auto ptr = &pointeur_arguments[décalage_argument];
             pointeurs_arguments.ajoute(ptr);
 
-            decalage_argument += type_primitif->taille_octet;
+            décalage_argument += type_primitif->taille_octet;
         }
 
         données_externe.types_entrées.ajoute(nullptr);
 
-        auto type_ffi_sortie = converti_type_ffi(type_fonction->type_sortie);
+        auto type_ffi_sortie = convertis_type_ffi(type_fonction->type_sortie);
         auto ptr_types_entrees = données_externe.types_entrées.données();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
@@ -1076,9 +1076,9 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
     }
     else {
         POUR (type_fonction->types_entrées) {
-            auto ptr = &pointeur_arguments[decalage_argument];
+            auto ptr = &pointeur_arguments[décalage_argument];
             pointeurs_arguments.ajoute(ptr);
-            decalage_argument += it->taille_octet;
+            décalage_argument += it->taille_octet;
         }
     }
 
@@ -1271,17 +1271,17 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_BRANCHE_CONDITION:
             {
-                auto decalage_si_vrai = LIS_4_OCTETS();
-                auto decalage_si_faux = LIS_4_OCTETS();
+                auto décalage_si_vrai = LIS_4_OCTETS();
+                auto décalage_si_faux = LIS_4_OCTETS();
                 auto condition = dépile<bool>();
 
                 if (condition) {
                     frame->pointeur = frame->fonction->données_exécution->chunk.code +
-                                      decalage_si_vrai;
+                                      décalage_si_vrai;
                 }
                 else {
                     frame->pointeur = frame->fonction->données_exécution->chunk.code +
-                                      decalage_si_faux;
+                                      décalage_si_faux;
                 }
 
                 break;
@@ -1289,8 +1289,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_BRANCHE_SI_ZÉRO:
             {
                 auto taille = LIS_4_OCTETS();
-                auto decalage_si_vrai = LIS_4_OCTETS();
-                auto decalage_si_faux = LIS_4_OCTETS();
+                auto décalage_si_vrai = LIS_4_OCTETS();
+                auto décalage_si_faux = LIS_4_OCTETS();
 
                 auto condition = false;
                 switch (taille) {
@@ -1326,11 +1326,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 }
                 if (condition) {
                     frame->pointeur = frame->fonction->données_exécution->chunk.code +
-                                      decalage_si_vrai;
+                                      décalage_si_vrai;
                 }
                 else {
                     frame->pointeur = frame->fonction->données_exécution->chunk.code +
-                                      decalage_si_faux;
+                                      décalage_si_faux;
                 }
                 break;
             }
@@ -1630,7 +1630,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 FAIS_TRANSTYPE_DIMINUE(char, short, int, int64_t)
                 break;
             }
-            case OP_AUGMENTE_REEL:
+            case OP_AUGMENTE_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1642,7 +1642,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_DIMINUE_REEL:
+            case OP_DIMINUE_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1880,6 +1880,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 décrémente_pointeur_de_pile(taille);
                 break;
             }
+            case OP_COPIE_MÉMOIRE:
+            {
+                auto taille = LIS_4_OCTETS();
+                auto adresse_ou = dépile<void *>();
+                auto adresse_de = dépile<void *>();
+                memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
+                break;
+            }
             case OP_INIT_LOCALE_ZÉRO:
             {
                 auto index = LIS_4_OCTETS();
@@ -1978,9 +1986,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_REFERENCE_RUBRIQUE:
             {
-                auto decalage = LIS_4_OCTETS();
+                auto décalage = LIS_4_OCTETS();
                 auto adresse_de = dépile<char *>();
-                empile(adresse_de + decalage);
+                empile(adresse_de + décalage);
                 // dbg() << "adresse_de : " << static_cast<void *>(adresse_de);
                 break;
             }
@@ -1993,7 +2001,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 empile(adresse_rubrique);
                 break;
             }
-            case OP_ACCÈDE_INDICE:
+            case OP_ACCÈS_INDICE:
             {
                 auto taille_données = LIS_4_OCTETS();
                 auto adresse = dépile<char *>();
@@ -2208,7 +2216,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
         return RésultatInterprétation::ERREUR;
     }
 
-    auto données = m_métaprogramme->données_exécution->tailles_empilées.depile();
+    auto données = m_métaprogramme->données_exécution->tailles_empilées.dépile();
 
     if (données.taille != taille) {
         m_métaprogramme->préserve_log_empilage();

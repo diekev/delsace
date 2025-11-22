@@ -83,7 +83,7 @@ struct DiagnostiqueÉtatCompilation {
     bool tous_les_fichiers_sont_lexés = false;
     bool tous_les_fichiers_sont_parsés = false;
     bool toutes_les_déclarations_à_typer_le_sont = false;
-    bool toutes_les_ri_sont_generees = false;
+    bool toutes_les_ri_sont_génèrees = false;
 
     Type *type_à_valider = nullptr;
     NoeudDéclaration *déclaration_à_valider = nullptr;
