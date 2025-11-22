@@ -68,7 +68,7 @@ struct ListeLexèmes {
     }
 };
 
-static void construit_lexèmes(ListeLexèmes &lexèmes)
+static void construis_lexèmes(ListeLexèmes &lexèmes)
 {
     lexèmes.ajoute_mot_clé("adresse_fonction", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_mot_clé("arrête");
@@ -205,7 +205,7 @@ static void construit_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_extra("...", "INCONNU");
 }
 
-static void construit_nom_énums(ListeLexèmes &lexèmes)
+static void construis_nom_énums(ListeLexèmes &lexèmes)
 {
     POUR (lexèmes.lexèmes) {
         if (it.nom_énum == "") {
@@ -542,8 +542,8 @@ int main(int argc, const char **argv)
     auto nom_fichier_sortie = kuri::chemin_systeme(argv[1]);
 
     auto lexèmes = ListeLexèmes{};
-    construit_lexèmes(lexèmes);
-    construit_nom_énums(lexèmes);
+    construis_lexèmes(lexèmes);
+    construis_nom_énums(lexèmes);
 
     auto nom_fichier_tmp = kuri::chemin_systeme::chemin_temporaire(
         nom_fichier_sortie.nom_fichier());

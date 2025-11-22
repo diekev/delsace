@@ -86,7 +86,7 @@ ParseAdresseCourriel :: énum {
 }
 
 // À FAIRE : valeur globale
-construit_table_caractères :: fonc () -> [256]DrapeauxCaractères
+construis_table_caractères :: fonc () -> [256]DrapeauxCaractères
 {
     table_caractères: [256]DrapeauxCaractères
 
@@ -175,7 +175,7 @@ parse_adresse_courriel_selon_html :: fonc (texte: chaine) -> AdresseCourriel
 
     parseuse: ParseuseAdresseCourriel
     parseuse.chn = texte
-    parseuse.table_caractères = construit_table_caractères()
+    parseuse.table_caractères = construis_table_caractères()
 
     saufsi parse_part_locale_html(*parseuse) {
         retourne AdresseCourriel()
@@ -205,7 +205,7 @@ parse_adresse_courriel_selon_rfc :: fonc (texte: chaine) -> AdresseCourriel
 
     parseuse: ParseuseAdresseCourriel
     parseuse.chn = texte
-    parseuse.table_caractères = construit_table_caractères()
+    parseuse.table_caractères = construis_table_caractères()
 
     c := caractère_courant(*parseuse)
     si c == '@' {

@@ -463,7 +463,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 auto transtype_info_de = assem->crée_comme(
                     lexème, expr_info_de, expression_pour_type_pointer_info_type);
                 transtype_info_de->transformation.type =
-                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE;
+                    TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE;
                 transtype_info_de->transformation.type_cible = type_pointeur_info_type;
                 transtype_info_de->type = type_pointeur_info_type;
 
@@ -643,7 +643,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             auto ancien_site_pour_position_code_source = m_site_pour_position_code_source;
             m_site_pour_position_code_source = appel;
 
-            if (appel->aide_génération_code == CONSTRUIT_OPAQUE) {
+            if (appel->aide_génération_code == CONSTRUIS_OPAQUE) {
                 simplifie(appel->paramètres_résolus[0]);
                 auto comme = crée_comme_type_cible(
                     appel->lexème, appel->paramètres_résolus[0], appel->type);
@@ -652,11 +652,11 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                 return comme;
             }
 
-            if (appel->aide_génération_code == CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE) {
+            if (appel->aide_génération_code == CONSTRUIS_OPAQUE_DEPUIS_STRUCTURE) {
                 return simplifie_construction_opaque_depuis_structure(appel);
             }
 
-            if (appel->aide_génération_code == CONSTRUIT_CHAINE) {
+            if (appel->aide_génération_code == CONSTRUIS_CHAINE) {
                 POUR (appel->paramètres_résolus) {
                     simplifie(it);
                 }
@@ -1108,7 +1108,7 @@ NoeudComme *Simplificatrice::crée_comme_type_cible(const Lexème *lexème,
     auto résultat = assem->crée_comme(lexème, expression, nullptr);
     résultat->type = type;
     résultat->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    résultat->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type};
+    résultat->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type};
     return résultat;
 }
 
@@ -1358,11 +1358,11 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto indexage = assem->crée_indexage(inst->lexème, expr_pointeur, expr_index, true);
             NoeudExpression *expression_assignee = indexage;
 
-            if (inst->prend_référence || inst->prend_pointeur) {
+            if (inst->prends_référence || inst->prends_pointeur) {
                 auto noeud_comme = assem->crée_comme(it->lexème, indexage, nullptr);
                 noeud_comme->type = it->type;
                 noeud_comme->transformation = TransformationType(
-                    TypeTransformation::PREND_REFERENCE);
+                    TypeTransformation::PRENDS_RÉFÉRENCE);
                 noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
                 expression_assignee = noeud_comme;
@@ -1423,7 +1423,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *in
 
     m_substitutions_boucles_pour.empile(substitution_manuelle);
     simplifie(inst->corps_opérateur_pour);
-    m_substitutions_boucles_pour.depile();
+    m_substitutions_boucles_pour.dépile();
 
     inst->substitution = bloc_substitution;
     return inst;
@@ -1501,14 +1501,14 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
     }
 
     if (exprs.taille() == 1) {
-        return exprs.depile();
+        return exprs.dépile();
     }
 
     auto résultat = NoeudExpression::nul();
 
     while (true) {
-        auto a = exprs.depile();
-        auto b = exprs.depile();
+        auto a = exprs.dépile();
+        auto b = exprs.dépile();
 
         auto et = assem->crée_expression_logique(lexeme_op_logique, a, b);
 
@@ -2066,7 +2066,7 @@ NoeudExpression *Simplificatrice::simplifie_construction_union(
     auto comme = assem->crée_comme(lexème, expression_initialisation, nullptr);
     comme->type = type_union;
     comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
-    comme->transformation = {TypeTransformation::CONSTRUIT_UNION, type_union, indice_rubrique};
+    comme->transformation = {TypeTransformation::CONSTRUIS_UNION, type_union, indice_rubrique};
 
     construction->substitution = comme;
     return comme;
@@ -2109,7 +2109,7 @@ void Simplificatrice::simplifie_position_code_source(NoeudDirectiveIntrospection
     /* PositionCodeSource.ligne */
     auto pos = position_lexeme(*lexème_site);
     auto valeur_ligne = assem->crée_littérale_entier(
-        lexème, typeuse.type_z32, static_cast<unsigned>(pos.numero_ligne));
+        lexème, typeuse.type_z32, static_cast<unsigned>(pos.numéro_ligne));
 
     /* PositionCodeSource.colonne */
     auto valeur_colonne = assem->crée_littérale_entier(

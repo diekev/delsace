@@ -72,7 +72,7 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
         os << "\n";
     }
 
-    genere_déclaration_identifiants_code(protéines, os, pour_entête, "ipa");
+    génère_déclaration_identifiants_code(protéines, os, pour_entête, "ipa");
 
     génère_code_cpp(os, protéines, pour_entête);
 

@@ -47,7 +47,7 @@ réinitialise :: fonc (chn: &ChaineUTF32) #enligne
     chn.points_de_code.taille = 0
 }
 
-converti_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
+convertis_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 {
     // À FAIRE(langage) : la compilation n'attend pas sur les messages
     // retourne imprime_chaine("%", chn)
@@ -88,7 +88,7 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
             continue
         }
 
-        ptr_résultat[taille] = converti_utf8_utf32(*ptr_source[curseur], no) comme n32
+        ptr_résultat[taille] = convertis_utf8_utf32(*ptr_source[curseur], no) comme n32
 
         taille += 1
         curseur += no comme z32
@@ -143,7 +143,7 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
             retourne faux
         }
 
-        point_de_code := converti_utf8_utf32(*ptr_natif[curseur_chn_native]) comme n32
+        point_de_code := convertis_utf8_utf32(*ptr_natif[curseur_chn_native]) comme n32
 
         si point_de_code != chn_utf32.points_de_code[curseur_chn_utf32] {
             retourne faux

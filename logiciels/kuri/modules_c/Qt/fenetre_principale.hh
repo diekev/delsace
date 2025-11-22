@@ -38,7 +38,7 @@ class FenetrePrincipale final : public QMainWindow {
     void closeEvent(QCloseEvent *event) override;
 
   private:
-    void construit_barre_de_menu();
+    void construis_barre_de_menu();
 
   public Q_SLOTS:
     void repond_clic_menu();

@@ -248,7 +248,7 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
         JS.dépile_execution_context(mv)
     }
 
-    texte_exception := converti_vers_chaine(chn.texte.donne_chaine_utf16())
+    texte_exception := convertis_vers_chaine(chn.texte.donne_chaine_utf16())
 
     user_agent := window.document.donne_user_agent()
     user_agent.rapporte_exception(window.document, texte_exception)
