@@ -84,7 +84,7 @@ Coulisse *Coulisse::crée_pour_options(OptionsDeCompilation options)
     return nullptr;
 }
 
-Coulisse *Coulisse::crée_pour_metaprogramme()
+Coulisse *Coulisse::crée_pour_métaprogramme()
 {
     return mémoire::loge<CoulisseMV>("CoulisseMV");
 }

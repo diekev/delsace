@@ -473,7 +473,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "inf";
         }
-        case GenreLexème::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_ÉGAL:
         {
             return "infeg";
         }
@@ -481,7 +481,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "sup";
         }
-        case GenreLexème::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_ÉGAL:
         {
             return "supeg";
         }
@@ -549,23 +549,23 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "oux";
         }
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         {
             return "plusegl";
         }
-        case GenreLexème::MOINS_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
         {
             return "moinsegl";
         }
-        case GenreLexème::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
         {
             return "mulegl";
         }
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         {
             return "divegl";
         }
-        case GenreLexème::MODULO_EGAL:
+        case GenreLexème::MODULO_ÉGAL:
         {
             return "modegl";
         }
