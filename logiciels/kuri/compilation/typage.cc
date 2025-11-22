@@ -102,7 +102,7 @@ static void initialise_type_pointeur(Typeuse &typeuse, TypePointeur *résultat, 
 }
 
 static void initialise_type_référence(Typeuse &typeuse,
-                                      TypeReference *résultat,
+                                      TypeRéférence *résultat,
                                       Type *type_pointe_)
 {
     assert(type_pointe_);
@@ -121,11 +121,11 @@ static void initialise_type_référence(Typeuse &typeuse,
 
 static void initialise_type_fonction(Typeuse &typeuse,
                                      TypeFonction *résultat,
-                                     kuri::tablet<Type *, 6> const &entrees,
+                                     kuri::tablet<Type *, 6> const &entrées,
                                      Type *sortie)
 {
-    résultat->types_entrées.réserve(static_cast<int>(entrees.taille()));
-    POUR (entrees) {
+    résultat->types_entrées.réserve(static_cast<int>(entrées.taille()));
+    POUR (entrées) {
         résultat->types_entrées.ajoute(it);
     }
 
@@ -214,7 +214,7 @@ static void initialise_type_variadique(TypeVariadique *résultat,
 }
 
 static void initialise_type_type_de_données(Typeuse &typeuse,
-                                            TypeTypeDeDonnees *résultat,
+                                            TypeTypeDeDonnées *résultat,
                                             Type *type_connu_)
 {
     résultat->ident = ID::type_de_données;
@@ -389,8 +389,8 @@ Typeuse::Typeuse()
     type_rien->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
                                  DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE);
 
-    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
-    initialise_type_type_de_données(*this, type_type_de_donnees_, nullptr);
+    type_type_de_données_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
+    initialise_type_type_de_données(*this, type_type_de_données_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
@@ -427,11 +427,11 @@ Typeuse::Typeuse()
 
 Typeuse::~Typeuse()
 {
-    for (auto ptr : *types_simples.verrou_ecriture()) {
-        mémoire::deloge("Type", ptr);
+    for (auto ptr : *types_simples.verrou_écriture()) {
+        mémoire::déloge("Type", ptr);
     }
 
-    mémoire::deloge("AllocatriceNoeud", alloc);
+    mémoire::déloge("AllocatriceNoeud", alloc);
 }
 
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace)
@@ -523,7 +523,7 @@ Type *Typeuse::type_pour_lexème(GenreLexème lexème)
         }
         case GenreLexème::TYPE_DE_DONNÉES:
         {
-            return type_type_de_donnees_;
+            return type_type_de_données_;
         }
         case GenreLexème::ADRESSE_FONCTION:
         {
@@ -536,7 +536,7 @@ Type *Typeuse::type_pour_lexème(GenreLexème lexème)
     }
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insère_dans_graphe)
 {
     if (!type) {
         return type_ptr_nul;
@@ -551,7 +551,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
     auto résultat = alloc->m_noeuds_type_pointeur.ajoute_élément();
     initialise_type_pointeur(*this, résultat, type);
 
-    if (insere_dans_graphe) {
+    if (insère_dans_graphe) {
         types_à_insérer_dans_graphe.ajoute_aux_données_globales({résultat, type});
     }
 
@@ -567,7 +567,7 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
     return résultat;
 }
 
-TypeReference *Typeuse::type_référence_pour(Type *type)
+TypeRéférence *Typeuse::type_référence_pour(Type *type)
 {
     VERROUILLE(types_références);
 
@@ -587,7 +587,7 @@ TypeReference *Typeuse::type_référence_pour(Type *type)
     return résultat;
 }
 
-TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe)
+TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insère_dans_graphe)
 {
     assert(taille);
     VERROUILLE(types_tableaux_fixes);
@@ -615,7 +615,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
-    if (insere_dans_graphe) {
+    if (insère_dans_graphe) {
         types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_pointe});
     }
 
@@ -643,7 +643,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
     return type;
 }
 
-TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insere_dans_graphe)
+TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insère_dans_graphe)
 {
     VERROUILLE(types_tableaux_dynamiques);
 
@@ -665,7 +665,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
-    if (insere_dans_graphe) {
+    if (insère_dans_graphe) {
         types_à_insérer_dans_graphe.ajoute_aux_données_globales({type, type_pointe});
     }
 
@@ -739,14 +739,14 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
 }
 
 TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
-                                           kuri::tablet<Type *, 6> const &entrees)
+                                           kuri::tablet<Type *, 6> const &entrées)
 {
-    if (it->types_entrées.taille() != entrees.taille()) {
+    if (it->types_entrées.taille() != entrées.taille()) {
         return nullptr;
     }
 
     for (int i = 0; i < it->types_entrées.taille(); ++i) {
-        if (it->types_entrées[i] != entrees[i]) {
+        if (it->types_entrées[i] != entrées[i]) {
             return nullptr;
         }
     }
@@ -754,11 +754,11 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
     return it;
 }
 
-TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie)
+TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrées, Type *type_sortie)
 {
     VERROUILLE(types_fonctions);
 
-    auto candidat = trie.trouve_type_ou_noeud_insertion(entrees, type_sortie);
+    auto candidat = trie.trouve_type_ou_noeud_insertion(entrées, type_sortie);
 
     if (std::holds_alternative<TypeFonction *>(candidat)) {
         /* Le type est dans le Trie, retournons-le. */
@@ -767,7 +767,7 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Typ
 
     /* Créons un nouveau type. */
     auto type = alloc->m_noeuds_type_fonction.ajoute_élément();
-    initialise_type_fonction(*this, type, entrees, type_sortie);
+    initialise_type_fonction(*this, type, entrées, type_sortie);
 
     /* Insère le type dans le Trie. */
     auto noeud = std::get<Trie::Noeud *>(candidat);
@@ -789,21 +789,21 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Typ
     return type;
 }
 
-TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
+TypeTypeDeDonnées *Typeuse::type_type_de_données(Type *type_connu)
 {
     if (type_connu == nullptr) {
-        return type_type_de_donnees_;
+        return type_type_de_données_;
     }
 
-    VERROUILLE(types_type_de_donnees);
+    VERROUILLE(types_type_de_données);
 
     if (type_connu->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TYPE_DE_DONNÉES)) {
-        return table_types_de_donnees.valeur_ou(type_connu, nullptr);
+        return table_types_de_données.valeur_ou(type_connu, nullptr);
     }
 
     auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(*this, résultat, type_connu);
-    table_types_de_donnees.insère(type_connu, résultat);
+    table_types_de_données.insère(type_connu, résultat);
     return résultat;
 }
 
@@ -964,7 +964,7 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
     }
 
     mémoire += m_infos_types_vers_types.taille_mémoire();
-    mémoire += table_types_de_donnees.taille_mémoire();
+    mémoire += table_types_de_données.taille_mémoire();
     mémoire += types_simples->taille_mémoire();
     mémoire += taille_de(AllocatriceNoeud);
 
@@ -1479,7 +1479,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         {
             enchaineuse.ajoute(donne_spécifiant_référence(options));
             chaine_type(
-                enchaineuse, static_cast<TypeReference const *>(type)->type_pointé, options);
+                enchaineuse, static_cast<TypeRéférence const *>(type)->type_pointé, options);
             return;
         }
         case GenreNoeud::POINTEUR:
@@ -1610,10 +1610,10 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            auto type_de_donnees = type->comme_type_type_de_données();
+            auto type_de_données = type->comme_type_type_de_données();
             enchaineuse << "type_de_données";
-            if (type_de_donnees->type_connu) {
-                enchaineuse << '(' << chaine_type(type_de_donnees->type_connu) << ')';
+            if (type_de_données->type_connu) {
+                enchaineuse << '(' << chaine_type(type_de_données->type_connu) << ')';
             }
             return;
         }
@@ -2020,7 +2020,7 @@ bool est_type_pointeur_nul(Type const *type)
     return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé == nullptr;
 }
 
-ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
+RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
                                                                         Type const *type_a_tester)
 {
     auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
@@ -2143,7 +2143,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     return false;
 }
 
-bool peut_etre_type_constante(Type const *type)
+bool peut_être_type_constante(Type const *type)
 {
     switch (type->genre) {
         /* Possible mais non supporté pour le moment. */
@@ -2411,7 +2411,7 @@ Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type_)
     return enfants_sortie.trouve_noeud_pour_type(type_);
 }
 
-Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrees,
+Trie::TypeRésultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrées,
                                                         Type *type_sortie)
 {
     if (racine == nullptr) {
@@ -2419,7 +2419,7 @@ Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type 
     }
 
     auto enfant_courant = racine;
-    POUR (entrees) {
+    POUR (entrées) {
         auto enfant_suivant = enfant_courant->trouve_noeud_pour_type(it);
         if (!enfant_suivant) {
             enfant_suivant = ajoute_enfant(enfant_courant, it, false);

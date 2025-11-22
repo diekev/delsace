@@ -32,7 +32,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     programme = Programme::crée_pour_espace(this);
     registre_ri = mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse);
 
-    auto ops = opérateurs.verrou_ecriture();
+    auto ops = opérateurs.verrou_écriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
     m_bloc_racine = compilatrice.gestionnaire_code->crée_bloc_racine(typeuse);
@@ -44,8 +44,8 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    mémoire::deloge("Programme", programme);
-    mémoire::deloge("RegistreSymboliqueRI", registre_ri);
+    mémoire::déloge("Programme", programme);
+    mémoire::déloge("RegistreSymboliqueRI", registre_ri);
 }
 
 Module *EspaceDeTravail::donne_module(const IdentifiantCode *nom_module) const

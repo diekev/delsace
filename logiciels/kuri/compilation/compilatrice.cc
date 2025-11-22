@@ -100,8 +100,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 {
     racine_modules_kuri = racine_kuri / "modules";
 
-    initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
-    initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
+    initialise_identifiants_intrinsèques(*table_identifiants.verrou_écriture());
+    initialise_identifiants_ipa(*table_identifiants.verrou_écriture());
 
     broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
@@ -110,24 +110,24 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
 Compilatrice::~Compilatrice()
 {
-    POUR ((*espaces_de_travail.verrou_ecriture())) {
-        mémoire::deloge("EspaceDeTravail", it);
+    POUR ((*espaces_de_travail.verrou_écriture())) {
+        mémoire::déloge("EspaceDeTravail", it);
     }
 
     POUR (m_états_libres) {
-        mémoire::deloge("ÉtatRésolutionAppel", it);
+        mémoire::déloge("ÉtatRésolutionAppel", it);
     }
 
     POUR (m_sémanticiennes) {
-        mémoire::deloge("Sémanticienne", it);
+        mémoire::déloge("Sémanticienne", it);
     }
 
     POUR (m_convertisseuses_noeud_code) {
-        mémoire::deloge("ConvertisseuseNoeudCode", it);
+        mémoire::déloge("ConvertisseuseNoeudCode", it);
     }
 
-    mémoire::deloge("Broyeuse", broyeuse);
-    mémoire::deloge("GestionnaireCode", gestionnaire_code);
+    mémoire::déloge("Broyeuse", broyeuse);
+    mémoire::déloge("GestionnaireCode", gestionnaire_code);
 }
 
 /* ************************************************************************** */
@@ -490,7 +490,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 MétaProgramme *Compilatrice::métaprogramme_pour_fonction(
     NoeudDéclarationEntêteFonction const *entête)
 {
-    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
+    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_écriture())) {
         if (it.fonction == entête) {
             return &it;
         }

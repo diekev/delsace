@@ -118,13 +118,13 @@ static void rassemble_statistiques(Compilatrice &compilatrice,
 
 static void imprime_stats(Compilatrice const &compilatrice,
                           Statistiques const &stats,
-                          kuri::chrono::compte_seconde debut_compilation)
+                          kuri::chrono::compte_seconde début_compilation)
 {
     if (!compilatrice.espace_de_travail_défaut->options.émets_métriques) {
         return;
     }
 
-    imprime_stats(stats, debut_compilation);
+    imprime_stats(stats, début_compilation);
     compilatrice.gestionnaire_code->imprime_stats();
 
     if (compilatrice.arguments.stats_détaillées) {
@@ -616,7 +616,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
 
 static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique chemin_fichier)
 {
-    auto debut_compilation = kuri::chrono::compte_seconde();
+    auto début_compilation = kuri::chrono::compte_seconde();
 
     /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
     if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {
@@ -686,7 +686,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 
         POUR (threads) {
             it->join();
-            mémoire::deloge("std::thread", it);
+            mémoire::déloge("std::thread", it);
         }
     }
     else {
@@ -716,14 +716,14 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         auto stats = Statistiques();
         rassemble_statistiques(compilatrice, stats, tacheronnes);
 
-        imprime_stats(compilatrice, stats, debut_compilation);
+        imprime_stats(compilatrice, stats, début_compilation);
     }
     else {
-        info() << "\nDurée de la compilation " << debut_compilation.temps() << "s";
+        info() << "\nDurée de la compilation " << début_compilation.temps() << "s";
     }
 
     POUR (tacheronnes) {
-        mémoire::deloge("Tacheronne", it);
+        mémoire::déloge("Tacheronne", it);
     }
 
     return true;

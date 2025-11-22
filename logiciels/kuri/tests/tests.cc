@@ -129,21 +129,21 @@ static auto decoupe_tampon(TamponSource const &tampon)
 {
     kuri::tableau<TamponSource> résultat;
 
-    auto debut_cas = 0ul;
+    auto début_cas = 0ul;
     auto fin_cas = 1ul;
 
     for (auto i = 0ul; i < tampon.nombre_lignes(); ++i) {
         auto ligne = tampon[static_cast<int64_t>(i)];
 
         if (ligne.sous_chaine(0, 8) == "// Cas :") {
-            debut_cas = i + 1;
+            début_cas = i + 1;
         }
 
         if (ligne.sous_chaine(0, 8) == "// -----") {
             fin_cas = i;
 
-            if (debut_cas < fin_cas) {
-                auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
+            if (début_cas < fin_cas) {
+                auto sous_tampon = tampon.sous_tampon(début_cas, fin_cas);
                 résultat.ajoute(sous_tampon);
             }
         }
@@ -151,8 +151,8 @@ static auto decoupe_tampon(TamponSource const &tampon)
 
     fin_cas = static_cast<size_t>(tampon.nombre_lignes());
 
-    if (debut_cas < fin_cas) {
-        auto sous_tampon = tampon.sous_tampon(debut_cas, fin_cas);
+    if (début_cas < fin_cas) {
+        auto sous_tampon = tampon.sous_tampon(début_cas, fin_cas);
         résultat.ajoute(sous_tampon);
     }
 
@@ -166,7 +166,7 @@ enum {
     ECHEC_CAR_BOUCLE_INFINIE,
 };
 
-struct ResultatTest {
+struct RésultatTest {
     kuri::chaine fichier_origine{};
     kuri::chemin_systeme chemin_fichier{};
     int raison_echec{};
@@ -191,7 +191,7 @@ int main()
     auto test_passes = 0;
     auto test_echoues = 0;
 
-    auto résultats_tests = kuri::tableau<ResultatTest>();
+    auto résultats_tests = kuri::tableau<RésultatTest>();
 
     POUR (tests_unitaires) {
         auto chemin = kuri::chemin_systeme("fichiers_tests/") / it.source;
@@ -216,7 +216,7 @@ int main()
                     return static_cast<int>(res);
                 }
                 else if (pid > 0) {
-                    auto debut = kuri::chrono::compte_seconde();
+                    auto début = kuri::chrono::compte_seconde();
 
                     while (true) {
                         int status;
@@ -226,7 +226,7 @@ int main()
                             /* L'enfant est toujours en vie, continue. */
                         }
                         else if (result == -1) {
-                            auto rt = ResultatTest();
+                            auto rt = RésultatTest();
                             rt.raison_echec = ECHEC_POUR_RAISON_INCONNUE;
                             rt.fichier_origine = it.source;
                             rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
@@ -238,7 +238,7 @@ int main()
                         }
                         else {
                             if (!WIFEXITED(status)) {
-                                auto rt = ResultatTest();
+                                auto rt = RésultatTest();
                                 rt.raison_echec = ECHEC_CAR_CRASH;
                                 rt.fichier_origine = it.source;
                                 rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
@@ -252,7 +252,7 @@ int main()
                                     test_passes += 1;
                                 }
                                 else {
-                                    auto rt = ResultatTest();
+                                    auto rt = RésultatTest();
                                     rt.erreur_recue = static_cast<erreur::Genre>(
                                         WEXITSTATUS(status));
                                     rt.erreur_attendue = it.résultat_attendu;
@@ -270,12 +270,12 @@ int main()
                             break;
                         }
 
-                        auto temps = debut.temps();
+                        auto temps = début.temps();
 
                         if (temps > 25.0) {
                             kill(pid, SIGKILL);
 
-                            auto rt = ResultatTest();
+                            auto rt = RésultatTest();
                             rt.raison_echec = ECHEC_CAR_BOUCLE_INFINIE;
                             rt.fichier_origine = it.source;
                             rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);

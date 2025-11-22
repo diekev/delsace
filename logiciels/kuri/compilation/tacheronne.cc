@@ -229,7 +229,7 @@ void OrdonnanceuseTache::supprime_toutes_les_tâches_pour_espace(const EspaceDeT
     }
 }
 
-void OrdonnanceuseTache::imprime_donnees_files(std::ostream &os)
+void OrdonnanceuseTache::imprime_données_files(std::ostream &os)
 {
     os << "Nombre de tâches dans les files :\n";
 #define IMPRIME_NOMBRE_DE_TACHES(VERBE, ACTION, CHAINE, INDICE)                                   \
@@ -249,14 +249,14 @@ Tacheronne::Tacheronne(Compilatrice &comp)
 
 Tacheronne::~Tacheronne()
 {
-    mémoire::deloge("MachineVirtuelle", mv);
-    mémoire::deloge("AssembleuseArbre", assembleuse);
-    mémoire::deloge("ContexteAnalyseRI", analyseuse_ri);
+    mémoire::déloge("MachineVirtuelle", mv);
+    mémoire::déloge("AssembleuseArbre", assembleuse);
+    mémoire::déloge("ContexteAnalyseRI", analyseuse_ri);
 }
 
 bool Tacheronne::gère_tâche()
 {
-    auto temps_debut = kuri::chrono::compte_seconde();
+    auto temps_début = kuri::chrono::compte_seconde();
     auto tâche = Tâche::dors(compilatrice.espace_de_travail_défaut);
     auto &ordonnanceuse = compilatrice.ordonnanceuse;
 
@@ -275,7 +275,7 @@ bool Tacheronne::gère_tâche()
         switch (tâche.genre) {
             case GenreTâche::COMPILATION_TERMINÉE:
             {
-                temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+                temps_scene += temps_début.temps() - temps_executable - temps_fichier_objet;
                 return true;
             }
             case GenreTâche::DORS:
@@ -306,13 +306,13 @@ bool Tacheronne::gère_tâche()
                     fichier->mutex.lock();
 
                     if (!fichier->fut_chargé) {
-                        auto debut_chargement = kuri::chrono::compte_seconde();
+                        auto début_chargement = kuri::chrono::compte_seconde();
                         auto texte = charge_contenu_fichier(fichier->chemin());
-                        temps_chargement += debut_chargement.temps();
+                        temps_chargement += début_chargement.temps();
 
-                        auto debut_tampon = kuri::chrono::compte_seconde();
+                        auto début_tampon = kuri::chrono::compte_seconde();
                         fichier->charge_tampon(TamponSource(texte));
-                        temps_tampons += debut_tampon.temps();
+                        temps_tampons += début_tampon.temps();
                     }
 
                     fichier->mutex.unlock();
@@ -339,11 +339,11 @@ bool Tacheronne::gère_tâche()
 
                     if (!fichier->en_lexage) {
                         fichier->en_lexage = true;
-                        auto debut_lexage = kuri::chrono::compte_seconde();
+                        auto début_lexage = kuri::chrono::compte_seconde();
                         auto lexeuse = Lexeuse(compilatrice.contexte_lexage(unité->espace),
                                                fichier);
                         lexeuse.performe_lexage();
-                        temps_lexage += debut_lexage.temps();
+                        temps_lexage += début_lexage.temps();
                         fichier->en_lexage = false;
                     }
 
@@ -364,40 +364,40 @@ bool Tacheronne::gère_tâche()
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_PARSER));
                 auto unité = tâche.unité;
-                auto debut_parsage = kuri::chrono::compte_seconde();
+                auto début_parsage = kuri::chrono::compte_seconde();
                 auto contexte = Contexte{};
                 this->initialise_contexte(&contexte, unité->espace);
                 auto syntaxeuse = Syntaxeuse(&contexte, unité);
                 syntaxeuse.analyse();
                 unité->fichier->fut_parsé = true;
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
-                temps_parsage += debut_parsage.temps();
+                temps_parsage += début_parsage.temps();
                 break;
             }
             case GenreTâche::TYPAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_TYPER));
                 auto unité = tâche.unité;
-                auto debut_validation = kuri::chrono::compte_seconde();
+                auto début_validation = kuri::chrono::compte_seconde();
                 gère_unité_pour_typage(unité);
-                temps_validation += debut_validation.temps();
+                temps_validation += début_validation.temps();
                 break;
             }
             case GenreTâche::GENERATION_RI:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_GENERER_RI));
-                auto debut_generation = kuri::chrono::compte_seconde();
+                auto début_generation = kuri::chrono::compte_seconde();
                 if (gère_unité_pour_ri(tâche.unité)) {
                     compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 }
-                constructrice_ri.temps_generation += debut_generation.temps();
+                constructrice_ri.temps_generation += début_generation.temps();
                 break;
             }
             case GenreTâche::OPTIMISATION:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_OPTIMISER));
-                auto debut_generation = kuri::chrono::compte_seconde();
-                temps_optimisation += debut_generation.temps();
+                auto début_generation = kuri::chrono::compte_seconde();
+                temps_optimisation += début_generation.temps();
                 break;
             }
             case GenreTâche::EXECUTION:
@@ -520,7 +520,7 @@ bool Tacheronne::gère_tâche()
         }
     }
 
-    temps_scene += temps_debut.temps() - temps_executable - temps_fichier_objet;
+    temps_scene += temps_début.temps() - temps_executable - temps_fichier_objet;
     return false;
 }
 
@@ -847,12 +847,12 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 construction_union->paramètres_résolus.ajoute(expr);
             }
             else {
-                auto pointeur_donnees = pointeur;
+                auto pointeur_données = pointeur;
                 auto pointeur_discriminant = *reinterpret_cast<int *>(pointeur +
                                                                       type_union->décalage_indice);
                 auto indice_rubrique = pointeur_discriminant - 1;
 
-                auto type_donnees = type_union->rubriques[indice_rubrique].type;
+                auto type_données = type_union->rubriques[indice_rubrique].type;
 
                 for (auto i = 0; i < indice_rubrique; ++i) {
                     construction_union->paramètres_résolus.ajoute(nullptr);
@@ -861,8 +861,8 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                 auto expr = noeud_syntaxique_depuis_résultat(espace,
                                                              directive,
                                                              lexème,
-                                                             type_donnees,
-                                                             pointeur_donnees,
+                                                             type_données,
+                                                             pointeur_données,
                                                              détectrice_fuites_de_mémoire);
                 construction_union->paramètres_résolus.ajoute(expr);
             }
@@ -956,25 +956,25 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         {
             auto type_tableau = type->comme_type_tableau_dynamique();
 
-            auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
-            auto taille_donnees = *reinterpret_cast<int64_t *>(pointeur + 8);
+            auto pointeur_données = *reinterpret_cast<octet_t **>(pointeur);
+            auto taille_données = *reinterpret_cast<int64_t *>(pointeur + 8);
 
-            if (taille_donnees == 0) {
+            if (taille_données == 0) {
                 espace->rapporte_erreur(directive, "Retour d'un tableau dynamique de taille 0 !");
             }
 
             /* Supprime le bloc s'il fut alloué. */
             auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
-                pointeur_donnees);
+                pointeur_données);
 
             /* crée un tableau fixe */
             auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(
-                type_tableau->type_pointé, static_cast<int>(taille_donnees));
+                type_tableau->type_pointé, static_cast<int>(taille_données));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
                                                                  lexème,
                                                                  type_tableau_fixe,
-                                                                 pointeur_donnees,
+                                                                 pointeur_données,
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
@@ -985,7 +985,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
             if (la_mémoire_fut_allouée) {
-                free(pointeur_donnees);
+                free(pointeur_données);
             }
 
             return comme;
@@ -994,25 +994,25 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         {
             auto type_tranche = type->comme_type_tranche();
 
-            auto pointeur_donnees = *reinterpret_cast<octet_t **>(pointeur);
-            auto taille_donnees = *reinterpret_cast<int64_t *>(pointeur + 8);
+            auto pointeur_données = *reinterpret_cast<octet_t **>(pointeur);
+            auto taille_données = *reinterpret_cast<int64_t *>(pointeur + 8);
 
-            if (taille_donnees == 0) {
+            if (taille_données == 0) {
                 espace->rapporte_erreur(directive, "Retour d'une tranche de taille 0 !");
             }
 
             /* Supprime le bloc s'il fut alloué. */
             auto const la_mémoire_fut_allouée = détectrice_fuites_de_mémoire.supprime_bloc(
-                pointeur_donnees);
+                pointeur_données);
 
             /* crée un tableau fixe */
             auto type_tableau_fixe = espace->typeuse.type_tableau_fixe(
-                type_tranche->type_élément, static_cast<int>(taille_donnees));
+                type_tranche->type_élément, static_cast<int>(taille_données));
             auto construction = noeud_syntaxique_depuis_résultat(espace,
                                                                  directive,
                                                                  lexème,
                                                                  type_tableau_fixe,
-                                                                 pointeur_donnees,
+                                                                 pointeur_données,
                                                                  détectrice_fuites_de_mémoire);
 
             /* convertis vers un tableau dynamique */
@@ -1023,7 +1023,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
             if (la_mémoire_fut_allouée) {
-                free(pointeur_donnees);
+                free(pointeur_données);
             }
 
             return comme;
