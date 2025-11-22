@@ -78,7 +78,7 @@ struct CoulisseLLVM final : public Coulisse {
 
     std::optional<ErreurCoulisse> crée_exécutable_impl(ArgsLiaisonObjets const &args) override;
 
-    void crée_fichier_objet(DonnéesModule *module);
+    void crée_fichier_objet(DonnéesModule *module, const OptionsDeCompilation &options);
 
     void crée_modules(ProgrammeRepreInter const &repr_inter, const std::string &triplet_cible);
 
