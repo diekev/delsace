@@ -39,7 +39,7 @@ void ÉtendueSourceNoeud::fusionne(ÉtendueSourceNoeud autre)
 
 ÉtendueSourceNoeud ÉtendueSourceNoeud::depuis_lexème(Lexème const *lexème)
 {
-    auto const pos = position_lexeme(*lexème);
+    auto const pos = position_lexème(*lexème);
     ÉtendueSourceNoeud résultat;
     résultat.ligne_début = int32_t(pos.indice_ligne);
     résultat.colonne_début = int32_t(pos.pos);
@@ -53,7 +53,7 @@ void ÉtendueSourceNoeud::fusionne(ÉtendueSourceNoeud autre)
     auto résultat = ÉtendueSourceNoeud{};
 
     visite_noeud(noeud,
-                 PreferenceVisiteNoeud::ORIGINAL,
+                 PréférenceVisiteNoeud::ORIGINAL,
                  false,
                  [&](NoeudExpression const *noeud_visité) -> DecisionVisiteNoeud {
                      auto lexème = noeud->lexème;

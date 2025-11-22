@@ -46,16 +46,16 @@ int DonnéesConstantesExécutions::ajoute_globale(Type const *type,
 
 void DonnéesConstantesExécutions::rassemble_statistiques(Statistiques &stats) const
 {
-    auto memoire_mv = 0l;
-    memoire_mv += globales.taille_mémoire();
-    memoire_mv += données_constantes.taille_mémoire();
-    memoire_mv += données_globales.taille_mémoire();
-    memoire_mv += patchs_données_constantes.taille_mémoire();
+    auto mémoire_mv = 0l;
+    mémoire_mv += globales.taille_mémoire();
+    mémoire_mv += données_constantes.taille_mémoire();
+    mémoire_mv += données_globales.taille_mémoire();
+    mémoire_mv += patchs_données_constantes.taille_mémoire();
 
-    stats.ajoute_mémoire_utilisée("Machine Virtuelle", memoire_mv);
+    stats.ajoute_mémoire_utilisée("Machine Virtuelle", mémoire_mv);
 }
 
-MetaProgramme::~MetaProgramme()
+MétaProgramme::~MétaProgramme()
 {
     POUR (logueuses) {
         if (it) {
@@ -65,7 +65,7 @@ MetaProgramme::~MetaProgramme()
     mémoire::deloge("Programme", programme);
 }
 
-Enchaineuse &MetaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
+Enchaineuse &MétaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
 {
     assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
     auto indice_logueuse = static_cast<int>(type_log);
@@ -116,7 +116,7 @@ std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état)
 
 /** \} */
 
-kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
+kuri::chaine_statique MétaProgramme::donne_nom_pour_fichier_log()
 {
     if (m_nom_pour_fichier_log) {
         return m_nom_pour_fichier_log;
@@ -158,7 +158,7 @@ kuri::chaine_statique MetaProgramme::donne_nom_pour_fichier_log()
     return m_nom_pour_fichier_log;
 }
 
-void MetaProgramme::vidange_logs_sur_disque()
+void MétaProgramme::vidange_logs_sur_disque()
 {
     if (!m_le_log_d_empilage_doit_être_préservé) {
         mémoire::deloge("Enchaineuse", logueuses[int(TypeLogMétaprogramme::PILE_DE_VALEURS)]);
@@ -208,7 +208,7 @@ static kuri::chaine_statique donne_suffixe_pour_type_log(TypeLogMétaprogramme t
     return "inconnu";
 }
 
-void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
+void MétaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
 {
     assert(type_log != TypeLogMétaprogramme::NOMBRE_DE_LOGS);
     auto indice_logueuse = static_cast<int>(type_log);
