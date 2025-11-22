@@ -72,7 +72,7 @@ struct tableau {
             this->m_éléments[i].~T();
         }
 
-        mémoire::deloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
+        mémoire::déloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
     }
 
     T &operator[](TypeIndex i)
@@ -268,12 +268,12 @@ struct tableau {
         return this->m_taille == 0;
     }
 
-    T *debut()
+    T *début()
     {
         return this->m_éléments;
     }
 
-    T const *debut() const
+    T const *début() const
     {
         return this->m_éléments;
     }
@@ -290,12 +290,12 @@ struct tableau {
 
     T *begin()
     {
-        return debut();
+        return début();
     }
 
     T const *begin() const
     {
-        return debut();
+        return début();
     }
 
     T *end()
@@ -345,12 +345,12 @@ struct tableau {
         std::swap(m_taille, autre.m_taille);
     }
 
-    void efface(T *debut_, T *fin_)
+    void efface(T *début_, T *fin_)
     {
-        auto taille_à_effacer = fin_ - debut_;
-        while (debut_ != fin_) {
-            *debut_ = {};
-            debut_++;
+        auto taille_à_effacer = fin_ - début_;
+        while (début_ != fin_) {
+            *début_ = {};
+            début_++;
         }
         this->m_taille -= taille_à_effacer;
     }

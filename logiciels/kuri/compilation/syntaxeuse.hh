@@ -67,12 +67,12 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
      * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
-    NoeudExpression *analyse_expression(DonnéesPrécédence const &donnees_precedence,
+    NoeudExpression *analyse_expression(DonnéesPrécédence const &données_precedence,
                                         GenreLexème lexème_final);
     NoeudExpression *analyse_expression_unaire(GenreLexème lexème_final);
     NoeudExpression *analyse_expression_primaire(GenreLexème lexème_final);
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
-                                                   DonnéesPrécédence const &donnees_precedence,
+                                                   DonnéesPrécédence const &données_precedence,
                                                    GenreLexème lexème_final);
 
     NoeudBloc *analyse_bloc(TypeBloc type_bloc, bool accolade_requise = true);

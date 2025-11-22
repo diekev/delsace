@@ -99,11 +99,11 @@ using chrono_rappel_milliseconde = chrono_rappel<1000>;
 
 /**
  * Structure définissant un chronomètre pouvant être arrêté et repris. Elle
- * s'appele seulement 'metre' car avec l'espace de nom, cela donne
- * chrono::metre, forçant ainsi une bonne utilisation des espaces de nom.
+ * s'appele seulement 'mètre' car avec l'espace de nom, cela donne
+ * chrono::mètre, forçant ainsi une bonne utilisation des espaces de nom.
  */
 template <int64_t D>
-struct metre {
+struct mètre {
   private:
     compte_temps<D> m_compteuse{false};
     double m_total = 0.0;
@@ -146,7 +146,7 @@ struct metre {
     }
 };
 
-using metre_seconde = metre<1000000>;
+using mètre_seconde = mètre<1000000>;
 
 inline void dors_microsecondes(int microsecondes)
 {

@@ -635,7 +635,7 @@ static void trouve_candidates_pour_expression(
     }
 }
 
-static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
+static RésultatPoidsTransformation apparie_type_paramètre_appel_fonction(
     Typeuse &typeuse,
     NoeudExpression const *slot,
     Type const *type_du_paramètre,
@@ -1011,9 +1011,9 @@ static RésultatAppariement apparie_appel_fonction(
 
     /* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles
      */
-    kuri::tablet<BaseDéclarationVariable *, 10> paramètres_entree;
+    kuri::tablet<BaseDéclarationVariable *, 10> paramètres_entrée;
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        paramètres_entree.ajoute(decl->parametre_entree(i));
+        paramètres_entrée.ajoute(decl->paramètre_entrée(i));
     }
 
     auto fonction_variadique_interne = est_variadique && !est_externe;
@@ -1022,7 +1022,7 @@ static RésultatAppariement apparie_appel_fonction(
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = paramètres_entree[i];
+        auto param = paramètres_entrée[i];
         apparieuse_params.ajoute_param(param->ident,
                                        param->expression,
                                        param->possède_drapeau(DrapeauxNoeud::EST_VARIADIQUE));
@@ -1056,7 +1056,7 @@ static RésultatAppariement apparie_appel_fonction(
 
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[indice_arg];
+        auto param = paramètres_entrée[indice_arg];
         auto arg = param;
         auto slot = slots[i];
 
@@ -1115,7 +1115,7 @@ static RésultatAppariement apparie_appel_fonction(
     }
 
     if (fonction_variadique_interne) {
-        auto dernier_paramètre = decl->parametre_entree(decl->params.taille() - 1);
+        auto dernier_paramètre = decl->paramètre_entrée(decl->params.taille() - 1);
         auto dernier_type_paramètre = dernier_paramètre->type;
         auto type_données_argument_variadique = type_déréférencé_pour(dernier_type_paramètre);
         auto poids_variadique = POIDS_POUR_ARGUMENT_VARIADIQUE;
@@ -1171,7 +1171,7 @@ static RésultatAppariement apparie_appel_fonction(
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[indice_arg];
+        auto param = paramètres_entrée[indice_arg];
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
@@ -1326,7 +1326,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     }
 
     if (est_type_argument_polymorphique) {
-        auto type_poly = espace.typeuse.type_type_de_donnees(
+        auto type_poly = espace.typeuse.type_type_de_données(
             const_cast<NoeudDéclarationType *>(déclaration_type_composé));
 
         return CandidateAppariement::type_polymorphique(
@@ -2034,7 +2034,7 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
         return CodeRetourValidation::Erreur;
     }
 
-    std::sort(état->candidates.debut(), état->candidates.fin(), [](auto &a, auto &b) {
+    std::sort(état->candidates.début(), état->candidates.fin(), [](auto &a, auto &b) {
         return a.poids_args > b.poids_args;
     });
 
@@ -2262,7 +2262,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto copie = monomorphise_au_besoin(
             contexte, decl_struct, expr, std::move(candidate->items_monomorphisation));
-        expr->type = espace.typeuse.type_type_de_donnees(copie);
+        expr->type = espace.typeuse.type_type_de_données(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
          * paramètre d'une fonction de rappel qui est rubrique de la structure */
@@ -2352,7 +2352,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
-        expr->type = espace.typeuse.type_type_de_donnees(const_cast<TypeOpaque *>(type_opaque));
+        expr->type = espace.typeuse.type_type_de_données(const_cast<TypeOpaque *>(type_opaque));
         expr->aide_génération_code = MONOMORPHE_TYPE_OPAQUE;
     }
 

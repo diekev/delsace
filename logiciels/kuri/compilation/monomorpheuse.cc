@@ -209,7 +209,7 @@ ValeurExpression Monomorpheuse::évalue_valeur(const NoeudExpression *expr)
  * \{
  */
 
-void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur donnees)
+void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur données)
 {
     if (erreur_courante.has_value()) {
         return;
@@ -218,7 +218,7 @@ void Monomorpheuse::ajoute_erreur(const NoeudExpression *site, DonnéesErreur do
     auto erreur = ErreurMonomorphisation();
     erreur.site = site;
     erreur.polymorphe = polymorphe;
-    erreur.données = donnees;
+    erreur.données = données;
     erreur_courante = erreur;
 }
 
@@ -294,7 +294,7 @@ void Monomorpheuse::ajoute_candidat(const IdentifiantCode *ident, const Type *ty
             type_reçu = typeuse.type_z32;
         }
 
-        type_reçu = typeuse.type_type_de_donnees(const_cast<Type *>(type_reçu));
+        type_reçu = typeuse.type_type_de_données(const_cast<Type *>(type_reçu));
     }
 
     candidats.ajoute({ident, type_reçu, {}, GenreItem::TYPE_DE_DONNÉES});
@@ -871,7 +871,7 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
 Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
     const NoeudExpressionTypeFonction *decl_type_fonction)
 {
-    kuri::tablet<Type *, 6> types_entrees;
+    kuri::tablet<Type *, 6> types_entrées;
     Type *type_sortie;
 
     for (auto i = 0; i < decl_type_fonction->types_entrée.taille(); i++) {
@@ -879,7 +879,7 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
         if (!type) {
             return nullptr;
         }
-        types_entrees.ajoute(type);
+        types_entrées.ajoute(type);
     }
 
     if (decl_type_fonction->types_sortie.taille() > 1) {
@@ -905,7 +905,7 @@ Type *Monomorpheuse::résoud_type_final_pour_type_fonction(
         return nullptr;
     }
 
-    return typeuse.type_fonction(types_entrees, type_sortie);
+    return typeuse.type_fonction(types_entrées, type_sortie);
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_construction_structure(
@@ -1227,7 +1227,7 @@ RésultatMonomorphisation détermine_monomorphisation(
 
     for (auto i = int64_t(0); i < arguments_reçus.taille(); ++i) {
         auto indice_arg = std::min(i, static_cast<int64_t>(entête->params.taille() - 1));
-        auto param = entête->parametre_entree(indice_arg);
+        auto param = entête->paramètre_entrée(indice_arg);
         auto slot = arguments_reçus[i];
 
         if (param->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {

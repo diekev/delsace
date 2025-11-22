@@ -1881,7 +1881,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
         }
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
     m_contexte->assembleuse->dépile_bloc();
 
     if (accolade_requise) {
@@ -2549,7 +2549,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
         }
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
 
     m_contexte->assembleuse->dépile_bloc();
     noeud_decl->bloc = bloc;
@@ -2806,10 +2806,10 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     /* Faisons ceci à la fin afin que le corps soit disponible lors de la création de la copie pour
      * les différents espaces de travail, évitant une potentielle concurrence critique. */
     if (noeud->ident == ID::__point_d_entree_systeme) {
-        m_contexte->espace->fonction_point_d_entree = noeud;
+        m_contexte->espace->fonction_point_d_entrée = noeud;
     }
     else if (noeud->ident == ID::__point_d_entree_dynamique) {
-        m_contexte->espace->fonction_point_d_entree_dynamique = noeud;
+        m_contexte->espace->fonction_point_d_entrée_dynamique = noeud;
     }
     else if (noeud->ident == ID::__point_de_sortie_dynamique) {
         m_contexte->espace->fonction_point_de_sortie_dynamique = noeud;
@@ -3544,7 +3544,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
                 auto type_pointeur_info_type = m_contexte->espace->typeuse.type_pointeur_pour(
                     noeud);
                 m_contexte->espace->typeuse.type_eini->rubriques[1].type = type_pointeur_info_type;
-                auto type_type_de_données = m_contexte->espace->typeuse.type_type_de_donnees_;
+                auto type_type_de_données = m_contexte->espace->typeuse.type_type_de_données_;
                 type_type_de_données->type_code_machine = type_pointeur_info_type;
                 type_type_de_données->type_code_machine = type_pointeur_info_type;
                 type_type_de_données->taille_octet =
@@ -3775,7 +3775,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
         expressions.ajoute(noeud);
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
 
     bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,

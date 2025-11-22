@@ -293,7 +293,7 @@ struct ÉtatRésolutionAppel {
      * ce qui est appelé. */
     ListeCandidatesExpressionAppel liste_candidates{};
 
-    /* Les #ResultatAppariements pour chaque déclaration candidate à l'élection
+    /* Les #RésultatAppariements pour chaque déclaration candidate à l'élection
      * de l'expression appelée. */
     kuri::tablet<RésultatAppariement, 10> résultats{};
 
