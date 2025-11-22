@@ -39,8 +39,8 @@ logeuse_mémoire logeuse_mémoire::m_instance = logeuse_mémoire{};
 logeuse_mémoire::~logeuse_mémoire()
 {
 #ifdef IMPRIME_ERREUR_MEMOIRE
-    if (memoire_allouee != 0) {
-        std::cerr << "Fuite de mémoire ou désynchronisation : " << formate_taille(memoire_allouee)
+    if (mémoire_allouee != 0) {
+        std::cerr << "Fuite de mémoire ou désynchronisation : " << formate_taille(mémoire_allouee)
                   << '\n';
 
         imprime_blocs_memoire();
@@ -257,13 +257,13 @@ void logeuse_mémoire::deloge_generique(const char *message, void *ptr, int64_t 
 int64_t allouee()
 {
     auto &logeuse = logeuse_mémoire::instance();
-    return logeuse.memoire_allouee.load();
+    return logeuse.mémoire_allouee.load();
 }
 
 int64_t consommee()
 {
     auto &logeuse = logeuse_mémoire::instance();
-    return logeuse.memoire_consommee.load();
+    return logeuse.mémoire_consommee.load();
 }
 
 int64_t nombre_allocations()

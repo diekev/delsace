@@ -129,13 +129,13 @@ int64_t Messagère::mémoire_utilisée() const
     return résultat;
 }
 
-void Messagère::commence_interception(EspaceDeTravail * /*espace*/, MetaProgramme *métaprogramme)
+void Messagère::commence_interception(EspaceDeTravail * /*espace*/, MétaProgramme *métaprogramme)
 {
     entreceveurs += 1;
     métaprogrammes.ajoute(métaprogramme);
 }
 
-void Messagère::termine_interception(EspaceDeTravail * /*espace*/, MetaProgramme *métaprogramme)
+void Messagère::termine_interception(EspaceDeTravail * /*espace*/, MétaProgramme *métaprogramme)
 {
     assert(entreceveurs >= 1);
     entreceveurs -= 1;
