@@ -194,7 +194,7 @@ struct MachineVirtuelle {
     }
 
     DonnéesExécution *loge_données_exécution();
-    void déloge_données_exécution(DonnéesExécution *&donnees);
+    void déloge_données_exécution(DonnéesExécution *&données);
 
     bool terminee() const
     {
