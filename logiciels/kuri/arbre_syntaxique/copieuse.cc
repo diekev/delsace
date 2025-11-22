@@ -21,7 +21,7 @@ NoeudExpression *Copieuse::trouve_copie(const NoeudExpression *racine)
 void Copieuse::copie_rubriques_de_bases_et_insère(const NoeudExpression *racine,
                                                   NoeudExpression *nracine)
 {
-    insere_copie(racine, nracine);
+    insère_copie(racine, nracine);
     nracine->type = racine->type;
     nracine->drapeaux = racine->drapeaux;
     /* Les paramètres des copies des opérateurs « pour » ne sont pas revalidés. */
@@ -31,7 +31,7 @@ void Copieuse::copie_rubriques_de_bases_et_insère(const NoeudExpression *racine
     }
 }
 
-void Copieuse::insere_copie(const NoeudExpression *racine, NoeudExpression *copie)
+void Copieuse::insère_copie(const NoeudExpression *racine, NoeudExpression *copie)
 {
     noeuds_copies.insère(racine, copie);
 }
@@ -44,6 +44,6 @@ NoeudExpression *copie_noeud(AssembleuseArbre *assem,
     Copieuse copieuse(assem, options);
     /* Pour simplifier la copie et la gestion des blocs, les blocs parents sont copiés.
      * Par contre, nous ne devons pas copier le bloc parent de la racine. */
-    copieuse.insere_copie(bloc_parent, bloc_parent);
+    copieuse.insère_copie(bloc_parent, bloc_parent);
     return copieuse.copie_noeud(racine);
 }
