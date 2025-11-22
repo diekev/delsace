@@ -312,7 +312,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
 
     texte := mémoire(curseur.texte)
 
-    chn := converti_vers_chaine(texte)
+    chn := convertis_vers_chaine(texte)
     diffère déloge(chn)
 
     panneau.rappels.sur_édition(panneau.rappels, chn)
@@ -332,7 +332,7 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte)
 
     texte := mémoire(curseur.texte)
 
-    chn := converti_vers_chaine(texte)
+    chn := convertis_vers_chaine(texte)
     diffère déloge(chn)
 
     panneau.rappels.sur_fin_édition(panneau.rappels, chn)
@@ -429,7 +429,7 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
     si touche.texte.taille != 0 {
         est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille
         si est_valide {
-            point_de_code := converti_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
+            point_de_code := convertis_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
             insère(*panneau.curseur, point_de_code)
         }
 

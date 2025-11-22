@@ -87,7 +87,7 @@ imprime_watt_heure :: fonc (enchaineuse: *Enchaineuse, wh: *WattHeure)
     imprime_dans_enchaineuse(enchaineuse, "% %", v, unités[exposant])
 } @FormattageImpression
 
-converti_péta_joule_kilo_watt_heure :: fonc (pj: r64) -> r64
+convertis_péta_joule_kilo_watt_heure :: fonc (pj: r64) -> r64
 {
     retourne pj * (100_000_000.0) / 0.36
 }
