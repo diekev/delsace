@@ -36,7 +36,7 @@ enum class LexèmeType : uint8_t {
     /* ...varidique. */
     VARIADIQUE,
     /* ...type de données. */
-    TYPE_DE_DONNEES,
+    TYPE_DE_DONNÉES,
     /* ...nominal. */
     NOMINAL,
     /* ...de fonction. */
@@ -620,7 +620,7 @@ std::optional<LexèmeType> BaseSyntaxeuseRI<Impl>::apparie_lexème_type() const
         return LexèmeType::VARIADIQUE;
     }
     if (apparie(GenreLexème::TYPE_DE_DONNÉES)) {
-        return LexèmeType::TYPE_DE_DONNEES;
+        return LexèmeType::TYPE_DE_DONNÉES;
     }
     if (apparie(GenreLexème::CHAINE_CARACTERE)) {
         return LexèmeType::NOMINAL;
@@ -689,7 +689,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type()
         {
             return analyse_type_variadique();
         }
-        case LexèmeType::TYPE_DE_DONNEES:
+        case LexèmeType::TYPE_DE_DONNÉES:
         {
             auto lexème = m_lexème_courant;
             consomme();
@@ -918,7 +918,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         return impl()->crée_constante_entière(type, lexème_id);
     }
 
-    if (apparie(GenreLexème::NOMBRE_REEL)) {
+    if (apparie(GenreLexème::NOMBRE_RÉEL)) {
         auto const lexème_id = m_lexème_courant;
         consomme();
         return impl()->crée_constante_réelle(type, lexème_id);
@@ -934,7 +934,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             return impl()->crée_constante_entière(type, lexème_id);
         }
 
-        if (apparie(GenreLexème::NOMBRE_REEL)) {
+        if (apparie(GenreLexème::NOMBRE_RÉEL)) {
             auto const lexème_id = m_lexème_courant;
             m_lexème_courant->valeur_reelle = -m_lexème_courant->valeur_reelle;
             consomme();

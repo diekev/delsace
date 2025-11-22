@@ -28,18 +28,18 @@ enum class OptionsImpressionType : uint32_t;
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       Enchaineuse &sortie,
                       OptionsImpressionType options,
-                      bool surligne_inutilisees = false,
+                      bool surligne_inutilisées = false,
                       std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
     OptionsImpressionType options,
-    bool surligne_inutilisees = false,
+    bool surligne_inutilisées = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
-    bool surligne_inutilisees = false,
+    bool surligne_inutilisées = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_instruction(Instruction const *inst,
@@ -51,13 +51,13 @@ void imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
     Enchaineuse &os,
     OptionsImpressionType options,
-    bool surligne_inutilisees = false,
+    bool surligne_inutilisées = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
     OptionsImpressionType options,
-    bool surligne_inutilisees = false,
+    bool surligne_inutilisées = false,
     std::function<void(Instruction const &, Enchaineuse &)> rappel = nullptr);
 
 [[nodiscard]] kuri::chaine imprime_arbre_instruction(Instruction const *racine);
