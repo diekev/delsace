@@ -160,16 +160,16 @@ void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDé
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_élément(donnees.fonctions_utilisées, [&](auto &fonction_utilisee) {
+    kuri::pour_chaque_élément(donnees.fonctions_utilisées, [&](auto &fonction_utilisée) {
         auto noeud_type = crée_noeud_fonction(
-            const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisee));
+            const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisée));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_élément(donnees.globales_utilisées, [&](auto &globale_utilisee) {
+    kuri::pour_chaque_élément(donnees.globales_utilisées, [&](auto &globale_utilisée) {
         auto noeud_type = crée_noeud_globale(
-            const_cast<NoeudDéclarationVariable *>(globale_utilisee));
+            const_cast<NoeudDéclarationVariable *>(globale_utilisée));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
         return kuri::DécisionItération::Continue;
     });
@@ -179,7 +179,7 @@ void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance)
 {
 #if 0
 	auto nombre_fonctions = 0;
-	auto nombre_utilisees = 0;
+	auto nombre_utilisées = 0;
 
 	POUR_TABLEAU_PAGE(graphe_dépendance.noeuds) {
 		it.fut_visite = false;
@@ -194,7 +194,7 @@ void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance)
 			return;
 		}
 
-		nombre_utilisees += 1;
+		nombre_utilisées += 1;
 	});
 
 	POUR_TABLEAU_PAGE(graphe_dépendance.noeuds) {
@@ -210,7 +210,7 @@ void imprime_fonctions_inutilisées(GrapheDépendance &graphe_dépendance)
         dbg() << "Fonction inutilisée : " << decl_fonction->nom_broye;
 	}
 
-    dbg() << (nombre_fonctions - nombre_utilisees) << " fonctions sont inutilisées sur " << nombre_fonctions;
+    dbg() << (nombre_fonctions - nombre_utilisées) << " fonctions sont inutilisées sur " << nombre_fonctions;
 #endif
 }
 
@@ -333,7 +333,7 @@ void GrapheDépendance::rassemble_fonctions_utilisées(NoeudDépendance *racine,
 NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail *espace,
                                                              NoeudExpression *noeud)
 {
-    /* N'utilise pas est_declaration_variable_globale car nous voulons également les opaques et
+    /* N'utilise pas est_déclaration_variable_globale car nous voulons également les opaques et
      * les constantes. */
     if (noeud->est_déclaration_variable()) {
         assert_rappel(noeud->possède_drapeau(DrapeauxNoeud::EST_GLOBALE), [&]() {
@@ -374,9 +374,9 @@ NoeudDépendance *GrapheDépendance::garantie_noeud_dépendance(EspaceDeTravail 
     if (noeud->est_exécute()) {
         auto exécute = noeud->comme_exécute();
         assert(exécute->métaprogramme);
-        auto metaprogramme = exécute->métaprogramme;
-        assert(metaprogramme->fonction);
-        return crée_noeud_fonction(metaprogramme->fonction);
+        auto métaprogramme = exécute->métaprogramme;
+        assert(métaprogramme->fonction);
+        return crée_noeud_fonction(métaprogramme->fonction);
     }
 
     if (noeud->est_déclaration_type()) {

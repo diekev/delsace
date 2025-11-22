@@ -69,19 +69,19 @@ std::ostream &operator<<(std::ostream &os, taille_octet const &taille);
 template <typename T>
 auto formatte_nombre_entier(T nombre)
 {
-    auto resultat_tmp = enchaine(nombre);
+    auto résultat_tmp = enchaine(nombre);
 
-    const auto taille = resultat_tmp.taille();
+    const auto taille = résultat_tmp.taille();
 
     if (taille <= 3) {
-        return resultat_tmp;
+        return résultat_tmp;
     }
 
     const auto reste = taille % 3;
     auto résultat = Enchaineuse();
 
     for (auto i = 0l; i < reste; ++i) {
-        résultat.ajoute_caractère(resultat_tmp[i]);
+        résultat.ajoute_caractère(résultat_tmp[i]);
     }
 
     for (auto i = reste; i < taille; i += 3) {
@@ -89,9 +89,9 @@ auto formatte_nombre_entier(T nombre)
             résultat.ajoute_caractère(' ');
         }
 
-        résultat.ajoute_caractère(resultat_tmp[i + 0]);
-        résultat.ajoute_caractère(resultat_tmp[i + 1]);
-        résultat.ajoute_caractère(resultat_tmp[i + 2]);
+        résultat.ajoute_caractère(résultat_tmp[i + 0]);
+        résultat.ajoute_caractère(résultat_tmp[i + 1]);
+        résultat.ajoute_caractère(résultat_tmp[i + 2]);
     }
 
     return résultat.chaine();

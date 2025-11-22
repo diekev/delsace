@@ -23,7 +23,7 @@ struct Coulisse;
 struct Enchaineuse;
 struct EspaceDeTravail;
 struct Fichier;
-struct MetaProgramme;
+struct MétaProgramme;
 struct Statistiques;
 using Type = NoeudDéclarationType;
 
@@ -136,7 +136,7 @@ struct Programme {
     EspaceDeTravail *m_espace = nullptr;
 
     /* Non-nul si le programme est celui d'un métaprogramme. */
-    MetaProgramme *m_pour_métaprogramme = nullptr;
+    MétaProgramme *m_pour_métaprogramme = nullptr;
 
     // la coulisse à utiliser pour générer le code du programme
     Coulisse *m_coulisse = nullptr;
@@ -171,8 +171,8 @@ struct Programme {
 
     static Programme *crée_pour_espace(EspaceDeTravail *espace);
 
-    static Programme *crée_pour_metaprogramme(EspaceDeTravail *espace,
-                                              MetaProgramme *metaprogramme);
+    static Programme *crée_pour_métaprogramme(EspaceDeTravail *espace,
+                                              MétaProgramme *métaprogramme);
 
     ~Programme();
 
@@ -251,7 +251,7 @@ struct Programme {
 
     bool ri_générées() const;
 
-    MetaProgramme *pour_métaprogramme() const
+    MétaProgramme *pour_métaprogramme() const
     {
         return m_pour_métaprogramme;
     }
