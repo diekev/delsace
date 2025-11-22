@@ -651,7 +651,7 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
         case GenreInfoType::TYPE_DE_DONNÉES:
         {
             // À FAIRE : préserve l'information de type connu
-            return typeuse.type_type_de_donnees(nullptr);
+            return typeuse.type_type_de_données(nullptr);
         }
         case GenreInfoType::FONCTION:
         {
