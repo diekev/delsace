@@ -335,7 +335,7 @@ donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
         }
 
         si nom_rubrique.taille != 1 {
-            première_rune := converti_utf8_utf32(nom_rubrique.pointeur) comme n32
+            première_rune := convertis_utf8_utf32(nom_rubrique.pointeur) comme n32
 
             pour * indice dans indices_rubriques_pour_lettre {
                 si indice.point_de_code == première_rune {

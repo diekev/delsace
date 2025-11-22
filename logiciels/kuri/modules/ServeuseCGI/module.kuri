@@ -87,7 +87,7 @@ ServeuseCGI :: struct ($T: type_de_données) {
     intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête
 }
 
-construit_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête) -> ServeuseCGI(T = T)
+construis_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête) -> ServeuseCGI(T = T)
 {
     serveuse: ServeuseCGI(T = T)
     serveuse.routeuse.données_serveuse = données
