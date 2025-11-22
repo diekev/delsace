@@ -12,12 +12,12 @@ namespace kuri {
 
 template <typename T>
 struct plage_iterable {
-    T debut_{};
+    T début_{};
     T fin_{};
 
     T begin()
     {
-        return debut_;
+        return début_;
     }
 
     T end()
@@ -231,7 +231,7 @@ struct tableau_compresse {
     void supprime_données()
     {
         if (alloue()) {
-            mémoire::deloge_tableau("tableau_compresse", m_pointeur, m_capacite);
+            mémoire::déloge_tableau("tableau_compresse", m_pointeur, m_capacite);
         }
 
         m_taille = 0;
