@@ -159,7 +159,7 @@ décalage_pour_caractère :: fonc (chn: chaine, i: z64) -> z32
 }
 
 // Converti un caractère encodé en UTF-8 vers son équivalent UTF-32 LE
-converti_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
+convertis_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
 {
     s0 := caractère[0] comme n32
 
@@ -191,10 +191,10 @@ converti_utf8_utf32 :: fonc (caractère: *z8, n: z64) -> z32
     retourne 0
 }
 
-converti_utf8_utf32 :: fonc (caractère: *z8) -> z32
+convertis_utf8_utf32 :: fonc (caractère: *z8) -> z32
 {
     n := nombre_octets_utf8_rapide(caractère)
-    retourne converti_utf8_utf32(caractère, n)
+    retourne convertis_utf8_utf32(caractère, n)
 }
 
 point_de_code_vers_utf8 :: fonc (point_de_code: n32, séquence: *n8) -> z32
@@ -477,7 +477,7 @@ initialise_table_accents_ascii :: fonc ()
 
     pour paires_unicode_ascii {
         n := nombre_octets_utf8(it[0].pointeur)
-        rune := Rune(converti_utf8_utf32(it[0].pointeur, n) comme n32)
+        rune := Rune(convertis_utf8_utf32(it[0].pointeur, n) comme n32)
         __table_accents_vers_ascii[indice_it] = PaireAccentAscii(rune, it[1][0])
     }
 
@@ -516,7 +516,7 @@ remplace_caractères_accentués :: fonc (chn: *chaine)
             continue
         }
 
-        rune := converti_utf8_utf32(ptr_source, n)
+        rune := convertis_utf8_utf32(ptr_source, n)
         pour __table_accents_vers_ascii {
             si it.rune comme n32 == rune comme n32 {
                 mémoire(ptr_dest) = it.ascii

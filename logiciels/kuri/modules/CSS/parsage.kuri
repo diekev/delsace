@@ -360,7 +360,7 @@ rapporte_erreur :: fonc (parseuse: &Parseuse($T) @inutilisée, message: chaine)
 parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)) -> Optionnel(*ValeurDeStyle)
 {
     // 1. Normalize input, and set input to the result.
-    chn_input := input.donne_chaine_utf16().converti_vers_chaine()
+    chn_input := input.donne_chaine_utf16().convertis_vers_chaine()
     diffère déloge(chn_input)
 
     retourne parse_according_to_a_css_grammar(chn_input, grammar)
@@ -444,7 +444,7 @@ parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 
 parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 {
-    contenu := converti_vers_chaine(valeur)
+    contenu := convertis_vers_chaine(valeur)
     diffère déloge(contenu)
 
     lexèmes := lèxe_style(contenu)

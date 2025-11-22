@@ -152,7 +152,7 @@ initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
     définis_texte_courant(lexeuse, texte)
 
-    construit_tables_de_lexage(lexeuse)
+    construis_tables_de_lexage(lexeuse)
 
     lexeuse.taille_mot_clé_min = 0x7fffffff
     lexeuse.taille_mot_clé_max = 0
@@ -432,13 +432,13 @@ PeutSuivre :: énum_drapeau n8 {
     SuffixeNombre
 }
 
-construit_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
+construis_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
 {
-    construit_table_drapeaux_caractères(lexeuse)
-    construit_table_peut_suivre(lexeuse)
+    construis_table_drapeaux_caractères(lexeuse)
+    construis_table_peut_suivre(lexeuse)
 }
 
-construit_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
+construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
 {
     pour & lexeuse.table_drapeaux_caractère {
         it = DrapeauxCaractère.zéro
@@ -528,7 +528,7 @@ construit_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
     }
 }
 
-construit_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
+construis_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
 {
     pour & lexeuse.table_peut_suivre {
         it = PeutSuivre.zéro

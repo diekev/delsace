@@ -91,7 +91,7 @@ struct Bloc {
 };
 
 [[nodiscard]] kuri::chaine imprime_bloc(const Bloc *bloc,
-                                        int decalage_instruction,
+                                        int décalage_instruction,
                                         bool surligne_inutilisees = false);
 
 [[nodiscard]] kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs);
