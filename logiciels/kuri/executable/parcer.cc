@@ -320,7 +320,7 @@ static bool commence_par(kuri::chaine_statique chn1, kuri::chaine_statique chn2)
     return sous_chaine == chn2;
 }
 
-static std::optional<Configuration> crée_config_pour_metaprogramme(int argc, char **argv)
+static std::optional<Configuration> crée_config_pour_métaprogramme(int argc, char **argv)
 {
     if (argc < 7) {
         std::cerr
@@ -415,7 +415,7 @@ static std::optional<Configuration> crée_configuration_depuis_arguments(int arg
     if (argc == 3 && std::string(argv[1]) == "-c") {
         return crée_config_depuis_json(argc, argv);
     }
-    return crée_config_pour_metaprogramme(argc, argv);
+    return crée_config_pour_métaprogramme(argc, argv);
 }
 
 /** \} */
@@ -531,7 +531,7 @@ struct Syntaxème {
 
     std::optional<CXType> type_c{};
 
-    bool est_prodéclaration_inutile = false;
+    bool est_prodeclaration_inutile = false;
 
     Syntaxème(TypeSyntaxème type_) : type_syntaxème(type_)
     {
@@ -1362,7 +1362,7 @@ struct Convertisseuse {
         convertis(cursor, trans_unit, flux_sortie);
         assert(syntaxeuse.noeud_courant.haut() == syntaxeuse.module);
 
-        marque_prodéclarations_inutiles();
+        marque_prodeclarations_inutiles();
         marque_rubriques_employées();
 
         POUR (config->modules_à_importer) {
@@ -1615,14 +1615,14 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_FunctionDecl:
             {
-                convertis_declaration_fonction(cursor, trans_unit, false, flux_sortie);
+                convertis_déclaration_fonction(cursor, trans_unit, false, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_Constructor:
             case CXCursorKind::CXCursor_Destructor:
             case CXCursorKind::CXCursor_CXXMethod:
             {
-                convertis_declaration_fonction(cursor, trans_unit, true, flux_sortie);
+                convertis_déclaration_fonction(cursor, trans_unit, true, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_TypeRef:
@@ -2460,21 +2460,21 @@ struct Convertisseuse {
         }
     }
 
-    void convertis_declaration_fonction(CXCursor cursor,
+    void convertis_déclaration_fonction(CXCursor cursor,
                                        CXTranslationUnit trans_unit,
                                        bool est_methode_cpp,
                                        std::ostream &flux_sortie)
     {
         auto enfants = rassemble_enfants(cursor);
 
-        bool est_declaration = enfants.est_vide();
+        bool est_déclaration = enfants.est_vide();
         CXCursor enfant_bloc;
 
-        if (!est_declaration) {
-            est_declaration = enfants.dernier_élément().kind !=
+        if (!est_déclaration) {
+            est_déclaration = enfants.dernier_élément().kind !=
                               CXCursorKind::CXCursor_CompoundStmt;
 
-            if (!est_declaration) {
+            if (!est_déclaration) {
                 /* Nous n'avons pas une déclaration */
                 enfant_bloc = enfants.dernier_élément();
                 enfants.supprime_dernier();
@@ -2535,7 +2535,7 @@ struct Convertisseuse {
         }
 
 #if 0
-        if (!est_declaration) {
+        if (!est_déclaration) {
             flux_sortie << '\n';
             flux_sortie << "{\n";
             convertis(enfant_bloc, trans_unit, flux_sortie);
@@ -2616,7 +2616,7 @@ struct Convertisseuse {
                 os << " {\n";
 
                 POUR (structure->rubriques) {
-                    if (it->est_prodéclaration_inutile) {
+                    if (it->est_prodeclaration_inutile) {
                         continue;
                     }
                     imprime_arbre(it, os);
@@ -2813,7 +2813,7 @@ struct Convertisseuse {
 
     bool doit_ignorer_déclaration(Syntaxème *syntaxème)
     {
-        if (syntaxème->est_prodéclaration_inutile) {
+        if (syntaxème->est_prodeclaration_inutile) {
             return true;
         }
 
@@ -2870,7 +2870,7 @@ struct Convertisseuse {
         }
     }
 
-    void marque_prodéclarations_inutiles()
+    void marque_prodeclarations_inutiles()
     {
         kuri::tableau<DéclarationStruct *> structures;
 
@@ -2896,17 +2896,17 @@ struct Convertisseuse {
                         exit(1);
                     }
 
-                    structure1->est_prodéclaration_inutile = true;
+                    structure1->est_prodeclaration_inutile = true;
                     break;
                 }
 
                 if (it->rubriques.taille() == 0) {
-                    it->est_prodéclaration_inutile = true;
+                    it->est_prodeclaration_inutile = true;
                     it = structure1;
                     break;
                 }
 
-                structure1->est_prodéclaration_inutile = true;
+                structure1->est_prodeclaration_inutile = true;
                 break;
             }
 
