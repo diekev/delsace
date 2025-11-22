@@ -67,7 +67,7 @@ static Test tests_unitaires[] = {
     {"",
      "fichiers/test_appel_fonction_erreur_argument_redefini.kuri",
      erreur::Genre::ARGUMENT_REDEFINI},
-    {"", "fichiers/test_declaration_fonctin_erreur_normale.kuri", erreur::Genre::NORMAL},
+    {"", "fichiers/test_déclaration_fonctin_erreur_normale.kuri", erreur::Genre::NORMAL},
     {"", "fichiers/test_expression_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
     {"", "fichiers/test_condition_controle_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
     {"", "fichiers/test_condition_controle_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},

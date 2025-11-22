@@ -180,7 +180,7 @@ void Bloc::ajoute_parent(Bloc *parent)
 
 static void imprime_bloc(Bloc const *bloc,
                          int décalage_instruction,
-                         bool surligne_inutilisees,
+                         bool surligne_inutilisées,
                          Enchaineuse &os)
 {
     os << "Bloc " << bloc->label->id << ' ';
@@ -210,13 +210,13 @@ static void imprime_bloc(Bloc const *bloc,
     }
 
     imprime_instructions(
-        bloc->instructions, os, OptionsImpressionType::AUCUNE, surligne_inutilisees);
+        bloc->instructions, os, OptionsImpressionType::AUCUNE, surligne_inutilisées);
 }
 
-kuri::chaine imprime_bloc(Bloc const *bloc, int décalage_instruction, bool surligne_inutilisees)
+kuri::chaine imprime_bloc(Bloc const *bloc, int décalage_instruction, bool surligne_inutilisées)
 {
     Enchaineuse sortie;
-    imprime_bloc(bloc, décalage_instruction, surligne_inutilisees, sortie);
+    imprime_bloc(bloc, décalage_instruction, surligne_inutilisées, sortie);
     return sortie.chaine();
 }
 

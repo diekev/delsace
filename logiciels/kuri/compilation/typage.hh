@@ -42,7 +42,7 @@ using TypeTuple = NoeudDéclarationTypeTuple;
 using TypeTypeDeDonnees = NoeudDéclarationTypeTypeDeDonnées;
 using TypeUnion = NoeudUnion;
 using TypeVariadique = NoeudDéclarationTypeVariadique;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 
 enum class GenreNoeud : uint8_t;
 enum class DrapeauxNoeud : uint32_t;
@@ -126,7 +126,7 @@ struct Typeuse {
     kuri::tableau_synchrone<Type *> types_simples{};
     AllocatriceNoeud *alloc = nullptr;
     std::mutex mutex_types_pointeurs{};
-    std::mutex mutex_types_references{};
+    std::mutex mutex_types_références{};
     std::mutex mutex_types_structures{};
     std::mutex mutex_types_enums{};
     std::mutex mutex_types_tableaux_fixes{};
@@ -257,11 +257,11 @@ struct Typeuse {
      * celle-ci. */
     static void crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace);
 
-    Type *type_pour_lexeme(GenreLexème lexeme);
+    Type *type_pour_lexème(GenreLexème lexème);
 
     TypePointeur *type_pointeur_pour(Type *type, bool insere_dans_graphe = true);
 
-    TypeReference *type_reference_pour(Type *type);
+    TypeReference *type_référence_pour(Type *type);
 
     TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
                                        int taille,
@@ -286,7 +286,7 @@ struct Typeuse {
 
     TypeStructure *réserve_type_structure();
 
-    TypeUnion *union_anonyme(Lexème const *lexeme,
+    TypeUnion *union_anonyme(Lexème const *lexème,
                              NoeudBloc *bloc_parent,
                              const kuri::tablet<RubriqueTypeComposé, 6> &rubriques);
 
@@ -377,13 +377,13 @@ bool est_type_fondamental(Type const *type);
 /** \name Accès aux rubriques des types composés.
  * \{ */
 
-struct InformationRubriqueTypeCompose;
+struct InformationRubriqueTypeComposé;
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
-    TypeCompose const *type_composé, Type const *type);
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_type(
+    TypeComposé const *type_composé, Type const *type);
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
-    TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique);
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_nom(
+    TypeComposé const *type_composé, IdentifiantCode const *nom_rubrique);
 
 template <typename T, int tag>
 struct ValeurOpaqueTaguee {
@@ -402,7 +402,7 @@ using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 
 using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
-ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
+ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
                                                                         Type const *type_a_tester);
 
 /** \} */
@@ -434,7 +434,7 @@ kuri::chaine_statique donne_nom_portable(TypeStructure *type);
  * \{ */
 
 void marque_polymorphique(TypeFonction *type);
-void marque_polymorphique(TypeCompose *type);
+void marque_polymorphique(TypeComposé *type);
 
 /** \} */
 
@@ -499,7 +499,7 @@ bool stockage_type_doit_utiliser_memcpy(Type const *type);
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre);
 
-void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire);
+void calcule_taille_type_composé(TypeComposé *type, bool compacte, uint32_t alignement_desire);
 
 /* Retourne le type à la racine d'une chaine potentielle de types opaques ou le type opacifié s'il
  * n'est pas lui-même un type opaque. */

@@ -419,7 +419,7 @@ static ActionParsageArgument gère_argument_tests(ParseuseArguments & /*parseuse
 static ActionParsageArgument gère_argument_profile_exécution(ParseuseArguments & /*parseuse*/,
                                                              ArgumentsCompilatrice &résultat)
 {
-    résultat.profile_metaprogrammes = true;
+    résultat.profile_métaprogrammes = true;
     return ActionParsageArgument::CONTINUE;
 }
 

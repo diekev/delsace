@@ -588,7 +588,7 @@ static void trouve_candidates_pour_expression(
 {
     auto modules_visités = kuri::ensemblon<Module const *, 10>();
     auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
-    trouve_declarations_dans_bloc_ou_module(déclarations,
+    trouve_déclarations_dans_bloc_ou_module(déclarations,
                                             modules_visités,
                                             fichier->module,
                                             appelée->bloc_parent,
@@ -603,7 +603,7 @@ static void trouve_candidates_pour_expression(
         auto fichier_site = espace.fichier(site_monomorphisation->lexème->fichier);
 
         if (fichier_site != fichier) {
-            trouve_declarations_dans_bloc_ou_module(déclarations,
+            trouve_déclarations_dans_bloc_ou_module(déclarations,
                                                     modules_visités,
                                                     fichier_site->module,
                                                     site_monomorphisation->bloc_parent,
@@ -1346,7 +1346,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
 static RésultatAppariement apparie_construction_type_composé(
     NoeudExpressionAppel const *expr,
     NoeudDéclarationType const *déclaration_type_composé,
-    TypeCompose const *type_compose,
+    TypeComposé const *type_compose,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
@@ -1624,10 +1624,10 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             auto accédée = accès->accédée->comme_référence_déclaration();
             auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
             auto module = déclaration_module->module;
-            auto declarations = kuri::tablet<NoeudDéclaration *, 10>();
-            trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
+            auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
+            trouve_déclarations_dans_module(déclarations, module, accès->ident, fichier);
 
-            POUR (declarations) {
+            POUR (déclarations) {
                 ajoute_candidate_pour_déclaration(candidates, it);
             }
             return CodeRetourValidation::OK;
@@ -2382,12 +2382,12 @@ static constexpr double poids_pour_origine[NOMBRE_D_ORIGINES] = {
     1.0, 0.9, 0.8, 0.7, 0.6
 };
 
-static double poids_pour_candidate(const DeclarationCandidatePourAppel &declaration_candidate)
+static double poids_pour_candidate(const DeclarationCandidatePourAppel &déclaration_candidate)
 {
-    double résultat = poids_pour_origine(declaration_candidate.origine);
+    double résultat = poids_pour_origine(déclaration_candidate.origine);
 
     /* Pondère avec le poids des expressions passées en paramètres. */
-    POUR (declaration_candidate.expressions) {
+    POUR (déclaration_candidate.expressions) {
         résultat *= it.poids
     }
 
@@ -2396,6 +2396,6 @@ static double poids_pour_candidate(const DeclarationCandidatePourAppel &declarat
 
 struct DeclarationCandidatePourAppel {
     NoeudExpression *site;
-    OrigineDeclaration declaration;
+    OrigineDeclaration déclaration;
 };
 #endif

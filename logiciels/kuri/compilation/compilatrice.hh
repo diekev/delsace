@@ -63,7 +63,7 @@ struct GestionnaireChainesAjoutées {
 struct ArgumentsCompilatrice {
     kuri::chaine_statique fichier_entrée_compilation{};
     bool active_tests = false;
-    bool profile_metaprogrammes = false;
+    bool profile_métaprogrammes = false;
     bool debogue_execution = false;
     bool émets_stats_ops_exécution = false;
     bool préserve_symboles = false;
@@ -115,7 +115,7 @@ struct Compilatrice {
     kuri::chemin_systeme racine_kuri{};
     kuri::chemin_systeme racine_modules_kuri{};
 
-    kuri::tableau_page_synchrone<MetaProgramme> métaprogrammes{};
+    kuri::tableau_page_synchrone<MétaProgramme> métaprogrammes{};
 
     Broyeuse *broyeuse = nullptr;
 
@@ -156,12 +156,12 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    Fichier *crée_fichier_pour_metaprogramme(EspaceDeTravail *espace,
-                                             MetaProgramme *metaprogramme);
+    Fichier *crée_fichier_pour_métaprogramme(EspaceDeTravail *espace,
+                                             MétaProgramme *métaprogramme);
 
     Fichier *crée_fichier_pour_insère(EspaceDeTravail *espace, NoeudDirectiveInsère *insère);
 
-    MetaProgramme *crée_metaprogramme(EspaceDeTravail *espace);
+    MétaProgramme *crée_métaprogramme(EspaceDeTravail *espace);
 
     /* ********************************************************************** */
 
@@ -183,7 +183,7 @@ struct Compilatrice {
 
     ContexteLexage contexte_lexage(EspaceDeTravail *espace);
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 
@@ -227,7 +227,7 @@ struct Compilatrice {
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
-    MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entête);
+    MétaProgramme *métaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entête);
 
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */
     ÉtatRésolutionAppel *crée_ou_donne_état_résolution_appel();

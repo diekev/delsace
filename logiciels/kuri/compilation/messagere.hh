@@ -9,7 +9,7 @@
 
 struct Compilatrice;
 struct EspaceDeTravail;
-struct MetaProgramme;
+struct MétaProgramme;
 struct Module;
 struct NoeudExpression;
 
@@ -21,7 +21,7 @@ struct Messagère {
     kuri::tableau_page<MessagePhaseCompilation> messages_phase_compilation{};
     kuri::tableau_page<MessageEspaceCréé> messages_espace_créé{};
 
-    kuri::tableau<MetaProgramme *> métaprogrammes{};
+    kuri::tableau<MétaProgramme *> métaprogrammes{};
 
     int entreceveurs = 0;
 
@@ -46,14 +46,14 @@ struct Messagère {
 
     int64_t mémoire_utilisée() const;
 
-    void commence_interception(EspaceDeTravail *espace, MetaProgramme *métaprogramme);
+    void commence_interception(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
     inline bool est_interception_commencée() const
     {
         return interception_commencée;
     }
 
-    void termine_interception(EspaceDeTravail *espace, MetaProgramme *métaprogramme);
+    void termine_interception(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
     void envoie_message(Message *message);
 };
