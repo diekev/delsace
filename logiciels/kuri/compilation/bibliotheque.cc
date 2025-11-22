@@ -187,13 +187,13 @@ static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_st
 
     auto taille = 0;
     auto pointeur = chn.pointeur();
-    auto debut = chn.pointeur();
+    auto début = chn.pointeur();
 
     for (auto i = 0; i < chn.taille(); i++) {
         if (pointeur[i] == separateur) {
-            auto sous_chaine = kuri::chaine_statique(debut, taille);
+            auto sous_chaine = kuri::chaine_statique(début, taille);
             taille = 0;
-            debut = &pointeur[i + 1];
+            début = &pointeur[i + 1];
             résultat.ajoute(sous_chaine);
             continue;
         }
@@ -202,7 +202,7 @@ static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_st
     }
 
     if (taille != 0) {
-        auto sous_chaine = kuri::chaine_statique(debut, taille);
+        auto sous_chaine = kuri::chaine_statique(début, taille);
         résultat.ajoute(sous_chaine);
     }
 
@@ -737,8 +737,8 @@ GestionnaireBibliothèques::GestionnaireBibliothèques(Compilatrice &compilatric
 
 bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compilatrice &compilatrice)
 {
-    auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
-    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
+    auto table_idents = compilatrice.table_identifiants.verrou_écriture();
+    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_écriture();
     auto espace = compilatrice.espace_défaut_compilation();
 
     /* La bibliothèque C. */
@@ -845,17 +845,17 @@ static bool est_fichier_elf(unsigned char tampon[4])
 
 static int64_t taille_fichier(int fd)
 {
-    auto debut = lseek(fd, 0, SEEK_SET);
+    auto début = lseek(fd, 0, SEEK_SET);
     auto fin = lseek(fd, 0, SEEK_END);
 
     /* Remettons nous au début. */
     lseek(fd, 0, SEEK_SET);
 
-    if (debut == -1 || fin == -1) {
+    if (début == -1 || fin == -1) {
         return -1;
     }
 
-    return fin - debut;
+    return fin - début;
 }
 
 static kuri::chaine_statique explication_errno_ouverture_fichier()
@@ -1056,18 +1056,18 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
 }
 #endif
 
-struct ResultatRechercheBibliothèque {
+struct RésultatRechercheBibliothèque {
     kuri::chaine_statique chemin_de_base = "";
     kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 };
 
-static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
+static std::optional<RésultatRechercheBibliothèque> recherche_bibliothèque(
     EspaceDeTravail &espace,
     NoeudExpression *site,
     kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
     kuri::chaine const noms[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE])
 {
-    auto résultat = ResultatRechercheBibliothèque();
+    auto résultat = RésultatRechercheBibliothèque();
 
     bool chemin_trouve[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
@@ -1175,7 +1175,7 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
     return dossiers_recherche_64_bits(espace, site);
 }
 
-static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
+static void copie_chemins(RésultatRechercheBibliothèque const &résultat,
                           Bibliothèque *bibliothèque,
                           int plateforme)
 {

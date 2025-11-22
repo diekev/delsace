@@ -35,11 +35,11 @@ using TypeFonction = NoeudDéclarationTypeFonction;
 using TypeOpaque = NoeudDéclarationTypeOpaque;
 using TypePointeur = NoeudDéclarationTypePointeur;
 using TypePolymorphique = NoeudDéclarationTypePolymorphique;
-using TypeReference = NoeudDéclarationTypeRéférence;
+using TypeRéférence = NoeudDéclarationTypeRéférence;
 using TypeTableauDynamique = NoeudDéclarationTypeTableauDynamique;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 using TypeTuple = NoeudDéclarationTypeTuple;
-using TypeTypeDeDonnees = NoeudDéclarationTypeTypeDeDonnées;
+using TypeTypeDeDonnées = NoeudDéclarationTypeTypeDeDonnées;
 using TypeUnion = NoeudUnion;
 using TypeVariadique = NoeudDéclarationTypeVariadique;
 using TypeComposé = NoeudDéclarationTypeComposé;
@@ -106,13 +106,13 @@ struct Trie {
     Noeud *racine = nullptr;
     kuri::tableau_page<Noeud> noeuds{};
 
-    using TypeResultat = std::variant<Noeud *, TypeFonction *>;
+    using TypeRésultat = std::variant<Noeud *, TypeFonction *>;
 
     /**
      * Retourne soit un TypeFonction existant, soit un Noeud pour insérer un nouveau
      * TypeFonction selon les types entrée et sortie donnés.
      */
-    TypeResultat trouve_type_ou_noeud_insertion(kuri::tablet<Type *, 6> const &entrees,
+    TypeRésultat trouve_type_ou_noeud_insertion(kuri::tablet<Type *, 6> const &entrées,
                                                 Type *type_sortie);
 
   private:
@@ -137,13 +137,13 @@ struct Typeuse {
     std::mutex mutex_types_fonctions{};
     std::mutex mutex_types_variadiques{};
     std::mutex mutex_types_unions{};
-    std::mutex mutex_types_type_de_donnees{};
+    std::mutex mutex_types_type_de_données{};
     std::mutex mutex_types_polymorphiques{};
     std::mutex mutex_types_opaques{};
     std::mutex mutex_types_tuples{};
 
     // mise en cache de plusieurs types pour mieux les trouver
-    TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
+    TypeTypeDeDonnées *type_type_de_données_ = nullptr;
     Type *type_contexte = nullptr;
     Type *type_info_type_ = nullptr;
     Type *type_info_type_structure = nullptr;
@@ -170,7 +170,7 @@ struct Typeuse {
     /* Trie pour les types fonctions. */
     Trie trie{};
 
-    kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
+    kuri::table_hachage<Type *, TypeTypeDeDonnées *> table_types_de_données{""};
 
     /* Sauvegarde des fonctions d'initialisation des types pour les partager entre types.
      * Ces fonctions sont créées avant que tout autre travail de compilation soit effectué, et
@@ -255,30 +255,30 @@ struct Typeuse {
 
     Type *type_pour_lexème(GenreLexème lexème);
 
-    TypePointeur *type_pointeur_pour(Type *type, bool insere_dans_graphe = true);
+    TypePointeur *type_pointeur_pour(Type *type, bool insère_dans_graphe = true);
 
-    TypeReference *type_référence_pour(Type *type);
+    TypeRéférence *type_référence_pour(Type *type);
 
     TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
                                        int taille,
-                                       bool insere_dans_graphe = true);
+                                       bool insère_dans_graphe = true);
 
     TypeTableauFixe *type_tableau_fixe(NoeudExpression const *expression_taille,
                                        Type *type_élément);
 
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
-                                                 bool insere_dans_graphe = true);
+                                                 bool insère_dans_graphe = true);
 
     NoeudDéclarationTypeTranche *crée_type_tranche(Type *type_élément,
                                                    bool insère_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
 
-    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
+    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrées);
 
-    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie);
+    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrées, Type *type_sortie);
 
-    TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
+    TypeTypeDeDonnées *type_type_de_données(Type *type_connu);
 
     TypeStructure *réserve_type_structure();
 
@@ -355,7 +355,7 @@ bool peut_construire_union_via_rien(TypeUnion const *type_union);
  * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
 bool est_type_implicitement_utilisable_pour_indexage(Type const *type);
 
-bool peut_etre_type_constante(Type const *type);
+bool peut_être_type_constante(Type const *type);
 
 /**
  * Retourne vrai si type_dest opacifie type_source.
@@ -396,9 +396,9 @@ using IndexRubrique = ValeurOpaqueTaguee<int, INDICE_RUBRIQUE>;
 using PlusieursRubriques = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
 using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 
-using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
+using RésultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
-ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
+RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
                                                                         Type const *type_a_tester);
 
 /** \} */

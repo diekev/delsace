@@ -214,8 +214,8 @@ RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
 
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
-    mémoire::deloge("Broyeuse", broyeuse);
-    mémoire::deloge("ConstructriceRI", m_constructrice);
+    mémoire::déloge("Broyeuse", broyeuse);
+    mémoire::déloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
@@ -237,7 +237,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i)->comme_déclaration_variable();
+        auto param = decl->paramètre_entrée(i)->comme_déclaration_variable();
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params[i] = atome;
@@ -1644,7 +1644,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
      * doivent être initialisées après). */
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
-        auto graphe = espace->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_écriture();
         graphe->prépare_visite();
 
         POUR (globales_avec_déclarations) {
@@ -1705,11 +1705,11 @@ AtomeFonction *CompilatriceRI::génère_fonction_init_globales_et_appel(
     auto ident_nom = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
         nom_fonction);
 
-    auto types_entrees = kuri::tablet<Type *, 6>(0);
+    auto types_entrées = kuri::tablet<Type *, 6>(0);
     auto type_sortie = m_espace->typeuse.type_rien;
 
     auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
-    fonction->type = m_espace->typeuse.type_fonction(types_entrees, type_sortie);
+    fonction->type = m_espace->typeuse.type_fonction(types_entrées, type_sortie);
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
@@ -2234,7 +2234,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto info_type = crée_info_type_avec_transtype(type, noeud);
             auto valeur = m_constructrice.crée_transtype_constant(
-                m_espace->typeuse.type_type_de_donnees_, info_type);
+                m_espace->typeuse.type_type_de_données_, info_type);
             empile_valeur(valeur, noeud);
             break;
         }
@@ -2884,9 +2884,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     noeud, type_tableau_dyn, nullptr);
 
                 /* Le pointeur du tableau doit être vers la temporaire. */
-                auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(
+                auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(
                     noeud, alloc_tableau_dyn, 0);
-                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, tmp);
+                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, tmp);
 
                 auto ptr_taille = m_constructrice.crée_référence_rubrique(
                     noeud, alloc_tableau_dyn, 1);
@@ -4939,10 +4939,10 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
-    auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
+    auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
     auto premier_elem = m_constructrice.crée_accès_indice(
         noeud, pointeur_tableau_fixe, m_constructrice.crée_z64(0ul));
-    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, premier_elem);
+    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, premier_elem);
 
     auto ptr_taille = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 1);
     auto constante = m_constructrice.crée_z64(unsigned(type_tableau_fixe->taille));
@@ -4963,10 +4963,10 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
-    auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
+    auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
     auto pointeur_éléments = m_constructrice.crée_référence_rubrique_et_charge(
         noeud, pointeur_tableau, 0);
-    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, pointeur_éléments);
+    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, pointeur_éléments);
 
     auto ptr_taille = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 1);
     auto taille_tableau = m_constructrice.crée_référence_rubrique_et_charge(
@@ -4978,7 +4978,7 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
 
 AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statique chaine)
 {
-    auto table_chaines = m_espace->registre_chaines_ri.verrou_ecriture();
+    auto table_chaines = m_espace->registre_chaines_ri.verrou_écriture();
     auto valeur = table_chaines->donne_constante_pour_chaine(chaine);
 
     if (valeur) {
@@ -5023,7 +5023,7 @@ AtomeGlobale *CompilatriceRI::crée_globale_pour_chaine(kuri::chaine_statique ch
 {
     auto constante = crée_constante_pour_chaine(chaine);
 
-    auto table_chaines = m_espace->registre_chaines_ri.verrou_ecriture();
+    auto table_chaines = m_espace->registre_chaines_ri.verrou_écriture();
     auto valeur = table_chaines->donne_globale_pour_chaine(constante);
 
     if (valeur) {

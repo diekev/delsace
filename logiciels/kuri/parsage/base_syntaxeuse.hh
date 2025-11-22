@@ -83,7 +83,7 @@ struct BaseSyntaxeuse {
     bool m_possède_erreur = false;
     char _pad[2];
 
-    kuri::chrono::metre_seconde m_chrono_analyse{};
+    kuri::chrono::mètre_seconde m_chrono_analyse{};
 
     kuri::tablet<DonneesEtatSyntaxage, 33> m_données_état_syntaxage{};
 

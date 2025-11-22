@@ -59,10 +59,10 @@ MétaProgramme::~MétaProgramme()
 {
     POUR (logueuses) {
         if (it) {
-            mémoire::deloge("Enchaineuse", it);
+            mémoire::déloge("Enchaineuse", it);
         }
     }
-    mémoire::deloge("Programme", programme);
+    mémoire::déloge("Programme", programme);
 }
 
 Enchaineuse &MétaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
@@ -161,7 +161,7 @@ kuri::chaine_statique MétaProgramme::donne_nom_pour_fichier_log()
 void MétaProgramme::vidange_logs_sur_disque()
 {
     if (!m_le_log_d_empilage_doit_être_préservé) {
-        mémoire::deloge("Enchaineuse", logueuses[int(TypeLogMétaprogramme::PILE_DE_VALEURS)]);
+        mémoire::déloge("Enchaineuse", logueuses[int(TypeLogMétaprogramme::PILE_DE_VALEURS)]);
     }
 
     for (int i = 0; i < int(TypeLogMétaprogramme::NOMBRE_DE_LOGS); i++) {

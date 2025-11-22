@@ -4620,7 +4620,7 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     auto &repr_inter_programme = *args.ri_programme;
     auto &typeuse = args.espace->typeuse;
 
-    // génère_code_debut_fichier(enchaineuse, compilatrice.racine_kuri);
+    // génère_code_début_fichier(enchaineuse, compilatrice.racine_kuri);
 
     auto génératrice = GénératriceCodeASM{typeuse};
     génératrice.génère_code(repr_inter_programme, enchaineuse);

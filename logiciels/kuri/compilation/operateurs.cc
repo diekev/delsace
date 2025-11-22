@@ -771,8 +771,8 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
                 continue;
             }
 
-            auto arg_gauche = op->decl->parametre_entree(0);
-            auto arg_droite = op->decl->parametre_entree(1);
+            auto arg_gauche = op->decl->paramètre_entrée(0);
+            auto arg_droite = op->decl->paramètre_entrée(1);
 
             static constexpr double POIDS_POUR_ARGUMENT_POLYMORPHIQUE = 0.95;
             auto poids1 = 0.0;
@@ -1063,7 +1063,7 @@ void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &r
     registre.ajoute_basique(
         GenreLexème::DIFFÉRENCE, type_bool, type_bool, IndiceTypeOp::ENTIER_NATUREL);
 
-    auto type_type_de_données = typeuse.type_type_de_donnees_;
+    auto type_type_de_données = typeuse.type_type_de_données_;
 
     registre.op_comp_égal_types = registre.ajoute_basique(
         GenreLexème::EGALITE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);

@@ -56,7 +56,7 @@ std::ostream &operator<<(std::ostream &os, TypeTransformation type)
  * graphe, qui sera sans doute révisée plus tard.
  */
 template <bool POUR_TRANSTYPAGE>
-ResultatTransformation peut_transformer_type_vers_entier(Type const *type_de,
+RésultatTransformation peut_transformer_type_vers_entier(Type const *type_de,
                                                          Type const *type_vers)
 {
     if (type_de->genre == type_vers->genre) {
@@ -131,7 +131,7 @@ ResultatTransformation peut_transformer_type_vers_entier(Type const *type_de,
 }
 
 template <bool POUR_TRANSTYPAGE>
-ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
+RésultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
 {
     if (type_de == type_vers) {
         return TransformationType(TypeTransformation::INUTILE);
@@ -668,12 +668,12 @@ ResultatTransformation cherche_transformation(Type const *type_de, Type const *t
     return TransformationType(TypeTransformation::IMPOSSIBLE);
 }
 
-ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
+RésultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers)
 {
     return cherche_transformation<false>(type_de, type_vers);
 }
 
-ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
+RésultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
                                                                Type const *type_vers)
 {
     return cherche_transformation<true>(type_de, type_vers);
@@ -715,7 +715,7 @@ static double donne_poids_transformation(TypeTransformation transformation,
     }
 }
 
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+RésultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   bool ignore_entier_constant)
 {
@@ -740,7 +740,7 @@ ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
     return PoidsTransformation{transformation, poids};
 }
 
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+RésultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   NoeudExpression const *noeud,
                                                   bool ignore_entier_constant)

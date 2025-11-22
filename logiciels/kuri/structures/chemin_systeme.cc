@@ -71,9 +71,9 @@ char chemin_systeme::séparateur_préféré()
 #endif
 }
 
-static const char *trouve_depuis_la_fin(const char *debut, const char *fin, char motif)
+static const char *trouve_depuis_la_fin(const char *début, const char *fin, char motif)
 {
-    while (fin != debut) {
+    while (fin != début) {
         --fin;
 
         if (*fin == motif) {
@@ -88,35 +88,35 @@ chemin_systeme::chemin_systeme(const char *str)
 {
     /* Garantie que nous avons les sépérateurs préférés du système. */
     auto std_path = vers_std_path(str);
-    donnees = chaine_depuis_std_path(std_path);
+    données = chaine_depuis_std_path(std_path);
 }
 
 chemin_systeme::chemin_systeme(chaine_statique chemin)
 {
     /* Garantie que nous avons les sépérateurs préférés du système. */
     auto std_path = vers_std_path(chemin);
-    donnees = chaine_depuis_std_path(std_path);
+    données = chaine_depuis_std_path(std_path);
 }
 
 chemin_systeme::chemin_systeme(chaine chemin)
 {
     /* Garantie que nous avons les sépérateurs préférés du système. */
     auto std_path = vers_std_path(chemin);
-    donnees = chaine_depuis_std_path(std_path);
+    données = chaine_depuis_std_path(std_path);
 }
 
 chaine_statique chemin_systeme::nom_fichier() const
 {
-    auto debut = donnees.begin();
-    auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
-    auto distance = std::distance(debut, pos);
+    auto début = données.begin();
+    auto fin = données.end();
+    auto pos = trouve_depuis_la_fin(début, fin, séparateur_préféré());
+    auto distance = std::distance(début, pos);
     auto taille = std::distance(pos, fin);
     if (distance != 0) {
         distance += 1;
         taille -= 1;
     }
-    return {donnees.pointeur() + distance, taille};
+    return {données.pointeur() + distance, taille};
 }
 
 chaine_statique chemin_systeme::nom_fichier_sans_extension() const
@@ -133,37 +133,37 @@ chaine_statique chemin_systeme::nom_fichier_sans_extension() const
 
 chaine_statique chemin_systeme::extension() const
 {
-    auto debut = donnees.begin();
-    auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, '.');
+    auto début = données.begin();
+    auto fin = données.end();
+    auto pos = trouve_depuis_la_fin(début, fin, '.');
 
     if (pos == fin) {
         return "";
     }
 
-    if (pos == debut) {
-        if (*debut != '.') {
+    if (pos == début) {
+        if (*début != '.') {
             return "";
         }
     }
 
-    auto distance = std::distance(debut, pos);
-    auto taille = std::distance(pos, donnees.end());
-    return {donnees.pointeur() + distance, taille};
+    auto distance = std::distance(début, pos);
+    auto taille = std::distance(pos, données.end());
+    return {données.pointeur() + distance, taille};
 }
 
 chaine_statique chemin_systeme::chemin_parent() const
 {
-    auto debut = donnees.begin();
-    auto fin = donnees.end();
-    auto pos = trouve_depuis_la_fin(debut, fin, séparateur_préféré());
-    auto distance = std::distance(debut, pos);
-    return {donnees.pointeur(), distance};
+    auto début = données.begin();
+    auto fin = données.end();
+    auto pos = trouve_depuis_la_fin(début, fin, séparateur_préféré());
+    auto distance = std::distance(début, pos);
+    return {données.pointeur(), distance};
 }
 
 chemin_systeme chemin_systeme::remplace_extension(chaine_statique extension) const
 {
-    auto std_path = vers_std_path(donnees);
+    auto std_path = vers_std_path(données);
     auto const std_path_extension = vers_std_path(extension);
     auto result = std_path.replace_extension(std_path_extension);
     return vers_chemin_systeme(result);
@@ -171,10 +171,10 @@ chemin_systeme chemin_systeme::remplace_extension(chaine_statique extension) con
 
 void chemin_systeme::remplace_nom_fichier(chaine_statique nouveau_nom)
 {
-    auto std_path = vers_std_path(donnees);
+    auto std_path = vers_std_path(données);
     auto const std_path_nouveau_nom = vers_std_path(nouveau_nom);
     auto result = std_path.replace_filename(std_path_nouveau_nom);
-    this->donnees = vers_chemin_systeme(result).donnees;
+    this->données = vers_chemin_systeme(result).données;
 }
 
 /* Fonctions statiques.  */
@@ -258,13 +258,13 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique c
 
     tablet<chemin_systeme, 16> résultat;
 
-    for (auto const &entree : std::filesystem::directory_iterator(std_path)) {
-        auto chemin_entree = entree.path();
-        if (!est_fichier_kuri_impl(chemin_entree)) {
+    for (auto const &entrée : std::filesystem::directory_iterator(std_path)) {
+        auto chemin_entrée = entrée.path();
+        if (!est_fichier_kuri_impl(chemin_entrée)) {
             continue;
         }
 
-        résultat.ajoute(vers_chemin_systeme(chemin_entree));
+        résultat.ajoute(vers_chemin_systeme(chemin_entrée));
     }
 
     return résultat;
@@ -276,13 +276,13 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_s
 
     tablet<chemin_systeme, 16> résultat;
 
-    for (auto const &entree : std::filesystem::recursive_directory_iterator(std_path)) {
-        auto chemin_entree = entree.path();
-        if (!est_fichier_kuri_impl(chemin_entree)) {
+    for (auto const &entrée : std::filesystem::recursive_directory_iterator(std_path)) {
+        auto chemin_entrée = entrée.path();
+        if (!est_fichier_kuri_impl(chemin_entrée)) {
             continue;
         }
 
-        résultat.ajoute(vers_chemin_systeme(chemin_entree));
+        résultat.ajoute(vers_chemin_systeme(chemin_entrée));
     }
 
     return résultat;

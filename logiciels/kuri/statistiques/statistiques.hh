@@ -278,7 +278,7 @@ struct Statistiques {
 
 #define ENTREES_POUR_OPERATEUR_UNAIRE(OP)                                                         \
     OP(OPERATEUR_UNAIRE__TYPE, "opérateur unaire type")                                           \
-    OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_donnees)")         \
+    OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_données)")         \
     OP(OPERATEUR_UNAIRE__POINTEUR, "opérateur unaire type (pointeur)")                            \
     OP(OPERATEUR_UNAIRE__REFERENCE, "opérateur unaire type (référence)")                          \
     OP(OPERATEUR_UNAIRE__OPERATEUR_UNAIRE, "opérateur unaire")

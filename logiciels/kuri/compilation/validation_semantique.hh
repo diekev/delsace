@@ -84,7 +84,7 @@ struct ContexteValidationDéclaration {
      * variables. */
     kuri::tablet<DonnéesAssignations, 6> données_assignations{};
 
-    /* Données temporaires pour la constructions des donnees_assignations. */
+    /* Données temporaires pour la constructions des données_assignations. */
     DonnéesAssignations données_temp{};
 };
 

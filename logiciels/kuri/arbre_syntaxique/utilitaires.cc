@@ -1621,7 +1621,7 @@ void NoeudBloc::réserve_rubriques(int nombre)
 static constexpr auto TAILLE_MAX_TABLEAU_RUBRIQUES = 16;
 
 template <typename T>
-using PointeurTableauVerrouille = typename kuri::tableau_synchrone<T>::PointeurVerrouille;
+using PointeurTableauVerrouillé = typename kuri::tableau_synchrone<T>::PointeurVerrouillé;
 
 using TableRubriques = kuri::table_hachage<IdentifiantCode const *, NoeudDéclaration *>;
 
@@ -1635,7 +1635,7 @@ static void ajoute_rubrique(TableRubriques &table_rubriques, NoeudDéclaration *
     table_rubriques.insère(decl->ident, decl);
 }
 
-static void init_table_hachage_rubriques(PointeurTableauVerrouille<NoeudDéclaration *> &rubriques,
+static void init_table_hachage_rubriques(PointeurTableauVerrouillé<NoeudDéclaration *> &rubriques,
                                          TableRubriques &table_rubriques)
 {
     if (table_rubriques.taille() != 0) {
@@ -1693,7 +1693,7 @@ void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
         }
     }
 
-    auto rubriques_ = rubriques.verrou_ecriture();
+    auto rubriques_ = rubriques.verrou_écriture();
     if (rubriques_->taille() >= TAILLE_MAX_TABLEAU_RUBRIQUES) {
         init_table_hachage_rubriques(rubriques_, table_rubriques);
         ::ajoute_rubrique(table_rubriques, decl);
@@ -1702,9 +1702,9 @@ void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
     rubriques_->ajoute(decl);
 }
 
-void NoeudBloc::ajoute_rubrique_au_debut(NoeudDéclaration *decl)
+void NoeudBloc::ajoute_rubrique_au_début(NoeudDéclaration *decl)
 {
-    auto rubriques_ = rubriques.verrou_ecriture();
+    auto rubriques_ = rubriques.verrou_écriture();
     if (rubriques_->taille() >= TAILLE_MAX_TABLEAU_RUBRIQUES) {
         init_table_hachage_rubriques(rubriques_, table_rubriques);
         ::ajoute_rubrique(table_rubriques, decl);
@@ -2067,8 +2067,8 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 
         if (entête->est_opérateur) {
             if (entête->params.taille() == 2) {
-                auto const type1 = entête->parametre_entree(0)->type;
-                auto const type2 = entête->parametre_entree(1)->type;
+                auto const type1 = entête->paramètre_entrée(0)->type;
+                auto const type2 = entête->paramètre_entrée(1)->type;
                 return enchaine("opérateur ",
                                 entête->lexème->chaine,
                                 " (",
@@ -2079,7 +2079,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
             }
 
             if (entête->params.taille() == 1) {
-                auto const type1 = entête->parametre_entree(0)->type;
+                auto const type1 = entête->paramètre_entrée(0)->type;
                 return enchaine(
                     "opérateur ", entête->lexème->chaine, " (", chaine_type(type1), ")");
             }
@@ -2093,7 +2093,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 
             auto virgule = "(";
             for (int i = 0; i < entête->params.taille(); i++) {
-                auto const param = entête->parametre_entree(i);
+                auto const param = entête->paramètre_entrée(i);
                 enchaineuse << virgule << chaine_type(param->type);
                 virgule = ", ";
             }
@@ -2297,7 +2297,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
         {
             auto valeur_défaut = assembleuse->crée_littérale_nul(&lexème_sentinel);
             // valeur_défaut->type = typeuse.type_pointeur_pour(typeuse.type_info_type_);
-            valeur_défaut->type = typeuse.type_type_de_donnees_;
+            valeur_défaut->type = typeuse.type_type_de_données_;
             crée_assignation(assembleuse, ref_param, valeur_défaut);
             break;
         }
@@ -2774,8 +2774,8 @@ NoeudDéclarationEntêteFonction *synthétise_fonction_pour_opérateur(Contexte 
     assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
 
-    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
-    auto déclaration_opérande_droite = résultat->parametre_entree(1);
+    auto déclaration_opérande_gauche = résultat->paramètre_entrée(0);
+    auto déclaration_opérande_droite = résultat->paramètre_entrée(1);
 
     auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
                                                                     déclaration_opérande_gauche);
@@ -2917,8 +2917,8 @@ void synthétise_opérateur(Contexte *contexte, OpérateurBinaire *opérateur)
     assert(assembleuse->bloc_courant() == nullptr);
     assembleuse->bloc_courant(corps->bloc);
 
-    auto déclaration_opérande_gauche = résultat->parametre_entree(0);
-    auto déclaration_opérande_droite = résultat->parametre_entree(1);
+    auto déclaration_opérande_gauche = résultat->paramètre_entrée(0);
+    auto déclaration_opérande_droite = résultat->paramètre_entrée(1);
 
     auto référence_gauche = assembleuse->crée_référence_déclaration(lexème,
                                                                     déclaration_opérande_gauche);

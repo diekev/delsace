@@ -285,8 +285,8 @@ static int longueur_utf8_depuis_premier_caractère[] = {
 
 Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *données, int drapeaux)
     : m_gérante_chaine(contexte.gérante_chaine), m_table_identifiants(contexte.table_identifiants),
-      m_données(données), m_début_mot(données->tampon().debut()),
-      m_début(données->tampon().debut()), m_fin(données->tampon().fin()), m_drapeaux(drapeaux),
+      m_données(données), m_début_mot(données->tampon().début()),
+      m_début(données->tampon().début()), m_fin(données->tampon().fin()), m_drapeaux(drapeaux),
       m_rappel_erreur(contexte.rappel_erreur)
 {
 }
@@ -349,7 +349,7 @@ void Lexeuse::performe_lexage()
 
     // crée les identifiants à la fin pour améliorer la cohérence de cache
     {
-        auto table_identifiants = m_table_identifiants.verrou_ecriture();
+        auto table_identifiants = m_table_identifiants.verrou_écriture();
 
         POUR (m_données->lexèmes) {
             if (it.genre == GenreLexème::SI) {
@@ -366,7 +366,7 @@ void Lexeuse::performe_lexage()
 
     // crée les chaines littérales à la fin pour améliorer la cohérence de cache
     {
-        auto gérante_chaine = m_gérante_chaine.verrou_ecriture();
+        auto gérante_chaine = m_gérante_chaine.verrou_écriture();
 
         /* en dehors de la boucle car nous l'utilisons comme tampon */
         kuri::chaine chaine;

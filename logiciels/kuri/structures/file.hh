@@ -65,7 +65,7 @@ struct file {
     template <typename Predicat>
     void efface_si(Predicat &&predicat)
     {
-        auto fin = std::remove_if(m_file.debut(), m_file.fin(), predicat);
+        auto fin = std::remove_if(m_file.début(), m_file.fin(), predicat);
         m_file.efface(fin, m_file.fin());
     }
 
@@ -89,7 +89,7 @@ struct file {
 
     iteratrice begin()
     {
-        return m_file.debut();
+        return m_file.début();
     }
 
     iteratrice end()
@@ -99,7 +99,7 @@ struct file {
 
     iteratrice_const begin() const
     {
-        return m_file.debut();
+        return m_file.début();
     }
 
     iteratrice_const end() const

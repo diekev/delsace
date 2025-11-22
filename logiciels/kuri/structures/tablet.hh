@@ -443,22 +443,22 @@ class tablet {
         return const_reverse_iterator(&m_mémoire[-1]);
     }
 
-    iterator debut()
+    iterator début()
     {
         return this->begin();
     }
 
-    const_iterator debut() const
+    const_iterator début() const
     {
         return this->cbegin();
     }
 
-    reverse_iterator debut_inverse()
+    reverse_iterator début_inverse()
     {
         return this->rbegin();
     }
 
-    const_reverse_iterator debut_inverse() const
+    const_reverse_iterator début_inverse() const
     {
         return this->crbegin();
     }
@@ -571,7 +571,7 @@ class tablet {
     void supprime_données()
     {
         if (m_mémoire != m_tablet) {
-            mémoire::deloge_tableau("tablet", m_mémoire, m_alloué);
+            mémoire::déloge_tableau("tablet", m_mémoire, m_alloué);
             m_mémoire = m_tablet;
             m_alloué = TAILLE_INITIALE;
         }

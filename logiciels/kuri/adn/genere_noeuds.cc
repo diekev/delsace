@@ -27,7 +27,7 @@
 static const char *copie_extra_entête_fonction = R"(
             /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
              * sont placés par la Syntaxeuse directement dans les rubriques. */
-            POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+            POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                 auto copie_rubrique = copie_noeud(it);
                 copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
             }
@@ -37,7 +37,7 @@ static const char *copie_extra_entête_fonction = R"(
 static const char *copie_extra_entête_opérateur_pour = R"(
             if ((m_options & OptionsCopieNoeud::COPIE_PARAMÈTRES_DANS_RUBRIQUES) != OptionsCopieNoeud(0)) {
                 for (int64_t i = 0; i < copie->params.taille(); i++) {
-                    copie->bloc_paramètres->rubriques->ajoute(copie->parametre_entree(i));
+                    copie->bloc_paramètres->rubriques->ajoute(copie->paramètre_entrée(i));
                 }
                 copie->bloc_paramètres->rubriques->ajoute(copie->param_sortie->comme_base_déclaration_variable());
             }
@@ -56,7 +56,7 @@ static const char *copie_extra_structure = R"(
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les rubriques. */
-                POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+                POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                     auto copie_rubrique = copie_noeud(it);
                     copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
                 }
@@ -68,7 +68,7 @@ static const char *copie_extra_union = R"(
             if (orig->bloc_constantes) {
                 /* La copie d'un bloc ne copie que les expressions mais les paramètres polymorphiques
                  * sont placés par la Syntaxeuse directement dans les rubriques. */
-                POUR (*orig->bloc_constantes->rubriques.verrou_ecriture()) {
+                POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                     auto copie_rubrique = copie_noeud(it);
                     copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
                 }

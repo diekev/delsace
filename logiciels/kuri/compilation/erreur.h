@@ -162,7 +162,7 @@ struct Erreur {
     Erreur &ajoute_conseil(kuri::chaine_statique c);
 
     template <typename Fonction>
-    Erreur &ajoute_donnees(Fonction rappel)
+    Erreur &ajoute_données(Fonction rappel)
     {
         rappel(*this);
         return *this;

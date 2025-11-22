@@ -143,22 +143,22 @@ void GrapheDépendance::rassemble_statistiques(Statistiques &stats) const
     stats_graphe.fusionne_entrée({"NoeudDependance", noeuds.taille(), memoire});
 }
 
-void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDépendance &donnees)
+void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDépendance &données)
 {
-    kuri::pour_chaque_élément(donnees.types_utilisés, [&](auto &type) {
+    kuri::pour_chaque_élément(données.types_utilisés, [&](auto &type) {
         auto noeud_type = crée_noeud_type(type);
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_TYPE);
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_élément(donnees.fonctions_utilisées, [&](auto &fonction_utilisée) {
+    kuri::pour_chaque_élément(données.fonctions_utilisées, [&](auto &fonction_utilisée) {
         auto noeud_type = crée_noeud_fonction(
             const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisée));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_FONCTION);
         return kuri::DécisionItération::Continue;
     });
 
-    kuri::pour_chaque_élément(donnees.globales_utilisées, [&](auto &globale_utilisée) {
+    kuri::pour_chaque_élément(données.globales_utilisées, [&](auto &globale_utilisée) {
         auto noeud_type = crée_noeud_globale(
             const_cast<NoeudDéclarationVariable *>(globale_utilisée));
         connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_GLOBALE);
@@ -411,9 +411,9 @@ void DonnéesDépendance::fusionne(const DonnéesDépendance &autre)
     /* Ajoute les nouveaux types aux dépendances courantes. */
     pour_chaque_élément(autre.types_utilisés, [&](auto &type) {
         if (type->est_type_type_de_données()) {
-            auto type_de_donnees = type->comme_type_type_de_données();
-            if (type_de_donnees->type_connu) {
-                types_utilisés.insère(type_de_donnees->type_connu);
+            auto type_de_données = type->comme_type_type_de_données();
+            if (type_de_données->type_connu) {
+                types_utilisés.insère(type_de_données->type_connu);
             }
         }
         else {
