@@ -12,8 +12,8 @@ namespace kuri {
 template <typename T>
 struct file {
     using type_valeur = T;
-    using type_reference = T &;
-    using type_reference_const = T const &;
+    using type_référence = T &;
+    using type_référence_const = T const &;
     using type_taille = int64_t;
 
   private:
@@ -35,17 +35,17 @@ struct file {
         return m_file.taille();
     }
 
-    type_reference front()
+    type_référence front()
     {
         return m_file.premier_élément();
     }
 
-    type_reference_const front() const
+    type_référence_const front() const
     {
         return m_file.premier_élément();
     }
 
-    void enfile(type_reference_const valeur)
+    void enfile(type_référence_const valeur)
     {
         m_file.ajoute(valeur);
     }

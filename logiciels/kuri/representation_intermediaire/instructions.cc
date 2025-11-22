@@ -575,12 +575,12 @@ static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
 
 Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst)
 {
-    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Egal);
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Égal);
 }
 
 Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
 {
-    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inégal);
 }
 
 bool est_instruction_comparaison(Atome const *atome)

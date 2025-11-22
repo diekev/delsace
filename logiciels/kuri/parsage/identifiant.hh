@@ -36,7 +36,7 @@ struct TableIdentifiant {
 
     int64_t taille() const;
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
   private:
     IdentifiantCode *ajoute_identifiant(kuri::chaine_statique nom);

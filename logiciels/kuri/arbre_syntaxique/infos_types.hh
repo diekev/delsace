@@ -169,7 +169,7 @@ struct AllocatriceInfosType {
 
 #undef ENUME_TYPES_TRANCHES_INFO_TYPE_EX
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     template <typename T>
     kuri::tranche<T> donne_tranche(kuri::tablet<T, 6> const &tableau);

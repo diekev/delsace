@@ -1392,7 +1392,7 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
         {
             auto lexème = noeud->lexème;
             /* Pour les subsitutition. */
-            if (lexème->genre != GenreLexème::NOMBRE_REEL) {
+            if (lexème->genre != GenreLexème::NOMBRE_RÉEL) {
                 auto littérale = noeud->comme_littérale_réel();
                 enchaineuse << littérale->valeur;
             }
