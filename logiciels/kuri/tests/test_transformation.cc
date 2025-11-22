@@ -88,7 +88,7 @@ int main()
     reussite &= verifie_transformation(compilatrice, typeuse.type_r64, typeuse.type_eini, true);
     reussite &= verifie_transformation(compilatrice, typeuse.type_eini, typeuse.type_r64, true);
     reussite &= verifie_transformation(compilatrice, typeuse.type_eini, typeuse.type_eini, true);
-    // test []octet -> eini => CONSTRUIT_EINI et non EXTRAIT_TABL_OCTET
+    // test []octet -> eini => CONSTRUIS_EINI et non EXTRAIT_TABL_OCTET
     reussite &= verifie_transformation(
         compilatrice, typeuse.type_tranche_octet, typeuse.type_eini, true);
     reussite &= verifie_transformation(

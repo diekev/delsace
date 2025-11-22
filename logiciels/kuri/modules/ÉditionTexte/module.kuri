@@ -113,7 +113,7 @@ donne_lignes_pour_rendu :: fonc (éditrice: *ÉditriceTexte) -> []ChaineUTF32
 donne_tampon_texte_natif :: fonc (éditrice: *ÉditriceTexte) -> chaine
 {
     si éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
-        retourne converti_vers_chaine(éditrice.texte_à_éditer)
+        retourne convertis_vers_chaine(éditrice.texte_à_éditer)
     }
 
     enchaineuse: Enchaineuse
@@ -228,7 +228,7 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
     si touche.texte.taille != 0 {
         est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille
         si est_valide {
-            point_de_code := converti_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
+            point_de_code := convertis_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
             insère(*éditrice.curseur, point_de_code)
         }
 

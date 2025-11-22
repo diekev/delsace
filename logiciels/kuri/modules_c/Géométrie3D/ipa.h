@@ -397,7 +397,7 @@ struct ParametresDistributionPoisson2D {
 void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *params,
                                        struct AdaptriceMaillage *points_resultants);
 
-void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
+void GEO3D_construis_maillage_alpha(struct AdaptriceMaillage *points,
                                     const float rayon,
                                     struct AdaptriceMaillage *maillage_résultat);
 

@@ -247,14 +247,14 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
         m_éléments_sont_sales[TYPES][POUR_RI] = false;
     }
 
-    diagnostique.toutes_les_ri_sont_generees = true;
+    diagnostique.toutes_les_ri_sont_génèrees = true;
     return true;
 }
 
 bool Programme::ri_générées() const
 {
     auto diagnostic = diagnostique_compilation();
-    return diagnostic.toutes_les_ri_sont_generees;
+    return diagnostic.toutes_les_ri_sont_génèrees;
 }
 
 DiagnostiqueÉtatCompilation Programme::diagnostique_compilation() const
@@ -277,7 +277,7 @@ DiagnostiqueÉtatCompilation Programme::diagnostique_compilation() const
         m_état_compilation.essaie_d_aller_à(PhaseCompilation::TYPAGE_TERMINÉ);
     }
 
-    if (diagnostic.toutes_les_ri_sont_generees) {
+    if (diagnostic.toutes_les_ri_sont_génèrees) {
         m_état_compilation.essaie_d_aller_à(PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE);
     }
 
@@ -601,7 +601,7 @@ bool operator==(DiagnostiqueÉtatCompilation const &diag1, DiagnostiqueÉtatComp
     COMPARE_RUBRIQUE(tous_les_fichiers_sont_lexés)
     COMPARE_RUBRIQUE(tous_les_fichiers_sont_parsés)
     COMPARE_RUBRIQUE(toutes_les_déclarations_à_typer_le_sont)
-    COMPARE_RUBRIQUE(toutes_les_ri_sont_generees)
+    COMPARE_RUBRIQUE(toutes_les_ri_sont_génèrees)
     COMPARE_RUBRIQUE(type_à_valider)
     COMPARE_RUBRIQUE(déclaration_à_valider)
     COMPARE_RUBRIQUE(ri_type_à_générer)
@@ -699,7 +699,7 @@ struct ConstructriceProgrammeFormeRI {
     {
     }
 
-    std::optional<ProgrammeRepreInter> construit_représentation_intermédiaire_programme();
+    std::optional<ProgrammeRepreInter> construis_représentation_intermédiaire_programme();
 
   private:
     void ajoute_fonction(AtomeFonction *fonction);
@@ -732,7 +732,7 @@ struct ConstructriceProgrammeFormeRI {
 };
 
 std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
-    construit_représentation_intermédiaire_programme()
+    construis_représentation_intermédiaire_programme()
 {
     m_résultat.fonctions.réserve(m_programme.fonctions().taille() + m_programme.types().taille());
     m_résultat.globales.réserve(m_programme.globales().taille());
@@ -820,7 +820,7 @@ std::optional<ProgrammeRepreInter> ConstructriceProgrammeFormeRI::
         }
 
         if (!m_résultat.globales.est_vide()) {
-            auto fonc_init = m_compilatrice_ri.genere_fonction_init_globales_et_appel(
+            auto fonc_init = m_compilatrice_ri.génère_fonction_init_globales_et_appel(
                 &m_espace, m_résultat.globales, fonction);
 
             if (!fonc_init) {
@@ -1305,7 +1305,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     kuri::ensemble<AtomeFonction *> fonctions_visitées;
     m_visiteuse_atome.réinitialise();
     while (!fonction_à_visiter.est_vide()) {
-        auto fonction = fonction_à_visiter.depile();
+        auto fonction = fonction_à_visiter.dépile();
         if (fonctions_visitées.possède(fonction)) {
             continue;
         }
@@ -1406,7 +1406,7 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
     VisiteuseType visiteuse{};
     visiteuse.visite_types_fonctions_init = false;
     while (!types_à_visiter.est_vide()) {
-        auto type = types_à_visiter.depile();
+        auto type = types_à_visiter.dépile();
         visiteuse.visite_type(const_cast<Type *>(type), [&](Type *tv) {
             types_à_visiter.empile(tv);
             types_utilisés.insère(tv);
@@ -1464,7 +1464,7 @@ std::optional<ProgrammeRepreInter> représentation_intermédiaire_programme(
     EspaceDeTravail &espace, CompilatriceRI &compilatrice_ri, Programme const &programme)
 {
     auto constructrice = ConstructriceProgrammeFormeRI(espace, compilatrice_ri, programme);
-    return constructrice.construit_représentation_intermédiaire_programme();
+    return constructrice.construis_représentation_intermédiaire_programme();
 }
 
 /* Cette fonction n'existe que parce que la principale peut ajouter des globales pour les

@@ -45,7 +45,7 @@ Result :: union ($T: type_de_données) {
 // une instruction « retourne » qui ne renvoie rien, ou d'un manque
 // d'instruction
 
-construit_résultat :: fonc (valeur: z32) -> Result(z32)
+construis_résultat :: fonc (valeur: z32) -> Result(z32)
 {
     si valeur == 5 {
         imprime("Construction du résultat depuis une valeur !\n")
@@ -88,13 +88,13 @@ principale :: fonc ()
     imprime_union_anonyme(123)
     imprime_union_anonyme(45.6)
 
-    r0 := construit_résultat(5)
+    r0 := construis_résultat(5)
     imprime_résultat(r0)
 
-    r1 := construit_résultat(6)
+    r1 := construis_résultat(6)
     imprime_résultat(r1)
 
-    r2 := construit_résultat(7)
+    r2 := construis_résultat(7)
     imprime_résultat(r2)
 
     r3: Result(z32)

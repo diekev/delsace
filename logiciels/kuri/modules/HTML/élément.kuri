@@ -122,7 +122,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Element, local_name
     // 5. Otherwise:
     sinon {
         // 1. If the Should element's inline behavior be blocked by Content Security Policy? algorithm returns "Blocked" when executed upon element, "script attribute", and value, then return. [CSP]
-        valeur_chaine := converti_vers_chaine(mémoire(valeur).donne_chaine_utf16())
+        valeur_chaine := convertis_vers_chaine(mémoire(valeur).donne_chaine_utf16())
         diffère déloge(valeur_chaine)
 
         bloqué := should_element_s_inline_behavior_be_blocked(élément, "script attribute", valeur_chaine)
@@ -211,7 +211,7 @@ est_compatible_html5 :: fonc (élément: *Element) -> bool
 donne_referrerpolicy_content_attribute_state :: fonc (élément: *Element) -> ReferrerPolicy
 {
     referrer_policy := élément.donne_attribut_ou_chaine_vide(ATTR_referrerpolicy)
-    chn_referrer_policy := converti_vers_chaine(referrer_policy.donne_chaine_utf16())
+    chn_referrer_policy := convertis_vers_chaine(referrer_policy.donne_chaine_utf16())
     diffère déloge(chn_referrer_policy)
 
     si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer") {
@@ -263,7 +263,7 @@ donne_cross_origin_content_attribute_state :: fonc (élément: *Element) -> CORS
         retourne CORSAttributeState.NO_CORS
     }
 
-    chn_crossorigin := converti_vers_chaine(crossorigin.donne_chaine_utf16())
+    chn_crossorigin := convertis_vers_chaine(crossorigin.donne_chaine_utf16())
     diffère déloge(chn_crossorigin)
 
     si compare_ascii_insensible_à_la_casse(chn_crossorigin, "anonymous") {
@@ -290,7 +290,7 @@ donne_fetch_priority_content_attribute_state :: fonc (élément: *Element) -> Fe
         retourne FetchPriorityState.Auto
     }
 
-    chn_fetchpriority := converti_vers_chaine(fetchpriority.donne_chaine_utf16())
+    chn_fetchpriority := convertis_vers_chaine(fetchpriority.donne_chaine_utf16())
     diffère déloge(chn_fetchpriority)
 
     si compare_ascii_insensible_à_la_casse(chn_fetchpriority, "high") {
@@ -998,7 +998,7 @@ follow_the_hyperlink :: fonc (subject: *Element, hyperlink_suffix := crée_chain
 
     // 10. If hyperlinkSuffix is non-null, then append it to urlString.
     saufsi hyperlink_suffix.est_vide() {
-        chn_hyperlink_suffix := converti_vers_chaine(hyperlink_suffix.donne_chaine_utf16())
+        chn_hyperlink_suffix := convertis_vers_chaine(hyperlink_suffix.donne_chaine_utf16())
         chaine_ajoute(*url_string, chn_hyperlink_suffix)
     }
 
@@ -3056,7 +3056,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
 /* https://html.spec.whatwg.org/multipage/links.html#translate-a-preload-destination */
 translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(Request.DestinationType)
 {
-    destination := converti_vers_chaine(destination_.donne_chaine_utf16())
+    destination := convertis_vers_chaine(destination_.donne_chaine_utf16())
     diffère déloge(destination)
 
     // 1. If destination is not "fetch", "font", "image", "script", "style", or "track", then return null.
@@ -3071,7 +3071,7 @@ translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(R
 /* https://fetch.spec.whatwg.org/#concept-potential-destination-translate */
 translate_a_potential_destination :: fonc (potential_destination_: DOMString) -> Request.DestinationType
 {
-    potential_destination := converti_vers_chaine(potential_destination_.donne_chaine_utf16())
+    potential_destination := convertis_vers_chaine(potential_destination_.donne_chaine_utf16())
     diffère déloge(potential_destination)
 
     // 1. If potentialDestination is "fetch", then return the empty string.
