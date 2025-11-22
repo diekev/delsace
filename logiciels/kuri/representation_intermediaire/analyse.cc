@@ -517,7 +517,7 @@ static bool detecte_declarations_inutilisees_chargements(EspaceDeTravail &espace
 static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail &espace,
                                                                 AtomeFonction *atome)
 {
-    POUR (atome->params_entrees) {
+    POUR (atome->params_entrées) {
         it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
@@ -547,7 +547,7 @@ static bool detecte_declarations_inutilisees_compte_utilisation(EspaceDeTravail 
 
     kuri::tableau<InstructionAllocation *> allocs_inutilisées;
 
-    POUR (atome->params_entrees) {
+    POUR (atome->params_entrées) {
         if (it->nombre_utilisations != 0) {
             continue;
         }
@@ -1277,7 +1277,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
         return false;
     }
 
-    POUR (fonction->params_entrees) {
+    POUR (fonction->params_entrées) {
         it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 

@@ -148,7 +148,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
                 e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
                 for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
-                    auto param = decl_fonc->parametre_entree(i);
+                    auto param = decl_fonc->paramètre_entrée(i);
                     e.ajoute_message("\t\t", param->ident->nom, '\n');
                 }
 

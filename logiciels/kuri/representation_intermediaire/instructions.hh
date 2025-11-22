@@ -250,11 +250,11 @@ struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
         données.taille = taille;
     }
 
-    AtomeConstanteDonnéesConstantes(Type const *type_, kuri::tableau<char> &&donnees_constantes)
+    AtomeConstanteDonnéesConstantes(Type const *type_, kuri::tableau<char> &&données_constantes)
         : AtomeConstanteDonnéesConstantes(type_)
     {
         auto valeur_tdc = reinterpret_cast<kuri::tableau<char> *>(&this->données);
-        valeur_tdc->permute(donnees_constantes);
+        valeur_tdc->permute(données_constantes);
     }
 
     kuri::tableau_statique<char> donne_données() const
