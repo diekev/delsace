@@ -33,7 +33,7 @@ struct FichierPagé {
     ~FichierPagé()
     {
         POUR (m_pages) {
-            mémoire::deloge_tableau("uint8_t", it.données, int64_t(TAILLE_PAGE));
+            mémoire::déloge_tableau("uint8_t", it.données, int64_t(TAILLE_PAGE));
         }
     }
 
