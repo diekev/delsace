@@ -155,10 +155,10 @@ kuri::chaine ErreurMonomorphisation::message() const
 }
 
 Monomorpheuse::Monomorpheuse(EspaceDeTravail &ref_espace,
-                             const NoeudDéclarationEntêteFonction *entete)
-    : espace(ref_espace), typeuse(espace.typeuse), polymorphe(entete)
+                             const NoeudDéclarationEntêteFonction *entête)
+    : espace(ref_espace), typeuse(espace.typeuse), polymorphe(entête)
 {
-    POUR (*entete->bloc_constantes->rubriques.verrou_lecture()) {
+    POUR (*entête->bloc_constantes->rubriques.verrou_lecture()) {
         ajoute_item_pour_constante(it->comme_déclaration_constante());
     }
 

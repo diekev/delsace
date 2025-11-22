@@ -96,13 +96,13 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 
 static Atome const *déréférence_instruction(Instruction const *inst)
 {
-    if (inst->est_acces_index()) {
-        auto acces = inst->comme_acces_index();
+    if (inst->est_accès_indice()) {
+        auto acces = inst->comme_accès_indice();
         return acces->accédé;
     }
 
-    if (inst->est_acces_rubrique()) {
-        auto acces = inst->comme_acces_rubrique();
+    if (inst->est_accès_rubrique()) {
+        auto acces = inst->comme_accès_rubrique();
         return acces->accédé;
     }
 
@@ -183,7 +183,7 @@ void marque_instructions_utilisées(kuri::tableau<Instruction *, int> &instructi
 
                 break;
             }
-            case GenreInstruction::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MÉMOIRE:
             {
                 auto stocke = it->comme_stocke_mem();
                 auto cible = cible_finale_stockage(stocke);
@@ -696,7 +696,7 @@ static SourceAdresseAtome détermine_source_adresse_atome(
     }
 
     if (atome.est_instruction()) {
-        return sources[atome.comme_instruction()->numero];
+        return sources[atome.comme_instruction()->numéro];
     }
 
     return SourceAdresseAtome::LOCALE;
@@ -732,8 +732,8 @@ static void rapporte_erreur_stockage_invalide(
     sortie << "--------- Fonction défaillante :\n";
     imprime_fonction(
         &fonction, sortie, false, false, [&](const Instruction &instruction, Enchaineuse &os) {
-            os << " " << sources[instruction.numero]
-               << " (si charge : " << sources_pour_charge[instruction.numero] << ")";
+            os << " " << sources[instruction.numéro]
+               << " (si charge : " << sources_pour_charge[instruction.numéro] << ")";
         });
     sortie << "\n";
     dbg() << sortie.chaine();
@@ -802,25 +802,25 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
 
     POUR (fonction.instructions) {
         if (it->est_alloc()) {
-            sources[it->numero] = SourceAdresseAtome::LOCALE;
+            sources[it->numéro] = SourceAdresseAtome::LOCALE;
             continue;
         }
 
         /* INCOMPLET : il serait bien de savoir ce qui est retourné : l'adresse d'une globale, d'un
          * paramètre, etc. */
         if (it->est_appel()) {
-            sources[it->numero] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
-            sources_pour_charge[it->numero] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
+            sources[it->numéro] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
+            sources_pour_charge[it->numéro] = SourceAdresseAtome::VALEUR_RETOUR_FONCTION;
             continue;
         }
 
         if (it->est_charge()) {
             if (it->comme_charge()->chargée->est_instruction()) {
                 auto inst = it->comme_charge()->chargée->comme_instruction();
-                sources[it->numero] = sources_pour_charge[inst->numero];
+                sources[it->numéro] = sources_pour_charge[inst->numéro];
             }
             else {
-                sources[it->numero] = détermine_source_adresse_atome(
+                sources[it->numéro] = détermine_source_adresse_atome(
                     fonction, *it->comme_charge()->chargée, sources);
             }
 
@@ -828,25 +828,25 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         }
 
         if (it->est_transtype()) {
-            sources[it->numero] = détermine_source_adresse_atome(
+            sources[it->numéro] = détermine_source_adresse_atome(
                 fonction, *it->comme_transtype()->valeur, sources);
             continue;
         }
 
-        if (it->est_acces_rubrique()) {
-            auto accès = it->comme_acces_rubrique();
+        if (it->est_accès_rubrique()) {
+            auto accès = it->comme_accès_rubrique();
             auto accede = accès->accédé;
 
             auto source = détermine_source_adresse_atome(fonction, *accede, sources);
             auto source_pour_charge = source;
 
             if (fonction.nom == nom_fonction_à_étudier) {
-                dbg() << "[" << it->numero << "] " << source;
+                dbg() << "[" << it->numéro << "] " << source;
             }
             if (accede->possède_drapeau(DrapeauxAtome::EST_PARAMÈTRE_FONCTION)) {
                 auto param = accede->comme_instruction()->comme_alloc();
                 auto type_param = param->donne_type_alloué()->comme_type_composé();
-                auto rubrique = type_param->rubriques[accès->index];
+                auto rubrique = type_param->rubriques[accès->indice];
                 auto source_pour_rubrique = donne_source_adresse_pour_type_param(rubrique.type);
 
                 if (source != source_pour_rubrique) {
@@ -861,26 +861,26 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
                 }
             }
 
-            sources[it->numero] = source;
+            sources[it->numéro] = source;
             if (accede->est_instruction()) {
-                sources_pour_charge[it->numero] = source_pour_charge;
+                sources_pour_charge[it->numéro] = source_pour_charge;
             }
             continue;
         }
 
-        if (it->est_acces_index()) {
-            auto accès = it->comme_acces_index();
+        if (it->est_accès_indice()) {
+            auto accès = it->comme_accès_indice();
             auto accede = accès->accédé;
             auto source = détermine_source_adresse_atome(fonction, *accede, sources);
             auto source_pour_charge = source;
 
             if (fonction.nom == nom_fonction_à_étudier) {
-                dbg() << "[" << it->numero << "] " << source;
+                dbg() << "[" << it->numéro << "] " << source;
             }
 
-            sources[it->numero] = source;
+            sources[it->numéro] = source;
             if (accede->est_instruction()) {
-                sources_pour_charge[it->numero] = source_pour_charge;
+                sources_pour_charge[it->numéro] = source_pour_charge;
             }
             continue;
         }
@@ -908,7 +908,7 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
             }
 
             if (ou->est_instruction()) {
-                sources_pour_charge[ou->comme_instruction()->numero] = source_adresse_source;
+                sources_pour_charge[ou->comme_instruction()->numéro] = source_adresse_source;
             }
 
             continue;
@@ -979,7 +979,7 @@ static bool détecte_opérateurs_binaires_suspicieux(EspaceDeTravail &espace,
                                                    FonctionEtBlocs const &fonction_et_blocs)
 {
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
-        if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+        if (!bloc->possède_instruction_de_genre(GenreInstruction::OPÉRATION_BINAIRE)) {
             continue;
         }
 
@@ -1153,14 +1153,14 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
         auto transtype = utilisatrice->comme_transtype();
         ASSIGNE_SI_EGAUX(transtype->valeur, à_remplacer, nouvelle_valeur)
     }
-    else if (utilisatrice->est_acces_rubrique()) {
-        auto rubrique = utilisatrice->comme_acces_rubrique();
+    else if (utilisatrice->est_accès_rubrique()) {
+        auto rubrique = utilisatrice->comme_accès_rubrique();
         ASSIGNE_SI_EGAUX(rubrique->accédé, à_remplacer, nouvelle_valeur)
     }
-    else if (utilisatrice->est_acces_index()) {
-        auto index = utilisatrice->comme_acces_index();
+    else if (utilisatrice->est_accès_indice()) {
+        auto index = utilisatrice->comme_accès_indice();
         ASSIGNE_SI_EGAUX(index->accédé, à_remplacer, nouvelle_valeur)
-        ASSIGNE_SI_EGAUX(index->index, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(index->indice, à_remplacer, nouvelle_valeur)
     }
     else {
         return false;
@@ -1236,9 +1236,9 @@ static std::optional<int> trouve_stockage_dans_bloc(Bloc const *bloc,
                                                     int début_recherche)
 {
     for (int i = début_recherche; i < bloc->instructions.taille() - 1; i++) {
-        auto decalage = est_appel_initialisation(bloc->instructions[i], alloc);
-        if (decalage != 0) {
-            return i - (decalage - 1);
+        auto décalage = est_appel_initialisation(bloc->instructions[i], alloc);
+        if (décalage != 0) {
+            return i - (décalage - 1);
         }
 
         if (est_accès_rubrique_ou_index(bloc->instructions[i], alloc)) {
@@ -1657,7 +1657,7 @@ static bool supprime_op_binaires_constants(Bloc *bloc,
                                            ConstructriceRI &constructrice,
                                            bool *branche_conditionnelle_fut_changée)
 {
-    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPÉRATION_BINAIRE)) {
         return false;
     }
 
@@ -1780,7 +1780,7 @@ static bool supprime_op_binaires_inutiles(Bloc *bloc,
                                           Graphe &graphe,
                                           bool *branche_conditionnelle_fut_changée)
 {
-    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPERATION_BINAIRE)) {
+    if (!bloc->possède_instruction_de_genre(GenreInstruction::OPÉRATION_BINAIRE)) {
         return false;
     }
 
@@ -1848,7 +1848,7 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
             }
 
             auto inst = opérande->comme_instruction();
-            durées_de_vie[inst->numero].dernière_utilisation = it->numero;
+            durées_de_vie[inst->numéro].dernière_utilisation = it->numéro;
         });
     }
 
@@ -1862,13 +1862,13 @@ static void analyse_durée_de_vie_variables(AtomeFonction const &fonction)
 
         auto alloc = it->comme_alloc();
         if (alloc->ident) {
-            dbg() << "%" << alloc->numero << " -> "
-                  << "%" << durées_de_vie[alloc->numero].dernière_utilisation << " ("
+            dbg() << "%" << alloc->numéro << " -> "
+                  << "%" << durées_de_vie[alloc->numéro].dernière_utilisation << " ("
                   << alloc->ident->nom << ")";
         }
         else {
-            dbg() << "%" << alloc->numero << " -> "
-                  << "%" << durées_de_vie[alloc->numero].dernière_utilisation;
+            dbg() << "%" << alloc->numéro << " -> "
+                  << "%" << durées_de_vie[alloc->numéro].dernière_utilisation;
         }
     }
 }
