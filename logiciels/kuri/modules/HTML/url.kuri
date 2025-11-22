@@ -450,7 +450,7 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
 
         // À FAIRE : 2. Return the result of IPv6 parsing input with its leading U+005B ([) and trailing U+005D (]) removed.
         chaine_ipv6 := input.sous_chaine(1, input.taille() - 2)
-        retourne converti_vers_chaine(chaine_ipv6)
+        retourne convertis_vers_chaine(chaine_ipv6)
     }
 
     // 2. If isOpaque is true, then return the result of opaque-host parsing input.
@@ -462,7 +462,7 @@ host_parser :: fonc (input: ChaineUTF16, is_opaque := faux) -> Optionnel(Host)
     assert(!input.est_vide())
 
     // À FAIRE 4. Let domain be the result of running UTF-8 decode without BOM on the percent-decoding of input.
-    ascii_domain := converti_vers_chaine(input)
+    ascii_domain := convertis_vers_chaine(input)
 
     // 5. Let asciiDomain be the result of running domain to ASCII with domain and false.
 
@@ -503,7 +503,7 @@ parse_opaque_host :: fonc (input: ChaineUTF16) -> Optionnel(Host)
     }
 
     // À FAIRE 4. Return the result of running UTF-8 percent-encode on input using the C0 control percent-encode set.
-    retourne crée_hôte_opaque(converti_vers_chaine(input))
+    retourne crée_hôte_opaque(convertis_vers_chaine(input))
 }
 
 /** \} */
@@ -947,7 +947,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         si parser.state_override {
             schéma_url_est_spécial := est_schéma_spécial(parser.url.scheme)
             // XXX
-            buffer_ascii := converti_vers_chaine(parser.buffer)
+            buffer_ascii := convertis_vers_chaine(parser.buffer)
             diffère déloge(buffer_ascii)
             buffer_est_schéma_spécial := est_schéma_spécial(buffer_ascii)
 
@@ -973,7 +973,7 @@ basic_url_parser_scheme :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         }
 
         // 2. Set url’s scheme to buffer.
-        parser.url.définis_schéma(converti_vers_chaine(parser.buffer))
+        parser.url.définis_schéma(convertis_vers_chaine(parser.buffer))
 
         // 3. If state override is given, then:
         si parser.state_override {
@@ -1749,7 +1749,7 @@ basic_url_parser_path :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
             // À FAIRE 1. If url’s scheme is "file", url’s path is empty, and buffer is a Windows drive letter, then replace the second code point in buffer with U+003A (:).
 
             // 2. Append buffer to url’s path.
-            ajoute_segment_au_chemin(parser.url, converti_vers_chaine(parser.buffer))
+            ajoute_segment_au_chemin(parser.url, convertis_vers_chaine(parser.buffer))
         }
 
         // 5. Set buffer to the empty string.
@@ -1794,13 +1794,13 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
     si c == 0x3F {
         parser.url.query = ""
         parser.définis_state(ÉtatParsageURL.Query)
-        parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
+        parser.url.définis_path(convertis_vers_chaine(parser.buffer_opaque_path))
     }
     // 2. Otherwise, if c is U+0023 (#), then set url’s fragment to the empty string and state to fragment state.
     sinon si c == 0x23 {
         parser.url.fragment = ""
         parser.définis_state(ÉtatParsageURL.Fragment)
-        parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
+        parser.url.définis_path(convertis_vers_chaine(parser.buffer_opaque_path))
     }
     // 3. Otherwise:
     sinon {
@@ -1819,7 +1819,7 @@ basic_url_parser_opaque_path :: fonc (parser: *BasicURLParser) -> RésultatParsa
             chaine_ajoute(*parser.buffer_opaque_path, c)
         }
         sinon {
-            parser.url.définis_path(converti_vers_chaine(parser.buffer_opaque_path))
+            parser.url.définis_path(convertis_vers_chaine(parser.buffer_opaque_path))
         }
     }
 
@@ -1845,7 +1845,7 @@ basic_url_parser_query :: fonc (parser: *BasicURLParser) -> RésultatParsageURL
         //    otherwise the query percent-encode set.
 
         // À FAIRE : 2. Percent-encode after encoding, with encoding, buffer, and queryPercentEncodeSet, and append the result to url’s query.
-        parser.url.query = converti_vers_chaine(parser.buffer)
+        parser.url.query = convertis_vers_chaine(parser.buffer)
 
         // 3. Set buffer to the empty string.
         parser.buffer.unités.taille = 0
@@ -1895,7 +1895,7 @@ basic_url_parser_fragment :: fonc (parser: *BasicURLParser) -> RésultatParsageU
         chaine_ajoute(*parser.buffer, c)
     }
     sinon {
-        parser.url.fragment = converti_vers_chaine(parser.buffer)
+        parser.url.fragment = convertis_vers_chaine(parser.buffer)
         parser.buffer.unités.taille = 0
     }
 

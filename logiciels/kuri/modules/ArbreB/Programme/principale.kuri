@@ -23,7 +23,7 @@ principale :: fonc ()
 
     imprime("Test arbre B :\n")
 
-    arbre := construit_arbre(3, z32)
+    arbre := construis_arbre(3, z32)
     diffère détruit_arbre(*arbre)
 
     valeurs_à_insérer := [
@@ -201,7 +201,7 @@ CacheMRU :: struct {
     capacité : z32 = 0
 }
 
-construit_cache :: fonc (capacité: z32) -> *CacheMRU
+construis_cache :: fonc (capacité: z32) -> *CacheMRU
 {
     cache := loge(CacheMRU)
     cache.arbre = loge(ArbreB)
