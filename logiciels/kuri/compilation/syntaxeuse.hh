@@ -11,7 +11,7 @@
 
 struct Annotation;
 struct Compilatrice;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 enum class GenreNoeud : unsigned char;
 
@@ -29,7 +29,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
   private:
     Compilatrice &m_compilatrice;
     Contexte *m_contexte = nullptr;
-    UniteCompilation const *m_unité = nullptr;
+    UnitéCompilation const *m_unité = nullptr;
 
     NoeudExpressionVirgule *m_noeud_expression_virgule = nullptr;
 
@@ -48,7 +48,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool m_nous_sommes_dans_type = false;
 
   public:
-    Syntaxeuse(Contexte *contexte, UniteCompilation const *unite);
+    Syntaxeuse(Contexte *contexte, UnitéCompilation const *unité);
 
     EMPECHE_COPIE(Syntaxeuse);
 
@@ -79,9 +79,9 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudExpression *analyse_déclaration_enum(Lexème const *lexème_nom);
     bool est_déclaration_type_fonction();
-    NoeudExpression *analyse_déclaration_fonction(Lexème const *lexeme);
+    NoeudExpression *analyse_déclaration_fonction(Lexème const *lexème);
     void analyse_directives_fonction(NoeudDéclarationEntêteFonction *noeud);
-    NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexeme);
+    NoeudExpression *analyse_déclaration_type_fonction(Lexème const *lexème);
     NoeudExpression *analyse_déclaration_opérateur();
     void analyse_directives_opérateur(NoeudDéclarationEntêteFonction *noeud);
     void parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16> &résultat,
@@ -104,7 +104,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_pousse_contexte();
     NoeudExpression *analyse_instruction_répète();
     NoeudExpression *analyse_instruction_si(GenreNoeud genre_noeud);
-    NoeudExpression *analyse_instruction_si_statique(Lexème *lexeme);
+    NoeudExpression *analyse_instruction_si_statique(Lexème *lexème);
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */

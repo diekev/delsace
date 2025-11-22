@@ -415,7 +415,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     const auto sx = image.largeur;
     const auto sy = image.hauteur;
     const auto dimensions = math::Dimensions(math::Hauteur(sy), math::Largeur(sx));
-    const auto unite = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
+    const auto unité = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
 
     /* We use two point grids: one which keeps track of the interior distances,
      * while the other, the exterior distances. */
@@ -461,7 +461,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
                 const float dist = dist1 - dist2;
 
                 auto const index = calcule_index(image, c, l);
-                donnees_sortie[index] = dist * unite;
+                donnees_sortie[index] = dist * unité;
             }
         }
     }
@@ -503,7 +503,7 @@ void genere_champs_de_distance(CanalPourChampsDeDistance &image)
     const auto sx = image.largeur;
     const auto sy = image.hauteur;
     const auto dimensions = math::Dimensions(math::Hauteur(sy), math::Largeur(sx));
-    const auto unite = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
+    const auto unité = std::min(1.0f / static_cast<float>(sx), 1.0f / static_cast<float>(sy));
 
     /* We use two point grids: one which keeps track of the interior distances,
      * while the other, the exterior distances. */
