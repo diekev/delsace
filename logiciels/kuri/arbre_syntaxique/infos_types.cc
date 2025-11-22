@@ -86,7 +86,7 @@ static void remplis_rubrique_info_type(AllocatriceInfosType &allocatrice_infos_t
                                        InfoTypeRubriqueStructure *info_type_rubrique,
                                        RubriqueTypeComposé const &rubrique)
 {
-    info_type_rubrique->décalage = int32_t(rubrique.decalage);
+    info_type_rubrique->décalage = int32_t(rubrique.décalage);
     info_type_rubrique->nom = rubrique.nom->nom;
     info_type_rubrique->drapeaux = rubrique.drapeaux;
 

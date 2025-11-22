@@ -316,10 +316,10 @@ enum {
     GENERE_BOUCLE_TABLEAU,
     BOUCLE_POUR_OPÉRATEUR,
 
-    CONSTRUIT_OPAQUE,
+    CONSTRUIS_OPAQUE,
     MONOMORPHE_TYPE_OPAQUE,
-    CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE,
-    CONSTRUIT_CHAINE,
+    CONSTRUIS_OPAQUE_DEPUIS_STRUCTURE,
+    CONSTRUIS_CHAINE,
 
     /* pour ne pas avoir à générer des conditions de vérification pour par
      * exemple les accès à des rubriques d'unions */
@@ -556,7 +556,7 @@ struct RubriqueTypeComposé {
     BaseDéclarationVariable *decl = nullptr;
     Type *type = nullptr;
     IdentifiantCode *nom = nullptr;
-    unsigned decalage = 0;
+    unsigned décalage = 0;
     uint64_t valeur = 0;                                  // pour les énumérations
     NoeudExpression *expression_valeur_defaut = nullptr;  // pour les rubriques des structures
     int drapeaux = 0;

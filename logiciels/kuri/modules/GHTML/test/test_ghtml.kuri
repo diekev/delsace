@@ -17,7 +17,7 @@ ancien_test :: fonc ()
     /* ------------------------------------------------------------------------- */
     // Lexage du script
 
-    lexeuse := construit_lexeuse(chn)
+    lexeuse := construis_lexeuse(chn)
     diffère détruit_lexeuse(lexeuse)
 
     lexeuse.performe_lexage()
@@ -33,7 +33,7 @@ ancien_test :: fonc ()
     /* ------------------------------------------------------------------------- */
     // Syntaxage du script
 
-    syntaxeuse := construit_syntaxeuse(lexeuse.lexèmes)
+    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes)
     diffère détruit_assembleuse(syntaxeuse.assembleuse)
 
     syntaxeuse.performe_syntaxage()

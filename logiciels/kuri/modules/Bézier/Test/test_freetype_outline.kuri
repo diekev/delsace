@@ -40,7 +40,7 @@ principale :: fonc ()
 
             si it.type == TypeÉvènement.Clavier && it.touche_pressée && it.texte {
                 n := nombre_octets_utf8_rapide(it.texte.pointeur)
-                point_de_code := converti_utf8_utf32(it.texte.pointeur, n) comme n32
+                point_de_code := convertis_utf8_utf32(it.texte.pointeur, n) comme n32
                 _ := charge_chemin_depuis_caractètre(chemin_fonte, point_de_code, *chemin)
             }
         }

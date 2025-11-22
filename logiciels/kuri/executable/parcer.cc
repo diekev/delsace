@@ -424,7 +424,7 @@ static std::optional<Configuration> crée_configuration_depuis_arguments(int arg
 /** \nom Utilitaires
  * \{ */
 
-static dls::chaine converti_chaine(CXString string)
+static dls::chaine convertis_chaine(CXString string)
 {
     auto c_str = clang_getCString(string);
     auto résultat = dls::chaine();
@@ -437,7 +437,7 @@ static dls::chaine converti_chaine(CXString string)
 static dls::chaine donne_nom_fichier(CXFile file)
 {
     auto comment = clang_getFileName(file);
-    auto résultat = converti_chaine(comment);
+    auto résultat = convertis_chaine(comment);
     clang_disposeString(comment);
     return résultat;
 }
@@ -445,7 +445,7 @@ static dls::chaine donne_nom_fichier(CXFile file)
 static dls::chaine donne_commentaire(CXCursor cursor)
 {
     auto comment = clang_Cursor_getRawCommentText(cursor);
-    auto résultat = converti_chaine(comment);
+    auto résultat = convertis_chaine(comment);
     clang_disposeString(comment);
     return résultat;
 }
@@ -453,7 +453,7 @@ static dls::chaine donne_commentaire(CXCursor cursor)
 static dls::chaine donne_cursor_spelling(CXCursor cursor)
 {
     auto spelling = clang_getCursorSpelling(cursor);
-    auto résultat = converti_chaine(spelling);
+    auto résultat = convertis_chaine(spelling);
     clang_disposeString(spelling);
     return résultat;
 }
@@ -461,7 +461,7 @@ static dls::chaine donne_cursor_spelling(CXCursor cursor)
 static dls::chaine donne_type_spelling(CXType cursor)
 {
     auto spelling = clang_getTypeSpelling(cursor);
-    auto résultat = converti_chaine(spelling);
+    auto résultat = convertis_chaine(spelling);
     clang_disposeString(spelling);
     return résultat;
 }
@@ -738,7 +738,7 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
 
 using dico_typedefs = dls::dico_desordonne<dls::chaine, kuri::tableau<dls::chaine>>;
 
-static dls::chaine converti_type(CXType const &type, dico_typedefs const &typedefs);
+static dls::chaine convertis_type(CXType const &type, dico_typedefs const &typedefs);
 
 static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs const &typedefs)
 {
@@ -752,15 +752,15 @@ static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs con
             flux << ", ";
         }
         flux << "arg" << i << ": ";
-        flux << converti_type(clang_getArgType(type, uint32_t(i)), typedefs);
+        flux << convertis_type(clang_getArgType(type, uint32_t(i)), typedefs);
     }
 
-    flux << ") -> " << converti_type(clang_getResultType(type), typedefs);
+    flux << ") -> " << convertis_type(clang_getResultType(type), typedefs);
 
     return flux.str();
 }
 
-static dls::chaine converti_type(CXType const &type, dico_typedefs const &typedefs)
+static dls::chaine convertis_type(CXType const &type, dico_typedefs const &typedefs)
 {
     static auto dico_type = dls::cree_dico(
         dls::paire{CXType_Void, kuri::chaine_statique("rien")},
@@ -810,19 +810,19 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
         }
         case CXType_Pointer: /* p.e. float * */
         {
-            flux << "*" << converti_type(clang_getPointeeType(type), typedefs);
+            flux << "*" << convertis_type(clang_getPointeeType(type), typedefs);
             break;
         }
         case CXType_ConstantArray: /* p.e. float [4] */
         {
             auto taille = clang_getArraySize(type);
             flux << "[" << taille << "]";
-            flux << converti_type(clang_getArrayElementType(type), typedefs);
+            flux << convertis_type(clang_getArrayElementType(type), typedefs);
             break;
         }
         case CXType_LValueReference: /* p.e. float & */
         {
-            flux << "&" << converti_type(clang_getPointeeType(type), typedefs);
+            flux << "&" << convertis_type(clang_getPointeeType(type), typedefs);
             break;
         }
         case CXType_Typedef:
@@ -850,7 +850,7 @@ static dls::chaine converti_type(CXType const &type, dico_typedefs const &typede
         }
         case CXType_IncompleteArray: /* p.e. float [] */
         {
-            flux << "*" << converti_type(clang_getArrayElementType(type), typedefs);
+            flux << "*" << convertis_type(clang_getArrayElementType(type), typedefs);
             break;
         }
         case CXType_Auto:
@@ -974,7 +974,7 @@ static dls::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUni
 
         if (clang_equalLocations(loc_cur, loc_tok) == 0) {
             CXString s = clang_getTokenSpelling(trans_unit, tokens[i]);
-            résultat = converti_chaine(s);
+            résultat = convertis_chaine(s);
             break;
         }
     }
@@ -1092,7 +1092,7 @@ static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUni
         clang_disposeString(s);
     }
     else {
-        résultat = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[0]));
+        résultat = convertis_chaine(clang_getTokenSpelling(trans_unit, tokens[0]));
     }
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
@@ -1135,18 +1135,18 @@ static auto compare_token(CXToken token, CXTranslationUnit trans_unit, const cha
     return ok;
 }
 
-static auto trouve_decalage(CXToken *tokens,
+static auto trouve_décalage(CXToken *tokens,
                             unsigned nombre_tokens,
-                            int decalage,
+                            int décalage,
                             CXTranslationUnit trans_unit)
 {
-    if (compare_token(tokens[decalage], trans_unit, ";")) {
+    if (compare_token(tokens[décalage], trans_unit, ";")) {
         return 0;
     }
 
     auto dec = 0;
 
-    for (auto i = decalage; i < nombre_tokens; ++i) {
+    for (auto i = décalage; i < nombre_tokens; ++i) {
         if (compare_token(tokens[i], trans_unit, ";")) {
             break;
         }
@@ -1169,12 +1169,12 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
         return;
     }
 
-    auto nom = converti_chaine(clang_getTokenSpelling(trans_unit, tokens[1]));
+    auto nom = convertis_chaine(clang_getTokenSpelling(trans_unit, tokens[1]));
     auto morceaux = kuri::tableau<dls::chaine>();
 
     for (auto i = 3u; i < nombre_tokens; ++i) {
         auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
-        morceaux.ajoute(converti_chaine(spelling));
+        morceaux.ajoute(convertis_chaine(spelling));
         std::cerr << morceaux.dernier_élément();
     }
     std::cerr << '\n';
@@ -1205,37 +1205,37 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
     }
 
     auto res = EnfantsBoucleFor{};
-    auto decalage_enfant = 0;
+    auto décalage_enfant = 0;
 
-    auto decalage = 2;
+    auto décalage = 2;
 
-    auto dec = trouve_decalage(tokens, nombre_tokens, decalage, trans_unit);
-
-    if (dec == 0) {
-        decalage += 1;
-    }
-    else {
-        res.enfant_init = &enfants[decalage_enfant++];
-        decalage += dec + 1;
-    }
-
-    dec = trouve_decalage(tokens, nombre_tokens, decalage, trans_unit);
+    auto dec = trouve_décalage(tokens, nombre_tokens, décalage, trans_unit);
 
     if (dec == 0) {
-        decalage += 1;
+        décalage += 1;
     }
     else {
-        res.enfant_comp = &enfants[decalage_enfant++];
-        decalage += dec + 1;
+        res.enfant_init = &enfants[décalage_enfant++];
+        décalage += dec + 1;
     }
 
-    if (!compare_token(tokens[decalage], trans_unit, ")")) {
-        res.enfant_inc = &enfants[decalage_enfant++];
+    dec = trouve_décalage(tokens, nombre_tokens, décalage, trans_unit);
+
+    if (dec == 0) {
+        décalage += 1;
+    }
+    else {
+        res.enfant_comp = &enfants[décalage_enfant++];
+        décalage += dec + 1;
+    }
+
+    if (!compare_token(tokens[décalage], trans_unit, ")")) {
+        res.enfant_inc = &enfants[décalage_enfant++];
     }
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 
-    res.enfant_bloc = &enfants[decalage_enfant];
+    res.enfant_bloc = &enfants[décalage_enfant];
 
     return res;
 }
@@ -1279,7 +1279,7 @@ static dls::chaine donne_nom_constante_énum_sans_préfixe(dls::chaine const &no
 struct Convertisseuse {
     Syntaxeuse syntaxeuse{};
     kuri::chemin_systeme fichier_source{};
-    kuri::chemin_systeme fichier_entete{};
+    kuri::chemin_systeme fichier_entête{};
 
     int profondeur = 0;
     /* pour les structures, unions, et énumérations anonymes */
@@ -1397,9 +1397,9 @@ struct Convertisseuse {
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
                             << " libQt5Gui\n";
                 flux_sortie << "\n";
-                flux_sortie << "libqt_entetes :: #bibliothèque \"qt_entetes\"\n";
+                flux_sortie << "libqt_entêtes :: #bibliothèque \"qt_entêtes\"\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
-                            << " libqt_entetes\n";
+                            << " libqt_entêtes\n";
                 flux_sortie << "\n";
             }
         }
@@ -1412,7 +1412,7 @@ struct Convertisseuse {
 
     bool doit_ignorer_fichier(kuri::chemin_systeme chemin_fichier)
     {
-        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entete) {
+        if (chemin_fichier == fichier_source || chemin_fichier == fichier_entête) {
             return false;
         }
 
@@ -1539,7 +1539,7 @@ struct Convertisseuse {
                         convertis(enfant, trans_unit, flux_sortie);
                     }
 
-                    syntaxeuse.noeud_courant.depile();
+                    syntaxeuse.noeud_courant.dépile();
                 }
 
                 if (structure->rubriques.taille() == 0) {
@@ -1565,8 +1565,8 @@ struct Convertisseuse {
                 union_->nom = nom_union;
 
                 syntaxeuse.noeud_courant.empile(union_);
-                converti_enfants(cursor, trans_unit, flux_sortie);
-                syntaxeuse.noeud_courant.depile();
+                convertis_enfants(cursor, trans_unit, flux_sortie);
+                syntaxeuse.noeud_courant.dépile();
 
                 syntaxeuse.ajoute_au_noeud_courant(union_);
                 break;
@@ -1586,8 +1586,8 @@ struct Convertisseuse {
                 énum->type_sous_jacent = clang_getEnumDeclIntegerType(cursor);
 
                 syntaxeuse.noeud_courant.empile(énum);
-                converti_enfants(cursor, trans_unit, flux_sortie);
-                syntaxeuse.noeud_courant.depile();
+                convertis_enfants(cursor, trans_unit, flux_sortie);
+                syntaxeuse.noeud_courant.dépile();
 
                 syntaxeuse.ajoute_au_noeud_courant(énum);
                 break;
@@ -1615,14 +1615,14 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_FunctionDecl:
             {
-                converti_declaration_fonction(cursor, trans_unit, false, flux_sortie);
+                convertis_declaration_fonction(cursor, trans_unit, false, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_Constructor:
             case CXCursorKind::CXCursor_Destructor:
             case CXCursorKind::CXCursor_CXXMethod:
             {
-                converti_declaration_fonction(cursor, trans_unit, true, flux_sortie);
+                convertis_declaration_fonction(cursor, trans_unit, true, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_TypeRef:
@@ -1741,12 +1741,12 @@ struct Convertisseuse {
                 auto cxtype = clang_getCursorType(cursor);
 
                 auto nombre_enfants = enfants.taille();
-                auto decalage = 0;
+                auto décalage = 0;
 
                 if (cxtype.kind == CXTypeKind::CXType_ConstantArray) {
                     /* le premier enfant est la taille du tableau */
                     nombre_enfants -= 1;
-                    decalage += 1;
+                    décalage += 1;
                 }
 
                 /* les variables déclarées comme étant des pointeurs de
@@ -1764,7 +1764,7 @@ struct Convertisseuse {
                         case CXCursorKind::CXCursor_ParmDecl:
                         case CXCursorKind::CXCursor_VisibilityAttr:
                         {
-                            decalage += 1;
+                            décalage += 1;
                             nombre_enfants -= 1;
                         }
                     }
@@ -1783,7 +1783,7 @@ struct Convertisseuse {
 
                 if (nombre_enfants == 1) {
                     variable->expression = parse_expression(
-                        enfants[decalage], trans_unit, flux_sortie);
+                        enfants[décalage], trans_unit, flux_sortie);
                 }
                 syntaxeuse.ajoute_au_noeud_courant(variable);
                 break;
@@ -2073,7 +2073,7 @@ struct Convertisseuse {
                 rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
 #if 0
                 flux_sortie << "retourne ";
-                converti_enfants(cursor, trans_unit, flux_sortie);
+                convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
                 break;
             }
@@ -2101,7 +2101,7 @@ struct Convertisseuse {
 #if 0
                 /* À FAIRE : gestion propre du cas défaut, le langage possède un
                  * 'sinon' qu'il faudra utiliser correctement */
-                converti_enfants(cursor, trans_unit, flux_sortie);
+                convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
                 break;
             }
@@ -2299,7 +2299,7 @@ struct Convertisseuse {
             {
                 rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
 #if 0
-                converti_enfants(cursor, trans_unit, flux_sortie);
+                convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
                 break;
             }
@@ -2340,11 +2340,11 @@ struct Convertisseuse {
 
                 if (chn == "sizeof") {
                     flux_sortie << "taille_de(";
-                    flux_sortie << converti_type_sizeof(cursor, trans_unit, typedefs);
+                    flux_sortie << convertis_type_sizeof(cursor, trans_unit, typedefs);
                     flux_sortie << ")";
                 }
                 else {
-                    converti_enfants(cursor, trans_unit, flux_sortie);
+                    convertis_enfants(cursor, trans_unit, flux_sortie);
                 }
 #endif
                 break;
@@ -2353,7 +2353,7 @@ struct Convertisseuse {
             {
                 rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
 #if 0
-                converti_enfants(cursor, trans_unit, flux_sortie);
+                convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
                 break;
             }
@@ -2380,14 +2380,14 @@ struct Convertisseuse {
                 flux_sortie << "loge ";
 
                 if (enfants.est_vide()) {
-                    flux_sortie << converti_type(cxtype, typedefs, true);
+                    flux_sortie << convertis_type(cxtype, typedefs, true);
                 }
                 else {
                     /* tableau */
                     flux_sortie << '[';
                     convertis(enfants[0], trans_unit, flux_sortie);
                     flux_sortie << ']';
-                    flux_sortie << converti_type(cxtype, typedefs, true);
+                    flux_sortie << convertis_type(cxtype, typedefs, true);
                 }
 #endif
                 break;
@@ -2397,7 +2397,7 @@ struct Convertisseuse {
                 rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
 #if 0
                 flux_sortie << "déloge ";
-                converti_enfants(cursor, trans_unit, flux_sortie);
+                convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
                 break;
             }
@@ -2445,13 +2445,13 @@ struct Convertisseuse {
         }
     }
 
-    void converti_enfants(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
+    void convertis_enfants(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
     {
         auto enfants = rassemble_enfants(cursor);
-        converti_enfants(enfants, trans_unit, flux_sortie);
+        convertis_enfants(enfants, trans_unit, flux_sortie);
     }
 
-    void converti_enfants(kuri::tableau<CXCursor> const &enfants,
+    void convertis_enfants(kuri::tableau<CXCursor> const &enfants,
                           CXTranslationUnit trans_unit,
                           std::ostream &flux_sortie)
     {
@@ -2460,7 +2460,7 @@ struct Convertisseuse {
         }
     }
 
-    void converti_declaration_fonction(CXCursor cursor,
+    void convertis_declaration_fonction(CXCursor cursor,
                                        CXTranslationUnit trans_unit,
                                        bool est_methode_cpp,
                                        std::ostream &flux_sortie)
@@ -2505,7 +2505,7 @@ struct Convertisseuse {
 #if 0
                 flux_sortie << virgule;
                 flux_sortie << "this : &";
-                flux_sortie << converti_type(param, typedefs);
+                flux_sortie << convertis_type(param, typedefs);
 #endif
                 continue;
             }
@@ -2588,7 +2588,7 @@ struct Convertisseuse {
 
                 imprime_tab(os);
                 os << énum->nom << " :: énum ";
-                os << converti_type(énum->type_sous_jacent, typedefs);
+                os << convertis_type(énum->type_sous_jacent, typedefs);
                 os << " {\n";
 
                 m_préfixe_énum_courant = donne_préfixe_valeur_énum(énum->nom);
@@ -2658,7 +2658,7 @@ struct Convertisseuse {
                         }
                         else {
                             os << virgule << it->nom << ": "
-                               << converti_type(it->type_c.value(), typedefs);
+                               << convertis_type(it->type_c.value(), typedefs);
                         }
                         virgule = ", ";
                     }
@@ -2667,7 +2667,7 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
+                    os << ") -> " << convertis_type(fonction->type_sortie, typedefs);
                     os << " #externe lib" << nom_bibliothèque_sûr << "\n";
                 }
 
@@ -2689,7 +2689,7 @@ struct Convertisseuse {
                     os << "...";
                 }
                 else {
-                    os << converti_type(variable->type_c.value(), typedefs);
+                    os << convertis_type(variable->type_c.value(), typedefs);
                 }
 
                 if (variable->expression) {
@@ -2726,7 +2726,7 @@ struct Convertisseuse {
                 auto typedef_ = static_cast<Typedef *>(syntaxème);
 
                 imprime_tab(os);
-                os << converti_type(typedef_->type_défini, typedefs) << " :: ";
+                os << convertis_type(typedef_->type_défini, typedefs) << " :: ";
 
                 if (typedef_->type_fonction) {
                     auto fonction = typedef_->type_fonction;
@@ -2746,7 +2746,7 @@ struct Convertisseuse {
                             os << "...";
                         }
                         else {
-                            os << converti_type(it->type_c.value(), typedefs);
+                            os << convertis_type(it->type_c.value(), typedefs);
                         }
                         virgule = ", ";
                     }
@@ -2755,10 +2755,10 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ") -> " << converti_type(fonction->type_sortie, typedefs);
+                    os << ") -> " << convertis_type(fonction->type_sortie, typedefs);
                 }
                 else {
-                    os << converti_type(typedef_->type_source, typedefs);
+                    os << convertis_type(typedef_->type_source, typedefs);
                 }
 
                 os << "\n";
@@ -2769,7 +2769,7 @@ struct Convertisseuse {
                 auto transtypage = static_cast<Transtypage *>(syntaxème);
 
                 imprime_arbre(transtypage->expression, os);
-                os << " comme " << converti_type(transtypage->type_vers, typedefs);
+                os << " comme " << convertis_type(transtypage->type_vers, typedefs);
                 break;
             }
             case TypeSyntaxème::EXPRESSION:
@@ -2820,13 +2820,13 @@ struct Convertisseuse {
         if (syntaxème->type_syntaxème == TypeSyntaxème::TYPEDEF) {
             auto typedef_ = static_cast<Typedef *>(syntaxème);
 
-            auto nom_type_défini = converti_type(typedef_->type_défini, typedefs);
+            auto nom_type_défini = convertis_type(typedef_->type_défini, typedefs);
             if (nom_type_défini == "bool" || nom_type_défini == "r16") {
                 return true;
             }
 
             if (!typedef_->type_fonction) {
-                auto nom_type_source = converti_type(typedef_->type_source, typedefs);
+                auto nom_type_source = convertis_type(typedef_->type_source, typedefs);
                 if (nom_type_source == nom_type_défini) {
                     /* Par exemple : typedef struct XYZ { } XYZ; */
                     return true;
@@ -2932,7 +2932,7 @@ struct Convertisseuse {
 
                 POUR (config->rubriques_employées) {
                     if (it.nom == variable->nom && variable->type_c.has_value() &&
-                        converti_type(variable->type_c.value(), typedefs) == it.type) {
+                        convertis_type(variable->type_c.value(), typedefs) == it.type) {
                         variable->est_employée = true;
                         if (it.renomme != "") {
                             variable->nom = it.renomme;
@@ -2945,7 +2945,7 @@ struct Convertisseuse {
     }
 };
 
-void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_t decalage)
+void imprime_ligne(std::string tampon, uint32_t ligne, uint32_t colonne, uint32_t décalage)
 {
     int ligne_courante = 1;
     size_t position_ligne = 0;
@@ -3019,14 +3019,14 @@ int main(int argc, char **argv)
     }
 
     auto fichier_source = kuri::chemin_systeme(config.fichier.c_str());
-    auto fichier_entete = fichier_source;
-    fichier_entete = fichier_entete.remplace_extension(".hh");
+    auto fichier_entête = fichier_source;
+    fichier_entête = fichier_entête.remplace_extension(".hh");
 
-    if (!kuri::chemin_systeme::existe(fichier_entete)) {
-        fichier_entete = fichier_entete.remplace_extension(".h");
+    if (!kuri::chemin_systeme::existe(fichier_entête)) {
+        fichier_entête = fichier_entête.remplace_extension(".h");
 
-        if (!kuri::chemin_systeme::existe(fichier_entete)) {
-            fichier_entete = "";
+        if (!kuri::chemin_systeme::existe(fichier_entête)) {
+            fichier_entête = "";
         }
     }
 
@@ -3048,11 +3048,11 @@ int main(int argc, char **argv)
 
             uint32_t ligne = 0;
             uint32_t colonne = 0;
-            uint32_t decalage = 0;
+            uint32_t décalage = 0;
             auto filename = clang_getFileName(file);
             std::cerr << filename << ":\n";
-            clang_getExpansionLocation(loc, &file, &ligne, &colonne, &decalage);
-            imprime_ligne(std::string(tampon, taille), ligne, colonne, decalage);
+            clang_getExpansionLocation(loc, &file, &ligne, &colonne, &décalage);
+            imprime_ligne(std::string(tampon, taille), ligne, colonne, décalage);
             clang_disposeDiagnostic(diag);
         }
 
@@ -3061,7 +3061,7 @@ int main(int argc, char **argv)
 
     auto convertisseuse = Convertisseuse();
     convertisseuse.fichier_source = fichier_source;
-    convertisseuse.fichier_entete = fichier_entete;
+    convertisseuse.fichier_entête = fichier_entête;
     convertisseuse.nom_bibliothèque_sûr = config.nom_bibliothèque;
     POUR (convertisseuse.nom_bibliothèque_sûr) {
         if (it == '.' || it == '-') {

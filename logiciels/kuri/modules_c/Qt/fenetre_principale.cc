@@ -125,7 +125,7 @@ FenetrePrincipale::FenetrePrincipale(QT_Rappels_Fenetre_Principale *rappels)
 {
     m_rappels->fenetre = reinterpret_cast<QT_Fenetre_Principale *>(this);
 
-    construit_barre_de_menu();
+    construis_barre_de_menu();
 
     if (m_rappels->sur_filtre_evenement) {
         qApp->installEventFilter(this);
@@ -152,7 +152,7 @@ void FenetrePrincipale::closeEvent(QCloseEvent *event)
     event->ignore();
 }
 
-void FenetrePrincipale::construit_barre_de_menu()
+void FenetrePrincipale::construis_barre_de_menu()
 {
     if (!m_rappels->sur_creation_barre_menu) {
         return;
