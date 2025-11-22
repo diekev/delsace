@@ -81,7 +81,7 @@ int nombre_octets(const char *sequence)
     return 0;
 }
 
-int converti_utf32(const char *sequence, int n)
+int convertis_utf32(const char *sequence, int n)
 {
     auto const s0 = static_cast<uint8_t>(sequence[0]);
 

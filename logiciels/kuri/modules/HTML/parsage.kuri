@@ -358,7 +358,7 @@ vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
             "HTML"
         ]
 
-        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        chn := convertis_vers_chaine(lexème.identifiant_public_doctype)
         diffère déloge(chn)
 
         pour noms_publics_invalides {
@@ -453,7 +453,7 @@ vérifie_lexème_doctype_pour_quirks :: fonc (lexème: &Lexème) -> bool
 {
     /* À FAIRE : ascii insensible à la casse */
     si lexème.doctype_public_id_absent == faux {
-        chn := converti_vers_chaine(lexème.identifiant_public_doctype)
+        chn := convertis_vers_chaine(lexème.identifiant_public_doctype)
         diffère déloge(chn)
 
         préfixes_publics_invalides := [
@@ -1079,7 +1079,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 dépile_tous_les_éléments_jusque(parseuse, TAG_button)
             }
 
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
 
             _ := insère_élément_html(parseuse, lexème)
             parseuse.frameset_ok = faux
@@ -1096,21 +1096,21 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 supprime_élément(*parseuse.pile_éléments_ouvert, élément)
             }
 
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             élément = insère_élément_html(parseuse, lexème)
             pousse_sur_liste_éléments_actifs(parseuse, élément, lexème)
             retourne
         }
 
         si fait_partie_de(lexème.nom, TAG_b, TAG_big, TAG_code, TAG_em, TAG_font, TAG_i, TAG_s, TAG_small, TAG_strike, TAG_strong, TAG_tt, TAG_u) {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             élément := insère_élément_html(parseuse, lexème)
             pousse_sur_liste_éléments_actifs(parseuse, élément, lexème)
             retourne
         }
 
         si lexème.nom == TAG_nobr {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
             parseuse.frameset_ok = faux
@@ -1118,7 +1118,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, TAG_applet, TAG_marquee, TAG_object) {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             ajoute_marqueur(*parseuse.liste_éléments_actifs_formattage)
             parseuse.frameset_ok = faux
@@ -1137,7 +1137,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si fait_partie_de(lexème.nom, TAG_area, TAG_br, TAG_embed, TAG_img, TAG_keygen, TAG_wbr) {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             dépile(*parseuse.pile_éléments_ouvert)
             reconnait_drapeau_auto_fermant(*lexème)
@@ -1146,7 +1146,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_input {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             dépile(*parseuse.pile_éléments_ouvert)
             reconnait_drapeau_auto_fermant(*lexème)
@@ -1204,7 +1204,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 parseuse.ferme_un_élément_p()
             }
 
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             parseuse.frameset_ok = faux
             parseuse.gère_élément_contenant_texte_cru(lexème, ÉtatLexage.RCDATA)
             retourne
@@ -1238,7 +1238,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             // Otherwise:
             sinon {
                 // Reconstruct the active formatting elements, if any.
-                parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+                parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
 
                 // Insert an HTML element for the token.
                 _ := parseuse.insère_élément_html(lexème)
@@ -1255,7 +1255,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
                 dépile(*parseuse.pile_éléments_ouvert)
             }
 
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             _ := parseuse.insère_élément_html(lexème)
             retourne
         }
@@ -1291,7 +1291,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
         }
 
         si lexème.nom == TAG_svg {
-            parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+            parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
             // À FAIRE : ajuste les attributs SVG
             // À FAIRE : ajuste les attributs étrangers
             // À FAIRE : insère dans l'espace de nom SVG
@@ -1310,7 +1310,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
             retourne
         }
 
-        parseuse.reconstruit_liste_des_éléments_de_formattage_actifs()
+        parseuse.reconstruis_liste_des_éléments_de_formattage_actifs()
         _ := parseuse.insère_élément_html(lexème)
         retourne
     }
@@ -1490,7 +1490,7 @@ insère_mode_DansBody :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         si lexème.nom == TAG_br {
             // parse error
-            reconstruit_liste_des_éléments_de_formattage_actifs(parseuse)
+            reconstruis_liste_des_éléments_de_formattage_actifs(parseuse)
 
             lexème_br: Lexème
             lexème_br.genre = GenreLexème.DébutTag
@@ -2307,7 +2307,7 @@ __advance :: fonc (parseuse: *Parseuse, entrée: EntréeFormattage, indice: z64)
     __create(parseuse, entrée, indice)
 }
 
-reconstruit_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseuse)
+reconstruis_liste_des_éléments_de_formattage_actifs :: fonc (parseuse: *Parseuse)
 {
     si est_vide(*parseuse.liste_éléments_actifs_formattage) {
         retourne

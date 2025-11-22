@@ -6,12 +6,12 @@
 StructurePoly :: struct ($N: z32) {
 }
 
-prend_tableau :: fonc (t: StructurePoly($N) @inutilisée)
+prends_tableau :: fonc (t: StructurePoly($N) @inutilisée)
 {
 }
 
 principale :: fonc ()
 {
     t: StructurePoly(5)
-    prend_tableau(t)
+    prends_tableau(t)
 }

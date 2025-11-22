@@ -8,7 +8,7 @@ NombreRationnel :: struct {
     s: bool
 }
 
-construit_nombre_rationnel :: fonc (a: z32) -> NombreRationnel
+construis_nombre_rationnel :: fonc (a: z32) -> NombreRationnel
 {
     positif := vrai
     si a < 0 {
@@ -16,10 +16,10 @@ construit_nombre_rationnel :: fonc (a: z32) -> NombreRationnel
         positif = faux
     }
 
-    retourne construit_nombre_rationnel(a comme n32, 1, positif)
+    retourne construis_nombre_rationnel(a comme n32, 1, positif)
 }
 
-construit_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRationnel
+construis_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRationnel
 {
     r: NombreRationnel
     r.N = n
@@ -97,7 +97,7 @@ opérateur - :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 
 opérateur * :: (a: NombreRationnel, b: z32) -> NombreRationnel
 {
-    n := construit_nombre_rationnel(b)
+    n := construis_nombre_rationnel(b)
     retourne a * n
 }
 

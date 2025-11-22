@@ -1933,7 +1933,7 @@ http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *Fetc
         ajoute_entête_si_inexistante(request, "Connection", "close")
     }
 
-    chaine_user_agent := converti_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)) // @FuiteDeMémoire
+    chaine_user_agent := convertis_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)) // @FuiteDeMémoire
     saufsi chaine_user_agent {
         chaine_user_agent = "Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0"
     }

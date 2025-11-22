@@ -6,7 +6,7 @@ Mat4r :: struct {
     m: [4][4]r32
 }
 
-construit_mat4r_neutre :: fonc () -> Mat4r
+construis_mat4r_neutre :: fonc () -> Mat4r
 {
     mat: Mat4r
 
@@ -43,7 +43,7 @@ matrice_projection :: fonc (
 // utile pour les matrices de projection
 inverse_matrice_sans_échelle :: fonc (mat: Mat4r) -> Mat4r
 {
-    résultat := construit_mat4r_neutre()
+    résultat := construis_mat4r_neutre()
 
     pour i dans 0 ... 2 {
         pour j dans 0 ... 2 {
@@ -68,7 +68,7 @@ matrice_de_visé :: fonc (pos: Vec3, cible: Vec3, haut: Vec3) -> Mat4r
 
     dir_haut := produit_vectoriel(dir_droite, dir_avant)
 
-    résultat := construit_mat4r_neutre()
+    résultat := construis_mat4r_neutre()
 
     résultat.m[0][0] = dir_droite.x
     résultat.m[1][0] = dir_droite.y
@@ -133,7 +133,7 @@ matrice_rotation_z :: fonc (theta: r32) -> Mat4r
 
 matrice_translation :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
 {
-    résultat := construit_mat4r_neutre()
+    résultat := construis_mat4r_neutre()
 
     résultat.m[3][0] = x
     résultat.m[3][1] = y
@@ -149,7 +149,7 @@ matrice_translation :: fonc (v: Vec3) -> Mat4r
 
 matrice_échelle :: fonc (x: r32, y: r32, z: r32) -> Mat4r
 {
-    résultat := construit_mat4r_neutre()
+    résultat := construis_mat4r_neutre()
 
     résultat.m[0][0] = x
     résultat.m[1][1] = y
@@ -343,7 +343,7 @@ inverse :: fonc (mat: Mat4r) -> Mat4r
     résultat := mat
 
     si !inverse_impl(*résultat) {
-        retourne construit_mat4r_neutre()
+        retourne construis_mat4r_neutre()
     }
 
     retourne résultat
@@ -351,7 +351,7 @@ inverse :: fonc (mat: Mat4r) -> Mat4r
 
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32) -> Mat4r
 {
-    résultat : Mat4r = construit_mat4r_neutre()
+    résultat : Mat4r = construis_mat4r_neutre()
     résultat.m[0][0] = 2.0 / (droite - gauche)
     résultat.m[1][1] = 2.0 / (haut - bas)
     résultat.m[2][2] = -1.0
@@ -367,7 +367,7 @@ crée_matrice_projection_orthographique :: fonc (largeur: r32, hauteur: r32) -> 
 
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
 {
-    résultat : Mat4r = construit_mat4r_neutre()
+    résultat : Mat4r = construis_mat4r_neutre()
     résultat.m[0][0] = 2.0 / (droite - gauche)
     résultat.m[1][1] = 2.0 / (haut - bas)
     résultat.m[2][2] = -2.0 / (plan_éloigné - plan_proche)

@@ -34,7 +34,7 @@ namespace unicode {
 
 int nombre_octets(const char *sequence);
 
-int converti_utf32(const char *sequence, int n);
+int convertis_utf32(const char *sequence, int n);
 
 int point_de_code_vers_utf8(uint32_t point_de_code, uint8_t *sequence);
 

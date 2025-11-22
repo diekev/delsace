@@ -21,7 +21,7 @@ bool booleen_maillages(Maillage const &maillage_a,
 
 void test_conversion_polyedre(Maillage const &maillage_entree, Maillage &maillage_sortie);
 
-bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
+bool construis_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
                                               dls::tableau<CelluleVoronoi> const &cellules,
                                               const ParametresFracture &params,
                                               Maillage &maillage_sortie);

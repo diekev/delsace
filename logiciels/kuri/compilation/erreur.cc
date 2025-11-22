@@ -316,7 +316,7 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
                              " (trouvée à ",
                              fichier_df->chemin(),
                              ':',
-                             pos_df.numero_ligne,
+                             pos_df.numéro_ligne,
                              ")\n");
         }
         else {
@@ -664,7 +664,7 @@ static kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
     return flux.chaine();
 }
 
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
+kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
                                   SiteSource site,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message)
@@ -740,7 +740,7 @@ Erreur rapporte_avertissement(EspaceDeTravail const *espace,
                               kuri::chaine_statique message)
 {
     auto erreur = Erreur(espace, true);
-    erreur.enchaineuse << genere_entete_erreur(
+    erreur.enchaineuse << génère_entête_erreur(
         espace, site, erreur::Genre::AVERTISSEMENT, message);
     return erreur;
 }
@@ -748,7 +748,7 @@ Erreur rapporte_avertissement(EspaceDeTravail const *espace,
 Erreur rapporte_info(EspaceDeTravail const *espace, SiteSource site, kuri::chaine_statique message)
 {
     auto erreur = Erreur(espace, true);
-    erreur.enchaineuse << genere_entete_erreur(espace, site, erreur::Genre::INFO, message);
+    erreur.enchaineuse << génère_entête_erreur(espace, site, erreur::Genre::INFO, message);
     return erreur;
 }
 
@@ -758,7 +758,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        erreur::Genre genre)
 {
     auto erreur = Erreur(espace, false);
-    erreur.enchaineuse << genere_entete_erreur(espace, site, genre, message);
+    erreur.enchaineuse << génère_entête_erreur(espace, site, genre, message);
     return erreur;
 }
 

@@ -1082,7 +1082,7 @@ void SyntaxeuseRI::crée_charge(Atome *valeur)
 
 void SyntaxeuseRI::crée_index(Atome *indexé, Atome *valeur)
 {
-    m_constructrice.crée_accès_index(nullptr, indexé, valeur);
+    m_constructrice.crée_accès_indice(nullptr, indexé, valeur);
 }
 
 void SyntaxeuseRI::crée_label(uint64_t index)

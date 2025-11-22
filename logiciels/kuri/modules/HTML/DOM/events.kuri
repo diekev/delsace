@@ -556,7 +556,7 @@ donne_document_associé :: fonc (target: *EventTarget) -> *Document
 /* Enveloppe pour IDL où EventType n'est pas convertis. */
 add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *CallbackType, options : *AddEventListenerOptions = nul)
 {
-    chn_type := converti_vers_chaine(type.donne_chaine_utf16())
+    chn_type := convertis_vers_chaine(type.donne_chaine_utf16())
     diffère déloge(chn_type)
 
     valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_type)

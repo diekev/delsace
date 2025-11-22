@@ -192,7 +192,7 @@ test_initialisation_via_exécute :: fonc ()
         x := 123
     }
 
-    construit_base :: fonc () -> Base
+    construis_base :: fonc () -> Base
     {
         retourne Base(456)
     }
@@ -200,7 +200,7 @@ test_initialisation_via_exécute :: fonc ()
     b: Base
     assert(b.x == 123)
 
-    b = #exécute construit_base()
+    b = #exécute construis_base()
     assert(b.x == 456)
 }
 
@@ -220,7 +220,7 @@ test_initialisation_via_exécute_indirection :: fonc ()
         empl base: Base
     }
 
-    construit_base :: fonc () -> Base2
+    construis_base :: fonc () -> Base2
     {
         retourne Base2(456)
     }
@@ -228,7 +228,7 @@ test_initialisation_via_exécute_indirection :: fonc ()
     b: Base2
     assert(b.x == 123)
 
-    b = #exécute construit_base()
+    b = #exécute construis_base()
     assert(b.x == 456)
 }
 

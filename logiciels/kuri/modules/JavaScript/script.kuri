@@ -71,7 +71,7 @@ crée_texte_source :: fonc (texte: chaine) -> TexteSource
 crée_texte_source :: fonc (texte: ECMAString) -> TexteSource
 {
     résultat : TexteSource = ---
-    résultat.texte = converti_vers_chaine(texte.donne_chaine_utf16())
+    résultat.texte = convertis_vers_chaine(texte.donne_chaine_utf16())
     retourne résultat
 }
 

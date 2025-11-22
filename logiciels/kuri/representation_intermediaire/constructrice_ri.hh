@@ -176,6 +176,11 @@ struct ConstructriceRI {
     InstructionChargeMem *crée_charge_mem(NoeudExpression const *site_,
                                           Atome *ou,
                                           bool crée_seulement = false);
+    InstructionCopieMémoire *crée_copie_mémoire(NoeudExpression const *site_,
+                                                Atome *destination,
+                                                Atome *source,
+                                                uint32_t taille,
+                                                bool crée_seulement = false);
     InstructionAppel *crée_appel(NoeudExpression const *site_, Atome *appelé);
     InstructionAppel *crée_appel(NoeudExpression const *site_,
                                  Atome *appelé,
@@ -195,18 +200,18 @@ struct ConstructriceRI {
                                Atome *valeur_gauche,
                                Atome *valeur_droite);
 
-    InstructionAccèdeIndex *crée_accès_index(NoeudExpression const *site_,
-                                             Atome *accédé,
-                                             Atome *index);
-    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                       Type const *type,
-                                                       Atome *accédé,
-                                                       int index,
-                                                       bool crée_seulement = false);
-    InstructionAccèdeRubrique *crée_référence_rubrique(NoeudExpression const *site_,
-                                                       Atome *accédé,
-                                                       int index,
-                                                       bool crée_seulement = false);
+    InstructionAccèsIndice *crée_accès_indice(NoeudExpression const *site_,
+                                              Atome *accédé,
+                                              Atome *index);
+    InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
+                                                      Type const *type,
+                                                      Atome *accédé,
+                                                      int index,
+                                                      bool crée_seulement = false);
+    InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
+                                                      Atome *accédé,
+                                                      int index,
+                                                      bool crée_seulement = false);
     Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
                                                    Atome *accédé,
                                                    int index);
@@ -217,7 +222,7 @@ struct ConstructriceRI {
                           TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccèdeIndexConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
+    AccèsIndiceConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
@@ -353,7 +358,7 @@ struct CompilatriceRI {
     void génère_ri_pour_noeud(EspaceDeTravail *espace, NoeudExpression *noeud);
     void génère_ri_pour_fonction_métaprogramme(EspaceDeTravail *espace,
                                                NoeudDéclarationEntêteFonction *fonction);
-    AtomeFonction *genere_fonction_init_globales_et_appel(
+    AtomeFonction *génère_fonction_init_globales_et_appel(
         EspaceDeTravail *espace,
         kuri::tableau_statique<AtomeGlobale *> globales,
         AtomeFonction *fonction_pour);
@@ -411,7 +416,7 @@ struct CompilatriceRI {
                                        Type const *type,
                                        Atome *argument);
 
-    AtomeFonction *genere_fonction_init_globales_et_appel(
+    AtomeFonction *génère_fonction_init_globales_et_appel(
         kuri::tableau_statique<AtomeGlobale *> globales, AtomeFonction *fonction_pour);
 
     void génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place = nullptr);
@@ -493,7 +498,7 @@ struct CompilatriceRI {
     AtomeGlobale *crée_globale_pour_chaine(kuri::chaine_statique chaine);
 
     void empile_valeur(Atome *valeur, NoeudExpression const *site);
-    Atome *depile_valeur();
+    Atome *dépile_valeur();
 
     AtomeConstante *crée_tableau_annotations_pour_info_rubrique(
         const kuri::tableau<Annotation, int> &annotations);

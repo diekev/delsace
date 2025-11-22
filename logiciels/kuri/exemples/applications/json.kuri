@@ -15,7 +15,7 @@ test_json_tori :: fonc () -> rien
     // -----------------------------------
     // Lexage du script
 
-    lexeuse := construit_lexeuse(chn)
+    lexeuse := construis_lexeuse(chn)
     diffère détruit_lexeuse(lexeuse)
 
     lexeuse.performe_lexage()

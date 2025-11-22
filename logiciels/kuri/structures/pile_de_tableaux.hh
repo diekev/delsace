@@ -25,7 +25,7 @@ class pile_de_tableaux {
 
     void dépile_tableau()
     {
-        m_données.redimensionne(m_décalage_par_tableau.depile());
+        m_données.redimensionne(m_décalage_par_tableau.dépile());
     }
 
     /** Retourne la taille totale de tous les tableaux empilés. */

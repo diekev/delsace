@@ -1035,7 +1035,7 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (rappels: *Rapp
 
 rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString)
 {
-    chn_message := converti_vers_chaine(message.donne_chaine_utf16())
+    chn_message := convertis_vers_chaine(message.donne_chaine_utf16())
     diffère déloge(chn_message)
 
     parent: QT_Generic_Widget

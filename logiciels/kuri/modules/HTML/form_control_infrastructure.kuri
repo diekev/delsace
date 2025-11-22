@@ -481,8 +481,8 @@ construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element =
             name := field.donne_attribut_ou_chaine_vide(ATTR_name)
             saufsi name.est_vide() {
                 entry := tableau_ajoute_élément(*entry_list.entries)
-                entry.name = converti_vers_chaine(name.donne_chaine_utf16())
-                entry.value = converti_vers_chaine(donne_value(field comme *HTMLInputElement))
+                entry.name = convertis_vers_chaine(name.donne_chaine_utf16())
+                entry.value = convertis_vers_chaine(donne_value(field comme *HTMLInputElement))
             }
         }
 

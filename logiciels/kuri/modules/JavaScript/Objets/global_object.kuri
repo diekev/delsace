@@ -288,7 +288,7 @@ parse_int :: fonc (empl params: *ParamètresObjectCall) -> Valeur
         retourne js_undefined
     }
 
-    chn := converti_vers_chaine(string.texte.donne_chaine_utf16())
+    chn := convertis_vers_chaine(string.texte.donne_chaine_utf16())
     diffère déloge(chn)
 
     résultat := tente extrait_r64(chn) piège _ {
@@ -536,7 +536,7 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
     // À FAIRE 1. If StringToCodePoints(text) is not a valid JSON text as specified in ECMA-404, throw a SyntaxError exception.
 
     // 2. Let scriptString be the string-concatenation of "(", text, and ");".
-    text_en_chaine_native := converti_vers_chaine(text.texte.donne_chaine_utf16())
+    text_en_chaine_native := convertis_vers_chaine(text.texte.donne_chaine_utf16())
     diffère déloge(text_en_chaine_native)
 
     script_string := enchaine("(", text_en_chaine_native, ")")

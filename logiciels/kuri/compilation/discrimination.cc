@@ -198,7 +198,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     auto initialisation_déclaration = assembleuse->crée_comme(param->lexème, expression, nullptr);
     initialisation_déclaration->type = type_rubrique;
     initialisation_déclaration->transformation = {
-        TypeTransformation::EXTRAIT_UNION_SANS_VERIFICATION,
+        TypeTransformation::EXTRAIT_UNION_SANS_VÉRIFICATION,
         type_rubrique,
         info_rubrique.indice_rubrique};
 
@@ -515,7 +515,7 @@ RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
 
     if (type->est_type_référence()) {
         crée_transtypage_implicite_au_besoin(inst->expression_discriminée,
-                                             TransformationType(TypeTransformation::DEREFERENCE));
+                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
         type = type->comme_type_référence()->type_pointé;
     }
 

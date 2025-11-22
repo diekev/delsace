@@ -41,7 +41,7 @@ struct ContexteGénérationCodeBinaire {
 using octet_t = unsigned char;
 
 #define ENUMERE_CODES_OPERATION                                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_ACCÈDE_INDICE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_ACCÈS_INDICE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AJOUTE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_INCRÉMENTE_LOCALE)                                               \
@@ -56,7 +56,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_INIT_LOCALE_ZÉRO)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_COPIE_LOCALE)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_NATUREL)                                                \
-    ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_REEL)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RÉEL)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_AUGMENTE_RELATIF)                                                \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE)                                                         \
     ENUMERE_CODE_OPERATION_EX(OP_BRANCHE_CONDITION)                                               \
@@ -87,7 +87,7 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_DEC_DROITE_LOGIQUE)                                              \
     ENUMERE_CODE_OPERATION_EX(OP_DEC_GAUCHE)                                                      \
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_NATUREL)                                                 \
-    ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_REEL)                                                    \
+    ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RÉEL)                                                    \
     ENUMERE_CODE_OPERATION_EX(OP_DIMINUE_RELATIF)                                                 \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE)                                                          \
     ENUMERE_CODE_OPERATION_EX(OP_DIVISE_REEL)                                                     \
@@ -131,7 +131,8 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_DÉBUTE_APPEL)                                            \
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)                                           \
     ENUMERE_CODE_OPERATION_EX(OP_INATTEIGNABLE)                                                   \
-    ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)
+    ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)                                                       \
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_MÉMOIRE)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,
@@ -324,7 +325,7 @@ struct Chunk {
     void émets_référence_globale(NoeudExpression const *site, int pointeur);
     void émets_référence_globale_externe(const NoeudExpression *site, const void *adresse);
     void émets_référence_locale(NoeudExpression const *site, int pointeur);
-    void émets_référence_rubrique(NoeudExpression const *site, unsigned decalage);
+    void émets_référence_rubrique(NoeudExpression const *site, unsigned décalage);
     void émets_référence_rubrique_locale(NoeudExpression const *site,
                                          int pointeur,
                                          uint32_t décalage);
@@ -345,7 +346,7 @@ struct Chunk {
     void émets_appel_pointeur(NoeudExpression const *site,
                               unsigned taille_arguments,
                               InstructionAppel const *inst_appel);
-    void émets_accès_index(NoeudExpression const *site, Type const *type);
+    void émets_accès_indice(NoeudExpression const *site, Type const *type);
 
     void émets_branche(NoeudExpression const *site,
                        kuri::tableau<PatchLabel> &patchs_labels,
@@ -385,10 +386,12 @@ struct Chunk {
 
     void émets_rembourrage(uint32_t rembourrage);
     void rétrécis_capacité_sur_taille();
+
+    void émets_copie_mémoire(const NoeudExpression *site, uint32_t taille_octet);
 };
 
 [[nodiscard]] kuri::chaine désassemble(Chunk const &chunk, kuri::chaine_statique nom);
-int64_t désassemble_instruction(Chunk const &chunk, int64_t decalage, Enchaineuse &os);
+int64_t désassemble_instruction(Chunk const &chunk, int64_t décalage, Enchaineuse &os);
 
 struct Globale {
     IdentifiantCode *ident = nullptr;
@@ -468,4 +471,4 @@ class CompilatriceCodeBinaire {
                                          int décalage) const;
 };
 
-ffi_type *converti_type_ffi(Type const *type);
+ffi_type *convertis_type_ffi(Type const *type);

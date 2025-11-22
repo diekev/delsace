@@ -179,7 +179,7 @@ void Bloc::ajoute_parent(Bloc *parent)
 }
 
 static void imprime_bloc(Bloc const *bloc,
-                         int decalage_instruction,
+                         int décalage_instruction,
                          bool surligne_inutilisees,
                          Enchaineuse &os)
 {
@@ -206,17 +206,17 @@ static void imprime_bloc(Bloc const *bloc,
     os << "]\n";
 
     POUR (bloc->instructions) {
-        it->numero = decalage_instruction++;
+        it->numéro = décalage_instruction++;
     }
 
     imprime_instructions(
         bloc->instructions, os, OptionsImpressionType::AUCUNE, surligne_inutilisees);
 }
 
-kuri::chaine imprime_bloc(Bloc const *bloc, int decalage_instruction, bool surligne_inutilisees)
+kuri::chaine imprime_bloc(Bloc const *bloc, int décalage_instruction, bool surligne_inutilisees)
 {
     Enchaineuse sortie;
-    imprime_bloc(bloc, decalage_instruction, surligne_inutilisees, sortie);
+    imprime_bloc(bloc, décalage_instruction, surligne_inutilisees, sortie);
     return sortie.chaine();
 }
 
@@ -224,10 +224,10 @@ static void imprime_blocs(const kuri::tableau<Bloc *, int> &blocs, Enchaineuse &
 {
     os << "=================== Blocs ===================\n";
 
-    int decalage_instruction = 0;
+    int décalage_instruction = 0;
     POUR (blocs) {
-        imprime_bloc(it, decalage_instruction, false, os);
-        decalage_instruction += it->instructions.taille();
+        imprime_bloc(it, décalage_instruction, false, os);
+        décalage_instruction += it->instructions.taille();
     }
 }
 
@@ -241,7 +241,7 @@ kuri::chaine imprime_blocs(const kuri::tableau<Bloc *, int> &blocs)
 static Bloc *trouve_bloc_pour_label(kuri::tableau<Bloc *, int> &table_blocs,
                                     InstructionLabel const *label)
 {
-    return table_blocs[label->numero];
+    return table_blocs[label->numéro];
 }
 
 static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
@@ -261,7 +261,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 
     bloc->label = label;
     blocs.ajoute(bloc);
-    table_blocs[label->numero] = bloc;
+    table_blocs[label->numéro] = bloc;
     return bloc;
 }
 
@@ -393,12 +393,12 @@ bool FonctionEtBlocs::convertis_en_blocs(EspaceDeTravail &espace, AtomeFonction 
 {
     fonction = atome_fonc;
 
-    auto numero_instruction = atome_fonc->params_entrée.taille();
+    auto numéro_instruction = atome_fonc->params_entrée.taille();
 
-    table_blocs.redimensionne(atome_fonc->instructions.taille() + numero_instruction);
+    table_blocs.redimensionne(atome_fonc->instructions.taille() + numéro_instruction);
 
     POUR (atome_fonc->instructions) {
-        it->numero = numero_instruction++;
+        it->numéro = numéro_instruction++;
 
         if (it->est_label()) {
             auto bloc = crée_bloc_pour_label(blocs, blocs_libres, table_blocs, it->comme_label());
