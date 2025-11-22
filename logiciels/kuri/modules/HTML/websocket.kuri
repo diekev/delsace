@@ -138,7 +138,7 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
         retourne
     }
 
-    chaine_native := converti_vers_chaine(data.donne_chaine_utf16())
+    chaine_native := convertis_vers_chaine(data.donne_chaine_utf16())
     données: [..]octet
     données.pointeur = chaine_native.pointeur
     données.taille = chaine_native.taille

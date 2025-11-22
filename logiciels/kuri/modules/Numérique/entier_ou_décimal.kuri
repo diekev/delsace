@@ -5,7 +5,7 @@ EntierOuDécimal :: union nonsûr {
     f: r32
 }
 
-construit_entier_ou_décimal :: fonc (f: r32) -> EntierOuDécimal
+construis_entier_ou_décimal :: fonc (f: r32) -> EntierOuDécimal
 {
     retourne EntierOuDécimal(f = f)
 }

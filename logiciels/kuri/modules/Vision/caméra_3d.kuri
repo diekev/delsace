@@ -6,7 +6,7 @@ mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
     s := normalise(produit_en_croix(f, haut))
     u := produit_en_croix(s, f)
 
-    résultat : Mat4r = construit_mat4r_neutre()
+    résultat : Mat4r = construis_mat4r_neutre()
     résultat.m[0][0] = s.x
     résultat.m[1][0] = s.y
     résultat.m[2][0] = s.z
@@ -368,7 +368,7 @@ ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
     champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale)
     caméra.échelle = tangeante(champs_de_vue * 0.5)
 
-    caméra_vers_rateau = construit_mat4r_neutre()
+    caméra_vers_rateau = construis_mat4r_neutre()
     caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))
     caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_translation(1.0, 1.0, 0.0))
 

@@ -171,7 +171,7 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     pattern := FcPatternCreate()
     diffère FcPatternDestroy(pattern)
 
-    chn_famille := converti_vers_chaine(famille.donne_chaine_utf16())
+    chn_famille := convertis_vers_chaine(famille.donne_chaine_utf16())
     diffère déloge(chn_famille)
 
     chaine_c_famille := crée_chaine_c(chn_famille)
