@@ -21,13 +21,13 @@
 
 struct AtomeGlobale;
 struct Compilatrice;
-struct MetaProgramme;
+struct MétaProgramme;
 struct NoeudDéclarationEntêteFonction;
 struct Programme;
 struct RegistreSymboliqueRI;
 struct SiteSource;
 struct Statistiques;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 /* IPA :
  * - crée_un_espace_de_travail
@@ -61,7 +61,7 @@ struct EspaceDeTravail {
     Module *module = nullptr;
 
     Programme *programme = nullptr;
-    UniteCompilation *unité_pour_code_machine = nullptr;
+    UnitéCompilation *unité_pour_code_machine = nullptr;
 
     /* mise en cache de la fonction principale, si vue dans la Syntaxeuse */
     NoeudDéclarationEntêteFonction *fonction_principale = nullptr;
@@ -71,7 +71,7 @@ struct EspaceDeTravail {
     NoeudDéclarationEntêteFonction *fonction_point_de_sortie_dynamique = nullptr;
 
     /* Le métaprogramme controlant la compilation dans cette espace. */
-    MetaProgramme *metaprogramme = nullptr;
+    MétaProgramme *métaprogramme = nullptr;
 
     /* pour activer ou désactiver les optimisations */
     bool optimisations = false;
@@ -138,7 +138,7 @@ struct EspaceDeTravail {
     Compilatrice &m_compilatrice;
 
     // Données pour le gestionnaire de code.
-    kuri::tableau<UniteCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
+    kuri::tableau<UnitéCompilation *> métaprogrammes_en_attente_de_crée_contexte{};
     bool métaprogrammes_en_attente_de_crée_contexte_est_ouvert = true;
 
     EspaceDeTravail(Compilatrice &compilatrice, OptionsDeCompilation opts, kuri::chaine nom_);
@@ -156,7 +156,7 @@ struct EspaceDeTravail {
 
     Fichier *fichier(kuri::chaine_statique chemin) const;
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 
     void rassemble_statistiques(Statistiques &stats) const;
 

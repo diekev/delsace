@@ -183,7 +183,7 @@ static int type_informations(const OptionsDeCompilation &options)
 static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_statique chn,
                                                                  char separateur)
 {
-    kuri::tablet<kuri::chaine_statique, 16> resultat;
+    kuri::tablet<kuri::chaine_statique, 16> résultat;
 
     auto taille = 0;
     auto pointeur = chn.pointeur();
@@ -194,7 +194,7 @@ static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_st
             auto sous_chaine = kuri::chaine_statique(debut, taille);
             taille = 0;
             debut = &pointeur[i + 1];
-            resultat.ajoute(sous_chaine);
+            résultat.ajoute(sous_chaine);
             continue;
         }
 
@@ -203,10 +203,10 @@ static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_st
 
     if (taille != 0) {
         auto sous_chaine = kuri::chaine_statique(debut, taille);
-        resultat.ajoute(sous_chaine);
+        résultat.ajoute(sous_chaine);
     }
 
-    return resultat;
+    return résultat;
 }
 
 static void ajoute_chemins_depuis_env(const char *variable,

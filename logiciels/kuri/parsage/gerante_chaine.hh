@@ -15,5 +15,5 @@ struct GeranteChaine {
 
     kuri::chaine_statique chaine_pour_adresse(int64_t adresse) const;
 
-    int64_t memoire_utilisee() const;
+    int64_t mémoire_utilisée() const;
 };
