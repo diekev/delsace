@@ -657,7 +657,7 @@ RésultatExpression évalue_expression(const EspaceDeTravail *espace,
         {
             auto expression_appel = b->comme_appel();
 
-            if (expression_appel->aide_génération_code != CONSTRUIT_OPAQUE) {
+            if (expression_appel->aide_génération_code != CONSTRUIS_OPAQUE) {
                 return erreur_évaluation(b,
                                          "Impossible d'utiliser une expression d'appel qui n'est "
                                          "pas la construction d'un type opaque");
