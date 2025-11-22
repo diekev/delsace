@@ -65,7 +65,7 @@ struct ÉtatChargementFichiers {
   private:
     /* Toutes les unités de compilation pour les instructions charge/importe sont ici.
      */
-    UniteCompilation *file_unités_charge_ou_importe = nullptr;
+    UnitéCompilation *file_unités_charge_ou_importe = nullptr;
 
     /* Le nombre d'unité pour chaque raison d'être relative à des fichiers. Nous avons un nombre
      * pour chaque raison d'être mais seules les raisons de chargement/lexage/syntaxage sont
@@ -74,25 +74,25 @@ struct ÉtatChargementFichiers {
 
   public:
     /* Unités correspondants à des « charge » ou « importe ». */
-    void ajoute_unité_pour_charge_ou_importe(UniteCompilation *unité);
-    void supprime_unité_pour_charge_ou_importe(UniteCompilation *unité);
+    void ajoute_unité_pour_charge_ou_importe(UnitéCompilation *unité);
+    void supprime_unité_pour_charge_ou_importe(UnitéCompilation *unité);
 
     /* Unités correspondants à des tâches de chargement/lexage/parsage. */
-    void ajoute_unité_pour_chargement_fichier(UniteCompilation *unité);
+    void ajoute_unité_pour_chargement_fichier(UnitéCompilation *unité);
 
     /* Quand un chargement ou un lexage est fini, déplace l'unité dans la file suivante. */
-    void déplace_unité_pour_chargement_fichier(UniteCompilation *unité);
+    void déplace_unité_pour_chargement_fichier(UnitéCompilation *unité);
 
     /* Quand un parsage est fini, supprime l'unité de la file de parsage. */
-    void supprime_unité_pour_chargement_fichier(UniteCompilation *unité);
+    void supprime_unité_pour_chargement_fichier(UnitéCompilation *unité);
 
     bool tous_les_fichiers_à_parser_le_sont() const;
 
     void imprime_état() const;
 
   private:
-    void enfile(UniteCompilation *unité);
-    void défile(UniteCompilation *unité);
+    void enfile(UnitéCompilation *unité);
+    void défile(UnitéCompilation *unité);
 };
 
 /** \} */
@@ -110,13 +110,13 @@ struct ÉtatChargementFichiers {
  */
 class GestionnaireCode {
     /* Toutes les unités de compilation créées pour tous les espaces. */
-    kuri::tableau_page<UniteCompilation> unités{};
+    kuri::tableau_page<UnitéCompilation> unités{};
 
     /* Les unités qui attendent sur quelque chose. */
-    kuri::tableau<UniteCompilation *> unités_en_attente{};
+    kuri::tableau<UnitéCompilation *> unités_en_attente{};
 
     struct InfoUnitéTemporisée {
-        UniteCompilation *unité = nullptr;
+        UnitéCompilation *unité = nullptr;
         int cycles_à_temporiser = 0;
         int cycle_courant = 0;
     };
@@ -163,7 +163,7 @@ class GestionnaireCode {
     bool m_validation_doit_attendre_sur_lexage = true;
 
     /* Utilisé afin de récupérer la mémoire dans crée_tâches. */
-    kuri::tableau<UniteCompilation *> m_nouvelles_unités{};
+    kuri::tableau<UnitéCompilation *> m_nouvelles_unités{};
 
   public:
     GestionnaireCode() = default;
@@ -180,7 +180,7 @@ class GestionnaireCode {
 
     /* Notification qu'un espace fut créé, son programme est ajouté à la liste des programmes en
      * cours de compilation */
-    void métaprogramme_créé(MetaProgramme *metaprogramme);
+    void métaprogramme_créé(MétaProgramme *métaprogramme);
 
     /* Création des unités pour le typage, etc. */
     void requiers_chargement(EspaceDeTravail *espace, Fichier *fichier);
@@ -198,12 +198,12 @@ class GestionnaireCode {
      * Sinon, l'unité est ajoutée à la liste des métaprogrammes en attentes de la disponibilité de
      * la RI pour #crée_contexte. */
     void requiers_génération_ri_principale_métaprogramme(EspaceDeTravail *espace,
-                                                         MetaProgramme *metaprogramme,
+                                                         MétaProgramme *métaprogramme,
                                                          bool peut_planifier_compilation);
 
-    void requiers_compilation_métaprogramme(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    void requiers_compilation_métaprogramme(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
-    UniteCompilation *requiers_génération_code_machine(EspaceDeTravail *espace,
+    UnitéCompilation *requiers_génération_code_machine(EspaceDeTravail *espace,
                                                        Programme *programme);
 
     void requiers_liaison_executable(EspaceDeTravail *espace, Programme *programme);
@@ -213,22 +213,22 @@ class GestionnaireCode {
     void requiers_ri_pour_opérateur_synthétique(EspaceDeTravail *espace,
                                                 NoeudDéclarationEntêteFonction *entête);
 
-    UniteCompilation *crée_unité(EspaceDeTravail *espace, RaisonDÊtre raison, bool met_en_attente);
-    UniteCompilation *crée_unité_pour_fichier(EspaceDeTravail *espace,
+    UnitéCompilation *crée_unité(EspaceDeTravail *espace, RaisonDÊtre raison, bool met_en_attente);
+    UnitéCompilation *crée_unité_pour_fichier(EspaceDeTravail *espace,
                                               Fichier *fichier,
                                               RaisonDÊtre raison);
-    UniteCompilation *crée_unité_pour_noeud(EspaceDeTravail *espace,
+    UnitéCompilation *crée_unité_pour_noeud(EspaceDeTravail *espace,
                                             NoeudExpression *noeud,
                                             RaisonDÊtre raison,
                                             bool met_en_attente);
 
     /* Attente sur quelque chose. */
-    void mets_en_attente(UniteCompilation *unite_attendante, Attente attente);
-    void mets_en_attente(UniteCompilation *unite_attendante,
+    void mets_en_attente(UnitéCompilation *unité_attendante, Attente attente);
+    void mets_en_attente(UnitéCompilation *unité_attendante,
                          kuri::tableau_statique<Attente> attentes);
 
     /* Fin d'une tâche. */
-    void tâche_unité_terminée(UniteCompilation *unité);
+    void tâche_unité_terminée(UnitéCompilation *unité);
 
     void message_reçu(Message const *message);
 
@@ -240,31 +240,31 @@ class GestionnaireCode {
     void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
                                            OpérateurBinaire *opérateur_binaire);
 
-    void chargement_fichier_terminé(UniteCompilation *unite);
+    void chargement_fichier_terminé(UnitéCompilation *unité);
 
-    void lexage_fichier_terminé(UniteCompilation *unite);
+    void lexage_fichier_terminé(UnitéCompilation *unité);
 
-    void parsage_fichier_terminé(UniteCompilation *unite);
+    void parsage_fichier_terminé(UnitéCompilation *unité);
 
-    void typage_terminé(UniteCompilation *unite);
+    void typage_terminé(UnitéCompilation *unité);
 
-    void generation_ri_terminée(UniteCompilation *unite);
+    void generation_ri_terminée(UnitéCompilation *unité);
 
-    void envoi_message_terminé(UniteCompilation *unité);
+    void envoi_message_terminé(UnitéCompilation *unité);
 
-    void execution_terminée(UniteCompilation *unite);
+    void execution_terminée(UnitéCompilation *unité);
 
-    void generation_code_machine_terminée(UniteCompilation *unite);
+    void generation_code_machine_terminée(UnitéCompilation *unité);
 
-    void liaison_programme_terminée(UniteCompilation *unite);
+    void liaison_programme_terminée(UnitéCompilation *unité);
 
-    void conversion_noeud_code_terminée(UniteCompilation *unite);
+    void conversion_noeud_code_terminée(UnitéCompilation *unité);
 
-    void fonction_initialisation_type_créée(UniteCompilation *unite);
+    void fonction_initialisation_type_créée(UnitéCompilation *unité);
 
-    void synthétisation_opérateur_terminée(UniteCompilation *unité);
+    void synthétisation_opérateur_terminée(UnitéCompilation *unité);
 
-    void optimisation_terminée(UniteCompilation *unite);
+    void optimisation_terminée(UnitéCompilation *unité);
 
     void ajoute_noeud_de_haut_niveau(NoeudExpression *it,
                                      EspaceDeTravail *espace,
@@ -285,23 +285,23 @@ class GestionnaireCode {
     void imprime_stats() const;
 
   private:
-    UniteCompilation *crée_unité_pour_message(EspaceDeTravail *espace, Message *message);
+    UnitéCompilation *crée_unité_pour_message(EspaceDeTravail *espace, Message *message);
 
-    UniteCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
+    UnitéCompilation *requiers_noeud_code(EspaceDeTravail *espace, NoeudExpression *noeud);
 
-    MetaProgramme *crée_métaprogramme_corps_texte(EspaceDeTravail *espace,
+    MétaProgramme *crée_métaprogramme_corps_texte(EspaceDeTravail *espace,
                                                   NoeudBloc *bloc_corps_texte,
                                                   NoeudBloc *bloc_parent,
                                                   const Lexème *lexème);
 
     /* Ajoute l'unité à la liste d'attente, et change son état vers EN_ATTENTE. */
-    void ajoute_unité_à_liste_attente(UniteCompilation *unité);
+    void ajoute_unité_à_liste_attente(UnitéCompilation *unité);
 
     void ajoute_attentes_sur_initialisations_types(NoeudExpression *noeud,
-                                                   UniteCompilation *unité);
-    void ajoute_attentes_pour_noeud_code(NoeudExpression *noeud, UniteCompilation *unité);
+                                                   UnitéCompilation *unité);
+    void ajoute_attentes_pour_noeud_code(NoeudExpression *noeud, UnitéCompilation *unité);
 
-    void requiers_exécution(EspaceDeTravail *espace, MetaProgramme *metaprogramme);
+    void requiers_exécution(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
     void ajoute_programme(Programme *programme);
 
@@ -309,8 +309,8 @@ class GestionnaireCode {
 
     void détermine_dépendances(NoeudExpression *noeud,
                                EspaceDeTravail *espace,
-                               UniteCompilation *unité_pour_ri,
-                               UniteCompilation *unité_pour_noeud_code);
+                               UnitéCompilation *unité_pour_ri,
+                               UnitéCompilation *unité_pour_noeud_code);
 
     bool plus_rien_n_est_à_faire();
     bool tente_de_garantir_présence_création_contexte(EspaceDeTravail *espace,

@@ -342,13 +342,13 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux)
 
     SI_DRAPEAU_UTILISE(TYPE_NE_REQUIERS_PAS_D_INITIALISATION)
     SI_DRAPEAU_UTILISE(TYPE_EST_POLYMORPHIQUE)
-    SI_DRAPEAU_UTILISE(INITIALISATION_TYPE_FUT_CREEE)
-    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_POINTEUR)
-    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_REFERENCE)
-    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TABLEAU_FIXE)
-    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TABLEAU_DYNAMIQUE)
-    SI_DRAPEAU_UTILISE(POSSEDE_TYPE_TYPE_DE_DONNEES)
-    SI_DRAPEAU_UTILISE(TYPE_POSSEDE_OPERATEURS_DE_BASE)
+    SI_DRAPEAU_UTILISE(INITIALISATION_TYPE_FUT_CRÉÉE)
+    SI_DRAPEAU_UTILISE(POSSÈDE_TYPE_POINTEUR)
+    SI_DRAPEAU_UTILISE(POSSÈDE_TYPE_RÉFÉRENCE)
+    SI_DRAPEAU_UTILISE(POSSÈDE_TYPE_TABLEAU_FIXE)
+    SI_DRAPEAU_UTILISE(POSSÈDE_TYPE_TABLEAU_DYNAMIQUE)
+    SI_DRAPEAU_UTILISE(POSSÈDE_TYPE_TYPE_DE_DONNÉES)
+    SI_DRAPEAU_UTILISE(TYPE_POSSÈDE_OPÉRATEURS_DE_BASE)
     SI_DRAPEAU_UTILISE(UNITE_POUR_INITIALISATION_FUT_CREE)
 
     auto virgule = "";
@@ -1096,26 +1096,26 @@ static void aplatis_arbre(NoeudExpression *racine,
     }
 }
 
-void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
+void aplatis_arbre(NoeudExpression *déclaration, ArbreAplatis *arbre_aplatis)
 {
-    if (declaration->est_entête_fonction()) {
-        auto entête = declaration->comme_entête_fonction();
+    if (déclaration->est_entête_fonction()) {
+        auto entête = déclaration->comme_entête_fonction();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_entête_fonction(entête, arbre_aplatis->noeuds);
         }
         return;
     }
 
-    if (declaration->est_corps_fonction()) {
-        auto corps = declaration->comme_corps_fonction();
+    if (déclaration->est_corps_fonction()) {
+        auto corps = déclaration->comme_corps_fonction();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(corps->bloc, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_déclaration_classe()) {
-        auto structure = declaration->comme_déclaration_classe();
+    if (déclaration->est_déclaration_classe()) {
+        auto structure = déclaration->comme_déclaration_classe();
 
         if (arbre_aplatis->noeuds.taille() == 0) {
             if (structure->est_polymorphe) {
@@ -1130,80 +1130,80 @@ void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
         return;
     }
 
-    if (declaration->est_exécute()) {
-        auto exécute = declaration->comme_exécute();
+    if (déclaration->est_exécute()) {
+        auto exécute = déclaration->comme_exécute();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(exécute, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_déclaration_variable()) {
-        auto declaration_variable = declaration->comme_déclaration_variable();
+    if (déclaration->est_déclaration_variable()) {
+        auto déclaration_variable = déclaration->comme_déclaration_variable();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
+            aplatis_arbre(déclaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_déclaration_variable_multiple()) {
-        auto declaration_variable = declaration->comme_déclaration_variable_multiple();
+    if (déclaration->est_déclaration_variable_multiple()) {
+        auto déclaration_variable = déclaration->comme_déclaration_variable_multiple();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
+            aplatis_arbre(déclaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_déclaration_constante()) {
-        auto declaration_variable = declaration->comme_déclaration_constante();
+    if (déclaration->est_déclaration_constante()) {
+        auto déclaration_variable = déclaration->comme_déclaration_constante();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(declaration_variable, arbre_aplatis->noeuds, {});
+            aplatis_arbre(déclaration_variable, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_ajoute_fini()) {
-        auto ajoute_fini = declaration->comme_ajoute_fini();
+    if (déclaration->est_ajoute_fini()) {
+        auto ajoute_fini = déclaration->comme_ajoute_fini();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(ajoute_fini, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_ajoute_init()) {
-        auto ajoute_init = declaration->comme_ajoute_init();
+    if (déclaration->est_ajoute_init()) {
+        auto ajoute_init = déclaration->comme_ajoute_init();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(ajoute_init, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_type_opaque()) {
-        auto opaque = declaration->comme_type_opaque();
+    if (déclaration->est_type_opaque()) {
+        auto opaque = déclaration->comme_type_opaque();
         if (arbre_aplatis->noeuds.taille() == 0) {
             aplatis_arbre(opaque, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
-    if (declaration->est_si_statique()) {
+    if (déclaration->est_si_statique()) {
         if (arbre_aplatis->noeuds.taille() == 0) {
-            auto si_statique = declaration->comme_si_statique();
+            auto si_statique = déclaration->comme_si_statique();
             aplatis_arbre(si_statique, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     /* Pour #insère entre autres. */
-    if (declaration->est_bloc()) {
+    if (déclaration->est_bloc()) {
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_arbre(declaration, arbre_aplatis->noeuds, {});
+            aplatis_arbre(déclaration, arbre_aplatis->noeuds, {});
         }
         return;
     }
 
     assert_rappel(false, [&]() {
-        dbg() << "Noeud non-géré pour l'aplatissement de l'arbre : " << declaration->genre;
+        dbg() << "Noeud non-géré pour l'aplatissement de l'arbre : " << déclaration->genre;
     });
 }
 
@@ -1695,7 +1695,7 @@ void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
     }
 
     if (decl->est_déclaration_symbole()) {
-        auto decl_existante = declaration_pour_ident(decl->ident);
+        auto decl_existante = déclaration_pour_ident(decl->ident);
         if (decl_existante && decl_existante->est_déclaration_symbole()) {
             ajoute_à_ensemble_de_surcharge(decl_existante, decl);
         }
@@ -1738,7 +1738,7 @@ NoeudDéclaration *NoeudBloc::rubrique_pour_index(int index) const
     return rubriques->a(index);
 }
 
-NoeudDéclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *ident_recherche) const
+NoeudDéclaration *NoeudBloc::déclaration_pour_ident(IdentifiantCode const *ident_recherche) const
 {
     auto rubriques_ = rubriques.verrou_lecture();
     nombre_recherches += 1;
@@ -1755,7 +1755,7 @@ NoeudDéclaration *NoeudBloc::declaration_pour_ident(IdentifiantCode const *iden
     return nullptr;
 }
 
-NoeudDéclaration *NoeudBloc::declaration_avec_meme_ident_que(NoeudExpression const *expr) const
+NoeudDéclaration *NoeudBloc::déclaration_avec_meme_ident_que(NoeudExpression const *expr) const
 {
     auto rubriques_ = rubriques.verrou_lecture();
     nombre_recherches += 1;
@@ -1791,50 +1791,50 @@ kuri::tableau_statique<const RubriqueTypeComposé> NoeudDéclarationTypeComposé
 /** \name Implémentation des fonctions supplémentaires de l'AssembleuseArbre
  * \{ */
 
-NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexème *lexeme,
+NoeudExpressionBinaire *AssembleuseArbre::crée_expression_binaire(const Lexème *lexème,
                                                                   const OpérateurBinaire *op,
                                                                   NoeudExpression *expr1,
                                                                   NoeudExpression *expr2)
 {
     assert(op);
-    auto op_bin = crée_expression_binaire(lexeme, expr1, expr2);
+    auto op_bin = crée_expression_binaire(lexème, expr1, expr2);
     op_bin->op = op;
     op_bin->type = op->type_résultat;
     return op_bin;
 }
 
-NoeudExpressionRéférence *AssembleuseArbre::crée_référence_déclaration(const Lexème *lexeme,
+NoeudExpressionRéférence *AssembleuseArbre::crée_référence_déclaration(const Lexème *lexème,
                                                                        NoeudDéclaration *decl)
 {
-    auto ref = crée_référence_déclaration(lexeme);
+    auto ref = crée_référence_déclaration(lexème);
     ref->déclaration_référée = decl;
     ref->type = decl->type;
     ref->ident = decl->ident;
     return ref;
 }
 
-NoeudSi *AssembleuseArbre::crée_si(const Lexème *lexeme, GenreNoeud genre_noeud)
+NoeudSi *AssembleuseArbre::crée_si(const Lexème *lexème, GenreNoeud genre_noeud)
 {
     if (genre_noeud == GenreNoeud::INSTRUCTION_SI) {
-        return crée_noeud<GenreNoeud::INSTRUCTION_SI>(lexeme)->comme_si();
+        return crée_noeud<GenreNoeud::INSTRUCTION_SI>(lexème)->comme_si();
     }
 
-    return crée_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexeme)->comme_saufsi();
+    return crée_noeud<GenreNoeud::INSTRUCTION_SAUFSI>(lexème)->comme_saufsi();
 }
 
-NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexème *lexeme, NoeudBloc *bloc_parent)
+NoeudBloc *AssembleuseArbre::crée_bloc_seul(const Lexème *lexème, NoeudBloc *bloc_parent)
 {
-    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSÉE>(lexeme)->comme_bloc();
+    auto bloc = crée_noeud<GenreNoeud::INSTRUCTION_COMPOSÉE>(lexème)->comme_bloc();
     bloc->bloc_parent = bloc_parent;
     return bloc;
 }
 
-NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(const Lexème *lexeme,
+NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(const Lexème *lexème,
                                                                       Type *type,
                                                                       IdentifiantCode *ident,
                                                                       NoeudExpression *expression)
 {
-    auto decl = crée_déclaration_variable(lexeme, expression, nullptr);
+    auto decl = crée_déclaration_variable(lexème, expression, nullptr);
     decl->ident = ident;
     decl->type = type;
     return decl;
@@ -1843,9 +1843,9 @@ NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(const L
 NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
     NoeudExpressionRéférence *ref, NoeudExpression *expression)
 {
-    auto declaration = crée_déclaration_variable(ref->lexème, ref->type, ref->ident, expression);
-    ref->déclaration_référée = declaration;
-    return declaration;
+    auto déclaration = crée_déclaration_variable(ref->lexème, ref->type, ref->ident, expression);
+    ref->déclaration_référée = déclaration;
+    return déclaration;
 }
 
 NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
@@ -1856,12 +1856,12 @@ NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
     return decl;
 }
 
-NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lexème *lexeme,
+NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lexème *lexème,
                                                                    NoeudExpression *accede,
                                                                    Type *type,
                                                                    int index)
 {
-    auto acces = crée_référence_rubrique(lexeme, accede);
+    auto acces = crée_référence_rubrique(lexème, accede);
     auto type_accédé = donne_type_accédé_effectif(accede->type);
     if (type_accédé->est_type_composé()) {
         auto type_composé = type_accédé->comme_type_composé();
@@ -1873,43 +1873,43 @@ NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lex�
     return acces;
 }
 
-NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexème *lexeme,
+NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexème *lexème,
                                                         NoeudExpression *expr1,
                                                         NoeudExpression *expr2,
                                                         bool ignore_verification)
 {
-    auto indexage = crée_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexeme)->comme_indexage();
+    auto indexage = crée_noeud<GenreNoeud::EXPRESSION_INDEXAGE>(lexème)->comme_indexage();
     indexage->opérande_gauche = expr1;
     indexage->opérande_droite = expr2;
     indexage->type = type_déréférencé_pour(expr1->type);
     if (ignore_verification) {
-        indexage->aide_génération_code = IGNORE_VERIFICATION;
+        indexage->aide_génération_code = IGNORE_VÉRIFICATION;
     }
     return indexage;
 }
 
-NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexème *lexeme,
+NoeudExpressionAppel *AssembleuseArbre::crée_appel(const Lexème *lexème,
                                                    NoeudExpression *appelee,
                                                    Type *type)
 {
     auto expression = NoeudExpression::nul();
     if (appelee->est_entête_fonction()) {
-        expression = crée_référence_déclaration(lexeme, appelee->comme_entête_fonction());
+        expression = crée_référence_déclaration(lexème, appelee->comme_entête_fonction());
     }
     else {
         expression = appelee;
     }
 
-    auto appel = crée_appel(lexeme, expression);
+    auto appel = crée_appel(lexème, expression);
     appel->noeud_fonction_appelée = appelee;
     appel->type = type;
     return appel;
 }
 
-NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexème *lexeme,
-                                                                    TypeCompose *type)
+NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexème *lexème,
+                                                                    TypeComposé *type)
 {
-    auto structure = crée_appel(lexeme, type);
+    auto structure = crée_appel(lexème, type);
     structure->genre = GenreNoeud::EXPRESSION_CONSTRUCTION_STRUCTURE;
     structure->paramètres_résolus.réserve(type->rubriques.taille());
     structure->noeud_fonction_appelée = type;
@@ -1917,44 +1917,44 @@ NoeudExpressionAppel *AssembleuseArbre::crée_construction_structure(const Lexè
     return structure;
 }
 
-NoeudExpressionLittéraleEntier *AssembleuseArbre::crée_littérale_entier(Lexème const *lexeme,
+NoeudExpressionLittéraleEntier *AssembleuseArbre::crée_littérale_entier(Lexème const *lexème,
                                                                         Type *type,
                                                                         uint64_t valeur)
 {
-    auto lit = crée_littérale_entier(lexeme);
+    auto lit = crée_littérale_entier(lexème);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpressionLittéraleBool *AssembleuseArbre::crée_littérale_bool(Lexème const *lexeme,
+NoeudExpressionLittéraleBool *AssembleuseArbre::crée_littérale_bool(Lexème const *lexème,
                                                                     Type *type,
                                                                     bool valeur)
 {
-    auto lit = crée_littérale_bool(lexeme);
+    auto lit = crée_littérale_bool(lexème);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpressionLittéraleRéel *AssembleuseArbre::crée_littérale_réel(Lexème const *lexeme,
+NoeudExpressionLittéraleRéel *AssembleuseArbre::crée_littérale_réel(Lexème const *lexème,
                                                                     Type *type,
                                                                     double valeur)
 {
-    auto lit = crée_littérale_réel(lexeme);
+    auto lit = crée_littérale_réel(lexème);
     lit->type = type;
     lit->valeur = valeur;
     return lit;
 }
 
-NoeudExpression *AssembleuseArbre::crée_référence_type(Lexème const *lexeme, Type *type)
+NoeudExpression *AssembleuseArbre::crée_référence_type(Lexème const *lexème, Type *type)
 {
-    auto ref_type = crée_référence_type(lexeme);
+    auto ref_type = crée_référence_type(lexème);
     ref_type->type = type;
     return ref_type;
 }
 
-NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
+NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexème,
                                                         NoeudExpression *valeur)
 {
     auto type = valeur->type;
@@ -1968,7 +1968,7 @@ NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
         opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
 
-    auto inc = crée_expression_binaire(lexeme, valeur, opérande_droite);
+    auto inc = crée_expression_binaire(lexème, valeur, opérande_droite);
     inc->op = type->table_opérateurs->opérateur_ajt;
     assert(inc->op);
     inc->type = type;
@@ -1976,7 +1976,7 @@ NoeudAssignation *AssembleuseArbre::crée_incrementation(const Lexème *lexeme,
     return crée_assignation_variable(valeur->lexème, valeur, inc);
 }
 
-NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
+NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexème,
                                                         NoeudExpression *valeur)
 {
     auto type = valeur->type;
@@ -1990,7 +1990,7 @@ NoeudAssignation *AssembleuseArbre::crée_decrementation(const Lexème *lexeme,
         opérande_droite = crée_littérale_réel(valeur->lexème, type, 1.0);
     }
 
-    auto inc = crée_expression_binaire(lexeme, valeur, opérande_droite);
+    auto inc = crée_expression_binaire(lexème, valeur, opérande_droite);
     inc->op = type->table_opérateurs->opérateur_sst;
     assert(inc->op);
     inc->type = type;
@@ -2364,7 +2364,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             auto pour = assembleuse->crée_pour(&lexème_sentinel, variable, ref_résultat);
             pour->prends_pointeur = true;
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
-            pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
+            pour->aide_génération_code = GÉNÈRE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
             pour->decl_indice_it = assembleuse->crée_déclaration_variable(
                 &lexème_sentinel, typeuse.type_taille_tableau, ID::indice_it, nullptr);
@@ -2649,7 +2649,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                         &lexème_sentinel, param_comme_structure);
                     ref_rubrique->indice_rubrique = 0;
                     ref_rubrique->type = typeuse.type_z32;
-                    ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
+                    ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
                     crée_initialisation_defaut_pour_type(
                         typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
                     break;
@@ -2659,7 +2659,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                                                                          param_comme_structure);
                 ref_rubrique->indice_rubrique = 0;
                 ref_rubrique->type = rubrique.type;
-                ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
+                ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
                 crée_initialisation_defaut_pour_type(rubrique.type,
                                                      assembleuse,
                                                      ref_rubrique,
@@ -2670,7 +2670,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                                                                     param_comme_structure);
                 ref_rubrique->indice_rubrique = 1;
                 ref_rubrique->type = typeuse.type_z32;
-                ref_rubrique->aide_génération_code = IGNORE_VERIFICATION;
+                ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
                 crée_initialisation_defaut_pour_type(
                     typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
             }
@@ -3035,7 +3035,7 @@ void imprime_rubriques_blocs_récursifs(NoeudBloc const *bloc)
     }
 }
 
-UniteCompilation **donne_adresse_unité(NoeudExpression *noeud)
+UnitéCompilation **donne_adresse_unité(NoeudExpression *noeud)
 {
     if (noeud->est_entête_fonction()) {
         return &noeud->comme_entête_fonction()->unité;

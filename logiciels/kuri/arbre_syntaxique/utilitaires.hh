@@ -25,11 +25,11 @@ struct Lexème;
 struct OpérateurBinaire;
 struct OpérateurUnaire;
 struct Symbole;
-struct UniteCompilation;
+struct UnitéCompilation;
 using Type = NoeudDéclarationType;
 using TypePointeur = NoeudDéclarationTypePointeur;
 struct Typeuse;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 
 namespace kuri {
 struct chaine;
@@ -296,16 +296,16 @@ enum class DrapeauxTypes : uint32_t {
     /* Pour les types variadiques externes, et les structures externes opaques (sans bloc). */
     TYPE_NE_REQUIERS_PAS_D_INITIALISATION = (1u << 0),
     TYPE_EST_POLYMORPHIQUE = (1u << 1),
-    INITIALISATION_TYPE_FUT_CREEE = (1u << 2),
-    POSSEDE_TYPE_POINTEUR = (1u << 3),
-    POSSEDE_TYPE_REFERENCE = (1u << 4),
-    POSSEDE_TYPE_TABLEAU_FIXE = (1u << 5),
-    POSSEDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
-    POSSEDE_TYPE_TYPE_DE_DONNEES = (1u << 7),
-    TYPE_POSSEDE_OPERATEURS_DE_BASE = (1u << 8),
+    INITIALISATION_TYPE_FUT_CRÉÉE = (1u << 2),
+    POSSÈDE_TYPE_POINTEUR = (1u << 3),
+    POSSÈDE_TYPE_RÉFÉRENCE = (1u << 4),
+    POSSÈDE_TYPE_TABLEAU_FIXE = (1u << 5),
+    POSSÈDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
+    POSSÈDE_TYPE_TYPE_DE_DONNÉES = (1u << 7),
+    TYPE_POSSÈDE_OPÉRATEURS_DE_BASE = (1u << 8),
     UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
     INITIALISATION_TYPE_FUT_REQUISE = (1u << 10),
-    POSSEDE_TYPE_TRANCHE = (1u << 11),
+    POSSÈDE_TYPE_TRANCHE = (1u << 11),
     INFOS_TYPE_SONT_COMPLÈTES = (1u << 12),
     EST_TYPE_INFO_TYPE = (1u << 13),
 };
@@ -317,9 +317,9 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux);
 
 enum {
     /* instruction 'pour' */
-    GENERE_BOUCLE_PLAGE,
-    GENERE_BOUCLE_PLAGE_IMPLICITE,
-    GENERE_BOUCLE_TABLEAU,
+    GÉNÈRE_BOUCLE_PLAGE,
+    GÉNÈRE_BOUCLE_PLAGE_IMPLICITE,
+    GÉNÈRE_BOUCLE_TABLEAU,
     BOUCLE_POUR_OPÉRATEUR,
 
     CONSTRUIS_OPAQUE,
@@ -329,7 +329,7 @@ enum {
 
     /* pour ne pas avoir à générer des conditions de vérification pour par
      * exemple les accès à des rubriques d'unions */
-    IGNORE_VERIFICATION,
+    IGNORE_VÉRIFICATION,
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
@@ -385,7 +385,7 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
     return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
-struct DonneesAssignations {
+struct DonnéesAssignations {
     NoeudExpression *expression = nullptr;
     bool multiple_retour = false;
     kuri::tableau_compresse<NoeudExpression *, int> variables{};
@@ -399,7 +399,7 @@ struct DonneesAssignations {
         transformations.efface();
     }
 
-    bool operator==(DonneesAssignations const &autre) const
+    bool operator==(DonnéesAssignations const &autre) const
     {
         if (this == &autre) {
             return true;
@@ -445,7 +445,7 @@ std::ostream &operator<<(std::ostream &os, ÉtatValidationEntête état_validati
 
 /** \} */
 
-void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
+void aplatis_arbre(NoeudExpression *déclaration, ArbreAplatis *arbre_aplatis);
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
                                                 Lexème const *lexème,
@@ -536,7 +536,7 @@ bool est_déclaration_polymorphique(NoeudDéclaration const *decl);
 
 void imprime_rubriques_blocs_récursifs(NoeudBloc const *bloc);
 
-UniteCompilation **donne_adresse_unité(NoeudExpression *noeud);
+UnitéCompilation **donne_adresse_unité(NoeudExpression *noeud);
 
 struct IdentifiantCode;
 
@@ -604,9 +604,9 @@ struct RubriqueTypeComposé {
     }
 };
 
-using RubriqueTypeCompose = RubriqueTypeComposé;
+using RubriqueTypeComposé = RubriqueTypeComposé;
 
-struct InformationRubriqueTypeCompose {
+struct InformationRubriqueTypeComposé {
     RubriqueTypeComposé rubrique{};
     int indice_rubrique = -1;
 };
