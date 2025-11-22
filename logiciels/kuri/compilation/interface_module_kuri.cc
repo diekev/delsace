@@ -7,7 +7,7 @@
 
 #include "typage.hh"
 
-NoeudDéclarationEntêteFonction *InterfaceKuri::declaration_pour_ident(const IdentifiantCode *ident)
+NoeudDéclarationEntêteFonction *InterfaceKuri::déclaration_pour_ident(const IdentifiantCode *ident)
 {
 #define RETOURNE_SI_APPARIEMENT_IDENT(nom_rubrique, nom_ident)                                    \
     if (ident == nom_ident) {                                                                     \

@@ -17,7 +17,7 @@
 struct AtomeFonction;
 struct Compilatrice;
 struct Erreur;
-struct MetaProgramme;
+struct MétaProgramme;
 struct Statistiques;
 
 struct FrameAppel {
@@ -50,7 +50,7 @@ struct DétectriceFuiteDeMémoire {
 #else
     std::unordered_map<void *, InformationsBloc> table_allocations{};
 #endif
-    friend void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
+    friend void imprime_fuites_de_mémoire(MétaProgramme *métaprogramme);
 
   public:
     void ajoute_bloc(void *ptr, size_t taille, kuri::tableau<FrameAppel> const &frame);
@@ -62,7 +62,7 @@ struct DétectriceFuiteDeMémoire {
     void réinitialise();
 };
 
-void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme);
+void imprime_fuites_de_mémoire(MétaProgramme *métaprogramme);
 
 /** \} */
 
@@ -93,9 +93,9 @@ struct Profileuse {
 
     void prépare_pour_profilage();
 
-    void ajoute_échantillon(MetaProgramme *métaprogramme, int poids);
+    void ajoute_échantillon(MétaProgramme *métaprogramme, int poids);
 
-    void crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format);
+    void crée_rapport(MétaProgramme *métaprogramme, FormatRapportProfilage format);
 
   private:
     void ajourne_ticks();
@@ -151,8 +151,8 @@ struct MachineVirtuelle {
 
     DonnéesConstantesExécutions *données_constantes = nullptr;
 
-    kuri::tableau<MetaProgramme *, int> m_métaprogrammes{};
-    kuri::tableau<MetaProgramme *, int> m_métaprogrammes_terminés{};
+    kuri::tableau<MétaProgramme *, int> m_métaprogrammes{};
+    kuri::tableau<MétaProgramme *, int> m_métaprogrammes_terminés{};
 
     bool m_métaprogrammes_terminés_lu = false;
 
@@ -173,7 +173,7 @@ struct MachineVirtuelle {
     double temps_exécution_métaprogammes = 0;
     int64_t instructions_exécutées = 0;
 
-    MetaProgramme *m_métaprogramme = nullptr;
+    MétaProgramme *m_métaprogramme = nullptr;
 
   public:
     bool stop = false;
@@ -183,11 +183,11 @@ struct MachineVirtuelle {
 
     EMPECHE_COPIE(MachineVirtuelle);
 
-    void ajoute_métaprogramme(MetaProgramme *métaprogramme);
+    void ajoute_métaprogramme(MétaProgramme *métaprogramme);
 
     void exécute_métaprogrammes_courants();
 
-    kuri::tableau<MetaProgramme *, int> const &métaprogrammes_terminés()
+    kuri::tableau<MétaProgramme *, int> const &métaprogrammes_terminés()
     {
         m_métaprogrammes_terminés_lu = true;
         return m_métaprogrammes_terminés;
@@ -239,9 +239,9 @@ struct MachineVirtuelle {
 
     inline void empile_constante(FrameAppel *frame);
 
-    void installe_métaprogramme(MetaProgramme *métaprogramme);
+    void installe_métaprogramme(MétaProgramme *métaprogramme);
 
-    void désinstalle_métaprogramme(MetaProgramme *métaprogramme, int compte_exécutées);
+    void désinstalle_métaprogramme(MétaProgramme *métaprogramme, int compte_exécutées);
 
     RésultatInterprétation exécute_instructions(int &compte_exécutées);
 
