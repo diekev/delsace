@@ -19,7 +19,7 @@ Enchaineuse::~Enchaineuse()
         auto tmp = tampon;
         tampon = tampon->suivant;
 
-        mémoire::deloge("Tampon", tmp);
+        mémoire::déloge("Tampon", tmp);
     }
 }
 
@@ -46,7 +46,7 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
     }
 
     if (tampon->occupe + N < TAILLE_TAMPON) {
-        memcpy(&tampon->donnees[tampon->occupe], c_str, static_cast<size_t>(N));
+        memcpy(&tampon->données[tampon->occupe], c_str, static_cast<size_t>(N));
         tampon->occupe += static_cast<int>(N);
     }
     else {
@@ -54,7 +54,7 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
         auto taille_max = TAILLE_TAMPON - tampon->occupe;
 
         if (taille_max != 0) {
-            memcpy(&tampon->donnees[tampon->occupe], c_str, static_cast<size_t>(taille_max));
+            memcpy(&tampon->données[tampon->occupe], c_str, static_cast<size_t>(taille_max));
             tampon->occupe += taille_max;
             taille_a_ecrire -= taille_max;
         }
@@ -66,7 +66,7 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
 
             auto taille_ecrite = std::min(taille_a_ecrire, static_cast<int64_t>(TAILLE_TAMPON));
 
-            memcpy(&tampon->donnees[0], c_str + décalage, static_cast<size_t>(taille_ecrite));
+            memcpy(&tampon->données[0], c_str + décalage, static_cast<size_t>(taille_ecrite));
             tampon->occupe += static_cast<int>(taille_ecrite);
 
             taille_a_ecrire -= taille_ecrite;
@@ -88,7 +88,7 @@ void Enchaineuse::ajoute_caractère(char c)
         ligne_courante += 1;
     }
 
-    tampon->donnees[tampon->occupe++] = c;
+    tampon->données[tampon->occupe++] = c;
 }
 
 void Enchaineuse::imprime_dans_flux(std::ostream &flux)
@@ -96,7 +96,7 @@ void Enchaineuse::imprime_dans_flux(std::ostream &flux)
     auto tampon = &m_tampon_base;
 
     while (tampon != nullptr) {
-        flux.write(&tampon->donnees[0], tampon->occupe);
+        flux.write(&tampon->données[0], tampon->occupe);
         tampon = tampon->suivant;
     }
 }
@@ -164,7 +164,7 @@ kuri::chaine Enchaineuse::chaine() const
     auto décalage = 0;
 
     while (tampon) {
-        memcpy(&résultat[décalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
+        memcpy(&résultat[décalage], &tampon->données[0], static_cast<size_t>(tampon->occupe));
         décalage += tampon->occupe;
         tampon = tampon->suivant;
     }
@@ -175,7 +175,7 @@ kuri::chaine Enchaineuse::chaine() const
 kuri::chaine_statique Enchaineuse::chaine_statique() const
 {
     auto taille = taille_chaine();
-    return {&m_tampon_base.donnees[0], taille};
+    return {&m_tampon_base.données[0], taille};
 }
 
 kuri::chaine_statique Enchaineuse::ajoute_chaine_statique(kuri::chaine_statique chaine)
@@ -186,7 +186,7 @@ kuri::chaine_statique Enchaineuse::ajoute_chaine_statique(kuri::chaine_statique 
         ajoute_tampon();
     }
 
-    auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
+    auto ptr = &tampon_courant->données[tampon_courant->occupe];
     memcpy(ptr, chaine.pointeur(), static_cast<size_t>(chaine.taille()));
     tampon_courant->occupe += static_cast<int>(chaine.taille());
     return {ptr, chaine.taille()};
@@ -199,7 +199,7 @@ void Enchaineuse::permute(Enchaineuse &autre)
     }
 
     for (auto i = 0; i < TAILLE_TAMPON; ++i) {
-        std::swap(m_tampon_base.donnees[i], autre.m_tampon_base.donnees[i]);
+        std::swap(m_tampon_base.données[i], autre.m_tampon_base.données[i]);
     }
 
     std::swap(m_tampon_base.occupe, autre.m_tampon_base.occupe);

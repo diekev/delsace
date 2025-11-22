@@ -150,7 +150,7 @@ GestionnaireCode::GestionnaireCode(Compilatrice *compilatrice)
 
 GestionnaireCode::~GestionnaireCode()
 {
-    mémoire::deloge("AssembleuseArbre", m_assembleuse);
+    mémoire::déloge("AssembleuseArbre", m_assembleuse);
 }
 
 void GestionnaireCode::espace_créé(EspaceDeTravail *espace)
@@ -404,12 +404,12 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             /* Note: les fonctions polymorphiques n'ont pas de types. */
             if (!(noeud->est_type_structure() || noeud->est_type_énum()) && noeud->type) {
                 if (noeud->type->est_type_type_de_données()) {
-                    auto type_de_donnees = noeud->type->comme_type_type_de_données();
-                    if (type_de_donnees->type_connu) {
-                        ajoute_type(type_de_donnees->type_connu);
+                    auto type_de_données = noeud->type->comme_type_type_de_données();
+                    if (type_de_données->type_connu) {
+                        ajoute_type(type_de_données->type_connu);
                     }
                     else {
-                        ajoute_type(type_de_donnees);
+                        ajoute_type(type_de_données);
                     }
                 }
                 else {
@@ -802,7 +802,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         }
 
         DÉBUTE_STAT(AJOUTE_DÉPENDANCES);
-        auto graphe = espace->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_écriture();
         NoeudDépendance *noeud_dépendance = graphe->garantie_noeud_dépendance(espace, noeud);
         graphe->ajoute_dépendances(*noeud_dépendance, dépendances.dépendances);
         TERMINE_STAT(AJOUTE_DÉPENDANCES);
@@ -851,7 +851,7 @@ void GestionnaireCode::détermine_dépendances(NoeudExpression *noeud,
         if (!doit_ajouter_les_dépendances_au_programme(noeud, it)) {
             continue;
         }
-        auto graphe = espace->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_écriture();
         if (!ajoute_dépendances_au_programme(*graphe, dépendances, espace, *it, noeud)) {
             break;
         }
@@ -1056,11 +1056,11 @@ MétaProgramme *GestionnaireCode::crée_métaprogramme_corps_texte(EspaceDeTrava
     fonction->params_sorties.ajoute(decl_sortie);
     fonction->param_sortie = decl_sortie;
 
-    auto types_entrees = kuri::tablet<Type *, 6>(0);
+    auto types_entrées = kuri::tablet<Type *, 6>(0);
 
     auto type_sortie = espace->typeuse.type_chaine;
 
-    fonction->type = espace->typeuse.type_fonction(types_entrees, type_sortie);
+    fonction->type = espace->typeuse.type_fonction(types_entrées, type_sortie);
     fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     auto métaprogramme = m_compilatrice->crée_métaprogramme(espace);
@@ -1133,7 +1133,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             métaprogramme->corps_texte_pour_structure = decl;
 
             if (decl->est_monomorphisation) {
-                decl->bloc_constantes->rubriques.avec_verrou_ecriture(
+                decl->bloc_constantes->rubriques.avec_verrou_écriture(
                     [fonction](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
                         POUR (rubriques) {
                             fonction->bloc_constantes->ajoute_rubrique(it);
@@ -1213,7 +1213,7 @@ void GestionnaireCode::ajoute_attentes_pour_noeud_code(NoeudExpression *noeud,
         if (racine->est_entête_fonction()) {
             auto entête = racine->comme_entête_fonction();
 
-            POUR ((*entête->bloc_constantes->rubriques.verrou_ecriture())) {
+            POUR ((*entête->bloc_constantes->rubriques.verrou_écriture())) {
                 if (it->type) {
                     types_utilisés.insère(it->type);
                 }
@@ -1978,12 +1978,12 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
 
     auto espace = unité->espace;
     auto noeud = unité->noeud;
-    if (noeud == espace->fonction_point_d_entree &&
+    if (noeud == espace->fonction_point_d_entrée &&
         espace->options.résultat == RésultatCompilation::EXÉCUTABLE) {
         noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
         noeud->comme_entête_fonction()->corps->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
     }
-    else if ((noeud == espace->fonction_point_d_entree_dynamique ||
+    else if ((noeud == espace->fonction_point_d_entrée_dynamique ||
               noeud == espace->fonction_point_de_sortie_dynamique) &&
              espace->options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         noeud->comme_entête_fonction()->drapeaux_fonction |= DrapeauxNoeudFonction::EST_RACINE;
@@ -2000,10 +2000,10 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
         auto fichier = espace->fichier(si_statique->lexème->fichier);
 
         if (bloc) {
-            POUR (*bloc->rubriques.verrou_ecriture()) {
+            POUR (*bloc->rubriques.verrou_écriture()) {
                 bloc_parent->ajoute_rubrique(it);
             }
-            POUR (*bloc->expressions.verrou_ecriture()) {
+            POUR (*bloc->expressions.verrou_écriture()) {
                 ajoute_noeud_de_haut_niveau(it, espace, fichier);
             }
         }
@@ -2274,7 +2274,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 #ifdef DEBUG_UNITES_EN_ATTENTES
     std::cerr << "Unités en attente avant la création des tâches : " << unités_en_attente.taille()
               << '\n';
-    ordonnanceuse.imprime_donnees_files(std::cerr);
+    ordonnanceuse.imprime_données_files(std::cerr);
 #endif
 
     POUR (unités_en_attente) {
@@ -2364,7 +2364,7 @@ void GestionnaireCode::crée_tâches(OrdonnanceuseTache &ordonnanceuse)
 #ifdef DEBUG_UNITES_EN_ATTENTES
     std::cerr << "Unités en attente après la création des tâches : " << unités_en_attente.taille()
               << '\n';
-    ordonnanceuse.imprime_donnees_files(std::cerr);
+    ordonnanceuse.imprime_données_files(std::cerr);
     std::cerr << "--------------------------------------------------------\n";
 #endif
 

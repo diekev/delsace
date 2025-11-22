@@ -355,7 +355,7 @@ void Programme::ajourne_pour_nouvelles_options_espace()
 
     POUR (anciennes_fonctions) {
         /* Supprime le point d'entrée. */
-        if (it == espace()->fonction_point_d_entree &&
+        if (it == espace()->fonction_point_d_entrée &&
             espace()->options.résultat != RésultatCompilation::EXÉCUTABLE) {
             continue;
         }

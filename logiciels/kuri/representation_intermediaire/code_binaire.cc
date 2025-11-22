@@ -98,7 +98,7 @@ void Chunk::initialise()
 
 void Chunk::détruit()
 {
-    mémoire::deloge_tableau("Chunk::code", code, capacité);
+    mémoire::déloge_tableau("Chunk::code", code, capacité);
     initialise();
 }
 
@@ -1328,11 +1328,11 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
             return true;
         }
 
-        auto &donnees_externe = données_exécution->données_externe;
+        auto &données_externe = données_exécution->données_externe;
         auto decl = fonction->decl;
 
         if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_IPA_COMPILATRICE)) {
-            donnees_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
+            données_externe.ptr_fonction = fonction_compilatrice_pour_ident(decl->ident);
         }
         else {
             /* Nous ne pouvons appeler une fonction prenant un pointeur de fonction car le pointeur
@@ -1353,7 +1353,7 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
                 return false;
             }
 
-            donnees_externe.ptr_fonction =
+            données_externe.ptr_fonction =
                 decl->données_externes->symbole->donne_adresse_fonction_pour_exécution();
         }
 
@@ -1363,21 +1363,21 @@ bool CompilatriceCodeBinaire::génère_code_pour_fonction(AtomeFonction const *f
         }
 
         auto type_fonction = fonction->type->comme_type_fonction();
-        donnees_externe.types_entrées.réserve(type_fonction->types_entrées.taille());
+        données_externe.types_entrées.réserve(type_fonction->types_entrées.taille());
 
         POUR (type_fonction->types_entrées) {
-            donnees_externe.types_entrées.ajoute(convertis_type_ffi(it));
+            données_externe.types_entrées.ajoute(convertis_type_ffi(it));
         }
 
         auto type_ffi_sortie = convertis_type_ffi(type_fonction->type_sortie);
-        auto nombre_arguments = static_cast<unsigned>(donnees_externe.types_entrées.taille());
-        auto ptr_types_entrees = donnees_externe.types_entrées.données();
+        auto nombre_arguments = static_cast<unsigned>(données_externe.types_entrées.taille());
+        auto ptr_types_entrées = données_externe.types_entrées.données();
 
-        auto status = ffi_prep_cif(&donnees_externe.cif,
+        auto status = ffi_prep_cif(&données_externe.cif,
                                    FFI_DEFAULT_ABI,
                                    nombre_arguments,
                                    type_ffi_sortie,
-                                   ptr_types_entrees);
+                                   ptr_types_entrées);
 
         if (status != FFI_OK) {
             espace->rapporte_erreur(
