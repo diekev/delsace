@@ -46,10 +46,10 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
 
 kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
-    auto lexeme = expr->lexème;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto lexème = expr->lexème;
+    auto fichier = espace.fichier(lexème->fichier);
     auto etendue_expr = donne_étendue_source_noeud(expr);
-    auto ligne = fichier->tampon()[lexeme->ligne];
+    auto ligne = fichier->tampon()[lexème->ligne];
     return ligne.sous_chaine(etendue_expr.colonne_début, etendue_expr.colonne_fin);
 }
 
@@ -113,7 +113,7 @@ void lance_erreur_assignation_type_differents(const Type *type_gauche,
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
 
-void lance_erreur_type_operation(const Type *type_gauche,
+void lance_erreur_type_opération(const Type *type_gauche,
                                  const Type *type_droite,
                                  EspaceDeTravail const &espace,
                                  const NoeudExpression *site)
@@ -307,9 +307,9 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
         e.ajoute_message("\nCandidate :");
 
         if (decl != nullptr) {
-            auto const &lexeme_df = decl->lexème;
-            auto fichier_df = espace.fichier(lexeme_df->fichier);
-            auto pos_df = position_lexeme(*lexeme_df);
+            auto const &lexème_df = decl->lexème;
+            auto fichier_df = espace.fichier(lexème_df->fichier);
+            auto pos_df = position_lexème(*lexème_df);
 
             e.ajoute_message(' ',
                              decl->ident->nom,
@@ -396,7 +396,7 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriqu
 void rubrique_inconnu(EspaceDeTravail const &espace,
                       NoeudExpression const *acces,
                       NoeudExpression const *rubrique,
-                      TypeCompose const *type)
+                      TypeComposé const *type)
 {
     auto rubriques = kuri::ensemble<kuri::chaine_statique>();
 
@@ -485,8 +485,8 @@ void imprime_site(Enchaineuse &enchaineuse,
         return;
     }
 
-    auto lexeme = site->lexème;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto lexème = site->lexème;
+    auto fichier = espace.fichier(lexème->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {
         enchaineuse << fichier->chemin();
@@ -494,10 +494,10 @@ void imprime_site(Enchaineuse &enchaineuse,
     else {
         enchaineuse << ".chaine_ajoutées";
     }
-    enchaineuse << ':' << lexeme->ligne + 1 << '\n';
+    enchaineuse << ':' << lexème->ligne + 1 << '\n';
 
     auto const etendue = donne_étendue_source_noeud(site);
-    auto const pos = position_lexeme(*lexeme);
+    auto const pos = position_lexème(*lexème);
     auto const pos_mot = pos.pos;
     auto const ligne = fichier->tampon()[pos.indice_ligne];
     enchaineuse << ligne;

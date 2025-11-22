@@ -68,7 +68,7 @@ struct InterfaceKuri {
 
 #undef DECLARATION_RUBRIQUE
 
-    NoeudDéclarationEntêteFonction *declaration_pour_ident(const IdentifiantCode *ident);
+    NoeudDéclarationEntêteFonction *déclaration_pour_ident(const IdentifiantCode *ident);
 
     void mute_rubrique(NoeudDéclarationEntêteFonction *noeud);
 };
