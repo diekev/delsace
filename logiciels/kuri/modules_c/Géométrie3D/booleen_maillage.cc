@@ -311,7 +311,7 @@ static math::vec3f calcule_centroide(std::vector<EnrichedPolyhedron::Point_3> ve
     return math::vec3f(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 }
 
-bool construit_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
+bool construis_maillage_pour_cellules_voronoi(Maillage const &maillage_a,
                                               dls::tableau<CelluleVoronoi> const &cellules,
                                               const ParametresFracture &params,
                                               Maillage &maillage_sortie)

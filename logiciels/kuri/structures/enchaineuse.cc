@@ -59,18 +59,18 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
             taille_a_ecrire -= taille_max;
         }
 
-        auto decalage = taille_max;
+        auto décalage = taille_max;
         while (taille_a_ecrire > 0) {
             ajoute_tampon();
             tampon = tampon_courant;
 
             auto taille_ecrite = std::min(taille_a_ecrire, static_cast<int64_t>(TAILLE_TAMPON));
 
-            memcpy(&tampon->donnees[0], c_str + decalage, static_cast<size_t>(taille_ecrite));
+            memcpy(&tampon->donnees[0], c_str + décalage, static_cast<size_t>(taille_ecrite));
             tampon->occupe += static_cast<int>(taille_ecrite);
 
             taille_a_ecrire -= taille_ecrite;
-            decalage += static_cast<int>(taille_ecrite);
+            décalage += static_cast<int>(taille_ecrite);
         }
     }
 }
@@ -161,11 +161,11 @@ kuri::chaine Enchaineuse::chaine() const
     résultat.redimensionne(taille);
 
     auto tampon = &m_tampon_base;
-    auto decalage = 0;
+    auto décalage = 0;
 
     while (tampon) {
-        memcpy(&résultat[decalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
-        decalage += tampon->occupe;
+        memcpy(&résultat[décalage], &tampon->donnees[0], static_cast<size_t>(tampon->occupe));
+        décalage += tampon->occupe;
         tampon = tampon->suivant;
     }
 

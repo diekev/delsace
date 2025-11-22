@@ -126,7 +126,7 @@ std::optional<ErreurCoulisse> CoulisseMV::crée_exécutable_impl(const ArgsLiais
     métaprogramme->données_constantes = données_constantes.données_constantes;
 
     /* Nous devons utiliser nos propres données pour les globales, afin que les pointeurs utilisés
-     * pour les initialisations des globales (`ptr_données_globales + decalage` ici-bas)
+     * pour les initialisations des globales (`ptr_données_globales + décalage` ici-bas)
      * correspondent aux pointeurs calculés dans la Machine Virtuelle (`ptr_données_globales +
      * globale.adresse` là-bas). */
     auto ptr_données_globales = métaprogramme->données_globales.données();

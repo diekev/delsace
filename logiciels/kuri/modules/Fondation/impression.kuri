@@ -283,7 +283,7 @@ enchaine :: fonc (chns: ...chaine) -> chaine
 imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: r32) -> rien
 {
     // Mets le nombre dans notre union magique afin d'extraire les composants
-    num := construit_entier_ou_décimal(f)
+    num := construis_entier_ou_décimal(f)
 
     // Défini le caractère pour le signe
     si num.est_négatif() {
@@ -318,7 +318,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     // Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
     // être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
     // du point binaire, ou 4 mots pour la part entière.
-    part_entière := construit_nombre_haute_précision() // haute_précision<4>
+    part_entière := construis_nombre_haute_précision() // haute_précision<4>
 
     // Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
     // nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
@@ -345,7 +345,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     // Nous avons une mantisse de 23-bits à droite du point binaire et ceci
     // peut être décalé de 126 positions vers la droite, donc 149 bits, ou
     // 5 mots de 32-bits.
-    frac := construit_nombre_haute_précision() // haute_précision<5>
+    frac := construis_nombre_haute_précision() // haute_précision<5>
 
     // Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
     // la part fractionnelle.
@@ -480,7 +480,7 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
     f := r32_depuis_eini(format.valeur)
 
     // Mets le nombre dans notre union magique afin d'extraire les composants
-    num := construit_entier_ou_décimal(f)
+    num := construis_entier_ou_décimal(f)
 
     // Défini le caractère pour le signe
     si num.est_négatif() {

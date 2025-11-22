@@ -82,7 +82,7 @@ initialise_contexte_ssl_client :: fonc () -> ErreurOuContexteSSL
     ctx := SSL_CTX_new(method)
 
     si ctx == nul {
-        //converti_erreur_ssl(nul, 0)
+        //convertis_erreur_ssl(nul, 0)
         retourne ErreurInitialisationSSL.NePeutCréerContexte
     }
 
@@ -104,7 +104,7 @@ initialise_contexte_ssl_serveur :: fonc () -> ErreurOuContexteSSL
     ctx := SSL_CTX_new(method)
 
     si ctx == nul {
-        //converti_erreur_ssl(nul, 0)
+        //convertis_erreur_ssl(nul, 0)
         retourne ErreurInitialisationSSL.NePeutCréerContexte
     }
 
@@ -123,7 +123,7 @@ ErreurSSL :: erreur {
     AppelSystème
 }
 
-converti_erreur_ssl :: fonc (ssl: *ssl_st, code_erreur: z32) -> ErreurSSL
+convertis_erreur_ssl :: fonc (ssl: *ssl_st, code_erreur: z32) -> ErreurSSL
 {
     erreur_ssl := SSL_get_error(ssl, code_erreur)
 
@@ -178,17 +178,17 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErre
     m_ssl := SSL_new(ctx_ssl)
 
     si m_ssl == nul {
-        retourne converti_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0)
     }
 
     si SSL_set_fd(m_ssl, fichier.desc comme z32) == 0 {
-        retourne converti_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0)
     }
 
     connexion := SSL_connect(m_ssl)
 
     si connexion <= 0 {
-        retourne converti_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0)
     }
 
     fichier_ssl: FichierSSL
@@ -202,7 +202,7 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErre
     taille := SSL_write(fichier.ssl, texte.pointeur, texte.taille comme z32)
 
     si taille <= 0 {
-        retourne converti_erreur_ssl(fichier.ssl, taille)
+        retourne convertis_erreur_ssl(fichier.ssl, taille)
     }
 
     retourne 0 comme ErreurSSL
@@ -231,10 +231,10 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
             arrête
         }
         sinon {
-            err := converti_erreur_ssl(fichier.ssl, taille)
+            err := convertis_erreur_ssl(fichier.ssl, taille)
 
             si err != ErreurSSL.Aucune && err != ErreurSSL.RetourneZéro {
-                retourne converti_erreur_ssl(fichier.ssl, taille)
+                retourne convertis_erreur_ssl(fichier.ssl, taille)
             }
         }
     }
