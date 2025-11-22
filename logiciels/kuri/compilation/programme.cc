@@ -48,12 +48,12 @@ Programme *Programme::crée_pour_espace(EspaceDeTravail *espace)
     return résultat;
 }
 
-Programme *Programme::crée_pour_metaprogramme(EspaceDeTravail *espace,
-                                              MetaProgramme *metaprogramme)
+Programme *Programme::crée_pour_métaprogramme(EspaceDeTravail *espace,
+                                              MétaProgramme *métaprogramme)
 {
     Programme *résultat = Programme::crée(espace);
-    résultat->m_pour_métaprogramme = metaprogramme;
-    résultat->m_coulisse = Coulisse::crée_pour_metaprogramme();
+    résultat->m_pour_métaprogramme = métaprogramme;
+    résultat->m_coulisse = Coulisse::crée_pour_métaprogramme();
     return résultat;
 }
 
@@ -1656,7 +1656,7 @@ static kuri::chaine_statique donne_classe_type(Type const &type)
     return "inconnu";
 }
 
-static void imprime_déclaration_type_ri(TypeCompose const *type_structure,
+static void imprime_déclaration_type_ri(TypeComposé const *type_structure,
                                         std::ostream &os,
                                         OptionsImpressionType options)
 {
