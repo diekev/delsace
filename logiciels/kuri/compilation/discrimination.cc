@@ -435,7 +435,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
 {
     auto type_pour_la_recherche = type;
     if (type->est_type_type_de_données()) {
-        type_pour_la_recherche = m_espace->typeuse.type_type_de_donnees_;
+        type_pour_la_recherche = m_espace->typeuse.type_type_de_données_;
     }
 
     auto résultat = trouve_opérateur_pour_expression(

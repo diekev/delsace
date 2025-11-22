@@ -133,11 +133,11 @@ bool Bloc::supprime_instructions_à_supprimer()
     }
 
     auto nouvelle_fin = std::stable_partition(
-        instructions.debut(), instructions.fin(), [](Instruction *inst) {
+        instructions.début(), instructions.fin(), [](Instruction *inst) {
             return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
         });
 
-    auto nouvelle_taille = std::distance(instructions.debut(), nouvelle_fin);
+    auto nouvelle_taille = std::distance(instructions.début(), nouvelle_fin);
     instructions.redimensionne(static_cast<int>(nouvelle_taille));
 
     instructions_à_supprimer = false;
@@ -268,7 +268,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
-        mémoire::deloge("Bloc", it);
+        mémoire::déloge("Bloc", it);
     }
     blocs.efface();
 }
