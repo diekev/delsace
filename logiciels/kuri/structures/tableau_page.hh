@@ -62,7 +62,7 @@ struct tableau_page {
                 it.données[i].~T();
             }
 
-            mémoire::deloge_tableau("page", it.données, TAILLE_PAGE);
+            mémoire::déloge_tableau("page", it.données, TAILLE_PAGE);
         }
     }
 

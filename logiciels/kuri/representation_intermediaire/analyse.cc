@@ -234,7 +234,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
         return true;
     }
 
-    POUR (atome->params_entrees) {
+    POUR (atome->params_entrées) {
         it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
@@ -264,7 +264,7 @@ static bool détecte_déclarations_inutilisées(EspaceDeTravail &espace, AtomeFo
 
     kuri::tableau<InstructionAllocation *> allocs_inutilisées;
 
-    POUR (atome->params_entrees) {
+    POUR (atome->params_entrées) {
         if (it->nombre_utilisations != 0) {
             continue;
         }
@@ -1030,7 +1030,7 @@ static bool fonction_est_pure(AtomeFonction const *fonction)
         return false;
     }
 
-    POUR (fonction->params_entrees) {
+    POUR (fonction->params_entrées) {
         it->drapeaux |= DrapeauxAtome::EST_PARAMÈTRE_FONCTION;
     }
 
