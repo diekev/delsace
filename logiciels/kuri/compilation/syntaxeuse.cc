@@ -564,7 +564,7 @@ void Syntaxeuse::quand_commence()
         récipiente->corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF, false);
         récipiente->corps->est_corps_texte = false;
         récipiente->drapeaux_fonction &= ~DrapeauxNoeudFonction::EST_MÉTAPROGRAMME;
-        fonctions_courantes.depile();
+        fonctions_courantes.dépile();
     }
     else if (métaprogramme->corps_texte_pour_structure) {
         auto récipiente = métaprogramme->corps_texte_pour_structure;
@@ -2010,32 +2010,32 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::ESP_UNAIRE:
             {
-                if (noeud->prend_référence) {
+                if (noeud->prends_référence) {
                     rapporte_erreur("redéfinition d'une prise de référence");
                 }
 
-                if (noeud->prend_pointeur) {
+                if (noeud->prends_pointeur) {
                     rapporte_erreur("définition d'une prise de référence alors qu'une prise de "
                                     "pointeur fut spécifiée");
                 }
 
-                noeud->prend_référence = true;
+                noeud->prends_référence = true;
                 consomme();
                 break;
             }
             case GenreLexème::FOIS:
             case GenreLexème::FOIS_UNAIRE:
             {
-                if (noeud->prend_pointeur) {
+                if (noeud->prends_pointeur) {
                     rapporte_erreur("redéfinition d'une prise de pointeur");
                 }
 
-                if (noeud->prend_référence) {
+                if (noeud->prends_référence) {
                     rapporte_erreur("définition d'une prise de pointeur alors qu'une prise de "
                                     "référence fut spécifiée");
                 }
 
-                noeud->prend_pointeur = true;
+                noeud->prends_pointeur = true;
                 consomme();
                 break;
             }
@@ -2710,7 +2710,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         copie_tablet_tableau(params_sortie, résultat->types_sortie);
 
         // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
-        bloc_constantes_polymorphiques.depile();
+        bloc_constantes_polymorphiques.dépile();
         dépile_état();
         return résultat;
     }
@@ -2736,7 +2736,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     noeud->bloc_paramètres = bloc_paramètres;
     bloc_paramètres->appartiens_à_fonction = noeud;
 
-    auto bloc_constantes_courant = bloc_constantes_polymorphiques.depile();
+    auto bloc_constantes_courant = bloc_constantes_polymorphiques.dépile();
     assert_rappel(bloc_constantes_courant == bloc_constantes,
                   [&]() { dbg() << erreur::imprime_site(*m_unité->espace, noeud); });
     if (bloc_constantes->nombre_de_rubriques() != 0) {
@@ -2801,7 +2801,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
         noeud_corps->bloc_parent = bloc_paramètres;
 
         analyse_annotations(noeud->annotations);
-        fonctions_courantes.depile();
+        fonctions_courantes.dépile();
         m_fonction_courante_retourne_plusieurs_valeurs = ancien_état_retour;
     }
 
@@ -3225,7 +3225,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
 
         copie_tablet_tableau(params, noeud->params);
 
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        auto bloc_constantes = bloc_constantes_polymorphiques.dépile();
         if (bloc_constantes->nombre_de_rubriques() != 0) {
             noeud->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
         }
@@ -3276,7 +3276,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_opérateur()
         noeud_corps->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
 
         analyse_annotations(noeud->annotations);
-        fonctions_courantes.depile();
+        fonctions_courantes.dépile();
 
         /* dépile le bloc des paramètres */
         m_contexte->assembleuse->dépile_bloc();
@@ -3666,7 +3666,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
 
     bloc_constantes_polymorphiques.empile(noeud->bloc_constantes);
     SUR_SORTIE_PORTEE {
-        auto bloc_constantes = bloc_constantes_polymorphiques.depile();
+        auto bloc_constantes = bloc_constantes_polymorphiques.dépile();
         if (bloc_constantes->nombre_de_rubriques() != 0) {
             noeud->est_polymorphe = true;
         }
