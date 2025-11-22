@@ -72,52 +72,52 @@ static auto applique_opérateur_binaire(GenreLexème id, T a, T b)
 {
     switch (id) {
         case GenreLexème::PLUS:
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         {
             return a + b;
         }
         case GenreLexème::MOINS:
-        case GenreLexème::MOINS_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
         {
             return a - b;
         }
         case GenreLexème::FOIS:
-        case GenreLexème::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
         {
             return a * b;
         }
         case GenreLexème::DIVISE:
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         {
             return a / b;
         }
         case GenreLexème::POURCENT:
-        case GenreLexème::MODULO_EGAL:
+        case GenreLexème::MODULO_ÉGAL:
         {
             return a % b;
         }
         case GenreLexème::ESPERLUETTE:
-        case GenreLexème::ET_EGAL:
+        case GenreLexème::ET_ÉGAL:
         {
             return a & b;
         }
-        case GenreLexème::OU_EGAL:
+        case GenreLexème::OU_ÉGAL:
         case GenreLexème::BARRE:
         {
             return a | b;
         }
         case GenreLexème::CHAPEAU:
-        case GenreLexème::OUX_EGAL:
+        case GenreLexème::OUX_ÉGAL:
         {
             return a ^ b;
         }
         case GenreLexème::DECALAGE_DROITE:
-        case GenreLexème::DEC_DROITE_EGAL:
+        case GenreLexème::DEC_DROITE_ÉGAL:
         {
             return a >> b;
         }
         case GenreLexème::DECALAGE_GAUCHE:
-        case GenreLexème::DEC_GAUCHE_EGAL:
+        case GenreLexème::DEC_GAUCHE_ÉGAL:
         {
             return a << b;
         }
@@ -132,22 +132,22 @@ static auto applique_opérateur_binaire(GenreLexème id, double a, double b)
 {
     switch (id) {
         case GenreLexème::PLUS:
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         {
             return a + b;
         }
         case GenreLexème::MOINS:
-        case GenreLexème::MOINS_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
         {
             return a - b;
         }
         case GenreLexème::FOIS:
-        case GenreLexème::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
         {
             return a * b;
         }
         case GenreLexème::DIVISE:
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         {
             return a / b;
         }
@@ -166,7 +166,7 @@ static auto applique_opérateur_binaire_comp(GenreLexème id, T a, T b)
         {
             return a < b;
         }
-        case GenreLexème::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_ÉGAL:
         {
             return a <= b;
         }
@@ -174,7 +174,7 @@ static auto applique_opérateur_binaire_comp(GenreLexème id, T a, T b)
         {
             return a > b;
         }
-        case GenreLexème::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_ÉGAL:
         {
             return a >= b;
         }
