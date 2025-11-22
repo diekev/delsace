@@ -16,7 +16,7 @@ struct ArbreAplatis;
 struct Enchaineuse;
 struct EspaceDeTravail;
 struct Fichier;
-struct MetaProgramme;
+struct MétaProgramme;
 struct Programme;
 
 #define ENUMERE_RAISON_D_ETRE(O)                                                                  \
@@ -68,7 +68,7 @@ std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être);
 
 struct ÉtatFileUnitésChargementFile;
 
-struct UniteCompilation {
+struct UnitéCompilation {
     enum class État : uint8_t {
 #define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre) Genre,
         ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
@@ -105,8 +105,8 @@ struct UniteCompilation {
     };
 
     /* Pour l'état de chargement des fichiers. */
-    UniteCompilation *suivante = nullptr;
-    UniteCompilation *précédente = nullptr;
+    UnitéCompilation *suivante = nullptr;
+    UnitéCompilation *précédente = nullptr;
     ÉtatFileUnitésChargementFile *enfilée_dans = nullptr;
 
   private:
@@ -132,7 +132,7 @@ struct UniteCompilation {
     union {
         Fichier *fichier = nullptr;
         NoeudExpression *noeud;
-        MetaProgramme *metaprogramme;
+        MétaProgramme *métaprogramme;
         Programme *programme;
         Message *message;
         Type *type;
@@ -146,11 +146,11 @@ struct UniteCompilation {
 
     int nombre_de_messages_sur_lesquels_on_attend = 0;
 
-    explicit UniteCompilation(EspaceDeTravail *esp) : espace(esp)
+    explicit UnitéCompilation(EspaceDeTravail *esp) : espace(esp)
     {
     }
 
-    EMPECHE_COPIE(UniteCompilation);
+    EMPECHE_COPIE(UnitéCompilation);
 
     void ajoute_attente(Attente attente);
 
@@ -283,20 +283,20 @@ struct UniteCompilation {
     Attente const *première_attente_bloquée_ou_non() const;
 };
 
-const char *chaine_état_unité_compilation(UniteCompilation::État état);
-std::ostream &operator<<(std::ostream &os, UniteCompilation::État état);
+const char *chaine_état_unité_compilation(UnitéCompilation::État état);
+std::ostream &operator<<(std::ostream &os, UnitéCompilation::État état);
 
 /* ------------------------------------------------------------------------- */
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité);
 
-void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité);
 
 /** Imprime Unité.état ainsi que l'historique et les attentes de l'unité. */
-void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité);
+void imprime_état_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité);
 
-void imprime_noeud_indice_courant_unité(std::ostream &os, const UniteCompilation *unité);
+void imprime_noeud_indice_courant_unité(std::ostream &os, const UnitéCompilation *unité);
 
 /** \} */

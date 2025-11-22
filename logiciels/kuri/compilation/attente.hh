@@ -13,9 +13,9 @@ struct Attente;
 struct EspaceDeTravail;
 struct Fichier;
 struct Message;
-struct MetaProgramme;
+struct MétaProgramme;
 struct OpérateurBinaire;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 using Type = NoeudDéclarationType;
 
@@ -42,7 +42,7 @@ struct ConditionBlocageAttente {
 struct InfoTypeAttente {
     /* Rappel pour retourner l'unité de compilation de l'objet attendu. Peut retourner nul si
      * l'objet n'a pas d'unité de compilation (par exemple un symbole indéfini n'a pas d'unité). */
-    UniteCompilation *(*unité_pour_attente)(Attente const &attente);
+    UnitéCompilation *(*unité_pour_attente)(Attente const &attente);
 
     /* Rappel pour retourner la condition qui fait que l'attente est bloquée, que la compilation ne
      * peut continuer. */
@@ -56,7 +56,7 @@ struct InfoTypeAttente {
     bool (*est_résolue)(EspaceDeTravail *espace, UniteCompilation const *unité, Attente &attente);
 
     /* Rappel pour émettre erreur selon l'attente. */
-    void (*émets_erreur)(UniteCompilation const *unité, Attente const &attente);
+    void (*émets_erreur)(UnitéCompilation const *unité, Attente const &attente);
 };
 
 /** \} */
@@ -97,12 +97,12 @@ struct InfoDeType {
 };
 
 struct DonnéesAttenteNoeudCode {
-    UniteCompilation *unité = nullptr;
+    UnitéCompilation *unité = nullptr;
     NoeudExpression *noeud = nullptr;
 };
 
 struct DonnéesAttenteMessage {
-    UniteCompilation *unité = nullptr;
+    UnitéCompilation *unité = nullptr;
     Message *message = nullptr;
 };
 
@@ -117,7 +117,7 @@ struct TypeDéclaration {
 };
 
 using AttenteSurType = AttenteSur<Type const *>;
-using AttenteSurMétaProgramme = AttenteSur<MetaProgramme *>;
+using AttenteSurMétaProgramme = AttenteSur<MétaProgramme *>;
 using AttenteSurDéclaration = AttenteSur<NoeudDéclaration *>;
 using AttenteSurTypeDéclaration = AttenteSur<TypeDéclaration>;
 using AttenteSurSymbole = AttenteSur<SymboleAttendu>;
@@ -236,10 +236,10 @@ struct Attente {
         return AttenteSurType{type};
     }
 
-    static Attente sur_métaprogramme(MetaProgramme *metaprogramme)
+    static Attente sur_métaprogramme(MétaProgramme *métaprogramme)
     {
-        assert(metaprogramme);
-        return AttenteSurMétaProgramme{metaprogramme};
+        assert(métaprogramme);
+        return AttenteSurMétaProgramme{métaprogramme};
     }
 
     static Attente sur_déclaration(NoeudDéclaration *déclaration)
@@ -266,7 +266,7 @@ struct Attente {
         return AttenteSurOpérateur{operateur};
     }
 
-    static Attente sur_message(UniteCompilation *unité, Message *message)
+    static Attente sur_message(UnitéCompilation *unité, Message *message)
     {
         assert(message);
         return AttenteSurMessage{DonnéesAttenteMessage{unité, message}};
@@ -278,7 +278,7 @@ struct Attente {
         return AttenteSurRI{atome};
     }
 
-    static Attente sur_noeud_code(UniteCompilation *unité, NoeudExpression *noeud)
+    static Attente sur_noeud_code(UnitéCompilation *unité, NoeudExpression *noeud)
     {
         assert(noeud);
         return AttenteSurNoeudCode{DonnéesAttenteNoeudCode{unité, noeud}};
@@ -331,7 +331,7 @@ struct Attente {
         return std::get<AttenteSurType>(attente).valeur;
     }
 
-    MetaProgramme *métaprogramme() const
+    MétaProgramme *métaprogramme() const
     {
         assert(est<AttenteSurMétaProgramme>());
         return std::get<AttenteSurMétaProgramme>(attente).valeur;

@@ -19,11 +19,11 @@
 #include "unite_compilation.hh"
 #include "validation_semantique.hh"
 
-struct UniteCompilation;
+struct UnitéCompilation;
 
 #define NOM_RAPPEL_POUR_UNITÉ(__nom__) unité_pour_attente_##__nom__
 #define RAPPEL_POUR_UNITÉ(__nom__)                                                                \
-    static UniteCompilation *NOM_RAPPEL_POUR_UNITÉ(__nom__)(Attente const &attente)
+    static UnitéCompilation *NOM_RAPPEL_POUR_UNITÉ(__nom__)(Attente const &attente)
 
 #define NOM_RAPPEL_POUR_COMMENTAIRE(__nom__) commentaire_pour_##__nom__
 #define RAPPEL_POUR_COMMENTAIRE(__nom__)                                                          \
@@ -37,7 +37,7 @@ struct UniteCompilation;
 
 #define NOM_RAPPEL_POUR_ERREUR(__nom__) émets_erreur_pour_attente_sur_##__nom__
 #define RAPPEL_POUR_ERREUR(__nom__)                                                               \
-    void NOM_RAPPEL_POUR_ERREUR(__nom__)(UniteCompilation const *unité, Attente const &attente)
+    void NOM_RAPPEL_POUR_ERREUR(__nom__)(UnitéCompilation const *unité, Attente const &attente)
 
 /** -----------------------------------------------------------------
  * \{ */
@@ -47,7 +47,7 @@ static ConditionBlocageAttente condition_blocage_défaut(Attente const & /*atten
     return {PhaseCompilation::PARSAGE_TERMINÉ};
 }
 
-static void émets_erreur_pour_attente_défaut(UniteCompilation const *unité, Attente const &attente)
+static void émets_erreur_pour_attente_défaut(UnitéCompilation const *unité, Attente const &attente)
 {
     auto espace = unité->espace;
     auto noeud = unité->noeud;
@@ -315,13 +315,13 @@ RAPPEL_POUR_ERREUR(opérateur)
     auto espace = unité->espace;
     auto operateur_attendu = attente.opérateur();
     if (operateur_attendu->est_expression_binaire() || operateur_attendu->est_indexage()) {
-        auto expression_operation = operateur_attendu->comme_expression_binaire();
-        auto type1 = expression_operation->opérande_gauche->type;
-        auto type2 = expression_operation->opérande_droite->type;
+        auto expression_opération = operateur_attendu->comme_expression_binaire();
+        auto type1 = expression_opération->opérande_gauche->type;
+        auto type2 = expression_opération->opérande_droite->type;
 
         auto candidats = kuri::tablet<OpérateurCandidat, 10>();
         auto résultat = cherche_candidats_opérateurs(*espace,
-                                                     expression_operation,
+                                                     expression_opération,
                                                      type1,
                                                      type2,
                                                      operateur_attendu->lexème->genre,
@@ -384,15 +384,15 @@ RAPPEL_POUR_ERREUR(opérateur)
         e.ajoute_message("{\n\tretourne ...\n}\n");
     }
     else {
-        auto expression_operation = operateur_attendu->comme_expression_unaire();
-        auto type_operande = expression_operation->opérande->type;
+        auto expression_opération = operateur_attendu->comme_expression_unaire();
+        auto type_opérande = expression_opération->opérande->type;
         espace
             ->rapporte_erreur(operateur_attendu,
                               "Je ne peux pas continuer la compilation car je "
                               "n'arrive pas à déterminer quel opérateur appeler.",
                               erreur::Genre::TYPE_INCONNU)
             .ajoute_message("\nLe type à droite de l'opérateur est ")
-            .ajoute_message(chaine_type(type_operande))
+            .ajoute_message(chaine_type(type_opérande))
             .ajoute_message("\n\nMais aucun opérateur ne correspond à ces types-là.\n\n")
             .ajoute_conseil("Si vous voulez performer une opération sur des types "
                             "non-communs, vous pouvez définir vos propres opérateurs avec "
@@ -400,7 +400,7 @@ RAPPEL_POUR_ERREUR(opérateur)
             .ajoute_message("opérateur ",
                             operateur_attendu->lexème->chaine,
                             " :: (a: ",
-                            chaine_type(type_operande),
+                            chaine_type(type_opérande),
                             ")")
             .ajoute_message(" -> TypeRetour\n")
             .ajoute_message("{\n\tretourne ...\n}\n");
@@ -416,54 +416,54 @@ InfoTypeAttente info_type_attente_sur_opérateur = {NOM_RAPPEL_POUR_UNITÉ(opér
 /** \} */
 
 /** -----------------------------------------------------------------
- * AttenteSurMetaProgramme
+ * AttenteSurMétaProgramme
  * \{ */
 
 RAPPEL_POUR_UNITÉ(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.métaprogramme();
+    auto métaprogramme_attendu = attente.métaprogramme();
     // À FAIRE(gestion) : le métaprogramme attend sur l'unité de la fonction
     // il nous faudra sans doute une raison pour l'attente (RI, CODE, etc.).
-    return metaprogramme_attendu->fonction->unité;
+    return métaprogramme_attendu->fonction->unité;
 }
 
 RAPPEL_POUR_COMMENTAIRE(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.métaprogramme();
+    auto métaprogramme_attendu = attente.métaprogramme();
     auto résultat = Enchaineuse();
-    résultat << "métaprogramme " << metaprogramme_attendu->donne_nom_pour_fichier_log();
+    résultat << "métaprogramme " << métaprogramme_attendu->donne_nom_pour_fichier_log();
 
-    if (metaprogramme_attendu->corps_texte) {
+    if (métaprogramme_attendu->corps_texte) {
         résultat << " #corps_texte pour ";
 
-        if (metaprogramme_attendu->corps_texte_pour_fonction) {
-            résultat << metaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
+        if (métaprogramme_attendu->corps_texte_pour_fonction) {
+            résultat << métaprogramme_attendu->corps_texte_pour_fonction->ident->nom;
         }
-        else if (metaprogramme_attendu->corps_texte_pour_structure) {
-            résultat << metaprogramme_attendu->corps_texte_pour_structure->ident->nom;
+        else if (métaprogramme_attendu->corps_texte_pour_structure) {
+            résultat << métaprogramme_attendu->corps_texte_pour_structure->ident->nom;
         }
         else {
             résultat << " ERREUR COMPILATRICE";
         }
     }
-    else if (metaprogramme_attendu->directive) {
-        auto directive = metaprogramme_attendu->directive;
+    else if (métaprogramme_attendu->directive) {
+        auto directive = métaprogramme_attendu->directive;
         auto expression = directive->expression;
         résultat << " " << nom_humainement_lisible(expression);
     }
     else {
-        résultat << " " << metaprogramme_attendu;
+        résultat << " " << métaprogramme_attendu;
     }
 
-    résultat << " (état : " << metaprogramme_attendu->état << ")\n";
+    résultat << " (état : " << métaprogramme_attendu->état << ")\n";
 
     return résultat.chaine();
 }
 
 RAPPEL_POUR_EST_RÉSOLUE(métaprogramme)
 {
-    auto metaprogramme_attendu = attente.métaprogramme();
-    return metaprogramme_attendu->fut_exécuté();
+    auto métaprogramme_attendu = attente.métaprogramme();
+    return métaprogramme_attendu->fut_exécuté();
 }
 
 /* À FAIRE(condition blocage) : vérifie que le métaprogramme est en cours d'exécution ? */

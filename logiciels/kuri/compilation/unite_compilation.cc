@@ -25,7 +25,7 @@ const char *chaine_raison_d_être(RaisonDÊtre raison_d_être)
     return "ceci ne devrait pas arriver";
 }
 
-static UniteCompilation *unité_pour_attente(Attente const &attente)
+static UnitéCompilation *unité_pour_attente(Attente const &attente)
 {
     if (attente.info && attente.info->unité_pour_attente) {
         return attente.info->unité_pour_attente(attente);
@@ -38,7 +38,7 @@ std::ostream &operator<<(std::ostream &os, RaisonDÊtre raison_d_être)
     return os << chaine_raison_d_être(raison_d_être);
 }
 
-void UniteCompilation::ajoute_attente(Attente attente)
+void UnitéCompilation::ajoute_attente(Attente attente)
 {
     if (!est_attente_sur_symbole_précédent(attente) &&
         !est_attente_sur_opérateur_précédent(attente)) {
@@ -55,7 +55,7 @@ void UniteCompilation::ajoute_attente(Attente attente)
 #endif
 }
 
-void UniteCompilation::marque_prête(bool préserve_cycle)
+void UnitéCompilation::marque_prête(bool préserve_cycle)
 {
     état = État::EN_COURS_DE_COMPILATION;
     m_attentes.efface();
@@ -67,14 +67,14 @@ void UniteCompilation::marque_prête(bool préserve_cycle)
 #endif
 }
 
-bool UniteCompilation::est_bloquée() const
+bool UnitéCompilation::est_bloquée() const
 {
     auto attente_bloquée = première_attente_bloquée();
     if (!attente_bloquée) {
         return false;
     }
 
-    auto visitées = kuri::ensemblon<UniteCompilation const *, 16>();
+    auto visitées = kuri::ensemblon<UnitéCompilation const *, 16>();
     visitées.insère(this);
 
     auto attendue = unité_pour_attente(*attente_bloquée);
@@ -105,7 +105,7 @@ static std::optional<ConditionBlocageAttente> condition_blocage(Attente const &a
     return {};
 }
 
-Attente const *UniteCompilation::première_attente_bloquée() const
+Attente const *UnitéCompilation::première_attente_bloquée() const
 {
     POUR (m_attentes) {
         auto const condition_potentielle = condition_blocage(it);
@@ -142,7 +142,7 @@ Attente const *UniteCompilation::première_attente_bloquée() const
     return nullptr;
 }
 
-Attente const *UniteCompilation::première_attente_bloquée_ou_non() const
+Attente const *UnitéCompilation::première_attente_bloquée_ou_non() const
 {
     auto attente = première_attente_bloquée();
     if (attente) {
@@ -156,20 +156,20 @@ Attente const *UniteCompilation::première_attente_bloquée_ou_non() const
     return nullptr;
 }
 
-static void émets_erreur_pour_attente(UniteCompilation const *unite, Attente const &attente)
+static void émets_erreur_pour_attente(UnitéCompilation const *unité, Attente const &attente)
 {
     if (attente.info && attente.info->émets_erreur) {
-        attente.info->émets_erreur(unite, attente);
+        attente.info->émets_erreur(unité, attente);
     }
 }
 
-void UniteCompilation::rapporte_erreur() const
+void UnitéCompilation::rapporte_erreur() const
 {
     auto attente = première_attente_bloquée();
     émets_erreur_pour_attente(this, *attente);
 }
 
-kuri::chaine UniteCompilation::chaine_attentes_récursives() const
+kuri::chaine UnitéCompilation::chaine_attentes_récursives() const
 {
     Enchaineuse fc;
 
@@ -182,7 +182,7 @@ kuri::chaine UniteCompilation::chaine_attentes_récursives() const
         fc << "    " << commentaire << " est bloquée !\n";
     }
 
-    kuri::ensemble<UniteCompilation const *> unités_visitées;
+    kuri::ensemble<UnitéCompilation const *> unités_visitées;
     unités_visitées.insère(this);
 
     while (attendue) {
@@ -219,10 +219,10 @@ static bool attente_est_résolue(EspaceDeTravail *espace,
     return true;
 }
 
-UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
+UnitéCompilation::ÉtatAttentes UnitéCompilation::détermine_état_attentes()
 {
     if (est_prête()) {
-        return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
+        return UnitéCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
     auto toutes_les_attentes_sont_résolues = true;
@@ -262,27 +262,27 @@ UniteCompilation::ÉtatAttentes UniteCompilation::détermine_état_attentes()
 
     if (toutes_les_attentes_sont_résolues) {
         marque_prête(false);
-        return UniteCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
+        return UnitéCompilation::ÉtatAttentes::ATTENTES_RÉSOLUES;
     }
 
     if (est_bloquée()) {
-        return UniteCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
+        return UnitéCompilation::ÉtatAttentes::ATTENTES_BLOQUÉES;
     }
 
     if (attente_sur_symbole) {
         marque_prête_pour_attente_sur_symbole();
-        return UniteCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU;
+        return UnitéCompilation::ÉtatAttentes::UN_SYMBOLE_EST_ATTENDU;
     }
 
     if (attente_sur_opérateur) {
         marque_prête_pour_attente_sur_opérateur(attente_sur_opérateur.value());
-        return UniteCompilation::ÉtatAttentes::UN_OPÉRATEUR_EST_ATTENDU;
+        return UnitéCompilation::ÉtatAttentes::UN_OPÉRATEUR_EST_ATTENDU;
     }
 
-    return UniteCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES;
+    return UnitéCompilation::ÉtatAttentes::ATTENTES_NON_RÉSOLUES;
 }
 
-void UniteCompilation::marque_prête_pour_attente_sur_symbole()
+void UnitéCompilation::marque_prête_pour_attente_sur_symbole()
 {
     auto attente_courante = m_attentes[0];
     auto préserve_cycle = false;
@@ -296,7 +296,7 @@ void UniteCompilation::marque_prête_pour_attente_sur_symbole()
     m_attente_sur_symbole_précédente = attente_courante.symbole();
 }
 
-bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) const
+bool UnitéCompilation::est_attente_sur_symbole_précédent(Attente attente) const
 {
     if (!attente.est<AttenteSurSymbole>()) {
         return false;
@@ -305,7 +305,7 @@ bool UniteCompilation::est_attente_sur_symbole_précédent(Attente attente) cons
     return m_attente_sur_symbole_précédente == attente.symbole();
 }
 
-void UniteCompilation::marque_prête_pour_attente_sur_opérateur(Attente attente)
+void UnitéCompilation::marque_prête_pour_attente_sur_opérateur(Attente attente)
 {
     auto préserve_cycle = false;
 
@@ -318,7 +318,7 @@ void UniteCompilation::marque_prête_pour_attente_sur_opérateur(Attente attente
     m_attente_sur_opérateur_précédente = attente.opérateur();
 }
 
-bool UniteCompilation::est_attente_sur_opérateur_précédent(Attente attente) const
+bool UnitéCompilation::est_attente_sur_opérateur_précédent(Attente attente) const
 {
     if (!attente.est<AttenteSurOpérateur>()) {
         return false;
@@ -327,7 +327,7 @@ bool UniteCompilation::est_attente_sur_opérateur_précédent(Attente attente) c
     return m_attente_sur_opérateur_précédente == attente.opérateur();
 }
 
-int64_t UniteCompilation::mémoire_utilisée() const
+int64_t UnitéCompilation::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
     résultat += m_attentes.taille_mémoire();
@@ -337,10 +337,10 @@ int64_t UniteCompilation::mémoire_utilisée() const
     return résultat;
 }
 
-const char *chaine_état_unité_compilation(UniteCompilation::État état)
+const char *chaine_état_unité_compilation(UnitéCompilation::État état)
 {
 #define ENUMERE_ETAT_UNITE_COMPILATION_EX(Genre)                                                  \
-    case UniteCompilation::État::Genre:                                                           \
+    case UnitéCompilation::État::Genre:                                                           \
         return #Genre;
     switch (état) {
         ENUMERE_ETAT_UNITE_COMPILATION(ENUMERE_ETAT_UNITE_COMPILATION_EX)
@@ -349,7 +349,7 @@ const char *chaine_état_unité_compilation(UniteCompilation::État état)
     return "ceci ne devrait pas arriver";
 }
 
-std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
+std::ostream &operator<<(std::ostream &os, UnitéCompilation::État état)
 {
     return os << chaine_état_unité_compilation(état);
 }
@@ -358,7 +358,7 @@ std::ostream &operator<<(std::ostream &os, UniteCompilation::État état)
 /** \name Fonctions auxilliaires pour le débogage.
  * \{ */
 
-void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
+void imprime_historique_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité)
 {
     auto historique = unité->donne_historique();
     POUR (historique) {
@@ -366,7 +366,7 @@ void imprime_historique_unité(Enchaineuse &enchaineuse, const UniteCompilation 
     }
 }
 
-void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
+void imprime_attentes_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité)
 {
     POUR (unité->donne_attentes()) {
         if (it.info && it.info->commentaire) {
@@ -378,7 +378,7 @@ void imprime_attentes_unité(Enchaineuse &enchaineuse, const UniteCompilation *u
     }
 }
 
-void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unité)
+void imprime_état_unité(Enchaineuse &enchaineuse, const UnitéCompilation *unité)
 {
     enchaineuse << "-- " << unité->donne_état() << '\n';
 #ifdef ENREGISTRE_HISTORIQUE
@@ -389,7 +389,7 @@ void imprime_état_unité(Enchaineuse &enchaineuse, const UniteCompilation *unit
     imprime_attentes_unité(enchaineuse, unité);
 }
 
-void imprime_noeud_indice_courant_unité(std::ostream &os, UniteCompilation const *unité)
+void imprime_noeud_indice_courant_unité(std::ostream &os, UnitéCompilation const *unité)
 {
     auto arbre_aplatis = unité->arbre_aplatis;
     if (!arbre_aplatis) {
