@@ -626,7 +626,7 @@ Type *SyntaxeuseRI::crée_type_pointeur(const Lexème *lexème, Type *type_point
 
 Type *SyntaxeuseRI::crée_type_référence(const Lexème *lexème, Type *type_pointé)
 {
-    return m_typeuse.type_reference_pour(type_pointé);
+    return m_typeuse.type_référence_pour(type_pointé);
 }
 
 Type *SyntaxeuseRI::crée_type_tableau_dynamique(const Lexème *crochet_ouvrant,
@@ -674,7 +674,7 @@ Type *SyntaxeuseRI::crée_type_nomimal(kuri::tableau_statique<Lexème *> lexème
 
 Type *SyntaxeuseRI::crée_type_basique(const Lexème *lexème)
 {
-    return m_typeuse.type_pour_lexeme(lexème->genre);
+    return m_typeuse.type_pour_lexème(lexème->genre);
 }
 
 Type *SyntaxeuseRI::crée_type_fonction(const Lexème *lexème,
@@ -882,7 +882,7 @@ void SyntaxeuseRI::crée_déclaration_type_structure(const DonnéesTypeComposé 
     auto structure = déclaration->comme_type_structure();
 
     POUR (données.rubriques) {
-        auto rubrique_type = RubriqueTypeCompose{};
+        auto rubrique_type = RubriqueTypeComposé{};
         rubrique_type.nom = it.nom->ident;
         rubrique_type.type = it.type;
         structure->rubriques.ajoute(rubrique_type);
@@ -909,7 +909,7 @@ void SyntaxeuseRI::crée_déclaration_type_union(const DonnéesTypeComposé &don
     auto structure = déclaration->comme_type_union();
 
     POUR (données.rubriques) {
-        auto rubrique_type = RubriqueTypeCompose{};
+        auto rubrique_type = RubriqueTypeComposé{};
         rubrique_type.nom = it.nom->ident;
         rubrique_type.type = it.type;
         structure->rubriques.ajoute(rubrique_type);
