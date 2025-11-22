@@ -30,5 +30,5 @@ struct SiteSource {
     {
     }
 
-    static SiteSource cree(Fichier const *fichier, Lexème const *lexeme);
+    static SiteSource crée(Fichier const *fichier, Lexème const *lexème);
 };

@@ -19,12 +19,12 @@
 struct Compilatrice;
 struct EspaceDeTravail;
 struct Lexème;
-struct MetaProgramme;
+struct MétaProgramme;
 struct TransformationType;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 using Type = NoeudDéclarationType;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 
 namespace erreur {
@@ -60,7 +60,7 @@ inline bool est_ok(RésultatValidation const &résultat)
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
  * mais également éviter de construire les différentes structures de données y utilisées;
  * ces constructions se voyant dans les profils d'exécution, notamment pour les
- * DonneesAssignations. */
+ * DonnéesAssignations. */
 struct ContexteValidationDéclaration {
     struct DéclarationEtRéférence {
         NoeudExpression *ref_decl = nullptr;
@@ -82,10 +82,10 @@ struct ContexteValidationDéclaration {
 
     /* Les données finales pour les assignations, faisant correspondre les expressions aux
      * variables. */
-    kuri::tablet<DonneesAssignations, 6> données_assignations{};
+    kuri::tablet<DonnéesAssignations, 6> données_assignations{};
 
     /* Données temporaires pour la constructions des donnees_assignations. */
-    DonneesAssignations données_temp{};
+    DonnéesAssignations données_temp{};
 };
 
 /* ------------------------------------------------------------------------- */
@@ -121,7 +121,7 @@ struct Sémanticienne {
     Contexte *m_contexte = nullptr;
     AssembleuseArbre *m_assembleuse = nullptr;
 
-    UniteCompilation *m_unité = nullptr;
+    UnitéCompilation *m_unité = nullptr;
     EspaceDeTravail *m_espace = nullptr;
 
     double m_temps_chargement = 0.0;
@@ -148,7 +148,7 @@ struct Sémanticienne {
     void réinitialise();
     void définis_contexte(Contexte *contexte);
 
-    RésultatValidation valide(UniteCompilation *unité);
+    RésultatValidation valide(UnitéCompilation *unité);
 
     NoeudDéclarationEntêteFonction *fonction_courante() const;
 
@@ -203,8 +203,8 @@ struct Sémanticienne {
     RésultatValidation valide_déclaration_constante(NoeudDéclarationConstante *decl);
     RésultatValidation valide_assignation(NoeudAssignation *inst);
     RésultatValidation valide_assignation_multiple(NoeudAssignationMultiple *inst);
-    RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
-    RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
+    RésultatValidation valide_arbre_aplatis(NoeudExpression *déclaration);
+    RésultatValidation valide_arbre_aplatis(NoeudExpression *déclaration,
                                             ArbreAplatis *arbre_aplatis);
     RésultatValidation valide_expression_retour(NoeudInstructionRetour *inst_retour);
     RésultatValidation valide_instruction_retourne_multiple(
@@ -252,7 +252,7 @@ struct Sémanticienne {
                                             int64_t indice_acces);
     void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
                                           NoeudExpression *rubrique,
-                                          TypeCompose *type);
+                                          TypeComposé *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
@@ -277,7 +277,7 @@ struct Sémanticienne {
 
     NoeudExpression *racine_validation() const;
 
-    MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
+    MétaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
 
     CodeRetourValidation valide_expression_pour_condition(NoeudExpression const *condition,
                                                           bool permet_déclaration);

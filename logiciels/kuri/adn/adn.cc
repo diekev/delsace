@@ -208,9 +208,9 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
             os << "\tvoid ajoute_rubrique_au_debut(NoeudDéclaration *decl);\n";
             os << "\tvoid fusionne_rubriques(NoeudBloc *de);\n";
             os << "\tNoeudDéclaration *rubrique_pour_index(int index) const;\n";
-            os << "\tNoeudDéclaration *declaration_pour_ident(IdentifiantCode const "
+            os << "\tNoeudDéclaration *déclaration_pour_ident(IdentifiantCode const "
                   "*ident_recherche) const;\n";
-            os << "\tNoeudDéclaration *declaration_avec_meme_ident_que(NoeudExpression const "
+            os << "\tNoeudDéclaration *déclaration_avec_meme_ident_que(NoeudExpression const "
                   "*expr) const;\n";
             os << "\tvoid ajoute_expression(NoeudExpression *expr);\n";
         }
@@ -898,7 +898,7 @@ void SyntaxeuseADN::parse_struct()
     while (apparie(GenreLexème::AROBASE)) {
         consomme();
 
-        // utilise 'lexeme.chaine' car 'comme' est un mot-clé, il n'y a pas d'identifiant
+        // utilise 'lexème.chaine' car 'comme' est un mot-clé, il n'y a pas d'identifiant
         if (apparie("code")) {
             consomme();
 

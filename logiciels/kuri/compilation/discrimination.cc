@@ -19,7 +19,7 @@
 static RésultatValidation valide_présence_rubrique(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
-    TypeCompose *type,
+    TypeComposé *type,
     kuri::ensemblon<IdentifiantCode const *, 16> const &rubriques_rencontrés)
 {
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
@@ -157,7 +157,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
-                                               InformationRubriqueTypeCompose const &info_rubrique,
+                                               InformationRubriqueTypeComposé const &info_rubrique,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
