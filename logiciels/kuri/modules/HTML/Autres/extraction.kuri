@@ -232,7 +232,7 @@ principale :: fonc ()
         exit(0)
     }
 
-    chaine_texte := texte.converti_vers_chaine()
+    chaine_texte := texte.convertis_vers_chaine()
     diffère déloge(chaine_texte)
 
     saufsi écris_fichier_entier(args.sortie, chaine_texte) {

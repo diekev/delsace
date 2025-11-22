@@ -168,7 +168,7 @@ struct EspaceDeTravail {
     void regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
                                            kuri::Synchrone<Messagère> &messagère);
 
-    bool peut_generer_code_final() const;
+    bool peut_génèrer_code_final() const;
     bool parsage_termine() const;
 
     Message *change_de_phase(kuri::Synchrone<Messagère> &messagère,

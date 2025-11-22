@@ -123,20 +123,20 @@ struct CopieuseInstruction {
 
                 return constructrice.crée_appel(inst->site, appelé, std::move(args));
             }
-            case GenreInstruction::CHARGE_MEMOIRE:
+            case GenreInstruction::CHARGE_MÉMOIRE:
             {
                 auto charge = inst->comme_charge();
                 auto source = copie_atome(charge->chargée);
                 return constructrice.crée_charge_mem(inst->site, source);
             }
-            case GenreInstruction::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MÉMOIRE:
             {
                 auto stocke = inst->comme_stocke_mem();
                 auto destination = copie_atome(stocke->destination);
                 auto source = copie_atome(stocke->source);
                 return constructrice.crée_stocke_mem(inst->site, destination, source);
             }
-            case GenreInstruction::OPERATION_UNAIRE:
+            case GenreInstruction::OPÉRATION_UNAIRE:
             {
                 auto op = inst->comme_op_unaire();
                 auto type_opération = op->op;
@@ -144,7 +144,7 @@ struct CopieuseInstruction {
                 return constructrice.crée_op_unaire(
                     inst->site, inst->type, type_opération, n_valeur);
             }
-            case GenreInstruction::OPERATION_BINAIRE:
+            case GenreInstruction::OPÉRATION_BINAIRE:
             {
                 auto op = inst->comme_op_binaire();
                 auto type_opération = op->op;
@@ -153,20 +153,20 @@ struct CopieuseInstruction {
                 return constructrice.crée_op_binaire(
                     inst->site, inst->type, type_opération, valeur_gauche, valeur_droite);
             }
-            case GenreInstruction::ACCÈDE_INDICE:
+            case GenreInstruction::ACCÈS_INDICE:
             {
-                auto accès = inst->comme_acces_index();
+                auto accès = inst->comme_accès_indice();
                 auto accedé = copie_atome(accès->accédé);
-                auto index = copie_atome(accès->index);
-                return constructrice.crée_accès_index(inst->site, accedé, index);
+                auto indice = copie_atome(accès->indice);
+                return constructrice.crée_accès_indice(inst->site, accedé, indice);
             }
-            case GenreInstruction::ACCEDE_RUBRIQUE:
+            case GenreInstruction::ACCÈS_RUBRIQUE:
             {
-                auto accès = inst->comme_acces_rubrique();
+                auto accès = inst->comme_accès_rubrique();
                 auto accedé = copie_atome(accès->accédé);
-                auto index = accès->index;
+                auto indice = accès->indice;
                 return constructrice.crée_référence_rubrique(
-                    inst->site, inst->type, accedé, index);
+                    inst->site, inst->type, accedé, indice);
             }
             case GenreInstruction::TRANSTYPE:
             {
@@ -229,6 +229,15 @@ struct CopieuseInstruction {
                 nouvelle_sélection->si_vrai = sélection->si_vrai;
                 nouvelle_sélection->si_faux = sélection->si_faux;
                 return nouvelle_sélection;
+            }
+            case GenreInstruction::COPIE_MÉMOIRE:
+            {
+                auto const copie_mémoire = inst->comme_copie_mémoire();
+                auto destination = copie_atome(copie_mémoire->destination);
+                auto source = copie_atome(copie_mémoire->source);
+                auto nouvelle_copie_mémoire = constructrice.crée_copie_mémoire(
+                    inst->site, destination, source, copie_mémoire->taille, false);
+                return nouvelle_copie_mémoire;
             }
         }
 
@@ -354,7 +363,7 @@ struct Substitutrice {
     Instruction *instruction_substituée(Instruction *instruction)
     {
         switch (instruction->genre) {
-            case GenreInstruction::CHARGE_MEMOIRE:
+            case GenreInstruction::CHARGE_MÉMOIRE:
             {
                 auto charge = instruction->comme_charge();
 
@@ -372,7 +381,7 @@ struct Substitutrice {
 
                 return charge;
             }
-            case GenreInstruction::STOCKE_MEMOIRE:
+            case GenreInstruction::STOCKE_MÉMOIRE:
             {
                 auto stocke = instruction->comme_stocke_mem();
 
@@ -391,13 +400,13 @@ struct Substitutrice {
 
                 return stocke;
             }
-            case GenreInstruction::OPERATION_UNAIRE:
+            case GenreInstruction::OPÉRATION_UNAIRE:
             {
                 auto op = instruction->comme_op_unaire();
                 op->valeur = valeur_substituée(op->valeur);
                 return op;
             }
-            case GenreInstruction::OPERATION_BINAIRE:
+            case GenreInstruction::OPÉRATION_BINAIRE:
             {
                 auto op = instruction->comme_op_binaire();
                 op->valeur_gauche = valeur_substituée(op->valeur_gauche);
@@ -414,9 +423,9 @@ struct Substitutrice {
 
                 return retour;
             }
-            case GenreInstruction::ACCEDE_RUBRIQUE:
+            case GenreInstruction::ACCÈS_RUBRIQUE:
             {
-                auto accès = instruction->comme_acces_rubrique();
+                auto accès = instruction->comme_accès_rubrique();
                 accès->accédé = valeur_substituée(accès->accédé);
                 return accès;
             }
@@ -431,11 +440,11 @@ struct Substitutrice {
 
                 return appel;
             }
-            case GenreInstruction::ACCÈDE_INDICE:
+            case GenreInstruction::ACCÈS_INDICE:
             {
-                auto accès = instruction->comme_acces_index();
+                auto accès = instruction->comme_accès_indice();
                 accès->accédé = valeur_substituée(accès->accédé);
-                accès->index = valeur_substituée(accès->index);
+                accès->indice = valeur_substituée(accès->indice);
                 return accès;
             }
             case GenreInstruction::TRANSTYPE:
@@ -457,6 +466,13 @@ struct Substitutrice {
                 sélection->si_vrai = valeur_substituée(sélection->si_vrai);
                 sélection->si_faux = valeur_substituée(sélection->si_faux);
                 return sélection;
+            }
+            case GenreInstruction::COPIE_MÉMOIRE:
+            {
+                auto const copie_mémoire = instruction->comme_copie_mémoire();
+                copie_mémoire->destination = valeur_substituée(copie_mémoire->destination);
+                copie_mémoire->source = valeur_substituée(copie_mémoire->source);
+                return copie_mémoire;
             }
             case GenreInstruction::BRANCHE:
             case GenreInstruction::ALLOCATION:
