@@ -53,7 +53,7 @@ AssembleuseArbre :: struct {
     pile: Pile(T = *NoeudSyntaxique)
 }
 
-construit_assembleuse :: fonc () -> AssembleuseArbre
+construis_assembleuse :: fonc () -> AssembleuseArbre
 {
     assembleuse: AssembleuseArbre
     retourne assembleuse

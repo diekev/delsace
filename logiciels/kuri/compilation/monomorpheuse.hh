@@ -178,7 +178,7 @@ class Monomorpheuse {
     int profondeur_appariement_type = 0;
 
   public:
-    Monomorpheuse(EspaceDeTravail &ref_espace, const NoeudDéclarationEntêteFonction *entete);
+    Monomorpheuse(EspaceDeTravail &ref_espace, const NoeudDéclarationEntêteFonction *entête);
 
     EMPECHE_COPIE(Monomorpheuse);
 
