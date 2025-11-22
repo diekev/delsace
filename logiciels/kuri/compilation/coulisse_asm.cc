@@ -4195,7 +4195,7 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
     fonctions_à_visiter.empile(fonction_principale);
 
     while (!fonctions_à_visiter.est_vide()) {
-        auto fonction = fonctions_à_visiter.depile();
+        auto fonction = fonctions_à_visiter.dépile();
 
         if (fonctions_visitées.possède(fonction)) {
             continue;

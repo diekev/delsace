@@ -2203,7 +2203,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::notifie_dépile(Fra
         return RésultatInterprétation::ERREUR;
     }
 
-    auto données = m_métaprogramme->données_exécution->tailles_empilées.depile();
+    auto données = m_métaprogramme->données_exécution->tailles_empilées.dépile();
 
     if (données.taille != taille) {
         m_métaprogramme->préserve_log_empilage();

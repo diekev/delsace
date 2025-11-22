@@ -1407,7 +1407,7 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour_opérateur(NoeudPour *in
 
     m_substitutions_boucles_pour.empile(substitution_manuelle);
     simplifie(inst->corps_opérateur_pour);
-    m_substitutions_boucles_pour.depile();
+    m_substitutions_boucles_pour.dépile();
 
     inst->substitution = bloc_substitution;
     return inst;
@@ -1485,14 +1485,14 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
     }
 
     if (exprs.taille() == 1) {
-        return exprs.depile();
+        return exprs.dépile();
     }
 
     auto résultat = NoeudExpression::nul();
 
     while (true) {
-        auto a = exprs.depile();
-        auto b = exprs.depile();
+        auto a = exprs.dépile();
+        auto b = exprs.dépile();
 
         auto et = assem->crée_expression_logique(lexeme_op_logique, a, b);
 

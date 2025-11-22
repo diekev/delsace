@@ -2251,7 +2251,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
     });
 
     while (!pile.est_vide()) {
-        auto type_courant = pile.depile();
+        auto type_courant = pile.dépile();
 
         /* Les types variadiques ou pointeur nul peuvent avoir des types déréférencés nuls. */
         if (!type_courant) {

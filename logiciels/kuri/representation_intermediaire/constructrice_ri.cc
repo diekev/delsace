@@ -2076,7 +2076,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (fonction_init) {
                 auto argument = expr_appel->paramètres_résolus[0];
                 génère_ri_pour_expression_droite(argument, nullptr);
-                auto valeur = depile_valeur();
+                auto valeur = dépile_valeur();
                 auto type = fonction_init->type_initialisé();
                 crée_appel_fonction_init_type(expr_appel, type, valeur);
                 return;
@@ -2086,7 +2086,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             POUR (expr_appel->paramètres_résolus) {
                 génère_ri_pour_expression_droite(it, nullptr);
-                auto valeur = depile_valeur();
+                auto valeur = dépile_valeur();
 
                 /* Crée une temporaire pour simplifier l'enlignage, car nous devrons
                  * remplacer les locales par les expressions passées, et il est plus
@@ -2104,7 +2104,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             }
 
             génère_ri_pour_expression_droite(expr_appel->expression, nullptr);
-            auto atome_fonc = depile_valeur();
+            auto atome_fonc = dépile_valeur();
 
             assert_rappel(atome_fonc && atome_fonc->type != nullptr, [&] {
                 if (atome_fonc == nullptr) {
@@ -2340,9 +2340,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto expr_bin = noeud->comme_expression_binaire();
 
             génère_ri_pour_expression_droite(expr_bin->opérande_gauche, nullptr);
-            auto valeur_gauche = depile_valeur();
+            auto valeur_gauche = dépile_valeur();
             génère_ri_pour_expression_droite(expr_bin->opérande_droite, nullptr);
-            auto valeur_droite = depile_valeur();
+            auto valeur_droite = dépile_valeur();
             auto résultat = m_constructrice.crée_op_binaire(
                 noeud, noeud->type, expr_bin->op->genre, valeur_gauche, valeur_droite);
 
@@ -2371,9 +2371,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto type_gauche = donne_type_primitif(expr_bin->opérande_gauche->type);
 
             génère_ri_pour_noeud(expr_bin->opérande_gauche);
-            auto pointeur = depile_valeur();
+            auto pointeur = dépile_valeur();
             génère_ri_pour_expression_droite(expr_bin->opérande_droite, nullptr);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
 
             if (type_gauche->est_type_pointeur()) {
                 empile_valeur(m_constructrice.crée_accès_indice(noeud, pointeur, valeur), noeud);
@@ -2496,7 +2496,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto expr_un = noeud->comme_expression_unaire();
             génère_ri_pour_expression_droite(expr_un->opérande, nullptr);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
             empile_valeur(
                 m_constructrice.crée_op_unaire(noeud, expr_un->type, expr_un->op->genre, valeur),
                 noeud);
@@ -2506,7 +2506,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto prise_adresse = noeud->comme_prise_adresse();
             génère_ri_pour_noeud(prise_adresse->opérande);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
             if (prise_adresse->opérande->type->est_type_référence()) {
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
             }
@@ -2522,7 +2522,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto prise_référence = noeud->comme_prise_référence();
             génère_ri_pour_noeud(prise_référence->opérande);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
             valeur = m_constructrice.crée_transtype(
                 noeud, noeud->type, valeur, TypeTranstypage::BITS);
             valeur = crée_temporaire(noeud, valeur);
@@ -2544,7 +2544,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 case GenreNoeud::ENTIER_CONSTANT:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
-                    auto valeur1 = depile_valeur();
+                    auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition, 0);
                     valeur = m_constructrice.crée_op_comparaison(
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -2553,7 +2553,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 case GenreNoeud::BOOL:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
-                    auto valeur1 = depile_valeur();
+                    auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_booléenne(false);
                     valeur = m_constructrice.crée_op_comparaison(
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -2563,7 +2563,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 case GenreNoeud::POINTEUR:
                 {
                     génère_ri_pour_expression_droite(condition, nullptr);
-                    auto valeur1 = depile_valeur();
+                    auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
                     valeur = m_constructrice.crée_op_comparaison(
                         noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
@@ -2572,7 +2572,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 case GenreNoeud::EINI:
                 {
                     génère_ri_pour_noeud(condition);
-                    auto pointeur = depile_valeur();
+                    auto pointeur = dépile_valeur();
                     auto pointeur_pointeur = m_constructrice.crée_référence_rubrique(
                         noeud, pointeur, 0);
                     auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_pointeur);
@@ -2586,7 +2586,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 case GenreNoeud::TYPE_TRANCHE:
                 {
                     génère_ri_pour_noeud(condition);
-                    auto pointeur = depile_valeur();
+                    auto pointeur = dépile_valeur();
                     auto pointeur_taille = m_constructrice.crée_référence_rubrique(
                         noeud, pointeur, 1);
                     auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_taille);
@@ -2613,7 +2613,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (inst->expression) {
                 génère_ri_pour_expression_droite(inst->expression, nullptr);
-                valeur_ret = depile_valeur();
+                valeur_ret = dépile_valeur();
 
                 if (inst->genre == GenreNoeud::INSTRUCTION_RETOUR) {
                     /* Création manuelle d'une assignation dans le paramètre de retour.
@@ -2841,7 +2841,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 inst->transformation.type == TypeTransformation::DÉRÉFERENCE) {
                 génère_ri_pour_noeud(expr);
                 /* déréférence l'adresse du pointeur */
-                empile_valeur(m_constructrice.crée_charge_mem(noeud, depile_valeur()), noeud);
+                empile_valeur(m_constructrice.crée_charge_mem(noeud, dépile_valeur()), noeud);
                 break;
             }
 
@@ -2959,7 +2959,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto inst_mem = noeud->comme_mémoire();
             génère_ri_pour_noeud(inst_mem->expression);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
 
             if (!expression_gauche) {
                 // déréférence la locale
@@ -2983,11 +2983,11 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto sélection = noeud->comme_sélection();
             génère_ri_pour_expression_droite(sélection->condition, nullptr);
-            auto valeur_condition = depile_valeur();
+            auto valeur_condition = dépile_valeur();
             génère_ri_pour_expression_droite(sélection->si_vrai, nullptr);
-            auto valeur_si_vrai = depile_valeur();
+            auto valeur_si_vrai = dépile_valeur();
             génère_ri_pour_expression_droite(sélection->si_faux, nullptr);
-            auto valeur_si_faux = depile_valeur();
+            auto valeur_si_faux = dépile_valeur();
 
             auto inst = m_constructrice.crée_sélection(noeud, false);
             inst->type = noeud->type;
@@ -3113,13 +3113,13 @@ void CompilatriceRI::génère_ri_pour_expression_droite(NoeudExpression const *n
 
     if (place) {
         if (!place->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
-            auto atome = depile_valeur();
+            auto atome = dépile_valeur();
             atome = crée_charge_mem_si_chargeable(noeud, atome);
             m_constructrice.crée_stocke_mem(noeud, place, atome);
         }
     }
     else {
-        auto atome = depile_valeur();
+        auto atome = dépile_valeur();
         atome = crée_charge_mem_si_chargeable(noeud, atome);
         empile_valeur(atome, noeud);
     }
@@ -3132,7 +3132,7 @@ void CompilatriceRI::génère_ri_transformee_pour_noeud(NoeudExpression const *n
     auto ancienne_expression_gauche = expression_gauche;
     expression_gauche = false;
     génère_ri_pour_noeud(const_cast<NoeudExpression *>(noeud));
-    auto valeur = depile_valeur();
+    auto valeur = dépile_valeur();
     expression_gauche = ancienne_expression_gauche;
 
     assert_rappel(valeur, [&] {
@@ -3871,7 +3871,7 @@ void CompilatriceRI::empile_valeur(Atome *valeur, NoeudExpression const *site)
     m_pile.ajoute({valeur, site});
 }
 
-Atome *CompilatriceRI::depile_valeur()
+Atome *CompilatriceRI::dépile_valeur()
 {
     auto v = m_pile.back();
     m_pile.pop_back();
@@ -3884,7 +3884,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique(NoeudExpressionRubrique co
     auto type_accede = accede->type;
 
     génère_ri_pour_noeud(accede);
-    auto pointeur_accede = depile_valeur();
+    auto pointeur_accede = dépile_valeur();
 
     while (type_accede->est_type_pointeur() || type_accede->est_type_référence()) {
         type_accede = type_déréférencé_pour(type_accede);
@@ -3906,7 +3906,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique(NoeudExpressionRubrique co
 void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubrique const *noeud)
 {
     génère_ri_pour_noeud(noeud->accédée);
-    auto ptr_union = depile_valeur();
+    auto ptr_union = dépile_valeur();
     auto type = noeud->accédée->type;
 
     while (type->est_type_pointeur() || type->est_type_référence()) {
@@ -3976,7 +3976,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
     if (est_opérateur_comparaison(genre_lexeme) ||
         condition->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
         génère_ri_pour_expression_droite(condition, nullptr);
-        auto valeur = depile_valeur();
+        auto valeur = dépile_valeur();
         m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
     }
     else if (genre_lexeme == GenreLexème::ESP_ESP) {
@@ -4032,7 +4032,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         case GenreNoeud::ENTIER_CONSTANT:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
-            auto valeur1 = depile_valeur();
+            auto valeur1 = dépile_valeur();
             auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition, 0);
             valeur = m_constructrice.crée_op_comparaison(
                 condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
@@ -4041,7 +4041,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         case GenreNoeud::BOOL:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
-            valeur = depile_valeur();
+            valeur = dépile_valeur();
             break;
         }
         case GenreNoeud::FONCTION:
@@ -4049,7 +4049,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             génère_ri_pour_expression_droite(condition, nullptr);
-            auto valeur1 = depile_valeur();
+            auto valeur1 = dépile_valeur();
             auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
             valeur = m_constructrice.crée_op_comparaison(
                 condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
@@ -4058,7 +4058,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         case GenreNoeud::EINI:
         {
             génère_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
-            auto pointeur = depile_valeur();
+            auto pointeur = dépile_valeur();
             auto pointeur_pointeur = m_constructrice.crée_référence_rubrique(
                 condition, pointeur, 0);
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_pointeur);
@@ -4072,7 +4072,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
         case GenreNoeud::TYPE_TRANCHE:
         {
             génère_ri_pour_noeud(const_cast<NoeudExpression *>(condition));
-            auto pointeur = depile_valeur();
+            auto pointeur = dépile_valeur();
             auto pointeur_taille = m_constructrice.crée_référence_rubrique(condition, pointeur, 1);
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_taille);
             auto valeur2 = m_constructrice.crée_z64(0);
@@ -5080,7 +5080,7 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
         génère_ri_transformee_pour_noeud(
             constructeur->expression, nullptr, constructeur->transformation);
 
-        auto valeur = depile_valeur();
+        auto valeur = dépile_valeur();
         if (!valeur) {
             continue;
         }
@@ -5229,7 +5229,7 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
         case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
         {
             génère_ri_pour_noeud(expression);
-            valeur = static_cast<AtomeConstante *>(depile_valeur());
+            valeur = static_cast<AtomeConstante *>(dépile_valeur());
             break;
         }
         case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
@@ -5319,7 +5319,7 @@ void CompilatriceRI::compile_locale(NoeudExpression *variable,
         génère_ri_pour_noeud(expression, nullptr);
         expression_gauche = ancienne_expression_gauche;
 
-        auto valeur = depile_valeur();
+        auto valeur = dépile_valeur();
 
         m_constructrice.crée_copie_mémoire(
             variable, pointeur, valeur, variable->type->taille_octet);
@@ -5365,7 +5365,7 @@ void CompilatriceRI::ajourne_indice_rubrique_union(NoeudExpression *expression)
     génère_ri_pour_noeud(noeud->accédée);
     expression_gauche = ancienne_expression_gauche;
 
-    auto ptr_union = depile_valeur();
+    auto ptr_union = dépile_valeur();
     // ajourne l'index du rubrique
     auto rubrique_active = m_constructrice.crée_référence_rubrique(noeud, ptr_union, 1);
     m_constructrice.crée_stocke_mem(
@@ -5391,7 +5391,7 @@ Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
     }
 
     génère_ri_pour_noeud(expression);
-    return depile_valeur();
+    return dépile_valeur();
 }
 
 void CompilatriceRI::génère_ri_pour_assignation_variable(
@@ -5441,7 +5441,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
         expression_gauche = ancienne_expression_gauche;
 
         if (it.multiple_retour) {
-            auto valeur_tuple = depile_valeur();
+            auto valeur_tuple = dépile_valeur();
 
             for (auto i = 0; i < it.variables.taille(); ++i) {
                 auto var = it.variables[i];
@@ -5456,7 +5456,7 @@ void CompilatriceRI::génère_ri_pour_assignation_variable(
             }
         }
         else {
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
 
             for (auto i = 0; i < it.variables.taille(); ++i) {
                 auto var = it.variables[i];
@@ -5590,7 +5590,7 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
 
         POUR (feuilles->expressions) {
             génère_ri_pour_noeud(it);
-            auto valeur = depile_valeur();
+            auto valeur = dépile_valeur();
             valeurs.ajoute(static_cast<AtomeConstante *>(valeur));
         }
 

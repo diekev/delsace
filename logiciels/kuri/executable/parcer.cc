@@ -1539,7 +1539,7 @@ struct Convertisseuse {
                         convertis(enfant, trans_unit, flux_sortie);
                     }
 
-                    syntaxeuse.noeud_courant.depile();
+                    syntaxeuse.noeud_courant.dépile();
                 }
 
                 if (structure->rubriques.taille() == 0) {
@@ -1566,7 +1566,7 @@ struct Convertisseuse {
 
                 syntaxeuse.noeud_courant.empile(union_);
                 convertis_enfants(cursor, trans_unit, flux_sortie);
-                syntaxeuse.noeud_courant.depile();
+                syntaxeuse.noeud_courant.dépile();
 
                 syntaxeuse.ajoute_au_noeud_courant(union_);
                 break;
@@ -1587,7 +1587,7 @@ struct Convertisseuse {
 
                 syntaxeuse.noeud_courant.empile(énum);
                 convertis_enfants(cursor, trans_unit, flux_sortie);
-                syntaxeuse.noeud_courant.depile();
+                syntaxeuse.noeud_courant.dépile();
 
                 syntaxeuse.ajoute_au_noeud_courant(énum);
                 break;

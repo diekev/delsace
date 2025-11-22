@@ -498,7 +498,7 @@ struct CompilatriceRI {
     AtomeGlobale *crée_globale_pour_chaine(kuri::chaine_statique chaine);
 
     void empile_valeur(Atome *valeur, NoeudExpression const *site);
-    Atome *depile_valeur();
+    Atome *dépile_valeur();
 
     AtomeConstante *crée_tableau_annotations_pour_info_rubrique(
         const kuri::tableau<Annotation, int> &annotations);

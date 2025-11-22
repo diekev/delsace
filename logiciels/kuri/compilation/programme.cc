@@ -1305,7 +1305,7 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     kuri::ensemble<AtomeFonction *> fonctions_visitées;
     m_visiteuse_atome.réinitialise();
     while (!fonction_à_visiter.est_vide()) {
-        auto fonction = fonction_à_visiter.depile();
+        auto fonction = fonction_à_visiter.dépile();
         if (fonctions_visitées.possède(fonction)) {
             continue;
         }
@@ -1406,7 +1406,7 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
     VisiteuseType visiteuse{};
     visiteuse.visite_types_fonctions_init = false;
     while (!types_à_visiter.est_vide()) {
-        auto type = types_à_visiter.depile();
+        auto type = types_à_visiter.dépile();
         visiteuse.visite_type(const_cast<Type *>(type), [&](Type *tv) {
             types_à_visiter.empile(tv);
             types_utilisés.insère(tv);

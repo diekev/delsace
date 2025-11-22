@@ -1376,7 +1376,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexeme, NoeudDéclaratio
 
     void dépile_bloc()
     {
-        m_blocs.depile();
+        m_blocs.dépile();
     }
 
     /* Utilisation d'un gabarit car à part pour les copies, nous connaissons
