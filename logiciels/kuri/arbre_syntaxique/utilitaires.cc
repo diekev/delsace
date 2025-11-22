@@ -1091,9 +1091,9 @@ static void aplatis_arbre(NoeudExpression *racine,
 void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis)
 {
     if (declaration->est_entête_fonction()) {
-        auto entete = declaration->comme_entête_fonction();
+        auto entête = declaration->comme_entête_fonction();
         if (arbre_aplatis->noeuds.taille() == 0) {
-            aplatis_entête_fonction(entete, arbre_aplatis->noeuds);
+            aplatis_entête_fonction(entête, arbre_aplatis->noeuds);
         }
         return;
     }
@@ -2020,9 +2020,9 @@ NoeudDéclarationVariable *crée_retour_défaut_fonction(AssembleuseArbre *assem
 
 /** \} */
 
-static const char *ordre_fonction(NoeudDéclarationEntêteFonction const *entete)
+static const char *ordre_fonction(NoeudDéclarationEntêteFonction const *entête)
 {
-    if (entete->est_opérateur) {
+    if (entête->est_opérateur) {
         return "l'opérateur";
     }
 
@@ -2062,18 +2062,18 @@ void imprime_détails_fonction(EspaceDeTravail *espace,
 kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 {
     if (noeud->est_entête_fonction()) {
-        auto entete = noeud->comme_entête_fonction();
+        auto entête = noeud->comme_entête_fonction();
 
-        if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
-            return enchaine("init_de(", chaine_type(entete->type_initialisé()), ")");
+        if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+            return enchaine("init_de(", chaine_type(entête->type_initialisé()), ")");
         }
 
-        if (entete->est_opérateur) {
-            if (entete->params.taille() == 2) {
-                auto const type1 = entete->parametre_entree(0)->type;
-                auto const type2 = entete->parametre_entree(1)->type;
+        if (entête->est_opérateur) {
+            if (entête->params.taille() == 2) {
+                auto const type1 = entête->parametre_entree(0)->type;
+                auto const type2 = entête->parametre_entree(1)->type;
                 return enchaine("opérateur ",
-                                entete->lexème->chaine,
+                                entête->lexème->chaine,
                                 " (",
                                 chaine_type(type1),
                                 ", ",
@@ -2081,29 +2081,29 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
                                 ")");
             }
 
-            if (entete->params.taille() == 1) {
-                auto const type1 = entete->parametre_entree(0)->type;
+            if (entête->params.taille() == 1) {
+                auto const type1 = entête->parametre_entree(0)->type;
                 return enchaine(
-                    "opérateur ", entete->lexème->chaine, " (", chaine_type(type1), ")");
+                    "opérateur ", entête->lexème->chaine, " (", chaine_type(type1), ")");
             }
 
-            return enchaine("opérateur ", entete->lexème->chaine);
+            return enchaine("opérateur ", entête->lexème->chaine);
         }
 
-        if (entete->ident) {
+        if (entête->ident) {
             Enchaineuse enchaineuse;
-            enchaineuse << entete->ident->nom;
+            enchaineuse << entête->ident->nom;
 
             auto virgule = "(";
-            for (int i = 0; i < entete->params.taille(); i++) {
-                auto const param = entete->parametre_entree(i);
+            for (int i = 0; i < entête->params.taille(); i++) {
+                auto const param = entête->parametre_entree(i);
                 enchaineuse << virgule << chaine_type(param->type);
                 virgule = ", ";
             }
-            if (entete->params.taille() == 0) {
+            if (entête->params.taille() == 0) {
                 enchaineuse << "(";
             }
-            enchaineuse << ") -> " << chaine_type(entete->param_sortie->type);
+            enchaineuse << ") -> " << chaine_type(entête->param_sortie->type);
 
             return enchaineuse.chaine();
         }
@@ -2357,7 +2357,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
             // il nous faut créer une boucle sur le tableau.
             // pour * tableau { initialise_type(it); }
             auto pour = assembleuse->crée_pour(&lexème_sentinel, variable, ref_résultat);
-            pour->prend_pointeur = true;
+            pour->prends_pointeur = true;
             pour->bloc = assembleuse->crée_bloc(&lexème_sentinel);
             pour->aide_génération_code = GENERE_BOUCLE_TABLEAU;
             pour->decl_it = decl_it;
@@ -2389,7 +2389,7 @@ static void crée_initialisation_defaut_pour_type(Type *type,
 
             auto comme = assembleuse->crée_comme(&lexème_sentinel, prise_adresse, nullptr);
             comme->type = typeuse.type_pointeur_pour(type_opacifié);
-            comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, comme->type};
+            comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, comme->type};
 
             auto fonc_init = crée_entête_pour_initialisation_type(
                 type_opacifié, assembleuse, typeuse);
@@ -2439,11 +2439,11 @@ static void assigne_fonction_init_énum(Typeuse &typeuse, TypeEnum *type)
 /* Sauvegarde dans la typeuse la fonction d'intialisation du type si celle-ci est à sauvegarder. */
 static void sauvegarde_fonction_init(Typeuse &typeuse,
                                      Type *type,
-                                     NoeudDéclarationEntêteFonction *entete)
+                                     NoeudDéclarationEntêteFonction *entête)
 {
 #define ASSIGNE_SI(ident_min)                                                                     \
     if (type == typeuse.type_##ident_min) {                                                       \
-        typeuse.init_type_##ident_min = entete;                                                   \
+        typeuse.init_type_##ident_min = entête;                                                   \
         return;                                                                                   \
     }
 
@@ -2457,7 +2457,7 @@ static void sauvegarde_fonction_init(Typeuse &typeuse,
     ASSIGNE_SI(z64);
 
     if (type == typeuse.type_ptr_rien) {
-        typeuse.init_type_pointeur = entete;
+        typeuse.init_type_pointeur = entête;
         return;
     }
 
@@ -2533,7 +2533,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
 
             auto comme_type_opacifie = assembleuse->crée_comme(
                 &lexème_sentinel, ref_param, nullptr);
-            comme_type_opacifie->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+            comme_type_opacifie->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                                                    type_pointeur_opacifié};
             comme_type_opacifie->type = type_pointeur_opacifié;
 
@@ -2606,7 +2606,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 /* Stocke directement dans le paramètre. */
                 auto transtype = assembleuse->crée_comme(&lexème_sentinel, ref_param, nullptr);
                 transtype->transformation = TransformationType{
-                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+                    TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                     typeuse.type_pointeur_pour(rubrique.type)};
                 transtype->type = const_cast<Type *>(transtype->transformation.type_cible);
 
@@ -2635,7 +2635,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                     &lexème_sentinel, ref_param, nullptr);
                 param_comme_structure->type = type_pointeur_type_structure;
                 param_comme_structure->transformation = TransformationType{
-                    TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_pointeur_type_structure};
+                    TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_pointeur_type_structure};
 
                 if (rubrique.type->est_type_rien()) {
                     /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
@@ -2964,8 +2964,8 @@ bool possède_annotation(const BaseDéclarationVariable *decl, kuri::chaine_stat
 bool est_déclaration_polymorphique(NoeudDéclaration const *decl)
 {
     if (decl->est_entête_fonction()) {
-        auto const entete = decl->comme_entête_fonction();
-        return entete->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
+        auto const entête = decl->comme_entête_fonction();
+        return entête->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE);
     }
 
     if (decl->est_type_structure()) {

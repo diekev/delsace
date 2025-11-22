@@ -16,11 +16,11 @@ StackingContext :: struct {
 
 #portée_module
 
-construit_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *Box) -> *StackingContext
+construis_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *Box) -> *StackingContext
 {
     constructrice: ConstructriceStackingContext
     constructrice.arbre = arbre
-    résultat := construit_arbre_de_stacking_contexts(*constructrice, racine, nul)
+    résultat := construis_arbre_de_stacking_contexts(*constructrice, racine, nul)
     tri_stacking_contexts(résultat)
     retourne résultat
 }
@@ -126,7 +126,7 @@ crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) ->
     retourne résultat
 }
 
-construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *Box, parent: *StackingContext) -> *StackingContext
+construis_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *Box, parent: *StackingContext) -> *StackingContext
 {
     résultat := parent
 
@@ -141,7 +141,7 @@ construit_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStack
     racine.id_stacking_context = résultat.id
 
     pour racine.enfants {
-        _ := construit_arbre_de_stacking_contexts(constructrice, it, résultat)
+        _ := construis_arbre_de_stacking_contexts(constructrice, it, résultat)
     }
 
     retourne résultat

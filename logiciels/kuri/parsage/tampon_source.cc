@@ -57,24 +57,24 @@ static int64_t trouve_fin_ligne(const char *debut, const char *fin)
 
 TamponSource::TamponSource(const char *chaine) : m_tampon(chaine)
 {
-    construit_lignes();
+    construis_lignes();
 }
 
 TamponSource::TamponSource(kuri::chaine chaine) noexcept : m_tampon(std::move(chaine))
 {
-    construit_lignes();
+    construis_lignes();
 }
 
 TamponSource::TamponSource(const TamponSource &autre)
 {
     m_tampon = autre.m_tampon;
-    construit_lignes();
+    construis_lignes();
 }
 
 TamponSource &TamponSource::operator=(const TamponSource &autre)
 {
     m_tampon = autre.m_tampon;
-    construit_lignes();
+    construis_lignes();
 
     return *this;
 }
@@ -135,20 +135,20 @@ const kuri::chaine &TamponSource::chaine() const
     return m_tampon;
 }
 
-void TamponSource::construit_lignes()
+void TamponSource::construis_lignes()
 {
     if (m_tampon.taille() == 0) {
         return;
     }
 
 #ifdef SUPPORTE_AVX
-    construit_lignes_avx();
+    construis_lignes_avx();
 #else
-    construit_lignes_lent();
+    construis_lignes_lent();
 #endif
 }
 
-void TamponSource::construit_lignes_lent()
+void TamponSource::construis_lignes_lent()
 {
     /* Compte le nombre de lignes. */
 
@@ -187,7 +187,7 @@ void TamponSource::construit_lignes_lent()
     }
 }
 
-void TamponSource::construit_lignes_avx()
+void TamponSource::construis_lignes_avx()
 {
 #ifdef SUPPORTE_AVX
     /* Compte le nombre de lignes. */
