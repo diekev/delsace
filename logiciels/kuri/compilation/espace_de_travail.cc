@@ -232,7 +232,7 @@ void EspaceDeTravail::regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
     }
 }
 
-bool EspaceDeTravail::peut_generer_code_final() const
+bool EspaceDeTravail::peut_génèrer_code_final() const
 {
     if (phase != PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE) {
         return false;

@@ -14,7 +14,7 @@ struct Lexème;
 
 struct PositionLexème {
     int64_t indice_ligne = 0;
-    int64_t numero_ligne = 0;
+    int64_t numéro_ligne = 0;
     int64_t pos = 0;
 };
 

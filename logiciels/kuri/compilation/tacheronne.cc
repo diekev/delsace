@@ -565,12 +565,12 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
         constructrice_ri.génère_ri_pour_noeud(unite->espace, noeud);
     }
 
-    auto entete = donne_entête_fonction(noeud);
-    if (entete) {
+    auto entête = donne_entête_fonction(noeud);
+    if (entête) {
         constructrice_ri.commence_espace(unite->espace);
         analyseuse_ri->analyse_ri(*unite->espace,
                                   constructrice_ri.donne_constructrice(),
-                                  entete->atome->comme_fonction());
+                                  entête->atome->comme_fonction());
         constructrice_ri.termine_espace();
     }
 
@@ -581,20 +581,20 @@ bool Tacheronne::gère_unité_pour_ri(UniteCompilation *unite)
 void Tacheronne::gère_unité_pour_optimisation(UniteCompilation *unite)
 {
     auto noeud = unite->noeud;
-    auto entete = donne_entête_fonction(noeud);
-    assert(entete);
+    auto entête = donne_entête_fonction(noeud);
+    assert(entête);
 
-    if (entete->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
+    if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 
     /* N'optimise pas cette fonction car le manque de retour supprime tout le code. */
-    if (entete == unite->espace->interface_kuri->decl_creation_contexte) {
+    if (entête == unite->espace->interface_kuri->decl_creation_contexte) {
         return;
     }
 
     optimise_code(
-        *unite->espace, constructrice_ri.donne_constructrice(), entete->atome->comme_fonction());
+        *unite->espace, constructrice_ri.donne_constructrice(), entête->atome->comme_fonction());
 }
 
 void Tacheronne::gère_unité_pour_exécution(UniteCompilation *unite)
@@ -735,7 +735,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             auto virgule = assembleuse->crée_virgule(lexeme);
 
             POUR (tuple->rubriques) {
-                auto pointeur_rubrique = pointeur + it.decalage;
+                auto pointeur_rubrique = pointeur + it.décalage;
                 virgule->expressions.ajoute(
                     noeud_syntaxique_depuis_résultat(espace,
                                                      directive,
@@ -819,7 +819,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
                                                                                    type_structure);
 
             POUR (type_structure->donne_rubriques_pour_code_machine()) {
-                auto pointeur_rubrique = pointeur + it.decalage;
+                auto pointeur_rubrique = pointeur + it.décalage;
                 auto noeud_rubrique = noeud_syntaxique_depuis_résultat(
                     espace,
                     directive,
@@ -925,7 +925,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
              * opaque */
             auto comme = assembleuse->crée_comme(lexeme, expr, nullptr);
             comme->type = type_opaque;
-            comme->transformation = {TypeTransformation::CONVERTI_VERS_TYPE_CIBLE, type_opaque};
+            comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_opaque};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
             return comme;
         }
@@ -980,7 +980,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = espace->typeuse.crée_type_tranche(type_tableau->type_pointé);
-            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+            comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 
@@ -1018,7 +1018,7 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
             /* convertis vers un tableau dynamique */
             auto comme = assembleuse->crée_comme(lexeme, construction, nullptr);
             comme->type = type_tranche;
-            comme->transformation = {TypeTransformation::CONVERTI_TABLEAU_FIXE_VERS_TRANCHE,
+            comme->transformation = {TypeTransformation::CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE,
                                      comme->type};
             comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
 

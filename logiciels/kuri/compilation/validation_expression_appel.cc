@@ -652,7 +652,7 @@ static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
             /* Pour les fonctions variadiques externes, nous acceptons tous les types. */
             if (type_de_l_expression->est_type_entier_constant()) {
                 return PoidsTransformation{
-                    TransformationType(TypeTransformation::CONVERTI_ENTIER_CONSTANT,
+                    TransformationType(TypeTransformation::CONVERTIS_ENTIER_CONSTANT,
                                        typeuse.type_z32),
                     1.0};
             }
@@ -937,7 +937,7 @@ static RésultatAppariement apparie_appel_init_de(
     auto transformations = kuri::tableau<TransformationType, int>(1);
 
     if (type_initialisé != type_expression) {
-        transformations[0] = TransformationType{TypeTransformation::CONVERTI_VERS_TYPE_CIBLE,
+        transformations[0] = TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
                                                 type_pointeur};
     }
     else {
@@ -2308,7 +2308,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     }
     else if (candidate->note == CANDIDATE_EST_CONSTRUCTION_CHAINE) {
         expr->type = espace.typeuse.type_chaine;
-        expr->aide_génération_code = CONSTRUIT_CHAINE;
+        expr->aide_génération_code = CONSTRUIS_CHAINE;
         applique_transformations(sémanticienne, candidate, expr);
     }
     else if (candidate->note == CANDIDATE_EST_APPEL_INIT_DE) {
@@ -2329,7 +2329,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
-        expr->aide_génération_code = CONSTRUIT_OPAQUE;
+        expr->aide_génération_code = CONSTRUIS_OPAQUE;
         expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_INITIALISATION_OPAQUE_DEPUIS_STRUCTURE) {
@@ -2340,7 +2340,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->type = const_cast<TypeOpaque *>(type_opaque);
-        expr->aide_génération_code = CONSTRUIT_OPAQUE_DEPUIS_STRUCTURE;
+        expr->aide_génération_code = CONSTRUIS_OPAQUE_DEPUIS_STRUCTURE;
         expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_OPAQUE) {

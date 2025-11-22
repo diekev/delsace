@@ -227,7 +227,7 @@ struct Compilatrice {
                                                       kuri::chaine_statique chemin_donne,
                                                       const NoeudExpression *site);
 
-    MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entete);
+    MetaProgramme *metaprogramme_pour_fonction(const NoeudDéclarationEntêteFonction *entête);
 
     /* Création/suppression d'états pour les résolutions des expressions d'appels. */
     ÉtatRésolutionAppel *crée_ou_donne_état_résolution_appel();

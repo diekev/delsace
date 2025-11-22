@@ -493,6 +493,8 @@ bool est_pointeur_vers_tableau_fixe(Type const *type);
 
 bool est_type_sse2(Type const *type);
 
+bool stockage_type_doit_utiliser_memcpy(Type const *type);
+
 /* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre);
