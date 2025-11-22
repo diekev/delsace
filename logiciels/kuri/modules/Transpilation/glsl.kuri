@@ -31,19 +31,19 @@ convertis_vers_glsl :: fonc (espace: EspaceDeTravail, corps: *NoeudCodeCorpsFonc
     virgule := "("
     pour entête.params {
         ajoute_au_tampon(*enchaineuse, virgule, "in ")
-        converti_code_glsl(espace, *enchaineuse, it, 0)
+        convertis_code_glsl(espace, *enchaineuse, it, 0)
         virgule = ", "
     }
 
     pour entête.params_sorties {
         ajoute_au_tampon(*enchaineuse, virgule, "out ")
-        converti_code_glsl(espace, *enchaineuse, it, 0)
+        convertis_code_glsl(espace, *enchaineuse, it, 0)
         virgule = ", "
     }
 
     ajoute_au_tampon(*enchaineuse, ")\n{\n")
 
-    converti_code_glsl(espace, *enchaineuse, bloc, 0)
+    convertis_code_glsl(espace, *enchaineuse, bloc, 0)
 
     ajoute_au_tampon(*enchaineuse, "}\n")
 
@@ -81,7 +81,7 @@ convertis_vers_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse,
     compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, "impossible de convertir le type vers GLSL")
 }
 
-converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, code: *NoeudCode, profondeur: z32)
+convertis_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, code: *NoeudCode, profondeur: z32)
 {
     si code == nul {
         retourne
@@ -97,33 +97,33 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
 
             si code_déclaration.expression {
                 ajoute_au_tampon(enchaineuse, " = ")
-                converti_code_glsl(espace, enchaineuse, code_déclaration.expression, profondeur)
+                convertis_code_glsl(espace, enchaineuse, code_déclaration.expression, profondeur)
             }
         }
         EXPRESSION_ASSIGNATION_VARIABLE {
             assignation := code comme *NoeudCodeAssignation
-            converti_code_glsl(espace, enchaineuse, assignation.assignée, profondeur)
+            convertis_code_glsl(espace, enchaineuse, assignation.assignée, profondeur)
             ajoute_au_tampon(enchaineuse, " = ")
-            converti_code_glsl(espace, enchaineuse, assignation.expression, profondeur)
+            convertis_code_glsl(espace, enchaineuse, assignation.expression, profondeur)
         }
         OPÉRATEUR_BINAIRE {
             binaire := code comme *NoeudCodeExpressionBinaire
-            converti_code_glsl(espace, enchaineuse, binaire.opérande_gauche, profondeur)
+            convertis_code_glsl(espace, enchaineuse, binaire.opérande_gauche, profondeur)
             imprime_dans_enchaineuse(enchaineuse, " % ", binaire.nom)
-            converti_code_glsl(espace, enchaineuse, binaire.opérande_droite, profondeur)
+            convertis_code_glsl(espace, enchaineuse, binaire.opérande_droite, profondeur)
         }
         OPÉRATEUR_UNAIRE {
             unaire := code comme *NoeudCodeExpressionUnaire
             ajoute_au_tampon(enchaineuse, unaire.nom)
-            converti_code_glsl(espace, enchaineuse, unaire.opérande, profondeur)
+            convertis_code_glsl(espace, enchaineuse, unaire.opérande, profondeur)
         }
         INSTRUCTION_SI {
             code_si := code comme *NoeudCodeSi
 
             ajoute_au_tampon(enchaineuse, "if (")
-            converti_code_glsl(espace, enchaineuse, code_si.condition, profondeur)
+            convertis_code_glsl(espace, enchaineuse, code_si.condition, profondeur)
             ajoute_au_tampon(enchaineuse, ") {\n")
-            converti_code_glsl(espace, enchaineuse, code_si.bloc_si_vrai, profondeur)
+            convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_vrai, profondeur)
             imprime_tabulation(enchaineuse, profondeur)
             ajoute_au_tampon(enchaineuse, "}\n")
 
@@ -131,7 +131,7 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
                 imprime_tabulation(enchaineuse, profondeur)
 
                 ajoute_au_tampon(enchaineuse, "else {\n")
-                converti_code_glsl(espace, enchaineuse, code_si.bloc_si_faux, profondeur)
+                convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_faux, profondeur)
 
                 imprime_tabulation(enchaineuse, profondeur)
 
@@ -146,7 +146,7 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
             pour bloc.expressions {
                 imprime_tabulation(enchaineuse, profondeur + 1)
 
-                converti_code_glsl(espace, enchaineuse, it, profondeur + 1)
+                convertis_code_glsl(espace, enchaineuse, it, profondeur + 1)
 
                 si it.genre != GenreNoeud.INSTRUCTION_SI && it.genre != GenreNoeud.INSTRUCTION_RETOUR {
                     ajoute_au_tampon(enchaineuse, ";\n")
@@ -157,7 +157,7 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
             ret := code comme *NoeudCodeInstructionRetour
             si ret.expression {
                 // @Incomplet : vérifie si nous avons une assignation
-                converti_code_glsl(espace, enchaineuse, ret.expression, profondeur)
+                convertis_code_glsl(espace, enchaineuse, ret.expression, profondeur)
                 ajoute_au_tampon(enchaineuse, ";\n")
                 imprime_tabulation(enchaineuse, profondeur)
             }
@@ -166,19 +166,19 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
         INSTRUCTION_BOUCLE {
             code_boucle := code comme *NoeudCodeBoucle
             ajoute_au_tampon(enchaineuse, "while (1) {\n")
-            converti_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
             ajoute_au_tampon(enchaineuse, "}\n\n")
         }
         INSTRUCTION_TANTQUE {
             code_boucle := code comme *NoeudCodeBoucle
             ajoute_au_tampon(enchaineuse, "while condition {\n")
-            converti_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
             ajoute_au_tampon(enchaineuse, "}\n\n")
         }
         INSTRUCTION_RÉPÈTE {
             code_boucle := code comme *NoeudCodeBoucle
             ajoute_au_tampon(enchaineuse, "do {\n")
-            converti_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
             ajoute_au_tampon(enchaineuse, "} while condition;\n\n")
         }
         EXPRESSION_RÉFÉRENCE_DÉCLARATION {
@@ -188,7 +188,7 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
         EXPRESSION_PARENTHÈSE {
             paren := code comme *NoeudCodeParenthèse
             ajoute_au_tampon(enchaineuse, "(")
-            converti_code_glsl(espace, enchaineuse, paren.expression, profondeur)
+            convertis_code_glsl(espace, enchaineuse, paren.expression, profondeur)
             ajoute_au_tampon(enchaineuse, ")")
         }
         EXPRESSION_APPEL {
@@ -201,13 +201,13 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
                 ajoute_au_tampon(enchaineuse, "dot")
             }
             sinon {
-                converti_code_glsl(espace, enchaineuse, appel.expression, profondeur)
+                convertis_code_glsl(espace, enchaineuse, appel.expression, profondeur)
             }
 
             virgule := "("
             pour appel.paramètres {
                 ajoute_au_tampon(enchaineuse, virgule)
-                converti_code_glsl(espace, enchaineuse, it, profondeur)
+                convertis_code_glsl(espace, enchaineuse, it, profondeur)
                 virgule = ", "
             }
 
@@ -222,7 +222,7 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
             pour appel.paramètres {
                 // @Incomplet : vérifie si nous avons une assignation
                 ajoute_au_tampon(enchaineuse, virgule)
-                converti_code_glsl(espace, enchaineuse, it, profondeur)
+                convertis_code_glsl(espace, enchaineuse, it, profondeur)
                 virgule = ", "
             }
 
@@ -235,14 +235,14 @@ converti_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, 
         }
         EXPRESSION_COMME {
             expr_comme := code comme *NoeudCodeComme
-            converti_code_glsl(espace, enchaineuse, expr_comme.expression, profondeur)
+            convertis_code_glsl(espace, enchaineuse, expr_comme.expression, profondeur)
         }
         /*
         EXPRESSION_VIRGULE {
             virgule := code comme *NoeudCodeVirgule
 
             pour virgule.expressions {
-                converti_code_glsl(espace, enchaineuse, it, profondeur)
+                convertis_code_glsl(espace, enchaineuse, it, profondeur)
 
                 si indice_it != virgule.expressions.taille - 1 {
                     ajoute_au_tampon(enchaineuse, ";\n")

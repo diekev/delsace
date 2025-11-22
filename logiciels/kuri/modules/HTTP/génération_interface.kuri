@@ -143,7 +143,7 @@ nouvelle_ligne :: fonc (enchaineuse: *Enchaineuse)
     enchaineuse.ajoute_au_tampon("\n")
 }
 
-construit_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: &DonnéesCréationPointDEntréePage)
+construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: &DonnéesCréationPointDEntréePage)
 {
     infos_paramètres := données.infos_paramètres
     possède_paramètres_routage := règles_ont_au_moins_un_paramètre(données.règles_routage)
@@ -598,7 +598,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
         ajoute_au_tampon(*enchaineuse, "importe ", paramètres.module_à_importer, "\n")
     }
 
-    construit_interface(*enchaineuse, paramètres, données)
+    construis_interface(*enchaineuse, paramètres, données)
 
     interface := chaine_depuis_enchaineuse(*enchaineuse)
     diffère déloge(interface)

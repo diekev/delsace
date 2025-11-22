@@ -13,11 +13,11 @@ Syntaxeuse :: struct {
     inclusions: [..]*NoeudSyntaxique
 }
 
-construit_syntaxeuse :: fonc (lexèmes: []Lexème) -> Syntaxeuse
+construis_syntaxeuse :: fonc (lexèmes: []Lexème) -> Syntaxeuse
 {
     syntaxeuse: Syntaxeuse
     syntaxeuse.lexèmes = lexèmes
-    syntaxeuse.assembleuse = construit_assembleuse()
+    syntaxeuse.assembleuse = construis_assembleuse()
 
     retourne syntaxeuse
 }

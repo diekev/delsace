@@ -302,7 +302,7 @@ struct Statistiques {
 
 #define ENTREES_POUR_ENTETE_FONCTION(OP)                                                          \
     OP(ENTETE_FONCTION__TENTATIVES_RATEES, "tentatives râtés")                                    \
-    OP(ENTETE_FONCTION__ENTETE_FONCTION, "valide_entete_fonction")                                \
+    OP(ENTETE_FONCTION__ENTETE_FONCTION, "valide_entête_fonction")                                \
     OP(ENTETE_FONCTION__ARBRE_APLATIS, "arbre aplatis")                                           \
     OP(ENTETE_FONCTION__TYPES_OPERATEURS, "types opérateurs")                                     \
     OP(ENTETE_FONCTION__PARAMETRES, "paramètres")                                                 \

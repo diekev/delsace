@@ -300,7 +300,7 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: chaine) -> []*texture_glyph_t
             continue
         }
 
-        point_de_code := converti_utf8_utf32(début, n) comme n32
+        point_de_code := convertis_utf8_utf32(début, n) comme n32
         début += n
 
         glyph := fonte.donne_glyphe(point_de_code)

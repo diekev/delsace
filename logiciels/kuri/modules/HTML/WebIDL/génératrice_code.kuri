@@ -814,7 +814,7 @@ génère_code_conversion_argument :: fonc (enchaineuse: *Enchaineuse, nom: chain
     si type.est_énum {
         ajoute_au_tampon(enchaineuse, "    saufsi JS.est_chaine(valeur_", nom, ") {\n        retourne JS.lance_type_error(interpréteuse,  \"argument is not a string\");\n    }\n")
         ajoute_au_tampon(enchaineuse, "    str := valeur_", nom, ".String.texte\n")
-        ajoute_au_tampon(enchaineuse, "    str_native := converti_vers_chaine(str.donne_chaine_utf16())\n")
+        ajoute_au_tampon(enchaineuse, "    str_native := convertis_vers_chaine(str.donne_chaine_utf16())\n")
         ajoute_au_tampon(enchaineuse, "    diffère déloge(str_native)\n")
         ajoute_au_tampon(enchaineuse, "    valeur_énum, trouvée := donne_valeur_énum_pour_nom(info_de(", type.nom, "), str_native)\n")
         ajoute_au_tampon(enchaineuse, "    saufsi trouvée { retourne JS.lance_type_error(interpréteuse, \"invalid value\") }\n")

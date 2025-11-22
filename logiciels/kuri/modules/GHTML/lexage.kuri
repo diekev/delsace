@@ -69,7 +69,7 @@ Lexeuse :: struct {
     taille_mot_courant := 0
 }
 
-construit_lexeuse :: fonc (chn: chaine) -> Lexeuse
+construis_lexeuse :: fonc (chn: chaine) -> Lexeuse
 {
     lexeuse: Lexeuse
     lexeuse.tampon = chn
@@ -86,7 +86,7 @@ construit_lexeuse :: fonc (chn: chaine) -> Lexeuse
         tantque début != fin {
             n := nombre_octets_utf8_rapide(début)
 
-            rune := converti_utf8_utf32(début, n) comme n32
+            rune := convertis_utf8_utf32(début, n) comme n32
 
             si est_espace_blanche_unicode(rune) {
                 pour n {

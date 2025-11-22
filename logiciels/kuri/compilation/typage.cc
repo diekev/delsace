@@ -1744,7 +1744,7 @@ static inline uint32_t marge_pour_alignement(const uint32_t alignement,
 template <bool COMPACTE>
 void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
 {
-    auto decalage = 0u;
+    auto décalage = 0u;
     auto alignement_max = 0u;
 
     POUR (type->donne_rubriques_pour_code_machine()) {
@@ -1761,13 +1761,13 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
             });
 
             alignement_max = std::max(alignement_type, alignement_max);
-            auto rembourrage = marge_pour_alignement(alignement_type, decalage);
+            auto rembourrage = marge_pour_alignement(alignement_type, décalage);
             const_cast<RubriqueTypeComposé &>(it).rembourrage = rembourrage;
-            decalage += rembourrage;
+            décalage += rembourrage;
         }
 
-        const_cast<RubriqueTypeComposé &>(it).decalage = decalage;
-        decalage += it.type->taille_octet;
+        const_cast<RubriqueTypeComposé &>(it).décalage = décalage;
+        décalage += it.type->taille_octet;
     }
 
     if (COMPACTE) {
@@ -1777,16 +1777,16 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     }
     else {
         /* Ajout d'un rembourrage si nécessaire. */
-        decalage += marge_pour_alignement(alignement_max, decalage);
+        décalage += marge_pour_alignement(alignement_max, décalage);
         type->alignement = alignement_max;
     }
 
     if (alignement_desire != 0) {
-        decalage += marge_pour_alignement(alignement_desire, decalage);
+        décalage += marge_pour_alignement(alignement_desire, décalage);
         type->alignement = alignement_desire;
     }
 
-    type->taille_octet = decalage;
+    type->taille_octet = décalage;
 }
 
 void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire)
@@ -1905,6 +1905,11 @@ bool est_type_sse2(Type const *type)
     return type->est_déclaration_classe() && type->comme_déclaration_classe()->est_sse2;
 }
 
+bool stockage_type_doit_utiliser_memcpy(Type const *type)
+{
+    return type->est_type_tableau_fixe() || type->taille_octet > 64;
+}
+
 /* Retourne vrai si le type possède un info type qui est seulement une instance de InfoType et non
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre)
@@ -1994,13 +1999,13 @@ std::optional<uint32_t> est_type_de_base(TypeStructure const *type_dérivé,
     POUR (type_dérivé->types_employés) {
         auto struct_employée = it->type->comme_type_structure();
         if (struct_employée == type_base_potentiel) {
-            return it->decalage;
+            return it->décalage;
         }
 
         auto décalage_depuis_struct_employée = est_type_de_base(struct_employée,
                                                                 type_base_potentiel);
         if (décalage_depuis_struct_employée) {
-            return it->decalage + décalage_depuis_struct_employée.value();
+            return it->décalage + décalage_depuis_struct_employée.value();
         }
     }
 
@@ -2246,7 +2251,7 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
     });
 
     while (!pile.est_vide()) {
-        auto type_courant = pile.depile();
+        auto type_courant = pile.dépile();
 
         /* Les types variadiques ou pointeur nul peuvent avoir des types déréférencés nuls. */
         if (!type_courant) {

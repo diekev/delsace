@@ -350,7 +350,7 @@ ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: &IPA, foncti
 
 génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTravail)
 {
-    table_ipa := construit_table_ipa(génératrice)
+    table_ipa := construis_table_ipa(génératrice)
     diffère détruit_données_table_ipa(*table_ipa)
 
     génératrice.système_type = initialise_système_type(génératrice.ipa, génératrice.espace_de_nom)
@@ -1188,7 +1188,7 @@ TableIPA :: struct {
     fonctions: [..]MéthodeIPA
 }
 
-construit_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
+construis_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
 {
     résultat: TableIPA
 

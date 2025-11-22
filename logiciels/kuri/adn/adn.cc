@@ -1183,7 +1183,7 @@ bool est_type_noeud(const Type *type)
 /** \name Fonctions auxillaires.
  * \{ */
 
-void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
+void génère_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
                                           FluxSortieCPP &os,
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction)

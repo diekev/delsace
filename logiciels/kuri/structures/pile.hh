@@ -30,7 +30,7 @@ struct pile {
         m_pile.ajoute(valeur);
     }
 
-    type_valeur depile()
+    type_valeur dépile()
     {
         auto t = this->haut();
         m_pile.supprime_dernier();
@@ -84,7 +84,7 @@ struct pile_fixe {
         }
     }
 
-    type_valeur depile()
+    type_valeur dépile()
     {
         auto t = haut();
         --m_index;

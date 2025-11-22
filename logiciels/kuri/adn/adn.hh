@@ -779,7 +779,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
  * Le code généré inclus également toutes les déclarations et inclusions de fichiers nécessaire,
  * cette fonction ne doit pas être appelé pour générer du code dans un espace de nom.
  */
-void genere_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
+void génère_déclaration_identifiants_code(const kuri::tableau<Protéine *> &protéines,
                                           FluxSortieCPP &os,
                                           bool pour_entête,
                                           kuri::chaine_statique identifiant_fonction);

@@ -1840,7 +1840,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, m
     }
 
     // 1. Generate anonymous flex items as described in §4 Flex Items.
-    construit_liste_items(ctx, box, mode)
+    construis_liste_items(ctx, box, mode)
 
     // 2. Determine the available main and cross space for the flex items.
     determine_the_available_main_and_cross_space(ctx, mode)
@@ -1913,7 +1913,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, m
     }
 }
 
-construit_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, mode: ModeDeFormattage)
+construis_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, mode: ModeDeFormattage)
 {
     pour box.enfants {
         si !it.est_pseudo_element && est_espace_blanche_document(it) {

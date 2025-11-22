@@ -284,7 +284,7 @@ void GEO3D_distribue_points_poisson_2d(struct ParametresDistributionPoisson2D *p
     geo::distribue_poisson_2d(*params, maillage_sortie_);
 }
 
-void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
+void GEO3D_construis_maillage_alpha(struct AdaptriceMaillage *points,
                                     const float rayon,
                                     struct AdaptriceMaillage *maillage_résultat)
 {
@@ -292,7 +292,7 @@ void GEO3D_construit_maillage_alpha(struct AdaptriceMaillage *points,
     RETOURNE_SI_NUL(maillage_résultat)
     geo::Maillage points_ = geo::Maillage::enveloppe(points);
     geo::Maillage maillage_résultat_ = geo::Maillage::enveloppe(maillage_résultat);
-    geo::construit_maillage_alpha(points_, rayon, maillage_résultat_);
+    geo::construis_maillage_alpha(points_, rayon, maillage_résultat_);
 }
 
 void GEO3D_triangulation_delaunay_2d_points_3d(struct AdaptriceMaillage *points,

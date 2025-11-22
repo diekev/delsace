@@ -222,7 +222,7 @@ initialise_lexeuse :: fonc (document: &ChaineUTF32) -> Lexeuse
 
 initialise_flux_entrée :: fonc (lexeuse: *Lexeuse, entrée: ChaineUTF16)
 {
-    chn := converti_vers_chaine(entrée)
+    chn := convertis_vers_chaine(entrée)
     diffère déloge(chn)
 
     document := crée_chaine_utf32(chn)
@@ -2000,7 +2000,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
         chaine_ajoute(*tampon_temporaire, caractère_suivant)
 
-        chn_temp := converti_vers_chaine(tampon_temporaire)
+        chn_temp := convertis_vers_chaine(tampon_temporaire)
 
         résultat := ensemble_possède_rappel_si_possible(symboles_entités, chn_temp, rappel_commence_par)
 

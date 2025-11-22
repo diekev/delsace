@@ -917,7 +917,7 @@ lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse, genre_lexème: GenreLexème) 
             continue
         }
 
-        point_de_code := converti_utf8_utf32(lexeuse.début_source) comme n32
+        point_de_code := convertis_utf8_utf32(lexeuse.début_source) comme n32
         si est_espace_blanche_unicode(point_de_code) {
             arrête
         }
@@ -1133,7 +1133,7 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
             arrête
         }
 
-        point_de_code := converti_utf8_utf32(lexeuse.début_source, n) comme n32
+        point_de_code := convertis_utf8_utf32(lexeuse.début_source, n) comme n32
         saufsi est_espace_blanche_unicode(point_de_code) {
             arrête
         }

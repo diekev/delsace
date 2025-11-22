@@ -35,7 +35,7 @@ enum class PartageMémoire : uint8_t;
     O(INITIALISATION_TABLEAU, AtomeInitialisationTableau, initialisation_tableau)                 \
     O(NON_INITIALISATION, AtomeNonInitialisation, non_initialisation)                             \
     O(TRANSTYPE_CONSTANT, TranstypeConstant, transtype_constant)                                  \
-    O(ACCÈS_INDICE_CONSTANT, AccèdeIndexConstant, accès_indice_constant)                          \
+    O(ACCÈS_INDICE_CONSTANT, AccèsIndiceConstant, accès_indice_constant)                          \
     O(FONCTION, AtomeFonction, fonction)                                                          \
     O(INSTRUCTION, Instruction, instruction)                                                      \
     O(GLOBALE, AtomeGlobale, globale)
@@ -47,16 +47,17 @@ ENUMERE_GENRE_ATOME(PREDECLARE_CLASSE_ATOME)
 #define ENUMERE_GENRE_INSTRUCTION(O)                                                              \
     O(APPEL, InstructionAppel, appel)                                                             \
     O(ALLOCATION, InstructionAllocation, alloc)                                                   \
-    O(OPERATION_BINAIRE, InstructionOpBinaire, op_binaire)                                        \
-    O(OPERATION_UNAIRE, InstructionOpUnaire, op_unaire)                                           \
-    O(CHARGE_MEMOIRE, InstructionChargeMem, charge)                                               \
-    O(STOCKE_MEMOIRE, InstructionStockeMem, stocke_mem)                                           \
+    O(OPÉRATION_BINAIRE, InstructionOpBinaire, op_binaire)                                        \
+    O(OPÉRATION_UNAIRE, InstructionOpUnaire, op_unaire)                                           \
+    O(CHARGE_MÉMOIRE, InstructionChargeMem, charge)                                               \
+    O(STOCKE_MÉMOIRE, InstructionStockeMem, stocke_mem)                                           \
+    O(COPIE_MÉMOIRE, InstructionCopieMémoire, copie_mémoire)                                      \
     O(LABEL, InstructionLabel, label)                                                             \
     O(BRANCHE, InstructionBranche, branche)                                                       \
     O(BRANCHE_CONDITION, InstructionBrancheCondition, branche_cond)                               \
     O(RETOUR, InstructionRetour, retour)                                                          \
-    O(ACCEDE_RUBRIQUE, InstructionAccèdeRubrique, acces_rubrique)                                 \
-    O(ACCÈDE_INDICE, InstructionAccèdeIndex, acces_index)                                         \
+    O(ACCÈS_RUBRIQUE, InstructionAccèsRubrique, accès_rubrique)                                   \
+    O(ACCÈS_INDICE, InstructionAccèsIndice, accès_indice)                                         \
     O(TRANSTYPE, InstructionTranstype, transtype)                                                 \
     O(INATTEIGNABLE, InstructionInatteignable, inatteignable)                                     \
     O(SÉLECTION, InstructionSélection, sélection)                                                 \
@@ -367,8 +368,8 @@ struct TranstypeConstant : public AtomeConstante {
     }
 };
 
-struct AccèdeIndexConstant : public AtomeConstante {
-    AccèdeIndexConstant()
+struct AccèsIndiceConstant : public AtomeConstante {
+    AccèsIndiceConstant()
     {
         genre_atome = Genre::ACCÈS_INDICE_CONSTANT;
     }
@@ -376,10 +377,10 @@ struct AccèdeIndexConstant : public AtomeConstante {
     AtomeConstante *accédé = nullptr;
     int64_t index = 0;
 
-    EMPECHE_COPIE(AccèdeIndexConstant);
+    EMPECHE_COPIE(AccèsIndiceConstant);
 
-    AccèdeIndexConstant(Type const *type_, AtomeConstante *accédé_, int64_t indice_)
-        : AccèdeIndexConstant()
+    AccèsIndiceConstant(Type const *type_, AtomeConstante *accédé_, int64_t indice_)
+        : AccèsIndiceConstant()
     {
         this->type = type_;
         this->accédé = accédé_;
@@ -468,7 +469,7 @@ std::ostream &operator<<(std::ostream &os, GenreInstruction genre);
 
 struct Instruction : public Atome {
     GenreInstruction genre{};
-    int numero = 0;
+    int numéro = 0;
     NoeudExpression const *site = nullptr;
 
     Instruction()
@@ -543,7 +544,7 @@ struct InstructionOpBinaire : public Instruction {
     explicit InstructionOpBinaire(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::OPERATION_BINAIRE;
+        genre = GenreInstruction::OPÉRATION_BINAIRE;
     }
 
     OpérateurBinaire::Genre op{};
@@ -563,7 +564,7 @@ struct InstructionOpUnaire : public Instruction {
     explicit InstructionOpUnaire(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::OPERATION_UNAIRE;
+        genre = GenreInstruction::OPÉRATION_UNAIRE;
     }
 
     OpérateurUnaire::Genre op{};
@@ -581,7 +582,7 @@ struct InstructionChargeMem : public Instruction {
     explicit InstructionChargeMem(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::CHARGE_MEMOIRE;
+        genre = GenreInstruction::CHARGE_MÉMOIRE;
     }
 
     Atome *chargée = nullptr;
@@ -595,7 +596,7 @@ struct InstructionStockeMem : public Instruction {
     explicit InstructionStockeMem(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::STOCKE_MEMOIRE;
+        genre = GenreInstruction::STOCKE_MÉMOIRE;
     }
 
     Atome *destination = nullptr;
@@ -604,6 +605,25 @@ struct InstructionStockeMem : public Instruction {
     EMPECHE_COPIE(InstructionStockeMem);
 
     InstructionStockeMem(NoeudExpression const *site_, Atome *ou_, Atome *valeur_);
+};
+
+struct InstructionCopieMémoire : public Instruction {
+    explicit InstructionCopieMémoire(NoeudExpression const *site_)
+    {
+        site = site_;
+        genre = GenreInstruction::COPIE_MÉMOIRE;
+    }
+
+    Atome *destination = nullptr;
+    Atome *source = nullptr;
+    uint32_t taille = 0;
+
+    EMPECHE_COPIE(InstructionCopieMémoire);
+
+    InstructionCopieMémoire(NoeudExpression const *site_,
+                            Atome *destination_,
+                            Atome *source_,
+                            uint32_t taille_);
 };
 
 struct InstructionLabel : public Instruction {
@@ -651,44 +671,44 @@ struct InstructionBrancheCondition : public Instruction {
                                 InstructionLabel *label_si_faux_);
 };
 
-struct InstructionAccèdeRubrique : public Instruction {
-    explicit InstructionAccèdeRubrique(NoeudExpression const *site_)
+struct InstructionAccèsRubrique : public Instruction {
+    explicit InstructionAccèsRubrique(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::ACCEDE_RUBRIQUE;
+        genre = GenreInstruction::ACCÈS_RUBRIQUE;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     Atome *accédé = nullptr;
-    /* Index du rubrique accédé dans le type structurel accédé. */
-    int index = 0;
+    /* Indice de la rubrique accédée dans le type structurel accédé. */
+    int indice = 0;
 
-    EMPECHE_COPIE(InstructionAccèdeRubrique);
+    EMPECHE_COPIE(InstructionAccèsRubrique);
 
-    InstructionAccèdeRubrique(NoeudExpression const *site_,
-                              Type const *type_,
-                              Atome *accede_,
-                              int indice_);
+    InstructionAccèsRubrique(NoeudExpression const *site_,
+                             Type const *type_,
+                             Atome *accede_,
+                             int indice_);
 
     const Type *donne_type_accédé() const;
 
     const RubriqueTypeComposé &donne_rubrique_accédé() const;
 };
 
-struct InstructionAccèdeIndex : public Instruction {
-    explicit InstructionAccèdeIndex(NoeudExpression const *site_)
+struct InstructionAccèsIndice : public Instruction {
+    explicit InstructionAccèsIndice(NoeudExpression const *site_)
     {
         site = site_;
-        genre = GenreInstruction::ACCÈDE_INDICE;
+        genre = GenreInstruction::ACCÈS_INDICE;
         drapeaux |= DrapeauxAtome::EST_CHARGEABLE;
     }
 
     Atome *accédé = nullptr;
-    Atome *index = nullptr;
+    Atome *indice = nullptr;
 
-    EMPECHE_COPIE(InstructionAccèdeIndex);
+    EMPECHE_COPIE(InstructionAccèsIndice);
 
-    InstructionAccèdeIndex(NoeudExpression const *site_,
+    InstructionAccèsIndice(NoeudExpression const *site_,
                            Type const *type_,
                            Atome *accede_,
                            Atome *indice_);
@@ -699,18 +719,18 @@ struct InstructionAccèdeIndex : public Instruction {
 #define ENUMERE_TYPE_TRANSTYPAGE(O)                                                               \
     O(AUGMENTE_NATUREL, augmente_naturel)                                                         \
     O(AUGMENTE_RELATIF, augmente_relatif)                                                         \
-    O(AUGMENTE_REEL, augmente_réel)                                                               \
+    O(AUGMENTE_RÉEL, augmente_réel)                                                               \
     O(DIMINUE_NATUREL, diminue_naturel)                                                           \
     O(DIMINUE_RELATIF, diminue_relatif)                                                           \
-    O(DIMINUE_REEL, diminue_réel)                                                                 \
+    O(DIMINUE_RÉEL, diminue_réel)                                                                 \
     O(AUGMENTE_NATUREL_VERS_RELATIF, augmente_naturel_vers_relatif)                               \
     O(AUGMENTE_RELATIF_VERS_NATUREL, augmente_relatif_vers_naturel)                               \
     O(DIMINUE_NATUREL_VERS_RELATIF, diminue_naturel_vers_relatif)                                 \
     O(DIMINUE_RELATIF_VERS_NATUREL, diminue_relatif_vers_naturel)                                 \
     O(POINTEUR_VERS_ENTIER, pointeur_vers_entier)                                                 \
     O(ENTIER_VERS_POINTEUR, entier_vers_pointeur)                                                 \
-    O(REEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
-    O(REEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
+    O(RÉEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
+    O(RÉEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
     O(ENTIER_RELATIF_VERS_REEL, relatif_vers_réel)                                                \
     O(ENTIER_NATUREL_VERS_REEL, naturel_vers_réel)                                                \
     O(BITS, transtype_bits)
@@ -844,7 +864,7 @@ struct AccèsRubriqueFusionné {
 
 /* "Fusionne" les accès de rubrique consécutifs (x.y.z).
  * Retourne l'atome accédé à la fin de la chaine ainsi que le décalage total. */
-AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèdeRubrique const *accès_rubrique);
+AccèsRubriqueFusionné fusionne_accès_rubriques(InstructionAccèsRubrique const *accès_rubrique);
 
 InstructionAllocation const *est_stocke_alloc_depuis_charge_alloc(
     InstructionStockeMem const *inst);

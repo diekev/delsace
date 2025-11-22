@@ -28,7 +28,7 @@ ArbreB :: struct ($C: type_de_données) {
 }
 
 // À FAIRE : il faudrait avoir des valeurs polymorphiques sur les fonctions pour construire les noeuds ($C: type_de_données)
-construit_noeud :: fonc (t: z32, est_feuille: bool, $C: type_de_données) -> *NoeudArbreB(C)
+construis_noeud :: fonc (t: z32, est_feuille: bool, $C: type_de_données) -> *NoeudArbreB(C)
 {
     noeud := loge(NoeudArbreB(C))
     noeud.t = t
@@ -148,7 +148,7 @@ divise_enfant :: fonc (
     y: *NoeudArbreB(C = C)) -> rien
 {
     // construit un noeud qui stockera t - 1 clés de y
-    z := construit_noeud(y.t, y.est_feuille, C)
+    z := construis_noeud(y.t, y.est_feuille, C)
     tableau_ajoute(*arbre.noeuds, z)
     z.n = noeud.t - 1
 
@@ -405,7 +405,7 @@ fusionne_suivant :: fonc (noeud: *NoeudArbreB(C = $C), idx: z32) -> rien
 
 /* ------------------------------------------------------------------------- */
 
-construit_arbre :: fonc (t: z32, $C: type_de_données) -> ArbreB(C)
+construis_arbre :: fonc (t: z32, $C: type_de_données) -> ArbreB(C)
 {
     arbre: ArbreB(C)
     arbre.racine = nul
@@ -446,7 +446,7 @@ recherche :: fonc (arbre: *ArbreB(C = $C), k: C) -> *NoeudArbreB(C)
 insère :: fonc (arbre: *ArbreB(C = $C), k: C) -> rien
 {
     si arbre.racine == nul {
-        arbre.racine = construit_noeud(arbre.t, vrai, C)
+        arbre.racine = construis_noeud(arbre.t, vrai, C)
         tableau_ajoute(*arbre.noeuds, arbre.racine)
         arbre.racine.clés[0] = k
         arbre.racine.n = 1
@@ -456,7 +456,7 @@ insère :: fonc (arbre: *ArbreB(C = $C), k: C) -> rien
 
     // si la racine est pleine, croît l'arbre
     si arbre.racine.n == (2 * arbre.t - 1) {
-        s := construit_noeud(arbre.t, faux, C)
+        s := construis_noeud(arbre.t, faux, C)
         tableau_ajoute(*arbre.noeuds, s)
 
         s.enfants[0] = arbre.racine

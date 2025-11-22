@@ -265,7 +265,7 @@ utfrune(const char *s, Rune c)
 
 rune_depuis_pointeur :: fonc (ptr: *z8) -> Rune
 {
-    x := converti_utf8_utf32(ptr)
+    x := convertis_utf8_utf32(ptr)
     retourne Rune(x comme n32)
 }
 

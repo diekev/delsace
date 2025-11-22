@@ -17,32 +17,32 @@ using Type = NoeudDéclarationType;
 #define ENUMERE_TYPES_TRANSFORMATION                                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(INUTILE)                                                       \
     ENUMERE_TYPE_TRANSFORMATION_EX(IMPOSSIBLE)                                                    \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_UNION)                                               \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIS_UNION)                                               \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION)                                                 \
-    ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION_SANS_VERIFICATION)                               \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_EINI)                                                \
+    ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_UNION_SANS_VÉRIFICATION)                               \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIS_EINI)                                                \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIT_TRANCHE_OCTET)                                       \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_FIXE_VERS_TRANCHE)                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                       \
-    ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE)                                               \
-    ENUMERE_TYPE_TRANSFORMATION_EX(DEREFERENCE)                                                   \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIS_TRANCHE_OCTET)                                       \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE)                            \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                       \
+    ENUMERE_TYPE_TRANSFORMATION_EX(PRENDS_RÉFÉRENCE)                                               \
+    ENUMERE_TYPE_TRANSFORMATION_EX(DÉRÉFERENCE)                                                   \
     ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R32)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R64)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(R32_VERS_R16)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(R64_VERS_R16)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(AUGMENTE_TAILLE_TYPE)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(REDUIT_TAILLE_TYPE)                                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_BASE)                                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_DÉRIVÉ)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_ENTIER_CONSTANT)                                      \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_PTR_RIEN)                                        \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTI_VERS_TYPE_CIBLE)                                      \
-    ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_REEL)                                              \
-    ENUMERE_TYPE_TRANSFORMATION_EX(REEL_VERS_ENTIER)                                              \
+    ENUMERE_TYPE_TRANSFORMATION_EX(RÉDUIS_TAILLE_TYPE)                                            \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_BASE)                                            \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_DÉRIVÉ)                                          \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_ENTIER_CONSTANT)                                      \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_PTR_RIEN)                                        \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_TYPE_CIBLE)                                      \
+    ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_RÉEL)                                              \
+    ENUMERE_TYPE_TRANSFORMATION_EX(RÉEL_VERS_ENTIER)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_POINTEUR)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(POINTEUR_VERS_ENTIER)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(PREND_REFERENCE_ET_CONVERTIS_VERS_BASE)
+    ENUMERE_TYPE_TRANSFORMATION_EX(PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE)
 
 enum class TypeTransformation {
 #define ENUMERE_TYPE_TRANSFORMATION_EX(type) type,
@@ -78,17 +78,17 @@ struct TransformationType {
 
     static TransformationType vers_base(Type const *type_cible_, uint32_t décalage_type_base_)
     {
-        auto résultat = TransformationType(TypeTransformation::CONVERTI_VERS_BASE);
+        auto résultat = TransformationType(TypeTransformation::CONVERTIS_VERS_BASE);
         résultat.type_cible = type_cible_;
         résultat.décalage_type_base = décalage_type_base_;
         return résultat;
     }
 
-    static TransformationType prend_référence_vers_base(Type const *type_cible_,
+    static TransformationType prends_référence_vers_base(Type const *type_cible_,
                                                         uint32_t décalage_type_base_)
     {
         auto résultat = TransformationType(
-            TypeTransformation::PREND_REFERENCE_ET_CONVERTIS_VERS_BASE);
+            TypeTransformation::PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE);
         résultat.type_cible = type_cible_;
         résultat.décalage_type_base = décalage_type_base_;
         return résultat;
@@ -96,7 +96,7 @@ struct TransformationType {
 
     static TransformationType vers_dérivé(Type const *type_cible_, uint32_t décalage_type_base_)
     {
-        auto résultat = TransformationType(TypeTransformation::CONVERTI_VERS_DÉRIVÉ);
+        auto résultat = TransformationType(TypeTransformation::CONVERTIS_VERS_DÉRIVÉ);
         résultat.type_cible = type_cible_;
         résultat.décalage_type_base = décalage_type_base_;
         return résultat;

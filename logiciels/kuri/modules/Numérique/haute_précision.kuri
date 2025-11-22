@@ -15,7 +15,7 @@ HautePrécision :: struct {
     données: [COMPTE]n32
 }
 
-construit_nombre_haute_précision :: fonc () -> HautePrécision
+construis_nombre_haute_précision :: fonc () -> HautePrécision
 {
     hp: HautePrécision
 

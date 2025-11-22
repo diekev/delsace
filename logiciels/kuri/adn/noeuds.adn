@@ -1063,8 +1063,8 @@ struct NoeudPour : NoeudExpression {
     NoeudBloc *bloc_sansarrêt [code enfant]
     NoeudBloc *bloc_sinon [code enfant]
 
-    bool prend_référence [copie]
-    bool prend_pointeur [copie]
+    bool prends_référence [copie]
+    bool prends_pointeur [copie]
     GenreLexème lexème_op = .INFERIEUR [copie]
 
     /* Sauvegarde des déclarations pour « it » et « indice_it », afin de ne pas

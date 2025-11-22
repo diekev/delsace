@@ -1090,7 +1090,7 @@ is_array_index :: fonc (property_key: PropertyKey) -> bool
     /* À FAIRE */
     texte := property_key.String.donne_chaine_utf16()
 
-    texte_utf8 := converti_vers_chaine(texte)
+    texte_utf8 := convertis_vers_chaine(texte)
     diffère déloge(texte_utf8)
 
     résultat := tente extrait_r64(texte_utf8) piège _ {
@@ -1105,7 +1105,7 @@ to_uint32 :: fonc (property_key: PropertyKey) -> n32
     texte := property_key.String.donne_chaine_utf16()
 
     /* À FAIRE */
-    texte_utf8 := converti_vers_chaine(texte)
+    texte_utf8 := convertis_vers_chaine(texte)
     diffère déloge(texte_utf8)
 
     résultat := tente extrait_r64(texte_utf8) piège nonatteignable

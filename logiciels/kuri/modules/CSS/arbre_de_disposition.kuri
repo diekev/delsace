@@ -1297,7 +1297,7 @@ donne_arbre_de_disposition_ajourné :: fonc (document: *HTML.Document, largeur: 
     }
     sinon si ajournement.StackingContext {
         détruit_stacking_context(document.arbre_de_disposition.stacking_context)
-        document.arbre_de_disposition.stacking_context = construit_arbre_de_stacking_contexts(document.arbre_de_disposition, document.arbre_de_disposition.racine)
+        document.arbre_de_disposition.stacking_context = construis_arbre_de_stacking_contexts(document.arbre_de_disposition, document.arbre_de_disposition.racine)
     }
 
     document.ajournement_arbre = AjournementArbre.zéro
@@ -1362,7 +1362,7 @@ crée_arbre_de_disposition :: fonc (document: *HTML.Document, largeur: z32, haut
 
     document.arbre_de_disposition = résultat
 
-    résultat.stacking_context = construit_arbre_de_stacking_contexts(résultat, résultat.racine)
+    résultat.stacking_context = construis_arbre_de_stacking_contexts(résultat, résultat.racine)
 }
 
 dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, largeur: z32, hauteur: z32)

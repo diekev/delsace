@@ -230,7 +230,7 @@ struct ArbreKd {
      */
     void construit(type_taille nombre_pts, type_point const *pts)
     {
-        construit_avec_fonction(nombre_pts, [&pts](type_taille i) { return pts[i]; });
+        construis_avec_fonction(nombre_pts, [&pts](type_taille i) { return pts[i]; });
     }
 
     /**
@@ -239,7 +239,7 @@ struct ArbreKd {
      */
     void construit(type_taille nombre_pts, type_point const *pts, const type_taille *index_persos)
     {
-        construit_avec_fonction(
+        construis_avec_fonction(
             nombre_pts,
             [&pts](type_taille i) { return pts[i]; },
             [&index_persos](type_taille i) { return index_persos[i]; });
@@ -250,9 +250,9 @@ struct ArbreKd {
      * Les positions sont passées par une fonction donnée et stockées en interne.
      */
     template <typename FoncPosPoint>
-    void construit_avec_fonction(type_taille nombre_pts, FoncPosPoint fonc_pos_point)
+    void construis_avec_fonction(type_taille nombre_pts, FoncPosPoint fonc_pos_point)
     {
-        construit_avec_fonction(nombre_pts, fonc_pos_point, [](type_taille i) { return i; });
+        construis_avec_fonction(nombre_pts, fonc_pos_point, [](type_taille i) { return i; });
     }
 
     /**
@@ -261,7 +261,7 @@ struct ArbreKd {
      * interne.
      */
     template <typename FoncPosPoint, typename FoncIndexPersos>
-    void construit_avec_fonction(type_taille nombre_pts,
+    void construis_avec_fonction(type_taille nombre_pts,
                                  FoncPosPoint fonc_pos_point,
                                  FoncIndexPersos fonc_index_persos)
     {
@@ -294,7 +294,7 @@ struct ArbreKd {
             }
         }
 
-        construit_arbre(&orig[0], limite_min, limite_max, 1, 0, m_nombre_points);
+        construis_arbre(&orig[0], limite_min, limite_max, 1, 0, m_nombre_points);
 
         if ((m_nombre_points & 1) == 0) {
             /* si le compte de point est pair, nous devons ajouter un faux point */
@@ -614,7 +614,7 @@ struct ArbreKd {
     /**
      * Méthode principale de construction de l'arbre k-d.
      */
-    void construit_arbre(DonneesPoint *orig,
+    void construis_arbre(DonneesPoint *orig,
                          type_point limite_min,
                          type_point limite_max,
                          type_taille index_kd,
@@ -648,16 +648,16 @@ struct ArbreKd {
                 fin_ix - ixMid + 1 > parallel_invoke_threshold) {
                 tbb::parallel_invoke(
                     [&] {
-                        construit_arbre(orig, limite_min, bMax, index_kd * 2, debut_ix, ixMid);
+                        construis_arbre(orig, limite_min, bMax, index_kd * 2, debut_ix, ixMid);
                     },
                     [&] {
-                        construit_arbre(
+                        construis_arbre(
                             orig, bMin, limite_max, index_kd * 2 + 1, ixMid + 1, fin_ix);
                     });
             }
             else {
-                construit_arbre(orig, limite_min, bMax, index_kd * 2, debut_ix, ixMid);
-                construit_arbre(orig, bMin, limite_max, index_kd * 2 + 1, ixMid + 1, fin_ix);
+                construis_arbre(orig, limite_min, bMax, index_kd * 2, debut_ix, ixMid);
+                construis_arbre(orig, bMin, limite_max, index_kd * 2 + 1, ixMid + 1, fin_ix);
             }
         }
         else if (n > 0) {

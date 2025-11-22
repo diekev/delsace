@@ -277,7 +277,7 @@ static bool doit_ajouter_guillemets(kuri::chaine_statique chn)
         return true;
     }
 
-    auto rune = unicode::converti_utf32(chn.pointeur(), nombre_octet);
+    auto rune = unicode::convertis_utf32(chn.pointeur(), nombre_octet);
     return rune != GUILLEMET_OUVRANT;
 }
 
@@ -894,10 +894,10 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
                 enchaineuse << "> ";
             }
 
-            if (inst->prend_pointeur) {
+            if (inst->prends_pointeur) {
                 enchaineuse << "* ";
             }
-            else if (inst->prend_référence) {
+            else if (inst->prends_référence) {
                 enchaineuse << "& ";
             }
 

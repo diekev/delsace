@@ -3,7 +3,7 @@
  */
 Quaternion :: #opaque [4]r32
 
-construit_quaternion :: fonc (w: r32, x: r32, y: r32, z: r32) -> Quaternion #enligne
+construis_quaternion :: fonc (w: r32, x: r32, y: r32, z: r32) -> Quaternion #enligne
 {
     valeur := [ w, x, y, z ]
     retourne Quaternion(valeur)
@@ -11,7 +11,7 @@ construit_quaternion :: fonc (w: r32, x: r32, y: r32, z: r32) -> Quaternion #enl
 
 quaternion_neutre :: fonc () -> Quaternion #enligne
 {
-    retourne construit_quaternion(1.0, 0.0, 0.0, 0.0)
+    retourne construis_quaternion(1.0, 0.0, 0.0, 0.0)
 }
 
 /* ************************************************************************** */
@@ -33,7 +33,7 @@ quaternion_depuis_axe_et_angle_normalisé :: fonc (axe: Vec3, angle: r32) -> Qua
     // BLI_ASSERT_UNIT_V3(axis);
 
     vecteur := axe * sin
-    retourne construit_quaternion(cos, vecteur.x, vecteur.y, vecteur.z)
+    retourne construis_quaternion(cos, vecteur.x, vecteur.y, vecteur.z)
 }
 
 /* ************************************************************************** */

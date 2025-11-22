@@ -30,11 +30,11 @@ détruit_données_flux :: fonc (flux: &FluxSource)
     init_de(FluxSource)(*flux)
 }
 
-construit_flux :: fonc (source: chaine) -> FluxSource
+construis_flux :: fonc (source: chaine) -> FluxSource
 {
     résultat: FluxSource
     résultat.source = source
-    construit_tableau_runes(résultat)
+    construis_tableau_runes(résultat)
     retourne résultat
 }
 
@@ -46,7 +46,7 @@ donne_sous_chaine_source :: fonc (flux: &FluxSource, données: DonnéesSousChain
     retourne flux.source.sous_chaine(début_utf8, fin_utf8)
 }
 
-construit_tableau_runes :: fonc (flux: &FluxSource)
+construis_tableau_runes :: fonc (flux: &FluxSource)
 {
     indice : z64 = 0
     pointeur_source := flux.source.pointeur
@@ -60,7 +60,7 @@ construit_tableau_runes :: fonc (flux: &FluxSource)
             continue
         }
 
-        rune_ := converti_utf8_utf32(pointeur_source, taille_rune)
+        rune_ := convertis_utf8_utf32(pointeur_source, taille_rune)
         rune := Rune(rune_ comme n32)
 
         tableau_ajoute(*flux.runes, rune)
@@ -114,18 +114,18 @@ FichierSource :: struct {
     contenu: chaine
 }
 
-construit_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
+construis_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
 {
     _, contenu := contenu_fichier_texte(chemin)
-    retourne construit_fichier_source(chemin, contenu)
+    retourne construis_fichier_source(chemin, contenu)
 }
 
-construit_fichier_source :: fonc (contenu: chaine) -> FichierSource
+construis_fichier_source :: fonc (contenu: chaine) -> FichierSource
 {
-    retourne construit_fichier_source(CheminFichier("<memoire>"), contenu)
+    retourne construis_fichier_source(CheminFichier("<memoire>"), contenu)
 }
 
-construit_fichier_source :: fonc (chemin: CheminFichier, contenu: chaine) -> FichierSource
+construis_fichier_source :: fonc (chemin: CheminFichier, contenu: chaine) -> FichierSource
 {
     résultat: FichierSource
     résultat.chemin = copie_chemin(chemin)
@@ -141,7 +141,7 @@ détruit_données_fichier :: fonc (fichier: *FichierSource)
 
 donne_flux_source :: fonc (fichier: *FichierSource) -> FluxSource
 {
-    retourne construit_flux(fichier.contenu)
+    retourne construis_flux(fichier.contenu)
 }
 
 /** \} */

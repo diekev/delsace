@@ -784,7 +784,7 @@ void distribue_poisson_2d(ParametresDistributionPoisson2D const &params,
  * - https://lidarwidgets.com/samples/bpa_tvcg.pdf (Ball Pivoting Algorithm)
  */
 
-static bool construit_sphere(dls::math::vec3f const &x0,
+static bool construis_sphere(dls::math::vec3f const &x0,
                              dls::math::vec3f const &x1,
                              dls::math::vec3f const &x2,
                              float const rayon,
@@ -867,7 +867,7 @@ static bool tous_les_autres_points_sont_exclus(Maillage const &points,
     return true;
 }
 
-static void construit_triangle(Maillage const &points,
+static void construis_triangle(Maillage const &points,
                                Maillage &maillage_résultat,
                                int i,
                                float const radius,
@@ -881,7 +881,7 @@ static void construit_triangle(Maillage const &points,
             auto const pk = points.pointPourIndex(N1[k]);
 
             dls::math::vec3f center;
-            if (!construit_sphere(pi, pj, pk, radius, center)) {
+            if (!construis_sphere(pi, pj, pk, radius, center)) {
                 continue;
             }
 
@@ -897,7 +897,7 @@ static void construit_triangle(Maillage const &points,
     }
 }
 
-void construit_maillage_alpha(Maillage const &points,
+void construis_maillage_alpha(Maillage const &points,
                               const float rayon,
                               Maillage &maillage_résultat)
 {
@@ -906,14 +906,14 @@ void construit_maillage_alpha(Maillage const &points,
     }
 
     auto arbre = arbre_3df();
-    arbre.construit_avec_fonction(points.nombreDePoints(), [&](int64_t i) -> dls::math::vec3f {
+    arbre.construis_avec_fonction(points.nombreDePoints(), [&](int64_t i) -> dls::math::vec3f {
         return points.pointPourIndex(i);
     });
 
     for (auto i = 0; i < points.nombreDePoints(); ++i) {
         auto point = points.pointPourIndex(i);
         auto N1 = trouve_points_voisins(arbre, point, i, 2.0f * rayon);
-        construit_triangle(points, maillage_résultat, i, rayon, N1, point);
+        construis_triangle(points, maillage_résultat, i, rayon, N1, point);
     }
 }
 

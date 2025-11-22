@@ -571,12 +571,12 @@ HierarchieBoiteEnglobante *cree_hierarchie_boite_englobante(const Maillage &mail
 
 /* ********************************************************************************** */
 
-static void construit_niveau_pour_noeud(HierarchieBoiteEnglobante::Noeud *noeud, int niveau)
+static void construis_niveau_pour_noeud(HierarchieBoiteEnglobante::Noeud *noeud, int niveau)
 {
     for (int i = 0; i < noeud->nombre_enfants; i++) {
         auto enfant = noeud->enfants[i];
         enfant->niveau = niveau + 1;
-        construit_niveau_pour_noeud(enfant, niveau + 1);
+        construis_niveau_pour_noeud(enfant, niveau + 1);
     }
 }
 
@@ -658,7 +658,7 @@ void visualise_hierarchie_au_niveau(HierarchieBoiteEnglobante &hierarchie,
             noeud.niveau = -1;
         }
 
-        construit_niveau_pour_noeud(racine, 0);
+        construis_niveau_pour_noeud(racine, 0);
 
         for (auto &noeud : hierarchie.nodearray) {
             if (noeud.niveau != niveau) {

@@ -104,36 +104,36 @@ inline int64_t taille_alignee(int64_t taille)
     return (taille + 3) & (~3);
 }
 
-struct EnteteMemoire {
+struct EntêteMémoire {
     const char *message = nullptr;
     int64_t taille = 0;
 
-    EnteteMemoire *suivant = nullptr;
-    EnteteMemoire *precedent = nullptr;
+    EntêteMémoire *suivant = nullptr;
+    EntêteMémoire *precedent = nullptr;
 };
 
-inline void *pointeur_depuis_entete(EnteteMemoire *entete)
+inline void *pointeur_depuis_entête(EntêteMémoire *entête)
 {
-    return entete + 1;
+    return entête + 1;
 }
 
-inline EnteteMemoire *entete_depuis_pointeur(void *pointeur)
+inline EntêteMémoire *entête_depuis_pointeur(void *pointeur)
 {
-    /* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
-    return static_cast<EnteteMemoire *>(pointeur) - 1;
+    /* le pointeur pointe sur le bloc, recule d'une EntêteMémoire pour retrouvre l'entête */
+    return static_cast<EntêteMémoire *>(pointeur) - 1;
 }
 
 #define ENTETE_DEPUIS_LIEN(x)                                                                     \
-    (reinterpret_cast<EnteteMemoire *>((static_cast<char *>(x)) -                                 \
-                                       offsetof(EnteteMemoire, suivant)))
+    (reinterpret_cast<EntêteMémoire *>((static_cast<char *>(x)) -                                 \
+                                       offsetof(EntêteMémoire, suivant)))
 static void imprime_blocs_memoire()
 {
     auto premier = g_liste_mem->premier;
 
     while (premier != g_liste_mem->dernier) {
-        auto entete = ENTETE_DEPUIS_LIEN(premier);
-        std::cerr << entete->message << ", " << entete->taille << '\n';
-        premier = entete->suivant;
+        auto entête = ENTETE_DEPUIS_LIEN(premier);
+        std::cerr << entête->message << ", " << entête->taille << '\n';
+        premier = entête->suivant;
     }
 }
 
@@ -145,21 +145,21 @@ void *logeuse_mémoire::loge_generique(const char *message, int64_t taille)
     /* aligne la taille désirée */
     taille = taille_alignee(taille);
 
-    EnteteMemoire *entete = static_cast<EnteteMemoire *>(
-        malloc(static_cast<size_t>(taille) + sizeof(EnteteMemoire)));
-    entete->message = message;
-    entete->taille = taille;
+    EntêteMémoire *entête = static_cast<EntêteMémoire *>(
+        malloc(static_cast<size_t>(taille) + sizeof(EntêteMémoire)));
+    entête->message = message;
+    entête->taille = taille;
 
     {
         std::unique_lock l(g_mutex);
-        ajoute_lien(g_liste_mem, &entete->suivant);
+        ajoute_lien(g_liste_mem, &entête->suivant);
     }
 
     ajoute_memoire(taille);
     nombre_allocations += 1;
 
     /* saute l'entête et retourne le bloc de la taille désirée */
-    return pointeur_depuis_entete(entete);
+    return pointeur_depuis_entête(entête);
 #endif
 }
 
@@ -180,17 +180,17 @@ void *logeuse_mémoire::reloge_generique(const char *message,
     /* calcule la taille alignée correspondante à l'allocation */
     nouvelle_taille = taille_alignee(nouvelle_taille);
 
-    EnteteMemoire *entete = static_cast<EnteteMemoire *>(ptr);
+    EntêteMémoire *entête = static_cast<EntêteMémoire *>(ptr);
 
     /* il est possible d'utiliser reloge avec un pointeur nul, ce qui agit comme un loge */
-    if (entete) {
-        /* le pointeur pointe sur le bloc, recule d'une EnteteMemoire pour retrouvre l'entête */
-        entete = entete_depuis_pointeur(entete);
+    if (entête) {
+        /* le pointeur pointe sur le bloc, recule d'une EntêteMémoire pour retrouvre l'entête */
+        entête = entête_depuis_pointeur(entête);
 
-        if (entete->taille != ancienne_taille) {
-            std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message
+        if (entête->taille != ancienne_taille) {
+            std::cerr << "Désynchronisation pour le bloc '" << entête->message << "' ('" << message
                       << "') lors du relogement !\n";
-            std::cerr << "La taille du logement était de " << entete->taille
+            std::cerr << "La taille du logement était de " << entête->taille
                       << ", mais la taille reçue est de " << ancienne_taille << " !\n";
         }
     }
@@ -198,17 +198,17 @@ void *logeuse_mémoire::reloge_generique(const char *message,
     /* enlève le lien au cas où realloc change le pointeur d'adresse */
     if (ptr) {
         std::unique_lock l(g_mutex);
-        enleve_lien(g_liste_mem, &entete->suivant);
+        enleve_lien(g_liste_mem, &entête->suivant);
     }
 
-    entete = static_cast<EnteteMemoire *>(
-        realloc(entete, sizeof(EnteteMemoire) + static_cast<size_t>(nouvelle_taille)));
-    entete->taille = nouvelle_taille;
-    entete->message = message;
+    entête = static_cast<EntêteMémoire *>(
+        realloc(entête, sizeof(EntêteMémoire) + static_cast<size_t>(nouvelle_taille)));
+    entête->taille = nouvelle_taille;
+    entête->message = message;
 
     {
         std::unique_lock l(g_mutex);
-        ajoute_lien(g_liste_mem, &entete->suivant);
+        ajoute_lien(g_liste_mem, &entête->suivant);
     }
 
     ajoute_memoire(nouvelle_taille - ancienne_taille);
@@ -216,7 +216,7 @@ void *logeuse_mémoire::reloge_generique(const char *message,
     nombre_reallocations += 1;
 
     /* saute l'entête et retourne le bloc de la taille désirée */
-    return pointeur_depuis_entete(entete);
+    return pointeur_depuis_entête(entête);
 #endif
 }
 
@@ -232,20 +232,20 @@ void logeuse_mémoire::deloge_generique(const char *message, void *ptr, int64_t 
     /* calcule la taille alignée correspondante à l'allocation */
     taille = taille_alignee(taille);
 
-    EnteteMemoire *entete = entete_depuis_pointeur(ptr);
+    EntêteMémoire *entête = entête_depuis_pointeur(ptr);
 
-    if (entete->taille != taille) {
-        std::cerr << "Désynchronisation pour le bloc '" << entete->message << "' ('" << message
+    if (entête->taille != taille) {
+        std::cerr << "Désynchronisation pour le bloc '" << entête->message << "' ('" << message
                   << "') lors du délogement !\n";
-        std::cerr << "La taille du logement était de " << entete->taille
+        std::cerr << "La taille du logement était de " << entête->taille
                   << ", mais la taille reçue est de " << taille << " !\n";
     }
 
     {
         std::unique_lock l(g_mutex);
-        enleve_lien(g_liste_mem, &entete->suivant);
+        enleve_lien(g_liste_mem, &entête->suivant);
     }
-    free(entete);
+    free(entête);
 
     enleve_memoire(taille);
     nombre_deallocations += 1;

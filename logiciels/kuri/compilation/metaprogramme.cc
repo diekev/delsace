@@ -220,11 +220,11 @@ void MetaProgramme::vidange_log_sur_disque(TypeLogMétaprogramme type_log)
     auto nom_fichier = enchaine(
         donne_nom_pour_fichier_log(), "_", donne_suffixe_pour_type_log(type_log), ".txt");
 
-    auto chemin_fichier_entete = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
+    auto chemin_fichier_entête = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 
-    info() << "Écriture du log de métaprogramme " << chemin_fichier_entete << "...";
+    info() << "Écriture du log de métaprogramme " << chemin_fichier_entête << "...";
 
-    std::ofstream of(vers_std_path(chemin_fichier_entete));
+    std::ofstream of(vers_std_path(chemin_fichier_entête));
     logueuse->imprime_dans_flux(of);
     of.close();
 }

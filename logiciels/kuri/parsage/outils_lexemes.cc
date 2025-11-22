@@ -9,7 +9,7 @@ PositionLexème position_lexeme(Lexème const &lexeme)
 {
     auto pos = PositionLexème{};
     pos.pos = lexeme.colonne;
-    pos.numero_ligne = lexeme.ligne + 1;
+    pos.numéro_ligne = lexeme.ligne + 1;
     pos.indice_ligne = lexeme.ligne;
     return pos;
 }
