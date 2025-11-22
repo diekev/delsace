@@ -109,13 +109,13 @@ struct logeuse_mémoire {
                 res[i] = std::move(ptr[i]);
             }
 
-            deloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
+            déloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
             ptr = res;
         }
     }
 
     template <typename T>
-    void deloge(const char *message, T *&ptr)
+    void déloge(const char *message, T *&ptr)
     {
         if (ptr == nullptr) {
             return;
@@ -123,16 +123,16 @@ struct logeuse_mémoire {
 
         ptr->~T();
 
-        deloge_generique(message, ptr, calcule_memoire<T>(1));
+        déloge_generique(message, ptr, calcule_memoire<T>(1));
         ptr = nullptr;
     }
 
     template <typename T>
-    void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
+    void déloge_tableau(const char *message, T *&ptr, int64_t nombre)
     {
         assert(nombre >= 0);
 
-        deloge_generique(message, ptr, calcule_memoire<T>(nombre));
+        déloge_generique(message, ptr, calcule_memoire<T>(nombre));
         ptr = nullptr;
     }
 
@@ -163,7 +163,7 @@ struct logeuse_mémoire {
                            int64_t ancienne_taille,
                            int64_t nouvelle_taille);
 
-    void deloge_generique(const char *message, void *ptr, int64_t taille);
+    void déloge_generique(const char *message, void *ptr, int64_t taille);
 };
 
 /**
@@ -217,17 +217,17 @@ template <typename T>
 }
 
 template <typename T>
-void deloge(const char *message, T *&ptr)
+void déloge(const char *message, T *&ptr)
 {
     auto &logeuse = logeuse_mémoire::instance();
-    logeuse.deloge<T>(message, ptr);
+    logeuse.déloge<T>(message, ptr);
 }
 
 template <typename T>
-void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
+void déloge_tableau(const char *message, T *&ptr, int64_t nombre)
 {
     auto &logeuse = logeuse_mémoire::instance();
-    logeuse.deloge_tableau<T>(message, ptr, nombre);
+    logeuse.déloge_tableau<T>(message, ptr, nombre);
 }
 
 }  // namespace mémoire

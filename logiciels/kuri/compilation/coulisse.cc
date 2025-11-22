@@ -93,24 +93,24 @@ void Coulisse::détruit(Coulisse *coulisse)
 {
     if (dynamic_cast<CoulisseC *>(coulisse)) {
         auto c = dynamic_cast<CoulisseC *>(coulisse);
-        mémoire::deloge("CoulisseC", c);
+        mémoire::déloge("CoulisseC", c);
         coulisse = nullptr;
     }
 #ifdef AVEC_COULISSE_LLVM
     else if (dynamic_cast<CoulisseLLVM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseLLVM *>(coulisse);
-        mémoire::deloge("CoulisseLLVM", c);
+        mémoire::déloge("CoulisseLLVM", c);
         coulisse = nullptr;
     }
 #endif
     else if (dynamic_cast<CoulisseASM *>(coulisse)) {
         auto c = dynamic_cast<CoulisseASM *>(coulisse);
-        mémoire::deloge("CoulisseASM", c);
+        mémoire::déloge("CoulisseASM", c);
         coulisse = nullptr;
     }
     else if (dynamic_cast<CoulisseMV *>(coulisse)) {
         auto c = dynamic_cast<CoulisseMV *>(coulisse);
-        mémoire::deloge("CoulisseMV", c);
+        mémoire::déloge("CoulisseMV", c);
         coulisse = nullptr;
     }
 }
@@ -141,14 +141,14 @@ bool Coulisse::crée_fichier_objet(ArgsGénérationCode const &args)
     }
     auto args_fichier_objet = crée_args_création_fichier_objet(
         *args.compilatrice, *args.espace, args.programme, *args.ri_programme);
-    auto debut_fichier_objet = kuri::chrono::compte_seconde();
+    auto début_fichier_objet = kuri::chrono::compte_seconde();
     err = crée_fichier_objet_impl(args_fichier_objet);
     if (err.has_value()) {
         args.espace->rapporte_erreur_sans_site("Impossible de générer les fichiers objets.")
             .ajoute_message(err.value().message);
         return false;
     }
-    temps_fichier_objet = debut_fichier_objet.temps();
+    temps_fichier_objet = début_fichier_objet.temps();
 
     return true;
 }
