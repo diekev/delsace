@@ -212,7 +212,7 @@ est_valeur_scalaire :: fonc (chn: ChaineUTF16) -> bool
 }
 
 // À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires (ChaineValeurScalaireUnicode)
-converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
+convertis_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
     résultat: ChaineUTF16
 
@@ -228,7 +228,7 @@ converti_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
     retourne résultat
 }
 
-converti_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
+convertis_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
 {
     // À FAIRE(langage) : la compilation n'attend pas sur les messages
     // retourne imprime_chaine("%", chn)
@@ -709,7 +709,7 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: chaine)
             continue
         }
 
-        enchaineuse.ajoute(converti_utf8_utf32(*ptr_source[curseur]) comme n32)
+        enchaineuse.ajoute(convertis_utf8_utf32(*ptr_source[curseur]) comme n32)
         curseur += no comme z32
     }
 }

@@ -196,7 +196,7 @@ Erreur rapporte_erreur(EspaceDeTravail const *espace,
                        kuri::chaine_statique message,
                        erreur::Genre genre = erreur::Genre::NORMAL);
 
-kuri::chaine genere_entete_erreur(EspaceDeTravail const *espace,
+kuri::chaine génère_entête_erreur(EspaceDeTravail const *espace,
                                   SiteSource site,
                                   erreur::Genre genre,
                                   const kuri::chaine_statique message);
