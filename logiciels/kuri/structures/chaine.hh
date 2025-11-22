@@ -73,7 +73,7 @@ struct chaine {
 
     ~chaine()
     {
-        mémoire::deloge_tableau("chaine", this->pointeur_, this->capacite_);
+        mémoire::déloge_tableau("chaine", this->pointeur_, this->capacite_);
     }
 
     chaine &operator=(chaine const &autre)
@@ -271,7 +271,7 @@ public:
     }
 
     template <typename T>
-    void deloge(T *&ptr)
+    void déloge(T *&ptr)
     {
         delete ptr;
         ptr = nullptr;
@@ -291,7 +291,7 @@ public:
 nouvelle_taille);
 
     template <typename T>
-    void deloge_tableau(T *&ptr, int64_t taille);
+    void déloge_tableau(T *&ptr, int64_t taille);
 
     int64_t nombre_allocation() const
     {

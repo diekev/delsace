@@ -175,7 +175,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         }
         else if (m_nom.nom() == "NoeudDéclarationEntêteFonction") {
             os << "\t";
-            os << "\tBaseDéclarationVariable *parametre_entree(int64_t i) const\n";
+            os << "\tBaseDéclarationVariable *paramètre_entrée(int64_t i) const\n";
             os << "\t{\n";
             os << "\t\tauto param = params[static_cast<int>(i)];\n";
 
@@ -205,7 +205,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
             os << "\tint nombre_de_rubriques() const;\n";
             os << "\tvoid réserve_rubriques(int nombre);\n";
             os << "\tvoid ajoute_rubrique(NoeudDéclaration *decl);\n";
-            os << "\tvoid ajoute_rubrique_au_debut(NoeudDéclaration *decl);\n";
+            os << "\tvoid ajoute_rubrique_au_début(NoeudDéclaration *decl);\n";
             os << "\tvoid fusionne_rubriques(NoeudBloc *de);\n";
             os << "\tNoeudDéclaration *rubrique_pour_index(int index) const;\n";
             os << "\tNoeudDéclaration *déclaration_pour_ident(IdentifiantCode const "
@@ -576,11 +576,11 @@ void ProtéineFonction::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 
     auto virgule = "(";
 
-    if (m_parametres.taille() == 0) {
+    if (m_paramètres.taille() == 0) {
         os << virgule;
     }
     else {
-        for (auto &param : m_parametres) {
+        for (auto &param : m_paramètres) {
             os << virgule << *param.type << ' ' << param.nom;
             virgule = ", ";
         }
@@ -605,11 +605,11 @@ void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
 
     auto virgule = "(";
 
-    if (m_parametres.taille() == 0) {
+    if (m_paramètres.taille() == 0) {
         os << virgule;
     }
     else {
-        for (auto &param : m_parametres) {
+        for (auto &param : m_paramètres) {
             os << virgule << param.nom << ": " << *param.type;
             virgule = ", ";
         }
@@ -631,9 +631,9 @@ void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
     os << "\n\n";
 }
 
-void ProtéineFonction::ajoute_parametre(Parametre const parametre)
+void ProtéineFonction::ajoute_paramètre(Paramètre const paramètre)
 {
-    m_parametres.ajoute(parametre);
+    m_paramètres.ajoute(paramètre);
 }
 
 SyntaxeuseADN::SyntaxeuseADN(Fichier *fichier) : BaseSyntaxeuse(fichier)
@@ -685,18 +685,18 @@ void SyntaxeuseADN::parse_fonction()
     consomme();
 
     while (!apparie(GenreLexème::PARENTHESE_FERMANTE)) {
-        auto parametre = Parametre{};
-        parametre.type = parse_type();
+        auto paramètre = Paramètre{};
+        paramètre.type = parse_type();
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
             rapporte_erreur(
                 "Attendu une chaine de caractère pour le nom du paramètre après son type");
         }
 
-        parametre.nom = lexème_courant()->chaine;
+        paramètre.nom = lexème_courant()->chaine;
         consomme();
 
-        fonction->ajoute_parametre(parametre);
+        fonction->ajoute_paramètre(paramètre);
 
         if (apparie(GenreLexème::VIRGULE)) {
             consomme();

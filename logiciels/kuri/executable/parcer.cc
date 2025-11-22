@@ -1119,7 +1119,7 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
             auto nom = enchaine("anonyme", nombre_anonyme++);
             kuri::tableau<kuri::chaine, int64_t> tabl;
             tabl.ajoute(nom);
-            typedefs.insere({nom_anonymous, tabl});
+            typedefs.insère({nom_anonymous, tabl});
             return nom;
         }
 
@@ -1182,7 +1182,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     }
     std::cerr << '\n';
 
-    dico.insere({nom, morceaux});
+    dico.insère({nom, morceaux});
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
@@ -1313,7 +1313,7 @@ struct Convertisseuse {
     {
         kuri::tableau<kuri::chaine> tabl;
         tabl.ajoute(nom_type);
-        typedefs.insere({nom_typedef, tabl});
+        typedefs.insère({nom_typedef, tabl});
     }
 
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
