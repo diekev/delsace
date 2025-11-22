@@ -470,9 +470,9 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
         {
             auto type_enum = static_cast<TypeEnum const *>(type);
             génère_typedef(type_enum->type_sous_jacent, enchaineuse);
-            auto nom_broye_type_donnees = génératrice_code.donne_nom_pour_type(
+            auto nom_broye_type_données = génératrice_code.donne_nom_pour_type(
                 type_enum->type_sous_jacent);
-            type_c.typedef_ = nom_broye_type_donnees;
+            type_c.typedef_ = nom_broye_type_données;
             break;
         }
         case GenreNoeud::DÉCLARATION_OPAQUE:
@@ -1115,8 +1115,8 @@ GénératriceCodeC::GénératriceCodeC(EspaceDeTravail &espace, Broyeuse &broyeu
 
 GénératriceCodeC::~GénératriceCodeC()
 {
-    mémoire::deloge("Conver", m_convertisseuse_type_c);
-    mémoire::deloge("InformationsDeDébogage", m_info_débogage);
+    mémoire::déloge("Conver", m_convertisseuse_type_c);
+    mémoire::déloge("InformationsDeDébogage", m_info_débogage);
 }
 
 int64_t GénératriceCodeC::mémoire_utilisée() const
@@ -1246,7 +1246,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             if (atome_fonc->est_intrinsèque()) {
                 if (atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
-                    return "intrinseque_est_adresse_donnees_constantes";
+                    return "intrinseque_est_adresse_données_constantes";
                 }
                 if (atome_fonc->decl->ident == ID::intrinsèque_lis_compteur_temporel) {
                     return "intrinseque_lis_compteur_temporel";
@@ -1877,7 +1877,7 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
         return false;
     }
 
-    auto const param = entête->parametre_entree(index);
+    auto const param = entête->paramètre_entrée(index);
     if (param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
         /* Explicitement marquée @inutilisée. */
         return true;
@@ -2185,7 +2185,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
     }
 
     if (type->est_type_type_de_données()) {
-        type = m_espace.typeuse.type_type_de_donnees_;
+        type = m_espace.typeuse.type_type_de_données_;
     }
 
     if (type->est_type_union()) {
@@ -2657,7 +2657,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
     if (pour_entête) {
         os << ";\n";
 
-        os << "static inline bool intrinseque_est_adresse_donnees_constantes(const void *ptr)\n";
+        os << "static inline bool intrinseque_est_adresse_données_constantes(const void *ptr)\n";
         os << "{\n";
         os << "    const uint8_t *ptr_type = (const uint8_t *)ptr;\n";
         os << "    const uint8_t *ptr_base = &DC[0];\n";

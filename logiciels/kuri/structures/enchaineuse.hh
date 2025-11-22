@@ -14,7 +14,7 @@ struct Enchaineuse {
     static constexpr auto TAILLE_TAMPON = 16 * 1024;
 
     struct Tampon {
-        char donnees[TAILLE_TAMPON];
+        char données[TAILLE_TAMPON];
         int occupe = 0;
         Tampon *suivant = nullptr;
     };
