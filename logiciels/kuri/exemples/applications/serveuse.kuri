@@ -12,7 +12,7 @@ Serveuse :: struct {
     prise := -1
 }
 
-construit_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
+construis_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
 {
     serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
 
@@ -110,7 +110,7 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
 
             chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
 
-            //chaine_reponse = construit_reponse(reponse)
+            //chaine_reponse = construis_reponse(reponse)
 
             si send(prise, chaine_reponse.pointeur, chaine_reponse.taille comme n64, 0) == -1 {
                 perror(ChaineC("send".pointeur))
@@ -136,7 +136,7 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
 principale :: fonc ()
 {
     serveuse: Serveuse
-    _ := construit_serveuse(serveuse, 5009)
+    _ := construis_serveuse(serveuse, 5009)
 
     démarre(serveuse)
 }
