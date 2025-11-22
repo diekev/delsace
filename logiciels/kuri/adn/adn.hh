@@ -636,13 +636,13 @@ class ProtéineEnum final : public Protéine {
     }
 };
 
-struct Parametre {
+struct Paramètre {
     IdentifiantADN nom{};
     Type *type = nullptr;
 };
 
 class ProtéineFonction final : public Protéine {
-    kuri::tableau<Parametre> m_parametres{};
+    kuri::tableau<Paramètre> m_paramètres{};
     Type *m_type_sortie = nullptr;
     bool m_est_ipa_compilatrice = false;
     bool m_est_intrinsèque = false;
@@ -665,7 +665,7 @@ class ProtéineFonction final : public Protéine {
         return m_type_sortie;
     }
 
-    void ajoute_parametre(Parametre const parametre);
+    void ajoute_paramètre(Paramètre const paramètre);
 
     bool est_fonction() const override
     {
@@ -677,9 +677,9 @@ class ProtéineFonction final : public Protéine {
         return this;
     }
 
-    const kuri::tableau<Parametre> &donne_paramètres() const
+    const kuri::tableau<Paramètre> &donne_paramètres() const
     {
-        return m_parametres;
+        return m_paramètres;
     }
 
     Type *donne_type_sortie() const
