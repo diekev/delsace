@@ -61,7 +61,7 @@ void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
     auto info_bloc = InformationsBloc{taille, frame};
 
 #ifdef UTILISE_NOTRE_TABLE
-    table_allocations.insere(ptr, info_bloc);
+    table_allocations.insère(ptr, info_bloc);
 #else
     table_allocations.insert({ptr, info_bloc});
 #endif
@@ -459,7 +459,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
     }
 }
 
-static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
+static auto imprime_valeurs_entrées(octet_t *pointeur_début_entrée,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -467,7 +467,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
     logueuse << chaine_indentations(profondeur_appel) << "Appel de " << fonction->nom << '\n';
 
     auto type_fonction = fonction->type->comme_type_fonction();
-    auto pointeur_lecture_retour = pointeur_debut_entree;
+    auto pointeur_lecture_retour = pointeur_début_entrée;
     POUR_INDICE (type_fonction->types_entrées) {
         logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << indice_it << " ("
                  << chaine_type(it) << ") : ";
@@ -478,7 +478,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
     }
 }
 
-static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
+static auto imprime_valeurs_sorties(octet_t *pointeur_début_retour,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -492,7 +492,7 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
     }
 
     logueuse << chaine_indentations(profondeur_appel) << "-- résultat : ";
-    lis_valeur(pointeur_debut_retour, type_sortie, logueuse);
+    lis_valeur(pointeur_début_retour, type_sortie, logueuse);
     logueuse << '\n';
 }
 
@@ -562,7 +562,7 @@ MachineVirtuelle::~MachineVirtuelle()
     }
 
     POUR (m_données_exécution_libres) {
-        mémoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
+        mémoire::déloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
     }
 }
 
@@ -1038,14 +1038,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         données_externe.types_entrées.ajoute(nullptr);
 
         auto type_ffi_sortie = convertis_type_ffi(type_fonction->type_sortie);
-        auto ptr_types_entrees = données_externe.types_entrées.données();
+        auto ptr_types_entrées = données_externe.types_entrées.données();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
                                        FFI_DEFAULT_ABI,
                                        nombre_arguments_fixes,
                                        nombre_arguments_totaux,
                                        type_ffi_sortie,
-                                       ptr_types_entrees);
+                                       ptr_types_entrées);
 
         if (status != FFI_OK) {
             rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
@@ -1206,7 +1206,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
     for (auto i = 0; i < INSTRUCTIONS_PAR_LOT; ++i) {
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
-        auto pointeur_debut = frame->pointeur;
+        auto pointeur_début = frame->pointeur;
         auto instruction = LIS_OCTET();
 
         switch (instruction) {
@@ -1676,14 +1676,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                  * OP_LOGUE_RETOUR. */
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-                auto pointeur_debut_retour = pointeur_pile - taille_retour;
+                auto pointeur_début_retour = pointeur_pile - taille_retour;
 
                 profondeur_appel--;
 
                 if (profondeur_appel == 0) {
                     /* Nous retournons de la fonction principale du métaprogramme. */
                     if (pointeur_pile != pile) {
-                        pointeur_pile = pointeur_debut_retour;
+                        pointeur_pile = pointeur_début_retour;
                     }
 
                     compte_exécutées = i + 1;
@@ -1694,9 +1694,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 pointeur_pile = frame->pointeur_pile;
 
                 /* Empile le résultat de la fonction. */
-                if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
+                if (taille_retour != 0 && pointeur_pile != pointeur_début_retour) {
                     memcpy(pointeur_pile,
-                           pointeur_debut_retour,
+                           pointeur_début_retour,
                            static_cast<unsigned>(taille_retour));
                 }
 
@@ -1765,7 +1765,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
                     résultat == RésultatInterprétation::TERMINÉ) {
-                    frame->pointeur = pointeur_debut;
+                    frame->pointeur = pointeur_début;
                     return résultat;
                 }
 
@@ -1799,7 +1799,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
                         résultat == RésultatInterprétation::TERMINÉ) {
-                        frame->pointeur = pointeur_debut;
+                        frame->pointeur = pointeur_début;
                         compte_exécutées = i + 1;
                         return résultat;
                     }
@@ -2040,10 +2040,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-                auto pointeur_debut_retour = pointeur_pile - taille_retour;
+                auto pointeur_début_retour = pointeur_pile - taille_retour;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
                 imprime_valeurs_sorties(
-                    pointeur_debut_retour, frame->fonction, profondeur_appel, logueuse);
+                    pointeur_début_retour, frame->fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_RETOUR:
@@ -2319,7 +2319,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::vérifie_cible_appe
             .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
                             static_cast<void *>(ptr_fonction),
                             "\n")
-            .ajoute_donnees([&](Erreur &e) { ajoute_trace_appel(e); });
+            .ajoute_données([&](Erreur &e) { ajoute_trace_appel(e); });
         return RésultatInterprétation::ERREUR;
     }
 

@@ -1096,7 +1096,7 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
 
 GénératriceCodeLLVM::~GénératriceCodeLLVM()
 {
-    mémoire::deloge("InfoDébogageLLVM", m_info_débogage);
+    mémoire::déloge("InfoDébogageLLVM", m_info_débogage);
 }
 
 llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
@@ -2739,8 +2739,8 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         génère_code_pour_instruction(inst);
     }
 
-    auto bloc_entree = table_blocs[atome_fonc->instructions[0]->comme_label()->id];
-    m_builder.SetInsertPoint(bloc_entree);
+    auto bloc_entrée = table_blocs[atome_fonc->instructions[0]->comme_label()->id];
+    m_builder.SetInsertPoint(bloc_entrée);
 
     auto valeurs_args = fonction->arg_begin();
 
@@ -2973,7 +2973,7 @@ CoulisseLLVM::~CoulisseLLVM()
     POUR (m_modules) {
         delete it->module;
         delete it->contexte_llvm;
-        mémoire::deloge("DonnéesModule", it);
+        mémoire::déloge("DonnéesModule", it);
     }
     delete m_machine_cible;
 }
@@ -3085,7 +3085,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
     return {};
 }
 
-static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
+static kuri::chaine_statique donne_fichier_point_d_entrée(OptionsDeCompilation const &options)
 {
     if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         return "fichiers/point_d_entree_dynamique.c";
@@ -3101,7 +3101,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
-                                    donne_fichier_point_d_entree(espace.options);
+                                    donne_fichier_point_d_entrée(espace.options);
     fichiers_objet.ajoute(fichier_point_d_entrée_c);
 
     POUR (m_modules) {

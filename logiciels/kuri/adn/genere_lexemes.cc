@@ -489,9 +489,9 @@ inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
         return 1;
     }
 
-    std::ifstream fichier_tmp_entree(vers_std_path(empreinte_parfaite_tmp_hh));
+    std::ifstream fichier_tmp_entrée(vers_std_path(empreinte_parfaite_tmp_hh));
 
-    if (!fichier_tmp_entree.is_open()) {
+    if (!fichier_tmp_entrée.is_open()) {
         std::cerr << "Impossible d'ouvrir le fichier " << empreinte_parfaite_tmp_hh << '\n';
         return 1;
     }
@@ -499,7 +499,7 @@ inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
     os << "#pragma once\n\n";
 
     std::string ligne;
-    while (std::getline(fichier_tmp_entree, ligne)) {
+    while (std::getline(fichier_tmp_entrée, ligne)) {
         if (ligne.size() > 5 && ligne.substr(0, 5) == "#line") {
             continue;
         }
