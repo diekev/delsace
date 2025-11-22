@@ -476,26 +476,26 @@ void Lexeuse::consomme_espaces_blanches()
 
 Lexème Lexeuse::donne_lexème_suivant()
 {
-#define APPARIE_CARACTERE_SIMPLE(caractere, genre_lexème)                                         \
-    if (c == caractere) {                                                                         \
+#define APPARIE_CARACTERE_SIMPLE(caractère, genre_lexème)                                         \
+    if (c == caractère) {                                                                         \
         return crée_lexème_opérateur(1, genre_lexème);                                            \
     }
 
-#define APPARIE_CARACTERE_DOUBLE_ÉGAL(caractere, genre_lexème, genre_lexème_avec_egal)            \
-    if (c == caractere) {                                                                         \
+#define APPARIE_CARACTERE_DOUBLE_ÉGAL(caractère, genre_lexème, genre_lexème_avec_egal)            \
+    if (c == caractère) {                                                                         \
         if (caractère_voisin(1) == '=') {                                                         \
             return crée_lexème_opérateur(2, genre_lexème_avec_egal);                              \
         }                                                                                         \
         return crée_lexème_opérateur(1, genre_lexème);                                            \
     }
 
-#define APPARIE_CARACTERE_SUIVANT(caractere, genre_lexème)                                        \
-    if (caractère_voisin(1) == caractere) {                                                       \
+#define APPARIE_CARACTERE_SUIVANT(caractère, genre_lexème)                                        \
+    if (caractère_voisin(1) == caractère) {                                                       \
         return crée_lexème_opérateur(2, genre_lexème);                                            \
     }
 
-#define APPARIE_2_CARACTERES_SUIVANTS(caractere1, caractere2, genre_lexème)                       \
-    if (caractère_voisin(1) == caractere1 && caractère_voisin(2) == caractere2) {                 \
+#define APPARIE_2_CARACTERES_SUIVANTS(caractère1, caractère2, genre_lexème)                       \
+    if (caractère_voisin(1) == caractère1 && caractère_voisin(2) == caractère2) {                 \
         return crée_lexème_opérateur(3, genre_lexème);                                            \
     }
 

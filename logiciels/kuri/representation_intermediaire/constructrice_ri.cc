@@ -2325,9 +2325,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
         {
             // À FAIRE : caractères Unicode
-            auto caractere = static_cast<unsigned char>(
+            auto caractère = static_cast<unsigned char>(
                 noeud->comme_littérale_caractère()->valeur);
-            empile_valeur(m_constructrice.crée_constante_caractère(noeud->type, caractere), noeud);
+            empile_valeur(m_constructrice.crée_constante_caractère(noeud->type, caractère), noeud);
             break;
         }
         case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
