@@ -220,7 +220,7 @@ void *logeuse_mémoire::reloge_generique(const char *message,
 #endif
 }
 
-void logeuse_mémoire::deloge_generique(const char *message, void *ptr, int64_t taille)
+void logeuse_mémoire::déloge_generique(const char *message, void *ptr, int64_t taille)
 {
 #ifndef PROTEGE_MEMOIRE
     free(ptr);
