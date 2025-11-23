@@ -133,7 +133,7 @@ Date hui_systeme()
     auto jours = (inst.seconde - (annees * secondes_par_an()) - (secondes_ecoulees_mois)) /
                  (24 * 60 * 60);
 
-    // On soustrait 3 car Epoch UTC commence un jeudi (4ème jour, index 3)
+    // On soustrait 3 car Epoch UTC commence un jeudi (4ème jour, indice 3)
     auto jour_semaine = ((inst.seconde / (3600 * 24)) - 3) % 7;
 
     Date date;

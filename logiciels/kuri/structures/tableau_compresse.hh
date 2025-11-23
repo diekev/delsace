@@ -32,13 +32,13 @@ struct plage_iterable {
 static constexpr uintptr_t POINTEUR_MORT = static_cast<uintptr_t>(0xdeadc0de);
 
 /* Tableau n'allouant de la mémoire que lorsqu'une valeur ajoutée est différente de la première. */
-template <typename T, typename TypeIndex = int64_t>
+template <typename T, typename TypeIndice = int64_t>
 struct tableau_compresse {
   private:
     T *m_pointeur = reinterpret_cast<T *>(POINTEUR_MORT);
 
-    TypeIndex m_taille = 0;
-    TypeIndex m_capacite = 0;
+    TypeIndice m_taille = 0;
+    TypeIndice m_capacité = 0;
 
     T m_premiere_valeur{};
 
@@ -63,14 +63,14 @@ struct tableau_compresse {
             supprime_données();
 
             m_taille = autre.m_taille;
-            m_capacite = autre.m_capacite;
+            m_capacité = autre.m_capacité;
             m_premiere_valeur = autre.m_premiere_valeur;
 
             if (!autre.alloue()) {
                 m_pointeur = reinterpret_cast<T *>(POINTEUR_MORT);
             }
             else {
-                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacite);
+                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacité);
 
                 for (auto i = 0; i < autre.m_taille; ++i) {
                     m_pointeur[i] = autre.m_pointeur[i];
@@ -100,24 +100,24 @@ struct tableau_compresse {
         return m_pointeur != reinterpret_cast<T *>(POINTEUR_MORT);
     }
 
-    TypeIndex taille() const
+    TypeIndice taille() const
     {
         return m_taille;
     }
 
-    TypeIndex taille_mémoire() const
+    TypeIndice taille_mémoire() const
     {
-        return !alloue() ? 0 : m_capacite * static_cast<TypeIndex>(sizeof(T));
+        return !alloue() ? 0 : m_capacité * static_cast<TypeIndice>(sizeof(T));
     }
 
-    TypeIndex gaspillage_mémoire() const
+    TypeIndice gaspillage_mémoire() const
     {
-        return !alloue() ? 0 : (m_capacite - m_taille) * static_cast<TypeIndex>(sizeof(T));
+        return !alloue() ? 0 : (m_capacité - m_taille) * static_cast<TypeIndice>(sizeof(T));
     }
 
-    TypeIndex capacite() const
+    TypeIndice capacité() const
     {
-        return m_capacite;
+        return m_capacité;
     }
 
     plage_iterable<T *> plage()
@@ -158,14 +158,14 @@ struct tableau_compresse {
         }
         else if (!alloue() && valeur == m_premiere_valeur) {
             ++m_taille;
-            if (m_taille > m_capacite) {
-                m_capacite = m_taille;
+            if (m_taille > m_capacité) {
+                m_capacité = m_taille;
             }
         }
         else {
             if (!alloue()) {
-                m_capacite = std::max(static_cast<TypeIndex>(m_taille + 1), m_capacite);
-                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacite);
+                m_capacité = std::max(static_cast<TypeIndice>(m_taille + 1), m_capacité);
+                m_pointeur = mémoire::loge_tableau<T>("tableau_compresse", m_capacité);
 
                 if (!std::is_trivially_constructible_v<T>) {
                     for (auto i = 0; i < m_taille; ++i) {
@@ -178,7 +178,7 @@ struct tableau_compresse {
                 }
             }
 
-            réserve(static_cast<TypeIndex>(m_taille + 1));
+            réserve(static_cast<TypeIndice>(m_taille + 1));
 
             if (!std::is_trivially_constructible_v<T>) {
                 new (&m_pointeur[static_cast<int64_t>(m_taille)]) T;
@@ -189,22 +189,22 @@ struct tableau_compresse {
         }
     }
 
-    void réserve(TypeIndex nombre)
+    void réserve(TypeIndice nombre)
     {
         if (!alloue()) {
-            m_capacite = nombre;
+            m_capacité = nombre;
         }
         else {
-            if (nombre <= m_capacite) {
+            if (nombre <= m_capacité) {
                 return;
             }
 
-            mémoire::reloge_tableau("tableau_compresse", m_pointeur, m_capacite, nombre);
-            m_capacite = nombre;
+            mémoire::reloge_tableau("tableau_compresse", m_pointeur, m_capacité, nombre);
+            m_capacité = nombre;
         }
     }
 
-    T const &operator[](TypeIndex idx) const
+    T const &operator[](TypeIndice idx) const
     {
         if (!alloue()) {
             return m_premiere_valeur;
@@ -217,7 +217,7 @@ struct tableau_compresse {
     {
         std::swap(m_pointeur, autre.m_pointeur);
         std::swap(m_taille, autre.m_taille);
-        std::swap(m_capacite, autre.m_capacite);
+        std::swap(m_capacité, autre.m_capacité);
         std::swap(m_premiere_valeur, autre.m_premiere_valeur);
     }
 
@@ -231,11 +231,11 @@ struct tableau_compresse {
     void supprime_données()
     {
         if (alloue()) {
-            mémoire::déloge_tableau("tableau_compresse", m_pointeur, m_capacite);
+            mémoire::déloge_tableau("tableau_compresse", m_pointeur, m_capacité);
         }
 
         m_taille = 0;
-        m_capacite = 0;
+        m_capacité = 0;
     }
 };
 
