@@ -1637,9 +1637,9 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_CXXAccessSpecifier:
             {
 #if 0
-                auto acces = clang_getCXXAccessSpecifier(cursor);
+                auto accès = clang_getCXXAccessSpecifier(cursor);
 
-                switch (acces) {
+                switch (accès) {
                     case CX_CXXInvalidAccessSpecifier:
                     {
                         break;
