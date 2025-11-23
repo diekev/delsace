@@ -329,11 +329,11 @@ struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
     kuri::tablet<NoeudExpression *, 10> m_slots{};
-    /* Les index sont utilisés pour les rubriques de structures. L'expression de construction de
+    /* Les indices sont utilisés pour les rubriques de structures. L'expression de construction de
      * structure doit avoir le même nombre de paramètres résolus que le nombre de rubriques de la
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
-     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir
-     * à quel rubrique réel le slot appartient. */
+     * nous stockons les indices des rubriques pour chaque slot afin que l'appariement puisse
+     * savoir à quel rubrique réel le slot appartient. */
     kuri::tablet<int, 10> m_indice_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
@@ -341,7 +341,7 @@ struct ApparieuseParams {
     bool m_est_variadique = false;
     bool m_expansion_rencontrée = false;
     ChoseÀApparier m_chose_à_apparier{};
-    int m_index = 0;
+    int m_indice = 0;
     int m_nombre_arg_variadiques_rencontrés = 0;
 
   public:
@@ -354,7 +354,7 @@ struct ApparieuseParams {
     void ajoute_param(IdentifiantCode *ident,
                       NoeudExpression *valeur_défaut,
                       bool est_variadique,
-                      int index = -1)
+                      int indice = -1)
     {
         m_noms.ajoute(ident);
 
@@ -362,7 +362,7 @@ struct ApparieuseParams {
         // car le code d'appariement de type dépend de ce comportement.
         if (!est_variadique) {
             m_slots.ajoute(valeur_défaut);
-            m_indice_pour_slot.ajoute(index);
+            m_indice_pour_slot.ajoute(indice);
         }
 
         m_est_variadique = est_variadique;
@@ -443,12 +443,12 @@ struct ApparieuseParams {
              * utiles pour l'appariement. Ce sont notamment les variables constantes. */
             if (m_chose_à_apparier == ChoseÀApparier::STRUCTURE ||
                 m_chose_à_apparier == ChoseÀApparier::UNION) {
-                while (m_index < m_noms.taille() && m_noms[m_index] == nullptr) {
-                    m_index++;
+                while (m_indice < m_noms.taille() && m_noms[m_indice] == nullptr) {
+                    m_indice++;
                 }
             }
 
-            if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
+            if (m_dernier_argument_est_variadique || m_indice >= m_slots.taille()) {
                 if (m_expansion_rencontrée && m_nombre_arg_variadiques_rencontrés != 0) {
                     erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
                     return false;
@@ -456,11 +456,11 @@ struct ApparieuseParams {
                 m_nombre_arg_variadiques_rencontrés += 1;
                 m_args_rencontrés.insère(m_noms[m_noms.taille() - 1]);
                 ajoute_slot(expr);
-                m_index++;
+                m_indice++;
             }
             else {
-                m_args_rencontrés.insère(m_noms[m_index]);
-                remplis_slot(m_index++, expr);
+                m_args_rencontrés.insère(m_noms[m_indice]);
+                remplis_slot(m_indice++, expr);
             }
         }
 
@@ -1283,7 +1283,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     // détecte les arguments polymorphiques dans les fonctions polymorphiques
     auto est_type_argument_polymorphique = false;
     POUR (apparieuse_params.slots()) {
-        auto param = params_polymorphiques->rubrique_pour_index(indice_param);
+        auto param = params_polymorphiques->rubrique_pour_indice(indice_param);
         indice_param += 1;
 
         if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -1358,7 +1358,7 @@ static RésultatAppariement apparie_construction_type_composé(
             continue;
         }
 
-        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, indice_it);
+        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_défaut, false, indice_it);
     }
 
     POUR (arguments) {
