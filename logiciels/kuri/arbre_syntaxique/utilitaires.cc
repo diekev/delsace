@@ -1725,9 +1725,9 @@ void NoeudBloc::fusionne_rubriques(NoeudBloc *de)
     }
 }
 
-NoeudDéclaration *NoeudBloc::rubrique_pour_index(int index) const
+NoeudDéclaration *NoeudBloc::rubrique_pour_indice(int indice) const
 {
-    return rubriques->a(index);
+    return rubriques->a(indice);
 }
 
 NoeudDéclaration *NoeudBloc::déclaration_pour_ident(IdentifiantCode const *ident_recherche) const
@@ -1851,18 +1851,18 @@ NoeudDéclarationVariable *AssembleuseArbre::crée_déclaration_variable(
 NoeudExpressionRubrique *AssembleuseArbre::crée_référence_rubrique(const Lexème *lexème,
                                                                    NoeudExpression *accede,
                                                                    Type *type,
-                                                                   int index)
+                                                                   int indice)
 {
-    auto acces = crée_référence_rubrique(lexème, accede);
+    auto accès = crée_référence_rubrique(lexème, accede);
     auto type_accédé = donne_type_accédé_effectif(accede->type);
     if (type_accédé->est_type_composé()) {
         auto type_composé = type_accédé->comme_type_composé();
-        auto rubrique = type_composé->rubriques[index];
-        acces->ident = rubrique.nom;
+        auto rubrique = type_composé->rubriques[indice];
+        accès->ident = rubrique.nom;
     }
-    acces->type = type;
-    acces->indice_rubrique = index;
-    return acces;
+    accès->type = type;
+    accès->indice_rubrique = indice;
+    return accès;
 }
 
 NoeudExpressionBinaire *AssembleuseArbre::crée_indexage(const Lexème *lexème,
@@ -2239,7 +2239,7 @@ static void crée_assignation(AssembleuseArbre *assembleuse,
     bloc->ajoute_expression(assignation);
 }
 
-static void crée_initialisation_defaut_pour_type(Type *type,
+static void crée_initialisation_défaut_pour_type(Type *type,
                                                  AssembleuseArbre *assembleuse,
                                                  NoeudExpression *ref_param,
                                                  NoeudExpression *expr_valeur_défaut,
@@ -2520,7 +2520,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
         {
             auto deref = assembleuse->crée_mémoire(&lexème_sentinel, ref_param);
             deref->type = type;
-            crée_initialisation_defaut_pour_type(type, assembleuse, deref, nullptr, typeuse);
+            crée_initialisation_défaut_pour_type(type, assembleuse, deref, nullptr, typeuse);
             break;
         }
         case GenreNoeud::DÉCLARATION_OPAQUE:
@@ -2537,7 +2537,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
             auto deref = assembleuse->crée_mémoire(&lexème_sentinel, comme_type_opacifie);
             deref->type = type_opacifié;
 
-            crée_initialisation_defaut_pour_type(
+            crée_initialisation_défaut_pour_type(
                 type_opacifié, assembleuse, deref, nullptr, typeuse);
             break;
         }
@@ -2565,15 +2565,15 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                     continue;
                 }
 
-                if (it.expression_valeur_defaut &&
-                    it.expression_valeur_defaut->est_non_initialisation()) {
+                if (it.expression_valeur_défaut &&
+                    it.expression_valeur_défaut->est_non_initialisation()) {
                     continue;
                 }
 
                 auto ref_rubrique = assembleuse->crée_référence_rubrique(
                     &lexème_sentinel, ref_param, it.type, indice_it);
-                crée_initialisation_defaut_pour_type(
-                    it.type, assembleuse, ref_rubrique, it.expression_valeur_defaut, typeuse);
+                crée_initialisation_défaut_pour_type(
+                    it.type, assembleuse, ref_rubrique, it.expression_valeur_défaut, typeuse);
             }
 
             break;
@@ -2610,8 +2610,8 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 auto deref = assembleuse->crée_mémoire(&lexème_sentinel, transtype);
                 deref->type = rubrique.type;
 
-                crée_initialisation_defaut_pour_type(
-                    rubrique.type, assembleuse, deref, rubrique.expression_valeur_defaut, typeuse);
+                crée_initialisation_défaut_pour_type(
+                    rubrique.type, assembleuse, deref, rubrique.expression_valeur_défaut, typeuse);
             }
             else {
                 /* Transtype l'argument vers le type de la structure.
@@ -2623,7 +2623,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                  * Nous ne pouvons pas utiliser une expression de référence de rubrique de
                  * structure en utilisant le type union comme type d'accès, car sinon l'accès se
                  * ferait sur les rubriques de l'union alors que nous voulons que l'accès se fasse
-                 * sur les rubriques de la structure de l'union (rubrique le plus grand + index).
+                 * sur les rubriques de la structure de l'union (rubrique le plus grand + indice).
                  */
                 auto type_pointeur_type_structure = typeuse.type_pointeur_pour(
                     type_union->type_structure, false);
@@ -2635,14 +2635,14 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                     TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_pointeur_type_structure};
 
                 if (rubrique.type->est_type_rien()) {
-                    /* Seul l'index doit être initialisé. (Support union ne contenant que « rien »
+                    /* Seul l'indice doit être initialisé. (Support union ne contenant que « rien »
                      * comme types des rubriques). */
                     auto ref_rubrique = assembleuse->crée_référence_rubrique(
                         &lexème_sentinel, param_comme_structure);
                     ref_rubrique->indice_rubrique = 0;
                     ref_rubrique->type = typeuse.type_z32;
                     ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
-                    crée_initialisation_defaut_pour_type(
+                    crée_initialisation_défaut_pour_type(
                         typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
                     break;
                 }
@@ -2652,10 +2652,10 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 ref_rubrique->indice_rubrique = 0;
                 ref_rubrique->type = rubrique.type;
                 ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
-                crée_initialisation_defaut_pour_type(rubrique.type,
+                crée_initialisation_défaut_pour_type(rubrique.type,
                                                      assembleuse,
                                                      ref_rubrique,
-                                                     rubrique.expression_valeur_defaut,
+                                                     rubrique.expression_valeur_défaut,
                                                      typeuse);
 
                 ref_rubrique = assembleuse->crée_référence_rubrique(&lexème_sentinel,
@@ -2663,7 +2663,7 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
                 ref_rubrique->indice_rubrique = 1;
                 ref_rubrique->type = typeuse.type_z32;
                 ref_rubrique->aide_génération_code = IGNORE_VÉRIFICATION;
-                crée_initialisation_defaut_pour_type(
+                crée_initialisation_défaut_pour_type(
                     typeuse.type_z32, assembleuse, ref_rubrique, nullptr, typeuse);
             }
 

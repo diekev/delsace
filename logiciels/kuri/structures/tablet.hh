@@ -598,10 +598,10 @@ auto crée_tablet(T arg, Ts &&...args)
     return résultat;
 }
 
-template <typename T, uint64_t N, typename TypeIndex>
-static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
+template <typename T, uint64_t N, typename TypeIndice>
+static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndice> &dst)
 {
-    dst.réserve(static_cast<TypeIndex>(src.taille()));
+    dst.réserve(static_cast<TypeIndice>(src.taille()));
 
     POUR (src) {
         dst.ajoute(it);
