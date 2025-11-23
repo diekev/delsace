@@ -1119,7 +1119,7 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
             auto nom = enchaine("anonyme", nombre_anonyme++);
             kuri::tableau<kuri::chaine, int64_t> tabl;
             tabl.ajoute(nom);
-            typedefs.insère({nom_anonymous, tabl});
+            typedefs.insere({nom_anonymous, tabl});
             return nom;
         }
 
@@ -1182,7 +1182,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     }
     std::cerr << '\n';
 
-    dico.insère({nom, morceaux});
+    dico.insere({nom, morceaux});
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
@@ -1313,7 +1313,7 @@ struct Convertisseuse {
     {
         kuri::tableau<kuri::chaine> tabl;
         tabl.ajoute(nom_type);
-        typedefs.insère({nom_typedef, tabl});
+        typedefs.insere({nom_typedef, tabl});
     }
 
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
@@ -1639,9 +1639,9 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_CXXAccessSpecifier:
             {
 #if 0
-                auto acces = clang_getCXXAccessSpecifier(cursor);
+                auto accès = clang_getCXXAccessSpecifier(cursor);
 
-                switch (acces) {
+                switch (accès) {
                     case CX_CXXInvalidAccessSpecifier:
                     {
                         break;

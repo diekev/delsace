@@ -123,7 +123,7 @@ struct Type {
         return "";
     }
 
-    virtual kuri::chaine_statique valeur_defaut() const
+    virtual kuri::chaine_statique valeur_défaut() const
     {
         return "{}";
     }
@@ -152,7 +152,7 @@ struct TypePointeur final : public Type {
         return "->";
     }
 
-    virtual kuri::chaine_statique valeur_defaut() const override
+    virtual kuri::chaine_statique valeur_défaut() const override
     {
         return "nullptr";
     }
@@ -202,7 +202,7 @@ struct TypeNominal final : public Type {
         return ".";
     }
 
-    virtual kuri::chaine_statique valeur_defaut() const override
+    virtual kuri::chaine_statique valeur_défaut() const override
     {
         if (nom_cpp.nom() == "bool") {
             return "false";
@@ -341,14 +341,14 @@ struct Rubrique {
 
     bool est_code = false;
     bool est_enfant = false;
-    bool est_a_copier = false;
-    /* Si vrai, ajoute "mutable" à la déclaration du rubrique dans le code C++. */
+    bool est_à_copier = false;
+    /* Si vrai, ajoute "mutable" à la déclaration de la rubrique dans le code C++. */
     bool est_mutable = false;
     /* Si vrai, ajoute un paramètre pour la rubrique à la fonction de création. */
     bool est_requis_pour_construction = false;
 
-    bool valeur_defaut_est_acces = false;
-    kuri::chaine_statique valeur_defaut = "";
+    bool valeur_défaut_est_accès = false;
+    kuri::chaine_statique valeur_défaut = "";
 };
 
 class ProtéineEnum;
