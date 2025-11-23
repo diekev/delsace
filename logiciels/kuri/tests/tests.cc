@@ -174,9 +174,9 @@ struct RésultatTest {
     erreur::Genre erreur_recue{};
 };
 
-static auto ecris_fichier_tmp(kuri::chaine_statique source, int index)
+static auto écris_fichier_tmp(kuri::chaine_statique source, int indice)
 {
-    auto nom_fichier = enchaine("echec_test", index, ".kuri");
+    auto nom_fichier = enchaine("echec_test", indice, ".kuri");
     auto chemin_fichier = kuri::chemin_systeme::chemin_temporaire(nom_fichier);
 
     std::ofstream of;
@@ -189,7 +189,7 @@ static auto ecris_fichier_tmp(kuri::chaine_statique source, int index)
 int main()
 {
     auto test_passes = 0;
-    auto test_echoues = 0;
+    auto test_échoués = 0;
 
     auto résultats_tests = kuri::tableau<RésultatTest>();
 
@@ -229,11 +229,11 @@ int main()
                             auto rt = RésultatTest();
                             rt.raison_echec = ECHEC_POUR_RAISON_INCONNUE;
                             rt.fichier_origine = it.source;
-                            rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+                            rt.chemin_fichier = écris_fichier_tmp(c.chaine(), test_échoués);
 
                             résultats_tests.ajoute(rt);
 
-                            test_echoues += 1;
+                            test_échoués += 1;
                             break;
                         }
                         else {
@@ -241,11 +241,11 @@ int main()
                                 auto rt = RésultatTest();
                                 rt.raison_echec = ECHEC_CAR_CRASH;
                                 rt.fichier_origine = it.source;
-                                rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+                                rt.chemin_fichier = écris_fichier_tmp(c.chaine(), test_échoués);
 
                                 résultats_tests.ajoute(rt);
 
-                                test_echoues += 1;
+                                test_échoués += 1;
                             }
                             else {
                                 if (WEXITSTATUS(status) == static_cast<int>(it.résultat_attendu)) {
@@ -258,12 +258,12 @@ int main()
                                     rt.erreur_attendue = it.résultat_attendu;
                                     rt.raison_echec = ECHEC_CAR_MAUVAIS_CODE_ERREUR;
                                     rt.fichier_origine = it.source;
-                                    rt.chemin_fichier = ecris_fichier_tmp(c.chaine(),
-                                                                          test_echoues);
+                                    rt.chemin_fichier = écris_fichier_tmp(c.chaine(),
+                                                                          test_échoués);
 
                                     résultats_tests.ajoute(rt);
 
-                                    test_echoues += 1;
+                                    test_échoués += 1;
                                 }
                             }
 
@@ -278,11 +278,11 @@ int main()
                             auto rt = RésultatTest();
                             rt.raison_echec = ECHEC_CAR_BOUCLE_INFINIE;
                             rt.fichier_origine = it.source;
-                            rt.chemin_fichier = ecris_fichier_tmp(c.chaine(), test_echoues);
+                            rt.chemin_fichier = écris_fichier_tmp(c.chaine(), test_échoués);
 
                             résultats_tests.ajoute(rt);
 
-                            test_echoues += 1;
+                            test_échoués += 1;
                             break;
                         }
                     }
@@ -332,5 +332,5 @@ int main()
 
     std::cout << '\n';
     std::cout << "SUCCES (" << test_passes << ")\n";
-    std::cout << "ÉCHECS (" << test_echoues << ")\n";
+    std::cout << "ÉCHECS (" << test_échoués << ")\n";
 }

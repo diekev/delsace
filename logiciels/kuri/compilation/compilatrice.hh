@@ -242,7 +242,7 @@ struct Compilatrice {
 
     IdentifiantCode *donne_identifiant_pour_globale(kuri::chaine_statique nom_de_base);
 
-    IdentifiantCode *donne_nom_défaut_valeur_retour(int index);
+    IdentifiantCode *donne_nom_défaut_valeur_retour(int indice);
 
     Sémanticienne *donne_sémanticienne_disponible(Contexte *contexte);
     void dépose_sémanticienne(Sémanticienne *sémanticienne);

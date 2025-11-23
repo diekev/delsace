@@ -18,20 +18,20 @@ static std::string vers_std_string(kuri::chaine_statique chn)
 bool remplace(std::string &std_string, std::string_view motif, std::string_view remplacement)
 {
     bool remplacement_effectue = false;
-    size_t index = 0;
+    size_t indice = 0;
     while (true) {
         /* Locate the substring to replace. */
-        index = std_string.find(motif, index);
+        indice = std_string.find(motif, indice);
 
-        if (index == std::string::npos) {
+        if (indice == std::string::npos) {
             break;
         }
 
         /* Make the replacement. */
-        std_string.replace(index, motif.size(), remplacement);
+        std_string.replace(indice, motif.size(), remplacement);
 
         /* Advance index forward so the next iteration doesn't pick it up as well. */
-        index += motif.size();
+        indice += motif.size();
         remplacement_effectue = true;
     }
 

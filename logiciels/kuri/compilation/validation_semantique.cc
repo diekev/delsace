@@ -598,7 +598,7 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             noeud->type = expression->type;
 
             if (racine_validation() != noeud) {
-                /* avance l'index car il est inutile de revalider ce noeud */
+                /* avance l'indice car il est inutile de revalider ce noeud */
                 m_arbre_courant->indice_courant += 1;
                 return Attente::sur_métaprogramme(métaprogramme);
             }
@@ -955,9 +955,9 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             }
 
             auto type_cible = m_espace->typeuse.type_indexage;
-            auto type_index = droite->type;
+            auto type_indice = droite->type;
 
-            if (est_type_implicitement_utilisable_pour_indexage(type_index)) {
+            if (est_type_implicitement_utilisable_pour_indexage(type_indice)) {
                 crée_transtypage_implicite_au_besoin(
                     expr->opérande_droite,
                     {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_cible});
@@ -3648,7 +3648,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
         }
 
         if (noms_rencontres.possède(decl_expr->ident)) {
-            rapporte_erreur("Redéfinition du rubrique", decl_expr);
+            rapporte_erreur("Redéfinition de la rubrique", decl_expr);
             return CodeRetourValidation::Erreur;
         }
 
@@ -4200,7 +4200,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
                 if (var->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
                     rapporte_erreur(
-                        "Expression invalide dans la déclaration du rubrique de la structure",
+                        "Expression invalide dans la déclaration de la rubrique de la structure",
                         var);
                     return CodeRetourValidation::Erreur;
                 }
@@ -4243,14 +4243,14 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
             }
 
             rubrique.drapeaux |= RubriqueTypeComposé::POSSÈDE_EXPRESSION_SPÉCIALE;
-            rubrique.expression_valeur_defaut = expr_assign->expression;
+            rubrique.expression_valeur_défaut = expr_assign->expression;
             break;
         }
     }
 
     for (auto &rubrique : type_compose->rubriques) {
-        if (rubrique.expression_valeur_defaut) {
-            rubrique.expression_valeur_defaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
+        if (rubrique.expression_valeur_défaut) {
+            rubrique.expression_valeur_défaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
         }
     }
 
@@ -4401,7 +4401,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
                 if (var->genre != GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION) {
                     rapporte_erreur(
-                        "Expression invalide dans la déclaration du rubrique de l'union", var);
+                        "Expression invalide dans la déclaration de la rubrique de l'union", var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -5404,17 +5404,17 @@ void Sémanticienne::rapporte_erreur_type_opération(const Type *type_gauche,
 
 void Sémanticienne::rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                                        TypeTableauFixe *type_tableau,
-                                                       int64_t indice_acces)
+                                                       int64_t indice_accès)
 {
-    erreur::lance_erreur_acces_hors_limites(
-        *m_espace, b, type_tableau->taille, type_tableau, indice_acces);
+    erreur::lance_erreur_accès_hors_limites(
+        *m_espace, b, type_tableau->taille, type_tableau, indice_accès);
 }
 
-void Sémanticienne::rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
+void Sémanticienne::rapporte_erreur_rubrique_inconnu(NoeudExpression *accès,
                                                      NoeudExpression *rubrique,
                                                      TypeComposé *type)
 {
-    erreur::rubrique_inconnu(*m_espace, acces, rubrique, type);
+    erreur::rubrique_inconnu(*m_espace, accès, rubrique, type);
 }
 
 void Sémanticienne::rapporte_erreur_valeur_manquante_discr(
@@ -5457,7 +5457,7 @@ RésultatValidation Sémanticienne::crée_transtypage_implicite_si_possible(
             case RaisonTranstypageImplicite::POUR_EXPRESSION_INDEXAGE:
             {
                 message_principal =
-                    "Type incompatible pour la valeur d'index de l'expression d'indexage.";
+                    "Type incompatible pour la valeur d'indice de l'expression d'indexage.";
                 message_type_désiré = "Le type désiré est          : ";
                 message_type_obtenu = "Le type de l'expression est : ";
                 break;
@@ -5963,11 +5963,11 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudE
     return CodeRetourValidation::OK;
 }
 
-/* Note : l'expr_acces_enum n'est pas un NoeudExpressionRubrique car nous pouvons avoir des
+/* Note : l'expr_accès_enum n'est pas un NoeudExpressionRubrique car nous pouvons avoir des
  * parenthèses. */
 RésultatValidation Sémanticienne::valide_comparaison_énum_drapeau_bool(
     NoeudExpressionBinaire *expr,
-    NoeudExpression * /*expr_acces_enum*/,
+    NoeudExpression * /*expr_accès_enum*/,
     NoeudExpressionLittéraleBool *expr_bool)
 {
     auto type_op = expr->lexème->genre;
@@ -6181,7 +6181,7 @@ static RésultatTypeItérande détermine_typage_itérande(
     table_opérateurs = registre->donne_ou_crée_table_opérateurs(type_variable_itérée);
     auto const opérateur_pour = table_opérateurs->opérateur_pour;
     auto type_itérateur = opérateur_pour->param_sortie->type;
-    /* À FAIRE : typage correct de l'index. */
+    /* À FAIRE : typage correct de l'indice. */
     auto type_index = typeuse.type_indexage;
     return TypageItérandeBouclePour{BOUCLE_POUR_OPÉRATEUR, type_itérateur, type_index};
 }
@@ -6234,7 +6234,7 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto const nombre_de_variables = variables->expressions.taille();
     if (nombre_de_variables > 2) {
         rapporte_erreur("Les boucles « pour » ne peuvent avoir que 2 variables maximum : la "
-                        "valeur et l'index.",
+                        "valeur et l'indice.",
                         variables);
         return CodeRetourValidation::Erreur;
     }
@@ -7035,7 +7035,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         }
 
         auto decl = m_assembleuse->crée_déclaration_constante(
-            type_employé->lexème, it.expression_valeur_defaut, nullptr);
+            type_employé->lexème, it.expression_valeur_défaut, nullptr);
         decl->ident = it.nom;
         decl->type = it.type;
         decl->bloc_parent = bloc_parent;
@@ -7115,7 +7115,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         decl_rubrique->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl_rubrique->déclaration_vient_d_un_emploi = decl;
         decl_rubrique->indice_rubrique_employée = indice_it;
-        decl_rubrique->expression = it.expression_valeur_defaut;
+        decl_rubrique->expression = it.expression_valeur_défaut;
         decl_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
         bloc_parent->ajoute_rubrique(decl_rubrique);

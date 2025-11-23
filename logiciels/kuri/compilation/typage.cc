@@ -658,7 +658,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
-    rubriques.ajoute({nullptr, type_z64, ID::capacite});
+    rubriques.ajoute({nullptr, type_z64, ID::capacité});
 
     auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
     initialise_type_tableau_dynamique(type, type_pointe, std::move(rubriques));
@@ -1829,7 +1829,7 @@ void calcule_taille_type_composé(TypeComposé *type, bool compacte, uint32_t al
 
             type_union->décalage_indice = taille_union;
 
-            /* ajoute la taille du rubrique actif */
+            /* ajoute la taille de la rubrique actif */
             taille_union += static_cast<unsigned>(taille_de(int));
             max_alignement = std::max(static_cast<unsigned>(taille_de(int)), max_alignement);
 
@@ -2126,7 +2126,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     }
 
     if (type->est_type_énum()) {
-        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
+        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les indices peuvent être
          * arbitrairement larges. */
         return !type->est_type_enum_drapeau();
     }
