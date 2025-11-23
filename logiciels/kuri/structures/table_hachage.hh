@@ -11,15 +11,15 @@ namespace kuri {
 
 #undef COMPTE_COLLISION
 
-template <typename Cle, typename Valeur, int FACTEUR_DE_CHARGE = 70>
+template <typename Clé, typename Valeur, int FACTEUR_DE_CHARGE = 70>
 struct table_hachage {
   private:
-    kuri::tableau<Cle, int> cles{};
+    kuri::tableau<Clé, int> cles{};
     kuri::tableau<Valeur, int> valeurs{};
-    kuri::tableau<char, int> occupes{};
+    kuri::tableau<char, int> occupés{};
     kuri::tableau<size_t, int> empreintes{};
 
-    int64_t capacite = 0;
+    int64_t capacité = 0;
     int64_t nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
@@ -44,7 +44,7 @@ struct table_hachage {
         auto &os = std::cout;
 
         os << "Table \"" << nom << "\"\n";
-        os << "-- capacité            " << capacite << '\n';
+        os << "-- capacité            " << capacité << '\n';
         os << "-- éléments            " << nombre_elements << '\n';
         os << "-- collision recherche " << nombre_de_collision_recherche << '\n';
         os << "-- collision ajout     " << nombre_de_collision_ajout << '\n';
@@ -61,7 +61,7 @@ struct table_hachage {
      * quelque chose n'ayant pas la même empreinte (ou simplement par
      * quelque chose lors d'une insertion), nous allons à la position suivante.
      *
-     * Cette approche pose problème, car l'utilisation de l'index suivant pourrait
+     * Cette approche pose problème, car l'utilisation de l'indice suivant pourrait
      * causer des collisions futures avec des objets n'ayant pas la même empreinte
      * mais devant se trouver à cette position.
      *
@@ -85,21 +85,21 @@ struct table_hachage {
     inline int increment_de_base_pour_empreinte(size_t empreinte) const
     {
         /* - 1 pour être relativement premier avec la capacité. */
-        return 1 + static_cast<int>(empreinte % (static_cast<size_t>(capacite) - 1));
+        return 1 + static_cast<int>(empreinte % (static_cast<size_t>(capacité) - 1));
     }
 
   public:
     void alloue(int64_t taille)
     {
-        capacite = taille;
+        capacité = taille;
 
         cles.redimensionne(static_cast<int>(taille));
         valeurs.redimensionne(static_cast<int>(taille));
-        occupes.redimensionne(static_cast<int>(taille));
+        occupés.redimensionne(static_cast<int>(taille));
         empreintes.redimensionne(static_cast<int>(taille));
         nombre_elements = 0;
 
-        POUR (occupes) {
+        POUR (occupés) {
             it = 0;
         }
     }
@@ -108,9 +108,9 @@ struct table_hachage {
     {
         auto vieilles_cles = cles;
         auto vieilles_valeurs = valeurs;
-        auto vieilles_occupes = occupes;
+        auto vieilles_occupés = occupés;
 
-        auto nouvelle_taille = capacite * 2;
+        auto nouvelle_taille = capacité * 2;
 
         if (nouvelle_taille < TAILLE_MIN) {
             nouvelle_taille = TAILLE_MIN;
@@ -119,130 +119,130 @@ struct table_hachage {
         alloue(nouvelle_taille);
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
-            if (vieilles_occupes[i]) {
+            if (vieilles_occupés[i]) {
                 insère(std::move(vieilles_cles[i]), std::move(vieilles_valeurs[i]));
             }
         }
     }
 
-    void insère(Cle const &cle, Valeur const &valeur)
+    void insère(Clé const &clé, Valeur const &valeur)
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_indice_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        empreintes[index] = empreinte;
-        cles[index] = cle;
-        valeurs[index] = valeur;
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice_inoccupé(clé, empreinte);
+        occupés[indice] = 1;
+        empreintes[indice] = empreinte;
+        cles[indice] = clé;
+        valeurs[indice] = valeur;
     }
 
-    void insère(Cle &&cle, Valeur &&valeur)
+    void insère(Clé &&clé, Valeur &&valeur)
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_indice_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        empreintes[index] = empreinte;
-        cles[index] = std::move(cle);
-        valeurs[index] = std::move(valeur);
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice_inoccupé(clé, empreinte);
+        occupés[indice] = 1;
+        empreintes[indice] = empreinte;
+        cles[indice] = std::move(clé);
+        valeurs[indice] = std::move(valeur);
     }
 
-    void efface(Cle const &cle)
+    void efface(Clé const &clé)
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        if (index == -1) {
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
+        if (indice == -1) {
             return;
         }
 
-        occupes[index] = false;
-        empreintes[index] = 0;
-        cles[index] = Cle();
-        valeurs[index] = Valeur();
+        occupés[indice] = false;
+        empreintes[indice] = 0;
+        cles[indice] = Clé();
+        valeurs[indice] = Valeur();
         nombre_elements -= 1;
     }
 
-    Valeur trouve(Cle const &cle, bool &trouve) const
+    Valeur trouve(Clé const &clé, bool &trouve) const
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
 
-        if (index == -1) {
+        if (indice == -1) {
             trouve = false;
             return {};
         }
 
         trouve = true;
-        return valeurs[index];
+        return valeurs[indice];
     }
 
-    Valeur &trouve_ref(Cle const &cle)
+    Valeur &trouve_ref(Clé const &clé)
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        return valeurs[index];
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
+        return valeurs[indice];
     }
 
-    Valeur *trouve_pointeur(Cle const &clé)
+    Valeur *trouve_pointeur(Clé const &clé)
     {
-        auto empreinte = std::hash<Cle>()(clé);
-        auto index = trouve_index(clé, empreinte);
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
 
-        if (index == -1) {
+        if (indice == -1) {
             return nullptr;
         }
 
-        return &valeurs[index];
+        return &valeurs[indice];
     }
 
-    Valeur const &trouve_ref(Cle const &cle) const
+    Valeur const &trouve_ref(Clé const &clé) const
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        return valeurs[index];
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
+        return valeurs[indice];
     }
 
-    Valeur valeur_ou(Cle const &cle, Valeur defaut) const
+    Valeur valeur_ou(Clé const &clé, Valeur défaut) const
     {
         auto trouvee = false;
-        auto valeur = trouve(cle, trouvee);
+        auto valeur = trouve(clé, trouvee);
 
         if (!trouvee) {
-            return defaut;
+            return défaut;
         }
 
         return valeur;
     }
 
-    bool possède(Cle const &cle) const
+    bool possède(Clé const &clé) const
     {
-        auto empreinte = std::hash<Cle>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        return index != -1;
+        auto empreinte = std::hash<Clé>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
+        return indice != -1;
     }
 
-    int trouve_index(Cle const &cle, size_t empreinte) const
+    int trouve_indice(Clé const &clé, size_t empreinte) const
     {
-        if (capacite == 0) {
+        if (capacité == 0) {
             return -1;
         }
 
-        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto indice = static_cast<int>(empreinte % static_cast<size_t>(capacité));
         auto increment = increment_de_base_pour_empreinte(empreinte);
 
-        while (occupes[index]) {
-            if (empreintes[index] == empreinte) {
-                if (cles[index] == cle) {
-                    return index;
+        while (occupés[indice]) {
+            if (empreintes[indice] == empreinte) {
+                if (cles[indice] == clé) {
+                    return indice;
                 }
             }
 #ifdef COMPTE_COLLISION
             nombre_de_collision_recherche += 1;
 #endif
 
-            index += increment;
+            indice += increment;
             increment += 1;
 
-            while (index >= capacite) {
-                index -= static_cast<int>(capacite);
+            while (indice >= capacité) {
+                indice -= static_cast<int>(capacité);
             }
         }
 
@@ -256,24 +256,24 @@ struct table_hachage {
 
     int64_t taille_mémoire() const
     {
-        return int64_t(occupes.taille_mémoire()) + int64_t(empreintes.taille_mémoire()) +
+        return int64_t(occupés.taille_mémoire()) + int64_t(empreintes.taille_mémoire()) +
                int64_t(cles.taille_mémoire()) + int64_t(valeurs.taille_mémoire());
     }
 
     void efface()
     {
-        occupes.efface();
+        occupés.efface();
         empreintes.efface();
         cles.efface();
         valeurs.efface();
-        capacite = 0;
+        capacité = 0;
         nombre_elements = 0;
     }
 
     void reinitialise()
     {
         nombre_elements = 0;
-        POUR (occupes) {
+        POUR (occupés) {
             it = false;
         }
     }
@@ -281,7 +281,7 @@ struct table_hachage {
     template <typename TypeFonction>
     void pour_chaque_élément(TypeFonction &&fonction) const
     {
-        POUR_INDICE (occupes) {
+        POUR_INDICE (occupés) {
             if (!it) {
                 continue;
             }
@@ -292,34 +292,34 @@ struct table_hachage {
     }
 
   private:
-    int trouve_indice_innoccupe(Cle const &cle, size_t empreinte)
+    int trouve_indice_inoccupé(Clé const &clé, size_t empreinte)
     {
         /* éléments / alloués >= FACTEUR_DE_CHARGE / 100
          * donc
          * éléments * 100 >= alloués * FACTEUR_DE_CHARGE
          * + 1 pour être cohérent sur la division de nombre entiers
          */
-        if ((nombre_elements + 1) * 100 >= capacite * FACTEUR_DE_CHARGE) {
+        if ((nombre_elements + 1) * 100 >= capacité * FACTEUR_DE_CHARGE) {
             agrandis();
         }
 
-        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto indice = static_cast<int>(empreinte % static_cast<size_t>(capacité));
         auto increment = increment_de_base_pour_empreinte(empreinte);
 
-        while (occupes[index]) {
+        while (occupés[indice]) {
 #ifdef COMPTE_COLLISION
             nombre_de_collision_ajout += 1;
 #endif
-            index += increment;
+            indice += increment;
             increment += 1;
 
-            while (index >= capacite) {
-                index -= static_cast<int>(capacite);
+            while (indice >= capacité) {
+                indice -= static_cast<int>(capacité);
             }
         }
 
         nombre_elements += 1;
-        return index;
+        return indice;
     }
 };
 

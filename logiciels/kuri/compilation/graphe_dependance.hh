@@ -164,9 +164,9 @@ void imprime_dépendances(const DonnéesDépendance &dépendances,
 
 struct GrapheDépendance {
   private:
-    /* Index de la visite. Chaque traversée du graphe peut avoir un index de visite différent
+    /* Index de la visite. Chaque traversée du graphe peut avoir un indice de visite différent
      * (#prepare_visite() doit être utilisé pour indiquer une nouvelle visite). Les noeuds sont
-     * considérés comme visités si leur index de visite est celui de celle-ci. */
+     * considérés comme visités si leur indice de visite est celui de celle-ci. */
     int indice_visite = 0;
 
   public:
@@ -178,11 +178,11 @@ struct GrapheDépendance {
     // CRÉE (:GLOBALE { nom = $nom })
     NoeudDépendance *crée_noeud_globale(NoeudDéclarationVariable *noeud_syntaxique);
 
-    // FUSIONNE (:TYPE { index = $index })
+    // FUSIONNE (:TYPE { indice = $indice })
     NoeudDépendance *crée_noeud_type(Type *type);
 
-    // CHERCHE (type1 :TYPE { index = $index1 })
-    // CHERCHE (type2 :TYPE { index = $index1 })
+    // CHERCHE (type1 :TYPE { indice = $index1 })
+    // CHERCHE (type2 :TYPE { indice = $index1 })
     // FUSIONNE (type1)-[:UTILISE_TYPE]->(type2)
     void connecte_type_type(NoeudDépendance &type1,
                             NoeudDépendance &type2,
