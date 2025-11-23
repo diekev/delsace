@@ -96,14 +96,14 @@ struct ContexteValidationDéclaration {
  * mettre en pause la validation, pour la reprendre ultérieurement, nous
  * pouvons simplement retourner d'une fonction, au lieu de se soucier de
  * dépiler toute la pile d'exécution. De même, la reprise de la validation peut
- * se faire en itérant sur l'arbre aplatis à partir de l'index de la dernière
+ * se faire en itérant sur l'arbre aplatis à partir de l'indice de la dernière
  * itération connue.
  * \{ */
 
 struct ArbreAplatis {
     kuri::tableau<NoeudExpression *, int> noeuds{};
-    /* Index courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la validation
-     * en cas d'attente. */
+    /* Indice courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la
+     * validation en cas d'attente. */
     int indice_courant = 0;
 
     void réinitialise()
@@ -222,7 +222,7 @@ struct Sémanticienne {
     RésultatValidation valide_opérateur_binaire_générique(NoeudExpressionBinaire *expr);
     RésultatValidation valide_comparaison_énum_drapeau_bool(
         NoeudExpressionBinaire *expr,
-        NoeudExpression *expr_acces_enum,
+        NoeudExpression *expr_accès_enum,
         NoeudExpressionLittéraleBool *expr_bool);
 
     RésultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
@@ -249,8 +249,8 @@ struct Sémanticienne {
                                         NoeudExpression *noeud);
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
-                                            int64_t indice_acces);
-    void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
+                                            int64_t indice_accès);
+    void rapporte_erreur_rubrique_inconnu(NoeudExpression *accès,
                                           NoeudExpression *rubrique,
                                           TypeComposé *type);
     void rapporte_erreur_valeur_manquante_discr(
@@ -264,7 +264,7 @@ struct Sémanticienne {
         /* Nous essayons de trouver un transtypage implicite pour une expression de test d'une
          * discrimination. */
         POUR_TEST_DISCRIMINATION,
-        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'index d'une
+        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'indice d'une
          * expression d'indexage. */
         POUR_EXPRESSION_INDEXAGE,
         /* Nous essayons de trouver un transtypage implicite pour une valeur de la construction
