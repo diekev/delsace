@@ -320,8 +320,8 @@ struct AtomeGlobale : public AtomeConstante {
     /* Pour les InfoTypes, les InfoTypeRubriqueStructures, leurs tableaux, etc. */
     bool est_part_info_type = false;
 
-    // index de la globale pour le code binaire
-    int index = -1;
+    // indice de la globale pour le code binaire
+    int indice = -1;
 
     /* Non nul si la globale est une info type. Dans l'exécution des métaprogrammes, les globales
      * infos types ne sont pas converties en code binaire : nous les substituons par un objet
@@ -377,7 +377,7 @@ struct AccèsIndiceConstant : public AtomeConstante {
     }
 
     AtomeConstante *accédé = nullptr;
-    int64_t index = 0;
+    int64_t indice = 0;
 
     EMPECHE_COPIE(AccèsIndiceConstant);
 
@@ -386,7 +386,7 @@ struct AccèsIndiceConstant : public AtomeConstante {
     {
         this->type = type_;
         this->accédé = accédé_;
-        this->index = indice_;
+        this->indice = indice_;
     }
 
     Type const *donne_type_accédé() const;

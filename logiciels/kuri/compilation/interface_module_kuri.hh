@@ -49,7 +49,7 @@ using Type = NoeudDéclarationType;
             Op(decl_panique_chaine, ID::panique_depassement_limites_chaine) Op(                   \
                 decl_panique_rubrique_union,                                                      \
                 ID::panique_rubrique_union) Op(decl_panique_erreur, ID::panique_erreur_non_geree) \
-                Op(decl_rappel_panique_defaut, ID::__rappel_panique_defaut) Op(                   \
+                Op(decl_rappel_panique_défaut, ID::__rappel_panique_défaut) Op(                   \
                     decl_dls_vers_r32, ID::DLS_vers_r32) Op(decl_dls_vers_r64, ID::DLS_vers_r64)  \
                     Op(decl_dls_depuis_r32, ID::DLS_depuis_r32)                                   \
                         Op(decl_dls_depuis_r64, ID::DLS_depuis_r64)                               \

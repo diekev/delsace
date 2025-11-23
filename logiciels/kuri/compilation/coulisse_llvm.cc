@@ -1376,26 +1376,26 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto acces = atome->comme_accès_indice_constant();
-            auto index = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
-                                                uint64_t(acces->index));
-            assert(index);
-            auto accede = génère_code_pour_atome(acces->accédé, pour_globale);
+            auto accès = atome->comme_accès_indice_constant();
+            auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                uint64_t(accès->indice));
+            assert(indice);
+            auto accede = génère_code_pour_atome(accès->accédé, pour_globale);
             assert_rappel(accede, [&]() {
-                dbg() << "L'accédé est de genre " << acces->accédé->genre_atome << " ("
-                      << acces->accédé << ")\n"
-                      << imprime_information_atome(acces->accédé);
+                dbg() << "L'accédé est de genre " << accès->accédé->genre_atome << " ("
+                      << accès->accédé << ")\n"
+                      << imprime_information_atome(accès->accédé);
             });
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
-            auto type_accede = acces->donne_type_accédé();
+            auto type_accede = accès->donne_type_accédé();
             if (!est_type_machine_pointeur(type_accede)) {
                 auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
                 index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
             }
-            index_array.push_back(index);
+            index_array.push_back(indice);
 
-            // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
+            // dbg() << "ACCES_INDEX_CONSTANT: indice=" << *indice << ", accede=" << *accede;
 
             auto type_llvm = convertis_type_llvm(type_accede);
             return llvm::ConstantExpr::getInBoundsGetElementPtr(
@@ -2930,22 +2930,22 @@ void issitialise_llvm()
 }
 
 /* Chemin du fichier objet généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
+static kuri::chemin_systeme chemin_fichier_objet_llvm(int indice)
 {
-    auto nom_de_base = enchaine("kuri", index);
+    auto nom_de_base = enchaine("kuri", indice);
     return chemin_fichier_objet_temporaire_pour(nom_de_base);
 }
 
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t index)
+static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t indice)
 {
-    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".bc"));
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", indice, ".bc"));
 }
 
 /* Chemin du fichier de code LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_ll_llvm(int64_t index)
+static kuri::chemin_systeme chemin_fichier_ll_llvm(int64_t indice)
 {
-    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".ll"));
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", indice, ".ll"));
 }
 
 static kuri::chaine_statique donne_assembleur_llvm()
@@ -2953,10 +2953,10 @@ static kuri::chaine_statique donne_assembleur_llvm()
     return LLVM_ASSEMBLEUR;
 }
 
-static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module, int64_t index)
+static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module, int64_t indice)
 {
-    auto const fichier_ll = chemin_fichier_ll_llvm(index);
-    auto const fichier_bc = chemin_fichier_bc_llvm(index);
+    auto const fichier_ll = chemin_fichier_ll_llvm(indice);
+    auto const fichier_bc = chemin_fichier_bc_llvm(indice);
 
     std::error_code ec;
     llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::OF_None);
