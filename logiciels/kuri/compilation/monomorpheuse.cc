@@ -406,12 +406,12 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
 
 static NoeudDéclaration *rubrique_pour_ident_ou_index(NoeudBloc *bloc,
                                                       const IdentifiantCode *ident,
-                                                      int index)
+                                                      int indice)
 {
     if (ident) {
         return trouve_dans_bloc(bloc, ident);
     }
-    return bloc->rubrique_pour_index(index);
+    return bloc->rubrique_pour_indice(indice);
 }
 
 void Monomorpheuse::ajoute_candidats_depuis_construction_structure(

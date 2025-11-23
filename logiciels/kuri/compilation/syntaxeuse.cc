@@ -2074,14 +2074,14 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_it = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
         noeud_it->ident = ID::it;
 
-        auto noeud_index = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
-        noeud_index->ident = ID::indice_it;
+        auto noeud_indice = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
+        noeud_indice->ident = ID::indice_it;
 
         auto lexème_virgule = m_contexte->lexèmes_extra->crée_lexème(
             noeud->lexème, GenreLexème::VIRGULE, ",");
         auto noeud_virgule = m_contexte->assembleuse->crée_virgule(lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
-        noeud_virgule->expressions.ajoute(noeud_index);
+        noeud_virgule->expressions.ajoute(noeud_indice);
         noeud_virgule->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->variable = noeud_virgule;
