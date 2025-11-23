@@ -97,13 +97,13 @@ static auto incrémente_nombre_utilisations_récursif(Atome *racine) -> void
 static Atome const *déréférence_instruction(Instruction const *inst)
 {
     if (inst->est_accès_indice()) {
-        auto acces = inst->comme_accès_indice();
-        return acces->accédé;
+        auto accès = inst->comme_accès_indice();
+        return accès->accédé;
     }
 
     if (inst->est_accès_rubrique()) {
-        auto acces = inst->comme_accès_rubrique();
-        return acces->accédé;
+        auto accès = inst->comme_accès_rubrique();
+        return accès->accédé;
     }
 
     // pour les déréférencements de pointeurs
@@ -792,9 +792,9 @@ static bool détecte_utilisations_adresses_locales(EspaceDeTravail &espace,
         sources_pour_charge[i] = source;
     }
 
-    int index = fonction.params_entrée.taille();
-    sources[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
-    sources_pour_charge[index] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
+    int indice = fonction.params_entrée.taille();
+    sources[indice] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
+    sources_pour_charge[indice] = SourceAdresseAtome::PARAMÈTRE_SORTIE;
 
     auto nom_fonction_à_étudier = "_KFCSS_donne_fonte_en_cache_E5_3ctx22KPKsCSS_"
                                   "GlobalesDessin7famille8Kschaine5style8Kschaine7graisse18KsCSS_"
@@ -1158,9 +1158,9 @@ static bool remplace_instruction_par_atome(Atome *utilisateur,
         ASSIGNE_SI_EGAUX(rubrique->accédé, à_remplacer, nouvelle_valeur)
     }
     else if (utilisatrice->est_accès_indice()) {
-        auto index = utilisatrice->comme_accès_indice();
-        ASSIGNE_SI_EGAUX(index->accédé, à_remplacer, nouvelle_valeur)
-        ASSIGNE_SI_EGAUX(index->indice, à_remplacer, nouvelle_valeur)
+        auto indice = utilisatrice->comme_accès_indice();
+        ASSIGNE_SI_EGAUX(indice->accédé, à_remplacer, nouvelle_valeur)
+        ASSIGNE_SI_EGAUX(indice->indice, à_remplacer, nouvelle_valeur)
     }
     else {
         return false;
