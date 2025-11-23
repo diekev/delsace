@@ -38,11 +38,11 @@ struct chaine_statique {
     {
     }
 
-    char operator[](int64_t index) const
+    char operator[](int64_t indice) const
     {
-        assert(index >= 0);
-        assert(index < taille());
-        return pointeur_[index];
+        assert(indice >= 0);
+        assert(indice < taille());
+        return pointeur_[indice];
     }
 
     const char *pointeur() const
@@ -60,9 +60,9 @@ struct chaine_statique {
         return taille() != 0;
     }
 
-    chaine_statique sous_chaine(int index) const
+    chaine_statique sous_chaine(int indice) const
     {
-        return chaine_statique(pointeur() + index, taille() - index);
+        return chaine_statique(pointeur() + indice, taille() - indice);
     }
 
     chaine_statique sous_chaine(int64_t début, int64_t fin) const

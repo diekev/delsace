@@ -519,9 +519,9 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enc
     }
 }
 
-static inline void *donne_adresse_locale(FrameAppel *frame, int index)
+static inline void *donne_adresse_locale(FrameAppel *frame, int indice)
 {
-    auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+    auto const &locale = frame->fonction->données_exécution->chunk.locales[indice];
     return &frame->pointeur_pile[locale.adresse];
 }
 
@@ -1383,8 +1383,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_INCRÉMENTE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto index = LIS_4_OCTETS();
-                auto adresse_variable = donne_adresse_locale(frame, index);
+                auto indice = LIS_4_OCTETS();
+                auto adresse_variable = donne_adresse_locale(frame, indice);
                 if (taille == 1) {
                     *reinterpret_cast<uint8_t *>(adresse_variable) += 1;
                 }
@@ -1870,10 +1870,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_ASSIGNE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto adresse_ou = donne_adresse_locale(frame, index);
+                auto adresse_ou = donne_adresse_locale(frame, indice);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
@@ -1890,9 +1890,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_INIT_LOCALE_ZÉRO:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
-                auto adresse_ou = donne_adresse_locale(frame, index);
+                auto adresse_ou = donne_adresse_locale(frame, indice);
 
                 switch (taille) {
                     case 1:
@@ -1955,10 +1955,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_CHARGE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto adresse_de = donne_adresse_locale(frame, index);
+                auto adresse_de = donne_adresse_locale(frame, indice);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
@@ -1967,14 +1967,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_RÉFÉRENCE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
-                empile(donne_adresse_locale(frame, index));
+                auto indice = LIS_4_OCTETS();
+                empile(donne_adresse_locale(frame, indice));
                 break;
             }
             case OP_RÉFÉRENCE_GLOBALE:
             {
-                auto index = LIS_4_OCTETS();
-                auto const &globale = données_constantes->globales[index];
+                auto indice = LIS_4_OCTETS();
+                auto const &globale = données_constantes->globales[indice];
                 empile(&ptr_données_globales[globale.adresse]);
                 break;
             }
@@ -2005,11 +2005,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto taille_données = LIS_4_OCTETS();
                 auto adresse = dépile<char *>();
-                auto index = dépile<int64_t>();
-                auto nouvelle_adresse = adresse + index * taille_données;
+                auto indice = dépile<int64_t>();
+                auto nouvelle_adresse = adresse + indice * taille_données;
                 empile(nouvelle_adresse);
                 // dbg() << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n'
-                //       << "index            : " << index << '\n'
+                //       << "indice            : " << indice << '\n'
                 //       << "taille_données   : " << taille_données;
                 break;
             }

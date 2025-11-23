@@ -7,14 +7,14 @@ struct Fichier;
 struct Lexème;
 
 /* Représente une position dans le texte. Utilisée pour les messages d'erreurs.
- * Les index des colonnes sont en octets, dans l'encodage UTF-8.
+ * Les indices des colonnes sont en octets, dans l'encodage UTF-8.
  */
 struct SiteSource {
     Fichier const *fichier = nullptr;
-    /* L'index de la ligne où se trouve l'erreur. */
+    /* L'indice de la ligne où se trouve l'erreur. */
     int indice_ligne = -1;
 
-    /* L'index du caractère où se trouve l'erreur. */
+    /* L'indice du caractère où se trouve l'erreur. */
     int indice_colonne = -1;
 
     /* Plage de l'erreur, puisque nous ne pouvons la déterminer via un arbre syntaxique, avec

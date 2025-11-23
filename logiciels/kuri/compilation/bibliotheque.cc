@@ -369,22 +369,22 @@ Symbole::type_adresse_objet Symbole::donne_adresse_objet_pour_exécution()
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name IndexBibliothèque
+/** \name IndiceBibliothèque
  * \{ */
 
-IndexBibliothèque IndexBibliothèque::crée_pour_exécution()
+IndiceBibliothèque IndiceBibliothèque::crée_pour_exécution()
 {
-    IndexBibliothèque résultat;
+    IndiceBibliothèque résultat;
     résultat.plateforme = PLATEFORME_64_BIT;
     résultat.type_liaison = DYNAMIQUE;
     résultat.type_compilation = POUR_PRODUCTION;
     return résultat;
 }
 
-IndexBibliothèque IndexBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
+IndiceBibliothèque IndiceBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
                                                        int type_liaison)
 {
-    IndexBibliothèque résultat;
+    IndiceBibliothèque résultat;
     résultat.plateforme = plateforme_pour_options(options);
     résultat.type_liaison = type_liaison;
     résultat.type_compilation = type_informations(options);
@@ -397,24 +397,24 @@ IndexBibliothèque IndexBibliothèque::crée_pour_options(OptionsDeCompilation c
 /** \name CheminsBibliothèque
  * \{ */
 
-kuri::chaine_statique CheminsBibliothèque::donne_chemin(IndexBibliothèque const index) const
+kuri::chaine_statique CheminsBibliothèque::donne_chemin(IndiceBibliothèque const indice) const
 {
-    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+    auto const &chemins = m_chemins[indice.plateforme][indice.type_liaison];
 
     /* Utilise le chemins pour production par défaut. */
-    if (!chemins[index.type_compilation]) {
+    if (!chemins[indice.type_compilation]) {
         return chemins[POUR_PRODUCTION];
     }
 
-    return chemins[index.type_compilation];
+    return chemins[indice.type_compilation];
 }
 
-IndexBibliothèque CheminsBibliothèque::rafine_index(IndexBibliothèque const index) const
+IndiceBibliothèque CheminsBibliothèque::raffine_indice(IndiceBibliothèque const indice) const
 {
-    auto résultat = index;
-    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+    auto résultat = indice;
+    auto const &chemins = m_chemins[indice.plateforme][indice.type_liaison];
     /* Utilise le chemins pour production par défaut. */
-    if (!chemins[index.type_compilation]) {
+    if (!chemins[indice.type_compilation]) {
         résultat.type_compilation = POUR_PRODUCTION;
     }
     return résultat;
@@ -533,7 +533,7 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return true;
     }
 
-    auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
+    auto chemin_dynamique = chemins.donne_chemin(IndiceBibliothèque::crée_pour_exécution());
 
     if (chemin_dynamique == "") {
         espace
@@ -582,19 +582,19 @@ kuri::chaine_statique Bibliothèque::chemin_de_base(const OptionsDeCompilation &
 
 kuri::chaine_statique Bibliothèque::chemin_statique(const OptionsDeCompilation &options) const
 {
-    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, STATIQUE));
+    return chemins.donne_chemin(IndiceBibliothèque::crée_pour_options(options, STATIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::chemin_dynamique(const OptionsDeCompilation &options) const
 {
-    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, DYNAMIQUE));
+    return chemins.donne_chemin(IndiceBibliothèque::crée_pour_options(options, DYNAMIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation &options) const
 {
-    auto index = IndexBibliothèque::crée_pour_options(options, DYNAMIQUE);
-    index = chemins.rafine_index(index);
-    return noms[index.type_compilation];
+    auto indice = IndiceBibliothèque::crée_pour_options(options, DYNAMIQUE);
+    indice = chemins.raffine_indice(indice);
+    return noms[indice.type_compilation];
 }
 
 bool Bibliothèque::peut_lier_statiquement() const
@@ -603,7 +603,7 @@ bool Bibliothèque::peut_lier_statiquement() const
     if (nom == "c" || nom == "m") {
         return false;
     }
-    return chemins.donne_chemin(IndexBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
+    return chemins.donne_chemin(IndiceBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
            kuri::chaine_statique("");
 }
 
