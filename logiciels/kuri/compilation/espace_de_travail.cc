@@ -52,14 +52,14 @@ Module *EspaceDeTravail::donne_module(const IdentifiantCode *nom_module) const
     return sys_module->module(nom_module);
 }
 
-const Fichier *EspaceDeTravail::fichier(int64_t index) const
+const Fichier *EspaceDeTravail::fichier(int64_t indice) const
 {
-    return sys_module->fichier(index);
+    return sys_module->fichier(indice);
 }
 
-Fichier *EspaceDeTravail::fichier(int64_t index)
+Fichier *EspaceDeTravail::fichier(int64_t indice)
 {
-    return sys_module->fichier(index);
+    return sys_module->fichier(indice);
 }
 
 Fichier *EspaceDeTravail::fichier(kuri::chaine_statique chemin) const

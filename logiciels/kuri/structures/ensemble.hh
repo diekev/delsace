@@ -13,44 +13,44 @@ template <typename T>
 class ensemble {
   private:
     kuri::tableau<T, int> cles{};
-    kuri::tableau<char, int> occupes{};
+    kuri::tableau<char, int> occupés{};
 
-    int64_t capacite = 0;
+    int64_t capacité = 0;
     int64_t nombre_elements = 0;
 
     static constexpr auto TAILLE_MIN = 32;
 
   public:
-    void insère(T const &cle)
+    void insère(T const &clé)
     {
-        auto empreinte = std::hash<T>()(cle);
-        auto index = trouve_indice_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        cles[index] = cle;
+        auto empreinte = std::hash<T>()(clé);
+        auto indice = trouve_indice_inoccupé(clé, empreinte);
+        occupés[indice] = 1;
+        cles[indice] = clé;
     }
 
-    void insère(T &&cle)
+    void insère(T &&clé)
     {
-        auto empreinte = std::hash<T>()(cle);
-        auto index = trouve_indice_innoccupe(cle, empreinte);
-        occupes[index] = 1;
-        cles[index] = std::move(cle);
+        auto empreinte = std::hash<T>()(clé);
+        auto indice = trouve_indice_inoccupé(clé, empreinte);
+        occupés[indice] = 1;
+        cles[indice] = std::move(clé);
     }
 
-    void supprime(T const &cle)
+    void supprime(T const &clé)
     {
-        auto empreinte = std::hash<T>()(cle);
-        auto index = trouve_index(cle, empreinte);
-        if (index != -1) {
-            occupes[index] = 0;
+        auto empreinte = std::hash<T>()(clé);
+        auto indice = trouve_indice(clé, empreinte);
+        if (indice != -1) {
+            occupés[indice] = 0;
             nombre_elements -= 1;
         }
     }
 
-    bool possède(T const &cle) const
+    bool possède(T const &clé) const
     {
-        auto empreinte = std::hash<T>()(cle);
-        return trouve_index(cle, empreinte) != -1;
+        auto empreinte = std::hash<T>()(clé);
+        return trouve_indice(clé, empreinte) != -1;
     }
 
     int64_t taille() const
@@ -60,7 +60,7 @@ class ensemble {
 
     int64_t taille_mémoire() const
     {
-        return occupes.taille_mémoire() + cles.taille_mémoire();
+        return occupés.taille_mémoire() + cles.taille_mémoire();
     }
 
     bool est_vide() const
@@ -70,24 +70,24 @@ class ensemble {
 
     void efface()
     {
-        POUR (occupes) {
+        POUR (occupés) {
             it = 0;
         }
-        occupes.efface();
+        occupés.efface();
         cles.efface();
-        capacite = 0;
+        capacité = 0;
         nombre_elements = 0;
     }
 
     template <typename Rappel>
     void pour_chaque_element(Rappel &&rappel)
     {
-        if (capacite == 0) {
+        if (capacité == 0) {
             return;
         }
 
-        for (int i = 0; i < capacite; ++i) {
-            if (!occupes[i]) {
+        for (int i = 0; i < capacité; ++i) {
+            if (!occupés[i]) {
                 continue;
             }
 
@@ -98,12 +98,12 @@ class ensemble {
     template <typename Rappel>
     void pour_chaque_element(Rappel &&rappel) const
     {
-        if (capacite == 0) {
+        if (capacité == 0) {
             return;
         }
 
-        for (int i = 0; i < capacite; ++i) {
-            if (!occupes[i]) {
+        for (int i = 0; i < capacité; ++i) {
+            if (!occupés[i]) {
                 continue;
             }
 
@@ -126,13 +126,13 @@ class ensemble {
   private:
     void alloue(int64_t taille)
     {
-        capacite = taille;
+        capacité = taille;
 
         cles.redimensionne(static_cast<int>(taille));
-        occupes.redimensionne(static_cast<int>(taille));
+        occupés.redimensionne(static_cast<int>(taille));
         nombre_elements = 0;
 
-        POUR (occupes) {
+        POUR (occupés) {
             it = 0;
         }
     }
@@ -140,9 +140,9 @@ class ensemble {
     void agrandis()
     {
         auto vieilles_cles = cles;
-        auto vieilles_occupes = occupes;
+        auto vieilles_occupés = occupés;
 
-        auto nouvelle_taille = capacite * 2;
+        auto nouvelle_taille = capacité * 2;
 
         if (nouvelle_taille < TAILLE_MIN) {
             nouvelle_taille = TAILLE_MIN;
@@ -151,58 +151,58 @@ class ensemble {
         alloue(nouvelle_taille);
 
         for (auto i = 0; i < vieilles_cles.taille(); ++i) {
-            if (vieilles_occupes[i]) {
+            if (vieilles_occupés[i]) {
                 insère(std::move(vieilles_cles[i]));
             }
         }
     }
 
-    int trouve_index(T const &cle, size_t empreinte) const
+    int trouve_indice(T const &clé, size_t empreinte) const
     {
-        if (capacite == 0) {
+        if (capacité == 0) {
             return -1;
         }
 
-        auto index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+        auto indice = static_cast<int>(empreinte % static_cast<size_t>(capacité));
 
-        while (occupes[index]) {
-            if (cles[index] == cle) {
-                return index;
+        while (occupés[indice]) {
+            if (cles[indice] == clé) {
+                return indice;
             }
 
-            index += 1;
+            indice += 1;
 
-            if (index >= capacite) {
-                index = 0;
+            if (indice >= capacité) {
+                indice = 0;
             }
         }
 
         return -1;
     }
 
-    int trouve_indice_innoccupe(T const &cle, size_t empreinte)
+    int trouve_indice_inoccupé(T const &clé, size_t empreinte)
     {
-        auto index = trouve_index(cle, empreinte);
+        auto indice = trouve_indice(clé, empreinte);
 
-        if (index == -1) {
-            if (nombre_elements * 2 >= capacite) {
+        if (indice == -1) {
+            if (nombre_elements * 2 >= capacité) {
                 agrandis();
             }
 
-            index = static_cast<int>(empreinte % static_cast<size_t>(capacite));
+            indice = static_cast<int>(empreinte % static_cast<size_t>(capacité));
 
-            while (occupes[index]) {
-                index += 1;
+            while (occupés[indice]) {
+                indice += 1;
 
-                if (index >= capacite) {
-                    index = 0;
+                if (indice >= capacité) {
+                    indice = 0;
                 }
             }
 
             nombre_elements += 1;
         }
 
-        return index;
+        return indice;
     }
 };
 

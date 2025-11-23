@@ -70,34 +70,34 @@ static bool transtypage_est_utile(InstructionTranstype const *transtype)
 /* Pour garantir que les déclarations des fonctions externes correspondent à ce qu'elles doivent
  * être. */
 static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
-    NoeudDéclarationEntêteFonction const *entête, int index)
+    NoeudDéclarationEntêteFonction const *entête, int indice)
 {
     if (!entête) {
         return {};
     }
 
     if (entête->possède_drapeau(DrapeauxNoeudFonction::EST_EXTERNE)) {
-        if (entête->ident->nom == "memcpy" && index == 1) {
+        if (entête->ident->nom == "memcpy" && indice == 1) {
             return "const void *";
         }
-        if (entête->ident->nom == "strlen" && index == 0) {
+        if (entête->ident->nom == "strlen" && indice == 0) {
             return "const char *";
         }
         if (entête->ident->nom == "execvp") {
-            if (index == 0) {
+            if (indice == 0) {
                 return "const char *";
             }
-            if (index == 1) {
+            if (indice == 1) {
                 return "char * const *";
             }
         }
         if (entête->ident->nom == "printf") {
-            if (index == 0) {
+            if (indice == 0) {
                 return "const char *";
             }
         }
         if (entête->ident->nom == "execl") {
-            if (index == 0 || index == 1) {
+            if (indice == 0 || indice == 1) {
                 return "const char *";
             }
         }
@@ -105,7 +105,7 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
     }
 
     if (entête->ident == ID::__point_d_entree_systeme) {
-        if (index == 1) {
+        if (indice == 1) {
             return "char **";
         }
 
@@ -116,13 +116,13 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
 }
 
 static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(Atome const *atome,
-                                                                             int index)
+                                                                             int indice)
 {
     if (!atome->est_fonction()) {
         return {};
     }
 
-    return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, index);
+    return type_paramètre_pour_fonction_clé(atome->comme_fonction()->decl, indice);
 }
 
 static bool est_nan(float v)
@@ -238,7 +238,7 @@ struct GénératriceCodeC {
 
     /* Les atomes pour les chaines peuvent être générés plusieurs fois (notamment
      * pour celles des noms des fonctions pour les traces d'appel), donc nous suffixons les noms
-     * des variables avec un index pour les rendre uniques. L'index est incrémenté à chaque
+     * des variables avec un indice pour les rendre uniques. L'indice est incrémenté à chaque
      * génération de code pour une chaine. */
     int indice_chaine = 0;
 
@@ -320,7 +320,7 @@ struct GénératriceCodeC {
     kuri::chaine_statique donne_nom_pour_type(Type const *type);
 
     kuri::chaine_statique donne_nom_pour_rubrique(RubriqueTypeComposé const &rubrique,
-                                                  int64_t index);
+                                                  int64_t indice);
 
     bool préserve_symboles() const;
 };
@@ -732,7 +732,7 @@ void ConvertisseuseTypeC::génère_typedef_pour_type_composé(TypeC &type_c,
                                                            Enchaineuse &enchaineuse)
 {
     if (type_composé->est_type_tableau_dynamique() || type_composé->est_type_tranche()) {
-        /* Le type du rubrique des éléments peut manquer. */
+        /* Le type de la rubrique des éléments peut manquer. */
         POUR (type_composé->rubriques) {
             génère_typedef(it.type, enchaineuse);
         }
@@ -1264,7 +1264,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
                 est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
-                /* Les tableaux de données constantes doivent toujours être accéder par un index de
+                /* Les tableaux de données constantes doivent toujours être accéder par un indice de
                  * 0, donc ce doit être légitime de simplement retourné le code de l'atome. */
                 return valeur_accédée;
             }
@@ -1273,7 +1273,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
                 valeur_accédée = enchaine(valeur_accédée, ".", nom_variable_tableau_fixe);
             }
 
-            return enchaine(valeur_accédée, "[", inst_accès->index, "]");
+            return enchaine(valeur_accédée, "[", inst_accès->indice, "]");
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
@@ -1849,7 +1849,7 @@ void GénératriceCodeC::déclare_globale(Enchaineuse &os,
     table_globales.insère(valeur_globale, enchaine("&", nom_globale));
 }
 
-static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *fonction, int index)
+static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *fonction, int indice)
 {
     auto const entête = fonction->decl;
     if (!entête) {
@@ -1860,7 +1860,7 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
         return false;
     }
 
-    auto const param = entête->paramètre_entrée(index);
+    auto const param = entête->paramètre_entrée(indice);
     if (param->possède_drapeau(DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE)) {
         /* Explicitement marquée @inutilisée. */
         return true;
@@ -1871,7 +1871,7 @@ static bool paramètre_est_marqué_comme_inutilisée(AtomeFonction const *foncti
         return true;
     }
 
-    if (!fonction->params_entrée[index]->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+    if (!fonction->params_entrée[indice]->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
         /* L'atome n'est plus utilisé suite à une optimisation. */
         return true;
     }
@@ -2176,7 +2176,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_type(Type const *type)
 }
 
 kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(
-    RubriqueTypeComposé const &rubrique, int64_t index)
+    RubriqueTypeComposé const &rubrique, int64_t indice)
 {
     /* Cas pour les structures vides. */
     if (rubrique.nom == ID::chaine_vide) {
@@ -2185,7 +2185,7 @@ kuri::chaine_statique GénératriceCodeC::donne_nom_pour_rubrique(
 
     if (!rubrique.nom) {
         /* Les rubriques des tuples n'ont pas de nom. */
-        return enchaine("_", index);
+        return enchaine("_", indice);
     }
 
     /* Évite d'utiliser des noms de mot-clé. */
