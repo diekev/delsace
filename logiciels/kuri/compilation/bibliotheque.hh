@@ -125,18 +125,18 @@ enum {
 };
 
 /* ------------------------------------------------------------------------- */
-/** \name IndexBibliothèque
+/** \name IndiceBibliothèque
  * Index pour trouver un chemin dans #CheminsBibliothèque.
  * \{ */
 
-struct IndexBibliothèque {
+struct IndiceBibliothèque {
     int plateforme{};
     int type_liaison{};
     int type_compilation{};
 
-    static IndexBibliothèque crée_pour_exécution();
+    static IndiceBibliothèque crée_pour_exécution();
 
-    static IndexBibliothèque crée_pour_options(OptionsDeCompilation const &options,
+    static IndiceBibliothèque crée_pour_options(OptionsDeCompilation const &options,
                                                int type_liaison);
 };
 
@@ -152,16 +152,16 @@ struct CheminsBibliothèque {
                                   [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
 
   public:
-    kuri::chaine_statique donne_chemin(IndexBibliothèque const index) const;
+    kuri::chaine_statique donne_chemin(IndiceBibliothèque const indice) const;
 
     void définis_chemins(
         int plateforme,
         const kuri::chemin_systeme nouveaux_chemins[NUM_TYPES_BIBLIOTHÈQUE]
                                                    [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE]);
 
-    /* Crée un index valide. L'index donné est considérer comme une requête. Si cette requête n'est
-     * pas possible, retourne un index vers une requête valide. Sinon, retourne l'index donné. */
-    IndexBibliothèque rafine_index(IndexBibliothèque const index) const;
+    /* Crée un indice valide. L'indice donné est considérer comme une requête. Si cette requête n'est
+     * pas possible, retourne un indice vers une requête valide. Sinon, retourne l'indice donné. */
+    IndiceBibliothèque raffine_indice(IndiceBibliothèque const indice) const;
 
     int64_t mémoire_utilisée() const;
 

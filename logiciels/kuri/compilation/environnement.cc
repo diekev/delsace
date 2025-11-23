@@ -270,7 +270,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     /* Les unions peuvent être perçues comme non-initialisées malgré l'assignation via un pointeur.
      */
     résultat.ajoute("-Wno-error=uninitialized");
-    résultat.ajoute("-Wmissing-déclarations");
+    résultat.ajoute("-Wmissing-declarations");
 
     /* Arrête après une seule erreur. */
     résultat.ajoute("-Wfatal-errors");

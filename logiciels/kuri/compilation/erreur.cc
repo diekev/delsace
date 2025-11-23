@@ -348,11 +348,11 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
         .ajoute_message("\n\n");
 }
 
-void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
+void lance_erreur_accès_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t indice_acces)
+                                     int64_t indice_accès)
 {
     espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
@@ -360,9 +360,9 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                         " (de type : ",
                         chaine_type(type_tableau),
                         ").\n")
-        .ajoute_message("\tL'accès se fait à l'index ",
-                        indice_acces,
-                        " (index maximal : ",
+        .ajoute_message("\tL'accès se fait à l'indice ",
+                        indice_accès,
+                        " (indice maximal : ",
                         taille_tableau - 1,
                         ").\n");
 }
@@ -394,7 +394,7 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriqu
 }
 
 void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *acces,
+                      NoeudExpression const *accès,
                       NoeudExpression const *rubrique,
                       TypeComposé const *type)
 {
@@ -428,7 +428,7 @@ void rubrique_inconnu(EspaceDeTravail const &espace,
     auto candidat = trouve_candidat(rubriques, rubrique->ident->nom);
 
     auto e = espace.rapporte_erreur(
-        acces, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
+        accès, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
     e.ajoute_message("Le rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
 
     if (rubriques.taille() == 0) {

@@ -119,9 +119,9 @@ static void imprime_atome_ex(Atome const *atome,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto acces = static_cast<AccèsIndiceConstant const *>(atome);
-            imprime_atome_ex(acces->accédé, os, options, true);
-            os << '[' << acces->index << ']';
+            auto accès = static_cast<AccèsIndiceConstant const *>(atome);
+            imprime_atome_ex(accès->accédé, os, options, true);
+            os << '[' << accès->indice << ']';
             break;
         }
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
@@ -394,19 +394,19 @@ static void imprime_instruction_ex(Instruction const *inst,
         }
         case GenreInstruction::ACCÈS_INDICE:
         {
-            auto inst_acces = inst->comme_accès_indice();
+            auto inst_accès = inst->comme_accès_indice();
             os << "index ";
-            imprime_atome_ex(inst_acces->accédé, os, options, true);
+            imprime_atome_ex(inst_accès->accédé, os, options, true);
             os << ", ";
-            imprime_atome_ex(inst_acces->indice, os, options, true);
+            imprime_atome_ex(inst_accès->indice, os, options, true);
             break;
         }
         case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto inst_acces = inst->comme_accès_rubrique();
+            auto inst_accès = inst->comme_accès_rubrique();
             os << "rubrique ";
-            imprime_atome_ex(inst_acces->accédé, os, options, true);
-            os << ", " << inst_acces->indice;
+            imprime_atome_ex(inst_accès->accédé, os, options, true);
+            os << ", " << inst_accès->indice;
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -584,13 +584,13 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 {
     Enchaineuse sortie;
     if (inst->est_accès_rubrique()) {
-        auto inst_acces = inst->comme_accès_rubrique();
+        auto inst_accès = inst->comme_accès_rubrique();
         sortie << "Nous accédons à ";
-        if (inst_acces->accédé->est_instruction()) {
-            sortie << inst_acces->accédé->comme_instruction()->genre << '\n';
+        if (inst_accès->accédé->est_instruction()) {
+            sortie << inst_accès->accédé->comme_instruction()->genre << '\n';
         }
         else {
-            imprime_information_atome(inst_acces->accédé, sortie);
+            imprime_information_atome(inst_accès->accédé, sortie);
             sortie << '\n';
         }
     }
