@@ -755,9 +755,9 @@ class ClassifieuseArgument {
 
     ClassementArgument donne_classement_arguments(TypeFonction const *type)
     {
-        auto index = m_table_classement_arguments.valeur_ou(type, -1);
-        if (index != -1) {
-            return m_classements_arguments[index];
+        auto indice = m_table_classement_arguments.valeur_ou(type, -1);
+        if (indice != -1) {
+            return m_classements_arguments[indice];
         }
 
         auto classement = donne_classement_arguments_impl(type);
@@ -909,8 +909,8 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
 {
     kuri::tablet<Huitoctet, 4> résultat;
 
-    auto index = m_table_huitoctets_types.valeur_ou(type, -1);
-    if (index == -1) {
+    auto indice = m_table_huitoctets_types.valeur_ou(type, -1);
+    if (indice == -1) {
         ::donne_classe_argument(typeuse, type, résultat);
 
         auto rangée = RangéeHuitoctetsType{};
@@ -924,12 +924,12 @@ kuri::tablet<Huitoctet, 4> ClassifieuseArgument::donne_classe_argument(Type cons
 
         m_rangées_huitoctets_types.ajoute(rangée);
 
-        index = int32_t(m_rangées_huitoctets_types.taille() - 1);
-        m_table_huitoctets_types.insère(type, index);
+        indice = int32_t(m_rangées_huitoctets_types.taille() - 1);
+        m_table_huitoctets_types.insère(type, indice);
         return résultat;
     }
 
-    auto rangée = m_rangées_huitoctets_types[index];
+    auto rangée = m_rangées_huitoctets_types[indice];
 
     for (auto i = rangée.indice_premier_inclusif; i < rangée.indice_dernier_exclusif; i++) {
         résultat.ajoute(m_huitoctets_types[i]);
@@ -1051,7 +1051,7 @@ struct AssembleuseASM {
 
     struct Label {
         kuri::chaine_statique nom;
-        int index;
+        int indice;
     };
 
     static bool est_immédiate(TypeOpérande type)
@@ -1646,7 +1646,7 @@ struct AssembleuseASM {
 
     void ajoute_label(Label label)
     {
-        m_sortie << "." << label.nom << label.index << ":" << NOUVELLE_LIGNE;
+        m_sortie << "." << label.nom << label.indice << ":" << NOUVELLE_LIGNE;
     }
 
     void imprime_opérande(Opérande opérande, uint32_t taille_octet = 8)
@@ -1715,7 +1715,7 @@ struct AssembleuseASM {
             }
             case TypeOpérande::LABEL:
             {
-                m_sortie << "." << opérande.label.nom << opérande.label.index;
+                m_sortie << "." << opérande.label.nom << opérande.label.indice;
                 return;
             }
         }
@@ -2090,8 +2090,8 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_STRUCTURE:
         {
             auto const structure = atome->comme_constante_structure();
-            auto index = ajoute_constante(structure);
-            assembleuse.push(AssembleuseASM::Label("C", int32_t(index)), 8);
+            auto indice = ajoute_constante(structure);
+            assembleuse.push(AssembleuseASM::Label("C", int32_t(indice)), 8);
             return;
         }
         case Atome::Genre::CONSTANTE_TABLEAU_FIXE:
@@ -2202,7 +2202,7 @@ void GénératriceCodeASM::génère_code_pour_initialisation_globale(Atome const
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             auto indice_constant = initialisateur->comme_accès_indice_constant();
-            assert(indice_constant->index == 0);
+            assert(indice_constant->indice == 0);
             génère_code_pour_initialisation_globale(
                 indice_constant->accédé, enchaineuse, profondeur);
             return;
@@ -3523,7 +3523,7 @@ void GénératriceCodeASM::génère_code_pour_accès_indice(InstructionAccèsInd
 
     auto registre = registres.donne_registre_entier_inoccupé();
 
-    /* Corrige l'index pour prendre en compte la taille du type. */
+    /* Corrige l'indice pour prendre en compte la taille du type. */
     auto const type_pointeur = accès->accédé->type->comme_type_pointeur();
     auto type_accédé = type_pointeur->type_pointé;
 
