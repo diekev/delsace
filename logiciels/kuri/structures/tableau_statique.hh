@@ -15,7 +15,7 @@ struct tableau_statique {
     T *pointeur = nullptr;
     int64_t taille_ = 0;
     /* La capacité n'est que pour s'assurer que le tableau a la même taille que dans le langage. */
-    int64_t capacite = 0;
+    int64_t capacité = 0;
 
   public:
     tableau_statique() = default;

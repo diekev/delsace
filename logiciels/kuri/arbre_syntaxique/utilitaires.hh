@@ -546,7 +546,7 @@ struct RubriqueTypeComposé {
         EST_UN_EMPLOI = (1 << 2),
         // si la rubrique provient d'une instruction empl
         PROVIENT_D_UN_EMPOI = (1 << 3),
-        // si l'expression du rubrique est sur-écrite dans la définition de la structure (x = y,
+        // si l'expression de la rubrique est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)
         POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
 
@@ -558,7 +558,7 @@ struct RubriqueTypeComposé {
     IdentifiantCode *nom = nullptr;
     unsigned décalage = 0;
     uint64_t valeur = 0;                                  // pour les énumérations
-    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les rubriques des structures
+    NoeudExpression *expression_valeur_défaut = nullptr;  // pour les rubriques des structures
     int drapeaux = 0;
     uint32_t rembourrage = 0;
 

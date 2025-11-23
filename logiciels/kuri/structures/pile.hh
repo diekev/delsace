@@ -72,48 +72,48 @@ struct pile_fixe {
 
   private:
     type_valeur m_pile[N];
-    type_taille m_index = -1;
+    type_taille m_indice = -1;
 
   public:
     pile_fixe() = default;
 
     void empile(type_référence_const valeur)
     {
-        if (m_index + 1 < N) {
-            m_pile[++m_index] = valeur;
+        if (m_indice + 1 < N) {
+            m_pile[++m_indice] = valeur;
         }
     }
 
     type_valeur dépile()
     {
         auto t = haut();
-        --m_index;
+        --m_indice;
         return t;
     }
 
     type_référence haut()
     {
-        return m_pile[m_index];
+        return m_pile[m_indice];
     }
 
     type_référence_const haut() const
     {
-        return m_pile[m_index];
+        return m_pile[m_indice];
     }
 
     bool est_vide() const
     {
-        return m_index < 0;
+        return m_indice < 0;
     }
 
     bool est_pleine() const
     {
-        return m_index == N;
+        return m_indice == N;
     }
 
     type_taille taille() const
     {
-        return m_index + 1;
+        return m_indice + 1;
     }
 };
 

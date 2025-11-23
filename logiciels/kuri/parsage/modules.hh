@@ -288,14 +288,14 @@ struct SystèmeModule {
 
     int64_t mémoire_utilisée() const;
 
-    Fichier *fichier(int64_t index)
+    Fichier *fichier(int64_t indice)
     {
-        return &fichiers.a_l_index(index);
+        return &fichiers.à_l_indice(indice);
     }
 
-    const Fichier *fichier(int64_t index) const
+    const Fichier *fichier(int64_t indice) const
     {
-        return &fichiers.a_l_index(index);
+        return &fichiers.à_l_indice(indice);
     }
 
     Fichier *fichier(kuri::chaine_statique chemin) const;

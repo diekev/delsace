@@ -113,14 +113,14 @@ void ÉtatChargementFichiers::supprime_unité_pour_chargement_fichier(UnitéComp
 
 bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
 {
-    const int index[3] = {int(RaisonDÊtre::CHARGEMENT_FICHIER),
+    const int indice[3] = {int(RaisonDÊtre::CHARGEMENT_FICHIER),
                           int(RaisonDÊtre::LEXAGE_FICHIER),
                           int(RaisonDÊtre::PARSAGE_FICHIER)};
 
     /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer et que les unités de
      * chargement/lexage/parsage ont toutes été traitées. */
     return file_unités_charge_ou_importe == nullptr &&
-           std::all_of(std::begin(index), std::end(index), [&](int it) {
+           std::all_of(std::begin(indice), std::end(indice), [&](int it) {
                return nombre_d_unités_pour_raison[it].compte == 0;
            });
 }

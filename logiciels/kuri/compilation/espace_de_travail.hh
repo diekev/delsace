@@ -151,8 +151,8 @@ struct EspaceDeTravail {
 
     Module *donne_module(const IdentifiantCode *nom_module) const;
 
-    Fichier *fichier(int64_t index);
-    const Fichier *fichier(int64_t index) const;
+    Fichier *fichier(int64_t indice);
+    const Fichier *fichier(int64_t indice) const;
 
     Fichier *fichier(kuri::chaine_statique chemin) const;
 

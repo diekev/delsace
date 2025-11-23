@@ -11,9 +11,9 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
+#    define CHRONO_TYPAGE(entrée_stats, indice)                                                    \
         kuri::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                        \
-            [&](double temps) { entrée_stats.fusionne_entrée(index, {"", temps}); })
+            [&](double temps) { entrée_stats.fusionne_entrée(indice, {"", temps}); })
 #else
 #    define CHRONO_TYPAGE(entrée_stats, nom)
 #endif
@@ -198,10 +198,10 @@ struct EntréesStats {
         entrées.ajoute(entrée);
     }
 
-    void fusionne_entrée(int index, T const &entrée)
+    void fusionne_entrée(int indice, T const &entrée)
     {
         totaux += entrée;
-        entrées[index] += entrée;
+        entrées[indice] += entrée;
     }
 };
 

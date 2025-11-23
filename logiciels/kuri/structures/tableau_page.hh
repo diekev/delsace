@@ -98,14 +98,14 @@ struct tableau_page {
                m_pages.taille() * int64_t(sizeof(page));
     }
 
-    T &a_l_index(int64_t index)
+    T &à_l_indice(int64_t indice)
     {
-        return this->operator[](index);
+        return this->operator[](indice);
     }
 
-    T const &a_l_index(int64_t index) const
+    T const &à_l_indice(int64_t indice) const
     {
-        return this->operator[](index);
+        return this->operator[](indice);
     }
 
     T &operator[](int64_t i)

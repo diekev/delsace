@@ -583,17 +583,17 @@ IdentifiantCode *Compilatrice::donne_identifiant_pour_globale(kuri::chaine_stati
     return table_identifiants->identifiant_pour_nouvelle_chaine(nom);
 }
 
-IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
+IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int indice)
 {
     std::unique_lock verrouille(m_mutex_noms_valeurs_retours_défaut);
 
-    if (index >= m_noms_valeurs_retours_défaut.taille()) {
+    if (indice >= m_noms_valeurs_retours_défaut.taille()) {
         auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(
-            enchaine("__ret", index));
+            enchaine("__ret", indice));
         m_noms_valeurs_retours_défaut.ajoute(ident);
     }
 
-    return m_noms_valeurs_retours_défaut[index];
+    return m_noms_valeurs_retours_défaut[indice];
 }
 
 Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Contexte *contexte)

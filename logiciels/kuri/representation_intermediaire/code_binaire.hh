@@ -350,7 +350,7 @@ struct Chunk {
 
     void émets_branche(NoeudExpression const *site,
                        kuri::tableau<PatchLabel> &patchs_labels,
-                       int index);
+                       int indice);
     void émets_branche_condition(NoeudExpression const *site,
                                  kuri::tableau<PatchLabel> &patchs_labels,
                                  int indice_label_si_vrai,
@@ -431,7 +431,7 @@ class CompilatriceCodeBinaire {
     kuri::tableau<int, int> décalages_labels{};
     kuri::tableau<PatchLabel> patchs_labels{};
 
-    /* Pour stocker les index des locales. */
+    /* Pour stocker les indices des locales. */
     kuri::tableau<int> m_indice_locales{};
 
     bool vérifie_adresses = false;

@@ -11,12 +11,12 @@
 
 namespace kuri {
 
-template <typename T, typename TypeIndex = int64_t>
+template <typename T, typename TypeIndice = int64_t>
 struct tableau {
   private:
     T *m_éléments = nullptr;
-    TypeIndex m_taille = 0;
-    TypeIndex m_capacité = 0;
+    TypeIndice m_taille = 0;
+    TypeIndice m_capacité = 0;
 
   public:
     using iteratrice = T *;
@@ -24,13 +24,13 @@ struct tableau {
 
     tableau() = default;
 
-    explicit tableau(TypeIndex taille_initiale)
+    explicit tableau(TypeIndice taille_initiale)
         : m_éléments(mémoire::loge_tableau<T>("kuri::tableau", taille_initiale)),
           m_taille(taille_initiale), m_capacité(taille_initiale)
     {
     }
 
-    tableau(std::initializer_list<T> &&liste) : tableau(static_cast<TypeIndex>(liste.size()))
+    tableau(std::initializer_list<T> &&liste) : tableau(static_cast<TypeIndice>(liste.size()))
     {
         auto ptr = this->m_éléments;
         for (auto &&élément : liste) {
@@ -75,13 +75,13 @@ struct tableau {
         mémoire::déloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité);
     }
 
-    T &operator[](TypeIndex i)
+    T &operator[](TypeIndice i)
     {
         assert(i >= 0 && i < this->m_taille);
         return this->m_éléments[i];
     }
 
-    T const &operator[](TypeIndex i) const
+    T const &operator[](TypeIndice i) const
     {
         assert(i >= 0 && i < this->m_taille);
         return this->m_éléments[i];
@@ -136,7 +136,7 @@ struct tableau {
         this->m_taille -= 1;
     }
 
-    void réserve(TypeIndex nombre)
+    void réserve(TypeIndice nombre)
     {
         if (m_capacité >= nombre) {
             return;
@@ -149,14 +149,14 @@ struct tableau {
     void remplace_données_par(kuri::tableau_statique<T> autre)
     {
         this->efface();
-        this->réserve(TypeIndex(autre.taille()));
+        this->réserve(TypeIndice(autre.taille()));
         POUR (autre) {
             this->ajoute(it);
         }
     }
 
   private:
-    void agrandis(TypeIndex nombre)
+    void agrandis(TypeIndice nombre)
     {
         if (m_capacité >= nombre) {
             return;
@@ -180,7 +180,7 @@ struct tableau {
         this->m_capacité = nombre;
     }
 
-    void copie_données(T *données, TypeIndex taille)
+    void copie_données(T *données, TypeIndice taille)
     {
         mémoire::reloge_tableau("kuri::tableau", this->m_éléments, this->m_capacité, taille);
         this->m_taille = taille;
@@ -202,14 +202,14 @@ struct tableau {
         return m_éléments;
     }
 
-    TypeIndex taille_mémoire() const
+    TypeIndice taille_mémoire() const
     {
-        return m_capacité * static_cast<TypeIndex>(taille_de(T));
+        return m_capacité * static_cast<TypeIndice>(taille_de(T));
     }
 
-    TypeIndex gaspillage_mémoire() const
+    TypeIndice gaspillage_mémoire() const
     {
-        return (m_capacité - m_taille) * static_cast<TypeIndex>(taille_de(T));
+        return (m_capacité - m_taille) * static_cast<TypeIndice>(taille_de(T));
     }
 
     void efface()
@@ -217,7 +217,7 @@ struct tableau {
         m_taille = 0;
     }
 
-    void redimensionne(TypeIndex nombre)
+    void redimensionne(TypeIndice nombre)
     {
         réserve(nombre);
         m_taille = nombre;
@@ -233,7 +233,7 @@ struct tableau {
         this->m_capacité = m_taille;
     }
 
-    void redimensionne(TypeIndex nombre, T valeur_defaut)
+    void redimensionne(TypeIndice nombre, T valeur_défaut)
     {
         réserve(nombre);
 
@@ -242,23 +242,23 @@ struct tableau {
         }
 
         for (auto i = m_taille; i < nombre; ++i) {
-            m_éléments[i] = valeur_defaut;
+            m_éléments[i] = valeur_défaut;
         }
 
         m_taille = nombre;
     }
 
-    void réserve_delta(TypeIndex delta)
+    void réserve_delta(TypeIndice delta)
     {
         réserve(m_taille + delta);
     }
 
-    TypeIndex taille() const
+    TypeIndice taille() const
     {
         return m_taille;
     }
 
-    TypeIndex capacité() const
+    TypeIndice capacité() const
     {
         return m_capacité;
     }
@@ -308,14 +308,14 @@ struct tableau {
         return fin();
     }
 
-    T &a(TypeIndex index)
+    T &a(TypeIndice indice)
     {
-        return this->m_éléments[index];
+        return this->m_éléments[indice];
     }
 
-    T const &a(TypeIndex index) const
+    T const &a(TypeIndice indice) const
     {
-        return this->m_éléments[index];
+        return this->m_éléments[indice];
     }
 
     T &premier_élément()

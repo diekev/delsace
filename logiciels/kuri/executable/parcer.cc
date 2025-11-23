@@ -1116,7 +1116,7 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
             auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
             kuri::tableau<dls::chaine, int64_t> tabl;
             tabl.ajoute(nom);
-            typedefs.insère({nom_anonymous, tabl});
+            typedefs.insere({nom_anonymous, tabl});
             return nom;
         }
 
@@ -1179,7 +1179,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     }
     std::cerr << '\n';
 
-    dico.insère({nom, morceaux});
+    dico.insere({nom, morceaux});
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
@@ -1310,7 +1310,7 @@ struct Convertisseuse {
     {
         kuri::tableau<dls::chaine> tabl;
         tabl.ajoute(nom_type);
-        typedefs.insère({nom_typedef, tabl});
+        typedefs.insere({nom_typedef, tabl});
     }
 
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
@@ -1637,9 +1637,9 @@ struct Convertisseuse {
             case CXCursorKind::CXCursor_CXXAccessSpecifier:
             {
 #if 0
-                auto acces = clang_getCXXAccessSpecifier(cursor);
+                auto accès = clang_getCXXAccessSpecifier(cursor);
 
-                switch (acces) {
+                switch (accès) {
                     case CX_CXXInvalidAccessSpecifier:
                     {
                         break;
@@ -2445,15 +2445,17 @@ struct Convertisseuse {
         }
     }
 
-    void convertis_enfants(CXCursor cursor, CXTranslationUnit trans_unit, std::ostream &flux_sortie)
+    void convertis_enfants(CXCursor cursor,
+                           CXTranslationUnit trans_unit,
+                           std::ostream &flux_sortie)
     {
         auto enfants = rassemble_enfants(cursor);
         convertis_enfants(enfants, trans_unit, flux_sortie);
     }
 
     void convertis_enfants(kuri::tableau<CXCursor> const &enfants,
-                          CXTranslationUnit trans_unit,
-                          std::ostream &flux_sortie)
+                           CXTranslationUnit trans_unit,
+                           std::ostream &flux_sortie)
     {
         for (auto enfant : enfants) {
             convertis(enfant, trans_unit, flux_sortie);
@@ -2461,9 +2463,9 @@ struct Convertisseuse {
     }
 
     void convertis_déclaration_fonction(CXCursor cursor,
-                                       CXTranslationUnit trans_unit,
-                                       bool est_methode_cpp,
-                                       std::ostream &flux_sortie)
+                                        CXTranslationUnit trans_unit,
+                                        bool est_methode_cpp,
+                                        std::ostream &flux_sortie)
     {
         auto enfants = rassemble_enfants(cursor);
 

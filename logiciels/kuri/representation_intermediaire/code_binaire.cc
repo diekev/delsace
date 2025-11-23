@@ -247,10 +247,10 @@ int Chunk::ajoute_locale(InstructionAllocation const *alloc)
     auto taille_octet = type_alloué->taille_octet;
     assert(taille_octet);
 
-    auto index = locales.taille();
+    auto indice = locales.taille();
     locales.ajoute({alloc->ident, type_alloué, taille_allouée});
     taille_allouée += static_cast<int>(taille_octet);
-    return index;
+    return indice;
 }
 
 int Chunk::émets_structure_constante(uint32_t taille_structure)
@@ -515,7 +515,7 @@ void Chunk::émets_accès_indice(NoeudExpression const *site, Type const *type)
 {
     assert(type->taille_octet);
     émets_notifie_dépilage(site, 8); /* adresse */
-    émets_notifie_dépilage(site, 8); /* index */
+    émets_notifie_dépilage(site, 8); /* indice */
     émets_entête_op(OP_ACCÈS_INDICE, site);
     émets(type->taille_octet);
     émets_notifie_empilage(site, 8); /* nouvelle_adresse */
@@ -523,17 +523,17 @@ void Chunk::émets_accès_indice(NoeudExpression const *site, Type const *type)
 
 void Chunk::émets_branche(NoeudExpression const *site,
                           kuri::tableau<PatchLabel> &patchs_labels,
-                          int index)
+                          int indice)
 {
     if (émets_vérification_branches) {
         émets_entête_op(OP_VÉRIFIE_CIBLE_BRANCHE, nullptr);
         émets(0);
-        patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
+        patchs_labels.ajoute({indice, static_cast<int>(compte - 4)});
     }
 
     émets_entête_op(OP_BRANCHE, site);
     émets(0);
-    patchs_labels.ajoute({index, static_cast<int>(compte - 4)});
+    patchs_labels.ajoute({indice, static_cast<int>(compte - 4)});
 }
 
 void Chunk::émets_branche_condition(NoeudExpression const *site,
@@ -1266,7 +1266,7 @@ CompilatriceCodeBinaire::CompilatriceCodeBinaire(EspaceDeTravail *espace_,
 bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inter)
 {
     POUR (repr_inter.donne_globales_info_types()) {
-        if (it->index != -1) {
+        if (it->indice != -1) {
             continue;
         }
 
@@ -1277,7 +1277,7 @@ bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inte
 
     kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
     POUR (repr_inter.donne_globales_non_info_types()) {
-        if (it->index != -1) {
+        if (it->indice != -1) {
             continue;
         }
 
@@ -1755,12 +1755,12 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = atome->comme_globale();
-            auto globale = données_exécutions->globales[atome_globale->index];
+            auto globale = données_exécutions->globales[atome_globale->indice];
             if (globale.adresse_pour_exécution) {
                 chunk.émets_référence_globale_externe(nullptr, globale.adresse_pour_exécution);
             }
             else {
-                chunk.émets_référence_globale(nullptr, atome_globale->index);
+                chunk.émets_référence_globale(nullptr, atome_globale->indice);
             }
             break;
         }
@@ -1785,7 +1785,7 @@ void CompilatriceCodeBinaire::génère_code_pour_atome(Atome const *atome, Chunk
         {
             auto indice_constant = atome->comme_accès_indice_constant();
             auto type_pointeur = indice_constant->type->comme_type_pointeur();
-            chunk.émets_constante(indice_constant->index);
+            chunk.émets_constante(indice_constant->indice);
             génère_code_pour_atome(indice_constant->accédé, chunk);
             chunk.émets_accès_indice(nullptr, type_pointeur->type_pointé);
             break;
@@ -1962,7 +1962,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
         case Atome::Genre::GLOBALE:
         {
             auto atome_globale = atome->comme_globale();
-            auto globale = données_exécutions->globales[atome_globale->index];
+            auto globale = données_exécutions->globales[atome_globale->indice];
             if (globale.adresse_pour_exécution) {
                 assigne(destination, globale.adresse_pour_exécution);
             }
@@ -1996,7 +1996,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
             auto indexée = indexage->accédé->comme_globale();
 
             if (!indexée->initialisateur) {
-                auto globale = données_exécutions->globales[indexée->index];
+                auto globale = données_exécutions->globales[indexée->indice];
                 if (globale.adresse_pour_exécution) {
                     assigne(destination, globale.adresse_pour_exécution);
                 }
@@ -2011,11 +2011,11 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
                 auto tableau = indexée->initialisateur->comme_données_constantes();
                 auto données_tableau = tableau->donne_données();
                 assigne(destination,
-                        static_cast<void *>(données_tableau.begin() + indexage->index));
+                        static_cast<void *>(données_tableau.begin() + indexage->indice));
             }
             else if (indexée->initialisateur->est_constante_tableau()) {
-                assert(indexage->index == 0);
-                auto globale = données_exécutions->globales[indexée->index];
+                assert(indexage->indice == 0);
+                auto globale = données_exécutions->globales[indexée->indice];
                 if (globale.adresse_pour_exécution) {
                     assigne(destination, globale.adresse_pour_exécution);
                 }
@@ -2174,7 +2174,7 @@ void CompilatriceCodeBinaire::génère_code_atome_constant(
 
 bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
 {
-    if (globale->index != -1) {
+    if (globale->indice != -1) {
         /* Déjà généré par un autre métaprogramme. */
         return true;
     }
@@ -2195,9 +2195,9 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
     }
 
     auto type_globale = globale->donne_type_alloué();
-    auto index = données_exécutions->ajoute_globale(
+    auto indice = données_exécutions->ajoute_globale(
         type_globale, globale->ident, adresse_pour_exécution);
-    globale->index = index;
+    globale->indice = indice;
     return true;
 }
 
@@ -2207,9 +2207,9 @@ void CompilatriceCodeBinaire::génère_code_pour_globale(AtomeGlobale const *ato
         return;
     }
 
-    auto index = atome_globale->index;
+    auto indice = atome_globale->indice;
     auto adressage_destination = AdresseDonnéesExécution{DONNÉES_GLOBALES, 0};
-    auto globale = données_exécutions->globales[index];
+    auto globale = données_exécutions->globales[indice];
     auto destination = données_exécutions->données_globales.données() + globale.adresse;
     auto initialisateur = atome_globale->initialisateur;
     génère_code_atome_constant(

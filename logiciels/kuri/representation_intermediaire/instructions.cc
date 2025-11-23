@@ -278,7 +278,7 @@ const RubriqueTypeComposé &InstructionAccèsRubrique::donne_rubrique_accédé()
 
     auto type_composé = type_adressé->comme_type_composé();
     /* Pour les unions, l'accès de rubrique se fait via le type structure qui est valeur unie
-     * + index. */
+     * + indice. */
     if (type_composé->est_type_union()) {
         type_composé = type_composé->comme_type_union()->type_structure;
     }
@@ -695,8 +695,8 @@ void VisiteuseAtome::visite_atome(Atome *racine,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto inst_acces = racine->comme_accès_indice_constant();
-            visite_atome(inst_acces->accédé, rappel);
+            auto inst_accès = racine->comme_accès_indice_constant();
+            visite_atome(inst_accès->accédé, rappel);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -791,15 +791,15 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                 }
                 case GenreInstruction::ACCÈS_INDICE:
                 {
-                    auto acces = inst->comme_accès_indice();
-                    visite_atome(acces->indice, rappel);
-                    visite_atome(acces->accédé, rappel);
+                    auto accès = inst->comme_accès_indice();
+                    visite_atome(accès->indice, rappel);
+                    visite_atome(accès->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::ACCÈS_RUBRIQUE:
                 {
-                    auto acces = inst->comme_accès_rubrique();
-                    visite_atome(acces->accédé, rappel);
+                    auto accès = inst->comme_accès_rubrique();
+                    visite_atome(accès->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::TRANSTYPE:

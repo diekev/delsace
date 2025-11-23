@@ -13,7 +13,7 @@ struct Instruction;
 
 namespace kuri {
 struct chaine;
-template <typename T, typename TypeIndex>
+template <typename T, typename TypeIndice>
 struct tableau;
 }  // namespace kuri
 

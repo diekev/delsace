@@ -105,14 +105,14 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *decl_fonc,
                                   NoeudExpression const *decl_appel);
 
-void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
+void lance_erreur_accès_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t indice_acces);
+                                     int64_t indice_accès);
 
 void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *acces,
+                      NoeudExpression const *accès,
                       NoeudExpression const *rubrique,
                       TypeComposé const *type);
 

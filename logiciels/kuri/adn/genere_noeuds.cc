@@ -790,7 +790,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                     os << '>';
                 }
 
-                os << ' ' << rubrique.nom << " = " << rubrique.type->valeur_defaut();
+                os << ' ' << rubrique.nom << " = " << rubrique.type->valeur_défaut();
                 os << ";\n";
             }
 
@@ -1402,7 +1402,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexème, NoeudDéclarati
         }
 
         if (genre == GenreNoeud::EXPRESSION_LITTÉRALE_CHAINE) {
-            /* transfère l'index car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
+            /* transfère l'indice car les lexèmes peuvent être partagés lors de la simplification du code ou des exécutions */
             noeud->comme_littérale_chaine()->valeur = lexème->indice_chaine;
         }
 
@@ -1449,7 +1449,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexème, NoeudDéclarati
     NoeudExpressionAppel *crée_appel(const Lexème *lexème, NoeudExpression *appelee, Type *type);
     NoeudExpressionBinaire *crée_indexage(const Lexème *lexème, NoeudExpression *expr1, NoeudExpression *expr2, bool ignore_verification);
     NoeudExpressionBinaire *crée_expression_binaire(const Lexème *lexème, OpérateurBinaire const *op, NoeudExpression *expr1, NoeudExpression *expr2);
-    NoeudExpressionRubrique *crée_référence_rubrique(const Lexème *lexème, NoeudExpression *accede, Type *type, int index);
+    NoeudExpressionRubrique *crée_référence_rubrique(const Lexème *lexème, NoeudExpression *accede, Type *type, int indice);
     NoeudExpressionRéférence *crée_référence_déclaration(const Lexème *lexème, NoeudDéclaration *decl);
     NoeudExpressionAppel *crée_construction_structure(const Lexème *lexème, TypeComposé *type);
 )";

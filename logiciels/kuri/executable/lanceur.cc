@@ -139,11 +139,11 @@ class ParseuseArguments {
   private:
     int m_argc = 0;
     char **m_argv = nullptr;
-    int m_index = 0;
+    int m_indice = 0;
 
   public:
-    ParseuseArguments(int argc, char **argv, int index)
-        : m_argc(argc), m_argv(argv), m_index(index)
+    ParseuseArguments(int argc, char **argv, int indice)
+        : m_argc(argc), m_argv(argv), m_indice(indice)
     {
     }
 
@@ -152,7 +152,7 @@ class ParseuseArguments {
 
     bool a_consommé_tous_les_arguments() const
     {
-        return m_index >= m_argc;
+        return m_indice >= m_argc;
     }
 
     std::optional<kuri::chaine_statique> donne_argument_suivant()
@@ -161,7 +161,7 @@ class ParseuseArguments {
             return {};
         }
 
-        return kuri::chaine_statique(m_argv[m_index++]);
+        return kuri::chaine_statique(m_argv[m_indice++]);
     }
 };
 

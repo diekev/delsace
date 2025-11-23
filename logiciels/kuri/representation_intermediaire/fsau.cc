@@ -47,7 +47,7 @@ struct TableDesRelations {
         indice_table_utilisateur premier_utilisateur = indice_utilisateur_invalide;
         indice_table_bloc premier_bloc = indice_bloc_invalide;
     };
-    kuri::tableau<Index, int32_t> m_index{};
+    kuri::tableau<Index, int32_t> m_indice{};
 
     struct UtilisateurValeur {
         Valeur *utilisateur = nullptr;
@@ -72,7 +72,7 @@ struct TableDesRelations {
     indice_table_relation donne_indice_pour_valeur(Valeur *valeur);
 
     void déconnecte(UtilisateurValeur *utilisateur);
-    void supprime_utilisateur(indice_table_relation index, const Valeur *par);
+    void supprime_utilisateur(indice_table_relation indice, const Valeur *par);
 };
 
 #define ENUMERE_GENRE_VALEUR_SSA(O)                                                               \
@@ -85,7 +85,7 @@ struct TableDesRelations {
     O(APPEL, ValeurAppel, appel)                                                                  \
     O(ACCÈS_RUBRIQUE, ValeurAccèsRubrique, accès_rubrique)                                        \
     O(ACCÈS_INDICE, ValeurAccèsIndice, accès_indice)                                              \
-    O(ÉCRIS_INDICE, ValeurÉcrisIndice, écris_index)                                               \
+    O(ÉCRIS_INDICE, ValeurÉcrisIndice, écris_indice)                                              \
     O(OPÉRATEUR_BINAIRE, ValeurOpérateurBinaire, opérateur_binaire)                               \
     O(OPÉRATEUR_UNAIRE, ValeurOpérateurUnaire, opérateur_unaire)                                  \
     O(BRANCHE, ValeurBranche, branche)                                                            \
@@ -170,7 +170,7 @@ enum class DrapeauxValeur : uint8_t {
     ZÉRO,
     EST_UTILISÉE = (1u << 0),
     PARTICIPE_AU_FLOT_DU_PROGRAMME = (1u << 1),
-    /* Pour les accès index ou rubrique qui ne crée pas de nouvelle valeur mais qui modifie
+    /* Pour les accès indice ou rubrique qui ne crée pas de nouvelle valeur mais qui modifie
      * simplement leurs accédés. */
     NE_PRODUIS_PAS_DE_VALEUR = (1u << 2),
     ÉCRIS_INDICE_EST_SURÉCRIS = (1u << 3),
@@ -288,7 +288,7 @@ struct NoeudPhi : public Valeur {
 
     void ajoute_opérande(TableDesRelations &table, Valeur *valeur);
 
-    void définis_opérande(TableDesRelations &table, int index, Valeur *v);
+    void définis_opérande(TableDesRelations &table, int indice, Valeur *v);
 
     void supprime_opérande(Valeur *valeur);
 
@@ -411,10 +411,10 @@ struct ValeurAppel : public Valeur {
         table.ajoute_utilisateur(v, this);
     }
 
-    void définis_argument(TableDesRelations &table, int index, Valeur *v)
+    void définis_argument(TableDesRelations &table, int indice, Valeur *v)
     {
-        auto ancien = arguments[index];
-        arguments[index] = v;
+        auto ancien = arguments[indice];
+        arguments[indice] = v;
         table.remplace_ou_ajoute_utilisateur(v, ancien, this);
     }
 
@@ -437,10 +437,10 @@ void NoeudPhi::supprime_opérande(Valeur *valeur)
     opérandes.redimensionne(partition.vrai.taille());
 }
 
-void NoeudPhi::définis_opérande(TableDesRelations &table, int index, Valeur *v)
+void NoeudPhi::définis_opérande(TableDesRelations &table, int indice, Valeur *v)
 {
-    auto ancien = opérandes[index];
-    opérandes[index] = v;
+    auto ancien = opérandes[indice];
+    opérandes[indice] = v;
     table.remplace_ou_ajoute_utilisateur(v, ancien, this);
 }
 
@@ -488,7 +488,7 @@ void Valeur::remplace_par(TableDesRelations &table,
         }
 
         if (est_drapeau_actif(drapeaux_remplacement, DrapeauxRemplacement::IGNORE_ÉCRIS_INDICE) &&
-            it->est_écris_index()) {
+            it->est_écris_indice()) {
             continue;
         }
 
@@ -560,15 +560,15 @@ void Valeur::remplace_dans_utilisateur(TableDesRelations &table, Valeur *utilisa
         }
         case GenreValeur::ÉCRIS_INDICE:
         {
-            auto écris_index = utilisateur->comme_écris_index();
-            if (écris_index->donne_accédée() == this) {
-                écris_index->définis_accédée(table, par);
+            auto écris_indice = utilisateur->comme_écris_indice();
+            if (écris_indice->donne_accédée() == this) {
+                écris_indice->définis_accédée(table, par);
             }
-            if (écris_index->donne_indice() == this) {
-                écris_index->définis_indice(table, par);
+            if (écris_indice->donne_indice() == this) {
+                écris_indice->définis_indice(table, par);
             }
-            if (écris_index->donne_valeur() == this) {
-                écris_index->définis_valeur(table, par);
+            if (écris_indice->donne_valeur() == this) {
+                écris_indice->définis_valeur(table, par);
             }
             break;
         }
@@ -687,10 +687,10 @@ static void visite_valeur(Valeur *valeur,
         }
         case GenreValeur::ÉCRIS_INDICE:
         {
-            auto écris_index = valeur->comme_écris_index();
-            visite_valeur(écris_index->donne_accédée(), visitées, rappel);
-            visite_valeur(écris_index->donne_indice(), visitées, rappel);
-            visite_valeur(écris_index->donne_valeur(), visitées, rappel);
+            auto écris_indice = valeur->comme_écris_indice();
+            visite_valeur(écris_indice->donne_accédée(), visitées, rappel);
+            visite_valeur(écris_indice->donne_indice(), visitées, rappel);
+            visite_valeur(écris_indice->donne_valeur(), visitées, rappel);
             break;
         }
         case GenreValeur::APPEL:
@@ -782,10 +782,10 @@ static void visite_opérande(Valeur *valeur, std::function<void(Valeur *)> const
         }
         case GenreValeur::ÉCRIS_INDICE:
         {
-            auto écris_index = valeur->comme_écris_index();
-            rappel(écris_index->donne_accédée());
-            rappel(écris_index->donne_indice());
-            rappel(écris_index->donne_valeur());
+            auto écris_indice = valeur->comme_écris_indice();
+            rappel(écris_indice->donne_accédée());
+            rappel(écris_indice->donne_indice());
+            rappel(écris_indice->donne_valeur());
             break;
         }
         case GenreValeur::APPEL:
@@ -938,7 +938,7 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
         case GenreValeur::ACCÈS_INDICE:
         {
             auto accès_indice = valeur->comme_accès_indice();
-            sortie << "index ";
+            sortie << "indice ";
             imprime_nom_valeur(accès_indice->donne_accédée(), sortie);
             sortie << "[";
             imprime_nom_valeur(accès_indice->donne_indice(), sortie);
@@ -947,13 +947,13 @@ static void imprime_valeur(Valeur const *valeur, Enchaineuse &sortie)
         }
         case GenreValeur::ÉCRIS_INDICE:
         {
-            auto écris_index = valeur->comme_écris_index();
-            sortie << "écris_index(";
-            imprime_nom_valeur(écris_index->donne_accédée(), sortie);
+            auto écris_indice = valeur->comme_écris_indice();
+            sortie << "écris_indice(";
+            imprime_nom_valeur(écris_indice->donne_accédée(), sortie);
             sortie << ", ";
-            imprime_nom_valeur(écris_index->donne_indice(), sortie);
+            imprime_nom_valeur(écris_indice->donne_indice(), sortie);
             sortie << ", ";
-            imprime_nom_valeur(écris_index->donne_valeur(), sortie);
+            imprime_nom_valeur(écris_indice->donne_valeur(), sortie);
             sortie << ")";
             break;
         }
@@ -1526,10 +1526,10 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                 assert(locale->donne_valeur() == nullptr);
                 locale->définis_valeur(m_table_relations, valeur_source);
             }
-            else if (valeur_destination->est_écris_index()) {
-                auto écris_index = valeur_destination->comme_écris_index();
-                assert(écris_index->donne_valeur() == nullptr);
-                écris_index->définis_valeur(m_table_relations, valeur_source);
+            else if (valeur_destination->est_écris_indice()) {
+                auto écris_indice = valeur_destination->comme_écris_indice();
+                assert(écris_indice->donne_valeur() == nullptr);
+                écris_indice->définis_valeur(m_table_relations, valeur_source);
             }
 
             écris_variable(destination, bloc, valeur_destination);
@@ -1578,20 +1578,20 @@ Valeur *ConvertisseuseFSAU::génère_valeur_pour_instruction(Bloc *bloc,
                     INSTRUCTION_NON_IMPLEMENTEE;
                 }
 
-                auto écris_index = m_écris_index.ajoute_élément();
-                écris_index->définis_accédée(m_table_relations, valeur_accédée);
-                écris_index->définis_indice(m_table_relations, valeur_indice);
-                ajoute_valeur_au_bloc(écris_index, bloc);
+                auto écris_indice = m_écris_indice.ajoute_élément();
+                écris_indice->définis_accédée(m_table_relations, valeur_accédée);
+                écris_indice->définis_indice(m_table_relations, valeur_indice);
+                ajoute_valeur_au_bloc(écris_indice, bloc);
 
                 auto locale = valeur_accédée->comme_locale();
                 /* À FAIRE : nous pourrions ne pas toujours créer de nouvelles locales. */
                 auto nouvelle_locale = m_locale.ajoute_élément();
                 nouvelle_locale->alloc = locale->alloc;
-                nouvelle_locale->définis_valeur(m_table_relations, écris_index);
+                nouvelle_locale->définis_valeur(m_table_relations, écris_indice);
                 ajoute_valeur_au_bloc(nouvelle_locale, bloc);
 
                 écris_variable(locale->alloc, bloc, nouvelle_locale);
-                return écris_index;
+                return écris_indice;
             }
 
             auto valeur_accès = m_accès_indice.ajoute_élément();
@@ -1972,44 +1972,44 @@ static bool supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
         }
     }
 
-    /* Deuxième passe pour les index. */
+    /* Deuxième passe pour les indice. */
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
-        kuri::tablet<ValeurÉcrisIndice *, 16> valeurs_écris_index;
+        kuri::tablet<ValeurÉcrisIndice *, 16> valeurs_écris_indice;
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (!valeur->est_écris_index()) {
+            if (!valeur->est_écris_indice()) {
                 continue;
             }
 
-            auto écris_index = valeur->comme_écris_index();
-            auto accédée = écris_index->donne_accédée();
+            auto écris_indice = valeur->comme_écris_indice();
+            auto accédée = écris_indice->donne_accédée();
             if (!accédée->possède_drapeau(DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME)) {
                 continue;
             }
 
-            POUR (valeurs_écris_index) {
+            POUR (valeurs_écris_indice) {
                 if (it->donne_accédée() != accédée) {
                     continue;
                 }
 
-                if (it->donne_indice() != écris_index->donne_indice()) {
+                if (it->donne_indice() != écris_indice->donne_indice()) {
                     continue;
                 }
 
                 it->drapeaux |= DrapeauxValeur::ÉCRIS_INDICE_EST_SURÉCRIS;
             }
 
-            valeurs_écris_index.ajoute(écris_index);
+            valeurs_écris_indice.ajoute(écris_indice);
         }
 
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (!valeur->est_écris_index() ||
+            if (!valeur->est_écris_indice() ||
                 !valeur->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR) ||
                 valeur->possède_drapeau(DrapeauxValeur::ÉCRIS_INDICE_EST_SURÉCRIS)) {
                 continue;
             }
 
-            auto écris_index = valeur->comme_écris_index();
-            auto accédée = écris_index->donne_accédée();
+            auto écris_indice = valeur->comme_écris_indice();
+            auto accédée = écris_indice->donne_accédée();
             if (!accédée->possède_drapeau(DrapeauxValeur::PARTICIPE_AU_FLOT_DU_PROGRAMME)) {
                 continue;
             }
@@ -2044,29 +2044,29 @@ static bool supprime_code_inutile(FonctionEtBlocs &fonction_et_blocs, TableDesRe
     return résultat;
 }
 
-static void simplifie_écris_index(FSAU::ValeurÉcrisIndice *écris_index, TableDesRelations &table)
+static void simplifie_écris_indice(FSAU::ValeurÉcrisIndice *écris_indice, TableDesRelations &table)
 {
-    if (écris_index->donne_accédée()->est_locale()) {
-        auto locale = écris_index->donne_accédée()->comme_locale();
-        if (locale->donne_valeur()->est_écris_index()) {
-            auto écris_indice_précédent = locale->donne_valeur()->comme_écris_index();
+    if (écris_indice->donne_accédée()->est_locale()) {
+        auto locale = écris_indice->donne_accédée()->comme_locale();
+        if (locale->donne_valeur()->est_écris_indice()) {
+            auto écris_indice_précédent = locale->donne_valeur()->comme_écris_indice();
             auto ancêtre_accédé = écris_indice_précédent->donne_accédée();
 
-            écris_index->définis_accédée(table, ancêtre_accédé);
+            écris_indice->définis_accédée(table, ancêtre_accédé);
         }
 
         /* Dans tous les cas nous ne produisons pas de valeurs. */
-        écris_index->drapeaux |= DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR;
+        écris_indice->drapeaux |= DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR;
     }
 }
 
 static void simplifie_locale(FSAU::ValeurLocale *locale, TableDesRelations &table)
 {
     auto valeur_locale = locale->donne_valeur();
-    if (valeur_locale->est_écris_index() &&
+    if (valeur_locale->est_écris_indice() &&
         valeur_locale->possède_drapeau(DrapeauxValeur::NE_PRODUIS_PAS_DE_VALEUR)) {
-        auto écris_index = valeur_locale->comme_écris_index();
-        locale->remplace_par(table, écris_index->donne_accédée(), DrapeauxRemplacement::AUCUN);
+        auto écris_indice = valeur_locale->comme_écris_indice();
+        locale->remplace_par(table, écris_indice->donne_accédée(), DrapeauxRemplacement::AUCUN);
     }
 }
 
@@ -2087,9 +2087,9 @@ static void simplifie_accès_indice(FSAU::ValeurAccèsIndice *accès_indice, Tab
         auto adresse_de = accédée->comme_adresse_de();
         if (adresse_de->donne_valeur()->est_accès_indice()) {
             auto sous_accès_indice = adresse_de->donne_valeur()->comme_accès_indice();
-            auto index = sous_accès_indice->donne_indice();
-            if (est_constante_zéro(index)) {
-                /* À FAIRE : généralise en remplaçant par une addition pour l'index. */
+            auto indice = sous_accès_indice->donne_indice();
+            if (est_constante_zéro(indice)) {
+                /* À FAIRE : généralise en remplaçant par une addition pour l'indice. */
                 /* (&v[0])[idx] -> v[idx] */
                 accès_indice->définis_accédée(table, sous_accès_indice->donne_accédée());
             }
@@ -2104,8 +2104,8 @@ static bool simplifie_accès_indice(FonctionEtBlocs &fonction_et_blocs, TableDes
 
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
         POUR_NOMME (valeur, bloc->valeurs) {
-            if (valeur->est_écris_index()) {
-                simplifie_écris_index(valeur->comme_écris_index(), table);
+            if (valeur->est_écris_indice()) {
+                simplifie_écris_indice(valeur->comme_écris_indice(), table);
                 continue;
             }
 
@@ -2131,7 +2131,7 @@ static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
     imprime_blocs(fonction_et_blocs);
 
     POUR_NOMME (bloc, fonction_et_blocs.blocs) {
-        kuri::tablet<ValeurÉcrisIndice *, 16> valeurs_écris_index;
+        kuri::tablet<ValeurÉcrisIndice *, 16> valeurs_écris_indice;
 
         POUR_NOMME (valeur, bloc->valeurs) {
             if (valeur->est_locale()) {
@@ -2139,7 +2139,7 @@ static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                 auto const valeur_locale = locale->donne_valeur();
                 auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
 
-                if (valeur_locale->est_indéfinie() || valeur_locale->est_écris_index()) {
+                if (valeur_locale->est_indéfinie() || valeur_locale->est_écris_indice()) {
                     drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDICE |
                                 DrapeauxRemplacement::IGNORE_ÉCRIS_INDICE;
                 }
@@ -2149,8 +2149,8 @@ static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                 continue;
             }
 
-            if (valeur->est_écris_index()) {
-                valeurs_écris_index.ajoute(valeur->comme_écris_index());
+            if (valeur->est_écris_indice()) {
+                valeurs_écris_indice.ajoute(valeur->comme_écris_indice());
                 continue;
             }
 
@@ -2160,22 +2160,22 @@ static bool propage_temporaires(FonctionEtBlocs &fonction_et_blocs, TableDesRela
                 /* À FAIRE : cette optimisation doit être locale (ne remplace que dans le bloc). */
                 auto accès_indice = valeur->comme_accès_indice();
 
-                for (auto i = valeurs_écris_index.taille() - 1; i >= 0; i--) {
-                    auto écris_index = valeurs_écris_index[i];
+                for (auto i = valeurs_écris_indice.taille() - 1; i >= 0; i--) {
+                    auto écris_indice = valeurs_écris_indice[i];
 
-                    if (écris_index->donne_accédée() != accès_indice->donne_accédée()) {
+                    if (écris_indice->donne_accédée() != accès_indice->donne_accédée()) {
                         continue;
                     }
 
-                    if (écris_index->donne_indice() != accès_indice->donne_indice()) {
+                    if (écris_indice->donne_indice() != accès_indice->donne_indice()) {
                         continue;
                     }
 
-                    auto const valeur_indice = écris_index->donne_valeur();
+                    auto const valeur_indice = écris_indice->donne_valeur();
 
                     auto drapeaux = DrapeauxRemplacement::IGNORE_PHI;
 
-                    if (valeur_indice->est_indéfinie() || valeur_indice->est_écris_index()) {
+                    if (valeur_indice->est_indéfinie() || valeur_indice->est_écris_indice()) {
                         drapeaux |= DrapeauxRemplacement::IGNORE_ACCÈS_INDICE |
                                     DrapeauxRemplacement::IGNORE_ÉCRIS_INDICE;
                     }
@@ -2339,18 +2339,18 @@ void TableDesRelations::ajoute_utilisateur(Valeur *utilisée, Valeur *par)
 {
     auto indice_données_utilisée = donne_indice_pour_valeur(utilisée);
 
-    auto &index = m_index[int32_t(indice_données_utilisée)];
+    auto &indice = m_indice[int32_t(indice_données_utilisée)];
 
     auto info = UtilisateurValeur{par, indice_utilisateur_invalide, indice_utilisateur_invalide};
 
-    if (index.premier_utilisateur == indice_utilisateur_invalide) {
+    if (indice.premier_utilisateur == indice_utilisateur_invalide) {
         /* Insère un nouvelle utilisateur. */
-        index.premier_utilisateur = indice_table_utilisateur(m_utilisateurs.taille());
+        indice.premier_utilisateur = indice_table_utilisateur(m_utilisateurs.taille());
     }
     else {
         /* Trouve le dernier utilisateur. */
-        auto utilisateur = &m_utilisateurs[int32_t(index.premier_utilisateur)];
-        info.précédent = index.premier_utilisateur;
+        auto utilisateur = &m_utilisateurs[int32_t(indice.premier_utilisateur)];
+        info.précédent = indice.premier_utilisateur;
         while (utilisateur->suivant != indice_utilisateur_invalide) {
             info.précédent = utilisateur->suivant;
             utilisateur = &m_utilisateurs[int32_t(utilisateur->suivant)];
@@ -2371,15 +2371,15 @@ bool TableDesRelations::est_utilisée(const Valeur *valeur) const
     if (indice_données_utilisation == indice_relation_invalide) {
         return false;
     }
-    return m_index[int32_t(indice_données_utilisation)].premier_utilisateur !=
+    return m_indice[int32_t(indice_données_utilisation)].premier_utilisateur !=
            indice_utilisateur_invalide;
 }
 
 void TableDesRelations::supprime(const Valeur *valeur)
 {
     /* Supprime la valeur de la liste des utilisateurs des valeurs qu'elle utilise. */
-    for (int i = 0; i < m_index.taille(); i++) {
-        if (m_index[i].premier_utilisateur == indice_utilisateur_invalide) {
+    for (int i = 0; i < m_indice.taille(); i++) {
+        if (m_indice[i].premier_utilisateur == indice_utilisateur_invalide) {
             continue;
         }
 
@@ -2397,9 +2397,9 @@ kuri::tablet<Valeur *, 6> TableDesRelations::donne_utilisateurs(const Valeur *va
         return résultat;
     }
 
-    auto &index = m_index[int32_t(indice_données_utilisation)];
+    auto &indice = m_indice[int32_t(indice_données_utilisation)];
 
-    auto indice_utilisateur = index.premier_utilisateur;
+    auto indice_utilisateur = indice.premier_utilisateur;
     while (indice_utilisateur != indice_utilisateur_invalide) {
         auto utilisateur = m_utilisateurs[int32_t(indice_utilisateur)].utilisateur;
         résultat.ajoute(utilisateur);
@@ -2419,11 +2419,11 @@ void TableDesRelations::supprime_utilisateur(Valeur *utilisée, Valeur const *pa
 void TableDesRelations::supprime_utilisateur(indice_table_relation indice_données_utilisée,
                                              Valeur const *par)
 {
-    auto &index = m_index[int32_t(indice_données_utilisée)];
+    auto &indice = m_indice[int32_t(indice_données_utilisée)];
 
     kuri::tablet<indice_table_utilisateur, 6> indice_libres{};
 
-    auto indice_utilisateur = index.premier_utilisateur;
+    auto indice_utilisateur = indice.premier_utilisateur;
     assert(indice_utilisateur != indice_utilisateur_invalide);
     while (indice_utilisateur != indice_utilisateur_invalide) {
         auto utilisateur = &m_utilisateurs[int32_t(indice_utilisateur)];
@@ -2433,18 +2433,18 @@ void TableDesRelations::supprime_utilisateur(indice_table_relation indice_donné
         if (utilisateur->utilisateur == par) {
             déconnecte(utilisateur);
 
-            if (sauvegarde == index.premier_utilisateur) {
-                index.premier_utilisateur = indice_utilisateur;
+            if (sauvegarde == indice.premier_utilisateur) {
+                indice.premier_utilisateur = indice_utilisateur;
             }
 
             indice_libres.ajoute(sauvegarde);
         }
     }
 
-    // if (index.premier_utilisateur == -1) {
+    // if (indice.premier_utilisateur == -1) {
     //     dbg() << __func__ << " : n'est plus utilisée";
     // }
-    // dbg() << __func__ << " : index libres " << indice_libres.taille();
+    // dbg() << __func__ << " : indice libres " << indice_libres.taille();
 }
 
 void TableDesRelations::déconnecte(UtilisateurValeur *utilisateur)
@@ -2470,8 +2470,8 @@ indice_table_relation TableDesRelations::donne_indice_pour_valeur(Valeur *valeur
         return valeur->indice_relations;
     }
 
-    valeur->indice_relations = indice_table_relation(m_index.taille());
-    m_index.ajoute({});
+    valeur->indice_relations = indice_table_relation(m_indice.taille());
+    m_indice.ajoute({});
     return valeur->indice_relations;
 }
 
@@ -2572,22 +2572,22 @@ Atome *Rièrevertisseuse::rièrevertis_en_ri(Valeur *valeur,
                           [&]() { dbg() << "Genre valeur accédée : " << valeur_accédée->genre; });
             auto atome_index = rièrevertis_en_ri(valeur_indice, constructrice, true);
             assert_rappel(atome_index,
-                          [&]() { dbg() << "Genre valeur index : " << valeur_indice->genre; });
+                          [&]() { dbg() << "Genre valeur indice : " << valeur_indice->genre; });
             auto résultat = constructrice.crée_accès_indice(nullptr, atome_accédée, atome_index);
             return constructrice.crée_charge_mem(nullptr, résultat);
         }
         case GenreValeur::ÉCRIS_INDICE:
         {
-            auto écris_index = valeur->comme_écris_index();
-            auto const valeur_accédée = écris_index->donne_accédée();
-            auto const valeur_indice = écris_index->donne_indice();
-            auto const valeur_valeur = écris_index->donne_valeur();
+            auto écris_indice = valeur->comme_écris_indice();
+            auto const valeur_accédée = écris_indice->donne_accédée();
+            auto const valeur_indice = écris_indice->donne_indice();
+            auto const valeur_valeur = écris_indice->donne_valeur();
             auto atome_accédée = rièrevertis_en_ri(valeur_accédée, constructrice, false);
             assert_rappel(atome_accédée,
                           [&]() { dbg() << "Genre valeur accédée : " << valeur_accédée->genre; });
             auto atome_index = rièrevertis_en_ri(valeur_indice, constructrice, true);
             assert_rappel(atome_index,
-                          [&]() { dbg() << "Genre valeur index : " << valeur_indice->genre; });
+                          [&]() { dbg() << "Genre valeur indice : " << valeur_indice->genre; });
             auto atome_valeur = rièrevertis_en_ri(valeur_valeur, constructrice, true);
             assert_rappel(atome_valeur,
                           [&]() { dbg() << "Genre valeur valeur : " << valeur_valeur->genre; });

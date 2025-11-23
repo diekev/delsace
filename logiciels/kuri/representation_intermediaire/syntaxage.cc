@@ -80,7 +80,7 @@ static std::ostream &operator<<(std::ostream &os, DescriptionAtome desc)
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            os << "index constant";
+            os << "indice constant";
             break;
         }
         case Atome::Genre::CONSTANTE_DONNÉES_CONSTANTES:
@@ -455,25 +455,25 @@ void PrésyntaxeuseRI::crée_index(const DescriptionAtome &indexé, const Descri
 #endif
 }
 
-void PrésyntaxeuseRI::crée_label(uint64_t index)
+void PrésyntaxeuseRI::crée_label(uint64_t indice)
 {
     auto données = Fonction::DonnéesLabel{};
-    données.index = int32_t(index);
+    données.indice = int32_t(indice);
     données.numéro = numéro_instruction_courante++;
 
     m_données_préparsage.fonctions.dernier_élément().labels.ajoute(données);
 
 #ifdef IMPRIME_RI
-    std::cerr << "label " << index << '\n';
+    std::cerr << "label " << indice << '\n';
 #endif
 }
 
-void PrésyntaxeuseRI::crée_rubrique(const DescriptionAtome &valeur, uint64_t index)
+void PrésyntaxeuseRI::crée_rubrique(const DescriptionAtome &valeur, uint64_t indice)
 {
     numéro_instruction_courante++;
 #ifdef IMPRIME_RI
     imprime_numéro_instruction(true);
-    std::cerr << "rubrique " << valeur << ", " << index << '\n';
+    std::cerr << "rubrique " << valeur << ", " << indice << '\n';
 #endif
 }
 
@@ -995,7 +995,7 @@ void SyntaxeuseRI::débute_fonction(const Fonction &données_fonction)
 
     POUR (fonction_préparsée->labels) {
         auto label = m_constructrice.réserve_label(nullptr);
-        label->id = it.index;
+        label->id = it.indice;
 
         auto label_réservé = LabelRéservé{};
         label_réservé.cible = it.numéro;
@@ -1085,10 +1085,10 @@ void SyntaxeuseRI::crée_index(Atome *indexé, Atome *valeur)
     m_constructrice.crée_accès_indice(nullptr, indexé, valeur);
 }
 
-void SyntaxeuseRI::crée_label(uint64_t index)
+void SyntaxeuseRI::crée_label(uint64_t indice)
 {
     POUR (m_labels_réservés) {
-        if (it.label->id == index) {
+        if (it.label->id == indice) {
             m_constructrice.insère_label(it.label);
             return;
         }
@@ -1097,10 +1097,10 @@ void SyntaxeuseRI::crée_label(uint64_t index)
     rapporte_erreur("Erreur interne (crée_label) : label inconnu");
 }
 
-void SyntaxeuseRI::crée_rubrique(Atome *valeur, uint64_t index)
+void SyntaxeuseRI::crée_rubrique(Atome *valeur, uint64_t indice)
 {
-    dbg() << chaine_type(valeur->type) << " " << index;
-    m_constructrice.crée_référence_rubrique(nullptr, valeur, int32_t(index));
+    dbg() << chaine_type(valeur->type) << " " << indice;
+    m_constructrice.crée_référence_rubrique(nullptr, valeur, int32_t(indice));
 }
 
 void SyntaxeuseRI::crée_retourne(Atome *valeur)
