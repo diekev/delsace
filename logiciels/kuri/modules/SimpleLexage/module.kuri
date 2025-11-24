@@ -128,6 +128,8 @@ SimpleLexeuse :: struct {
 
     supporte_nombre_héxadécimaux_sans_préfixe: bool
 
+    /* Pour le rapport d'erreurs. */
+    chemin_fichier: chaine
     texte: chaine
 
     caractères_symboliques: chaine
