@@ -148,6 +148,9 @@ SimpleLexeuse :: struct {
     /* Pour lexer les commentaires en plusieurs fois (ligne par ligne). */
     dans_commentaire: bool
     paire_commentaire: [2]chaine
+
+    /* Fonction optionnelle utilisée pour lexer les littérales de nombre entier ou réel. */
+    sur_lexage_littérale_numérique: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 }
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
@@ -753,6 +756,10 @@ donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8) ->
 
 donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
+    si lexeuse.sur_lexage_littérale_numérique {
+        retourne lexeuse.sur_lexage_littérale_numérique(lexeuse)
+    }
+
     début_lexème := lexeuse.début
     fin_lexème := début_lexème
 
