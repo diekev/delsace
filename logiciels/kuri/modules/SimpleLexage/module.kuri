@@ -696,7 +696,7 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
 
 donne_type_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine, drapeaux: DrapeauxCaractère) -> TypeLexème
 {
-    si drapeaux.ChiffreHexadécimal && drapeaux.HorsChiffreHexadécimal == faux {
+    si drapeaux.ChiffreHexadécimal && drapeaux.HorsChiffreHexadécimal == faux && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
         retourne TypeLexème.Nombre
     }
 
