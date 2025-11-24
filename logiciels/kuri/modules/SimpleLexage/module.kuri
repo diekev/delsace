@@ -49,6 +49,7 @@
 
 importe Chaine
 importe Fondation
+importe Math
 importe Numérique
 
 /* ------------------------------------------------------------------------- */
@@ -57,13 +58,16 @@ importe Numérique
 
 TypeLexème :: énum n8 {
     Symbole :: 127
-    Nombre
     MotClé
     Ponctuation
     Commentaire
     EspaceBlanche
     FinDeFichier
     ChaineLittérale
+    LittéraleNombreEntier
+    LittéraleNombreRéel
+
+    Nombre :: LittéraleNombreEntier
 }
 
 Nombre :: union {
@@ -1082,11 +1086,189 @@ __commentaires_multi_lignes_c := [ ["/*", "*/"] ]
 
 __suffixes_nombres_littéraux_c := ["f", "u", "U", "l", "L", "ll", "LL", "llu", "LLU", "z", "Z"]
 
+parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    début_lexème := lexeuse.début
+    fin_lexème := début_lexème
+
+    c := donne_caractère_courant(lexeuse)
+
+    nombre_entier: n64 = 0
+
+    si c == '0' {
+        fin_lexème += 1
+        lexeuse.avance()
+
+        saufsi fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            si c == 'x' || c == 'X' {
+                fin_lexème += 1
+                lexeuse.avance()
+
+                début_nombre := fin_lexème
+                fin_nombre := début_nombre
+
+                tantque !fini(lexeuse) {
+                    c = donne_caractère_courant(lexeuse)
+                    drapeaux := donne_drapeaux_caractère(lexeuse, c)
+
+                    saufsi drapeaux.ChiffreHexadécimal {
+                        arrête
+                    }
+
+                    fin_lexème += 1
+                    fin_nombre += 1
+                    lexeuse.avance()
+                }
+
+                texte_nombre := chaine(début_nombre, fin_nombre - début_nombre)
+                nombre_entier = tente parse_hexadécimal_n64(texte_nombre) piège nonatteignable
+            }
+            sinon si c != '.' {
+                tantque '0' <= c <= '7' {
+                    nombre_entier *= 8
+                    nombre_entier += (c - '0') comme n64
+
+                    fin_lexème += 1
+                    lexeuse.avance()
+                    c = donne_caractère_courant(lexeuse)
+                }
+            }
+        }
+    }
+    sinon si '1' <= c <= '9' {
+        tantque '0' <= c <= '9' {
+            nombre_entier *= 10
+            nombre_entier += (c - '0') comme n64
+
+            fin_lexème += 1
+            lexeuse.avance()
+            c = donne_caractère_courant(lexeuse)
+        }
+    }
+
+    est_nombre_réel := faux
+    nombre_réel: r64
+
+    si c == '.' {
+        est_nombre_réel = vrai
+        fin_lexème += 1
+        lexeuse.avance()
+        nombre_réel = nombre_entier comme r64
+
+        diviseur := 10.0
+
+        tantque !fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            saufsi '0' <= c <= '9' {
+                arrête
+            }
+            fin_lexème += 1
+            lexeuse.avance()
+
+            valeur := (c - '0') comme r64
+            nombre_réel += valeur / diviseur
+
+            diviseur *= 10.0
+        }
+    }
+
+    exposant: r64
+    possède_exposant := faux
+    si c == 'e' || c == 'E' {
+        saufsi est_nombre_réel {
+            nombre_réel = nombre_entier comme r64
+        }
+
+        est_nombre_réel = vrai
+        possède_exposant = vrai
+        fin_lexème += 1
+        lexeuse.avance()
+
+        signe := '+'
+
+        saufsi fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            si c == '-' || c == '+' {
+                signe = c
+                fin_lexème += 1
+                avance(lexeuse)
+            }
+        }
+
+        tantque !fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            saufsi '0' <= c <= '9' {
+                arrête
+            }
+            exposant *= 10.0
+            exposant += (c - '0') comme r64
+            fin_lexème += 1
+            lexeuse.avance()
+        }
+
+        si signe == '-' {
+            exposant = -exposant
+        }
+    }
+
+    résultat: Lexème
+
+    si est_nombre_réel {
+        si possède_exposant {
+            nombre_réel *= puissance(10.0, exposant)
+        }
+
+        suffixe: chaine
+        si c == 'f' || c == 'F' || c == 'l' || c == 'L' {
+            suffixe = chaine(fin_lexème, 1)
+            fin_lexème += 1
+            avance(lexeuse)
+        }
+
+        résultat.type = TypeLexème.LittéraleNombreRéel
+        résultat.nombre.réel = nombre_réel
+        résultat.début = début_lexème
+        résultat.fin = fin_lexème
+        résultat.suffixe = suffixe
+    }
+    sinon {
+        suffixe: chaine
+        si c == 'l' || c == 'L' || c == 'u' || c == 'U' {
+            suffixe = chaine(fin_lexème, 1)
+            fin_lexème += 1
+            avance(lexeuse)
+
+            tantque !fini(lexeuse) {
+                c = donne_caractère_courant(lexeuse)
+                saufsi (c == 'l' || c == 'L' || c == 'u' || c == 'U') {
+                    arrête
+                }
+
+                suffixe.taille += 1
+                fin_lexème += 1
+                avance(lexeuse)
+            }
+
+            // À FAIRE : valide suffixe
+        }
+
+        résultat.type = TypeLexème.LittéraleNombreEntier
+        résultat.début = début_lexème
+        résultat.fin = fin_lexème
+        résultat.nombre.naturel = nombre_entier
+        résultat.suffixe = suffixe
+    }
+
+    retourne résultat
+}
+
 #portée_export
 
 initialise_lexeuse_c :: fonc (lexeuse: *SimpleLexeuse)
 {
     lexeuse.ponctuations = __ponctuation_c
+    lexeuse.sur_lexage_littérale_numérique = parse_lexème_numérique_c
     lexeuse.mots_clés = __mots_clés_c
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c
@@ -1096,6 +1278,7 @@ initialise_lexeuse_c :: fonc (lexeuse: *SimpleLexeuse)
 initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse)
 {
     lexeuse.ponctuations = __ponctuation_cpp
+    lexeuse.sur_lexage_littérale_numérique = parse_lexème_numérique_c
     lexeuse.mots_clés = __mots_clés_cpp
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c
