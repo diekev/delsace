@@ -922,11 +922,10 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
             
             tantque !fini(lexeuse) {
                 c = donne_caractère_courant(lexeuse)
-                lexeuse.avance()
-
                 si c == '\n' {
                     arrête
                 }
+                lexeuse.avance()
             }
 
             si lexeuse.options.INCLUS_ESPACE_BLANCHES {
