@@ -1,0 +1,2199 @@
+importe Chaine
+
+/* ------------------------------------------------------------------------- */
+/** \nom Définition
+ * \{ */
+
+Définition :: struct {
+    nom: chaine
+    paramètres: [..]Lexème
+    lexèmes: [..]Lexème
+
+    est_intrinsèque: bool
+    sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème
+}
+
+donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z64
+{
+    pour définition.paramètres {
+        si donne_texte(it) == param {
+            retourne indice_it
+        }
+    }
+    retourne -1
+}
+
+macro_ne_définis_que_son_nom :: fonc (définition: *Définition) -> bool
+{
+    résultat := faux
+
+    si définition.paramètres.taille == 0 && définition.lexèmes.taille == 1 {
+        lexème := définition.lexèmes[0]
+        si donne_texte(lexème) == définition.nom {
+            résultat = vrai
+        }
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Définitions intrinsèques
+ * \{ */
+
+sur_développement_has_include :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème
+{
+    retourne sur_développement_has_include_impl(préprocesseur, arguments, faux)
+}
+
+sur_développement_has_include_next :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème
+{
+    retourne sur_développement_has_include_impl(préprocesseur, arguments, vrai)
+}
+
+sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème, est_include_next: bool) -> Lexème
+{
+    si arguments.taille == 0 {
+        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
+        retourne crée_lexème_nombre_naturel(0)
+    }
+
+    si arguments.taille > 1 {
+        rapporte_erreur(préprocesseur, "Trop d'arguments pour __has_include")
+        retourne crée_lexème_nombre_naturel(0)
+    }
+
+    arg := supprime_espace_blanches_autour(arguments[0])
+    si arg.taille == 0 {
+        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
+        retourne crée_lexème_nombre_naturel(0)
+    }
+
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = arg
+
+    résultat: n64 = 0
+
+    tantque !fini(*parseuse) {
+        lexème := donne_lexème_suivant(*parseuse)
+        avance(*parseuse)
+
+        si lexème.type == TypeLexème.ChaineLittérale {
+            chemin_fichier := donne_texte_sans_guillemets(lexème)
+            si chemin_fichier {
+                si est_chemin_incluable(préprocesseur, chemin_fichier, est_include_next, faux) {
+                    résultat = 1
+                }
+                arrête
+            }
+            sinon {
+                rapporte_erreur(préprocesseur, "Aucun chemin fichier spécifié")
+                retourne crée_lexème_nombre_naturel(0)
+            }
+        }
+        sinon si est_ponctuation(lexème, "<") {
+            tampon_chemin_fichier: TamponChemin
+            extrait_chemin_inclusion_système(préprocesseur, *parseuse, *tampon_chemin_fichier)
+            chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier)
+            si est_chemin_incluable(préprocesseur, chemin_fichier, est_include_next, vrai) {
+                résultat = 1
+            }
+            arrête
+        }
+        sinon {
+            rapporte_erreur(préprocesseur, "Argument inconnu pour __has_include")
+            retourne crée_lexème_nombre_naturel(0)
+        }
+    }
+
+    saufsi fini(*parseuse) {
+        rapporte_erreur(préprocesseur, "Trop d'opérandes pour __has_include")
+        retourne crée_lexème_nombre_naturel(0)
+    }
+
+    retourne crée_lexème_nombre_naturel(résultat)
+}
+
+sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème @inutilisée) -> Lexème
+{
+    fichier := donne_fichier_courant(préprocesseur)
+
+    // À FAIRE : retourne le chemin complet pour tous les fichiers (le fichier de source n'est pas absolu)
+    // À FAIRE : considère un système comme MSVC où seul le nom est retourné sauf si une option de compilation demande le nom complet
+
+    // @FuiteDeMémoire
+    chemin := enchaine("\"", fichier.chemin, "\"")
+    retourne crée_lexème_chaine_littérale(chemin)
+}
+
+sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
+{
+    // À FAIRE
+    retourne crée_lexème_nombre_naturel(0)
+}
+
+sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
+{
+    // À FAIRE
+    retourne crée_lexème_chaine_littérale("")
+}
+
+sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
+{
+    // À FAIRE
+    retourne crée_lexème_chaine_littérale("")
+}
+
+sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème @inutilisée) -> Lexème
+{
+    résultat := crée_lexème_nombre_naturel(préprocesseur.compteur)
+    préprocesseur.compteur += 1
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom FichierSource
+ * \{ */
+
+Langage :: énum {
+    C
+    CPP
+}
+
+détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
+{
+    ext := extension(CheminFichier(chemin))
+    si ext == ".cpp" || ext == ".cc" {
+        retourne Langage.CPP
+    }
+
+    retourne Langage.C
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Préprocesseur
+ * \{ */
+
+PréProcesseur :: struct {
+    fichiers: [..]FichierSource
+
+    chemins_inclusions_système: [..]chaine
+    chemins_inclusions_local: [..]chaine
+    lexeuses: [..]LexeusePréProcès
+    définitions: [..]Définition
+
+    niveau_branchage: z32
+    // Une nouvelle est empilée à chaque #if, #elif, etc. pour déterminer si la branche #else, #elif doit être considérée
+    pile_branches: [..]bool
+
+    /* Pour __COUNTER__ */
+    compteur: n64
+}
+
+LexeusePréProcès :: struct {
+    lexeuse: SimpleLexeuse
+    fichier: z64
+}
+
+initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Langage)
+{
+    discr langage {
+        C {
+            // GCC 12
+            // echo | gcc -x c -E -v -
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
+        }
+        CPP {
+            // G++ 12
+            // echo | gcc -x c++ -E -v -
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu/c++/12")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12/backward")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
+
+            ajoute_définition(préprocesseur, "__cplusplus", 201103)
+        }
+    }
+
+    ajoute_définition(préprocesseur, "__linux__", 1)
+    ajoute_définition(préprocesseur, "__x86_64__", 1)
+    ajoute_définition(préprocesseur, "__LP64__", 1)
+
+    ajoute_définition(préprocesseur, "NDEBUG", 1)
+
+    ajoute_définition(préprocesseur, "__CHAR_BIT__", 8)
+
+    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 127)
+    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
+    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffff_ffffffff)
+
+    ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
+
+    ajoute_définition(préprocesseur, "__clang_minor__", 0)
+    ajoute_définition(préprocesseur, "__clang_major__", 0)
+
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = "__has_builtin"
+    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
+    lexème := tableau_ajoute_élément(*définition.lexèmes)
+    lexème.type = TypeLexème.Nombre
+    lexème.nombre.naturel = 0
+
+    définition = tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = "__has_cpp_attribute"
+    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
+    tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
+
+    ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include)
+    ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next)
+
+    /* Macros standard. */
+    ajoute_définition_intrinsèque(préprocesseur, "__FILE__", 0, sur_développement_file)
+    ajoute_définition_intrinsèque(préprocesseur, "__LINE__", 0, sur_développement_line)
+    ajoute_définition_intrinsèque(préprocesseur, "__DATE__", 0, sur_développement_date)
+    ajoute_définition_intrinsèque(préprocesseur, "__TIME__", 0, sur_développement_time)
+    // ajoute_définition(préprocesseur, "__STDC__", 1)
+    // ajoute_définition(préprocesseur, "__STDC_VERSION__", 1)
+    // ajoute_définition(préprocesseur, "__STDC_HOSTED__", 1)
+
+    /* Autres macros.
+     * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
+     * https://learn.microsoft.com/fr-fr/cpp/preprocessor/predefined-macros?view=msvc-170 */
+    ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter)
+}
+
+ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
+{
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = nom
+
+    lexème := tableau_ajoute_élément(*définition.lexèmes)
+    lexème.type = TypeLexème.Nombre
+    lexème.nombre.naturel = valeur
+}
+
+ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
+{
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = nom
+    définition.est_intrinsèque = vrai
+    définition.sur_développement = rappel
+
+    pour nombre_arguments {
+        tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
+    }
+}
+
+donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
+{
+    langage := détermine_langage_pour_fichier(chemin_source)
+    préprocesseur: PréProcesseur
+    initialise_préprocesseur(*préprocesseur, langage)
+    retourne donne_source_préprocédée(*préprocesseur, chemin_source)
+}
+
+donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> chaine
+{
+    préprocesseur.compteur = 0
+
+    empile_fichier(préprocesseur, chemin_source, "")
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    tantque préprocesseur.lexeuses {
+        lexeuse_préprocès := donne_lexeuse_courante(préprocesseur)
+        lexeuse := *lexeuse_préprocès.lexeuse
+
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            préprocesseur.lexeuses.taille -= 1
+            continue
+        }
+
+        si est_ponctuation(lexème, "#") {
+            lexème_directive := lexème
+            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+            si lexème.type == TypeLexème.FinDeFichier {
+                rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès")
+                exit(1)
+            }
+
+            texte := donne_texte(lexème)
+            si texte == "include" || texte == "include_next" {
+                include_next := texte == "include_next"
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                si lexème.type == TypeLexème.FinDeFichier {
+                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès")
+                }
+                sinon si est_ponctuation(lexème, "<") {
+                    tampon_chemin_fichier: TamponChemin
+                    extrait_chemin_inclusion_système(préprocesseur, lexeuse, *tampon_chemin_fichier)
+                    chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier)
+                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, vrai)
+                }
+                sinon si lexème.type == TypeLexème.ChaineLittérale {
+                    chemin_fichier := donne_texte(lexème)
+
+                    saufsi chemin_fichier {
+                        rapporte_erreur(préprocesseur, "Chemin vide")
+                    }
+                    sinon {
+                        si chemin_fichier[0] == '"' {
+                            chemin_fichier = avance(chemin_fichier, 1)
+
+                            saufsi chemin_fichier {
+                                rapporte_erreur(préprocesseur, "Chemin vide")
+                            }
+                            sinon {
+                                si chemin_fichier[chemin_fichier.taille - 1] == '"' {
+                                    chemin_fichier = recule(chemin_fichier, 1)
+                                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, faux)
+                                }
+                            }
+                        }
+                    }
+                }
+                sinon {
+                    rapporte_erreur(préprocesseur, "Lexème inattendu : '%' (%)", donne_texte(lexème), lexème.type)
+                }
+            }
+            sinon si texte == "ifndef" {
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                texte_définition := donne_texte(lexème)
+                définition := donne_définition(préprocesseur, texte_définition)
+
+                si définition {
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                }
+
+                tableau_ajoute(*préprocesseur.pile_branches, définition != nul)
+                préprocesseur.niveau_branchage += 1
+            }
+            sinon si texte == "ifdef" {
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                texte_définition := donne_texte(lexème)
+                définition := donne_définition(préprocesseur, texte_définition)
+
+                saufsi définition {
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                }
+
+                tableau_ajoute(*préprocesseur.pile_branches, définition == nul)
+                préprocesseur.niveau_branchage += 1
+            }
+            sinon si texte == "if" {
+                expression := parse_expression_if(préprocesseur, lexeuse)
+                saufsi expression {
+                    exit(1)
+                }
+
+                doit_entrer_dans_si := évalue_expression(préprocesseur, expression)
+
+                saufsi doit_entrer_dans_si {
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                }
+
+                tableau_ajoute(*préprocesseur.pile_branches, !doit_entrer_dans_si)
+                préprocesseur.niveau_branchage += 1
+            }
+            sinon si texte == "elif" {
+                si préprocesseur.niveau_branchage == 0 {
+                    rapporte_erreur(préprocesseur, "#endif sans #if")
+                }
+                assert(préprocesseur.pile_branches.taille > 0)
+
+                si préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] {
+                    expression := parse_expression_if(préprocesseur, lexeuse)
+                    saufsi expression {
+                        exit(1)
+                    }
+
+                    doit_entrer_dans_si := évalue_expression(préprocesseur, expression)
+
+                    saufsi doit_entrer_dans_si {
+                        ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    }
+
+                    préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] = !doit_entrer_dans_si
+                }
+                sinon {
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                }
+            }
+            sinon si texte == "else" {
+                si préprocesseur.niveau_branchage == 0 {
+                    rapporte_erreur(préprocesseur, "#else sans #if")
+                }
+                saufsi préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] {
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                }
+            }
+            sinon si texte == "endif" {
+                si préprocesseur.niveau_branchage == 0 {
+                    rapporte_erreur(préprocesseur, "#endif sans #if")
+                }
+                assert(préprocesseur.niveau_branchage > 0)
+                assert(préprocesseur.pile_branches.taille > 0)
+                préprocesseur.niveau_branchage -= 1
+                préprocesseur.pile_branches.taille -= 1
+            }
+            sinon si texte == "define" {
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                texte_définition := donne_texte(lexème)
+                parse_définition(préprocesseur, lexeuse, texte_définition)
+            }
+            sinon si texte == "undef" {
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                texte_définition := donne_texte(lexème)
+
+                // imprimeln("undef '%'", texte_définition)
+
+                pour préprocesseur.définitions {
+                    si it.nom == texte_définition {
+                        // À FAIRE : gestion de la mémoire
+                        tableau_supprime_indice(*préprocesseur.définitions, indice_it)
+                        arrête
+                    }
+                }
+            }
+            sinon si texte == "error" {
+                texte = donne_texte_jusque_nouvelle_ligne(lexeuse)
+                rapporte_erreur(préprocesseur, "%", texte)
+            }
+            sinon si texte == "pragma" {
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                texte = donne_texte(lexème)
+                si texte == "GCC" {
+                    lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                    texte = donne_texte(lexème)
+
+                    si texte == "system_header" {
+                        // À FAIRE : fichier courant est entête système
+                        consomme_jusque_nouvelle_ligne(lexeuse)
+                    }
+                    sinon si texte == "dependency" {
+                        consomme_jusque_nouvelle_ligne(lexeuse)
+                    }
+                    sinon si texte == "poison" {
+                        // liste de de symboles à empoisonner
+                        consomme_jusque_nouvelle_ligne(lexeuse)
+                    }
+                    sinon si texte == "warning" {
+                        // une seule chaine littérale
+                        consomme_jusque_nouvelle_ligne(lexeuse)
+                    }
+                    sinon si texte == "error" {
+                        // une seule chaine littérale
+                        consomme_jusque_nouvelle_ligne(lexeuse)
+                    }
+                    sinon {
+                        reprends_depuis_lexème(lexeuse, lexème_directive)
+                        boucle {
+                            lexème = donne_lexème_suivant(lexeuse)
+                            si lexème.type == TypeLexème.FinDeFichier || est_lexème_nouvelle_ligne(lexème) {
+                                arrête
+                            }
+                            ajoute_au_tampon(*enchaineuse, donne_texte(lexème))
+                        }
+                    }
+                }
+                sinon si texte == "once" {
+                    fichier := *préprocesseur.fichiers[lexeuse_préprocès.fichier]
+                    fichier.est_marqué_pragma_once = vrai
+                }
+                sinon {
+                    rapporte_erreur(préprocesseur, "#pragma inconnu")
+                }
+            }
+            sinon {
+                rapporte_erreur(préprocesseur, "Directive inconnue : %", texte)
+            }
+
+            continue
+        }
+
+        lexème_définition := lexème
+        définition := donne_définition(préprocesseur, lexème)
+        saufsi définition {
+            texte := donne_texte(lexème)
+            ajoute_au_tampon(*enchaineuse, texte)
+            continue
+        }
+
+        arguments: [..][..]Lexème
+        si définition.paramètres {
+            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+            saufsi est_ponctuation(lexème, "(") {
+                texte := donne_texte(lexème_définition)
+                ajoute_au_tampon(*enchaineuse, texte)
+                reprends_depuis_lexème(lexeuse, lexème)
+                continue
+            }
+
+            lexèmes_paramètres := parse_lexèmes_entre_parenthèses(préprocesseur, lexeuse)
+            diffère déloge(lexèmes_paramètres)
+
+            // imprimeln("-- paramètres")
+            // pour lexèmes_paramètres {
+            //     imprimeln("---- %", donne_texte(it))
+            // }
+
+            parseuse: SimpleParseuse
+            parseuse.lexèmes = lexèmes_paramètres
+
+            arguments = parse_tranche_arguments(*parseuse)
+            si arguments.taille > définition.paramètres.taille {
+                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments.taille)
+            }
+        }
+        infos_développement: InfosDéveloppementMacro
+        infos_développement.macro = définition
+        infos_développement.arguments = arguments
+        développe_macro(*enchaineuse, préprocesseur, *infos_développement)
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
+{
+    pour * préprocesseur.définitions {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: Lexème) -> *Définition
+{
+    résultat: *Définition
+    si lexème.type == TypeLexème.Symbole || lexème.type == TypeLexème.MotClé {
+        texte := donne_texte(lexème)
+        résultat = donne_définition(préprocesseur, texte)
+    }
+    retourne résultat
+}
+
+donne_lexeuse_courante :: fonc (préprocesseur: *PréProcesseur) -> *LexeusePréProcès
+{
+    résultat: *LexeusePréProcès
+    si préprocesseur.lexeuses {
+        résultat = *préprocesseur.lexeuses[préprocesseur.lexeuses.taille - 1]
+    }
+    retourne résultat
+}
+
+donne_fichier_courant :: fonc (préprocesseur: *PréProcesseur) -> *FichierSource
+{
+    lexeuse := donne_lexeuse_courante(préprocesseur)
+    fichier := *préprocesseur.fichiers[lexeuse.fichier]
+    retourne fichier
+}
+
+donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chaine) -> (*FichierSource, z64)
+{
+    pour * préprocesseur.fichiers {
+        si it.chemin == chemin {
+            retourne it, indice_it
+        }
+    }
+    retourne nul, -1
+}
+
+rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
+    exit(1)
+}
+
+rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur, "avertissement", format, ...args)
+}
+
+rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
+{
+    imprime("% : ", type)
+
+    lexeuse := donne_lexeuse_courante(préprocesseur)
+    si lexeuse {
+        ligne := donne_ligne_pour_erreur(*lexeuse.lexeuse)
+        imprimeln("%", lexeuse.lexeuse.chemin_fichier)
+        imprimeln("%", ligne.texte)
+    }
+
+    imprimeln(format, ...args)
+}
+
+extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse, tampon: *TamponChemin)
+{
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si est_ponctuation(lexème, ">") {
+            arrête
+        }
+
+        saufsi ajoute(tampon, donne_texte(lexème)) {
+            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés)
+        }
+    }
+}
+
+extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse, tampon: *TamponChemin)
+{
+    boucle {
+        lexème := donne_lexème_suivant(parseuse)
+        avance(parseuse)
+        si est_ponctuation(lexème, ">") {
+            arrête
+        }
+
+        saufsi ajoute(tampon, donne_texte(lexème)) {
+            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés)
+        }
+    }
+}
+
+InfosDéveloppementMacro :: struct {
+    macro: *Définition
+    arguments: [..][..]Lexème
+}
+
+développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
+{
+    lexèmes: [..]Lexème
+    diffère déloge(lexèmes)
+    développe_macro(*lexèmes, préprocesseur, infos, 0)
+
+    pour lexèmes {
+        // À FAIRE : comprend d'où vient le manque d'espace
+        ajoute_au_tampon(sortie, donne_texte(it), " ")
+    }
+}
+
+développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
+{
+    si profondeur > 64 {
+        rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
+    }
+
+    pour * infos.arguments {
+        développe_arguments(préprocesseur, it, profondeur + 1)
+    }
+
+    si infos.macro.est_intrinsèque {
+        résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
+        tableau_ajoute(sortie, résultat)
+        retourne
+    }
+
+    // imprimeln("[%]", #nom_de_cette_fonction)
+    // pour infos.arguments {
+    //     imprimeln("-- argument --")
+    //     imprime("-- ")
+    //     pour l dans it {
+    //         imprime("%", donne_texte(l))
+    //     }
+    //     imprimeln("")
+    // }
+
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = infos.macro.lexèmes
+
+    tantque !fini(*parseuse) {
+        lexème := donne_lexème_suivant(*parseuse)
+        avance(*parseuse)
+
+        définition := donne_définition(préprocesseur, lexème)
+        si définition {
+            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                tableau_ajoute(sortie, lexème)
+                continue
+            }
+
+            paramètres_définition: [..][..]Lexème
+            diffère déloge_tableau_et_ses_éléments(paramètres_définition)
+
+            si définition.paramètres {
+                lexème = donne_lexème_suivant(*parseuse)
+                tantque lexème.type == TypeLexème.EspaceBlanche {
+                    avance(*parseuse)
+                    lexème = donne_lexème_suivant(*parseuse)
+                }
+                saufsi est_ponctuation(lexème, "(") {
+                    rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
+                }
+                avance(*parseuse)
+                paramètres_définition = parse_tranche_arguments(*parseuse)
+            }
+
+            pour * paramètres_définition {
+                tmp := mémoire(it)
+                diffère déloge(tmp)
+
+                init_de([..]Lexème)(it)
+
+                parseuse_locale: SimpleParseuse
+                parseuse_locale.lexèmes = tmp
+                tantque !fini(*parseuse_locale) {
+                    lexème = donne_lexème_suivant(*parseuse_locale)
+                    avance(*parseuse_locale)
+                    émets_lexème_pour_développement(préprocesseur, it, *parseuse_locale, infos, lexème)
+                }
+            }
+
+            si paramètres_définition.taille > définition.paramètres.taille {
+                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, paramètres_définition.taille)
+            }
+
+            infos_développement: InfosDéveloppementMacro
+            infos_développement.macro = définition
+            infos_développement.arguments = paramètres_définition
+            développe_macro(sortie, préprocesseur, *infos_développement, profondeur + 1)
+        }
+        sinon {
+            émets_lexème_pour_développement(préprocesseur, sortie, *parseuse, infos, lexème)
+        }
+    }
+}
+
+émets_lexème_pour_développement :: fonc (préprocesseur: *PréProcesseur, sortie: *[..]Lexème, parseuse: *SimpleParseuse, infos: *InfosDéveloppementMacro, lexème: Lexème)
+{
+    indice_param := donne_indice_paramètre(infos.macro, donne_texte(lexème))
+    si indice_param != -1 && indice_param < infos.arguments.taille {
+        tableau_ajoute(sortie, ...infos.arguments[indice_param])
+        retourne
+    }
+
+    si est_ponctuation(lexème, "##") {
+        tantque sortie.taille > 0 {
+            si sortie.pointeur[sortie.taille - 1].type == TypeLexème.EspaceBlanche {
+                sortie.taille -= 1
+            }
+            sinon {
+                arrête
+            }
+        }
+
+        si sortie.taille > 0 {
+            dernier_lexème := sortie.pointeur[sortie.taille - 1]
+            sortie.taille -= 1
+
+            tantque !fini(parseuse) {
+                lexème = donne_lexème_suivant(parseuse)
+                avance(parseuse)
+
+                si lexème.type == TypeLexème.FinDeFichier {
+                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu")
+                    arrête
+                }
+
+                si lexème.type != TypeLexème.EspaceBlanche {
+                    arrête
+                }
+            }
+
+            nouveau_texte: chaine
+            lexème_suivant := donne_texte(lexème)
+            indice_param = donne_indice_paramètre(infos.macro, lexème_suivant)
+            si indice_param != -1 {
+                textes: [..]chaine
+                diffère déloge(textes)
+
+                tableau_ajoute(*textes, donne_texte(dernier_lexème))
+
+                si indice_param < infos.arguments.taille {
+                    pour infos.arguments[indice_param] {
+                        tableau_ajoute(*textes, donne_texte(it))
+                    }
+                }
+
+                // @FuiteDeMémoire
+                nouveau_texte = enchaine(...textes)
+            }
+            sinon {
+                // @FuiteDeMémoire
+                nouveau_texte = enchaine(donne_texte(dernier_lexème), lexème_suivant)
+            }
+
+            lexeuse: SimpleLexeuse
+            initialise_lexeuse_c(*lexeuse)
+            initialise_lexeuse_pour_texte(*lexeuse, nouveau_texte)
+            lexème = donne_lexème_suivant(*lexeuse)
+        }
+        sinon {
+            // À FAIRE : erreur ?
+        }
+
+        tableau_ajoute(sortie, lexème)
+        retourne
+    }
+
+    si est_ponctuation(lexème, "#") {
+        tantque !fini(parseuse) {
+            lexème = donne_lexème_suivant(parseuse)
+            avance(parseuse)
+
+            si lexème.type == TypeLexème.FinDeFichier {
+                rapporte_erreur(préprocesseur, "Fin de fichier inattendu")
+                arrête
+            }
+
+            si lexème.type != TypeLexème.EspaceBlanche {
+                arrête
+            }
+        }
+
+        lexème_suivant := donne_texte(lexème)
+        indice_param = donne_indice_paramètre(infos.macro, lexème_suivant)
+        si indice_param != -1 {
+            textes: [..]chaine
+            diffère déloge(textes)
+
+            tableau_ajoute(*textes, "\"")
+
+            si indice_param < infos.arguments.taille {
+                pour infos.arguments[indice_param] {
+                    tableau_ajoute(*textes, donne_texte(it))
+                }
+            }
+
+            tableau_ajoute(*textes, "\"")
+
+            // @FuiteDeMémoire
+            nouveau_texte := enchaine(...textes)
+            lexème = crée_lexème_chaine_littérale(nouveau_texte)
+        }
+        sinon {
+            // @FuiteDeMémoire
+            nouveau_texte := enchaine("\"", lexème_suivant, "\"")
+            lexème = crée_lexème_chaine_littérale(nouveau_texte)
+        }
+
+        tableau_ajoute(sortie, lexème)
+        retourne
+    }
+
+    tableau_ajoute(sortie, lexème)
+}
+
+développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]Lexème, profondeur: z32)
+{
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = mémoire(arguments)
+
+    résultat: [..]Lexème
+
+    tantque !fini(*parseuse) {
+        lexème := donne_lexème_suivant(*parseuse)
+        avance(*parseuse)
+
+        définition := donne_définition(préprocesseur, lexème)
+        si définition {
+            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                tableau_ajoute(*résultat, lexème)
+                continue
+            }
+
+            arguments_définition: [..][..]Lexème
+            diffère déloge_tableau_et_ses_éléments(arguments_définition)
+
+            si définition.paramètres {
+                lexème = donne_lexème_suivant(*parseuse)
+                tantque lexème.type == TypeLexème.EspaceBlanche {
+                    avance(*parseuse)
+                    lexème = donne_lexème_suivant(*parseuse)
+                }
+                saufsi est_ponctuation(lexème, "(") {
+                    rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
+                }
+                avance(*parseuse)
+                arguments_définition = parse_tranche_arguments(*parseuse)
+            }
+
+            si arguments_définition.taille > définition.paramètres.taille {
+                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments_définition.taille)
+            }
+
+            infos_développement: InfosDéveloppementMacro
+            infos_développement.macro = définition
+            infos_développement.arguments = arguments_définition
+            développe_macro(*résultat, préprocesseur, *infos_développement, profondeur + 1)
+        }
+        sinon {
+            tableau_ajoute(*résultat, lexème)
+        }
+    }
+
+    mémoire(arguments) = résultat
+}
+
+parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse, texte_définition: chaine)
+{
+    // ligne := donne_ligne_pour_erreur(lexeuse)
+    // imprimeln("--------------------------------")
+    // imprimeln("%", ligne.texte)
+    // imprimeln("define '%'", texte_définition)
+
+    définition := donne_définition(préprocesseur, texte_définition)
+    saufsi définition {
+        définition = tableau_ajoute_élément(*préprocesseur.définitions)
+        définition.nom = texte_définition
+    }
+    sinon {
+        déloge(définition.paramètres)
+        déloge(définition.lexèmes)
+    }
+
+    // diffère {
+    //     imprimeln("------------------------")
+    //     imprimeln("%", texte_définition)
+
+    //     si définition.paramètres {
+    //         imprimeln("-- PARAMÈTRES --")
+    //         pour définition.paramètres {
+    //             imprimeln("--> %", donne_texte(it))
+    //         }
+    //     }
+
+    //     si définition.lexèmes {
+    //         imprimeln("-- LEXÈMES --")
+    //         pour définition.lexèmes {
+    //             imprimeln("--> %", donne_texte(it))
+    //         }
+    //     }
+    // }
+
+    saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse)
+
+    prélexeuse := mémoire(lexeuse)
+    init_de([..]Lexème)(*prélexeuse.lexèmes_extras)
+    drapeaux := préparse_définition(préprocesseur, *prélexeuse)
+
+    lexème := donne_lexème_suivant(lexeuse)
+    si est_lexème_nouvelle_ligne(lexème) {
+        retourne
+    }
+
+    // imprimeln("drapeaux %", drapeaux)
+
+    si est_ponctuation(lexème, "(") && drapeaux.POSSÈDE_ARGUMENTS {
+        boucle {
+            lexème = donne_lexème_suivant(lexeuse)
+            si est_ponctuation(lexème, ")") {
+                arrête
+            }
+
+            si !est_ponctuation(lexème, ",") && lexème.type != TypeLexème.EspaceBlanche {
+                tableau_ajoute(*définition.paramètres, lexème)
+            }
+        }
+    }
+    sinon {
+        tableau_ajoute(*définition.lexèmes, lexème)
+    }
+
+    eu_non_espace := faux
+    boucle {
+        lexème = donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+        si est_lexème_nouvelle_ligne(lexème) {
+            retourne
+        }
+
+        si eu_non_espace == faux && lexème.type == TypeLexème.EspaceBlanche {
+            continue
+        }
+
+        eu_non_espace = vrai
+        tableau_ajoute(*définition.lexèmes, lexème)
+    }
+}
+
+DrapeauxDéfinition :: énum_drapeau {
+    POSSÈDE_ARGUMENTS
+    POSSÈDE_CORPS
+}
+
+préparse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse) -> DrapeauxDéfinition
+{
+    résultat: DrapeauxDéfinition
+
+    lexème := donne_lexème_suivant(lexeuse)
+    saufsi est_lexème_nouvelle_ligne(lexème) {
+        si est_ponctuation(lexème, "(") {
+            résultat.POSSÈDE_ARGUMENTS = vrai
+
+            // À FAIRE : meilleure validation que nous avons des arguments
+
+            niveau_parenthèse := 0
+            boucle {
+                lexème = donne_lexème_suivant(lexeuse)
+                si lexème.type == TypeLexème.FinDeFichier {
+                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+                }
+                si est_ponctuation(lexème, "(") {
+                    résultat.POSSÈDE_ARGUMENTS = faux
+                    niveau_parenthèse += 1
+                }
+                sinon si est_ponctuation(lexème, ")") {
+                    si niveau_parenthèse == 0 {
+                        arrête
+                    }
+                    niveau_parenthèse -= 1
+                }
+                sinon {
+                    si lexème.type != TypeLexème.EspaceBlanche && lexème.type != TypeLexème.Symbole && lexème.type != TypeLexème.MotClé && !est_ponctuation(lexème, "...") && !est_ponctuation(lexème, ",") {
+                        résultat.POSSÈDE_ARGUMENTS = faux
+                    }
+                }
+            }
+
+            saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse)
+
+            lexème = donne_lexème_suivant(lexeuse)
+            saufsi est_lexème_nouvelle_ligne(lexème) {
+                résultat.POSSÈDE_CORPS = vrai
+            }
+        }
+        sinon {
+            résultat.POSSÈDE_CORPS = vrai
+        }
+    }
+
+    retourne résultat
+}
+
+parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse) -> [..]Lexème
+{
+    résultat: [..]Lexème
+    parse_lexèmes_entre_parenthèses(préprocesseur, lexeuse, *résultat)
+    retourne résultat
+}
+
+parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse, résultat: *[..]Lexème)
+{
+    niveau_parenthèse := 0
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+        }
+        tableau_ajoute(résultat, lexème)
+        si est_ponctuation(lexème, "(") {
+            niveau_parenthèse += 1
+        }
+        sinon si est_ponctuation(lexème, ")") {
+            si niveau_parenthèse == 0 {
+                arrête
+            }
+            niveau_parenthèse -= 1
+        }
+    }
+}
+
+ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse)
+{
+    niveau_branchage_orig := préprocesseur.niveau_branchage
+    niveau_branchage := niveau_branchage_orig
+
+    // imprimeln("--------- niveau de branchage : %", niveau_branchage)
+
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+            exit(1)
+        }
+
+        // imprimeln("ignore : '%'", donne_texte(lexème))
+        // ligne := donne_ligne_pour_erreur(lexeuse)
+
+        si est_ponctuation(lexème, "#") {
+            lexème_directive := lexème
+            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+            texte := donne_texte(lexème)
+
+            si texte == "if" || texte == "ifdef" || texte == "ifndef" {
+                niveau_branchage += 1
+                // imprimeln("entre dans branche")
+                // imprimeln("%", ligne.texte)
+            }
+            sinon si texte == "else" || texte == "elif" || texte == "endif" {
+                si niveau_branchage == niveau_branchage_orig {
+                    // imprimeln("reprende_depuis : %", donne_texte(lexème_directive))
+                    reprends_depuis_lexème(lexeuse, lexème_directive)
+                    arrête
+                }
+                si texte == "endif" {
+                    niveau_branchage -= 1
+                    // imprimeln("sors de branche")
+                    // imprimeln("%", ligne.texte)
+                }
+            }
+        }
+    }
+}
+
+empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine)
+{
+    fichier, indice_fichier := donne_fichier_pour_chemin(préprocesseur, chemin)
+    saufsi fichier {
+        succès, contenu := contenu_fichier_texte(chemin)
+        saufsi succès {
+            exit(1)
+        }
+
+        indice_fichier = préprocesseur.fichiers.taille
+        fichier = tableau_ajoute_élément(*préprocesseur.fichiers)
+        fichier.chemin = copie_chaine(chemin)
+        fichier.contenu_cru = contenu
+        fichier.contenu_prétaité = prétraite_fichier(fichier.contenu_cru)
+        fichier.trouvé_dans_dossier = trouvé_dans_dossier
+    }
+
+    si fichier.est_marqué_pragma_once {
+        retourne
+    }
+
+    fichier.nombre_d_ouvertures += 1
+
+    envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+
+    lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
+    lexeuse.fichier = indice_fichier
+    lexeuse.lexeuse.chemin_fichier = fichier.chemin
+    initialise_lexeuse_c(*lexeuse.lexeuse)
+    lexeuse.lexeuse.options.INCLUS_TOUT = vrai
+
+    initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité)
+}
+
+est_chemin_incluable :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool) -> bool
+{
+    chemin_fichier_test: TamponChemin
+    succès, _ := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test)
+    retourne succès
+}
+
+empile_fichier_pour_include :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool)
+{
+    chemin_fichier_test: TamponChemin
+    succès, dossier := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test)
+
+    saufsi succès {
+        rapporte_erreur(préprocesseur, "Impossible de trouver le fichier pour '%'", chemin_fichier)
+        retourne
+    }
+
+    chemin_fichier_abs := donne_chaine_statique(*chemin_fichier_test)
+    empile_fichier(préprocesseur, chemin_fichier_abs, dossier)
+}
+
+détermine_chemin_pour_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool, chemin_fichier_test: *TamponChemin) -> (bool, chaine)
+{
+    si est_absolu(CheminFichier(chemin_fichier)) {
+        saufsi ajoute(chemin_fichier_test, chemin_fichier) {
+            rapporte_erreur(préprocesseur, "Chemin trop grand : '%'", chemin_fichier)
+            retourne faux, ""
+        }
+        // À FAIRE : dossier d'inclusion
+        retourne vrai, ""
+    }
+
+    si est_système {
+        // Regarde dans les inclusions système.
+        chemins: []chaine = préprocesseur.chemins_inclusions_système
+        retourne détermine_chemin_absolu(préprocesseur, chemins, chemin_fichier, include_next, chemin_fichier_test)
+    }
+
+    // Regarde dans le dossier courant.
+    fichier_courant := donne_fichier_courant(préprocesseur)
+    si fichier_courant {
+        réinitialise(chemin_fichier_test)
+
+        dossier_courant := chemin_parent(CheminFichier(fichier_courant.chemin))
+
+        saufsi ajoute(chemin_fichier_test, dossier_courant.chn) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant)
+        }
+        saufsi ajoute(chemin_fichier_test, séparateur_chemin()) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant)
+        }
+        saufsi ajoute(chemin_fichier_test, chemin_fichier) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier)
+        }
+
+        chemin_fichier_abs := donne_chaine_statique(chemin_fichier_test)
+        si est_un_fichier_régulier(CheminFichier(chemin_fichier_abs)) {
+            retourne vrai, dossier_courant.chn
+        }
+    }
+
+    // À CONSIDÉRER : Dans les répertoires des fichiers inclus actuellement ouverts, dans l’ordre inverse dans lequel
+    //                ils ont été ouverts. La recherche commence dans le répertoire du fichier Include parent et continue
+    //                vers le haut, dans les répertoires de tous les fichiers Include grands-parents.
+
+    // À CONSIDÉRER : le long des chemins
+
+    succès: bool
+    dossier: chaine
+
+    // Regarde dans les dossiers locaux.
+    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_local, chemin_fichier, include_next, chemin_fichier_test)
+    si succès {
+        retourne succès, dossier
+    }
+
+    // Regarde dans les dossiers systèmes.
+    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_système, chemin_fichier, include_next, chemin_fichier_test)
+    si succès {
+        retourne succès, dossier
+    }
+
+    retourne faux, ""
+}
+
+détermine_chemin_absolu :: fonc (préprocesseur: *PréProcesseur, chemins: []chaine, chemin_fichier: chaine, include_next: bool, tampon: *TamponChemin) -> (bool, chaine)
+{
+    si include_next {
+        fichier := donne_fichier_courant(préprocesseur)
+        trouvé_dans_dossier := fichier.trouvé_dans_dossier
+
+        pour chemins {
+            si it == trouvé_dans_dossier {
+                chemins = tableau_avance(chemins, indice_it + 1)
+                arrête
+            }
+        }
+    }
+
+    pour dossier dans chemins {
+        réinitialise(tampon)
+
+        saufsi ajoute(tampon, dossier) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier)
+        }
+        saufsi ajoute(tampon, séparateur_chemin()) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier)
+        }
+        saufsi ajoute(tampon, chemin_fichier) {
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier)
+        }
+
+        chemin_fichier_abs := donne_chaine_statique(tampon)
+        saufsi est_un_fichier_régulier(CheminFichier(chemin_fichier_abs)) {
+            continue
+        }
+
+        retourne vrai, dossier
+    }
+
+    retourne faux, ""
+}
+
+prétraite_fichier :: fonc (contenu: chaine) -> chaine
+{
+    lexeuse: SimpleLexeuse
+    initialise_lexeuse_c(*lexeuse)
+    lexeuse.options.INCLUS_TOUT = vrai
+
+    initialise_lexeuse_pour_texte(*lexeuse, contenu)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    boucle {
+        lexème := donne_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+
+        si lexème.type == TypeLexème.Commentaire {
+            ajoute_au_tampon(*enchaineuse, " ")
+            continue
+        }
+
+        texte := donne_texte(lexème)
+
+        si est_ponctuation(lexème, "\\") {
+            boucle {
+                lexème = donne_lexème_suivant(*lexeuse)
+                si est_lexème_nouvelle_ligne(lexème) {
+                    arrête
+                }
+            }
+            continue
+        }
+
+        ajoute_au_tampon(*enchaineuse, texte)
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+envoie_message_fichier_ouvert :: fonc (chemin: chaine, nombre_d_ouvertures: n32)
+{
+    imprimeln("Ouverture de '%' (%)", chemin, nombre_d_ouvertures)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom ExpressionPréProc
+ * \{ */
+
+ExpressionPréProc :: struct {
+    type: type_de_données
+}
+
+Defined :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    opérande: chaine
+}
+
+Conjonction :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    gauche: *ExpressionPréProc
+    droite: *ExpressionPréProc
+}
+
+Disjonction :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    gauche: *ExpressionPréProc
+    droite: *ExpressionPréProc
+}
+
+NégationLogique :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    droite: *ExpressionPréProc
+}
+
+Symbole :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    texte: chaine
+}
+
+OpérateurBinaire :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    op: chaine
+    gauche: *ExpressionPréProc
+    droite: *ExpressionPréProc
+}
+
+NégationArithmétique :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    expression: *ExpressionPréProc
+}
+
+NombreLittéral :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    nombre: z32
+}
+
+ExpressionTernaire :: struct {
+    empl base: ExpressionPréProc
+    type = #type_de_cette_structure
+
+    test: *ExpressionPréProc
+    si_vrai: *ExpressionPréProc
+    si_faux: *ExpressionPréProc
+}
+
+évalue_expression :: fonc (préprocesseur: *PréProcesseur, expression: *ExpressionPréProc) -> z32
+{
+    résultat := 0
+
+    discr expression.type {
+        Defined {
+            defined := expression comme *Defined
+            définition := donne_définition(préprocesseur, defined.opérande)
+            si définition {
+                résultat = 1
+            }
+        }
+        Conjonction {
+            conjonction := expression comme *Conjonction
+            résultat = évalue_expression(préprocesseur, conjonction.gauche)
+            si résultat == 0 {
+                résultat = évalue_expression(préprocesseur, conjonction.droite)
+            }
+        }
+        Disjonction {
+            disjonction := expression comme *Conjonction
+            résultat = évalue_expression(préprocesseur, disjonction.gauche)
+            si résultat == 1 {
+                résultat = évalue_expression(préprocesseur, disjonction.droite)
+            }
+        }
+        NégationLogique {
+            négation := expression comme *NégationLogique
+            résultat = évalue_expression(préprocesseur, négation.droite)
+            si résultat {
+                résultat = 0
+            }
+            sinon {
+                résultat = 1
+            }
+        }
+        Symbole {
+            symbole := expression comme *Symbole
+            rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+        }
+        OpérateurBinaire {
+            opérateur_binaire := expression comme *OpérateurBinaire
+            gauche := évalue_expression(préprocesseur, opérateur_binaire.gauche)
+            droite := évalue_expression(préprocesseur, opérateur_binaire.droite)
+
+            si opérateur_binaire.op == ">" {
+                si gauche > droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == ">=" {
+                si gauche >= droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == "<" {
+                si gauche < droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == "<=" {
+                si gauche <= droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == "==" {
+                si gauche == droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == "!=" {
+                si gauche != droite {
+                    résultat = 1
+                }
+            }
+            sinon si opérateur_binaire.op == "+" {
+                résultat = gauche + droite
+            }
+            sinon si opérateur_binaire.op == "-" {
+                résultat = gauche - droite
+            }
+            sinon si opérateur_binaire.op == "/" {
+                résultat = gauche / droite
+            }
+            sinon si opérateur_binaire.op == "*" {
+                résultat = gauche * droite
+            }
+            sinon si opérateur_binaire.op == "%" {
+                résultat = gauche % droite
+            }
+            sinon si opérateur_binaire.op == "<<" {
+                résultat = gauche << droite
+            }
+            sinon si opérateur_binaire.op == ">>" {
+                résultat = gauche >> droite
+            }
+
+            // imprimeln("% % % = %", gauche, opérateur_binaire.op, droite, résultat)
+        }
+        NégationArithmétique {
+            négation := expression comme *NégationArithmétique
+            valeur := évalue_expression(préprocesseur, négation.expression)
+            résultat = -valeur
+        }
+        NombreLittéral {
+            nombre := expression comme *NombreLittéral
+            résultat = nombre.nombre
+        }
+        ExpressionTernaire {
+            ternaire := expression comme *ExpressionTernaire
+            test := évalue_expression(préprocesseur, ternaire.test)
+            si test != 0 {
+                résultat = évalue_expression(préprocesseur, ternaire.si_vrai)
+            }
+            sinon {
+                résultat = évalue_expression(préprocesseur, ternaire.si_faux)
+            }
+        }
+        sinon {}
+    }
+
+    retourne résultat
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom SimpleParseuse
+ * \{ */
+
+SimpleParseuse :: struct {
+    lexèmes: []Lexème
+    curseur: z64
+}
+
+fini :: fonc (empl parseuse: *SimpleParseuse) -> bool
+{
+    retourne curseur >= lexèmes.taille
+}
+
+donne_lexème_suivant :: fonc (empl parseuse: *SimpleParseuse) -> Lexème
+{
+    retourne lexèmes[curseur]
+}
+
+avance :: fonc (empl parseuse: *SimpleParseuse)
+{
+    curseur += 1
+}
+
+parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]Lexème
+{
+    résultat: [..][..]Lexème
+
+    tranche_courante: [..]Lexème
+
+    niveau_parenthèse := 0
+    tantque !fini(parseuse) {
+        lexème := donne_lexème_suivant(parseuse)
+        avance(parseuse)
+        si est_ponctuation(lexème, "(") {
+            niveau_parenthèse += 1
+        }
+        si est_ponctuation(lexème, ")") {
+            si niveau_parenthèse == 0 {
+                arrête
+            }
+            niveau_parenthèse -= 1
+            tableau_ajoute(*tranche_courante, lexème)
+            continue
+        }
+        si est_ponctuation(lexème, ",") && niveau_parenthèse == 0 {
+            tableau_ajoute(*résultat, tranche_courante)
+            init_de([..]Lexème)(*tranche_courante)
+            continue
+        }
+        saufsi lexème.type == TypeLexème.EspaceBlanche {
+            tableau_ajoute(*tranche_courante, lexème)
+        }
+    }
+
+    si tranche_courante {
+        tableau_ajoute(*résultat, tranche_courante)
+    }
+
+    // pour résultat {
+    //     imprimeln("-- param --")
+    //     pour l dans it {
+    //         imprimeln("-- %", donne_texte(l))
+    //     }
+    // }
+
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évaluation des expressions.
+ * \{ */
+
+parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse) -> *ExpressionPréProc
+{
+    lexèmes: [..]Lexème
+    diffère déloge(lexèmes)
+
+    // ligne := donne_ligne_pour_erreur(lexeuse)
+    // imprimeln("%", ligne.texte)
+
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+        }
+
+        si lexème.type == TypeLexème.EspaceBlanche {
+            si donne_texte(lexème) == "\n" {
+                reprends_depuis_lexème(lexeuse, lexème)
+                arrête
+            }
+            continue
+        }
+
+        tableau_ajoute(*lexèmes, lexème)
+        // imprimeln("-- %", donne_texte(lexème))
+    }
+
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = lexèmes
+
+    résultat := parse_expression(préprocesseur, *parseuse)
+
+    saufsi fini(*parseuse) {
+        si résultat {
+            imprime_arbre(résultat)
+        }
+        tantque !fini(*parseuse) {
+            lexème := donne_lexème_suivant(*parseuse)
+            avance(*parseuse)
+            imprimeln("lexème non consommé : '%' (%)", donne_texte(lexème), lexème.type)
+        }
+        rapporte_erreur(préprocesseur, "Des lexèmes ne furent pas consommés")
+    }
+    // sinon si résultat {
+    //     imprime_arbre(résultat)
+    // }
+
+    retourne résultat
+}
+
+Associativité :: énum {
+    AUCUNE
+    GAUCHE
+    DROITE
+}
+
+InfoParsageOpérateur :: struct {
+    précédence: z32
+    associativité: Associativité
+}
+
+donne_info_parsage_opérateur :: fonc (texte: chaine) -> (bool, InfoParsageOpérateur)
+{
+    est_opérateur := vrai
+    résultat: InfoParsageOpérateur
+
+    si texte == "?" {
+        résultat.précédence = 1
+        résultat.associativité = Associativité.DROITE
+    }
+    sinon si texte == "||" {
+        résultat.précédence = 2
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "&&" {
+        résultat.précédence = 3
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "|" {
+        résultat.précédence = 4
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "^" {
+        résultat.précédence = 5
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "&" {
+        résultat.précédence = 6
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "==" || texte == "!=" {
+        résultat.précédence = 7
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" {
+        résultat.précédence = 8
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "<<" || texte == ">>" {
+        résultat.précédence = 9
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "-" || texte == "+" {
+        résultat.précédence = 10
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "*" || texte == "/" || texte == "%" {
+        résultat.précédence = 11
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon {
+        est_opérateur = faux
+    }
+
+    retourne est_opérateur, résultat
+}
+
+donne_info_parsage_opérateur_unaire :: fonc () -> InfoParsageOpérateur
+{
+    résultat: InfoParsageOpérateur
+    résultat.précédence = 16
+    résultat.associativité = Associativité.DROITE
+    retourne résultat
+}
+
+parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse) -> *ExpressionPréProc
+{
+    retourne parse_expression(préprocesseur, parseuse, InfoParsageOpérateur())
+}
+
+parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse, info_courante: InfoParsageOpérateur) -> *ExpressionPréProc
+{
+    gauche := parse_expression_primaire(préprocesseur, parseuse)
+    saufsi gauche {
+        retourne nul
+    }
+
+    résultat := gauche
+
+    tantque !fini(parseuse) {
+        lexème := donne_lexème_suivant(parseuse)
+
+        texte := donne_texte(lexème)
+        est_opérateur, info := donne_info_parsage_opérateur(texte)
+        saufsi est_opérateur {
+            arrête
+        }
+
+        si info.précédence < info_courante.précédence {
+            arrête
+        }
+
+        si info.précédence == info_courante.précédence && info_courante.associativité == Associativité.GAUCHE {
+            arrête
+        }
+
+        si texte == "&&" {
+            avance(parseuse)
+
+            disjonction := loge(Disjonction)
+            disjonction.gauche = résultat
+            disjonction.droite = parse_expression(préprocesseur, parseuse, info)
+
+            résultat = disjonction
+        }
+        sinon si texte == "||" {
+            avance(parseuse)
+
+            conjonction := loge(Conjonction)
+            conjonction.gauche = résultat
+            conjonction.droite = parse_expression(préprocesseur, parseuse, info)
+
+            résultat = conjonction
+        }
+        sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" {
+            avance(parseuse)
+
+            opérateur_binaire := loge(OpérateurBinaire)
+            opérateur_binaire.op = texte
+            opérateur_binaire.gauche = résultat
+            opérateur_binaire.droite = parse_expression(préprocesseur, parseuse, info)
+
+            résultat = opérateur_binaire
+        }
+        sinon si texte == "?" {
+            avance(parseuse)
+
+            ternaire := loge(ExpressionTernaire)
+            ternaire.test = résultat
+            ternaire.si_vrai = parse_expression(préprocesseur, parseuse, info)
+
+            lexème = donne_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème, ":") {
+                // ligne := donne_ligne_pour_erreur(parseuse)
+                // imprimeln("%", ligne.texte)
+                rapporte_erreur(préprocesseur, "Attendu ':', obtenu '%' (%)", donne_texte(lexème), lexème.type)
+            }
+
+            avance(parseuse)
+            ternaire.si_faux = parse_expression(préprocesseur, parseuse, info)
+
+            résultat = ternaire
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne résultat
+}
+
+parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse) -> *ExpressionPréProc
+{
+    résultat: *ExpressionPréProc
+
+    lexème := donne_lexème_suivant(parseuse)
+
+    texte := donne_texte(lexème)
+    si texte == "defined" {
+        avance(parseuse)
+
+        defined := loge(Defined)
+
+        lexème = donne_lexème_suivant(parseuse)
+        eu_parenthèse := faux
+        si est_ponctuation(lexème, "(") {
+            avance(parseuse)
+            eu_parenthèse = vrai
+            lexème = donne_lexème_suivant(parseuse)
+        }
+
+        defined.opérande = donne_texte(lexème)
+        avance(parseuse)
+
+        si eu_parenthèse {
+            lexème = donne_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème, ")") {
+                rapporte_erreur(préprocesseur, "Attendu une parenthèse fermante pour l'expression de defined")
+            }
+            avance(parseuse)
+        }
+
+        résultat = defined
+    }
+    sinon si est_ponctuation(lexème, "(") {
+        avance(parseuse)
+        résultat = parse_expression(préprocesseur, parseuse)
+
+        lexème = donne_lexème_suivant(parseuse)
+        saufsi est_ponctuation(lexème, ")") {
+            // ligne := donne_ligne_pour_erreur(parseuse)
+            // imprimeln("%", ligne.texte)
+            rapporte_erreur(préprocesseur, "Attendu ')' pour terminer l'expression, obtenu '%' (%)", donne_texte(lexème), lexème.type)
+        }
+        avance(parseuse)
+    }
+    sinon si est_ponctuation(lexème, "!") {
+        avance(parseuse)
+        négation := loge(NégationLogique)
+        négation.droite = parse_expression_primaire(préprocesseur, parseuse)
+        résultat = négation
+    }
+    sinon si lexème.type == TypeLexème.Symbole {
+        avance(parseuse)
+
+        texte = donne_texte(lexème)
+
+        définition := donne_définition(préprocesseur, texte)
+
+        saufsi fini(parseuse) {
+            lexème = donne_lexème_suivant(parseuse)
+        }
+        
+        si est_ponctuation(lexème, "(") {
+            saufsi définition {
+                rapporte_erreur(préprocesseur, "Macro inconnu : %", texte)
+                retourne nul
+            }
+            avance(parseuse)
+
+            tranches_paramètres := parse_tranche_arguments(parseuse)
+            diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
+
+            si tranches_paramètres.taille > définition.paramètres.taille {
+                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", texte, définition.paramètres.taille, tranches_paramètres.taille)
+            }
+
+            lexèmes: [..]Lexème
+            diffère déloge(lexèmes)
+
+            infos: InfosDéveloppementMacro
+            infos.macro = définition
+            infos.arguments = tranches_paramètres
+            développe_macro(*lexèmes, préprocesseur, *infos, 0)
+
+            // supprime espace blanches
+            début := lexèmes.pointeur
+            fin := lexèmes.pointeur + lexèmes.taille
+            insertion := début
+            tantque début < fin {
+                lexème = mémoire(début)
+                si lexème.type != TypeLexème.EspaceBlanche {
+                    mémoire(insertion) = lexème
+                    insertion += 1
+                }
+                début += 1
+            }
+            lexèmes.taille = insertion - lexèmes.pointeur
+
+            // imprimeln("-- développement")
+            // pour lexèmes {
+            //     imprimeln("-- % (%)", donne_texte(it), it.type)
+            // }
+
+            sous_parseuse: SimpleParseuse
+            sous_parseuse.lexèmes = lexèmes
+
+            résultat = parse_expression(préprocesseur, *sous_parseuse)
+        }
+        sinon si définition {
+            si définition.paramètres.taille != 0 {
+                rapporte_erreur(préprocesseur, "Attendu des arguments pour l'invocation de '%'", texte)
+                retourne nul
+            }
+
+            lexèmes: [..]Lexème
+            diffère déloge(lexèmes)
+
+            pour définition.lexèmes {
+                si it.type == TypeLexème.EspaceBlanche {
+                    continue
+                }
+                tableau_ajoute(*lexèmes, it)
+            }
+
+            sous_parseuse: SimpleParseuse
+            sous_parseuse.lexèmes = lexèmes
+
+            résultat = parse_expression(préprocesseur, *sous_parseuse)
+        }
+        sinon {
+            // Nous n'avons de définition pour ce symbole.
+            // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
+            symbole := loge(Symbole)
+            symbole.texte = texte
+            résultat = symbole
+        }
+    }
+    sinon si lexème.type == TypeLexème.Nombre {
+        avance(parseuse)
+        nombre := loge(NombreLittéral)
+        nombre.nombre = lexème.nombre.naturel comme z32
+        résultat = nombre
+    }
+    sinon si lexème.type == TypeLexème.CaractèreConstant {
+        avance(parseuse)
+        nombre := loge(NombreLittéral)
+        // À FAIRE : lexage correcte des caractères
+        texte_caractère := donne_texte(lexème)
+        texte_caractère = avance(texte_caractère, 1)
+        texte_caractère = recule(texte_caractère, 1)
+        si texte_caractère.taille == 0 {
+        }
+        sinon si texte_caractère.taille == 1 {
+            nombre.nombre = texte_caractère[0]
+        }
+        sinon {
+            si texte_caractère[0] == '\\' {
+                si texte_caractère == "\0" {
+                    nombre.nombre = 0
+                }
+            }
+        }
+        résultat = nombre
+    }
+    sinon si texte == "-" {
+        avance(parseuse)
+
+        info_opérateur := donne_info_parsage_opérateur_unaire()
+
+        négation := loge(NégationArithmétique)
+        négation.expression = parse_expression(préprocesseur, parseuse, info_opérateur)
+
+        résultat = négation
+    }
+    sinon si texte == "+" {
+        info_opérateur := donne_info_parsage_opérateur_unaire()
+        résultat = parse_expression(préprocesseur, parseuse, info_opérateur)
+    }
+    sinon {
+        rapporte_erreur(préprocesseur, "Lexème pour expression inconnu : '%' (%)", texte, lexème.type)
+    }
+
+    retourne résultat
+}
+
+/** \} */
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Impression arbre.
+ * \{ */
+
+imprime_arbre :: fonc (noeud: *ExpressionPréProc)
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ExpressionPréProc), noeud: *ExpressionPréProc, info: *InfoTypeStructure) -> VisiteEnfants
+    {
+        imprime_tabulation(visiteuse.profondeur)
+        discr noeud.type {
+            Defined,
+            Conjonction,
+            Disjonction,
+            NégationLogique,
+            ExpressionTernaire {
+                imprime("%\n", info.nom)
+            }
+            Symbole {
+                symbole := noeud comme *Symbole
+                imprime("% : %\n", info.nom, symbole.texte)
+            }
+            OpérateurBinaire {
+                opérateur_binaire := noeud comme *OpérateurBinaire
+                imprime("% : %\n", info.nom, opérateur_binaire.op)
+            }
+            NombreLittéral {
+                nombre := noeud comme *NombreLittéral
+                imprime("% : %\n", info.nom, nombre.nombre)
+            }
+            sinon {
+                imprime("%\n", info.nom)
+            }
+        }
+        retourne VisiteEnfants.Oui
+    }
+    visiteuse: VisiteuseArbre(ExpressionPréProc)
+    visiteuse.rappel_pour_noeud = rappel_pour_noeud
+    visite_noeud(*visiteuse, noeud)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+donne_lexème_suivant_sauf_espace_blanche :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    résultat := donne_lexème_suivant(lexeuse)
+    tantque résultat.type == TypeLexème.EspaceBlanche {
+        résultat = donne_lexème_suivant(lexeuse)
+    }
+    retourne résultat
+}
+
+est_lexème_nouvelle_ligne :: fonc (lexème: Lexème) -> bool
+{
+    retourne lexème.type == TypeLexème.EspaceBlanche && donne_texte(lexème) == "\n"
+}
+
+saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse)
+{
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+        si est_lexème_nouvelle_ligne(lexème) {
+            reprends_depuis_lexème(lexeuse, lexème)
+            retourne
+        }
+        si lexème.type != TypeLexème.EspaceBlanche {
+            reprends_depuis_lexème(lexeuse, lexème)
+            arrête
+        }
+    }
+}
+
+consomme_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse)
+{
+    boucle {
+        lexème := donne_lexème_suivant(lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier || est_lexème_nouvelle_ligne(lexème) {
+            reprends_depuis_lexème(lexeuse, lexème)
+            arrête
+        }
+    }
+}
+
+crée_lexème_symbole :: fonc (texte: chaine) -> Lexème
+{
+    résultat: Lexème
+    résultat.début = texte.pointeur
+    résultat.fin = texte.pointeur + texte.taille
+    résultat.type = TypeLexème.Symbole
+    retourne résultat
+}
+
+crée_lexème_chaine_littérale :: fonc (texte: chaine) -> Lexème
+{
+    résultat: Lexème
+    résultat.début = texte.pointeur
+    résultat.fin = texte.pointeur + texte.taille
+    résultat.type = TypeLexème.ChaineLittérale
+    retourne résultat
+}
+
+crée_lexème_nombre_naturel :: fonc (valeur: n64) -> Lexème
+{
+    résultat: Lexème
+    résultat.type = TypeLexème.Nombre
+    résultat.nombre.naturel = valeur
+    retourne résultat
+}
+
+supprime_espace_blanches_autour :: fonc (lexèmes: []Lexème) -> []Lexème
+{
+    résultat := lexèmes
+
+    tantque résultat.taille != 0 {
+        si résultat[0].type != TypeLexème.EspaceBlanche {
+            arrête
+        }
+
+        résultat.pointeur += 1
+        résultat.taille -= 1
+    }
+
+    tantque résultat.taille != 0 {
+        si résultat[résultat.taille - 1].type != TypeLexème.EspaceBlanche {
+            arrête
+        }
+
+        résultat.taille -= 1
+    }
+
+    retourne résultat
+}
+
+donne_texte_sans_guillemets :: fonc (lexème: Lexème) -> chaine
+{
+    texte := donne_texte(lexème)
+    saufsi texte {
+        retourne ""
+    }
+
+    si texte[0] == '"' {
+        texte = avance(texte, 1)
+    }
+
+    saufsi texte {
+        retourne ""
+    }
+
+    si texte[texte.taille - 1] == '"' {
+        texte = recule(texte, 1)
+    }
+
+    retourne texte
+}
+
+/** \} */
