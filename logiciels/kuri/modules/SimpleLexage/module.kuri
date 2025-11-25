@@ -512,29 +512,30 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
         }
     }
 
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.suffixes_nombres_littéraux, DrapeauxCaractère.DébuteSuffixeNombre)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.commentaires_ligne_singulière, DrapeauxCaractère.DébuteCommentaireLigneSingulière)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.commentaires_multi_lignes, DrapeauxCaractère.DébuteCommentaireMultiLignes)
+}
 
-    pour lexeuse.suffixes_nombres_littéraux {
+définis_drapeau_depuis_premier_caractère :: fonc (lexeuse: *SimpleLexeuse, chaines: []chaine, drapeau: DrapeauxCaractère)
+{
+    pour chaines {
         si it.taille == 0 {
             continue
         }
 
-        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= DrapeauxCaractère.DébuteSuffixeNombre
+        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= drapeau
     }
+}
 
-    pour lexeuse.commentaires_ligne_singulière {
-        si it.taille == 0 {
-            continue
-        }
-
-        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= DrapeauxCaractère.DébuteCommentaireLigneSingulière
-    }
-
-    pour lexeuse.commentaires_multi_lignes {
+définis_drapeau_depuis_premier_caractère :: fonc (lexeuse: *SimpleLexeuse, chaines: [][2]chaine, drapeau: DrapeauxCaractère)
+{
+    pour chaines {
         si it[0].taille == 0 {
             continue
         }
 
-        lexeuse.table_drapeaux_caractère[it[0][0] comme n8] |= DrapeauxCaractère.DébuteCommentaireMultiLignes
+        lexeuse.table_drapeaux_caractère[it[0][0] comme n8] |= drapeau
     }
 }
 
