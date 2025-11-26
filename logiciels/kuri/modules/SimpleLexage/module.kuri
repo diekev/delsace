@@ -49,6 +49,7 @@
 
 importe Chaine
 importe Fondation
+importe Math
 importe Numérique
 
 /* ------------------------------------------------------------------------- */
@@ -57,13 +58,17 @@ importe Numérique
 
 TypeLexème :: énum n8 {
     Symbole :: 127
-    Nombre
     MotClé
     Ponctuation
     Commentaire
     EspaceBlanche
     FinDeFichier
     ChaineLittérale
+    LittéraleNombreEntier
+    LittéraleNombreRéel
+    CaractèreConstant
+
+    Nombre :: LittéraleNombreEntier
 }
 
 Nombre :: union {
@@ -77,6 +82,8 @@ Lexème :: struct {
 
     début: *z8
     fin: *z8
+
+    préfixe: chaine
 
     // Pour les nombres littéraux.
     suffixe: chaine
@@ -128,12 +135,18 @@ SimpleLexeuse :: struct {
 
     supporte_nombre_héxadécimaux_sans_préfixe: bool
 
+    /* Pour le rapport d'erreurs. */
+    chemin_fichier: chaine
     texte: chaine
 
     caractères_symboliques: chaine
     mots_clés: []chaine
     ponctuations: []chaine
     suffixes_nombres_littéraux: []chaine
+    préfixes_chaines_littérales: []chaine
+    préfixes_constantes_de_caractères: []chaine
+    // À FAIRE : utilise une meilleure manière de déterminer ceci
+    apostrophe_est_caractère_constant: bool
     commentaires_ligne_singulière: []chaine
     commentaires_multi_lignes: [][2]chaine
 
@@ -146,6 +159,9 @@ SimpleLexeuse :: struct {
     /* Pour lexer les commentaires en plusieurs fois (ligne par ligne). */
     dans_commentaire: bool
     paire_commentaire: [2]chaine
+
+    /* Fonction optionnelle utilisée pour lexer les littérales de nombre entier ou réel. */
+    sur_lexage_littérale_numérique: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 }
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
@@ -213,8 +229,50 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         retourne donne_lexème_ponctuation(lexeuse)
     }
 
+    si drapeaux.DébutePréfixeCaractère {
+        sauvegarde := lexeuse.début
+        préfixe_caractère := donne_préfixe_caractère(lexeuse)
+        si préfixe_caractère {
+            avance(lexeuse, préfixe_caractère.taille comme z32)
+
+            saufsi fini(lexeuse) {
+                c0 := donne_caractère_courant(lexeuse)
+                drapeaux0 := donne_drapeaux_caractère(lexeuse, c0)
+
+                si drapeaux0.DébuteCaractère {
+                    retourne donne_lexème_chaine_littérale(lexeuse, c0, TypeLexème.CaractèreConstant, préfixe_caractère)
+                }
+            }
+        }
+
+        lexeuse.début = sauvegarde
+    }
+
+    si drapeaux.DébuteCaractère {
+        retourne donne_lexème_chaine_littérale(lexeuse, c, TypeLexème.CaractèreConstant, "")
+    }
+
+    si drapeaux.DébutePréfixeChaine {
+        sauvegarde := lexeuse.début
+        préfixe_caractère := donne_préfixe_caractère(lexeuse)
+        si préfixe_caractère {
+            avance(lexeuse, préfixe_caractère.taille comme z32)
+
+            saufsi fini(lexeuse) {
+                c0 := donne_caractère_courant(lexeuse)
+                drapeaux0 := donne_drapeaux_caractère(lexeuse, c0)
+
+                si drapeaux0.DébuteChaineLittérale {
+                    retourne donne_lexème_chaine_littérale(lexeuse, c0, TypeLexème.ChaineLittérale, préfixe_caractère)
+                }
+            }
+        }
+
+        lexeuse.début = sauvegarde
+    }
+
     si drapeaux.DébuteChaineLittérale {
-        retourne donne_lexème_chaine_littérale(lexeuse, c)
+        retourne donne_lexème_chaine_littérale(lexeuse, c, TypeLexème.ChaineLittérale, "")
     }
 
     si drapeaux.Numérique {
@@ -227,7 +285,7 @@ donne_lexème_suivant :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
     ligne := donne_ligne_pour_erreur(lexeuse)
     imprimeln("%", ligne.texte)
-    imprimeln("Caractère inconnu : % (drapeaux %)", chaine(*c, 1), drapeaux)
+    imprimeln("Caractère inconnu : '%' (%, drapeaux %)", chaine(*c, 1), c, drapeaux)
     retourne Lexème(type = TypeLexème.FinDeFichier)
 }
 
@@ -413,7 +471,11 @@ DrapeauxCaractère :: énum_drapeau n16 {
     ChiffreHexadécimal
     HorsChiffreHexadécimal
 
+    DébutePréfixeChaine
     DébuteChaineLittérale
+
+    DébutePréfixeCaractère    
+    DébuteCaractère
 
     DébuteCommentaireLigneSingulière
     DébuteCommentaireMultiLignes
@@ -486,6 +548,7 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
 
     lexeuse.table_drapeaux_caractère['\n'] |= DrapeauxCaractère.NouvelleLigne | DrapeauxCaractère.EspaceBlanche
 
+    lexeuse.table_drapeaux_caractère['\f'] |= DrapeauxCaractère.EspaceBlanche
     lexeuse.table_drapeaux_caractère['\r'] |= DrapeauxCaractère.EspaceBlanche
     lexeuse.table_drapeaux_caractère['\t'] |= DrapeauxCaractère.EspaceBlanche
     lexeuse.table_drapeaux_caractère['\v'] |= DrapeauxCaractère.EspaceBlanche
@@ -494,7 +557,12 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
     lexeuse.table_drapeaux_caractère['.'] |= DrapeauxCaractère.Ponctuation | DrapeauxCaractère.DébutePartDécimale
 
     lexeuse.table_drapeaux_caractère['"'] |= DrapeauxCaractère.DébuteChaineLittérale
-    lexeuse.table_drapeaux_caractère['\''] |= DrapeauxCaractère.DébuteChaineLittérale
+    si lexeuse.apostrophe_est_caractère_constant {
+        lexeuse.table_drapeaux_caractère['\''] |= DrapeauxCaractère.DébuteCaractère
+    }
+    sinon {
+        lexeuse.table_drapeaux_caractère['\''] |= DrapeauxCaractère.DébuteChaineLittérale
+    }
 
     pour lexeuse.ponctuations {
         pour c dans it {
@@ -502,29 +570,32 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
         }
     }
 
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.préfixes_chaines_littérales, DrapeauxCaractère.DébutePréfixeChaine)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.préfixes_constantes_de_caractères, DrapeauxCaractère.DébutePréfixeCaractère)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.suffixes_nombres_littéraux, DrapeauxCaractère.DébuteSuffixeNombre)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.commentaires_ligne_singulière, DrapeauxCaractère.DébuteCommentaireLigneSingulière)
+    définis_drapeau_depuis_premier_caractère(lexeuse, lexeuse.commentaires_multi_lignes, DrapeauxCaractère.DébuteCommentaireMultiLignes)
+}
 
-    pour lexeuse.suffixes_nombres_littéraux {
+définis_drapeau_depuis_premier_caractère :: fonc (lexeuse: *SimpleLexeuse, chaines: []chaine, drapeau: DrapeauxCaractère)
+{
+    pour chaines {
         si it.taille == 0 {
             continue
         }
 
-        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= DrapeauxCaractère.DébuteSuffixeNombre
+        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= drapeau
     }
+}
 
-    pour lexeuse.commentaires_ligne_singulière {
-        si it.taille == 0 {
-            continue
-        }
-
-        lexeuse.table_drapeaux_caractère[it[0] comme n8] |= DrapeauxCaractère.DébuteCommentaireLigneSingulière
-    }
-
-    pour lexeuse.commentaires_multi_lignes {
+définis_drapeau_depuis_premier_caractère :: fonc (lexeuse: *SimpleLexeuse, chaines: [][2]chaine, drapeau: DrapeauxCaractère)
+{
+    pour chaines {
         si it[0].taille == 0 {
             continue
         }
 
-        lexeuse.table_drapeaux_caractère[it[0][0] comme n8] |= DrapeauxCaractère.DébuteCommentaireMultiLignes
+        lexeuse.table_drapeaux_caractère[it[0][0] comme n8] |= drapeau
     }
 }
 
@@ -694,7 +765,7 @@ donne_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, drapeaux: DrapeauxCaract
 
 donne_type_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine, drapeaux: DrapeauxCaractère) -> TypeLexème
 {
-    si drapeaux.ChiffreHexadécimal && drapeaux.HorsChiffreHexadécimal == faux {
+    si drapeaux.ChiffreHexadécimal && drapeaux.HorsChiffreHexadécimal == faux && lexeuse.supporte_nombre_héxadécimaux_sans_préfixe {
         retourne TypeLexème.Nombre
     }
 
@@ -715,7 +786,7 @@ donne_type_lexème_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine, drap
     retourne TypeLexème.Symbole
 }
 
-donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8) -> Lexème
+donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8, type: TypeLexème, préfixe: chaine) -> Lexème
 {
     lexeuse.avance()
 
@@ -746,11 +817,15 @@ donne_lexème_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse, début: z8) ->
         fin_lexème += 1
     }
 
-    retourne Lexème(type = TypeLexème.ChaineLittérale, début = début_lexème, fin = fin_lexème)
+    retourne Lexème(type = type, début = début_lexème, fin = fin_lexème, préfixe = préfixe)
 }
 
 donne_lexème_numérique :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
+    si lexeuse.sur_lexage_littérale_numérique {
+        retourne lexeuse.sur_lexage_littérale_numérique(lexeuse)
+    }
+
     début_lexème := lexeuse.début
     fin_lexème := début_lexème
 
@@ -847,11 +922,10 @@ consomme_espace_blanches :: fonc (lexeuse: *SimpleLexeuse)
             
             tantque !fini(lexeuse) {
                 c = donne_caractère_courant(lexeuse)
-                lexeuse.avance()
-
                 si c == '\n' {
                     arrête
                 }
+                lexeuse.avance()
             }
 
             si lexeuse.options.INCLUS_ESPACE_BLANCHES {
@@ -926,6 +1000,28 @@ donne_paire_commentaire_multilignes :: fonc (lexeuse: *SimpleLexeuse) -> Optionn
             retourne it
         }
     }
+}
+
+donne_préfixe_caractère :: fonc (lexeuse: *SimpleLexeuse) -> chaine
+{
+    texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début)
+    pour lexeuse.préfixes_constantes_de_caractères {
+        si texte.commence_par(it[0]) {
+            retourne it
+        }
+    }
+    retourne ""
+}
+
+donne_préfixe_chaine :: fonc (lexeuse: *SimpleLexeuse) -> chaine
+{
+    texte := chaine(lexeuse.début, lexeuse.fin - lexeuse.début)
+    pour lexeuse.préfixes_chaines_littérales {
+        si texte.commence_par(it[0]) {
+            retourne it
+        }
+    }
+    retourne ""
 }
 
 donne_drapeaux_caractère :: fonc (lexeuse: *SimpleLexeuse, c: z8) -> DrapeauxCaractère
@@ -1060,12 +1156,12 @@ __mots_clés_cpp := [
 
 __ponctuation_c := [
     "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
-    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "->", "<<", ">>", "<<=", ">>="
+    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "##", "->", "<<", ">>", "<<=", ">>=", "\\"
 ]
 
 __ponctuation_cpp := [
     "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
-    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "::", "->", "<<", ">>", "<<=", ">>="
+    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "##", "::", "->", "<<", ">>", "<<=", ">>=", "\\"
 ]
 
 __commentaires_ligne_singulière_c := [ "//" ]
@@ -1073,24 +1169,212 @@ __commentaires_multi_lignes_c := [ ["/*", "*/"] ]
 
 __suffixes_nombres_littéraux_c := ["f", "u", "U", "l", "L", "ll", "LL", "llu", "LLU", "z", "Z"]
 
+__préfixes_constantes_de_caractères_c := ["L", "u", "U"]
+__préfixes_chaines_littérales_c := ["u8", "u", "U", "L"]
+
+parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    début_lexème := lexeuse.début
+    fin_lexème := début_lexème
+
+    c := donne_caractère_courant(lexeuse)
+
+    nombre_entier: n64 = 0
+
+    si c == '0' {
+        fin_lexème += 1
+        lexeuse.avance()
+
+        saufsi fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            si c == 'x' || c == 'X' {
+                fin_lexème += 1
+                lexeuse.avance()
+
+                début_nombre := fin_lexème
+                fin_nombre := début_nombre
+
+                tantque !fini(lexeuse) {
+                    c = donne_caractère_courant(lexeuse)
+                    drapeaux := donne_drapeaux_caractère(lexeuse, c)
+
+                    saufsi drapeaux.ChiffreHexadécimal {
+                        arrête
+                    }
+
+                    fin_lexème += 1
+                    fin_nombre += 1
+                    lexeuse.avance()
+                }
+
+                texte_nombre := chaine(début_nombre, fin_nombre - début_nombre)
+                nombre_entier = tente parse_hexadécimal_n64(texte_nombre) piège nonatteignable
+            }
+            sinon si c != '.' {
+                tantque '0' <= c <= '7' {
+                    nombre_entier *= 8
+                    nombre_entier += (c - '0') comme n64
+
+                    fin_lexème += 1
+                    lexeuse.avance()
+                    c = donne_caractère_courant(lexeuse)
+                }
+            }
+        }
+    }
+    sinon si '1' <= c <= '9' {
+        tantque '0' <= c <= '9' {
+            nombre_entier *= 10
+            nombre_entier += (c - '0') comme n64
+
+            fin_lexème += 1
+            lexeuse.avance()
+            c = donne_caractère_courant(lexeuse)
+        }
+    }
+
+    est_nombre_réel := faux
+    nombre_réel: r64
+
+    si c == '.' {
+        est_nombre_réel = vrai
+        fin_lexème += 1
+        lexeuse.avance()
+        nombre_réel = nombre_entier comme r64
+
+        diviseur := 10.0
+
+        tantque !fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            saufsi '0' <= c <= '9' {
+                arrête
+            }
+            fin_lexème += 1
+            lexeuse.avance()
+
+            valeur := (c - '0') comme r64
+            nombre_réel += valeur / diviseur
+
+            diviseur *= 10.0
+        }
+    }
+
+    exposant: r64
+    possède_exposant := faux
+    si c == 'e' || c == 'E' {
+        saufsi est_nombre_réel {
+            nombre_réel = nombre_entier comme r64
+        }
+
+        est_nombre_réel = vrai
+        possède_exposant = vrai
+        fin_lexème += 1
+        lexeuse.avance()
+
+        signe := '+'
+
+        saufsi fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            si c == '-' || c == '+' {
+                signe = c
+                fin_lexème += 1
+                avance(lexeuse)
+            }
+        }
+
+        tantque !fini(lexeuse) {
+            c = donne_caractère_courant(lexeuse)
+            saufsi '0' <= c <= '9' {
+                arrête
+            }
+            exposant *= 10.0
+            exposant += (c - '0') comme r64
+            fin_lexème += 1
+            lexeuse.avance()
+        }
+
+        si signe == '-' {
+            exposant = -exposant
+        }
+    }
+
+    résultat: Lexème
+
+    si est_nombre_réel {
+        si possède_exposant {
+            nombre_réel *= puissance(10.0, exposant)
+        }
+
+        suffixe: chaine
+        si c == 'f' || c == 'F' || c == 'l' || c == 'L' {
+            suffixe = chaine(fin_lexème, 1)
+            fin_lexème += 1
+            avance(lexeuse)
+        }
+
+        résultat.type = TypeLexème.LittéraleNombreRéel
+        résultat.nombre.réel = nombre_réel
+        résultat.début = début_lexème
+        résultat.fin = fin_lexème
+        résultat.suffixe = suffixe
+    }
+    sinon {
+        suffixe: chaine
+        si c == 'l' || c == 'L' || c == 'u' || c == 'U' {
+            suffixe = chaine(fin_lexème, 1)
+            fin_lexème += 1
+            avance(lexeuse)
+
+            tantque !fini(lexeuse) {
+                c = donne_caractère_courant(lexeuse)
+                saufsi (c == 'l' || c == 'L' || c == 'u' || c == 'U') {
+                    arrête
+                }
+
+                suffixe.taille += 1
+                fin_lexème += 1
+                avance(lexeuse)
+            }
+
+            // À FAIRE : valide suffixe
+        }
+
+        résultat.type = TypeLexème.LittéraleNombreEntier
+        résultat.début = début_lexème
+        résultat.fin = fin_lexème
+        résultat.nombre.naturel = nombre_entier
+        résultat.suffixe = suffixe
+    }
+
+    retourne résultat
+}
+
 #portée_export
 
 initialise_lexeuse_c :: fonc (lexeuse: *SimpleLexeuse)
 {
     lexeuse.ponctuations = __ponctuation_c
+    lexeuse.sur_lexage_littérale_numérique = parse_lexème_numérique_c
     lexeuse.mots_clés = __mots_clés_c
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c
     lexeuse.suffixes_nombres_littéraux = __suffixes_nombres_littéraux_c
+    lexeuse.préfixes_constantes_de_caractères = __préfixes_constantes_de_caractères_c
+    lexeuse.préfixes_chaines_littérales = __préfixes_chaines_littérales_c
+    lexeuse.apostrophe_est_caractère_constant = vrai
 }
 
 initialise_lexeuse_cpp :: fonc (lexeuse: *SimpleLexeuse)
 {
     lexeuse.ponctuations = __ponctuation_cpp
+    lexeuse.sur_lexage_littérale_numérique = parse_lexème_numérique_c
     lexeuse.mots_clés = __mots_clés_cpp
     lexeuse.commentaires_ligne_singulière = __commentaires_ligne_singulière_c
     lexeuse.commentaires_multi_lignes = __commentaires_multi_lignes_c
     lexeuse.suffixes_nombres_littéraux = __suffixes_nombres_littéraux_c
+    lexeuse.préfixes_constantes_de_caractères = __préfixes_constantes_de_caractères_c
+    lexeuse.préfixes_chaines_littérales = __préfixes_chaines_littérales_c
+    lexeuse.apostrophe_est_caractère_constant = vrai
 }
 
 /** \} */
