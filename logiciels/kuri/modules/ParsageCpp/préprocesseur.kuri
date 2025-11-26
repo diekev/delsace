@@ -690,16 +690,22 @@ InfosDéveloppementMacro :: struct {
 
 développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
-    lexèmes: [..]Lexème
+    lexèmes := développe_macro(préprocesseur, infos)
     diffère déloge(lexèmes)
-    développe_macro(*lexèmes, préprocesseur, infos, 0)
 
     pour lexèmes {
         ajoute_au_tampon(sortie, donne_texte(it))
     }
 }
 
-développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
+développe_macro :: fonc (préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro) -> [..]Lexème
+{
+    résultat: [..]Lexème
+    développe_macro_impl(*résultat, préprocesseur, infos, 0)
+    retourne résultat
+}
+
+développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
 {
     si profondeur > 64 {
         rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
@@ -777,7 +783,7 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
             infos_développement: InfosDéveloppementMacro
             infos_développement.macro = définition
             infos_développement.arguments = paramètres_définition
-            développe_macro(sortie, préprocesseur, *infos_développement, profondeur + 1)
+            développe_macro_impl(sortie, préprocesseur, *infos_développement, profondeur + 1)
         }
         sinon {
             émets_lexème_pour_développement(préprocesseur, sortie, *parseuse, infos, lexème)
@@ -946,7 +952,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             infos_développement: InfosDéveloppementMacro
             infos_développement.macro = définition
             infos_développement.arguments = arguments_définition
-            développe_macro(*résultat, préprocesseur, *infos_développement, profondeur + 1)
+            développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1)
         }
         sinon {
             tableau_ajoute(*résultat, lexème)
@@ -1935,13 +1941,11 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
                 rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", texte, définition.paramètres.taille, tranches_paramètres.taille)
             }
 
-            lexèmes: [..]Lexème
-            diffère déloge(lexèmes)
-
             infos: InfosDéveloppementMacro
             infos.macro = définition
             infos.arguments = tranches_paramètres
-            développe_macro(*lexèmes, préprocesseur, *infos, 0)
+            lexèmes := développe_macro(préprocesseur, *infos)
+            diffère déloge(lexèmes)
 
             // supprime espace blanches
             début := lexèmes.pointeur
