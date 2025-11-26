@@ -734,7 +734,7 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+            si macro_ne_définis_que_son_nom(définition) /* || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") */ {
                 tableau_ajoute(sortie, lexème)
                 continue
             }
@@ -918,7 +918,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+            si macro_ne_définis_que_son_nom(définition) /* || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") */ {
                 tableau_ajoute(*résultat, lexème)
                 continue
             }
