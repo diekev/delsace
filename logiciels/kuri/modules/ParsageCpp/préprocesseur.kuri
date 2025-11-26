@@ -760,8 +760,12 @@ développe_lexèmes :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesse
             paramètres_définition: [..][..]Lexème
             diffère déloge_tableau_et_ses_éléments(paramètres_définition)
 
+            sauvegarde_position(*parseuse)
+            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+
             si définition.paramètres {
                 si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    restaure_position(*parseuse)
                     tableau_ajoute(sortie, lexème)
                     continue
                 }
@@ -949,8 +953,12 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             arguments_définition: [..][..]Lexème
             diffère déloge_tableau_et_ses_éléments(arguments_définition)
 
+            sauvegarde_position(*parseuse)
+            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+
             si définition.paramètres {
                 si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    restaure_position(*parseuse)
                     tableau_ajoute(*résultat, lexème)
                     continue
                 }
@@ -1609,6 +1617,7 @@ ExpressionTernaire :: struct {
 SimpleParseuse :: struct {
     lexèmes: []Lexème
     curseur: z64
+    position_sauvegardée: z64
 }
 
 fini :: fonc (empl parseuse: *SimpleParseuse) -> bool
@@ -1624,6 +1633,33 @@ donne_lexème_suivant :: fonc (empl parseuse: *SimpleParseuse) -> Lexème
 avance :: fonc (empl parseuse: *SimpleParseuse)
 {
     curseur += 1
+}
+
+sauvegarde_position :: fonc (empl parseuse: *SimpleParseuse)
+{
+    position_sauvegardée = curseur
+}
+
+restaure_position :: fonc (empl parseuse: *SimpleParseuse)
+{
+    curseur = position_sauvegardée
+}
+
+saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
+{
+    tantque !fini(parseuse) {
+        lexème := donne_lexème_suivant(parseuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+        si est_lexème_nouvelle_ligne(lexème) {
+            arrête
+        }
+        si lexème.type != TypeLexème.EspaceBlanche {
+            arrête
+        }
+        avance(parseuse)
+    }
 }
 
 parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]Lexème
@@ -1652,13 +1688,15 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]Lexème
             init_de([..]Lexème)(*tranche_courante)
             continue
         }
-        saufsi lexème.type == TypeLexème.EspaceBlanche {
-            tableau_ajoute(*tranche_courante, lexème)
-        }
+        tableau_ajoute(*tranche_courante, lexème)
     }
 
     si tranche_courante {
         tableau_ajoute(*résultat, tranche_courante)
+    }
+
+    pour * résultat {
+        supprime_espace_blanches_autour(it)
     }
 
     // pour résultat {
@@ -1944,6 +1982,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         texte = donne_texte(lexème)
 
         définition := donne_définition(préprocesseur, texte)
+        saute_espaces_blanches_sauf_nouvelle_ligne(parseuse)
 
         saufsi fini(parseuse) {
             lexème = donne_lexème_suivant(parseuse)
@@ -2220,6 +2259,21 @@ supprime_espace_blanches_autour :: fonc (lexèmes: []Lexème) -> []Lexème
     }
 
     retourne résultat
+}
+
+supprime_espace_blanches_autour :: fonc (lexèmes: *[..]Lexème)
+{
+    tmp: []Lexème = mémoire(lexèmes)
+    tmp = supprime_espace_blanches_autour(tmp)
+
+    insertion := lexèmes.pointeur
+
+    pour tmp {
+        mémoire(insertion) = it
+        insertion += 1
+    }
+
+    lexèmes.taille = tmp.taille
 }
 
 donne_texte_sans_guillemets :: fonc (lexème: Lexème) -> chaine
