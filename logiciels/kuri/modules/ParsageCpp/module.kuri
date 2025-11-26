@@ -9,6 +9,7 @@ importe SysFichier
 
 charge "arbre_syntaxique"
 charge "fichier_source"
+charge "préprocesseur"
 charge "parseuse"
 
 est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
