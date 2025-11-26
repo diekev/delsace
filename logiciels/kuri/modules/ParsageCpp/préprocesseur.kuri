@@ -702,7 +702,14 @@ développe_macro :: fonc (préprocesseur: *PréProcesseur, infos: *InfosDévelop
 {
     résultat: [..]Lexème
     développe_macro_impl(*résultat, préprocesseur, infos, 0)
-    retourne résultat
+
+    // À FAIRE : détermine proprement quand redévelopper les lexèmes.
+    tmp: [..]Lexème
+    développe_lexèmes(*tmp, préprocesseur, infos, 0, résultat)
+
+    déloge(résultat)
+
+    retourne tmp
 }
 
 développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
@@ -731,8 +738,13 @@ développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProces
     //     imprimeln("")
     // }
 
+    développe_lexèmes(sortie, préprocesseur, infos, profondeur, infos.macro.lexèmes)
+}
+
+développe_lexèmes :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32, lexèmes: []Lexème)
+{
     parseuse: SimpleParseuse
-    parseuse.lexèmes = infos.macro.lexèmes
+    parseuse.lexèmes = lexèmes
 
     tantque !fini(*parseuse) {
         lexème := donne_lexème_suivant(*parseuse)
@@ -740,7 +752,7 @@ développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProces
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) /* || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") */ {
+            si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(sortie, lexème)
                 continue
             }
@@ -749,6 +761,11 @@ développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProces
             diffère déloge_tableau_et_ses_éléments(paramètres_définition)
 
             si définition.paramètres {
+                si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    tableau_ajoute(sortie, lexème)
+                    continue
+                }
+
                 lexème = donne_lexème_suivant(*parseuse)
                 tantque lexème.type == TypeLexème.EspaceBlanche {
                     avance(*parseuse)
@@ -924,7 +941,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) /* || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") */ {
+            si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(*résultat, lexème)
                 continue
             }
@@ -933,6 +950,11 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             diffère déloge_tableau_et_ses_éléments(arguments_définition)
 
             si définition.paramètres {
+                si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    tableau_ajoute(*résultat, lexème)
+                    continue
+                }
+
                 lexème = donne_lexème_suivant(*parseuse)
                 tantque lexème.type == TypeLexème.EspaceBlanche {
                     avance(*parseuse)
