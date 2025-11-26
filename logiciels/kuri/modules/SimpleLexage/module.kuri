@@ -709,14 +709,22 @@ donne_lexème_ponctuation :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             arrête
         }
 
-        ponctuation := chaine(début_lexème, fin_lexème - début_lexème + 1)
-        saufsi est_ponctuation(lexeuse, ponctuation) {
-            arrête
-        }
-
         lexeuse.avance()
         fin_lexème += 1
     }
+
+    candidat := chaine(début_lexème, fin_lexème - début_lexème)
+
+    /* Comparons avec 1 puisque nous savons que nous avons une ponctuation. */
+    tantque candidat.taille > 1 {
+        si est_ponctuation(lexeuse, candidat) {
+            arrête
+        }
+        candidat.taille -= 1
+    }
+
+    fin_lexème = début_lexème + candidat.taille
+    lexeuse.début = fin_lexème
 
     retourne Lexème(type = TypeLexème.Ponctuation, début = début_lexème, fin = fin_lexème)
 }
