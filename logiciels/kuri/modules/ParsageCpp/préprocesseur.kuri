@@ -328,10 +328,14 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
 
         si est_ponctuation(lexème, "#") {
             lexème_directive := lexème
-            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+            lexème = donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne(lexeuse)
             si lexème.type == TypeLexème.FinDeFichier {
                 rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès")
                 exit(1)
+            }
+
+            si est_lexème_nouvelle_ligne(lexème) {
+                continue
             }
 
             texte := donne_texte(lexème)
@@ -521,7 +525,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
                     rapporte_erreur(préprocesseur, "#pragma inconnu")
                 }
             }
-            sinon {
+            sinon si texte != "" {
                 rapporte_erreur(préprocesseur, "Directive inconnue : %", texte)
             }
 
@@ -2085,6 +2089,15 @@ donne_lexème_suivant_sauf_espace_blanche :: fonc (lexeuse: *SimpleLexeuse) -> L
 {
     résultat := donne_lexème_suivant(lexeuse)
     tantque résultat.type == TypeLexème.EspaceBlanche {
+        résultat = donne_lexème_suivant(lexeuse)
+    }
+    retourne résultat
+}
+
+donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    résultat := donne_lexème_suivant(lexeuse)
+    tantque résultat.type == TypeLexème.EspaceBlanche && donne_texte(résultat) != "\n" {
         résultat = donne_lexème_suivant(lexeuse)
     }
     retourne résultat
