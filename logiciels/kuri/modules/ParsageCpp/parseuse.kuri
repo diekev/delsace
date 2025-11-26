@@ -27,7 +27,7 @@ initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
 {
     parseuse.fichier = fichier
     initialise_lexeuse_cpp(*parseuse.lexeuse)
-    initialise_lexeuse_pour_texte(*parseuse.lexeuse, parseuse.fichier.contenu)
+    initialise_lexeuse_pour_texte(*parseuse.lexeuse, parseuse.fichier.contenu_cru)
 }
 
 sauvegarde_position :: fonc (parseuse: &Parseuse)
