@@ -230,7 +230,12 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     }
 
     ajoute_définition(préprocesseur, "__linux__", 1)
+    ajoute_définition(préprocesseur, "__unix__", 1)
     ajoute_définition(préprocesseur, "__x86_64__", 1)
+
+    ajoute_définition(préprocesseur, "__GNUC__", 12)
+    ajoute_définition(préprocesseur, "__STDC__", 1)
+
     ajoute_définition(préprocesseur, "__LP64__", 1)
 
     ajoute_définition(préprocesseur, "NDEBUG", 1)
@@ -243,9 +248,6 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffff_ffffffff)
 
     ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
-
-    ajoute_définition(préprocesseur, "__clang_minor__", 0)
-    ajoute_définition(préprocesseur, "__clang_major__", 0)
 
     définition := tableau_ajoute_élément(*préprocesseur.définitions)
     définition.nom = "__has_builtin"
