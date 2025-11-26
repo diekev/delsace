@@ -287,6 +287,11 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
     lexème.nombre.naturel = valeur
+
+    // @FuiteDeMémoire
+    texte := imprime_chaine("%", valeur)
+    lexème.début = texte.pointeur
+    lexème.fin = texte.pointeur + texte.taille
 }
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
