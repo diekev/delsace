@@ -13,6 +13,28 @@ Définition :: struct {
     sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème
 }
 
+peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> bool
+{
+    si définition.paramètres.taille == 0 {
+        retourne faux
+    }
+
+    si arguments <= définition.paramètres.taille {
+        retourne vrai
+    }
+
+    retourne est_variadique(définition)
+}
+
+est_variadique :: fonc (définition: *Définition) -> bool
+{
+    si définition.paramètres.taille == 0 {
+        retourne faux
+    }
+    dernier_paramètre := définition.paramètres[définition.paramètres.taille - 1]
+    retourne est_ponctuation(dernier_paramètre, "...")
+}
+
 donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z64
 {
     pour définition.paramètres {
@@ -569,7 +591,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
             parseuse.lexèmes = lexèmes_paramètres
 
             arguments = parse_tranche_arguments(*parseuse)
-            si arguments.taille > définition.paramètres.taille {
+            saufsi peut_accepter_arguments(définition, arguments.taille) {
                 rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
             }
         }
@@ -824,7 +846,7 @@ développe_lexèmes :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesse
                 }
             }
 
-            si paramètres_définition.taille > définition.paramètres.taille {
+            si définition.paramètres && !peut_accepter_arguments(définition, paramètres_définition.taille) {
                 rapporte_erreur_mécomptage_arguments(préprocesseur, définition, paramètres_définition.taille)
             }
 
@@ -1000,10 +1022,10 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                 }
                 avance(*parseuse)
                 arguments_définition = parse_tranche_arguments(*parseuse)
-            }
 
-            si arguments_définition.taille > définition.paramètres.taille {
-                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
+                saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
+                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
+                }
             }
 
             infos_développement: InfosDéveloppementMacro
@@ -2025,7 +2047,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
             tranches_paramètres := parse_tranche_arguments(parseuse)
             diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
 
-            si tranches_paramètres.taille > définition.paramètres.taille {
+            saufsi peut_accepter_arguments(définition, tranches_paramètres.taille) {
                 rapporte_erreur_mécomptage_arguments(préprocesseur, définition, tranches_paramètres.taille)
             }
 
