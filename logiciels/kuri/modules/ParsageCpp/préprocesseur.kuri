@@ -688,8 +688,7 @@ développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur,
     développe_macro(*lexèmes, préprocesseur, infos, 0)
 
     pour lexèmes {
-        // À FAIRE : comprend d'où vient le manque d'espace
-        ajoute_au_tampon(sortie, donne_texte(it), " ")
+        ajoute_au_tampon(sortie, donne_texte(it))
     }
 }
 
@@ -999,6 +998,7 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
 
     // imprimeln("drapeaux %", drapeaux)
 
+    eu_non_espace := faux
     si est_ponctuation(lexème, "(") && drapeaux.POSSÈDE_ARGUMENTS {
         boucle {
             lexème = donne_lexème_suivant(lexeuse)
@@ -1012,10 +1012,12 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
         }
     }
     sinon {
-        tableau_ajoute(*définition.lexèmes, lexème)
+        eu_non_espace = lexème.type != TypeLexème.EspaceBlanche
+        si eu_non_espace {
+            tableau_ajoute(*définition.lexèmes, lexème)
+        }
     }
 
-    eu_non_espace := faux
     boucle {
         lexème = donne_lexème_suivant(lexeuse)
         si lexème.type == TypeLexème.FinDeFichier {
