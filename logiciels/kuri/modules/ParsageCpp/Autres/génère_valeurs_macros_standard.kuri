@@ -1,0 +1,51 @@
+importe Fondation
+
+principale :: fonc ()
+{
+    macros := [
+        "__cpp_aligned_new",
+        "__cpp_lib_three_way_comparison",
+        "__cpp_deduction_guides",
+        "__cpp_concepts",
+        "__cpp_lib_concepts",
+        "__cpp_inline_variables",
+        "__cpp_sized_deallocation",
+        "__cpp_transactional_memory",
+        "__cpp_if_consteval",
+        "__cpp_noexcept_function_type",
+        "__cpp_exceptions",
+        "__STDC_HOSTED__",
+        "__FLT_MANT_DIG__",
+        "__DBL_MANT_DIG__",
+        "__SANITIZE_THREAD__",
+        "__GNUC__",
+        "__STDCPP_WANT_MATH_SPEC_FUNCS__",
+        "_GLIBCXX_HAVE_IS_CONSTANT_EVALUATED",
+        "_GLIBCXX_USE_C99_CHECK",
+        "_GLIBCXX_USE_C99_DYNAMIC",
+        "_GLIBCXX_USE_C99_LONG_LONG_CHECK",
+        "_GLIBCXX_USE_C99_LONG_LONG_DYNAMIC",
+        "__linux__",
+        "__x86_64__",
+        "__LP64__",
+        "__CHAR_BIT__",
+        "__SCHAR_MAX__",
+        "__SHRT_MAX__",
+        "__INT_MAX__",
+        "__LONG_MAX__",
+        "__FLT_EVAL_METHOD__",
+        "__clang_minor__",
+        "__clang_major__",
+        "__cplusplus",
+    ]
+
+    imprimeln("#include <stdio.h>\n")
+    imprimeln("int main(int argc, char **argv)")
+    imprimeln("{")
+    pour macros {
+        imprimeln("#ifdef %", it)
+        imprimeln("    printf(\"ajoute_définition(préprocesseur, \\\"%\\\", %)\\n\", %);", it, "%ld", it)
+        imprimeln("#endif")
+    }
+    imprimeln("}")
+}
