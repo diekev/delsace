@@ -570,7 +570,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
 
             arguments = parse_tranche_arguments(*parseuse)
             si arguments.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments.taille)
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
             }
         }
         infos_développement: InfosDéveloppementMacro
@@ -633,6 +633,33 @@ rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: 
 {
     rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
     exit(1)
+}
+
+rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, arguments_données: z64)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_dans_enchaineuse(*enchaineuse, "trop de paramètres pour '%', voulu %, obtenu %\n", définition.nom, définition.paramètres.taille, arguments_données)
+    imprime_dans_enchaineuse(*enchaineuse, "% fut défini comme tel :\n", définition.nom)
+    // À FAIRE : ligne exacte
+    ajoute_au_tampon(*enchaineuse, "#define ", définition.nom)
+    si définition.paramètres {
+        virgule := "("
+        pour définition.paramètres {
+            ajoute_au_tampon(*enchaineuse, virgule, donne_texte(it))
+            virgule = ", "
+        }
+        ajoute_au_tampon(*enchaineuse, ")")
+    }
+    si définition.lexèmes {
+        ajoute_au_tampon(*enchaineuse, " ")
+        pour définition.lexèmes {
+            ajoute_au_tampon(*enchaineuse, donne_texte(it))
+        }
+    }
+    ajoute_au_tampon(*enchaineuse, "\n")
+    message := chaine_depuis_enchaineuse(*enchaineuse)
+    rapporte_erreur(préprocesseur, "%", message)
 }
 
 rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
@@ -798,7 +825,7 @@ développe_lexèmes :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesse
             }
 
             si paramètres_définition.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, paramètres_définition.taille)
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, paramètres_définition.taille)
             }
 
             infos_développement: InfosDéveloppementMacro
@@ -976,7 +1003,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             }
 
             si arguments_définition.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments_définition.taille)
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
             }
 
             infos_développement: InfosDéveloppementMacro
@@ -1999,7 +2026,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
             diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
 
             si tranches_paramètres.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", texte, définition.paramètres.taille, tranches_paramètres.taille)
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, tranches_paramètres.taille)
             }
 
             infos: InfosDéveloppementMacro
