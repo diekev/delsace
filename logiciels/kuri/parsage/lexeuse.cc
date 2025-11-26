@@ -689,7 +689,14 @@ Lexème Lexeuse::lèxe_chaine_littérale()
     auto const ligne_début = m_compte_ligne;
 
     while (!this->fini()) {
-        if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
+        if (this->caractère_courant() == '\\') {
+            this->avance();
+            this->ajoute_caractère();
+            this->avance();
+            this->ajoute_caractère();
+            continue;
+        }
+        if (this->caractère_courant() == '"') {
             break;
         }
 
