@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <algorithm>
+#include <algorithm>  // pour std::max
 #include <atomic>
 #include <cassert>
 #include <string>

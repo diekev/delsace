@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstring>
-
 #include "utilitaires/logeuse_memoire.hh"
 
 #include "chaine_statique.hh"
