@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <algorithm>  // pour std::max
 #include <atomic>
 #include <cassert>
 #include <string>
@@ -147,8 +146,11 @@ struct logeuse_mémoire {
     inline void ajoute_memoire(int64_t taille)
     {
         this->mémoire_allouee += taille;
-        this->mémoire_consommee = std::max(this->mémoire_allouee.load(),
-                                           this->mémoire_consommee.load());
+        auto allouée = this->mémoire_allouee.load();
+        auto consommée = this->mémoire_consommee.load();
+        if (allouée > consommée) {
+            this->mémoire_consommee = allouée;
+        }
     }
 
     inline void enleve_memoire(int64_t taille)
