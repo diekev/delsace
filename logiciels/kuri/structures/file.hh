@@ -4,7 +4,6 @@
 #pragma once
 
 #include <algorithm>  // pour remove_if
-#include <queue>
 
 #include "tableau.hh"
 
