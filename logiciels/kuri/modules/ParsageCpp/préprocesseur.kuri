@@ -2143,8 +2143,93 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         }
         sinon {
             si texte_caractère[0] == '\\' {
-                si texte_caractère == "\0" {
-                    nombre.nombre = 0
+                texte_caractère = avance(texte_caractère, 1)
+                si texte_caractère[0] == 'x' {
+                    texte_caractère = avance(texte_caractère, 1)
+
+                    pour texte_caractère {
+                        nombre.nombre *= 16
+
+                        si '0' <= it <= '9' {
+                            nombre.nombre += (it - '0')
+                        }
+                        sinon si 'a' <= it <= 'f' {
+                            nombre.nombre += (it - 'a')
+                        }
+                        sinon si 'A' <= it <= 'F' {
+                            nombre.nombre += (it - 'A')
+                        }
+                        sinon {
+                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                        }
+                    }
+
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                }
+                sinon si texte_caractère[0] == 'a' {
+                    nombre.nombre = 7
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'b' {
+                    nombre.nombre = 8
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'f' {
+                    nombre.nombre = '\f'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'n' {
+                    nombre.nombre = '\n'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'r' {
+                    nombre.nombre = '\r'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 't' {
+                    nombre.nombre = '\t'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'v' {
+                    nombre.nombre = '\v'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '\'' {
+                    nombre.nombre = '\''
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '"' {
+                    nombre.nombre = '"'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '?' {
+                    nombre.nombre = '?'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '\\' {
+                    nombre.nombre = '\\'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si '0' <= texte_caractère[0] <= '7' {
+                    pour texte_caractère {
+                        nombre.nombre *= 8
+
+                        si '0' <= it <= '7' {
+                            nombre.nombre += (it - '0')
+                        }
+                        sinon {
+                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                        }
+                    }
+
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                }
+                sinon {
+                    rapporte_erreur(préprocesseur, "Séquence d'échappement invalide")
+                }
+
+                si texte_caractère {
+                    rapporte_erreur(préprocesseur, "Trop de caractères dans la constante de caractère")
                 }
             }
         }
