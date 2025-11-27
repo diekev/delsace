@@ -216,6 +216,9 @@ PréProcesseur :: struct {
 
     /* Pour __COUNTER__ */
     compteur: n64
+
+    envoie_messages_fichiers_ouverts: bool
+    avertis_sur_macro_non_définis: bool
 }
 
 LexeusePréProcès :: struct {
@@ -1276,7 +1279,9 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
 
     fichier.nombre_d_ouvertures += 1
 
-    envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+    si préprocesseur.envoie_messages_fichiers_ouverts {
+        envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+    }
 
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
     lexeuse.fichier = indice_fichier
@@ -1573,7 +1578,10 @@ ExpressionTernaire :: struct {
         }
         Symbole {
             symbole := expression comme *Symbole
-            rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+
+            si préprocesseur.avertis_sur_macro_non_définis {
+                rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+            }
         }
         OpérateurBinaire {
             opérateur_binaire := expression comme *OpérateurBinaire
