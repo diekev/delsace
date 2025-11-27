@@ -17,7 +17,7 @@ Définition :: struct {
 peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> bool
 {
     si définition.paramètres.taille == 0 {
-        retourne faux
+        retourne arguments == 0
     }
 
     si arguments <= définition.paramètres.taille {
