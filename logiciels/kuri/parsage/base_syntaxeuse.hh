@@ -3,13 +3,17 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
+#include "structures/chaine_statique.hh"
 #include "structures/tableau_statique.hh"
 #include "structures/tablet.hh"
 
 #include "utilitaires/chrono.hh"
 
 #include "lexemes.hh"
+
+namespace kuri {
+struct chaine;
+}
 
 struct Fichier;
 
