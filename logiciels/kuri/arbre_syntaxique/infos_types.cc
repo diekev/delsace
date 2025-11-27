@@ -3,6 +3,7 @@
 
 #include "infos_types.hh"
 
+#include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
@@ -10,7 +11,6 @@
 #include "utilitaires/log.hh"
 
 #include "cas_genre_noeud.hh"
-#include "espace_de_travail.hh"
 #include "noeud_code.hh"
 #include "utilitaires.hh"
 
