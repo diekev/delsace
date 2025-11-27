@@ -1,4 +1,5 @@
 importe Chaine
+importe Ensemble
 
 /* ------------------------------------------------------------------------- */
 /** \nom Définition
@@ -219,6 +220,8 @@ PréProcesseur :: struct {
 
     envoie_messages_fichiers_ouverts: bool
     avertis_sur_macro_non_définis: bool
+
+    macros_inconnus: [..]chaine
 }
 
 LexeusePréProcès :: struct {
@@ -1582,6 +1585,8 @@ ExpressionTernaire :: struct {
             si préprocesseur.avertis_sur_macro_non_définis {
                 rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
             }
+
+            ensemble_ajoute(*préprocesseur.macros_inconnus, symbole.texte)
         }
         OpérateurBinaire {
             opérateur_binaire := expression comme *OpérateurBinaire
