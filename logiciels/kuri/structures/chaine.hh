@@ -243,8 +243,8 @@ template <>
 struct hash<kuri::chaine> {
     std::size_t operator()(kuri::chaine const &chn) const
     {
-        auto h = std::hash<std::string_view>{};
-        return h(std::string_view(chn.pointeur(), static_cast<size_t>(chn.taille())));
+        auto h = std::hash<kuri::chaine_statique>{};
+        return h(kuri::chaine_statique(chn.pointeur(), static_cast<size_t>(chn.taille())));
     }
 };
 
