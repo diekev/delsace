@@ -454,7 +454,7 @@ FormatEntier :: struct {
 donne_format_entier_contexte :: fonc (valeur: eini) -> FormatEntier
 {
     résultat := contexte().format_entier
-    #arrêt_débug
+    // #arrêt_débug
     résultat.valeur = valeur
     retourne résultat
 }
@@ -462,7 +462,7 @@ donne_format_entier_contexte :: fonc (valeur: eini) -> FormatEntier
 donne_format_entier_contexte_pour_base :: fonc (valeur: eini, base: z32) -> FormatEntier
 {
     résultat := contexte().format_entier
-    #arrêt_débug
+    // #arrêt_débug
     résultat.valeur = valeur
     résultat.base = base
     retourne résultat
