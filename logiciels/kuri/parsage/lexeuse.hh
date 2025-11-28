@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "structures/chaine.hh"
 
 #include "utilitaires/macros.hh"
