@@ -247,6 +247,14 @@ static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Type &l
     return log_debug << str;
 }
 
+static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::FunctionType &llvm_value)
+{
+    std::string str;
+    llvm::raw_string_ostream ss(str);
+    ss << llvm_value;
+    return log_debug << str;
+}
+
 /* ************************************************************************** */
 
 static llvm::StringRef vers_string_ref(kuri::chaine_statique chaine)
