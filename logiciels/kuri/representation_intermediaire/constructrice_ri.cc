@@ -5087,6 +5087,11 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     fonction_init->instructions.ajoute(di);
 
     définis_fonction_courante(nullptr);
+
+    if (fonction_init->decl &&
+        fonction_init->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+        dbg() << imprime_fonction(fonction_init);
+    }
 }
 
 void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
