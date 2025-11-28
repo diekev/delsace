@@ -556,6 +556,14 @@ struct InfoPositionDébogage {
     uint32_t colonne = 0;
 };
 
+enum class DonneTypePour : int8_t {
+    FONCTION,
+    PARAMÈTRE,
+    RUBRIQUE,
+    SOUS_TYPE,
+    VARIABLE,
+};
+
 struct InfoDébogageLLVM {
     EspaceDeTravail *espace = nullptr;
     llvm::DICompileUnit *unit = nullptr;
@@ -569,11 +577,14 @@ struct InfoDébogageLLVM {
         delete dibuilder;
     }
 
-    llvm::DIType *donne_type(Type const *type)
+    llvm::DIType *donne_type(Type const *type, DonneTypePour donne_type_pour)
     {
         auto ditype = table_types.valeur_ou(type, nullptr);
 
         if (ditype != nullptr) {
+            if (type->est_type_fonction() && donne_type_pour != DonneTypePour::FONCTION) {
+                ditype = dibuilder->createPointerType(ditype, 8 * type->taille_octet);
+            }
             return ditype;
         }
 
@@ -595,7 +606,8 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
-                auto type_pointé = donne_type(espace->typeuse.type_octet);
+                auto type_pointé = donne_type(espace->typeuse.type_octet,
+                                              DonneTypePour::SOUS_TYPE);
                 ditype = dibuilder->createPointerType(type_pointé, 8 * type->taille_octet);
                 break;
             }
@@ -728,7 +740,7 @@ struct InfoDébogageLLVM {
                     type_deref = espace->typeuse.type_z8;
                 }
 
-                auto ditypederef = donne_type(type_deref);
+                auto ditypederef = donne_type(type_deref, DonneTypePour::SOUS_TYPE);
                 ditype = dibuilder->createPointerType(ditypederef, 8 * type->taille_octet);
                 break;
             }
@@ -777,7 +789,7 @@ struct InfoDébogageLLVM {
                         auto décalage_rubrique = 8 * it.décalage;
                         // À FAIRE : llvm::DINode::DIFlags
                         auto flags_rubrique = llvm::DINode::DIFlags(0);
-                        auto type_rubrique = donne_type(it.type);
+                        auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
                         auto rubrique = dibuilder->createMemberType(scope,
                                                                     nom_rubrique,
@@ -814,7 +826,7 @@ struct InfoDébogageLLVM {
                 auto type_var = type->comme_type_variadique();
                 /* Utilisons le type tranche afin que le code IR LLVM utilise le type final. */
                 if (type_var->type_tranche != nullptr) {
-                    ditype = donne_type(type_var->type_tranche);
+                    ditype = donne_type(type_var->type_tranche, donne_type_pour);
                 }
                 break;
             }
@@ -834,7 +846,8 @@ struct InfoDébogageLLVM {
 
                 auto size = uint64_t(type_tableau->taille);
                 auto alignement_en_bits = 8 * type->alignement;
-                auto type_élément = donne_type(type_déréférencé_pour(type));
+                auto type_élément = donne_type(type_déréférencé_pour(type),
+                                               DonneTypePour::SOUS_TYPE);
 
                 auto subscript = dibuilder->getOrCreateSubrange(0, type_tableau->taille);
                 auto subscripts = std::vector<llvm::Metadata *>();
@@ -856,7 +869,8 @@ struct InfoDébogageLLVM {
                 auto numéro_ligne = uint32_t(type->lexème->ligne + 1);
                 auto taille_en_bits = 8 * type->taille_octet;
                 auto alignement_en_bits = 8 * type->alignement;
-                auto type_sous_jacent = donne_type(type_énum->type_sous_jacent);
+                auto type_sous_jacent = donne_type(type_énum->type_sous_jacent,
+                                                   DonneTypePour::SOUS_TYPE);
 
                 auto éléments = std::vector<llvm::Metadata *>();
 
@@ -878,7 +892,7 @@ struct InfoDébogageLLVM {
                     auto décalage_rubrique = uint32_t(0);
                     // À FAIRE : llvm::DINode::DIFlags
                     auto flags_rubrique = llvm::DINode::DIFlags(0);
-                    auto type_rubrique = donne_type(it.type);
+                    auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
                     auto rubrique = dibuilder->createMemberType(scope,
                                                                 nom_rubrique,
@@ -906,7 +920,7 @@ struct InfoDébogageLLVM {
             case GenreNoeud::DÉCLARATION_OPAQUE:
             {
                 auto type_opaque = type->comme_type_opaque();
-                ditype = donne_type(type_opaque->type_opacifié);
+                ditype = donne_type(type_opaque->type_opacifié, DonneTypePour::SOUS_TYPE);
                 break;
             }
             CAS_POUR_NOEUDS_HORS_TYPES:
@@ -919,6 +933,9 @@ struct InfoDébogageLLVM {
 
         table_types.efface(type);
         table_types.insère(type, ditype);
+        if (type->est_type_fonction() && donne_type_pour != DonneTypePour::FONCTION) {
+            ditype = dibuilder->createPointerType(ditype, 8 * type->taille_octet);
+        }
         return ditype;
     }
 
@@ -932,11 +949,11 @@ struct InfoDébogageLLVM {
         auto types = std::vector<llvm::Metadata *>();
 
         if (!stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
-            types.push_back(donne_type(type->type_sortie));
+            types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
         }
 
         POUR (type->types_entrées) {
-            auto type_die = donne_type(it);
+            auto type_die = donne_type(it, DonneTypePour::SOUS_TYPE);
             if (stockage_type_doit_utiliser_memcpy(it)) {
                 type_die = dibuilder->createPointerType(type_die, 8 * it->taille_octet);
             }
@@ -944,7 +961,7 @@ struct InfoDébogageLLVM {
         }
 
         if (stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
-            auto type_die = donne_type(type->type_sortie);
+            auto type_die = donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE);
             type_die = dibuilder->createPointerType(type_die, 8 * type->type_sortie->taille_octet);
             types.push_back(type_die);
         }
@@ -1004,7 +1021,7 @@ struct InfoDébogageLLVM {
             auto décalage_rubrique = 8 * it.décalage;
             // À FAIRE : llvm::DINode::DIFlags
             auto flags_rubrique = llvm::DINode::DIFlags(0);
-            auto type_rubrique = donne_type(it.type);
+            auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
             auto rubrique = dibuilder->createMemberType(fichier,
                                                         nom_rubrique,
@@ -1747,7 +1764,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             if (info_débogage_fonction) {
                 auto alloc_name = vers_string_ref(alloc->ident);
                 auto pos = m_info_débogage->donne_info_position(alloc->site);
-                auto type_alloc = m_info_débogage->donne_type(alloc->donne_type_alloué());
+                auto type_alloc = m_info_débogage->donne_type(alloc->donne_type_alloué(),
+                                                              DonneTypePour::VARIABLE);
                 auto dibuilder = m_info_débogage->dibuilder;
                 auto D = dibuilder->createAutoVariable(
                     info_débogage_fonction, alloc_name, pos.file, pos.ligne, type_alloc, true);
@@ -2949,7 +2967,7 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
             numéro_ligne = uint32_t(site->lexème->ligne + 1);
         }
 
-        auto type_dwarf = m_info_débogage->donne_type(type);
+        auto type_dwarf = m_info_débogage->donne_type(type, DonneTypePour::VARIABLE);
 
         // À FAIRE : paramètres supplémentaires
         // bool isDefined = true,
@@ -3142,7 +3160,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
         if (info_débogage_fonction) {
             auto pos = m_info_débogage->donne_info_position(it->site);
-            auto type_param = m_info_débogage->donne_type(type_alloué);
+            auto type_param = m_info_débogage->donne_type(type_alloué, DonneTypePour::PARAMÈTRE);
             auto dibuilder = m_info_débogage->dibuilder;
             auto D = dibuilder->createParameterVariable(info_débogage_fonction,
                                                         arg_name,
