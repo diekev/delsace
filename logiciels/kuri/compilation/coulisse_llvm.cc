@@ -780,7 +780,7 @@ struct InfoDébogageLLVM {
                 auto alignement_en_bits = 8 * type->alignement;
                 auto type_élément = donne_type(type_déréférencé_pour(type));
 
-                auto subscript = dibuilder->getOrCreateSubrange(0, size);
+                auto subscript = dibuilder->getOrCreateSubrange(0, type_tableau->taille);
                 auto subscripts = std::vector<llvm::Metadata *>();
                 subscripts.push_back(subscript);
                 auto subscripts_array = dibuilder->getOrCreateArray(subscripts);
