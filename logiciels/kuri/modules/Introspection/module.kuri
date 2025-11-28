@@ -477,7 +477,7 @@ ItératriceTableau :: struct {
     décalage: z32
 }
 
-crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau #cliche ri_finale
+crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 {
     itératrice: ItératriceTableau
 
