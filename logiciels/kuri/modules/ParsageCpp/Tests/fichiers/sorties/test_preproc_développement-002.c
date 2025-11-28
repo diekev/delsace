@@ -1,0 +1,1 @@
+int ajoute (int x, int y);
