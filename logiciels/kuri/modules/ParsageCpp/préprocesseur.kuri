@@ -1,4 +1,5 @@
 importe Chaine
+importe Ensemble
 
 /* ------------------------------------------------------------------------- */
 /** \nom Définition
@@ -11,6 +12,28 @@ Définition :: struct {
 
     est_intrinsèque: bool
     sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème
+}
+
+peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> bool
+{
+    si définition.paramètres.taille == 0 {
+        retourne arguments == 0
+    }
+
+    si arguments <= définition.paramètres.taille {
+        retourne vrai
+    }
+
+    retourne est_variadique(définition)
+}
+
+est_variadique :: fonc (définition: *Définition) -> bool
+{
+    si définition.paramètres.taille == 0 {
+        retourne faux
+    }
+    dernier_paramètre := définition.paramètres[définition.paramètres.taille - 1]
+    retourne est_ponctuation(dernier_paramètre, "...")
 }
 
 donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z64
@@ -194,6 +217,11 @@ PréProcesseur :: struct {
 
     /* Pour __COUNTER__ */
     compteur: n64
+
+    envoie_messages_fichiers_ouverts: bool
+    avertis_sur_macro_non_définis: bool
+
+    macros_inconnus: [..]chaine
 }
 
 LexeusePréProcès :: struct {
@@ -226,26 +254,146 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
             ajoute_définition(préprocesseur, "__cplusplus", 201103)
+            ajoute_définition(préprocesseur, "__GNUG__", 12)
         }
     }
 
     ajoute_définition(préprocesseur, "__linux__", 1)
+    ajoute_définition(préprocesseur, "__unix__", 1)
     ajoute_définition(préprocesseur, "__x86_64__", 1)
+
+    ajoute_définition(préprocesseur, "__GNUC__", 12)
+    ajoute_définition(préprocesseur, "__GNUC_MINOR__", 3)
+    ajoute_définition(préprocesseur, "__GNUC_PATCHLEVEL__", 0)
+
+    ajoute_définition(préprocesseur, "__STDC__", 1)
+    ajoute_définition(préprocesseur, "__STDC_HOSTED__", 1)
+
     ajoute_définition(préprocesseur, "__LP64__", 1)
+    ajoute_définition(préprocesseur, "_LP64", 1)
 
     ajoute_définition(préprocesseur, "NDEBUG", 1)
 
+    ajoute_définition(préprocesseur, "__FLT_MANT_DIG__", 24)
+    ajoute_définition(préprocesseur, "__DBL_MANT_DIG__", 53)
     ajoute_définition(préprocesseur, "__CHAR_BIT__", 8)
-
-    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 127)
+    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
     ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
     ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffff_ffffffff)
-
+    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
     ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
-
-    ajoute_définition(préprocesseur, "__clang_minor__", 0)
-    ajoute_définition(préprocesseur, "__clang_major__", 0)
+    ajoute_définition(préprocesseur, "__cplusplus", 201703)
+    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
+    ajoute_définition(préprocesseur, "__WCHAR_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
+    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__LONG_LONG_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__WINT_MAX__", 0xffffffff)
+    ajoute_définition(préprocesseur, "__SIZE_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__PTRDIFF_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__INTMAX_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINTMAX_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__INT8_MAX__", 0x7f)
+    ajoute_définition(préprocesseur, "__INT16_MAX__", 0x7fff)
+    ajoute_définition(préprocesseur, "__INT32_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__INT64_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINT8_MAX__", 0xff)
+    ajoute_définition(préprocesseur, "__UINT16_MAX__", 0xffff)
+    ajoute_définition(préprocesseur, "__UINT32_MAX__", 0xffffffff)
+    ajoute_définition(préprocesseur, "__UINT64_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__INT_LEAST8_MAX__", 0x7f)
+    ajoute_définition(préprocesseur, "__INT_LEAST16_MAX__", 0x7fff)
+    ajoute_définition(préprocesseur, "__INT_LEAST32_MAX__", 0x7fffffff)
+    ajoute_définition(préprocesseur, "__INT_LEAST64_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINT_LEAST8_MAX__", 0xff)
+    ajoute_définition(préprocesseur, "__UINT_LEAST16_MAX__", 0xffff)
+    ajoute_définition(préprocesseur, "__UINT_LEAST32_MAX__", 0xffffffff)
+    ajoute_définition(préprocesseur, "__UINT_LEAST64_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__INT_FAST8_MAX__", 0x7f)
+    ajoute_définition(préprocesseur, "__INT_FAST16_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__INT_FAST32_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__INT_FAST64_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINT_FAST8_MAX__", 0xff)
+    ajoute_définition(préprocesseur, "__UINT_FAST16_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINT_FAST32_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINT_FAST64_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__INTPTR_MAX__", 0x7fffffffffffffff)
+    ajoute_définition(préprocesseur, "__UINTPTR_MAX__", 0xffffffffffffffff)
+    ajoute_définition(préprocesseur, "__WCHAR_MIN__", 0x80000000)
+    ajoute_définition(préprocesseur, "__WINT_MIN__", 0x0)
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MIN__", 0x80000000)
+    ajoute_définition(préprocesseur, "__SCHAR_WIDTH__", 8)
+    ajoute_définition(préprocesseur, "__SHRT_WIDTH__", 16)
+    ajoute_définition(préprocesseur, "__INT_WIDTH__", 32)
+    ajoute_définition(préprocesseur, "__LONG_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__LONG_LONG_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__PTRDIFF_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_WIDTH__", 32)
+    ajoute_définition(préprocesseur, "__SIZE_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__WCHAR_WIDTH__", 32)
+    ajoute_définition(préprocesseur, "__WINT_WIDTH__", 32)
+    ajoute_définition(préprocesseur, "__INT_LEAST8_WIDTH__", 8)
+    ajoute_définition(préprocesseur, "__INT_LEAST16_WIDTH__", 16)
+    ajoute_définition(préprocesseur, "__INT_LEAST32_WIDTH__", 32)
+    ajoute_définition(préprocesseur, "__INT_LEAST64_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__INT_FAST8_WIDTH__", 8)
+    ajoute_définition(préprocesseur, "__INT_FAST16_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__INT_FAST32_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__INT_FAST64_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__INTPTR_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__INTMAX_WIDTH__", 64)
+    ajoute_définition(préprocesseur, "__SIZEOF_INT__", 4)
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG__", 8)
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG_LONG__", 8)
+    ajoute_définition(préprocesseur, "__SIZEOF_SHORT__", 2)
+    ajoute_définition(préprocesseur, "__SIZEOF_POINTER__", 8)
+    ajoute_définition(préprocesseur, "__SIZEOF_FLOAT__", 4)
+    ajoute_définition(préprocesseur, "__SIZEOF_DOUBLE__", 8)
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG_DOUBLE__", 16)
+    ajoute_définition(préprocesseur, "__SIZEOF_SIZE_T__", 8)
+    ajoute_définition(préprocesseur, "__SIZEOF_WCHAR_T__", 4)
+    ajoute_définition(préprocesseur, "__SIZEOF_WINT_T__", 4)
+    ajoute_définition(préprocesseur, "__SIZEOF_PTRDIFF_T__", 8)
+    ajoute_définition(préprocesseur, "__BYTE_ORDER__", 1234)
+    ajoute_définition(préprocesseur, "__ORDER_LITTLE_ENDIAN__", 1234)
+    ajoute_définition(préprocesseur, "__ORDER_BIG_ENDIAN__", 4321)
+    ajoute_définition(préprocesseur, "__ORDER_PDP_ENDIAN__", 3412)
+    ajoute_définition(préprocesseur, "__FLOAT_WORD_ORDER__", 1234)
+    ajoute_définition(préprocesseur, "__SIZE_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__PTRDIFF_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__WCHAR_TYPE__", "int")
+    ajoute_définition(préprocesseur, "__WINT_TYPE__", "unsigned int")
+    ajoute_définition(préprocesseur, "__INTMAX_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__UINTMAX_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_TYPE__", "int")
+    ajoute_définition(préprocesseur, "__INT8_TYPE__", "signed char")
+    ajoute_définition(préprocesseur, "__INT16_TYPE__", "short int")
+    ajoute_définition(préprocesseur, "__INT32_TYPE__", "int")
+    ajoute_définition(préprocesseur, "__INT64_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__UINT8_TYPE__", "unsigned char")
+    ajoute_définition(préprocesseur, "__UINT16_TYPE__", "short unsigned int")
+    ajoute_définition(préprocesseur, "__UINT32_TYPE__", "unsigned int")
+    ajoute_définition(préprocesseur, "__UINT64_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__INT_LEAST8_TYPE__", "signed char")
+    ajoute_définition(préprocesseur, "__INT_LEAST16_TYPE__", "short int")
+    ajoute_définition(préprocesseur, "__INT_LEAST32_TYPE__", "int")
+    ajoute_définition(préprocesseur, "__INT_LEAST64_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__UINT_LEAST8_TYPE__", "unsigned char")
+    ajoute_définition(préprocesseur, "__UINT_LEAST16_TYPE__", "short unsigned int")
+    ajoute_définition(préprocesseur, "__UINT_LEAST32_TYPE__", "unsigned int")
+    ajoute_définition(préprocesseur, "__UINT_LEAST64_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__INT_FAST8_TYPE__", "signed char")
+    ajoute_définition(préprocesseur, "__INT_FAST16_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__INT_FAST32_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__INT_FAST64_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__UINT_FAST8_TYPE__", "unsigned char")
+    ajoute_définition(préprocesseur, "__UINT_FAST16_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__UINT_FAST32_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__UINT_FAST64_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__INTPTR_TYPE__", "long int")
+    ajoute_définition(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
     définition := tableau_ajoute_élément(*préprocesseur.définitions)
     définition.nom = "__has_builtin"
@@ -285,6 +433,20 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
     lexème.nombre.naturel = valeur
+
+    // @FuiteDeMémoire
+    texte := imprime_chaine("%", valeur)
+    lexème.début = texte.pointeur
+    lexème.fin = texte.pointeur + texte.taille
+}
+
+ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
+{
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = nom
+
+    lexème := tableau_ajoute_élément(*définition.lexèmes)
+    mémoire(lexème) = crée_lexème_chaine_littérale(valeur)
 }
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
@@ -562,8 +724,8 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
             parseuse.lexèmes = lexèmes_paramètres
 
             arguments = parse_tranche_arguments(*parseuse)
-            si arguments.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments.taille)
+            saufsi peut_accepter_arguments(définition, arguments.taille) {
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
             }
         }
         infos_développement: InfosDéveloppementMacro
@@ -628,6 +790,33 @@ rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: 
     exit(1)
 }
 
+rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, arguments_données: z64)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+    imprime_dans_enchaineuse(*enchaineuse, "trop de paramètres pour '%', voulu %, obtenu %\n", définition.nom, définition.paramètres.taille, arguments_données)
+    imprime_dans_enchaineuse(*enchaineuse, "% fut défini comme tel :\n", définition.nom)
+    // À FAIRE : ligne exacte
+    ajoute_au_tampon(*enchaineuse, "#define ", définition.nom)
+    si définition.paramètres {
+        virgule := "("
+        pour définition.paramètres {
+            ajoute_au_tampon(*enchaineuse, virgule, donne_texte(it))
+            virgule = ", "
+        }
+        ajoute_au_tampon(*enchaineuse, ")")
+    }
+    si définition.lexèmes {
+        ajoute_au_tampon(*enchaineuse, " ")
+        pour définition.lexèmes {
+            ajoute_au_tampon(*enchaineuse, donne_texte(it))
+        }
+    }
+    ajoute_au_tampon(*enchaineuse, "\n")
+    message := chaine_depuis_enchaineuse(*enchaineuse)
+    rapporte_erreur(préprocesseur, "%", message)
+}
+
 rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(préprocesseur, "avertissement", format, ...args)
@@ -683,17 +872,29 @@ InfosDéveloppementMacro :: struct {
 
 développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
-    lexèmes: [..]Lexème
+    lexèmes := développe_macro(préprocesseur, infos)
     diffère déloge(lexèmes)
-    développe_macro(*lexèmes, préprocesseur, infos, 0)
 
     pour lexèmes {
-        // À FAIRE : comprend d'où vient le manque d'espace
-        ajoute_au_tampon(sortie, donne_texte(it), " ")
+        ajoute_au_tampon(sortie, donne_texte(it))
     }
 }
 
-développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
+développe_macro :: fonc (préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro) -> [..]Lexème
+{
+    résultat: [..]Lexème
+    développe_macro_impl(*résultat, préprocesseur, infos, 0)
+
+    // À FAIRE : détermine proprement quand redévelopper les lexèmes.
+    tmp: [..]Lexème
+    développe_lexèmes(*tmp, préprocesseur, infos, 0, résultat)
+
+    déloge(résultat)
+
+    retourne tmp
+}
+
+développe_macro_impl :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
 {
     si profondeur > 64 {
         rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
@@ -719,8 +920,13 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
     //     imprimeln("")
     // }
 
+    développe_lexèmes(sortie, préprocesseur, infos, profondeur, infos.macro.lexèmes)
+}
+
+développe_lexèmes :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32, lexèmes: []Lexème)
+{
     parseuse: SimpleParseuse
-    parseuse.lexèmes = infos.macro.lexèmes
+    parseuse.lexèmes = lexèmes
 
     tantque !fini(*parseuse) {
         lexème := donne_lexème_suivant(*parseuse)
@@ -728,7 +934,7 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+            si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(sortie, lexème)
                 continue
             }
@@ -736,7 +942,16 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
             paramètres_définition: [..][..]Lexème
             diffère déloge_tableau_et_ses_éléments(paramètres_définition)
 
+            sauvegarde_position(*parseuse)
+            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+
             si définition.paramètres {
+                si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    restaure_position(*parseuse)
+                    tableau_ajoute(sortie, lexème)
+                    continue
+                }
+
                 lexème = donne_lexème_suivant(*parseuse)
                 tantque lexème.type == TypeLexème.EspaceBlanche {
                     avance(*parseuse)
@@ -764,14 +979,14 @@ développe_macro :: fonc (sortie: *[..]Lexème, préprocesseur: *PréProcesseur,
                 }
             }
 
-            si paramètres_définition.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, paramètres_définition.taille)
+            si définition.paramètres && !peut_accepter_arguments(définition, paramètres_définition.taille) {
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, paramètres_définition.taille)
             }
 
             infos_développement: InfosDéveloppementMacro
             infos_développement.macro = définition
             infos_développement.arguments = paramètres_définition
-            développe_macro(sortie, préprocesseur, *infos_développement, profondeur + 1)
+            développe_macro_impl(sortie, préprocesseur, *infos_développement, profondeur + 1)
         }
         sinon {
             émets_lexème_pour_développement(préprocesseur, sortie, *parseuse, infos, lexème)
@@ -912,7 +1127,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
 
         définition := donne_définition(préprocesseur, lexème)
         si définition {
-            si macro_ne_définis_que_son_nom(définition) || fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+            si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(*résultat, lexème)
                 continue
             }
@@ -920,7 +1135,16 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             arguments_définition: [..][..]Lexème
             diffère déloge_tableau_et_ses_éléments(arguments_définition)
 
+            sauvegarde_position(*parseuse)
+            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+
             si définition.paramètres {
+                si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
+                    restaure_position(*parseuse)
+                    tableau_ajoute(*résultat, lexème)
+                    continue
+                }
+
                 lexème = donne_lexème_suivant(*parseuse)
                 tantque lexème.type == TypeLexème.EspaceBlanche {
                     avance(*parseuse)
@@ -931,16 +1155,16 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                 }
                 avance(*parseuse)
                 arguments_définition = parse_tranche_arguments(*parseuse)
-            }
 
-            si arguments_définition.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", définition.nom, définition.paramètres.taille, arguments_définition.taille)
+                saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
+                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
+                }
             }
 
             infos_développement: InfosDéveloppementMacro
             infos_développement.macro = définition
             infos_développement.arguments = arguments_définition
-            développe_macro(*résultat, préprocesseur, *infos_développement, profondeur + 1)
+            développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1)
         }
         sinon {
             tableau_ajoute(*résultat, lexème)
@@ -999,6 +1223,7 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
 
     // imprimeln("drapeaux %", drapeaux)
 
+    eu_non_espace := faux
     si est_ponctuation(lexème, "(") && drapeaux.POSSÈDE_ARGUMENTS {
         boucle {
             lexème = donne_lexème_suivant(lexeuse)
@@ -1012,10 +1237,12 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
         }
     }
     sinon {
-        tableau_ajoute(*définition.lexèmes, lexème)
+        eu_non_espace = lexème.type != TypeLexème.EspaceBlanche
+        si eu_non_espace {
+            tableau_ajoute(*définition.lexèmes, lexème)
+        }
     }
 
-    eu_non_espace := faux
     boucle {
         lexème = donne_lexème_suivant(lexeuse)
         si lexème.type == TypeLexème.FinDeFichier {
@@ -1182,7 +1409,9 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
 
     fichier.nombre_d_ouvertures += 1
 
-    envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+    si préprocesseur.envoie_messages_fichiers_ouverts {
+        envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+    }
 
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
     lexeuse.fichier = indice_fichier
@@ -1479,7 +1708,12 @@ ExpressionTernaire :: struct {
         }
         Symbole {
             symbole := expression comme *Symbole
-            rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+
+            si préprocesseur.avertis_sur_macro_non_définis {
+                rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+            }
+
+            ensemble_ajoute(*préprocesseur.macros_inconnus, symbole.texte)
         }
         OpérateurBinaire {
             opérateur_binaire := expression comme *OpérateurBinaire
@@ -1572,6 +1806,7 @@ ExpressionTernaire :: struct {
 SimpleParseuse :: struct {
     lexèmes: []Lexème
     curseur: z64
+    position_sauvegardée: z64
 }
 
 fini :: fonc (empl parseuse: *SimpleParseuse) -> bool
@@ -1587,6 +1822,33 @@ donne_lexème_suivant :: fonc (empl parseuse: *SimpleParseuse) -> Lexème
 avance :: fonc (empl parseuse: *SimpleParseuse)
 {
     curseur += 1
+}
+
+sauvegarde_position :: fonc (empl parseuse: *SimpleParseuse)
+{
+    position_sauvegardée = curseur
+}
+
+restaure_position :: fonc (empl parseuse: *SimpleParseuse)
+{
+    curseur = position_sauvegardée
+}
+
+saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
+{
+    tantque !fini(parseuse) {
+        lexème := donne_lexème_suivant(parseuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+        si est_lexème_nouvelle_ligne(lexème) {
+            arrête
+        }
+        si lexème.type != TypeLexème.EspaceBlanche {
+            arrête
+        }
+        avance(parseuse)
+    }
 }
 
 parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]Lexème
@@ -1615,13 +1877,15 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]Lexème
             init_de([..]Lexème)(*tranche_courante)
             continue
         }
-        saufsi lexème.type == TypeLexème.EspaceBlanche {
-            tableau_ajoute(*tranche_courante, lexème)
-        }
+        tableau_ajoute(*tranche_courante, lexème)
     }
 
     si tranche_courante {
         tableau_ajoute(*résultat, tranche_courante)
+    }
+
+    pour * résultat {
+        supprime_espace_blanches_autour(it)
     }
 
     // pour résultat {
@@ -1907,6 +2171,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         texte = donne_texte(lexème)
 
         définition := donne_définition(préprocesseur, texte)
+        saute_espaces_blanches_sauf_nouvelle_ligne(parseuse)
 
         saufsi fini(parseuse) {
             lexème = donne_lexème_suivant(parseuse)
@@ -1922,17 +2187,15 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
             tranches_paramètres := parse_tranche_arguments(parseuse)
             diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
 
-            si tranches_paramètres.taille > définition.paramètres.taille {
-                rapporte_erreur(préprocesseur, "trop de paramètres pour '%', voulu %, obtenu %", texte, définition.paramètres.taille, tranches_paramètres.taille)
+            saufsi peut_accepter_arguments(définition, tranches_paramètres.taille) {
+                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, tranches_paramètres.taille)
             }
-
-            lexèmes: [..]Lexème
-            diffère déloge(lexèmes)
 
             infos: InfosDéveloppementMacro
             infos.macro = définition
             infos.arguments = tranches_paramètres
-            développe_macro(*lexèmes, préprocesseur, *infos, 0)
+            lexèmes := développe_macro(préprocesseur, *infos)
+            diffère déloge(lexèmes)
 
             // supprime espace blanches
             début := lexèmes.pointeur
@@ -2007,8 +2270,93 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         }
         sinon {
             si texte_caractère[0] == '\\' {
-                si texte_caractère == "\0" {
-                    nombre.nombre = 0
+                texte_caractère = avance(texte_caractère, 1)
+                si texte_caractère[0] == 'x' {
+                    texte_caractère = avance(texte_caractère, 1)
+
+                    pour texte_caractère {
+                        nombre.nombre *= 16
+
+                        si '0' <= it <= '9' {
+                            nombre.nombre += (it - '0')
+                        }
+                        sinon si 'a' <= it <= 'f' {
+                            nombre.nombre += (it - 'a')
+                        }
+                        sinon si 'A' <= it <= 'F' {
+                            nombre.nombre += (it - 'A')
+                        }
+                        sinon {
+                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                        }
+                    }
+
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                }
+                sinon si texte_caractère[0] == 'a' {
+                    nombre.nombre = 7
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'b' {
+                    nombre.nombre = 8
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'f' {
+                    nombre.nombre = '\f'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'n' {
+                    nombre.nombre = '\n'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'r' {
+                    nombre.nombre = '\r'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 't' {
+                    nombre.nombre = '\t'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == 'v' {
+                    nombre.nombre = '\v'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '\'' {
+                    nombre.nombre = '\''
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '"' {
+                    nombre.nombre = '"'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '?' {
+                    nombre.nombre = '?'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si texte_caractère[0] == '\\' {
+                    nombre.nombre = '\\'
+                    texte_caractère = avance(texte_caractère, 1)
+                }
+                sinon si '0' <= texte_caractère[0] <= '7' {
+                    pour texte_caractère {
+                        nombre.nombre *= 8
+
+                        si '0' <= it <= '7' {
+                            nombre.nombre += (it - '0')
+                        }
+                        sinon {
+                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                        }
+                    }
+
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                }
+                sinon {
+                    rapporte_erreur(préprocesseur, "Séquence d'échappement invalide")
+                }
+
+                si texte_caractère {
+                    rapporte_erreur(préprocesseur, "Trop de caractères dans la constante de caractère")
                 }
             }
         }
@@ -2185,6 +2533,21 @@ supprime_espace_blanches_autour :: fonc (lexèmes: []Lexème) -> []Lexème
     }
 
     retourne résultat
+}
+
+supprime_espace_blanches_autour :: fonc (lexèmes: *[..]Lexème)
+{
+    tmp: []Lexème = mémoire(lexèmes)
+    tmp = supprime_espace_blanches_autour(tmp)
+
+    insertion := lexèmes.pointeur
+
+    pour tmp {
+        mémoire(insertion) = it
+        insertion += 1
+    }
+
+    lexèmes.taille = tmp.taille
 }
 
 donne_texte_sans_guillemets :: fonc (lexème: Lexème) -> chaine

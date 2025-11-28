@@ -3,13 +3,17 @@
 
 #pragma once
 
-#include "structures/chaine.hh"
-#include "structures/tableau.hh"
+#include "structures/chaine_statique.hh"
+#include "structures/tableau_statique.hh"
 #include "structures/tablet.hh"
 
 #include "utilitaires/chrono.hh"
 
 #include "lexemes.hh"
+
+namespace kuri {
+struct chaine;
+}
 
 struct Fichier;
 
@@ -73,7 +77,7 @@ struct BaseSyntaxeuse {
         kuri::chaine_statique message{};
     };
 
-    kuri::tableau<Lexème, int> &m_lexèmes;
+    kuri::tableau_statique<Lexème> m_lexèmes;
     Fichier *m_fichier = nullptr;
     Lexème *m_lexème_courant = nullptr;
     Lexème *m_lexème_sauvegardé = nullptr;
@@ -149,7 +153,7 @@ struct BaseSyntaxeuse {
         m_position -= 1;
 
         if (m_position >= 0) {
-            m_lexème_courant = &m_lexèmes[m_position];
+            m_lexème_courant = const_cast<Lexème *>(&m_lexèmes[m_position]);
         }
     }
 

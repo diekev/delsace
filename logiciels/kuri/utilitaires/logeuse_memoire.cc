@@ -32,6 +32,19 @@ namespace mémoire {
 
 static void imprime_blocs_memoire();
 
+/**
+ * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
+ * - si la taille est inférieure à 1 Ko : la taille en octets + " o"
+ * - si la taille est inférieure à 1 Mo : la taille en kiloctets + " Ko"
+ * - si la taille est inférieure à 1 Go : la taille en mégaoctets + " Mo"
+ * - sinon, rétourne la taille en gigaoctets + " Go"
+ *
+ * par exemple:
+ * 8564 -> "8 Ko"
+ * 16789432158 -> "15 Go"
+ */
+[[nodiscard]] static std::string formate_taille(int64_t octets);
+
 logeuse_mémoire logeuse_mémoire::m_instance = logeuse_mémoire{};
 
 #undef IMPRIME_ERREUR_MEMOIRE
