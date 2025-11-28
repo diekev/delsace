@@ -3,12 +3,6 @@
 
 #include "coulisse_llvm.hh"
 
-#include "biblinternes/outils/conditions.h"
-
-#include <iostream>
-
-#include "utilitaires/poule_de_taches.hh"
-
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -49,16 +43,19 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
+#include "utilitaires/divers.hh"
+#include "utilitaires/log.hh"
+#include "utilitaires/poule_de_taches.hh"
+
+#include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/impression.hh"
+#include "representation_intermediaire/instructions.hh"
+
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
 #include "programme.hh"
-#include "utilitaires/log.hh"
-
-#include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/impression.hh"
-#include "representation_intermediaire/instructions.hh"
 
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
@@ -94,10 +91,10 @@ static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *foncti
         return VisibilitéSymbole::EXPORTÉ;
     }
 
-    if (dls::outils::est_element(fonction->decl->ident,
-                                 ID::__point_d_entree_dynamique,
-                                 ID::__point_d_entree_systeme,
-                                 ID::__point_de_sortie_dynamique)) {
+    if (est_élément(fonction->decl->ident,
+                    ID::__point_d_entree_dynamique,
+                    ID::__point_d_entree_systeme,
+                    ID::__point_de_sortie_dynamique)) {
         return VisibilitéSymbole::EXPORTÉ;
     }
 
@@ -112,10 +109,10 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule con
     }
 
     /* Ces fonctions sont appelées depuis les fichiers de point d'entrées C. */
-    if (dls::outils::est_element(fonction->decl->ident,
-                                 ID::__point_d_entree_dynamique,
-                                 ID::__point_d_entree_systeme,
-                                 ID::__point_de_sortie_dynamique)) {
+    if (est_élément(fonction->decl->ident,
+                    ID::__point_d_entree_dynamique,
+                    ID::__point_d_entree_systeme,
+                    ID::__point_de_sortie_dynamique)) {
         return llvm::GlobalValue::ExternalLinkage;
     }
 
@@ -1378,7 +1375,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         {
             auto accès = atome->comme_accès_indice_constant();
             auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
-                                                uint64_t(accès->indice));
+                                                 uint64_t(accès->indice));
             assert(indice);
             auto accede = génère_code_pour_atome(accès->accédé, pour_globale);
             assert_rappel(accede, [&]() {
