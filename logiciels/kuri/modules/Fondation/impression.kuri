@@ -362,6 +362,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
 
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
+    // #arrêt_débug
     base := format.base comme n64
     assert(base >= 2)
     assert(base <= 64)

@@ -779,10 +779,14 @@ struct InfoDébogageLLVM {
                 auto size = uint64_t(type_tableau->taille);
                 auto alignement_en_bits = 8 * type->alignement;
                 auto type_élément = donne_type(type_déréférencé_pour(type));
-                auto subscript = llvm::DINodeArray{};
+
+                auto subscript = dibuilder->getOrCreateSubrange(0, size);
+                auto subscripts = std::vector<llvm::Metadata *>();
+                subscripts.push_back(subscript);
+                auto subscripts_array = dibuilder->getOrCreateArray(subscripts);
 
                 ditype = dibuilder->createArrayType(
-                    size, alignement_en_bits, type_élément, subscript);
+                    size, alignement_en_bits, type_élément, subscripts_array);
                 break;
             }
             case GenreNoeud::DÉCLARATION_ÉNUM:
@@ -871,10 +875,22 @@ struct InfoDébogageLLVM {
 
         auto types = std::vector<llvm::Metadata *>();
 
-        types.push_back(donne_type(type->type_sortie));
+        if (!stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
+            types.push_back(donne_type(type->type_sortie));
+        }
 
         POUR (type->types_entrées) {
-            types.push_back(donne_type(it));
+            auto type_die = donne_type(it);
+            if (stockage_type_doit_utiliser_memcpy(it)) {
+                type_die = dibuilder->createPointerType(type_die, 8 * it->taille_octet);
+            }
+            types.push_back(type_die);
+        }
+
+        if (stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
+            auto type_die = donne_type(type->type_sortie);
+            type_die = dibuilder->createPointerType(type_die, 8 * type->type_sortie->taille_octet);
+            types.push_back(type_die);
         }
 
         auto ref_array_types = dibuilder->getOrCreateTypeArray(types);
@@ -1635,7 +1651,12 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto alignement = llvm::MaybeAlign(atome_src->type->alignement);
 
             if (stockage_type_doit_utiliser_memcpy(atome_src->type)) {
-                atome_src = atome_src->comme_instruction()->comme_charge()->chargée;
+                auto inst_src = atome_src->comme_instruction();
+                if (inst_src->est_charge()) {
+                    atome_src = inst_src->comme_charge()->chargée;
+                }
+                else if (inst_src->est_appel()) {
+                }
                 auto src = génère_code_pour_atome(atome_src, false);
                 auto dst = génère_code_pour_atome(atome_dst, false);
 
@@ -2016,8 +2037,9 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     }
 
     if (adresse_retour) {
-        auto type_retour = convertis_type_llvm(inst_appel->type);
-        résultat = m_builder.CreateLoad(type_retour, adresse_retour);
+        // auto type_retour = convertis_type_llvm(inst_appel->type);
+        // résultat = m_builder.CreateLoad(type_retour, adresse_retour);
+        résultat = adresse_retour;
     }
 
     définis_valeur_instruction(inst_appel, résultat);
@@ -2836,6 +2858,10 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         if (info_débogage_fonction) {
             auto pos = m_info_débogage->donne_info_position(it->site);
             auto type_param = m_info_débogage->donne_type(type_alloué);
+            // if (stockage_type_doit_utiliser_memcpy(type_alloué)) {
+            //     type_param = m_info_débogage->dibuilder->createPointerType(
+            //         type_param, 8 * type_alloué->taille_octet);
+            // }
             auto dibuilder = m_info_débogage->dibuilder;
             auto D = dibuilder->createParameterVariable(info_débogage_fonction,
                                                         arg_name,
