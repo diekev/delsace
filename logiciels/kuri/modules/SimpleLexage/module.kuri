@@ -709,14 +709,22 @@ donne_lexème_ponctuation :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
             arrête
         }
 
-        ponctuation := chaine(début_lexème, fin_lexème - début_lexème + 1)
-        saufsi est_ponctuation(lexeuse, ponctuation) {
-            arrête
-        }
-
         lexeuse.avance()
         fin_lexème += 1
     }
+
+    candidat := chaine(début_lexème, fin_lexème - début_lexème)
+
+    /* Comparons avec 1 puisque nous savons que nous avons une ponctuation. */
+    tantque candidat.taille > 1 {
+        si est_ponctuation(lexeuse, candidat) {
+            arrête
+        }
+        candidat.taille -= 1
+    }
+
+    fin_lexème = début_lexème + candidat.taille
+    lexeuse.début = fin_lexème
 
     retourne Lexème(type = TypeLexème.Ponctuation, début = début_lexème, fin = fin_lexème)
 }
@@ -1087,31 +1095,50 @@ donne_ligne_pour_erreur :: fonc (lexeuse: *SimpleLexeuse) -> LignePourErreur
 #portée_fichier
 
 __mots_clés_c := [
-    "if",
-    "do",
-    "for",
-    "int",
+    "auto",
+    "break",
+    "case",
     "char",
+    "const",
+    "continue",
+    "default",
+    "do",
+    "double",
     "else",
     "enum",
-    "float",
-    "long",
-    "void",
-    "true",
-    "const",
-    "false",
-    "short",
-    "union",
-    "while",
-    "double",
     "extern",
+    "float",
+    "for",
+    "goto",
+    "if",
+    "inline",
+    "int",
+    "long",
+    "register",
+    "restrict",
     "return",
+    "short",
+    "signed",
+    "sizeof",
     "static",
     "struct",
+    "switch",
     "typedef",
+    "union",
     "unsigned",
-    "thread_local",
-    "static_assert"
+    "void",
+    "volatile",
+    "while",
+    "_Alignas",
+    "_Alignof",
+    "_Atomic",
+    "_Bool",
+    "_Complex",
+    "_Generic",
+    "_Imaginary",
+    "_Noreturn",
+    "_Static_assert",
+    "_Thread_local",
 ]
 
 __mots_clés_cpp := [
@@ -1154,9 +1181,17 @@ __mots_clés_cpp := [
     "static_assert"
 ]
 
+/* A.1.7 Punctuators */
 __ponctuation_c := [
-    "+", "-", "[", "]", "(", ")", "{", "}", "/", "*", "=", "&", "|", "^", "%", "!", ":", ";", ",", "?", ".", "~", "<", ">",
-    "+=", "++", "-=", "--", "*=", "/=", "%=", "^=", "|=", "&=", "~=", "==", "!=", "<=", ">=", "||", "&&", "#", "##", "->", "<<", ">>", "<<=", ">>=", "\\"
+    "[", "]", "(", ")", "{", "}", ".", "->",
+    "++", "--", "&", "*", "+", "-", "~", "!",
+    "/", "%", "<<", ">>", "<", ">", "<=", ">=", "==", "!=", "^", "|", "&&", "||",
+    "?", ":", ";", "...",
+    "=", "*=", "/=", "%=", "+=", "-=", "<<=", ">>=", "&=", "^=", "|=",
+    ",", "#", "##",
+    "<:", ":>", "<%", "%>", "%:", "%:%:",
+    /* Non-spécifié, ceci est pour les processeurs. */
+     "\\"
 ]
 
 __ponctuation_cpp := [

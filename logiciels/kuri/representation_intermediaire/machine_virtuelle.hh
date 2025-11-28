@@ -11,6 +11,8 @@
 #include "structures/intervalle.hh"
 #ifdef UTILISE_NOTRE_TABLE
 #    include "structures/table_hachage.hh"
+#else
+#    include <unordered_map>
 #endif
 #include "structures/tableau_page.hh"
 

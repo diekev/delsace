@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "parsage/lexemes.hh"

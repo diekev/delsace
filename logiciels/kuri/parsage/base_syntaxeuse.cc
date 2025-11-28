@@ -11,7 +11,7 @@
 BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexèmes(fichier->lexèmes), m_fichier(fichier)
 {
     if (m_lexèmes.taille() > 0) {
-        m_lexème_courant = &m_lexèmes[0];
+        m_lexème_courant = const_cast<Lexème *>(&m_lexèmes[0]);
     }
 }
 

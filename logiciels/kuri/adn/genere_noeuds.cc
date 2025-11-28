@@ -188,6 +188,7 @@ struct GeneratriceCodeCPP {
     void génère_fichier_entête_arbre_syntaxique(FluxSortieCPP &os)
     {
         os << "#pragma once\n";
+        inclus_système(os, "functional");
         inclus(os, "utilitaires/macros.hh");
         inclus(os, "utilitaires/synchrone.hh");
         inclus(os, "structures/chaine.hh");
