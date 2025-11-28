@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <queue>
+#include <algorithm>  // pour remove_if
 
 #include "tableau.hh"
 
