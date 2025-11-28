@@ -1978,7 +1978,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
                     if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
                         auto chargement = atome->comme_instruction()->comme_charge();
-                        valeur_retour = génère_code_pour_atome(chargement->chargée, false);
+                        valeur_retour = génère_code_pour_atome(chargement->chargée,
+                                                               UtilisationAtome::POUR_OPÉRANDE);
                         assert_rappel(m_adresse_retour != nullptr, [&] {
                             dbg() << "Le type retour est " << chaine_type(atome->type);
                         });
