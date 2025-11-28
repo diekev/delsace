@@ -787,10 +787,14 @@ struct InfoDébogageLLVM {
                 auto size = uint64_t(type_tableau->taille);
                 auto alignement_en_bits = 8 * type->alignement;
                 auto type_élément = donne_type(type_déréférencé_pour(type));
-                auto subscript = llvm::DINodeArray{};
+
+                auto subscript = dibuilder->getOrCreateSubrange(0, type_tableau->taille);
+                auto subscripts = std::vector<llvm::Metadata *>();
+                subscripts.push_back(subscript);
+                auto subscripts_array = dibuilder->getOrCreateArray(subscripts);
 
                 ditype = dibuilder->createArrayType(
-                    size, alignement_en_bits, type_élément, subscript);
+                    size, alignement_en_bits, type_élément, subscripts_array);
                 break;
             }
             case GenreNoeud::DÉCLARATION_ÉNUM:
