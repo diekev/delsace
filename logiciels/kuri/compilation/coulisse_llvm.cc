@@ -1640,6 +1640,11 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
             auto constante_entière = atome->comme_constante_entière();
+            if (atome->type->est_type_type_de_données()) {
+                // À FAIRE : fait ceci en amont
+                return llvm::ConstantPointerNull::get(
+                    static_cast<llvm::PointerType *>(convertis_type_llvm(atome->type)));
+            }
             return llvm::ConstantInt::get(convertis_type_llvm(atome->type),
                                           constante_entière->valeur);
         }
@@ -1873,7 +1878,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
                 dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
                       << imprime_atome(inst_stocke) << '\n'
-                      << imprime_information_atome(inst_stocke->source);
+                      << imprime_information_atome(inst_stocke->source) << '\n'
+                      << imprime_arbre_instruction(inst_stocke);
             });
 
             m_builder.CreateAlignedStore(valeur, valeur_ou, alignement, volatile_);
@@ -2211,6 +2217,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
 
     auto type_retour = convertis_type_llvm(inst_appel->type);
 
+    auto indice_premier_paramètre = 0;
+
     llvm::Value *adresse_retour = nullptr;
     auto méthode_retour = détermine_méthode_passage_paramètre(inst_appel->type);
     if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
@@ -2223,9 +2231,12 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
             InfoAttribut{0,
                          llvm::Attribute::getWithAlignment(
                              m_module->getContext(), llvm::Align(inst_appel->type->alignement))});
+
+        indice_premier_paramètre = 1;
     }
 
     POUR_INDICE (inst_appel->args) {
+        auto indice_param = uint32_t(indice_it + indice_premier_paramètre);
         llvm::Value *valeur;
         auto méthode_passage = détermine_méthode_passage_paramètre(it->type);
         if (méthode_passage == MéthodePassageParamètre::PAR_ADRESSE) {
@@ -2234,13 +2245,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
 
             auto attr = llvm::Attribute::getWithByValType(m_module->getContext(),
                                                           convertis_type_llvm(it->type));
-            attributs.ajoute(InfoAttribut{uint32_t(indice_it), attr});
+            attributs.ajoute(InfoAttribut{indice_param, attr});
             attributs.ajoute(InfoAttribut{
-                uint32_t(indice_it),
+                indice_param,
                 llvm::Attribute::get(m_module->getContext(), llvm::Attribute::AttrKind::NoUndef)});
             /* Alignement pour des pointeurs. */
             attributs.ajoute(InfoAttribut{
-                uint32_t(indice_it),
+                indice_param,
                 llvm::Attribute::getWithAlignment(m_module->getContext(), llvm::Align(8))});
         }
         else {
