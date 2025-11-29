@@ -1990,13 +1990,17 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                         assert_rappel(m_adresse_retour != nullptr, [&] {
                             dbg() << "Le type retour est " << chaine_type(atome->type);
                         });
+
                         assert(valeur_retour != nullptr);
-                        auto alignement = llvm::Align(atome->type->alignement);
-                        m_builder.CreateMemCpy(m_adresse_retour,
-                                               alignement,
-                                               valeur_retour,
-                                               alignement,
-                                               atome->type->taille_octet);
+
+                        if (m_adresse_retour != valeur_retour) {
+                            auto alignement = llvm::Align(atome->type->alignement);
+                            m_builder.CreateMemCpy(m_adresse_retour,
+                                                   alignement,
+                                                   valeur_retour,
+                                                   alignement,
+                                                   atome->type->taille_octet);
+                        }
                         m_builder.CreateRet(nullptr);
                     }
                     else {
