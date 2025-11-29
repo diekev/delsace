@@ -948,21 +948,10 @@ struct InfoDébogageLLVM {
 
         auto types = std::vector<llvm::Metadata *>();
 
-        if (!stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
-            types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
-        }
+        types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
 
         POUR (type->types_entrées) {
             auto type_die = donne_type(it, DonneTypePour::SOUS_TYPE);
-            if (stockage_type_doit_utiliser_memcpy(it)) {
-                type_die = dibuilder->createPointerType(type_die, 8 * it->taille_octet);
-            }
-            types.push_back(type_die);
-        }
-
-        if (stockage_type_doit_utiliser_memcpy(type->type_sortie)) {
-            auto type_die = donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE);
-            type_die = dibuilder->createPointerType(type_die, 8 * type->type_sortie->taille_octet);
             types.push_back(type_die);
         }
 
@@ -1857,7 +1846,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                     assert(dst != nullptr);
 
                     m_builder.CreateMemCpy(
-                        dst, alignement, src, alignement, atome_src_ou_déref->type->taille_octet);
+                        dst, alignement, src, alignement, inst_stocke->source->type->taille_octet);
                     break;
                 }
                 // else {
