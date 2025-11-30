@@ -43,6 +43,7 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
+#include "utilitaires/algorithmes.hh"
 #include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/poule_de_taches.hh"
@@ -166,7 +167,7 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule con
 
 #ifndef COMPILE_EN_PLUSIEURS_MODULE
     static_cast<void>(module);
-    return llvm::GlobalValue::InternalLinkage;
+    return llvm::GlobalValue::ExternalLinkage;
 #else
     /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
     if (!module.fait_partie_du_module(fonction)) {
@@ -3037,8 +3038,34 @@ void GénératriceCodeLLVM::génère_code()
     AtomeFonction *point_d_entrée_dynamique = nullptr;
     AtomeFonction *point_de_sortie_dynamique = nullptr;
 
-    POUR (données_module.donne_fonctions()) {
+    auto fonctions = données_module.donne_fonctions();
+    // POUR_INDICE (données_module.donne_fonctions()) {
+    //     if (it->est_externe) {
+    //         continue;
+    //     }
+    //     fonctions = kuri::tableau_statique<AtomeFonction *>(fonctions.begin() + indice_it,
+    //                                                         fonctions.taille() - indice_it);
+    //     break;
+    // }
+
+    // dbg() << "Nombre de fonctions : " << fonctions.taille();
+
+    // kuri::tri_rapide(
+    //     fonctions, [](AtomeFonction const *a, AtomeFonction const *b) { return a->nom < b->nom;
+    //     });
+
+    POUR (fonctions) {
         m_nombre_fonctions_compilées++;
+        // // 688
+        // // 704
+        // // 705 ---
+        // // 707
+        // // 711
+        // // 719
+        // if (m_nombre_fonctions_compilées == 707) {
+        //     break;
+        // }
+        // dbg() << it->nom;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
         // données_module.globales.taille()
         //       << "] :\n"

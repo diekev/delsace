@@ -11,7 +11,7 @@ charge "lexage"
 
 est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
 {
-    retourne intrinsèque_est_adresse_données_constantes(chn.pointeur)
+    retourne faux // intrinsèque_est_adresse_données_constantes(chn.pointeur)
 }
 
 supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
