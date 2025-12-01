@@ -1133,6 +1133,8 @@ struct GénératriceCodeLLVM {
 
     llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
 
+    void crée_memcpy(llvm::Value *dst, llvm::Value *src, Type const *type, bool volatile_ = false);
+
     llvm::Value *génère_valeur_données_constantes(
         const AtomeConstanteDonnéesConstantes *constante);
 
@@ -1851,8 +1853,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                     assert(src != nullptr);
                     assert(dst != nullptr);
 
-                    m_builder.CreateMemCpy(
-                        dst, alignement, src, alignement, inst_stocke->source->type->taille_octet);
+                    crée_memcpy(dst, src, atome_src->type);
                     break;
                 }
                 // else {
@@ -2000,14 +2001,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
                         assert(valeur_retour != nullptr);
 
-                        if (m_adresse_retour != valeur_retour) {
-                            auto alignement = llvm::Align(atome->type->alignement);
-                            m_builder.CreateMemCpy(m_adresse_retour,
-                                                   alignement,
-                                                   valeur_retour,
-                                                   alignement,
-                                                   atome->type->taille_octet);
-                        }
+                        crée_memcpy(m_adresse_retour, valeur_retour, atome->type);
                         m_builder.CreateRet(nullptr);
                     }
                     else {
@@ -2191,10 +2185,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto destination = génère_code_pour_atome(copie_mémoire->destination,
                                                       UtilisationAtome::POUR_OPÉRANDE);
 
-            auto alignement = llvm::MaybeAlign(type->alignement);
-
-            m_builder.CreateMemCpy(
-                destination, alignement, source, alignement, copie_mémoire->taille, volatile_);
+            crée_memcpy(destination, source, type, volatile_);
             break;
         }
     }
@@ -3222,8 +3213,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
             valeur->addAttr(attr);
             valeur->addAttr(llvm::Attribute::AttrKind::NoUndef);
 
-            m_builder.CreateMemCpy(
-                alloc, alignement, valeur, alignement, type_alloué->taille_octet);
+            crée_memcpy(alloc, valeur, type_alloué);
         }
         else {
             if (est_type_machine_pointeur(type_alloué)) {
@@ -3338,6 +3328,17 @@ llvm::AllocaInst *GénératriceCodeLLVM::crée_allocation(const InstructionAlloc
 
     définis_valeur_instruction(alloc, alloca);
     return alloca;
+}
+
+void GénératriceCodeLLVM::crée_memcpy(llvm::Value *dst,
+                                      llvm::Value *src,
+                                      Type const *type,
+                                      bool volatile_)
+{
+    if (dst != src) {
+        auto alignement = llvm::Align(type->alignement);
+        m_builder.CreateMemCpy(dst, alignement, src, alignement, type->taille_octet, volatile_);
+    }
 }
 
 bool initialise_llvm()
