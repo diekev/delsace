@@ -14,6 +14,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+#include <llvm/Config/llvm-config.h>
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
@@ -1760,10 +1761,16 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
+#if LLVM_VERSION_MAJOR == 14
                     valeur_accédée = m_builder.CreateLoad(
                         valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
                     auto type_pointé = type_déréférencé_pour(type_accédé);
                     type_llvm = convertis_type_llvm(type_pointé);
+#else
+                    // auto type_pointé = type_déréférencé_pour(type_accédé);
+                    // auto type_pointé_llvm = convertis_type_llvm(type_pointé);
+                    valeur_accédée = m_builder.CreateLoad(type_llvm, valeur_accédée);
+#endif
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
@@ -3081,7 +3088,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         generatrice.génère_code();
     }
 
-    if (espace.options.valide_ir_llvm) {
+    if (true || espace.options.valide_ir_llvm) {
         POUR_INDICE (m_modules) {
             auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
             if (opt_erreur_validation.has_value()) {
@@ -3182,12 +3189,14 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
     builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 }
 
+#if LLVM_VERSION_MAJOR == 14
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
                                     llvm::legacy::PassManagerBase &pm)
 {
     pm.add(llvm::createAddressSanitizerFunctionPass());
     pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
 }
+#endif
 
 static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
                         llvm::legacy::PassManager &pm,
@@ -3219,11 +3228,13 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
             break;
     }
 
+#if LLVM_VERSION_MAJOR == 14
     if (options.utilise_asan) {
         builder.addExtension(llvm::PassManagerBuilder::EP_OptimizerLast, ajoute_passes_pour_asan);
         builder.addExtension(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
                              ajoute_passes_pour_asan);
     }
+#endif
 
     builder.populateModulePassManager(pm);
     builder.populateFunctionPassManager(fpm);
