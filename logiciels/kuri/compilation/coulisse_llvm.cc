@@ -2836,7 +2836,8 @@ void GénératriceCodeLLVM::définis_valeur_instruction(Instruction const *inst,
         dbg() << imprime_fonction(m_atome_fonction_courante);
     });
 
-    assert_rappel((valeur->getType() == convertis_type_llvm(inst->type)) || inst->est_appel(),
+    assert_rappel((valeur == nullptr || valeur->getType() == convertis_type_llvm(inst->type)) ||
+                      inst->est_appel(),
                   [&]() {
                       dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
                             << "Le type LLVM est " << *valeur->getType() << '\n'
