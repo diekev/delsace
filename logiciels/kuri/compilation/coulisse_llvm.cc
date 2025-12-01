@@ -1617,12 +1617,6 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::CONSTANTE_ENTIÈRE:
         {
             auto constante_entière = atome->comme_constante_entière();
-            if (atome->type->est_type_type_de_données()) {
-                assert(constante_entière->valeur == 0);
-                // À FAIRE : fait ceci en amont
-                return llvm::ConstantPointerNull::get(
-                    static_cast<llvm::PointerType *>(convertis_type_llvm(atome->type)));
-            }
             return llvm::ConstantInt::get(convertis_type_llvm(atome->type),
                                           constante_entière->valeur);
         }
@@ -1799,10 +1793,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
                 auto type_llvm = convertis_type_llvm(inst_charge->type);
                 auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
-                // À FAIRE : nubifer contient des entier_constant
-                if (inst->type->alignement) {
-                    load->setAlignment(llvm::Align(inst->type->alignement));
-                }
+                load->setAlignment(llvm::Align(inst->type->alignement));
                 définis_valeur_instruction(inst, load);
             }
             else {
@@ -2017,9 +2008,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             auto accédée = inst_accès->accédé;
             if (accédée->est_instruction()) {
-                // dbg() << accédée->comme_instruction()->genre << " " <<
-                // *valeur_accédée->getType(); dbg() << imprime_arbre_instruction(inst); dbg() <<
-                // imprime_fonction(m_atome_fonction_courante);
+                // dbg() << accédé->comme_instruction()->genre << " " <<
+                // *valeur_accédée->getType();
 
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
@@ -2846,14 +2836,15 @@ void GénératriceCodeLLVM::définis_valeur_instruction(Instruction const *inst,
         dbg() << imprime_fonction(m_atome_fonction_courante);
     });
 
-    // assert_rappel(valeur->getType() == convertis_type_llvm(inst->type), [&]() {
-    //     dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
-    //           << "Le type LLVM est " << *valeur->getType() << '\n'
-    //           << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
-    //           << imprime_arbre_instruction(inst) << '\n'
-    //           << imprime_commentaire_instruction(inst) << '\n'
-    //           << erreur::imprime_site(m_espace, inst->site);
-    // });
+    assert_rappel((valeur->getType() == convertis_type_llvm(inst->type)) || inst->est_appel(),
+                  [&]() {
+                      dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
+                            << "Le type LLVM est " << *valeur->getType() << '\n'
+                            << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
+                            << imprime_arbre_instruction(inst) << '\n'
+                            << imprime_commentaire_instruction(inst) << '\n'
+                            << erreur::imprime_site(m_espace, inst->site);
+                  });
 
     table_valeurs[inst->numéro] = valeur;
 }
