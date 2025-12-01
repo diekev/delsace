@@ -401,7 +401,7 @@ using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
 using RésultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
 
 RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
-                                                                        Type const *type_a_tester);
+                                                                        Type const *type_à_tester);
 
 /** \} */
 
