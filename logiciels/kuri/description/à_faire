@@ -245,6 +245,7 @@ peut_envoyer_en_conversion_noeud_code
 - pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
+- génération de code source pour les fonctions créées par la compilatrice (init_de, etc.) afin d'avoir du texte dans les informations de débogage.
 
 Test pour les retours de pointeurs
 
@@ -317,16 +318,56 @@ remplace les noeuds de dépendances par des unités de compilations
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
 
-- stabilité de pointeur pour les infos types
-    - utilisation d'une poule de mémoire
-    - pour les chaines, prise de pointeurs via la gérante de chaine
-    - pour les membres des structures, création des infos-types des membres avant ceux-ci
-    - pour les noms des énumérations, prise de pointeurs via la gérant de chaine
-    - pour les valeurs des énumérations, utilisation d'un tampon auxiliaire où stocker les données
-    -- prise d'un pointeur
-    - création des globales pour la RI via les InfoType
-
 - déduplique TypeTranstypage et TypeTransformation
+
+// ----------------------------------------------------------------------------
+// RI
+
+Redesign
+
+
+ASSIGNE
+op
+dst
+op1
+op2
+
+ASSIGNE
+    Opération
+        /* Arithmétique */
+        AJOUTE
+        SOUSTRAIT
+        MULTIPLIE
+        SÉLECTION
+        /* Logique */
+        EST_SUPÉRIEUR
+        PREND_ADRESSE
+        /* Transtypage */
+        TRANSTYPE
+        ...
+
+CONDITION
+BRANCHE
+
+INSTRUCTIONS DE FIN DE BLOC
+    BRANCHE
+    BRANCHE_CONDITION
+    RETOURNE
+    CONDITION
+    INATTEIGNABLE
+
+
+ASSIGNE
+APPEL
+COPIE_MÉMOIRE (cas spécial de APPEL)
+INATTEIGNABLE
+LABEL
+BRANCHE
+BRANCHE_CONDITION
+RETOURNE
+ACCÈS_RUBRIQUE (cas spécial de assigne ? pour la prise d'adresse)
+ACCÈS_INDICE (cas spécial de assigne ? pour la prise d'adresse)
+ARRÊT_DÉBUG
 
 // ----------------------------------------------------------------------------
 // Lexage
