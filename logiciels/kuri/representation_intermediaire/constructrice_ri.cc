@@ -3310,7 +3310,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             auto type_union = transformation.type_cible->comme_type_union();
             // À FAIRE : fais ceci en amont.
-            auto rubrique = type_union->rubriques[transformation.indice_rubrique];
+            auto rubrique = type_union->rubriques[int32_t(transformation.indice_rubrique)];
 
             if (valeur->type->est_type_entier_constant()) {
                 if (rubrique.type->est_type_réel()) {
