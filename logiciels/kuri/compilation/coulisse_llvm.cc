@@ -3398,8 +3398,8 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::OF_None);
     module.print(dest, nullptr);
 
-    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la
-     * RI est correcte. */
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
+     * est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
     return exécute_commande_externe_erreur(commande, true);
 }
@@ -3577,8 +3577,8 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
                                     llvm::legacy::PassManagerBase &pm)
 {
-    // pm.add(llvm::createAddressSanitizerFunctionPass());
-    // pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
+    pm.add(llvm::createAddressSanitizerFunctionPass());
+    pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
 }
 #endif
 
