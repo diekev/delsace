@@ -82,54 +82,6 @@ static inline bool est_type_machine_pointeur(Type const *type)
     return type->est_type_pointeur() || type->est_type_référence();
 }
 
-inline bool est_adresse_globale(Atome const *atome)
-{
-    return atome->est_fonction() || atome->est_globale();
-}
-
-inline bool est_adresse_locale(Atome const *atome)
-{
-    if (!atome->est_instruction()) {
-        return false;
-    }
-
-    auto inst = atome->comme_instruction();
-
-    if (inst->est_alloc() || inst->est_accès_rubrique() || inst->est_accès_indice()) {
-        return true;
-    }
-
-    if (inst->est_transtype()) {
-        auto transtype = inst->comme_transtype();
-        return est_adresse_locale(transtype->valeur);
-    }
-
-    return false;
-}
-
-inline bool est_adresse(Atome const *atome)
-{
-    return est_adresse_globale(atome) || est_adresse_locale(atome);
-}
-
-static Atome const *donne_source_charge_ou_atome(Atome const *atome)
-{
-    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
-        return atome->comme_instruction()->comme_charge()->chargée;
-    }
-    return atome;
-}
-
-inline bool est_appel(Atome const *atome)
-{
-    return atome->est_instruction() && atome->comme_instruction()->est_appel();
-}
-
-inline bool est_charge(Atome const *atome)
-{
-    return atome->est_instruction() && atome->comme_instruction()->est_charge();
-}
-
 static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *fonction)
 {
     if (!fonction->decl) {
