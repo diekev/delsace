@@ -2827,6 +2827,10 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         else
 #endif
         {
+            if (est_type_machine_pointeur(type_alloué)) {
+                auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
+                valeur->addAttr(attr);
+            }
             m_builder.CreateAlignedStore(valeur, alloc, alignement);
         }
 
