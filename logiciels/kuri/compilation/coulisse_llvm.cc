@@ -264,46 +264,20 @@ static void définis_les_propriétés_globales(llvm::GlobalValue *valeur, AtomeG
 
 /* ************************************************************************** */
 
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Value &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
+#define IMPRIME_TYPE_LLVM(TYPE)                                                                   \
+    static const Logueuse &operator<<(const Logueuse &log_debug, const TYPE &llvm_value)          \
+    {                                                                                             \
+        std::string str;                                                                          \
+        llvm::raw_string_ostream ss(str);                                                         \
+        ss << llvm_value;                                                                         \
+        return log_debug << str;                                                                  \
+    }
 
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Constant &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
-
-static const Logueuse &operator<<(const Logueuse &log_debug,
-                                  const llvm::GlobalVariable &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
-
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Type &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
-
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::FunctionType &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
+IMPRIME_TYPE_LLVM(llvm::Value)
+IMPRIME_TYPE_LLVM(llvm::Constant)
+IMPRIME_TYPE_LLVM(llvm::GlobalVariable)
+IMPRIME_TYPE_LLVM(llvm::Type)
+IMPRIME_TYPE_LLVM(llvm::FunctionType)
 
 /* ************************************************************************** */
 
