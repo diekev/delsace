@@ -1936,10 +1936,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
               << imprime_atome(inst_appel->appelé);
     });
 
-    auto type_fonction = convertis_type_llvm(inst_appel->appelé->type)->getPointerElementType();
-
-    auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
-                                       valeur_fonction);
+    auto type_fonction = convertis_type_fonction(inst_appel->appelé->type->comme_type_fonction());
+    auto callee = llvm::FunctionCallee(type_fonction, valeur_fonction);
 
     émets_position_courante(inst_appel->site);
     auto call_inst = m_builder.CreateCall(callee, arguments);
