@@ -1799,7 +1799,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
                 auto type_llvm = convertis_type_llvm(inst_charge->type);
                 auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
-                load->setAlignment(llvm::Align(inst->type->alignement));
+                // À FAIRE : nubifer contient des entier_constant
+                if (inst->type->alignement) {
+                    load->setAlignment(llvm::Align(inst->type->alignement));
+                }
                 définis_valeur_instruction(inst, load);
             }
             else {
