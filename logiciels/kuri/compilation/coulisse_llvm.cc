@@ -1014,7 +1014,9 @@ struct GénératriceCodeLLVM {
 
     DonnéesModule &données_module;
 
+    const AtomeFonction *m_atome_fonction_courante = nullptr;
     llvm::Function *m_fonction_courante = nullptr;
+    llvm::Value *m_adresse_retour = nullptr;
     llvm::Module *m_module = nullptr;
     InfoDébogageLLVM *m_info_débogage = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
@@ -1055,6 +1057,8 @@ struct GénératriceCodeLLVM {
                                               kuri::chaine_statique nom_globale);
 
     llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
+
+    void crée_memcpy(llvm::Value *dst, llvm::Value *src, Type const *type, bool volatile_ = false);
 
     llvm::Value *génère_valeur_données_constantes(
         const AtomeConstanteDonnéesConstantes *constante);
@@ -1301,10 +1305,32 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
     return type_llvm;
 }
 
+enum class MéthodePassageParamètre : int8_t {
+    NORMALE,
+    PAR_ADRESSE,
+};
+
+/* https://yorickpeterse.com/articles/the-mess-that-is-handling-structure-arguments-and-returns-in-llvm/
+ */
+static MéthodePassageParamètre détermine_méthode_passage_paramètre(Type const *type)
+{
+    if (type->taille_octet > 16) {
+        return MéthodePassageParamètre::PAR_ADRESSE;
+    }
+    return MéthodePassageParamètre::NORMALE;
+}
+
 llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction const *type)
 {
     std::vector<llvm::Type *> paramètres;
     paramètres.reserve(static_cast<size_t>(type->types_entrées.taille()));
+
+    auto méthode_retour = détermine_méthode_passage_paramètre(type->type_sortie);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        auto type_llvm = convertis_type_llvm(type->type_sortie);
+        type_llvm = llvm::PointerType::get(type_llvm, 0);
+        paramètres.push_back(type_llvm);
+    }
 
     auto est_variadique = false;
 
@@ -1318,13 +1344,28 @@ llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction 
             }
         }
 
-        paramètres.push_back(convertis_type_llvm(it));
+        auto type_llvm = convertis_type_llvm(it);
+
+        auto méthode_param = détermine_méthode_passage_paramètre(it);
+        if (méthode_param == MéthodePassageParamètre::PAR_ADRESSE) {
+            type_llvm = llvm::PointerType::get(type_llvm, 0);
+        }
+
+        paramètres.push_back(type_llvm);
     }
 
-    auto type_sortie_llvm = convertis_type_llvm(type->type_sortie);
+    llvm::Type *type_sortie_llvm;
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        type_sortie_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
+    }
+    else {
+        type_sortie_llvm = convertis_type_llvm(type->type_sortie);
+    }
+
     assert(type_sortie_llvm);
 
-    return llvm::FunctionType::get(type_sortie_llvm, paramètres, est_variadique);
+    auto résultat = llvm::FunctionType::get(type_sortie_llvm, paramètres, est_variadique);
+    return résultat;
 }
 
 llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeComposé const *type,
@@ -1506,7 +1547,9 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
-            return table_valeurs[inst->numéro];
+            auto résultat = table_valeurs[inst->numéro];
+            assert(résultat);
+            return résultat;
         }
         case Atome::Genre::GLOBALE:
         {
@@ -1591,23 +1634,59 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::CHARGE_MÉMOIRE:
         {
             auto inst_charge = inst->comme_charge();
-            auto chargée = inst_charge->chargée;
-            auto valeur = génère_code_pour_atome(chargée, UtilisationAtome::POUR_LECTURE);
-            auto volatile_ = est_volatile(chargée);
-            assert(valeur != nullptr);
+            auto méthode = détermine_méthode_passage_paramètre(inst_charge->type);
+            if (méthode != MéthodePassageParamètre::PAR_ADRESSE) {
+                auto chargée = inst_charge->chargée;
+                auto valeur = génère_code_pour_atome(chargée, UtilisationAtome::POUR_LECTURE);
+                auto volatile_ = est_volatile(chargée);
+                assert(valeur != nullptr);
 
-            émets_position_courante(inst->site);
+                émets_position_courante(inst->site);
 
-            auto type_llvm = convertis_type_llvm(inst_charge->type);
-            auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
-            load->setAlignment(llvm::Align(inst->type->alignement));
-            définis_valeur_instruction(inst, load);
+                auto type_llvm = convertis_type_llvm(inst_charge->type);
+                auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
+                load->setAlignment(llvm::Align(inst->type->alignement));
+                définis_valeur_instruction(inst, load);
+            }
+            else {
+                définis_valeur_instruction(inst, nullptr);
+            }
             break;
         }
         case GenreInstruction::STOCKE_MÉMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
-            auto valeur = génère_code_pour_atome(inst_stocke->source,
+            auto atome_src = inst_stocke->source;
+            auto const atome_dst = inst_stocke->destination;
+
+            /* Crash si l'alignement n'est pas renseigné. */
+            auto alignement = llvm::MaybeAlign(atome_src->type->alignement);
+
+            auto méthode = détermine_méthode_passage_paramètre(atome_src->type);
+
+            if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
+                auto atome_src_ou_déref = donne_source_charge_ou_atome(atome_src);
+                if (est_adresse(atome_src_ou_déref) || est_appel(atome_src_ou_déref) ||
+                    est_charge(atome_src_ou_déref)) {
+                    auto src = génère_code_pour_atome(atome_src_ou_déref,
+                                                      UtilisationAtome::POUR_SOURCE_ÉCRITURE);
+                    auto dst = génère_code_pour_atome(atome_dst,
+                                                      UtilisationAtome::POUR_DESTINATION_ÉCRITURE);
+
+                    assert(src != nullptr);
+                    assert(dst != nullptr);
+
+                    crée_memcpy(dst, src, atome_src->type);
+                    break;
+                }
+                // else {
+                //     dbg() << imprime_arbre_instruction(inst_stocke);
+                //     dbg() << "Source charge " << atome_src_ou_déref->genre_atome;
+                //     dbg() << "Source stocke " << atome_src->genre_atome;
+                // }
+            }
+
+            auto valeur = génère_code_pour_atome(atome_src,
                                                  UtilisationAtome::POUR_SOURCE_ÉCRITURE);
             auto ou = inst_stocke->destination;
             auto volatile_ = est_volatile(ou);
@@ -1624,11 +1703,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
                 dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
                       << imprime_atome(inst_stocke) << '\n'
-                      << imprime_information_atome(inst_stocke->source);
+                      << imprime_information_atome(inst_stocke->source) << '\n'
+                      << imprime_arbre_instruction(inst_stocke);
             });
 
-            /* Crash si l'alignement n'est pas renseigné. */
-            auto alignement = llvm::MaybeAlign(inst_stocke->source->type->alignement);
             m_builder.CreateAlignedStore(valeur, valeur_ou, alignement, volatile_);
             break;
         }
@@ -1732,9 +1810,35 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_retour = inst->comme_retour();
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                auto valeur_retour = génère_code_pour_atome(atome, UtilisationAtome::POUR_LECTURE);
-                émets_position_courante(inst->site);
-                m_builder.CreateRet(valeur_retour);
+                auto méthode = détermine_méthode_passage_paramètre(atome->type);
+                if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
+                    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
+                        auto chargement = atome->comme_instruction()->comme_charge();
+                        auto valeur_retour = génère_code_pour_atome(
+                            chargement->chargée, UtilisationAtome::POUR_OPÉRANDE);
+                        assert_rappel(m_adresse_retour != nullptr, [&] {
+                            dbg() << "Le type retour est " << chaine_type(atome->type);
+                        });
+
+                        assert(valeur_retour != nullptr);
+
+                        crée_memcpy(m_adresse_retour, valeur_retour, atome->type);
+                        émets_position_courante(inst->site);
+                        m_builder.CreateRet(nullptr);
+                    }
+                    else {
+                        auto valeur_retour = génère_code_pour_atome(
+                            atome, UtilisationAtome::POUR_LECTURE);
+                        émets_position_courante(inst->site);
+                        m_builder.CreateRet(valeur_retour);
+                    }
+                }
+                else {
+                    auto valeur_retour = génère_code_pour_atome(atome,
+                                                                UtilisationAtome::POUR_LECTURE);
+                    émets_position_courante(inst->site);
+                    m_builder.CreateRet(valeur_retour);
+                }
             }
             else {
                 m_builder.CreateRet(nullptr);
@@ -1914,10 +2018,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto destination = génère_code_pour_atome(copie_mémoire->destination,
                                                       UtilisationAtome::POUR_OPÉRANDE);
 
-            auto alignement = llvm::MaybeAlign(type->alignement);
-
-            m_builder.CreateMemCpy(
-                destination, alignement, source, alignement, copie_mémoire->taille, volatile_);
+            crée_memcpy(destination, source, type, volatile_);
             break;
         }
     }
@@ -1931,8 +2032,58 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     }
 
     auto arguments = std::vector<llvm::Value *>();
-    POUR (inst_appel->args) {
-        arguments.push_back(génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE));
+
+    struct InfoAttribut {
+        uint32_t indice = 0;
+        llvm::Attribute attr{};
+    };
+
+    auto attributs = kuri::tableau<InfoAttribut>();
+
+    auto type_retour = convertis_type_llvm(inst_appel->type);
+
+    auto indice_premier_paramètre = 0;
+
+    llvm::Value *adresse_retour = nullptr;
+    auto méthode_retour = détermine_méthode_passage_paramètre(inst_appel->type);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        adresse_retour = m_builder.CreateAlloca(type_retour, 0u);
+        arguments.push_back(adresse_retour);
+
+        auto attr = llvm::Attribute::getWithStructRetType(m_module->getContext(), type_retour);
+        attributs.ajoute(InfoAttribut{0, attr});
+        attributs.ajoute(
+            InfoAttribut{0,
+                         llvm::Attribute::getWithAlignment(
+                             m_module->getContext(), llvm::Align(inst_appel->type->alignement))});
+
+        indice_premier_paramètre = 1;
+    }
+
+    POUR_INDICE (inst_appel->args) {
+        auto indice_param = uint32_t(indice_it + indice_premier_paramètre);
+        llvm::Value *valeur;
+        auto méthode_passage = détermine_méthode_passage_paramètre(it->type);
+        if (méthode_passage == MéthodePassageParamètre::PAR_ADRESSE) {
+            auto chargement = it->comme_instruction()->comme_charge();
+            valeur = génère_code_pour_atome(chargement->chargée, UtilisationAtome::POUR_OPÉRANDE);
+
+            auto attr = llvm::Attribute::getWithByValType(m_module->getContext(),
+                                                          convertis_type_llvm(it->type));
+            attributs.ajoute(InfoAttribut{indice_param, attr});
+            attributs.ajoute(InfoAttribut{
+                indice_param,
+                llvm::Attribute::get(m_module->getContext(), llvm::Attribute::AttrKind::NoUndef)});
+            /* Alignement pour des pointeurs. */
+            attributs.ajoute(InfoAttribut{
+                indice_param,
+                llvm::Attribute::getWithAlignment(m_module->getContext(), llvm::Align(8))});
+        }
+        else {
+            valeur = génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE);
+        }
+
+        arguments.push_back(valeur);
     }
 
     auto valeur_fonction = génère_code_pour_atome(inst_appel->appelé,
@@ -1948,15 +2099,23 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     émets_position_courante(inst_appel->site);
     auto call_inst = m_builder.CreateCall(callee, arguments);
 
+    POUR (attributs) {
+        call_inst->addParamAttr(it.indice, it.attr);
+    }
+
     llvm::Value *résultat = call_inst;
 
-    if (!inst_appel->type->est_type_rien()) {
+    if (!inst_appel->type->est_type_rien() &&
+        méthode_retour != MéthodePassageParamètre::PAR_ADRESSE) {
         /* Crée une temporaire sinon la valeur sera du type fonction... */
-        auto type_retour = convertis_type_llvm(inst_appel->type);
         auto alloca = m_builder.CreateAlloca(type_retour, 0u);
         m_builder.CreateAlignedStore(
             résultat, alloca, llvm::MaybeAlign(inst_appel->type->alignement));
         résultat = m_builder.CreateLoad(type_retour, alloca);
+    }
+
+    if (adresse_retour) {
+        résultat = adresse_retour;
     }
 
     définis_valeur_instruction(inst_appel, résultat);
@@ -2523,17 +2682,22 @@ llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
 
 void GénératriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur)
 {
-    assert_rappel(!adresse_est_nulle(valeur),
-                  [&]() { dbg() << erreur::imprime_site(m_espace, inst->site); });
-
-    assert_rappel(valeur->getType() == convertis_type_llvm(inst->type), [&]() {
-        dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
-              << "Le type LLVM est " << *valeur->getType() << '\n'
-              << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
-              << imprime_arbre_instruction(inst) << '\n'
-              << imprime_commentaire_instruction(inst) << '\n'
-              << erreur::imprime_site(m_espace, inst->site);
+    assert_rappel(!adresse_est_nulle(valeur) || inst->est_charge(), [&]() {
+        dbg() << erreur::imprime_site(m_espace, inst->site);
+        dbg() << imprime_arbre_instruction(inst) << '\n';
+        dbg() << imprime_fonction(m_atome_fonction_courante);
     });
+
+    assert_rappel((valeur == nullptr || valeur->getType() == convertis_type_llvm(inst->type)) ||
+                      inst->est_appel(),
+                  [&]() {
+                      dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
+                            << "Le type LLVM est " << *valeur->getType() << '\n'
+                            << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
+                            << imprime_arbre_instruction(inst) << '\n'
+                            << imprime_commentaire_instruction(inst) << '\n'
+                            << erreur::imprime_site(m_espace, inst->site);
+                  });
 
     table_valeurs[inst->numéro] = valeur;
 }
@@ -2792,6 +2956,28 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
     auto valeurs_args = fonction->arg_begin();
 
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
+    auto méthode_retour = détermine_méthode_passage_paramètre(type_fonction->type_sortie);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        auto valeur = &(*valeurs_args++);
+
+        auto param = atome_fonc->param_sortie;
+        auto arg_name = vers_string_ref(param->ident);
+        valeur->setName(arg_name);
+
+        auto type_llvm_retour = convertis_type_llvm(type_fonction->type_sortie);
+        auto attr = llvm::Attribute::getWithStructRetType(m_module->getContext(),
+                                                          type_llvm_retour);
+        valeur->addAttr(attr);
+        attr = llvm::Attribute::getWithAlignment(
+            m_module->getContext(), llvm::Align(type_fonction->type_sortie->alignement));
+        valeur->addAttr(attr);
+        valeur->addAttr(llvm::Attribute::AttrKind::NoAlias);
+
+        m_adresse_retour = valeur;
+        définis_valeur_instruction(param, m_adresse_retour);
+    }
+
     POUR_INDICE (atome_fonc->params_entrée) {
         auto arg_name = vers_string_ref(it->ident);
         auto valeur = &(*valeurs_args++);
@@ -2823,14 +3009,20 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         }
 
         auto alignement = alloc->getAlign();
-#if 0
-        if (stockage_type_doit_utiliser_memcpy(type_alloué)) {
-            m_builder.CreateMemCpy(
-                alloc, alignement, valeur, alignement, type_alloué->taille_octet);
+
+        auto méthode_passage = détermine_méthode_passage_paramètre(type_alloué);
+        if (méthode_passage == MéthodePassageParamètre::PAR_ADRESSE) {
+            auto type_llvm_param = convertis_type_llvm(type_alloué);
+            auto attr = llvm::Attribute::getWithByValType(m_module->getContext(), type_llvm_param);
+            valeur->addAttr(attr);
+            /* Alignement pour des pointeurs. */
+            attr = llvm::Attribute::getWithAlignment(m_module->getContext(), llvm::Align(8));
+            valeur->addAttr(attr);
+            valeur->addAttr(llvm::Attribute::AttrKind::NoUndef);
+
+            crée_memcpy(alloc, valeur, type_alloué);
         }
-        else
-#endif
-        {
+        else {
             if (est_type_machine_pointeur(type_alloué)) {
                 auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
                 valeur->addAttr(attr);
@@ -2842,8 +3034,8 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     }
 
     /* crée une variable local pour la valeur de sortie */
-    auto type_fonction = atome_fonc->type->comme_type_fonction();
-    if (!type_fonction->type_sortie->est_type_rien()) {
+    if (!type_fonction->type_sortie->est_type_rien() &&
+        méthode_retour == MéthodePassageParamètre::NORMALE) {
         auto param = atome_fonc->param_sortie;
         crée_allocation(param);
     }
@@ -2855,6 +3047,8 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
                 param->comme_déclaration_variable()->atome->comme_instruction());
         }
     }
+
+    m_atome_fonction_courante = atome_fonc;
 
     for (auto inst : atome_fonc->instructions) {
         // dbg() << imprime_instruction(inst);
@@ -2873,7 +3067,9 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         // fonction->print(llvm::errs());
     }
 
+    m_atome_fonction_courante = nullptr;
     m_fonction_courante = nullptr;
+    m_adresse_retour = nullptr;
 }
 
 void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
@@ -2941,6 +3137,17 @@ llvm::AllocaInst *GénératriceCodeLLVM::crée_allocation(const InstructionAlloc
 
     définis_valeur_instruction(alloc, alloca);
     return alloca;
+}
+
+void GénératriceCodeLLVM::crée_memcpy(llvm::Value *dst,
+                                      llvm::Value *src,
+                                      Type const *type,
+                                      bool volatile_)
+{
+    if (dst != src) {
+        auto alignement = llvm::Align(type->alignement);
+        m_builder.CreateMemCpy(dst, alignement, src, alignement, type->taille_octet, volatile_);
+    }
 }
 
 bool initialise_llvm()
