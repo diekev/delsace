@@ -1305,6 +1305,10 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
                                        Atome *valeur,
                                        TypeTranstypage op)
 {
+    if (type == valeur->type) {
+        return valeur;
+    }
+
     if (valeur->est_constante_nulle()) {
         return crée_constante_nulle(type);
     }
