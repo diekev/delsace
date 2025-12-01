@@ -2074,10 +2074,10 @@ RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCom
     }
 
     if (indice_rubrique == -1) {
-        return AucunRubrique{-1};
+        return AucuneRubrique{-1};
     }
 
-    return IndexRubrique{indice_rubrique};
+    return IndiceRubrique{indice_rubrique};
 }
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à

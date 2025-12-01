@@ -173,10 +173,10 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
             auto résultat = trouve_indice_rubrique_unique_type_compatible(type_union, type_de);
 
             /* Nous pouvons construire une union depuis nul si un seul rubrique est un pointeur. */
-            if (std::holds_alternative<IndexRubrique>(résultat)) {
+            if (std::holds_alternative<IndiceRubrique>(résultat)) {
                 return TransformationType{TypeTransformation::CONSTRUIS_UNION,
                                           type_vers,
-                                          std::get<IndexRubrique>(résultat).valeur};
+                                          std::get<IndiceRubrique>(résultat).valeur};
             }
             break;
         }
