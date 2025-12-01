@@ -229,7 +229,8 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
         case GenreNoeud::OCTET:
         {
             if (type_de->est_type_entier_constant()) {
-                return TransformationType{TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_vers};
+                return TransformationType{TypeTransformation::CONVERTIS_ENTIER_CONSTANT,
+                                          type_vers};
             }
             if (POUR_TRANSTYPAGE) {
                 if (est_type_entier(type_de)) {
@@ -322,7 +323,8 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
             }
 
             if (type_de->est_type_entier_constant()) {
-                return TransformationType{TypeTransformation::CONVERTIS_ENTIER_CONSTANT, type_vers};
+                return TransformationType{TypeTransformation::CONVERTIS_ENTIER_CONSTANT,
+                                          type_vers};
             }
 
             if (POUR_TRANSTYPAGE) {
@@ -360,7 +362,7 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
             auto décalage_type_base = est_type_de_base(type_de, type_élément_vers);
             if (décalage_type_base) {
                 return TransformationType::prends_référence_vers_base(type_vers,
-                                                                     décalage_type_base.value());
+                                                                      décalage_type_base.value());
             }
 
             if (POUR_TRANSTYPAGE) {
@@ -469,7 +471,8 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
             /* x : fonc()rien = nul; */
             if (type_de->est_type_pointeur() &&
                 type_de->comme_type_pointeur()->type_pointé == nullptr) {
-                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_vers};
+                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
+                                          type_vers};
             }
 
             if (POUR_TRANSTYPAGE) {
@@ -571,11 +574,13 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
             /* x : adresse_fonction = nul; */
             if (type_de->est_type_pointeur() &&
                 type_de->comme_type_pointeur()->type_pointé == nullptr) {
-                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_vers};
+                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
+                                          type_vers};
             }
 
             if (type_de->est_type_fonction()) {
-                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_vers};
+                return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
+                                          type_vers};
             }
 
             if (POUR_TRANSTYPAGE) {
