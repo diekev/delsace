@@ -2248,7 +2248,6 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
     });
 
     auto type_fonction = convertis_type_fonction(inst_appel->appelé->type->comme_type_fonction());
-
     auto callee = llvm::FunctionCallee(type_fonction, valeur_fonction);
 
     émets_position_courante(inst_appel->site);
@@ -3205,7 +3204,6 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
                 auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
                 valeur->addAttr(attr);
             }
-
             m_builder.CreateAlignedStore(valeur, alloc, alignement);
         }
 
@@ -3400,8 +3398,8 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::OF_None);
     module.print(dest, nullptr);
 
-    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
-     * est correcte. */
+    /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la
+     * RI est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
     return exécute_commande_externe_erreur(commande, true);
 }
@@ -3575,12 +3573,14 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
     builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 }
 
+#if LLVM_VERSION_MAJOR == 14
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
                                     llvm::legacy::PassManagerBase &pm)
 {
     // pm.add(llvm::createAddressSanitizerFunctionPass());
     // pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
 }
+#endif
 
 static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
                         llvm::legacy::PassManager &pm,
@@ -3612,11 +3612,13 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
             break;
     }
 
+#if LLVM_VERSION_MAJOR == 14
     if (options.utilise_asan) {
         builder.addExtension(llvm::PassManagerBuilder::EP_OptimizerLast, ajoute_passes_pour_asan);
         builder.addExtension(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
                              ajoute_passes_pour_asan);
     }
+#endif
 
     builder.populateModulePassManager(pm);
     builder.populateFunctionPassManager(fpm);
