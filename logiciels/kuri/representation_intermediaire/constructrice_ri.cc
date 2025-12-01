@@ -3309,6 +3309,21 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::CONSTRUIS_UNION:
         {
             auto type_union = transformation.type_cible->comme_type_union();
+            // À FAIRE : fais ceci en amont.
+            auto rubrique = type_union->rubriques[transformation.indice_rubrique];
+
+            if (valeur->type->est_type_entier_constant()) {
+                if (rubrique.type->est_type_réel()) {
+                    auto constante_entière = valeur->comme_constante_entière();
+                    auto valeur_entière = constante_entière->valeur;
+                    auto valeur_réelle = static_cast<double>(valeur_entière);
+                    valeur = m_constructrice.crée_constante_nombre_réel(rubrique.type,
+                                                                        valeur_réelle);
+                }
+                else {
+                    valeur->type = rubrique.type;
+                }
+            }
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
