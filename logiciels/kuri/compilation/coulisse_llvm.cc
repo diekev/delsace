@@ -3018,32 +3018,8 @@ void GénératriceCodeLLVM::génère_code()
     AtomeFonction *point_d_entrée_dynamique = nullptr;
     AtomeFonction *point_de_sortie_dynamique = nullptr;
 
-    auto fonctions = données_module.donne_fonctions();
-    // POUR_INDICE (données_module.donne_fonctions()) {
-    //     if (it->est_externe) {
-    //         continue;
-    //     }
-    //     fonctions = kuri::tableau_statique<AtomeFonction *>(fonctions.begin() + indice_it,
-    //                                                         fonctions.taille() - indice_it);
-    //     break;
-    // }
-
-    // dbg() << "Nombre de fonctions : " << fonctions.taille();
-
-    kuri::tri_rapide(
-        fonctions, [](AtomeFonction const *a, AtomeFonction const *b) { return a->nom < b->nom; });
-
-    POUR (fonctions) {
+    POUR (données_module.donne_fonctions()) {
         m_nombre_fonctions_compilées++;
-        // // 688
-        // // 704
-        // // 705 ---
-        // // 707
-        // // 711
-        // // 719
-        // if (m_nombre_fonctions_compilées == 707) {
-        //     break;
-        // }
         // dbg() << it->nom;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
         // données_module.globales.taille()
