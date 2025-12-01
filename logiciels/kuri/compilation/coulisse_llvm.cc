@@ -1112,6 +1112,7 @@ struct GénératriceCodeLLVM {
 
   private:
     llvm::Type *convertis_type_llvm(Type const *type);
+    llvm::FunctionType *donne_type_fonction(TypeFonction const *type);
 
     llvm::FunctionType *convertis_type_fonction(TypeFonction const *type);
 
@@ -1726,7 +1727,9 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
-            return table_valeurs[inst->numéro];
+            auto résultat = table_valeurs[inst->numéro];
+            assert(résultat);
+            return résultat;
         }
         case Atome::Genre::GLOBALE:
         {
@@ -1987,14 +1990,12 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_retour = inst->comme_retour();
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                auto valeur_retour = génère_code_pour_atome(atome, UtilisationAtome::POUR_LECTURE);
-                émets_position_courante(inst->site);
                 auto méthode = détermine_méthode_passage_paramètre(atome->type);
                 if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
                     if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
                         auto chargement = atome->comme_instruction()->comme_charge();
-                        valeur_retour = génère_code_pour_atome(chargement->chargée,
-                                                               UtilisationAtome::POUR_OPÉRANDE);
+                        auto valeur_retour = génère_code_pour_atome(
+                            chargement->chargée, UtilisationAtome::POUR_OPÉRANDE);
                         assert_rappel(m_adresse_retour != nullptr, [&] {
                             dbg() << "Le type retour est " << chaine_type(atome->type);
                         });
@@ -2002,13 +2003,20 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                         assert(valeur_retour != nullptr);
 
                         crée_memcpy(m_adresse_retour, valeur_retour, atome->type);
+                        émets_position_courante(inst->site);
                         m_builder.CreateRet(nullptr);
                     }
                     else {
+                        auto valeur_retour = génère_code_pour_atome(
+                            atome, UtilisationAtome::POUR_LECTURE);
+                        émets_position_courante(inst->site);
                         m_builder.CreateRet(valeur_retour);
                     }
                 }
                 else {
+                    auto valeur_retour = génère_code_pour_atome(atome,
+                                                                UtilisationAtome::POUR_LECTURE);
+                    émets_position_courante(inst->site);
                     m_builder.CreateRet(valeur_retour);
                 }
             }
@@ -2027,21 +2035,20 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             llvm::SmallVector<llvm::Value *, 2> indices;
 
-            auto type_llvm = convertis_type_llvm(
-                inst_accès->accédé->type->comme_type_pointeur()->type_pointé);
+            auto type_accédé = inst_accès->donne_type_accédé();
+            auto type_llvm = convertis_type_llvm(type_accédé);
 
             auto accédée = inst_accès->accédé;
             if (accédée->est_instruction()) {
-                // dbg() << accédé->comme_instruction()->genre << " " <<
-                // *valeur_accédée->getType();
+                // dbg() << accédée->comme_instruction()->genre << " " <<
+                // *valeur_accédée->getType(); dbg() << imprime_arbre_instruction(inst); dbg() <<
+                // imprime_fonction(m_atome_fonction_courante);
 
-                auto type_accédé = inst_accès->donne_type_accédé();
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
-                    valeur_accédée = m_builder.CreateLoad(
-                        valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
-                    auto type_pointé = type_déréférencé_pour(type_accédé);
-                    type_llvm = convertis_type_llvm(type_pointé);
+                    // auto type_pointé = type_déréférencé_pour(type_accédé);
+                    // auto type_pointé_llvm = convertis_type_llvm(type_pointé);
+                    valeur_accédée = m_builder.CreateLoad(type_llvm, valeur_accédée);
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
@@ -2260,10 +2267,9 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
               << imprime_atome(inst_appel->appelé);
     });
 
-    auto type_fonction = convertis_type_llvm(inst_appel->appelé->type)->getPointerElementType();
+    auto type_fonction = convertis_type_fonction(inst_appel->appelé->type->comme_type_fonction());
 
-    auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
-                                       valeur_fonction);
+    auto callee = llvm::FunctionCallee(type_fonction, valeur_fonction);
 
     émets_position_courante(inst_appel->site);
     auto call_inst = m_builder.CreateCall(callee, arguments);
@@ -3041,9 +3047,8 @@ void GénératriceCodeLLVM::génère_code()
 
     // dbg() << "Nombre de fonctions : " << fonctions.taille();
 
-    // kuri::tri_rapide(
-    //     fonctions, [](AtomeFonction const *a, AtomeFonction const *b) { return a->nom < b->nom;
-    //     });
+    kuri::tri_rapide(
+        fonctions, [](AtomeFonction const *a, AtomeFonction const *b) { return a->nom < b->nom; });
 
     POUR (fonctions) {
         m_nombre_fonctions_compilées++;
@@ -3593,8 +3598,8 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
                                     llvm::legacy::PassManagerBase &pm)
 {
-    pm.add(llvm::createAddressSanitizerFunctionPass());
-    pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
+    // pm.add(llvm::createAddressSanitizerFunctionPass());
+    // pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
 }
 
 static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
