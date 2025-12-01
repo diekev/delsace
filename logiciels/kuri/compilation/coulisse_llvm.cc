@@ -44,7 +44,6 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
-#include "utilitaires/algorithmes.hh"
 #include "utilitaires/divers.hh"
 #include "utilitaires/log.hh"
 #include "utilitaires/poule_de_taches.hh"
@@ -3012,7 +3011,6 @@ void GénératriceCodeLLVM::génère_code()
 
     POUR (données_module.donne_fonctions()) {
         m_nombre_fonctions_compilées++;
-        // dbg() << it->nom;
         // dbg() << "[" << m_nombre_fonctions_compilées << " / " <<
         // données_module.globales.taille()
         //       << "] :\n"
