@@ -1618,6 +1618,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         {
             auto constante_entière = atome->comme_constante_entière();
             if (atome->type->est_type_type_de_données()) {
+                assert(constante_entière->valeur == 0);
                 // À FAIRE : fait ceci en amont
                 return llvm::ConstantPointerNull::get(
                     static_cast<llvm::PointerType *>(convertis_type_llvm(atome->type)));
