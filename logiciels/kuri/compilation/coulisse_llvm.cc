@@ -1750,15 +1750,14 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
             llvm::SmallVector<llvm::Value *, 2> indices;
 
-            auto type_llvm = convertis_type_llvm(
-                inst_accès->accédé->type->comme_type_pointeur()->type_pointé);
+            auto type_accédé = inst_accès->donne_type_accédé();
+            auto type_llvm = convertis_type_llvm(type_accédé);
 
             auto accédée = inst_accès->accédé;
             if (accédée->est_instruction()) {
                 // dbg() << accédé->comme_instruction()->genre << " " <<
                 // *valeur_accédée->getType();
 
-                auto type_accédé = inst_accès->donne_type_accédé();
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
                     valeur_accédée = m_builder.CreateLoad(
