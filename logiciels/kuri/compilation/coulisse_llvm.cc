@@ -14,6 +14,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+#include <llvm/Config/llvm-config.h>
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
@@ -167,7 +168,7 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule con
 
 #ifndef COMPILE_EN_PLUSIEURS_MODULE
     static_cast<void>(module);
-    return llvm::GlobalValue::ExternalLinkage;
+    return llvm::GlobalValue::InternalLinkage;
 #else
     /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
     if (!module.fait_partie_du_module(fonction)) {
@@ -2046,9 +2047,16 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
 
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
+#if LLVM_VERSION_MAJOR == 14
+                    valeur_accédée = m_builder.CreateLoad(
+                        valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
+                    auto type_pointé = type_déréférencé_pour(type_accédé);
+                    type_llvm = convertis_type_llvm(type_pointé);
+#else
                     // auto type_pointé = type_déréférencé_pour(type_accédé);
                     // auto type_pointé_llvm = convertis_type_llvm(type_pointé);
                     valeur_accédée = m_builder.CreateLoad(type_llvm, valeur_accédée);
+#endif
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
