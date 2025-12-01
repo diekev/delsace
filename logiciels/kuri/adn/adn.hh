@@ -407,10 +407,10 @@ class ProtéineStruct final : public Protéine {
     IdentifiantADN m_nom_comme{};
     IdentifiantADN m_genre_valeur{};
 
-    kuri::tableau<ProtéineStruct *> m_protéines_derivees{};
+    kuri::tableau<ProtéineStruct *> m_protéines_derivées{};
 
     bool m_possède_enfant = false;
-    bool m_possède_rubrique_a_copier = false;
+    bool m_possède_rubrique_à_copier = false;
     bool m_possède_tableaux = false;
 
     ProtéineStruct *m_paire = nullptr;
@@ -436,8 +436,8 @@ class ProtéineStruct final : public Protéine {
         m_mere = protéine;
         m_possède_tableaux |= m_mere->m_possède_tableaux;
         m_possède_enfant |= m_mere->m_possède_enfant;
-        m_possède_rubrique_a_copier |= m_mere->m_possède_rubrique_a_copier;
-        m_mere->m_protéines_derivees.ajoute(this);
+        m_possède_rubrique_à_copier |= m_mere->m_possède_rubrique_à_copier;
+        m_mere->m_protéines_derivées.ajoute(this);
     }
 
     ProtéineStruct *comme_struct() override
@@ -513,7 +513,7 @@ class ProtéineStruct final : public Protéine {
 
     bool est_classe_de_base() const
     {
-        return !m_protéines_derivees.est_vide();
+        return !m_protéines_derivées.est_vide();
     }
 
     bool est_racine_hiérarchie() const
@@ -531,14 +531,14 @@ class ProtéineStruct final : public Protéine {
         return m_possède_enfant;
     }
 
-    bool possède_rubrique_a_copier() const
+    bool possède_rubrique_à_copier() const
     {
-        return m_possède_rubrique_a_copier;
+        return m_possède_rubrique_à_copier;
     }
 
-    const kuri::tableau<ProtéineStruct *> &derivees() const
+    const kuri::tableau<ProtéineStruct *> &derivées() const
     {
-        return m_protéines_derivees;
+        return m_protéines_derivées;
     }
 
     const kuri::tableau<Rubrique> &rubriques() const
@@ -569,13 +569,13 @@ class ProtéineStruct final : public Protéine {
         return nullptr;
     }
 
-    void pour_chaque_rubrique_recursif(std::function<void(Rubrique const &)> rappel);
+    void pour_chaque_rubrique_récursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_copie_extra_recursif(std::function<void(Rubrique const &)> rappel);
+    void pour_chaque_copie_extra_récursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_enfant_recursif(std::function<void(const Rubrique &)> rappel);
+    void pour_chaque_enfant_récursif(std::function<void(const Rubrique &)> rappel);
 
-    void pour_chaque_derivee_recursif(std::function<void(const ProtéineStruct &)> rappel);
+    void pour_chaque_derivée_récursif(std::function<void(const ProtéineStruct &)> rappel);
 
     kuri::tableau<Rubrique> donne_rubriques_pour_construction();
 };
@@ -790,7 +790,7 @@ void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
 
 void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 kuri::chaine_statique nom_classe,
-                                                ProtéineStruct const &derivee,
+                                                ProtéineStruct const &derivée,
                                                 bool pour_noeud_code);
 
 void génère_code_cpp(FluxSortieCPP &os,

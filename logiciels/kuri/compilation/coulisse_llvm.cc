@@ -3243,13 +3243,15 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     auto type_int32 = llvm::Type::getInt32Ty(m_contexte_llvm);
 
     /* Le type de la fonction de constrution est void()*. */
-    llvm::FunctionType *CtorFTy = llvm::FunctionType::get(type_void, false);
-    llvm::Type *CtorPFTy = llvm::PointerType::get(CtorFTy, espace_adressage);
+    llvm::FunctionType *type_fonction_constructeur = llvm::FunctionType::get(type_void, false);
+    llvm::Type *type_pointeur_fonction_constructeur = llvm::PointerType::get(
+        type_fonction_constructeur, espace_adressage);
 
     /* Le type d'une entrée dans la liste, { i32, void ()*, i8* }. */
-    llvm::StructType *CtorStructTy = llvm::StructType::get(type_int32, CtorPFTy, type_void_ptr);
+    llvm::StructType *type_struct_constructeur = llvm::StructType::get(
+        type_int32, type_pointeur_fonction_constructeur, type_void_ptr);
 
-    /* Construiction des tableaux de constructeurs/desctructeurs. */
+    /* Construction des tableaux de constructeurs/desctructeurs. */
     std::vector<llvm::Constant *> tableau_constructeurs;
     tableau_constructeurs.reserve(1);
 
@@ -3259,11 +3261,12 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     /* Données associées. Nous n'en avons aucune. */
     tableau_membre.push_back(llvm::ConstantPointerNull::get(type_void_ptr));
 
-    auto constructeur = llvm::ConstantStruct::get(CtorStructTy, tableau_membre);
+    auto constructeur = llvm::ConstantStruct::get(type_struct_constructeur, tableau_membre);
 
     tableau_constructeurs.push_back(constructeur);
 
-    auto type_tableau = llvm::ArrayType::get(CtorStructTy, tableau_constructeurs.size());
+    auto type_tableau = llvm::ArrayType::get(type_struct_constructeur,
+                                             tableau_constructeurs.size());
     auto init_constructeurs = llvm::ConstantArray::get(type_tableau, tableau_constructeurs);
 
     auto nom_globale_llvm = vers_string_ref(nom_globale);

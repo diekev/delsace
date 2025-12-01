@@ -232,13 +232,13 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 
         // Prodéclare les fonctions de discrimination.
         if (est_racine_hiérarchie()) {
-            pour_chaque_derivee_recursif([&os](const ProtéineStruct &derivee) {
-                if (derivee.m_nom_comme.nom() == "") {
+            pour_chaque_derivée_récursif([&os](const ProtéineStruct &derivée) {
+                if (derivée.m_nom_comme.nom() == "") {
                     return;
                 }
 
-                const auto nom_comme = derivee.m_nom_comme;
-                const auto nom_noeud = derivee.m_nom;
+                const auto nom_comme = derivée.m_nom_comme;
+                const auto nom_noeud = derivée.m_nom;
                 génère_déclaration_fonctions_discrimination(os, nom_noeud, nom_comme);
             });
         }
@@ -306,7 +306,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
             os << "\t}\n";
         }
 
-        pour_chaque_rubrique_recursif([&os](Rubrique const &it) {
+        pour_chaque_rubrique_récursif([&os](Rubrique const &it) {
             if (it.type->est_nominal() && it.type->comme_nominal()->est_protéine &&
                 it.type->comme_nominal()->est_protéine->comme_enum()) {
                 os << "\tif (!est_valeur_legale(valeur." << it.nom << ")) {\n";
@@ -326,12 +326,12 @@ void ProtéineStruct::génère_code_cpp_apres_déclaration(FluxSortieCPP &os)
     // Nous devons attendre que toutes les structures soient déclarées avant de
     // pouvoir faire ceci.
     if (est_racine_hiérarchie()) {
-        pour_chaque_derivee_recursif([&os, this](const ProtéineStruct &derivee) {
-            if (derivee.m_nom_comme.nom() == "") {
+        pour_chaque_derivée_récursif([&os, this](const ProtéineStruct &derivée) {
+            if (derivée.m_nom_comme.nom() == "") {
                 return;
             }
 
-            génère_définition_fonctions_discrimination(os, m_nom.nom(), derivee, false);
+            génère_définition_fonctions_discrimination(os, m_nom.nom(), derivée, false);
         });
     }
 }
@@ -416,7 +416,7 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 void ProtéineStruct::ajoute_rubrique(const Rubrique rubrique)
 {
     if (rubrique.est_à_copier) {
-        m_possède_rubrique_a_copier = true;
+        m_possède_rubrique_à_copier = true;
     }
 
     if (rubrique.est_enfant) {
@@ -427,17 +427,17 @@ void ProtéineStruct::ajoute_rubrique(const Rubrique rubrique)
 
     if (rubrique.est_code && m_paire) {
         m_paire->m_possède_enfant = rubrique.est_enfant;
-        m_paire->m_possède_rubrique_a_copier = rubrique.est_à_copier;
+        m_paire->m_possède_rubrique_à_copier = rubrique.est_à_copier;
         m_paire->m_rubriques.ajoute(rubrique);
     }
 
     m_rubriques.ajoute(rubrique);
 }
 
-void ProtéineStruct::pour_chaque_rubrique_recursif(std::function<void(const Rubrique &)> rappel)
+void ProtéineStruct::pour_chaque_rubrique_récursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
-        m_mere->pour_chaque_rubrique_recursif(rappel);
+        m_mere->pour_chaque_rubrique_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -445,10 +445,10 @@ void ProtéineStruct::pour_chaque_rubrique_recursif(std::function<void(const Rub
     }
 }
 
-void ProtéineStruct::pour_chaque_copie_extra_recursif(std::function<void(const Rubrique &)> rappel)
+void ProtéineStruct::pour_chaque_copie_extra_récursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
-        m_mere->pour_chaque_copie_extra_recursif(rappel);
+        m_mere->pour_chaque_copie_extra_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -458,10 +458,10 @@ void ProtéineStruct::pour_chaque_copie_extra_recursif(std::function<void(const 
     }
 }
 
-void ProtéineStruct::pour_chaque_enfant_recursif(std::function<void(const Rubrique &)> rappel)
+void ProtéineStruct::pour_chaque_enfant_récursif(std::function<void(const Rubrique &)> rappel)
 {
     if (m_mere) {
-        m_mere->pour_chaque_enfant_recursif(rappel);
+        m_mere->pour_chaque_enfant_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -471,14 +471,14 @@ void ProtéineStruct::pour_chaque_enfant_recursif(std::function<void(const Rubri
     }
 }
 
-void ProtéineStruct::pour_chaque_derivee_recursif(
+void ProtéineStruct::pour_chaque_derivée_récursif(
     std::function<void(const ProtéineStruct &)> rappel)
 {
-    POUR (derivees()) {
+    POUR (derivées()) {
         rappel(*it);
 
         if (it->est_racine_soushierachie()) {
-            it->pour_chaque_derivee_recursif(rappel);
+            it->pour_chaque_derivée_récursif(rappel);
         }
     }
 }
@@ -486,7 +486,7 @@ void ProtéineStruct::pour_chaque_derivee_recursif(
 kuri::tableau<Rubrique> ProtéineStruct::donne_rubriques_pour_construction()
 {
     kuri::tableau<Rubrique> résultat;
-    pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+    pour_chaque_rubrique_récursif([&](const Rubrique &rubrique) {
         if (!rubrique.est_requis_pour_construction) {
             return;
         }
@@ -1041,8 +1041,9 @@ void SyntaxeuseADN::parse_struct()
                 consomme();
             }
 
-            consomme(GenreLexème::CROCHET_FERMANT,
-                     "Attendu un crochet fermant à la fin de la liste des attributs de la rubriques");
+            consomme(
+                GenreLexème::CROCHET_FERMANT,
+                "Attendu un crochet fermant à la fin de la liste des attributs de la rubriques");
         }
 
         if (apparie(GenreLexème::POINT_VIRGULE)) {
@@ -1246,22 +1247,22 @@ void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
 
 void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 kuri::chaine_statique nom_classe,
-                                                ProtéineStruct const &derivee,
+                                                ProtéineStruct const &derivée,
                                                 bool pour_noeud_code)
 {
-    const auto &nom_comme = derivee.accede_nom_comme();
-    const auto &nom_noeud = pour_noeud_code ? derivee.accede_nom_code() : derivee.nom();
-    const auto &nom_genre = derivee.accede_nom_genre();
+    const auto &nom_comme = derivée.accede_nom_comme();
+    const auto &nom_noeud = pour_noeud_code ? derivée.accede_nom_code() : derivée.nom();
+    const auto &nom_genre = derivée.accede_nom_genre();
 
     // À FAIRE: si/discr
-    if (derivee.est_racine_soushierachie() && nom_genre.nom() == "") {
+    if (derivée.est_racine_soushierachie() && nom_genre.nom() == "") {
         os << "inline bool " << nom_classe << "::est_" << nom_comme << "() const\n";
         os << "{\n";
         os << "\t ";
 
         auto separateur = "return";
 
-        for (auto &derive : derivee.derivees()) {
+        for (auto &derive : derivée.derivées()) {
             os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
             separateur = "|| ";
         }
@@ -1273,10 +1274,10 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
         os << "inline bool " << nom_classe << "::est_" << nom_comme << "() const\n";
         os << "{\n";
 
-        if (derivee.est_racine_soushierachie()) {
+        if (derivée.est_racine_soushierachie()) {
             os << "\treturn this->genre == GenreNoeud::" << nom_genre;
 
-            for (auto &derive : derivee.derivees()) {
+            for (auto &derive : derivée.derivées()) {
                 os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
             }
 

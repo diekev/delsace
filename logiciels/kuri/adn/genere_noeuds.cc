@@ -215,7 +215,7 @@ struct GeneratriceCodeCPP {
                 continue;
             }
 
-            protéine->pour_chaque_rubrique_recursif(
+            protéine->pour_chaque_rubrique_récursif(
                 [&noms_struct, &ensemble_noms](Rubrique const &rubrique) {
                     if (!rubrique.type->est_pointeur()) {
                         return;
@@ -541,7 +541,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
 
             os << "\t\t\tcopie_rubriques_de_bases_et_insère(racine, nracine);\n";
 
-            if (!it->possède_enfants() && !it->possède_rubrique_a_copier()) {
+            if (!it->possède_enfants() && !it->possède_rubrique_à_copier()) {
                 os << "\t\t\tbreak;\n";
                 os << "\t\t}\n";
                 continue;
@@ -609,9 +609,9 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 }
             };
 
-            it->pour_chaque_enfant_recursif(copie_noeud);
+            it->pour_chaque_enfant_récursif(copie_noeud);
 
-            it->pour_chaque_copie_extra_recursif([&](const Rubrique &enfant) {
+            it->pour_chaque_copie_extra_récursif([&](const Rubrique &enfant) {
                 if (est_type_noeud(enfant.type)) {
                     copie_noeud(enfant);
                     return;
@@ -1513,7 +1513,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexème, NoeudDéclarati
                 continue;
             }
 
-            it->pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+            it->pour_chaque_rubrique_récursif([&](const Rubrique &rubrique) {
                 if (rubrique.type->est_tableau() || rubrique.nom.nom() == "monomorphisations") {
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
                                                               rubrique.nom.nom());
@@ -1539,7 +1539,7 @@ NoeudBloc *AssembleuseArbre::empile_bloc(Lexème const *lexème, NoeudDéclarati
             os << "auto mémoire_" << nom_comme << " = int64_t(0);\n";
             os << "pour_chaque_élément(m_noeuds_" << nom_comme << ", [&](";
             os << it->nom() << " const &noeud) {\n";
-            it->pour_chaque_rubrique_recursif([&](const Rubrique &rubrique) {
+            it->pour_chaque_rubrique_récursif([&](const Rubrique &rubrique) {
                 if (rubrique.type->est_tableau()) {
                     const auto nom_rubrique = rubrique.nom;
                     const auto nom_tableau = crée_nom_tableau(it->accede_nom_comme().nom(),
