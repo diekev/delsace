@@ -927,8 +927,7 @@ struct InfoDébogageLLVM {
         types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
 
         POUR (type->types_entrées) {
-            auto type_die = donne_type(it, DonneTypePour::SOUS_TYPE);
-            types.push_back(type_die);
+            types.push_back(donne_type(it, DonneTypePour::SOUS_TYPE));
         }
 
         auto ref_array_types = dibuilder->getOrCreateTypeArray(types);
@@ -1087,7 +1086,6 @@ struct GénératriceCodeLLVM {
 
   private:
     llvm::Type *convertis_type_llvm(Type const *type);
-    llvm::FunctionType *donne_type_fonction(TypeFonction const *type);
 
     llvm::FunctionType *convertis_type_fonction(TypeFonction const *type);
 
