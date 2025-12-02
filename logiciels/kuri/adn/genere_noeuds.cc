@@ -864,8 +864,8 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            os << "\tkuri::tableau_page<" << it->nom() << "> noeuds_expr_"
-               << it->donne_nom_comme() << "{};\n";
+            os << "\tkuri::tableau_page<" << it->nom() << "> noeuds_expr_" << it->donne_nom_comme()
+               << "{};\n";
         }
         os << "\n";
 
@@ -929,8 +929,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 os << "\t\t\tthis->noeuds.efface();\n";
             }
 
-            os << "\t\t\tauto n = noeuds_code_" << it->donne_nom_comme()
-               << ".ajoute_élément();\n";
+            os << "\t\t\tauto n = noeuds_code_" << it->donne_nom_comme() << ".ajoute_élément();\n";
             os << "\t\t\tthis->noeuds.ajoute(n);\n";
             // Renseigne directement le noeud code afin d'éviter les boucles infinies résultant en
             // des surempilages d'appels quand nous convertissons notamment les entêtes et les
@@ -1097,8 +1096,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 continue;
             }
 
-            os << "\t\t\tauto n = noeuds_expr_" << it->donne_nom_comme()
-               << ".ajoute_élément();\n";
+            os << "\t\t\tauto n = noeuds_expr_" << it->donne_nom_comme() << ".ajoute_élément();\n";
 
             génère_code_pour_enfant(
                 os, it, true, [&os, it, this](ProtéineStruct &, Rubrique const &rubrique) {
