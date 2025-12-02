@@ -1515,6 +1515,10 @@ NoeudExpression *Simplificatrice::crée_expression_pour_op_chainée(
 void Simplificatrice::corrige_bloc_pour_assignation(NoeudExpression *expr,
                                                     NoeudExpression *ref_temp)
 {
+    if (!expr) {
+        return;
+    }
+
     if (expr->est_bloc()) {
         auto bloc = expr->comme_bloc();
 
@@ -2718,7 +2722,7 @@ NoeudExpression *Simplificatrice::simplifie_arithmétique_pointeur(NoeudExpressi
 
 static NoeudExpression *est_bloc_avec_une_seule_expression_simple(NoeudExpression const *noeud)
 {
-    if (!noeud->est_bloc()) {
+    if (!noeud || !noeud->est_bloc()) {
         return nullptr;
     }
 
@@ -2809,8 +2813,13 @@ NoeudExpression *Simplificatrice::simplifie_instruction_si(NoeudSi *inst_si)
      *     x := decl
      */
 
-    auto decl_temp = crée_déclaration_variable(
-        inst_si->lexème, inst_si->type, &non_initialisation);
+    NoeudExpression *initialisation = nullptr;
+    if (inst_si->expression_est_complète) {
+        /* Évite d'initialiser si l'expression est complète. */
+        initialisation = &non_initialisation;
+    }
+
+    auto decl_temp = crée_déclaration_variable(inst_si->lexème, inst_si->type, initialisation);
     decl_temp->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     auto ref_temp = assem->crée_référence_déclaration(inst_si->lexème, decl_temp);
 

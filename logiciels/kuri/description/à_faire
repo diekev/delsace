@@ -13,8 +13,6 @@ diffère { Prof_End() }
 
 pas d'erreur pour foo(a = a = 13)
 
-permet de ne pas avoir de sinon pour les expressions si (la variable est alors initialiser à sa valeur défaut)
-
 noeud syntaxique distinct pour les expressions si
 
 ajout de #superpose pour superposer des rubriques sur d'autres dans les structures

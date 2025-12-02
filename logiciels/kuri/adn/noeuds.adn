@@ -1025,6 +1025,9 @@ struct NoeudSi : NoeudExpression {
     NoeudExpression *condition [code enfant construction]
     NoeudExpression *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
+
+    /* Pour l'instruction racine des expressions-si, s'il y a un bloc sinon final. */
+    bool expression_est_complète
 }
 
 struct NoeudSaufsi : NoeudSi {

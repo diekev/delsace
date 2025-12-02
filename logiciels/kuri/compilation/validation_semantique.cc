@@ -6451,17 +6451,18 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
  */
 static bool rassemble_blocs_pour_expression_si(NoeudSi const *inst,
                                                EspaceDeTravail *espace,
-                                               kuri::tablet<NoeudBloc *, 6> &blocs)
+                                               kuri::tablet<NoeudBloc *, 6> &blocs,
+                                               bool &possède_bloc_si_faux)
 {
     while (true) {
-        if (!inst->bloc_si_faux) {
-            espace->rapporte_erreur(inst, "Branche « sinon » manquante dans l'expression « si »");
-            return false;
-        }
-
         blocs.ajoute(inst->bloc_si_vrai->comme_bloc());
 
+        if (!inst->bloc_si_faux) {
+            break;
+        }
+
         if (inst->bloc_si_faux->est_bloc()) {
+            possède_bloc_si_faux = true;
             blocs.ajoute(inst->bloc_si_faux->comme_bloc());
             break;
         }
@@ -6524,9 +6525,12 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     /* Pour les expressions x = si y { z } sinon { w }. */
 
     kuri::tablet<NoeudBloc *, 6> blocs;
-    if (!rassemble_blocs_pour_expression_si(inst, m_espace, blocs)) {
+    auto possède_bloc_si_faux = false;
+    if (!rassemble_blocs_pour_expression_si(inst, m_espace, blocs, possède_bloc_si_faux)) {
         return CodeRetourValidation::Erreur;
     }
+
+    inst->expression_est_complète = possède_bloc_si_faux;
 
     kuri::tablet<NoeudExpression *, 6> expressions_finales;
 
