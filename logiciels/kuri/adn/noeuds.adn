@@ -414,7 +414,7 @@ struct NoeudExpressionRéférence : NoeudExpression {
     @code  NoeudCodeRéférenceDéclaration
     @genre_valeur INVALIDE
 
-    NoeudDéclaration *déclaration_référée [copie]
+    NoeudDéclaration *déclaration_référée [code copie]
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {

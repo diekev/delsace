@@ -2231,6 +2231,11 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
          * les étapes suivantes de compilation. */
         expr->expression->type = expr->noeud_fonction_appelée->type;
 
+        if (expr->expression->est_référence_déclaration()) {
+            expr->expression->comme_référence_déclaration()->déclaration_référée =
+                const_cast<NoeudDéclarationEntêteFonction *>(decl_fonction_appelée);
+        }
+
         if (expr->type == nullptr) {
             expr->type = type_sortie;
         }
