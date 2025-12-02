@@ -562,6 +562,13 @@ struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
     @genre_valeur INVALIDE
 }
 
+struct NoeudRéférenceConditionnelle : NoeudExpressionRubrique {
+    @genre EXPRESSION_RÉFÉRENCE_CONDITIONNELLE
+    @comme référence_conditionnelle
+    @code  NoeudCodeRéférenceConditionnelle
+    @genre_valeur DROITE
+}
+
 struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
     @genre DÉCLARATION_ENTÊTE_FONCTION
     @comme entête_fonction

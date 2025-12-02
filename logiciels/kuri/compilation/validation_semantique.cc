@@ -673,6 +673,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_référence_rubrique();
             return valide_accès_rubrique(inst);
         }
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
+        {
+            auto référence = noeud->comme_référence_conditionnelle();
+            return valide_accès_rubrique_conditionnelle(référence);
+        }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto inst = noeud->comme_assignation_variable();
@@ -1908,6 +1913,57 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             structure, "Impossible de référencer une rubrique d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
     return CodeRetourValidation::Erreur;
+}
+
+RésultatValidation Sémanticienne::valide_accès_rubrique_conditionnelle(
+    NoeudRéférenceConditionnelle *référence)
+{
+    auto structure = référence->accédée;
+
+    if (structure->type == nullptr || !structure->type->est_type_pointeur()) {
+        m_espace
+            ->rapporte_erreur(structure,
+                              "Les références de rubriques conditionnelles ne sont supportées que "
+                              "sur des pointeurs.")
+            .ajoute_message("Le type obtenu est ", chaine_type(structure->type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type = donne_type_accédé_effectif(structure->type);
+    if (!type->est_type_structure()) {
+        m_espace
+            ->rapporte_erreur(structure,
+                              "Les références de rubriques conditionnelles ne sont supportées que "
+                              "sur des types structures.")
+            .ajoute_message("Le type obtenu est ", chaine_type(type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type);
+    }
+
+    auto type_composé = type->comme_type_composé();
+    auto info_rubrique = donne_rubrique_pour_nom(type_composé, référence->ident);
+    if (!info_rubrique.has_value()) {
+        rapporte_erreur_rubrique_inconnu(référence, référence, type_composé);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto const indice_rubrique = info_rubrique->indice_rubrique;
+    auto const rubrique_est_constante = info_rubrique->rubrique.drapeaux &
+                                        RubriqueTypeComposé::EST_CONSTANT;
+    if (rubrique_est_constante) {
+        m_espace->rapporte_erreur(référence,
+                                  "Impossible d'utiliser '?.' pour accéder à une rubrique "
+                                  "constante, veuillez utiliser '.'");
+        return CodeRetourValidation::Erreur;
+    }
+
+    référence->type = info_rubrique->rubrique.type;
+    référence->indice_rubrique = indice_rubrique;
+
+    return CodeRetourValidation::OK;
 }
 
 static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction const &fonction1,

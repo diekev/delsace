@@ -19,8 +19,6 @@ noeud syntaxique distinct pour les expressions si
 
 ajout de #superpose pour superposer des rubriques sur d'autres dans les structures
 
-ajout de "?." pour transformer : a := nul si b { a = b.x } en a := b?.x
-
 opérateur non trouvé s'il y a une attente non résolue
     => l'erreur devrait être sur l'attente de l'opérateur
 

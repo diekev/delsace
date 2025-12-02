@@ -418,6 +418,11 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
         {
             return simplifie_référence_rubrique(noeud->comme_référence_rubrique());
         }
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
+        {
+            auto référence = noeud->comme_référence_conditionnelle();
+            return simplifie_référence_conditionnelle(référence);
+        }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:
         {
             auto ref_rubrique_union = noeud->comme_référence_rubrique_union();
@@ -2442,6 +2447,73 @@ NoeudExpression *Simplificatrice::simplifie_référence_rubrique(
      */
     simplifie(ref_rubrique->accédée);
     return ref_rubrique;
+}
+
+NoeudExpression *Simplificatrice::simplifie_référence_conditionnelle(
+    NoeudRéférenceConditionnelle *référence)
+{
+    /*
+        a?.x devient :
+        temp := <valeur défaut du type>
+        si a {
+            temp = a.x
+        }
+        temp;
+    */
+
+    auto const lexème = référence->lexème;
+    auto accédée = référence->accédée;
+
+    auto type_accédé = donne_type_accédé_effectif(accédée->type);
+    auto type_composé = type_accédé->comme_type_composé();
+    auto &rubrique = type_composé->rubriques[référence->indice_rubrique];
+
+    auto temporaire = crée_déclaration_variable(lexème, rubrique.type, nullptr);
+    temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+    auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème, temporaire);
+
+    ajoute_expression(temporaire);
+
+    auto valeur_nulle = assem->crée_littérale_nul(lexème);
+    valeur_nulle->type = accédée->type;
+
+    espace->opérateurs->ajoute_opérateurs_basiques_au_besoin(typeuse, accédée->type);
+    auto table_opérateurs = espace->opérateurs->donne_ou_crée_table_opérateurs(accédée->type);
+
+    auto test = assem->crée_expression_binaire(
+        lexème, table_opérateurs->opérateur_dif, accédée, valeur_nulle);
+
+    auto instruction_si = assem->crée_si(lexème, GenreNoeud::INSTRUCTION_SI);
+    instruction_si->condition = test;
+
+    ajoute_expression(instruction_si);
+
+    auto bloc = assem->crée_bloc_seul(lexème, référence->bloc_parent);
+    instruction_si->bloc_si_vrai = bloc;
+
+    auto référence_rubrique = assem->crée_référence_rubrique(lexème, accédée);
+    référence_rubrique->indice_rubrique = référence->indice_rubrique;
+    référence_rubrique->type = référence->type;
+
+    auto assignation = assem->crée_assignation_variable(
+        lexème, ref_temporaire, référence_rubrique);
+    bloc->ajoute_expression(assignation);
+
+    /*
+      si droite
+
+        a?.x
+        temp := nul
+        si a {
+            temp = a.x
+        }
+     */
+
+    simplifie(référence->accédée);
+
+    référence->substitution = ref_temporaire;
+
+    return ref_temporaire;
 }
 
 NoeudExpression *Simplificatrice::simplifie_assignation_énum_drapeau(NoeudExpression *var,

@@ -178,6 +178,8 @@ struct Sémanticienne {
   private:
     RésultatValidation valide_sémantique_noeud(NoeudExpression *);
     RésultatValidation valide_accès_rubrique(NoeudExpressionRubrique *expression_rubrique);
+    RésultatValidation valide_accès_rubrique_conditionnelle(
+        NoeudRéférenceConditionnelle *référence);
 
     RésultatValidation valide_entête_fonction(NoeudDéclarationEntêteFonction *);
     RésultatValidation valide_entête_opérateur(NoeudDéclarationEntêteFonction *);
