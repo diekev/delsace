@@ -29,7 +29,7 @@ greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message
     si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
         message_typage := message comme *MessageTypageCodeTerminé
         si greffon.vérifie_imprimeuses {
-            vérifie_imprime(message_typage.code)
+            vérifie_appels_imprimeuses(message.espace, message_typage.code)
         }
         si greffon.vérifie_dépassement_ligne_de_cache {
             vérifie_dépassement_ligne_de_cache(message_typage.code)
@@ -45,38 +45,92 @@ greffon_analyse_sur_destruction :: fonc (greffon: *GreffonAnalyse)
     déloge(greffon)
 }
 
-vérifie_imprime :: fonc (code: *NoeudCode)
+vérifie_appels_imprimeuses :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
 {
-    si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-        corps := code comme *NoeudCodeCorpsFonction
-        pour noeud dans corps.noeuds {
-            si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
-                appel := noeud comme *NoeudCodeAppel
+    si code.genre != GenreNoeud.DÉCLARATION_CORPS_FONCTION {
+        retourne
+    }
 
-                si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-                    référence := appel.expression comme *NoeudCodeRéférenceDéclaration
-                    // À FAIRE(langage) : convertis la déclaration
-                    si référence.nom == "imprime" || référence.nom == "imprimeln" || référence.nom == "imprime_dans_enchaineuse" {
-                        format := appel.paramètres[0]
-                        si format.genre == GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
-                            chn := (format comme *NoeudCodeLittéraleChaine).valeur
+    corps := code comme *NoeudCodeCorpsFonction
+    pour noeud dans corps.noeuds {
+        si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
+            appel := noeud comme *NoeudCodeAppel
 
-                            nombre_de_pourcentages := 0
-                            pour chn {
-                                si it == '%' {
-                                    nombre_de_pourcentages += 1
-                                }
-                            }
+            si appel.expression.genre != GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
+                continue
+            }
 
-                            si nombre_de_pourcentages != appel.paramètres.taille - 1 {
-                                compilatrice_rapporte_erreur(appel, "Paramètre manquant pour la fonction d'impression.")
-                            }
-                        }
-                    }
+            référence := appel.expression comme *NoeudCodeRéférenceDéclaration
+            entête_imprimeuse := est_fonction_imprimeuse(référence.déclaration_référée)
+            saufsi entête_imprimeuse {
+                continue
+            }
+
+            indice_arg_variadique : z64 = -1
+            pour arg, indice_arg dans entête_imprimeuse.params {
+                si arg.type.id == GenreInfoType.VARIADIQUE {
+                    indice_arg_variadique = indice_arg
+                    arrête
                 }
+            }
+            sansarrêt {
+                continue
+            }
+
+            si indice_arg_variadique == 0 {
+                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que ses paramètres variadiques sont les premiers. Ils doivent être précédés par une chaine de formattage.")
+                continue
+            }
+
+            indice_arg_formattage := indice_arg_variadique - 1
+            param_formattage := entête_imprimeuse.params[indice_arg_formattage]
+            si param_formattage.type.id != GenreInfoType.CHAINE {
+                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que son paramètre de formattage n'est pas de type chaine.")
+                continue
+            }
+
+            argument_format := appel.paramètres[indice_arg_formattage]
+            si argument_format.genre != GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
+                continue
+            }
+
+            nombre_de_pourcentages := 0
+            chn := (argument_format comme *NoeudCodeLittéraleChaine).valeur
+            pour chn {
+                si it == '%' {
+                    nombre_de_pourcentages += 1
+                }
+            }
+
+            nombre_de_paramètres_spécifiés := appel.paramètres.taille - indice_arg_variadique
+
+            si nombre_de_paramètres_spécifiés < nombre_de_pourcentages {
+                compilatrice_rapporte_erreur(espace, appel, "Paramètre manquant pour la fonction d'impression.")
+            }
+            sinon si nombre_de_paramètres_spécifiés > nombre_de_pourcentages {
+                compilatrice_rapporte_erreur(espace, appel, "Trop de paramètres spécifiés pour la fonction d'impression.")
             }
         }
     }
+}
+
+est_fonction_imprimeuse :: fonc (code: *NoeudCode) -> *NoeudCodeEntêteFonction
+{
+    si code == nul {
+        // À FAIRE : parfois nous avons une référence nulle
+        retourne nul
+    }
+
+    si code.genre != GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+        retourne nul
+    }
+
+    entête := code comme *NoeudCodeEntêteFonction
+    saufsi fonction_possède_annotation(entête, "Imprimeuse") {
+        retourne nul
+    }
+
+    retourne entête
 }
 
 vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
