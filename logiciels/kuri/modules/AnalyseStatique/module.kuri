@@ -4,20 +4,30 @@
 importe Compilatrice
 importe Fondation
 importe GreffeMétaprogramme
+importe LigneDeCommande
 importe Triage
+
+OptionsAnalyse :: struct {
+    imprimeuses: bool = vrai @Aide "Vérifie les appels à toutes les fonctions @Imprimeuse afin de détecter les paramètres manquants."
+
+    ligne_de_cache: bool @Aide "Vérifie qu'aucune rubrique de structure ne dépasse une ligne de cache."
+    taille_cache: n8 = 64 @Aide "Précise la taille d'une ligne de cache en octets."
+
+    rembourrage: bool @Aide "Vérifie que le rembourrage inséré entre les rubriques des structure n'est pas excessif."
+    rembourrage_permis: n32 = 24 @Aide "Le rembourrage maximal permis."
+}
 
 GreffonAnalyse :: struct {
     empl base: GreffonMétaprogramme
 
-    vérifie_imprimeuses := vrai
-    vérifie_dépassement_ligne_de_cache := faux
-    vérifie_rembourrage_excessif := faux
+    options: OptionsAnalyse
 }
 
 donne_greffon :: fonc () -> *GreffonMétaprogramme
 {
     résultat := loge(GreffonAnalyse)
     résultat.sur_message = greffon_analyse_sur_message
+    résultat.sur_arguments = greffon_analyse_sur_arguments
     résultat.sur_destruction = greffon_analyse_sur_destruction
     retourne résultat
 }
@@ -28,15 +38,27 @@ greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message
 {
     si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
         message_typage := message comme *MessageTypageCodeTerminé
-        si greffon.vérifie_imprimeuses {
+        si greffon.options.imprimeuses {
             vérifie_appels_imprimeuses(message.espace, message_typage.code)
         }
-        si greffon.vérifie_dépassement_ligne_de_cache {
-            vérifie_dépassement_ligne_de_cache(message_typage.code)
+        si greffon.options.ligne_de_cache {
+            vérifie_dépassement_ligne_de_cache(message_typage.code, greffon.options)
         }
-        si greffon.vérifie_rembourrage_excessif {
-            vérifie_rembourrage_excessif(message_typage.code)
+        si greffon.options.rembourrage {
+            vérifie_rembourrage_excessif(message_typage.code, greffon.options)
         }
+    }
+}
+
+greffon_analyse_sur_arguments :: fonc (greffon: *GreffonAnalyse, arguments: []chaine)
+{
+    /* Saute le nom du métaprogramme. */
+    _ := consomme(*arguments)
+    
+    succès, options, _ := parse_ligne_de_commande(OptionsAnalyse, arguments)
+    si succès {
+        greffon.options = options
+        imprimeln("%", options)
     }
 }
 
@@ -133,7 +155,7 @@ est_fonction_imprimeuse :: fonc (code: *NoeudCode) -> *NoeudCodeEntêteFonction
     retourne entête
 }
 
-vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
+vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode, options: OptionsAnalyse)
 {
     si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
         déclaration := code comme *NoeudCodeStructure
@@ -146,7 +168,7 @@ vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
 
             // À FAIRE : tableaux fixes, etc.
             reste_décalage := it.décalage % 64
-            si reste_décalage comme n32 + it.id.taille_en_octet > 64 {
+            si reste_décalage comme n32 + it.id.taille_en_octet > options.taille_cache {
                 avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom)
                 compilatrice_rapporte_avertissement(code, avertissement)
                 déloge(avertissement)
@@ -155,10 +177,8 @@ vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode)
     }
 }
 
-vérifie_rembourrage_excessif :: fonc (code: *NoeudCode)
+vérifie_rembourrage_excessif :: fonc (code: *NoeudCode, options: OptionsAnalyse)
 {
-    REMBOURRAGE_PERMIS : n32 : 24
-
     si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
         déclaration := code comme *NoeudCodeStructure
         type := déclaration.type comme *InfoTypeStructure
@@ -177,7 +197,7 @@ vérifie_rembourrage_excessif :: fonc (code: *NoeudCode)
         tri_rapide(types_rubriques, tri_types_par_alignement_décroissant)
         rembourrage_optimal := calcule_rembourrage(types_rubriques)
 
-        si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > REMBOURRAGE_PERMIS {
+        si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > options.rembourrage_permis {
             avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal)
             compilatrice_rapporte_avertissement(code, avertissement)
             déloge(avertissement)
