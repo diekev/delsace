@@ -15,6 +15,8 @@ OptionsAnalyse :: struct {
 
     rembourrage: bool @Aide "Vérifie que le rembourrage inséré entre les rubriques des structure n'est pas excessif."
     rembourrage_permis: n32 = 24 @Aide "Le rembourrage maximal permis."
+
+    nasa: bool @Aide "Controle que le code respecte les instructions de codage de la NASA. Voir https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf"
 }
 
 GreffonAnalyse :: struct {
@@ -47,6 +49,9 @@ greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message
         si greffon.options.rembourrage {
             vérifie_rembourrage_excessif(message_typage.code, greffon.options)
         }
+        si greffon.options.nasa {
+            vérifie_nasa(message.espace, message_typage.code)
+        }
     }
 }
 
@@ -58,7 +63,6 @@ greffon_analyse_sur_arguments :: fonc (greffon: *GreffonAnalyse, arguments: []ch
     succès, options, _ := parse_ligne_de_commande(OptionsAnalyse, arguments)
     si succès {
         greffon.options = options
-        imprimeln("%", options)
     }
 }
 
@@ -249,18 +253,9 @@ calcule_rembourrage :: fonc (types: []*InfoType) -> n32
 
 /*
 
-    Lignes directrices de la NASA :
-
     https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf
 
-    1. pas de goto, setjmp, longjmp, récursion directe ou indirecte
-
-    2. toutes les boucles doivent avoir une limite
-       on doit pouvoir vérifier qu'il ne sera jamais possible d'avoir un dépassement de limite
-
     3. pas d'allocation dynamique après l'initialisation (en dehors de principale)
-
-    4. pas plus de 60 lignes de code par fonction
 
     5. minimum de deux assertions par fonction
        les assertions ne doivent pas avoir d'effets secondaires
@@ -271,282 +266,177 @@ calcule_rembourrage :: fonc (types: []*InfoType) -> n32
     7. la valeur de retour des fonctions doit être vérifiée par les appelants
        les paramètres des fonctions doivent être vérifées dans la fonction
 
-    8. The use of the preprocessor must be limited to the inclusion of header files and simple macro definitions. Token pasting, variable argument lists (ellipses), and recursive macro calls are not allowed. All macros must expand into complete syntactic units. The use of conditional compilation directives is often also dubious, but cannot always be avoided. This means that there should rarely be justification for more than one or two conditional compilation directives even in large software development efforts, beyond the standard boilerplate that avoids multiple inclusion of the same header file. Each such use should be flagged by a tool-based checker and justified in the code.
-
-    9. The use of pointers should be restricted.
-       no more than one level of dereferencing is allowed.
-       Pointer dereference operations may not be hidden in macro definitions or inside typedef declarations.
-       Function pointers are not permitted.
-
-    10. All code must be compiled, from the first day of development, with all compiler warnings enabled at the compiler’s most pedantic setting. All code must compile with these setting without any warnings. All code must be checked daily with at least one, but preferably more than one, state-of-the-art static source code analyzer and should pass the analyses with zero warnings.
-
 */
 
-VérificatriceNasa :: struct {
-    GenreViolation :: énum {
-        FONCTION_LONGUE
-        POINTEUR_FONCTION_UTILISÉ
-    }
-
-    Violation :: struct {
-        code: *NoeudCode
-        genre: GenreViolation
-    }
-
-    espace: EspaceDeTravail = -1
-    avertissement_est_erreur := faux
-
-    violations_directives: [..]Violation
-}
-
-détruit_données_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa)
+vérifie_nasa :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
 {
-    déloge(vérificatrice.violations_directives)
-}
-
-ajoute_violation :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode, genre: VérificatriceNasa.GenreViolation)
-{
-    élément := tableau_ajoute_élément(*vérificatrice.violations_directives)
-    élément.code = code
-    élément.genre = genre
-}
-
-imprime_diagnostique :: fonc (vérificatrice: *VérificatriceNasa)
-{
-    pour vérificatrice.violations_directives {
-        discr it.genre {
-            FONCTION_LONGUE {
-                vérificatrice.avertis(it.code, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
-            }
-            POINTEUR_FONCTION_UTILISÉ {
-                vérificatrice.avertis(it.code, "Utilisation d'un pointeur de fonction, violation de la ligne directrice n°9 de la NASA")
-            }
-        }
-    }
-
-    imprime("% violations\n", vérificatrice.violations_directives.taille)
-}
-
-initialise_vérificatrice :: fonc (vérificatrice: *VérificatriceNasa, espace: EspaceDeTravail)
-{
-    vérificatrice.espace = espace
-}
-
-vérifie_code :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
-{
-    vérifie_utilisation_fonction_pointeur(vérificatrice, code)
-
-    si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-        corps := code comme *NoeudCodeCorpsFonction
-        bloc := corps.bloc
-
-        vérifie_longueur_fonction(vérificatrice, corps)
-        vérifie_bloc_fonction(vérificatrice, bloc)
-    }
-}
-
-vérifie_utilisation_fonction_pointeur :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
-{
-    type := code.type
-    saufsi type {
-        /* À FAIRE(langage) : dépendance des noeuds codes sur les types pour
-         * éviter d'avoir des types nuls. */
+    si code.genre != GenreNoeud.DÉCLARATION_CORPS_FONCTION {
         retourne
     }
 
-    discr type.id {
-        STRUCTURE {
-            type_structure := type comme *InfoTypeStructure
+    corps := code comme *NoeudCodeCorpsFonction
 
-            pour type_structure.rubriques {
-                si it.id.id == GenreInfoType.FONCTION {
-                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
+    si est_fonction_trop_longue(corps, 60) {
+        avertis_nasa(espace, corps.entête, ViolationNASA.FONCTION_LONGUE)
+    }
+
+    // À FAIRE : pour les boucles, vérification sur la présence d'un "arrête"
+    pour corps.noeuds {
+        // si it.genre == GenreNoeud.DÉCLARATION_VARIABLE && utilise_pointeur_de_fonction(it.type) {
+        //     avertis_nasa(espace, it, ViolationNASA.POINTEUR_FONCTION)
+        // }
+
+        si it.genre == GenreNoeud.INSTRUCTION_BOUCLE {
+            avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+        }
+        sinon si it.genre == GenreNoeud.INSTRUCTION_TANTQUE {
+            instruction := it comme *NoeudCodeTantque
+            si est_littérale_bool_vrai(instruction.condition) {
+                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+            }
+        }
+        sinon si it.genre == GenreNoeud.INSTRUCTION_RÉPÈTE {
+            instruction := it comme *NoeudCodeRépète
+            si est_littérale_bool_vrai(instruction.condition) {
+                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+            }
+        }
+        sinon si it.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_RUBRIQUE {
+            référence := it comme *NoeudCodeRéférenceRubrique
+            type_accédé := référence.accédée.type
+            si type_accédé && type_accédé.id == GenreInfoType.POINTEUR {
+                si référence.accédée.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_RUBRIQUE {
+                    référence = référence.accédée comme *NoeudCodeRéférenceRubrique
+                    type_accédé = référence.accédée.type
+                    si type_accédé && type_accédé.id == GenreInfoType.POINTEUR {
+                        avertis_nasa(espace, it, ViolationNASA.DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR)
+                    }
                 }
             }
         }
-        FONCTION {
-            type_fonction := type comme *InfoTypeFonction
-
-            pour type_fonction.types_entrée {
-                si it.id == GenreInfoType.FONCTION {
-                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
-                }
-            }
-
-            pour type_fonction.types_sortie {
-                si it.id == GenreInfoType.FONCTION {
-                    ajoute_violation(vérificatrice, code, VérificatriceNasa.GenreViolation.POINTEUR_FONCTION_UTILISÉ)
-                }
-            }
-        }
-        OPAQUE {}
-        POINTEUR {}
-        UNION {}
-        RIEN {}
-        ENTIER {}
-        RÉEL {}
-        BOOLÉEN {}
-        OCTET {}
-        TYPE_DE_DONNÉES {}
-        TABLEAU {}
-        TABLEAU_FIXE {}
-        TRANCHE {}
-        ÉNUM {}
-        CHAINE {}
-        EINI {}
-        VARIADIQUE {}
-        ADRESSE_FONCTION {}
-        POLYMORPHIQUE {}
     }
 }
 
-vérifie_longueur_fonction :: fonc (vérificatrice: *VérificatriceNasa, corps: *NoeudCodeCorpsFonction)
+est_littérale_bool_vrai :: fonc (code: *NoeudCode) -> bool
+{
+    si code.genre != GenreNoeud.EXPRESSION_LITTÉRALE_BOOLÉEN {
+        retourne faux
+    }
+    littérale := code comme *NoeudCodeLittéraleBool
+    retourne littérale.valeur
+}
+
+ViolationNASA :: énum {
+    FONCTION_LONGUE
+    BOUCLE_SANS_LIMITE
+    POINTEUR_FONCTION
+    DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR
+}
+
+avertis_nasa :: fonc (espace: EspaceDeTravail, site: *NoeudCode, violation: ViolationNASA)
+{
+    discr violation {
+        FONCTION_LONGUE {
+            compilatrice_rapporte_avertissement(espace, site, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
+        }
+        BOUCLE_SANS_LIMITE {
+            // À FAIRE(langage) : nous obtenons les expressions substituées...
+            // compilatrice_rapporte_avertissement(espace, site, "Utilisation d'une boucle sans limite, violation de la ligne directrice de la NASA n° 2")
+        }
+        POINTEUR_FONCTION {
+            compilatrice_rapporte_avertissement(espace, site, "Utilisation d'un pointeur de fonction, violation de la ligne directrice de la NASA n° 9")
+        }
+        DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR {
+            compilatrice_rapporte_avertissement(espace, site, "Plusieurs déréférencement de pointeurs, violation de la ligne directrice de la NASA n° 9")
+        }
+    }
+}
+
+est_fonction_trop_longue :: fonc (corps: *NoeudCodeCorpsFonction, lignes_max: n32) -> bool
 {
     bloc := corps.bloc
     saufsi bloc && bloc.expressions {
-        retourne
+        retourne faux
     }
 
     dernière_expression := bloc.expressions[bloc.expressions.taille - 1]
     début_bloc := bloc.numéro_ligne
     fin_bloc := dernière_expression.numéro_ligne
 
-    si (fin_bloc - début_bloc) <= 60 {
-        retourne
+    // À FAIRE(langage) : nous pouvons avoir une ligne de fin inférieur à la ligne de début
+    si fin_bloc < début_bloc {
+        retourne faux
+    }
+
+    si (fin_bloc - début_bloc) comme n32 <= lignes_max {
+        retourne faux
     }
 
     entête := corps.entête
     pour entête.annotations {
         si it.nom == "FonctionLongue" {
-            retourne
+            retourne faux
         }
     }
 
-    ajoute_violation(vérificatrice, entête, VérificatriceNasa.GenreViolation.FONCTION_LONGUE)
+    retourne vrai
 }
 
-vérifie_bloc_fonction :: fonc (vérificatrice: *VérificatriceNasa, code: *NoeudCode)
+utilise_pointeur_de_fonction :: fonc (type: *InfoType) -> bool
 {
-    saufsi code {
-        retourne
+    saufsi type {
+        retourne faux
     }
 
-    discr code.genre {
-        DÉCLARATION_VARIABLE {
-            code_déclaration := code comme *NoeudCodeDéclarationVariable
-
-            si code_déclaration.expression {
-                vérifie_bloc_fonction(vérificatrice, code_déclaration.expression)
+    discr type.id {
+        STRUCTURE {
+            type_structure := type comme *InfoTypeStructure
+            pour type_structure.rubriques {
+                si utilise_pointeur_de_fonction(it.id) {
+                    retourne vrai
+                }
             }
         }
-        EXPRESSION_ASSIGNATION_VARIABLE {
-            assignation := code comme *NoeudCodeAssignation
-            vérifie_bloc_fonction(vérificatrice, assignation.assignée)
-            vérifie_bloc_fonction(vérificatrice, assignation.expression)
-        }
-        OPÉRATEUR_BINAIRE {
-            binaire := code comme *NoeudCodeExpressionBinaire
-            vérifie_bloc_fonction(vérificatrice, binaire.opérande_gauche)
-            vérifie_bloc_fonction(vérificatrice, binaire.opérande_droite)
-        }
-        OPÉRATEUR_UNAIRE {
-            unaire := code comme *NoeudCodeExpressionUnaire
-            vérifie_bloc_fonction(vérificatrice, unaire.opérande)
-        }
-        INSTRUCTION_SI {
-            code_si := code comme *NoeudCodeSi
-
-            vérifie_bloc_fonction(vérificatrice, code_si.condition)
-            vérifie_bloc_fonction(vérificatrice, code_si.bloc_si_vrai)
-
-            si code_si.bloc_si_faux {
-                vérifie_bloc_fonction(vérificatrice, code_si.bloc_si_faux)
+        UNION {
+            type_union := type comme *InfoTypeUnion
+            pour type_union.rubriques {
+                si utilise_pointeur_de_fonction(it.id) {
+                    retourne vrai
+                }
             }
         }
-        INSTRUCTION_COMPOSÉE {
-            bloc := code comme *NoeudCodeBloc
-
-            pour bloc.expressions {
-                vérifie_bloc_fonction(vérificatrice, it)
-            }
+        FONCTION {
+            retourne vrai
         }
-        INSTRUCTION_RETOUR {
-            ret := code comme *NoeudCodeExpressionUnaire
-            si ret.opérande {
-                // @Incomplet : vérifie si nous avons une assignation
-                vérifie_bloc_fonction(vérificatrice, ret.opérande)
-            }
+        OPAQUE {
+            type_opaque := type comme *InfoTypeOpaque
+            retourne utilise_pointeur_de_fonction(type_opaque.type_opacifié)
         }
-        INSTRUCTION_BOUCLE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
+        POINTEUR {}
+        RIEN {}
+        ENTIER {}
+        RÉEL {}
+        BOOLÉEN {}
+        OCTET {}
+        TYPE_DE_DONNÉES {}
+        TABLEAU,
+        TABLEAU_FIXE {
+            type_tableau := type comme *InfoTypeTableau
+            retourne utilise_pointeur_de_fonction(type_tableau.type_pointé)
         }
-        INSTRUCTION_TANTQUE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
+        TRANCHE {}
+        ÉNUM {}
+        CHAINE {}
+        EINI {}
+        VARIADIQUE {
+            type_variadique := type comme *InfoTypeVariadique
+            retourne utilise_pointeur_de_fonction(type_variadique.type_élément)
         }
-        INSTRUCTION_RÉPÈTE {
-            code_boucle := code comme *NoeudCodeBoucle
-            vérifie_bloc_fonction(vérificatrice, code_boucle.bloc)
-        }
-        EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-        }
-        EXPRESSION_PARENTHÈSE {
-            paren := code comme *NoeudCodeExpressionUnaire
-            vérifie_bloc_fonction(vérificatrice, paren.opérande)
-        }
-        EXPRESSION_APPEL {
-            // appel := code comme *NoeudCodeAppel
-
-            // ident := appel.expression comme *NoeudCodeRéférenceDéclaration
-
-            // si appel.expression.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-
-            // }
-
-            // vérifie_bloc_fonction(vérificatrice, appel.expression)
-
-            // pour appel.params {
-            //    vérifie_bloc_fonction(vérificatrice, it)
-            //}
-        }
-        EXPRESSION_CONSTRUCTION_STRUCTURE {
-            appel := code comme *NoeudCodeAppel
-            pour appel.paramètres {
-                // @Incomplet : vérifie si nous avons une assignation
-                vérifie_bloc_fonction(vérificatrice, it)
-            }
-        }
-        EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-        }
-        EXPRESSION_COMME {
-            expr_comme := code comme *NoeudCodeComme
-            vérifie_bloc_fonction(vérificatrice, expr_comme.expression)
-        }
-        /*
-        EXPRESSION_VIRGULE {
-            virgule := code comme *NoeudCodeVirgule
-
-            pour virgule.expressions {
-                vérifie_bloc_fonction(vérificatrice, it)
-            }
-        }
-        */
-        sinon {
-
-        }
+        ADRESSE_FONCTION {}
+        POLYMORPHIQUE {}
     }
 
-    retourne
-}
-
-avertis :: fonc (vérificatrice: *VérificatriceNasa, site: *NoeudCode, message: chaine)
-{
-    si vérificatrice.avertissement_est_erreur {
-        compilatrice_rapporte_erreur(vérificatrice.espace, site, message)
-    }
-
-    compilatrice_rapporte_avertissement(vérificatrice.espace, site, message)
+    retourne faux
 }
 
 /*
