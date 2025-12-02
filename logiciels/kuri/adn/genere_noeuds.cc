@@ -884,6 +884,10 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "\tint64_t mémoire_utilisée() const;\n";
         os << "\tkuri::tableau<NoeudCode *> noeuds{};\n";
 
+        os << "private:\n";
+        os << "\tNoeudCode *convertis_noeud_syntaxique(EspaceDeTravail *espace, NoeudExpression "
+              "*racine, NoeudExpression *racine_conversion);\n\n";
+
         os << "};\n\n";
     }
 
@@ -898,11 +902,24 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
         os << "NoeudCode *ConvertisseuseNoeudCode::convertis_noeud_syntaxique(EspaceDeTravail "
               "*espace, NoeudExpression *racine)\n";
         os << "{\n";
+        os << "\treturn convertis_noeud_syntaxique(espace, racine, racine);\n";
+        os << "}\n";
+        os << "NoeudCode *ConvertisseuseNoeudCode::convertis_noeud_syntaxique(EspaceDeTravail "
+              "*espace, NoeudExpression *racine, NoeudExpression *racine_conversion)\n";
+        os << "{\n";
         os << "\tif (!racine) {\n";
         os << "\t\treturn nullptr;\n";
         os << "\t}\n";
         os << "\tif (racine->noeud_code) {\n";
         os << "\t\tthis->noeuds.ajoute(racine->noeud_code);\n";
+        os << "\t\t\tif (racine->est_entête_fonction() && racine == racine_conversion) {\n";
+        os << "\t\t\t\tauto entête = racine->comme_entête_fonction();\n";
+        os << "\t\t\t\tauto entête_code = racine->noeud_code->comme_entête_fonction();\n";
+        os << "\t\t\t\tentête_code->corps = convertis_noeud_syntaxique(espace, "
+              "entête->corps)->comme_corps_fonction();\n";
+        os << "\t\t\t\tentête_code->corps->entête = entête_code;\n";
+        os << "\t\t\t\t";
+        os << "\t\t\t}\n";
         os << "\t\treturn racine->noeud_code;\n";
         os << "\t}\n";
         os << "\tNoeudCode *noeud = nullptr;\n";
@@ -1005,7 +1022,7 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                             os << "\t\t\tPOUR (racine_typee->" << nom_rubrique << ") {\n";
                         }
                         os << "\t\t\t\tn->" << nom_rubrique
-                           << ".ajoute(convertis_noeud_syntaxique(espace, it)";
+                           << ".ajoute(convertis_noeud_syntaxique(espace, it, racine_conversion)";
 
                         if (desc_type->donne_nom_code().nom() != "NoeudCode" &&
                             desc_type->donne_nom_code().nom() != "") {
@@ -1016,10 +1033,16 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                         os << "\t\t\t}\n";
                     }
                     else {
-                        os << "\t\t\tif (racine_typee->" << nom_rubrique << ") {\n";
+                        os << "\t\t\tif (racine_typee->" << nom_rubrique;
+                        if (nom_rubrique.nom() == "corps") {
+                            os << " && racine_typee == racine_conversion && "
+                                  "racine_typee->corps->possède_drapeau(DrapeauxNoeud::"
+                                  "DECLARATION_FUT_VALIDEE)";
+                        }
+                        os << ") {\n";
                         os << "\t\t\t\tn->" << nom_rubrique
                            << " = convertis_noeud_syntaxique(espace, racine_typee->"
-                           << nom_rubrique << ")";
+                           << nom_rubrique << ", racine_conversion)";
                         if (desc_type->donne_nom_code().nom() != "NoeudCode" &&
                             desc_type->donne_nom_code().nom() != "") {
                             os << "->comme_" << desc_type->donne_nom_comme() << "()";
