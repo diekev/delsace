@@ -555,7 +555,6 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
     auto dans_arguments_pour_métaprogrammes = false;
 
     auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
-    auto arguments_pour_métaprogrammes = kuri::tableau<kuri::chaine_statique>();
 
     while (true) {
         auto arg = parseuse_arguments.donne_argument_suivant();
@@ -564,7 +563,7 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
         }
 
         if (dans_arguments_pour_métaprogrammes) {
-            arguments_pour_métaprogrammes.ajoute(arg.value());
+            résultat.arguments_pour_métaprogrammes.ajoute(arg.value());
             continue;
         }
 
