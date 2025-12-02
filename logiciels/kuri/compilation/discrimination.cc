@@ -71,7 +71,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
             auto info_rubrique = donne_rubrique_pour_nom(type_énum, f->ident);
 
             if (!info_rubrique) {
-                rapporte_erreur_rubrique_inconnu(inst, f, type_énum);
+                rapporte_erreur_rubrique_inconnue(inst, f, type_énum);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -257,7 +257,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         auto info_rubrique = donne_rubrique_pour_nom(type_union, expression_valide->ident);
 
         if (!info_rubrique) {
-            rapporte_erreur_rubrique_inconnu(inst, feuille, type_union);
+            rapporte_erreur_rubrique_inconnue(inst, feuille, type_union);
             return CodeRetourValidation::Erreur;
         }
 

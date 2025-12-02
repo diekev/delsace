@@ -1352,7 +1352,7 @@ static RésultatAppariement apparie_construction_type_composé(
 
     POUR_INDICE (type_compose->rubriques) {
         /* Ignore les rubriques employés pour le moment. */
-        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANT |
+        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANTE |
                                RubriqueTypeComposé::EST_UN_EMPLOI)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false, indice_it);
             continue;

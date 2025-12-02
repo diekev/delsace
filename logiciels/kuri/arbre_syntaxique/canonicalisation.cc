@@ -2152,7 +2152,7 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
     POUR_INDICE (construction->paramètres_résolus) {
         const auto &rubrique = type_struct->rubriques[indice_it];
 
-        if ((rubrique.drapeaux & RubriqueTypeComposé::EST_CONSTANT) != 0) {
+        if ((rubrique.drapeaux & RubriqueTypeComposé::EST_CONSTANTE) != 0) {
             continue;
         }
 

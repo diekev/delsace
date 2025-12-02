@@ -252,9 +252,9 @@ struct Sémanticienne {
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
                                             int64_t indice_accès);
-    void rapporte_erreur_rubrique_inconnu(NoeudExpression *accès,
-                                          NoeudExpression *rubrique,
-                                          TypeComposé *type);
+    void rapporte_erreur_rubrique_inconnue(NoeudExpression *accès,
+                                           NoeudExpression *rubrique,
+                                           TypeComposé *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);

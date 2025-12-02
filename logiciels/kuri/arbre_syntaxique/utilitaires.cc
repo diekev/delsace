@@ -1304,7 +1304,7 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
             auto type_compose = type_accédé->comme_type_composé();
             auto &rubrique = type_compose->rubriques[référence_rubrique->indice_rubrique];
 
-            if (rubrique.drapeaux == RubriqueTypeComposé::EST_CONSTANT) {
+            if (rubrique.drapeaux == RubriqueTypeComposé::EST_CONSTANTE) {
                 return nullptr;
             }
 
