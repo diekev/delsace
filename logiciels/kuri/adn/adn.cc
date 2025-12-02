@@ -350,7 +350,8 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
         os << ": " << m_mère->nom() << "\n";
 
         if (m_paire && m_paire->énum_discriminante()) {
-            if (m_paire->énum_discriminante()->nom().nom() == "GenreNoeud") {
+            if (m_paire->énum_discriminante()->nom().nom() == "GenreNoeud" &&
+                !m_paire->donne_nom_genre().est_nul()) {
                 os << "\tgenre = GenreNoeud." << m_nom_genre << "\n";
             }
         }
