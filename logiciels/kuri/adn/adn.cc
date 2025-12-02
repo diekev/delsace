@@ -101,15 +101,15 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     if (pour_entête) {
         os << "struct " << m_nom;
 
-        if (m_mere) {
-            os << " : public " << m_mere->nom().nom();
+        if (m_mère) {
+            os << " : public " << m_mère->nom().nom();
         }
 
         os << " {\n";
 
-        if (!accede_nom_genre().est_nul()) {
-            os << "\t" << m_nom << "() { genre = " << enum_discriminante()->nom()
-               << "::" << accede_nom_genre() << ";";
+        if (!donne_nom_genre().est_nul()) {
+            os << "\t" << m_nom << "() { genre = " << énum_discriminante()->nom()
+               << "::" << donne_nom_genre() << ";";
 
             if (!m_genre_valeur.est_nul()) {
                 os << " genre_valeur = GenreValeur::" << m_genre_valeur << ";";
@@ -250,8 +250,8 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "static void imprime_rubriques(std::ostream &os, " << m_nom << " const &valeur)\n";
         os << "{\n";
 
-        if (m_mere) {
-            os << "\timprime_rubriques(os, static_cast<" << m_mere->nom()
+        if (m_mère) {
+            os << "\timprime_rubriques(os, static_cast<" << m_mère->nom()
                << " const &>(valeur));\n";
         }
 
@@ -299,9 +299,9 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "\n";
         os << "{\n";
 
-        if (!accede_nom_genre().est_nul()) {
-            os << "\tif (valeur.genre != " << enum_discriminante()->nom()
-               << "::" << accede_nom_genre() << ") {\n";
+        if (!donne_nom_genre().est_nul()) {
+            os << "\tif (valeur.genre != " << énum_discriminante()->nom()
+               << "::" << donne_nom_genre() << ") {\n";
             os << "\t\treturn false;\n";
             os << "\t}\n";
         }
@@ -340,23 +340,23 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom_code << " :: struct ";
     os << "{";
-    if (m_mere) {
-        if (m_mere->accede_nom_comme().est_nul()) {
+    if (m_mère) {
+        if (m_mère->donne_nom_comme().est_nul()) {
             os << "\n\templ base";
         }
         else {
-            os << "\n\templ base_" << m_mere->accede_nom_comme();
+            os << "\n\templ base_" << m_mère->donne_nom_comme();
         }
-        os << ": " << m_mere->nom() << "\n";
+        os << ": " << m_mère->nom() << "\n";
 
-        if (m_paire && m_paire->enum_discriminante()) {
-            if (m_paire->enum_discriminante()->nom().nom() == "GenreNoeud") {
+        if (m_paire && m_paire->énum_discriminante()) {
+            if (m_paire->énum_discriminante()->nom().nom() == "GenreNoeud") {
                 os << "\tgenre = GenreNoeud." << m_nom_genre << "\n";
             }
         }
     }
 
-    if (!rubriques().est_vide() || !m_mere) {
+    if (!rubriques().est_vide() || !m_mère) {
         os << "\n";
     }
 
@@ -442,8 +442,8 @@ void ProtéineStruct::ajoute_rubrique(const Rubrique rubrique)
 
 void ProtéineStruct::pour_chaque_rubrique_récursif(std::function<void(const Rubrique &)> rappel)
 {
-    if (m_mere) {
-        m_mere->pour_chaque_rubrique_récursif(rappel);
+    if (m_mère) {
+        m_mère->pour_chaque_rubrique_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -453,8 +453,8 @@ void ProtéineStruct::pour_chaque_rubrique_récursif(std::function<void(const Ru
 
 void ProtéineStruct::pour_chaque_copie_extra_récursif(std::function<void(const Rubrique &)> rappel)
 {
-    if (m_mere) {
-        m_mere->pour_chaque_copie_extra_récursif(rappel);
+    if (m_mère) {
+        m_mère->pour_chaque_copie_extra_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -466,8 +466,8 @@ void ProtéineStruct::pour_chaque_copie_extra_récursif(std::function<void(const
 
 void ProtéineStruct::pour_chaque_enfant_récursif(std::function<void(const Rubrique &)> rappel)
 {
-    if (m_mere) {
-        m_mere->pour_chaque_enfant_récursif(rappel);
+    if (m_mère) {
+        m_mère->pour_chaque_enfant_récursif(rappel);
     }
 
     POUR (m_rubriques) {
@@ -502,11 +502,11 @@ kuri::tableau<Rubrique> ProtéineStruct::donne_rubriques_pour_construction()
     return résultat;
 }
 
-ProtéineEnum::ProtéineEnum(IdentifiantADN nom) : Protéine(nom)
+ProtéineÉnum::ProtéineÉnum(IdentifiantADN nom) : Protéine(nom)
 {
 }
 
-void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
+void ProtéineÉnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
 {
     if (pour_entête) {
         os << "enum class " << m_nom << " : " << *m_type << " {\n";
@@ -558,7 +558,7 @@ void ProtéineEnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
     }
 }
 
-void ProtéineEnum::génère_code_kuri(FluxSortieKuri &os)
+void ProtéineÉnum::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: énum " << *m_type << " {\n";
     POUR (m_rubriques) {
@@ -567,7 +567,7 @@ void ProtéineEnum::génère_code_kuri(FluxSortieKuri &os)
     os << "}\n\n";
 }
 
-void ProtéineEnum::ajoute_rubrique(const Rubrique rubrique)
+void ProtéineÉnum::ajoute_rubrique(const Rubrique rubrique)
 {
     m_rubriques.ajoute(rubrique);
 }
@@ -793,7 +793,7 @@ void SyntaxeuseADN::parse_enum()
         rapporte_erreur("Attendu une chaine de caractère après « énum »");
     }
 
-    auto protéine = crée_protéine<ProtéineEnum>(lexème_courant()->chaine);
+    auto protéine = crée_protéine<ProtéineÉnum>(lexème_courant()->chaine);
 
     consomme();
 
@@ -815,7 +815,7 @@ void SyntaxeuseADN::parse_enum()
         }
         else if (apparie("discr")) {
             consomme();
-            protéine->type_discrimine(lexème_courant()->chaine);
+            protéine->type_discriminé(lexème_courant()->chaine);
             consomme();
         }
         else if (apparie("horslignée")) {
@@ -917,8 +917,8 @@ void SyntaxeuseADN::parse_struct()
             auto paire = new ProtéineStruct(lexème_courant()->chaine);
             type_protéine->nom_kuri = lexème_courant()->chaine;
 
-            if (protéine->mere()) {
-                paire->descend_de(protéine->mere()->paire());
+            if (protéine->mère()) {
+                paire->descend_de(protéine->mère()->paire());
             }
 
             protéines_paires.ajoute(paire);
@@ -945,16 +945,16 @@ void SyntaxeuseADN::parse_struct()
 
             protéine->mute_nom_genre(lexème_courant()->chaine);
 
-            auto enum_discriminante = protéine->enum_discriminante();
+            auto énum_discriminante = protéine->énum_discriminante();
 
-            if (!enum_discriminante) {
+            if (!énum_discriminante) {
                 rapporte_erreur(
                     "Aucune énumération discriminante pour le noeud déclarant un genre");
             }
             else {
                 auto rubrique = Rubrique();
                 rubrique.nom = lexème_courant()->chaine;
-                enum_discriminante->ajoute_rubrique(rubrique);
+                énum_discriminante->ajoute_rubrique(rubrique);
             }
 
             consomme();
@@ -971,13 +971,13 @@ void SyntaxeuseADN::parse_struct()
                 break;
             }
 
-            if (énum_discriminate->type_discrimine() != protéine->nom().nom()) {
+            if (énum_discriminate->type_discriminé() != protéine->nom().nom()) {
                 rapporte_erreur("L'énumération devant discriminer le noeud n'est pas "
                                 "déclarée comme le discriminant");
                 break;
             }
 
-            protéine->mute_enum_discriminante(énum_discriminate);
+            protéine->mute_énum_discriminante(énum_discriminate);
             consomme();
         }
         else if (apparie("genre_valeur")) {
@@ -1132,7 +1132,7 @@ Type *SyntaxeuseADN::parse_type()
     return type;
 }
 
-ProtéineEnum *SyntaxeuseADN::donne_énum_pour_nom(kuri::chaine_statique nom) const
+ProtéineÉnum *SyntaxeuseADN::donne_énum_pour_nom(kuri::chaine_statique nom) const
 {
     POUR (protéines) {
         if (!it->comme_enum()) {
@@ -1173,7 +1173,7 @@ bool est_type_noeud(const Type *type)
                 return true;
             }
 
-            protéine = protéine->mere();
+            protéine = protéine->mère();
         }
 
         return false;
@@ -1256,9 +1256,9 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 ProtéineStruct const &derivée,
                                                 bool pour_noeud_code)
 {
-    const auto &nom_comme = derivée.accede_nom_comme();
-    const auto &nom_noeud = pour_noeud_code ? derivée.accede_nom_code() : derivée.nom();
-    const auto &nom_genre = derivée.accede_nom_genre();
+    const auto &nom_comme = derivée.donne_nom_comme();
+    const auto &nom_noeud = pour_noeud_code ? derivée.donne_nom_code() : derivée.nom();
+    const auto &nom_genre = derivée.donne_nom_genre();
 
     // À FAIRE: si/discr
     if (derivée.est_racine_soushierachie() && nom_genre.nom() == "") {
@@ -1269,7 +1269,7 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
         auto separateur = "return";
 
         for (auto &derive : derivée.derivées()) {
-            os << separateur << " this->est_" << derive->accede_nom_comme() << "()";
+            os << separateur << " this->est_" << derive->donne_nom_comme() << "()";
             separateur = "|| ";
         }
 
@@ -1284,7 +1284,7 @@ void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
             os << "\treturn this->genre == GenreNoeud::" << nom_genre;
 
             for (auto &derive : derivée.derivées()) {
-                os << " || this->genre == GenreNoeud::" << derive->accede_nom_genre();
+                os << " || this->genre == GenreNoeud::" << derive->donne_nom_genre();
             }
 
             os << ";\n";
