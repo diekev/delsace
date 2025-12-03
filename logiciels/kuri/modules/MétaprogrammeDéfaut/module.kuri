@@ -10,8 +10,37 @@ importe GreffeMétaprogramme
 
     greffons: [..]*GreffonMétaprogramme
     diffère détruit_greffons(*greffons)
-    tableau_ajoute(*greffons, AS.donne_greffon())
+
+    greffon_analyse := AS.donne_greffon()
+
+    tableau_ajoute(*greffons, greffon_analyse)
     tableau_ajoute(*greffons, Fondation.donne_greffon())
+
+    arguments := compilatrice_donne_arguments_ligne_de_commande()
+    arguments_greffon: []chaine
+
+    indice_arg := 0
+    tantque indice_arg < arguments.taille {
+        /* Inclus le "nom" du métaprogramme dans la liste d'arguments. */
+        arguments_greffon.pointeur = arguments.pointeur + indice_arg
+        arguments_greffon.taille = 1
+
+        argument := arguments[indice_arg]
+        indice_arg += 1
+
+        si argument == "+AS" || argument == "+AnalyseStatique" {
+            tantque indice_arg < arguments.taille {
+                argument = arguments[indice_arg]
+                si argument[0] == '+' {
+                    arrête
+                }
+                indice_arg += 1
+                arguments_greffon.taille += 1
+            }
+
+            parse_arguments(greffon_analyse, arguments)
+        }
+    }
 
     compilatrice_commence_interception(espace)
 
