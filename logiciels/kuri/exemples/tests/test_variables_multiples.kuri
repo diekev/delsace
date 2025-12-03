@@ -1,0 +1,29 @@
+principale :: fonc ()
+{
+    /* Déclaration de plusieurs variables, avec type explicite, sans expression. */
+    a, b, c: z32
+
+    /* Déclaration de plusieurs variables, avec typage explicite, avec une seule expression.
+     * Les variables auront la même valeur. */
+    x, y, z: r32 = 0
+
+    /* Déclaration de plusieurs variables, avec typage explicite, avec une seule
+     * expression retournant plusieurs types compatibles. */
+    e, f, g: z64 = retourne_plusieurs_valeurs_de_même_type()
+
+    /* Déclaration de plusieurs variables, sans typage explicite, avec une seule
+     * expression retournant plusieurs types compatibles. */
+    h, i, j := retourne_plusieurs_valeurs_de_types_différents()
+
+    /* À FAIRE : retourne plusieurs valeurs avec typage explicite de chaque variable. */
+}
+
+retourne_plusieurs_valeurs_de_même_type :: fonc () -> (z32, z32, z32)
+{
+    retourne 147, 258, 369
+}
+
+retourne_plusieurs_valeurs_de_types_différents :: fonc () -> (z32, r32, bool)
+{
+    retourne 123, 4.56, vrai
+}
