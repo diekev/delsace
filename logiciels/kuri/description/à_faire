@@ -13,6 +13,9 @@ diffère { Prof_End() }
 
 pas d'erreur pour foo(a = a = 13)
 
+permet d'avoir des types différents autour de <<, >>
+    car les valeurs n'ont pas la même sémantique
+
 noeud syntaxique distinct pour les expressions si
 
 ajout de #superpose pour superposer des rubriques sur d'autres dans les structures
