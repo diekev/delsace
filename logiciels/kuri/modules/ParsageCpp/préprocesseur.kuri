@@ -788,7 +788,7 @@ rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: 
 {
     rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
     exit(1)
-}
+} @Imprimeuse
 
 rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, arguments_données: z64)
 {
@@ -820,7 +820,7 @@ rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, 
 rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(préprocesseur, "avertissement", format, ...args)
-}
+} @Imprimeuse
 
 rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
 {
@@ -834,7 +834,7 @@ rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, fo
     }
 
     imprimeln(format, ...args)
-}
+} @Imprimeuse
 
 extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexeuse, tampon: *TamponChemin)
 {

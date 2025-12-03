@@ -124,7 +124,7 @@ static void génère_code_cpp(const kuri::tableau<Protéine *> &protéines,
     os << "    return {};\n";
     os << "}\n";
 
-    ProtéineEnum *enum_genre_intrinsèque = nullptr;
+    ProtéineÉnum *enum_genre_intrinsèque = nullptr;
     POUR (protéines) {
         auto protéine_enum = it->comme_enum();
         if (!protéine_enum) {
