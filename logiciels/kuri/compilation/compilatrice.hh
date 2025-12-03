@@ -165,7 +165,7 @@ struct Compilatrice {
 
     /* ********************************************************************** */
 
-    void ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+    void ajoute_fichier_à_la_compilation(EspaceDeTravail *espace,
                                          EspaceDeTravail *espace_pour_site,
                                          kuri::chaine_statique chemin,
                                          Module *module,

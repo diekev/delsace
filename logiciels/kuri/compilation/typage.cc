@@ -608,7 +608,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
                       0,
                       uint64_t(taille),
                       nullptr,
-                      RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_CONSTANTE});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));
@@ -2021,20 +2021,20 @@ bool est_type_pointeur_nul(Type const *type)
 }
 
 RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
-                                                                        Type const *type_a_tester)
+                                                                        Type const *type_à_tester)
 {
-    auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
+    auto const pointeur_nul = est_type_pointeur_nul(type_à_tester);
     int indice_rubrique = -1;
     int indice_courant = 0;
     POUR (type->rubriques) {
-        if (it.type == type_a_tester) {
+        if (it.type == type_à_tester) {
             if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
 
             indice_rubrique = indice_courant;
         }
-        else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
+        else if (type_à_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
             if (pointeur_nul) {
                 if (indice_rubrique != -1) {
                     return PlusieursRubriques{-1};
@@ -2043,7 +2043,7 @@ RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCom
                 indice_rubrique = indice_courant;
             }
             else {
-                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointé;
+                auto type_pointe_de = type_à_tester->comme_type_pointeur()->type_pointé;
                 auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointé;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
@@ -2055,7 +2055,7 @@ RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCom
                 }
             }
         }
-        else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
+        else if (est_type_entier(it.type) && type_à_tester->est_type_entier_constant()) {
             if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
@@ -2067,10 +2067,10 @@ RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCom
     }
 
     if (indice_rubrique == -1) {
-        return AucunRubrique{-1};
+        return AucuneRubrique{-1};
     }
 
-    return IndexRubrique{indice_rubrique};
+    return IndiceRubrique{indice_rubrique};
 }
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à

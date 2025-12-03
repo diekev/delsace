@@ -1060,7 +1060,7 @@ void Tacheronne::rassemble_statistiques(Statistiques &stats)
         mv->rassemble_statistiques(stats);
     }
 
-    // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passe_a_dormir << "ms\n";
+    // std::cerr << "tâcheronne " << id << " a dormis pendant " << temps_passé_à_dormir << "ms\n";
 }
 
 void Tacheronne::initialise_contexte(Contexte *contexte, EspaceDeTravail *espace)

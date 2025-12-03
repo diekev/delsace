@@ -388,24 +388,24 @@ std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_nom(
     TypeComposé const *type_composé, IdentifiantCode const *nom_rubrique);
 
 template <typename T, int tag>
-struct ValeurOpaqueTaguee {
+struct ValeurOpaqueTaguée {
     T valeur;
 };
 
 enum {
     INDICE_RUBRIQUE = 0,
-    AUCUN_TROUVE = 1,
-    PLUSIEURS_TROUVES = 2,
+    AUCUNE_TROUVÉE = 1,
+    PLUSIEURS_TROUVÉES = 2,
 };
 
-using IndexRubrique = ValeurOpaqueTaguee<int, INDICE_RUBRIQUE>;
-using PlusieursRubriques = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
-using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+using IndiceRubrique = ValeurOpaqueTaguée<int, INDICE_RUBRIQUE>;
+using PlusieursRubriques = ValeurOpaqueTaguée<int, PLUSIEURS_TROUVÉES>;
+using AucuneRubrique = ValeurOpaqueTaguée<int, AUCUNE_TROUVÉE>;
 
-using RésultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
+using RésultatRechercheRubrique = std::variant<IndiceRubrique, PlusieursRubriques, AucuneRubrique>;
 
 RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
-                                                                        Type const *type_a_tester);
+                                                                        Type const *type_à_tester);
 
 /** \} */
 

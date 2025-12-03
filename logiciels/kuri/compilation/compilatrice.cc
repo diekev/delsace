@@ -151,7 +151,7 @@ std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *esp
     return kuri::chemin_systeme::absolu(chemin);
 }
 
-void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+void Compilatrice::ajoute_fichier_à_la_compilation(EspaceDeTravail *espace,
                                                    EspaceDeTravail *espace_pour_site,
                                                    kuri::chaine_statique nom,
                                                    Module *module,
@@ -431,7 +431,7 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
                                               kuri::chaine_statique c,
                                               const NoeudExpression *site)
 {
-    ajoute_fichier_a_la_compilation(espace, espace_pour_site, c, espace->module, site);
+    ajoute_fichier_à_la_compilation(espace, espace_pour_site, c, espace->module, site);
 }
 
 EspaceDeTravail *Compilatrice::espace_défaut_compilation()
