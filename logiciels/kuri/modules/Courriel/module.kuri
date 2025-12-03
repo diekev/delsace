@@ -296,7 +296,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     }
 
     retourne parse_réponse_serveuse(réponse)
-}
+} @Imprimeuse
 
 // https://tools.ietf.org/html/rfc5322
 crée_corps_message :: fonc (courriel: &Courriel) -> chaine

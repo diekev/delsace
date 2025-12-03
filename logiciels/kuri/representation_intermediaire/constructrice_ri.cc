@@ -1305,6 +1305,10 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
                                        Atome *valeur,
                                        TypeTranstypage op)
 {
+    if (type == valeur->type) {
+        return valeur;
+    }
+
     if (valeur->est_constante_nulle()) {
         return crée_constante_nulle(type);
     }
@@ -1391,6 +1395,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return crée_constante_nulle(type);
@@ -1398,7 +1403,6 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::OCTET:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             return crée_constante_nombre_entier(type, 0);
         }
@@ -1979,6 +1983,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_TENTE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -3305,6 +3310,21 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::CONSTRUIS_UNION:
         {
             auto type_union = transformation.type_cible->comme_type_union();
+            // À FAIRE : fais ceci en amont.
+            auto rubrique = type_union->rubriques[int32_t(transformation.indice_rubrique)];
+
+            if (valeur->type->est_type_entier_constant()) {
+                if (rubrique.type->est_type_réel()) {
+                    auto constante_entière = valeur->comme_constante_entière();
+                    auto valeur_entière = constante_entière->valeur;
+                    auto valeur_réelle = static_cast<double>(valeur_entière);
+                    valeur = m_constructrice.crée_constante_nombre_réel(rubrique.type,
+                                                                        valeur_réelle);
+                }
+                else {
+                    valeur->type = rubrique.type;
+                }
+            }
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
@@ -5089,6 +5109,11 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     fonction_init->instructions.ajoute(di);
 
     définis_fonction_courante(nullptr);
+
+    if (fonction_init->decl &&
+        fonction_init->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+        dbg() << imprime_fonction(fonction_init);
+    }
 }
 
 void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
