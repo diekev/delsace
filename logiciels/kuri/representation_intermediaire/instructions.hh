@@ -858,6 +858,20 @@ bool est_instruction_comparaison(Atome const *atome);
 
 bool est_volatile(Atome const *atome);
 
+bool est_adresse_globale(Atome const *atome);
+
+bool est_adresse_locale(Atome const *atome);
+
+bool est_adresse(Atome const *atome);
+
+bool est_appel(Atome const *atome);
+
+bool est_charge(Atome const *atome);
+
+bool est_accès_indice(Atome const *atome);
+
+Atome const *donne_source_charge_ou_atome(Atome const *atome);
+
 struct AccèsRubriqueFusionné {
     Atome *accédé = nullptr;
     uint32_t décalage = 0;
