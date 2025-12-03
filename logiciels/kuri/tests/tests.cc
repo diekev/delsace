@@ -76,7 +76,7 @@ static Test tests_unitaires[] = {
     {"", "fichiers/test_fonction_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
     {"", "fichiers/test_fonction_types_differents.kuri", erreur::Genre::TYPE_DIFFERENTS},
     {"", "fichiers/test_structure_aucune_erreur.kuri", erreur::Genre::AUCUNE_ERREUR},
-    {"", "fichiers/test_structure_rubrique_inconnu.kuri", erreur::Genre::RUBRIQUE_INCONNUE},
+    {"", "fichiers/test_structure_rubrique_inconnue.kuri", erreur::Genre::RUBRIQUE_INCONNUE},
     {
         "",
         "fichiers/test_structure_redefinie.kuri",

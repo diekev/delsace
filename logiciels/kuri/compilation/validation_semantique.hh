@@ -178,6 +178,8 @@ struct Sémanticienne {
   private:
     RésultatValidation valide_sémantique_noeud(NoeudExpression *);
     RésultatValidation valide_accès_rubrique(NoeudExpressionRubrique *expression_rubrique);
+    RésultatValidation valide_accès_rubrique_conditionnelle(
+        NoeudRéférenceConditionnelle *référence);
 
     RésultatValidation valide_entête_fonction(NoeudDéclarationEntêteFonction *);
     RésultatValidation valide_entête_opérateur(NoeudDéclarationEntêteFonction *);
@@ -250,9 +252,9 @@ struct Sémanticienne {
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
                                             int64_t indice_accès);
-    void rapporte_erreur_rubrique_inconnu(NoeudExpression *accès,
-                                          NoeudExpression *rubrique,
-                                          TypeComposé *type);
+    void rapporte_erreur_rubrique_inconnue(NoeudExpression *accès,
+                                           NoeudExpression *rubrique,
+                                           TypeComposé *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
