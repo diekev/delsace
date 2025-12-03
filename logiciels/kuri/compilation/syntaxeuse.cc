@@ -213,6 +213,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::PLUS:
             case GenreLexème::PLUS_ÉGAL:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::POURCENT:
             case GenreLexème::SUPERIEUR:
             case GenreLexème::SUPERIEUR_ÉGAL:
@@ -305,6 +306,7 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::DIVISE:
             case GenreLexème::POURCENT:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::COMME:
@@ -456,6 +458,7 @@ static constexpr auto table_précédence_lexèmes = [] {
             }
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             {
                 t[i] = 17;
@@ -1621,6 +1624,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             return m_contexte->assembleuse->crée_référence_rubrique(lexème, gauche);
+        }
+        case GenreLexème::ACCÈS_CONDITIONNEL:
+        {
+            consomme();
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après '?.'");
+            }
+
+            lexème = lexème_courant();
+            consomme();
+            return m_contexte->assembleuse->crée_référence_conditionnelle(lexème, gauche);
         }
         case GenreLexème::TROIS_POINTS:
         {
