@@ -393,10 +393,10 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriqu
     return candidat;
 }
 
-void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *accès,
-                      NoeudExpression const *rubrique,
-                      TypeComposé const *type)
+void rubrique_inconnue(EspaceDeTravail const &espace,
+                       NoeudExpression const *accès,
+                       NoeudExpression const *rubrique,
+                       TypeComposé const *type)
 {
     auto rubriques = kuri::ensemble<kuri::chaine_statique>();
 

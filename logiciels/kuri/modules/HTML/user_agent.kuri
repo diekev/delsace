@@ -524,7 +524,7 @@ queue_a_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, steps: *Al
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-global-task */
-queue_a_globask_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JS.Object @inutilisée, steps: *Algorithm)
+queue_a_global_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JS.Object @inutilisée, steps: *Algorithm)
 {
     // À FAIRE : 1. Let event loop be global's relevant agent's event loop.
 
@@ -541,7 +541,7 @@ queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, �
     global := donne_relevant_global_object(élément)
 
     // 2. Queue a global task given source, global, and steps.
-    queue_a_globask_task(user_agent, source, global, steps)
+    queue_a_global_task(user_agent, source, global, steps)
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-microtask */
