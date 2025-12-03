@@ -1,0 +1,18 @@
+importe Fondation
+
+X :: struct {
+    y := 123
+}
+
+principale :: fonc ()
+{
+    x: *X
+
+    a := x?.y
+    imprimeln("a := %", a)
+
+    x2 := loge(X)
+
+    b := x2?.y
+    imprimeln("b := %", b)
+}

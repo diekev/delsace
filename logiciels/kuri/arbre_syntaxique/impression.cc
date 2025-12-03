@@ -1154,6 +1154,14 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
             imprime_ident(enchaineuse, noeud->ident);
             break;
         }
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
+        {
+            auto rubrique = noeud->comme_référence_rubrique();
+            imprime_arbre(enchaineuse, état, rubrique->accédée);
+            enchaineuse << "?.";
+            imprime_ident(enchaineuse, noeud->ident);
+            break;
+        }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
             enchaineuse << noeud->lexème->chaine;
