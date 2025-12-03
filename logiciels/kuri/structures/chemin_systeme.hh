@@ -147,7 +147,7 @@ struct chemin_systeme {
      * Retourne un tableau contenant les chemins des fichiers .kuri du dossier et des sous-dossiers
      * récursivement pointé par chemin.
      */
-    static tablet<chemin_systeme, 16> fichiers_du_dossier_recursif(chaine_statique chemin);
+    static tablet<chemin_systeme, 16> fichiers_du_dossier_récursif(chaine_statique chemin);
 
     /**
      * Supprime le fichier au chemin spécifié. Retourne faux si le fichier ne fut supprimé, ou si

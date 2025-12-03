@@ -140,17 +140,17 @@ rapporte_erreur :: fonc (scanner: *ScannerJSON, type_erreur: TypeErreur, format:
 
     scanner.erreur_ = err
     scanner.possède_erreur = vrai
-}
+} @Imprimeuse
 
 rapporte_erreur_parsage :: fonc (scanner: *ScannerJSON, format: chaine, args: ...eini)
 {
     scanner.rapporte_erreur(TypeErreur.Parsage, format, ...args)
-}
+} @Imprimeuse
 
 rapporte_erreur_valeur :: fonc (scanner: *ScannerJSON, format: chaine, args: ...eini)
 {
     scanner.rapporte_erreur(TypeErreur.Valeur, format, ...args)
-}
+} @Imprimeuse
 
 enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien #enligne
 {

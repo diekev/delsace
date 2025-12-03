@@ -286,6 +286,7 @@ rapporte_aide :: fonc (infos: *InfoTypeStructure)
         }
 
         // À FAIRE : casse kébab
+        // À FAIRE : détecte et imprime la valeur par défaut de l'argument
         imprimeln("    --%    %", it.nom, texte_annotation)
     }
 }

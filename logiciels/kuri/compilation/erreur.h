@@ -111,10 +111,10 @@ void lance_erreur_accès_hors_limites(EspaceDeTravail const &espace,
                                      Type const *type_tableau,
                                      int64_t indice_accès);
 
-void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *accès,
-                      NoeudExpression const *rubrique,
-                      TypeComposé const *type);
+void rubrique_inconnue(EspaceDeTravail const &espace,
+                       NoeudExpression const *accès,
+                       NoeudExpression const *rubrique,
+                       TypeComposé const *type);
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,

@@ -538,7 +538,7 @@ struct RubriqueTypeComposé {
     enum {
         // si la rubrique est une constante (par exemple, la définition d'une énumération, ou une
         // simple valeur)
-        EST_CONSTANT = (1 << 0),
+        EST_CONSTANTE = (1 << 0),
         // si la rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
@@ -550,7 +550,7 @@ struct RubriqueTypeComposé {
         // pour x déclaré en amont)
         POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
 
-        RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
+        RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANTE | PROVIENT_D_UN_EMPOI),
     };
 
     BaseDéclarationVariable *decl = nullptr;
@@ -574,7 +574,7 @@ struct RubriqueTypeComposé {
 
     inline bool est_constant() const
     {
-        return possède_drapeau(EST_CONSTANT);
+        return possède_drapeau(EST_CONSTANTE);
     }
 
     inline bool est_utilisable_pour_discrimination() const

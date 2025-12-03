@@ -673,6 +673,11 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
             auto inst = noeud->comme_référence_rubrique();
             return valide_accès_rubrique(inst);
         }
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
+        {
+            auto référence = noeud->comme_référence_conditionnelle();
+            return valide_accès_rubrique_conditionnelle(référence);
+        }
         case GenreNoeud::EXPRESSION_ASSIGNATION_VARIABLE:
         {
             auto inst = noeud->comme_assignation_variable();
@@ -1837,14 +1842,14 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
                 return CodeRetourValidation::OK;
             }
 
-            rapporte_erreur_rubrique_inconnu(
+            rapporte_erreur_rubrique_inconnue(
                 expression_rubrique, expression_rubrique, type_compose);
             return CodeRetourValidation::Erreur;
         }
 
         auto const indice_rubrique = info_rubrique->indice_rubrique;
-        auto const rubrique_est_constant = info_rubrique->rubrique.drapeaux &
-                                           RubriqueTypeComposé::EST_CONSTANT;
+        auto const rubrique_est_constante = info_rubrique->rubrique.drapeaux &
+                                            RubriqueTypeComposé::EST_CONSTANTE;
         auto const rubrique_est_implicite = info_rubrique->rubrique.drapeaux &
                                             RubriqueTypeComposé::EST_IMPLICITE;
 
@@ -1879,17 +1884,17 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             }
         }
         else {
-            if (rubrique_est_constant) {
+            if (rubrique_est_constante) {
                 expression_rubrique->genre_valeur = GenreValeur::DROITE;
             }
             else if (type->est_type_union()) {
                 expression_rubrique->genre = GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION;
             }
 
-            if (est_accès_type_de_données && !rubrique_est_constant) {
+            if (est_accès_type_de_données && !rubrique_est_constante) {
                 m_espace->rapporte_erreur(
                     expression_rubrique,
-                    "Ne peut pas accéder à une rubrique non-constant d'un type de données.");
+                    "Ne peut pas accéder à une rubrique non-constante d'un type de données.");
                 return CodeRetourValidation::Erreur;
             }
         }
@@ -1908,6 +1913,57 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             structure, "Impossible de référencer une rubrique d'un type n'étant pas une structure")
         .ajoute_message("Note: le type est « ", chaine_type(type), " »");
     return CodeRetourValidation::Erreur;
+}
+
+RésultatValidation Sémanticienne::valide_accès_rubrique_conditionnelle(
+    NoeudRéférenceConditionnelle *référence)
+{
+    auto structure = référence->accédée;
+
+    if (structure->type == nullptr || !structure->type->est_type_pointeur()) {
+        m_espace
+            ->rapporte_erreur(structure,
+                              "Les références de rubriques conditionnelles ne sont supportées que "
+                              "sur des pointeurs.")
+            .ajoute_message("Le type obtenu est ", chaine_type(structure->type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto type = donne_type_accédé_effectif(structure->type);
+    if (!type->est_type_structure()) {
+        m_espace
+            ->rapporte_erreur(structure,
+                              "Les références de rubriques conditionnelles ne sont supportées que "
+                              "sur des types structures.")
+            .ajoute_message("Le type obtenu est ", chaine_type(type), "\n");
+        return CodeRetourValidation::Erreur;
+    }
+
+    if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
+        return Attente::sur_type(type);
+    }
+
+    auto type_composé = type->comme_type_composé();
+    auto info_rubrique = donne_rubrique_pour_nom(type_composé, référence->ident);
+    if (!info_rubrique.has_value()) {
+        rapporte_erreur_rubrique_inconnue(référence, référence, type_composé);
+        return CodeRetourValidation::Erreur;
+    }
+
+    auto const indice_rubrique = info_rubrique->indice_rubrique;
+    auto const rubrique_est_constante = info_rubrique->rubrique.drapeaux &
+                                        RubriqueTypeComposé::EST_CONSTANTE;
+    if (rubrique_est_constante) {
+        m_espace->rapporte_erreur(référence,
+                                  "Impossible d'utiliser '?.' pour accéder à une rubrique "
+                                  "constante, veuillez utiliser '.'");
+        return CodeRetourValidation::Erreur;
+    }
+
+    référence->type = info_rubrique->rubrique.type;
+    référence->indice_rubrique = indice_rubrique;
+
+    return CodeRetourValidation::OK;
 }
 
 static bool fonctions_ont_mêmes_définitions(NoeudDéclarationEntêteFonction const &fonction1,
@@ -3734,7 +3790,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                           0,
                           uint64_t(valeur.entière()),
                           nullptr,
-                          RubriqueTypeComposé::EST_CONSTANT});
+                          RubriqueTypeComposé::EST_CONSTANTE});
 
         derniere_valeur = valeur;
     }
@@ -3745,44 +3801,47 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
                       0,
                       uint64_t(rubriques.taille()),
                       nullptr,
-                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
     rubriques.ajoute({nullptr,
                       decl,
                       ID::min,
                       0,
                       uint64_t(valeur_enum_min),
                       nullptr,
-                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
     rubriques.ajoute({nullptr,
                       decl,
                       ID::max,
                       0,
                       uint64_t(valeur_enum_max),
                       nullptr,
-                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
 
     if (N == VALIDE_ENUM_DRAPEAU) {
-        rubriques.ajoute({nullptr,
-                          decl,
-                          ID::valeurs_legales,
-                          0,
-                          uint64_t(valeurs_legales),
-                          nullptr,
-                          RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
-        rubriques.ajoute({nullptr,
-                          decl,
-                          ID::valeurs_illegales,
-                          0,
-                          uint64_t(~valeurs_legales),
-                          nullptr,
-                          RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
-        rubriques.ajoute({nullptr,
-                          decl,
-                          ID::zero,
-                          0,
-                          0,
-                          nullptr,
-                          RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANT});
+        rubriques.ajoute(
+            {nullptr,
+             decl,
+             ID::valeurs_legales,
+             0,
+             uint64_t(valeurs_legales),
+             nullptr,
+             RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
+        rubriques.ajoute(
+            {nullptr,
+             decl,
+             ID::valeurs_illegales,
+             0,
+             uint64_t(~valeurs_legales),
+             nullptr,
+             RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
+        rubriques.ajoute(
+            {nullptr,
+             decl,
+             ID::zero,
+             0,
+             0,
+             nullptr,
+             RubriqueTypeComposé::EST_IMPLICITE | RubriqueTypeComposé::EST_CONSTANTE});
     }
 
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
@@ -3893,7 +3952,7 @@ struct ConstructriceRubriquesTypeComposé {
                                    0,
                                    0,
                                    nullptr,
-                                   RubriqueTypeComposé::EST_CONSTANT});
+                                   RubriqueTypeComposé::EST_CONSTANTE});
     }
 
     void ajoute_constante(NoeudDéclarationConstante *déclaration)
@@ -3904,7 +3963,7 @@ struct ConstructriceRubriquesTypeComposé {
                                    0,
                                    0,
                                    déclaration->expression,
-                                   RubriqueTypeComposé::EST_CONSTANT});
+                                   RubriqueTypeComposé::EST_CONSTANTE});
     }
 
     void ajoute_rubrique_employé(NoeudDéclaration *déclaration)
@@ -5409,11 +5468,11 @@ void Sémanticienne::rapporte_erreur_accès_hors_limites(NoeudExpression *b,
         *m_espace, b, type_tableau->taille, type_tableau, indice_accès);
 }
 
-void Sémanticienne::rapporte_erreur_rubrique_inconnu(NoeudExpression *accès,
-                                                     NoeudExpression *rubrique,
-                                                     TypeComposé *type)
+void Sémanticienne::rapporte_erreur_rubrique_inconnue(NoeudExpression *accès,
+                                                      NoeudExpression *rubrique,
+                                                      TypeComposé *type)
 {
-    erreur::rubrique_inconnu(*m_espace, accès, rubrique, type);
+    erreur::rubrique_inconnue(*m_espace, accès, rubrique, type);
 }
 
 void Sémanticienne::rapporte_erreur_valeur_manquante_discr(
@@ -6392,17 +6451,18 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
  */
 static bool rassemble_blocs_pour_expression_si(NoeudSi const *inst,
                                                EspaceDeTravail *espace,
-                                               kuri::tablet<NoeudBloc *, 6> &blocs)
+                                               kuri::tablet<NoeudBloc *, 6> &blocs,
+                                               bool &possède_bloc_si_faux)
 {
     while (true) {
-        if (!inst->bloc_si_faux) {
-            espace->rapporte_erreur(inst, "Branche « sinon » manquante dans l'expression « si »");
-            return false;
-        }
-
         blocs.ajoute(inst->bloc_si_vrai->comme_bloc());
 
+        if (!inst->bloc_si_faux) {
+            break;
+        }
+
         if (inst->bloc_si_faux->est_bloc()) {
+            possède_bloc_si_faux = true;
             blocs.ajoute(inst->bloc_si_faux->comme_bloc());
             break;
         }
@@ -6465,9 +6525,12 @@ RésultatValidation Sémanticienne::valide_instruction_si(NoeudSi *inst)
     /* Pour les expressions x = si y { z } sinon { w }. */
 
     kuri::tablet<NoeudBloc *, 6> blocs;
-    if (!rassemble_blocs_pour_expression_si(inst, m_espace, blocs)) {
+    auto possède_bloc_si_faux = false;
+    if (!rassemble_blocs_pour_expression_si(inst, m_espace, blocs, possède_bloc_si_faux)) {
         return CodeRetourValidation::Erreur;
     }
+
+    inst->expression_est_complète = possède_bloc_si_faux;
 
     kuri::tablet<NoeudExpression *, 6> expressions_finales;
 
@@ -7008,7 +7071,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
             continue;
         }
 
-        if (est_structure && (it.drapeaux & RubriqueTypeComposé::EST_CONSTANT) == 0) {
+        if (est_structure && (it.drapeaux & RubriqueTypeComposé::EST_CONSTANTE) == 0) {
             continue;
         }
 
@@ -7086,7 +7149,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
     }
 
     POUR_INDICE (type_structure->rubriques) {
-        if (it.drapeaux & RubriqueTypeComposé::EST_CONSTANT) {
+        if (it.drapeaux & RubriqueTypeComposé::EST_CONSTANTE) {
             continue;
         }
 

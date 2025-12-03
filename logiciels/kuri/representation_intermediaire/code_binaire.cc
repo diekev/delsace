@@ -1200,6 +1200,7 @@ ffi_type *convertis_type_ffi(Type const *type)
         case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             return &ffi_type_pointer;
         }
@@ -1229,10 +1230,6 @@ ffi_type *convertis_type_ffi(Type const *type)
         case GenreNoeud::ENUM_DRAPEAU:
         {
             return convertis_type_ffi(static_cast<TypeEnum const *>(type)->type_sous_jacent);
-        }
-        case GenreNoeud::TYPE_DE_DONNÉES:
-        {
-            return &ffi_type_sint64;
         }
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::TABLEAU_FIXE:

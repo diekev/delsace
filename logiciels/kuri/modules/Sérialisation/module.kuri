@@ -502,7 +502,7 @@ rapporte_erreur :: fonc (base: *Lectrice, message: chaine, args: ...eini)
     si base.sur_rapporte_erreur {
         base.sur_rapporte_erreur(base, message, ...args)
     }
-}
+} @Imprimeuse
 
 détruit_lectrice :: fonc (lectrice: *Lectrice, préserve_données := faux)
 {

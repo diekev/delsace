@@ -593,6 +593,12 @@ Lexème Lexeuse::donne_lexème_suivant()
                 return crée_lexème_opérateur(1, GenreLexème::BARRE);
             }
 
+            if (c == '?') {
+                APPARIE_CARACTERE_SUIVANT('.', GenreLexème::ACCÈS_CONDITIONNEL);
+                rapporte_erreur("Attendu '.' après '?'");
+                break;
+            }
+
             APPARIE_CARACTERE_SIMPLE('`', GenreLexème::ACCENT_GRAVE)
             APPARIE_CARACTERE_SIMPLE('~', GenreLexème::TILDE)
             APPARIE_CARACTERE_SIMPLE('{', GenreLexème::ACCOLADE_OUVRANTE)

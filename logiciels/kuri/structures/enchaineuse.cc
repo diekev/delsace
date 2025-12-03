@@ -50,26 +50,26 @@ void Enchaineuse::ajoute(const char *c_str, int64_t N)
         tampon->occupe += static_cast<int>(N);
     }
     else {
-        auto taille_a_ecrire = N;
+        auto taille_à_écrire = N;
         auto taille_max = TAILLE_TAMPON - tampon->occupe;
 
         if (taille_max != 0) {
             memcpy(&tampon->données[tampon->occupe], c_str, static_cast<size_t>(taille_max));
             tampon->occupe += taille_max;
-            taille_a_ecrire -= taille_max;
+            taille_à_écrire -= taille_max;
         }
 
         auto décalage = taille_max;
-        while (taille_a_ecrire > 0) {
+        while (taille_à_écrire > 0) {
             ajoute_tampon();
             tampon = tampon_courant;
 
-            auto taille_ecrite = std::min(taille_a_ecrire, static_cast<int64_t>(TAILLE_TAMPON));
+            auto taille_ecrite = std::min(taille_à_écrire, static_cast<int64_t>(TAILLE_TAMPON));
 
             memcpy(&tampon->données[0], c_str + décalage, static_cast<size_t>(taille_ecrite));
             tampon->occupe += static_cast<int>(taille_ecrite);
 
-            taille_a_ecrire -= taille_ecrite;
+            taille_à_écrire -= taille_ecrite;
             décalage += static_cast<int>(taille_ecrite);
         }
     }

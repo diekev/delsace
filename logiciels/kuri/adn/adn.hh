@@ -351,7 +351,7 @@ struct Rubrique {
     kuri::chaine_statique valeur_défaut = "";
 };
 
-class ProtéineEnum;
+class ProtéineÉnum;
 class ProtéineStruct;
 class ProtéineFonction;
 
@@ -376,7 +376,7 @@ class Protéine {
         return m_nom;
     }
 
-    virtual ProtéineEnum *comme_enum()
+    virtual ProtéineÉnum *comme_enum()
     {
         return nullptr;
     }
@@ -400,22 +400,22 @@ class Protéine {
 class ProtéineStruct final : public Protéine {
     kuri::tableau<Rubrique> m_rubriques{};
 
-    ProtéineStruct *m_mere = nullptr;
+    ProtéineStruct *m_mère = nullptr;
 
     IdentifiantADN m_nom_code{};
     IdentifiantADN m_nom_genre{};
     IdentifiantADN m_nom_comme{};
     IdentifiantADN m_genre_valeur{};
 
-    kuri::tableau<ProtéineStruct *> m_protéines_derivees{};
+    kuri::tableau<ProtéineStruct *> m_protéines_derivées{};
 
     bool m_possède_enfant = false;
-    bool m_possède_rubrique_a_copier = false;
+    bool m_possède_rubrique_à_copier = false;
     bool m_possède_tableaux = false;
 
     ProtéineStruct *m_paire = nullptr;
 
-    ProtéineEnum *m_enum_discriminante = nullptr;
+    ProtéineÉnum *m_énum_discriminante = nullptr;
 
   public:
     explicit ProtéineStruct(IdentifiantADN nom);
@@ -433,11 +433,11 @@ class ProtéineStruct final : public Protéine {
 
     void descend_de(ProtéineStruct *protéine)
     {
-        m_mere = protéine;
-        m_possède_tableaux |= m_mere->m_possède_tableaux;
-        m_possède_enfant |= m_mere->m_possède_enfant;
-        m_possède_rubrique_a_copier |= m_mere->m_possède_rubrique_a_copier;
-        m_mere->m_protéines_derivees.ajoute(this);
+        m_mère = protéine;
+        m_possède_tableaux |= m_mère->m_possède_tableaux;
+        m_possède_enfant |= m_mère->m_possède_enfant;
+        m_possède_rubrique_à_copier |= m_mère->m_possède_rubrique_à_copier;
+        m_mère->m_protéines_derivées.ajoute(this);
     }
 
     ProtéineStruct *comme_struct() override
@@ -450,9 +450,9 @@ class ProtéineStruct final : public Protéine {
         return this;
     }
 
-    ProtéineStruct *mere() const
+    ProtéineStruct *mère() const
     {
-        return m_mere;
+        return m_mère;
     }
 
     void mute_paire(ProtéineStruct *paire)
@@ -496,34 +496,34 @@ class ProtéineStruct final : public Protéine {
         }
     }
 
-    const IdentifiantADN &accede_nom_comme() const
+    const IdentifiantADN &donne_nom_comme() const
     {
         return m_nom_comme;
     }
 
-    const IdentifiantADN &accede_nom_code() const
+    const IdentifiantADN &donne_nom_code() const
     {
         return m_nom_code;
     }
 
-    const IdentifiantADN &accede_nom_genre() const
+    const IdentifiantADN &donne_nom_genre() const
     {
         return m_nom_genre;
     }
 
     bool est_classe_de_base() const
     {
-        return !m_protéines_derivees.est_vide();
+        return !m_protéines_derivées.est_vide();
     }
 
     bool est_racine_hiérarchie() const
     {
-        return est_classe_de_base() && m_mere == nullptr;
+        return est_classe_de_base() && m_mère == nullptr;
     }
 
     bool est_racine_soushierachie() const
     {
-        return est_classe_de_base() && m_mere != nullptr;
+        return est_classe_de_base() && m_mère != nullptr;
     }
 
     bool possède_enfants() const
@@ -531,14 +531,14 @@ class ProtéineStruct final : public Protéine {
         return m_possède_enfant;
     }
 
-    bool possède_rubrique_a_copier() const
+    bool possède_rubrique_à_copier() const
     {
-        return m_possède_rubrique_a_copier;
+        return m_possède_rubrique_à_copier;
     }
 
-    const kuri::tableau<ProtéineStruct *> &derivees() const
+    const kuri::tableau<ProtéineStruct *> &derivées() const
     {
-        return m_protéines_derivees;
+        return m_protéines_derivées;
     }
 
     const kuri::tableau<Rubrique> &rubriques() const
@@ -551,48 +551,48 @@ class ProtéineStruct final : public Protéine {
         return m_possède_tableaux;
     }
 
-    void mute_enum_discriminante(ProtéineEnum *enum_discriminante)
+    void mute_énum_discriminante(ProtéineÉnum *énum_discriminante)
     {
-        m_enum_discriminante = enum_discriminante;
+        m_énum_discriminante = énum_discriminante;
     }
 
-    ProtéineEnum *enum_discriminante()
+    ProtéineÉnum *énum_discriminante()
     {
-        if (m_enum_discriminante) {
-            return m_enum_discriminante;
+        if (m_énum_discriminante) {
+            return m_énum_discriminante;
         }
 
-        if (m_mere) {
-            return m_mere->enum_discriminante();
+        if (m_mère) {
+            return m_mère->énum_discriminante();
         }
 
         return nullptr;
     }
 
-    void pour_chaque_rubrique_recursif(std::function<void(Rubrique const &)> rappel);
+    void pour_chaque_rubrique_récursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_copie_extra_recursif(std::function<void(Rubrique const &)> rappel);
+    void pour_chaque_copie_extra_récursif(std::function<void(Rubrique const &)> rappel);
 
-    void pour_chaque_enfant_recursif(std::function<void(const Rubrique &)> rappel);
+    void pour_chaque_enfant_récursif(std::function<void(const Rubrique &)> rappel);
 
-    void pour_chaque_derivee_recursif(std::function<void(const ProtéineStruct &)> rappel);
+    void pour_chaque_derivée_récursif(std::function<void(const ProtéineStruct &)> rappel);
 
     kuri::tableau<Rubrique> donne_rubriques_pour_construction();
 };
 
-class ProtéineEnum final : public Protéine {
+class ProtéineÉnum final : public Protéine {
     kuri::tableau<Rubrique> m_rubriques{};
 
     Type *m_type = nullptr;
 
-    kuri::chaine_statique m_type_discrimine = "";
+    kuri::chaine_statique m_type_discriminé = "";
 
     bool m_est_horslignee = false;
 
   public:
-    explicit ProtéineEnum(IdentifiantADN nom);
+    explicit ProtéineÉnum(IdentifiantADN nom);
 
-    EMPECHE_COPIE(ProtéineEnum);
+    EMPECHE_COPIE(ProtéineÉnum);
 
     void génère_code_cpp(FluxSortieCPP &os, bool pour_entête) override;
 
@@ -600,7 +600,7 @@ class ProtéineEnum final : public Protéine {
 
     void ajoute_rubrique(Rubrique const rubrique);
 
-    ProtéineEnum *comme_enum() override
+    ProtéineÉnum *comme_enum() override
     {
         return this;
     }
@@ -620,14 +620,14 @@ class ProtéineEnum final : public Protéine {
         return m_est_horslignee;
     }
 
-    void type_discrimine(kuri::chaine_statique type_discrimine)
+    void type_discriminé(kuri::chaine_statique type_discriminé)
     {
-        m_type_discrimine = type_discrimine;
+        m_type_discriminé = type_discriminé;
     }
 
-    kuri::chaine_statique type_discrimine() const
+    kuri::chaine_statique type_discriminé() const
     {
-        return m_type_discrimine;
+        return m_type_discriminé;
     }
 
     kuri::tableau_statique<Rubrique> donne_rubriques() const
@@ -759,7 +759,7 @@ struct SyntaxeuseADN : public BaseSyntaxeuse {
 
     Type *parse_type();
 
-    ProtéineEnum *donne_énum_pour_nom(kuri::chaine_statique nom) const;
+    ProtéineÉnum *donne_énum_pour_nom(kuri::chaine_statique nom) const;
 
     void gère_erreur_rapportée(kuri::chaine_statique message_erreur,
                                Lexème const *lexème) override;
@@ -790,7 +790,7 @@ void génère_déclaration_fonctions_discrimination(FluxSortieCPP &os,
 
 void génère_définition_fonctions_discrimination(FluxSortieCPP &os,
                                                 kuri::chaine_statique nom_classe,
-                                                ProtéineStruct const &derivee,
+                                                ProtéineStruct const &derivée,
                                                 bool pour_noeud_code);
 
 void génère_code_cpp(FluxSortieCPP &os,

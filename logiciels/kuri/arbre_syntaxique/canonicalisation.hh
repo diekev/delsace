@@ -118,6 +118,7 @@ struct Simplificatrice {
         NoeudExpressionAppel *construction, TypeStructure *type_struct);
     NoeudExpression *simplifie_construction_opaque_depuis_structure(NoeudExpressionAppel *appel);
     NoeudExpression *simplifie_référence_rubrique(NoeudExpressionRubrique *ref_rubrique);
+    NoeudExpression *simplifie_référence_conditionnelle(NoeudRéférenceConditionnelle *référence);
 
     void simplifie_position_code_source(NoeudDirectiveIntrospection *directive);
 

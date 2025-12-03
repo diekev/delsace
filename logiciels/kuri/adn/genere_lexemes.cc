@@ -182,6 +182,7 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("|=", "OU_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("||=", "BARRE_BARRE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("?.", "ACCÈS_CONDITIONNEL");
     lexèmes.ajoute_ponctuation("---", "NON_INITIALISATION");
     lexèmes.ajoute_ponctuation("...", "TROIS_POINTS", EST_SPÉCIFIANT_TYPE);
     lexèmes.ajoute_ponctuation("..", "DEUX_POINTS", EST_SPÉCIFIANT_TYPE);
