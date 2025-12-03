@@ -373,7 +373,7 @@ génère_opérateurs_vecteurs :: fonc ()
 
         pour op dans opérateurs_logiques {
             /* vecteur - vecteur */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> bool\n", op, dimension, dimension, dimension)
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> bool\n", op, dimension, dimension)
             ajoute_au_tampon(*enchaineuse, "{\n")
             ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " v.x")
             ajoute_au_tampon(*enchaineuse, " && u.y ", op, " v.y")
@@ -387,7 +387,7 @@ génère_opérateurs_vecteurs :: fonc ()
             ajoute_au_tampon(*enchaineuse, "}\n")
 
             /* vecteur - scalaire */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> bool\n", op, dimension, dimension)
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> bool\n", op, dimension)
             ajoute_au_tampon(*enchaineuse, "{\n")
             ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " s")
             ajoute_au_tampon(*enchaineuse, " && u.y ", op, " s")

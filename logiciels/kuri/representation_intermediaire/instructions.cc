@@ -553,6 +553,59 @@ bool instruction_est_racine(Instruction const *inst)
                        GenreInstruction::COPIE_MÉMOIRE);
 }
 
+bool est_adresse_globale(Atome const *atome)
+{
+    return atome->est_fonction() || atome->est_globale();
+}
+
+bool est_adresse_locale(Atome const *atome)
+{
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto inst = atome->comme_instruction();
+
+    if (inst->est_alloc() || inst->est_accès_rubrique() || inst->est_accès_indice()) {
+        return true;
+    }
+
+    if (inst->est_transtype()) {
+        auto transtype = inst->comme_transtype();
+        return est_adresse_locale(transtype->valeur);
+    }
+
+    return false;
+}
+
+bool est_adresse(Atome const *atome)
+{
+    return est_adresse_globale(atome) || est_adresse_locale(atome);
+}
+
+bool est_appel(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_appel();
+}
+
+bool est_charge(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_charge();
+}
+
+bool est_accès_indice(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_accès_indice();
+}
+
+Atome const *donne_source_charge_ou_atome(Atome const *atome)
+{
+    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
+        return atome->comme_instruction()->comme_charge()->chargée;
+    }
+    return atome;
+}
+
 static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
                                                      OpérateurBinaire::Genre genre_comp)
 {
