@@ -487,8 +487,6 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
         retourne
     }
 
-    valeur_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, pos_égal + 1, paire_nom_valeur.taille))
-
     attributs: AttributsCookie
 
     /* Parse les attributs du cookie. */
