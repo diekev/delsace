@@ -270,7 +270,7 @@ tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier(chaine_statique c
     return résultat;
 }
 
-tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_recursif(chaine_statique chemin)
+tablet<chemin_systeme, 16> chemin_systeme::fichiers_du_dossier_récursif(chaine_statique chemin)
 {
     auto const std_path = vers_std_path(chemin);
 

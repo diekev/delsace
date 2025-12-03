@@ -3,7 +3,15 @@ importe Fondation // pour déloge(tableau)
 
 GreffonMétaprogramme :: struct {
     sur_message: fonc (greffon: *GreffonMétaprogramme, message: *Message)
+    sur_arguments: fonc (greffon: *GreffonMétaprogramme, arguments: []chaine)
     sur_destruction: fonc (greffon: *GreffonMétaprogramme)
+}
+
+parse_arguments :: fonc (greffon: *GreffonMétaprogramme, arguments: []chaine)
+{
+    si greffon.sur_arguments {
+        greffon.sur_arguments(greffon, arguments)
+    }
 }
 
 gère_message :: fonc (greffon: *GreffonMétaprogramme, message: *Message)
