@@ -201,7 +201,7 @@ imprime_chaine :: fonc (arène: *ArèneMémoire, format: chaine, args: ...eini) 
     }
 
     retourne chaine(résultat comme *z8, taille)
-}
+} @Imprimeuse
 
 loge_mémoire :: fonc (arène: *ArèneMémoire, taille: IndiceMémoire, alignement: IndiceMémoire = 0) -> *octet
 {

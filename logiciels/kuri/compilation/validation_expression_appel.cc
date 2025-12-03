@@ -1352,7 +1352,7 @@ static RésultatAppariement apparie_construction_type_composé(
 
     POUR_INDICE (type_compose->rubriques) {
         /* Ignore les rubriques employés pour le moment. */
-        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANT |
+        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANTE |
                                RubriqueTypeComposé::EST_UN_EMPLOI)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false, indice_it);
             continue;
@@ -2230,6 +2230,11 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
          * fonction). Changeons alors le type pour éviter toute confusion dans les assertions ou
          * les étapes suivantes de compilation. */
         expr->expression->type = expr->noeud_fonction_appelée->type;
+
+        if (expr->expression->est_référence_déclaration()) {
+            expr->expression->comme_référence_déclaration()->déclaration_référée =
+                const_cast<NoeudDéclarationEntêteFonction *>(decl_fonction_appelée);
+        }
 
         if (expr->type == nullptr) {
             expr->type = type_sortie;
