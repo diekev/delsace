@@ -415,7 +415,7 @@ struct NoeudExpressionRéférence : NoeudExpression {
     @genre_valeur INVALIDE
 
     IdentifiantCode * ident [copie code]
-    NoeudDéclaration *déclaration_référée [copie]
+    NoeudDéclaration *déclaration_référée [code copie]
 }
 
 struct NoeudExpressionUnaire : NoeudExpression {
@@ -562,6 +562,13 @@ struct NoeudExpressionRubriqueUnion : NoeudExpressionRubrique {
     @comme référence_rubrique_union
     @code  NoeudCodeRéférenceRubriqueUnion
     @genre_valeur INVALIDE
+}
+
+struct NoeudRéférenceConditionnelle : NoeudExpressionRubrique {
+    @genre EXPRESSION_RÉFÉRENCE_CONDITIONNELLE
+    @comme référence_conditionnelle
+    @code  NoeudCodeRéférenceConditionnelle
+    @genre_valeur DROITE
 }
 
 struct NoeudDéclarationEntêteFonction : NoeudDéclarationSymbole {
@@ -1020,6 +1027,9 @@ struct NoeudSi : NoeudExpression {
     NoeudExpression *condition [code enfant construction]
     NoeudExpression *bloc_si_vrai [code enfant]
     NoeudExpression *bloc_si_faux [code enfant]
+
+    /* Pour l'instruction racine des expressions-si, s'il y a un bloc sinon final. */
+    bool expression_est_complète
 }
 
 struct NoeudSaufsi : NoeudSi {

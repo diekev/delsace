@@ -137,13 +137,12 @@ static void imprime_stats(Compilatrice const &compilatrice,
 
 class ParseuseArguments {
   private:
-    int m_argc = 0;
-    char **m_argv = nullptr;
+    kuri::tableau_statique<char *> m_arguments{};
     int m_indice = 0;
 
   public:
-    ParseuseArguments(int argc, char **argv, int indice)
-        : m_argc(argc), m_argv(argv), m_indice(indice)
+    ParseuseArguments(kuri::tableau_statique<char *> arguments, int indice)
+        : m_arguments(arguments), m_indice(indice)
     {
     }
 
@@ -152,7 +151,7 @@ class ParseuseArguments {
 
     bool a_consommé_tous_les_arguments() const
     {
-        return m_indice >= m_argc;
+        return m_indice >= m_arguments.taille();
     }
 
     std::optional<kuri::chaine_statique> donne_argument_suivant()
@@ -161,7 +160,7 @@ class ParseuseArguments {
             return {};
         }
 
-        return kuri::chaine_statique(m_argv[m_indice++]);
+        return kuri::chaine_statique(m_arguments[m_indice++]);
     }
 };
 
@@ -169,7 +168,6 @@ enum class ActionParsageArgument : uint8_t {
     CONTINUE,
     ARRÊTE_POUR_AIDE,
     ARRÊTE_CAR_ERREUR,
-    DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES,
 };
 
 using TypeFonctionGestionArgument = ActionParsageArgument (*)(ParseuseArguments &,
@@ -185,9 +183,6 @@ struct DescriptionArgumentCompilation {
 
 static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*/,
                                                 ArgumentsCompilatrice & /*résultat*/);
-
-static ActionParsageArgument gère_argument_pour_métaprogrammes(
-    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/);
 
 static ActionParsageArgument gère_argument_emets_fichiers_utilises(
     ParseuseArguments &parseuse, ArgumentsCompilatrice &résultat);
@@ -236,11 +231,7 @@ static ActionParsageArgument gère_argument_verbeux(ParseuseArguments &parseuse,
 
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
-    {"--",
-     "",
-     "",
-     "Débute la liste des arguments pour les métaprogrammes",
-     gère_argument_pour_métaprogrammes},
+    {"--", "", "", "Débute la liste des arguments pour les métaprogrammes", nullptr},
     {"--tests",
      "-t",
      "--tests, -t",
@@ -388,12 +379,6 @@ static ActionParsageArgument gère_argument_aide(ParseuseArguments & /*parseuse*
     info() << sortie.chaine();
 
     return ActionParsageArgument::ARRÊTE_POUR_AIDE;
-}
-
-static ActionParsageArgument gère_argument_pour_métaprogrammes(
-    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice & /*résultat*/)
-{
-    return ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES;
 }
 
 static ActionParsageArgument gère_argument_emets_fichiers_utilises(ParseuseArguments &parseuse,
@@ -547,15 +532,31 @@ static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse
 static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **argv)
 {
     if (argc < 2) {
-        dbg() << "Utilisation : " << argv[0] << " [options...] FICHIER.";
+        dbg() << "Utilisation : " << argv[0]
+              << " [options...] FICHIER [-- ARGUMENTS_POUR_MÉTAPROGRAMMES]";
         return {};
     }
 
     auto résultat = ArgumentsCompilatrice();
-    auto dans_arguments_pour_métaprogrammes = false;
 
-    auto parseuse_arguments = ParseuseArguments(argc, argv, 1);
-    auto arguments_pour_métaprogrammes = kuri::tableau<kuri::chaine_statique>();
+    auto arguments = kuri::tableau_statique<char *>(argv, argc);
+    auto arguments_pour_métaprogrammes = kuri::tableau_statique<char *>();
+
+    POUR_INDICE (arguments) {
+        auto chaine_arg = kuri::chaine_statique(it);
+        if (chaine_arg == "--") {
+            arguments_pour_métaprogrammes = kuri::tableau_statique<char *>(argv + indice_it + 1,
+                                                                           argc - (indice_it + 1));
+            arguments = kuri::tableau_statique<char *>(argv, indice_it);
+            break;
+        }
+    }
+
+    POUR (arguments_pour_métaprogrammes) {
+        résultat.arguments_pour_métaprogrammes.ajoute(kuri::chaine_statique(it));
+    }
+
+    auto parseuse_arguments = ParseuseArguments(arguments, 1);
 
     while (true) {
         auto arg = parseuse_arguments.donne_argument_suivant();
@@ -563,15 +564,10 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
             break;
         }
 
-        if (dans_arguments_pour_métaprogrammes) {
-            arguments_pour_métaprogrammes.ajoute(arg.value());
-            continue;
-        }
-
         auto desc = donne_description_pour_arg(arg.value());
         if (!desc.has_value()) {
             if (parseuse_arguments.a_consommé_tous_les_arguments()) {
-                /* C'est peut-être le fichier, ce cas est géré en dehors de cet fonction. */
+                résultat.fichier_entrée_compilation = arg.value();
                 return résultat;
             }
 
@@ -599,11 +595,6 @@ static std::optional<ArgumentsCompilatrice> parse_arguments(int argc, char **arg
             case ActionParsageArgument::ARRÊTE_CAR_ERREUR:
             {
                 return {};
-            }
-            case ActionParsageArgument::DÉBUTE_LISTE_ARGUMENTS_MÉTAPROGRAMMES:
-            {
-                dans_arguments_pour_métaprogrammes = true;
-                break;
             }
         }
     }
@@ -842,7 +833,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto chemin_fichier = kuri::chemin_systeme(argv[argc - 1]);
+    auto arguments = opt_arguments.value();
+
+    auto chemin_fichier = kuri::chemin_systeme(arguments.fichier_entrée_compilation);
     auto extension = chemin_fichier.extension();
     if (extension != ".kuri") {
         if (extension == "") {
@@ -865,7 +858,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto arguments = opt_arguments.value();
     arguments.fichier_entrée_compilation = chemin_fichier.nom_fichier();
 
     auto compilatrice = Compilatrice(opt_racine_kuri.value(), arguments);
