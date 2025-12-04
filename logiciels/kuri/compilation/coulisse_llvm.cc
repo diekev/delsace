@@ -3528,7 +3528,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
      * gérer les liaisons des globales, ainsi que leur donner des noms uniques. */
 #else
     /* Crée des modules pour les fonctions. */
-    constexpr int nombre_instructions_par_module = 10000;
+    constexpr int nombre_instructions_par_module = 20000;
     int nombre_instructions = 0;
     int index_première_fonction = 0;
     auto fonctions = repr_inter.donne_fonctions();
