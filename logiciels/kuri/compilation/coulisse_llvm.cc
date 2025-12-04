@@ -71,8 +71,6 @@ inline bool adresse_est_nulle(void *adresse)
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
 
-#undef COMPILE_EN_PLUSIEURS_MODULE
-
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires locaux.
  * \{ */
@@ -117,17 +115,17 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule con
         return llvm::GlobalValue::ExternalLinkage;
     }
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    static_cast<void>(module);
-    return llvm::GlobalValue::InternalLinkage;
-#else
-    /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
-    if (!module.fait_partie_du_module(fonction)) {
-        return llvm::GlobalValue::AvailableExternallyLinkage;
+    if (module.le_module_est_unique) {
+        return llvm::GlobalValue::InternalLinkage;
     }
 
-    return llvm::GlobalValue::InternalLinkage;
-#endif
+    /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(fonction)) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+    // À FAIRE : est-ce la bonne valeur ?
+    return llvm::GlobalValue::ExternalLinkage;
 }
 
 static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule const &module,
@@ -137,17 +135,17 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule cons
         return llvm::GlobalValue::ExternalLinkage;
     }
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    static_cast<void>(module);
-    return llvm::GlobalValue::InternalLinkage;
-#else
-    /* La globale ne fait pas partie du module. Nous avons une définition ailleurs. */
-    if (!module.fait_partie_du_module(globale)) {
-        return llvm::GlobalValue::AvailableExternallyLinkage;
+    if (module.le_module_est_unique) {
+        return llvm::GlobalValue::InternalLinkage;
     }
 
-    return llvm::GlobalValue::InternalLinkage;
-#endif
+    /* La globale ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(globale)) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+    // À FAIRE : est-ce la bonne valeur ?
+    return llvm::GlobalValue::ExternalLinkage;
 }
 
 /* Retourne vrai si la valeur globale doit être considérer comme locale pour l'exécutable ou la
@@ -3521,40 +3519,39 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
     }
     module->définis_globales(repr_inter.donne_globales());
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    module->définis_fonctions(repr_inter.donne_fonctions());
-
-    /* À FAIRE : pour la compilation en plusieurs fichiers il faudra proprement
-     * gérer les liaisons des globales, ainsi que leur donner des noms uniques. */
-#else
-    /* Crée des modules pour les fonctions. */
-    constexpr int nombre_instructions_par_module = 20000;
-    int nombre_instructions = 0;
-    int index_première_fonction = 0;
-    auto fonctions = repr_inter.donne_fonctions();
-    for (int i = 0; i < fonctions.taille(); i++) {
-        auto fonction = fonctions[i];
-        nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
-
-        if (nombre_instructions < nombre_instructions_par_module && i != fonctions.taille() - 1) {
-            continue;
-        }
-
-        // dbg() << "Nombre instructions : " << nombre_instructions;
-
-        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
-        auto taille = i - index_première_fonction + 1;
-
-        auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
-                                                                            taille);
-
-        module = crée_un_module("Fonction", triplet_cible, options);
-        module->définis_fonctions(fonctions_du_modules);
-
-        nombre_instructions = 0;
-        index_première_fonction = i + 1;
+    if (!options.parallélise_llvm) {
+        module->définis_fonctions(repr_inter.donne_fonctions());
     }
-#endif
+    else {
+        /* Crée des modules pour les fonctions. */
+        constexpr int nombre_instructions_par_module = 20000;
+        int nombre_instructions = 0;
+        int index_première_fonction = 0;
+        auto fonctions = repr_inter.donne_fonctions();
+        for (int i = 0; i < fonctions.taille(); i++) {
+            auto fonction = fonctions[i];
+            nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
+
+            if (nombre_instructions < nombre_instructions_par_module &&
+                i != fonctions.taille() - 1) {
+                continue;
+            }
+
+            // dbg() << "Nombre instructions : " << nombre_instructions;
+
+            auto pointeur_fonction = fonctions.begin() + index_première_fonction;
+            auto taille = i - index_première_fonction + 1;
+
+            auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
+                                                                                taille);
+
+            module = crée_un_module("Fonction", triplet_cible, options);
+            module->définis_fonctions(fonctions_du_modules);
+
+            nombre_instructions = 0;
+            index_première_fonction = i + 1;
+        }
+    }
 }
 
 DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
@@ -3563,6 +3560,7 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
 {
     auto résultat = mémoire::loge<DonnéesModule>("DonnéesModule");
     résultat->contexte_llvm = new llvm::LLVMContext;
+    résultat->le_module_est_unique = !options.parallélise_llvm;
 
     auto nom_module = enchaine(nom, m_modules.taille());
 

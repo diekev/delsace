@@ -33,6 +33,8 @@ struct DonnéesModule {
 
     kuri::chemin_systeme chemin_fichier_objet{};
 
+    bool le_module_est_unique = false;
+
   private:
     const DonnéesConstantes *m_données_constantes = nullptr;
     kuri::tableau_statique<AtomeGlobale *> m_globales{};

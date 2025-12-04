@@ -82,4 +82,5 @@ struct OptionsDeCompilation {
 
     /* Options pour LLVM. */
     bool valide_ir_llvm = faux
+    bool parallélise_llvm = vrai
 }
