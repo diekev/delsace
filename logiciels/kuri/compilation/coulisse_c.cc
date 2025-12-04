@@ -1386,8 +1386,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto résultat = Enchaineuse();
 
             auto virgule = "{{ ";
-            // ceci car il peut n'y avoir qu'un seul rubrique de type tableau qui
-            // n'est pas initialisé
+            // ceci car il peut n'y avoir qu'une seule rubrique de type tableau qui
+            // n'est pas initialisée
             auto virgule_placee = false;
 
             POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
