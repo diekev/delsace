@@ -3222,7 +3222,9 @@ static kuri::chaine_statique donne_assembleur_llvm()
     return LLVM_ASSEMBLEUR;
 }
 
-static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module, int64_t indice)
+static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
+                                                           int64_t indice,
+                                                           bool verbeux)
 {
     auto const fichier_ll = chemin_fichier_ll_llvm(indice);
     auto const fichier_bc = chemin_fichier_bc_llvm(indice);
@@ -3234,7 +3236,7 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
-    return exécute_commande_externe_erreur(commande, true);
+    return exécute_commande_externe_erreur(commande, verbeux);
 }
 
 CoulisseLLVM::~CoulisseLLVM()
@@ -3260,6 +3262,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         return ErreurCoulisse{"Impossible d'intialiser LLVM."};
     }
 
+    auto compilatrice = args.compilatrice;
     auto &espace = *args.espace;
     auto &repr_inter = *args.ri_programme;
 
@@ -3310,7 +3313,8 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
 
     if (espace.options.valide_ir_llvm) {
         POUR_INDICE (m_modules) {
-            auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
+            auto opt_erreur_validation = valide_llvm_ir(
+                *it->module, indice_it, compilatrice->arguments.verbeux);
             if (opt_erreur_validation.has_value()) {
                 auto erreur_validation = opt_erreur_validation.value();
                 auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
@@ -3384,8 +3388,11 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
     auto commande = commande_pour_liaison(
         espace.options, fichiers_objet, m_bibliothèques, nom_sortie, true);
 
-    if (!exécute_commande_externe(commande)) {
-        return ErreurCoulisse{"Ne peut pas créer l'executable !"};
+    auto err_commande = exécute_commande_externe_erreur(commande, compilatrice.arguments.verbeux);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
     }
 
     return {};
