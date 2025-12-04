@@ -736,8 +736,6 @@ considération des assertions statiques lors de la compilation de plusieurs espa
     peut-être qu'un espace devra pouvoir partager le code avec les autres
     un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
 
-- stack canaries (coulisse LLVM)
-
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri
 - pouvoir utiliser un #! en début de fichier pour utiliser les programmes comme des scripts (cela compilera et exécutera l'exécutable ou alors juste les métaprogrammes, #! n'est pas cohérent sur toutes les plateformes...)

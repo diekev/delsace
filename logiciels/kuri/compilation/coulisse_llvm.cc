@@ -2749,6 +2749,10 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
         résultat->addFnAttr(llvm::Attribute::SanitizeAddress);
     }
 
+    if (m_espace.options.protège_pile) {
+        résultat->addFnAttr(llvm::Attribute::SafeStack);
+    }
+
     return résultat;
 }
 
