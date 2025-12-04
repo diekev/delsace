@@ -3301,7 +3301,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    crée_modules(repr_inter, triplet_cible);
+    crée_modules(repr_inter, triplet_cible, espace.options);
 
     POUR (m_modules) {
         auto generatrice = GénératriceCodeLLVM(espace, *it);
@@ -3502,10 +3502,11 @@ void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module, OptionsDeCompilat
 }
 
 void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
-                                const std::string &triplet_cible)
+                                const std::string &triplet_cible,
+                                OptionsDeCompilation const &options)
 {
     /* Crée un module pour les globales. */
-    auto module = crée_un_module("Globales", triplet_cible);
+    auto module = crée_un_module("Globales", triplet_cible, options);
 
     auto opt_données_constantes = repr_inter.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
@@ -3540,7 +3541,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
         auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
                                                                             taille);
 
-        module = crée_un_module("Fonction", triplet_cible);
+        module = crée_un_module("Fonction", triplet_cible, options);
         module->définis_fonctions(fonctions_du_modules);
 
         nombre_instructions = 0;
@@ -3550,7 +3551,8 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
 }
 
 DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
-                                            const std::string &triplet_cible)
+                                            const std::string &triplet_cible,
+                                            OptionsDeCompilation const &options)
 {
     auto résultat = mémoire::loge<DonnéesModule>("DonnéesModule");
     résultat->contexte_llvm = new llvm::LLVMContext;
@@ -3564,6 +3566,11 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
     résultat->module->setPICLevel(llvm::PICLevel::BigPIC);
     résultat->module->setPIELevel(llvm::PIELevel::Large);
     résultat->module->setFramePointer(llvm::FramePointerKind::All);
+
+    if (options.protège_controle_flux) {
+        résultat->module->addModuleFlag(llvm::Module::Override, "cf-protection-return", 1);
+        résultat->module->addModuleFlag(llvm::Module::Override, "cf-protection-branch", 1);
+    }
 
     résultat->chemin_fichier_objet = chemin_fichier_objet_llvm(int32_t(m_modules.taille()));
 
