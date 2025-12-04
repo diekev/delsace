@@ -3257,11 +3257,14 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     auto &repr_inter = *args.ri_programme;
 
     POUR (repr_inter.donne_fonctions()) {
-        if (!it->est_intrinsèque()) {
-            continue;
+        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
+            auto message = enchaine("Utilisation d'une fonction SSE2 non-implémentée pour LLVM : ",
+                                    it->decl->ident->nom,
+                                    ".");
+            return ErreurCoulisse{message};
         }
 
-        if (!est_intrinsèque_supportée_par_llvm(it->decl->ident)) {
+        if (it->est_intrinsèque() && !est_intrinsèque_supportée_par_llvm(it->decl->ident)) {
             auto message = enchaine("Utilisation d'une intrinsèque non-implémentée pour LLVM : ",
                                     it->decl->ident->nom,
                                     ".");
