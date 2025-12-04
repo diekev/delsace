@@ -2749,7 +2749,10 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
         résultat->addFnAttr(llvm::Attribute::SanitizeAddress);
     }
 
-    if (m_espace.options.protège_pile) {
+    /* Désactivé pour les bibliothèques dynamiques.
+     * https://clang.llvm.org/docs/SafeStack.html#known-compatibility-limitations */
+    if (m_espace.options.protège_pile &&
+        m_espace.options.résultat != RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         résultat->addFnAttr(llvm::Attribute::SafeStack);
     }
 

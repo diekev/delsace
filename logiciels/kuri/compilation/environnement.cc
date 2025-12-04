@@ -336,7 +336,17 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
     résultat.ajoute("-Wno-format-security");
 
     if (utilise_clang) {
-        if (options.protège_pile) {
+        /* Désactivé pour les bibliothèques dynamiques.
+         * https://clang.llvm.org/docs/SafeStack.html#known-compatibility-limitations
+         *
+         * Solution potentielle de
+         * https://github.com/ossf/wg-best-practices-os-developers/issues/267#issuecomment-1835359166
+         * FWIW, so far as I know the problem isn't hard to fix, there simply hasn't been any
+         * interest. To fix, the .so needs to have a .init function that checks whether there's a
+         * shadow stack present and mmap's one if not, and saves the pointer in the
+         * __safestack_unsafe_stack_ptr thread-local variable. */
+        if (options.protège_pile &&
+            options.résultat != RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
             résultat.ajoute("-fsanitize=safe-stack");
         }
     }
