@@ -18,6 +18,9 @@ if(AVEC_LLVM)
     find_package(LLVM REQUIRED)
     if(AVEC_COULISSE_LLVM)
         add_definitions(-DAVEC_COULISSE_LLVM)
+        # À FAIRE : trouve ceux-ci de manière programmatique
+        add_definitions(-DCOMPILATEUR_C_CLANG="clang-${LLVM_VERSION}")
+        add_definitions(-DCOMPILATEUR_CXX_CLANG="clang++-${LLVM_VERSION}")
     endif()
 endif()
 

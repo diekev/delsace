@@ -3375,7 +3375,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
 
     auto nom_sortie = nom_sortie_résultat_final(espace.options);
     auto commande = commande_pour_liaison(
-        espace.options, fichiers_objet, m_bibliothèques, nom_sortie);
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie, true);
 
     if (!exécute_commande_externe(commande)) {
         return ErreurCoulisse{"Ne peut pas créer l'executable !"};
