@@ -715,8 +715,6 @@ instructions SIMD
 idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
     -- nécéssite support de la part du système d'exploitation
 
-options de compilation pour la pile inviisble (shadow_stack, -mshstk pour GCC)
-
 génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?
 

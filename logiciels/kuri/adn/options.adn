@@ -75,6 +75,7 @@ struct OptionsDeCompilation {
     bool code_indépendent_de_position = faux
     bool préfixe_bibliothèque_système = vrai
     bool protège_controle_flux = vrai
+    bool pile_fantôme = vrai
 
     /* Options pour DWARF. */
     uint32_t version_dwarf = 4

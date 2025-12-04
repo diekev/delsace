@@ -307,6 +307,10 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
         résultat.ajoute("-fcf-protection");
     }
 
+    if (options.pile_fantôme) {
+        résultat.ajoute("-mshstk");
+    }
+
     if (options.architecture == ArchitectureCible::X86) {
         résultat.ajoute("-m32");
     }
@@ -362,6 +366,10 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
 
     if (options.protège_controle_flux) {
         résultat.ajoute("-fcf-protection");
+    }
+
+    if (options.pile_fantôme) {
+        résultat.ajoute("-mshstk");
     }
 
     if (options.architecture == ArchitectureCible::X86) {
