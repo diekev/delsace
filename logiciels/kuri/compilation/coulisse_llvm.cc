@@ -3308,7 +3308,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         generatrice.génère_code();
     }
 
-    if (true || espace.options.valide_ir_llvm) {
+    if (espace.options.valide_ir_llvm) {
         POUR_INDICE (m_modules) {
             auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
             if (opt_erreur_validation.has_value()) {
