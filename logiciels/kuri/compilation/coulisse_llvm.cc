@@ -1045,11 +1045,13 @@ struct GénératriceCodeLLVM {
     void génère_code_pour_instruction(Instruction const *inst);
 
     void génère_code_pour_appel(InstructionAppel const *inst_appel);
+    llvm::Value *génère_code_pour_appel_impl(InstructionAppel const *inst_appel);
 
     void génère_code_pour_appel_intrinsèque(InstructionAppel const *inst_appel,
                                             DonnéesSymboleExterne const *données_externe);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
+    void génère_code_pour_est_adresse_données_constante(const AtomeFonction *fonction);
 
     void génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
                                               kuri::chaine_statique nom_globale);
@@ -2029,6 +2031,12 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
         return;
     }
 
+    auto résultat = génère_code_pour_appel_impl(inst_appel);
+    définis_valeur_instruction(inst_appel, résultat);
+}
+
+llvm::Value *GénératriceCodeLLVM::génère_code_pour_appel_impl(InstructionAppel const *inst_appel)
+{
     auto arguments = std::vector<llvm::Value *>();
 
     struct InfoAttribut {
@@ -2116,7 +2124,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
         résultat = adresse_retour;
     }
 
-    définis_valeur_instruction(inst_appel, résultat);
+    return résultat;
 }
 
 llvm::AtomicOrdering donne_valeur_pour_ordre_mémoire(Atome const *arg)
@@ -2582,6 +2590,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         }
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
         {
+            valeur_retour = génère_code_pour_appel_impl(inst_appel);
             break;
         }
         case GenreIntrinsèque::LIS_COMPTEUR_TEMPOREL:
@@ -2896,6 +2905,10 @@ void GénératriceCodeLLVM::génère_code()
 void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
 {
     if (atome_fonc->est_externe) {
+        if (atome_fonc->decl &&
+            atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+            génère_code_pour_est_adresse_données_constante(atome_fonc);
+        }
         return;
     }
 
@@ -3077,6 +3090,39 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     m_adresse_retour = nullptr;
 }
 
+void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante(
+    const AtomeFonction *atome_fonc)
+{
+    // À FAIRE : implémente proprement cette fonction.
+    table_valeurs.redimensionne(atome_fonc->numérote_instructions());
+
+    auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
+
+    auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", fonction);
+    m_builder.SetInsertPoint(bloc);
+
+    auto valeurs_args = fonction->arg_begin();
+
+    POUR (atome_fonc->params_entrée) {
+        auto arg_name = vers_string_ref(it->ident);
+        auto valeur = &(*valeurs_args++);
+        valeur->setName(arg_name);
+
+        auto type_alloué = it->donne_type_alloué();
+
+        auto alloc = crée_allocation(it);
+        auto alignement = alloc->getAlign();
+        if (est_type_machine_pointeur(type_alloué)) {
+            auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
+            valeur->addAttr(attr);
+        }
+        m_builder.CreateAlignedStore(valeur, alloc, alignement);
+    }
+
+    auto valeur_faux = llvm::ConstantInt::get(convertis_type_llvm(m_espace.typeuse.type_bool), 0);
+    m_builder.CreateRet(valeur_faux);
+}
+
 void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
                                                                kuri::chaine_statique nom_globale)
 {
@@ -3249,8 +3295,7 @@ CoulisseLLVM::~CoulisseLLVM()
 
 static bool est_intrinsèque_supportée_par_llvm(IdentifiantCode const *ident)
 {
-    return ident != ID::intrinsèque_est_adresse_données_constantes &&
-           ident != ID::atomique_échange && ident != ID::atomique_toujours_sans_verrou &&
+    return ident != ID::atomique_échange && ident != ID::atomique_toujours_sans_verrou &&
            ident != ID::atomique_est_sans_verrou;
 }
 
