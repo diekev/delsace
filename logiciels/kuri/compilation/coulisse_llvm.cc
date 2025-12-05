@@ -1423,26 +1423,26 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
                                                  uint64_t(accès->indice));
             assert(indice);
-            auto accede = génère_code_pour_atome(accès->accédé, utilisation);
-            assert_rappel(accede, [&]() {
+            auto accédé = génère_code_pour_atome(accès->accédé, utilisation);
+            assert_rappel(accédé, [&]() {
                 dbg() << "L'accédé est de genre " << accès->accédé->genre_atome << " ("
                       << accès->accédé << ")\n"
                       << imprime_information_atome(accès->accédé);
             });
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
-            auto type_accede = accès->donne_type_accédé();
-            if (!est_type_machine_pointeur(type_accede)) {
+            auto type_accédé = accès->donne_type_accédé();
+            if (!est_type_machine_pointeur(type_accédé)) {
                 auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
                 index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
             }
             index_array.push_back(indice);
 
-            // dbg() << "ACCES_INDEX_CONSTANT: indice=" << *indice << ", accede=" << *accede;
+            // dbg() << "ACCES_INDEX_CONSTANT: indice=" << *indice << ", accédé=" << *accédé;
 
-            auto type_llvm = convertis_type_llvm(type_accede);
+            auto type_llvm = convertis_type_llvm(type_accédé);
             return llvm::ConstantExpr::getInBoundsGetElementPtr(
-                type_llvm, llvm::cast<llvm::Constant>(accede), index_array);
+                type_llvm, llvm::cast<llvm::Constant>(accédé), index_array);
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
