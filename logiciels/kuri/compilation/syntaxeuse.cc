@@ -213,6 +213,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::PLUS:
             case GenreLexème::PLUS_ÉGAL:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::POURCENT:
             case GenreLexème::SUPERIEUR:
             case GenreLexème::SUPERIEUR_ÉGAL:
@@ -305,6 +306,7 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::DIVISE:
             case GenreLexème::POURCENT:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::COMME:
@@ -335,8 +337,8 @@ static constexpr auto table_associativité_lexèmes = [] {
     return t;
 }();
 
-static constexpr int PRÉCÉDENCE_VIRGULE = 3;
-static constexpr int PRÉCÉDENCE_TYPE = 4;
+static constexpr int PRÉCÉDENCE_VIRGULE = 4;
+static constexpr int PRÉCÉDENCE_TYPE = 3;
 
 static constexpr auto table_précédence_lexèmes = [] {
     std::array<char, 256> t{};
@@ -456,6 +458,7 @@ static constexpr auto table_précédence_lexèmes = [] {
             }
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             {
                 t[i] = 17;
@@ -1433,6 +1436,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         rapporte_erreur_avec_site(
                             it, "Expression inattendue dans l'expression virgule.");
                     }
+
+                    auto decl = m_contexte->assembleuse->crée_déclaration_variable(
+                        it->comme_référence_déclaration());
+                    if (m_contexte->assembleuse->bloc_courant()->type_bloc ==
+                        TypeBloc::IMPÉRATIF) {
+                        decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+                    }
+                    decl->drapeaux |= DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE;
                 }
 
                 auto decl = m_contexte->assembleuse->crée_déclaration_variable_multiple(
@@ -1478,7 +1489,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         }
         case GenreLexème::DECLARATION_VARIABLE:
         {
-            if (gauche->est_déclaration_variable()) {
+            if (gauche->est_base_déclaration_variable()) {
                 rapporte_erreur_avec_site(
                     gauche, "Utilisation de « := » alors qu'un type fut déclaré avec « : »");
             }
@@ -1549,8 +1560,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             m_noeud_expression_virgule = nullptr;
 
-            if (gauche->est_déclaration_variable()) {
-                auto decl = gauche->comme_déclaration_variable();
+            if (gauche->est_base_déclaration_variable()) {
+                auto decl = gauche->comme_base_déclaration_variable();
                 if (decl->expression) {
                     /* repositionne le lexème courant afin que les messages d'erreurs pointent au
                      * bon endroit */
@@ -1628,6 +1639,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             return m_contexte->assembleuse->crée_référence_rubrique(lexème, gauche);
+        }
+        case GenreLexème::ACCÈS_CONDITIONNEL:
+        {
+            consomme();
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après '?.'");
+            }
+
+            lexème = lexème_courant();
+            consomme();
+            return m_contexte->assembleuse->crée_référence_conditionnelle(lexème, gauche);
         }
         case GenreLexème::TROIS_POINTS:
         {
@@ -3859,7 +3881,7 @@ DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
 
 #define EST_DRAPEAU_ACTIF(type, variable, drapeau) (((variable) & type::drapeau) != type::ZÉRO)
 
-void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration)
+void Syntaxeuse::analyse_directive_déclaration_variable(BaseDéclarationVariable *déclaration)
 {
     if (!apparie(GenreLexème::DIRECTIVE)) {
         return;

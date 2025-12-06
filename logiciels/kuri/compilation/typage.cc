@@ -609,7 +609,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
                       0,
                       uint64_t(taille),
                       nullptr,
-                      RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_CONSTANTE});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));

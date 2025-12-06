@@ -1983,6 +1983,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_TENTE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -3489,25 +3490,29 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_réel()) {
+            if (valeur->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RÉEL);
             }
-            else if (noeud->type->est_type_entier_naturel()) {
+            else if (valeur->type->est_type_entier_naturel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->est_type_entier_relatif()) {
+            else if (valeur->type->est_type_entier_relatif()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RELATIF);
             }
-            else if (noeud->type->est_type_bool()) {
+            else if (valeur->type->est_type_bool()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->est_type_octet()) {
+            else if (valeur->type->est_type_octet()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+            }
+            else {
+                assert_rappel(false,
+                              [&] { dbg() << "Type non-géré " << chaine_type(valeur->type); });
             }
 
             break;
@@ -3540,19 +3545,19 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_réel()) {
+            if (valeur->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RÉEL);
             }
-            else if (noeud->type->est_type_entier_naturel()) {
+            else if (valeur->type->est_type_entier_naturel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }
-            else if (noeud->type->est_type_entier_relatif()) {
+            else if (valeur->type->est_type_entier_relatif()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RELATIF);
             }
-            else if (noeud->type->est_type_bool()) {
+            else if (valeur->type->est_type_bool()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }

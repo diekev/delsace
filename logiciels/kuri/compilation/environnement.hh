@@ -69,14 +69,16 @@ kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cib
  */
 kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
-                                         kuri::chaine_statique fichier_sortie);
+                                         kuri::chaine_statique fichier_sortie,
+                                         bool utilise_clang);
 
 /* Retourne une commande pour appeler le lieur C afin de lier les fichiers donnés en entrée.
  */
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
                                    BibliothèquesUtilisées const &bibliothèques,
-                                   kuri::chaine_statique chemin_sortie);
+                                   kuri::chaine_statique chemin_sortie,
+                                   bool utilise_clang);
 
 bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
 

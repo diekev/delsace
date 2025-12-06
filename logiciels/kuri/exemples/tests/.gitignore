@@ -1,3 +1,4 @@
+test_accès_optionnel
 test_assert_dans_fonction
 test_assignation_logique
 test_boucle_pour
@@ -30,4 +31,5 @@ test_structure_poly
 test_sys_fichier
 test_tableaux
 test_valeur_polymorphique_fonction
+test_variables_multiples
 tous_les_modules

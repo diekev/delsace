@@ -212,7 +212,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         case RaisonErreurAppariement::TROP_D_EXPRESSION_POUR_UNION:
         {
             e.ajoute_message(
-                "\tOn ne peut initialiser qu'un seul rubrique d'une union à la fois\n");
+                "\tOn ne peut initialiser qu'une seule rubrique d'une union à la fois\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
@@ -393,10 +393,10 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriqu
     return candidat;
 }
 
-void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *accès,
-                      NoeudExpression const *rubrique,
-                      TypeComposé const *type)
+void rubrique_inconnue(EspaceDeTravail const &espace,
+                       NoeudExpression const *accès,
+                       NoeudExpression const *rubrique,
+                       TypeComposé const *type)
 {
     auto rubriques = kuri::ensemble<kuri::chaine_statique>();
 
