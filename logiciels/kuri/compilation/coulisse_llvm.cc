@@ -3684,8 +3684,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
             auto fonction = fonctions[i];
             nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
 
-            if (fonction->decl &&
-                fonction->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+            if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
                 module_globales->intrinsèqe_est_adresse_données_constantes = fonction;
             }
 
