@@ -1015,6 +1015,7 @@ struct GénératriceCodeLLVM {
 
     const AtomeFonction *m_atome_fonction_courante = nullptr;
     llvm::Function *m_fonction_courante = nullptr;
+    llvm::Function *m_fonction_atomic_is_lock_free = nullptr;
     llvm::Value *m_adresse_retour = nullptr;
     llvm::Module *m_module = nullptr;
     llvm::Type *m_type_données_constantes = nullptr;
@@ -1069,6 +1070,7 @@ struct GénératriceCodeLLVM {
     void définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur);
 
     llvm::Function *donne_ou_crée_déclaration_fonction(AtomeFonction const *fonction);
+    llvm::Function *donne_fonction_atomic_is_lock_free();
     llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 
     void émets_position_courante(NoeudExpression const *site);
@@ -2363,7 +2365,25 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
         case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
         {
-            /* À FAIRE(LLVM) : __atomic_always_lock_free, __atomic_is_lock_free */
+            // À FAIRE : toujours_sans_verrou est sensée être évaluée lors de la compilation.
+            auto fonction = donne_fonction_atomic_is_lock_free();
+
+            auto callee = llvm::FunctionCallee(fonction);
+
+            auto arguments = std::vector<llvm::Value *>();
+            POUR (inst_appel->args) {
+                arguments.push_back(génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE));
+            }
+
+            auto call_inst = m_builder.CreateCall(callee, arguments);
+            call_inst->addParamAttr(0, llvm::Attribute::AttrKind::NoUndef);
+            call_inst->addParamAttr(1, llvm::Attribute::AttrKind::NoUndef);
+
+            call_inst->addRetAttr(llvm::Attribute::AttrKind::ZExt);
+
+            valeur_retour = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                                 call_inst,
+                                                 llvm::Type::getInt8Ty(m_module->getContext()));
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_CHARGE_BOOL:
@@ -2799,6 +2819,27 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
     }
 
     return résultat;
+}
+
+// À FAIRE : libatomic
+llvm::Function *GénératriceCodeLLVM::donne_fonction_atomic_is_lock_free()
+{
+    if (m_fonction_atomic_is_lock_free == nullptr) {
+        // declare i1 @__atomic_is_lock_free(i64, i8*)
+        std::vector<llvm::Type *> paramètres;
+        paramètres.push_back(llvm::Type::getInt64Ty(m_contexte_llvm));
+        paramètres.push_back(convertis_type_llvm(m_espace.typeuse.type_ptr_rien));
+
+        auto type_sortie_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
+        auto type_llvm = llvm::FunctionType::get(type_sortie_llvm, paramètres, false);
+        auto liaison = llvm::GlobalValue::ExternalLinkage;
+
+        auto résultat = llvm::Function::Create(
+            type_llvm, liaison, "__atomic_is_lock_free", m_module);
+
+        m_fonction_atomic_is_lock_free = résultat;
+    }
+    return m_fonction_atomic_is_lock_free;
 }
 
 llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale(
@@ -3408,11 +3449,6 @@ CoulisseLLVM::~CoulisseLLVM()
     delete m_machine_cible;
 }
 
-static bool est_intrinsèque_supportée_par_llvm(IdentifiantCode const *ident)
-{
-    return ident != ID::atomique_toujours_sans_verrou && ident != ID::atomique_est_sans_verrou;
-}
-
 std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
 {
     if (!initialise_llvm()) {
@@ -3426,13 +3462,6 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     POUR (repr_inter.donne_fonctions()) {
         if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
             auto message = enchaine("Utilisation d'une fonction SSE2 non-implémentée pour LLVM : ",
-                                    it->decl->ident->nom,
-                                    ".");
-            return ErreurCoulisse{message};
-        }
-
-        if (it->est_intrinsèque() && !est_intrinsèque_supportée_par_llvm(it->decl->ident)) {
-            auto message = enchaine("Utilisation d'une intrinsèque non-implémentée pour LLVM : ",
                                     it->decl->ident->nom,
                                     ".");
             return ErreurCoulisse{message};
