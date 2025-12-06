@@ -2444,12 +2444,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg3 = inst_appel->args[2];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             auto ordering = donne_valeur_pour_ordre_mémoire(arg3);
             auto xchg = m_builder.CreateAtomicRMW(
                 llvm::AtomicRMWInst::BinOp::Xchg, arg0, arg1, align, ordering);
@@ -2470,6 +2471,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
@@ -2479,7 +2481,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
             auto arg3 = inst_appel->args[3];
             auto arg4 = inst_appel->args[4];
             auto arg5 = inst_appel->args[5];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             auto compare_échange = m_builder.CreateAtomicCmpXchg(
                 arg0,
                 arg1,
@@ -2503,12 +2505,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Add,
                                                       arg0,
                                                       arg1,
@@ -2529,12 +2532,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Sub,
                                                       arg0,
                                                       arg1,
@@ -2555,12 +2559,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::And,
                                                       arg0,
                                                       arg1,
@@ -2581,12 +2586,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(
                 llvm::AtomicRMWInst::Or, arg0, arg1, align, donne_valeur_pour_ordre_mémoire(arg2));
             break;
@@ -2604,12 +2610,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Xor,
                                                       arg0,
                                                       arg1,
@@ -2630,12 +2637,13 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_ADRESSE_FONCTION:
         {
+            auto type = inst_appel->args[0]->type->comme_type_pointeur()->type_pointé;
             auto arg0 = génère_code_pour_atome(inst_appel->args[0],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg1 = génère_code_pour_atome(inst_appel->args[1],
                                                UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
-            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto align = llvm::Align(type->alignement);
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Nand,
                                                       arg0,
                                                       arg1,
